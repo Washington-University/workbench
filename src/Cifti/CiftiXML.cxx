@@ -852,3 +852,24 @@ void CiftiXML::writeMatrix2(QXmlStreamWriter& xml) const
     }
     xml.writeEndElement();
 }
+
+bool CiftiXML::mutablesModified() const
+{
+    if (m_fileMetaData.isModified()) return true;
+    if (m_filePalette != NULL && m_filePalette->isModified()) return true;
+    for (int d = 0; d < (int)m_indexMaps.size(); ++d)
+    {
+        if (m_indexMaps[d] != NULL && m_indexMaps[d]->mutablesModified()) return true;
+    }
+    return false;
+}
+
+void CiftiXML::clearMutablesModified() const
+{
+    m_fileMetaData.clearModified();
+    if (m_filePalette != NULL) m_filePalette->clearModified();
+    for (int d = 0; d < (int)m_indexMaps.size(); ++d)
+    {
+        if (m_indexMaps[d] != NULL) m_indexMaps[d]->clearMutablesModified();
+    }
+}

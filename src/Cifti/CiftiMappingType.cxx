@@ -60,3 +60,13 @@ QString CiftiMappingType::mappingTypeToName(const CiftiMappingType::MappingType&
     CaretAssert(0);
     return "";
 }
+
+bool CiftiMappingType::mutablesModified() const
+{
+    return false;
+}
+
+void CiftiMappingType::clearMutablesModified() const
+{
+    //nothing
+}

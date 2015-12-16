@@ -35,13 +35,17 @@ namespace caret
     class CiftiScalarsMap : public CiftiMappingType
     {
     public:
+        CiftiScalarsMap();
+        CiftiScalarsMap(const CiftiScalarsMap& rhs);
+        CiftiScalarsMap& operator=(const CiftiScalarsMap& rhs);
+        
         GiftiMetaData* getMapMetadata(const int64_t& index) const;//HACK: allow modification of palette and metadata within XML without setting the xml on a file again
         PaletteColorMapping* getMapPalette(const int64_t& index) const;
         const QString& getMapName(const int64_t& index) const;
         int64_t getIndexFromNumberOrName(const QString& numberOrName) const;
         QString getIndexName(const int64_t& index) const { return getMapName(index); }
         
-        void setMapName(const int64_t& index, const QString& mapName) const;//ditto
+        void setMapName(const int64_t& index, const QString& mapName) const;//HACK: ditto
         void setLength(const int64_t& length);
         void clear();//do we need this?
         
@@ -54,7 +58,10 @@ namespace caret
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;
         void writeXML2(QXmlStreamWriter& xml) const;
+        bool mutablesModified() const;
+        void clearMutablesModified() const;
     private:
+        mutable bool m_namesModified;
         struct ScalarMap
         {
             mutable QString m_name;//we need a better way to change metadata in an in-memory file

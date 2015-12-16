@@ -77,6 +77,7 @@ void CiftiLabelsMap::setMapName(const int64_t& index, const QString& mapName) co
 {
     CaretAssertVectorIndex(m_maps, index);
     m_maps[index].m_name = mapName;
+    m_namesModified = true;
 }
 
 bool CiftiLabelsMap::approximateMatch(const CiftiMappingType& rhs, QString* explanation) const
@@ -296,5 +297,45 @@ void CiftiLabelsMap::writeXML2(QXmlStreamWriter& xml) const
         m_maps[i].m_metaData.writeCiftiXML2(xml);
         m_maps[i].m_labelTable.writeAsXML(xml);
         xml.writeEndElement();
+    }
+}
+
+//support for internal objects that track modified status
+CiftiLabelsMap::CiftiLabelsMap()
+{
+    m_namesModified = false;
+}
+
+CiftiLabelsMap::CiftiLabelsMap(const CiftiLabelsMap& rhs)
+{
+    m_namesModified = false;
+    m_maps = rhs.m_maps;//no idea what happens to the modification status of members here
+}
+
+CiftiLabelsMap& CiftiLabelsMap::operator=(const CiftiLabelsMap& rhs)
+{
+    m_namesModified = false;
+    m_maps = rhs.m_maps;//ditto
+    return *this;
+}
+
+bool CiftiLabelsMap::mutablesModified() const
+{
+    if (m_namesModified) return true;
+    for (int64_t i = 0; i < getLength(); ++i)
+    {
+        if (getMapLabelTable(i)->isModified()) return true;
+        if (getMapMetadata(i)->isModified()) return true;
+    }
+    return false;
+}
+
+void CiftiLabelsMap::clearMutablesModified() const
+{
+    m_namesModified = false;
+    for (int64_t i = 0; i < getLength(); ++i)
+    {
+        getMapLabelTable(i)->clearModified();
+        getMapMetadata(i)->clearModified();
     }
 }

@@ -146,7 +146,7 @@ void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVe
     bool collision = false, hadWriter = (m_writingImpl != NULL);
     if (testImpl != NULL && canonicalFilename != "" && FileInformation(testImpl->getFilename()).getCanonicalFilePath() == canonicalFilename)
     {//empty string test is so that we don't say collision if both are nonexistant - could happen if file is removed/unlinked while reading on some filesystems
-        if (m_onDiskVersion == writingVersion) return;//don't need to copy to itself
+        if (m_onDiskVersion == writingVersion && !m_xml.mutablesModified()) return;//don't need to copy to itself
         collision = true;//we need to copy to memory temporarily
         CaretPointer<WriteImplInterface> tempMemory(new CiftiMemoryImpl(m_xml));
         copyImplData(m_readingImpl, tempMemory, m_dims);
@@ -164,6 +164,7 @@ void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVe
             m_writingImpl = tempWrite;//set the writer too
         }
     }
+    m_xml.clearMutablesModified();
 }
 
 void CiftiFile::convertToInMemory()

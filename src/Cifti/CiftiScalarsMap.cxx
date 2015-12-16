@@ -318,3 +318,43 @@ void CiftiScalarsMap::writeXML2(QXmlStreamWriter& xml) const
         xml.writeEndElement();
     }
 }
+
+//support for internal objects that track modified status
+CiftiScalarsMap::CiftiScalarsMap()
+{
+    m_namesModified = false;
+}
+
+CiftiScalarsMap::CiftiScalarsMap(const CiftiScalarsMap& rhs)
+{
+    m_maps = rhs.m_maps;
+    clearMutablesModified();//this newly created map is not modified
+}
+
+CiftiScalarsMap& CiftiScalarsMap::operator=(const CiftiScalarsMap& rhs)
+{
+    m_maps = rhs.m_maps;
+    clearMutablesModified();//this map isn't const, so don't count it as modified
+    return *this;
+}
+
+bool CiftiScalarsMap::mutablesModified() const
+{
+    if (m_namesModified) return true;
+    for (int64_t i = 0; i < getLength(); ++i)
+    {
+        if (m_maps[i].m_palette != NULL && m_maps[i].m_palette->isModified()) return true;
+        if (getMapMetadata(i)->isModified()) return true;
+    }
+    return false;
+}
+
+void CiftiScalarsMap::clearMutablesModified() const
+{
+    m_namesModified = false;
+    for (int64_t i = 0; i < getLength(); ++i)
+    {
+        if (m_maps[i].m_palette != NULL) m_maps[i].m_palette->clearModified();
+        getMapMetadata(i)->clearModified();
+    }
+}

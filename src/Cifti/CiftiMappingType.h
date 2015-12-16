@@ -52,6 +52,8 @@ namespace caret
         virtual void readXML2(QXmlStreamReader& xml) = 0;
         virtual void writeXML1(QXmlStreamWriter& xml) const = 0;
         virtual void writeXML2(QXmlStreamWriter& xml) const = 0;
+        virtual bool mutablesModified() const;
+        virtual void clearMutablesModified() const;//HACK: clear modified status on a const object
         virtual ~CiftiMappingType();
         
         static QString mappingTypeToName(const MappingType& type);

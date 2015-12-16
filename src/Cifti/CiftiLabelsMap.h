@@ -35,6 +35,10 @@ namespace caret
     class CiftiLabelsMap : public CiftiMappingType
     {
     public:
+        CiftiLabelsMap();
+        CiftiLabelsMap(const CiftiLabelsMap& rhs);
+        CiftiLabelsMap& operator=(const CiftiLabelsMap& rhs);
+        
         GiftiMetaData* getMapMetadata(const int64_t& index) const;//HACK: allow modification of label table and metadata within XML without setting the xml on a file again
         GiftiLabelTable* getMapLabelTable(const int64_t& index) const;
         const QString& getMapName(const int64_t& index) const;
@@ -54,7 +58,10 @@ namespace caret
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;
         void writeXML2(QXmlStreamWriter& xml) const;
+        bool mutablesModified() const;
+        void clearMutablesModified() const;
     private:
+        mutable bool m_namesModified;
         struct LabelMap
         {
             mutable QString m_name;//we need a better way to change metadata in an in-memory file

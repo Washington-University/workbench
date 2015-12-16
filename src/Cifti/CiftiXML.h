@@ -93,6 +93,9 @@ namespace caret
         bool operator==(const CiftiXML& rhs) const;
         bool operator!=(const CiftiXML& rhs) const { return !((*this) == rhs); }
         bool approximateMatch(const CiftiXML& rhs) const;
+        
+        bool mutablesModified() const;
+        void clearMutablesModified() const;//HACK: clear modified status on a const object
     private:
         std::vector<CaretPointer<CiftiMappingType> > m_indexMaps;
         CiftiVersion m_parsedVersion;
