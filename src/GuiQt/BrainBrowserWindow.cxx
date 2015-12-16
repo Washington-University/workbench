@@ -30,6 +30,7 @@
 #include <QMessageBox>
 #include <QTabBar>
 #include <QUrl>
+#include <QUuid>
 
 #define __BRAIN_BROWSER_WINDOW_DECLARE__
 #include "BrainBrowserWindow.h"
@@ -3677,8 +3678,13 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
          */
         const TileTabsConfiguration* tileTabs = getSelectedTileTabsConfiguration();
         if (tileTabs != NULL) {
+            TileTabsConfiguration writeConfig(*tileTabs);
+            writeConfig.setName(QUuid::createUuid().toString());
             sceneClass->addString("m_sceneTileTabsConfiguration",
-                                  tileTabs->encodeInXML());
+                                  writeConfig.encodeInXML());
+            
+//            sceneClass->addString("m_sceneTileTabsConfiguration",
+//                                  tileTabs->encodeInXML());
         }
     }
     
