@@ -31,7 +31,12 @@ make install
 
 It should be noted that wb_import, provided in the HCP binary releases of Connectome Workbench, is actually part of caret5 (http://brainvis.wustl.edu/wiki/index.php/Caret:Download).
 
-Connectome Workbench itself is copyright 2014-2015 Washington University School of Medicine, licensed under GPLv2 or later, see LICENSE file
+Connectome Workbench itself is licensed under GPLv2 or later, copyright 2014-2015 Washington University School of Medicine, see LICENSE file
+
+Some source files are licensed under an MIT license (Expat), for easier code reuse in non-GPL projects:
+Files/SurfaceResamplingHelper.cxx
+Cifti/examples/*
+Copyright (C) 2014-2015 Washington University School of Medicine
 
 Some included code/files are from third party sources, with the following licenses:
 
@@ -79,3 +84,4 @@ rewritten for different argument types, modified
 
 Resources/FtglFonts/Vera*.ttf
 Copyright (c) 2003 Bitstream, Inc.
+licensed under Bitstream-Vera (basically, modification of fonts requires calling them something else), see debian/copyright file
