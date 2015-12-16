@@ -245,6 +245,9 @@ namespace caret {
         bool convertModelToWindowCoordinate(const float modelXYZ[3],
                                             float windowXYZOut[3]) const;
         
+        void viewportToOpenGLWindowCoordinate(const float viewportXYZ[3],
+                                              float openGLXYZOut[3]) const;
+        
         void createLineCoordinates(const float lineHeadXYZ[3],
                                    const float lineTailXYZ[3],
                                    const float lineThickness,

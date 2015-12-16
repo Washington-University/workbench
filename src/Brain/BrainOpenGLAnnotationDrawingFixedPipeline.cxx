@@ -112,6 +112,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::toString() const
 }
 
 /**
+ * Convert a viewport coordinate to an OpenGL window coordinate.
+ *
+ * @param viewportXYZ
+ *     Viewport coordinate
+ * @param openGLXYZOut
+ *     Output OpenGL coordinate.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::viewportToOpenGLWindowCoordinate(const float viewportXYZ[3],
+                                                                            float openGLXYZOut[3]) const
+{
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    openGLXYZOut[0] = viewport[2] * (viewportXYZ[0] / 100.0);
+    openGLXYZOut[1] = viewport[3] * (viewportXYZ[1] / 100.0);
+    openGLXYZOut[2] = (-viewportXYZ[2] / 100.0);
+}
+
+/**
  * Get the window coordinate for display of the annotation.
  *
  * @param coordinate
@@ -227,26 +247,32 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-        {
-            GLint viewport[4];
-            glGetIntegerv(GL_VIEWPORT,
-                          viewport);
-            windowXYZ[0] = viewport[2] * (annotationXYZ[0] / 100.0);
-            windowXYZ[1] = viewport[3] * (annotationXYZ[1] / 100.0);
-            windowXYZ[2] = annotationXYZ[2] / 100.0;
+            viewportToOpenGLWindowCoordinate(annotationXYZ, windowXYZ);
             windowXYZValid = true;
-        }
+//        {
+//            GLint viewport[4];
+//            glGetIntegerv(GL_VIEWPORT,
+//                          viewport);
+//            windowXYZ[0] = viewport[2] * (annotationXYZ[0] / 100.0);
+//            windowXYZ[1] = viewport[3] * (annotationXYZ[1] / 100.0);
+////            windowXYZ[2] = annotationXYZ[2] / 100.0;
+//            windowXYZ[2] = toWindowZ(annotationXYZ[2]);
+//            windowXYZValid = true;
+//        }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-        {
-            GLint viewport[4];
-            glGetIntegerv(GL_VIEWPORT,
-                          viewport);
-            windowXYZ[0] = viewport[2] * (annotationXYZ[0] / 100.0);
-            windowXYZ[1] = viewport[3] * (annotationXYZ[1] / 100.0);
-            windowXYZ[2] = annotationXYZ[2] / 100.0;
+            viewportToOpenGLWindowCoordinate(annotationXYZ, windowXYZ);
             windowXYZValid = true;
-        }
+//        {
+//            GLint viewport[4];
+//            glGetIntegerv(GL_VIEWPORT,
+//                          viewport);
+//            windowXYZ[0] = viewport[2] * (annotationXYZ[0] / 100.0);
+//            windowXYZ[1] = viewport[3] * (annotationXYZ[1] / 100.0);
+////            windowXYZ[2] = annotationXYZ[2] / 100.0;
+//            windowXYZ[2] = toWindowZ(annotationXYZ[2]);
+//            windowXYZValid = true;
+//        }
             break;
     }
     
@@ -273,6 +299,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
     
     return windowXYZValid;
 }
+
 
 /**
  * Convert the given model coordinate into a window coordinate.
@@ -926,7 +953,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::startOpenGLForDrawing(GLint* savedSha
     glLoadIdentity();
     glOrtho(0.0, m_modelSpaceViewport[2],
             0.0, m_modelSpaceViewport[3],
-            -1.0, 1.0);  //depthRange[0], depthRange[1]);  // -1.0, 1.0);
+            depthRange[0], depthRange[1]);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();

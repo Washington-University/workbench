@@ -312,8 +312,8 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
             (viewport[2]),
             0,
             (viewport[3]),
-            -1.0, //depthRange[0], //-1,
-            1.0); //depthRange[1]); //1);
+            depthRange[0],
+            depthRange[1]);
     
     /*
      * Viewing projection is just the identity matrix since

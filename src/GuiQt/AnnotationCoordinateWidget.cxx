@@ -114,30 +114,30 @@ m_browserWindowIndex(browserWindowIndex)
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_xCoordSpinBox,
                                          "X-coordinate of annotation\n"
-                                         "   MODEL: Stereotaxic Coordinate\n"
-                                         "   TAB and WINDOW X-Range: [0.0, 100.0]\n"
-                                         "      0.0 => Left side of tab/window\n"
-                                         "      100.0 => Right side of tab/window\n");
+                                         "   STEREOTAXIC: Stereotaxic X-Coordinate\n"
+                                         "   TAB and WINDOW X-Range: [0.0%, 100.0%]\n"
+                                         "      0.0% => Left side of tab/window\n"
+                                         "      100.0% => Right side of tab/window\n");
     
     QLabel* yCoordLabel = new QLabel(" Y" + colonString);
     m_yCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 0.1, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_yCoordSpinBox,
                                          "Y-coordinate of annotation\n"
-                                         "   MODEL: Stereotaxic Coordinate\n"
-                                         "   TAB and WINDOW Y-Range: [0.0, 100.0]\n"
-                                         "      0.0 => Bottom of tab/window\n"
-                                         "      100.0 => Top of tab/window\n");
+                                         "   STEREOTAXIC: Stereotaxic Y-Coordinate\n"
+                                         "   TAB and WINDOW Y-Range: [0.0%, 100.0%]\n"
+                                         "      0.0% => Bottom of tab/window\n"
+                                         "      100.0% => Top of tab/window\n");
     
     QLabel* zCoordLabel = new QLabel(" Z" + colonString);
     m_zCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-100.0, 100.0, 0.1, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_zCoordSpinBox,
                                          "Z-coordinate of annotation\n"
-                                         "   MODEL: Stereotaxic Coordinate\n"
-                                         "   TAB and WINDOW DEPTH Range: [-100.0, 100.0]\n"
-                                         "       100.0 => Toward's viewer\n"
-                                         "      -100.0 => Away from viewer\n");
+                                         "   STEREOTAXIC: Stereotaxic Z-Coordinate\n"
+                                         "   TAB and WINDOW DEPTH Range: [0.0%, 100.0%]\n"
+                                         "         0.0% => Toward's viewer\n"
+                                         "       100.0% => Away from viewer\n");
     
 
     m_plusButtonToolTipText = ("Click the mouse to set the new location for the coordinate.\n"
@@ -268,8 +268,10 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 surfaceFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
+                zMin = 0.0;
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
+                zMin = 0.0;
                 break;
         }
         
