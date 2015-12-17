@@ -443,26 +443,30 @@ BrainOpenGLFixedPipeline::setTabViewport(const BrainOpenGLViewportContent* vpCon
  *     Output with window color bars in the viewports.
  */
 void
-BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& viewportContents)
+BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& /*viewportContents*/)
 {
     m_annotationColorBarsForDrawing.clear();
     
-    std::vector<int32_t> tabIndices;
-    
-    for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
-        /*
-         * Viewport of window.
-         */
-        BrainOpenGLViewportContent* vpContent = viewportContents[i];
-        if (vpContent != NULL) {
-            BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
-            if (tabContent != NULL) {
-                tabIndices.push_back(tabContent->getTabNumber());
-            }
-        }
-    }
-    
-    EventAnnotationColorBarGet colorBarEvent(tabIndices);
+//    std::vector<int32_t> tabIndices;
+//    for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+//        /*
+//         * Viewport of window.
+//         */
+//        BrainOpenGLViewportContent* vpContent = viewportContents[i];
+//        if (vpContent != NULL) {
+//            BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
+//            if (tabContent != NULL) {
+//                tabIndices.push_back(tabContent->getTabNumber());
+//            }
+//        }
+//    }
+    /*
+     * When in tile tabs, a tab may have a color bar in window
+     * space that appears in a different tab.  So, we need to 
+     * get all color bars.  Otherwise, the user will not be able
+     * to select a color when it is displayed in a different tab.
+     */
+    EventAnnotationColorBarGet colorBarEvent;  //tabIndices);
     EventManager::get()->sendEvent(colorBarEvent.getPointer());
     m_annotationColorBarsForDrawing = colorBarEvent.getAnnotationColorBars();
 }
