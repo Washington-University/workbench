@@ -169,7 +169,7 @@ AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, co
     {
         *provenanceMD = savedMD;//put it back
     }
-    surfaceOut->setStructure(newSphere->getStructure());
+    surfaceOut->setStructure(surfaceIn->getStructure());
     surfaceOut->setSecondaryType(surfaceIn->getSecondaryType());
     surfaceOut->setSurfaceType(surfaceIn->getSurfaceType());
     vector<float> coordScratch(numNewNodes * 3, 0.0f);

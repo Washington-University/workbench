@@ -182,7 +182,7 @@ AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, cons
     }
     int numColumns = metricIn->getNumberOfColumns(), numNewNodes = newSphere->getNumberOfNodes();
     metricOut->setNumberOfNodesAndColumns(numNewNodes, numColumns);
-    metricOut->setStructure(newSphere->getStructure());
+    metricOut->setStructure(metricIn->getStructure());
     vector<float> colScratch(numNewNodes, 0.0f);
     const float* roiCol = NULL;
     if (currentRoi != NULL) roiCol = currentRoi->getValuePointerForColumn(0);
@@ -190,7 +190,7 @@ AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, cons
     if (validRoiOut != NULL)
     {
         validRoiOut->setNumberOfNodesAndColumns(numNewNodes, 1);
-        validRoiOut->setStructure(newSphere->getStructure());
+        validRoiOut->setStructure(metricIn->getStructure());
         vector<float> scratch(numNewNodes);
         myHelp.getResampleValidROI(scratch.data());
         validRoiOut->setValuesForColumn(0, scratch.data());

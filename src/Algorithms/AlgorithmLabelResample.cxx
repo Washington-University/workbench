@@ -180,7 +180,7 @@ AlgorithmLabelResample::AlgorithmLabelResample(ProgressObject* myProgObj, const 
     }
     int numColumns = labelIn->getNumberOfColumns(), numNewNodes = newSphere->getNumberOfNodes();
     labelOut->setNumberOfNodesAndColumns(numNewNodes, numColumns);
-    labelOut->setStructure(newSphere->getStructure());
+    labelOut->setStructure(labelIn->getStructure());
     *labelOut->getLabelTable() = *labelIn->getLabelTable();
     int32_t unusedLabel = labelIn->getLabelTable()->getUnassignedLabelKey();
     vector<int32_t> colScratch(numNewNodes, unusedLabel);
@@ -190,7 +190,7 @@ AlgorithmLabelResample::AlgorithmLabelResample(ProgressObject* myProgObj, const 
     if (validRoiOut != NULL)
     {
         validRoiOut->setNumberOfNodesAndColumns(numNewNodes, 1);
-        validRoiOut->setStructure(newSphere->getStructure());
+        validRoiOut->setStructure(labelIn->getStructure());
         vector<float> scratch(numNewNodes);
         myHelp.getResampleValidROI(scratch.data());
         validRoiOut->setValuesForColumn(0, scratch.data());

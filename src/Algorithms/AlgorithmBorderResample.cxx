@@ -81,7 +81,7 @@ AlgorithmBorderResample::AlgorithmBorderResample(ProgressObject* myProgObj, cons
     *(borderOut->getClassColorTable()) = *(borderIn->getClassColorTable());
     *(borderOut->getNameColorTable()) = *(borderIn->getNameColorTable());
     *(borderOut->getFileMetaData()) = *(borderIn->getFileMetaData());
-    borderOut->setStructure(newSphere->getStructure());
+    borderOut->setStructure(curSphere->getStructure());
     borderOut->setNumberOfNodes(newSphere->getNumberOfNodes());
     int numBorderMDKeys = borderIn->getNumberOfBorderMetadataKeys();
     for (int m = 0; m < numBorderMDKeys; ++m)
@@ -109,7 +109,7 @@ AlgorithmBorderResample::AlgorithmBorderResample(ProgressObject* myProgObj, cons
             if (!valid) throw AlgorithmException("input file has a border point that is invalid for the current sphere");
             BarycentricInfo myBaryInfo;
             myHelp->barycentricWeights(coord, myBaryInfo);
-            outPoint->setStructure(newSphere->getStructure());
+            outPoint->setStructure(inputBorder->getStructure());
             outPoint->getBarycentricProjection()->setTriangleNodes(myBaryInfo.nodes);
             outPoint->getBarycentricProjection()->setTriangleAreas(myBaryInfo.baryWeights);
             outPoint->getBarycentricProjection()->setProjectionSurfaceNumberOfNodes(newSphere->getNumberOfNodes());
