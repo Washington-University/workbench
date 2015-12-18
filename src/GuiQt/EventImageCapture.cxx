@@ -45,8 +45,12 @@ using namespace caret;
 EventImageCapture::EventImageCapture(const int32_t browserWindowIndex)
 : Event(EventTypeEnum::EVENT_IMAGE_CAPTURE),
 m_browserWindowIndex(browserWindowIndex),
-m_imageSizeX(0),
-m_imageSizeY(0)
+m_captureOffsetX(0),
+m_captureOffsetY(0),
+m_captureWidth(0),
+m_captureHeight(0),
+m_outputWidth(0),
+m_outputHeight(0)
 {
 }
 
@@ -56,18 +60,34 @@ m_imageSizeY(0)
  *
  * @param browserWindowIndex
  *    The browser window index.
- * @param imageSizeX
- *    X-Size for the captured image.
- * @param imageSizeY
- *    Y-Size for the captured image.
+ * @param captureOffsetX
+ *    X-offset for capturing image.
+ * @param captureOffsetY
+ *    Y-offset for capturing image.
+ * @param captureWidth
+ *    Width for capturing image.
+ * @param captureHeight
+ *    Height for capturing image.
+ * @param outputWidth
+ *    Width of output image.
+ * @param outputHeight
+ *    Height of output image.
  */
 EventImageCapture::EventImageCapture(const int32_t browserWindowIndex,
-                                     const int32_t imageSizeX,
-                                     const int32_t imageSizeY)
+                                     const int32_t captureOffsetX,
+                                     const int32_t captureOffsetY,
+                                     const int32_t captureWidth,
+                                     const int32_t captureHeight,
+                                     const int32_t outputWidth,
+                                     const int32_t outputHeight)
 : Event(EventTypeEnum::EVENT_IMAGE_CAPTURE),
 m_browserWindowIndex(browserWindowIndex),
-m_imageSizeX(imageSizeX),
-m_imageSizeY(imageSizeY)
+m_captureOffsetX(captureOffsetX),
+m_captureOffsetY(captureOffsetY),
+m_captureWidth(captureWidth),
+m_captureHeight(captureHeight),
+m_outputWidth(outputWidth),
+m_outputHeight(outputHeight)
 {
     m_backgroundColor[0] = 0;
     m_backgroundColor[1] = 0;
@@ -92,21 +112,57 @@ EventImageCapture::getBrowserWindowIndex() const
 }
 
 /**
- * @return The image X size.
+ * @return The capture X offset
  */
 int32_t
-EventImageCapture::getImageSizeX() const
+EventImageCapture::getCaptureOffsetX() const
 {
-    return m_imageSizeX;
+    return m_captureOffsetX;
 }
 
 /**
- * @return The image Y size.
+ * @return The capture Y offset
  */
 int32_t
-EventImageCapture::getImageSizeY() const
+EventImageCapture::getCaptureOffsetY() const
 {
-    return m_imageSizeY;
+    return m_captureOffsetY;
+}
+
+/**
+ * @return The capture width
+ */
+int32_t
+EventImageCapture::getCaptureWidth() const
+{
+    return m_captureWidth;
+}
+
+/**
+ * @return The capture height
+ */
+int32_t
+EventImageCapture::getCaptureHeight() const
+{
+    return m_captureHeight;
+}
+
+/**
+ * @return The output image width.
+ */
+int32_t
+EventImageCapture::getOutputWidth() const
+{
+    return m_outputWidth;
+}
+
+/**
+ * @return The output image height.
+ */
+int32_t
+EventImageCapture::getOutputHeight() const
+{
+    return m_outputHeight;
 }
 
 /**

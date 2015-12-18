@@ -676,6 +676,10 @@ void MovieDialog::captureFrame(AString filename)
 //        imageFile,
 //        false);
     EventImageCapture imageCaptureEvent(m_browserWindowIndex,
+                                        0,
+                                        0,
+                                        0,
+                                        0,
                                         imageX,
                                         imageY);
     EventManager::get()->sendEvent(imageCaptureEvent.getPointer());

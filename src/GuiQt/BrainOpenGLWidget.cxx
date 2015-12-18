@@ -1394,8 +1394,12 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
      * Note that a size of zero indicates capture graphics in its
      * current size.
      */
-    const int imageSizeX = imageCaptureEvent->getImageSizeX();
-    const int imageSizeY = imageCaptureEvent->getImageSizeY();
+    const int captureOffsetX    = imageCaptureEvent->getCaptureOffsetX();
+    const int captureOffsetY    = imageCaptureEvent->getCaptureOffsetY();
+    const int captureWidth      = imageCaptureEvent->getCaptureWidth();
+    const int captureHeight     = imageCaptureEvent->getCaptureHeight();
+    const int outputImageWidth  = imageCaptureEvent->getOutputWidth();
+    const int outputImageHeight = imageCaptureEvent->getOutputHeight();
     
     /*
      * Force immediate mode since problems with display lists
@@ -1420,6 +1424,17 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
             repaint();
             image = grabFrameBuffer();
             
+            if ((captureOffsetX > 0)
+                || (captureOffsetY > 0)) {
+                if ((captureWidth > 0)
+                    && (captureHeight > 0)) {
+                    image = image.copy(captureOffsetX,
+                                       captureOffsetY,
+                                       captureWidth,
+                                       captureHeight);
+                }
+            }
+            
             /*
              * If image was captured successfully and the caller has 
              * requested that the image be a specific size, scale
@@ -1427,12 +1442,12 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
              */
             if ((image.width() > 0)
                 && (image.height() > 0)) {
-                if ((imageSizeX > 0)
-                    && (imageSizeY > 0)) {
-                    if ((image.width() != imageSizeX)
-                        || (image.height() != imageSizeY)) {
-                        image = image.scaled(imageSizeX,
-                                             imageSizeY,
+                if ((outputImageWidth > 0)
+                    && (outputImageHeight > 0)) {
+                    if ((image.width() != outputImageWidth)
+                        || (image.height() != outputImageHeight)) {
+                        image = image.scaled(outputImageWidth,
+                                             outputImageHeight,
                                              Qt::IgnoreAspectRatio,
                                              Qt::SmoothTransformation);
                     }
@@ -1443,14 +1458,22 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP:
         {
             /*
-             * Note: QGLWidget::renderPixmap() creates a new OpenGL
+             * Note 1: QGLWidget::renderPixmap() creates a new OpenGL
              * Context which destroys any textures in the existing
              * OpenGL context.  So, after execution of 
              * QGLWidget::renderPixmap(), we need to create a
              * new text renderer.
+             *
+             * Note 2: When the user chooses to exclude regions
+             * caused by locking of tab/window aspect ratio,
+             * the pixmap is rendered to the output width and
+             * height and in the correct aspect ratio so when
+             * the rendering takes place, there is no empty 
+             * region caused by aspect locking that needs to 
+             * be excluded.
              */
-            QPixmap pixmap = this->renderPixmap(imageSizeX,
-                                                imageSizeY);
+            QPixmap pixmap = this->renderPixmap(outputImageWidth,
+                                                outputImageHeight);
             image = pixmap.toImage();
             this->openGL->setTextRenderer(createTextRenderer());
         }

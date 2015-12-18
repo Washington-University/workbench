@@ -876,6 +876,65 @@ ImageCaptureDialog::receiveEvent(Event* event)
 /**
  * Get the width and height of the selected window.
  *
+ * @param xOut
+ *    X-Offset of window graphics
+ * @param yOut
+ *    Y-Offset of window graphics
+ * @param widthOut
+ *    Width of window with aspect applied.
+ * @param heightOut
+ *    Height of window with aspect applied
+ * @param int32_t& graphicsWidthOut
+ *    Width of graphics without aspect applied.
+ * @param int32_t& graphicsHeightOut
+ *    Height of graphics without aspect applied.
+ * @param aspectRatioOut
+ *    Aspect ratio of window (height / width)
+ * @return
+ *    True if selected window is valid and both height and width
+ *    are greater than zero, else false.
+ */
+bool
+ImageCaptureDialog::getSelectedWindowCoordsWidthAndHeight(int32_t& xOut,
+                                                          int32_t& yOut,
+                                                          int32_t& widthOut,
+                                                          int32_t& heightOut,
+                                                          int32_t& graphicsWidthOut,
+                                                          int32_t& graphicsHeightOut,
+                                                          float& aspectRatioOut) const
+{
+    xOut = 0;
+    yOut = 0;
+    widthOut  = 0;
+    heightOut = 0;
+    graphicsWidthOut  = 0;
+    graphicsHeightOut = 0;
+    
+    const int selectedBrowserWindowIndex = m_windowSelectionSpinBox->value() - 1;
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(selectedBrowserWindowIndex);
+    
+    if (browserWindow != NULL) {
+        browserWindow->getGraphicsWidgetSize(xOut,
+                                             yOut,
+                                             widthOut,
+                                             heightOut,
+                                             graphicsWidthOut,
+                                             graphicsHeightOut,
+                                             m_windowCropToLockAspectRegionCheckBox->isChecked());
+        if ((widthOut > 0)
+            && (heightOut > 0)) {
+            aspectRatioOut = (static_cast<float>(heightOut)
+                              / static_cast<float>(widthOut));
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Get the width and height of the selected window.
+ *
  * @param widthOut
  *    Width of window.
  * @param heightOut
@@ -891,22 +950,33 @@ ImageCaptureDialog::getSelectedWindowWidthAndHeight(int32_t& widthOut,
                                                     int32_t& heightOut,
                                                     float& aspectRatioOut) const
 {
+    int32_t x = 0;
+    int32_t y = 0;
+    int32_t graphicsWidth  = 0;
+    int32_t graphicsHeight = 0;
+    return getSelectedWindowCoordsWidthAndHeight(x,
+                                                 y,
+                                                 widthOut,
+                                                 heightOut,
+                                                 graphicsWidth,
+                                                 graphicsHeight,
+                                                 aspectRatioOut);
     
-    const int selectedBrowserWindowIndex = m_windowSelectionSpinBox->value() - 1;
-    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(selectedBrowserWindowIndex);
-    
-    if (browserWindow != NULL) {
-        browserWindow->getGraphicsWidgetSize(widthOut,
-                                             heightOut,
-                                             m_windowCropToLockAspectRegionCheckBox->isChecked());
-        if ((widthOut > 0)
-            && (heightOut > 0)) {
-            aspectRatioOut = (static_cast<float>(heightOut)
-                              / static_cast<float>(widthOut));
-            return true;
-        }
-    }
-    return false;
+//    const int selectedBrowserWindowIndex = m_windowSelectionSpinBox->value() - 1;
+//    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(selectedBrowserWindowIndex);
+//    
+//    if (browserWindow != NULL) {
+//        browserWindow->getGraphicsWidgetSize(widthOut,
+//                                             heightOut,
+//                                             m_windowCropToLockAspectRegionCheckBox->isChecked());
+//        if ((widthOut > 0)
+//            && (heightOut > 0)) {
+//            aspectRatioOut = (static_cast<float>(heightOut)
+//                              / static_cast<float>(widthOut));
+//            return true;
+//        }
+//    }
+//    return false;
 }
 
 
@@ -976,28 +1046,40 @@ ImageCaptureDialog::applyButtonClicked()
     ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     const int browserWindowIndex = m_windowSelectionSpinBox->value() - 1;
     
+    int32_t windowX;
+    int32_t windowY;
     int32_t windowWidth;
     int32_t windowHeight;
+    int32_t widgetWidth;
+    int32_t widgetHeight;
     float windowAspectRatio;
-    if (getSelectedWindowWidthAndHeight(windowWidth,
-                                        windowHeight,
-                                        windowAspectRatio)) {
+    if ( ! getSelectedWindowCoordsWidthAndHeight(windowX,
+                                                 windowY,
+                                                 windowWidth,
+                                                 windowHeight,
+                                                 widgetWidth,
+                                                 widgetHeight,
+                                                 windowAspectRatio)) {
+        WuQMessageBox::errorOk(this,
+                               "Failed to get window size");
+        return;
     }
+    
     /*
      * Default to width of window that may exclude empty regions
      * caused by locking of aspect ratio.
      */
-    int32_t imageX = windowWidth;
-    int32_t imageY = windowHeight;
+    int32_t imageWidth = windowWidth;
+    int32_t imageHeight = windowHeight;
     if (m_imageSizeCustomRadioButton->isChecked()) {
-        imageX = m_pixelWidthSpinBox->value();
-        imageY = m_pixelHeightSpinBox->value();
+        imageWidth  = m_pixelWidthSpinBox->value();
+        imageHeight = m_pixelHeightSpinBox->value();
         
         if ((windowWidth > 0)
             && (windowHeight > 0)) {
-            const float windowWidthScaling = (static_cast<float>(imageX)
+            const float windowWidthScaling = (static_cast<float>(imageWidth)
                                               / static_cast<float>(windowWidth));
-            const float windowHeightScaling = (static_cast<float>(imageY)
+            const float windowHeightScaling = (static_cast<float>(imageHeight)
                                                / static_cast<float>(windowHeight));
             
             ChartMatrixDisplayProperties::setManualScaleModeWindowWidthHeightScaling(windowWidthScaling,
@@ -1005,12 +1087,14 @@ ImageCaptureDialog::applyButtonClicked()
         }
     }
     
-
     EventImageCapture imageCaptureEvent(browserWindowIndex,
-                                        imageX,
-                                        imageY);
+                                        windowX,
+                                        windowY,
+                                        windowWidth,
+                                        windowHeight,
+                                        imageWidth,
+                                        imageHeight);
     EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
-    
     bool errorFlag = false;
     if (imageCaptureEvent.getEventProcessCount() <= 0) {
         WuQMessageBox::errorOk(this,

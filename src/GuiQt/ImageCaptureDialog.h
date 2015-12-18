@@ -101,6 +101,14 @@ namespace caret {
         void updateImageOptionsSection();
         void updateDestinationSection();
         
+        bool getSelectedWindowCoordsWidthAndHeight(int32_t& xOut,
+                                                   int32_t& yOut,
+                                                   int32_t& widthOut,
+                                                   int32_t& heightOut,
+                                                   int32_t& graphicsWidthOut,
+                                                   int32_t& graphicsHeightOut,
+                                                   float& aspectRatioOut) const;
+        
         bool getSelectedWindowWidthAndHeight(int32_t& widthOut,
                                              int32_t& heightOut,
                                              float& aspectRatioOut) const;

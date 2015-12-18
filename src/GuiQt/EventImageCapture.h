@@ -31,8 +31,12 @@ namespace caret {
         
     public:
         EventImageCapture(const int32_t browserWindowIndex,
-                          const int32_t imageSizeX,
-                          const int32_t imageSizeY);
+                          const int32_t captureOffsetX,
+                          const int32_t captureOffsetY,
+                          const int32_t captureWidth,
+                          const int32_t captureHeight,
+                          const int32_t outputWidth,
+                          const int32_t outputHeight);
         
         EventImageCapture(const int32_t browserWindowIndex);
         
@@ -40,9 +44,17 @@ namespace caret {
         
         int32_t getBrowserWindowIndex() const;
         
-        int32_t getImageSizeX() const;
+        int32_t getOutputWidth() const;
         
-        int32_t getImageSizeY() const;
+        int32_t getOutputHeight() const;
+        
+        int32_t getCaptureOffsetX() const;
+        
+        int32_t getCaptureOffsetY() const;
+        
+        int32_t getCaptureWidth() const;
+        
+        int32_t getCaptureHeight() const;
         
         QImage getImage() const;
         
@@ -66,9 +78,17 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        const int32_t m_imageSizeX;
+        const int32_t m_captureOffsetX;
         
-        const int32_t m_imageSizeY;
+        const int32_t m_captureOffsetY;
+        
+        const int32_t m_captureWidth;
+        
+        const int32_t m_captureHeight;
+        
+        const int32_t m_outputWidth;
+        
+        const int32_t m_outputHeight;
         
         uint8_t m_backgroundColor[3];
         

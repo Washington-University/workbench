@@ -427,19 +427,35 @@ BrainBrowserWindow::setGraphicsWidgetFixedSize(const int32_t width,
 /**
  * Get the graphics widget size.
  *
+ * @param xOut
+ *     X-coord of graphics region (may be non-zero when lock aspect applied)
+ * @param yOut
+ *     Y-coord of graphics region (may be non-zero when lock aspect applied)
  * @param widthOut
  *     Width of the graphics widget.
  * @param heightOut
  *     Height of the graphics widget.
+ * @param graphicsWidthOut
+ *     True width of graphics region as if no aspect ratio was applied.
+ * @param graphicsHeightOut
+ *     True height of graphics region as if no aspect ratio was applied.
  * @param applyLockedAspectRatiosFlag
  *     True if locked tab or window aspect ratio should be applied for
  *     graphics region size.
  */
 void
-BrainBrowserWindow::getGraphicsWidgetSize(int32_t& widthOut,
+BrainBrowserWindow::getGraphicsWidgetSize(int32_t& xOut,
+                                          int32_t& yOut,
+                                          int32_t& widthOut,
                                           int32_t& heightOut,
+                                          int32_t& graphicsWidthOut,
+                                          int32_t& graphicsHeightOut,
                                           const bool applyLockedAspectRatiosFlag) const
 {
+    xOut = 0;
+    yOut = 0;
+    graphicsWidthOut  = m_openGLWidget->width();
+    graphicsHeightOut = m_openGLWidget->height();
     widthOut  = m_openGLWidget->width();
     heightOut = m_openGLWidget->height();
     
@@ -484,6 +500,8 @@ BrainBrowserWindow::getGraphicsWidgetSize(int32_t& widthOut,
                 && (windowHeight > 0)) {
                 if ((windowWidth != widthOut)
                     || (windowHeight != heightOut)) {
+                    xOut      = windowViewport[0];
+                    yOut      = windowViewport[1];
                     widthOut  = windowWidth;
                     heightOut = windowHeight;
                 }
