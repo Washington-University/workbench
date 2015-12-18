@@ -173,13 +173,24 @@ ImageCaptureDialog::createImageSourceSection()
     QObject::connect(m_windowSelectionSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(updateBrowserWindowWidthAndHeightLabel()));
     
+    const QString cbTT = WuQtUtilities::createWordWrappedToolTipText("When Tab/Window Lock Aspect is selected, empty "
+                                                                     "regions may appear in the graphics region.  Selection "
+                                                                     "of this option will exclude these empty regions in "
+                                                                     "the captured image.");
+    m_windowCropToLockAspectRegionCheckBox = new QCheckBox("Crop to Tab/Window Lock Aspect Region");
+    m_windowCropToLockAspectRegionCheckBox->setChecked(true);
+    QObject::connect(m_windowCropToLockAspectRegionCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(updateBrowserWindowWidthAndHeightLabel()));
+    m_windowCropToLockAspectRegionCheckBox->setToolTip(cbTT);
+
+    
     QGroupBox* groupBox = new QGroupBox("Source");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
+//    gridLayout->setColumnStretch(0, 0);
+//    gridLayout->setColumnStretch(1, 0);
     gridLayout->addWidget(windowLabel, 0, 0);
-    gridLayout->addWidget(m_windowSelectionSpinBox, 0, 1);
-    gridLayout->setColumnStretch(0, 0);
-    gridLayout->setColumnStretch(1, 0);
-    gridLayout->setColumnStretch(1000, 100);
+    gridLayout->addWidget(m_windowSelectionSpinBox, 0, 1, Qt::AlignLeft);
+    gridLayout->addWidget(m_windowCropToLockAspectRegionCheckBox, 1, 0, 1, 2, Qt::AlignLeft);
     
     return groupBox;
 }
@@ -886,7 +897,8 @@ ImageCaptureDialog::getSelectedWindowWidthAndHeight(int32_t& widthOut,
     
     if (browserWindow != NULL) {
         browserWindow->getGraphicsWidgetSize(widthOut,
-                                             heightOut);
+                                             heightOut,
+                                             m_windowCropToLockAspectRegionCheckBox->isChecked());
         if ((widthOut > 0)
             && (heightOut > 0)) {
             aspectRatioOut = (static_cast<float>(heightOut)
@@ -964,31 +976,32 @@ ImageCaptureDialog::applyButtonClicked()
     ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     const int browserWindowIndex = m_windowSelectionSpinBox->value() - 1;
     
+    int32_t windowWidth;
+    int32_t windowHeight;
+    float windowAspectRatio;
+    if (getSelectedWindowWidthAndHeight(windowWidth,
+                                        windowHeight,
+                                        windowAspectRatio)) {
+    }
     /*
-     * Zero for width/height means capture image in size of window
+     * Default to width of window that may exclude empty regions
+     * caused by locking of aspect ratio.
      */
-    int32_t imageX = 0;
-    int32_t imageY = 0;
+    int32_t imageX = windowWidth;
+    int32_t imageY = windowHeight;
     if (m_imageSizeCustomRadioButton->isChecked()) {
         imageX = m_pixelWidthSpinBox->value();
         imageY = m_pixelHeightSpinBox->value();
         
-        int32_t windowWidth;
-        int32_t windowHeight;
-        float windowAspectRatio;
-        if (getSelectedWindowWidthAndHeight(windowWidth,
-                                            windowHeight,
-                                            windowAspectRatio)) {
-            if ((windowWidth > 0)
-                && (windowHeight > 0)) {
-                const float windowWidthScaling = (static_cast<float>(imageX)
-                                                  / static_cast<float>(windowWidth));
-                const float windowHeightScaling = (static_cast<float>(imageY)
-                                                   / static_cast<float>(windowHeight));
-                
-                ChartMatrixDisplayProperties::setManualScaleModeWindowWidthHeightScaling(windowWidthScaling,
-                                                                                         windowHeightScaling);
-            }
+        if ((windowWidth > 0)
+            && (windowHeight > 0)) {
+            const float windowWidthScaling = (static_cast<float>(imageX)
+                                              / static_cast<float>(windowWidth));
+            const float windowHeightScaling = (static_cast<float>(imageY)
+                                               / static_cast<float>(windowHeight));
+            
+            ChartMatrixDisplayProperties::setManualScaleModeWindowWidthHeightScaling(windowWidthScaling,
+                                                                                     windowHeightScaling);
         }
     }
     

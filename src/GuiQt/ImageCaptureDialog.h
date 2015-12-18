@@ -132,6 +132,7 @@ namespace caret {
         QSpinBox*  m_imageAutoCropMarginSpinBox;
         
         QSpinBox* m_windowSelectionSpinBox;
+        QCheckBox* m_windowCropToLockAspectRegionCheckBox;
         
         QWidget* m_customDimensionsWidget;
         

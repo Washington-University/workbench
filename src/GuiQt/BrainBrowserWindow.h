@@ -121,7 +121,8 @@ namespace caret {
                                         const int32_t height);
         
         void getGraphicsWidgetSize(int32_t& widthOut,
-                                   int32_t& heightOut) const;
+                                   int32_t& heightOut,
+                                   const bool applyLockedAspectRatiosFlag) const;
         
         AString toString() const;
         

@@ -424,12 +424,87 @@ BrainBrowserWindow::setGraphicsWidgetFixedSize(const int32_t width,
                                  height);
 }
 
+/**
+ * Get the graphics widget size.
+ *
+ * @param widthOut
+ *     Width of the graphics widget.
+ * @param heightOut
+ *     Height of the graphics widget.
+ * @param applyLockedAspectRatiosFlag
+ *     True if locked tab or window aspect ratio should be applied for
+ *     graphics region size.
+ */
 void
 BrainBrowserWindow::getGraphicsWidgetSize(int32_t& widthOut,
-                                          int32_t& heightOut) const
+                                          int32_t& heightOut,
+                                          const bool applyLockedAspectRatiosFlag) const
 {
     widthOut  = m_openGLWidget->width();
     heightOut = m_openGLWidget->height();
+    
+    int aspectViewport[4] = {
+        0,
+        0,
+        widthOut,
+        heightOut
+    };
+    
+    if (isTileTabsSelected()) {
+        if (isAspectRatioLocked()) {
+            BrainOpenGLViewportContent::adjustViewportForAspectRatio(aspectViewport,
+                                                                     getAspectRatio());
+        }
+    }
+    else {
+        const BrowserTabContent* btc = getBrowserTabContent();
+        if (btc != NULL) {
+            if (btc->isAspectRatioLocked()) {
+                BrainOpenGLViewportContent::adjustViewportForAspectRatio(aspectViewport,
+                                                                         btc->getAspectRatio());
+            }
+            else if (isAspectRatioLocked()) {
+                BrainOpenGLViewportContent::adjustViewportForAspectRatio(aspectViewport,
+                                                                         getAspectRatio());
+            }
+        }
+    }
+    
+    if (applyLockedAspectRatiosFlag) {
+        const std::vector<const BrainOpenGLViewportContent*> allViewportContent = m_openGLWidget->getViewportContent();
+        if ( ! allViewportContent.empty()) {
+            CaretAssertVectorIndex(allViewportContent, 0);
+            int windowViewport[4];
+            allViewportContent[0]->getWindowViewport(windowViewport);
+            
+            const float windowWidth  = windowViewport[2];
+            const float windowHeight = windowViewport[3];
+            
+            if ((windowWidth > 0)
+                && (windowHeight > 0)) {
+                if ((windowWidth != widthOut)
+                    || (windowHeight != heightOut)) {
+                    widthOut  = windowWidth;
+                    heightOut = windowHeight;
+                }
+            }
+        }
+        
+//        float aspectLockedWidth  = aspectViewport[2];
+//        float aspectLockedHeight = aspectViewport[3];
+//        if ((aspectLockedWidth > 0)
+//            && (aspectLockedHeight > 0)) {
+//            if ((widthOut != aspectLockedWidth)
+//                || (heightOut != aspectLockedHeight)) {
+//                
+//                std::cout << "Viewport adjusted from << " << AString::number(widthOut) << ", " << AString::number(heightOut)
+//                << " to " << aspectLockedWidth << ", " << aspectLockedHeight << std::endl;
+//                
+//                widthOut  = aspectLockedWidth;
+//                heightOut = aspectLockedHeight;
+//            }
+//        }
+    }
 }
 
 
