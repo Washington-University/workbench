@@ -578,7 +578,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             {
                 int viewport[4];
-                vpContent->getTabViewport(viewport);
+                vpContent->getModelViewport(viewport);
                 spaceOriginX = viewport[0];
                 spaceOriginY = viewport[1];
                 spaceWidth   = viewport[2];
@@ -602,7 +602,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             case AnnotationCoordinateSpaceEnum::SURFACE:
             {
                 int viewport[4];
-                vpContent->getTabViewport(viewport);
+                vpContent->getModelViewport(viewport);
                 spaceOriginX = viewport[0];
                 spaceOriginY = viewport[1];
                 spaceWidth   = viewport[2];
@@ -616,7 +616,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             case AnnotationCoordinateSpaceEnum::TAB:
             {
                 int viewport[4];
-                vpContent->getTabViewport(viewport);
+                vpContent->getModelViewport(viewport);
                 spaceOriginX = viewport[0];
                 spaceOriginY = viewport[1];
                 spaceWidth   = viewport[2];

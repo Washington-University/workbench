@@ -773,7 +773,7 @@ AnnotationCreateDialog::setAnnotationFromBoundsWidthAndHeight(Annotation* annota
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 case AnnotationCoordinateSpaceEnum::SURFACE:
                 case AnnotationCoordinateSpaceEnum::TAB:
-                    m_mouseEvent.getViewportContent()->getTabViewport(viewport);
+                    m_mouseEvent.getViewportContent()->getModelViewport(viewport);
                     break;
                 case AnnotationCoordinateSpaceEnum::WINDOW:
                     m_mouseEvent.getViewportContent()->getWindowViewport(viewport);

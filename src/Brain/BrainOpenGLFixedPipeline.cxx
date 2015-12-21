@@ -430,7 +430,7 @@ BrainOpenGLFixedPipeline::setTabViewport(const BrainOpenGLViewportContent* vpCon
     m_tabViewport[3] = 0;
     
     if (vpContent != NULL) {
-        vpContent->getTabViewport(m_tabViewport);
+        vpContent->getTabViewportBeforeApplyingMargins(m_tabViewport);
     }
 }
 

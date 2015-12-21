@@ -915,7 +915,7 @@ BrainOpenGLWidget::getViewportContentAtXY(const int x,
     const int32_t num = static_cast<int32_t>(this->drawingViewportContents.size());
     for (int32_t i = 0; i < num; i++) {
         int viewport[4];
-        this->drawingViewportContents[i]->getTabViewport(viewport);
+        this->drawingViewportContents[i]->getTabViewportBeforeApplyingMargins(viewport);
         if ((x >= viewport[0])
             && (x < (viewport[0] + viewport[2]))
             && (y >= viewport[1])

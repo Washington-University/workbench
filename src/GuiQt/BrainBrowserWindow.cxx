@@ -309,7 +309,7 @@ BrainBrowserWindow::receiveEvent(Event* event)
                              vpIter++) {
                             const BrainOpenGLViewportContent* vpContent = *vpIter;
                             if (vpContent->getTabIndex() == btc->getTabNumber()) {
-                                vpContent->getTabViewport(tabViewport);
+                                vpContent->getTabViewportBeforeApplyingMargins(tabViewport);
                                 tabViewportValid = true;
                                 break;
                             }
@@ -324,7 +324,7 @@ BrainBrowserWindow::receiveEvent(Event* event)
                              vpIter++) {
                             const BrainOpenGLViewportContent* vpContent = *vpIter;
                             if (vpContent->getTabIndex() == viewportSizeEvent->getTabIndex()) {
-                                vpContent->getTabViewport(tabViewport);
+                                vpContent->getTabViewportBeforeApplyingMargins(tabViewport);
                                 tabViewportValid = true;
                                 break;
                             }
@@ -341,12 +341,12 @@ BrainBrowserWindow::receiveEvent(Event* event)
                             const BrainOpenGLViewportContent* vpContent = *vpIter;
                             if (vpContent->getTabIndex() == btc->getTabNumber()) {
                                 if (btc->getSliceDrawingType() == VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE) {
-                                    vpContent->getTabViewport(tabViewport);
+                                    vpContent->getTabViewportBeforeApplyingMargins(tabViewport);
                                     tabViewportValid = true;
                                     break;
                                 }
                                 else {
-                                    vpContent->getTabViewport(notBestTabViewport);
+                                    vpContent->getTabViewportBeforeApplyingMargins(notBestTabViewport);
                                     notBestTabViewportValid = true;
                                 }
                             }
@@ -376,7 +376,7 @@ BrainBrowserWindow::receiveEvent(Event* event)
                  */
                 if ( ! allViewportContent.empty()) {
                     CaretAssertVectorIndex(allViewportContent, 0);
-                    allViewportContent[0]->getTabViewport(tabViewport);
+                    allViewportContent[0]->getTabViewportBeforeApplyingMargins(tabViewport);
                     tabViewportValid = true;
                 }
             }
@@ -699,7 +699,7 @@ BrainBrowserWindow::processTabAspectRatioLockedToggled(bool checked)
             BrowserTabContent* tabContent = vp->getBrowserTabContent();
             if (selectedTab == tabContent) {
                 int32_t tabViewport[4];
-                vp->getTabViewport(tabViewport);
+                vp->getTabViewportBeforeApplyingMargins(tabViewport);
                 
                 const float width = tabViewport[2];
                 if (width > 0.0) {

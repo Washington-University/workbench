@@ -340,7 +340,7 @@ BrainOpenGLViewportContent::getModelViewport(int modelViewport[4]) const
  *    (x, y, width, height)
  */
 void
-BrainOpenGLViewportContent::getTabViewport(int tabViewportOut[4]) const
+BrainOpenGLViewportContent::getTabViewportBeforeApplyingMargins(int tabViewportOut[4]) const
 {
     tabViewportOut[0] = m_tabX;
     tabViewportOut[1] = m_tabY;

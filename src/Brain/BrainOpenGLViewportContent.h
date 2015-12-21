@@ -40,7 +40,7 @@ namespace caret {
         
         void getModelViewport(int modelViewportOut[4]) const;
         
-        void getTabViewport(int tabViewportOut[4]) const;
+        void getTabViewportBeforeApplyingMargins(int tabViewportOut[4]) const;
         
         void getWindowViewport(int windowViewportOut[4]) const;
         
