@@ -287,8 +287,8 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
          * everything else.
          */
         glClear(GL_DEPTH_BUFFER_BIT);
-        drawTabAnnotations(viewportContent,
-                           m_tabViewport);
+        drawTabAnnotations(viewportContent); //,
+//                           m_tabViewport);
     }
     
     int windowViewport[4];
@@ -671,8 +671,8 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
                  */
                 updateForegroundAndBackgroundColors(vpContent);
                 
-                drawTabAnnotations(vpContent,
-                                   m_tabViewport);
+                drawTabAnnotations(vpContent);
+                                   //m_tabViewport);
             }
         }
         
@@ -698,13 +698,15 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
  *    Viewport (x, y, w, h).
  */
 void
-BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabContent,
-                                             const int tabViewport[4])
+BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabContent)
+//                                             const int tabViewport[4])
 {
     if (tabContent->getBrowserTabContent() == NULL) {
         return;
     }
     
+    int tabViewport[4];
+    tabContent->getModelViewport(tabViewport);
     CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing window annotations.");
     glViewport(tabViewport[0],
                tabViewport[1],
