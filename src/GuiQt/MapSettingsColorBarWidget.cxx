@@ -45,9 +45,9 @@
 using namespace caret;
 
 
-    
+
 /**
- * \class caret::MapSettingsColorBarWidget 
+ * \class caret::MapSettingsColorBarWidget
  * \brief Contains controls for adjusting a color bar's attributes.
  * \ingroup GuiQt
  */
@@ -58,7 +58,8 @@ using namespace caret;
 MapSettingsColorBarWidget::MapSettingsColorBarWidget(QWidget* parent)
 : QWidget(parent)
 {
-    
+    m_colorBar = NULL;
+    m_paletteColorMapping = NULL;
     
     QWidget* locationPositionWidget = this->createLocationPositionSection();
     
@@ -71,7 +72,7 @@ MapSettingsColorBarWidget::MapSettingsColorBarWidget(QWidget* parent)
     layout->addWidget(locationPositionWidget, 0, 0, Qt::AlignLeft);
     layout->addWidget(numericsWidget, 1, 0, Qt::AlignLeft);
     layout->setSizeConstraint(QLayout::SetFixedSize);
-
+    
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
 }
@@ -92,41 +93,55 @@ MapSettingsColorBarWidget::~MapSettingsColorBarWidget()
 void
 MapSettingsColorBarWidget::updateContent(Overlay* overlay)
 {
-    m_overlay = overlay;
+    m_colorBar = NULL;
     m_paletteColorMapping = NULL;
     
-    bool enableWidget = false;
-    if (m_overlay != NULL) {
+    if (overlay != NULL) {
         CaretMappableDataFile* mapFile = NULL;
         int32_t mapIndex = 0;
-        m_overlay->getSelectionData(mapFile,
-                                    mapIndex);
+        overlay->getSelectionData(mapFile,
+                                  mapIndex);
         if (mapFile != NULL) {
-            if (mapFile->isMappedWithPalette()) {
-                m_paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
-                
-                AnnotationColorBar* colorBar = overlay->getColorBar();
-                
-                const AnnotationColorBarPositionModeEnum::Enum positionMode = colorBar->getPositionMode();
-                m_annotationColorBarPositionModeEnumComboBox->setSelectedItem<AnnotationColorBarPositionModeEnum,AnnotationColorBarPositionModeEnum::Enum>(positionMode);
-                
-                const AnnotationCoordinateSpaceEnum::Enum coordinateSpace = colorBar->getCoordinateSpace();
-                m_annotationCoordinateSpaceEnumComboBox->setSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(coordinateSpace);
-                
-                std::vector<Annotation*> annotationVector;
-                annotationVector.push_back(colorBar);
-                
-                std::vector<AnnotationTwoDimensionalShape*> annotationTwoDimVector;
-                annotationTwoDimVector.push_back(colorBar);
-                
-                enableWidget = true;
-                
+            if ((mapIndex >= 0)
+                && (mapIndex < mapFile->getNumberOfMaps())) {
+                if (mapFile->isMappedWithPalette()) {
+                    m_paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
+                    m_colorBar = overlay->getColorBar();
+                }
             }
         }
-
-        this->updateColorBarAttributes();
-        
     }
+    
+    updateContentPrivate();
+}
+
+/**
+ * Update the content of the widget.
+ */
+void
+MapSettingsColorBarWidget::updateContentPrivate()
+{
+    bool enableWidget = false;
+    
+    if ((m_colorBar != NULL)
+        && (m_paletteColorMapping != NULL)) {
+        const AnnotationColorBarPositionModeEnum::Enum positionMode = m_colorBar->getPositionMode();
+        m_annotationColorBarPositionModeEnumComboBox->setSelectedItem<AnnotationColorBarPositionModeEnum,AnnotationColorBarPositionModeEnum::Enum>(positionMode);
+        
+        const AnnotationCoordinateSpaceEnum::Enum coordinateSpace = m_colorBar->getCoordinateSpace();
+        m_annotationCoordinateSpaceEnumComboBox->setSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(coordinateSpace);
+        
+        std::vector<Annotation*> annotationVector;
+        annotationVector.push_back(m_colorBar);
+        
+        std::vector<AnnotationTwoDimensionalShape*> annotationTwoDimVector;
+        annotationTwoDimVector.push_back(m_colorBar);
+        
+        enableWidget = true;
+    }
+    
+    
+    this->updateColorBarAttributes();
     
     setEnabled(enableWidget);
 }
@@ -137,14 +152,12 @@ MapSettingsColorBarWidget::updateContent(Overlay* overlay)
 void
 MapSettingsColorBarWidget::applySelections()
 {
-    if (m_overlay != NULL) {
-        if (m_paletteColorMapping != NULL) {
-            m_paletteColorMapping->setColorBarValuesMode(m_colorBarDataModeComboBox->getSelectedItem<PaletteColorBarValuesModeEnum, PaletteColorBarValuesModeEnum::Enum>());
-            m_paletteColorMapping->setNumericFormatMode(m_colorBarNumericFormatModeComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());
-            m_paletteColorMapping->setPrecisionDigits(m_colorBarDecimalsSpinBox->value());
-            m_paletteColorMapping->setNumericSubdivisionCount(m_colorBarNumericSubdivisionsSpinBox->value());
-            m_paletteColorMapping->setShowTickMarksSelected(m_showTickMarksCheckBox->isChecked());
-        }
+    if (m_paletteColorMapping != NULL) {
+        m_paletteColorMapping->setColorBarValuesMode(m_colorBarDataModeComboBox->getSelectedItem<PaletteColorBarValuesModeEnum, PaletteColorBarValuesModeEnum::Enum>());
+        m_paletteColorMapping->setNumericFormatMode(m_colorBarNumericFormatModeComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());
+        m_paletteColorMapping->setPrecisionDigits(m_colorBarDecimalsSpinBox->value());
+        m_paletteColorMapping->setNumericSubdivisionCount(m_colorBarNumericSubdivisionsSpinBox->value());
+        m_paletteColorMapping->setShowTickMarksSelected(m_showTickMarksCheckBox->isChecked());
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -157,18 +170,18 @@ void
 MapSettingsColorBarWidget::annotationColorBarPositionModeEnumComboBoxItemActivated()
 {
     const AnnotationColorBarPositionModeEnum::Enum positionMode = m_annotationColorBarPositionModeEnumComboBox->getSelectedItem<AnnotationColorBarPositionModeEnum,AnnotationColorBarPositionModeEnum::Enum>();
-    if (m_overlay != NULL) {
-        m_overlay->getColorBar()->setPositionMode(positionMode);
+    if (m_colorBar != NULL) {
+        m_colorBar->setPositionMode(positionMode);
         switch (positionMode) {
             case AnnotationColorBarPositionModeEnum::AUTOMATIC:
-                m_overlay->getColorBar()->resetSizeAttributes();
+                m_colorBar->resetSizeAttributes();
                 break;
             case AnnotationColorBarPositionModeEnum::MANUAL:
                 break;
         }
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
-    updateContent(m_overlay);
+    updateContentPrivate();
 }
 
 /**
@@ -178,8 +191,8 @@ void
 MapSettingsColorBarWidget::annotationCoordinateSpaceEnumComboBoxItemActivated()
 {
     const AnnotationCoordinateSpaceEnum::Enum coordinateSpace = m_annotationCoordinateSpaceEnumComboBox->getSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>();
-    if (m_overlay != NULL) {
-        m_overlay->getColorBar()->setCoordinateSpace(coordinateSpace);
+    if (m_colorBar != NULL) {
+        m_colorBar->setCoordinateSpace(coordinateSpace);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
@@ -292,7 +305,7 @@ MapSettingsColorBarWidget::createDataNumericsSection()
     QGroupBox* colorBarGroupBox = new QGroupBox("Data Numerics");
     QGridLayout* gridLayout = new QGridLayout(colorBarGroupBox);
     int row = gridLayout->rowCount();
-//    this->setLayoutSpacingAndMargins(gridLayout);
+    //    this->setLayoutSpacingAndMargins(gridLayout);
     gridLayout->addWidget(valuesModeLabel, row, 0);
     gridLayout->addWidget(m_colorBarDataModeComboBox->getWidget(), row, 1);
     row++;

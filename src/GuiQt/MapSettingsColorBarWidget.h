@@ -30,6 +30,7 @@ class QSpinBox;
 
 namespace caret {
 
+    class AnnotationColorBar;
     class EnumComboBoxTemplate;
     class PaletteColorMapping;
     
@@ -67,9 +68,11 @@ namespace caret {
         
         QWidget* createLocationPositionSection();
         
+        void updateContentPrivate();
+        
         void updateColorBarAttributes();
         
-        Overlay* m_overlay;
+        AnnotationColorBar* m_colorBar;
         
         PaletteColorMapping* m_paletteColorMapping;
         
