@@ -1349,6 +1349,7 @@ UserInputModeAnnotations::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* open
         coordInfoOut.m_surfaceStructure     = surface->getStructure();
         coordInfoOut.m_surfaceNodeIndex     = surfaceNodeIdentification->getNodeNumber();
         coordInfoOut.m_surfaceNodeOffset    = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
+        coordInfoOut.m_surfaceNodeVector    = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
         coordInfoOut.m_surfaceNodeValid     = true;
     }
     else if (voxelID->isValid()) {
@@ -1488,10 +1489,12 @@ UserInputModeAnnotations::setOneDimAnnotationCoordinatesForSpace(AnnotationOneDi
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (coordInfoOne->m_surfaceNodeValid) {
                 const float surfaceOffsetLength = startCoordinate->getSurfaceOffsetLength();
+                const AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVector = startCoordinate->getSurfaceOffsetVectorType();
                 startCoordinate->setSurfaceSpace(coordInfoOne->m_surfaceStructure,
                                                  coordInfoOne->m_surfaceNumberOfNodes,
                                                  coordInfoOne->m_surfaceNodeIndex,
-                                                 surfaceOffsetLength); //coordInfoOne->m_surfaceNodeOffset);
+                                                 surfaceOffsetLength,
+                                                 surfaceOffsetVector);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
                 
                 validCoordinateFlag = true;
@@ -1503,7 +1506,8 @@ UserInputModeAnnotations::setOneDimAnnotationCoordinatesForSpace(AnnotationOneDi
                             endCoordinate->setSurfaceSpace(coordInfoTwo->m_surfaceStructure,
                                                            coordInfoTwo->m_surfaceNumberOfNodes,
                                                            coordInfoTwo->m_surfaceNodeIndex,
-                                                           surfaceOffsetLength); //coordInfoTwo->m_surfaceNodeOffset);
+                                                           surfaceOffsetLength,
+                                                           surfaceOffsetVector);
                         }
                     }
                 }
@@ -1636,8 +1640,7 @@ UserInputModeAnnotations::setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDi
             if (coordInfoOne->m_surfaceNodeValid) {
                 coordinate->setSurfaceSpace(coordInfoOne->m_surfaceStructure,
                                             coordInfoOne->m_surfaceNumberOfNodes,
-                                            coordInfoOne->m_surfaceNodeIndex,
-                                            coordinate->getSurfaceOffsetLength()); //  coordInfoOne->m_surfaceNodeOffset);
+                                            coordInfoOne->m_surfaceNodeIndex);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
                 
                 validCoordinateFlag = true;
@@ -1668,8 +1671,7 @@ UserInputModeAnnotations::setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDi
                                     if (nodeID->getSurface()->getStructure() == coordInfoOne->m_surfaceStructure) {
                                         coordinate->setSurfaceSpace(coordInfoOne->m_surfaceStructure,
                                                                     coordInfoOne->m_surfaceNumberOfNodes,
-                                                                    nodeID->getNodeNumber(),
-                                                                    0.0);
+                                                                    nodeID->getNodeNumber());
                                         setWidthHeightWithTabCoordsFlag = true;
                                     }
                                 }
@@ -1836,8 +1838,10 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
         int32_t numNodes = -1;
         int32_t nodeIndex = -1;
         float surfaceOffset = 0.0;
-        coordinate->getSurfaceSpace(structure, numNodes, nodeIndex, surfaceOffset);
+        AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
+        coordinate->getSurfaceSpace(structure, numNodes, nodeIndex, surfaceOffset, surfaceVector);
         coordInfo.m_surfaceNodeOffset = surfaceOffset;
+        coordInfo.m_surfaceNodeVector = surfaceVector;
     }
     
     AnnotationChangeCoordinateDialog changeCoordDialog(coordInfo,

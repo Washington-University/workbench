@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
@@ -55,15 +55,27 @@ namespace caret {
         
         void getSurfaceSpace(StructureEnum::Enum& structureOut,
                              int32_t& surfaceNumberOfNodesOut,
+                             int32_t& surfaceNodeIndexOut) const;
+        
+        void getSurfaceSpace(StructureEnum::Enum& structureOut,
+                             int32_t& surfaceNumberOfNodesOut,
                              int32_t& surfaceNodeIndexOut,
-                             float& surfaceOffsetLengthOut) const;
+                             float& surfaceOffsetLengthOut,
+                             AnnotationSurfaceOffsetVectorTypeEnum::Enum& surfaceOffsetVectorTypeOut) const;
+        
+        void setSurfaceSpace(const StructureEnum::Enum structure,
+                             const int32_t surfaceNumberOfNodes,
+                             const int32_t surfaceNodeIndex);
         
         void setSurfaceSpace(const StructureEnum::Enum structure,
                              const int32_t surfaceNumberOfNodes,
                              const int32_t surfaceNodeIndex,
-                             const float surfaceOffsetLength);
+                             const float surfaceOffsetLength,
+                             const AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType);
         
         float getSurfaceOffsetLength() const;
+        
+        AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -107,6 +119,8 @@ namespace caret {
         StructureEnum::Enum m_surfaceSpaceStructure;
         
         float m_surfaceOffsetLength;
+        
+        AnnotationSurfaceOffsetVectorTypeEnum::Enum m_surfaceOffsetVectorType;
         
         // ADD_NEW_MEMBERS_HERE
 

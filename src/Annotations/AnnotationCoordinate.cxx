@@ -101,6 +101,7 @@ AnnotationCoordinate::copyHelperAnnotationCoordinate(const AnnotationCoordinate&
     m_surfaceSpaceNumberOfNodes = obj.m_surfaceSpaceNumberOfNodes;
     m_surfaceSpaceNodeIndex     = obj.m_surfaceSpaceNodeIndex;
     m_surfaceOffsetLength       = obj.m_surfaceOffsetLength;
+    m_surfaceOffsetVectorType   = obj.m_surfaceOffsetVectorType;
 }
 
 /**
@@ -117,12 +118,13 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
     m_surfaceSpaceNumberOfNodes = -1;
     m_surfaceSpaceNodeIndex     = -1;
     m_surfaceOffsetLength       = getDefaultSurfaceOffsetLength();
+    m_surfaceOffsetVectorType   = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->addArray("m_xyz",
                                m_xyz, 3, 0.0);
 
-    m_sceneAssistant->add<StructureEnum>("m_surfaceSpaceStructure",
+    m_sceneAssistant->add<StructureEnum, StructureEnum::Enum>("m_surfaceSpaceStructure",
                                          &m_surfaceSpaceStructure);
     m_sceneAssistant->add("m_surfaceSpaceNumberOfNodes",
                           &m_surfaceSpaceNumberOfNodes);
@@ -130,6 +132,8 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
                           &m_surfaceSpaceNodeIndex);
     m_sceneAssistant->add("m_surfaceOffsetLength",
                           &m_surfaceOffsetLength);
+    m_sceneAssistant->add<AnnotationSurfaceOffsetVectorTypeEnum, AnnotationSurfaceOffsetVectorTypeEnum::Enum>("m_surfaceOffsetVectorType",
+                                                                                                              &m_surfaceOffsetVectorType);
     
 }
 
@@ -228,13 +232,69 @@ AnnotationCoordinate::setXYZ(const float x,
 void
 AnnotationCoordinate::getSurfaceSpace(StructureEnum::Enum& structureOut,
                                       int32_t& surfaceNumberOfNodesOut,
-                                      int32_t& surfaceNodeIndexOut,
-                                      float& surfaceOffsetLengthOut) const
+                                      int32_t& surfaceNodeIndexOut) const
 {
     structureOut            = m_surfaceSpaceStructure;
     surfaceNumberOfNodesOut = m_surfaceSpaceNumberOfNodes;
     surfaceNodeIndexOut     = m_surfaceSpaceNodeIndex;
-    surfaceOffsetLengthOut  = m_surfaceOffsetLength;
+}
+
+/**
+ * Get the surface space data.
+ *
+ * @param structureOut
+ *     The surface structure.
+ * @param surfaceNumberOfNodesOut
+ *     Number of nodes in surface.
+ * @param surfaceNodeIndexOut
+ *     Index of surface node.
+ * @param surfaceOffsetLengthOut
+ *     Offset of annotation from surface
+ * @param surfaceOffsetVectorTypeOut
+ *     Offset from surface vector type.
+ */
+void
+AnnotationCoordinate::getSurfaceSpace(StructureEnum::Enum& structureOut,
+                                      int32_t& surfaceNumberOfNodesOut,
+                                      int32_t& surfaceNodeIndexOut,
+                                      float& surfaceOffsetLengthOut,
+                                      AnnotationSurfaceOffsetVectorTypeEnum::Enum& surfaceOffsetVectorTypeOut) const
+{
+    structureOut               = m_surfaceSpaceStructure;
+    surfaceNumberOfNodesOut    = m_surfaceSpaceNumberOfNodes;
+    surfaceNodeIndexOut        = m_surfaceSpaceNodeIndex;
+    surfaceOffsetLengthOut     = m_surfaceOffsetLength;
+    surfaceOffsetVectorTypeOut = m_surfaceOffsetVectorType;
+}
+
+
+/**
+ * Set the surface space data.
+ *
+ * @param structure
+ *     The surface structure.
+ * @param surfaceNumberOfNodes
+ *     Number of nodes in surface.
+ * @param surfaceNodeIndex
+ *     Index of surface node.
+ */
+void
+AnnotationCoordinate::setSurfaceSpace(const StructureEnum::Enum structure,
+                                      const int32_t surfaceNumberOfNodes,
+                                      const int32_t surfaceNodeIndex)
+{
+    if (structure != m_surfaceSpaceStructure) {
+        m_surfaceSpaceStructure = structure;
+        setModified();
+    }
+    if (surfaceNumberOfNodes != m_surfaceSpaceNumberOfNodes) {
+        m_surfaceSpaceNumberOfNodes = surfaceNumberOfNodes;
+        setModified();
+    }
+    if (surfaceNodeIndex != m_surfaceSpaceNodeIndex) {
+        m_surfaceSpaceNodeIndex = surfaceNodeIndex;
+        setModified();
+    }
 }
 
 /**
@@ -248,12 +308,15 @@ AnnotationCoordinate::getSurfaceSpace(StructureEnum::Enum& structureOut,
  *     Index of surface node.
  * @param surfaceOffsetLength
  *     Offset of annotation from surface
+ * @param surfaceOffsetVectorType
+ *     Offset from surface vector type.
  */
 void
 AnnotationCoordinate::setSurfaceSpace(const StructureEnum::Enum structure,
                                       const int32_t surfaceNumberOfNodes,
                                       const int32_t surfaceNodeIndex,
-                                      const float surfaceOffsetLength)
+                                      const float surfaceOffsetLength,
+                                      const AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType)
 {
     if (structure != m_surfaceSpaceStructure) {
         m_surfaceSpaceStructure = structure;
@@ -271,8 +334,11 @@ AnnotationCoordinate::setSurfaceSpace(const StructureEnum::Enum structure,
         m_surfaceOffsetLength = surfaceOffsetLength;
         setModified();
     }
+    if (surfaceOffsetVectorType != m_surfaceOffsetVectorType) {
+        m_surfaceOffsetVectorType = surfaceOffsetVectorType;
+        setModified();
+    }
 }
-
 /**
  * @return The default surface offset length.
  */
@@ -289,6 +355,15 @@ float
 AnnotationCoordinate::getSurfaceOffsetLength() const
 {
     return m_surfaceOffsetLength;
+}
+
+/**
+ * @return Type of surface offset.
+ */
+AnnotationSurfaceOffsetVectorTypeEnum::Enum
+AnnotationCoordinate::getSurfaceOffsetVectorType() const
+{
+    return m_surfaceOffsetVectorType;
 }
 
 /**

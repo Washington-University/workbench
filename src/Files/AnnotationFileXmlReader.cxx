@@ -315,21 +315,38 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
     const int32_t nodeIndex = m_streamHelper->getRequiredAttributeIntValue(attributes,
                                                                  coordinateElementName,
                                                                  ATTRIBUTE_COORD_SURFACE_NODE_INDEX);
-    const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
+    const QString structureValueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                 coordinateElementName,
                                                                 ATTRIBUTE_COORD_SURFACE_STRUCTURE);
     const float offsetDistance = m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                                                 coordinateElementName,
                                                                                 ATTRIBUTE_COORD_SURFACE_NODE_OFFSET);
-    bool valid = false;
-    StructureEnum::Enum structure = StructureEnum::fromName(valueString,
-                                                          &valid);
-    if (valid) {
-        coordinate->setSurfaceSpace(structure, numberOfNodes, nodeIndex, offsetDistance);
+    
+    const QString offsetVectorString = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                       coordinateElementName,
+                                                                                       ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_VECTOR_TYPE,
+                                                                                       "CENTROID_THRU_VERTEX");
+    bool structureValid = false;
+    StructureEnum::Enum structure = StructureEnum::fromName(structureValueString,
+                                                          &structureValid);
+    
+    bool offsetVectorValid = false;
+    AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVector = AnnotationSurfaceOffsetVectorTypeEnum::fromName(offsetVectorString,
+                                                                                                               &offsetVectorValid);
+    if ( ! offsetVectorValid) {
+        offsetVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
+    }
+    
+    if (structureValid) {
+        coordinate->setSurfaceSpace(structure,
+                                    numberOfNodes,
+                                    nodeIndex,
+                                    offsetDistance,
+                                    offsetVector);
     }
     else {
         m_streamHelper->throwDataFileException("Invalid value "
-                               + valueString
+                               + structureValueString
                                + " for attribute "
                                + ATTRIBUTE_COORD_SURFACE_STRUCTURE);
     }

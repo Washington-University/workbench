@@ -37,6 +37,7 @@ AnnotationPercentSizeText.h
 AnnotationPointSizeText.h
 AnnotationSizingHandleTypeEnum.h
 AnnotationSpatialModification.h
+AnnotationSurfaceOffsetVectorTypeEnum.h
 AnnotationText.h
 AnnotationTextAlignHorizontalEnum.h
 AnnotationTextAlignVerticalEnum.h
@@ -60,6 +61,7 @@ AnnotationColorBarPositionModeEnum.cxx
 AnnotationColorBarSection.cxx
 AnnotationCoordinate.cxx
 AnnotationCoordinateSpaceEnum.cxx
+AnnotationSurfaceOffsetVectorTypeEnum.cxx
 AnnotationTextFontPointSizeEnum.cxx
 AnnotationImage.cxx
 AnnotationLine.cxx

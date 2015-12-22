@@ -491,10 +491,12 @@ AnnotationFileXmlWriter::writeCoordinate(const AnnotationCoordinate* coordinate,
     int32_t numberOfNodes = -1;
     int32_t nodeIndex     = -1;
     float nodeOffset      = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
+    AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
     coordinate->getSurfaceSpace(structure,
                                 numberOfNodes,
                                 nodeIndex,
-                                nodeOffset);
+                                nodeOffset,
+                                surfaceOffsetVectorType);
     
     m_stream->writeStartElement(coordinateXmlElement);
     
@@ -518,6 +520,9 @@ AnnotationFileXmlWriter::writeCoordinate(const AnnotationCoordinate* coordinate,
     
     m_stream->writeAttribute(ATTRIBUTE_COORD_SURFACE_NODE_OFFSET,
                              realToString(nodeOffset));
+    
+    m_stream->writeAttribute(ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_VECTOR_TYPE,
+                             AnnotationSurfaceOffsetVectorTypeEnum::toName(surfaceOffsetVectorType));
     
     m_stream->writeEndElement();
 }

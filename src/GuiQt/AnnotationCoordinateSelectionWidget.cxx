@@ -535,11 +535,9 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (m_coordInfo.m_surfaceNodeValid) {
-                const float surfaceOffsetLength = coordinate->getSurfaceOffsetLength();
                 coordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
                                             m_coordInfo.m_surfaceNumberOfNodes,
-                                            m_coordInfo.m_surfaceNodeIndex,
-                                            surfaceOffsetLength);   // m_coordInfo.m_surfaceNodeOffset);
+                                            m_coordInfo.m_surfaceNodeIndex);
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
             }
             break;

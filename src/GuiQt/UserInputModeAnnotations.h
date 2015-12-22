@@ -23,6 +23,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSizingHandleTypeEnum.h"
+#include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "CaretPointer.h"
 #include "EventListenerInterface.h"
@@ -122,6 +123,7 @@ namespace caret {
                 m_surfaceNumberOfNodes = 0;
                 m_surfaceNodeIndex = -1;
                 m_surfaceNodeOffset = 0.0;
+                m_surfaceNodeVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
                 m_tabIndex         = -1;
                 m_tabWidth         = 0;
                 m_tabHeight        = 0;
@@ -156,6 +158,7 @@ namespace caret {
             int32_t m_surfaceNumberOfNodes;
             int32_t m_surfaceNodeIndex;
             float m_surfaceNodeOffset;
+            AnnotationSurfaceOffsetVectorTypeEnum::Enum m_surfaceNodeVector;
             bool m_surfaceNodeValid;
         };
         

@@ -198,10 +198,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                 int32_t annotationNumberOfNodes  = -1;
                 int32_t annotationNodeIndex      = -1;
                 float annotationOffsetLength     = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
+                AnnotationSurfaceOffsetVectorTypeEnum::Enum annotationOffsetVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
                 coordinate->getSurfaceSpace(annotationStructure,
                                             annotationNumberOfNodes,
                                             annotationNodeIndex,
-                                            annotationOffsetLength);
+                                            annotationOffsetLength,
+                                            annotationOffsetVector);
                 
                 const StructureEnum::Enum surfaceStructure = surfaceDisplayed->getStructure();
                 const int32_t surfaceNumberOfNodes = surfaceDisplayed->getNumberOfNodes();
@@ -219,23 +221,44 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                         
                         
                         float offsetUnitVector[3] = { 0.0, 0.0, 0.0 };
-                        const bool useNormalVectorForOffsetFlag = false;
-                        if (useNormalVectorForOffsetFlag) {
-                            const float* normalVector = surfaceDisplayed->getNormalVector(annotationNodeIndex);
-                            offsetUnitVector[0] = normalVector[0];
-                            offsetUnitVector[1] = normalVector[1];
-                            offsetUnitVector[2] = normalVector[2];
-                        }
-                        else {
-                            BoundingBox boundingBox;
-                            surfaceDisplayed->getBounds(boundingBox);
-                            float surfaceCenter[3] = { 0.0, 0.0, 0.0 };
-                            boundingBox.getCenter(surfaceCenter);
-                            
-                            MathFunctions::subtractVectors(nodeXYZ,
-                                                           surfaceCenter,
-                                                           offsetUnitVector);
-                            MathFunctions::normalizeVector(offsetUnitVector);
+//                        const bool useNormalVectorForOffsetFlag = false;
+//                        if (useNormalVectorForOffsetFlag) {
+//                            const float* normalVector = surfaceDisplayed->getNormalVector(annotationNodeIndex);
+//                            offsetUnitVector[0] = normalVector[0];
+//                            offsetUnitVector[1] = normalVector[1];
+//                            offsetUnitVector[2] = normalVector[2];
+//                        }
+//                        else {
+//                            BoundingBox boundingBox;
+//                            surfaceDisplayed->getBounds(boundingBox);
+//                            float surfaceCenter[3] = { 0.0, 0.0, 0.0 };
+//                            boundingBox.getCenter(surfaceCenter);
+//                            
+//                            MathFunctions::subtractVectors(nodeXYZ,
+//                                                           surfaceCenter,
+//                                                           offsetUnitVector);
+//                            MathFunctions::normalizeVector(offsetUnitVector);
+//                        }
+                        
+                        switch (annotationOffsetVector) {
+                            case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+                            {
+                                BoundingBox boundingBox;
+                                surfaceDisplayed->getBounds(boundingBox);
+                                float surfaceCenter[3] = { 0.0, 0.0, 0.0 };
+                                boundingBox.getCenter(surfaceCenter);
+                                
+                                MathFunctions::subtractVectors(nodeXYZ,
+                                                               surfaceCenter,
+                                                               offsetUnitVector);
+                                MathFunctions::normalizeVector(offsetUnitVector);
+                            }                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
+                                const float* normalVector = surfaceDisplayed->getNormalVector(annotationNodeIndex);
+                                offsetUnitVector[0] = normalVector[0];
+                                offsetUnitVector[1] = normalVector[1];
+                                offsetUnitVector[2] = normalVector[2];
+                                break;
                         }
                         
                         stereotaxicXYZ[0] += (offsetUnitVector[0] * annotationOffsetLength);
@@ -1943,17 +1966,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
             int32_t numNodes  = 0;
             int32_t nodeIndex = 0;
             float offset      = 0.0;
+            AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
             coord->getSurfaceSpace(structure,
                                    numNodes,
                                    nodeIndex,
-                                   offset);
+                                   offset,
+                                   offsetVector);
             
             if (offset > 0.0) {
                 AnnotationCoordinate noOffsetCoord = *coord;
                 noOffsetCoord.setSurfaceSpace(structure,
                                               numNodes,
                                               nodeIndex,
-                                              0.0);
+                                              0.0,
+                                              AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX);
                 
                 float brainordinateXYZ[3];
                 if (getAnnotationWindowCoordinate(&noOffsetCoord,

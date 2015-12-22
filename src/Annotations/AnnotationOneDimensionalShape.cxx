@@ -326,19 +326,16 @@ AnnotationOneDimensionalShape::applySpatialModificationSurfaceSpace(const Annota
             StructureEnum::Enum structure = StructureEnum::INVALID;
             int32_t surfaceNumberOfNodes  = -1;
             int32_t surfaceNodeIndex      = -1;
-            float surfaceOffset           = -1.0;
             
             m_endCoordinate->getSurfaceSpace(structure,
                                                surfaceNumberOfNodes,
-                                               surfaceNodeIndex,
-                                               surfaceOffset);
+                                               surfaceNodeIndex);
             if (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid) {
                 if ((spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure == structure)
                     && (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes == surfaceNumberOfNodes)) {
                     m_endCoordinate->setSurfaceSpace(spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure,
                                                      spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes,
-                                                     spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex,
-                                                     m_endCoordinate->getDefaultSurfaceOffsetLength());
+                                                     spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex);
                     validFlag = true;
                 }
             }
@@ -349,19 +346,16 @@ AnnotationOneDimensionalShape::applySpatialModificationSurfaceSpace(const Annota
             StructureEnum::Enum structure = StructureEnum::INVALID;
             int32_t surfaceNumberOfNodes  = -1;
             int32_t surfaceNodeIndex      = -1;
-            float surfaceOffset           = -1.0;
             
             m_startCoordinate->getSurfaceSpace(structure,
                                                surfaceNumberOfNodes,
-                                               surfaceNodeIndex,
-                                               surfaceOffset);
+                                               surfaceNodeIndex);
             if (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid) {
                 if ((spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure == structure)
                     && (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes == surfaceNumberOfNodes)) {
                     m_startCoordinate->setSurfaceSpace(spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure,
                                                        spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes,
-                                                       spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex,
-                                                       m_startCoordinate->getDefaultSurfaceOffsetLength());
+                                                       spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex);
                     validFlag = true;
                 }
             }

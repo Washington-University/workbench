@@ -197,7 +197,7 @@ AnnotationFile::createExampleAnnotations()
         AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         AnnotationCoordinate* coord = at->getCoordinate();
         at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-        coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32492, 7883, 20);
+        coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32492, 7883, 20, AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX);
         at->setForegroundColor(CaretColorEnum::PURPLE);
         at->setText("Vertex 7883");
         addAnnotationPrivate(at);

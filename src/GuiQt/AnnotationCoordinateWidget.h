@@ -34,6 +34,7 @@ namespace caret {
 
     class Annotation;
     class AnnotationCoordinate;
+    class EnumComboBoxTemplate;
     class StructureEnumComboBox;
     
     class AnnotationCoordinateWidget : public QWidget {
@@ -88,6 +89,8 @@ namespace caret {
         StructureEnumComboBox* m_surfaceStructureComboBox;
         
         QSpinBox* m_surfaceNodeIndexSpinBox;
+        
+        EnumComboBoxTemplate* m_surfaceOffsetVectorTypeComboBox;
         
         QDoubleSpinBox* m_surfaceOffsetLengthSpinBox;
         

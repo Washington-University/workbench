@@ -544,19 +544,16 @@ AnnotationTwoDimensionalShape::applySpatialModificationSurfaceOrStereotaxicSpace
                 StructureEnum::Enum structure = StructureEnum::INVALID;
                 int32_t surfaceNumberOfNodes  = -1;
                 int32_t surfaceNodeIndex      = -1;
-                float surfaceOffset           = -1.0;
                 m_coordinate->getSurfaceSpace(structure,
                                               surfaceNumberOfNodes,
-                                              surfaceNodeIndex,
-                                              surfaceOffset);
+                                              surfaceNodeIndex);
                 
                 if (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid) {
                     if ((spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure == structure)
                         && (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes == surfaceNumberOfNodes)) {
                         m_coordinate->setSurfaceSpace(spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure,
                                                       spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes,
-                                                      spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex,
-                                                      m_coordinate->getSurfaceOffsetLength());
+                                                      spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex);
                         validFlag = true;
                     }
                 }

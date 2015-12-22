@@ -125,11 +125,9 @@ AnnotationChangeCoordinateDialog::createCurrentCoordinateWidget()
             StructureEnum::Enum structure = StructureEnum::INVALID;
             int32_t numberOfNodes = -1;
             int32_t nodeIndex = -1;
-            float offset = 0.0;
             m_coordinate->getSurfaceSpace(structure,
                                           numberOfNodes,
-                                          nodeIndex,
-                                          offset);
+                                          nodeIndex);
             spaceText += ("Structure: "
                           + StructureEnum::toGuiName(structure)
                           + " Node Index="
