@@ -25,9 +25,11 @@
 #include "WuQDialogNonModal.h"
 
 class QLabel;
+class QTabWidget;
 
 namespace caret {
     class CaretMappableDataFile;
+    class MapSettingsColorBarWidget;
     class MapSettingsPaletteColorMappingWidget;
 
     class PaletteColorMappingEditorDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -45,9 +47,11 @@ namespace caret {
         virtual void updateDialog();
         
         void updateDialogContent(CaretMappableDataFile* mapFile,
-                                 const int32_t mapIndex);
+                                 const int32_t mapIndex,
+                                 const int32_t browserTabIndex);
         
-    protected:
+    protected:        
+        virtual void focusInEvent(QFocusEvent* event);
         
         // ADD_NEW_METHODS_HERE
 
@@ -60,11 +64,21 @@ namespace caret {
         
         int32_t m_mapIndex;
         
+        int32_t m_browserTabIndex;
+        
+        QTabWidget* m_tabWidget;
+        
+        MapSettingsColorBarWidget* m_paletteColorBarWidget;
+        
         MapSettingsPaletteColorMappingWidget* m_paletteColorMappingEditor;
         
         QLabel* m_fileNameValueLabel;
         
         QLabel* m_mapNameValueLabel;
+        
+        int32_t m_paletteColorBarWidgetTabIndex;
+        
+        int32_t m_paletteEditorWidgetTabIndex;
         
         // ADD_NEW_MEMBERS_HERE
 

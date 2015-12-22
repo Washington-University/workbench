@@ -84,34 +84,42 @@ MapSettingsColorBarWidget::~MapSettingsColorBarWidget()
 {
 }
 
-/**
- * Update the content of widget.
- *
- * @param overlay
- *     Overlay for display in this widget.
- */
+///**
+// * Update the content of widget.
+// *
+// * @param overlay
+// *     Overlay for display in this widget.
+// */
+//void
+//MapSettingsColorBarWidget::updateContent(Overlay* overlay)
+//{
+//    m_colorBar = NULL;
+//    m_paletteColorMapping = NULL;
+//    
+//    if (overlay != NULL) {
+//        CaretMappableDataFile* mapFile = NULL;
+//        int32_t mapIndex = 0;
+//        overlay->getSelectionData(mapFile,
+//                                  mapIndex);
+//        if (mapFile != NULL) {
+//            if ((mapIndex >= 0)
+//                && (mapIndex < mapFile->getNumberOfMaps())) {
+//                if (mapFile->isMappedWithPalette()) {
+//                    m_paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
+//                    m_colorBar = overlay->getColorBar();
+//                }
+//            }
+//        }
+//    }
+//}
+
 void
-MapSettingsColorBarWidget::updateContent(Overlay* overlay)
+MapSettingsColorBarWidget::updateContent(AnnotationColorBar* annotationColorBar,
+                                         PaletteColorMapping* paletteColorMapping)
 {
-    m_colorBar = NULL;
-    m_paletteColorMapping = NULL;
-    
-    if (overlay != NULL) {
-        CaretMappableDataFile* mapFile = NULL;
-        int32_t mapIndex = 0;
-        overlay->getSelectionData(mapFile,
-                                  mapIndex);
-        if (mapFile != NULL) {
-            if ((mapIndex >= 0)
-                && (mapIndex < mapFile->getNumberOfMaps())) {
-                if (mapFile->isMappedWithPalette()) {
-                    m_paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
-                    m_colorBar = overlay->getColorBar();
-                }
-            }
-        }
-    }
-    
+    m_colorBar            = annotationColorBar;
+    m_paletteColorMapping = paletteColorMapping;
+
     updateContentPrivate();
 }
 

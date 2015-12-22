@@ -287,14 +287,17 @@ OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
             }
             
             if (m_caretMappableDataFile->isMappedWithPalette()) {
-                if (m_caretMappableDataFile->getMapPaletteColorMapping(m_mapIndex) != NULL) {
+                PaletteColorMapping* paletteColorMapping = m_caretMappableDataFile->getMapPaletteColorMapping(m_mapIndex);
+                if (paletteColorMapping != NULL) {
                     /*
                      * Update palette settings
                      */
                     isPaletteValid = true;
                     m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
                                                               m_mapIndex);
-                    m_colorBarWidget->updateContent(overlay);
+                    
+                    m_colorBarWidget->updateContent(m_overlay->getColorBar(),
+                                                    paletteColorMapping);
                 }
             }
             

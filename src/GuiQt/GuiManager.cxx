@@ -1174,6 +1174,12 @@ GuiManager::receiveEvent(Event* event)
 
         BrainBrowserWindow* browserWindow = m_brainBrowserWindows[paletteEditEvent->getBrowserWindowIndex()];
         CaretAssert(browserWindow);
+        
+        int32_t browserTabIndex = -1;
+        BrowserTabContent* tabContent = browserWindow->getBrowserTabContent();
+        if (tabContent != NULL) {
+            browserTabIndex = tabContent->getTabNumber();
+        }
 
         bool placeInDefaultLocation = false;
         if (m_paletteColorMappingEditor == NULL) {
@@ -1186,7 +1192,8 @@ GuiManager::receiveEvent(Event* event)
         }
         
         m_paletteColorMappingEditor->updateDialogContent(paletteEditEvent->getCaretMappableDataFile(),
-                                                         paletteEditEvent->getMapIndex());
+                                                         paletteEditEvent->getMapIndex(),
+                                                         browserTabIndex);
         m_paletteColorMappingEditor->show();
         m_paletteColorMappingEditor->raise();
         m_paletteColorMappingEditor->activateWindow();

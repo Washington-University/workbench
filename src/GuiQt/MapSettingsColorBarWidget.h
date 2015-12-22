@@ -45,8 +45,10 @@ namespace caret {
         
         virtual ~MapSettingsColorBarWidget();
         
-        void updateContent(Overlay* overlay);
+//        void updateContent(Overlay* overlay);
         
+        void updateContent(AnnotationColorBar* annotationColorBar,
+                           PaletteColorMapping* paletteColorMapping);
 
         // ADD_NEW_METHODS_HERE
 

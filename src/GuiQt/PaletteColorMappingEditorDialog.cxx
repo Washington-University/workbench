@@ -21,6 +21,7 @@
 
 #include <QGridLayout>
 #include <QLabel>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
 #define __PALETTE_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
@@ -29,8 +30,11 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "ChartableMatrixInterface.h"
+#include "ChartMatrixDisplayProperties.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
+#include "MapSettingsColorBarWidget.h"
 #include "MapSettingsPaletteColorMappingWidget.h"
 
 using namespace caret;
@@ -50,12 +54,17 @@ PaletteColorMappingEditorDialog::PaletteColorMappingEditorDialog(QWidget* parent
 : WuQDialogNonModal("Palette Color Mapping Editor",
                     parent)
 {
+    m_mapFile         = NULL;
+    m_mapIndex        = -1;
+    m_browserTabIndex = -1;
+    
     QLabel* fileLabel = new QLabel("Map File: ");
     m_fileNameValueLabel = new QLabel("");
     
     QLabel* mapLabel = new QLabel("Map Name: ");
     m_mapNameValueLabel = new QLabel("");
     
+    m_paletteColorBarWidget = new MapSettingsColorBarWidget();
     m_paletteColorMappingEditor = new MapSettingsPaletteColorMappingWidget(this);
     
     QGridLayout* namesLayout = new QGridLayout();
@@ -74,10 +83,14 @@ PaletteColorMappingEditorDialog::PaletteColorMappingEditorDialog(QWidget* parent
     mapLabel->hide();
     m_mapNameValueLabel->hide();
     
+    m_tabWidget = new QTabWidget();
+    m_paletteColorBarWidgetTabIndex = m_tabWidget->addTab(m_paletteColorBarWidget, "Color Bar");
+    m_paletteEditorWidgetTabIndex   = m_tabWidget->addTab(m_paletteColorMappingEditor, "Palette");
+    
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     layout->addLayout(namesLayout);
-    layout->addWidget(m_paletteColorMappingEditor);
+    layout->addWidget(m_tabWidget);
 
     setCentralWidget(w,
                      WuQDialog::SCROLL_AREA_NEVER);
@@ -110,6 +123,23 @@ PaletteColorMappingEditorDialog::receiveEvent(Event* event)
 }
 
 /**
+ * Called for focus events.  Since this dialog stores a pointer
+ * to the overlay, we need to be aware that the overlay's parameters
+ * may change or the overlay may even be deleted.  So, when
+ * this dialog gains focus, validate the overlay and then update
+ * the dialog.
+ *
+ * @param event
+ *     The focus event.
+ */
+void
+PaletteColorMappingEditorDialog::focusInEvent(QFocusEvent* /*event*/)
+{
+    updateDialog();
+}
+
+
+/**
  * May be called to update the dialog's content.
  *
  * @param mapFile
@@ -119,22 +149,39 @@ PaletteColorMappingEditorDialog::receiveEvent(Event* event)
  */
 void
 PaletteColorMappingEditorDialog::updateDialogContent(CaretMappableDataFile* mapFile,
-                                                     const int32_t mapIndex)
+                                                     const int32_t mapIndex,
+                                                     const int32_t browserTabIndex)
 {
     m_mapFile = mapFile;
     m_mapIndex = mapIndex;
+    m_browserTabIndex = browserTabIndex;
     
     bool enableEditor = false;
     if (m_mapFile != NULL) {
         if ((m_mapIndex >= 0)
             && (m_mapIndex < m_mapFile->getNumberOfMaps())) {
-            enableEditor = true;
+            if (browserTabIndex >= 0) {
+                enableEditor = true;
+            }
         }
     }
     
     if (enableEditor) {
         m_fileNameValueLabel->setText(m_mapFile->getFileNameNoPath());
         m_mapNameValueLabel->setText(m_mapFile->getMapName(m_mapIndex));
+        m_paletteColorBarWidget->setEnabled(true);
+        
+        AnnotationColorBar* colorBar = NULL;
+        PaletteColorMapping* paletteColorMapping = mapFile->getMapPaletteColorMapping(m_mapIndex);
+        ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(m_mapFile);
+        if (matrixInterface != NULL) {
+            ChartMatrixDisplayProperties* matrixProps = matrixInterface->getChartMatrixDisplayProperties(m_browserTabIndex);
+            if (matrixProps != NULL) {
+                colorBar = matrixProps->getColorBar();
+            }
+        }
+        m_paletteColorBarWidget->updateContent(colorBar,
+                                               paletteColorMapping);
         m_paletteColorMappingEditor->setEnabled(true);
         m_paletteColorMappingEditor->updateEditor(m_mapFile,
                                                   m_mapIndex);
@@ -142,6 +189,7 @@ PaletteColorMappingEditorDialog::updateDialogContent(CaretMappableDataFile* mapF
     else {
         m_fileNameValueLabel->setText("");
         m_mapNameValueLabel->setText("");
+        m_paletteColorBarWidget->setEnabled(false);
         m_paletteColorMappingEditor->setEnabled(false);
     }
 }
@@ -184,7 +232,8 @@ PaletteColorMappingEditorDialog::updateDialog()
         }
         
         updateDialogContent(m_mapFile,
-                            m_mapIndex);
+                            m_mapIndex,
+                            m_browserTabIndex);
     }
     
     if (m_mapFile == NULL) {
