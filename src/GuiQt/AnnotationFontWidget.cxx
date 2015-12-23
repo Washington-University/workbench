@@ -177,10 +177,13 @@ m_browserWindowIndex(browserWindowIndex)
             /*
              * Outline font toolbutton
              */
+            outlineFontToolButton = new QToolButton();
+            outlineFontToolButton->setFixedSize(underlineFontToolButton->sizeHint());
+            QPixmap outlinePixmap = createOutlineButtonPixmap(underlineFontToolButton);
             m_outlineFontAction =  WuQtUtilities::createAction("O", "Enable/disable font outlining",
                                                                  this, this, SLOT(fontOutlineChanged()));
+            m_outlineFontAction->setIcon(QIcon(outlinePixmap));
             m_outlineFontAction->setCheckable(true);
-            outlineFontToolButton = new QToolButton();
             outlineFontToolButton->setDefaultAction(m_outlineFontAction);
             
 //            /*
@@ -628,3 +631,52 @@ AnnotationFontWidget::fontOutlineChanged()
     
     AnnotationText::setUserDefaultOutlineEnabled(m_outlineFontAction->isChecked());
 }
+
+/**
+ * Create a horizontal alignment pixmap.
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @return
+ *    Pixmap with icon for the given horizontal alignment.
+ */
+QPixmap
+AnnotationFontWidget::createOutlineButtonPixmap(const QWidget* widget)
+{
+    CaretAssert(widget);
+    
+    /*
+     * Create a small, square pixmap that will contain
+     * the foreground color around the pixmap's perimeter.
+     */
+    float width  = 24;
+    float height = 24;
+//
+    QPixmap pixmap(static_cast<int>(width),
+                   static_cast<int>(height));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
+                                                                                pixmap);
+    QPen pen = painter->pen();
+    pen.setWidthF(pen.widthF() * 2.0);
+    painter->setPen(pen);
+    QFont font = painter->font();
+    const int fontHeight = 16;
+    font.setPointSize(fontHeight);
+    painter->setFont(font);
+    
+    const int boxMargin = 2;
+    const int boxWidth  = width - (boxMargin * 2);
+    const int boxHeight = height - (boxMargin * 2);
+    const int boxX = boxMargin;
+    const int boxY = boxMargin;
+    painter->drawRect(boxX, boxY, boxWidth, boxHeight);
+    
+    painter->drawText(boxX, boxY + 2,
+                      boxWidth, boxHeight - 2,
+                      (Qt::AlignCenter),
+                      "O");
+    
+    return pixmap;
+}
+

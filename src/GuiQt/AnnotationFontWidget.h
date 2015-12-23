@@ -77,6 +77,8 @@ namespace caret {
         void updateFontSizeSpinBox(const float value,
                                    const bool haveMultipleValuesFlag);
         
+        QPixmap createOutlineButtonPixmap(const QWidget* widget);
+        
         const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
         
         const int32_t m_browserWindowIndex;
