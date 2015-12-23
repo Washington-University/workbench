@@ -200,30 +200,60 @@ m_browserWindowIndex(browserWindowIndex)
      * Layout the widgets
      */
     
-    
+    const bool newLayoutFlag = true;
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-        {
-            QHBoxLayout* topRowLayout = new QHBoxLayout();
-            WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 0);
-            topRowLayout->addWidget(fontLabel, 0);
-            topRowLayout->addWidget(m_fontNameComboBox->getWidget(), 100);
-            QHBoxLayout* bottomRowLayout = new QHBoxLayout();
-            WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 0);
-            
-            bottomRowLayout->addWidget(boldFontToolButton);
-            bottomRowLayout->addWidget(italicFontToolButton);
-            bottomRowLayout->addWidget(underlineFontToolButton);
-            bottomRowLayout->addWidget(outlineFontToolButton);
-            bottomRowLayout->addStretch();
-            bottomRowLayout->addWidget(m_fontSizeSpinBox);
-
-            QVBoxLayout* layout = new QVBoxLayout(this);
-            WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-            layout->addLayout(topRowLayout);
-            layout->addLayout(bottomRowLayout);
-//            layout->addStretch();
-        }
+            if (newLayoutFlag) {
+                QLabel* sizeLabel  = new QLabel("Size");
+                QLabel* styleLabel = new QLabel("Style");
+                
+                QHBoxLayout* stylesLayout = new QHBoxLayout();
+                WuQtUtilities::setLayoutSpacingAndMargins(stylesLayout, 0, 0);
+                //stylesLayout->addStretch();
+                stylesLayout->addWidget(boldFontToolButton);
+                stylesLayout->addWidget(italicFontToolButton);
+                stylesLayout->addWidget(underlineFontToolButton);
+                stylesLayout->addWidget(outlineFontToolButton);
+                stylesLayout->addStretch();
+                
+                QGridLayout* fontNameSizeLayout = new QGridLayout(this);
+                WuQtUtilities::setLayoutSpacingAndMargins(fontNameSizeLayout, 2, 0);
+                fontNameSizeLayout->setColumnStretch(0, 0);
+                fontNameSizeLayout->setColumnStretch(0, 1);
+                fontNameSizeLayout->addWidget(fontLabel, 0, 0);
+                fontNameSizeLayout->addWidget(m_fontNameComboBox->getWidget(), 0, 1);
+                fontNameSizeLayout->addWidget(sizeLabel, 1, 0);
+                fontNameSizeLayout->addWidget(m_fontSizeSpinBox, 1, 1, Qt::AlignLeft);
+                fontNameSizeLayout->addWidget(styleLabel, 2, 0);
+                fontNameSizeLayout->addLayout(stylesLayout, 2, 1);
+                
+                
+//                QVBoxLayout* layout = new QVBoxLayout(this);
+//                WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+//                layout->addLayout(fontNameSizeLayout);
+//                layout->addLayout(stylesLayout);
+            }
+            else {
+                QHBoxLayout* topRowLayout = new QHBoxLayout();
+                WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 0);
+                topRowLayout->addWidget(fontLabel, 0);
+                topRowLayout->addWidget(m_fontNameComboBox->getWidget(), 100);
+                QHBoxLayout* bottomRowLayout = new QHBoxLayout();
+                WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 0);
+                
+                bottomRowLayout->addWidget(boldFontToolButton);
+                bottomRowLayout->addWidget(italicFontToolButton);
+                bottomRowLayout->addWidget(underlineFontToolButton);
+                bottomRowLayout->addWidget(outlineFontToolButton);
+                bottomRowLayout->addStretch();
+                bottomRowLayout->addWidget(m_fontSizeSpinBox);
+                
+                QVBoxLayout* layout = new QVBoxLayout(this);
+                WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+                layout->addLayout(topRowLayout);
+                layout->addLayout(bottomRowLayout);
+                //            layout->addStretch();
+            }
             break;
         case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
         {
