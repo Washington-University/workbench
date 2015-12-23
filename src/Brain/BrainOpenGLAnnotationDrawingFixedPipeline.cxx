@@ -2619,7 +2619,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::expandBox(float bottomLeft[3],
                                                      float topRight[3],
                                                      float topLeft[3],
                                                      const float extraSpaceX,
-                                                     const float extraSpaceY) const
+                                                     const float extraSpaceY)
 {
     float widthVector[3];
     MathFunctions::subtractVectors(topRight, topLeft, widthVector);

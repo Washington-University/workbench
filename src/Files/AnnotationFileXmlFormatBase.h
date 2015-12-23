@@ -100,6 +100,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_TEXT_FONT_UNDERLINE;
         
+        static const QString ATTRIBUTE_TEXT_FONT_OUTLINE;
+        
         static const QString ATTRIBUTE_TEXT_HORIZONTAL_ALIGNMENT;
         
         static const QString ATTRIBUTE_TEXT_ORIENTATION;
@@ -195,6 +197,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE = "fontPercentViewportSize";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_UNDERLINE = "fontUnderline";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_OUTLINE = "fontOutline";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_HORIZONTAL_ALIGNMENT = "horizontalAlignment";
     

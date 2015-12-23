@@ -194,6 +194,10 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                      "TEXT_FONT_PERCENT_SIZE",
                                                      "Text Font Percent Size"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_FONT_OUTLINE,
+                                                         "TEXT_FONT_OUTLINE",
+                                                         "Text Font Outline"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_FONT_POINT_SIZE,
                                                          "TEXT_FONT_POINT_SIZE",
                                                          "Text Font Point Size"));

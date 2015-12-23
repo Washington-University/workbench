@@ -94,8 +94,23 @@ namespace caret {
                            const double lineEndX,
                            const double lineY,
                            const double lineZ,
-                           const double fontSize,
+                           const double underlineThickness,
                            uint8_t foregroundRgba[4]);
+        
+        void drawOutline(const double minX,
+                         const double maxX,
+                         const double minY,
+                         const double maxY,
+                         const double z,
+                         const double outlineThickness,
+                         uint8_t foregroundRgba[4]);
+        
+        static void expandBox(float bottomLeft[3],
+                              float bottomRight[3],
+                              float topRight[3],
+                              float topLeft[3],
+                              const float extraSpaceX,
+                              const float extraSpaceY);
         
         class FontData {
         public:
@@ -161,7 +176,8 @@ namespace caret {
         public:
             TextString(const QString& textString,
                        const AnnotationTextOrientationEnum::Enum orientation,
-                       const double underlineWidth,
+                       const double underlineThickness,
+                       const double outlineThickness,
                        FTFont* font);
             
             ~TextString();
@@ -175,7 +191,8 @@ namespace caret {
                                                     double& viewportMinY,
                                                     double& viewportMaxY) const;
             
-            const double m_underlineWidth;
+            const double m_underlineThickness;
+            const double m_outlineThickness;
             
             std::vector<TextCharacter*> m_characters;
             
@@ -233,7 +250,9 @@ namespace caret {
             
             const double m_rotationAngle;
             
-            double m_underlineWidth;
+            double m_underlineThickness;
+            
+            double m_outlineThickness;
             
             /*
              * Bounds relative to origin of first character

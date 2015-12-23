@@ -86,6 +86,10 @@ namespace caret {
         
         virtual void setUnderlineStyleEnabled(const bool enabled);
         
+        virtual bool isOutlineStyleEnabled() const;
+        
+        virtual void setOutlineStyleEnabled(const bool enabled);
+        
         AnnotationTextConnectTypeEnum::Enum getConnectToBrainordinate() const;
         
         void setConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate);
@@ -116,6 +120,8 @@ namespace caret {
         static void setUserDefaultItalicEnabled(const bool enabled);
         
         static void setUserDefaultUnderlineEnabled(const bool enabled);
+        
+        static void setUserDefaultOutlineEnabled(const bool enabled);
         
         static void setUserDefaultConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate);
         
@@ -179,6 +185,8 @@ namespace caret {
         
         bool m_underlineEnabled;
         
+        bool m_outlineEnabled;
+        
         // Defaults
         static AnnotationTextAlignHorizontalEnum::Enum  s_userDefaultAlignmentHorizontal;
         
@@ -199,6 +207,8 @@ namespace caret {
         static bool s_userDefaultItalicEnabled;
         
         static bool s_userDefaultUnderlineEnabled;
+        
+        static bool s_userDefaultOutlineEnabled;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -226,6 +236,8 @@ namespace caret {
     bool AnnotationText::s_userDefaultItalicEnabled = false;
     
     bool AnnotationText::s_userDefaultUnderlineEnabled = false;
+    
+    bool AnnotationText::s_userDefaultOutlineEnabled = false;
     
 #endif // __ANNOTATION_TEXT_DECLARE__
 

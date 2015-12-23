@@ -282,6 +282,27 @@ AnnotationColorBar::setUnderlineStyleEnabled(const bool /*enabled*/)
 }
 
 /**
+ * @return
+ *    Is outline enabled ?
+ */
+bool
+AnnotationColorBar::isOutlineStyleEnabled() const
+{
+    return false;
+}
+
+/**
+ * Set outline enabled.
+ *
+ * @param enabled
+ *     New status for outline enabled.
+ */
+void
+AnnotationColorBar::setOutlineStyleEnabled(const bool /*enabled*/)
+{
+}
+
+/**
  * @return Is foreground line width supported?
  * Most annotations support a foreground line width.
  * Annotations that do not support a foreground line width

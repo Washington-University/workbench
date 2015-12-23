@@ -125,6 +125,7 @@ FtglFontTextRenderer::FtglFontTextRenderer()
     defaultAnnotationText.setItalicStyleEnabled(false);
     defaultAnnotationText.setBoldStyleEnabled(false);
     defaultAnnotationText.setUnderlineStyleEnabled(false);
+    defaultAnnotationText.setOutlineStyleEnabled(false);
     m_defaultFont = getFont(defaultAnnotationText,
                             true);
 #endif // HAVE_FREETYPE
@@ -341,7 +342,8 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
     
-    const double underlineOffsetY = (textStringGroup.m_underlineWidth / 2.0);
+    const double underlineOffsetY = (textStringGroup.m_underlineThickness / 2.0);
+    const double outlineOffsetY   = (textStringGroup.m_outlineThickness / 2.0);
     
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3], rotationPointXYZ[3];
     textStringGroup.getViewportBounds(s_textMarginSize,
@@ -387,7 +389,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
             glPopMatrix();
         }
         
-        if (ts->m_underlineWidth > 0.0) {
+        if (ts->m_underlineThickness > 0.0) {
             glPushMatrix();
             glTranslated(ts->m_viewportX - rotationPointXYZ[0], ts->m_viewportY - rotationPointXYZ[1], 0.0);
             
@@ -398,8 +400,27 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
                           ts->m_stringGlyphsMaxX,
                           underlineY,
                           z, //0.0,  // Z
-                          textStringGroup.m_underlineWidth,
+                          textStringGroup.m_underlineThickness,
                           foregroundRgba);
+            
+            glPopMatrix();
+        }
+        
+        if (ts->m_outlineThickness > 0.0) {
+            glPushMatrix();
+            glTranslated(ts->m_viewportX - rotationPointXYZ[0], ts->m_viewportY - rotationPointXYZ[1], 0.0);
+            
+//            const double outlineMinY = ts->m_stringGlyphsMinY + outlineOffsetY;
+//            const double outlineMaxY = ts->m_stringGlyphsMaxY - outlineOffsetY;
+            uint8_t foregroundRgba[4];
+            annotationText.getForegroundColorRGBA(foregroundRgba);
+            drawOutline(ts->m_stringGlyphsMinX,
+                        ts->m_stringGlyphsMaxX,
+                        ts->m_stringGlyphsMinY,
+                        ts->m_stringGlyphsMaxY,
+                        z, //0.0,  // Z
+                        textStringGroup.m_outlineThickness,
+                        foregroundRgba);
             
             glPopMatrix();
         }
@@ -413,12 +434,28 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
 #endif // HAVE_FREETYPE
 }
 
+/**
+ * Draw underline using the given coordinates.
+ *
+ * @param lineStartX
+ *     X start of underline
+ * @param lineEndX
+ *     X end of underline
+ * @param lineY
+ *     Y of underline
+ * @param lineZ
+ *     Z of underline
+ * @param underlineThickness
+ *     Thickness of underline
+ * @param foregroundRGBA
+ *     Color for drawing underline.
+ */
 void
 FtglFontTextRenderer::drawUnderline(const double lineStartX,
                                     const double lineEndX,
                                     const double lineY,
                                     const double lineZ,
-                                    const double underlineWidth,
+                                    const double underlineThickness,
                                     uint8_t foregroundRgba[4])
 {
     /*
@@ -439,10 +476,131 @@ FtglFontTextRenderer::drawUnderline(const double lineStartX,
     
     BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
                                            foregroundRgba,
-                                           underlineWidth);
+                                           underlineThickness);
     
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_BLEND);
+}
+
+/**
+ * Draw outline using the given coordinates.
+ *
+ * @param minX
+ *     X start of outline
+ * @param maxX
+ *     X end of outline
+ * @param minY
+ *     Y start of outline
+ * @param maxY
+ *     Y end of outline
+ * @param z
+ *     Z of outline
+ * @param outlineThickness
+ *     Thickness of outline
+ * @param foregroundRGBA
+ *     Color for drawing outline.
+ */
+void
+FtglFontTextRenderer::drawOutline(const double minX,
+                                  const double maxX,
+                                  const double minY,
+                                  const double maxY,
+                                  const double z,
+                                  const double outlineThickness,
+                                  uint8_t foregroundRgba[4])
+{
+    /*
+     * Need to enable anti-aliasing for smooth lines
+     */
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    
+//    const float halfThickness = outlineThickness / 2.0;
+    float bottomLeft[3]  = { minX, minY, z };
+    float bottomRight[3] = { maxX, minY, z };
+    float topRight[3]    = { maxX, maxY, z };
+    float topLeft[3]     = { minX, maxY, z };
+    expandBox(bottomLeft, bottomRight, topRight, topLeft,
+              outlineThickness, outlineThickness);
+    
+    std::vector<float> underlineCoords;
+    underlineCoords.insert(underlineCoords.end(), bottomLeft, bottomLeft + 3);
+    underlineCoords.insert(underlineCoords.end(), bottomRight, bottomRight + 3);
+    underlineCoords.insert(underlineCoords.end(), topRight, topRight + 3);
+    underlineCoords.insert(underlineCoords.end(), topLeft, topLeft + 3);
+//    underlineCoords.insert(underlineCoords.end(), minX);
+//    underlineCoords.insert(underlineCoords.end(), minY);
+//    underlineCoords.insert(underlineCoords.end(), z);
+//    underlineCoords.insert(underlineCoords.end(), maxX);
+//    underlineCoords.insert(underlineCoords.end(), minY);
+//    underlineCoords.insert(underlineCoords.end(), z);
+//    underlineCoords.insert(underlineCoords.end(), maxX);
+//    underlineCoords.insert(underlineCoords.end(), maxY);
+//    underlineCoords.insert(underlineCoords.end(), z);
+//    underlineCoords.insert(underlineCoords.end(), minX);
+//    underlineCoords.insert(underlineCoords.end(), maxY);
+//    underlineCoords.insert(underlineCoords.end(), z);
+    
+    BrainOpenGLPrimitiveDrawing::drawLineLoop(underlineCoords,
+                                              foregroundRgba,
+                                              outlineThickness);
+    
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_BLEND);
+}
+
+/**
+ * Expand a box by given amounts in X and Y.
+ *
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * @param extraSpaceX
+ *     Extra space to add in X.
+ * @param extraSpaceY
+ *     Extra space to add in Y.
+ */
+void
+FtglFontTextRenderer::expandBox(float bottomLeft[3],
+                                float bottomRight[3],
+                                float topRight[3],
+                                float topLeft[3],
+                                const float extraSpaceX,
+                                const float extraSpaceY)
+{
+    float widthVector[3];
+    MathFunctions::subtractVectors(topRight, topLeft, widthVector);
+    MathFunctions::normalizeVector(widthVector);
+    
+    float heightVector[3];
+    MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
+    MathFunctions::normalizeVector(heightVector);
+    
+    const float widthSpacingX = extraSpaceX * widthVector[0];
+    const float widthSpacingY = extraSpaceY * widthVector[1];
+    
+    const float heightSpacingX = extraSpaceX * heightVector[0];
+    const float heightSpacingY = extraSpaceY * heightVector[1];
+    
+    
+    topLeft[0] += (-widthSpacingX + heightSpacingX);
+    topLeft[1] += (-widthSpacingY + heightSpacingY);
+    
+    topRight[0] += (widthSpacingX + heightSpacingX);
+    topRight[1] += (widthSpacingY + heightSpacingY);
+    
+    bottomLeft[0] += (-widthSpacingX - heightSpacingX);
+    bottomLeft[1] += (-widthSpacingY - heightSpacingY);
+    
+    bottomRight[0] += (widthSpacingX - heightSpacingX);
+    bottomRight[1] += (widthSpacingY - heightSpacingY);
 }
 
 /**
@@ -1053,16 +1211,20 @@ FtglFontTextRenderer::TextCharacter::print(const AString& offsetString)
  *     The text string.
  * @parm orientation
  *     Orientation of the text string.
- * @param underlineWidth
- *     Width of underline for the text.
+ * @param underlineThickness
+ *     Thickness of underline for the text.
+ * @param outlineThickness
+ *     Thickness of outline for the text.
  * @param font
  *     Font for drawing the text string.
  */
 FtglFontTextRenderer::TextString::TextString(const QString& textString,
                                              const AnnotationTextOrientationEnum::Enum orientation,
-                                             const double underlineWidth,
+                                             const double underlineThickness,
+                                             const double outlineThickness,
                                              FTFont* font)
-: m_underlineWidth(underlineWidth),
+: m_underlineThickness(underlineThickness),
+m_outlineThickness(outlineThickness),
 m_viewportX(0.0),
 m_viewportY(0.0),
 m_viewportZ(0.0),
@@ -1337,7 +1499,7 @@ FtglFontTextRenderer::TextString::setGlyphBounds()
         
         const double left   = x + tc->m_glyphMinX;
         const double right  = x + tc->m_glyphMaxX;
-        const double bottom = y + tc->m_glyphMinY - m_underlineWidth;
+        const double bottom = y + tc->m_glyphMinY - m_underlineThickness;
         const double top    = y + tc->m_glyphMaxY;
         
         m_stringGlyphsMinX = std::min(m_stringGlyphsMinX,
@@ -1406,7 +1568,8 @@ m_viewportX(viewportX),
 m_viewportY(viewportY),
 m_viewportZ(viewportZ),
 m_rotationAngle(rotationAngle),
-m_underlineWidth(0.0),
+m_underlineThickness(0.0),
+m_outlineThickness(0.0),
 m_viewportBoundsMinX(0.0),
 m_viewportBoundsMaxX(0.0),
 m_viewportBoundsMinY(0.0),
@@ -1417,12 +1580,23 @@ m_viewportBoundsMaxY(0.0)
     
     /*
      * The underline for text is scaled with the size of the font
-     * Underline is drawn anytime it is greater than zero
+     * Underline is drawn anytime thickness is greater than zero
      */
     if (annotationText.isUnderlineStyleEnabled()) {
         if (annotationText.getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
-            m_underlineWidth = std::max((font->FaceSize() / 14.0),
+            m_underlineThickness = std::max((font->FaceSize() / 14.0),
                                         1.0);
+        }
+    }
+    
+    /*
+     * The outline for text is scaled with the size of the font
+     * Outline is drawn anytime thickness is greater than zero
+     */
+    if (annotationText.isOutlineStyleEnabled()) {
+        if (annotationText.getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
+            m_outlineThickness = std::max((font->FaceSize() / 14.0),
+                                            1.0);
         }
     }
     
@@ -1437,7 +1611,8 @@ m_viewportBoundsMaxY(0.0)
     for (int32_t i = 0; i < textListSize; i++) {
         TextString* ts = new TextString(textList.at(i),
                                         annotationText.getOrientation(),
-                                        m_underlineWidth,
+                                        m_underlineThickness,
+                                        m_outlineThickness,
                                         font);
         m_textStrings.push_back(ts);
     }
@@ -1628,7 +1803,7 @@ FtglFontTextRenderer::TextStringGroup::initializeTextPositions()
                     const double offsetY1 = prevTextString->m_stringGlyphsMinY;
                     const double offsetY2 = -(s_textMarginSize * 2.0);
                     const double offsetY3 = -textString->m_stringGlyphsMaxY;
-                    const double offsetY4 = 0.0; //-m_underlineWidth;
+                    const double offsetY4 = 0.0; //-m_underlineThickness;
                     const double offsetY  = (offsetY1 + offsetY2 + offsetY3 + offsetY4);
                     
                     y += offsetY;

@@ -79,11 +79,13 @@ public:
         TEXT_FONT_ITALIC,
         /** Text Font Name */
         TEXT_FONT_NAME,
+        /** Text Font Outline */
+        TEXT_FONT_OUTLINE,
         /** Text Font Percent Size */
         TEXT_FONT_PERCENT_SIZE,
         /** Text Font Point Size */
         TEXT_FONT_POINT_SIZE,
-        /** Text Font Undeline */
+        /** Text Font Underline */
         TEXT_FONT_UNDERLINE,
         /** Text Orientation */
         TEXT_ORIENTATION,

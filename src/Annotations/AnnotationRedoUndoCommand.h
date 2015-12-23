@@ -122,6 +122,9 @@ namespace caret {
         void setModeTextFontUnderline(const bool newStatus,
                                       const std::vector<Annotation*>& annotations);
         
+        void setModeTextFontOutline(const bool newStatus,
+                                      const std::vector<Annotation*>& annotations);
+        
         void setModeTextOrientation(const AnnotationTextOrientationEnum::Enum newTextOrientation,
                                     const std::vector<Annotation*>& annotations);
         

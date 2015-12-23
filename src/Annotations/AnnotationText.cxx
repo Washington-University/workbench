@@ -120,6 +120,7 @@ AnnotationText::initializeAnnotationTextMembers()
             m_boldEnabled             = false;
             m_italicEnabled           = false;
             m_underlineEnabled        = false;
+            m_outlineEnabled          = false;
             m_connectToBrainordinate  = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
             m_fontPercentViewportSize = 5.0;
             break;
@@ -132,6 +133,7 @@ AnnotationText::initializeAnnotationTextMembers()
             m_boldEnabled             = s_userDefaultBoldEnabled;
             m_italicEnabled           = s_userDefaultItalicEnabled;
             m_underlineEnabled        = s_userDefaultUnderlineEnabled;
+            m_outlineEnabled          = s_userDefaultOutlineEnabled;
             m_connectToBrainordinate  = s_userDefaultConnectToBrainordinate;
             m_fontPercentViewportSize = s_userDefaultFontPercentViewportSize;
             break;
@@ -160,6 +162,8 @@ AnnotationText::initializeAnnotationTextMembers()
                           &m_italicEnabled);
     m_sceneAssistant->add("m_underlineEnabled",
                           &m_underlineEnabled);
+    m_sceneAssistant->add("m_outlineEnabled",
+                          &m_outlineEnabled);
     m_sceneAssistant->add("m_fontPercentViewportSize",
                           &m_fontPercentViewportSize);
 }
@@ -215,10 +219,15 @@ AnnotationText::getFontRenderingEncodedName(const float drawingViewportHeight) c
     if (m_italicEnabled) {
         encodedName.append("_I");
     }
-    
-    if (m_underlineEnabled) {
-        encodedName.append("_U");
-    }
+
+//  Underline and outline are not drawn by font rendering
+//    if (m_underlineEnabled) {
+//        encodedName.append("_U");
+//    }
+//    
+//    if (m_outlineEnabled) {
+//        encodedName.append("_O");
+//    }
     
     return encodedName;
 }
@@ -553,6 +562,32 @@ AnnotationText::setUnderlineStyleEnabled(const bool enabled)
 }
 
 /**
+ * @return
+ *    Is outline enabled ?
+ */
+bool
+AnnotationText::isOutlineStyleEnabled() const
+{
+    return m_outlineEnabled;
+}
+
+/**
+ * Set outline enabled.
+ *
+ * @param enabled
+ *     New status for outline enabled.
+ */
+void
+AnnotationText::setOutlineStyleEnabled(const bool enabled)
+{
+    if (enabled != m_outlineEnabled) {
+        m_outlineEnabled = enabled;
+        setModified();
+    }
+}
+
+
+/**
  * Helps with copying an object of this type.
  * @param obj
  *    Object that is copied.
@@ -569,6 +604,7 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
     m_boldEnabled         = obj.m_boldEnabled;
     m_italicEnabled       = obj.m_italicEnabled;
     m_underlineEnabled    = obj.m_underlineEnabled;
+    m_outlineEnabled      = obj.m_outlineEnabled;
     m_connectToBrainordinate = obj.m_connectToBrainordinate;
     m_fontPercentViewportSize = obj.m_fontPercentViewportSize;
 }
@@ -815,6 +851,17 @@ void AnnotationText::setUserDefaultItalicEnabled(const bool enabled)
 void AnnotationText::setUserDefaultUnderlineEnabled(const bool enabled)
 {
     s_userDefaultUnderlineEnabled = enabled;
+}
+
+/**
+ * Set the default value for outline enabled.
+ *
+ * @param enabled
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setUserDefaultOutlineEnabled(const bool enabled)
+{
+    s_userDefaultOutlineEnabled = enabled;
 }
 
 /**
