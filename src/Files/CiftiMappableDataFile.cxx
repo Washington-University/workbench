@@ -4751,8 +4751,7 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
                                     const int32_t labelKey = static_cast<int32_t>(value);
                                     const GiftiLabel* gl = glt->getLabel(labelKey);
                                     if (gl != NULL) {
-                                        textValueOut += (gl->getName()
-                                                         + " ");
+                                        textValueOut = (gl->getName());
                                     }
                                     else {
                                         textValueOut += ("InvalidLabelKey="
