@@ -195,18 +195,20 @@ AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
                 }
                 
                 if (viewportValidFlag) {
-                    float vpOneX = 0.0;
-                    float vpOneY = 0.0;
-                    float vpTwoX = 0.0;
-                    float vpTwoY = 0.0;
-                    oneDimAnn->getStartCoordinate()->getViewportXY(viewport[2], viewport[3], vpOneX, vpOneY);
-                    oneDimAnn->getEndCoordinate()->getViewportXY(viewport[2], viewport[3], vpTwoX, vpTwoY);
+//                    float vpOneX = 0.0;
+//                    float vpOneY = 0.0;
+//                    float vpTwoX = 0.0;
+//                    float vpTwoY = 0.0;
+//                    oneDimAnn->getStartCoordinate()->getViewportXY(viewport[2], viewport[3], vpOneX, vpOneY);
+//                    oneDimAnn->getEndCoordinate()->getViewportXY(viewport[2], viewport[3], vpTwoX, vpTwoY);
+//                    
+//                    const float dx = vpTwoX - vpOneX;
+//                    const float dy = vpTwoY - vpOneY;
+//                    
+//                    angle = 360.0 - MathFunctions::toDegrees(std::atan2(dy, dx));
                     
-                    const float dx = vpTwoX - vpOneX;
-                    const float dy = vpTwoY - vpOneY;
-                    
-                    angle = MathFunctions::toDegrees(std::atan2(dy, dx));
-                    angle = -angle;
+                    angle = oneDimAnn->getRotationAngle(viewport[2], viewport[3]);
+                    //angle = -angle;
                     angleValid = true;
                 }
             }

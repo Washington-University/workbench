@@ -67,6 +67,14 @@ namespace caret {
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
         
+        float getRotationAngle(const float viewportWidth,
+                               const float viewportHeight) const;
+        
+        void setRotationAngle(const float viewportWidth,
+                              const float viewportHeight,
+                              const float rotationAngle);
+        
+        
         // ADD_NEW_METHODS_HERE
 
           

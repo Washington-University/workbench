@@ -1161,36 +1161,37 @@ AnnotationRedoUndoCommand::setModeRotationAngle(const float newRotationAngle,
                 
                 const bool rotateAroundMiddleFlag = true;
                 if (rotateAroundMiddleFlag) {
-                    const float midPointXYZ[3] = {
-                        (annOneX + annTwoX) / 2.0,
-                        (annOneY + annTwoY) / 2.0,
-                        0.0
-                    };
-                    
-                    const float vpOneXYZ[3] = { annOneX, annOneY, 0.0 };
-                    const float vpTwoXYZ[3] = { annTwoX, annTwoY, 0.0 };
-                    const float length = MathFunctions::distance3D(vpOneXYZ, vpTwoXYZ);
-                    const float lengthMidToOne = MathFunctions::distance3D(midPointXYZ, vpOneXYZ);
-                    const float angleRadians = MathFunctions::toRadians(-newRotationAngle);
-                    const float dy = lengthMidToOne * std::sin(angleRadians);
-                    const float dx = lengthMidToOne * std::cos(angleRadians);
-                    annOneX = midPointXYZ[0] - dx;
-                    annOneY = midPointXYZ[1] - dy;
-                    
-                    annTwoX = midPointXYZ[0] + dx;
-                    annTwoY = midPointXYZ[1] + dy;
-                    
-//                    const float newVpOneXYZ[3] = { annOneX, annOneY, 0.0 };
-//                    float vectorOneToMid[3] = { 0.0, 0.0, 0.0 };
-//                    MathFunctions::subtractVectors(newVpOneXYZ, midPointXYZ, vectorOneToMid);
-//                    MathFunctions::normalizeVector(vectorOneToMid);
-//                    annTwoX = annOneX + vectorOneToMid[0] * length;
-//                    annTwoY = annOneY + vectorOneToMid[1] * length;
+//                    const float midPointXYZ[3] = {
+//                        (annOneX + annTwoX) / 2.0,
+//                        (annOneY + annTwoY) / 2.0,
+//                        0.0
+//                    };
+//                    
+//                    const float vpOneXYZ[3] = { annOneX, annOneY, 0.0 };
+//                    const float vpTwoXYZ[3] = { annTwoX, annTwoY, 0.0 };
+//                    const float length = MathFunctions::distance3D(vpOneXYZ, vpTwoXYZ);
+//                    const float lengthMidToOne = MathFunctions::distance3D(midPointXYZ, vpOneXYZ);
+//                    const float angleRadians = MathFunctions::toRadians(-newRotationAngle);
+//                    const float dy = lengthMidToOne * std::sin(angleRadians);
+//                    const float dx = lengthMidToOne * std::cos(angleRadians);
+//                    annOneX = midPointXYZ[0] - dx;
+//                    annOneY = midPointXYZ[1] - dy;
+//                    
+//                    annTwoX = midPointXYZ[0] + dx;
+//                    annTwoY = midPointXYZ[1] + dy;
+//                    
+////                    const float newVpOneXYZ[3] = { annOneX, annOneY, 0.0 };
+////                    float vectorOneToMid[3] = { 0.0, 0.0, 0.0 };
+////                    MathFunctions::subtractVectors(newVpOneXYZ, midPointXYZ, vectorOneToMid);
+////                    MathFunctions::normalizeVector(vectorOneToMid);
+////                    annTwoX = annOneX + vectorOneToMid[0] * length;
+////                    annTwoY = annOneY + vectorOneToMid[1] * length;
 
                     AnnotationOneDimensionalShape* redoAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(annotation->clone());
                     CaretAssert(redoAnnotation);
-                    redoAnnotation->getStartCoordinate()->setXYZFromViewportXYZ(vpWidth, vpHeight, annOneX, annOneY);
-                    redoAnnotation->getEndCoordinate()->setXYZFromViewportXYZ(vpWidth, vpHeight, annTwoX, annTwoY);
+                    redoAnnotation->setRotationAngle(vpWidth, vpHeight, newRotationAngle);
+//                    redoAnnotation->getStartCoordinate()->setXYZFromViewportXYZ(vpWidth, vpHeight, annOneX, annOneY);
+//                    redoAnnotation->getEndCoordinate()->setXYZFromViewportXYZ(vpWidth, vpHeight, annTwoX, annTwoY);
                     Annotation* undoAnnotation = annotation->clone();
                     AnnotationMemento* am = new AnnotationMemento(annotation,
                                                                   redoAnnotation,

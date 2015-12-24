@@ -23,9 +23,12 @@
 #include "AnnotationOneDimensionalShape.h"
 #undef __ANNOTATION_ONE_DIMENSIONAL_SHAPE_DECLARE__
 
+#include <cmath>
+
 #include "AnnotationCoordinate.h"
 #include "AnnotationSpatialModification.h"
 #include "CaretAssert.h"
+#include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -216,6 +219,87 @@ AnnotationOneDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
     setCoordinateSpace(otherAnnotation->getCoordinateSpace());
     setTabIndex(otherAnnotation->getTabIndex());
     setWindowIndex(otherAnnotation->getWindowIndex());
+}
+
+/**
+ * Get the rotation angle from the one-dimensional annotation.
+ * 0 is horizontal.
+ *
+ * @param viewportWidth
+ *     Width of viewport.
+ * @param viewportHeight
+ *     Height of viewport.
+ * @return
+ *     Rotation angle of the annotation.
+ */
+float
+AnnotationOneDimensionalShape::getRotationAngle(const float viewportWidth,
+                                                const float viewportHeight) const
+{
+    float vpOneX = 0.0;
+    float vpOneY = 0.0;
+    float vpTwoX = 0.0;
+    float vpTwoY = 0.0;
+    getStartCoordinate()->getViewportXY(viewportWidth, viewportHeight, vpOneX, vpOneY);
+    getEndCoordinate()->getViewportXY(viewportWidth, viewportHeight, vpTwoX, vpTwoY);
+    
+    const float dx = vpTwoX - vpOneX;
+    const float dy = vpTwoY - vpOneY;
+    
+    float angle = 180.0 - MathFunctions::toDegrees(std::atan2(dy, dx));
+    if (angle < 0.0) {
+        angle = angle + 360.0;
+    }
+    else if (angle > 360.0) {
+        angle = angle - 360.0;
+    }
+    return angle;
+}
+
+/**
+ * Set the rotation angle from the one-dimensional annotation.
+ * 0 is horizontal.
+ *
+ * @param viewportWidth
+ *     Width of viewport.
+ * @param viewportHeight
+ *     Height of viewport.
+ * @param rotationAngle
+ *     Rotation angle for the annotation.
+ */
+void
+AnnotationOneDimensionalShape::setRotationAngle(const float viewportWidth,
+                                                const float viewportHeight,
+                                                const float rotationAngle)
+{
+    float annOneX = 0.0;
+    float annOneY = 0.0;
+    float annTwoX = 0.0;
+    float annTwoY = 0.0;
+    getStartCoordinate()->getViewportXY(viewportWidth, viewportHeight, annOneX, annOneY);
+    getEndCoordinate()->getViewportXY(viewportWidth, viewportHeight, annTwoX, annTwoY);
+    
+    const float midPointXYZ[3] = {
+        (annOneX + annTwoX) / 2.0,
+        (annOneY + annTwoY) / 2.0,
+        0.0
+    };
+    
+    const float vpOneXYZ[3] = { annOneX, annOneY, 0.0 };
+    const float lengthMidToOne = MathFunctions::distance3D(midPointXYZ, vpOneXYZ);
+    const float newRotationAngle = 180.0 - rotationAngle;
+    
+    const float angleRadians = MathFunctions::toRadians(newRotationAngle);
+    const float dy = lengthMidToOne * std::sin(angleRadians);
+    const float dx = lengthMidToOne * std::cos(angleRadians);
+    annOneX = midPointXYZ[0] - dx;
+    annOneY = midPointXYZ[1] - dy;
+    
+    annTwoX = midPointXYZ[0] + dx;
+    annTwoY = midPointXYZ[1] + dy;
+    
+    getStartCoordinate()->setXYZFromViewportXYZ(viewportWidth, viewportHeight, annOneX, annOneY);
+    getEndCoordinate()->setXYZFromViewportXYZ(viewportWidth, viewportHeight, annTwoX, annTwoY);
 }
 
 /**
