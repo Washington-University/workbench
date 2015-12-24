@@ -1,5 +1,5 @@
-#ifndef __EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE_H__
-#define __EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE_H__
+#ifndef __EVENT_GET_VIEWPORT_SIZE_H__
+#define __EVENT_GET_VIEWPORT_SIZE_H__
 
 /*LICENSE_START*/
 /*
@@ -28,23 +28,26 @@
 
 namespace caret {
 
-    class EventBrowserTabGetViewportSize : public Event {
+    class EventGetViewportSize : public Event {
         
     public:
         enum Mode {
             MODE_SURFACE_MONTAGE,
-            MODE_TAB_INDEX,
-            MODE_VOLUME_MONTAGE
+            MODE_TAB_BEFORE_MARGINS_INDEX,
+            MODE_TAB_AFTER_MARGINS_INDEX,
+            MODE_VOLUME_MONTAGE,
+            MODE_WINDOW_INDEX,
         };
-        EventBrowserTabGetViewportSize(const int32_t tabIndex);
+//        EventGetViewportSize(const int32_t tabIndex);
         
-        EventBrowserTabGetViewportSize(const Mode mode);
+        EventGetViewportSize(const Mode mode,
+                                       const int32_t index);
         
-        virtual ~EventBrowserTabGetViewportSize();
+        virtual ~EventGetViewportSize();
         
         Mode getMode() const;
         
-        int32_t getTabIndex() const;
+        int32_t getIndex() const;
         
         bool isViewportSizeValid() const;
         
@@ -55,13 +58,13 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        EventBrowserTabGetViewportSize(const EventBrowserTabGetViewportSize&);
+        EventGetViewportSize(const EventGetViewportSize&);
 
-        EventBrowserTabGetViewportSize& operator=(const EventBrowserTabGetViewportSize&);
+        EventGetViewportSize& operator=(const EventGetViewportSize&);
         
         const Mode m_mode;
         
-        const int32_t m_tabIndex;
+        const int32_t m_index;
         
         int32_t m_viewport[4];
         
@@ -71,9 +74,9 @@ namespace caret {
 
     };
     
-#ifdef __EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE_DECLARE__
+#ifdef __EVENT_GET_VIEWPORT_SIZE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE_DECLARE__
+#endif // __EVENT_GET_VIEWPORT_SIZE_DECLARE__
 
 } // namespace
-#endif  //__EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE_H__
+#endif  //__EVENT_GET_VIEWPORT_SIZE_H__

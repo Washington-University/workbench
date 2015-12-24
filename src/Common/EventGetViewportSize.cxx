@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE_DECLARE__
-#include "EventBrowserTabGetViewportSize.h"
-#undef __EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE_DECLARE__
+#define __EVENT_GET_VIEWPORT_SIZE_DECLARE__
+#include "EventGetViewportSize.h"
+#undef __EVENT_GET_VIEWPORT_SIZE_DECLARE__
 
 #include "CaretAssert.h"
 #include "EventTypeEnum.h"
@@ -31,7 +31,7 @@ using namespace caret;
 
     
 /**
- * \class caret::EventBrowserTabGetViewportSize 
+ * \class caret::EventGetViewportSize 
  * \brief Event to get the viewport size for a tab.
  * \ingroup GuiQt
  */
@@ -42,17 +42,17 @@ using namespace caret;
  * @param tabIndex
  *     Index of tab for which viewport size is requested.
  */
-EventBrowserTabGetViewportSize::EventBrowserTabGetViewportSize(const int32_t tabIndex)
-: Event(EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE),
-m_mode(MODE_TAB_INDEX),
-m_tabIndex(tabIndex),
-m_viewportValid(false)
-{
-    m_viewport[0] = 0;
-    m_viewport[1] = 0;
-    m_viewport[2] = 0;
-    m_viewport[3] = 0;
-}
+//EventGetViewportSize::EventGetViewportSize(const int32_t tabIndex)
+//: Event(EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE),
+//m_mode(MODE_TAB_INDEX),
+//m_tabIndex(tabIndex),
+//m_viewportValid(false)
+//{
+//    m_viewport[0] = 0;
+//    m_viewport[1] = 0;
+//    m_viewport[2] = 0;
+//    m_viewport[3] = 0;
+//}
 
 /**
  * Constructor for finding a surface or volume montage.
@@ -60,10 +60,11 @@ m_viewportValid(false)
  * @param mode
  *     The mode.
  */
-EventBrowserTabGetViewportSize::EventBrowserTabGetViewportSize(const Mode mode)
-: Event(EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE),
+EventGetViewportSize::EventGetViewportSize(const Mode mode,
+                                                               const int32_t index)
+: Event(EventTypeEnum::EVENT_GET_VIEWPORT_SIZE),
 m_mode(mode),
-m_tabIndex(-1),
+m_index(index),
 m_viewportValid(false)
 {
     m_viewport[0] = 0;
@@ -75,7 +76,7 @@ m_viewportValid(false)
 /**
  * Destructor.
  */
-EventBrowserTabGetViewportSize::~EventBrowserTabGetViewportSize()
+EventGetViewportSize::~EventGetViewportSize()
 {
 }
 
@@ -83,7 +84,7 @@ EventBrowserTabGetViewportSize::~EventBrowserTabGetViewportSize()
  * @return Is the viewport size valid (width and height greater than zero)?
  */
 bool
-EventBrowserTabGetViewportSize::isViewportSizeValid() const
+EventGetViewportSize::isViewportSizeValid() const
 {
     return m_viewportValid;
 }
@@ -91,19 +92,19 @@ EventBrowserTabGetViewportSize::isViewportSizeValid() const
 /**
  * @return The mode.
  */
-EventBrowserTabGetViewportSize::Mode
-EventBrowserTabGetViewportSize::getMode() const
+EventGetViewportSize::Mode
+EventGetViewportSize::getMode() const
 {
     return m_mode;
 }
 
 /**
- * @return The tab index for which the viewport size is requested.
+ * @return The tab/window index for which the viewport size is requested.
  */
 int32_t
-EventBrowserTabGetViewportSize::getTabIndex() const
+EventGetViewportSize::getIndex() const
 {
-    return m_tabIndex;
+    return m_index;
 }
 
 /**
@@ -113,7 +114,7 @@ EventBrowserTabGetViewportSize::getTabIndex() const
  *     Output containing viewport x, y, width, height.
  */
 void
-EventBrowserTabGetViewportSize::getViewportSize(int32_t viewportOut[4]) const
+EventGetViewportSize::getViewportSize(int32_t viewportOut[4]) const
 {
     viewportOut[0] = m_viewport[0];
     viewportOut[1] = m_viewport[1];
@@ -128,7 +129,7 @@ EventBrowserTabGetViewportSize::getViewportSize(int32_t viewportOut[4]) const
  *     Viewport x, y, width, height.
  */
 void
-EventBrowserTabGetViewportSize::setViewportSize(const int32_t viewport[4])
+EventGetViewportSize::setViewportSize(const int32_t viewport[4])
 {
     m_viewportValid = false;
     

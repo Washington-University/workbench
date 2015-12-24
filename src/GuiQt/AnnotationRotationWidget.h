@@ -30,7 +30,8 @@ class QDoubleSpinBox;
 
 
 namespace caret {
-    class AnnotationTwoDimensionalShape;
+    class Annotation;
+    class AnnotationOneDimensionalShape;
 
     class AnnotationRotationWidget : public QWidget {
 
@@ -45,7 +46,9 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-        void updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotation2D);
+//        void updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotation2D);
+        
+        void updateContent(std::vector<Annotation*>& annotations);
         
     private slots:
         void rotationValueChanged(double value);
@@ -55,12 +58,12 @@ namespace caret {
 
         AnnotationRotationWidget& operator=(const AnnotationRotationWidget&);
         
+        AnnotationOneDimensionalShape* getValidOneDimAnnotation(Annotation* annotation);
+        
         const int32_t m_browserWindowIndex;
         
         QDoubleSpinBox* m_rotationSpinBox;
-        
-        AnnotationTwoDimensionalShape* m_annotation2D;
-        
+
         // ADD_NEW_MEMBERS_HERE
 
     };

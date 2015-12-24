@@ -53,6 +53,16 @@ namespace caret {
                     const float y,
                     const float z);
         
+        void setXYZFromViewportXYZ(const float viewportWidth,
+                                   const float viewportHeight,
+                                   const float viewportX,
+                                   const float viewportY);
+        
+        void getViewportXY(const float viewportWidth,
+                           const float viewportHeight,
+                           float& viewportXOut,
+                           float& viewportYOut) const;
+        
         void getSurfaceSpace(StructureEnum::Enum& structureOut,
                              int32_t& surfaceNumberOfNodesOut,
                              int32_t& surfaceNodeIndexOut) const;

@@ -62,8 +62,6 @@ public:
         EVENT_BROWSER_TAB_GET_ALL,
         /** Get ALL VIEWED browser tabs (tabs that are viewed in windows) */
         EVENT_BROWSER_TAB_GET_ALL_VIEWED,
-        /** Get the viewport size for a browser tab */
-        EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
         /** Get the content of a browser window */
@@ -96,6 +94,8 @@ public:
         EVENT_GET_NODE_DATA_FILES,
         /** get or set the user input mode */
         EVENT_GET_OR_SET_USER_INPUT_MODE,
+        /** Get the viewport size for model, tab, window */
+        EVENT_GET_VIEWPORT_SIZE,
         /** Update all graphics windows */
         EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
         /** Update graphics in a window */

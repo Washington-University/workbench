@@ -325,7 +325,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     m_textAlignmentWidget->updateContent(textAnnotations);
     m_textOrientationWidget->updateContent(textAnnotations);
     m_widthHeightWidget->updateContent(twoDimAnnotations);
-    m_rotationWidget->updateContent(twoDimAnnotations);
+    m_rotationWidget->updateContent(selectedAnnotations); //twoDimAnnotations);
     m_insertDeleteWidget->updateContent();
     
     Annotation* coordEditAnnotation = NULL;

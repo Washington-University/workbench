@@ -23,15 +23,19 @@
 #include "AnnotationRedoUndoCommand.h"
 #undef __ANNOTATION_UNDO_COMMAND_DECLARE__
 
+#include <cmath>
+
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationLine.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "EventAnnotationAddToRemoveFromFile.h"
+#include "EventGetViewportSize.h"
 #include "EventManager.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 
@@ -225,7 +229,13 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
                     twoDimAnn->setRotationAngle(twoDimValue->getRotationAngle());
                 }
                 else {
-                    CaretAssert(0);
+                    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
+                    const AnnotationOneDimensionalShape* oneDimValue = dynamic_cast<const AnnotationOneDimensionalShape*>(annotationValue);
+                    if ((oneDimAnn != NULL)
+                        && (oneDimValue != NULL)) {
+                        oneDimAnn->getStartCoordinate()->setXYZ(oneDimValue->getStartCoordinate()->getXYZ());
+                        oneDimAnn->getEndCoordinate()->setXYZ(oneDimValue->getEndCoordinate()->getXYZ());
+                    }
                 }
             }
             break;
@@ -1091,6 +1101,7 @@ AnnotationRedoUndoCommand::setModeRotationAngle(const float newRotationAngle,
         CaretAssert(annotation);
         
         AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+        AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
         if (twoDimAnn != NULL) {
             AnnotationTwoDimensionalShape* redoAnnotation = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation->clone());
             CaretAssert(redoAnnotation);
@@ -1100,6 +1111,136 @@ AnnotationRedoUndoCommand::setModeRotationAngle(const float newRotationAngle,
                                                           redoAnnotation,
                                                           undoAnnotation);
             m_annotationMementos.push_back(am);
+        }
+        else if (oneDimAnn != NULL) {
+            int32_t viewport[4] = { 0, 0, 0, 0 };
+            bool viewportValid = false;
+            switch (oneDimAnn->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    break;
+                case  AnnotationCoordinateSpaceEnum::SURFACE:
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                {
+                    const int tabIndex = oneDimAnn->getTabIndex();
+                    EventGetViewportSize vpSizeEvent(EventGetViewportSize::MODE_TAB_AFTER_MARGINS_INDEX,
+                                                     tabIndex);
+                    EventManager::get()->sendEvent(vpSizeEvent.getPointer());
+                    if (vpSizeEvent.isViewportSizeValid()) {
+                        vpSizeEvent.getViewportSize(viewport);
+                        viewportValid = true;
+                    }
+                }
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                {
+                    const int windowIndex = oneDimAnn->getWindowIndex();
+                    EventGetViewportSize vpSizeEvent(EventGetViewportSize::MODE_WINDOW_INDEX,
+                                                     windowIndex);
+                    EventManager::get()->sendEvent(vpSizeEvent.getPointer());
+                    if (vpSizeEvent.isViewportSizeValid()) {
+                        vpSizeEvent.getViewportSize(viewport);
+                        viewportValid = true;
+                    }
+                }
+                    break;
+            }
+            
+            if (viewportValid) {
+                const float vpWidth  = viewport[2];
+                const float vpHeight = viewport[3];
+                
+                float annOneX = 0.0;
+                float annOneY = 0.0;
+                float annTwoX = 0.0;
+                float annTwoY = 0.0;
+                oneDimAnn->getStartCoordinate()->getViewportXY(vpWidth, vpHeight, annOneX, annOneY);
+                oneDimAnn->getEndCoordinate()->getViewportXY(vpWidth, vpHeight, annTwoX, annTwoY);
+                
+                const bool rotateAroundMiddleFlag = true;
+                if (rotateAroundMiddleFlag) {
+                    const float midPointXYZ[3] = {
+                        (annOneX + annTwoX) / 2.0,
+                        (annOneY + annTwoY) / 2.0,
+                        0.0
+                    };
+                    
+                    const float vpOneXYZ[3] = { annOneX, annOneY, 0.0 };
+                    const float vpTwoXYZ[3] = { annTwoX, annTwoY, 0.0 };
+                    const float length = MathFunctions::distance3D(vpOneXYZ, vpTwoXYZ);
+                    const float lengthMidToOne = MathFunctions::distance3D(midPointXYZ, vpOneXYZ);
+                    const float angleRadians = MathFunctions::toRadians(-newRotationAngle);
+                    const float dy = lengthMidToOne * std::sin(angleRadians);
+                    const float dx = lengthMidToOne * std::cos(angleRadians);
+                    annOneX = midPointXYZ[0] - dx;
+                    annOneY = midPointXYZ[1] - dy;
+                    
+                    annTwoX = midPointXYZ[0] + dx;
+                    annTwoY = midPointXYZ[1] + dy;
+                    
+//                    const float newVpOneXYZ[3] = { annOneX, annOneY, 0.0 };
+//                    float vectorOneToMid[3] = { 0.0, 0.0, 0.0 };
+//                    MathFunctions::subtractVectors(newVpOneXYZ, midPointXYZ, vectorOneToMid);
+//                    MathFunctions::normalizeVector(vectorOneToMid);
+//                    annTwoX = annOneX + vectorOneToMid[0] * length;
+//                    annTwoY = annOneY + vectorOneToMid[1] * length;
+
+                    AnnotationOneDimensionalShape* redoAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(annotation->clone());
+                    CaretAssert(redoAnnotation);
+                    redoAnnotation->getStartCoordinate()->setXYZFromViewportXYZ(vpWidth, vpHeight, annOneX, annOneY);
+                    redoAnnotation->getEndCoordinate()->setXYZFromViewportXYZ(vpWidth, vpHeight, annTwoX, annTwoY);
+                    Annotation* undoAnnotation = annotation->clone();
+                    AnnotationMemento* am = new AnnotationMemento(annotation,
+                                                                  redoAnnotation,
+                                                                  undoAnnotation);
+                    m_annotationMementos.push_back(am);
+                }
+                else {
+                    const float vpOneXYZ[3] = { annOneX, annOneY, 0.0 };
+                    const float vpTwoXYZ[3] = { annTwoX, annTwoY, 0.0 };
+                    const float length = MathFunctions::distance3D(vpOneXYZ, vpTwoXYZ);
+                    const float angleRadians = MathFunctions::toRadians(-newRotationAngle);
+                    const float dy = length * std::sin(angleRadians);
+                    const float dx = length * std::cos(angleRadians);
+                    annTwoX = annOneX + dx;
+                    annTwoY = annOneY + dy;
+                    
+                    
+                    AnnotationOneDimensionalShape* redoAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(annotation->clone());
+                    CaretAssert(redoAnnotation);
+                    redoAnnotation->getEndCoordinate()->setXYZFromViewportXYZ(vpWidth, vpHeight, annTwoX, annTwoY);
+                    Annotation* undoAnnotation = annotation->clone();
+                    AnnotationMemento* am = new AnnotationMemento(annotation,
+                                                                  redoAnnotation,
+                                                                  undoAnnotation);
+                    m_annotationMementos.push_back(am);
+                }
+            }
+//            float xyzOne[3];
+//            oneDimAnn->getStartCoordinate()->getXYZ(xyzOne);
+//            float xyzTwo[3];
+//            oneDimAnn->getEndCoordinate()->getXYZ(xyzTwo);
+//
+////            const float dx = xyzTwo[0] - xyzOne[0];
+////            const float dy = xyzTwo[1] - xyzOne[1];
+//            const float length = MathFunctions::distance3D(xyzOne, xyzTwo);
+//            const float angleRadians = MathFunctions::toRadians(-newRotationAngle);
+//            const float dy = length * std::sin(angleRadians);
+//            const float dx = length * std::cos(angleRadians);
+//            xyzTwo[0] = xyzOne[0] + dx;
+//            xyzTwo[1] = xyzOne[1] + dy;
+//
+//            
+//            AnnotationOneDimensionalShape* redoAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(annotation->clone());
+//            CaretAssert(redoAnnotation);
+//            redoAnnotation->getEndCoordinate()->setXYZ(xyzTwo);
+//            Annotation* undoAnnotation = annotation->clone();
+//            AnnotationMemento* am = new AnnotationMemento(annotation,
+//                                                          redoAnnotation,
+//                                                          undoAnnotation);
+//            m_annotationMementos.push_back(am);
         }
     }
     

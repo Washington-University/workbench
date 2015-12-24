@@ -41,7 +41,7 @@
 #include "CaretLogger.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
-#include "EventBrowserTabGetViewportSize.h"
+#include "EventGetViewportSize.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -492,7 +492,8 @@ GapsAndMarginsDialog::tabMarginMatchPixelButtonClicked(int rowIndex)
     CaretAssertArrayIndex(m_tabIndexInTabMarginRow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, rowIndex);
     const int32_t tabIndex = m_tabIndexInTabMarginRow[rowIndex];
     if (tabIndex >= 0) {
-        EventBrowserTabGetViewportSize viewportSizeEvent(tabIndex);
+        EventGetViewportSize viewportSizeEvent(EventGetViewportSize::MODE_TAB_BEFORE_MARGINS_INDEX,
+                                                         tabIndex);
         EventManager::get()->sendEvent(viewportSizeEvent.getPointer());
         if (viewportSizeEvent.isViewportSizeValid()) {
             int32_t viewport[4];
@@ -683,7 +684,13 @@ GapsAndMarginsDialog::volumeMontageGapChanged()
 void
 GapsAndMarginsDialog::surfaceMontageMatchPixelButtonClicked()
 {
-    EventBrowserTabGetViewportSize viewportSizeEvent(EventBrowserTabGetViewportSize::MODE_SURFACE_MONTAGE);
+    const int32_t windowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
+    if (windowIndex < 0) {
+        return;
+    }
+    
+    EventGetViewportSize viewportSizeEvent(EventGetViewportSize::MODE_SURFACE_MONTAGE,
+                                                     windowIndex);
     EventManager::get()->sendEvent(viewportSizeEvent.getPointer());
     if (viewportSizeEvent.isViewportSizeValid()) {
         int32_t viewport[4];
@@ -709,7 +716,13 @@ GapsAndMarginsDialog::surfaceMontageMatchPixelButtonClicked()
 void
 GapsAndMarginsDialog::volumeMontageMatchPixelButtonClicked()
 {
-    EventBrowserTabGetViewportSize viewportSizeEvent(EventBrowserTabGetViewportSize::MODE_VOLUME_MONTAGE);
+    const int32_t windowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
+    if (windowIndex < 0) {
+        return;
+    }
+    
+    EventGetViewportSize viewportSizeEvent(EventGetViewportSize::MODE_VOLUME_MONTAGE,
+                                                     windowIndex);
     EventManager::get()->sendEvent(viewportSizeEvent.getPointer());
     if (viewportSizeEvent.isViewportSizeValid()) {
         int32_t viewport[4];

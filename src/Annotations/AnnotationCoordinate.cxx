@@ -24,6 +24,7 @@
 #undef __ANNOTATION_COORDINATE_DECLARE__
 
 #include "CaretAssert.h"
+#include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -217,6 +218,52 @@ AnnotationCoordinate::setXYZ(const float x,
         m_xyz[2] = z;
         setModified();
     }
+}
+
+/**
+ * Set the window or tab XYZ from viewport X, Y.
+ *
+ * @param viewportWidth
+ *     Width of viewport.
+ * @param viewportHeight
+ *     Height of viewport.
+ * @param viewportX 
+ *     X viewport coordinate.
+ * @param viewportY
+ *     Y viewport coordinate.
+ */
+void
+AnnotationCoordinate::setXYZFromViewportXYZ(const float viewportWidth,
+                                            const float viewportHeight,
+                                            const float viewportX,
+                                            const float viewportY)
+{
+    const float x = MathFunctions::limitRange(((viewportX / viewportWidth) * 100.0), 0.0, 100.0);
+    const float y = MathFunctions::limitRange(((viewportY / viewportHeight) * 100.0), 0.0, 100.0);
+    
+    setXYZ(x, y, m_xyz[2]);
+}
+
+/**
+ * Get the viewport X, Y from window or tab XYZ.
+ *
+ * @param viewportWidth
+ *     Width of viewport.
+ * @param viewportHeight
+ *     Height of viewport.
+ * @param viewportXOut
+ *     X viewport coordinate.
+ * @param viewportYOut
+ *     Y viewport coordinate.
+ */
+void
+AnnotationCoordinate::getViewportXY(const float viewportWidth,
+                                    const float viewportHeight,
+                                    float& viewportXOut,
+                                    float& viewportYOut) const
+{
+    viewportXOut = (m_xyz[0] / 100.0) * viewportWidth;
+    viewportYOut = (m_xyz[1] / 100.0) * viewportHeight;
 }
 
 /**

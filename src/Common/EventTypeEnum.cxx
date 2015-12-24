@@ -109,10 +109,6 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_TAB_GET_ALL_VIEWED",
                                      "Get ALL Viewed browser tabs"));
 
-    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE,
-                                     "EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE",
-                                     "Get the viewport size for a browser tab"));
-    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_INDICES_GET_ALL,
                                      "EVENT_BROWSER_TAB_INDICES_GET_ALL",
                                      "Browser Tab Indices Get All"));
@@ -181,7 +177,11 @@ EventTypeEnum::initialize()
                                      "EVENT_GET_OR_SET_USER_INPUT_MODE",
                                      "Get or set the user input mode"));
     
-    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, 
+    enumData.push_back(EventTypeEnum(EVENT_GET_VIEWPORT_SIZE,
+                                     "EVENT_GET_VIEWPORT_SIZE",
+                                     "Get the viewport size"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
                                      "EVENT_GRAPHICS_UPDATE_ALL_WINDOWS", 
                                      "Update all graphics windows"));
     

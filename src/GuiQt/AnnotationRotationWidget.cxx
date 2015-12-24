@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include <cmath>
 
 #define __ANNOTATION_ROTATION_WIDGET_DECLARE__
 #include "AnnotationRotationWidget.h"
@@ -31,13 +32,16 @@
 
 
 #include "AnnotationManager.h"
+#include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "EventGetViewportSize.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "MathFunctions.h"
 #include "WuQFactory.h"
 #include "WuQtUtilities.h"
 
@@ -88,54 +92,215 @@ AnnotationRotationWidget::~AnnotationRotationWidget()
 }
 
 /**
+ * Convert the given annotation to a one-dimensional annotation.
+ * 
+ * @param annotation
+ *     The annotation.
+ * @return
+ *     Non-null if it is a one-dimensional annotation in a compatible
+ *     stereotaxic space for rotation angle.
+ *
+ */
+AnnotationOneDimensionalShape*
+AnnotationRotationWidget::getValidOneDimAnnotation(Annotation* annotation)
+{
+    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
+    
+    if (oneDimAnn != NULL) {
+        bool validSpaceFlag = false;
+        switch (oneDimAnn->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::PIXELS:
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                validSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                validSpaceFlag = true;
+                break;
+        }
+        
+        if ( ! validSpaceFlag) {
+            oneDimAnn = NULL;
+        }
+    }
+    
+    return oneDimAnn;
+}
+
+/**
  * Update with the given annotation.
  *
- * @param annotations2D.
- *    Two dimensional annotation.
+ * @param annotations.
+ *    The annotation.
  */
 void
-AnnotationRotationWidget::updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotations2D)
+AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
 {
-    if ( ! annotations2D.empty()) {
+    if ( ! annotations.empty()) {
         float rotationAngle = 0.0;
+        bool rotationAngleValid = false;
         bool haveMultipleRotationAnglesFlag = false;
         
-        const int32_t numAnns = static_cast<int32_t>(annotations2D.size());
+        const int32_t numAnns = static_cast<int32_t>(annotations.size());
         for (int32_t i = 0; i < numAnns; i++) {
-            CaretAssertVectorIndex(annotations2D, i);
-            float angle = annotations2D[i]->getRotationAngle();
-            if (angle < 0.0) {
-                angle += 360.0;
+            CaretAssertVectorIndex(annotations, i);
+            Annotation* ann = annotations[i];
+            AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
+            AnnotationOneDimensionalShape* oneDimAnn = getValidOneDimAnnotation(ann);
+            
+            float angle = 0.0;
+            float angleValid = false;
+            if (twoDimAnn != NULL) {
+                angle = twoDimAnn->getRotationAngle();
+                angleValid = true;
+            }
+            else if (oneDimAnn != NULL) {
+                int32_t viewport[4] = { 0, 0, 0, 0 };
+                bool viewportValidFlag = false;
+                switch (oneDimAnn->getCoordinateSpace()) {
+                    case AnnotationCoordinateSpaceEnum::PIXELS:
+                        break;
+                    case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                        break;
+                    case  AnnotationCoordinateSpaceEnum::SURFACE:
+                        break;
+                    case AnnotationCoordinateSpaceEnum::TAB:
+                    {
+                        const int tabIndex = oneDimAnn->getTabIndex();
+                        EventGetViewportSize vpSizeEvent(EventGetViewportSize::MODE_TAB_AFTER_MARGINS_INDEX,
+                                                         tabIndex);
+                        EventManager::get()->sendEvent(vpSizeEvent.getPointer());
+                        if (vpSizeEvent.isViewportSizeValid()) {
+                            vpSizeEvent.getViewportSize(viewport);
+                            viewportValidFlag = true;
+                        }
+                    }
+                        break;
+                    case AnnotationCoordinateSpaceEnum::WINDOW:
+                    {
+                        const int windowIndex = oneDimAnn->getWindowIndex();
+                        EventGetViewportSize vpSizeEvent(EventGetViewportSize::MODE_WINDOW_INDEX,
+                                                         windowIndex);
+                        EventManager::get()->sendEvent(vpSizeEvent.getPointer());
+                        if (vpSizeEvent.isViewportSizeValid()) {
+                            vpSizeEvent.getViewportSize(viewport);
+                            viewportValidFlag = true;
+                        }
+                    }
+                        break;
+                }
+                
+                if (viewportValidFlag) {
+                    float vpOneX = 0.0;
+                    float vpOneY = 0.0;
+                    float vpTwoX = 0.0;
+                    float vpTwoY = 0.0;
+                    oneDimAnn->getStartCoordinate()->getViewportXY(viewport[2], viewport[3], vpOneX, vpOneY);
+                    oneDimAnn->getEndCoordinate()->getViewportXY(viewport[2], viewport[3], vpTwoX, vpTwoY);
+                    
+                    const float dx = vpTwoX - vpOneX;
+                    const float dy = vpTwoY - vpOneY;
+                    
+                    angle = MathFunctions::toDegrees(std::atan2(dy, dx));
+                    angle = -angle;
+                    angleValid = true;
+                }
             }
             
-            if (i == 0) {
-                rotationAngle = angle;
+            if (angleValid) {
+                if (angle < 0.0) {
+                    angle += 360.0;
+                }
+                else if (angle > 360.0) {
+                    angle -= 360.0;
+                }
+                
+                if (rotationAngleValid) {
+                    if (rotationAngle != angle) {
+                        haveMultipleRotationAnglesFlag = true;
+                    }
+                    rotationAngle = std::min(rotationAngle,
+                                             angle);
+                }
+                else {
+                    rotationAngle = angle;
+                    rotationAngleValid = true;
+                }
+            }
+        }
+        
+        if (rotationAngleValid) {
+            m_rotationSpinBox->blockSignals(true);
+            m_rotationSpinBox->setValue(rotationAngle);
+            if (haveMultipleRotationAnglesFlag) {
+                m_rotationSpinBox->setSuffix("+");
             }
             else {
-                if (rotationAngle != angle) {
-                    haveMultipleRotationAnglesFlag = true;
-                }
-                rotationAngle = std::min(rotationAngle,
-                                         angle);
+                m_rotationSpinBox->setSuffix("");
             }
+            m_rotationSpinBox->blockSignals(false);
         }
         
-        m_rotationSpinBox->blockSignals(true);
-        m_rotationSpinBox->setValue(rotationAngle);
-        if (haveMultipleRotationAnglesFlag) {
-            m_rotationSpinBox->setSuffix("+");
-        }
-        else {
-            m_rotationSpinBox->setSuffix("");
-        }
-        m_rotationSpinBox->blockSignals(false);
-        
-        setEnabled(true);
+        setEnabled(rotationAngleValid);
     }
     else {
         setEnabled(false);
     }
 }
+
+///**
+// * Update with the given annotation.
+// *
+// * @param annotations2D.
+// *    Two dimensional annotation.
+// */
+//void
+//AnnotationRotationWidget::updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotations2D)
+//{
+//    if ( ! annotations2D.empty()) {
+//        float rotationAngle = 0.0;
+//        bool haveMultipleRotationAnglesFlag = false;
+//        
+//        const int32_t numAnns = static_cast<int32_t>(annotations2D.size());
+//        for (int32_t i = 0; i < numAnns; i++) {
+//            CaretAssertVectorIndex(annotations2D, i);
+//            float angle = annotations2D[i]->getRotationAngle();
+//            if (angle < 0.0) {
+//                angle += 360.0;
+//            }
+//            
+//            if (i == 0) {
+//                rotationAngle = angle;
+//            }
+//            else {
+//                if (rotationAngle != angle) {
+//                    haveMultipleRotationAnglesFlag = true;
+//                }
+//                rotationAngle = std::min(rotationAngle,
+//                                         angle);
+//            }
+//        }
+//        
+//        m_rotationSpinBox->blockSignals(true);
+//        m_rotationSpinBox->setValue(rotationAngle);
+//        if (haveMultipleRotationAnglesFlag) {
+//            m_rotationSpinBox->setSuffix("+");
+//        }
+//        else {
+//            m_rotationSpinBox->setSuffix("");
+//        }
+//        m_rotationSpinBox->blockSignals(false);
+//        
+//        setEnabled(true);
+//    }
+//    else {
+//        setEnabled(false);
+//    }
+//}
 
 /**
  * Gets called when rotation value is changed.
@@ -147,11 +312,37 @@ void
 AnnotationRotationWidget::rotationValueChanged(double value)
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-    undoCommand->setModeRotationAngle(value,
-                                      annMan->getSelectedAnnotations());
-    annMan->applyCommand(undoCommand);
+    std::vector<Annotation*> annotations = annMan->getSelectedAnnotations();
     
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    std::vector<Annotation*> rotateAnnotations;
+    const int32_t numAnns = static_cast<int32_t>(annotations.size());
+    for (int32_t i = 0; i < numAnns; i++) {
+        CaretAssertVectorIndex(annotations, i);
+        Annotation* ann = annotations[i];
+        AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
+        AnnotationOneDimensionalShape* oneDimAnn = getValidOneDimAnnotation(ann);
+        if ((oneDimAnn != NULL)
+            || (twoDimAnn != NULL)) {
+            rotateAnnotations.push_back(ann);
+        }
+    }
+    
+    if ( ! rotateAnnotations.empty()) {
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeRotationAngle(value,
+                                          rotateAnnotations);
+        annMan->applyCommand(undoCommand);
+        
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+    
+//    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+//    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+//    undoCommand->setModeRotationAngle(value,
+//                                      annMan->getSelectedAnnotations());
+//    annMan->applyCommand(undoCommand);
+//    
+//    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

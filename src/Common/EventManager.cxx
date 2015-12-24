@@ -477,7 +477,6 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_BROWSER_TAB_GET:
         case EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL:
         case EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED:
-        case EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE:
         case EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL:
         case EventTypeEnum::EVENT_BROWSER_TAB_NEW:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET:
@@ -494,6 +493,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES:
         case EventTypeEnum::EVENT_GET_NODE_DATA_FILES:
         case EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE:
+        case EventTypeEnum::EVENT_GET_VIEWPORT_SIZE:
         case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS:
         case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW:
         case EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY:

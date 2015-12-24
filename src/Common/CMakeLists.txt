@@ -70,6 +70,7 @@ ElapsedTimer.h
 Event.h
 EventAlertUser.h
 EventBrowserTabIndicesGetAll.h
+EventGetViewportSize.h
 EventListenerInterface.h
 EventManager.h
 EventPaletteGetByName.h
@@ -157,6 +158,7 @@ ElapsedTimer.cxx
 Event.cxx
 EventAlertUser.cxx
 EventBrowserTabIndicesGetAll.cxx
+EventGetViewportSize.cxx
 EventManager.cxx
 EventPaletteGetByName.cxx
 EventProgressUpdate.cxx
