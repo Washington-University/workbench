@@ -2595,6 +2595,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(Ann
                          cornerSquareSize,
                          rotationAngle);
     }
+    
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
+        const float midPointXYZ[3] = {
+            (firstPoint[0] + secondPoint[0]) / 2.0,
+            (firstPoint[1] + secondPoint[1]) / 2.0,
+            (firstPoint[2] + secondPoint[2]) / 2.0
+        };
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
+                         annotationFile,
+                         annotation,
+                         midPointXYZ,
+                         cornerSquareSize,
+                         rotationAngle);
+    }
 }
 
 /**

@@ -236,6 +236,10 @@ float
 AnnotationOneDimensionalShape::getRotationAngle(const float viewportWidth,
                                                 const float viewportHeight) const
 {
+    if ( ! isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
+        return 0.0;
+    }
+    
     float vpOneX = 0.0;
     float vpOneY = 0.0;
     float vpTwoX = 0.0;
@@ -272,6 +276,29 @@ AnnotationOneDimensionalShape::setRotationAngle(const float viewportWidth,
                                                 const float viewportHeight,
                                                 const float rotationAngle)
 {
+    if ( ! isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
+        return;
+    }
+//    bool allowRotationFlag = false;
+//    switch (getCoordinateSpace()) {
+//        case AnnotationCoordinateSpaceEnum::PIXELS:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SURFACE:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::TAB:
+//            allowRotationFlag = true;
+//            break;
+//        case AnnotationCoordinateSpaceEnum::WINDOW:
+//            allowRotationFlag = true;
+//            break;
+//    }
+//    
+//    if ( ! allowRotationFlag) {
+//        return;
+//    }
+    
     float annOneX = 0.0;
     float annOneY = 0.0;
     float annTwoX = 0.0;
@@ -368,6 +395,9 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
                 }
                 break;
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                if (tabWindowFlag) {
+                    validFlag = true;
+                }
                 break;
         }
     }
@@ -522,6 +552,67 @@ AnnotationOneDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
                 validFlag = true;
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+        {
+            CaretPointer<AnnotationOneDimensionalShape> shapeCopy(dynamic_cast<AnnotationOneDimensionalShape*>(this->clone()));
+            const float oldRotationAngle = shapeCopy->getRotationAngle(spatialModification.m_viewportWidth,
+                                                                      spatialModification.m_viewportHeight);
+            
+            /*
+             * Determine rotation direction by mouse movement relative to where
+             * mouse was first pressed.
+             */
+            const float previousMouseXY[3] = {
+                spatialModification.m_mouseX - spatialModification.m_mouseDX,
+                spatialModification.m_mouseY - spatialModification.m_mouseDY,
+                0.0
+            };
+            const float currentMouseXY[3] = {
+                spatialModification.m_mouseX,
+                spatialModification.m_mouseY,
+                0.0
+            };
+            const float pressXY[3] = {
+                spatialModification.m_mousePressX,
+                spatialModification.m_mousePressY,
+                0.0
+            };
+            
+            float normalVector[3];
+            MathFunctions::normalVector(pressXY,
+                                        currentMouseXY,
+                                        previousMouseXY,
+                                        normalVector);
+            
+            
+            float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX
+                                    + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
+            if (normalVector[2] < 0.0) {
+                delta = -delta;
+            }
+            
+            float rotationAngle = oldRotationAngle + delta;
+            
+            if (rotationAngle != oldRotationAngle) {
+                if (rotationAngle > 360.0) {
+                    rotationAngle -= 360.0;
+                }
+                if (rotationAngle < 0.0) {
+                    rotationAngle += 360.0;
+                }
+                
+                shapeCopy->setRotationAngle(spatialModification.m_viewportWidth,
+                                 spatialModification.m_viewportHeight,
+                                 rotationAngle);
+                
+                const float* xyzOne = shapeCopy->getStartCoordinate()->getXYZ();
+                const float* xyzTwo = shapeCopy->getEndCoordinate()->getXYZ();
+                newX1 = xyzOne[0];
+                newY1 = xyzOne[1];
+                newX2 = xyzTwo[0];
+                newY2 = xyzTwo[1];
+                validFlag = true;
+            }
+        }
             break;
     }
     
