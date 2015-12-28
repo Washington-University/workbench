@@ -34,6 +34,7 @@
 #include "AnnotationCoordinate.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
+#include "AnnotationPercentSizeText.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
@@ -485,6 +486,24 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
     
     const AnnotationCoordinateSpaceEnum::Enum oldSpace = redoAnnotation->getCoordinateSpace();
     
+    float oldViewportHeight = 0.0;
+    switch (oldSpace) {
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            oldViewportHeight = m_coordInfo.m_tabHeight;
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            oldViewportHeight = m_coordInfo.m_tabHeight;
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            oldViewportHeight = m_coordInfo.m_tabHeight;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            oldViewportHeight = m_coordInfo.m_windowHeight;
+            break;
+    }
+    
     /*
      * If annotation has two coordinates, get the difference of the two coordinates
      * that will be used if the user changes the coordinate space.  This results
@@ -522,12 +541,14 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
         }
     }
     
+    float newViewportHeight = 0.0;
     bool setOtherCoordinateFlag = false;
     switch (newSpace) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (m_coordInfo.m_modelXYZValid) {
                 coordinate->setXYZ(m_coordInfo.m_modelXYZ);
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
+                newViewportHeight = m_coordInfo.m_tabHeight;
             }
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -539,6 +560,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                                             m_coordInfo.m_surfaceNumberOfNodes,
                                             m_coordInfo.m_surfaceNodeIndex);
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+                newViewportHeight = m_coordInfo.m_tabHeight;
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
@@ -559,6 +581,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                         setOtherCoordinateFlag = true;
                     }
                 }
+                newViewportHeight = m_coordInfo.m_tabHeight;
             }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
@@ -580,6 +603,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                         setOtherCoordinateFlag = true;
                     }
                 }
+                newViewportHeight = m_coordInfo.m_windowHeight;
             }
             break;
     }
@@ -607,6 +631,23 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             }
         }
         otherCoordinate->setXYZ(xyz);
+    }
+    
+    /*
+     * Height of text is based upon viewport height.  If the viewport changes,
+     * scale the text so that it maintains the same physical (pixel) height.
+     */
+    if ((newViewportHeight > 0.0)
+        && (oldViewportHeight > 0.0)) {
+        const float scale = oldViewportHeight / newViewportHeight;
+        std::cout << "Scale is: " << scale << std::endl;
+        
+        AnnotationPercentSizeText* textAnn = dynamic_cast<AnnotationPercentSizeText*>(redoAnnotation.getPointer());
+        if (textAnn != NULL) {
+            float percentSize = textAnn->getFontPercentViewportSize();
+            percentSize *= scale;
+            textAnn->setFontPercentViewportSize(percentSize);
+        }
     }
     
     std::vector<Annotation*> annotationsBeforeMoveAndResize;

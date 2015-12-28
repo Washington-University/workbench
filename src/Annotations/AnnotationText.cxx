@@ -23,6 +23,7 @@
 #include "AnnotationText.h"
 #undef __ANNOTATION_TEXT_DECLARE__
 
+#include "AnnotationPercentSizeText.h"
 #include "AnnotationSpatialModification.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -620,6 +621,17 @@ void
 AnnotationText::applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation)
 {
     AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(otherAnnotation);
+    
+    /*
+     * Text size may change when an annotation is moved to a different
+     * coordinate space (ie: Tab  Space with Tile Tabs on to Window Space).
+     */
+    const AnnotationPercentSizeText* otherTextAnn = dynamic_cast<const AnnotationPercentSizeText*>(otherAnnotation);
+    AnnotationPercentSizeText* textAnn = dynamic_cast<AnnotationPercentSizeText*>(this);
+    if ((textAnn != NULL)
+        && (otherTextAnn != NULL)) {
+        textAnn->setFontPercentViewportSize(otherTextAnn->getFontPercentViewportSize());
+    }
 }
 
 /**
