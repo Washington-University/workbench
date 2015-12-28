@@ -133,7 +133,7 @@ AnnotationInsertNewWidget::updateContent()
      * Delete disabled if ANY colorbar is selected.
      */
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
     bool noColorBarsSelectedFlag = true;
     for (std::vector<Annotation*>::const_iterator iter = selectedAnnotations.begin();
          iter != selectedAnnotations.end();
@@ -256,7 +256,7 @@ void
 AnnotationInsertNewWidget::deleteActionTriggered()
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
     if ( ! selectedAnnotations.empty()) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeDeleteAnnotations(selectedAnnotations);

@@ -88,7 +88,8 @@ m_newAnnotationCreatedByContextMenu(NULL)
     
     std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->getSelectedAnnotations(selectedAnnotations);
+    annotationManager->getSelectedAnnotations(m_mouseEvent.getBrowserWindowIndex(),
+                                              selectedAnnotations);
     
     m_annotationFile = NULL;
     m_annotation     = NULL;

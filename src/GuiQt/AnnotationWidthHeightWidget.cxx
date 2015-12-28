@@ -220,7 +220,7 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeTwoDimHeight(value,
-                                             annMan->getSelectedAnnotations());
+                                             annMan->getSelectedAnnotations(m_browserWindowIndex));
             annMan->applyCommand(undoCommand);
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -257,7 +257,7 @@ AnnotationWidthHeightWidget::widthValueChanged(double value)
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeTwoDimWidth(value,
-                                            annMan->getSelectedAnnotations());
+                                            annMan->getSelectedAnnotations(m_browserWindowIndex));
             annMan->applyCommand(undoCommand);
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

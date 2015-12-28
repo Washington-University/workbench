@@ -2460,7 +2460,7 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
          * Delete all selected annotations and update graphics and UI.
          */
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-        annotationManager->deselectAllAnnotations();
+        annotationManager->deselectAllAnnotations(this->browserWindowIndex);
     }
 }
 

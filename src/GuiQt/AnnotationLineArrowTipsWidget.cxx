@@ -135,7 +135,7 @@ AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLineArrowStart(m_startArrowToolButton->isChecked(),
-                                           annMan->getSelectedAnnotations());
+                                           annMan->getSelectedAnnotations(m_browserWindowIndex));
         annMan->applyCommand(undoCommand);
         
         
@@ -156,7 +156,7 @@ AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLineArrowEnd(m_endArrowToolButton->isChecked(),
-                                         annMan->getSelectedAnnotations());
+                                         annMan->getSelectedAnnotations(m_browserWindowIndex));
         annMan->applyCommand(undoCommand);
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

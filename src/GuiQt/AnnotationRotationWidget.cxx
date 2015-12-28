@@ -304,7 +304,7 @@ void
 AnnotationRotationWidget::rotationValueChanged(double value)
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> annotations = annMan->getSelectedAnnotations();
+    std::vector<Annotation*> annotations = annMan->getSelectedAnnotations(m_browserWindowIndex);
     
     std::vector<Annotation*> rotateAnnotations;
     const int32_t numAnns = static_cast<int32_t>(annotations.size());

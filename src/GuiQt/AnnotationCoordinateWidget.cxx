@@ -409,10 +409,10 @@ AnnotationCoordinateWidget::valueChanged()
                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
                 switch (m_whichCoordinate) {
                     case COORDINATE_ONE:
-                        undoCommand->setModeCoordinateOne(coordinateCopy, annMan->getSelectedAnnotations());
+                        undoCommand->setModeCoordinateOne(coordinateCopy, annMan->getSelectedAnnotations(m_browserWindowIndex));
                         break;
                     case COORDINATE_TWO:
-                        undoCommand->setModeCoordinateTwo(coordinateCopy, annMan->getSelectedAnnotations());
+                        undoCommand->setModeCoordinateTwo(coordinateCopy, annMan->getSelectedAnnotations(m_browserWindowIndex));
                         break;
                 }
                 annMan->applyCommand(undoCommand);

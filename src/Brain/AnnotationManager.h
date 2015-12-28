@@ -67,17 +67,19 @@ namespace caret {
         
         void reset();
         
-        void deselectAllAnnotations();
+        void deselectAllAnnotations(const int32_t windowIndex);
         
-        void selectAnnotation(const SelectionMode selectionMode,
+        void selectAnnotation(const int32_t windowIndex,
+                              const SelectionMode selectionMode,
                               const bool shiftKeyDownFlag,
                               Annotation* selectedAnnotation);
         
         std::vector<Annotation*> getAllAnnotations() const;
         
-        std::vector<Annotation*> getSelectedAnnotations() const;
+        std::vector<Annotation*> getSelectedAnnotations(const int32_t windowIndex) const;
         
-        void getSelectedAnnotations(std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const;
+        void getSelectedAnnotations(const int32_t windowIndex,
+                                    std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const;
         
         std::vector<AnnotationFile*> getFilesContainingAnnotations(const std::vector<Annotation*> annotations) const;
         
@@ -134,10 +136,12 @@ namespace caret {
 
         AnnotationManager& operator=(const AnnotationManager&);
         
-        void processExtendedModeSelection(const bool shiftKeyDownFlag,
+        void processExtendedModeSelection(const int32_t windowIndex,
+                                          const bool shiftKeyDownFlag,
                                           Annotation* selectedAnnotation);
         
-        void processSingleModeSelection(Annotation* selectedAnnotation);
+        void processSingleModeSelection(const int32_t windowIndex,
+                                        Annotation* selectedAnnotation);
         
         SceneClassAssistant* m_sceneAssistant;
 

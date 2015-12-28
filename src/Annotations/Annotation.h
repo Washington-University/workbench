@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <bitset>
+
 #include "AnnotationAttributesDefaultTypeEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSizingHandleTypeEnum.h"
@@ -109,7 +111,7 @@ namespace caret {
         
         virtual bool isBackgroundColorSupported() const;
         
-        bool isSelected() const;
+        bool isSelected(const int32_t windowIndex) const;
         
         static void setUserDefaultForegroundColor(const CaretColorEnum::Enum color);
         
@@ -174,7 +176,8 @@ namespace caret {
         
         // private - AnnotationManager handles selection and allowing
         // public access to this method could cause improper selection status
-        void setSelected(const bool selectedStatus) const;
+        void setSelected(const int32_t windowIndex,
+                         const bool selectedStatus) const;
         
         const AnnotationTypeEnum::Enum m_type;
         
@@ -202,7 +205,13 @@ namespace caret {
         
         float m_foregroundLineWidth;
 
-        mutable bool m_selectedFlag;
+        /**
+         * Selection status in each window.
+         *
+         * Number of elements must be same as Constants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS
+         * An assertion will fail in the if number of elements differs.
+         */
+        mutable std::bitset<10> m_selectedInWindowFlag;
         
         // defaults
         static CaretColorEnum::Enum s_userDefaultColorForeground;

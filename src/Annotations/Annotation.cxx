@@ -30,6 +30,7 @@
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
+#include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "SceneClass.h"
@@ -130,7 +131,7 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     /*
      * Selected status is NOT copied.
      */
-    m_selectedFlag = false;
+    m_selectedInWindowFlag.reset();
 }
 
 /**
@@ -300,7 +301,14 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
 void
 Annotation::initializeAnnotationMembers()
 {
-    m_selectedFlag = false;
+    CaretAssertMessage((m_selectedInWindowFlag.size() == BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS),
+                       ("m_selectedInWindowFlag (size="
+                        + QString::number(m_selectedInWindowFlag.size())
+                        + ") must be the same size as BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS (size="
+                        + QString::number(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)
+                        + ")"));
+
+    m_selectedInWindowFlag.reset();
     
     m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     
@@ -869,11 +877,16 @@ Annotation::setCustomBackgroundColor(const uint8_t rgba[4])
  * Note: (1) The selection status is never saved to a scene
  * or file.  (2) Changing the selection status DOES NOT
  * alter the annotation's modified status.
+ *
+ * @param windowIndex
+ *    Window for annotation selection status.
  */
 bool
-Annotation::isSelected() const
+Annotation::isSelected(const int32_t windowIndex) const
 {
-    return m_selectedFlag;
+    CaretAssert((windowIndex >= 0)
+                && (windowIndex < static_cast<int32_t>(m_selectedInWindowFlag.size())));
+    return m_selectedInWindowFlag.test(windowIndex);
 }
 
 /**
@@ -885,11 +898,25 @@ Annotation::isSelected() const
  * Note: (1) The selection status is never saved to a scene
  * or file.  (2) Changing the selection status DOES NOT
  * alter the annotation's modified status.
+ *
+ * @param windowIndex
+ *    Window for annotation selection.
+ * @param selectedStatus
+ *    New selection status.
  */
 void
-Annotation::setSelected(const bool selectedStatus) const
+Annotation::setSelected(const int32_t windowIndex,
+                        const bool selectedStatus) const
 {
-    m_selectedFlag = selectedStatus;
+    CaretAssert((windowIndex >= 0)
+                && (windowIndex < static_cast<int32_t>(m_selectedInWindowFlag.size())));
+    
+    if (selectedStatus) {
+        m_selectedInWindowFlag.set(windowIndex);
+    }
+    else {
+        m_selectedInWindowFlag.reset(windowIndex);
+    }
 }
 
 /**
@@ -898,7 +925,10 @@ Annotation::setSelected(const bool selectedStatus) const
 void
 Annotation::setDeselected()
 {
-    setSelected(false);
+    /*
+     * Clear selected status in ALL windows
+     */
+    m_selectedInWindowFlag.reset();
 }
 
 /**

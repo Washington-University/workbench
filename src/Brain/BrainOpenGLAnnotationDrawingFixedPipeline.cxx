@@ -1195,7 +1195,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                                                           outlineWidth);
             }
         }
-        if (box->isSelected()) {
+        if (box->isSelected(m_inputs->m_windowIndex)) {
             drawAnnotationTwoDimSizingHandles(annotationFile,
                                               box,
                                               bottomLeft,
@@ -1386,7 +1386,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                               totalTickMarksHeightPixels,
                               tickMarksOffsetFromBotom);
     }
-    if (colorBar->isSelected()) {
+    if (colorBar->isSelected(m_inputs->m_windowIndex)) {
         drawAnnotationTwoDimSizingHandles(annotationFile,
                                           colorBar,
                                           bottomLeft,
@@ -1905,7 +1905,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
         }
         glPopMatrix();
         
-        if (oval->isSelected()) {
+        if (oval->isSelected(m_inputs->m_windowIndex)) {
             drawAnnotationTwoDimSizingHandles(annotationFile,
                                               oval,
                                               bottomLeft,
@@ -2153,7 +2153,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             }
         }
         
-        if (text->isSelected()) {
+        if (text->isSelected(m_inputs->m_windowIndex)) {
             const float outlineWidth = 2.0;
             drawAnnotationTwoDimSizingHandles(annotationFile,
                                               text,
@@ -2388,7 +2388,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
             }
         }
         
-        if (line->isSelected()) {
+        if (line->isSelected(m_inputs->m_windowIndex)) {
             drawAnnotationOneDimSizingHandles(annotationFile,
                                               line,
                                               lineHeadXYZ,

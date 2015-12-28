@@ -506,7 +506,7 @@ AnnotationFontWidget::fontBoldChanged()
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontBold(m_boldFontAction->isChecked(),
-                                 annMan->getSelectedAnnotations());
+                                 annMan->getSelectedAnnotations(m_browserWindowIndex));
     annMan->applyCommand(command);
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -524,7 +524,7 @@ AnnotationFontWidget::fontItalicChanged()
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontItalic(m_italicFontAction->isChecked(),
-                                   annMan->getSelectedAnnotations());
+                                   annMan->getSelectedAnnotations(m_browserWindowIndex));
     annMan->applyCommand(command);
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -547,7 +547,7 @@ AnnotationFontWidget::fontNameChanged()
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeTextFontName(fontName,
-                                         annMan->getSelectedAnnotations());
+                                         annMan->getSelectedAnnotations(m_browserWindowIndex));
             annMan->applyCommand(command);
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -578,7 +578,7 @@ AnnotationFontWidget::fontSizeChanged()
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeTextFontPercentSize(fontPercentSize,
-                                                annMan->getSelectedAnnotations());
+                                                annMan->getSelectedAnnotations(m_browserWindowIndex));
             annMan->applyCommand(command);
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -605,7 +605,7 @@ AnnotationFontWidget::fontUnderlineChanged()
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontUnderline(m_underlineFontAction->isChecked(),
-                                      annMan->getSelectedAnnotations());
+                                      annMan->getSelectedAnnotations(m_browserWindowIndex));
     annMan->applyCommand(command);
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -623,7 +623,7 @@ AnnotationFontWidget::fontOutlineChanged()
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontOutline(m_outlineFontAction->isChecked(),
-                                      annMan->getSelectedAnnotations());
+                                      annMan->getSelectedAnnotations(m_browserWindowIndex));
     annMan->applyCommand(command);
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

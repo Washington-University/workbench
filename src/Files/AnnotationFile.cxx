@@ -278,17 +278,21 @@ AnnotationFile::clearPrivate()
 /**
  * Set the selection status of all annotations.
  *
+ * @param windowIndex
+ *     Index of window for annotation selection.
  * @param selectedStatus
  *     New selection status for all annotations.
  */
 void
-AnnotationFile::setAllAnnotationsSelected(const bool selectedStatus)
+AnnotationFile::setAllAnnotationsSelected(const int32_t windowIndex,
+                                          const bool selectedStatus)
 {
     for (AnnotationIterator iter = m_annotations.begin();
          iter != m_annotations.end();
          iter++) {
         QSharedPointer<Annotation>& a = *iter;
-        a->setSelected(selectedStatus);
+        a->setSelected(windowIndex,
+                       selectedStatus);
     }
 }
 

@@ -300,7 +300,7 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
                 undoCommand->setModeColorBackground(caretColor,
                                                     rgba,
-                                                    annMan->getSelectedAnnotations());
+                                                    annMan->getSelectedAnnotations(m_browserWindowIndex));
                 annMan->applyCommand(undoCommand);
                 
                 Annotation::setUserDefaultBackgroundColor(caretColor);
@@ -536,7 +536,7 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
                 undoCommand->setModeColorForeground(caretColor,
                                                     rgba,
-                                                    annMan->getSelectedAnnotations());
+                                                    annMan->getSelectedAnnotations(m_browserWindowIndex));
                 annMan->applyCommand(undoCommand);
                 
                 Annotation::setUserDefaultForegroundColor(caretColor);
@@ -596,7 +596,7 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
         {
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-            undoCommand->setModeLineWidthForeground(value, annMan->getSelectedAnnotations());
+            undoCommand->setModeLineWidthForeground(value, annMan->getSelectedAnnotations(m_browserWindowIndex));
             annMan->applyCommand(undoCommand);
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

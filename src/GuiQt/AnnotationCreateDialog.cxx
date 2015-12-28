@@ -720,7 +720,8 @@ AnnotationCreateDialog::okButtonClicked()
     }
     
 
-    annotationManager->selectAnnotation(AnnotationManager::SELECTION_MODE_SINGLE,
+    annotationManager->selectAnnotation(m_mouseEvent.getBrowserWindowIndex(),
+                                        AnnotationManager::SELECTION_MODE_SINGLE,
                                         false,
                                         annotationPointer);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

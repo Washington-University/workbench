@@ -92,7 +92,8 @@ namespace caret {
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
-        void setAllAnnotationsSelected(const bool selectedStatus);
+        void setAllAnnotationsSelected(const int32_t windowIndex,
+                                       const bool selectedStatus);
         
         virtual void receiveEvent(Event* event);
 

@@ -182,7 +182,7 @@ AnnotationTextEditorWidget::annotationTextChanged()
     
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-    undoCommand->setModeTextCharacters(s, annMan->getSelectedAnnotations());
+    undoCommand->setModeTextCharacters(s, annMan->getSelectedAnnotations(m_browserWindowIndex));
     annMan->applyCommand(undoCommand);
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -217,7 +217,7 @@ AnnotationTextEditorWidget::annotationTextConnectTypeEnumComboBoxItemActivated()
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeTextConnectToBrainordinate(connectType,
-                                                       annMan->getSelectedAnnotations());
+                                                       annMan->getSelectedAnnotations(m_browserWindowIndex));
         annMan->applyCommand(undoCommand);
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

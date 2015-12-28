@@ -216,7 +216,7 @@ AnnotationTextOrientationWidget::orientationActionSelected(QAction* action)
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeTextOrientation(actionOrientation,
-                                            annMan->getSelectedAnnotations());
+                                            annMan->getSelectedAnnotations(m_browserWindowIndex));
         annMan->applyCommand(undoCommand);
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

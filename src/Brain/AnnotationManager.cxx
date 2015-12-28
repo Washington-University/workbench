@@ -134,9 +134,12 @@ AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command)
 
 /**
  * Deselect all annotations.
+ *
+ * @param windowIndex
+ *     Index of window for deselection of window annotations.
  */
 void
-AnnotationManager::deselectAllAnnotations()
+AnnotationManager::deselectAllAnnotations(const int32_t windowIndex)
 {
     std::vector<AnnotationFile*> annotationFiles;
     m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
@@ -147,7 +150,8 @@ AnnotationManager::deselectAllAnnotations()
         AnnotationFile* file = *fileIter;
         CaretAssert(file);
         
-        file->setAllAnnotationsSelected(false);
+        file->setAllAnnotationsSelected(windowIndex,
+                                        false);
     }
 
     EventAnnotationColorBarGet colorBarEvent;
@@ -158,7 +162,8 @@ AnnotationManager::deselectAllAnnotations()
          iter != colorBars.end();
          iter++) {
         AnnotationColorBar* cb = *iter;
-        cb->setSelected(false);
+        cb->setSelected(windowIndex,
+                        false);
     }
 }
 
@@ -209,6 +214,8 @@ AnnotationManager::getFilesContainingAnnotations(const std::vector<Annotation*> 
 /**
  * Select the given annotation using the given mode.
  *
+ * @param windowIndex
+ *     Index of window for annotation selection.
  * @param selectionMode
  *     The annotation selection mode.
  * @param shiftKeyDown
@@ -218,17 +225,20 @@ AnnotationManager::getFilesContainingAnnotations(const std::vector<Annotation*> 
  *     May be NULL.
  */
 void
-AnnotationManager::selectAnnotation(const SelectionMode selectionMode,
+AnnotationManager::selectAnnotation(const int32_t windowIndex,
+                                    const SelectionMode selectionMode,
                                     const bool shiftKeyDownFlag,
                                     Annotation* selectedAnnotation)
 {
     switch (selectionMode) {
         case SELECTION_MODE_EXTENDED:
-            processExtendedModeSelection(shiftKeyDownFlag,
+            processExtendedModeSelection(windowIndex,
+                                         shiftKeyDownFlag,
                                          selectedAnnotation);
             break;
         case SELECTION_MODE_SINGLE:
-            processSingleModeSelection(selectedAnnotation);
+            processSingleModeSelection(windowIndex,
+                                       selectedAnnotation);
             break;
     }
 }
@@ -236,13 +246,16 @@ AnnotationManager::selectAnnotation(const SelectionMode selectionMode,
 /**
  * Process extended mode annotation selection.
  * 
+ * @param windowIndex
+ *     Index of window for annotation selection.
  * @param shiftKeyDownFlag
  *     True if the shift key is down.
  * @param selectedAnnotation
  *     Annotation that was selected (NULL if no annotation selected).
  */
 void
-AnnotationManager::processExtendedModeSelection(const bool shiftKeyDownFlag,
+AnnotationManager::processExtendedModeSelection(const int32_t windowIndex,
+                                                const bool shiftKeyDownFlag,
                                                 Annotation* selectedAnnotation)
 {
     if (selectedAnnotation != NULL) {
@@ -251,10 +264,11 @@ AnnotationManager::processExtendedModeSelection(const bool shiftKeyDownFlag,
              * When shift key is down, the annotation's selection status
              * is toggled
              */
-            selectedAnnotation->setSelected( ! selectedAnnotation->isSelected());
+            selectedAnnotation->setSelected(windowIndex,
+                                            ! selectedAnnotation->isSelected(windowIndex));
         }
         else {
-            if (selectedAnnotation->isSelected()) {
+            if (selectedAnnotation->isSelected(windowIndex)) {
                 /* cannot deselect an annotation WITHOUT shift key down */
             }
             else {
@@ -262,8 +276,9 @@ AnnotationManager::processExtendedModeSelection(const bool shiftKeyDownFlag,
                  * Clicking an annotation without shift key selects the
                  * annotation but deselects all other annotations.
                  */
-                deselectAllAnnotations();
-                selectedAnnotation->setSelected(true);
+                deselectAllAnnotations(windowIndex);
+                selectedAnnotation->setSelected(windowIndex,
+                                                true);
             }
         }
     }
@@ -272,7 +287,7 @@ AnnotationManager::processExtendedModeSelection(const bool shiftKeyDownFlag,
             /* do nothing with shift key down and no annotation clicked */
         }
         else {
-            deselectAllAnnotations();
+            deselectAllAnnotations(windowIndex);
         }
     }
 }
@@ -280,16 +295,20 @@ AnnotationManager::processExtendedModeSelection(const bool shiftKeyDownFlag,
 /**
  * Process single mode annotation selection.
  *
+ * @param windowIndex
+ *     Index of window for annotation selection.
  * @param selectedAnnotation
  *     Annotation that was selected (NULL if no annotation selected).
  */
 void
-AnnotationManager::processSingleModeSelection(Annotation* selectedAnnotation)
+AnnotationManager::processSingleModeSelection(const int32_t windowIndex,
+                                              Annotation* selectedAnnotation)
 {
-    deselectAllAnnotations();
+    deselectAllAnnotations(windowIndex);
     
     if (selectedAnnotation != NULL) {
-        selectedAnnotation->setSelected(true);
+        selectedAnnotation->setSelected(windowIndex,
+                                        true);
     }
 }
 
@@ -333,9 +352,12 @@ AnnotationManager::getAllAnnotations() const
 
 /**
  * @return A vector containing all SELECTED annotations.
+ *
+ * @param windowIndex
+ *     Index of window for annotation selection.
  */
 std::vector<Annotation*>
-AnnotationManager::getSelectedAnnotations() const
+AnnotationManager::getSelectedAnnotations(const int32_t windowIndex) const
 {
     std::vector<Annotation*> allAnnotations = getAllAnnotations();
     std::vector<Annotation*> selectedAnnotations;
@@ -345,7 +367,7 @@ AnnotationManager::getSelectedAnnotations() const
          annIter++) {
         Annotation* annotation = *annIter;
         
-        if (annotation->isSelected()) {
+        if (annotation->isSelected(windowIndex)) {
             selectedAnnotations.push_back(annotation);
         }
     }
@@ -356,11 +378,14 @@ AnnotationManager::getSelectedAnnotations() const
 /**
  * Get the selected annotations and the files that contain them.
  *
+ * @param windowIndex
+ *     Index of window for annotation selection.
  * @param annotationsAndFileOut
  *    A 'pair' containing a selected annotation and the file that contains the annotation.
  */
 void
-AnnotationManager::getSelectedAnnotations(std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const
+AnnotationManager::getSelectedAnnotations(const int32_t windowIndex,
+                                          std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const
 {
     annotationsAndFileOut.clear();
 
@@ -378,7 +403,7 @@ AnnotationManager::getSelectedAnnotations(std::vector<std::pair<Annotation*, Ann
              annIter != annotations.end();
              annIter++) {
             Annotation* ann = *annIter;
-            if (ann->isSelected()) {
+            if (ann->isSelected(windowIndex)) {
                 annotationsAndFileOut.push_back(std::make_pair(ann, file));
             }
         }

@@ -292,7 +292,7 @@ AnnotationTextAlignmentWidget::horizontalAlignmentActionSelected(QAction* action
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeTextAlignmentHorizontal(actionAlign,
-                                                    annMan->getSelectedAnnotations());
+                                                    annMan->getSelectedAnnotations(m_browserWindowIndex));
         annMan->applyCommand(undoCommand);
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -320,7 +320,7 @@ AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeTextAlignmentVertical(actionAlign,
-                                                  annMan->getSelectedAnnotations());
+                                                  annMan->getSelectedAnnotations(m_browserWindowIndex));
         annMan->applyCommand(undoCommand);
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
