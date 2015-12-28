@@ -343,7 +343,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     }
     
     const double underlineOffsetY = (textStringGroup.m_underlineThickness / 2.0);
-    const double outlineOffsetY   = (textStringGroup.m_outlineThickness / 2.0);
+    //const double outlineOffsetY   = (textStringGroup.m_outlineThickness / 2.0);
     
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3], rotationPointXYZ[3];
     textStringGroup.getViewportBounds(s_textMarginSize,
