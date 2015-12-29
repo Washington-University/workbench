@@ -114,13 +114,21 @@ AnnotationTextFontNameEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationTextFontNameEnum(VERA,
-                                              "VERA",
-                                              "Vera",
-                                              ":/Fonts/VeraFonts/Vera.ttf",
-                                              ":/Fonts/VeraFonts/VeraBd.ttf",
-                                              ":/Fonts/VeraFonts/VeraBI.ttf",
-                                              ":/Fonts/VeraFonts/VeraIt.ttf"));
+    enumData.push_back(AnnotationTextFontNameEnum(OUTLINE,
+                                                  "OUTLINE",
+                                                  "Outline",
+                                                  ":/Fonts/Outline/fenwick_ol_free.ttf",
+                                                  ":/Fonts/Outline/fenwick_ol_free.ttf",
+                                                  ":/Fonts/Outline/fenwick_ol_free.ttf",
+                                                  ":/Fonts/Outline/fenwick_ol_free.ttf"));
+    
+   enumData.push_back(AnnotationTextFontNameEnum(VERA,
+                                                  "VERA",
+                                                  "Vera",
+                                                  ":/Fonts/VeraFonts/Vera.ttf",
+                                                  ":/Fonts/VeraFonts/VeraBd.ttf",
+                                                  ":/Fonts/VeraFonts/VeraBI.ttf",
+                                                  ":/Fonts/VeraFonts/VeraIt.ttf"));
     
     enumData.push_back(AnnotationTextFontNameEnum(VERA_MONOSPACE,
                                               "VERA_MONOSPACE",

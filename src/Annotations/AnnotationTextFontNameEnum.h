@@ -35,6 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Outline */
+        OUTLINE,
         /** Vera Fonts */
         VERA,
         /** Vera Monospaced Fonts */
