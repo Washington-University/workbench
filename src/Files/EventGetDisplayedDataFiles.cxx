@@ -27,6 +27,7 @@
 
 #include "CaretAssert.h"
 #include "EventTypeEnum.h"
+#include "SurfaceFile.h"
 
 using namespace caret;
 
@@ -41,8 +42,10 @@ using namespace caret;
 /**
  * Constructor for finding data files displayed in the given tab indices.
  *
+ * param windowIndices
+ *     Indices of windows for displayed data files.
  * param tabIndices
- *     Indices of tabs for displayed data files. 
+ *     Indices of tabs for displayed data files.
  */
 EventGetDisplayedDataFiles::EventGetDisplayedDataFiles(const std::vector<int32_t>& windowIndices,
                                                        const std::vector<int32_t>& tabIndices)
@@ -98,6 +101,28 @@ EventGetDisplayedDataFiles::isTestForDisplayedDataFileInWindowIndex(const int32_
 }
 
 /**
+ * Is the given surface structure displayed?
+ *
+ * @param surfaceStructure
+ *    The surface structure.
+ * @return
+ *    True if the structure is displayed, else false.
+ */
+bool
+EventGetDisplayedDataFiles::isTestForDisplayedSurfaceStructure(const StructureEnum::Enum surfaceStructure) const
+{
+    setupSurfaceStrucutures();
+
+    if (std::find(m_surfaceStructures.begin(),
+                  m_surfaceStructures.end(),
+                  surfaceStructure) != m_surfaceStructures.end()) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
  * Add the given file as a displayed data file.
  *
  * @param caretDataFile
@@ -134,6 +159,70 @@ std::set<const CaretDataFile*>
 EventGetDisplayedDataFiles::getDisplayedDataFiles() const
 {
     return m_displayedDataFiles;
+}
+
+/**
+ * @return The displayed surface structures.  Must be called
+ * AFTER event completes.
+ */
+std::vector<StructureEnum::Enum>
+EventGetDisplayedDataFiles::getDisplayedSurfaceStructures() const
+{
+    setupSurfaceStrucutures();
+    
+    return m_surfaceStructures;
+}
+
+/**
+ * Setup the surface structures.
+ */
+void
+EventGetDisplayedDataFiles::setupSurfaceStrucutures() const
+{
+    if ( ! m_surfaceStructuresValid) {
+        std::set<StructureEnum::Enum> structureSet;
+        
+        for (std::set<const CaretDataFile*>::const_iterator dataFileIter = m_displayedDataFiles.begin();
+             dataFileIter != m_displayedDataFiles.end();
+             dataFileIter++) {
+            const CaretDataFile* dataFile = *dataFileIter;
+            CaretAssert(dataFile);
+            
+            if (dataFile->getDataFileType() == DataFileTypeEnum::SURFACE) {
+                const SurfaceFile* surfaceFile = dynamic_cast<const SurfaceFile*>(dataFile);
+                CaretAssert(surfaceFile);
+                structureSet.insert(surfaceFile->getStructure());
+            }
+        }
+        
+        m_surfaceStructures.insert(m_surfaceStructures.end(),
+                                   structureSet.begin(),
+                                   structureSet.end());
+        m_surfaceStructuresValid = true;
+    }
+}
+
+
+/**
+ * @return The tab indices.
+ */
+std::vector<int32_t>
+EventGetDisplayedDataFiles::getTabIndices() const
+{
+    std::vector<int32_t> tabVector(m_tabIndices.begin(),
+                                   m_tabIndices.end());
+    return tabVector;
+}
+
+/**
+ * @return The window indices.
+ */
+std::vector<int32_t>
+EventGetDisplayedDataFiles::getWindowIndices() const
+{
+    std::vector<int32_t> windowVector(m_windowIndices.begin(),
+                                      m_windowIndices.end());
+    return windowVector;
 }
 
 

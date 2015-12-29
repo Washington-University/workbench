@@ -85,6 +85,8 @@ namespace caret {
         
         float getSurfaceOffsetLength() const;
         
+        StructureEnum::Enum getSurfaceStructure() const;
+        
         AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const;
         
         // ADD_NEW_METHODS_HERE

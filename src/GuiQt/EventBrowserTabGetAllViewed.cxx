@@ -96,6 +96,28 @@ EventBrowserTabGetAllViewed::getViewdedBrowserTabIndices() const
     return tabIndices;
 }
 
+/**
+ * @return A vector containing surface structures in the viewed browser tabs.
+ */
+std::vector<StructureEnum::Enum>
+EventBrowserTabGetAllViewed::getViewedSurfaceStructures() const
+{
+    std::set<StructureEnum::Enum> structureSet;
+    
+    for (std::vector<BrowserTabContent*>::const_iterator iter = m_viewedBrowserTabs.begin();
+         iter != m_viewedBrowserTabs.end();
+         iter++) {
+        BrowserTabContent* btc = *iter;
+        std::vector<StructureEnum::Enum> tabStructures = btc->getSurfaceStructuresDisplayed();
+        structureSet.insert(tabStructures.begin(),
+                            tabStructures.end());
+    }
+    
+    std::vector<StructureEnum::Enum> structuresOut(structureSet.begin(),
+                                                   structureSet.end());
+    return structuresOut;
+}
+
 
 
 

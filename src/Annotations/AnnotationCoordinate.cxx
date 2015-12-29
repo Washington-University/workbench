@@ -405,6 +405,15 @@ AnnotationCoordinate::getSurfaceOffsetLength() const
 }
 
 /**
+ * @return The surface structure.
+ */
+StructureEnum::Enum
+AnnotationCoordinate::getSurfaceStructure() const
+{
+    return m_surfaceSpaceStructure;
+}
+
+/**
  * @return Type of surface offset.
  */
 AnnotationSurfaceOffsetVectorTypeEnum::Enum

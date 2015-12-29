@@ -125,19 +125,19 @@ AnnotationSelectionViewController::receiveEvent(Event* event)
         const QString inTabText("in Tab "
                                 + QString::number(browserTabIndex + 1));
         
-        m_displayModelAnnotationCheckBox->setChecked(dpa->isDisplayModelAnnotations(browserTabIndex));
+        m_displayModelAnnotationCheckBox->setChecked(dpa->isDisplayModelAnnotationsInTab(browserTabIndex));
         m_displayModelAnnotationCheckBox->setText("Display Stereotaxic Annotations "
                                                   + inTabText);
         
-        m_displaySurfaceAnnotationCheckBox->setChecked(dpa->isDisplaySurfaceAnnotations(browserTabIndex));
+        m_displaySurfaceAnnotationCheckBox->setChecked(dpa->isDisplaySurfaceAnnotationsInTab(browserTabIndex));
         m_displaySurfaceAnnotationCheckBox->setText("Display Surface Annotations "
                                                   + inTabText);
         
-        m_displayTabAnnotationCheckBox->setChecked(dpa->isDisplayTabAnnotations(browserTabIndex));
+        m_displayTabAnnotationCheckBox->setChecked(dpa->isDisplayTabAnnotationsInTab(browserTabIndex));
         m_displayTabAnnotationCheckBox->setText("Display Tab Annotations "
                                                   + inTabText);
         
-        m_displayWindowAnnotationCheckBox->setChecked(dpa->isDisplayWindowAnnotations(m_browserWindowIndex));
+        m_displayWindowAnnotationCheckBox->setChecked(dpa->isDisplayWindowAnnotationsInTab(m_browserWindowIndex));
         
         eventUI->setEventProcessed();
     }
@@ -158,13 +158,13 @@ AnnotationSelectionViewController::checkBoxToggled()
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
 
-    dpa->setDisplayModelAnnotations(browserTabIndex,
+    dpa->setDisplayModelAnnotationsInTab(browserTabIndex,
                                     m_displayModelAnnotationCheckBox->isChecked());
-    dpa->setDisplaySurfaceAnnotations(browserTabIndex,
+    dpa->setDisplaySurfaceAnnotationsInTab(browserTabIndex,
                                       m_displaySurfaceAnnotationCheckBox->isChecked());
-    dpa->setDisplayTabAnnotations(browserTabIndex,
+    dpa->setDisplayTabAnnotationsInTab(browserTabIndex,
                                   m_displayTabAnnotationCheckBox->isChecked());
-    dpa->setDisplayWindowAnnotations(m_browserWindowIndex,
+    dpa->setDisplayWindowAnnotationsInTab(m_browserWindowIndex,
                                      m_displayWindowAnnotationCheckBox->isChecked());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

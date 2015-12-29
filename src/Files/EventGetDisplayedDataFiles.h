@@ -24,7 +24,7 @@
 #include <set>
 
 #include "Event.h"
-
+#include "StructureEnum.h"
 
 
 namespace caret {
@@ -43,11 +43,19 @@ namespace caret {
         
         bool isTestForDisplayedDataFileInWindowIndex(const int32_t windowIndex) const;
         
+        bool isTestForDisplayedSurfaceStructure(const StructureEnum::Enum surfaceStructure) const;
+        
         void addDisplayedDataFile(const CaretDataFile* caretDataFile);
         
         bool isDataFileDisplayed(const CaretDataFile* caretDataFile) const;
 
         std::set<const CaretDataFile*> getDisplayedDataFiles() const;
+        
+        std::vector<int32_t> getTabIndices() const;
+        
+        std::vector<int32_t> getWindowIndices() const;
+        
+        std::vector<StructureEnum::Enum> getDisplayedSurfaceStructures() const;
         
     private:
         EventGetDisplayedDataFiles(const EventGetDisplayedDataFiles&);
@@ -59,6 +67,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        void setupSurfaceStrucutures() const;
+        
         // ADD_NEW_MEMBERS_HERE
 
         std::set<int32_t> m_windowIndices;
@@ -66,6 +76,10 @@ namespace caret {
         std::set<int32_t> m_tabIndices;
         
         std::set<const CaretDataFile*> m_displayedDataFiles;
+        
+        mutable std::vector<StructureEnum::Enum> m_surfaceStructures;
+        
+        mutable bool m_surfaceStructuresValid;
     };
     
 #ifdef __EVENT_GET_DISPLAYED_DATA_FILES_DECLARE__

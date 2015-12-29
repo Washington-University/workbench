@@ -26,7 +26,9 @@
 #include "Annotation.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationFile.h"
+#include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRedoUndoCommand.h"
+#include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -549,16 +551,79 @@ AnnotationManager::setAnnotationBeingDrawnInWindow(const int32_t windowIndex,
  *     Output that contains annotation files that are displayed.
  */
 void
-AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* /*displayedFilesEvent*/,
+AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displayedFilesEvent,
                                                std::vector<AnnotationFile*>& displayedAnnotationFilesOut) const
 {
     displayedAnnotationFilesOut.clear();
     
-    // implementation put on hold
-    //std::vector<AnnotationFile*> files;
-    //m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(files);
-
-    //const DisplayPropertiesAnnotation* annProps = m_brain->getDisplayPropertiesAnnotation();
+    const std::vector<int32_t> tabIndices = displayedFilesEvent->getTabIndices();
+    
+    const DisplayPropertiesAnnotation* annProps = m_brain->getDisplayPropertiesAnnotation();
+    const bool stereotaxicDisplayedFlag = annProps->isDisplayModelAnnotationsInTabs(tabIndices);
+    const bool surfaceDisplayedFlag     = annProps->isDisplaySurfaceAnnotationsInTabs(tabIndices);
+    
+    std::vector<AnnotationFile*> annotationFiles;
+    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+    
+    const int32_t numAnnFiles = static_cast<int32_t>(annotationFiles.size());
+    for (int32_t iFile = 0; iFile < numAnnFiles; iFile++) {
+        CaretAssertVectorIndex(annotationFiles, iFile);
+        const AnnotationFile* annFile = annotationFiles[iFile];
+        
+        const int32_t numAnnotations = annFile->getNumberOfAnnotations();
+        for (int32_t jAnn = 0; jAnn < numAnnotations; jAnn++) {
+            bool displayedFlag = false;
+            const Annotation* ann = annFile->getAnnotation(jAnn);
+            switch (ann->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    if (stereotaxicDisplayedFlag) {
+                        displayedFlag = true;
+                    }
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    if (surfaceDisplayedFlag) {
+                        AnnotationCoordinate* coord = NULL;
+                        const AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<const AnnotationTwoDimensionalShape*>(ann);
+                        if (twoDimAnn != NULL) {
+                            coord = const_cast<AnnotationCoordinate*>(twoDimAnn->getCoordinate());
+                        }
+                        else {
+                            const AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<const AnnotationOneDimensionalShape*>(ann);
+                            if (oneDimAnn != NULL) {
+                                coord = const_cast<AnnotationCoordinate*>(oneDimAnn->getStartCoordinate());
+                            }
+                        }
+                        if (coord != NULL) {
+                            if (displayedFilesEvent->isTestForDisplayedSurfaceStructure(coord->getSurfaceStructure())) {
+                                displayedFlag = true;
+                            }
+                        }
+                    }
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    if (displayedFilesEvent->isTestForDisplayedDataFileInTabIndex(ann->getTabIndex())) {
+                        if (annProps->isDisplayTabAnnotationsInTab(ann->getTabIndex())) {
+                            displayedFlag = true;
+                        }
+                    }
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    if (displayedFilesEvent->isTestForDisplayedDataFileInWindowIndex(ann->getWindowIndex())) {
+                        if (annProps->isDisplayWindowAnnotationsInTab(ann->getWindowIndex())) {
+                            displayedFlag = true;
+                        }
+                    }
+                    break;
+            }
+            
+            if (displayedFlag) {
+                displayedFilesEvent->addDisplayedDataFile(annFile);
+                break;
+            }
+        }
+    }
 }
 
 /**

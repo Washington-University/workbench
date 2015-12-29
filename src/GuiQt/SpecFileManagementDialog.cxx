@@ -44,6 +44,7 @@
 
 #include "AnnotationFile.h"
 #include "Brain.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretFileDialog.h"
@@ -314,12 +315,9 @@ m_specFile(specFile)
          * Get all browser tabs and only save transformations for tabs
          * that are valid.
          */
-        std::vector<int32_t> tabIndices;
         EventBrowserTabGetAllViewed getViewedTabs;
         EventManager::get()->sendEvent(getViewedTabs.getPointer());
-        tabIndices = getViewedTabs.getViewdedBrowserTabIndices();
-        std::sort(tabIndices.begin(),
-                  tabIndices.end());
+        std::vector<int32_t> tabIndices = getViewedTabs.getViewdedBrowserTabIndices();
         
         EventGetDisplayedDataFiles displayedFilesEvent(windowIndices,
                                                        tabIndices);

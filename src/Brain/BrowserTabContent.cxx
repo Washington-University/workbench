@@ -1481,6 +1481,33 @@ BrowserTabContent::getVolumeSurfaceOutlineSet() const
 }
 
 /**
+ * @return Structures from surface(s) displayed in this tab.
+ */
+std::vector<StructureEnum::Enum>
+BrowserTabContent::getSurfaceStructuresDisplayed()
+{
+    std::vector<CaretDataFile*> allDisplayedFiles;
+    getFilesDisplayedInTab(allDisplayedFiles);
+    
+    std::set<StructureEnum::Enum> structures;
+    for (std::vector<CaretDataFile*>::iterator fileIter = allDisplayedFiles.begin();
+         fileIter != allDisplayedFiles.end();
+         fileIter++) {
+        CaretDataFile* file = *fileIter;
+        CaretAssert(file);
+        if (file->getDataFileType() == DataFileTypeEnum::SURFACE) {
+            SurfaceFile* surfaceFile = dynamic_cast<SurfaceFile*>(file);
+            CaretAssert(surfaceFile);
+            structures.insert(surfaceFile->getStructure());
+        }
+    }
+    
+    std::vector<StructureEnum::Enum> structuresOut(structures.begin(),
+                                                   structures.end());
+    return structuresOut;
+}
+
+/**
  * Get the data files displayed in this tab.
  * @param displayedDataFilesOut
  *    Displayed data file are loaded into this parameter.

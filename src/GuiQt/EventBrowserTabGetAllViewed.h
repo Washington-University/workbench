@@ -23,8 +23,7 @@
 
 
 #include "Event.h"
-
-
+#include "StructureEnum.h"
 
 namespace caret {
     class BrowserTabContent;
@@ -41,6 +40,8 @@ namespace caret {
         std::vector<BrowserTabContent*> getViewedBrowserTabs() const;
         
         std::vector<int32_t> getViewdedBrowserTabIndices() const;
+        
+        std::vector<StructureEnum::Enum> getViewedSurfaceStructures() const;
         
     private:
         EventBrowserTabGetAllViewed(const EventBrowserTabGetAllViewed&);

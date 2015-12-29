@@ -41,24 +41,28 @@ namespace caret {
         
         virtual void update();
         
-        bool isDisplayModelAnnotations(const int32_t tabIndex) const;
+        bool isDisplayModelAnnotationsInTab(const int32_t tabIndex) const;
         
-        void setDisplayModelAnnotations(const int32_t tabIndex,
+        bool isDisplayModelAnnotationsInTabs(const std::vector<int32_t>& tabIndices) const;
+        
+        void setDisplayModelAnnotationsInTab(const int32_t tabIndex,
                                         const bool status);
         
-        bool isDisplaySurfaceAnnotations(const int32_t tabIndex) const;
+        bool isDisplaySurfaceAnnotationsInTab(const int32_t tabIndex) const;
         
-        void setDisplaySurfaceAnnotations(const int32_t tabIndex,
+        bool isDisplaySurfaceAnnotationsInTabs(const std::vector<int32_t>& tabIndices) const;
+        
+        void setDisplaySurfaceAnnotationsInTab(const int32_t tabIndex,
                                         const bool status);
         
-        bool isDisplayTabAnnotations(const int32_t tabIndex) const;
+        bool isDisplayTabAnnotationsInTab(const int32_t tabIndex) const;
         
-        void setDisplayTabAnnotations(const int32_t tabIndex,
+        void setDisplayTabAnnotationsInTab(const int32_t tabIndex,
                                         const bool status);
         
-        bool isDisplayWindowAnnotations(const int32_t windowIndex) const;
+        bool isDisplayWindowAnnotationsInTab(const int32_t windowIndex) const;
         
-        void setDisplayWindowAnnotations(const int32_t windowIndex,
+        void setDisplayWindowAnnotationsInTab(const int32_t windowIndex,
                                         const bool status);
         
         virtual void copyDisplayProperties(const int32_t sourceTabIndex,

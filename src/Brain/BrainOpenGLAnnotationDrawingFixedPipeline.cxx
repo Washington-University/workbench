@@ -612,7 +612,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
     switch (drawingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            if ( ! dpa->isDisplayModelAnnotations(m_inputs->m_tabIndex)) {
+            if ( ! dpa->isDisplayModelAnnotationsInTab(m_inputs->m_tabIndex)) {
                 return;
             }
             break;
@@ -621,17 +621,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             return;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            if ( ! dpa->isDisplaySurfaceAnnotations(m_inputs->m_tabIndex)) {
+            if ( ! dpa->isDisplaySurfaceAnnotationsInTab(m_inputs->m_tabIndex)) {
                 return;
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            if ( ! dpa->isDisplayTabAnnotations(m_inputs->m_tabIndex)) {
+            if ( ! dpa->isDisplayTabAnnotationsInTab(m_inputs->m_tabIndex)) {
                 return;
             }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            if ( ! dpa->isDisplayWindowAnnotations(m_inputs->m_windowIndex)) {
+            if ( ! dpa->isDisplayWindowAnnotationsInTab(m_inputs->m_windowIndex)) {
                 if (annotationBeingDrawn != NULL) {
                     /*
                      * Window annotation are not being drawn.

@@ -30,6 +30,7 @@
 #include "Plane.h"
 #include "ProjectionViewTypeEnum.h"
 #include "SceneableInterface.h"
+#include "StructureEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -122,6 +123,8 @@ namespace caret {
         const std::vector<ModelSurface*> getAllSurfaceModels() const;
         
         ModelSurfaceSelector* getSurfaceModelSelector();
+        
+        std::vector<StructureEnum::Enum> getSurfaceStructuresDisplayed();
         
         bool isCerebellumDisplayed() const;
         

@@ -131,10 +131,34 @@ DisplayPropertiesAnnotation::update()
  * True if displayed, else false.
  */
 bool
-DisplayPropertiesAnnotation::isDisplayModelAnnotations(const int32_t tabIndex) const
+DisplayPropertiesAnnotation::isDisplayModelAnnotationsInTab(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_displayModelAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_displayModelAnnotations[tabIndex];
+}
+
+/**
+ * Is the model annotation displayed in any of the given tab indices?
+ *
+ * @param tabIndices
+ *     Index of the tab.
+ * @return
+ * True if displayed, else false.
+ */
+bool
+DisplayPropertiesAnnotation::isDisplayModelAnnotationsInTabs(const std::vector<int32_t>& tabIndices) const
+{
+    for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
+         iter != tabIndices.end();
+         iter++) {
+        const int32_t tabIndex = *iter;
+        CaretAssertArrayIndex(m_displayModelAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+        if (m_displayModelAnnotations[tabIndex]) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 /**
@@ -146,7 +170,7 @@ DisplayPropertiesAnnotation::isDisplayModelAnnotations(const int32_t tabIndex) c
  *     True if displayed, else false.
  */
 void
-DisplayPropertiesAnnotation::setDisplayModelAnnotations(const int32_t tabIndex,
+DisplayPropertiesAnnotation::setDisplayModelAnnotationsInTab(const int32_t tabIndex,
                                                         const bool status)
 {
     CaretAssertArrayIndex(m_displayModelAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
@@ -162,10 +186,34 @@ DisplayPropertiesAnnotation::setDisplayModelAnnotations(const int32_t tabIndex,
  * True if displayed, else false.
  */
 bool
-DisplayPropertiesAnnotation::isDisplaySurfaceAnnotations(const int32_t tabIndex) const
+DisplayPropertiesAnnotation::isDisplaySurfaceAnnotationsInTab(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_displaySurfaceAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_displaySurfaceAnnotations[tabIndex];
+}
+
+/**
+ * Is the surface annotation displayed in any of the given tab indices?
+ *
+ * @param tabIndices
+ *     Index of the tab.
+ * @return
+ * True if displayed, else false.
+ */
+bool
+DisplayPropertiesAnnotation::isDisplaySurfaceAnnotationsInTabs(const std::vector<int32_t>& tabIndices) const
+{
+    for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
+         iter != tabIndices.end();
+         iter++) {
+        const int32_t tabIndex = *iter;
+        CaretAssertArrayIndex(m_displaySurfaceAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+        if (m_displaySurfaceAnnotations[tabIndex]) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 /**
@@ -177,7 +225,7 @@ DisplayPropertiesAnnotation::isDisplaySurfaceAnnotations(const int32_t tabIndex)
  *     True if displayed, else false.
  */
 void
-DisplayPropertiesAnnotation::setDisplaySurfaceAnnotations(const int32_t tabIndex,
+DisplayPropertiesAnnotation::setDisplaySurfaceAnnotationsInTab(const int32_t tabIndex,
                                                           const bool status)
 {
     CaretAssertArrayIndex(m_displaySurfaceAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
@@ -193,7 +241,7 @@ DisplayPropertiesAnnotation::setDisplaySurfaceAnnotations(const int32_t tabIndex
  * True if displayed, else false.
  */
 bool
-DisplayPropertiesAnnotation::isDisplayTabAnnotations(const int32_t tabIndex) const
+DisplayPropertiesAnnotation::isDisplayTabAnnotationsInTab(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_displayTabAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_displayTabAnnotations[tabIndex];
@@ -208,7 +256,7 @@ DisplayPropertiesAnnotation::isDisplayTabAnnotations(const int32_t tabIndex) con
  *     True if displayed, else false.
  */
 void
-DisplayPropertiesAnnotation::setDisplayTabAnnotations(const int32_t tabIndex,
+DisplayPropertiesAnnotation::setDisplayTabAnnotationsInTab(const int32_t tabIndex,
                                                       const bool status)
 {
     CaretAssertArrayIndex(m_displayTabAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
@@ -224,7 +272,7 @@ DisplayPropertiesAnnotation::setDisplayTabAnnotations(const int32_t tabIndex,
  * True if displayed, else false.
  */
 bool
-DisplayPropertiesAnnotation::isDisplayWindowAnnotations(const int32_t windowIndex) const
+DisplayPropertiesAnnotation::isDisplayWindowAnnotationsInTab(const int32_t windowIndex) const
 {
     CaretAssertArrayIndex(m_displayWindowAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
     return m_displayWindowAnnotations[windowIndex];
@@ -239,7 +287,7 @@ DisplayPropertiesAnnotation::isDisplayWindowAnnotations(const int32_t windowInde
  *     True if displayed, else false.
  */
 void
-DisplayPropertiesAnnotation::setDisplayWindowAnnotations(const int32_t windowIndex,
+DisplayPropertiesAnnotation::setDisplayWindowAnnotationsInTab(const int32_t windowIndex,
                                                          const bool status)
 {
     CaretAssertArrayIndex(m_displayWindowAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
