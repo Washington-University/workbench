@@ -19,11 +19,16 @@
  */
 /*LICENSE_END*/
 
+//#include <algorithm>
+//#include <limits>
+//#include <numeric>
+
 #define __ANNOTATION_MANAGER_DECLARE__
 #include "AnnotationManager.h"
 #undef __ANNOTATION_MANAGER_DECLARE__
 
 #include "Annotation.h"
+#include "AnnotationArrangerExecutor.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationFile.h"
 #include "AnnotationOneDimensionalShape.h"
@@ -378,6 +383,40 @@ AnnotationManager::getSelectedAnnotations(const int32_t windowIndex) const
 }
 
 /**
+ * @return A vector containing all SELECTED annotations and in the 
+ * given spaces.
+ *
+ * @param windowIndex
+ *     Index of window for annotation selection.
+ * @param spaces
+ *     Limit returned annotations to annotations in these spaces.
+ */
+std::vector<Annotation*>
+AnnotationManager::getSelectedAnnotationsInSpaces(const int32_t windowIndex,
+                                                  const std::vector<AnnotationCoordinateSpaceEnum::Enum>& spaces) const
+{
+    std::vector<Annotation*> annotations = getSelectedAnnotations(windowIndex);
+    
+    std::vector<Annotation*> annotationsOut;
+    for (std::vector<Annotation*>::iterator iter = annotations.begin();
+         iter != annotations.end();
+         iter++) {
+        Annotation* ann = *iter;
+        CaretAssert(ann);
+        const AnnotationCoordinateSpaceEnum::Enum annSpace = ann->getCoordinateSpace();
+        if (std::find(spaces.begin(),
+                      spaces.end(),
+                      annSpace) != spaces.end()) {
+            annotationsOut.push_back(ann);
+        }
+    }
+    
+    return annotationsOut;
+}
+
+
+
+/**
  * Get the selected annotations and the files that contain them.
  *
  * @param windowIndex
@@ -412,6 +451,26 @@ AnnotationManager::getSelectedAnnotations(const int32_t windowIndex,
     }
 }
 
+/**
+ * Align annotations.
+ * 
+ * @param arrangerInputs
+ *    Inputs to algorithm that aligns the annotations.
+ * @param errorMessageOut
+ *    Contains error message upon exit.
+ * @return
+ *    True if successful, false if error.
+ */
+bool
+AnnotationManager::alignAnnotations(const AnnotationArrangerInputs& arrangerInputs,
+                                    AString& errorMessageOut)
+{
+    AnnotationArrangerExecutor arranger;
+    
+    return arranger.alignAnnotations(this,
+                                     arrangerInputs,
+                                     errorMessageOut);
+}
 
 /**
  * Receive an event.

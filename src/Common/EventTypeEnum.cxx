@@ -177,6 +177,10 @@ EventTypeEnum::initialize()
                                      "EVENT_GET_OR_SET_USER_INPUT_MODE",
                                      "Get or set the user input mode"));
     
+    enumData.push_back(EventTypeEnum(EVENT_GET_TEXT_RENDERER_FOR_WINDOW,
+                                     "EVENT_GET_TEXT_RENDERER_FOR_WINDOW",
+                                     "Get the text renderer for a window"));
+    
     enumData.push_back(EventTypeEnum(EVENT_GET_VIEWPORT_SIZE,
                                      "EVENT_GET_VIEWPORT_SIZE",
                                      "Get the viewport size"));

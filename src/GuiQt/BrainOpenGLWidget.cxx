@@ -50,6 +50,7 @@
 #include "EventManager.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
+#include "EventGetBrainOpenGLTextRenderer.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
@@ -87,7 +88,9 @@ using namespace caret;
  */
 BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
                                      const int32_t windowIndex)
-: QGLWidget(parent)
+: QGLWidget(parent),
+windowIndex(windowIndex),
+m_textRenderer(NULL)
 {
     this->openGL = NULL;
     this->borderBeingDrawn = new Border();
@@ -104,7 +107,6 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
                                                 0,
                                                 false));
     
-    this->windowIndex = windowIndex;
     this->userInputAnnotationsModeProcessor = new UserInputModeAnnotations(windowIndex);
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
                                                                    windowIndex);
@@ -131,6 +133,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IDENTIFICATION_REQUEST);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -142,6 +145,9 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 BrainOpenGLWidget::~BrainOpenGLWidget()
 {
     makeCurrent();
+    
+    /** DO NOT delete since not owned by this */
+    m_textRenderer = NULL;
     
     this->clearDrawingViewportContents();
     
@@ -298,6 +304,8 @@ BrainOpenGLWidget::createTextRenderer()
                        "No text will be drawn (dummy text renderer).");
         textRendererOut = new DummyFontTextRenderer();
     }
+    
+    m_textRenderer = textRendererOut;
     
     return textRendererOut;
 }
@@ -1260,6 +1268,15 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         this->borderBeingDrawn->clear();
         
         brainResetEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW) {
+        EventGetBrainOpenGLTextRenderer* textRenderEvent = dynamic_cast<EventGetBrainOpenGLTextRenderer*>(event);
+        CaretAssert(textRenderEvent);
+        
+        if (this->windowIndex == textRenderEvent->getWindowIndex()) {
+            textRenderEvent->setTextRenderer(m_textRenderer);
+            textRenderEvent->setEventProcessed();
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
         EventGraphicsUpdateAllWindows* updateAllEvent =

@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "CaretUndoCommand.h"
@@ -31,6 +32,7 @@
 
 namespace caret {
     class Annotation;
+    class AnnotationArrangerInputs;
     class AnnotationFile;
     class AnnotationRedoUndoCommand;
     class Brain;
@@ -78,6 +80,9 @@ namespace caret {
         
         std::vector<Annotation*> getSelectedAnnotations(const int32_t windowIndex) const;
         
+        std::vector<Annotation*> getSelectedAnnotationsInSpaces(const int32_t windowIndex,
+                                                                const std::vector<AnnotationCoordinateSpaceEnum::Enum>& spaces) const;
+        
         void getSelectedAnnotations(const int32_t windowIndex,
                                     std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const;
         
@@ -103,6 +108,9 @@ namespace caret {
         
         void getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displayedFilesEvent,
                                          std::vector<AnnotationFile*>& displayedAnnotationFilesOut) const;
+        
+        bool alignAnnotations(const AnnotationArrangerInputs& arrangerInputs,
+                              AString& errorMessageOut);
         
         // ADD_NEW_METHODS_HERE
 

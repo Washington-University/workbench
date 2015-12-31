@@ -53,14 +53,6 @@ namespace caret {
         
         virtual void clearModified();
         
-        /**
-         * Is the given sizing handle valid for this annotation?
-         *
-         * @sizingHandle
-         *    The sizing handle.
-         * @return
-         *    True if sizing handle valid, else false.
-         */
         virtual bool isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const;
         
         virtual bool applySpatialModification(const AnnotationSpatialModification& spatialModification);

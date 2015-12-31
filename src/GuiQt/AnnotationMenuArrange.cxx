@@ -23,9 +23,18 @@
 #include "AnnotationMenuArrange.h"
 #undef __ANNOTATION_MENU_ARRANGE_DECLARE__
 
-#include "AnnotationAlignmentEnum.h"
+#include "Annotation.h"
+#include "AnnotationArrangerInputs.h"
+#include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "EventGetBrainOpenGLTextRenderer.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
+#include "GuiManager.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
@@ -50,10 +59,14 @@ AnnotationMenuArrange::AnnotationMenuArrange(const int32_t browserWindowIndex,
 : QMenu(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    addAction("Group");
-    addAction("Ungroup");
+    addAlignmentSelections();
+    
     addSeparator();
-    addMenu(createAlignMenu());
+    
+    addDistributeSelections();
+
+    QObject::connect(this, SIGNAL(triggered(QAction*)),
+                     this, SLOT(menuActionTriggered(QAction*)));
 }
 
 /**
@@ -64,54 +77,169 @@ AnnotationMenuArrange::~AnnotationMenuArrange()
 }
 
 /**
- * @return The Align menu.
+ * Add alignment options to the menu.
  */
-QMenu*
-AnnotationMenuArrange::createAlignMenu()
+void
+AnnotationMenuArrange::addAlignmentSelections()
 {
     std::vector<AnnotationAlignmentEnum::Enum> alignments;
     AnnotationAlignmentEnum::getAllEnums(alignments);
-    
-    QMenu* alignMenu = new QMenu("Align");
     
     for (std::vector<AnnotationAlignmentEnum::Enum>::iterator iter = alignments.begin();
          iter != alignments.end();
          iter++) {
         const AnnotationAlignmentEnum::Enum annAlign = *iter;
-        const AString text = AnnotationAlignmentEnum::toGuiName(annAlign);
+        const QString enumText = AnnotationAlignmentEnum::toGuiName(annAlign);
+        const QString enumName = AnnotationAlignmentEnum::toName(annAlign);
         
-        QAction* action = alignMenu->addAction(text);
-        action->setData((int)AnnotationAlignmentEnum::toIntegerCode(annAlign));
+        QAction* action = addAction(enumText);
+        action->setData(enumName);
     }
+}
+
+/**
+ * Add distribution items to the menu.
+ */
+void
+AnnotationMenuArrange::addDistributeSelections()
+{
+    std::vector<AnnotationDistributeEnum::Enum> distributes;
+    AnnotationDistributeEnum::getAllEnums(distributes);
     
-    QObject::connect(alignMenu, SIGNAL(triggered(QAction*)),
-                     this, SLOT(alignMenuActionTriggered(QAction*)));
-    
-    return alignMenu;
+    for (std::vector<AnnotationDistributeEnum::Enum>::iterator iter = distributes.begin();
+         iter != distributes.end();
+         iter++) {
+        const AnnotationDistributeEnum::Enum annDist = *iter;
+        const QString enumText = AnnotationDistributeEnum::toGuiName(annDist);
+        const QString enumName = AnnotationDistributeEnum::toName(annDist);
+        
+        QAction* action = addAction(enumText);
+        action->setData(enumName);
+        
+        action->setEnabled(false);
+    }
 }
 
 /**
  * Gets called when the user selects a menu item.
  */
 void
-AnnotationMenuArrange::alignMenuActionTriggered(QAction* action)
+AnnotationMenuArrange::menuActionTriggered(QAction* action)
 {
     CaretAssert(action);
-    const int32_t integerCode = action->data().toInt();
     
-    bool valid = false;
-    const AnnotationAlignmentEnum::Enum annAlign = AnnotationAlignmentEnum::fromIntegerCode(integerCode,
-                                                                                 &valid);
-    if (valid) {
-        std::cout << "Insert: " << AnnotationAlignmentEnum::toGuiName(annAlign) << std::endl;
+    const QString enumName = action->data().toString();
+    
+    bool validAlignmentFlag = false;
+    const AnnotationAlignmentEnum::Enum annAlign = AnnotationAlignmentEnum::fromName(enumName,
+                                                                                     &validAlignmentFlag);
+
+    bool validDistributeFlag = false;
+    const AnnotationDistributeEnum::Enum annDist = AnnotationDistributeEnum::fromName(enumName,
+                                                                                       &validDistributeFlag);
+    if (validAlignmentFlag) {
+        applyAlignment(annAlign);
+    }
+    else if (validDistributeFlag) {
+        std::cout << "Distribute not implemented " << AnnotationDistributeEnum::toGuiName(annDist) << std::endl;
     }
     else {
-        const AString msg("Invalid integer code="
-                          + QString::number(integerCode)
-                          + " for AnnotationTypeEnum");
+        const AString msg("Unrecognized Enum name in Annotation Align Menu \""
+                          + enumName
+                          + "\"");
         CaretAssertMessage(0, msg);
         CaretLogSevere(msg);
     }
+
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+
+/**
+ * Apply alignment selection.
+ *
+ * @param alignment
+ *     Selected alignment.
+ */
+void
+AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignment)
+{
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    CaretAssert(bbw);
+    
+    EventGetBrainOpenGLTextRenderer textRendererEvent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(textRendererEvent.getPointer());
+    BrainOpenGLTextRenderInterface* textRenderer = textRendererEvent.getTextRenderer();
+    if (textRenderer == NULL) {
+        WuQMessageBox::errorOk(this, "Failed to get text renderer for window "
+                               + QString::number(m_browserWindowIndex));
+        return;
+    }
+    
+    AnnotationArrangerInputs alignMod(textRenderer,
+                                     alignment,
+                                     m_browserWindowIndex);
+    
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AString errorMessage;
+    if ( ! annMan->alignAnnotations(alignMod, errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+//    std::vector<Annotation*> selectedAnnotations = annMan->getSelectedAnnotations(m_browserWindowIndex);
+//    const int32_t numSelectedAnnotations = static_cast<int32_t>(selectedAnnotations.size());
+//    
+//    std::vector<Annotation*> annotationsBeforeMoveAndResize;
+//    std::vector<Annotation*> annotationsAfterMoveAndResize;
+//    
+//    for (int32_t i = 0; i < numSelectedAnnotations; i++) {
+//        Annotation* annotationModified(selectedAnnotations[i]->clone());
+//        if (annotationModified->applyAlignmentModification(
+//        if (annotationModified->applySpatialModification(annSpatialMod)) {
+//            annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);
+//            annotationsAfterMoveAndResize.push_back(annotationModified);
+//        }
+//        else {
+//            delete annotationModified;
+//            annotationModified = NULL;
+//        }
+//    }
+//    CaretAssert(annotationsAfterMoveAndResize.size() == annotationsBeforeMoveAndResize.size());
+//    
+//    if ( ! annotationsAfterMoveAndResize.empty()) {
+//        AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+//        command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
+//                                        annotationsAfterMoveAndResize);
+//        
+//        if ( ! mouseEvent.isFirstDragging()) {
+//            command->setMergeEnabled(true);
+//        }
+//        
+//        annotationManager->applyCommand(command);
+//    }
+//    
+//    for (std::vector<Annotation*>::iterator iter = annotationsAfterMoveAndResize.begin();
+//         iter != annotationsAfterMoveAndResize.end();
+//         iter++) {
+//        delete *iter;
+//    }
+//    annotationsAfterMoveAndResize.clear();
+//
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Apply distribute selection.
+ *
+ * @param distribute
+ *     Selected distribute.
+ */
+void
+AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum distribute)
+{
+    
 }
 
 

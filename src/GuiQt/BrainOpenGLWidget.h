@@ -138,7 +138,10 @@ namespace caret {
         
         BrainOpenGL* openGL;
         
-        int32_t windowIndex;
+        const int32_t windowIndex;
+        
+        /** Do not own text renderer so DO NOT delete */
+        BrainOpenGLTextRenderInterface* m_textRenderer;
         
         std::vector<BrainOpenGLViewportContent*> drawingViewportContents;
         

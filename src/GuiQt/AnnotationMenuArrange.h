@@ -26,7 +26,8 @@
 
 #include <QMenu>
 
-
+#include "AnnotationAlignmentEnum.h"
+#include "AnnotationDistributeEnum.h"
 
 namespace caret {
 
@@ -44,10 +45,16 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void alignMenuActionTriggered(QAction* action);
+        void menuActionTriggered(QAction* action);
         
     private:
-        QMenu* createAlignMenu();
+        void addAlignmentSelections();
+        
+        void addDistributeSelections();
+        
+        void applyAlignment(const AnnotationAlignmentEnum::Enum alignment);
+        
+        void applyDistribute(const AnnotationDistributeEnum::Enum distribute);
         
         AnnotationMenuArrange(const AnnotationMenuArrange&);
 

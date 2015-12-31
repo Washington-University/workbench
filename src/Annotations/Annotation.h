@@ -147,6 +147,21 @@ namespace caret {
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation) = 0;
         
+        static void relativeXYZToViewportXYZ(const float relativeXYZ[3],
+                                             const float viewportWidth,
+                                             const float viewportHeight,
+                                             float viewportXYZOut[3]);
+        
+        static void viewportXYZToRelativeXYZ(const float viewportXYZ[3],
+                                             const float viewportWidth,
+                                             const float viewportHeight,
+                                             float relativeXYZOut[3]);
+        
+        static void viewportXYZToLimitedRelativeXYZ(const float viewportXYZ[3],
+                                             const float viewportWidth,
+                                             const float viewportHeight,
+                                             float relativeXYZOut[3]);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

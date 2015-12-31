@@ -33,6 +33,7 @@
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -932,8 +933,87 @@ Annotation::setDeselected()
 }
 
 /**
- * @return Is moved by the GUI?
+ * Convert a relative (zero to one) XYZ coordinate to
+ * a viewport coordinate.
+ *
+ * @param relativeXYZ
+ *     The relative (zero to one) XYZ.
+ * @param viewportWidth
+ *     Width of the viewport.
+ * @param viewportHeight
+ *     Height of the viewport.
+ * @param viewportXYZOut
+ *     Output viewport coordinate.
  */
+void
+Annotation::relativeXYZToViewportXYZ(const float relativeXYZ[3],
+                                     const float viewportWidth,
+                                     const float viewportHeight,
+                                     float viewportXYZOut[3])
+{
+    viewportXYZOut[0] = (relativeXYZ[0] / 100.0) * viewportWidth;
+    viewportXYZOut[1] = (relativeXYZ[1] / 100.0) * viewportHeight;
+    viewportXYZOut[2] = relativeXYZ[2];
+}
+
+/**
+ * Convert a viewport XYZ coordinate to
+ * a relative coordinate.  The output relative
+ * coordinates are may be outside of the range
+ * zero to one if viewport coordinate is outside
+ * of the viewport bounds.
+ *
+ * @param viewportXYZ
+ *     The relative (zero to one) XYZ.
+ * @param viewportWidth
+ *     Width of the viewport.
+ * @param viewportHeight
+ *     Height of the viewport.
+ * @param relativeXYZOut
+ *     Output relative coordinate.
+ */
+void
+Annotation::viewportXYZToRelativeXYZ(const float viewportXYZ[3],
+                                     const float viewportWidth,
+                                     const float viewportHeight,
+                                     float relativeXYZOut[3])
+{
+    relativeXYZOut[0] = 100.0 * (viewportXYZ[0] / viewportWidth);
+    relativeXYZOut[1] = 100.0 * (viewportXYZ[1] / viewportHeight);
+    relativeXYZOut[2] = viewportXYZ[2];
+}
+
+/**
+ * Convert a viewport XYZ coordinate to
+ * a relative coordinate.  The output relative coordinate
+ * will be limited to the range zero to one even if the
+ * viewport coordinate is outside of the viewport bounds.
+ *
+ * @param viewportXYZ
+ *     The relative (zero to one) XYZ.
+ * @param viewportWidth
+ *     Width of the viewport.
+ * @param viewportHeight
+ *     Height of the viewport.
+ * @param relativeXYZOut
+ *     Output relative coordinate.
+ */
+void
+Annotation::viewportXYZToLimitedRelativeXYZ(const float viewportXYZ[3],
+                                     const float viewportWidth,
+                                     const float viewportHeight,
+                                     float relativeXYZOut[3])
+{
+    viewportXYZToRelativeXYZ(viewportXYZ,
+                             viewportWidth,
+                             viewportHeight,
+                             relativeXYZOut);
+    
+    relativeXYZOut[0] = MathFunctions::limitRange(relativeXYZOut[0], 0.0f, 1.0f);
+    relativeXYZOut[1] = MathFunctions::limitRange(relativeXYZOut[1], 0.0f, 1.0f);
+    relativeXYZOut[2] = MathFunctions::limitRange(relativeXYZOut[2], 0.0f, 1.0f);
+}
+
 
 /**
  * Save information specific to this type of model to the scene.

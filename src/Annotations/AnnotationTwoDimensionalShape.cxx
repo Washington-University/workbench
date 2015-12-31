@@ -648,11 +648,13 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
     float xyz[3];
     m_coordinate->getXYZ(xyz);
     
-    float viewportXYZ[3] = {
-        (xyz[0] / 100.0) * spatialModification.m_viewportWidth,
-        (xyz[1] / 100.0) * spatialModification.m_viewportHeight,
-        xyz[2]
-    };
+    float viewportXYZ[3] = { 0.0, 0.0, 0.0 };
+    relativeXYZToViewportXYZ(xyz, spatialModification.m_viewportWidth, spatialModification.m_viewportHeight, viewportXYZ);
+//    float viewportXYZ[3] = {
+//        (xyz[0] / 100.0) * spatialModification.m_viewportWidth,
+//        (xyz[1] / 100.0) * spatialModification.m_viewportHeight,
+//        xyz[2]
+//    };
     
     float bottomLeftXYZ[3];
     float bottomRightXYZ[3];
@@ -984,7 +986,6 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
     return false;
 }
 
-
 /**
  * Apply a spatial modification to an annotation.
  *
@@ -1022,6 +1023,7 @@ AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialM
     
     return false;
 }
+
 
 /**
  * When adjusting one of the "side handles" of a selected shape, set and adjust the change in the shape

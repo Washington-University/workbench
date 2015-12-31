@@ -52,6 +52,8 @@ ENDIF (OPENGL_FOUND)
 # Create the brain library
 #
 ADD_LIBRARY(Brain
+AnnotationArrangerExecutor.h
+AnnotationArrangerInputs.h
 AnnotationManager.h
 BorderDrawingTypeEnum.h
 Brain.h
@@ -104,6 +106,7 @@ EventDataFileAdd.h
 EventDataFileDelete.h
 EventDataFileRead.h
 EventDataFileReload.h
+EventGetBrainOpenGLTextRenderer.h
 EventIdentificationHighlightLocation.h
 EventModelAdd.h
 EventModelDelete.h
@@ -181,6 +184,8 @@ VolumeSurfaceOutlineSetModel.h
 WholeBrainSurfaceSettings.h
 WholeBrainVoxelDrawingMode.h
 
+AnnotationArrangerExecutor.cxx
+AnnotationArrangerInputs.cxx
 AnnotationManager.cxx
 BorderDrawingTypeEnum.cxx
 Brain.cxx
@@ -231,6 +236,7 @@ EventDataFileAdd.cxx
 EventDataFileDelete.cxx
 EventDataFileRead.cxx
 EventDataFileReload.cxx
+EventGetBrainOpenGLTextRenderer.cxx
 EventIdentificationHighlightLocation.cxx
 EventModelAdd.cxx
 EventModelDelete.cxx
