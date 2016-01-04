@@ -69,6 +69,8 @@ namespace caret {
         
         void pixelHeightValueChanged(int);
         
+        void imageFileNameValueChanged();
+        
         void imageWidthValueChanged(double);
         
         void imageHeightValueChanged(double);

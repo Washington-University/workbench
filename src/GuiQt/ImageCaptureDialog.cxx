@@ -838,6 +838,8 @@ ImageCaptureDialog::createImageDestinationSection()
                      this, SLOT(saveImageToFileCheckBoxClicked(bool)));
     m_imageFileNameLineEdit = new QLineEdit();
     m_imageFileNameLineEdit->setText("untitled.png");
+    QObject::connect(m_imageFileNameLineEdit, SIGNAL(editingFinished()),
+                     this, SLOT(imageFileNameValueChanged()));
     QPushButton* fileNameSelectionPushButton = new QPushButton("Choose File...");
     QObject::connect(fileNameSelectionPushButton, SIGNAL(clicked()),
                      this, SLOT(selectImagePushButtonPressed()));
@@ -1036,6 +1038,17 @@ ImageCaptureDialog::selectImagePushButtonPressed()
         updateDestinationSection();
     }
 }
+
+/**
+ * Gets called when user changes name of the image file.
+ */
+void
+ImageCaptureDialog::imageFileNameValueChanged()
+{
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setImageFileName(m_imageFileNameLineEdit->text().trimmed());
+}
+
 
 /**
  * Called when the apply button is pressed.
