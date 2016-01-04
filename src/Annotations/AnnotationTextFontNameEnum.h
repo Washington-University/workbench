@@ -35,6 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Libertine */
+        LIBERTINE,
         /** Outline */
         OUTLINE,
         /** Vera Fonts */

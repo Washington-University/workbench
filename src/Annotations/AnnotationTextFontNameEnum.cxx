@@ -114,6 +114,14 @@ AnnotationTextFontNameEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(AnnotationTextFontNameEnum(LIBERTINE,
+                                                  "LIBERTINE",
+                                                  "Libertine",
+                                                  ":/Fonts/LinuxLibertine/LinLibertine_Rah.ttf",
+                                                  ":/Fonts/LinuxLibertine/LinLibertine_RBah.ttf",
+                                                  ":/Fonts/LinuxLibertine/LinLibertine_RBIah.ttf",
+                                                  ":/Fonts/LinuxLibertine/LinLibertine_RIah.ttf"));
+    
     enumData.push_back(AnnotationTextFontNameEnum(OUTLINE,
                                                   "OUTLINE",
                                                   "Outline",
