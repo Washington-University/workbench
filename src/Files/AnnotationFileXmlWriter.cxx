@@ -229,7 +229,46 @@ void
 AnnotationFileXmlWriter::writeImage(const AnnotationImage* image)
 {
     CaretAssert(image);
-    CaretAssertMessage(0, "AnnotationFileXmlWriter::writeImage() needs to be implemented");
+
+    const int32_t imageWidth  = image->getImageWidth();
+    const int32_t imageHeight = image->getImageHeight();
+    const int32_t numberOfBytes = imageWidth * imageHeight * 4;
+    if (numberOfBytes <= 0) {
+        return;
+    }
+    
+    const uint8_t* imageBytesRGBA = image->getImageBytesRGBA();
+    
+    QByteArray byteArray((const char*)imageBytesRGBA,
+                         numberOfBytes);
+    QByteArray byteArrayBase64(byteArray.toBase64());
+    const QString stringBase64(QString::fromAscii(byteArrayBase64.constData(),
+                                                  byteArrayBase64.size()));
+
+    QXmlStreamAttributes attributes;
+    getTwoDimAnnotationPropertiesAsAttributes(image,
+                                              attributes);
+    
+    
+    QXmlStreamAttributes imageDataAttributes;
+    imageDataAttributes.append(ATTRIBUTE_IMAGE_WIDTH,
+                              AString::number(image->getImageWidth()));
+    imageDataAttributes.append(ATTRIBUTE_IMAGE_HEIGHT,
+                              AString::number(image->getImageHeight()));
+   
+    
+    m_stream->writeStartElement(ELEMENT_IMAGE);
+    m_stream->writeAttributes(attributes);
+
+    writeCoordinate(image->getCoordinate(),
+                    ELEMENT_COORDINATE_ONE);
+    
+    m_stream->writeStartElement(ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64);
+    m_stream->writeAttributes(imageDataAttributes);
+    m_stream->writeCharacters(stringBase64);
+    m_stream->writeEndElement();
+    
+    m_stream->writeEndElement();
 }
 
 /**

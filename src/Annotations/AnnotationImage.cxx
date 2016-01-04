@@ -94,9 +94,73 @@ AnnotationImage::operator=(const AnnotationImage& obj)
  *    Object that is copied.
  */
 void
-AnnotationImage::copyHelperAnnotationImage(const AnnotationImage& /*obj*/)
+AnnotationImage::copyHelperAnnotationImage(const AnnotationImage& obj)
 {
+    m_imageBytesRGBA = obj.m_imageBytesRGBA;
+    m_imageWidth     = obj.m_imageWidth;
+    m_imageHeight    = obj.m_imageHeight;
+}
+
+/**
+ * Set the image.
+ *
+ * @param imageBytesRGBA
+ *     Bytes containing the image.  4 bytes per pixel with values
+ *     ranging 0 to 255.  Number of elements MUST BE 
+ *     (width * height * 4)!!!!
+ * @param imageWidth
+ *     Width of the image.
+ * @param imageHeight
+ *     Height of the image.
+ */
+void
+AnnotationImage::setImageBytesRGBA(const uint8_t* imageBytesRGBA,
+                       const int32_t imageWidth,
+                       const int32_t imageHeight)
+{
+    const int32_t numBytes = (imageWidth
+                              * imageHeight
+                              * 4);
     
+    m_imageBytesRGBA.resize(numBytes);
+    
+    for (int32_t i = 0; i < numBytes; i++) {
+        m_imageBytesRGBA[i] = imageBytesRGBA[i];
+    }
+    
+    setModified();
+}
+
+/**
+ * @return Width of the image.
+ */
+int32_t
+AnnotationImage::getImageWidth() const
+{
+    return m_imageWidth;
+}
+
+/**
+ * @return Height of the image.
+ */
+int32_t
+AnnotationImage::getImageHeight() const
+{
+    return m_imageHeight;
+}
+
+/**
+ * @return The RGBA bytes of the image.
+ * NULL if image is invalid.
+ */
+const uint8_t*
+AnnotationImage::getImageBytesRGBA() const
+{
+    if (m_imageBytesRGBA.empty()) {
+        return NULL;
+    }
+    
+    return &m_imageBytesRGBA[0];
 }
 
 /**
@@ -112,7 +176,15 @@ AnnotationImage::initializeMembersAnnotationImage()
             break;
     }
     
+    m_imageBytesRGBA.clear();
+    m_imageWidth  = 0;
+    m_imageHeight = 0;
+    
     m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_imageWidth",
+                          &m_imageWidth);
+    m_sceneAssistant->add("m_imageHeight",
+                          &m_imageHeight);
 }
 
 /**

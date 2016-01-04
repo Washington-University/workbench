@@ -43,6 +43,15 @@ namespace caret {
         
         virtual bool isBackgroundColorSupported() const;
         
+        void setImageBytesRGBA(const uint8_t* imageBytesRGBA,
+                               const int32_t imageWidth,
+                               const int32_t imageHeight);
+        
+        int32_t getImageWidth() const;
+        
+        int32_t getImageHeight() const;
+        
+        const uint8_t* getImageBytesRGBA() const;
 
         // ADD_NEW_METHODS_HERE
 
@@ -65,6 +74,12 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
 
+        std::vector<uint8_t> m_imageBytesRGBA;
+        
+        int32_t m_imageWidth;
+        
+        int32_t m_imageHeight;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

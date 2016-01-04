@@ -78,6 +78,10 @@ namespace caret {
         
         static const QString ATTRIBUTE_HEIGHT;
         
+        static const QString ATTRIBUTE_IMAGE_WIDTH;
+        
+        static const QString ATTRIBUTE_IMAGE_HEIGHT;
+        
         static const QString ATTRIBUTE_LINE_END_ARROW;
         
         static const QString ATTRIBUTE_LINE_START_ARROW;
@@ -125,6 +129,8 @@ namespace caret {
         static const QString ELEMENT_COORDINATE_TWO;
         
         static const QString ELEMENT_IMAGE;
+        
+        static const QString ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64;
         
         static const QString ELEMENT_LINE;
         
@@ -176,6 +182,10 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_HEIGHT = "height";
     
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_IMAGE_WIDTH = "imageWidth";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_IMAGE_HEIGHT = "imageHeight";
+    
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_LINE_END_ARROW = "endArrow";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_LINE_START_ARROW = "startArrow";
@@ -223,6 +233,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_TWO = "coordTwo";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_IMAGE = "image";
+    
+    const QString AnnotationFileXmlFormatBase::ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64 = "imageRgbaBytesInBase64";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_LINE = "line";
     

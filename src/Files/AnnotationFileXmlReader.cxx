@@ -222,6 +222,12 @@ AnnotationFileXmlReader::readVersionOne(AnnotationFile* annotationFile)
                                          annotation);
             annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
         }
+        else if (elementName == ELEMENT_IMAGE) {
+            CaretPointer<AnnotationImage> annotation(new AnnotationImage(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readTwoDimensionalAnnotation(ELEMENT_IMAGE,
+                                         annotation);
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+        }
         else if (elementName == ELEMENT_LINE) {
             CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readOneDimensionalAnnotation(ELEMENT_LINE,
@@ -587,6 +593,14 @@ AnnotationFileXmlReader::readTwoDimensionalAnnotation(const QString& annotationE
                    annotation->getCoordinate());
     
     /*
+     * Is this an image annotation?
+     */
+    AnnotationImage* imageAnn = dynamic_cast<AnnotationImage*>(annotation);
+    if (imageAnn != NULL) {
+        readImageDataElement(imageAnn);
+    }
+    
+    /*
      * Is this a text annotation?
      */
     AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
@@ -597,11 +611,71 @@ AnnotationFileXmlReader::readTwoDimensionalAnnotation(const QString& annotationE
 }
 
 /**
- * Read the next start element which should be a coordinate
- * with the given element name.
+ * Read the image annotation element.
  *
- * @param annotation
- *     One-dimensional annotation that has its data read.
+ * @param imageAnnotation
+ *     Image annotation that has its element data read.
+ * @throw
+ *     DataFileException
+ */
+void
+AnnotationFileXmlReader::readImageDataElement(AnnotationImage* imageAnnotation)
+{
+    CaretAssert(imageAnnotation);
+    
+    const bool elementValid = m_stream->readNextStartElement();
+    if ( ! elementValid) {
+        m_streamHelper->throwDataFileException("Failed to read element "
+                                               + ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64);
+    }
+    
+    if (m_stream->name() != ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64) {
+        m_streamHelper->throwDataFileException("Expected elment "
+                                               + ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64
+                                               + " but read element "
+                                               + m_stream->name().toString());
+    }
+    
+    const QXmlStreamAttributes attributes = m_stream->attributes();
+    
+    const int32_t imageWidth = m_streamHelper->getRequiredAttributeIntValue(attributes,
+                                                                            ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64,
+                                                                            ATTRIBUTE_IMAGE_WIDTH);
+    const int32_t imageHeight = m_streamHelper->getRequiredAttributeIntValue(attributes,
+                                                                            ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64,
+                                                                            ATTRIBUTE_IMAGE_HEIGHT);
+    const int32_t numberOfBytes = imageWidth * imageHeight * 4;
+    
+    
+    /*
+     * Read the image bytes in base64 encoding which will also finish reading through
+     * the closing element.
+     */
+    const QString imageChars = m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
+    if (m_stream->hasError()) {
+        m_streamHelper->throwDataFileException("There was an error reading the image annotation's image bytes: "
+                                               + m_stream->errorString());
+    }
+    
+    QByteArray imageBytes = QByteArray::fromBase64(imageChars.toAscii());
+    if (imageBytes.size() == numberOfBytes) {
+        const uint8_t* imageBytesPointer = (const uint8_t*)(imageBytes.data());
+        imageAnnotation->setImageBytesRGBA(imageBytesPointer,
+                                           imageWidth,
+                                           imageHeight);
+    }
+    else {
+        m_streamHelper->throwDataFileException("There was an error reading the image annotations image bytes.  "
+                                               "The number of bytes read was " + AString::number(imageBytes.size())
+                                               + " but the number of bytes expected was " + AString::number(numberOfBytes));
+    }
+}
+
+/**
+ * Read the text annotation element.
+ *
+ * @param textAnnotation
+ *     Text annotation that has its element data read.
  * @param annotationTextElementName
  *     Name of the annotation element.
  * @throw
