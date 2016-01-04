@@ -234,7 +234,9 @@ namespace caret {
         
         void userDrawingAnnotationFromMouseDrag(const MouseEvent& mouseEvent);
         
-        void selecteAnnotation(Annotation* annotation);
+        void selectAnnotation(Annotation* annotation);
+        
+        Annotation* getSingleSelectedAnnotation();
         
         void cutAnnotation();
         
@@ -267,8 +269,6 @@ namespace caret {
         
         AnnotationTypeEnum::Enum m_modeNewAnnotationType;
 
-        Annotation* m_annotationBeingEdited;
-        
         Annotation* m_annotationUnderMouse;
         
         AnnotationSizingHandleTypeEnum::Enum m_annotationUnderMouseSizeHandleType;

@@ -81,7 +81,6 @@ using namespace caret;
 UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
 : UserInputModeView(UserInputModeAbstract::ANNOTATIONS),
 m_browserWindowIndex(windowIndex),
-m_annotationBeingEdited(NULL),
 m_annotationUnderMouse(NULL),
 m_annotationBeingDragged(NULL)
 {
@@ -157,7 +156,6 @@ UserInputModeAnnotations::finish()
 void
 UserInputModeAnnotations::resetAnnotationUnderMouse()
 {
-    m_annotationBeingEdited = NULL;
     m_annotationUnderMouse  = NULL;
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     m_annotationBeingDragged = NULL;
@@ -365,10 +363,11 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
         case Qt::Key_Right:
         case Qt::Key_Up:
         {
-            if (m_annotationBeingEdited != NULL) {
+            Annotation* selectedAnnotation = getSingleSelectedAnnotation();
+            if (selectedAnnotation != NULL) {
                 bool changeCoordFlag  = false;
                 bool moveOnePixelFlag = false;
-                switch (m_annotationBeingEdited->getCoordinateSpace()) {
+                switch (selectedAnnotation->getCoordinateSpace()) {
                     case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                         changeCoordFlag = true;
                         break;
@@ -392,8 +391,11 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     if (moveOnePixelFlag) {
                         const float pixelHeight = keyEvent.getOpenGLWidget()->height();
                         const float pixelWidth  = keyEvent.getOpenGLWidget()->width();
-                        distanceX = 1.0 / pixelWidth;
-                        distanceY = 1.0 / pixelHeight;
+                        /*
+                         * 100 is "full width/height" in relative coordinates.
+                         */
+                        distanceX = 100.0 / pixelWidth;
+                        distanceY = 100.0 / pixelHeight;
                     }
                     if (keyEvent.isShiftKeyDownFlag()) {
                         const float multiplier = 10;
@@ -421,12 +423,12 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             break;
                     }
                     
-                    AnnotationOneDimensionalShape* oneDim = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
-                    AnnotationTwoDimensionalShape* twoDim = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
+                    AnnotationOneDimensionalShape* oneDim = dynamic_cast<AnnotationOneDimensionalShape*>(selectedAnnotation);
+                    AnnotationTwoDimensionalShape* twoDim = dynamic_cast<AnnotationTwoDimensionalShape*>(selectedAnnotation);
                     
                     {
                             bool surfaceFlag = false;
-                            switch (m_annotationBeingEdited->getCoordinateSpace()) {
+                            switch (selectedAnnotation->getCoordinateSpace()) {
                                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                                     break;
                                 case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -443,7 +445,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             if ( ! surfaceFlag) {
                                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
                                 std::vector<Annotation*> annotations;
-                                annotations.push_back(m_annotationBeingEdited);
+                                annotations.push_back(selectedAnnotation);
                                 
                                 if (oneDim != NULL) {
                                     AnnotationCoordinate startCoord = *oneDim->getStartCoordinate();
@@ -1205,7 +1207,7 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
             AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
             const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
             if (allSelectedAnnotations.size() == 1) {
-                selecteAnnotation(allSelectedAnnotations[0]);
+                selectAnnotation(allSelectedAnnotations[0]);
             }
         }
         
@@ -1797,7 +1799,8 @@ UserInputModeAnnotations::setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDi
 void
 UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
 {
-    if (m_annotationBeingEdited == NULL) {
+    Annotation* selectedAnnotation = getSingleSelectedAnnotation();
+    if (selectedAnnotation == NULL) {
         return;
     }
 
@@ -1808,8 +1811,8 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
                                                              mouseEvent.getY(),
                                                              coordInfo);
     
-    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
-    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
+    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(selectedAnnotation);
+    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(selectedAnnotation);
 
     AnnotationCoordinate* coordinate = NULL;
     AnnotationCoordinate* otherCoordinate = NULL;
@@ -1851,7 +1854,7 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
     }
     
     AnnotationChangeCoordinateDialog changeCoordDialog(coordInfo,
-                                                       m_annotationBeingEdited,
+                                                       selectedAnnotation,
                                                        coordinate,
                                                        otherCoordinate,
                                                        m_annotationToolsWidget);
@@ -1883,7 +1886,7 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
         const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
         if (allSelectedAnnotations.size() == 1) {
-            selecteAnnotation(allSelectedAnnotations[0]);
+            selectAnnotation(allSelectedAnnotations[0]);
         }
     }
 
@@ -1893,17 +1896,34 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
 }
 
 /**
+ * @return The single selected annotation.  If there is ONE and ONLY one annotation
+ * selected, it is returned.  Otherwise, NULL is returned.
+ */
+Annotation*
+UserInputModeAnnotations::getSingleSelectedAnnotation()
+{
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+    Annotation* selectedAnnotation = NULL;
+    if (allSelectedAnnotations.size() == 1) {
+        CaretAssertVectorIndex(allSelectedAnnotations, 0);
+        selectedAnnotation = allSelectedAnnotations[0];
+    }
+    return selectedAnnotation;
+}
+
+
+/**
  * Select the given annotation (typically when a new annontation is created).
  *
  * @param annotation
  *    Annotation that is selected.
  */
 void
-UserInputModeAnnotations::selecteAnnotation(Annotation* annotation)
+UserInputModeAnnotations::selectAnnotation(Annotation* annotation)
 {
     resetAnnotationUnderMouse();
     
-    m_annotationBeingEdited  = annotation;
     m_annotationBeingDragged = annotation;
     m_annotationUnderMouse   = annotation;
 }
@@ -1925,7 +1945,6 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     const int mouseX = mouseEvent.getX();
     const int mouseY = mouseEvent.getY();
     
-    m_annotationBeingEdited  = NULL;
     m_annotationBeingDragged = NULL;
     
     /*
@@ -1954,11 +1973,6 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     setAnnotationUnderMouse(mouseEvent,
                             annotationID);
 
-    const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
-    if (allSelectedAnnotations.size() == 1) {
-        m_annotationBeingEdited = allSelectedAnnotations[0];
-    }
-    
     if (selectedAnnotation != NULL) {
         m_annotationBeingDragged = selectedAnnotation;
         m_annotationBeingDraggedHandleType = annotationID->getSizingHandle();
@@ -2007,7 +2021,7 @@ UserInputModeAnnotations::showContextMenu(const MouseEvent& mouseEvent,
         
         Annotation* newAnnotation = contextMenu.getNewAnnotationCreatedByContextMenu();
         if (newAnnotation != NULL) {
-            selecteAnnotation(newAnnotation);
+            selectAnnotation(newAnnotation);
 
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -2419,7 +2433,7 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
             }
         }
         
-        selecteAnnotation(newPastedAnnotation);
+        selectAnnotation(newPastedAnnotation);
         
     }
     
