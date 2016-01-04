@@ -287,14 +287,19 @@ void
 UserInputModeAnnotations::deleteSelectedAnnotations()
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
-    if ( ! selectedAnnotations.empty()) {
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeDeleteAnnotations(selectedAnnotations);
-        annotationManager->applyCommand(undoCommand);
-        
-        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    if (annotationManager->isSelectedAnnotationsDeletable(m_browserWindowIndex)) {
+        std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+        if ( ! selectedAnnotations.empty()) {
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModeDeleteAnnotations(selectedAnnotations);
+            annotationManager->applyCommand(undoCommand);
+            
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        }
+    }
+    else {
+        GuiManager::beep();
     }
 }
 
@@ -309,6 +314,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
 {
     const int32_t keyCode = keyEvent.getKeyCode();
     switch (keyCode) {
+        case Qt::Key_Backspace:
         case Qt::Key_Delete:
         {
             switch (m_mode) {

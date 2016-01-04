@@ -123,6 +123,8 @@ namespace caret {
         
         static void setUserDefaultForegroundLineWidth(const float lineWidth);
         
+        virtual bool isDeletable() const;
+        
         /**
          * Apply a spatial modification to an annotation.
          *

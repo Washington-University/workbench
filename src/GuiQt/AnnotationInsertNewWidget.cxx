@@ -129,23 +129,8 @@ AnnotationInsertNewWidget::~AnnotationInsertNewWidget()
 void
 AnnotationInsertNewWidget::updateContent()
 {
-    /*
-     * Delete disabled if ANY colorbar is selected.
-     */
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
-    bool noColorBarsSelectedFlag = true;
-    for (std::vector<Annotation*>::const_iterator iter = selectedAnnotations.begin();
-         iter != selectedAnnotations.end();
-         iter++) {
-        const Annotation* ann = *iter;
-        if (ann->getType() == AnnotationTypeEnum::COLOR_BAR) {
-            noColorBarsSelectedFlag = false;
-        }
-    }
-    
-    m_deleteToolButtonAction->setEnabled(noColorBarsSelectedFlag
-                                         && ( ! selectedAnnotations.empty()));
+    m_deleteToolButtonAction->setEnabled(annotationManager->isSelectedAnnotationsDeletable(m_browserWindowIndex));
 }
 
 /**
@@ -265,20 +250,6 @@ AnnotationInsertNewWidget::deleteActionTriggered()
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
-//    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-//    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
-//    if ( ! selectedAnnotations.empty()) {
-//            /*
-//             * Delete all selected annotations and update graphics and UI.
-//             */
-//            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-//            annotationManager->deleteSelectedAnnotations();
-//            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//
-//        {
-//        }
-//    }
 }
 
 

@@ -320,6 +320,35 @@ AnnotationManager::processSingleModeSelection(const int32_t windowIndex,
 }
 
 /**
+ * @return True if all of the selected annotations are deletable.
+ *
+ * @param windowIndex
+ *     Index of window for annotation selection.
+ */
+bool
+AnnotationManager::isSelectedAnnotationsDeletable(const int32_t windowIndex) const
+{
+    bool selectedAnnotationsDeletableFlag = false;
+    
+    std::vector<Annotation*> selectedAnnotations = getSelectedAnnotations(windowIndex);
+    if ( ! selectedAnnotations.empty()) {
+        selectedAnnotationsDeletableFlag = true;
+        for (std::vector<Annotation*>::const_iterator iter = selectedAnnotations.begin();
+             iter != selectedAnnotations.end();
+             iter++) {
+            const Annotation* ann = *iter;
+            if ( ! ann->isDeletable()) {
+                selectedAnnotationsDeletableFlag = false;
+                break;
+            }
+        }
+    }
+    
+    return selectedAnnotationsDeletableFlag;
+}
+
+
+/**
  * @return A vector containing all annotations.
  */
 std::vector<Annotation*>

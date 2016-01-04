@@ -76,6 +76,8 @@ namespace caret {
                               const bool shiftKeyDownFlag,
                               Annotation* selectedAnnotation);
         
+        bool isSelectedAnnotationsDeletable(const int32_t windowIndex) const;
+        
         std::vector<Annotation*> getAllAnnotations() const;
         
         std::vector<Annotation*> getSelectedAnnotations(const int32_t windowIndex) const;

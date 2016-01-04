@@ -236,6 +236,16 @@ Annotation::replaceWithCopyOfAnnotation(const Annotation* annotation)
 }
 
 /**
+ * @return Is this annotation deletable?  This method may be overridden
+ * by annotations (such as colorbars) that cannot be deleted.
+ */
+bool
+Annotation::isDeletable() const
+{
+    return true;
+}
+
+/**
  * Apply coloring including foreground line width from annother annotation.
  *
  * @param otherAnnotation

@@ -111,6 +111,8 @@ namespace caret {
         
         void setShowTickMarksSelected(const bool selected);
         
+        virtual bool isDeletable() const;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:

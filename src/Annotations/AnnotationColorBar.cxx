@@ -371,6 +371,17 @@ AnnotationColorBar::setDisplayed(const bool displayed)
 }
 
 /**
+ * @return Is this annotation deletable?  This method may be overridden
+ * by annotations (such as colorbars) that cannot be deleted.
+ */
+bool
+AnnotationColorBar::isDeletable() const
+{
+    return false;
+}
+
+
+/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes
