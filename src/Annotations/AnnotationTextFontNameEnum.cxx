@@ -149,7 +149,8 @@ AnnotationTextFontNameEnum::getDefaultFontName()
     
     CaretAssert( ! enumData.empty());
     
-    return enumData[0].enumValue;
+    return AnnotationTextFontNameEnum::VERA;
+//    return enumData[0].enumValue;
 }
 
 /**
@@ -206,7 +207,7 @@ AnnotationTextFontNameEnum::fromName(const AString& name, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationTextFontNameEnum::enumData[0].enumValue;
+    Enum enumValue = getDefaultFontName();
     
     for (std::vector<AnnotationTextFontNameEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -259,7 +260,7 @@ AnnotationTextFontNameEnum::fromGuiName(const AString& guiName, bool* isValidOut
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationTextFontNameEnum::enumData[0].enumValue;
+    Enum enumValue = getDefaultFontName();
     
     for (std::vector<AnnotationTextFontNameEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -312,7 +313,7 @@ AnnotationTextFontNameEnum::fromIntegerCode(const int32_t integerCode, bool* isV
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationTextFontNameEnum::enumData[0].enumValue;
+    Enum enumValue = getDefaultFontName();
     
     for (std::vector<AnnotationTextFontNameEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
