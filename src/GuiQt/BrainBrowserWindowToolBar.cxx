@@ -203,7 +203,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QObject::connect(this->tabBar, SIGNAL(currentChanged(int)),
                      this, SLOT(selectedTabChanged(int)));
     QObject::connect(this->tabBar, SIGNAL(tabCloseRequested(int)),
-                     this, SLOT(tabClosed(int)));
+                     this, SLOT(tabCloseSelected(int)));
     QObject::connect(this->tabBar, SIGNAL(tabMoved(int,int)),
                      this, SLOT(tabMoved(int,int)));
     
@@ -1172,10 +1172,11 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
 void 
 BrainBrowserWindowToolBar::closeSelectedTab()
 {
-    const int tabIndex = this->tabBar->currentIndex();
-    if (this->tabBar->count() > 1) {
-        this->tabClosed(tabIndex);
-    }
+    tabCloseSelected(this->tabBar->currentIndex());
+//    const int tabIndex = this->tabBar->currentIndex();
+//    if (this->tabBar->count() > 1) {
+//        this->tabClosed(tabIndex);
+//    }
 }
 
 /**
@@ -1222,10 +1223,26 @@ BrainBrowserWindowToolBar::resetTabIndexForTileTabsHighlighting()
 }
 
 /**
- * Called when a tab has been closed.
+ * Gets called when user closes a tab by clicking the tab's 'X'.
  *
  * @param tabIndex
- *    Index of tab that was moved.
+ *     Index of the tab that was closed.
+ */
+void
+BrainBrowserWindowToolBar::tabCloseSelected(int tabIndex)
+{
+    if ((tabIndex >= 0)
+        && (tabIndex < this->tabBar->count())) {
+        tabClosed(tabIndex);
+    }
+    this->updateGraphicsWindow();
+}
+
+/**
+ * Close a tab.
+ *
+ * @param tabIndex
+ *    Index of tab that was closed.
  */
 void
 BrainBrowserWindowToolBar::tabClosed(int tabIndex)

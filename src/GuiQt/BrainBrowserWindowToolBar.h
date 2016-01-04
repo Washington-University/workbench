@@ -243,8 +243,8 @@ namespace caret {
         
     private slots:
         void selectedTabChanged(int indx);
-        void tabClosed(int index);
         void tabMoved(int, int);
+        void tabCloseSelected(int);
         
     private:
         void insertTabAtIndex(BrowserTabContent* browserTabContent,
@@ -254,6 +254,7 @@ namespace caret {
                                const int32_t insertAtIndex);
         
         void removeTab(int index);
+        void tabClosed(int index);
         
         BrowserTabContent* createNewTab(AString& errorMessage);
         
