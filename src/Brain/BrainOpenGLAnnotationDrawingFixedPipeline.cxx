@@ -240,6 +240,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
 //                            MathFunctions::normalizeVector(offsetUnitVector);
 //                        }
                         
+                        /*
+                         * For a flat surface, ALWAYS use the normal vector.
+                         * Using the centroid will not work as there is no
+                         * "z depth" so it will incorrectly offset in the XY-plane.
+                         *
+                         */
+                        if (surfaceDisplayed->getSurfaceType() == SurfaceTypeEnum::FLAT) {
+                            annotationOffsetVector = AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL;
+                        }
+                        
                         switch (annotationOffsetVector) {
                             case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
                             {
