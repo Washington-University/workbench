@@ -225,6 +225,8 @@ namespace caret {
         void processSplitBorderFiles();
         void processTabAspectRatioLockedToggled(bool checked);
         void processWindowAspectRatioLockedToggled(bool checked);
+        void processLockAllTabsAspectRatioTriggered();
+        void processUnlockAllTabsAspectRatioTriggered();
         
         void processEditMenuItemTriggered(QAction* action);
         void processEditMenuAboutToShow();
@@ -374,6 +376,8 @@ namespace caret {
         
         QAction* m_overlayToolBoxAction;
         
+        QAction* m_lockAllTabsAspectRatioAction;
+        QAction* m_unlockAllTabsAspectRatioAction;
         QAction* m_tabAspectRatioLockedAction;
         QAction* m_windowAspectRatioLockedAction;
         

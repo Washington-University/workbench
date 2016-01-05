@@ -840,6 +840,115 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     m_tabAspectRatioLockedAction->setShortcut(Qt::CTRL+Qt::Key_K);
     QObject::connect(m_tabAspectRatioLockedAction, SIGNAL(toggled(bool)),
                      this, SLOT(processTabAspectRatioLockedToggled(bool)));
+
+    m_lockAllTabsAspectRatioAction = new QAction(this);
+    m_lockAllTabsAspectRatioAction->setText("Lock Aspect Ratio for All Tabs");
+    m_lockAllTabsAspectRatioAction->setToolTip("Lock aspect ratio of all tabs in this window");
+    QObject::connect(m_lockAllTabsAspectRatioAction, SIGNAL(triggered(bool)),
+                     this, SLOT(processLockAllTabsAspectRatioTriggered()));
+    
+    m_unlockAllTabsAspectRatioAction = new QAction(this);
+    m_unlockAllTabsAspectRatioAction->setText("Unlock Aspect Ratio for All Tabs");
+    m_unlockAllTabsAspectRatioAction->setToolTip("Unlock aspect ratio of all tabs in this window");
+    QObject::connect(m_unlockAllTabsAspectRatioAction, SIGNAL(triggered(bool)),
+                     this, SLOT(processUnlockAllTabsAspectRatioTriggered()));
+}
+
+/**
+ * Called when Lock Aspect Ratio for All Tabs is selected.
+ */
+void
+BrainBrowserWindow::processLockAllTabsAspectRatioTriggered()
+{
+    
+    std::vector<const BrainOpenGLViewportContent*> vpContent = m_openGLWidget->getViewportContent();
+
+    if (isTileTabsSelected()) {
+        /*
+         * When tile tabs is on, set the aspect ratio for each tab that does not
+         * already have its aspect ratio locked
+         */
+        for (std::vector<const BrainOpenGLViewportContent*>::iterator vpIter = vpContent.begin();
+             vpIter != vpContent.end();
+             vpIter++) {
+            const BrainOpenGLViewportContent* vp = *vpIter;
+            CaretAssert(vp);
+            
+            BrowserTabContent* tabContent = vp->getBrowserTabContent();
+            if (tabContent != NULL) {
+                if ( ! tabContent->isAspectRatioLocked()) {
+                    int32_t tabViewport[4];
+                    vp->getTabViewportBeforeApplyingMargins(tabViewport);
+                    
+                    const float width = tabViewport[2];
+                    if (width > 0.0) {
+                        const float aspectRatio = tabViewport[3] / width;
+                        
+                        tabContent->setAspectRatioLocked(true);
+                        tabContent->setAspectRatio(aspectRatio);
+                    }
+                }
+            }
+        }
+    }
+    else {
+        /*
+         * Set the aspect ratio for each tab that does not already have its 
+         * aspect ratio locked.  Since only one tab is displayed, use the 
+         * size of the graphics region for the aspect ratio.
+         */
+        
+        if ( ! vpContent.empty()) {
+            CaretAssertVectorIndex(vpContent, 0);
+            const BrainOpenGLViewportContent* vp = vpContent[0];
+            
+            int32_t tabViewport[4];
+            vp->getTabViewportBeforeApplyingMargins(tabViewport);
+            
+            const float width = tabViewport[2];
+            if (width > 0.0) {
+                const float aspectRatio = tabViewport[3] / width;
+                
+                std::vector<BrowserTabContent*> allTabContent;
+                getAllTabContent(allTabContent);
+                
+                for (std::vector<BrowserTabContent*>::iterator iter = allTabContent.begin();
+                     iter != allTabContent.end();
+                     iter++) {
+                    BrowserTabContent* tabContent = *iter;
+                    CaretAssert(tabContent);
+                    if ( ! tabContent->isAspectRatioLocked()) {
+                        tabContent->setAspectRatioLocked(true);
+                        tabContent->setAspectRatio(aspectRatio);
+                    }
+                }
+            }
+        }
+    }
+
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+    m_toolbar->updateToolBar();
+}
+
+/**
+ * Called when Unlock Aspect Ratio for All Tabs is selected.
+ */
+void
+BrainBrowserWindow::processUnlockAllTabsAspectRatioTriggered()
+{
+    std::vector<BrowserTabContent*> allTabContent;
+    getAllTabContent(allTabContent);
+    
+    for (std::vector<BrowserTabContent*>::iterator iter = allTabContent.begin();
+         iter != allTabContent.end();
+         iter++) {
+        BrowserTabContent* tabContent = *iter;
+        CaretAssert(tabContent);
+        tabContent->setAspectRatioLocked(false);
+    }
+
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+    m_toolbar->updateToolBar();
 }
 
 /**
@@ -1265,6 +1374,7 @@ BrainBrowserWindow::createMenus()
     m_developMenuAction->setVisible(prefs->isDevelopMenuEnabled());
     
     menubar->addMenu(createMenuWindow());
+    
     menubar->addMenu(createMenuHelp());
 }
 
@@ -2405,6 +2515,8 @@ BrainBrowserWindow::createMenuWindow()
     
     menu->addAction(m_windowAspectRatioLockedAction);
     menu->addAction(m_tabAspectRatioLockedAction);
+    menu->addAction(m_lockAllTabsAspectRatioAction);
+    menu->addAction(m_unlockAllTabsAspectRatioAction);
     menu->addSeparator();
     
     menu->addAction(m_nextTabAction);
