@@ -27,6 +27,7 @@
 
 #include "AnnotationChangeCoordinateDialog.h"
 #include "AnnotationCreateDialog.h"
+#include "AnnotationColorBar.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
@@ -291,14 +292,26 @@ UserInputModeAnnotations::deleteSelectedAnnotations()
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeDeleteAnnotations(selectedAnnotations);
             annotationManager->applyCommand(undoCommand);
-            
-            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         }
     }
     else {
-        GuiManager::beep();
+        std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+        for (std::vector<Annotation*>::iterator iter = selectedAnnotations.begin();
+             iter != selectedAnnotations.end();
+             iter++) {
+            Annotation* ann = *iter;
+            CaretAssert(ann);
+            
+            if (ann->getType() == AnnotationTypeEnum::COLOR_BAR) {
+                AnnotationColorBar* colorBar = dynamic_cast<AnnotationColorBar*>(ann);
+                CaretAssert(colorBar);
+                colorBar->setDisplayed(false);
+            }
+        }
     }
+
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
