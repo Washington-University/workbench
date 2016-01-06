@@ -51,11 +51,13 @@
 #include "CaretDataFileSelectionModel.h"
 #include "CaretFileDialog.h"
 #include "CaretPointer.h"
+#include "DataFileException.h"
 #include "EventDataFileAdd.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "ImageFile.h"
 #include "MouseEvent.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
@@ -206,7 +208,9 @@ m_annotationToPaste(annotation),
 m_annotationType(annotationType),
 m_annotationThatWasCreated(NULL),
 m_annotationFromBoundsWidth(-1.0),
-m_annotationFromBoundsHeight(-1.0)
+m_annotationFromBoundsHeight(-1.0),
+m_imageWidth(0),
+m_imageHeight(0)
 {
     m_textEdit = NULL;
     
@@ -398,6 +402,10 @@ m_annotationFromBoundsHeight(-1.0)
                            ? createTextWidget()
                            : NULL);
     
+    QWidget* imageWidget = ((m_annotationType == AnnotationTypeEnum::IMAGE)
+                            ? createImageWidget()
+                            : NULL);
+    
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(dialogWidget);
     if (m_fileSelectionWidget != NULL) {
@@ -406,6 +414,9 @@ m_annotationFromBoundsHeight(-1.0)
     layout->addWidget(coordGroupBox);
     if (textWidget != NULL) {
         layout->addWidget(textWidget);
+    }
+    if (imageWidget != NULL) {
+        layout->addWidget(imageWidget);
     }
     
     setCentralWidget(dialogWidget,
@@ -584,6 +595,114 @@ AnnotationCreateDialog::createTextWidget()
     return groupBox;
 }
 
+/**
+ * @return New instance of image widget.
+ */
+QWidget*
+AnnotationCreateDialog::createImageWidget()
+{
+    QAction* newFileAction = WuQtUtilities::createAction("Image File...",
+                                                         "Choose Image File",
+                                                         this,
+                                                         this,
+                                                         SLOT(selectImageButtonClicked()));
+    QToolButton* newFileToolButton = new QToolButton();
+    newFileToolButton->setDefaultAction(newFileAction);
+    
+    m_imageFileNameLabel = new QLabel();
+    
+    QGroupBox* groupBox = new QGroupBox("Image");
+    QHBoxLayout* layout = new QHBoxLayout(groupBox);
+    layout->addWidget(newFileToolButton);
+    layout->addWidget(m_imageFileNameLabel);
+    
+    //layout->addWidget(m_textEdit, 100);
+    
+    return groupBox;
+}
+
+void
+AnnotationCreateDialog::invalidateImage()
+{
+    m_imageRgbaBytes.clear();
+    m_imageWidth  = 0;
+    m_imageHeight = 0;
+    m_imageFileNameLabel->setText("");
+}
+
+/**
+ * Called when the select image button is clicked.
+ */
+void
+AnnotationCreateDialog::selectImageButtonClicked()
+{
+    const AString fileDialogSettingsName("AnnotImageDialog");
+    /*
+     * Setup file selection dialog.
+     */
+    CaretFileDialog fd(this);
+    fd.setAcceptMode(CaretFileDialog::AcceptOpen);
+    fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::IMAGE));
+    fd.setFileMode(CaretFileDialog::ExistingFile);
+    fd.setViewMode(CaretFileDialog::List);
+    fd.restoreDialogSettings(fileDialogSettingsName);
+    
+    AString errorMessages;
+    
+    if (fd.exec() == CaretFileDialog::Accepted) {
+        invalidateImage();
+        
+        fd.saveDialogSettings(fileDialogSettingsName);
+        
+        QStringList selectedFiles = fd.selectedFiles();
+        if ( ! selectedFiles.empty()) {
+            const AString imageFileName = selectedFiles.at(0);
+            
+            ImageFile imageFile;
+            
+            try {
+                imageFile.readFile(imageFileName);
+            }
+            catch (const DataFileException& dfe) {
+                WuQMessageBox::errorOk(this,
+                                       dfe.whatString());
+                return;
+            }
+            
+            imageFile.getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                        m_imageRgbaBytes,
+                                        m_imageWidth,
+                                        m_imageHeight);
+            if ((m_imageWidth <= 0)
+                || (m_imageHeight <= 0)) {
+                WuQMessageBox::errorOk(this,
+                                       ("Image Width="
+                                        + QString::number(m_imageWidth)
+                                        + " or Height="
+                                        + QString::number(m_imageHeight)
+                                        + " is invalid."));
+                invalidateImage();
+                return;
+            }
+            
+            const int32_t expectedNumberOfBytes = (m_imageWidth
+                                                   * m_imageHeight
+                                                   * 4);
+            if (static_cast<int32_t>(m_imageRgbaBytes.size()) != expectedNumberOfBytes) {
+                WuQMessageBox::errorOk(this,
+                                       "Image bytes size should be "
+                                       + QString::number(expectedNumberOfBytes)
+                                       + " but is "
+                                       + QString::number(m_imageRgbaBytes.size()));
+                invalidateImage();
+                return;
+            }
+            
+            m_imageFileNameLabel->setText(imageFile.getFileNameNoPath());
+        }
+    }
+}
+
 
 /**
  * Gets called when the OK button is clicked.
@@ -614,6 +733,14 @@ AnnotationCreateDialog::okButtonClicked()
             errorMessage.appendWithNewLine("Text is missing.");
         }
         
+    }
+    
+    if (m_annotationType == AnnotationTypeEnum::IMAGE) {
+        if ((m_imageWidth <= 0)
+            || (m_imageHeight <= 0)
+            || (m_imageRgbaBytes.empty())) {
+            errorMessage = "Image is invalid.";
+        }
     }
     
     if ( ! errorMessage.isEmpty()) {
@@ -650,11 +777,18 @@ AnnotationCreateDialog::okButtonClicked()
             if (annText != NULL) {
                 annText->setText(userText);
             }
+            AnnotationImage* annImage = dynamic_cast<AnnotationImage*>(annCopy);
+            if (annImage != NULL) {
+                annImage->setImageBytesRGBA(&m_imageRgbaBytes[0],
+                                            m_imageWidth,
+                                            m_imageHeight);
+            }
             annotation.grabNew(annCopy);
         }
             break;
         case MODE_NEW_ANNOTATION_TYPE_CLICK:
         case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
+        {
             annotation.grabNew(Annotation::newAnnotationOfType(m_annotationType,
                                                                AnnotationAttributesDefaultTypeEnum::USER));
             if (m_annotationType == AnnotationTypeEnum::TEXT) {
@@ -663,6 +797,13 @@ AnnotationCreateDialog::okButtonClicked()
                 text->setText(userText);
                 annotation.grabNew(text);
             }
+            AnnotationImage* annImage = dynamic_cast<AnnotationImage*>(annotation.getPointer());
+            if (annImage != NULL) {
+                annImage->setImageBytesRGBA(&m_imageRgbaBytes[0],
+                                            m_imageWidth,
+                                            m_imageHeight);
+            }
+        }
             break;
         case MODE_PASTE_ANNOTATION:
         {
@@ -671,6 +812,12 @@ AnnotationCreateDialog::okButtonClicked()
             AnnotationText* annText = dynamic_cast<AnnotationText*>(annCopy);
             if (annText != NULL) {
                 annText->setText(userText);
+            }
+            AnnotationImage* annImage = dynamic_cast<AnnotationImage*>(annCopy);
+            if (annImage != NULL) {
+                annImage->setImageBytesRGBA(&m_imageRgbaBytes[0],
+                                            m_imageWidth,
+                                            m_imageHeight);
             }
             annotation.grabNew(annCopy);
         }
@@ -688,6 +835,7 @@ AnnotationCreateDialog::okButtonClicked()
      * annotation file will take ownership of the annotation.
      */
     Annotation* annotationPointer = annotation.releasePointer();
+    AnnotationImage* imageAnn = dynamic_cast<AnnotationImage*>(annotationPointer);
     
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     

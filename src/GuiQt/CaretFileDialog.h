@@ -86,6 +86,10 @@ namespace caret {
                                             QString *selectedFilter = 0,
                                             Options options = 0);
         
+        void saveDialogSettings(const AString& settingsName);
+        
+        void restoreDialogSettings(const AString& settingsName);
+        
     public slots:
         virtual void setVisible(bool visible);
         
@@ -100,6 +104,25 @@ namespace caret {
         void initializeCaretFileDialog();
         
         FilterFilesProxyModel* m_filterFilesProxyModel;
+
+        class PreviousDialogSettings {
+        public:
+            PreviousDialogSettings(const AString& fileFilterName,
+                                   const AString& directoryName,
+                                   const QByteArray& dialogGeometry)
+            : m_fileFilterName(fileFilterName),
+            m_directoryName(directoryName),
+            m_dialogGeometry(dialogGeometry)
+            {
+                
+            }
+            
+            AString m_fileFilterName;
+            AString m_directoryName;
+            QByteArray m_dialogGeometry;
+        };
+        
+        static std::map<AString, PreviousDialogSettings> s_previousDialogSettingsMap;
     };
     
         /**
@@ -121,9 +144,9 @@ namespace caret {
             DataFileTypeEnum::Enum m_dataFileType;
             
         };
-        
+    
 #ifdef __CARET_FILE_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::map<AString, CaretFileDialog::PreviousDialogSettings> CaretFileDialog::s_previousDialogSettingsMap;
 #endif // __CARET_FILE_DIALOG_DECLARE__
 
 } // namespace

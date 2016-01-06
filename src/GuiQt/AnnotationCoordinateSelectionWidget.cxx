@@ -32,6 +32,7 @@
 
 #include "Annotation.h"
 #include "AnnotationCoordinate.h"
+#include "AnnotationImage.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationPercentSizeText.h"
@@ -723,7 +724,76 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
     
     updateAnnotationDisplayProperties(annotation);
     
+    AnnotationImage* imageAnn = dynamic_cast<AnnotationImage*>(twoDimAnn);
+    if (imageAnn != NULL) {
+        setWidthAndHeightForImage(imageAnn);
+    }
+    
     return validCoordsFlag;
+}
+
+/**
+ * Set the width and height of the annotation using the viewport.
+ *
+ * @param imageAnn
+ *     The annotation image.
+ */
+void
+AnnotationCoordinateSelectionWidget::setWidthAndHeightForImage(AnnotationImage* imageAnn)
+{
+    CaretAssert(imageAnn);
+    
+    float vpWidth  = 0.0;
+    float vpHeight = 0.0;
+    switch (imageAnn->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            vpWidth  = m_coordInfo.m_tabWidth;
+            vpHeight = m_coordInfo.m_tabHeight;
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            CaretAssert(0);
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            vpWidth  = m_coordInfo.m_tabWidth;
+            vpHeight = m_coordInfo.m_tabHeight;
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            vpWidth  = m_coordInfo.m_tabWidth;
+            vpHeight = m_coordInfo.m_tabHeight;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            vpWidth  = m_coordInfo.m_windowWidth;
+            vpHeight = m_coordInfo.m_windowHeight;
+            break;
+    }
+    
+    if ((vpWidth > 0.0)
+        && (vpHeight > 0.0)) {
+        const float imageWidth  = imageAnn->getImageWidth();
+        const float imageHeight = imageAnn->getImageHeight();
+        
+        float percentWidth  = (imageWidth / vpWidth)   * 100.0;
+        float percentHeight = (imageHeight / vpHeight) * 100.0;
+        
+        const float maxPercentageSize = 90.0;
+        if (percentWidth > percentHeight) {
+            if (percentWidth > maxPercentageSize) {
+                const float scaleValue = maxPercentageSize / percentWidth;
+                percentWidth = maxPercentageSize;
+                percentHeight = percentHeight * scaleValue;
+            }
+        }
+        else {
+            if (percentHeight > maxPercentageSize) {
+                const float scaleValue = maxPercentageSize / percentHeight;
+                percentHeight = maxPercentageSize;
+                percentWidth = percentWidth * scaleValue;
+            }
+        }
+        
+        imageAnn->setWidth(percentWidth);
+        imageAnn->setHeight(percentHeight);
+    }
 }
 
 

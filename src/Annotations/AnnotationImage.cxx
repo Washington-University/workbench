@@ -107,7 +107,13 @@ AnnotationImage::copyHelperAnnotationImage(const AnnotationImage& obj)
  * @param imageBytesRGBA
  *     Bytes containing the image.  4 bytes per pixel with values
  *     ranging 0 to 255.  Number of elements MUST BE 
- *     (width * height * 4)!!!!
+ *     (width * height * 4)            AnnotationImage* annImage = dynamic_cast<AnnotationImage*>(annCopy);
+ if (annImage != NULL) {
+ annImage->setImageBytesRGBA(&m_imageRgbaBytes[0],
+ m_imageWidth,
+ m_imageHeight);
+ }
+!!!!
  * @param imageWidth
  *     Width of the image.
  * @param imageHeight
@@ -118,6 +124,9 @@ AnnotationImage::setImageBytesRGBA(const uint8_t* imageBytesRGBA,
                        const int32_t imageWidth,
                        const int32_t imageHeight)
 {
+    m_imageWidth  = imageWidth;
+    m_imageHeight = imageHeight;
+    
     const int32_t numBytes = (imageWidth
                               * imageHeight
                               * 4);

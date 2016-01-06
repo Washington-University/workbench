@@ -27,6 +27,7 @@
 #include "WuQDialogModal.h"
 
 class QButtonGroup;
+class QLabel;
 class QTextEdit;
 class QRadioButton;
 
@@ -72,6 +73,8 @@ namespace caret {
     private slots:
         void newAnnotationFileButtonClicked();
         
+        void selectImageButtonClicked();
+        
     private:
         /** Dialogs mode */
         enum Mode {
@@ -110,6 +113,10 @@ namespace caret {
         
         QWidget* createTextWidget();
         
+        QWidget* createImageWidget();
+        
+        void invalidateImage();
+        
         void setAnnotationFromBoundsWidthAndHeight(Annotation* annotation);
         
         const Mode m_mode;
@@ -141,6 +148,12 @@ namespace caret {
         AnnotationCoordinateSelectionWidget* m_coordinateSelectionWidget;
         
         QTextEdit* m_textEdit;
+        
+        QLabel* m_imageFileNameLabel;
+        
+        std::vector<uint8_t> m_imageRgbaBytes;
+        int32_t m_imageWidth;
+        int32_t m_imageHeight;
         
         UserInputModeAnnotations::CoordinateInformation m_coordInfo;
         

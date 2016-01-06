@@ -77,12 +77,14 @@ namespace caret {
         
         QAction* m_deleteToolButtonAction;
         
+        static AString s_previousImageFileDirectory;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __ANNOTATION_INSERT_NEW_WIDGET_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    AString AnnotationInsertNewWidget::s_previousImageFileDirectory;
 #endif // __ANNOTATION_INSERT_NEW_WIDGET_DECLARE__
 
 } // namespace

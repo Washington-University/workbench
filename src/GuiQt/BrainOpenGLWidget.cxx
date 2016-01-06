@@ -1489,8 +1489,13 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
              * region caused by aspect locking that needs to 
              * be excluded.
              */
+            const QGLContext* beforeContext = context();
             QPixmap pixmap = this->renderPixmap(outputImageWidth,
                                                 outputImageHeight);
+            const QGLContext* afterContext = context();
+            std::cout << "Context changed: " << ((beforeContext == afterContext)
+                                                 ? "NO"
+                                                 : "YES") << std::endl;
             image = pixmap.toImage();
             this->openGL->setTextRenderer(createTextRenderer());
         }

@@ -179,6 +179,21 @@ namespace caret {
                        AnnotationImage* image,
                       const Surface* surfaceDisplayed);
         
+        void  drawImageBytes(const float windowX,
+                             const float windowY,
+                             const float windowZ,
+                             const uint8_t* imageBytesRGBA,
+                             const int32_t imageWidth,
+                             const int32_t imageHeight);
+        
+        void  drawImageBytesWithTexture(const float bottomLeft[3],
+                                        const float bottomRight[3],
+                                        const float topRight[3],
+                                        const float topLeft[3],
+                                        const uint8_t* imageBytesRGBA,
+                                        const int32_t imageWidth,
+                                        const int32_t imageHeight);
+        
         void drawLine(AnnotationFile* annotationFile,
                       AnnotationLine* line,
                       const Surface* surfaceDisplayed);

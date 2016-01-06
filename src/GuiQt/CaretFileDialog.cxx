@@ -514,4 +514,63 @@ CaretFileDialog::getOpenFileNamesDialog(QWidget *parent,
     return sl;
 }
 
+/**
+ * Save the dialog settings (directory, filename filter, and geometry)
+ * for next time dialog displayed.
+ *
+ * @param settingsName
+ *     Name for settings.
+ */
+void
+CaretFileDialog::saveDialogSettings(const AString& settingsName)
+{
+    PreviousDialogSettings previousSettings(selectedNameFilter(),
+                                            directory().absolutePath(),
+                                            saveGeometry());
+    
+    std::map<AString, PreviousDialogSettings>::iterator iter = s_previousDialogSettingsMap.find(settingsName);
+    if (iter != s_previousDialogSettingsMap.end()) {
+        iter->second = previousSettings;
+    }
+    else {
+        s_previousDialogSettingsMap.insert(std::make_pair(settingsName,
+                                                          previousSettings));
+    }
+}
+
+/**
+ * Restore the dialog settings (directory, filename filter, and geometry)
+ * for next time dialog displayed.
+ *
+ * @param settingsName
+ *     Name for settings used when settings were saved.
+ */
+void
+CaretFileDialog::restoreDialogSettings(const AString& settingsName)
+{
+    std::map<AString, PreviousDialogSettings>::iterator iter = s_previousDialogSettingsMap.find(settingsName);
+    if (iter != s_previousDialogSettingsMap.end()) {
+        std::cout << "Found and restoring settings for " << qPrintable(settingsName) << std::endl;
+        
+        const PreviousDialogSettings previousSettings = iter->second;
+        
+        FileInformation fileInfo(previousSettings.m_directoryName);
+        if (fileInfo.exists()) {
+            setDirectory(previousSettings.m_directoryName);
+        }
+        
+        QStringList dialogFilters = filters();
+        QStringListIterator filterIter(dialogFilters);
+        while (filterIter.hasNext()) {
+            const AString filterName = filterIter.next();
+            if (filterName == previousSettings.m_fileFilterName) {
+                selectFilter(previousSettings.m_fileFilterName);
+                break;
+            }
+        }
+        
+        restoreGeometry(previousSettings.m_dialogGeometry);
+    }
+}
+
 

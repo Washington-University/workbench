@@ -78,11 +78,6 @@ m_browserWindowIndex(browserWindowIndex)
     QWidget* shapeOvalToolButton  = createShapeToolButton(AnnotationTypeEnum::OVAL);
     QWidget* shapeTextToolButton  = createShapeToolButton(AnnotationTypeEnum::TEXT);
     
-    /*
-     * Disable IMAGE button
-     */
-    shapeImageToolButton->setEnabled(false);
-    
     m_deleteToolButton = createDeleteToolButton();
     
     QSpacerItem* spaceItem = new QSpacerItem(5, 10,

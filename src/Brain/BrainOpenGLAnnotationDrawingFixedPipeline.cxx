@@ -2193,11 +2193,222 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
  *    Surface that is displayed (may be NULL).
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* /*annotationFile*/,
-                                                     AnnotationImage* /*image*/,
-                                                    const Surface* /*surfaceDisplayed*/)
+BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationFile,
+                                                     AnnotationImage* image,
+                                                    const Surface* surfaceDisplayed)
 {
-    CaretAssertMessage(0, "BrainOpenGLAnnotationDrawingFixedPipeline::drawImage() needs to be implemented.");
+    const uint8_t* imageRgbaBytes = image->getImageBytesRGBA();
+    const int32_t imageWidth      = image->getImageWidth();
+    const int32_t imageHeight     = image->getImageHeight();
+    
+    if ((imageWidth > 0)
+        && (imageHeight > 0)
+        && (imageRgbaBytes != NULL)) {
+        
+    }
+    else {
+        CaretLogWarning("Attempt to draw invalid image annotation.");
+    }
+
+    float windowXYZ[3];
+    
+    if ( ! getAnnotationWindowCoordinate(image->getCoordinate(),
+                                         image->getCoordinateSpace(),
+                                         surfaceDisplayed,
+                                         windowXYZ)) {
+        return;
+    }
+    
+    float bottomLeft[3];
+    float bottomRight[3];
+    float topRight[3];
+    float topLeft[3];
+    if ( ! getAnnotationTwoDimShapeBounds(image, windowXYZ,
+                                          bottomLeft, bottomRight, topRight, topLeft)) {
+        return;
+    }
+    
+    std::vector<float> coords;
+    coords.insert(coords.end(), bottomLeft,  bottomLeft + 3);
+    coords.insert(coords.end(), bottomRight, bottomRight + 3);
+    coords.insert(coords.end(), topRight,    topRight + 3);
+    coords.insert(coords.end(), topLeft,     topLeft + 3);
+    
+    std::vector<float> dummyNormals;
+    
+    const float selectionCenterXYZ[3] = {
+        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
+        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
+        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
+    };
+    
+    const bool depthTestFlag = isDrawnWithDepthTesting(image);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
+    const bool drawAnnotationFlag = true;
+    
+    if (drawAnnotationFlag) {
+        if (m_selectionModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
+            BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                     dummyNormals,
+                                                     selectionColorRGBA);
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    image,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
+        }
+        else {
+            const bool drawWithTextureFlag = true;
+                const bool debugFlag = false;
+                if (debugFlag) {
+                    if (image->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
+                        AString msg("Drawing Image: DepthTest=" + AString::fromBool(depthTestFlag));
+                        const float* xyz = image->getCoordinate()->getXYZ();
+                        msg.appendWithNewLine("    Stereotaxic: " + AString::fromNumbers(xyz, 3, ","));
+                        msg.appendWithNewLine("    Window: " + AString::fromNumbers(windowXYZ, 3, ","));
+                        std::cout << qPrintable(msg) << std::endl;
+                    }
+                }
+                
+                if (depthTestFlag) {
+                    if (drawWithTextureFlag) {
+                        drawImageBytesWithTexture(bottomLeft,
+                                                  bottomRight,
+                                                  topRight,
+                                                  topLeft,
+                                                  imageRgbaBytes,
+                                                  imageWidth,
+                                                  imageHeight);
+                    }
+                    else {
+                        drawImageBytes(windowXYZ[0],
+                                       windowXYZ[1],
+                                       windowXYZ[2],
+                                       imageRgbaBytes,
+                                       imageWidth,
+                                       imageHeight);
+                    }
+                    
+//                    m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowXYZ[0],
+//                                                                                            windowXYZ[1],
+//                                                                                            windowXYZ[2],
+//                                                                                            *text);
+                }
+                else {
+                        float bl[3];
+                        float br[3];
+                        float tr[3];
+                        float tl[3];
+                        getAnnotationTwoDimShapeBounds(image, windowXYZ, bl, br, tr, tl);
+                        
+                    if (drawWithTextureFlag) {
+                        drawImageBytesWithTexture(bottomLeft,
+                                                  bottomRight,
+                                                  topRight,
+                                                  topLeft,
+                                                  imageRgbaBytes,
+                                                  imageWidth,
+                                                  imageHeight);
+                    }
+                    else {
+                        drawImageBytes(windowXYZ[0],
+                                       windowXYZ[1],
+                                       0.0,
+                                       imageRgbaBytes,
+                                       imageWidth,
+                                       imageHeight);
+                    }
+//                        m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowXYZ[0],
+//                                                                                                windowXYZ[1],
+//                                                                                                *text);
+                }
+                
+                setDepthTestingStatus(depthTestFlag);
+            }
+        
+        if (image->isSelected(m_inputs->m_windowIndex)) {
+            const float outlineWidth = 2.0;
+            drawAnnotationTwoDimSizingHandles(annotationFile,
+                                              image,
+                                              bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              outlineWidth,
+                                              image->getRotationAngle());
+        }
+    }
+
+    setDepthTestingStatus(savedDepthTestStatus);
+}
+
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(const float bottomLeft[3],
+                                                                     const float bottomRight[3],
+                                                                     const float topRight[3],
+                                                                     const float topLeft[3],
+                                                                     const uint8_t* imageBytesRGBA,
+                                                                     const int32_t imageWidth,
+                                                                     const int32_t imageHeight)
+{
+        static GLuint textureID = 0;
+        
+        if (textureID < 1) {
+            glGenTextures(1, &textureID);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBytesRGBA);
+        }
+        
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0);
+        glVertex3fv(bottomLeft);
+        glTexCoord2f(1.0, 0.0);
+        glVertex3fv(bottomRight);
+        glTexCoord2f(1.0, 1.0);
+        glVertex3fv(topRight);
+        glTexCoord2f(0.0, 1.0);
+        glVertex3fv(topLeft);
+        glEnd();
+        
+        glDisable(GL_TEXTURE_2D);
+}
+
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytes(const float windowX,
+                                                          const float windowY,
+                                                          const float windowZ,
+                                                          const uint8_t* imageBytesRGBA,
+                                                          const int32_t imageWidth,
+                                                          const int32_t imageHeight)
+{
+        /*
+         * Reset orthographic projection to viewport size
+         */
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        const float drawX = windowX - (imageWidth / 2.0);
+        const float drawY = windowY - (imageHeight / 2.0);
+        
+        //
+        // Draw image near far clipping plane
+        //
+        glRasterPos3f(drawX, drawY, windowZ); //-500.0); // set Z so image behind surface
+        
+        glDrawPixels(imageWidth, imageHeight,
+                     GL_RGBA, GL_UNSIGNED_BYTE,
+                     (GLvoid*)imageBytesRGBA);
+        
+        glPopMatrix();
 }
 
 /**
