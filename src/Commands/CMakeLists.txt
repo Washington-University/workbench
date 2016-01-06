@@ -25,7 +25,6 @@ CommandClassCreateEnum.h
 CommandClassCreateOperation.h
 CommandC11xTesting.h
 CommandException.h
-CommandGiftiConvert.h
 CommandOperation.h
 CommandOperationManager.h
 CommandParser.h
@@ -39,7 +38,6 @@ CommandClassCreateEnum.cxx
 CommandClassCreateOperation.cxx
 CommandC11xTesting.cxx
 CommandException.cxx
-CommandGiftiConvert.cxx
 CommandOperation.cxx
 CommandOperationManager.cxx
 CommandParser.cxx

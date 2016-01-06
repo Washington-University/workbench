@@ -168,6 +168,7 @@
 #include "OperationFileInformation.h"
 #include "OperationFociGetProjectionVertex.h"
 #include "OperationFociListCoords.h"
+#include "OperationGiftiConvert.h"
 #include "OperationLabelExportTable.h"
 #include "OperationLabelMask.h"
 #include "OperationLabelMerge.h"
@@ -227,7 +228,6 @@
 #include "CommandClassCreateEnum.h"
 #include "CommandClassCreateOperation.h"
 #include "CommandC11xTesting.h"
-#include "CommandGiftiConvert.h"
 #include "CommandUnitTest.h"
 #include "ProgramParameters.h"
 
@@ -414,6 +414,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationFileInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociGetProjectionVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationGiftiConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelExportTable()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelMerge()));
@@ -470,7 +471,6 @@ CommandOperationManager::CommandOperationManager()
 #ifdef WORKBENCH_HAVE_C11X
     this->commandOperations.push_back(new CommandC11xTesting());
 #endif // WORKBENCH_HAVE_C11X
-    this->commandOperations.push_back(new CommandGiftiConvert());
     this->commandOperations.push_back(new CommandUnitTest());
     
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));

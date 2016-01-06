@@ -54,6 +54,7 @@ OperationFileConvert.h
 OperationFileInformation.h
 OperationFociGetProjectionVertex.h
 OperationFociListCoords.h
+OperationGiftiConvert.h
 OperationLabelExportTable.h
 OperationLabelMask.h
 OperationLabelMerge.h
@@ -139,6 +140,7 @@ OperationFileConvert.cxx
 OperationFileInformation.cxx
 OperationFociGetProjectionVertex.cxx
 OperationFociListCoords.cxx
+OperationGiftiConvert.cxx
 OperationLabelExportTable.cxx
 OperationLabelMask.cxx
 OperationLabelMerge.cxx

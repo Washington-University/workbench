@@ -1,9 +1,9 @@
-#ifndef __COMMAND_GIFTI_CONVERT__H__
-#define __COMMAND_GIFTI_CONVERT__H__
+#ifndef __OPERATION_GIFTI_CONVERT_H__
+#define __OPERATION_GIFTI_CONVERT_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2016  Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,31 +21,21 @@
  */
 /*LICENSE_END*/
 
-
-#include "CommandOperation.h"
+#include "AbstractOperation.h"
 
 namespace caret {
+    
+    class OperationGiftiConvert : public AbstractOperation
+    {
+    public:
+        static OperationParameters* getParameters();
+        static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
+        static AString getCommandSwitch();
+        static AString getShortDescription();
+    };
 
-/// Command that converts GIFTI files to different encodings
-class CommandGiftiConvert : public CommandOperation {
+    typedef TemplateAutoOperation<OperationGiftiConvert> AutoOperationGiftiConvert;
 
-public:
-    CommandGiftiConvert();
+}
 
-    virtual ~CommandGiftiConvert();
-
-    virtual void executeOperation(ProgramParameters& parameters);
-
-    AString getHelpInformation(const AString& /*programName*/);
-
-private:
-
-    CommandGiftiConvert(const CommandGiftiConvert&);
-
-    CommandGiftiConvert& operator=(const CommandGiftiConvert&);
-
-};
-
-} // namespace
-
-#endif // __COMMAND_GIFTI_CONVERT__H__
+#endif //__OPERATION_GIFTI_CONVERT_H__
