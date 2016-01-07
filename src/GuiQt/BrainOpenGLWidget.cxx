@@ -36,6 +36,7 @@
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLShape.h"
+#include "BrainOpenGLTextureManager.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -1489,14 +1490,14 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
              * region caused by aspect locking that needs to 
              * be excluded.
              */
-            const QGLContext* beforeContext = context();
+            BrainOpenGLTextureManager* textureManager = this->openGL->getTextureManager();
+            CaretAssert(textureManager);
+            textureManager->deleteAllTextureNames();
+            
             QPixmap pixmap = this->renderPixmap(outputImageWidth,
                                                 outputImageHeight);
-            const QGLContext* afterContext = context();
-            std::cout << "Context changed: " << ((beforeContext == afterContext)
-                                                 ? "NO"
-                                                 : "YES") << std::endl;
             image = pixmap.toImage();
+            textureManager->deleteAllTextureNames();
             this->openGL->setTextRenderer(createTextRenderer());
         }
             break;

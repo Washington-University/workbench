@@ -44,6 +44,7 @@
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLTextRenderInterface.h"
+#include "BrainOpenGLTextureManager.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
@@ -2344,6 +2345,25 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
     setDepthTestingStatus(savedDepthTestStatus);
 }
 
+
+/**
+ * Draw image annoation using a textured quad.
+ *
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * @param imageBytesRGBA
+ *     Bytes containing the image data.
+ * @param imageWidth
+ *     Width of the actual image.
+ * @param imageHeight
+ *     Height of the image.
+ */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(const float bottomLeft[3],
                                                                      const float bottomRight[3],
@@ -2353,19 +2373,68 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(const float
                                                                      const int32_t imageWidth,
                                                                      const int32_t imageHeight)
 {
+    m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At beginning of annotation drawImageBytesWithTexture()"));
+    
     /*
      * Saves glPixelStore parameters
      */
     glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
     
-    static GLuint textureID = 0;
+    static bool useMipMapFlag = true;
+
+    BrainOpenGLTextureManager* textureManager = m_brainOpenGLFixedPipeline->getTextureManager();
+    CaretAssert(textureManager);
     
-    if (textureID < 1) {
-        glGenTextures(1, &textureID);
+    GLuint textureID = textureManager->getTextureNameForData(static_cast<const void*>(imageBytesRGBA));
+    
+    if (textureID == 0) {
+        textureID = textureManager->createTextureNameForData(static_cast<const void*>(imageBytesRGBA));
+        
         glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBytesRGBA);
+        
+        if (useMipMapFlag) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+            const int errorCode = gluBuild2DMipmaps(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
+                                                    GL_RGBA,           // number of components
+                                                    imageWidth,        // width of image
+                                                    imageHeight,       // height of image
+                                                    GL_RGBA,           // format of the pixel data
+                                                    GL_UNSIGNED_BYTE,  // data type of pixel data
+                                                    imageBytesRGBA);    // pointer to image data
+            if (errorCode != 0) {
+                useMipMapFlag = false;
+                
+                const GLubyte* errorChars = gluErrorString(errorCode);
+                if (errorChars != NULL) {
+                    const QString errorText = ("ERROR building mipmaps for annotation image: "
+                                               + AString((char*)errorChars));
+                    CaretLogSevere(errorText);
+                }
+            }
+        }
+        
+        if ( ! useMipMapFlag) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            
+            glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
+                         0,                 // level of detail 0=base, n is nth mipmap reduction
+                         GL_RGBA,           // number of components
+                         imageWidth,        // width of image
+                         imageHeight,       // height of image
+                         0,                 // border
+                         GL_RGBA,           // format of the pixel data
+                         GL_UNSIGNED_BYTE,  // data type of pixel data
+                         imageBytesRGBA);   // pointer to image data
+        }
     }
     
     glEnable(GL_TEXTURE_2D);
@@ -2386,8 +2455,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(const float
     glDisable(GL_TEXTURE_2D);
     
     glPopClientAttrib();
+    
+    m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At end of annotation drawImageBytesWithTexture()"));
 }
 
+/**
+ * Draw an image texture by drawing pixels.
+ * DOES NOT WORK IF BOTTOM LEFT CORNER OF IMAGE HAS A NEGATIVE VALUE !!
+ */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytes(const float windowX,
                                                           const float windowY,
