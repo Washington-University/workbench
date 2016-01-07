@@ -246,6 +246,31 @@ Annotation::isDeletable() const
 }
 
 /**
+ * @return Is this annotation requiring that it be kept in a fixed 
+ * aspect ratio?  By default, this is false.  This method may be 
+ * overridden by annotations that require a fixed aspect ratio
+ * (such as an image annotaiton).
+ */
+bool
+Annotation::isFixedAspectRatio() const
+{
+    return false;
+}
+
+/**
+ * @return The aspect ratio for annotations that have a fixed aspect ratio.
+ * This method may be overridden by annotations that require a fixed aspect ratio
+ * (such as an image annotaiton).
+ *
+ * If the aspect ratio is unknown return 1.  Never return zero.
+ */
+float
+Annotation::getFixedAspectRatio() const
+{
+    return 1.0;
+}
+
+/**
  * Apply coloring including foreground line width from annother annotation.
  *
  * @param otherAnnotation

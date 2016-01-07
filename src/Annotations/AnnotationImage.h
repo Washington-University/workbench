@@ -43,6 +43,10 @@ namespace caret {
         
         virtual bool isBackgroundColorSupported() const;
         
+        virtual bool isFixedAspectRatio() const;
+        
+        virtual float getFixedAspectRatio() const;
+
         void setImageBytesRGBA(const uint8_t* imageBytesRGBA,
                                const int32_t imageWidth,
                                const int32_t imageHeight);

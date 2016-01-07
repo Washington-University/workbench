@@ -183,7 +183,13 @@ void
 AnnotationTwoDimensionalShape::setHeight(const float height)
 {
     if (height != m_height) {
-        m_height = height;
+        if (isFixedAspectRatio()) {
+            m_height = height;
+            m_width  = m_height / getFixedAspectRatio();
+        }
+        else {
+            m_height = height;
+        }
         setModified();
     }
 }
@@ -207,7 +213,13 @@ void
 AnnotationTwoDimensionalShape::setWidth(const float width)
 {
     if (width != m_width) {
-        m_width = width;
+        if (isFixedAspectRatio()) {
+            m_width = width;
+            m_height = m_width * getFixedAspectRatio();
+        }
+        else {
+            m_width = width;
+        }
         setModified();
     }
 }
@@ -334,28 +346,35 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             break;
     }
     
-    bool allowsMovingFlag   = false;
-    bool allowsResizingFlag = false;
-    bool allowsRotationFlag = false;
+    bool allowsMovingFlag         = false;
+    bool allowsCornerResizingFlag = false;
+    bool allowsSideResizingFlag   = false;
+    bool allowsRotationFlag       = false;
     
     switch (getType()) {
         case AnnotationTypeEnum::BOX:
             allowsMovingFlag   = true;
-            allowsResizingFlag = true;
+            allowsCornerResizingFlag = true;
+            allowsSideResizingFlag = true;
             allowsRotationFlag = true;
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             allowsMovingFlag   = true;
-            allowsResizingFlag = true;
+            allowsCornerResizingFlag = true;
+            allowsSideResizingFlag = true;
             allowsRotationFlag = true;
             break;
         case AnnotationTypeEnum::IMAGE:
+            allowsMovingFlag   = true;
+            //allowsCornerResizingFlag = true;
+            allowsRotationFlag = true;
             break;
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
             allowsMovingFlag   = true;
-            allowsResizingFlag = true;
+            allowsCornerResizingFlag = true;
+            allowsSideResizingFlag = true;
             allowsRotationFlag = true;
             break;
         case AnnotationTypeEnum::TEXT:
@@ -369,42 +388,42 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
     if ( ! pixelsFlag) {
         switch (sizingHandle) {
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
-                if (allowsResizingFlag) {
+                if (allowsSideResizingFlag) {
                     validFlag = true;
                 }
                 break;
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
-                if (allowsResizingFlag) {
+                if (allowsCornerResizingFlag) {
                     validFlag = true;
                 }
                 break;
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
-                if (allowsResizingFlag) {
+                if (allowsCornerResizingFlag) {
                     validFlag = true;
                 }
                 break;
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
-                if (allowsResizingFlag) {
+                if (allowsSideResizingFlag) {
                     validFlag = true;
                 }
                 break;
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
-                if (allowsResizingFlag) {
+                if (allowsSideResizingFlag) {
                     validFlag = true;
                 }
                 break;
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
-                if (allowsResizingFlag) {
+                if (allowsSideResizingFlag) {
                     validFlag = true;
                 }
                 break;
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
-                if (allowsResizingFlag) {
+                if (allowsCornerResizingFlag) {
                     validFlag = true;
                 }
                 break;
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
-                if (allowsResizingFlag) {
+                if (allowsCornerResizingFlag) {
                     validFlag = true;
                 }
                 break;
@@ -969,8 +988,21 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
             xyz[0] = newX;
             xyz[1] = newY;
             m_coordinate->setXYZ(xyz);
-            m_width  = newWidth;
-            m_height = newHeight;
+            
+//            if (isFixedAspectRatio()) {
+//                const float widthDiff  = std::fabs(m_width  - newWidth);
+//                const float heightDiff = std::fabs(m_height - newHeight);
+//                if (widthDiff > heightDiff) {
+//                    setWidth(newWidth);
+//                }
+//                else {
+//                    setHeight(newHeight);
+//                }
+//            }
+//            else {
+                m_width  = newWidth;
+                m_height = newHeight;
+//            }
         }
         else {
             validCoordinatesFlag = false;
@@ -1176,8 +1208,11 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
      * NOTE: Annotation's height and width are 'relative' ([0.0, 100.0] percentage) of window size.
      * So want HALF of width/height
      */
-    const float halfWidth  = (getWidth()  / 200.0) * viewportWidth;
+    float halfWidth  = (getWidth()  / 200.0) * viewportWidth;
     const float halfHeight = (getHeight() / 200.0) * viewportHeight;
+    if (isFixedAspectRatio()) {
+        halfWidth = halfHeight / getFixedAspectRatio();
+    }
     
     bottomLeftOut[0]  = viewportXYZ[0] - halfWidth;
     bottomLeftOut[1]  = viewportXYZ[1] - halfHeight;

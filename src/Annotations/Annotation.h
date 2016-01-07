@@ -125,6 +125,10 @@ namespace caret {
         
         virtual bool isDeletable() const;
         
+        virtual bool isFixedAspectRatio() const;
+        
+        virtual float getFixedAspectRatio() const;
+        
         /**
          * Apply a spatial modification to an annotation.
          *

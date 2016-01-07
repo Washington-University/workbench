@@ -221,6 +221,39 @@ AnnotationImage::isBackgroundColorSupported() const
 }
 
 /**
+ * @return Is this annotation requiring that it be kept in a fixed
+ * aspect ratio?  By default, this is false.  This method may be
+ * overridden by annotations that require a fixed aspect ratio
+ * (such as an image annotaiton).
+ */
+bool
+AnnotationImage::isFixedAspectRatio() const
+{
+    return true;
+}
+
+/**
+ * @return The aspect ratio for annotations that have a fixed aspect ratio.
+ * This method may be overridden by annotations that require a fixed aspect ratio
+ * (such as an image annotaiton).
+ *
+ * If the aspect ratio is unknown return 1.  Never return zero.
+ */
+float
+AnnotationImage::getFixedAspectRatio() const
+{
+    float aspectRatio = 1.0;
+    
+    if ((m_imageWidth > 0.0)
+        && (m_imageHeight > 0.0)) {
+        aspectRatio = static_cast<float>(m_imageHeight) / static_cast<float>(m_imageWidth);
+        CaretAssert(aspectRatio != 0.0);
+    }
+    
+    return aspectRatio;
+}
+
+/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes
