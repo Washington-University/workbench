@@ -237,7 +237,7 @@ AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignm
  *     Selected distribute.
  */
 void
-AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum distribute)
+AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum /*distribute*/)
 {
     
 }

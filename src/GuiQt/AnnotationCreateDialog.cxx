@@ -835,7 +835,7 @@ AnnotationCreateDialog::okButtonClicked()
      * annotation file will take ownership of the annotation.
      */
     Annotation* annotationPointer = annotation.releasePointer();
-    AnnotationImage* imageAnn = dynamic_cast<AnnotationImage*>(annotationPointer);
+    //AnnotationImage* imageAnn = dynamic_cast<AnnotationImage*>(annotationPointer);
     
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     
