@@ -2353,32 +2353,39 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(const float
                                                                      const int32_t imageWidth,
                                                                      const int32_t imageHeight)
 {
-        static GLuint textureID = 0;
-        
-        if (textureID < 1) {
-            glGenTextures(1, &textureID);
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBytesRGBA);
-        }
-        
-        glEnable(GL_TEXTURE_2D);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    /*
+     * Saves glPixelStore parameters
+     */
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    
+    static GLuint textureID = 0;
+    
+    if (textureID < 1) {
+        glGenTextures(1, &textureID);
         glBindTexture(GL_TEXTURE_2D, textureID);
-
-        glBegin(GL_QUADS);
-        glTexCoord2f(0.0, 0.0);
-        glVertex3fv(bottomLeft);
-        glTexCoord2f(1.0, 0.0);
-        glVertex3fv(bottomRight);
-        glTexCoord2f(1.0, 1.0);
-        glVertex3fv(topRight);
-        glTexCoord2f(0.0, 1.0);
-        glVertex3fv(topLeft);
-        glEnd();
-        
-        glDisable(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBytesRGBA);
+    }
+    
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0, 0.0);
+    glVertex3fv(bottomLeft);
+    glTexCoord2f(1.0, 0.0);
+    glVertex3fv(bottomRight);
+    glTexCoord2f(1.0, 1.0);
+    glVertex3fv(topRight);
+    glTexCoord2f(0.0, 1.0);
+    glVertex3fv(topLeft);
+    glEnd();
+    
+    glDisable(GL_TEXTURE_2D);
+    
+    glPopClientAttrib();
 }
 
 void
@@ -2389,26 +2396,33 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytes(const float windowX,
                                                           const int32_t imageWidth,
                                                           const int32_t imageHeight)
 {
-        /*
-         * Reset orthographic projection to viewport size
-         */
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-        
-        const float drawX = windowX - (imageWidth / 2.0);
-        const float drawY = windowY - (imageHeight / 2.0);
-        
-        //
-        // Draw image near far clipping plane
-        //
-        glRasterPos3f(drawX, drawY, windowZ); //-500.0); // set Z so image behind surface
-        
-        glDrawPixels(imageWidth, imageHeight,
-                     GL_RGBA, GL_UNSIGNED_BYTE,
-                     (GLvoid*)imageBytesRGBA);
-        
-        glPopMatrix();
+    /*
+     * Reset orthographic projection to viewport size
+     */
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    const float drawX = windowX - (imageWidth / 2.0);
+    const float drawY = windowY - (imageHeight / 2.0);
+    
+    /*
+     * Saves glPixelStore parameters
+     */
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    
+    //
+    // Draw image near far clipping plane
+    //
+    glRasterPos3f(drawX, drawY, windowZ); //-500.0); // set Z so image behind surface
+    
+    glDrawPixels(imageWidth, imageHeight,
+                 GL_RGBA, GL_UNSIGNED_BYTE,
+                 (GLvoid*)imageBytesRGBA);
+    
+    glPopClientAttrib();
+    
+    glPopMatrix();
 }
 
 /**

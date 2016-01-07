@@ -5491,6 +5491,11 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::
                                         int32_t& indexOut,
                                         float& depthOut)
 {
+    /*
+     * Saves glPixelStore parameters
+     */
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    
     // Figure out item was picked using color in color buffer
     //
     glReadBuffer(GL_BACK);
@@ -5530,6 +5535,8 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::
                         &depthOut);
     }
     this->colorIdentification->reset();
+    
+    glPopClientAttrib();
 }
 
 /**
@@ -5555,6 +5562,11 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::
                                                      int32_t& index2Out,
                                                      float& depthOut)
 {
+    /*
+     * Saves glPixelStore parameters
+     */
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    
     // Figure out item was picked using color in color buffer
     //
     glReadBuffer(GL_BACK);
@@ -5595,6 +5607,8 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::
                      &depthOut);
     }
     this->colorIdentification->reset();
+    
+    glPopClientAttrib();
 }
 
 /**
@@ -5623,6 +5637,11 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::
                                                      int32_t& index3Out,
                                                      float& depthOut)
 {
+    /*
+     * Saves glPixelStore parameters
+     */
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    
     // Figure out item was picked using color in color buffer
     //
     glReadBuffer(GL_BACK);
@@ -5664,6 +5683,8 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::
                      &depthOut);
     }
     this->colorIdentification->reset();
+    
+    glPopClientAttrib();
 }
 
 /**
@@ -6144,6 +6165,11 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
     glPushMatrix();
     glLoadIdentity();
     
+    /*
+     * Saves glPixelStore parameters
+     */
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    
     //
     // Draw image near far clipping plane
     //
@@ -6154,10 +6180,13 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
                  GL_RGBA, GL_UNSIGNED_BYTE,
                  (GLvoid*)&imageBytesRGBA[0]);
     
+    glPopClientAttrib();
+    
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+    
 }
 
 /**
