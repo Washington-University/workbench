@@ -601,8 +601,8 @@ AnnotationCreateDialog::createTextWidget()
 QWidget*
 AnnotationCreateDialog::createImageWidget()
 {
-    QAction* newFileAction = WuQtUtilities::createAction("Image File...",
-                                                         "Choose Image File",
+    QAction* newFileAction = WuQtUtilities::createAction("Choose Image File...",
+                                                         "Choose image file using file selection dialog",
                                                          this,
                                                          this,
                                                          SLOT(selectImageButtonClicked()));
@@ -611,7 +611,7 @@ AnnotationCreateDialog::createImageWidget()
     
     m_imageFileNameLabel = new QLabel();
     
-    QGroupBox* groupBox = new QGroupBox("Image");
+    QGroupBox* groupBox = new QGroupBox("Image File");
     QHBoxLayout* layout = new QHBoxLayout(groupBox);
     layout->addWidget(newFileToolButton);
     layout->addWidget(m_imageFileNameLabel);
@@ -645,6 +645,7 @@ AnnotationCreateDialog::selectImageButtonClicked()
     fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::IMAGE));
     fd.setFileMode(CaretFileDialog::ExistingFile);
     fd.setViewMode(CaretFileDialog::List);
+    fd.setLabelText(CaretFileDialog::Accept, "Insert"); // OK button shows Insert
     fd.restoreDialogSettings(fileDialogSettingsName);
     
     AString errorMessages;
@@ -739,7 +740,7 @@ AnnotationCreateDialog::okButtonClicked()
         if ((m_imageWidth <= 0)
             || (m_imageHeight <= 0)
             || (m_imageRgbaBytes.empty())) {
-            errorMessage = "Image is invalid.";
+            errorMessage = "Image File is invalid.  Choose Image File.";
         }
     }
     
