@@ -2452,6 +2452,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(const float
     glVertex3fv(topLeft);
     glEnd();
     
+    /*
+     *
+     */
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
     glDisable(GL_TEXTURE_2D);
     
     glPopClientAttrib();

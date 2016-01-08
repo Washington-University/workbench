@@ -366,7 +366,7 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             break;
         case AnnotationTypeEnum::IMAGE:
             allowsMovingFlag   = true;
-            //allowsCornerResizingFlag = true;
+            allowsSideResizingFlag = true;
             allowsRotationFlag = true;
             break;
         case AnnotationTypeEnum::LINE:
@@ -985,9 +985,56 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
             && (newWidth <= 100.0)
             && (newHeight > 0.01)
             && (newHeight <= 100.0)) {
-            xyz[0] = newX;
-            xyz[1] = newY;
-            m_coordinate->setXYZ(xyz);
+            
+            if (isFixedAspectRatio()) {
+                xyz[0] = newX;
+                xyz[1] = newY;
+                
+                m_coordinate->setXYZ(xyz);
+                
+                switch (spatialModification.m_sizingHandleType) {
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+                        if (std::fabs(sideHandleDX) > std::fabs(sideHandleDY)) {
+                            /*
+                             * For fixed aspect ratio, the width percentage is not a percentage
+                             * of window width but of the window's height since the annotation
+                             * is sized by its height (width = height / aspect).
+                             *
+                             * So when width is changed, need to set height.
+                             */
+                            const float aspectRatio = getFixedAspectRatio();
+                            const float newViewportHeight = newShapeViewportWidth * aspectRatio;
+                            const float newShapeHeight    = 100.0 * (newViewportHeight / spatialModification.m_viewportHeight);
+                            setHeight(newShapeHeight);
+                        }
+                        else if (std::fabs(sideHandleDX) < std::fabs(sideHandleDY)) {
+                            setHeight(newHeight);
+                        }
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                        break;
+                }
+                
+            }
+            else {
+                xyz[0] = newX;
+                xyz[1] = newY;
+                m_coordinate->setXYZ(xyz);
+                
+                m_width  = newWidth;
+                m_height = newHeight;
+            }
             
 //            if (isFixedAspectRatio()) {
 //                const float widthDiff  = std::fabs(m_width  - newWidth);
@@ -1000,8 +1047,8 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
 //                }
 //            }
 //            else {
-                m_width  = newWidth;
-                m_height = newHeight;
+//                m_width  = newWidth;
+//                m_height = newHeight;
 //            }
         }
         else {
