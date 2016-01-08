@@ -634,15 +634,54 @@ AnnotationTwoDimensionalShape::applySpatialModificationSurfaceOrStereotaxicSpace
     }
     
     if (validDxyFlag) {
-        if (dx != 0.0) {
-            m_width += dx;
-            m_width = MathFunctions::limitRange(m_width, 1.0f, 100.0f);
-            validFlag = true;
+        if (isFixedAspectRatio()) {
+            switch (spatialModification.m_sizingHandleType) {
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+                    if (std::fabs(dx) > std::fabs(dy)) {
+                        /*
+                         * For fixed aspect ratio, the width percentage is not a percentage
+                         * of window width but of the window's height since the annotation
+                         * is sized by its height (width = height / aspect).
+                         *
+                         * So when width is changed, need to set height.
+                         */
+                        const float aspectRatio = getFixedAspectRatio();
+                        const float newHeight = MathFunctions::limitRange(getHeight() + dx * aspectRatio, 0.0f, 100.0f);
+                        setHeight(newHeight);
+                        validFlag = true;
+                    }
+                    else if (std::fabs(dx) < std::fabs(dy)) {
+                        const float newHeight = MathFunctions::limitRange(getHeight() + dy, 0.0f, 100.0f);
+                        setHeight(newHeight);
+                        validFlag = true;
+                    }
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                    break;
+            }
         }
-        if (dy != 0.0) {
-            m_height += dy;
-            m_height = MathFunctions::limitRange(m_height, 1.0f, 100.0f);
-            validFlag = true;
+        else {
+            if (dx != 0.0) {
+                m_width += dx;
+                m_width = MathFunctions::limitRange(m_width, 1.0f, 100.0f);
+                validFlag = true;
+            }
+            if (dy != 0.0) {
+                m_height += dy;
+                m_height = MathFunctions::limitRange(m_height, 1.0f, 100.0f);
+                validFlag = true;
+            }
         }
     }
     
@@ -1025,7 +1064,6 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                         break;
                 }
-                
             }
             else {
                 xyz[0] = newX;
