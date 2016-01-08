@@ -82,7 +82,6 @@ BrainOpenGLTextureManager::createTextureNameForData(const void* dataPointer)
     }
     
     glGenTextures(1, &textureName);
-    std::cout << "Created texture name: " << textureName << std::endl;
     
     m_dataPointerToTextureNameMap.insert(std::make_pair(dataPointer,
                                                         textureName));
