@@ -88,7 +88,7 @@ namespace caret
         m_file.read(m_scratch.data(), m_scratch.size(), &numRead);
         if ((numRead != (int64_t)m_scratch.size() && !tolerateShortRead) || numRead < 0)//for now, assume read giving -1 is always a problem
         {
-            throw DataFileException("error while reading from file '" + m_file.getFilename() + "'");
+            throw DataFileException("error while reading from nifti file '" + m_file.getFilename() + "'");
         }
         switch (m_header.getDataType())
         {

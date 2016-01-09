@@ -226,6 +226,16 @@ CiftiMappingType::MappingType CiftiXML::getMappingType(const int& direction) con
 void CiftiXML::setMap(const int& direction, const CiftiMappingType& mapIn)
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
+    if (mapIn.getType() == CiftiMappingType::LABELS)
+    {
+        for (int i = 0; i < getNumberOfDimensions(); ++i)
+        {
+            if (i != direction && m_indexMaps[i] != NULL && m_indexMaps[i]->getType() == CiftiMappingType::LABELS)
+            {
+                throw CaretException("Cifti XML cannot contain a label mapping on more than one dimension");
+            }
+        }
+    }
     m_indexMaps[direction] = CaretPointer<CiftiMappingType>(mapIn.clone());
 }
 

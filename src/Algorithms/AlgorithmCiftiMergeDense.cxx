@@ -83,7 +83,7 @@ void AlgorithmCiftiMergeDense::useParameters(OperationParameters* myParams, Prog
 AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, const int& myDir, const vector<const CiftiFile*>& ciftiList, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (ciftiList.size() == 0) throw AlgorithmException("no files specified");
+    if (ciftiList.size() == 0) throw AlgorithmException("no input files specified");
     CaretAssert(ciftiList[0] != NULL);
     if (myDir != CiftiXMLOld::ALONG_ROW && myDir != CiftiXMLOld::ALONG_COLUMN) throw AlgorithmException("direction not supported by cifti merge dense");
     int otherDir = 1 - myDir;//find the other direction

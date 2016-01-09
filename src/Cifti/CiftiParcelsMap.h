@@ -47,6 +47,7 @@ namespace caret
             bool approximateMatch(const Parcel& rhs, QString* explanation = NULL) const;
         };
         bool hasVolumeData() const;
+        bool hasSurface(const StructureEnum::Enum& structure) const;//only checks whether surface has been added/read
         bool hasSurfaceData(const StructureEnum::Enum& structure) const;
         const VolumeSpace& getVolumeSpace() const;
         int64_t getSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const;
@@ -59,7 +60,7 @@ namespace caret
         QString getIndexName(const int64_t& index) const;
         
         CiftiParcelsMap() { m_haveVolumeSpace = false; m_ignoreVolSpace = false; }
-        void addSurface(const int& numberOfNodes, const StructureEnum::Enum& structure);
+        void addSurface(const int64_t& numberOfNodes, const StructureEnum::Enum& structure);
         void setVolumeSpace(const VolumeSpace& space);
         void addParcel(const Parcel& parcel);
         void clear();

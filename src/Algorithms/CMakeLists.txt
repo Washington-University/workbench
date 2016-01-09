@@ -39,6 +39,7 @@ AlgorithmCiftiGradient.h
 AlgorithmCiftiLabelAdjacency.h
 AlgorithmCiftiLabelToROI.h
 AlgorithmCiftiMergeDense.h
+AlgorithmCiftiMergeParcels.h
 AlgorithmCiftiPairwiseCorrelation.h
 AlgorithmCiftiParcellate.h
 AlgorithmCiftiParcelMappingToLabel.h
@@ -150,6 +151,7 @@ AlgorithmCiftiGradient.cxx
 AlgorithmCiftiLabelAdjacency.cxx
 AlgorithmCiftiLabelToROI.cxx
 AlgorithmCiftiMergeDense.cxx
+AlgorithmCiftiMergeParcels.cxx
 AlgorithmCiftiPairwiseCorrelation.cxx
 AlgorithmCiftiParcellate.cxx
 AlgorithmCiftiParcelMappingToLabel.cxx

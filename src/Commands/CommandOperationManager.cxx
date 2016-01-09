@@ -45,6 +45,7 @@
 #include "AlgorithmCiftiLabelAdjacency.h"
 #include "AlgorithmCiftiLabelToROI.h"
 #include "AlgorithmCiftiMergeDense.h"
+#include "AlgorithmCiftiMergeParcels.h"
 #include "AlgorithmCiftiPairwiseCorrelation.h"
 #include "AlgorithmCiftiParcellate.h"
 #include "AlgorithmCiftiParcelMappingToLabel.h"
@@ -292,6 +293,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelAdjacency()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMergeDense()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMergeParcels()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiPairwiseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiParcellate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiParcelMappingToLabel()));

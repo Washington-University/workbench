@@ -31,9 +31,16 @@ using namespace caret;
 
 void CiftiParcelsMap::addParcel(const CiftiParcelsMap::Parcel& parcel)
 {
+    int64_t thisParcel = m_parcels.size();//slight hack: current number of parcels will be this parcel's index
+    for (int64_t i = 0; i < thisParcel; ++i)//also use it as endpoint of looping over existing parcels
+    {
+        if (parcel.m_name == m_parcels[i].m_name)
+        {
+            throw CaretException("cannot add parcel with duplicate name '" + parcel.m_name + "'");//NOTE: technically this restriction isn't in the standard, but that was probably an oversight
+        }
+    }
     int64_t voxelListSize = (int64_t)parcel.m_voxelIndices.size();
     CaretCompact3DLookup<int64_t> tempLookup = m_volLookup;//a copy of the lookup should be faster than other methods of checking for overlap and repeat
-    int64_t thisParcel = m_parcels.size();
     if (voxelListSize != 0)
     {
         const int64_t* dims = NULL;
@@ -110,7 +117,7 @@ void CiftiParcelsMap::addParcel(const CiftiParcelsMap::Parcel& parcel)
     m_parcels.push_back(parcel);
 }
 
-void CiftiParcelsMap::addSurface(const int& numberOfNodes, const StructureEnum::Enum& structure)
+void CiftiParcelsMap::addSurface(const int64_t& numberOfNodes, const StructureEnum::Enum& structure)
 {
     map<StructureEnum::Enum, SurfaceInfo>::const_iterator test = m_surfInfo.find(structure);
     if (test != m_surfInfo.end())
@@ -226,6 +233,11 @@ int64_t CiftiParcelsMap::getSurfaceNumberOfNodes(const StructureEnum::Enum& stru
     map<StructureEnum::Enum, SurfaceInfo>::const_iterator iter = m_surfInfo.find(structure);
     if (iter == m_surfInfo.end()) return -1;
     return iter->second.m_numNodes;
+}
+
+bool CiftiParcelsMap::hasSurface(const StructureEnum::Enum& structure) const
+{
+    return m_surfInfo.find(structure) != m_surfInfo.end();
 }
 
 bool CiftiParcelsMap::hasSurfaceData(const StructureEnum::Enum& structure) const
