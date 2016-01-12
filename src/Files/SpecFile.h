@@ -96,6 +96,8 @@ namespace caret {
         int32_t getNumberOfFilesSelectedForSaving() const;
         
         std::vector<AString> getAllDataFileNames() const;
+
+        std::vector<AString> getAllDataFileNamesSelectedForLoading() const;
         
         bool areAllFilesSelectedForLoadingSceneFiles() const;
         

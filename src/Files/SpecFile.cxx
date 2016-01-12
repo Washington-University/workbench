@@ -770,6 +770,32 @@ SpecFile::hasFilesWithRemotePathSelectedForLoading() const
 }
 
 /**
+ * @return A vector containing all file names selected for loading.
+ */
+std::vector<AString>
+SpecFile::getAllDataFileNamesSelectedForLoading() const
+{
+    std::vector<AString> allFileNames;
+    
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        
+        const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+        for (int32_t i = 0; i < numFiles; i++) {
+            if (dataFileTypeGroup->getFileInformation(i)->isLoadingSelected()) {
+                const AString filename = dataFileTypeGroup->getFileInformation(i)->getFileName();
+                allFileNames.push_back(filename);
+            }
+        }
+    }
+    
+    return allFileNames;
+}
+
+
+/**
  * @return A vector containing all file names.
  */
 std::vector<AString>
