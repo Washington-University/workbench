@@ -143,7 +143,7 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
             }
             SpecFile tempSpec;
             tempSpec.restoreFromScene(myAttrs, specClass);
-            vector<AString> tempNames = tempSpec.getAllDataFileNames();
+            vector<AString> tempNames = tempSpec.getAllDataFileNamesSelectedForLoading();
             int numNames = (int)tempNames.size();
             for (int k = 0; k < numNames; ++k)
             {
