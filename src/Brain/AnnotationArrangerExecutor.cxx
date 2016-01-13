@@ -177,9 +177,21 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLocationAndSize(beforeMoving,
                                             afterMoving);
-        undoCommand->setDescription("Align Annotations");
+        undoCommand->setDescription(AnnotationAlignmentEnum::toGuiName(alignmentType));
         
         m_annotationManager->applyCommand(undoCommand);
+    }
+    
+    /*
+     * The undo command copies these annotations so we need
+     * to delete them.
+     */
+    for (std::vector<Annotation*>::iterator annIter = afterMoving.begin();
+         annIter != afterMoving.end();
+         annIter++) {
+        Annotation* ann = *annIter;
+        CaretAssert(ann);
+        delete ann;
     }
 }
 
