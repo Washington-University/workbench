@@ -459,6 +459,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
     if (textFlag) {
         m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*textAnnotation,
                                                                                    windowXYZ[0], windowXYZ[1], windowXYZ[2],
+                                                                                        viewportHeight,
                                                                                    bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
         
         boundsValid = true;
@@ -2050,8 +2051,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     float topRight[3];
     float topLeft[3];
     m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*text,
-                                                                               windowXYZ[0], windowXYZ[1], windowXYZ[2],
-                                                                               bottomLeft, bottomRight, topRight, topLeft);
+                                                                                    windowXYZ[0], windowXYZ[1], windowXYZ[2],
+                                                                                    m_modelSpaceViewport[3],
+                                                                                    bottomLeft, bottomRight, topRight, topLeft);
     
     std::vector<float> coords;
     coords.insert(coords.end(), bottomLeft,  bottomLeft + 3);

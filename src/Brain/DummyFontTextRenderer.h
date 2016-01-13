@@ -52,6 +52,7 @@ namespace caret {
                                            const AnnotationText& annotationText);
         
         virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                const double viewportHeight,
                                                 double& widthOut,
                                                 double& heightOut);
         
@@ -59,6 +60,7 @@ namespace caret {
                                                       const double viewportX,
                                                       const double viewportY,
                                                       const double viewportZ,
+                                                      const double viewportHeight,
                                                       double bottomLeftOut[3],
                                                       double bottomRightOut[3],
                                                       double topRightOut[3],

@@ -392,6 +392,7 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
                                                                                  viewportPixelOneXYZ[0],
                                                                                  viewportPixelOneXYZ[1],
                                                                                  viewportPixelOneXYZ[2],
+                                                                                 annViewport[3],
                                                                                  bottomLeft,
                                                                                  bottomRight,
                                                                                  topRight,

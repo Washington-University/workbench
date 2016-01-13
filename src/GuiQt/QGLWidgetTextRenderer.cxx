@@ -340,7 +340,7 @@ QGLWidgetTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     const AString text = annotationText.getText();
     
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
-    getBoundsForTextAtViewportCoords(annotationText, windowX, windowY, 0.0, bottomLeft, bottomRight, topRight, topLeft);
+    getBoundsForTextAtViewportCoords(annotationText, windowX, windowY, 0.0, viewport[3], bottomLeft, bottomRight, topRight, topLeft);
     
     double left   = bottomLeft[0];
     double right  = bottomRight[0];
@@ -672,6 +672,8 @@ QGLWidgetTextRenderer::applyForegroundColoring(const AnnotationText& annotationT
  *
  * @param annotationText
  *   Text for width and height estimation.
+ * @param viewportHeight
+ *    Height of the viewport needed for percentage height text.
  * @param widthOut
  *    Estimated width of text.
  * @param heightOut
@@ -679,6 +681,7 @@ QGLWidgetTextRenderer::applyForegroundColoring(const AnnotationText& annotationT
  */
 void
 QGLWidgetTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                  const double viewportHeight,
                                                  double& widthOut,
                                                  double& heightOut)
 {
@@ -694,6 +697,7 @@ QGLWidgetTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotati
                                      0.0,
                                      0.0,
                                      0.0,
+                                     viewportHeight,
                                      bottomLeft,
                                      bottomRight,
                                      topRight,
@@ -717,6 +721,8 @@ QGLWidgetTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotati
  *    Viewport Y-coordinate.
  * @param viewportZ
  *    Viewport Z-coordinate.
+ * @param viewportHeight
+ *    Height of the viewport needed for percentage height text.
  * @param bottomLeftOut
  *    The bottom left corner of the text bounds.
  * @param bottomRightOut
@@ -731,6 +737,7 @@ QGLWidgetTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& an
                                               const double viewportX,
                                               const double viewportY,
                                               const double viewportZ,
+                                                        const double /*viewportHeight*/,
                                                        double bottomLeftOut[3],
                                                        double bottomRightOut[3],
                                                        double topRightOut[3],

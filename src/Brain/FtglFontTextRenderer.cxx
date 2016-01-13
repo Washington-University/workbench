@@ -721,6 +721,8 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
  *    Viewport Y-coordinate.
  * @param viewportZ
  *    Viewport Z-coordinate.
+ * @param viewportHeight
+ *    Height of the viewport needed for percentage height text.
  * @param bottomLeftOut
  *    The bottom left corner of the text bounds.
  * @param bottomRightOut
@@ -735,12 +737,14 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                                        const double viewportX,
                                                        const double viewportY,
                                                        const double viewportZ,
+                                                       const double viewportHeight,
                                                        double bottomLeftOut[3],
                                                        double bottomRightOut[3],
                                                        double topRightOut[3],
                                                        double topLeftOut[3])
 {
     setViewportHeight();
+    m_viewportHeight = viewportHeight;
     
     FTFont* font = getFont(annotationText, false);
     if ( ! font) {
@@ -844,6 +848,8 @@ FtglFontTextRenderer::setViewportHeight()
  *
  * @param annotationText
  *   Text for width and height estimation.
+ * @param viewportHeight
+ *    Height of the viewport needed for percentage height text.
  * @param widthOut
  *    Estimated width of text.
  * @param heightOut
@@ -851,13 +857,15 @@ FtglFontTextRenderer::setViewportHeight()
  */
 void
 FtglFontTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                 const double viewportHeight,
                                                  double& widthOut,
                                                  double& heightOut)
 {
     setViewportHeight();
+    m_viewportHeight = viewportHeight;
     
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
-    getBoundsForTextAtViewportCoords(annotationText, 0.0, 0.0, 0.0, bottomLeft, bottomRight, topRight, topLeft);
+    getBoundsForTextAtViewportCoords(annotationText, 0.0, 0.0, 0.0, viewportHeight, bottomLeft, bottomRight, topRight, topLeft);
     
     widthOut  = MathFunctions::distance3D(bottomLeft, bottomRight);
     heightOut = MathFunctions::distance3D(topLeft, bottomLeft);
