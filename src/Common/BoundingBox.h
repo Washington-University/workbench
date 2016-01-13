@@ -66,6 +66,10 @@ public:
 
     void update(const float xyz[]);
 
+    void update(const float x,
+                const float y,
+                const float z);
+    
     const float* getBounds() const;
 
     void getBounds(float bounds[6]) const;

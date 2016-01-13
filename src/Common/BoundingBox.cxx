@@ -222,6 +222,32 @@ BoundingBox::update(const float xyz[3])
     if (xyz[2] < this->boundingBox[4]) this->boundingBox[4] = xyz[2];
     if (xyz[2] > this->boundingBox[5]) this->boundingBox[5] = xyz[2];
 }
+/**
+ * Update the bounding box with the XYZ value passed in.  The bound box
+ * must have been created with newInstanceForUpdate() or properly
+ * initialized by the user.
+ *
+ * @param x
+ *    X-coordinate.
+ * @param y
+ *    Y-coordinate.
+ * @param Z
+ *    Z-coordinate.
+ * @throws IllegalArgumentException if array does not have three elements.
+ *
+ */
+void
+BoundingBox::update(const float x,
+                    const float y,
+                    const float z)
+{
+    if (x < this->boundingBox[0]) this->boundingBox[0] = x;
+    if (x > this->boundingBox[1]) this->boundingBox[1] = x;
+    if (y < this->boundingBox[2]) this->boundingBox[2] = y;
+    if (y > this->boundingBox[3]) this->boundingBox[3] = y;
+    if (z < this->boundingBox[4]) this->boundingBox[4] = z;
+    if (z > this->boundingBox[5]) this->boundingBox[5] = z;
+}
 
 /**
  * Get the bounds in an array.

@@ -56,13 +56,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     QWidget* arrangeButton = createArrangeMenuToolButton();
     
-    
-    /* ENABLE THE MENU !!!! */
-    arrangeButton->setEnabled(false);
-    
-    
-    
-    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(formatLabel);

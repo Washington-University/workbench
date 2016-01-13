@@ -30,6 +30,7 @@
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
+#include "AnnotationText.h"
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -549,8 +550,16 @@ Annotation::setWindowIndex(const int32_t windowIndex)
 AString
 Annotation::toString() const
 {
-    const AString msg("Annotation type="
+    AString msg("Annotation type="
                       + AnnotationTypeEnum::toName(m_type));
+    
+    msg += (" space="
+            + AnnotationCoordinateSpaceEnum::toGuiName(getCoordinateSpace()));
+    
+    const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(this);
+    if (textAnn != NULL) {
+        msg += (" text=" + textAnn->getText());
+    }
     return msg;
 }
 

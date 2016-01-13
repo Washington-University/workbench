@@ -21,7 +21,9 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 
+#include "BoundingBox.h"
 #include "CaretObject.h"
 
 
@@ -49,17 +51,66 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        class AnnotationInfo {
+        public:
+            AnnotationInfo(Annotation* annotation,
+                           const int32_t viewport[4],
+                           const BoundingBox windowBoundingBox,
+                           float viewportPixelOneXY[2],
+                           float viewportPixelTwoXY[2]);
+            
+            void print() const;
+            
+            Annotation* m_annotation;
+            
+            int32_t m_viewport[4];
+            
+            float m_viewportPixelOneXY[2];
+            
+            BoundingBox m_windowBoundingBox;
+            
+            float m_windowPixelOneXY[2];
+            
+            float m_windowPixelTwoXY[2];
+        };
+        
         AnnotationArrangerExecutor(const AnnotationArrangerExecutor&);
 
         AnnotationArrangerExecutor& operator=(const AnnotationArrangerExecutor&);
         
-        bool getAlignmentToValues(const AnnotationArrangerInputs& arrangerInputs,
-                                  std::vector<Annotation*>& annotations,
-                                  const int32_t windowViewport[4],
-                                  std::vector<float>& alignToValuesOut,
-                                  AString& errorMessageOut);
+        void alignAnnotationsPrivate(const AnnotationArrangerInputs& arrangerInputs);
+        
+//        float getAlignmentValueForAnnotation(const AnnotationArrangerInputs& arrangerInputs,
+//                                             const Annotation* annotation);
+//        
+//        void getAlignmentToValues(const AnnotationArrangerInputs& arrangerInputs,
+//                                  std::vector<Annotation*>& annotations,
+//                                  std::vector<float>& alignToValuesOut);
+        
+        void alignAnnotationToValue(const AnnotationArrangerInputs& arrangerInputs,
+                                    const float alignToWindowValue,
+                                    AnnotationInfo& annotationInfo,
+                                    std::vector<Annotation*>& annotationsBeforeMoving,
+                                    std::vector<Annotation*>& annotationsAfterMoving);
+        
+        void getTabViewport(const int32_t tabIndex,
+                            int32_t tabViewportOut[4]);
+        
+        void setupAnnotationInfo(const AnnotationArrangerInputs& arrangerInputs);
+        
+        void printAnnotationInfo(const QString& title);
         
         AnnotationManager* m_annotationManager;
+        
+        int32_t m_windowViewport[4];
+        
+        struct ViewportArray {
+            int32_t m_viewport[4];
+        };
+        
+        std::map<int32_t, ViewportArray> m_tabViewports;
+        
+        std::vector<AnnotationInfo> m_annotationInfo;
         
         // ADD_NEW_MEMBERS_HERE
 
