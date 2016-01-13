@@ -80,23 +80,22 @@ namespace caret {
         
         void alignAnnotationsPrivate(const AnnotationArrangerInputs& arrangerInputs);
         
-//        float getAlignmentValueForAnnotation(const AnnotationArrangerInputs& arrangerInputs,
-//                                             const Annotation* annotation);
-//        
-//        void getAlignmentToValues(const AnnotationArrangerInputs& arrangerInputs,
-//                                  std::vector<Annotation*>& annotations,
-//                                  std::vector<float>& alignToValuesOut);
-        
         void alignAnnotationToValue(const AnnotationArrangerInputs& arrangerInputs,
-                                    const float alignToWindowValue,
+                                    const float alignToWindowCoordinateValue,
                                     AnnotationInfo& annotationInfo,
                                     std::vector<Annotation*>& annotationsBeforeMoving,
                                     std::vector<Annotation*>& annotationsAfterMoving);
         
+        void getAnnotationsForArranging(const AnnotationArrangerInputs& arrangerInputs,
+                                        std::vector<Annotation*>& annotationsOut) const;
+        
         void getTabViewport(const int32_t tabIndex,
                             int32_t tabViewportOut[4]);
         
-        void setupAnnotationInfo(const AnnotationArrangerInputs& arrangerInputs);
+        void initializeForArranging(const AnnotationArrangerInputs& arrangerInputs);
+        
+        void setupAnnotationInfo(const AnnotationArrangerInputs& arrangerInputs,
+                                 std::vector<Annotation*>& annotations);
         
         void printAnnotationInfo(const QString& title);
         
@@ -110,7 +109,11 @@ namespace caret {
         
         std::map<int32_t, ViewportArray> m_tabViewports;
         
+        BoundingBox m_allAnnotationsBoundingBox;
+        
         std::vector<AnnotationInfo> m_annotationInfo;
+        
+        bool m_debugFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include <iostream>
 #include <limits>
 #include <numeric>
 
@@ -45,7 +46,7 @@ using namespace caret;
 
 /**
  * \class caret::AnnotationArrangerExecutor
- * \brief Performs alignment, distribution of annotations
+ * \brief Performs alignment, distribution of annotations similar to PowerPoint.
  * \ingroup Brain
  */
 
@@ -54,7 +55,8 @@ using namespace caret;
  */
 AnnotationArrangerExecutor::AnnotationArrangerExecutor()
 : CaretObject(),
-m_annotationManager(NULL)
+m_annotationManager(NULL),
+m_debugFlag(false)
 {
     
 }
@@ -110,14 +112,153 @@ AnnotationArrangerExecutor::alignAnnotations(AnnotationManager* annotationManage
 void
 AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInputs& arrangerInputs)
 {
+    initializeForArranging(arrangerInputs);
+    
+    printAnnotationInfo("BEFORE");
+    
+    const AnnotationAlignmentEnum::Enum alignmentType = arrangerInputs.getAlignment();
+    
+    /*
+     * Set the coordinate value to which annotations are aligned
+     * based upon the selected alignment.
+     */
+    float alignToCoordinateValue = 0.0;
+    switch (alignmentType) {
+        case AnnotationAlignmentEnum::ALIGN_BOTTOM:
+            alignToCoordinateValue = m_allAnnotationsBoundingBox.getMinY();
+            break;
+        case AnnotationAlignmentEnum::ALIGN_CENTER:
+            alignToCoordinateValue = (m_allAnnotationsBoundingBox.getMinX()
+                               + m_allAnnotationsBoundingBox.getMaxX()) / 2.0;
+            break;
+        case AnnotationAlignmentEnum::ALIGN_LEFT:
+            alignToCoordinateValue = m_allAnnotationsBoundingBox.getMinX();
+            break;
+        case AnnotationAlignmentEnum::ALIGN_MIDDLE:
+            alignToCoordinateValue = (m_allAnnotationsBoundingBox.getMinY()
+                               + m_allAnnotationsBoundingBox.getMaxY()) / 2.0;
+            break;
+        case AnnotationAlignmentEnum::ALIGN_RIGHT:
+            alignToCoordinateValue = m_allAnnotationsBoundingBox.getMaxX();
+            break;
+        case AnnotationAlignmentEnum::ALIGN_TOP:
+            alignToCoordinateValue = m_allAnnotationsBoundingBox.getMaxY();
+            break;
+    }
+    
+    if (m_debugFlag) {
+        std::cout << "Bounding box for all: " << qPrintable(m_allAnnotationsBoundingBox.toString()) << std::endl;
+        std::cout << "New Align to value: " << alignToCoordinateValue << std::endl;
+    }
+    
+    /*
+     * Move each of the annotations to align them.
+     */
+    std::vector<Annotation*> beforeMoving;
+    std::vector<Annotation*> afterMoving;
+    for (std::vector<AnnotationInfo>::iterator annInfoIter = m_annotationInfo.begin();
+         annInfoIter != m_annotationInfo.end();
+         annInfoIter++) {
+        
+        AnnotationInfo& annInfo = *annInfoIter;
+        alignAnnotationToValue(arrangerInputs,
+                               alignToCoordinateValue,
+                               annInfo,
+                               beforeMoving,
+                               afterMoving);
+    }
+    
+    /*
+     * If any annotations were moved, use a redo command
+     * so that the user may undo the alignment.
+     */
+    if ( ! beforeMoving.empty()) {
+        CaretAssert(beforeMoving.size() == afterMoving.size());
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeLocationAndSize(beforeMoving,
+                                            afterMoving);
+        
+        m_annotationManager->applyCommand(undoCommand);
+    }
+}
+
+/**
+ * Initialize members in preparation for arranging annotations.
+ *
+ * @param arrangerInputs
+ *     Inputs for arranging annotations.
+ */
+void
+AnnotationArrangerExecutor::initializeForArranging(const AnnotationArrangerInputs& arrangerInputs)
+{
+    /*
+     * Get the window's viewport.
+     */
+    EventGetViewportSize vpEvent(EventGetViewportSize::MODE_WINDOW_INDEX,
+                                 arrangerInputs.getWindowIndex());
+    EventManager::get()->sendEvent(vpEvent.getPointer());
+    if (vpEvent.isViewportSizeValid()) {
+        vpEvent.getViewportSize(m_windowViewport);
+    }
+    else {
+        throw CaretException("Failed to get viewport size for window index "
+                             + QString::number(arrangerInputs.getWindowIndex() + 1));
+    }
+    
+    /*
+     * Verify that selected annotations can be arranged.
+     */
+    std::vector<Annotation*> annotations;
+    getAnnotationsForArranging(arrangerInputs,
+                               annotations);
+    
+    /**
+     * Setup information to assist with arranging each annotation.
+     */
+    setupAnnotationInfo(arrangerInputs,
+                        annotations);
+    
+    /**
+     * Setup a bounding box that contains the bounds 
+     * of all annotations.
+     */
+    m_allAnnotationsBoundingBox.resetForUpdate();
+    
+    for (std::vector<AnnotationInfo>::iterator annInfoIter = m_annotationInfo.begin();
+         annInfoIter != m_annotationInfo.end();
+         annInfoIter++) {
+        const AnnotationInfo& annInfo = *annInfoIter;
+        
+        m_allAnnotationsBoundingBox.update(annInfo.m_windowBoundingBox.getMinXYZ());
+        m_allAnnotationsBoundingBox.update(annInfo.m_windowBoundingBox.getMaxXYZ());
+    }
+}
+
+/**
+ * Get the annotations for arranging.  Not all coordinate spaces are supported.
+ *
+ * @param arrangerInputs
+ *     Inputs for arranging annotations.
+ * @param annotationsOut
+ *    On output contains annotations that will be arranged.
+ * @throw CaretException
+ *    If there are input annotations that cannot be aligned.
+ */
+void
+AnnotationArrangerExecutor::getAnnotationsForArranging(const AnnotationArrangerInputs& arrangerInputs,
+                                                       std::vector<Annotation*>& annotationsOut) const
+{
+    annotationsOut.clear();
+    
     std::vector<AnnotationCoordinateSpaceEnum::Enum> spaces;
     spaces.push_back(AnnotationCoordinateSpaceEnum::TAB);
     spaces.push_back(AnnotationCoordinateSpaceEnum::WINDOW);
     
+    
     const std::vector<Annotation*> allSpaceAnnotations = m_annotationManager->getSelectedAnnotations(arrangerInputs.getWindowIndex());
-    std::vector<Annotation*> annotations = m_annotationManager->getSelectedAnnotationsInSpaces(arrangerInputs.getWindowIndex(),
+    annotationsOut = m_annotationManager->getSelectedAnnotationsInSpaces(arrangerInputs.getWindowIndex(),
                                                                                                spaces);
-    if (allSpaceAnnotations.size() != annotations.size()) {
+    if (allSpaceAnnotations.size() != annotationsOut.size()) {
         QString spaceString;
         for (std::vector<AnnotationCoordinateSpaceEnum::Enum>::iterator spaceIter = spaces.begin();
              spaceIter != spaces.end();
@@ -130,126 +271,42 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
                              + spaceString);
     }
     
-    const int32_t numAnnotations = static_cast<int32_t>(annotations.size());
+    const int32_t numAnnotations = static_cast<int32_t>(annotationsOut.size());
     if (numAnnotations < 1) {
-        throw CaretException("No annotation are selected.");
+        throw CaretException("No annotations are selected.");
     }
     if (numAnnotations < 2) {
-        std::cout << "Less than two annotations selected, need to throw exception" << std::endl;
-        //throw CaretException("At least two annotations must be selected for alignment.");
+        throw CaretException("At least two annotations must be selected for alignment.");
     }
-    
-    EventGetViewportSize vpEvent(EventGetViewportSize::MODE_WINDOW_INDEX,
-                                 arrangerInputs.getWindowIndex());
-    EventManager::get()->sendEvent(vpEvent.getPointer());
-    if (vpEvent.isViewportSizeValid()) {
-        vpEvent.getViewportSize(m_windowViewport);
-    }
-    else {
-        throw CaretException("Failed to get viewport size for window index "
-                             + QString::number(arrangerInputs.getWindowIndex() + 1));
-    }
-    
-    setupAnnotationInfo(arrangerInputs);
-
-    BoundingBox allBoundingBox;
-    allBoundingBox.resetForUpdate();
-    
-    for (std::vector<AnnotationInfo>::iterator annInfoIter = m_annotationInfo.begin();
-         annInfoIter != m_annotationInfo.end();
-         annInfoIter++) {
-        const AnnotationInfo& annInfo = *annInfoIter;
-        
-        allBoundingBox.update(annInfo.m_windowBoundingBox.getMinXYZ());
-        allBoundingBox.update(annInfo.m_windowBoundingBox.getMaxXYZ());
-    }
-
-    printAnnotationInfo("BEFORE");
-    
-    const AnnotationAlignmentEnum::Enum alignmentType = arrangerInputs.getAlignment();
-    
-    
-    float alignToValue = 0.0;
-    switch (alignmentType) {
-        case AnnotationAlignmentEnum::ALIGN_BOTTOM:
-            alignToValue = allBoundingBox.getMinY();
-            break;
-        case AnnotationAlignmentEnum::ALIGN_CENTER:
-            alignToValue = (allBoundingBox.getMinX()
-                               + allBoundingBox.getMaxX()) / 2.0;
-            break;
-        case AnnotationAlignmentEnum::ALIGN_LEFT:
-            alignToValue = allBoundingBox.getMinX();
-            break;
-        case AnnotationAlignmentEnum::ALIGN_MIDDLE:
-            alignToValue = (allBoundingBox.getMinY()
-                               + allBoundingBox.getMaxY()) / 2.0;
-            break;
-        case AnnotationAlignmentEnum::ALIGN_RIGHT:
-            alignToValue = allBoundingBox.getMaxX();
-            break;
-        case AnnotationAlignmentEnum::ALIGN_TOP:
-            alignToValue = allBoundingBox.getMaxY();
-            break;
-    }
-    
-    std::cout << "Bounding box for all: " << qPrintable(allBoundingBox.toString()) << std::endl;
-    std::cout << "New Align to value: " << alignToValue << std::endl;
-    
-    std::vector<Annotation*> beforeMoving;
-    std::vector<Annotation*> afterMoving;
-    for (std::vector<AnnotationInfo>::iterator annInfoIter = m_annotationInfo.begin();
-         annInfoIter != m_annotationInfo.end();
-         annInfoIter++) {
-        
-        AnnotationInfo& annInfo = *annInfoIter;
-        alignAnnotationToValue(arrangerInputs,
-                               alignToValue,
-                               annInfo,
-                               beforeMoving,
-                               afterMoving);
-        
-    }
-    
-    if ( ! beforeMoving.empty()) {
-        CaretAssert(beforeMoving.size() == afterMoving.size());
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeLocationAndSize(beforeMoving,
-                                            afterMoving);
-        
-        m_annotationManager->applyCommand(undoCommand);
-    }
-    
-//    /*
-//     * For debugging
-//     */
-//    setupAnnotationInfo(arrangerInputs);
-//    printAnnotationInfo("AFTER");
 }
 
+
 /**
- * Setup the annotation information.
+ * Setup the annotation information that contains the bounds of
+ * the annotation in window coordinates and other information.
  *
  * @param arrangerInputs
  *     Inputs for arranging annotations.
+ * @param annotations
+ *     Contains annotations that will be arranged.
+ * @throw CaretException
+ *    If there are input annotations that cannot be aligned.
  */
 void
-AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& arrangerInputs)
+AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& arrangerInputs,
+                                                std::vector<Annotation*>& annotations)
 {
     m_annotationInfo.clear();
 
-    std::vector<AnnotationCoordinateSpaceEnum::Enum> spaces;
-    spaces.push_back(AnnotationCoordinateSpaceEnum::TAB);
-    spaces.push_back(AnnotationCoordinateSpaceEnum::WINDOW);
-    
-    std::vector<Annotation*> annotations = m_annotationManager->getSelectedAnnotationsInSpaces(arrangerInputs.getWindowIndex(),
-                                                                                               spaces);
     for (std::vector<Annotation*>::iterator annIter = annotations.begin();
          annIter != annotations.end();
          annIter++) {
         Annotation* annotation = *annIter;
         CaretAssert(annotation);
         
+        /*
+         * Viewport containing the annotation.
+         */
         int32_t annViewport[4] = { 0, 0, 0, 0 };
         switch (annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -279,6 +336,9 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
         float viewportPixelOneXYZ[3] = { 0.0, 0.0, 0.0 };
         float viewportPixelTwoXYZ[3] = { 0.0, 0.0, 0.0 };
         
+        /*
+         * Bounding box for the annotation.
+         */
         BoundingBox windowBoundingBox;
         windowBoundingBox.resetForUpdate();
         
@@ -307,64 +367,6 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
                                      annViewport[1] + viewportPixelTwoXYZ[1],
                                      viewportPixelTwoXYZ[2]);
             
-//            bool oneFlag = false;
-//            bool twoFlag = false;
-//            bool midFlag = false;
-//            switch (arrangerInputs.getAlignment()) {
-//                case AnnotationAlignmentEnum::ALIGN_BOTTOM:
-//                {
-//                    if (pixelXYZ1[1] < pixelXYZ2[1]) oneFlag = true;
-//                    else twoFlag = true;
-//                }
-//                    break;
-//                case AnnotationAlignmentEnum::ALIGN_CENTER:
-//                {
-//                    midFlag = true;
-//                }
-//                    break;
-//                case AnnotationAlignmentEnum::ALIGN_LEFT:
-//                {
-//                    if (pixelXYZ1[0] < pixelXYZ2[0]) oneFlag = true;
-//                    else twoFlag = true;
-//                }
-//                    break;
-//                case AnnotationAlignmentEnum::ALIGN_MIDDLE:
-//                {
-//                    midFlag = true;
-//                }
-//                    break;
-//                case AnnotationAlignmentEnum::ALIGN_RIGHT:
-//                {
-//                    if (pixelXYZ1[0] > pixelXYZ2[0]) oneFlag = true;
-//                    else twoFlag = true;
-//                }
-//                    break;
-//                case AnnotationAlignmentEnum::ALIGN_TOP:
-//                {
-//                    if (pixelXYZ1[1] > pixelXYZ2[1]) oneFlag = true;
-//                    else twoFlag = true;
-//                }
-//                    break;
-//            }
-//            
-//            if (oneFlag) {
-//                viewportPixelOneXYZ[0] = pixelXYZ1[0];
-//                viewportPixelOneXYZ[1] = pixelXYZ1[1];
-//                viewportPixelXYZ[2] = pixelXYZ1[2];
-//            }
-//            else if (twoFlag) {
-//                viewportPixelXYZ[0] = pixelXYZ2[0];
-//                viewportPixelXYZ[1] = pixelXYZ2[1];
-//                viewportPixelXYZ[2] = pixelXYZ2[2];
-//            }
-//            else if (midFlag) {
-//                viewportPixelXYZ[0] = (pixelXYZ1[0] + pixelXYZ2[0]);
-//                viewportPixelXYZ[1] = (pixelXYZ1[1] + pixelXYZ2[1]);
-//                viewportPixelXYZ[2] = (pixelXYZ1[2] + pixelXYZ2[2]);
-//            }
-//            else {
-//                CaretAssert(0);
-//            }
         }
         else if (twoDimAnn != NULL) {
             float xyz[3];
@@ -442,10 +444,18 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
 
 /**
  * Print the annotation info.
+ * 
+ * @param title
+ *     Title that is printed before the annotation
+ *     information is printed.
  */
 void
 AnnotationArrangerExecutor::printAnnotationInfo(const QString& title)
 {
+    if ( ! m_debugFlag) {
+        return;
+    }
+    
     std::cout << std::endl;
     std::cout << qPrintable(title) << std::endl;
     for (std::vector<AnnotationInfo>::iterator annInfoIter = m_annotationInfo.begin();
@@ -459,65 +469,74 @@ AnnotationArrangerExecutor::printAnnotationInfo(const QString& title)
 
 
 /**
- * Align the annotations to the given value.
+ * Align an annotation to the given window coordinate value.
  *
  * @param arrangerInputs
  *     Contains information about the alignment.
- * @param alignToWindowValue
- *     Align to value.
+ * @param alignToWindowCoordinateValue
+ *     Align to window coordinate value.
  * @param annotationInfo
  *     Information for annotation that is aligned.
- * @return 
- *     True if the annotation was moved, else false.
+ * @param annotationsBeforeMoving
+ *     If an annotation is moved, upon exit this will
+ *     contain the annotation before it is moved and
+ *     is used by the redo/undo command.
+ * @param annotationsAfterMoving
+ *     If an annotation is moved, upon exit this will
+ *     contain the annotation after it is moved and
+ *     is used by the redo/undo command.
  * @throw  CaretException
  *     If there is an error.
  */
 void
 AnnotationArrangerExecutor::alignAnnotationToValue(const AnnotationArrangerInputs& arrangerInputs,
-                                                   const float alignToWindowValue,
+                                                   const float alignToWindowCoordinateValue,
                                                    AnnotationInfo& annotationInfo,
                                                    std::vector<Annotation*>& annotationsBeforeMoving,
                                                    std::vector<Annotation*>& annotationsAfterMoving)
 {
+    /*
+     * Set amount of movement needed to align the annotation.
+     */
     float dx = 0.0;
     float dy = 0.0;
-    
-    
     switch (arrangerInputs.getAlignment()) {
         case AnnotationAlignmentEnum::ALIGN_BOTTOM:
-            dy = alignToWindowValue - annotationInfo.m_windowBoundingBox.getMinY();
+            dy = alignToWindowCoordinateValue - annotationInfo.m_windowBoundingBox.getMinY();
             break;
         case AnnotationAlignmentEnum::ALIGN_CENTER:
-            dx = alignToWindowValue - (annotationInfo.m_windowBoundingBox.getMinX()
+            dx = alignToWindowCoordinateValue - (annotationInfo.m_windowBoundingBox.getMinX()
                                        + annotationInfo.m_windowBoundingBox.getMaxX()) / 2.0;
             break;
         case AnnotationAlignmentEnum::ALIGN_LEFT:
-            dx = alignToWindowValue - annotationInfo.m_windowBoundingBox.getMinX();
+            dx = alignToWindowCoordinateValue - annotationInfo.m_windowBoundingBox.getMinX();
             break;
         case AnnotationAlignmentEnum::ALIGN_MIDDLE:
-            dy = alignToWindowValue - (annotationInfo.m_windowBoundingBox.getMinY()
+            dy = alignToWindowCoordinateValue - (annotationInfo.m_windowBoundingBox.getMinY()
                                        + annotationInfo.m_windowBoundingBox.getMaxY()) / 2.0;
             break;
         case AnnotationAlignmentEnum::ALIGN_RIGHT:
-            dx = alignToWindowValue - annotationInfo.m_windowBoundingBox.getMaxX();
+            dx = alignToWindowCoordinateValue - annotationInfo.m_windowBoundingBox.getMaxX();
             break;
         case AnnotationAlignmentEnum::ALIGN_TOP:
-            dy = alignToWindowValue - annotationInfo.m_windowBoundingBox.getMaxY();
+            dy = alignToWindowCoordinateValue - annotationInfo.m_windowBoundingBox.getMaxY();
             break;
     }
-    std::cout << "Moving " << qPrintable(annotationInfo.m_annotation->toString()) << " by dx=" << dx << ", dy=" << dy << std::endl;
     
-
+    if (m_debugFlag) {
+        std::cout << "Moving " << qPrintable(annotationInfo.m_annotation->toString()) << " by dx=" << dx << ", dy=" << dy << std::endl;
+    }
+    
     Annotation* annotationModified = annotationInfo.m_annotation->clone();
     AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotationModified);
     AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
     
     bool modifiedFlag = false;
     
+    /*
+     * Move the annotation.
+     */
     if (dy != 0.0) {
-//            const float windowY   = dy + annotationInfo.m_windowPixelOneXY[1];
-//            const float vpY       = windowY - annotationInfo.m_viewport[1];
-//            const float relativeY = (vpY / annotationInfo.m_viewport[3]) * 100.0;
         const float windowOneY   = dy + annotationInfo.m_windowPixelOneXY[1];
         const float vpOneY       = windowOneY - annotationInfo.m_viewport[1];
         const float relativeOneY = (vpOneY / annotationInfo.m_viewport[3]) * 100.0;
@@ -549,18 +568,6 @@ AnnotationArrangerExecutor::alignAnnotationToValue(const AnnotationArrangerInput
                 oneDimAnn->getEndCoordinate()->setXYZ(xyz);
                 modifiedFlag = true;
             }
-
-//            const float windowOneY   = dy + annotationInfo.m_windowPixelOneXY[1];
-//            const float vpOneY       = windowOneY - annotationInfo.m_viewport[1];
-//            const float relativeOneY = (vpOneY / annotationInfo.m_viewport[3]) * 100.0;
-//            if ((relativeOneY >= 0.0)
-//                && (relativeOneY <= 100.0)) {
-//                float xyz[3];
-//                oneDimAnn->getStartCoordinate()->getXYZ(xyz);
-//                xyz[1] = relativeOneY;
-//                oneDimAnn->getStartCoordinate()->setXYZ(xyz);
-//                modifiedFlag = true;
-//            }
         }
     }
     
@@ -664,6 +671,26 @@ AnnotationArrangerExecutor::toString() const
 
 
 
+/**
+ * \class caret::AnnotationInfo
+ * \brief Contains information used to arrange annotations.
+ * \ingroup Brain
+ */
+
+/**
+ * Constructor.
+ *
+ * @param annotation
+ *     The annotation.
+ * @param viewport
+ *     Viewport coordinates containing the annotation.
+ * @param windowBoundingBox
+ *     Bounding box for the annotation in window coordinates.
+ * @param viewportPixelOneXY
+ *     XY coordinate of the annotation in its viewport.
+ * @param viewportPixelOneXY
+ *     optional second XY coordinate of the annotation in its viewport.
+ */
 AnnotationArrangerExecutor::AnnotationInfo::AnnotationInfo(Annotation* annotation,
                                                            const int32_t viewport[4],
                                                            const BoundingBox windowBoundingBox,
@@ -688,7 +715,9 @@ AnnotationArrangerExecutor::AnnotationInfo::AnnotationInfo(Annotation* annotatio
     m_windowPixelTwoXY[1] = m_viewport[1] + viewportPixelTwoXY[1];
 }
 
-
+/**
+ * Print information used to arrange an annotation.
+ */
 void
 AnnotationArrangerExecutor::AnnotationInfo::print() const
 {
