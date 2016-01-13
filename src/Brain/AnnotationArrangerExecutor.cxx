@@ -177,6 +177,7 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLocationAndSize(beforeMoving,
                                             afterMoving);
+        undoCommand->setDescription("Align Annotations");
         
         m_annotationManager->applyCommand(undoCommand);
     }

@@ -660,6 +660,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
                                     annotationsAfterMoveAndResize);
+    command->setDescription("Change Coordinate");
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     annotationManager->applyCommand(command);
     
