@@ -92,6 +92,9 @@ namespace caret {
         static QSharedPointer<QPainter> createPixmapWidgetPainter(const QWidget* widget,
                                                                   QPixmap& pixmap);
         
+        static QSharedPointer<QPainter> createPixmapWidgetPainterOriginBottomLeft(const QWidget* widget,
+                                                                                  QPixmap& pixmap);
+        
         static void moveWindowToOffset(QWidget* parentWidget,
                                        QWidget* window,
                                        const int xOffset, 

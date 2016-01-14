@@ -1237,9 +1237,49 @@ WuQtUtilities::createCaretColorEnumPixmap(const QWidget* widget,
 /**
  * Create a painter for the given pixmap that will be placed
  * into the given widget.  The pixmap's background is painted
- * with the widget's background color, the painter's pen is set 
- * to the widget's foreground color, and then the painter is 
+ * with the widget's background color, the painter's pen is set
+ * to the widget's foreground color, and then the painter is
  * returned.
+ *
+ * Origin of painter will be in the BOTTOM LEFT corner.
+ *
+ * @param widget
+ *     Widget used for coloring.
+ * @param pixmap
+ *     The Pixmap.
+ * @return
+ *     Shared pointer containing QPainter for drawing to the pixmap.
+ */
+QSharedPointer<QPainter>
+WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(const QWidget* widget,
+                                                         QPixmap& pixmap)
+{
+    QSharedPointer<QPainter> painter = createPixmapWidgetPainter(widget,
+                                                                 pixmap);
+    
+    QTransform transform;
+    transform.translate(0, pixmap.height() - 1);
+    transform.scale(1.0, -1.0);
+    painter->setWorldTransform(transform);
+    
+    return painter;
+}
+
+/**
+ * Create a painter for the given pixmap that will be placed
+ * into the given widget.  The pixmap's background is painted
+ * with the widget's background color, the painter's pen is set
+ * to the widget's foreground color, and then the painter is
+ * returned.
+ *
+ * Origin of painter will be in the TOP LEFT corner.
+ *
+ * @param widget
+ *     Widget used for coloring.
+ * @param pixmap
+ *     The Pixmap.
+ * @return
+ *     Shared pointer containing QPainter for drawing to the pixmap.
  */
 QSharedPointer<QPainter>
 WuQtUtilities::createPixmapWidgetPainter(const QWidget* widget,
@@ -1265,17 +1305,12 @@ WuQtUtilities::createPixmapWidgetPainter(const QWidget* widget,
      * Create a painter and fill the pixmap with
      * the background color
      */
-    
     QSharedPointer<QPainter> painter(new QPainter(&pixmap));
     painter->setRenderHint(QPainter::Antialiasing,
                           true);
     painter->setBackgroundMode(Qt::OpaqueMode);
     painter->fillRect(pixmap.rect(), backgroundColor);
     
-    /*
-     * Draw lines (rectangle) around the perimeter of
-     * the pixmap
-     */
     painter->setPen(foregroundColor);
     
     return painter;
