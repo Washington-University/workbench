@@ -23,6 +23,8 @@
 
 #include <map>
 
+#include "AnnotationAlignmentEnum.h"
+#include "AnnotationDistributeEnum.h"
 #include "BoundingBox.h"
 #include "CaretObject.h"
 
@@ -43,9 +45,14 @@ namespace caret {
         
         bool alignAnnotations(AnnotationManager* annotationManager,
                               const AnnotationArrangerInputs& arrangerInputs,
+                              const AnnotationAlignmentEnum::Enum alignment,
                               AString& errorMessageOut);
         
-
+        bool distributeAnnotations(AnnotationManager* annotationManager,
+                              const AnnotationArrangerInputs& arrangerInputs,
+                              const AnnotationDistributeEnum::Enum distribute,
+                              AString& errorMessageOut);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -80,8 +87,9 @@ namespace caret {
         
         void alignAnnotationsPrivate(const AnnotationArrangerInputs& arrangerInputs);
         
-        void alignAnnotationToValue(const AnnotationArrangerInputs& arrangerInputs,
-                                    const float alignToWindowCoordinateValue,
+        void distributeAnnotationsPrivate(const AnnotationArrangerInputs& arrangerInputs);
+        
+        void alignAnnotationToValue(const float alignToWindowCoordinateValue,
                                     AnnotationInfo& annotationInfo,
                                     std::vector<Annotation*>& annotationsBeforeMoving,
                                     std::vector<Annotation*>& annotationsAfterMoving);
@@ -112,6 +120,10 @@ namespace caret {
         BoundingBox m_allAnnotationsBoundingBox;
         
         std::vector<AnnotationInfo> m_annotationInfo;
+        
+        AnnotationAlignmentEnum::Enum m_alignment;
+        
+        AnnotationDistributeEnum::Enum m_distribute;
         
         bool m_debugFlag = false;
         

@@ -60,6 +60,23 @@ namespace caret {
 
         AnnotationMenuArrange& operator=(const AnnotationMenuArrange&);
         
+        QPixmap createAlignmentPixmap(const QWidget* widget,
+                                      const AnnotationAlignmentEnum::Enum alignment);
+        
+        QPixmap createDistributePixmap(const QWidget* widget,
+                                       const AnnotationDistributeEnum::Enum distribute);
+        
+        void drawLine(QSharedPointer<QPainter>& painter,
+                      const QLineF& line,
+                      const qreal x,
+                      const qreal y);
+        
+        void drawRect(QSharedPointer<QPainter>& painter,
+                      const QColor& color,
+                      const QRectF& rectangle,
+                      const qreal x,
+                      const qreal y);
+        
         const int32_t m_browserWindowIndex;
         
         // ADD_NEW_MEMBERS_HERE

@@ -56,6 +56,8 @@ using namespace caret;
 AnnotationArrangerExecutor::AnnotationArrangerExecutor()
 : CaretObject(),
 m_annotationManager(NULL),
+m_alignment(AnnotationAlignmentEnum::ALIGN_BOTTOM),
+m_distribute(AnnotationDistributeEnum::HORIZONTALLY),
 m_debugFlag(false)
 {
     
@@ -75,6 +77,8 @@ AnnotationArrangerExecutor::~AnnotationArrangerExecutor()
  *     The annotation manager.
  * @param arrangerInputs
  *     Contains information about the alignment.
+ * @param alignment
+ *     The alignment selection.
  * @param errorMessageOut
  *     Contains description of error.
  * @return
@@ -83,10 +87,13 @@ AnnotationArrangerExecutor::~AnnotationArrangerExecutor()
 bool
 AnnotationArrangerExecutor::alignAnnotations(AnnotationManager* annotationManager,
                                              const AnnotationArrangerInputs& arrangerInputs,
+                                             const AnnotationAlignmentEnum::Enum alignment,
                                              AString& errorMessageOut)
 {
     m_annotationManager = annotationManager;
     CaretAssert(m_annotationManager);
+    
+    m_alignment = alignment;
     
     errorMessageOut.clear();
     
@@ -99,6 +106,62 @@ AnnotationArrangerExecutor::alignAnnotations(AnnotationManager* annotationManage
     }
     
     return true;
+}
+
+/**
+ * Apply distribute modification to selected annotations
+ *
+ * @param annotationManager
+ *     The annotation manager.
+ * @param arrangerInputs
+ *     Contains information about the alignment.
+ * @param distribute
+ *     The distribute selection.
+ * @param errorMessageOut
+ *     Contains description of error.
+ * @return
+ *     True if the alignment was successful, else false.
+ */
+bool
+AnnotationArrangerExecutor::distributeAnnotations(AnnotationManager* annotationManager,
+                                                  const AnnotationArrangerInputs& arrangerInputs,
+                                                  const AnnotationDistributeEnum::Enum distribute,
+                                                  AString& errorMessageOut)
+{
+    m_annotationManager = annotationManager;
+    CaretAssert(m_annotationManager);
+    
+    m_distribute = distribute;
+    
+    errorMessageOut.clear();
+    
+    try {
+        distributeAnnotationsPrivate(arrangerInputs);
+    }
+    catch (const CaretException& caretException) {
+        errorMessageOut = caretException.whatString();
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Apply distribute modification to selected annotations
+ *
+ * @param arrangerInputs
+ *     Contains information about the distribute.
+ * @throw  CaretException
+ *     If there is an error.
+ */
+void
+AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrangerInputs& arrangerInputs)
+{
+    initializeForArranging(arrangerInputs);
+    
+    printAnnotationInfo("BEFORE");
+    
+    throw CaretException("NOT IMPLEMENTED");
 }
 
 /**
@@ -116,14 +179,12 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
     
     printAnnotationInfo("BEFORE");
     
-    const AnnotationAlignmentEnum::Enum alignmentType = arrangerInputs.getAlignment();
-    
     /*
      * Set the coordinate value to which annotations are aligned
      * based upon the selected alignment.
      */
     float alignToCoordinateValue = 0.0;
-    switch (alignmentType) {
+    switch (m_alignment) {
         case AnnotationAlignmentEnum::ALIGN_BOTTOM:
             alignToCoordinateValue = m_allAnnotationsBoundingBox.getMinY();
             break;
@@ -161,8 +222,7 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
          annInfoIter++) {
         
         AnnotationInfo& annInfo = *annInfoIter;
-        alignAnnotationToValue(arrangerInputs,
-                               alignToCoordinateValue,
+        alignAnnotationToValue(alignToCoordinateValue,
                                annInfo,
                                beforeMoving,
                                afterMoving);
@@ -177,7 +237,7 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLocationAndSize(beforeMoving,
                                             afterMoving);
-        undoCommand->setDescription(AnnotationAlignmentEnum::toGuiName(alignmentType));
+        undoCommand->setDescription(AnnotationAlignmentEnum::toGuiName(m_alignment));
         
         m_annotationManager->applyCommand(undoCommand);
     }
@@ -484,8 +544,6 @@ AnnotationArrangerExecutor::printAnnotationInfo(const QString& title)
 /**
  * Align an annotation to the given window coordinate value.
  *
- * @param arrangerInputs
- *     Contains information about the alignment.
  * @param alignToWindowCoordinateValue
  *     Align to window coordinate value.
  * @param annotationInfo
@@ -502,8 +560,7 @@ AnnotationArrangerExecutor::printAnnotationInfo(const QString& title)
  *     If there is an error.
  */
 void
-AnnotationArrangerExecutor::alignAnnotationToValue(const AnnotationArrangerInputs& arrangerInputs,
-                                                   const float alignToWindowCoordinateValue,
+AnnotationArrangerExecutor::alignAnnotationToValue(const float alignToWindowCoordinateValue,
                                                    AnnotationInfo& annotationInfo,
                                                    std::vector<Annotation*>& annotationsBeforeMoving,
                                                    std::vector<Annotation*>& annotationsAfterMoving)
@@ -513,7 +570,7 @@ AnnotationArrangerExecutor::alignAnnotationToValue(const AnnotationArrangerInput
      */
     float dx = 0.0;
     float dy = 0.0;
-    switch (arrangerInputs.getAlignment()) {
+    switch (m_alignment) {
         case AnnotationAlignmentEnum::ALIGN_BOTTOM:
             dy = alignToWindowCoordinateValue - annotationInfo.m_windowBoundingBox.getMinY();
             break;

@@ -21,7 +21,9 @@
  */
 /*LICENSE_END*/
 
+#include "AnnotationAlignmentEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
+#include "AnnotationDistributeEnum.h"
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "CaretUndoCommand.h"
@@ -112,6 +114,11 @@ namespace caret {
                                          std::vector<AnnotationFile*>& displayedAnnotationFilesOut) const;
         
         bool alignAnnotations(const AnnotationArrangerInputs& arrangerInputs,
+                              const AnnotationAlignmentEnum::Enum alignment,
+                              AString& errorMessageOut);
+        
+        bool distributeAnnotations(const AnnotationArrangerInputs& arrangerInputs,
+                              const AnnotationDistributeEnum::Enum distribute,
                               AString& errorMessageOut);
         
         // ADD_NEW_METHODS_HERE

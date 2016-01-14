@@ -492,14 +492,40 @@ AnnotationManager::getSelectedAnnotations(const int32_t windowIndex,
  */
 bool
 AnnotationManager::alignAnnotations(const AnnotationArrangerInputs& arrangerInputs,
+                                    const AnnotationAlignmentEnum::Enum alignment,
                                     AString& errorMessageOut)
 {
     AnnotationArrangerExecutor arranger;
     
     return arranger.alignAnnotations(this,
                                      arrangerInputs,
+                                     alignment,
                                      errorMessageOut);
 }
+
+/**
+ * Align annotations.
+ *
+ * @param arrangerInputs
+ *    Inputs to algorithm that aligns the annotations.
+ * @param errorMessageOut
+ *    Contains error message upon exit.
+ * @return
+ *    True if successful, false if error.
+ */
+bool
+AnnotationManager::distributeAnnotations(const AnnotationArrangerInputs& arrangerInputs,
+                                         const AnnotationDistributeEnum::Enum distribute,
+                                         AString& errorMessageOut)
+{
+    AnnotationArrangerExecutor arranger;
+    
+    return arranger.distributeAnnotations(this,
+                                     arrangerInputs,
+                                     distribute,
+                                     errorMessageOut);
+}
+
 
 /**
  * Receive an event.

@@ -45,11 +45,9 @@ using namespace caret;
  *     Index of window in which annotations are aligned.
  */
 AnnotationArrangerInputs::AnnotationArrangerInputs(BrainOpenGLTextRenderInterface* textRenderInterface,
-                                                                 const AnnotationAlignmentEnum::Enum alignment,
                                                                  const int32_t windowIndex)
 : CaretObject(),
 m_textRenderInterface(textRenderInterface),
-m_alignment(alignment),
 m_windowIndex(windowIndex)
 {
 }
@@ -70,15 +68,6 @@ AnnotationArrangerInputs::getTextRender() const
     return m_textRenderInterface;
 }
 
-
-/**
- * @return The alignment.
- */
-AnnotationAlignmentEnum::Enum
-AnnotationArrangerInputs::getAlignment() const
-{
-    return m_alignment;
-}
 
 /**
  * @return The window index.

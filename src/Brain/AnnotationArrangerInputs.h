@@ -22,7 +22,6 @@
 /*LICENSE_END*/
 
 
-#include "AnnotationAlignmentEnum.h"
 #include "CaretObject.h"
 
 namespace caret {
@@ -33,14 +32,11 @@ namespace caret {
         
     public:
         AnnotationArrangerInputs(BrainOpenGLTextRenderInterface* textRenderInterface,
-                                        const AnnotationAlignmentEnum::Enum m_alignment,
                                         const int32_t windowIndex);
         
         virtual ~AnnotationArrangerInputs();
 
         BrainOpenGLTextRenderInterface* getTextRender() const;
-        
-        AnnotationAlignmentEnum::Enum getAlignment() const;
         
         int32_t getWindowIndex() const;
         
@@ -54,8 +50,6 @@ namespace caret {
         AnnotationArrangerInputs& operator=(const AnnotationArrangerInputs&);
         
         BrainOpenGLTextRenderInterface* m_textRenderInterface;
-        
-        const AnnotationAlignmentEnum::Enum m_alignment;
         
         const int32_t m_windowIndex;
         
