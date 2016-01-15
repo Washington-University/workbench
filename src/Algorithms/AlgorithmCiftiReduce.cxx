@@ -20,8 +20,10 @@
 
 #include "AlgorithmCiftiReduce.h"
 #include "AlgorithmException.h"
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CiftiFile.h"
+#include "MultiDimIterator.h"
 #include "ReductionOperation.h"
 
 #include <vector>
@@ -36,7 +38,7 @@ AString AlgorithmCiftiReduce::getCommandSwitch()
 
 AString AlgorithmCiftiReduce::getShortDescription()
 {
-    return "PERFORM REDUCTION OPERATION ALONG CIFTI ROWS";
+    return "PERFORM REDUCTION OPERATION ON A CIFTI FILE";
 }
 
 OperationParameters* AlgorithmCiftiReduce::getParameters()
@@ -48,6 +50,9 @@ OperationParameters* AlgorithmCiftiReduce::getParameters()
     
     ret->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
     
+    OptionalParameter* directionOpt = ret->createOptionalParameter(6, "-direction", "specify what direction to reduce along");
+    directionOpt->addStringParameter(1, "direction", "the direction (default ROW)");
+    
     OptionalParameter* excludeOpt = ret->createOptionalParameter(4, "-exclude-outliers", "exclude non-numeric values and outliers by standard deviation");
     excludeOpt->addDoubleParameter(1, "sigma-below", "number of standard deviations below the mean to include");
     excludeOpt->addDoubleParameter(2, "sigma-above", "number of standard deviations above the mean to include");
@@ -55,8 +60,9 @@ OperationParameters* AlgorithmCiftiReduce::getParameters()
     ret->createOptionalParameter(5, "-only-numeric", "exclude non-numeric values");
     
     ret->setHelpText(
-        AString("For each cifti row, takes the data along a row as a vector, and performs the specified reduction on it, putting the result ") +
-        "into the single output column in that row.  The reduction operators are as follows:\n\n" + ReductionOperation::getHelpInfo()
+        AString("For the specified direction (default ROW), perform a reduction operation along that direction.  ") +
+        CiftiXML::directionFromStringExplanation() + "  " +
+        "The reduction operators are as follows:\n\n" + ReductionOperation::getHelpInfo()
     );
     return ret;
 }
@@ -66,6 +72,12 @@ void AlgorithmCiftiReduce::useParameters(OperationParameters* myParams, Progress
     CiftiFile* ciftiIn = myParams->getCifti(1);
     AString opString = myParams->getString(2);
     CiftiFile* ciftiOut = myParams->getOutputCifti(3);
+    int direction = CiftiXML::ALONG_ROW;
+    OptionalParameter* directionOpt = myParams->getOptionalParameter(6);
+    if (directionOpt->m_present)
+    {
+        direction = CiftiXML::directionFromString(directionOpt->getString(1));//does error checking, throws with message on error
+    }
     OptionalParameter* excludeOpt = myParams->getOptionalParameter(4);
     bool onlyNumeric = myParams->getOptionalParameter(5)->m_present;
     bool ok = false;
@@ -74,65 +86,125 @@ void AlgorithmCiftiReduce::useParameters(OperationParameters* myParams, Progress
     if (excludeOpt->m_present)
     {
         if (onlyNumeric) CaretLogWarning("-only-numeric is redundant when -exclude-outliers is specified");
-        AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut, excludeOpt->getDouble(1), excludeOpt->getDouble(2));
+        AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut, excludeOpt->getDouble(1), excludeOpt->getDouble(2), direction);
     } else {
-        AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut, onlyNumeric);
+        AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut, onlyNumeric, direction);
     }
 }
 
-AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const ReductionEnum::Enum& myReduce, CiftiFile* ciftiOut, const bool& onlyNumeric) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const ReductionEnum::Enum& myReduce, CiftiFile* ciftiOut,
+                                           const bool& onlyNumeric, const int& direction) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    int64_t numRows = ciftiIn->getNumberOfRows();
-    int64_t numCols = ciftiIn->getNumberOfColumns();
-    if (numCols < 1 || numRows < 1) throw AlgorithmException("input must have at least 1 column and 1 row");
-    CiftiXML myOutXML = ciftiIn->getCiftiXML();
-    if (myOutXML.getNumberOfDimensions() != 2)
-    {
-        throw AlgorithmException("cifti reduce only supports 2D cifti");
-    }
+    CaretAssert(direction >= 0);
+    const CiftiXML& inputXML = ciftiIn->getCiftiXML();
+    CiftiXML myOutXML = inputXML;
+    if (direction >= myOutXML.getNumberOfDimensions()) throw AlgorithmException("specified reduction direction doesn't exist in input cifti file");
     CiftiScalarsMap newMap;
     newMap.setLength(1);
     newMap.setMapName(0, ReductionEnum::toName(myReduce));
-    myOutXML.setMap(CiftiXML::ALONG_ROW, newMap);
+    myOutXML.setMap(direction, newMap);
     ciftiOut->setCiftiXML(myOutXML);
-    vector<float> scratchRow(numCols), outCol(numRows);
-    for (int64_t i = 0; i < numRows; ++i)
+    vector<int64_t> inDims = inputXML.getDimensions();
+    if (direction == CiftiXML::ALONG_ROW)
     {
-        ciftiIn->getRow(scratchRow.data(), i);
-        if (onlyNumeric)
+        vector<float> scratchInRow(inDims[0]);
+        for (MultiDimIterator<int64_t> iter(vector<int64_t>(inDims.begin() + 1, inDims.end())); !iter.atEnd(); ++iter)
+        {// + 1 to exclude row dimension, because getRow/setRow
+            ciftiIn->getRow(scratchInRow.data(), *iter);
+            float result = -1;
+            if (onlyNumeric)
+            {
+                result = ReductionOperation::reduceOnlyNumeric(scratchInRow.data(), inDims[0], myReduce);
+            } else {
+                result = ReductionOperation::reduce(scratchInRow.data(), inDims[0], myReduce);
+            }
+            ciftiOut->setRow(&result, *iter);//if reducing along row, length of output row is 1
+        }
+    } else {
+        vector<vector<float> > scratchInRows(inDims[direction], vector<float>(inDims[0]));
+        vector<float> outRow(inDims[0]), reduceScratch(inDims[direction]);//reduction isn't along row, so out rows will be same length as in rows
+        vector<int64_t> otherDims = inDims;
+        otherDims.erase(otherDims.begin() + direction);//direction isn't 0
+        otherDims.erase(otherDims.begin());//remove row direction because getRow/setRow
+        for (MultiDimIterator<int64_t> iter(otherDims); !iter.atEnd(); ++iter)
         {
-            outCol[i] = ReductionOperation::reduceOnlyNumeric(scratchRow.data(), numCols, myReduce);
-        } else {
-            outCol[i] = ReductionOperation::reduce(scratchRow.data(), numCols, myReduce);
+            vector<int64_t> indexvec = *iter;
+            indexvec.insert(indexvec.begin() + direction - 1, -1);//dummy value in place of reduce direction
+            for (int64_t i = 0; i < inDims[direction]; ++i)
+            {
+                indexvec[direction - 1] = i;
+                ciftiIn->getRow(scratchInRows[i].data(), indexvec);
+            }
+            for (int64_t i = 0; i < inDims[0]; ++i)
+            {
+                for (int64_t j = 0; j < inDims[direction]; ++j)
+                {//need reduction input in contiguous array
+                    reduceScratch[j] = scratchInRows[j][i];
+                }
+                if (onlyNumeric)
+                {
+                    outRow[i] = ReductionOperation::reduceOnlyNumeric(reduceScratch.data(), inDims[direction], myReduce);
+                } else {
+                    outRow[i] = ReductionOperation::reduce(reduceScratch.data(), inDims[direction], myReduce);
+                }
+            }
+            indexvec[direction - 1] = 0;//only one element along reduce output direction
+            ciftiOut->setRow(outRow.data(), indexvec);
         }
     }
-    ciftiOut->setColumn(outCol.data(), 0);
 }
 
-AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const ReductionEnum::Enum& myReduce, CiftiFile* ciftiOut, const float& sigmaBelow, const float& sigmaAbove) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const ReductionEnum::Enum& myReduce, CiftiFile* ciftiOut,
+                                           const float& sigmaBelow, const float& sigmaAbove, const int& direction) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    int64_t numRows = ciftiIn->getNumberOfRows();
-    int64_t numCols = ciftiIn->getNumberOfColumns();
-    if (numCols < 1 || numRows < 1) throw AlgorithmException("input must have at least 1 column and 1 row");
-    CiftiXML myOutXML = ciftiIn->getCiftiXML();
-    if (myOutXML.getNumberOfDimensions() != 2)
-    {
-        throw AlgorithmException("cifti reduce only supports 2D cifti");
-    }
+    CaretAssert(direction >= 0);
+    const CiftiXML& inputXML = ciftiIn->getCiftiXML();
+    CiftiXML myOutXML = inputXML;
+    if (direction >= myOutXML.getNumberOfDimensions()) throw AlgorithmException("specified reduction direction doesn't exist in input cifti file");
     CiftiScalarsMap newMap;
     newMap.setLength(1);
     newMap.setMapName(0, ReductionEnum::toName(myReduce));
-    myOutXML.setMap(CiftiXML::ALONG_ROW, newMap);
+    myOutXML.setMap(direction, newMap);
     ciftiOut->setCiftiXML(myOutXML);
-    vector<float> scratchRow(numCols), outCol(numRows);
-    for (int64_t i = 0; i < numRows; ++i)
+    vector<int64_t> inDims = inputXML.getDimensions();
+    if (direction == CiftiXML::ALONG_ROW)
     {
-        ciftiIn->getRow(scratchRow.data(), i);
-        outCol[i] = ReductionOperation::reduceExcludeDev(scratchRow.data(), numCols, myReduce, sigmaBelow, sigmaAbove);
+        vector<float> scratchInRow(inDims[0]);
+        for (MultiDimIterator<int64_t> iter(vector<int64_t>(inDims.begin() + 1, inDims.end())); !iter.atEnd(); ++iter)
+        {// + 1 to exclude row dimension, because getRow/setRow
+            ciftiIn->getRow(scratchInRow.data(), *iter);
+            float result = ReductionOperation::reduceExcludeDev(scratchInRow.data(), inDims[0], myReduce, sigmaBelow, sigmaAbove);
+            ciftiOut->setRow(&result, *iter);//if reducing along row, length of output row is 1
+        }
+    } else {
+        vector<vector<float> > scratchInRows(inDims[direction], vector<float>(inDims[0]));
+        vector<float> outRow(inDims[0]), reduceScratch(inDims[direction]);//reduction isn't along row, so out rows will be same length as in rows
+        vector<int64_t> otherDims = inDims;
+        otherDims.erase(otherDims.begin() + direction);//direction isn't 0
+        otherDims.erase(otherDims.begin());//remove row direction because getRow/setRow
+        for (MultiDimIterator<int64_t> iter(otherDims); !iter.atEnd(); ++iter)
+        {
+            vector<int64_t> indexvec = *iter;
+            indexvec.insert(indexvec.begin() + direction - 1, -1);//dummy value in place of reduce direction
+            for (int64_t i = 0; i < inDims[direction]; ++i)
+            {
+                indexvec[direction - 1] = i;
+                ciftiIn->getRow(scratchInRows[i].data(), indexvec);
+            }
+            for (int64_t i = 0; i < inDims[0]; ++i)
+            {
+                for (int64_t j = 0; j < inDims[direction]; ++j)
+                {//need reduction input in contiguous array
+                    reduceScratch[j] = scratchInRows[j][i];
+                }
+                outRow[i] = ReductionOperation::reduceExcludeDev(reduceScratch.data(), inDims[direction], myReduce, sigmaBelow, sigmaAbove);
+            }
+            indexvec[direction - 1] = 0;//only one element along reduce output direction
+            ciftiOut->setRow(outRow.data(), indexvec);
+        }
     }
-    ciftiOut->setColumn(outCol.data(), 0);
 }
 
 float AlgorithmCiftiReduce::getAlgorithmInternalWeight()
