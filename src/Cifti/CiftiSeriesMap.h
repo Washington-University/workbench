@@ -21,7 +21,6 @@
  */
 /*LICENSE_END*/
 
-#include "CaretAssert.h"
 #include "CiftiMappingType.h"
 
 namespace caret
@@ -57,7 +56,7 @@ namespace caret
         void setStart(const float& start) { m_start = start; }
         void setStep(const float& step) { m_step = step; }
         void setUnit(const Unit& unit) { m_unit = unit; }
-        void setLength(const int64_t& length) { CaretAssert(length > 0); m_length = length; }
+        void setLength(const int64_t& length);
         
         static Unit stringToUnit(const QString& string, bool& ok);
         static QString unitToString(const Unit& theUnit);

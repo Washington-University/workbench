@@ -33,6 +33,25 @@
 using namespace std;
 using namespace caret;
 
+int CiftiXML::directionFromString(const QString& input)
+{
+    bool ok = false;
+    int converted = input.toInt(&ok);
+    if (ok)
+    {
+        if (converted < 1) throw CaretException("invalid integer direction, use 1 or greater");
+        return converted - 1;//use 1-indexed convention for input
+    }
+    if (input == "ROW") return ALONG_ROW;
+    if (input == "COLUMN") return ALONG_COLUMN;//should we also allow STACK?  integers seem cleaner
+    throw CaretException("unrecognized direction string, please use an integer, 'ROW', or 'COLUMN'");
+}
+
+QString CiftiXML::directionFromStringExplanation()
+{
+    return "The direction can be either an integer starting from 1, or the strings 'ROW' or 'COLUMN'.";
+}
+
 CiftiXML::CiftiXML(const CiftiXML& rhs)
 {
     copyHelper(rhs);

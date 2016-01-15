@@ -96,6 +96,9 @@ namespace caret
         
         bool mutablesModified() const;
         void clearMutablesModified() const;//HACK: clear modified status on a const object
+        
+        static int directionFromString(const QString& input);//convenience conversion function, throws on error
+        static QString directionFromStringExplanation();//and explanation text
     private:
         std::vector<CaretPointer<CiftiMappingType> > m_indexMaps;
         CiftiVersion m_parsedVersion;

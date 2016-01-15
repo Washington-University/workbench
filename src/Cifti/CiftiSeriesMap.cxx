@@ -20,6 +20,7 @@
 
 #include "CiftiSeriesMap.h"
 
+#include "CaretAssert.h"
 #include "CaretException.h"
 #include "CaretLogger.h"
 
@@ -27,6 +28,12 @@
 
 using namespace caret;
 using namespace std;
+
+void CiftiSeriesMap::setLength(const int64_t& length)
+{
+    CaretAssert(length > 0);
+    m_length = length;
+}
 
 CiftiSeriesMap::Unit CiftiSeriesMap::stringToUnit(const QString& string, bool& ok)
 {
