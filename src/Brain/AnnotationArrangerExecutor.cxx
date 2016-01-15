@@ -251,7 +251,9 @@ AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrange
     const float availableSpace = distMaxValue - distMinValue;
     
     /*
-     * Space to put between annotations
+     * Space to put between annotations.
+     * Will be negative when the distance between the first and last annotations
+     * is less than the total size of the annotations that are distributed.
      */
     const float numberOfSpacesBetweenAnnotations = numAnn - 1;
     const float spaceBetweenAnnotations = ((availableSpace - distributeSum)
@@ -261,12 +263,6 @@ AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrange
         std::cout << "Dist min max: ("
         << distMinValue << ", " << distMaxValue << ") availSpace="
         << availableSpace << " delta-space=" << spaceBetweenAnnotations << std::endl;
-    }
-    
-    if (spaceBetweenAnnotations < 0.0) {
-        throw CaretException("There is insufficient space between the left (bottom) most "
-                             "and right (top) most annotation to perform distribution.");
-        return;
     }
     
     std::vector<Annotation*> beforeMoving;
