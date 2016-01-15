@@ -52,7 +52,7 @@ OperationParameters* AlgorithmCiftiParcellate::getParameters()
     
     ret->addCiftiParameter(2, "cifti-label", "a cifti label file to use for the parcellation");
     
-    ret->addStringParameter(3, "direction", "which mapping to parcellate, ROW or COLUMN");
+    ret->addStringParameter(3, "direction", "which mapping to parcellate (integer, ROW, or COLUMN)");
     
     ret->addCiftiOutputParameter(4, "cifti-out", "output cifti file");
     
@@ -85,7 +85,7 @@ OperationParameters* AlgorithmCiftiParcellate::getParameters()
     ret->setHelpText(
         AString("Each label in the cifti label file will be treated as a parcel, and all rows or columns within the parcel are averaged together to form the output ") +
         "row or column.  " +
-        "If ROW is specified, then the input mapping along rows must be brainordinates, and the output mapping along rows will be parcels, meaning columns will be averaged together.  " +
+        CiftiXML::directionFromStringExplanation() + "  " +
         "For dtseries or dscalar, use COLUMN.  " +
         "If you are parcellating a dconn in both directions, parcellating by ROW first will use much less memory.\n\n" +
         "The parameter to the -method option must be one of the following:\n\n" + ReductionOperation::getHelpInfo() +
@@ -99,18 +99,7 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
     CiftiFile* myCiftiIn = myParams->getCifti(1);
     CiftiFile* myCiftiLabel = myParams->getCifti(2);
     AString dirString = myParams->getString(3);
-    int direction = -1;
-    if (dirString == "ROW")
-    {
-        direction = CiftiXML::ALONG_ROW;
-    } else {
-        if (dirString == "COLUMN")
-        {
-            direction = CiftiXML::ALONG_COLUMN;
-        } else {
-            throw AlgorithmException("unrecognized direction string, use ROW or COLUMN");
-        }
-    }
+    int direction = CiftiXML::directionFromString(dirString);
     CiftiFile* myCiftiOut = myParams->getOutputCifti(4);
     const CiftiXML& myXML = myCiftiIn->getCiftiXML();
     vector<int64_t> dims = myXML.getDimensions();
