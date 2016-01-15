@@ -44,7 +44,7 @@ OperationParameters* AlgorithmCiftiMergeParcels::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
-    ret->addStringParameter(1, "direction", "which dimension to merge along, ROW or COLUMN");
+    ret->addStringParameter(1, "direction", "which dimension to merge along (integer, 'ROW', or 'COLUMN')");
     
     ret->addCiftiOutputParameter(2, "cifti-out", "the output cifti file");
     
@@ -52,7 +52,8 @@ OperationParameters* AlgorithmCiftiMergeParcels::getParameters()
     ciftiOpt->addCiftiParameter(1, "cifti-in", "a cifti file to merge");
     
     ret->setHelpText(
-        AString("The input cifti files must have matching mappings along the direction not specified, and the mapping along the specified direction must be parcels.")
+        AString("The input cifti files must have matching mappings along the direction not specified, and the mapping along the specified direction must be parcels.  ") +
+        CiftiXML::directionFromStringExplanation()
     );
     return ret;
 }
@@ -60,15 +61,7 @@ OperationParameters* AlgorithmCiftiMergeParcels::getParameters()
 void AlgorithmCiftiMergeParcels::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     AString directionName = myParams->getString(1);
-    int myDir;
-    if (directionName == "ROW")
-    {
-        myDir = CiftiXML::ALONG_ROW;
-    } else if (directionName == "COLUMN") {
-        myDir = CiftiXML::ALONG_COLUMN;
-    } else {
-        throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
-    }
+    int myDir = CiftiXML::directionFromString(directionName);
     CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
     const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(3));
     vector<const CiftiFile*> ciftiList;
@@ -83,6 +76,7 @@ void AlgorithmCiftiMergeParcels::useParameters(OperationParameters* myParams, Pr
 AlgorithmCiftiMergeParcels::AlgorithmCiftiMergeParcels(ProgressObject* myProgObj, const int& myDir, const vector<const CiftiFile*>& ciftiList, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    CaretAssert(myDir >= 0);
     int listSize = (int)ciftiList.size();
     if (listSize < 1) throw AlgorithmException("no input files specified");
     CaretAssert(ciftiList[0] != NULL);
@@ -95,6 +89,10 @@ AlgorithmCiftiMergeParcels::AlgorithmCiftiMergeParcels(ProgressObject* myProgObj
     {
         CaretAssert(ciftiList[i] != NULL);
         const CiftiXML& thisXML = ciftiList[i]->getCiftiXML();
+        if (myDir >= thisXML.getNumberOfDimensions())
+        {
+            throw AlgorithmException("input cifti file '" + ciftiList[i]->getFileName() + "' does not have the specified dimension");
+        }
         if (thisXML.getMappingType(myDir) != CiftiMappingType::PARCELS)
         {
             throw AlgorithmException("input cifti file '" + ciftiList[i]->getFileName() + "' does not have a parcels mapping on the specified dimension");

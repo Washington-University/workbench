@@ -48,7 +48,7 @@ OperationParameters* AlgorithmCiftiRestrictDenseMap::getParameters()
     
     ret->addCiftiParameter(1, "cifti-in", "the input cifti");
     
-    ret->addStringParameter(2, "direction", "which dimension to change the mapping on, ROW or COLUMN");
+    ret->addStringParameter(2, "direction", "which dimension to change the mapping on (integer, 'ROW', or 'COLUMN')");
     
     ret->addCiftiOutputParameter(3, "cifti-out", "the output cifti");
     
@@ -69,6 +69,7 @@ OperationParameters* AlgorithmCiftiRestrictDenseMap::getParameters()
     
     ret->setHelpText(
         AString("Writes a modified version of <cifti-in>, where all brainordinates outside the specified roi(s) are removed from the file.  ") +
+        CiftiXML::directionFromStringExplanation() + "  " +
         "If -cifti-roi is specified, no other -*-roi option may be specified.  " +
         "If not using -cifti-roi, any -*-roi options not present will discard the relevant structure, if present in the input file."
     );
@@ -78,16 +79,7 @@ OperationParameters* AlgorithmCiftiRestrictDenseMap::getParameters()
 void AlgorithmCiftiRestrictDenseMap::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     const CiftiFile* ciftiIn = myParams->getCifti(1);
-    AString dirString = myParams->getString(2);
-    int direction = -1;
-    if (dirString == "ROW")
-    {
-        direction = CiftiXML::ALONG_ROW;
-    } else if (dirString == "COLUMN") {
-        direction = CiftiXML::ALONG_COLUMN;
-    } else {
-        throw AlgorithmException("unrecognized direction string, use ROW or COLUMN");
-    }
+    int direction = CiftiXML::directionFromString(myParams->getString(2));
     CiftiFile* ciftiOut = myParams->getOutputCifti(3);
     OptionalParameter* ciftiRoiOpt = myParams->getOptionalParameter(4);
     OptionalParameter* leftRoiOpt = myParams->getOptionalParameter(5);
@@ -120,8 +112,9 @@ void AlgorithmCiftiRestrictDenseMap::useParameters(OperationParameters* myParams
 AlgorithmCiftiRestrictDenseMap::AlgorithmCiftiRestrictDenseMap(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& direction, CiftiFile* ciftiOut, const CiftiFile* ciftiRoi) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    CaretAssert(direction >= 0);
     const CiftiXML& inXML = ciftiIn->getCiftiXML(), &roiXML = ciftiRoi->getCiftiXML();
-    if (direction < 0 || direction >= inXML.getNumberOfDimensions())
+    if (direction >= inXML.getNumberOfDimensions())
     {
         throw AlgorithmException("invalid direction for input file");
     }
@@ -227,8 +220,9 @@ AlgorithmCiftiRestrictDenseMap::AlgorithmCiftiRestrictDenseMap(ProgressObject* m
                                                                const MetricFile* leftRoi, const MetricFile* rightRoi, const MetricFile* cerebRoi, const VolumeFile* volRoi) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    CaretAssert(direction >= 0);
     const CiftiXML& inXML = ciftiIn->getCiftiXML();
-    if (direction < 0 || direction >= inXML.getNumberOfDimensions())
+    if (direction >= inXML.getNumberOfDimensions())
     {
         throw AlgorithmException("invalid direction for input file");
     }

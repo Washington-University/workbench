@@ -98,8 +98,7 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
 {
     CiftiFile* myCiftiIn = myParams->getCifti(1);
     CiftiFile* myCiftiLabel = myParams->getCifti(2);
-    AString dirString = myParams->getString(3);
-    int direction = CiftiXML::directionFromString(dirString);
+    int direction = CiftiXML::directionFromString(myParams->getString(3));
     CiftiFile* myCiftiOut = myParams->getOutputCifti(4);
     const CiftiXML& myXML = myCiftiIn->getCiftiXML();
     vector<int64_t> dims = myXML.getDimensions();
@@ -140,6 +139,7 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
     }
     if (spatialWeightOpt->m_present)
     {
+        if (direction >= myXML.getNumberOfDimensions()) throw AlgorithmException("input cifti file does not have the specified dimension");
         if (myXML.getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("input cifti file does not have brain models mapping type in specified direction");
         CiftiBrainModelsMap myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
         OptionalParameter* leftSurfOpt = spatialWeightOpt->getOptionalParameter(1);
@@ -209,6 +209,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
                                                    const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    CaretAssert(direction >= 0);
     const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
     const CiftiXML& myLabelXML = myCiftiLabel->getCiftiXML();
     vector<int64_t> dims = myInputXML.getDimensions();
@@ -604,6 +605,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
                                                    const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    CaretAssert(direction >= 0);
     const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
     const CiftiXML& myLabelXML = myCiftiLabel->getCiftiXML();
     vector<int64_t> dims = myInputXML.getDimensions();
@@ -703,6 +705,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
                                                    const CiftiFile* ciftiWeights, const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    CaretAssert(direction >= 0);
     const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
     const CiftiXML& myLabelXML = myCiftiLabel->getCiftiXML();
     const CiftiXML& weightsXML = ciftiWeights->getCiftiXML();

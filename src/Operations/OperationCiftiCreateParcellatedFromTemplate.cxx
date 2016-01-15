@@ -46,7 +46,7 @@ OperationParameters* OperationCiftiCreateParcellatedFromTemplate::getParameters(
     
     ret->addCiftiParameter(1, "cifti-template", "a cifti file with the template parcel mapping along column");
     
-    ret->addStringParameter(2, "modify-direction", "which dimension of the output file should match the template, ROW or COLUMN");
+    ret->addStringParameter(2, "modify-direction", "which dimension of the output file should match the template (integer, 'ROW', or 'COLUMN')");
     
     ret->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
     
@@ -58,7 +58,8 @@ OperationParameters* OperationCiftiCreateParcellatedFromTemplate::getParameters(
     
     ret->setHelpText(
         AString("For each parcel name in the template mapping, find that name in an input cifti file and use its data in the output file.  ") +
-        "All input cifti files must have a parcels mapping along <modify-direction> and matching mappings along other dimensions."
+        "All input cifti files must have a parcels mapping along <modify-direction> and matching mappings along other dimensions.  " +
+        CiftiXML::directionFromStringExplanation()
     );
     return ret;
 }
@@ -67,19 +68,7 @@ void OperationCiftiCreateParcellatedFromTemplate::useParameters(OperationParamet
 {
     LevelProgress myProgress(myProgObj);
     CiftiFile* templateCifti = myParams->getCifti(1);
-    AString dirString = myParams->getString(2);
-    int direction = -1;
-    if (dirString == "ROW")
-    {
-        direction = CiftiXML::ALONG_ROW;
-    } else {
-        if (dirString == "COLUMN")
-        {
-            direction = CiftiXML::ALONG_COLUMN;
-        } else {
-            throw OperationException("unrecognized direction string, use ROW or COLUMN");
-        }
-    }
+    int direction = CiftiXML::directionFromString(myParams->getString(2));
     CiftiFile* ciftiOut = myParams->getOutputCifti(3);
     OptionalParameter* fillOpt = myParams->getOptionalParameter(4);
     float fillValue = 0.0f;
@@ -100,6 +89,10 @@ void OperationCiftiCreateParcellatedFromTemplate::useParameters(OperationParamet
     }
     const CiftiXML& firstXML = inputInstances[0]->getCifti(1)->getCiftiXML();
     int numDims = firstXML.getNumberOfDimensions();
+    if (direction >= numDims)
+    {
+        throw OperationException("input file '" + inputInstances[0]->getCifti(1)->getFileName() + "' does not contain the specified dimension");
+    }
     for (int i = 0; i < numInstances; ++i)
     {
         const CiftiFile* thisInput = inputInstances[i]->getCifti(1);

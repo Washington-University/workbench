@@ -53,7 +53,7 @@ OperationParameters* OperationCiftiCopyMapping::getParameters()
     
     ret->setHelpText(
         AString("<data-cifti> must have the same length along the replace direction as <template-cifti> has along the template direction.  ") +
-        "Each direction argument must be either ROW or COLUMN."
+        CiftiXML::directionFromStringExplanation()
     );
     return ret;
 }
@@ -62,29 +62,19 @@ void OperationCiftiCopyMapping::useParameters(OperationParameters* myParams, Pro
 {
     LevelProgress myProgress(myProgObj);
     const CiftiFile* dataCifti = myParams->getCifti(1);
-    AString dataDirStr = myParams->getString(2);
-    int dataDir = -1;
-    if (dataDirStr == "ROW")
-    {
-        dataDir = CiftiXML::ALONG_ROW;
-    } else if (dataDirStr == "COLUMN") {
-        dataDir = CiftiXML::ALONG_COLUMN;
-    } else {
-        throw OperationException("incorrect string for replace-dir, use ROW or COLUMN");
-    }
+    int dataDir = CiftiXML::directionFromString(myParams->getString(2));
     const CiftiFile* templateCifti = myParams->getCifti(3);
-    AString templateDirStr = myParams->getString(4);
-    int templateDir = -1;
-    if (templateDirStr == "ROW")
-    {
-        templateDir = CiftiXML::ALONG_ROW;
-    } else if (templateDirStr == "COLUMN") {
-        templateDir = CiftiXML::ALONG_COLUMN;
-    } else {
-        throw OperationException("incorrect string for template-dir, use ROW or COLUMN");
-    }
+    int templateDir = CiftiXML::directionFromString(myParams->getString(4));
     CiftiFile* ciftiOut = myParams->getOutputCifti(5);
     CiftiXML outXML = dataCifti->getCiftiXML();//we need a copy of it so we can modify
+    if (dataDir >= dataCifti->getCiftiXML().getNumberOfDimensions())
+    {
+        throw OperationException("specified direction doesn't exist in data file");
+    }
+    if (templateDir >= templateCifti->getCiftiXML().getNumberOfDimensions())
+    {
+        throw OperationException("specified direction doesn't exist in template file");
+    }
     if (outXML.getDimensionLength(dataDir) != templateCifti->getCiftiXML().getDimensionLength(templateDir))
     {
         throw OperationException("selected directions on files have different length");

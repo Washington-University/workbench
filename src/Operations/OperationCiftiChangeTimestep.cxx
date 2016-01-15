@@ -93,7 +93,7 @@ void OperationCiftiChangeTimestep::useParameters(OperationParameters* myParams, 
     }
     if (modified)
     {
-        myCifti.convertToInMemory();
+        myCifti.convertToInMemory();//because we are overwriting the input file
         CiftiFile outCifti;
         outCifti.setWritingFile(ciftiName);//starts on-disk writing
         outCifti.setCiftiXML(tempXML);
