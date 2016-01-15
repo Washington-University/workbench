@@ -55,10 +55,11 @@ using namespace caret;
  */
 AnnotationArrangerExecutor::AnnotationArrangerExecutor()
 : CaretObject(),
+m_mode(MODE_NONE),
 m_annotationManager(NULL),
 m_alignment(AnnotationAlignmentEnum::ALIGN_BOTTOM),
 m_distribute(AnnotationDistributeEnum::HORIZONTALLY),
-m_debugFlag(false)
+m_debugFlag(true)
 {
     
 }
@@ -90,6 +91,8 @@ AnnotationArrangerExecutor::alignAnnotations(AnnotationManager* annotationManage
                                              const AnnotationAlignmentEnum::Enum alignment,
                                              AString& errorMessageOut)
 {
+    m_mode = MODE_ALIGN;
+    
     m_annotationManager = annotationManager;
     CaretAssert(m_annotationManager);
     
@@ -128,6 +131,8 @@ AnnotationArrangerExecutor::distributeAnnotations(AnnotationManager* annotationM
                                                   const AnnotationDistributeEnum::Enum distribute,
                                                   AString& errorMessageOut)
 {
+    m_mode = MODE_DISTRIBUTE;
+    
     m_annotationManager = annotationManager;
     CaretAssert(m_annotationManager);
     
@@ -147,6 +152,41 @@ AnnotationArrangerExecutor::distributeAnnotations(AnnotationManager* annotationM
 }
 
 /**
+ * \class caret::AnnotationArrangerExecutor::SortForDistributeFunctionObject
+ * \brief Performs alignment, distribution of annotations similar to PowerPoint.
+ * \ingroup Brain
+ */
+AnnotationArrangerExecutor::SortForDistributeFunctionObject::SortForDistributeFunctionObject(const AnnotationDistributeEnum::Enum distribute)
+: m_distribute(distribute)
+{
+}
+
+/**
+ * Function for sorting by distribution value.
+ * 
+ * @param ann1
+ *     First annotation info.
+ * @param ann2 
+ *     Second annotation info.
+ * @return
+ *     True if ann1 less than ann2, else false.
+ */
+bool
+AnnotationArrangerExecutor::SortForDistributeFunctionObject::operator()(const AnnotationInfo& ann1,
+                                                                        const AnnotationInfo& ann2) const {
+    switch (m_distribute) {
+        case AnnotationDistributeEnum::HORIZONTALLY:
+            return (ann1.m_windowMidPointXY[0] < ann2.m_windowMidPointXY[0]);
+            break;
+        case AnnotationDistributeEnum::VERTICALLY:
+            return (ann1.m_windowMidPointXY[1] < ann2.m_windowMidPointXY[1]);
+            break;
+    }
+    
+    return false;
+}
+
+/**
  * Apply distribute modification to selected annotations
  *
  * @param arrangerInputs
@@ -161,8 +201,674 @@ AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrange
     
     printAnnotationInfo("BEFORE");
     
-    throw CaretException("NOT IMPLEMENTED");
+    /*
+     * Sort the annotation info by the window mid point value
+     */
+    std::sort(m_annotationInfo.begin(),
+              m_annotationInfo.end(),
+              SortForDistributeFunctionObject(m_distribute));
+    
+    printAnnotationInfo("AFTER SORT FOR DISTRIBUTE");
+    
+    float distMinValue = 0.0;
+    float distMaxValue = 0.0;
+    float distributeSum = 0.0;
+    
+    const int32_t numAnn = static_cast<int32_t>(m_annotationInfo.size());
+    for (int32_t i = 0; i < numAnn; i++) {
+        CaretAssertVectorIndex(m_annotationInfo, i);
+        AnnotationInfo& annInfo = m_annotationInfo[i];
+        
+        switch (m_distribute) {
+            case AnnotationDistributeEnum::HORIZONTALLY:
+                if (i == 0) {
+                    distMinValue = annInfo.m_windowBoundingBox.getMaxX();
+                }
+                else if (i == (numAnn - 1)) {
+                    distMaxValue = annInfo.m_windowBoundingBox.getMinX();
+                }
+                else {
+                    distributeSum += annInfo.m_windowBoundingBox.getDifferenceX();
+                }
+                break;
+            case AnnotationDistributeEnum::VERTICALLY:
+                if (i == 0) {
+                    distMinValue = annInfo.m_windowBoundingBox.getMaxY();
+                }
+                else if (i == (numAnn - 1)) {
+                    distMaxValue = annInfo.m_windowBoundingBox.getMinY();
+                }
+                else {
+                    distributeSum += annInfo.m_windowBoundingBox.getDifferenceY();
+                }
+                break;
+        }
+    }
+    
+    /*
+     * Space between max edge of first and min edge of last
+     */
+    const float availableSpace = distMaxValue - distMinValue;
+    
+    /*
+     * Space to put between annotations
+     */
+    const float numberOfSpacesBetweenAnnotations = numAnn - 1;
+    const float spaceBetweenAnnotations = ((availableSpace - distributeSum)
+                                        / numberOfSpacesBetweenAnnotations);
+    
+    if (m_debugFlag) {
+        std::cout << "Dist min max: ("
+        << distMinValue << ", " << distMaxValue << ") availSpace="
+        << availableSpace << " delta-space=" << spaceBetweenAnnotations << std::endl;
+    }
+    
+    if (spaceBetweenAnnotations < 0.0) {
+        throw CaretException("There is insufficient space between the left (bottom) most "
+                             "and right (top) most annotation to perform distribution.");
+        return;
+    }
+    
+    std::vector<Annotation*> beforeMoving;
+    std::vector<Annotation*> afterMoving;
+    
+    /*
+     * Initialize to the right/top edge of the first annotation
+     */
+    float newCoordinate = distMinValue;
+    
+    for (int32_t i = 0; i < numAnn; i++) {
+        CaretAssertVectorIndex(m_annotationInfo, i);
+        AnnotationInfo& annInfo = m_annotationInfo[i];
+        
+        Annotation* annotationModified = annInfo.m_annotation->clone();
+        
+        if (i == 0) {
+            /* first annotation does not move */
+        }
+        else if (i == (numAnn - 1)) {
+            /* last annotation does not move */
+        }
+        else {
+            /*
+             * newCoordinate is now at the location of the
+             * left/bottom edge of the annotation to be moved.
+             */
+            newCoordinate += spaceBetweenAnnotations;
+            
+            /*
+             * For most annotations, the annotation's coordinate is at the
+             * center of the annotation.  However, an exception is text annotation
+             * due to their alignment properties.  So, we calculate how much the
+             * left or bottom edge should move and apply that difference to the annotation's
+             * coordinate.
+             */
+            float dx = 0.0;
+            float dy = 0.0;
+            float annotationWidthHeight = 0.0;
+            switch (m_distribute) {
+                case AnnotationDistributeEnum::HORIZONTALLY:
+                {
+                    dx = newCoordinate - annInfo.m_windowBoundingBox.getMinX();
+                    annotationWidthHeight = annInfo.m_windowBoundingBox.getDifferenceX();
+                }
+                    break;
+                case AnnotationDistributeEnum::VERTICALLY:
+                {
+                    dy = newCoordinate - annInfo.m_windowBoundingBox.getMinY();
+                    annotationWidthHeight = annInfo.m_windowBoundingBox.getDifferenceY();
+                }
+                    break;
+            }
+            
+            annInfo.moveAnnotationByXY(annotationModified,
+                                       dx,
+                                       dy);
+            newCoordinate += annotationWidthHeight;
+        }
+        
+        beforeMoving.push_back(annInfo.m_annotation);
+        afterMoving.push_back(annotationModified);
+    }
+    
+    /*
+     * If any annotations were moved, use a redo command
+     * so that the user may undo the alignment.
+     */
+    if ( ! beforeMoving.empty()) {
+        CaretAssert(beforeMoving.size() == afterMoving.size());
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeLocationAndSize(beforeMoving,
+                                            afterMoving);
+        undoCommand->setDescription(AnnotationDistributeEnum::toGuiName(m_distribute));
+        
+        m_annotationManager->applyCommand(undoCommand);
+    }
+    
+    /*
+     * The undo command copies these annotations so we need
+     * to delete them.
+     */
+    for (std::vector<Annotation*>::iterator annIter = afterMoving.begin();
+         annIter != afterMoving.end();
+         annIter++) {
+        Annotation* ann = *annIter;
+        CaretAssert(ann);
+        delete ann;
+    }
 }
+
+///**
+// * Apply distribute modification to selected annotations
+// *
+// * @param arrangerInputs
+// *     Contains information about the distribute.
+// * @throw  CaretException
+// *     If there is an error.
+// */
+//void
+//AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrangerInputs& arrangerInputs)
+//{
+//    initializeForArranging(arrangerInputs);
+//    
+//    printAnnotationInfo("BEFORE");
+//    
+//    /*
+//     * Sort the annotation info by the window mid point value
+//     */
+//    std::sort(m_annotationInfo.begin(),
+//              m_annotationInfo.end(),
+//              SortForDistributeFunctionObject(m_distribute));
+//    
+//    printAnnotationInfo("AFTER SORT FOR DISTRIBUTE");
+//    
+//    float distMinValue = 0.0;
+//    float distMaxValue = 0.0;
+//    float distributeSum = 0.0;
+//    
+//    const int32_t numAnn = static_cast<int32_t>(m_annotationInfo.size());
+//    for (int32_t i = 0; i < numAnn; i++) {
+//        CaretAssertVectorIndex(m_annotationInfo, i);
+//        AnnotationInfo& annInfo = m_annotationInfo[i];
+//        
+//        switch (m_distribute) {
+//            case AnnotationDistributeEnum::HORIZONTALLY:
+//                if (i == 0) {
+//                    distMinValue = annInfo.m_windowBoundingBox.getMaxX();
+//                }
+//                else if (i == (numAnn - 1)) {
+//                    distMaxValue = annInfo.m_windowBoundingBox.getMinX();
+//                }
+//                else {
+//                    distributeSum += annInfo.m_windowBoundingBox.getDifferenceX();
+//                }
+//                break;
+//            case AnnotationDistributeEnum::VERTICALLY:
+//                if (i == 0) {
+//                    distMinValue = annInfo.m_windowBoundingBox.getMaxY();
+//                }
+//                else if (i == (numAnn - 1)) {
+//                    distMaxValue = annInfo.m_windowBoundingBox.getMinY();
+//                }
+//                else {
+//                    distributeSum += annInfo.m_windowBoundingBox.getDifferenceY();
+//                }
+//                break;
+//        }
+//    }
+//    
+//    /*
+//     * Space between max edge of first and min edge of last
+//     */
+//    const float availableSpace = distMaxValue - distMinValue;
+//    
+//    /*
+//     * Space to put between annotations
+//     */
+//    const float numberOfSpacesBetweenAnnotations = numAnn - 1;
+//    const float annDeltaSpace = ((availableSpace - distributeSum)
+//                                 / numberOfSpacesBetweenAnnotations);
+//    
+//    if (m_debugFlag) {
+//        std::cout << "Dist min max: ("
+//        << distMinValue << ", " << distMaxValue << ") availSpace="
+//        << availableSpace << " delta-space=" << annDeltaSpace << std::endl;
+//    }
+//    
+//    if (annDeltaSpace < 0.0) {
+//        throw CaretException("There is insufficient space between the left (bottom) most "
+//                             "and right (top) most annotation to perform distribution.");
+//        return;
+//    }
+//    
+//    std::vector<Annotation*> beforeMoving;
+//    std::vector<Annotation*> afterMoving;
+//    
+//    /*
+//     * Initialize to the right/top edge of the first annotation
+//     */
+//    float newCoordinate = distMinValue;
+//    
+//    for (int32_t i = 0; i < numAnn; i++) {
+//        CaretAssertVectorIndex(m_annotationInfo, i);
+//        AnnotationInfo& annInfo = m_annotationInfo[i];
+//        
+//        Annotation* annotationModified = annInfo.m_annotation->clone();
+//        AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotationModified);
+//        AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
+//        
+//        if (i == 0) {
+//            /* first annotation does not move */
+//        }
+//        else if (i == (numAnn - 1)) {
+//            /* second annotation does not move */
+//        }
+//        else {
+//            /*
+//             * newCoordinate is now at the location of the
+//             * left/bottom edge of the annotation to be moved.
+//             */
+//            newCoordinate += annDeltaSpace;
+//            
+//            switch (m_distribute) {
+//                case AnnotationDistributeEnum::HORIZONTALLY:
+//                {
+//                    /*
+//                     * For most annotations, the annotation's coordinate is at the 
+//                     * center of the annotation.  However, an exception is text annotation
+//                     * due to their alignment properties.  So, we calculate how much the
+//                     * left edge should move and apply that difference to the annotation's
+//                     * coordinate.
+//                     */
+//                    const float dx = newCoordinate - annInfo.m_windowBoundingBox.getMinX();
+//                    const float annWidth = annInfo.m_windowBoundingBox.getDifferenceX();
+//                    
+//                    if (twoDimAnn != NULL) {
+//                        const float newWindowX = annInfo.m_windowPixelOneXY[0] + dx;
+//                        const float vpOneX       = newWindowX - annInfo.m_viewport[0];
+//                        const float relativeOneX = (vpOneX / annInfo.m_viewport[2]) * 100.0;
+//                        
+//                        if ((relativeOneX >= 0.0)
+//                            && (relativeOneX <= 100.0)) {
+//                            float xyz[3];
+//                            twoDimAnn->getCoordinate()->getXYZ(xyz);
+//                            xyz[0] = relativeOneX;
+//                            twoDimAnn->getCoordinate()->setXYZ(xyz);
+//                        }
+//                    }
+//                    else if (oneDimAnn != NULL) {
+//                        float windowOneX = annInfo.m_windowPixelOneXY[0] + dx;
+//                        float windowTwoX = annInfo.m_windowPixelTwoXY[0] + dx;
+//                        
+//                        const float vpOneX       = windowOneX - annInfo.m_viewport[0];
+//                        const float relativeOneX = (vpOneX / annInfo.m_viewport[2]) * 100.0;
+//                        const float vpTwoX       = windowTwoX - annInfo.m_viewport[0];
+//                        
+//                        const float relativeTwoX = (vpTwoX / annInfo.m_viewport[2]) * 100.0;
+//                        if ((relativeOneX >= 0.0)
+//                            && (relativeOneX <= 100.0)
+//                            && (relativeTwoX >= 0.0)
+//                            && (relativeTwoX <= 100.0)) {
+//                            float xyz[3];
+//                            oneDimAnn->getStartCoordinate()->getXYZ(xyz);
+//                            xyz[0] = relativeOneX;
+//                            oneDimAnn->getStartCoordinate()->setXYZ(xyz);
+//                            
+//                            oneDimAnn->getEndCoordinate()->getXYZ(xyz);
+//                            xyz[0] = relativeTwoX;
+//                            oneDimAnn->getEndCoordinate()->setXYZ(xyz);
+//                        }
+//                    }
+//                    
+//                    /*
+//                     * Move X-coordinate to right edge of this annotation
+//                     */
+//                    newCoordinate += annWidth;
+//                }
+//                    break;
+//                case AnnotationDistributeEnum::VERTICALLY:
+//                {
+//                    const float dy = newCoordinate - annInfo.m_windowBoundingBox.getMinY();
+//                    const float annHeight = annInfo.m_windowBoundingBox.getDifferenceY();
+//                    if (twoDimAnn != NULL) {
+//                        const float newWindowY = annInfo.m_windowPixelOneXY[1] + dy;
+//                        const float vpOneY       = newWindowY - annInfo.m_viewport[1];
+//                        const float relativeOneY = (vpOneY / annInfo.m_viewport[3]) * 100.0;
+//                        if ((relativeOneY >= 0.0)
+//                            && (relativeOneY <= 100.0)) {
+//                            float xyz[3];
+//                            twoDimAnn->getCoordinate()->getXYZ(xyz);
+//                            xyz[1] = relativeOneY;
+//                            twoDimAnn->getCoordinate()->setXYZ(xyz);
+//                        }
+//                    }
+//                    else if (oneDimAnn != NULL) {
+//                        float windowOneY = annInfo.m_windowPixelOneXY[1] + dy;
+//                        float windowTwoY = annInfo.m_windowPixelTwoXY[1] + dy;
+//                        
+//                        const float vpOneY       = windowOneY - annInfo.m_viewport[1];
+//                        const float relativeOneY = (vpOneY / annInfo.m_viewport[3]) * 100.0;
+//                        const float vpTwoY       = windowTwoY - annInfo.m_viewport[1];
+//                        const float relativeTwoY = (vpTwoY / annInfo.m_viewport[3]) * 100.0;
+//                        if ((relativeOneY >= 0.0)
+//                            && (relativeOneY <= 100.0)
+//                            && (relativeTwoY >= 0.0)
+//                            && (relativeTwoY <= 100.0)) {
+//                            float xyz[3];
+//                            oneDimAnn->getStartCoordinate()->getXYZ(xyz);
+//                            xyz[1] = relativeOneY;
+//                            oneDimAnn->getStartCoordinate()->setXYZ(xyz);
+//                            
+//                            oneDimAnn->getEndCoordinate()->getXYZ(xyz);
+//                            xyz[1] = relativeTwoY;
+//                            oneDimAnn->getEndCoordinate()->setXYZ(xyz);
+//                        }
+//                    }
+//                    
+//                    /*
+//                     * Move Y-coordinate to top edge of this annotation
+//                     */
+//                    newCoordinate += annHeight;
+//                }
+//                    break;
+//            }
+//        }
+//        
+//        beforeMoving.push_back(annInfo.m_annotation);
+//        afterMoving.push_back(annotationModified);
+//    }
+//    
+//    /*
+//     * If any annotations were moved, use a redo command
+//     * so that the user may undo the alignment.
+//     */
+//    if ( ! beforeMoving.empty()) {
+//        CaretAssert(beforeMoving.size() == afterMoving.size());
+//        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+//        undoCommand->setModeLocationAndSize(beforeMoving,
+//                                            afterMoving);
+//        undoCommand->setDescription(AnnotationDistributeEnum::toGuiName(m_distribute));
+//        
+//        m_annotationManager->applyCommand(undoCommand);
+//    }
+//    
+//    /*
+//     * The undo command copies these annotations so we need
+//     * to delete them.
+//     */
+//    for (std::vector<Annotation*>::iterator annIter = afterMoving.begin();
+//         annIter != afterMoving.end();
+//         annIter++) {
+//        Annotation* ann = *annIter;
+//        CaretAssert(ann);
+//        delete ann;
+//    }
+//}
+
+///**
+// * Apply distribute modification to selected annotations
+// *
+// * @param arrangerInputs
+// *     Contains information about the distribute.
+// * @throw  CaretException
+// *     If there is an error.
+// */
+//void
+//AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrangerInputs& arrangerInputs)
+//{
+//    initializeForArranging(arrangerInputs);
+//
+//    printAnnotationInfo("BEFORE");
+//
+//    /*
+//     * Sort the annotation info by the window mid point value
+//     */
+//    std::sort(m_annotationInfo.begin(),
+//              m_annotationInfo.end(),
+//              SortForDistributeFunctionObject(m_distribute));
+//    
+//    printAnnotationInfo("AFTER SORT FOR DISTRIBUTE");
+//    
+//    float distMinValue = 0.0;
+//    float distMaxValue = 0.0;
+//    float distributeSum = 0.0;
+//    
+//    const int32_t numAnn = static_cast<int32_t>(m_annotationInfo.size());
+//    for (int32_t i = 0; i < numAnn; i++) {
+//        CaretAssertVectorIndex(m_annotationInfo, i);
+//        AnnotationInfo& annInfo = m_annotationInfo[i];
+//
+//        switch (m_distribute) {
+//            case AnnotationDistributeEnum::HORIZONTALLY:
+//                if (i == 0) {
+//                    distMinValue = annInfo.m_windowBoundingBox.getMaxX();
+//                }
+//                else if (i == (numAnn - 1)) {
+//                    distMaxValue = annInfo.m_windowBoundingBox.getMinX();
+//                }
+//                else {
+//                    distributeSum += annInfo.m_windowBoundingBox.getDifferenceX();
+//                }
+//                break;
+//            case AnnotationDistributeEnum::VERTICALLY:
+//                if (i == 0) {
+//                    distMinValue = annInfo.m_windowBoundingBox.getMaxY();
+//                }
+//                else if (i == (numAnn - 1)) {
+//                    distMaxValue = annInfo.m_windowBoundingBox.getMinY();
+//                }
+//                else {
+//                    distributeSum += annInfo.m_windowBoundingBox.getDifferenceY();
+//                }
+//                break;
+//        }
+//    }
+//    
+//    /*
+//     * Space between max edge of first and min edge of last
+//     */
+//    const float availableSpace = distMaxValue - distMinValue;
+//    
+//    /*
+//     * Space to put between annotations
+//     */
+//    const float numberOfSpacesBetweenAnnotations = numAnn - 1;
+//    const float annDeltaSpace = ((availableSpace - distributeSum)
+//                                 / numberOfSpacesBetweenAnnotations);
+//    
+//    if (m_debugFlag) {
+//        std::cout << "Dist min max: ("
+//        << distMinValue << ", " << distMaxValue << ") availSpace="
+//        << availableSpace << " delta-space=" << annDeltaSpace << std::endl;
+//    }
+//    
+//    if (annDeltaSpace < 0.0) {
+//        throw CaretException("There is insufficient space between the left (bottom) most "
+//                             "and right (top) most annotation to perform distribution.");
+//        return;
+//    }
+//    
+//    std::vector<Annotation*> beforeMoving;
+//    std::vector<Annotation*> afterMoving;
+//    
+//    float newCoordinate = distMinValue;
+//    
+//    for (int32_t i = 0; i < numAnn; i++) {
+//        CaretAssertVectorIndex(m_annotationInfo, i);
+//        AnnotationInfo& annInfo = m_annotationInfo[i];
+//        
+//        Annotation* annotationModified = annInfo.m_annotation->clone();
+//        AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotationModified);
+//        AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
+//        
+//        if (i == 0) {
+//            /* first annotation does not move */
+//        }
+//        else if (i == (numAnn - 1)) {
+//            /* second annotation does not move */
+//        }
+//        else {
+//            newCoordinate += annDeltaSpace;
+//
+//            switch (m_distribute) {
+//                case AnnotationDistributeEnum::HORIZONTALLY:
+//                {
+//                    
+//                    const float annWidth = annInfo.m_windowBoundingBox.getDifferenceX();
+//                    if (twoDimAnn != NULL) {
+//                        float textOffsetX = 0.0;
+//                        const float halfAnnWidth = (annWidth / 2.0);
+//                        const float windowOneX   = (newCoordinate
+//                                                    + halfAnnWidth);
+//                        if (twoDimAnn->getType() == AnnotationTypeEnum::TEXT) {
+//                            const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(annInfo.m_annotation);
+//                            switch (textAnn->getHorizontalAlignment()) {
+//                                case AnnotationTextAlignHorizontalEnum::CENTER:
+//                                    break;
+//                                case AnnotationTextAlignHorizontalEnum::LEFT:
+//                                    textOffsetX = -halfAnnWidth;
+//                                    break;
+//                                case AnnotationTextAlignHorizontalEnum::RIGHT:
+//                                    textOffsetX = halfAnnWidth;
+//                                    break;
+//                            }
+//                            std::cout << "Text offset: " << textOffsetX << std::endl;
+//                        }
+//                        const float vpOneX       = (windowOneX + textOffsetX) - annInfo.m_viewport[0];
+//                        const float relativeOneX = (vpOneX / annInfo.m_viewport[2]) * 100.0;
+//                        
+//                        if ((relativeOneX >= 0.0)
+//                            && (relativeOneX <= 100.0)) {
+//                            float xyz[3];
+//                            twoDimAnn->getCoordinate()->getXYZ(xyz);
+//                            xyz[0] = relativeOneX;
+//                            twoDimAnn->getCoordinate()->setXYZ(xyz);
+//                        }
+//                    }
+//                    else if (oneDimAnn != NULL) {
+//                        float windowOneX = 0.0;
+//                        float windowTwoX = 0.0;
+//                        if (annInfo.m_windowPixelOneXY[0] < annInfo.m_windowPixelTwoXY[0]) {
+//                            windowOneX = newCoordinate;
+//                            windowTwoX = newCoordinate + annWidth;
+//                        }
+//                        else {
+//                            windowOneX = newCoordinate + annWidth;
+//                            windowTwoX = newCoordinate;
+//                        }
+//                        
+//                        const float vpOneX       = windowOneX - annInfo.m_viewport[0];
+//                        const float relativeOneX = (vpOneX / annInfo.m_viewport[2]) * 100.0;
+//                        const float vpTwoX       = windowTwoX - annInfo.m_viewport[0];
+//                        
+//                        const float relativeTwoX = (vpTwoX / annInfo.m_viewport[2]) * 100.0;
+//                        if ((relativeOneX >= 0.0)
+//                            && (relativeOneX <= 100.0)
+//                            && (relativeTwoX >= 0.0)
+//                            && (relativeTwoX <= 100.0)) {
+//                            float xyz[3];
+//                            oneDimAnn->getStartCoordinate()->getXYZ(xyz);
+//                            xyz[0] = relativeOneX;
+//                            oneDimAnn->getStartCoordinate()->setXYZ(xyz);
+//                            
+//                            oneDimAnn->getEndCoordinate()->getXYZ(xyz);
+//                            xyz[0] = relativeTwoX;
+//                            oneDimAnn->getEndCoordinate()->setXYZ(xyz);
+//                        }
+//                    }
+//                    
+//                    /*
+//                     * Move X-coordinate to right edge of this annotation
+//                     */
+//                    newCoordinate += annWidth;
+//                }
+//                    break;
+//                case AnnotationDistributeEnum::VERTICALLY:
+//                {
+//                    const float annHeight = annInfo.m_windowBoundingBox.getDifferenceY();
+//                    if (twoDimAnn != NULL) {
+//                        const float halfAnnHeight = (annHeight / 2.0);
+//                        const float windowOneY   = (newCoordinate
+//                                                    + halfAnnHeight);
+//                        const float vpOneY       = windowOneY - annInfo.m_viewport[1];
+//                        const float relativeOneY = (vpOneY / annInfo.m_viewport[3]) * 100.0;
+//                        if ((relativeOneY >= 0.0)
+//                            && (relativeOneY <= 100.0)) {
+//                            float xyz[3];
+//                            twoDimAnn->getCoordinate()->getXYZ(xyz);
+//                            xyz[1] = relativeOneY;
+//                            twoDimAnn->getCoordinate()->setXYZ(xyz);
+//                        }
+//                    }
+//                    else if (oneDimAnn != NULL) {
+//                        float windowOneY = 0.0;
+//                        float windowTwoY = 0.0;
+//                        if (annInfo.m_windowPixelOneXY[1] < annInfo.m_windowPixelTwoXY[1]) {
+//                            windowOneY = newCoordinate;
+//                            windowTwoY = newCoordinate + annHeight;
+//                        }
+//                        else {
+//                            windowOneY = newCoordinate + annHeight;
+//                            windowTwoY = newCoordinate;
+//                        }
+//                        const float vpOneY       = windowOneY - annInfo.m_viewport[1];
+//                        const float relativeOneY = (vpOneY / annInfo.m_viewport[3]) * 100.0;
+//                        const float vpTwoY       = windowTwoY - annInfo.m_viewport[1];
+//                        const float relativeTwoY = (vpTwoY / annInfo.m_viewport[3]) * 100.0;
+//                        if ((relativeOneY >= 0.0)
+//                            && (relativeOneY <= 100.0)
+//                            && (relativeTwoY >= 0.0)
+//                            && (relativeTwoY <= 100.0)) {
+//                            float xyz[3];
+//                            oneDimAnn->getStartCoordinate()->getXYZ(xyz);
+//                            xyz[1] = relativeOneY;
+//                            oneDimAnn->getStartCoordinate()->setXYZ(xyz);
+//                            
+//                            oneDimAnn->getEndCoordinate()->getXYZ(xyz);
+//                            xyz[1] = relativeTwoY;
+//                            oneDimAnn->getEndCoordinate()->setXYZ(xyz);
+//                        }
+//                    }
+//                    
+//                    /*
+//                     * Move Y-coordinate to top edge of this annotation
+//                     */
+//                    newCoordinate += annHeight;
+//                }
+//                    break;
+//            }
+//        }
+//        
+//        beforeMoving.push_back(annInfo.m_annotation);
+//        afterMoving.push_back(annotationModified);
+//    }
+//    
+//    /*
+//     * If any annotations were moved, use a redo command
+//     * so that the user may undo the alignment.
+//     */
+//    if ( ! beforeMoving.empty()) {
+//        CaretAssert(beforeMoving.size() == afterMoving.size());
+//        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+//        undoCommand->setModeLocationAndSize(beforeMoving,
+//                                            afterMoving);
+//        undoCommand->setDescription(AnnotationDistributeEnum::toGuiName(m_distribute));
+//        
+//        m_annotationManager->applyCommand(undoCommand);
+//    }
+//    
+//    /*
+//     * The undo command copies these annotations so we need
+//     * to delete them.
+//     */
+//    for (std::vector<Annotation*>::iterator annIter = afterMoving.begin();
+//         annIter != afterMoving.end();
+//         annIter++) {
+//        Annotation* ann = *annIter;
+//        CaretAssert(ann);
+//        delete ann;
+//    }
+//}
 
 /**
  * Apply alignment modification to selected annotations
@@ -175,6 +881,17 @@ AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrange
 void
 AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInputs& arrangerInputs)
 {
+    switch (m_mode) {
+        case MODE_NONE:
+            CaretAssertMessage(0, "Mode has not been set !!!");
+            throw CaretException("Mode has not been set !!!");
+            break;
+        case MODE_ALIGN:
+            break;
+        case MODE_DISTRIBUTE:
+            break;
+    }
+    
     initializeForArranging(arrangerInputs);
     
     printAnnotationInfo("BEFORE");
@@ -348,8 +1065,21 @@ AnnotationArrangerExecutor::getAnnotationsForArranging(const AnnotationArrangerI
     if (numAnnotations < 1) {
         throw CaretException("No annotations are selected.");
     }
-    if (numAnnotations < 2) {
-        throw CaretException("At least two annotations must be selected for alignment.");
+    
+    switch (m_mode) {
+        case MODE_NONE:
+            CaretAssert(0);
+            break;
+        case MODE_ALIGN:
+            if (numAnnotations < 2) {
+                throw CaretException("At least two annotations must be selected for alignment.");
+            }
+            break;
+        case MODE_DISTRIBUTE:
+            if (numAnnotations < 3) {
+                throw CaretException("At least three annotations must be selected for distributing.");
+            }
+            break;
     }
 }
 
@@ -408,6 +1138,7 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
         
         float viewportPixelOneXYZ[3] = { 0.0, 0.0, 0.0 };
         float viewportPixelTwoXYZ[3] = { 0.0, 0.0, 0.0 };
+        bool viewportPixelTwoXYZValidFlag = false;
         
         /*
          * Bounding box for the annotation.
@@ -439,7 +1170,7 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
             windowBoundingBox.update(annViewport[0] + viewportPixelTwoXYZ[0],
                                      annViewport[1] + viewportPixelTwoXYZ[1],
                                      viewportPixelTwoXYZ[2]);
-            
+            viewportPixelTwoXYZValidFlag = true;
         }
         else if (twoDimAnn != NULL) {
             float xyz[3];
@@ -508,7 +1239,8 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
                                annViewport,
                                windowBoundingBox,
                                viewportPixelOneXYZ,
-                               viewportPixelTwoXYZ);
+                               viewportPixelTwoXYZ,
+                               viewportPixelTwoXYZValidFlag);
         m_annotationInfo.push_back(annInfo);
     }
     
@@ -758,14 +1490,17 @@ AnnotationArrangerExecutor::toString() const
  *     Bounding box for the annotation in window coordinates.
  * @param viewportPixelOneXY
  *     XY coordinate of the annotation in its viewport.
- * @param viewportPixelOneXY
+ * @param viewportPixelTwoXY
  *     optional second XY coordinate of the annotation in its viewport.
+ * @param viewportPixelTwoXYValidValid
+ *     True if optional second XY coordinate is valid.
  */
 AnnotationArrangerExecutor::AnnotationInfo::AnnotationInfo(Annotation* annotation,
                                                            const int32_t viewport[4],
                                                            const BoundingBox windowBoundingBox,
                                                            float viewportPixelOneXY[2],
-                                                           float viewportPixelTwoXY[2])
+                                                           float viewportPixelTwoXY[2],
+                                                           const bool viewportPixelTwoXYValidValid)
 : m_annotation(annotation)
 {
     m_viewport[0] = viewport[0];
@@ -776,6 +1511,9 @@ AnnotationArrangerExecutor::AnnotationInfo::AnnotationInfo(Annotation* annotatio
     m_viewportPixelOneXY[0] = viewportPixelOneXY[0];
     m_viewportPixelOneXY[1] = viewportPixelOneXY[1];
     
+    m_viewportPixelTwoXY[0] = viewportPixelTwoXY[0];
+    m_viewportPixelTwoXY[1] = viewportPixelTwoXY[1];
+    
     m_windowBoundingBox = windowBoundingBox;
     
     m_windowPixelOneXY[0] = m_viewport[0] + viewportPixelOneXY[0];
@@ -783,7 +1521,102 @@ AnnotationArrangerExecutor::AnnotationInfo::AnnotationInfo(Annotation* annotatio
     
     m_windowPixelTwoXY[0] = m_viewport[0] + viewportPixelTwoXY[0];
     m_windowPixelTwoXY[1] = m_viewport[1] + viewportPixelTwoXY[1];
+    m_windowPixelTwoXYValidFlag = viewportPixelTwoXYValidValid;
+    
+    if (m_windowPixelTwoXYValidFlag) {
+        m_windowMidPointXY[0] = (m_windowPixelOneXY[0] + m_windowPixelTwoXY[0]) / 2.0;
+        m_windowMidPointXY[1] = (m_windowPixelOneXY[1] + m_windowPixelTwoXY[1]) / 2.0;
+    }
+    else {
+        m_windowMidPointXY[0] = m_windowPixelOneXY[0];
+        m_windowMidPointXY[1] = m_windowPixelOneXY[1];
+    }
 }
+
+/**
+ * Is this XY coordinate a valid relative coordinate,
+ * in the range [0.0, 100.0]?
+ *
+ * @return x
+ *     The x-coordinate
+ * @param y
+ *     The y-coordinate
+ * @return
+ *     True if valid relative coordinate, else false.
+ */
+bool
+AnnotationArrangerExecutor::AnnotationInfo::isValidRelativeCoord(const float x, const float y) const
+{
+    if ((x >= 0.0)
+        && (x <= 100.0)
+        && (y >= 0.0)
+        && (y <= 100.0)) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Move the given annotation by the given amounts.
+ * The annotation is moved only if its new coordinates
+ * remain in the viewport.
+ *
+ * @return x
+ *     The x-coordinate
+ * @param y
+ *     The y-coordinate
+ * @return
+ *     True if annotation was moved, else false.
+ */bool
+AnnotationArrangerExecutor::AnnotationInfo::moveAnnotationByXY(Annotation* annotation,
+                                                               const float dx,
+                                                               const float dy) const
+{
+    CaretAssert(m_annotation);
+    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
+    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+    
+    const float newPixelOneX = m_viewportPixelOneXY[0] + dx;
+    const float relativeOneX = (newPixelOneX / m_viewport[2]) * 100.0;
+    const float newPixelOneY = m_viewportPixelOneXY[1] + dy;
+    const float relativeOneY = (newPixelOneY / m_viewport[3]) * 100.0;
+    
+    if (isValidRelativeCoord(relativeOneX,
+                             relativeOneY)) {
+        if (twoDimAnn != NULL) {
+            float xyz[3];
+            twoDimAnn->getCoordinate()->getXYZ(xyz);
+            xyz[0] = relativeOneX;
+            xyz[1] = relativeOneY;
+            twoDimAnn->getCoordinate()->setXYZ(xyz);
+            
+            return true;
+        }
+        else if (oneDimAnn) {
+            const float newPixelTwoX = m_viewportPixelTwoXY[0] + dx;
+            const float relativeTwoX = (newPixelTwoX / m_viewport[2]) * 100.0;
+            const float newPixelTwoY = m_viewportPixelTwoXY[1] + dy;
+            const float relativeTwoY = (newPixelTwoY / m_viewport[3]) * 100.0;
+            
+            if (isValidRelativeCoord(relativeTwoX, relativeTwoY)) {
+                float xyz[3];
+                oneDimAnn->getStartCoordinate()->getXYZ(xyz);
+                xyz[0] = relativeOneX;
+                xyz[1] = relativeOneY;
+                oneDimAnn->getStartCoordinate()->setXYZ(xyz);
+                
+                oneDimAnn->getEndCoordinate()->getXYZ(xyz);
+                xyz[0] = relativeTwoX;
+                xyz[1] = relativeTwoY;
+                oneDimAnn->getEndCoordinate()->setXYZ(xyz);
+                
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 
 /**
  * Print information used to arrange an annotation.
@@ -796,6 +1629,8 @@ AnnotationArrangerExecutor::AnnotationInfo::print() const
                 + AString::fromNumbers(m_windowPixelOneXY, 2, ",")
                 + "\n   Window Two XY: "
                 + AString::fromNumbers(m_windowPixelTwoXY, 2, ",")
+                + "\n   Window Mid Point XY: "
+                + AString::fromNumbers(m_windowMidPointXY, 2, ",")
                 + "\n   Viewport XY: "
                 + AString::fromNumbers(m_viewportPixelOneXY, 2, ",")
                 + "\n   Viewport: "

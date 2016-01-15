@@ -58,13 +58,25 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        enum Mode {
+            MODE_NONE,
+            MODE_ALIGN,
+            MODE_DISTRIBUTE
+        };
+        
         class AnnotationInfo {
         public:
             AnnotationInfo(Annotation* annotation,
                            const int32_t viewport[4],
                            const BoundingBox windowBoundingBox,
                            float viewportPixelOneXY[2],
-                           float viewportPixelTwoXY[2]);
+                           float viewportPixelTwoXY[2],
+                           const bool viewportPixelTwoXYValidValid);
+            
+            bool isValidRelativeCoord(const float x, const float y) const;
+            
+            bool moveAnnotationByXY(Annotation* annotation,
+                                    const float dx, const float dy) const;
             
             void print() const;
             
@@ -74,13 +86,30 @@ namespace caret {
             
             float m_viewportPixelOneXY[2];
             
+            float m_viewportPixelTwoXY[2];
+            
             BoundingBox m_windowBoundingBox;
             
             float m_windowPixelOneXY[2];
             
             float m_windowPixelTwoXY[2];
+            
+            bool m_windowPixelTwoXYValidFlag;
+            
+            float m_windowMidPointXY[2];
         };
         
+        class SortForDistributeFunctionObject {
+        public:
+            SortForDistributeFunctionObject(const AnnotationDistributeEnum::Enum distribute);
+            
+            bool operator()(const AnnotationInfo& ann1,
+                            const AnnotationInfo& ann2) const;
+        
+        private:
+            const AnnotationDistributeEnum::Enum m_distribute;
+        };
+
         AnnotationArrangerExecutor(const AnnotationArrangerExecutor&);
 
         AnnotationArrangerExecutor& operator=(const AnnotationArrangerExecutor&);
@@ -106,6 +135,8 @@ namespace caret {
                                  std::vector<Annotation*>& annotations);
         
         void printAnnotationInfo(const QString& title);
+        
+        Mode m_mode;
         
         AnnotationManager* m_annotationManager;
         
