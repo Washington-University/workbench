@@ -56,6 +56,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventIdentificationRequest.h"
+#include "EventOpenGLTexture.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FtglFontTextRenderer.h"
 #include "GuiManager.h"
@@ -175,7 +176,8 @@ void
 BrainOpenGLWidget::initializeGL()
 {
     if (this->openGL == NULL) {
-        this->openGL = new BrainOpenGLFixedPipeline(createTextRenderer());
+        this->openGL = new BrainOpenGLFixedPipeline(this->windowIndex,
+                                                    createTextRenderer());
     }
     else {
         /*
@@ -1492,12 +1494,12 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
              */
             BrainOpenGLTextureManager* textureManager = this->openGL->getTextureManager();
             CaretAssert(textureManager);
-            textureManager->deleteAllTextureNames();
+            textureManager->deleteAllTexturesForWindow(this->windowIndex);
             
             QPixmap pixmap = this->renderPixmap(outputImageWidth,
                                                 outputImageHeight);
             image = pixmap.toImage();
-            textureManager->deleteAllTextureNames();
+            textureManager->deleteAllTexturesForWindow(this->windowIndex);
             this->openGL->setTextRenderer(createTextRenderer());
         }
             break;

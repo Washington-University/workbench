@@ -510,6 +510,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_MODEL_GET_ALL:
         case EventTypeEnum::EVENT_MODEL_SURFACE_GET:
         case EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS:
+        case EventTypeEnum::EVENT_OPENGL_TEXTURE:
         case EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE:
         case EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW:
         case EventTypeEnum::EVENT_OVERLAY_VALIDATE:

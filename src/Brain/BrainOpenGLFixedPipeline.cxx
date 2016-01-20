@@ -157,13 +157,18 @@ static bool drawTabAnnotationsAfterTabContentFlag = true;
  *   This parameter may be NULL in which case no text
  *   rendering is performed.
  */
-BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterface* textRenderer)
-: BrainOpenGL(textRenderer)
+BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(const int32_t windowIndex,
+                                                   BrainOpenGLTextRenderInterface* textRenderer)
+: BrainOpenGL(textRenderer),
+m_windowIndex(windowIndex)
 {
+    CaretAssert((m_windowIndex >= 0)
+                && (m_windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
+    
     this->initializeMembersBrainOpenGL();
     this->colorIdentification   = new IdentificationWithColor();
     m_annotationDrawing.grabNew(new BrainOpenGLAnnotationDrawingFixedPipeline(this));
-    m_textureManager.grabNew(new BrainOpenGLTextureManager());
+    m_textureManager.grabNew(new BrainOpenGLTextureManager(m_windowIndex));
                              
     m_shapeSphere = NULL;
     m_shapeCone   = NULL;
@@ -685,7 +690,7 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
          */
         int windowViewport[4];
         viewportContents[0]->getWindowViewport(windowViewport);
-        this->windowIndex = viewportContents[0]->getWindowIndex();
+        CaretAssert(m_windowIndex == viewportContents[0]->getWindowIndex());
         drawWindowAnnotations(windowViewport);
     }
     
@@ -722,7 +727,7 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabCont
     glPushMatrix();
     glLoadIdentity();
     
-    this->windowIndex = tabContent->getWindowIndex();
+    CaretAssert(m_windowIndex == tabContent->getWindowIndex());
     this->browserTabContent = tabContent->getBrowserTabContent();
     m_clippingPlaneGroup = const_cast<ClippingPlaneGroup*>(tabContent->getBrowserTabContent()->getClippingPlaneGroup());
     CaretAssert(m_clippingPlaneGroup);
@@ -733,7 +738,7 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabCont
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              tabViewport,
-                                                             this->windowIndex,
+                                                             m_windowIndex,
                                                              this->windowTabIndex);
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
@@ -772,14 +777,14 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
          iter++) {
         AnnotationColorBar* cb = *iter;
         CaretAssert(cb);
-        cb->setWindowIndex(this->windowIndex);
+        cb->setWindowIndex(m_windowIndex);
     }
     
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              windowViewport,
-                                                             this->windowIndex,
+                                                             m_windowIndex,
                                                              this->windowTabIndex);
     
     m_annotationDrawing->drawAnnotations(&inputs,
@@ -808,7 +813,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
     ElapsedTimer et;
     et.start();
     
-    this->windowIndex = viewportContent->getWindowIndex();
+    CaretAssert(m_windowIndex == viewportContent->getWindowIndex());
     this->windowTabIndex = -1;
     
     this->browserTabContent = viewportContent->getBrowserTabContent();
@@ -882,7 +887,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_tabViewport,
-                                                                     this->windowIndex,
+                                                                     m_windowIndex,
                                                                      this->windowTabIndex);
             if ( ! drawTabAnnotationsAfterTabContentFlag) {
                 m_annotationDrawing->drawAnnotations(&inputs,
@@ -1676,7 +1681,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_tabViewport,
-                                                                     this->windowIndex,
+                                                                     m_windowIndex,
                                                                      this->windowTabIndex);
             std::vector<AnnotationColorBar*> emptyColorBars;
             m_annotationDrawing->drawAnnotations(&inputs,
@@ -1721,7 +1726,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_tabViewport,
-                                                                     this->windowIndex,
+                                                                     m_windowIndex,
                                                                      this->windowTabIndex);
             std::vector<AnnotationColorBar*> emptyColorBars;
             m_annotationDrawing->drawAnnotations(&inputs,
@@ -4806,7 +4811,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     int32_t subViewportHeight = 0;
     int32_t verticalGap       = 0;
     createSubViewportSizeAndGaps(viewport[3],
-                                 gapsAndMargins->getSurfaceMontageVerticalGapForWindow(this->windowIndex),
+                                 gapsAndMargins->getSurfaceMontageVerticalGapForWindow(m_windowIndex),
                                  -1,
                                  numberOfRows,
                                  subViewportHeight,
@@ -4815,7 +4820,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     int32_t subViewportWidth = 0;
     int32_t horizontalGap    = 0;
     createSubViewportSizeAndGaps(viewport[2],
-                                 gapsAndMargins->getSurfaceMontageHorizontalGapForWindow(this->windowIndex),
+                                 gapsAndMargins->getSurfaceMontageHorizontalGapForWindow(m_windowIndex),
                                  -1,
                                  numberOfColumns,
                                  subViewportWidth,

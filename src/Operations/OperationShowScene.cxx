@@ -251,34 +251,34 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     
     const GapsAndMargins* gapsAndMargins = brain->getGapsAndMargins();
     
-    /*
-     * The OpenGL rendering takes ownership of the text renderer
-     * and will delete the text renderer when OpenGL itself
-     * is deleted.
-     */
-    BrainOpenGLTextRenderInterface* textRenderer = NULL;
-    if (textRenderer == NULL) {
-        textRenderer = new FtglFontTextRenderer();
-        if (! textRenderer->isValid()) {
-            delete textRenderer;
-            textRenderer = NULL;
-            CaretLogWarning("Unable to create FTGL Font Renderer.\n"
-                            "No text will be available in graphics window.");
-        }
-    }
-    if (textRenderer == NULL) {
-        textRenderer = new DummyFontTextRenderer();
-    }
-    
-    /*
-     * Performs OpenGL Rendering
-     * Allocated dynamically so that it can be destroyed prior to OSMesa being
-     * destroyed.  Otherwise, if OpenGL is destroyed after OSMesa, errors
-     * will occur as the OpenGL context is invalid when things such as
-     * display lists or buffers are deleted.
-     */
-    BrainOpenGLFixedPipeline* brainOpenGL = new BrainOpenGLFixedPipeline(textRenderer);
-    brainOpenGL->initializeOpenGL();
+//    /*
+//     * The OpenGL rendering takes ownership of the text renderer
+//     * and will delete the text renderer when OpenGL itself
+//     * is deleted.
+//     */
+//    BrainOpenGLTextRenderInterface* textRenderer = NULL;
+//    if (textRenderer == NULL) {
+//        textRenderer = new FtglFontTextRenderer();
+//        if (! textRenderer->isValid()) {
+//            delete textRenderer;
+//            textRenderer = NULL;
+//            CaretLogWarning("Unable to create FTGL Font Renderer.\n"
+//                            "No text will be available in graphics window.");
+//        }
+//    }
+//    if (textRenderer == NULL) {
+//        textRenderer = new DummyFontTextRenderer();
+//    }
+//    
+//    /*
+//     * Performs OpenGL Rendering
+//     * Allocated dynamically so that it can be destroyed prior to OSMesa being
+//     * destroyed.  Otherwise, if OpenGL is destroyed after OSMesa, errors
+//     * will occur as the OpenGL context is invalid when things such as
+//     * display lists or buffers are deleted.
+//     */
+//    BrainOpenGLFixedPipeline* brainOpenGL = new BrainOpenGLFixedPipeline(textRenderer);
+//    brainOpenGL->initializeOpenGL();
     
     /*
      * Restore windows
@@ -310,6 +310,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             
             const int windowWidth  = windowViewport[2];
             const int windowHeight = windowViewport[3];
+            
+            CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL(windowIndex));
             
             /*
              * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
@@ -445,7 +447,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         }
     }
     
-    delete brainOpenGL;
+//    delete brainOpenGL;
     
     /*
      * Free image memory and Mesa context
@@ -454,6 +456,51 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     OSMesaDestroyContext(mesaContext);
 }
 #endif // HAVE_OSMESA
+
+/**
+ * Create OpenGL Rendering.
+ *
+ * @param windowIndex
+ *     Index of window.
+ * @return
+ *     BrainOpenGL.
+ */
+BrainOpenGLFixedPipeline*
+OperationShowScene::createBrainOpenGL(const int32_t windowIndex)
+{
+    /*
+     * The OpenGL rendering takes ownership of the text renderer
+     * and will delete the text renderer when OpenGL itself
+     * is deleted.
+     */
+    BrainOpenGLTextRenderInterface* textRenderer = NULL;
+    if (textRenderer == NULL) {
+        textRenderer = new FtglFontTextRenderer();
+        if (! textRenderer->isValid()) {
+            delete textRenderer;
+            textRenderer = NULL;
+            CaretLogWarning("Unable to create FTGL Font Renderer.\n"
+                            "No text will be available in graphics window.");
+        }
+    }
+    if (textRenderer == NULL) {
+        textRenderer = new DummyFontTextRenderer();
+    }
+    
+    /*
+     * Performs OpenGL Rendering
+     * Allocated dynamically so that it can be destroyed prior to OSMesa being
+     * destroyed.  Otherwise, if OpenGL is destroyed after OSMesa, errors
+     * will occur as the OpenGL context is invalid when things such as
+     * display lists or buffers are deleted.
+     */
+    BrainOpenGLFixedPipeline* brainOpenGL = new BrainOpenGLFixedPipeline(windowIndex,
+                                                                         textRenderer);
+    brainOpenGL->initializeOpenGL();
+    
+    return brainOpenGL;
+}
+
 
 /**
  * Write the image data to a Image File.

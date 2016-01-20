@@ -25,7 +25,9 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-
+#include "DrawnWithOpenGLTextureInfo.h"
+#include "EventManager.h"
+#include "EventOpenGLTexture.h"
 using namespace caret;
 
 
@@ -47,10 +49,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param windowIndex
+ *    Index of window for which textures are managed.
  */
-BrainOpenGLTextureManager::BrainOpenGLTextureManager()
-: CaretObject()
+BrainOpenGLTextureManager::BrainOpenGLTextureManager(const int32_t windowIndex)
+: CaretObject(),
+m_windowIndex(windowIndex)
 {
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPENGL_TEXTURE);
 }
 
 /**
@@ -58,88 +65,155 @@ BrainOpenGLTextureManager::BrainOpenGLTextureManager()
  */
 BrainOpenGLTextureManager::~BrainOpenGLTextureManager()
 {
-    deleteAllTextureNames();
+    /*
+     * We do not need to worry about deleting texture names
+     * since when a instance of this class is deleted, the
+     * OpenGL context is also deleted which deletes all
+     * of the texture names.
+     */
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
- * Create a texture name for use by the given data pointer.
- * If the data pointer already has an associated texture name,
- * the texture name is deleted and a new texture name is returned.
+ * Receive an event.
  *
- * @param dataPointer
- *     Pointer to the data.
- * @return 
- *     New texture name for the data.
- */
-GLuint
-BrainOpenGLTextureManager::createTextureNameForData(const void* dataPointer)
-{
-    GLuint textureName = getTextureNameForData(dataPointer);
-    if (textureName > 0) {
-        CaretAssertMessage(0, "Texture name already exists for data, will be replaced.");
-        glDeleteTextures(1, &textureName);
-        textureName = 0;
-    }
-    
-    glGenTextures(1, &textureName);
-    
-    m_dataPointerToTextureNameMap.insert(std::make_pair(dataPointer,
-                                                        textureName));
-    
-    return textureName;
-}
-
-/**
- * Get the texture name associated with the given data pointer.
- *
- * @param dataPointer
- *    Pointer to the data.
- * @return
- *    New name for texture associated with the pointer.
- */
-GLuint
-BrainOpenGLTextureManager::getTextureNameForData(const void* dataPointer)
-{
-    GLuint textureName = 0;
-    
-    TextureNameContainer::iterator iter = m_dataPointerToTextureNameMap.find(dataPointer);
-    if (iter != m_dataPointerToTextureNameMap.end()) {
-        textureName = iter->second;
-        
-        /*
-         * It is possible that OpenGL may delete a texture
-         * so ensure the name is still valid.
-         */
-        if ( ! glIsTexture(textureName)) {
-            textureName = 0;
-            m_dataPointerToTextureNameMap.erase(dataPointer);
-        }
-    }
-    
-    return textureName;
-}
-
-/**
- * Delete all texture names.
+ * @param event
+ *     The event that the receive can respond to.
  */
 void
-BrainOpenGLTextureManager::deleteAllTextureNames()
+BrainOpenGLTextureManager::receiveEvent(Event* event)
 {
-    for (TextureNameContainer::iterator iter = m_dataPointerToTextureNameMap.begin();
-         iter != m_dataPointerToTextureNameMap.end();
-         iter++) {
-        GLuint textureID = iter->second;
-        if (glIsTexture(textureID) == GL_TRUE) {
-            glDeleteTextures(1, &textureID);
+    if (event->getEventType() == EventTypeEnum::EVENT_OPENGL_TEXTURE) {
+        EventOpenGLTexture* textureEvent = dynamic_cast<EventOpenGLTexture*>(event);
+        CaretAssert(textureEvent);
+        
+        switch (textureEvent->getMode()) {
+            case EventOpenGLTexture::MODE_NONE:
+                break;
+            case EventOpenGLTexture::MODE_DELETE_ALL_TEXTURES_IN_WINDOW:
+                break;
+            case EventOpenGLTexture::MODE_DELETE_TEXTURE:
+            {
+                int32_t windowIndex = -1;
+                int32_t textureName = 0;
+                textureEvent->getModeDeleteTexture(windowIndex,
+                                                   textureName);
+                if (m_windowIndex == windowIndex) {
+                    deleteTextureName(textureName);
+                    
+                    textureEvent->setEventProcessed();
+                }
+            }
+                break;
         }
-        else {
-            
-//            CaretLogSevere("Attempting to delete an invalid texture name: "
-//                           + QString::number(textureID));
+    }
+}
+
+/**
+ * Delete all textures for a given window index.
+ *
+ * @param windowIndex
+ *     Index of the window.
+ */
+void
+BrainOpenGLTextureManager::deleteAllTexturesForWindow(const int32_t windowIndex)
+{
+    EventOpenGLTexture textureEvent;
+    textureEvent.setModeDeleteAllTexturesInWindow(windowIndex);
+    EventManager::get()->sendEvent(textureEvent.getPointer());
+}
+
+
+/**
+ * Get the texture name for the given texture info.
+ *
+ * @param textureInfo
+ *     The texture information.
+ * @param textureNameOut
+ *     Output containing OpenGL texture name for use with glBindTexture.
+ * @param newTextureNameFlagOut
+ *     If true, the texture name is new and the caller must create
+ *     or recreate the texture image.  Recreation may be necessary
+ *     after an image capture operation due to it creating a new
+ *     OpenGL context.
+ */
+void
+BrainOpenGLTextureManager::getTextureName(DrawnWithOpenGLTextureInfo* textureInfo,
+                                          GLuint& textureNameOut,
+                                          bool& newTextureNameFlagOut)
+{
+    textureNameOut        = 0;
+    newTextureNameFlagOut = false;
+    
+    CaretAssert(m_windowIndex >= 0);
+    textureNameOut = textureInfo->getTextureNameForWindow(m_windowIndex);
+    if (textureNameOut > 0) {
+        /*
+         * Verify texture is still valid (could be deleted during image capture
+         * which recreates the OpenGL context).
+         */
+        if (glIsTexture(textureNameOut)) {
+            return;
         }
     }
     
-    m_dataPointerToTextureNameMap.clear();
+    textureNameOut = createNewTextureName();
+    textureInfo->setTextureNameForWindow(m_windowIndex,
+                                               textureNameOut);
+    newTextureNameFlagOut = true;
+}
+
+/**
+ * @return A new texture name.
+ */
+GLuint
+BrainOpenGLTextureManager::createNewTextureName()
+{
+    /*
+     * Each workbench window has its own, unique OpenGL context.
+     * Identical OpenGL texture names may exist in each OpenGL
+     * context.  To simplify management of textures, we do not
+     * want the same texture name in more than one OpenGL 
+     * context.
+     *
+     * So, we do not use glGenTexture() to create texture
+     * names.  Instead, we use our own generator that
+     * ensures each name is never used in more than one
+     * OpenGL context.  This simplifies management of textures
+     * and especially the removal of textures when an
+     * object drawn using a texture is deleted.
+     *
+     * In addition, other modules (such as FTGL font
+     * rendering) may use textures, so we need to 
+     * ensure that a new name is not used elsewhere.
+     */
+    s_textureNameGenerator++;
+    if (s_textureNameGenerator == std::numeric_limits<int32_t>::max()) {
+        s_textureNameGenerator = 1;
+    }
+    while (glIsTexture(s_textureNameGenerator) == GL_TRUE) {
+        s_textureNameGenerator++;
+        if (s_textureNameGenerator == std::numeric_limits<int32_t>::max()) {
+            s_textureNameGenerator = 1;
+        }
+    }
+    
+    return s_textureNameGenerator;
+}
+
+
+/**
+ * Delete a texture name.
+ *
+ * @param textureName
+ *     Texture name that is deleted.
+ */
+void
+BrainOpenGLTextureManager::deleteTextureName(GLuint textureName)
+{
+    if (glIsTexture(textureName) == GL_TRUE) {
+        glDeleteTextures(1, &textureName);
+    }
 }
 
 /**

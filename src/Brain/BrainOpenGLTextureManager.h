@@ -22,26 +22,31 @@
 /*LICENSE_END*/
 
 #include <map>
+#include <set>
 
 #include "CaretObject.h"
 #include "CaretOpenGLInclude.h"
-
+#include "EventListenerInterface.h"
 
 
 namespace caret {
 
-    class BrainOpenGLTextureManager : public CaretObject {
+    class DrawnWithOpenGLTextureInfo;
+    
+    class BrainOpenGLTextureManager : public CaretObject, public EventListenerInterface {
         
     public:
-        BrainOpenGLTextureManager();
+        BrainOpenGLTextureManager(const int32_t windowIndex);
         
         virtual ~BrainOpenGLTextureManager();
         
-        GLuint createTextureNameForData(const void* dataPointer);
-
-        GLuint getTextureNameForData(const void* dataPointer);
+        virtual void receiveEvent(Event* event);
         
-        void deleteAllTextureNames();
+        void getTextureName(DrawnWithOpenGLTextureInfo* textureInfo,
+                            GLuint& textureNameOut,
+                            bool& newTextureNameFlagOut);
+        
+        void deleteAllTexturesForWindow(const int32_t windowIndex);
         
         // ADD_NEW_METHODS_HERE
 
@@ -52,17 +57,23 @@ namespace caret {
 
         BrainOpenGLTextureManager& operator=(const BrainOpenGLTextureManager&);
         
-        typedef std::map<const void*, GLuint> TextureNameContainer;
-
-        /** Tracks textures */
-        TextureNameContainer m_dataPointerToTextureNameMap;
+        GLuint createNewTextureName();
+        
+        void deleteTextureName(GLuint textureName);
+        
+        const int32_t m_windowIndex;
+        
+        /**
+         * Generates the texture names
+         */
+        static int32_t s_textureNameGenerator;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __BRAIN_OPEN_G_L_TEXTURE_MANAGER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    int32_t BrainOpenGLTextureManager::s_textureNameGenerator = 0;
 #endif // __BRAIN_OPEN_G_L_TEXTURE_MANAGER_DECLARE__
 
 } // namespace

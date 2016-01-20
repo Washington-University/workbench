@@ -47,6 +47,7 @@ namespace caret {
     
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLShapeRing;
+    class DrawnWithOpenGLTextureInfo;
     class Surface;
     
     class BrainOpenGLAnnotationDrawingFixedPipeline : public CaretObject {
@@ -186,7 +187,8 @@ namespace caret {
                              const int32_t imageWidth,
                              const int32_t imageHeight);
         
-        void  drawImageBytesWithTexture(const float bottomLeft[3],
+        void  drawImageBytesWithTexture(DrawnWithOpenGLTextureInfo* textureInfo,
+                                        const float bottomLeft[3],
                                         const float bottomRight[3],
                                         const float topRight[3],
                                         const float topLeft[3],

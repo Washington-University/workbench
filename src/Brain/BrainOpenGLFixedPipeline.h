@@ -102,7 +102,8 @@ namespace caret {
         BrainOpenGLFixedPipeline& operator=(const BrainOpenGLFixedPipeline&);
         
     public:
-        BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterface* textRenderer);
+        BrainOpenGLFixedPipeline(const int32_t windowIndex,
+                                 BrainOpenGLTextRenderInterface* textRenderer);
 
         ~BrainOpenGLFixedPipeline();
         
@@ -510,6 +511,9 @@ namespace caret {
         
         void setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& viewportContents);
         
+        /** Index of window */
+        const int32_t m_windowIndex;
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         
@@ -518,9 +522,6 @@ namespace caret {
         
         /** Source brain of content being drawn DOES NOT get deleted! */
         Brain* m_brain;
-        
-        /** Index of window */
-        int32_t windowIndex;
         
         /** Index of window tab */
         int32_t windowTabIndex;

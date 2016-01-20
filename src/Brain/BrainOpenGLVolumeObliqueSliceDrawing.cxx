@@ -467,7 +467,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
 //    const int32_t totalGapY = verticalMargin * (numRows - 1);
 //    const int32_t vpSizeY = (viewport[3] - totalGapY) / numRows;
     
-    const int32_t windowIndex = m_fixedPipelineDrawing->windowIndex;
+    const int32_t windowIndex = m_fixedPipelineDrawing->m_windowIndex;
     
     int32_t vpSizeY        = 0;
     int32_t verticalMargin = 0;
@@ -848,7 +848,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const Volume
                                                              m_fixedPipelineDrawing->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              m_fixedPipelineDrawing->m_tabViewport,
-                                                             m_fixedPipelineDrawing->windowIndex,
+                                                             m_fixedPipelineDrawing->m_windowIndex,
                                                              m_fixedPipelineDrawing->windowTabIndex);
     m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
                                                                                         slicePlane,

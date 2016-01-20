@@ -23,12 +23,14 @@
 
 
 #include "AnnotationTwoDimensionalShape.h"
-
+#include "CaretPointer.h"
+#include "DrawnWithOpenGLTextureInfo.h"
+#include "DrawnWithOpenGLTextureInterface.h"
 
 
 namespace caret {
 
-    class AnnotationImage : public AnnotationTwoDimensionalShape {
+    class AnnotationImage : public AnnotationTwoDimensionalShape, public DrawnWithOpenGLTextureInterface {
         
     public:
         AnnotationImage(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
@@ -57,6 +59,11 @@ namespace caret {
         
         const uint8_t* getImageBytesRGBA() const;
 
+        virtual DrawnWithOpenGLTextureInfo* getDrawWithOpenGLTextureInfo();
+        
+        virtual const DrawnWithOpenGLTextureInfo* getDrawWithOpenGLTextureInfo() const;
+        
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -83,6 +90,8 @@ namespace caret {
         int32_t m_imageWidth;
         
         int32_t m_imageHeight;
+        
+        CaretPointer<DrawnWithOpenGLTextureInfo> m_drawnWithOpenGLTextureInfo;
         
         // ADD_NEW_MEMBERS_HERE
 

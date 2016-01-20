@@ -24,6 +24,7 @@
 #undef __ANNOTATION_IMAGE_DECLARE__
 
 #include "CaretAssert.h"
+#include "DrawnWithOpenGLTextureInfo.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -96,9 +97,10 @@ AnnotationImage::operator=(const AnnotationImage& obj)
 void
 AnnotationImage::copyHelperAnnotationImage(const AnnotationImage& obj)
 {
-    m_imageBytesRGBA = obj.m_imageBytesRGBA;
-    m_imageWidth     = obj.m_imageWidth;
-    m_imageHeight    = obj.m_imageHeight;
+    m_imageBytesRGBA         = obj.m_imageBytesRGBA;
+    m_imageWidth             = obj.m_imageWidth;
+    m_imageHeight            = obj.m_imageHeight;
+    m_drawnWithOpenGLTextureInfo = obj.m_drawnWithOpenGLTextureInfo;
 }
 
 /**
@@ -107,13 +109,7 @@ AnnotationImage::copyHelperAnnotationImage(const AnnotationImage& obj)
  * @param imageBytesRGBA
  *     Bytes containing the image.  4 bytes per pixel with values
  *     ranging 0 to 255.  Number of elements MUST BE 
- *     (width * height * 4)            AnnotationImage* annImage = dynamic_cast<AnnotationImage*>(annCopy);
- if (annImage != NULL) {
- annImage->setImageBytesRGBA(&m_imageRgbaBytes[0],
- m_imageWidth,
- m_imageHeight);
- }
-!!!!
+ *     (width * height * 4) 
  * @param imageWidth
  *     Width of the image.
  * @param imageHeight
@@ -194,6 +190,9 @@ AnnotationImage::initializeMembersAnnotationImage()
                           &m_imageWidth);
     m_sceneAssistant->add("m_imageHeight",
                           &m_imageHeight);
+    
+    /* Texture info not saved to scenes */
+    m_drawnWithOpenGLTextureInfo.grabNew(new DrawnWithOpenGLTextureInfo);
 }
 
 /**
@@ -251,6 +250,26 @@ AnnotationImage::getFixedAspectRatio() const
     }
     
     return aspectRatio;
+}
+
+/**
+ * @return The OpenGL texture information used for managing
+ * texture resources.
+ */
+DrawnWithOpenGLTextureInfo*
+AnnotationImage::getDrawWithOpenGLTextureInfo()
+{
+    return m_drawnWithOpenGLTextureInfo;
+}
+
+/**
+ * @return The OpenGL texture information used for managing
+ * texture resources (const method)
+ */
+const DrawnWithOpenGLTextureInfo*
+AnnotationImage::getDrawWithOpenGLTextureInfo() const
+{
+    return m_drawnWithOpenGLTextureInfo;
 }
 
 /**

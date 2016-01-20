@@ -2277,7 +2277,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                 
                 if (depthTestFlag) {
                     if (drawWithTextureFlag) {
-                        drawImageBytesWithTexture(bottomLeft,
+                        drawImageBytesWithTexture(image->getDrawWithOpenGLTextureInfo(),
+                                                  bottomLeft,
                                                   bottomRight,
                                                   topRight,
                                                   topLeft,
@@ -2307,7 +2308,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                         getAnnotationTwoDimShapeBounds(image, windowXYZ, bl, br, tr, tl);
                         
                     if (drawWithTextureFlag) {
-                        drawImageBytesWithTexture(bottomLeft,
+                        drawImageBytesWithTexture(image->getDrawWithOpenGLTextureInfo(),
+                                                  bottomLeft,
                                                   bottomRight,
                                                   topRight,
                                                   topLeft,
@@ -2351,6 +2353,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
 /**
  * Draw image annoation using a textured quad.
  *
+ * @param textureInfo
+ *     Information for OpenGL texture usage.
  * @param bottomLeft
  *     Bottom left corner of annotation.
  * @param bottomRight
@@ -2367,7 +2371,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
  *     Height of the image.
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(const float bottomLeft[3],
+BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(DrawnWithOpenGLTextureInfo* textureInfo,
+                                                                     const float bottomLeft[3],
                                                                      const float bottomRight[3],
                                                                      const float topRight[3],
                                                                      const float topLeft[3],
@@ -2387,21 +2392,19 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(const float
     BrainOpenGLTextureManager* textureManager = m_brainOpenGLFixedPipeline->getTextureManager();
     CaretAssert(textureManager);
     
-    GLuint textureID = textureManager->getTextureNameForData(static_cast<const void*>(imageBytesRGBA));
+    GLuint textureName = 0;
+    bool newTextureNameFlag = false;
+    textureManager->getTextureName(textureInfo,
+                                   textureName,
+                                   newTextureNameFlag);
     
-    if (textureID == 0) {
-        textureID = textureManager->createTextureNameForData(static_cast<const void*>(imageBytesRGBA));
-        
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        
+    if (newTextureNameFlag) {
+        glBindTexture(GL_TEXTURE_2D, textureName);
         if (useMipMapFlag) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
             const int errorCode = gluBuild2DMipmaps(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
                                                     GL_RGBA,           // number of components
                                                     imageWidth,        // width of image
@@ -2441,7 +2444,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(const float
     
     glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, textureName);
     
     glBegin(GL_QUADS);
     glTexCoord2f(0.0, 0.0);
