@@ -2730,6 +2730,7 @@ BrainBrowserWindow::processSplitBorderFiles()
 void 
 BrainBrowserWindow::processCaptureImage()
 {
+    std::cout << "Toolbar height " << m_toolbar->height() << std::endl;
     GuiManager::get()->processShowImageCaptureDialog(this);
 }
 
@@ -4125,6 +4126,13 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
                            isMaximized());
     sceneClass->addBoolean("m_viewTileTabsAction",
                            m_viewTileTabsSelected);
+    
+    /*
+     * Graphics position and size
+     */
+    SceneWindowGeometry openGLGeometry(m_openGLWidget);
+    sceneClass->addClass(openGLGeometry.saveToScene(sceneAttributes,
+                                                    "openGLWidgetGeometry"));
     return sceneClass;
 }
 

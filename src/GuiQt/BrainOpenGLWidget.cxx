@@ -85,6 +85,11 @@ using namespace caret;
 /**
  * Constructor.
  * 
+ * NOTE: We do not use "sharing" of textures and display lists 
+ * between windows.  There are some issues with sharing and
+ * recreation of OpenGL contexts such as when renderPixmap()
+ * function is used.  
+ *
  * @param
  *   The parent widget.
  */
