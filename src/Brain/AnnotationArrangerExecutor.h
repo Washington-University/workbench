@@ -156,7 +156,7 @@ namespace caret {
         
         AnnotationDistributeEnum::Enum m_distribute;
         
-        bool m_debugFlag = false;
+        bool m_debugFlag;
         
         // ADD_NEW_MEMBERS_HERE
 
