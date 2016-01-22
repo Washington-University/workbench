@@ -960,7 +960,6 @@ OperationShowScene::useParametersOld(OperationParameters* myParams,
     delete[] imageBuffer;
     OSMesaDestroyContext(mesaContext);
 }
-#endif // HAVE_OSMESA
 
 /**
  * Create OpenGL Rendering.
@@ -1006,6 +1005,7 @@ OperationShowScene::createBrainOpenGL(const int32_t windowIndex)
     return brainOpenGL;
 }
 
+#endif // HAVE_OSMESA
 
 /**
  * Write the image data to a Image File.
