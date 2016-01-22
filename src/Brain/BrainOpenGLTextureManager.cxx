@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <limits>
+
 #define __BRAIN_OPEN_G_L_TEXTURE_MANAGER_DECLARE__
 #include "BrainOpenGLTextureManager.h"
 #undef __BRAIN_OPEN_G_L_TEXTURE_MANAGER_DECLARE__
