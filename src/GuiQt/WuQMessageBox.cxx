@@ -247,6 +247,30 @@ WuQMessageBox::warningYesNo(QWidget* parent,
 }
 
 /**
+ * Display an error message box with the
+ * given text and an OK button.
+ *
+ * @param parent
+ *    Parent on which message box is displayed.
+ * @param text
+ *    Message that is displayed.
+ */
+void
+WuQMessageBox::warningOk(QWidget* parent,
+                         const QString& text)
+{
+    QMessageBox msgBox(parent);
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setWindowTitle("");
+    msgBox.setText(text);
+    msgBox.addButton(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+    msgBox.setEscapeButton(QMessageBox::Ok);
+    
+    msgBox.exec();
+}
+
+/**
  * Display a warning message box with Ok and Cancel
  * buttons.  Pressing the enter key is the equivalent
  * of pressing the Ok button.

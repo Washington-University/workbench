@@ -42,6 +42,9 @@ namespace caret {
         static void informationOk(QWidget* parent,
                                   const QString& text);
         
+        static void warningOk(QWidget* parent,
+                              const QString& text);
+        
         static bool warningOkCancel(QWidget* parent,
                                     const QString& text);
         
