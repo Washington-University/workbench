@@ -191,6 +191,9 @@ namespace caret {
                             SpecFileDataFile* specFileDataFile,
                             CaretDataFile* caretDataFile);
         
+        void copyMoveFileContent(QWidget* parent,
+                                 CaretDataFile* caretDataFile);
+        
         void updateTableDimensionsToFitFiles();
         
         QTableWidgetItem* createHeaderTextItem(const QString& text);

@@ -86,6 +86,7 @@ CiftiParcelSelectionComboBox.h
 ClippingPlanesDialog.h
 ColorEditorWidget.h
 CustomViewDialog.h
+DataFileContentCopyMoveDialog.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 FiberOrientationSelectionViewController.h
@@ -247,6 +248,7 @@ CursorDisplayScoped.h
 CursorEnum.h
 CursorManager.h
 CustomViewDialog.h
+DataFileContentCopyMoveDialog.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 EventAnnotationCreateNewType.h
@@ -433,6 +435,7 @@ CursorDisplayScoped.cxx
 CursorEnum.cxx
 CursorManager.cxx
 CustomViewDialog.cxx
+DataFileContentCopyMoveDialog.cxx
 DisplayGroupEnumComboBox.cxx
 EventAnnotationCreateNewType.cxx
 EventBrowserTabGetAllViewed.cxx

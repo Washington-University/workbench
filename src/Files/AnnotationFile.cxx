@@ -257,9 +257,28 @@ AnnotationFile::~AnnotationFile()
 void
 AnnotationFile::clear()
 {
+    const AString nameOfFile = getFileName();
+    
     CaretDataFile::clear();
     
     clearPrivate();
+
+    switch (m_fileSubType) {
+        case ANNOTATION_FILE_SAVE_TO_FILE:
+            break;
+        case ANNOTATION_FILE_SAVE_TO_SCENE:
+        {
+            /*
+             * Do not clear the name of the scene annotation file.
+             */
+            const bool modStatus = isModified();
+            setFileName(nameOfFile);
+            if ( ! modStatus) {
+                clearModified();
+            }
+        }
+            break;
+    }
 }
 
 /**
@@ -863,5 +882,52 @@ AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
             }
             break;
     }
+}
+
+/**
+ * @return Pointer to DataFile that implements this interface
+ */
+DataFile*
+AnnotationFile::getAsDataFile()
+{
+    DataFile* dataFile = dynamic_cast<DataFile*>(this);
+    CaretAssert(this);
+    return dataFile;
+}
+
+/**
+ * Append content from the given data file copy/move interface to this instance
+ *
+ * @param dataFileCopyMoveInterface
+ *     From which content is copied.
+ * @throws DataFileException
+ *     If there is an error.
+ */
+void
+AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveInterface* dataFileCopyMoveInterface)
+{
+    const AnnotationFile* copyFromFile = dynamic_cast<const AnnotationFile*>(dataFileCopyMoveInterface);
+    if (copyFromFile == NULL) {
+        throw DataFileException("Trying to copy content to annotation file from a file that is not an "
+                                "annotation file.");
+    }
+    
+    const int32_t numAnn = copyFromFile->getNumberOfAnnotations();
+    for (int32_t i = 0; i < numAnn; i++) {
+        const Annotation* ann = copyFromFile->getAnnotation(i);
+        CaretAssert(ann);
+        Annotation* annCopy = ann->clone();
+        CaretAssert(annCopy);
+        addAnnotationPrivate(annCopy);
+    }
+}
+
+/**
+ * @return A new instance of the same file type.  File is empty.
+ */
+DataFileContentCopyMoveInterface*
+AnnotationFile::newInstanceOfDataFile() const
+{
+    return new AnnotationFile();
 }
 

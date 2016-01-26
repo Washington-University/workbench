@@ -472,7 +472,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_annotationFiles.clear();
     
     m_sceneAnnotationFile->clear();
-    m_sceneAnnotationFile->setFileName("Scene Annotations");
+    //m_sceneAnnotationFile->setFileName("Scene Annotations");
     m_sceneAnnotationFile->clearModified();
     
     for (std::vector<BorderFile*>::iterator bfi = m_borderFiles.begin();

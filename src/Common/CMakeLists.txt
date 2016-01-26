@@ -61,6 +61,7 @@ CubicSpline.h
 DataCompressZLib.h
 DataFile.h
 DataFileContentInformation.h
+DataFileContentCopyMoveInterface.h
 DataFileException.h
 DataFileInterface.h
 DataFileTypeEnum.h

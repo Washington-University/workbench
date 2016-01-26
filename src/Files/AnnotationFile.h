@@ -27,6 +27,7 @@
 
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
+#include "DataFileContentCopyMoveInterface.h"
 #include "EventListenerInterface.h"
 
 
@@ -35,7 +36,10 @@ namespace caret {
     class Annotation;
     class SceneClassAssistant;
     
-    class AnnotationFile : public CaretDataFile, public EventListenerInterface {
+    class AnnotationFile
+    : public CaretDataFile,
+    public EventListenerInterface,
+    public DataFileContentCopyMoveInterface {
         
     public:
         /**
@@ -105,6 +109,13 @@ namespace caret {
         
         virtual void clearModified();
         
+        virtual DataFile* getAsDataFile();
+        
+        virtual void appendContentFromDataFile(const DataFileContentCopyMoveInterface* dataFileCopyMoveInterface);
+        
+        virtual DataFileContentCopyMoveInterface* newInstanceOfDataFile() const;
+        
+
         // ADD_NEW_METHODS_HERE
         
           
