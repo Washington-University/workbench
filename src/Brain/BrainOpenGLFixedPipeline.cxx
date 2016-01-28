@@ -780,12 +780,17 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
         cb->setWindowIndex(m_windowIndex);
     }
     
+    int32_t tabIndex = this->windowTabIndex;
+    if (tabIndex < 0) {
+        CaretLogSevere("Overrode -1 tab index for drawing window annotations");
+        tabIndex = 0;
+    }
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              windowViewport,
                                                              m_windowIndex,
-                                                             this->windowTabIndex);
+                                                             tabIndex); //this->windowTabIndex);
     
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::WINDOW,

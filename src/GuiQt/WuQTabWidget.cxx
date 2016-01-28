@@ -127,13 +127,34 @@ WuQTabWidget::getWidget()
  *    New page that is added (must not be NULL).
  * @param label
  *    Label displayed in the page's tab.
+ * @return
+ *    Index of widget in the tab bar.
  */
-void
+int
 WuQTabWidget::addTab(QWidget* page,
             const QString& label)
 {
+    const int tabIndex = m_tabBar->count();
+    
     m_tabBar->addTab(label);
-    m_stackedWidget->addWidget(page);    
+    m_stackedWidget->addWidget(page);
+    
+    return tabIndex;
+}
+
+/**
+ * Set the enabled status for a given tab index.
+ * 
+ * @param tabIndex
+ *     Index of the tab.
+ * @param status
+ *     New enabled status.
+ */
+void
+WuQTabWidget::setTabEnabled(const int tabIndex,
+                            const bool status)
+{
+    m_tabBar->setTabEnabled(tabIndex, status);
 }
 
 /**
@@ -169,9 +190,6 @@ WuQTabWidget::currentWidget() const
     return m_stackedWidget->currentWidget();
 }
 
-//signals:
-//void currentChanged(int index);
-
 /**
  * Makes widget at the given index the current widget. The widget used must
  * be a page in this tab widget.
@@ -193,10 +211,8 @@ void
 WuQTabWidget::setCurrentWidget(QWidget* widget)
 {
     const int indx = m_stackedWidget->indexOf(widget);
-    if (indx > 0) {
-        m_tabBar->blockSignals(true);
-        m_tabBar->setCurrentIndex(indx);
-        m_tabBar->blockSignals(false);
+    if (indx >= 0) {
+        setCurrentIndex(indx);
     }
 }
 

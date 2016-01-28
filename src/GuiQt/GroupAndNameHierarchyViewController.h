@@ -34,6 +34,7 @@ class QVBoxLayout;
 
 namespace caret {
 
+    class AnnotationFile;
     class BorderFile;
     class CiftiBrainordinateLabelFile;
     class FociFile;
@@ -54,6 +55,9 @@ namespace caret {
         virtual ~GroupAndNameHierarchyViewController();
         
         void updateContents(std::vector<BorderFile*>& borderFiles,
+                            const DisplayGroupEnum::Enum displayGroup);
+        
+        void updateContents(std::vector<AnnotationFile*>& annotationFiles,
                             const DisplayGroupEnum::Enum displayGroup);
         
         void updateContents(std::vector<FociFile*>& fociFiles,

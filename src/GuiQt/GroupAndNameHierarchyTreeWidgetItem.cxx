@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <QPainter>
+
 #define __CLASS_AND_NAME_HIERARCHY_TREE_WIDGET_ITEM_DECLARE__
 #include "GroupAndNameHierarchyTreeWidgetItem.h"
 #undef __CLASS_AND_NAME_HIERARCHY_TREE_WIDGET_ITEM_DECLARE__
@@ -90,7 +92,7 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
                      tabIndex,
                      ITEM_TYPE_CLASS,
                      classDisplayGroupSelector->getName(),
-                     classDisplayGroupSelector->getIconColorRGBA());
+                     classDisplayGroupSelector->getIconForegroundColorRGBA());
     m_classDisplayGroupSelector = classDisplayGroupSelector;
     
     std::vector<GroupAndNameHierarchyItem*> nameChildren = m_classDisplayGroupSelector->getChildren();
@@ -125,7 +127,7 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
                      tabIndex,
                      ITEM_TYPE_NAME,
                      nameDisplayGroupSelector->getName(),
-                     nameDisplayGroupSelector->getIconColorRGBA());
+                     nameDisplayGroupSelector->getIconForegroundColorRGBA());
     m_nameDisplayGroupSelector = nameDisplayGroupSelector;
 }
 
@@ -165,10 +167,10 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(GroupAndNameHierarchyItem* group
                            "Invalid item added to group/name hierarchy tree.");
     }
     
-    m_iconColorRGBA[0] = -1.0;
-    m_iconColorRGBA[1] = -1.0;
-    m_iconColorRGBA[2] = -1.0;
-    m_iconColorRGBA[3] = -1.0;
+    m_iconForegroundColorRGBA[0] = -1.0;
+    m_iconForegroundColorRGBA[1] = -1.0;
+    m_iconForegroundColorRGBA[2] = -1.0;
+    m_iconForegroundColorRGBA[3] = -1.0;
     m_displayGroup = displayGroup;
     m_tabIndex = tabIndex;
     m_itemType = itemType;
@@ -270,31 +272,84 @@ void
 GroupAndNameHierarchyTreeWidgetItem::updateIconColorIncludingChildren()
 {
     if (m_groupAndNameHierarchyItem != NULL) {
-        const float* rgba = m_groupAndNameHierarchyItem->getIconColorRGBA();
-        if (rgba != NULL) {
-            if (rgba[3] > 0.0) {
-
-                bool colorChanged = false;
-                for (int32_t i = 0; i < 4; i++) {
-                    if (m_iconColorRGBA[i] != rgba[i]) {
-                        colorChanged = true;
-                        break;
-                    }
-                }
-                if (colorChanged) {
-                    m_iconColorRGBA[0] = rgba[0];
-                    m_iconColorRGBA[1] = rgba[1];
-                    m_iconColorRGBA[2] = rgba[2];
-                    m_iconColorRGBA[3] = rgba[3];
+        const float* backgroundRgba = m_groupAndNameHierarchyItem->getIconBackgroundColorRGBA();
+        const float* foregroundRgba = m_groupAndNameHierarchyItem->getIconForegroundColorRGBA();
+        
+        bool colorChangedFlag = false;
+        for (int32_t i = 0; i < 4; i++) {
+            if ((backgroundRgba[i] != m_iconBackgroundColorRGBA[i])
+                || (foregroundRgba[i] != m_iconForegroundColorRGBA[i])) {
+                colorChangedFlag = true;
+                break;
+            }
+        }
+        
+        if (colorChangedFlag) {
+            m_iconBackgroundColorRGBA[0] = backgroundRgba[0];
+            m_iconBackgroundColorRGBA[1] = backgroundRgba[1];
+            m_iconBackgroundColorRGBA[2] = backgroundRgba[2];
+            m_iconBackgroundColorRGBA[3] = backgroundRgba[3];
+            
+            m_iconForegroundColorRGBA[0] = foregroundRgba[0];
+            m_iconForegroundColorRGBA[1] = foregroundRgba[1];
+            m_iconForegroundColorRGBA[2] = foregroundRgba[2];
+            m_iconForegroundColorRGBA[3] = foregroundRgba[3];
+            
+            const int pixmapSize = 12;
+            QPixmap pm;
+            
+            QColor foregroundFillColor = QColor::fromRgbF(m_iconForegroundColorRGBA[0],
+                                                          m_iconForegroundColorRGBA[1],
+                                                          m_iconForegroundColorRGBA[2]);
+            QColor backgroundFillColor = QColor::fromRgbF(m_iconBackgroundColorRGBA[0],
+                                                          m_iconBackgroundColorRGBA[1],
+                                                          m_iconBackgroundColorRGBA[2]);
+            
+            const bool foreTopBackBottomFlag = true;
+            if (foreTopBackBottomFlag) {
+                if ((m_iconForegroundColorRGBA[3] > 0.0)
+                    && (m_iconBackgroundColorRGBA[3] > 0.0)) {
+                    pm = QPixmap(pixmapSize, pixmapSize);
+                    QPainter painter(&pm);
+                    const int halfSize = pixmapSize / 2;
                     
-                    QPixmap pm(10, 10);
-                    pm.fill(QColor::fromRgbF(m_iconColorRGBA[0],
-                                             m_iconColorRGBA[1],
-                                             m_iconColorRGBA[2]));
-                    QIcon icon(pm);
-                    setIcon(TREE_COLUMN, icon);
+                    painter.fillRect(0, halfSize,
+                                     pixmapSize, halfSize,
+                                     backgroundFillColor);
+                    painter.fillRect(0, 0,
+                                     pixmapSize, halfSize,
+                                     foregroundFillColor);
+                }
+                else if (m_iconBackgroundColorRGBA[3] > 0.0) {
+                    pm = QPixmap(pixmapSize, pixmapSize);
+                    pm.fill(backgroundFillColor);
+                }
+                else if (m_iconForegroundColorRGBA[3] > 0.0) {
+                    pm = QPixmap(pixmapSize, pixmapSize);
+                    pm.fill(foregroundFillColor);
                 }
             }
+            else {
+                if (m_iconBackgroundColorRGBA[3] > 0.0) {
+                    pm = QPixmap(pixmapSize, pixmapSize);
+                    pm.fill(backgroundFillColor);
+                    
+                    if (m_iconForegroundColorRGBA[3] > 0.0) {
+                        const int borderWidth = pixmapSize / 4;
+                        QPainter painter(&pm);
+                        painter.fillRect(borderWidth, borderWidth,
+                                         borderWidth * 2, borderWidth * 2,
+                                         foregroundFillColor);
+                    }
+                }
+                else if (m_iconForegroundColorRGBA[3] > 0.0) {
+                    pm = QPixmap(pixmapSize, pixmapSize);
+                    pm.fill(foregroundFillColor);
+                }
+            }
+            
+            QIcon icon(pm);
+            setIcon(TREE_COLUMN, icon);
         }
     }
     

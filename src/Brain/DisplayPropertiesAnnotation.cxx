@@ -49,12 +49,28 @@ m_parentBrain(parentBrain)
     
     resetPrivate();
     
-    m_sceneAssistant->addTabIndexedBooleanArray("m_displayModelAnnotations",
-                                                m_displayModelAnnotations);
-    m_sceneAssistant->addTabIndexedBooleanArray("m_displaySurfaceAnnotations",
-                                                m_displaySurfaceAnnotations);
-    m_sceneAssistant->addTabIndexedBooleanArray("m_displayTabAnnotations",
-                                                m_displayTabAnnotations);
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
+        m_displayStatusInTab[i] = false;
+    }
+    
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        m_displayStatusInDisplayGroup[i] = false;
+    }
+    
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
+                                                                                                m_displayGroup);
+    m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
+                                                m_displayStatusInTab);
+    
+    m_sceneAssistant->addArray("m_displayStatusInDisplayGroup",
+                               m_displayStatusInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_displayStatusInDisplayGroup[0]);
+    
+    
+    
+    
     
     m_sceneAssistant->addArray("m_displayWindowAnnotations",
                                m_displayWindowAnnotations,
@@ -80,9 +96,9 @@ void
 DisplayPropertiesAnnotation::copyDisplayProperties(const int32_t sourceTabIndex,
                                                    const int32_t targetTabIndex)
 {
-    m_displayModelAnnotations[targetTabIndex] = m_displayModelAnnotations[sourceTabIndex];
-    m_displaySurfaceAnnotations[targetTabIndex] = m_displaySurfaceAnnotations[sourceTabIndex];
-    m_displayTabAnnotations[targetTabIndex] = m_displayTabAnnotations[sourceTabIndex];
+    const DisplayGroupEnum::Enum displayGroup = this->getDisplayGroupForTab(sourceTabIndex);
+    this->setDisplayGroupForTab(targetTabIndex, displayGroup);
+    this->m_displayStatusInTab[targetTabIndex] = this->m_displayStatusInTab[sourceTabIndex];
 }
 
 /**
@@ -92,12 +108,6 @@ DisplayPropertiesAnnotation::copyDisplayProperties(const int32_t sourceTabIndex,
 void
 DisplayPropertiesAnnotation::resetPrivate()
 {
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_displayModelAnnotations[i] = true;
-        m_displaySurfaceAnnotations[i] = true;
-        m_displayTabAnnotations[i] = true;
-    }
-    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         m_displayWindowAnnotations[i] = true;
     }
@@ -123,145 +133,87 @@ DisplayPropertiesAnnotation::update()
 }
 
 /**
- * Is the model annotation displayed in the given tab index?
- *
+ * @return  Display status of borders.
+ * @param displayGroup
+ *    The display group.
  * @param tabIndex
- *     Index of the tab.
- * @return
- * True if displayed, else false.
+ *    Index of browser tab.
  */
 bool
-DisplayPropertiesAnnotation::isDisplayModelAnnotationsInTab(const int32_t tabIndex) const
+DisplayPropertiesAnnotation::isDisplayed(const DisplayGroupEnum::Enum  displayGroup,
+                                      const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_displayModelAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    return m_displayModelAnnotations[tabIndex];
-}
-
-/**
- * Is the model annotation displayed in any of the given tab indices?
- *
- * @param tabIndices
- *     Index of the tab.
- * @return
- * True if displayed, else false.
- */
-bool
-DisplayPropertiesAnnotation::isDisplayModelAnnotationsInTabs(const std::vector<int32_t>& tabIndices) const
-{
-    for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
-         iter != tabIndices.end();
-         iter++) {
-        const int32_t tabIndex = *iter;
-        CaretAssertArrayIndex(m_displayModelAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-        if (m_displayModelAnnotations[tabIndex]) {
-            return true;
-        }
+    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_displayStatusInTab[tabIndex];
     }
-    
-    return false;
+    return m_displayStatusInDisplayGroup[displayGroup];
 }
 
 /**
- * Set the model annotation displayed in the given tab index.
- *
+ * Set the display status for borders for the given display group.
+ * @param displayGroup
+ *    The display group.
  * @param tabIndex
- *     Index of the tab.
- * @param status
- *     True if displayed, else false.
+ *    Index of browser tab.
+ * @param displayStatus
+ *    New status.
  */
 void
-DisplayPropertiesAnnotation::setDisplayModelAnnotationsInTab(const int32_t tabIndex,
-                                                        const bool status)
+DisplayPropertiesAnnotation::setDisplayed(const DisplayGroupEnum::Enum  displayGroup,
+                                       const int32_t tabIndex,
+                                       const bool displayStatus)
 {
-    CaretAssertArrayIndex(m_displayModelAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    m_displayModelAnnotations[tabIndex] = status;
-}
-
-/**
- * Is the surface annotation displayed in the given tab index?
- *
- * @param tabIndex
- *     Index of the tab.
- * @return
- * True if displayed, else false.
- */
-bool
-DisplayPropertiesAnnotation::isDisplaySurfaceAnnotationsInTab(const int32_t tabIndex) const
-{
-    CaretAssertArrayIndex(m_displaySurfaceAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    return m_displaySurfaceAnnotations[tabIndex];
-}
-
-/**
- * Is the surface annotation displayed in any of the given tab indices?
- *
- * @param tabIndices
- *     Index of the tab.
- * @return
- * True if displayed, else false.
- */
-bool
-DisplayPropertiesAnnotation::isDisplaySurfaceAnnotationsInTabs(const std::vector<int32_t>& tabIndices) const
-{
-    for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
-         iter != tabIndices.end();
-         iter++) {
-        const int32_t tabIndex = *iter;
-        CaretAssertArrayIndex(m_displaySurfaceAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-        if (m_displaySurfaceAnnotations[tabIndex]) {
-            return true;
-        }
+    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_displayStatusInTab[tabIndex] = displayStatus;
     }
-    
-    return false;
+    else {
+        m_displayStatusInDisplayGroup[displayGroup] = displayStatus;
+    }
 }
 
 /**
- * Set the surface annotation displayed in the given tab index.
- *
- * @param tabIndex
- *     Index of the tab.
- * @param status
- *     True if displayed, else false.
+ * Get the display group for a given browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ */
+DisplayGroupEnum::Enum
+DisplayPropertiesAnnotation::getDisplayGroupForTab(const int32_t browserTabIndex) const
+{
+    CaretAssertArrayIndex(this->displayGroup,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          browserTabIndex);
+    return m_displayGroup[browserTabIndex];
+}
+
+/**
+ * Set the display group for a given browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param displayGroup
+ *    New value for display group.
  */
 void
-DisplayPropertiesAnnotation::setDisplaySurfaceAnnotationsInTab(const int32_t tabIndex,
-                                                          const bool status)
+DisplayPropertiesAnnotation::setDisplayGroupForTab(const int32_t browserTabIndex,
+                                                const DisplayGroupEnum::Enum  displayGroup)
 {
-    CaretAssertArrayIndex(m_displaySurfaceAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    m_displaySurfaceAnnotations[tabIndex] = status;
+    CaretAssertArrayIndex(this->displayGroup,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          browserTabIndex);
+    m_displayGroup[browserTabIndex] = displayGroup;
 }
 
-/**
- * Is the tab annotation displayed in the given tab index?
- *
- * @param tabIndex
- *     Index of the tab.
- * @return
- * True if displayed, else false.
- */
-bool
-DisplayPropertiesAnnotation::isDisplayTabAnnotationsInTab(const int32_t tabIndex) const
-{
-    CaretAssertArrayIndex(m_displayTabAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    return m_displayTabAnnotations[tabIndex];
-}
-
-/**
- * Set the tab annotation displayed in the given tab index.
- *
- * @param tabIndex
- *     Index of the tab.
- * @param status
- *     True if displayed, else false.
- */
-void
-DisplayPropertiesAnnotation::setDisplayTabAnnotationsInTab(const int32_t tabIndex,
-                                                      const bool status)
-{
-    CaretAssertArrayIndex(m_displayTabAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    m_displayTabAnnotations[tabIndex] = status;
-}
 
 /**
  * Is the window annotation displayed in the given window index?
@@ -314,7 +266,7 @@ DisplayPropertiesAnnotation::saveToScene(const SceneAttributes* sceneAttributes,
     
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "DisplayPropertiesAnnotation",
-                                            1);
+                                            2);
     
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -347,6 +299,59 @@ DisplayPropertiesAnnotation::restoreFromScene(const SceneAttributes* sceneAttrib
 {
     if (sceneClass == NULL) {
         return;
+    }
+    
+    CaretLogSevere("NEED TO CHECK SCENE VERSION FOR OLD TAB/WINDOW SELECTION");
+    
+    if (sceneClass->getVersionNumber() == 1) {
+        /*
+         * Version one scenes did not have class/name hierarchy
+         *
+         m_sceneAssistant->addTabIndexedBooleanArray("m_displayModelAnnotations",
+         m_displayModelAnnotations);
+         m_sceneAssistant->addTabIndexedBooleanArray("m_displaySurfaceAnnotations",
+         m_displaySurfaceAnnotations);
+         m_sceneAssistant->addTabIndexedBooleanArray("m_displayTabAnnotations",
+         m_displayTabAnnotations);
+         
+         m_sceneAssistant->addArray("m_displayWindowAnnotations",
+         m_displayWindowAnnotations,
+         BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS,
+         true);
+         *
+         */
+        
+        bool displayModelAnnotation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        if (sceneClass->getBooleanArrayValue("m_displayModelAnnotations",
+                                             displayModelAnnotation,
+                                             BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)
+            == BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS) {
+            
+        }
+        
+        bool displaySurfaceAnnotation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        if (sceneClass->getBooleanArrayValue("m_displaySurfaceAnnotations",
+                                             displaySurfaceAnnotation,
+                                             BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)
+            == BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS) {
+            
+        }
+        
+        bool displayTabAnnotation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        if (sceneClass->getBooleanArrayValue("m_displayTabAnnotations",
+                                             displayTabAnnotation,
+                                             BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)
+            == BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS) {
+            
+        }
+        
+        bool displayWindowAnnotation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        if (sceneClass->getBooleanArrayValue("m_displayWindowAnnotations",
+                                             displayWindowAnnotation,
+                                             BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)
+            == BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS) {
+            
+        }
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes,

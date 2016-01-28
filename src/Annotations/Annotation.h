@@ -34,6 +34,7 @@
 
 namespace caret {
     class AnnotationSpatialModification;
+    class GroupAndNameHierarchyItem;
     class SceneClassAssistant;
 
     class Annotation : public CaretObjectTracksModification, public SceneableInterface {
@@ -168,9 +169,17 @@ namespace caret {
                                              const float viewportHeight,
                                              float relativeXYZOut[3]);
         
+        void setGroupNameSelectionItem(GroupAndNameHierarchyItem* item);
+
+        const GroupAndNameHierarchyItem* getGroupNameSelectionItem() const;
+
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
+        
+        AString getClassNameForHierarchy() const;
+        
+        AString getNameForHierarchy() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -194,6 +203,8 @@ namespace caret {
         void copyHelperAnnotation(const Annotation& obj);
 
         void initializeAnnotationMembers();
+        
+        void resetGroupAndNameHierarchyItem();
         
         // private - AnnotationManager handles selection and allowing
         // public access to this method could cause improper selection status
@@ -230,9 +241,12 @@ namespace caret {
          * Selection status in each window.
          *
          * Number of elements must be same as Constants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS
-         * An assertion will fail in the if number of elements differs.
+         * An assertion will fail in the .cxx file if number of elements differs.
          */
         mutable std::bitset<10> m_selectedInWindowFlag;
+        
+        /** Selection status of this border in the group/name hierarchy */
+        GroupAndNameHierarchyItem* m_groupNameSelectionItem;
         
         // defaults
         static CaretColorEnum::Enum s_userDefaultColorForeground;

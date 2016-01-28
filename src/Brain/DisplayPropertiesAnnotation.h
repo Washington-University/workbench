@@ -24,6 +24,7 @@
 
 #include "BrainConstants.h"
 #include "DisplayProperties.h"
+#include "DisplayGroupEnum.h"
 
 
 
@@ -41,29 +42,38 @@ namespace caret {
         
         virtual void update();
         
-        bool isDisplayModelAnnotationsInTab(const int32_t tabIndex) const;
         
-        bool isDisplayModelAnnotationsInTabs(const std::vector<int32_t>& tabIndices) const;
         
-        void setDisplayModelAnnotationsInTab(const int32_t tabIndex,
-                                        const bool status);
+        bool isDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                         const int32_t tabIndex) const;
         
-        bool isDisplaySurfaceAnnotationsInTab(const int32_t tabIndex) const;
+        void setDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                          const int32_t tabIndex,
+                          const bool displayStatus);
         
-        bool isDisplaySurfaceAnnotationsInTabs(const std::vector<int32_t>& tabIndices) const;
+        DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
         
-        void setDisplaySurfaceAnnotationsInTab(const int32_t tabIndex,
-                                        const bool status);
+        void setDisplayGroupForTab(const int32_t browserTabIndex,
+                                   const DisplayGroupEnum::Enum displayGroup);
         
-        bool isDisplayTabAnnotationsInTab(const int32_t tabIndex) const;
         
-        void setDisplayTabAnnotationsInTab(const int32_t tabIndex,
-                                        const bool status);
+        
+        
+        
+        
+        
         
         bool isDisplayWindowAnnotationsInTab(const int32_t windowIndex) const;
         
         void setDisplayWindowAnnotationsInTab(const int32_t windowIndex,
                                         const bool status);
+        
+        
+        
+        
+        
+        
+        
         
         virtual void copyDisplayProperties(const int32_t sourceTabIndex,
                                            const int32_t targetTabIndex);
@@ -85,11 +95,17 @@ namespace caret {
         
         Brain* m_parentBrain;
         
-        bool m_displayModelAnnotations[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool m_displaySurfaceAnnotations[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_displayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        bool m_displayTabAnnotations[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        
+        
+        
+        
+        
         
         bool m_displayWindowAnnotations[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         

@@ -120,7 +120,9 @@ namespace caret {
         
         bool m_hasChildren;
         
-        float m_iconColorRGBA[4];
+        float m_iconBackgroundColorRGBA[4];
+        
+        float m_iconForegroundColorRGBA[4];
         
         static const int TREE_COLUMN;
         

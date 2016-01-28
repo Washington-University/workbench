@@ -161,8 +161,6 @@ namespace caret {
         
         GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
         
-        const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
-        
         QStringList getAllBorderNamesSorted() const;
         
         static int32_t getFileVersion();

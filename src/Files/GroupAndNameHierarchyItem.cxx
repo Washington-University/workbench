@@ -64,11 +64,16 @@ m_parent(0)
 {
     m_sceneAssistant = new SceneClassAssistant();
     
-    m_iconRGBA[0] = 0.0;
-    m_iconRGBA[1] = 0.0;
-    m_iconRGBA[2] = 0.0;
-    m_iconRGBA[3] = 0.0;
+    m_iconForegroundRGBA[0] = 0.0;
+    m_iconForegroundRGBA[1] = 0.0;
+    m_iconForegroundRGBA[2] = 0.0;
+    m_iconForegroundRGBA[3] = 0.0;
 
+    m_iconBackgroundRGBA[0] = 0.0;
+    m_iconBackgroundRGBA[1] = 0.0;
+    m_iconBackgroundRGBA[2] = 0.0;
+    m_iconBackgroundRGBA[3] = 0.0;
+    
     clearPrivate();
     
     m_sceneAssistant->addTabIndexedBooleanArray("m_selectedInTab",
@@ -140,14 +145,33 @@ GroupAndNameHierarchyItem::clearPrivate()
             break;
     }
     
-    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        m_expandedStatusInDisplayGroup[i] = defaultExpandStatus;
-    }
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_expandedStatusInTab[i] = defaultExpandStatus;
-    }
+    setExpandedStatusForAllDisplayGroupsAndTabs(defaultExpandStatus);
+
+//    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+//        m_expandedStatusInDisplayGroup[i] = defaultExpandStatus;
+//    }
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        m_expandedStatusInTab[i] = defaultExpandStatus;
+//    }
     
     m_counter = 0;
+}
+
+/**
+ * Set the expanded status for all display groups and tabs.
+ *
+ * @param expandedStatus
+ *     New expanded status.
+ */
+void
+GroupAndNameHierarchyItem::setExpandedStatusForAllDisplayGroupsAndTabs(const bool expandedStatus)
+{
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        m_expandedStatusInDisplayGroup[i] = expandedStatus;
+    }
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_expandedStatusInTab[i] = expandedStatus;
+    }
 }
 
 /**
@@ -616,22 +640,22 @@ GroupAndNameHierarchyItem::setSelfAncestorsAndDescendantsSelected(const DisplayG
 }
 
 /**
- * Get the RGBA color for an Icon that is displayed
+ * Get the Foreground RGBA color for an Icon that is displayed
  * in the selection control for this item.
  *
  * @return
  *     Pointer to the Red, Green, Blue, and Alpha
- *         color components for this item's icon.
+ *         foreground color components for this item's icon.
  *     If no icon is to be displayed, the alpha component is zero.
  */
 const float*
-GroupAndNameHierarchyItem::getIconColorRGBA() const
+GroupAndNameHierarchyItem::getIconForegroundColorRGBA() const
 {
-    return m_iconRGBA;
+    return m_iconForegroundRGBA;
 }
 
 /**
- * Set the RGBA color components for an icon displayed in the
+ * Set the ForegroundRGBA color components for an icon displayed in the
  * selection control for this item.
  *
  * @param rgba
@@ -639,12 +663,44 @@ GroupAndNameHierarchyItem::getIconColorRGBA() const
  *     If no icon is to be displayed, the alpha component is zero.
  */
 void
-GroupAndNameHierarchyItem::setIconColorRGBA(const float rgba[4])
+GroupAndNameHierarchyItem::setIconForegroundColorRGBA(const float rgba[4])
 {
-    m_iconRGBA[0] = rgba[0];
-    m_iconRGBA[1] = rgba[1];
-    m_iconRGBA[2] = rgba[2];
-    m_iconRGBA[3] = rgba[3];
+    m_iconForegroundRGBA[0] = rgba[0];
+    m_iconForegroundRGBA[1] = rgba[1];
+    m_iconForegroundRGBA[2] = rgba[2];
+    m_iconForegroundRGBA[3] = rgba[3];
+}
+
+/**
+ * Get the Background RGBA color for an Icon that is displayed
+ * in the selection control for this item.
+ *
+ * @return
+ *     Pointer to the Red, Green, Blue, and Alpha
+ *         background color components for this item's icon.
+ *     If no icon is to be displayed, the alpha component is zero.
+ */
+const float*
+GroupAndNameHierarchyItem::getIconBackgroundColorRGBA() const
+{
+    return m_iconBackgroundRGBA;
+}
+
+/**
+ * Set the BackgroundRGBA color components for an icon displayed in the
+ * selection control for this item.
+ *
+ * @param rgba
+ *     The Red, Green, Blue, and Alpha color components.
+ *     If no icon is to be displayed, the alpha component is zero.
+ */
+void
+GroupAndNameHierarchyItem::setIconBackgroundColorRGBA(const float rgba[4])
+{
+    m_iconBackgroundRGBA[0] = rgba[0];
+    m_iconBackgroundRGBA[1] = rgba[1];
+    m_iconBackgroundRGBA[2] = rgba[2];
+    m_iconBackgroundRGBA[3] = rgba[3];
 }
 
 /**

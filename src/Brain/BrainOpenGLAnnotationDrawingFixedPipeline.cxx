@@ -624,23 +624,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
     switch (drawingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            if ( ! dpa->isDisplayModelAnnotationsInTab(m_inputs->m_tabIndex)) {
-                return;
-            }
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssertMessage(0, "Never draw annotations in pixel space.");
-            return;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            if ( ! dpa->isDisplaySurfaceAnnotationsInTab(m_inputs->m_tabIndex)) {
-                return;
-            }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            if ( ! dpa->isDisplayTabAnnotationsInTab(m_inputs->m_tabIndex)) {
-                return;
-            }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if ( ! dpa->isDisplayWindowAnnotationsInTab(m_inputs->m_windowIndex)) {
@@ -713,6 +702,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
 
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("Before draw annotations loop in space: "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
+    
+
+    const DisplayGroupEnum::Enum displayGroup = dpa->getDisplayGroupForTab(m_inputs->m_tabIndex);
     
     /*
      * Draw annotations from all files.
@@ -861,9 +853,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 }
             }
             
-            drawAnnotation(annotationFile,
-                           annotation,
-                           surfaceDisplayed);
+            if (annotationFile->isAnnotationDisplayed(displayGroup,
+                                                      m_inputs->m_tabIndex,
+                                                      annotation)) {
+                drawAnnotation(annotationFile,
+                               annotation,
+                               surfaceDisplayed);
+            }
         }
     }
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("After draw annotations loop in space: "
