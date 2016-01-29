@@ -54,6 +54,8 @@ namespace caret {
         
         Annotation* clone() const;
         
+        int32_t getUniqueIdentifier() const;
+        
         void replaceWithCopyOfAnnotation(const Annotation* annotation);
         
         QString getShortDescriptiveString() const;
@@ -219,6 +221,18 @@ namespace caret {
         const AnnotationAttributesDefaultTypeEnum::Enum m_attributeDefaultType;
         
     private:
+        /*
+         * Unique identifier for annotations.  It is used by
+         * group and name hierarchy so that identically named
+         * items are not group together.
+         *
+         * This is not saved to a scene.
+         *
+         * If there are more than 2 million annotations, this
+         * could fail.
+         */
+        int32_t m_uniqueIdentifier;
+        
         SceneClassAssistant* m_sceneAssistant;
         
         AnnotationCoordinateSpaceEnum::Enum  m_coordinateSpace;
@@ -259,6 +273,8 @@ namespace caret {
         
         static float s_userDefaultForegroundLineWidth;
         
+        static int32_t s_uniqueIdentifierGenerator;
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class AnnotationFile;
@@ -275,6 +291,8 @@ namespace caret {
     float Annotation::s_userDefaultCustomColorBackground[4] = { 0.0, 0.0, 0.0, 1.0 };
     
     float Annotation::s_userDefaultForegroundLineWidth = 3.0;
+    
+    int32_t Annotation::s_uniqueIdentifierGenerator = 0;
 #endif // __ANNOTATION_DECLARE__
 
 } // namespace

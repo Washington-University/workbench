@@ -86,6 +86,8 @@ namespace caret {
         
         GroupAndNameHierarchyViewController* m_annotationClassNameHierarchyViewController;
         
+        QCheckBox* m_windowAnnotationsInTileTabsOnlyDisplayCheckBox;
+        
         QCheckBox* m_annotationsDisplayCheckBox;
         
         DisplayGroupEnumComboBox* m_annotationsDisplayGroupComboBox;

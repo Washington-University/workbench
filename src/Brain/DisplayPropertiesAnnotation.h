@@ -62,10 +62,9 @@ namespace caret {
         
         
         
+        bool isDisplayWindowAnnotationsOnlyInTileTabs(const int32_t windowIndex) const;
         
-        bool isDisplayWindowAnnotationsInTab(const int32_t windowIndex) const;
-        
-        void setDisplayWindowAnnotationsInTab(const int32_t windowIndex,
+        void setDisplayWindowAnnotationsOnlyInTileTabs(const int32_t windowIndex,
                                         const bool status);
         
         
@@ -107,7 +106,7 @@ namespace caret {
         
         
         
-        bool m_displayWindowAnnotations[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        bool m_displayWindowAnnotationsOnlyInTileTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         // ADD_NEW_MEMBERS_HERE
 

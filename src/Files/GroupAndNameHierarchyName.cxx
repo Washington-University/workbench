@@ -39,6 +39,7 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
  * @param name
  *    The name.
  * @param idNumber

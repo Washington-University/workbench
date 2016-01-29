@@ -853,7 +853,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              m_fixedPipelineDrawing->m_tabViewport,
                                                              m_fixedPipelineDrawing->m_windowIndex,
-                                                             m_fixedPipelineDrawing->windowTabIndex);
+                                                             m_fixedPipelineDrawing->windowTabIndex,
+                                                             m_fixedPipelineDrawing->m_tileTabEnabledFlag);
     m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
                                                                                         slicePlane,
                                                                                         sliceThickness);

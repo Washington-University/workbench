@@ -105,9 +105,12 @@ namespace caret {
          *    The brain (must be valid!)
          * @param viewportContents
          *    Viewport info for drawing.
+         * @param tileTabsEnabledFlag
+         *    Indicates if tile tabs is enabled.
          */
         virtual void drawModels(Brain* brain,
-                                std::vector<BrainOpenGLViewportContent*>& viewportContents) = 0;
+                                std::vector<BrainOpenGLViewportContent*>& viewportContents,
+                                const bool tileTabsEnabledFlag) = 0;
         
         /**
          * Selection on a model.
@@ -116,6 +119,8 @@ namespace caret {
          *    The brain (must be valid!)
          * @param viewportContent
          *    Viewport content in which mouse was clicked
+         * @param tileTabsEnabledFlag
+         *    Indicates if tile tabs is enabled.
          * @param mouseX
          *    X position of mouse click
          * @param mouseY
@@ -130,6 +135,7 @@ namespace caret {
          */
         virtual void selectModel(Brain* brain,
                                  BrainOpenGLViewportContent* viewportContent,
+                                 const bool tileTabsEnabledFlag,
                                  const int32_t mouseX,
                                  const int32_t mouseY,
                                  const bool applySelectionBackgroundFiltering) = 0;
@@ -144,6 +150,8 @@ namespace caret {
          *    The brain (must be valid!)
          * @param viewportContent
          *    Viewport content in which mouse was clicked
+         * @param tileTabsEnabledFlag
+         *    Indicates if tile tabs is enabled.
          * @param mouseX
          *    X position of mouse click
          * @param mouseY
@@ -151,6 +159,7 @@ namespace caret {
          */
         virtual void projectToModel(Brain* brain,
                                     BrainOpenGLViewportContent* viewportContent,
+                                    const bool tileTabsEnabledFlag,
                                     const int32_t mouseX,
                                     const int32_t mouseY,
                                     SurfaceProjectedItem& projectionOut) = 0;

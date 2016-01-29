@@ -337,6 +337,15 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
 }
 
 /**
+ * Get the unique identifier for this annotation.
+ */
+int32_t
+Annotation::getUniqueIdentifier() const
+{
+    return m_uniqueIdentifier;
+}
+
+/**
  * Initialize members of this class.
  */
 void
@@ -353,6 +362,12 @@ Annotation::initializeAnnotationMembers()
     
     m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     
+    if (s_uniqueIdentifierGenerator == std::numeric_limits<int32_t>::max()) {
+        s_uniqueIdentifierGenerator = 0;
+    }
+    s_uniqueIdentifierGenerator++;
+    
+    m_uniqueIdentifier = s_uniqueIdentifierGenerator;
     m_tabIndex    = -1;
     m_windowIndex = -1;
     

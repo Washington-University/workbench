@@ -82,6 +82,12 @@ AnnotationSelectionViewController::AnnotationSelectionViewController(const int32
     groupLayout->addWidget(m_annotationsDisplayGroupComboBox->getWidget());
     groupLayout->addStretch(); 
     
+    m_windowAnnotationsInTileTabsOnlyDisplayCheckBox = new QCheckBox("Display Window "
+                                                       + QString::number(m_browserWindowIndex + 1)
+                                                       + " Annotations Only In Tile Tabs");
+    QObject::connect(m_windowAnnotationsInTileTabsOnlyDisplayCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processAttributesChanges()));
+    
     m_annotationsDisplayCheckBox = new QCheckBox("Display Annotations");
     QObject::connect(m_annotationsDisplayCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
@@ -109,6 +115,7 @@ AnnotationSelectionViewController::AnnotationSelectionViewController(const int32
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addLayout(groupLayout);
     layout->addSpacing(10);
+    layout->addWidget(m_windowAnnotationsInTileTabsOnlyDisplayCheckBox);
     layout->addWidget(m_annotationsDisplayCheckBox);
     layout->addWidget(m_tabWidget->getWidget(), 0, Qt::AlignLeft);
     layout->addStretch();
@@ -172,7 +179,8 @@ AnnotationSelectionViewController::processAttributesChanges()
     dpb->setDisplayed(displayGroup,
                       browserTabIndex,
                       m_annotationsDisplayCheckBox->isChecked());
-    
+    dpb->setDisplayWindowAnnotationsOnlyInTileTabs(m_browserWindowIndex,
+                                     m_windowAnnotationsInTileTabsOnlyDisplayCheckBox->isChecked());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
     updateOtherAnnotationViewControllers();
@@ -247,6 +255,8 @@ AnnotationSelectionViewController::updateAnnotationViewController()
     
     m_annotationsDisplayCheckBox->setChecked(dpb->isDisplayed(displayGroup,
                                                           browserTabIndex));
+    
+    m_windowAnnotationsInTileTabsOnlyDisplayCheckBox->setChecked(dpb->isDisplayWindowAnnotationsOnlyInTileTabs(m_browserWindowIndex));
 }
 
 /**

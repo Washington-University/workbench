@@ -632,7 +632,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            if ( ! dpa->isDisplayWindowAnnotationsInTab(m_inputs->m_windowIndex)) {
+        {
+            bool drawWindowAnnotationsFlag = true;
+            if (dpa->isDisplayWindowAnnotationsOnlyInTileTabs(m_inputs->m_windowIndex)) {
+                if ( ! m_inputs->m_tileTabsModeFlag) {
+                    drawWindowAnnotationsFlag = false;
+                }
+            }
+            if ( ! drawWindowAnnotationsFlag) {
                 if (annotationBeingDrawn != NULL) {
                     /*
                      * Window annotation are not being drawn.
@@ -645,6 +652,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                     return;
                 }
             }
+        }
             break;
     }
     SelectionItemAnnotation* annotationID = m_inputs->m_brain->getSelectionManager()->getAnnotationIdentification();

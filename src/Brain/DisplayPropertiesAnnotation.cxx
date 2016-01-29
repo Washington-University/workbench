@@ -72,8 +72,8 @@ m_parentBrain(parentBrain)
     
     
     
-    m_sceneAssistant->addArray("m_displayWindowAnnotations",
-                               m_displayWindowAnnotations,
+    m_sceneAssistant->addArray("m_displayWindowAnnotationsOnlyInTileTabs",
+                               m_displayWindowAnnotationsOnlyInTileTabs,
                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS,
                                true);
 }
@@ -109,7 +109,7 @@ void
 DisplayPropertiesAnnotation::resetPrivate()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
-        m_displayWindowAnnotations[i] = true;
+        m_displayWindowAnnotationsOnlyInTileTabs[i] = false;
     }
 }
 
@@ -224,10 +224,10 @@ DisplayPropertiesAnnotation::setDisplayGroupForTab(const int32_t browserTabIndex
  * True if displayed, else false.
  */
 bool
-DisplayPropertiesAnnotation::isDisplayWindowAnnotationsInTab(const int32_t windowIndex) const
+DisplayPropertiesAnnotation::isDisplayWindowAnnotationsOnlyInTileTabs(const int32_t windowIndex) const
 {
-    CaretAssertArrayIndex(m_displayWindowAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
-    return m_displayWindowAnnotations[windowIndex];
+    CaretAssertArrayIndex(m_displayWindowAnnotationsOnlyInTileTabs, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    return m_displayWindowAnnotationsOnlyInTileTabs[windowIndex];
 }
 
 /**
@@ -239,11 +239,11 @@ DisplayPropertiesAnnotation::isDisplayWindowAnnotationsInTab(const int32_t windo
  *     True if displayed, else false.
  */
 void
-DisplayPropertiesAnnotation::setDisplayWindowAnnotationsInTab(const int32_t windowIndex,
+DisplayPropertiesAnnotation::setDisplayWindowAnnotationsOnlyInTileTabs(const int32_t windowIndex,
                                                          const bool status)
 {
-    CaretAssertArrayIndex(m_displayWindowAnnotations, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
-    m_displayWindowAnnotations[windowIndex] = status;
+    CaretAssertArrayIndex(m_displayWindowAnnotationsOnlyInTileTabs, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    m_displayWindowAnnotationsOnlyInTileTabs[windowIndex] = status;
 }
 
 /**

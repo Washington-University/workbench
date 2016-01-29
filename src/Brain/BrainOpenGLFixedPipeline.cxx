@@ -160,7 +160,8 @@ static bool drawTabAnnotationsAfterTabContentFlag = true;
 BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(const int32_t windowIndex,
                                                    BrainOpenGLTextRenderInterface* textRenderer)
 : BrainOpenGL(textRenderer),
-m_windowIndex(windowIndex)
+m_windowIndex(windowIndex),
+m_tileTabEnabledFlag(false)
 {
     CaretAssert((m_windowIndex >= 0)
                 && (m_windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
@@ -241,6 +242,8 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
  *    The brain (must be valid!)
  * @param viewportConent
  *    Viewport content in which mouse was clicked
+ * @param tileTabsEnabledFlag
+ *    Indicates if tile tabs is enabled.
  * @param mouseX
  *    X position of mouse click
  * @param mouseY
@@ -256,12 +259,15 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
 void 
 BrainOpenGLFixedPipeline::selectModel(Brain* brain,
                                       BrainOpenGLViewportContent* viewportContent,
+                                      const bool tileTabsEnabledFlag,
                                       const int32_t mouseX,
                                       const int32_t mouseY,
                                       const bool applySelectionBackgroundFiltering)
 {
     m_brain = brain;
     CaretAssert(m_brain);
+    
+    m_tileTabEnabledFlag = tileTabsEnabledFlag;
     
     setTabViewport(viewportContent);
     
@@ -318,6 +324,8 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
  *    The brain (must be valid!)
  * @param viewportContent
  *    Viewport content in which mouse was clicked
+ * @param tileTabsEnabledFlag
+ *    Indicates if tile tabs is enabled.
  * @param mouseX
  *    X position of mouse click
  * @param mouseY
@@ -328,12 +336,15 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
 void 
 BrainOpenGLFixedPipeline::projectToModel(Brain* brain,
                                          BrainOpenGLViewportContent* viewportContent,
+                                         const bool tileTabsEnabledFlag,
                                          const int32_t mouseX,
                                          const int32_t mouseY,
                                          SurfaceProjectedItem& projectionOut)
 {
     m_brain = brain;
     CaretAssert(m_brain);
+    
+    m_tileTabEnabledFlag = tileTabsEnabledFlag;
     
     setTabViewport(viewportContent);
     
@@ -486,13 +497,17 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(std::vector<BrainOpen
  *    The brain (must be valid!)
  * @param viewportContents
  *    Viewport info for drawing.
+ * @param tileTabsEnabledFlag
+ *    Indicates if tile tabs is enabled.
  */
 void 
 BrainOpenGLFixedPipeline::drawModels(Brain* brain,
-                                     std::vector<BrainOpenGLViewportContent*>& viewportContents)
+                                     std::vector<BrainOpenGLViewportContent*>& viewportContents,
+                                     const bool tileTabsEnabledFlag)
 {
     m_brain = brain;
     CaretAssert(m_brain);
+    m_tileTabEnabledFlag = tileTabsEnabledFlag;
     
     setTabViewport(NULL);
     
@@ -739,7 +754,8 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabCont
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              tabViewport,
                                                              m_windowIndex,
-                                                             this->windowTabIndex);
+                                                             this->windowTabIndex,
+                                                             m_tileTabEnabledFlag);
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
@@ -790,7 +806,8 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              windowViewport,
                                                              m_windowIndex,
-                                                             tabIndex); //this->windowTabIndex);
+                                                             tabIndex,
+                                                             m_tileTabEnabledFlag); //this->windowTabIndex);
     
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::WINDOW,
@@ -893,7 +910,8 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_tabViewport,
                                                                      m_windowIndex,
-                                                                     this->windowTabIndex);
+                                                                     this->windowTabIndex,
+                                                                     m_tileTabEnabledFlag);
             if ( ! drawTabAnnotationsAfterTabContentFlag) {
                 m_annotationDrawing->drawAnnotations(&inputs,
                                                      AnnotationCoordinateSpaceEnum::TAB,
@@ -1687,7 +1705,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_tabViewport,
                                                                      m_windowIndex,
-                                                                     this->windowTabIndex);
+                                                                     this->windowTabIndex,
+                                                                     m_tileTabEnabledFlag);
             std::vector<AnnotationColorBar*> emptyColorBars;
             m_annotationDrawing->drawAnnotations(&inputs,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,
@@ -1732,7 +1751,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_tabViewport,
                                                                      m_windowIndex,
-                                                                     this->windowTabIndex);
+                                                                     this->windowTabIndex,
+                                                                     m_tileTabEnabledFlag);
             std::vector<AnnotationColorBar*> emptyColorBars;
             m_annotationDrawing->drawAnnotations(&inputs,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,

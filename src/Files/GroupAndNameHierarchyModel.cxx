@@ -246,7 +246,7 @@ GroupAndNameHierarchyModel::update(AnnotationFile* annotationFile,
              */
             GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
                                                                       name,
-                                                                      ID_NOT_USED);
+                                                                      annotation->getUniqueIdentifier());
             
             const CaretColorEnum::Enum foregroundColor = annotation->getForegroundColor();
             const CaretColorEnum::Enum backgroundColor = annotation->getBackgroundColor();
