@@ -34,7 +34,6 @@
 
 namespace caret {
     class AnnotationSpatialModification;
-    class GroupAndNameHierarchyItem;
     class SceneClassAssistant;
 
     class Annotation : public CaretObjectTracksModification, public SceneableInterface {
@@ -53,8 +52,6 @@ namespace caret {
                                                const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         Annotation* clone() const;
-        
-        int32_t getUniqueIdentifier() const;
         
         void replaceWithCopyOfAnnotation(const Annotation* annotation);
         
@@ -171,17 +168,9 @@ namespace caret {
                                              const float viewportHeight,
                                              float relativeXYZOut[3]);
         
-        void setGroupNameSelectionItem(GroupAndNameHierarchyItem* item);
-
-        const GroupAndNameHierarchyItem* getGroupNameSelectionItem() const;
-
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
-        
-        AString getClassNameForHierarchy() const;
-        
-        AString getNameForHierarchy() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -206,8 +195,6 @@ namespace caret {
 
         void initializeAnnotationMembers();
         
-        void resetGroupAndNameHierarchyItem();
-        
         // private - AnnotationManager handles selection and allowing
         // public access to this method could cause improper selection status
         void setSelected(const int32_t windowIndex,
@@ -221,18 +208,6 @@ namespace caret {
         const AnnotationAttributesDefaultTypeEnum::Enum m_attributeDefaultType;
         
     private:
-        /*
-         * Unique identifier for annotations.  It is used by
-         * group and name hierarchy so that identically named
-         * items are not group together.
-         *
-         * This is not saved to a scene.
-         *
-         * If there are more than 2 million annotations, this
-         * could fail.
-         */
-        int32_t m_uniqueIdentifier;
-        
         SceneClassAssistant* m_sceneAssistant;
         
         AnnotationCoordinateSpaceEnum::Enum  m_coordinateSpace;
@@ -255,12 +230,9 @@ namespace caret {
          * Selection status in each window.
          *
          * Number of elements must be same as Constants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS
-         * An assertion will fail in the .cxx file if number of elements differs.
+         * An assertion will fail in the if number of elements differs.
          */
         mutable std::bitset<10> m_selectedInWindowFlag;
-        
-        /** Selection status of this border in the group/name hierarchy */
-        GroupAndNameHierarchyItem* m_groupNameSelectionItem;
         
         // defaults
         static CaretColorEnum::Enum s_userDefaultColorForeground;
@@ -272,8 +244,6 @@ namespace caret {
         static float s_userDefaultCustomColorBackground[4];
         
         static float s_userDefaultForegroundLineWidth;
-        
-        static int32_t s_uniqueIdentifierGenerator;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -291,8 +261,6 @@ namespace caret {
     float Annotation::s_userDefaultCustomColorBackground[4] = { 0.0, 0.0, 0.0, 1.0 };
     
     float Annotation::s_userDefaultForegroundLineWidth = 3.0;
-    
-    int32_t Annotation::s_uniqueIdentifierGenerator = 0;
 #endif // __ANNOTATION_DECLARE__
 
 } // namespace

@@ -28,14 +28,12 @@
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
 #include "DataFileContentCopyMoveInterface.h"
-#include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
 
 
 namespace caret {
 
     class Annotation;
-    class GroupAndNameHierarchyModel;
     class SceneClassAssistant;
     
     class AnnotationFile
@@ -107,8 +105,6 @@ namespace caret {
         
         virtual void writeFile(const AString& filename);
         
-        virtual void setModified();
-        
         virtual bool isModified() const;
         
         virtual void clearModified();
@@ -119,14 +115,13 @@ namespace caret {
         
         virtual DataFileContentCopyMoveInterface* newInstanceOfDataFile() const;
         
-        GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
-        
-        bool isAnnotationDisplayed(const DisplayGroupEnum::Enum displayGroup,
-                                   const int32_t browserTabIndex,
-                                   const Annotation* annotation);
-        
+
         // ADD_NEW_METHODS_HERE
         
+          
+          
+          
+          
     protected: 
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
@@ -168,12 +163,6 @@ namespace caret {
         typedef std::vector<QSharedPointer<Annotation> >::iterator AnnotationIterator;
         
         typedef std::vector<QSharedPointer<Annotation> >::const_iterator AnnotationConstIterator;
-        
-        /** Holds class and name hierarchy used for display selection */
-        mutable GroupAndNameHierarchyModel* m_classNameHierarchy;
-        
-        /** force an update of the class and name hierarchy */
-        bool m_forceUpdateOfGroupAndNameHierarchy;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -29,7 +29,6 @@
 
 namespace caret {
 
-    class AnnotationFile;
     class BorderFile;
     class CiftiMappableDataFile;
     class FociFile;
@@ -51,9 +50,6 @@ namespace caret {
         void setAllSelected(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex,
                             const bool status);
-        
-        void update(AnnotationFile* annotationFile,
-                    const bool forceUpdate);
         
         void update(BorderFile* borderFile,
                     const bool forceUpdate);

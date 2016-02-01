@@ -467,8 +467,7 @@ BrainOpenGLWidget::paintGL()
         this->openGL->setBorderBeingDrawn(NULL);
     }
     this->openGL->drawModels(GuiManager::get()->getBrain(),
-                             this->drawingViewportContents,
-                             bbw->isTileTabsSelected());
+                             this->drawingViewportContents);
     
     /*
      * Issue browser window redrawn event
@@ -992,10 +991,8 @@ BrainOpenGLWidget::performIdentification(const int x,
     idManager->getVoxelEditingIdentification()->setEnabledForSelection(false);
     
     if (idViewport != NULL) {
-        BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
         this->openGL->selectModel(GuiManager::get()->getBrain(),
                                   idViewport,
-                                  bbw->isTileTabsSelected(),
                                   x, 
                                   y,
                                   applySelectionBackgroundFiltering);
@@ -1039,10 +1036,8 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
          const int idX = x - vp[0];
          const int idY = y - vp[1];
          */
-        BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
         this->openGL->selectModel(GuiManager::get()->getBrain(),
                                   idViewport,
-                                  bbw->isTileTabsSelected(),
                                   x,
                                   y,
                                   true);
@@ -1089,10 +1084,8 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
          const int idX = x - vp[0];
          const int idY = y - vp[1];
          */
-        BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
         this->openGL->selectModel(GuiManager::get()->getBrain(),
                                   idViewport,
-                                  bbw->isTileTabsSelected(),
                                   x,
                                   y,
                                   true);
@@ -1129,10 +1122,8 @@ BrainOpenGLWidget::performProjection(const int x,
          const int idX = x - vp[0];
          const int idY = y - vp[1];
          */
-        BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
         this->openGL->projectToModel(GuiManager::get()->getBrain(),
                                      projectionViewport,
-                                     bbw->isTileTabsSelected(),
                                      x,
                                      y,
                                      projectionOut);

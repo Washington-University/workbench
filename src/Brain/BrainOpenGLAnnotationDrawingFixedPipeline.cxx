@@ -624,22 +624,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
     switch (drawingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            if ( ! dpa->isDisplayModelAnnotationsInTab(m_inputs->m_tabIndex)) {
+                return;
+            }
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
+            CaretAssertMessage(0, "Never draw annotations in pixel space.");
+            return;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
+            if ( ! dpa->isDisplaySurfaceAnnotationsInTab(m_inputs->m_tabIndex)) {
+                return;
+            }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
+            if ( ! dpa->isDisplayTabAnnotationsInTab(m_inputs->m_tabIndex)) {
+                return;
+            }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-        {
-            bool drawWindowAnnotationsFlag = true;
-            if (dpa->isDisplayWindowAnnotationsOnlyInTileTabs(m_inputs->m_windowIndex)) {
-                if ( ! m_inputs->m_tileTabsModeFlag) {
-                    drawWindowAnnotationsFlag = false;
-                }
-            }
-            if ( ! drawWindowAnnotationsFlag) {
+            if ( ! dpa->isDisplayWindowAnnotationsInTab(m_inputs->m_windowIndex)) {
                 if (annotationBeingDrawn != NULL) {
                     /*
                      * Window annotation are not being drawn.
@@ -652,7 +656,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                     return;
                 }
             }
-        }
             break;
     }
     SelectionItemAnnotation* annotationID = m_inputs->m_brain->getSelectionManager()->getAnnotationIdentification();
@@ -710,9 +713,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
 
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("Before draw annotations loop in space: "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
-    
-
-    const DisplayGroupEnum::Enum displayGroup = dpa->getDisplayGroupForTab(m_inputs->m_tabIndex);
     
     /*
      * Draw annotations from all files.
@@ -861,13 +861,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 }
             }
             
-            if (annotationFile->isAnnotationDisplayed(displayGroup,
-                                                      m_inputs->m_tabIndex,
-                                                      annotation)) {
-                drawAnnotation(annotationFile,
-                               annotation,
-                               surfaceDisplayed);
-            }
+            drawAnnotation(annotationFile,
+                           annotation,
+                           surfaceDisplayed);
         }
     }
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("After draw annotations loop in space: "

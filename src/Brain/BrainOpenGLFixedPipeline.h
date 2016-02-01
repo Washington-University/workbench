@@ -108,19 +108,16 @@ namespace caret {
         ~BrainOpenGLFixedPipeline();
         
         void drawModels(Brain* brain,
-                        std::vector<BrainOpenGLViewportContent*>& viewportContents,
-                        const bool tileTabsEnabledFlag);
+                        std::vector<BrainOpenGLViewportContent*>& viewportContents);
         
         void selectModel(Brain* brain,
                          BrainOpenGLViewportContent* viewportContent,
-                         const bool tileTabsEnabledFlag,
                          const int32_t mouseX,
                          const int32_t mouseY,
                          const bool applySelectionBackgroundFiltering);
         
         void projectToModel(Brain* brain,
                             BrainOpenGLViewportContent* viewportContent,
-                            const bool tileTabsEnabledFlag,
                             const int32_t mouseX,
                             const int32_t mouseY,
                             SurfaceProjectedItem& projectionOut);
@@ -595,8 +592,6 @@ namespace caret {
         BrainOpenGLShapeCylinder* m_shapeCylinder;
         
         std::list<FiberOrientation*> m_fiberOrientationsForDrawing;
-        
-        bool m_tileTabEnabledFlag;
         
         double inverseRotationMatrix[16];
         bool inverseRotationMatrixValid;

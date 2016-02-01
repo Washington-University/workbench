@@ -547,7 +547,7 @@ GiftiLabelTableEditor::colorEditorColorChanged(const float* rgba)
             }
             GroupAndNameHierarchyItem* item = gl->getGroupNameSelectionItem();
             if (item != NULL) {
-                item->setIconForegroundColorRGBA(rgba);
+                item->setIconColorRGBA(rgba);
             }
             
         }

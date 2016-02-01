@@ -439,8 +439,7 @@ OperationShowScene::useParametersOptionalImageSize(OperationParameters* myParams
                                                                                                                                           gapsAndMargins);
                         
                         brainOpenGL->drawModels(brain,
-                                                viewports,
-                                                restoreToTabTiles);
+                                                viewports);
                         
                         const int32_t outputImageIndex = ((numBrowserClasses > 1)
                                                           ? i
@@ -495,8 +494,7 @@ OperationShowScene::useParametersOptionalImageSize(OperationParameters* myParams
                     viewportContents.push_back(content);
                     
                     brainOpenGL->drawModels(brain,
-                                            viewportContents,
-                                            restoreToTabTiles);
+                                            viewportContents);
                     
                     const int32_t outputImageIndex = ((numBrowserClasses > 1)
                                                       ? i
@@ -882,8 +880,7 @@ OperationShowScene::useParametersOld(OperationParameters* myParams,
                                                                                                                                           gapsAndMargins);
                         
                         brainOpenGL->drawModels(brain,
-                                                viewports,
-                                                restoreToTabTiles);
+                                                viewports);
 
                         const int32_t outputImageIndex = ((numBrowserClasses > 1)
                                                           ? i
@@ -938,8 +935,7 @@ OperationShowScene::useParametersOld(OperationParameters* myParams,
                     viewportContents.push_back(content);
                     
                     brainOpenGL->drawModels(brain,
-                                            viewportContents,
-                                            restoreToTabTiles);
+                                            viewportContents);
                     
                     const int32_t outputImageIndex = ((numBrowserClasses > 1)
                                                       ? i

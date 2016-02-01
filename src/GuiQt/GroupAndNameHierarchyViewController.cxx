@@ -30,7 +30,6 @@
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
 
-#include "AnnotationFile.h"
 #include "Brain.h"
 #include "BorderFile.h"
 #include "BrowserTabContent.h"
@@ -263,32 +262,6 @@ GroupAndNameHierarchyViewController::getAllModels() const
     return allModels;
 }
 
-/**
- * Update with annotation files.
- * @param annotationFiles
- *    The annotation files.
- * @param displayGroup
- *    The selected display group.
- */
-void
-GroupAndNameHierarchyViewController::updateContents(std::vector<AnnotationFile*>& annotationFiles,
-                                                    const DisplayGroupEnum::Enum displayGroup)
-{
-    std::vector<GroupAndNameHierarchyModel*> models;
-    m_displayGroup = displayGroup;
-    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
-    for (std::vector<AnnotationFile*>::iterator iter = annotationFiles.begin();
-         iter != annotationFiles.end();
-         iter++) {
-        AnnotationFile* af = *iter;
-        CaretAssert(af);
-        models.push_back(af->getGroupAndNameHierarchyModel());
-    }
-    
-    updateContents(models,
-                   DataFileTypeEnum::ANNOTATION,
-                   false);
-}
 
 /**
  * Update with border files.
@@ -463,12 +436,12 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
     if (numberOfModels != static_cast<int32_t>(this->m_treeWidgetItems.size())) {
         needUpdate = true;
     }
-    else if (m_displayGroup != m_previousDisplayGroup) {
-        needUpdate = true;
-    }
-    else if (browserTabIndex != m_previousBrowserTabIndex) {
-        needUpdate = true;
-    }
+//    else if (m_displayGroup != m_previousDisplayGroup) {
+//        needUpdate = true;
+//    }
+//    else if (browserTabIndex != m_previousBrowserTabIndex) {
+//        needUpdate = true;
+//    }
     else {
         /*
          * Have the displayed models changed?

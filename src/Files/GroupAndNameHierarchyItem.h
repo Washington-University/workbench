@@ -105,13 +105,9 @@ namespace caret {
                                                          const int32_t tabIndex,
                                                          const bool status);
         
-        const float* getIconBackgroundColorRGBA() const;
+        const float* getIconColorRGBA() const;
         
-        void setIconBackgroundColorRGBA(const float rgba[4]);
-        
-        const float* getIconForegroundColorRGBA() const;
-        
-        void setIconForegroundColorRGBA(const float rgba[4]);
+        void setIconColorRGBA(const float rgba[4]);
         
         bool isExpandedToDisplayChildren(const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex) const;
@@ -119,8 +115,6 @@ namespace caret {
         void setExpandedToDisplayChildren(const DisplayGroupEnum::Enum displayGroup,
                                                   const int32_t tabIndex,
                                                   const bool expanded);
-        
-        void setExpandedStatusForAllDisplayGroupsAndTabs(const bool expandedStatus);
         
         virtual void copySelections(const int32_t sourceTabIndex,
                                     const int32_t targetTabIndex);
@@ -229,11 +223,8 @@ namespace caret {
         /** Selection for each tab */
         bool m_selectedInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        /** Foreground color for icon, valid when (m_iconForegroundRGBA[3] > 0.0) */
-        float m_iconForegroundRGBA[4];
-        
-        /** Background color for icon, valid when (m_iconBackgroundRGBA[3] > 0.0) */
-        float m_iconBackgroundRGBA[4];
+        /** Color for icon, valid when (iconRGBA[3] > 0.0) */
+        float m_iconRGBA[4];
         
         /** Expanded (collapsed) status in display group */
         bool m_expandedStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];

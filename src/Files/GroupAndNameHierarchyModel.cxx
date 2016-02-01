@@ -23,8 +23,6 @@
 #include "GroupAndNameHierarchyModel.h"
 #undef __CLASS_AND_NAME_HIERARCHY_MODEL_DECLARE__
 
-#include "Annotation.h"
-#include "AnnotationFile.h"
 #include "Border.h"
 #include "BorderFile.h"
 #include "CaretAssert.h"
@@ -153,132 +151,6 @@ GroupAndNameHierarchyModel::setAllSelected(const DisplayGroupEnum::Enum displayG
 }
 
 /**
- * Update this group hierarchy with the annotation
- * names and spaces.
- *
- * @param annotationFile
- *    The annotation file from which classes and names are from.
- * @parm forceUpdate
- *    If true, force an update.
- */
-void
-GroupAndNameHierarchyModel::update(AnnotationFile* annotationFile,
-                                   const bool forceUpdate)
-{
-    bool needToGenerateKeys = forceUpdate;
-    
-    setName("FILE: "
-            + annotationFile->getFileNameNoPath());
-    
-    const int32_t numAnnotations = annotationFile->getNumberOfAnnotations();
-    if (needToGenerateKeys == false) {
-        for (int32_t i = 0; i < numAnnotations; i++) {
-            const Annotation* annotation = annotationFile->getAnnotation(i);
-            if (annotation->getGroupNameSelectionItem() == NULL) {
-                needToGenerateKeys = true;
-            }
-        }
-    }
-    
-    /*
-     * ID for groups and names is not used
-     */
-    const int32_t ID_NOT_USED = 0;
-    
-    if (needToGenerateKeys) {
-        /*
-         * Clear the counters
-         */
-        clearCounters();
-        
-        /*
-         * Names for missing group names or border names.
-         */
-        const AString missingGroupName = "NoGroup";
-        const AString missingAnnotationName = "NoName";
-        
-        /*
-         * Update with all borders.
-         */
-        for (int32_t i = 0; i < numAnnotations; i++) {
-            Annotation* annotation = annotationFile->getAnnotation(i);
-            
-            /*
-             * Get the group.  If it is empty, use the default name.
-             */
-            AString theGroupName = annotation->getClassNameForHierarchy();
-            if (theGroupName.isEmpty()) {
-                theGroupName = missingGroupName;
-            }
-            
-            /*
-             * Get the name.
-             */
-            AString name = annotation->getNameForHierarchy();
-            if (name.isEmpty()) {
-                name = missingAnnotationName;
-            }
-            
-            std::cout << "Group/Name: " << qPrintable(theGroupName) << ", " << qPrintable(name) << std::endl;
-            
-            /*
-             * Class
-             */
-            GroupAndNameHierarchyItem* groupItem = addChild(GroupAndNameHierarchyItem::ITEM_TYPE_GROUP,
-                                                            theGroupName,
-                                                            ID_NOT_USED);
-            CaretAssert(groupItem);
-            
-            groupItem->setExpandedStatusForAllDisplayGroupsAndTabs(true);
-            
-//            const GiftiLabel* groupLabel = classLabelTable->getLabelBestMatching(theGroupName);
-//            if (groupLabel != NULL) {
-//                float tempcolor[4];
-//                groupLabel->getColor(tempcolor);
-//                groupItem->setIconForegroundColorRGBA(tempcolor);
-//            }
-//            else {
-//                groupItem->setIconForegroundColorRGBA(rgbaBlack);
-//            }
-            
-            /*
-             * Name
-             */
-            GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
-                                                                      name,
-                                                                      annotation->getUniqueIdentifier());
-            
-            const CaretColorEnum::Enum foregroundColor = annotation->getForegroundColor();
-            const CaretColorEnum::Enum backgroundColor = annotation->getBackgroundColor();
-            
-            float backgroundIconColor[4] = { 0.0, 0.0, 0.0, 0.0 };
-            float foregroundIconColor[4] = { 0.0, 0.0, 0.0, 0.0 };
-            if (backgroundColor != CaretColorEnum::NONE) {
-                annotation->getBackgroundColorRGBA(backgroundIconColor);
-            }
-            if (foregroundColor != CaretColorEnum::NONE) {
-                annotation->getForegroundColorRGBA(foregroundIconColor);
-            }
-          
-            nameItem->setIconBackgroundColorRGBA(backgroundIconColor);
-            nameItem->setIconForegroundColorRGBA(foregroundIconColor);
-            
-            /*
-             * Place the name selector into the annotation.
-             */
-            annotation->setGroupNameSelectionItem(nameItem);
-        }
-        
-        removeDescendantsWithCountersEqualToZeros();
-        sortDescendantsByName();
-        setUserInterfaceUpdateNeeded();
-        
-        CaretLogSevere("ANNOTATION HIERARCHY:"
-                     + toString());
-    }
-}
-
-/**
  * Update this group hierarchy with the border names
  * and classes.
  *
@@ -363,10 +235,10 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
             if (groupLabel != NULL) {
                 float tempcolor[4];
                 groupLabel->getColor(tempcolor);
-                groupItem->setIconForegroundColorRGBA(tempcolor);
+                groupItem->setIconColorRGBA(tempcolor);
             }
             else {
-                groupItem->setIconForegroundColorRGBA(rgbaBlack);
+                groupItem->setIconColorRGBA(rgbaBlack);
             }
             
             /*
@@ -379,10 +251,10 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
             if (nameLabel != NULL) {
                 float tempcolor[4];
                 nameLabel->getColor(tempcolor);
-                nameItem->setIconForegroundColorRGBA(tempcolor);
+                nameItem->setIconColorRGBA(tempcolor);
             }
             else {
-                nameItem->setIconForegroundColorRGBA(rgbaBlack);
+                nameItem->setIconColorRGBA(rgbaBlack);
             }
             
             /*
@@ -553,7 +425,7 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
                 GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
                                                                          labelName,
                                                                          labelKey);
-                nameItem->setIconForegroundColorRGBA(rgba);
+                nameItem->setIconColorRGBA(rgba);
                 
                 /*
                  * Place the name selector into the label.
@@ -757,7 +629,7 @@ GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
                 GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
                                                                           labelName,
                                                                           labelKey);
-                nameItem->setIconForegroundColorRGBA(rgba);
+                nameItem->setIconColorRGBA(rgba);
                 
                 /*
                  * Place the name selector into the label.
@@ -961,7 +833,7 @@ GroupAndNameHierarchyModel::update(VolumeFile* volumeFile,
                 GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
                                                                           labelName,
                                                                           labelKey);
-                nameItem->setIconForegroundColorRGBA(rgba);
+                nameItem->setIconColorRGBA(rgba);
                 
                 /*
                  * Place the name selector into the label.
@@ -1074,10 +946,10 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             if (groupLabel != NULL) {
                 float rgba[4];
                 groupLabel->getColor(rgba);
-                groupItem->setIconForegroundColorRGBA(rgba);
+                groupItem->setIconColorRGBA(rgba);
             }
             else {
-                groupItem->setIconForegroundColorRGBA(rgbaBlack);
+                groupItem->setIconColorRGBA(rgbaBlack);
             }
 
             /*
@@ -1090,10 +962,10 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             if (nameLabel != NULL) {
                 float rgba[4];
                 nameLabel->getColor(rgba);
-                nameItem->setIconForegroundColorRGBA(rgba);
+                nameItem->setIconColorRGBA(rgba);
             }
             else {
-                nameItem->setIconForegroundColorRGBA(rgbaBlack);
+                nameItem->setIconColorRGBA(rgbaBlack);
             }
             
             /*

@@ -48,11 +48,8 @@ namespace caret {
         
         QWidget* getWidget();
         
-        int addTab(QWidget* page,
+        void addTab(QWidget* page,
                     const QString& label);
-        
-        void setTabEnabled(const int tabIndex,
-                           const bool status);
         
         int currentIndex() const;
         

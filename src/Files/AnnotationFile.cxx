@@ -38,7 +38,6 @@
 #include "EventAnnotationAddToRemoveFromFile.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
-#include "GroupAndNameHierarchyModel.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -247,9 +246,6 @@ AnnotationFile::~AnnotationFile()
 {
     clearPrivate();
     
-    delete m_classNameHierarchy;
-    m_classNameHierarchy = NULL;
-    
     EventManager::get()->removeAllEventsFromListener(this);
     delete m_sceneAssistant;
 }
@@ -283,8 +279,6 @@ AnnotationFile::clear()
         }
             break;
     }
-    
-    m_classNameHierarchy->clear();
 }
 
 /**
@@ -361,7 +355,6 @@ AnnotationFile::initializeAnnotationFile()
 {
     m_metadata.grabNew(new GiftiMetaData());
     m_sceneAssistant = new SceneClassAssistant();
-    m_classNameHierarchy = new GroupAndNameHierarchyModel();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE);
 }
@@ -377,11 +370,6 @@ AnnotationFile::copyHelperAnnotationFile(const AnnotationFile& /* obj */)
     CaretAssertMessage(0, "Copying of annotation file not implemented.  "
                        "Will need to check subtype or have a 'clone' method' that each "
                        "subclass (AnnotationText) implements.");
-//    if (m_classNameHierarchy != NULL) {
-//        delete m_classNameHierarchy;
-//    }
-//    m_classNameHierarchy = new GroupAndNameHierarchyModel();
-//    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**
@@ -770,57 +758,6 @@ AnnotationFile::clearModified()
     }
 }
 
-/**
- * Set the status to modified.
- */
-void
-AnnotationFile::setModified()
-{
-    CaretDataFile::setModified();
-    
-    m_forceUpdateOfGroupAndNameHierarchy = true;
-}
-
-
-/**
- * @return The class and name hierarchy.
- */
-GroupAndNameHierarchyModel*
-AnnotationFile::getGroupAndNameHierarchyModel()
-{
-    m_classNameHierarchy->update(this,
-                                 m_forceUpdateOfGroupAndNameHierarchy);
-    m_forceUpdateOfGroupAndNameHierarchy = false;
-    
-    return m_classNameHierarchy;
-}
-
-/**
- * Is the given annotation, that MUST be in this file, displayed?
- * @param displayGroup
- *    Display group in which annotation is tested for display.
- * @param browserTabIndex
- *    Tab index in which annotation is displayed.
- * @param annotation
- *    Annotation that is tested to see if it is displayed.
- * @return
- *    true if annotation is displayed, else false.
- */
-bool
-AnnotationFile::isAnnotationDisplayed(const DisplayGroupEnum::Enum displayGroup,
-                                      const int32_t browserTabIndex,
-                                      const Annotation* annotation)
-{
-    const GroupAndNameHierarchyItem* selectionItem = annotation->getGroupNameSelectionItem();
-    if (selectionItem != NULL) {
-        if (selectionItem->isSelected(displayGroup,
-                                      browserTabIndex) == false) {
-            return false;
-        }
-    }
-    
-    return true;
-}
 
 /**
  * Read the data file.
@@ -843,15 +780,6 @@ AnnotationFile::readFile(const AString& filename)
     
     setFileName(filename);
     
-    m_classNameHierarchy->update(this,
-                                 true);
-    m_forceUpdateOfGroupAndNameHierarchy = false;
-    m_classNameHierarchy->setAllSelected(true);
-    
-    CaretLogSevere("CLASS/NAME Table for : "
-                  + getFileNameNoPath()
-                  + "\n"
-                  + m_classNameHierarchy->toString());
     clearModified();
 }
 

@@ -25,7 +25,6 @@
 
 #include "AnnotationBox.h"
 #include "AnnotationColorBar.h"
-#include "AnnotationCoordinate.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
@@ -38,7 +37,6 @@
 #include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
-#include "StructureEnum.h"
 
 using namespace caret;
 
@@ -132,8 +130,6 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_customColorForeground[2]  = obj.m_customColorForeground[2];
     m_customColorForeground[3]  = obj.m_customColorForeground[3];
 
-    resetGroupAndNameHierarchyItem();
-    
     /*
      * Selected status is NOT copied.
      */
@@ -337,15 +333,6 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
 }
 
 /**
- * Get the unique identifier for this annotation.
- */
-int32_t
-Annotation::getUniqueIdentifier() const
-{
-    return m_uniqueIdentifier;
-}
-
-/**
  * Initialize members of this class.
  */
 void
@@ -362,16 +349,8 @@ Annotation::initializeAnnotationMembers()
     
     m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     
-    if (s_uniqueIdentifierGenerator == std::numeric_limits<int32_t>::max()) {
-        s_uniqueIdentifierGenerator = 0;
-    }
-    s_uniqueIdentifierGenerator++;
-    
-    m_uniqueIdentifier = s_uniqueIdentifierGenerator;
     m_tabIndex    = -1;
     m_windowIndex = -1;
-    
-    resetGroupAndNameHierarchyItem();
     
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
@@ -514,7 +493,6 @@ Annotation::setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordin
 {
     if (m_coordinateSpace != coordinateSpace) {
         m_coordinateSpace = coordinateSpace;
-        resetGroupAndNameHierarchyItem();
         setModified();
     }
 }
@@ -538,7 +516,6 @@ Annotation::setTabIndex(const int32_t tabIndex)
 {
     if (tabIndex != m_tabIndex) {
         m_tabIndex = tabIndex;
-        resetGroupAndNameHierarchyItem();
         setModified();
     }
 }
@@ -562,7 +539,6 @@ Annotation::setWindowIndex(const int32_t windowIndex)
 {
     if (windowIndex != m_windowIndex) {
         m_windowIndex = windowIndex;
-        resetGroupAndNameHierarchyItem();
         setModified();
     }
 }
@@ -585,137 +561,6 @@ Annotation::toString() const
         msg += (" text=" + textAnn->getText());
     }
     return msg;
-}
-
-/**
- * @return Name of annotation for features toolbox class/name hierarchy
- */
-AString
-Annotation::getNameForHierarchy() const
-{
-    AString name;
-
-    /*
-     * If in surface space, name begins with vertex number(s)
-     */
-    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::SURFACE) {
-        const AnnotationCoordinate* coordOne = NULL;
-        const AnnotationCoordinate* coordTwo = NULL;
-        
-        const AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<const AnnotationTwoDimensionalShape*>(this);
-        if (twoDimShape != NULL) {
-            coordOne = twoDimShape->getCoordinate();
-        }
-        else {
-            const AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<const AnnotationOneDimensionalShape*>(this);
-            if (oneDimShape != NULL) {
-                coordOne = oneDimShape->getStartCoordinate();
-                coordTwo = oneDimShape->getEndCoordinate();
-            }
-        }
-        
-        int32_t firstVertexIndex = -1;
-        if (coordOne != NULL) {
-            StructureEnum::Enum firstStructure = StructureEnum::INVALID;
-            int32_t numVertices = -1;
-            coordOne->getSurfaceSpace(firstStructure, numVertices, firstVertexIndex);
-        }
-        
-        int32_t secondVertexIndex = -1;
-        if (coordTwo != NULL) {
-            StructureEnum::Enum secondStructure = StructureEnum::INVALID;
-            int32_t numVertices = -1;
-            coordTwo->getSurfaceSpace(secondStructure, numVertices, secondVertexIndex);
-        }
-        
-        if ((firstVertexIndex >= 0)
-            && (secondVertexIndex >= 0)) {
-            name.append(" Vertices "
-                        + AString::number(firstVertexIndex)
-                        + ", "
-                        + AString::number(secondVertexIndex));
-        }
-        else if (firstVertexIndex >= 0) {
-            name.append(" Vertex "
-                        + AString::number(firstVertexIndex));
-        }
-
-        name.append(": ");
-    }
-    
-    if (m_type == AnnotationTypeEnum::TEXT) {
-        const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(this);
-        QString textChars = textAnn->getText().replace("\n", " "); // remove newlines
-        if (textChars.isEmpty()) {
-            textChars = "Text Missing !";
-        }
-        name.append(textChars);
-    }
-    else {
-        name.append(AnnotationTypeEnum::toGuiName(m_type));
-    }
-    return name;
-}
-
-/**
- * @return Name of annotation space for features toolbox class/name hierarchy
- */
-AString
-Annotation::getClassNameForHierarchy() const
-{
-    AString name = ("SPACE: "
-                    + AnnotationCoordinateSpaceEnum::toGuiName(m_coordinateSpace));
-    
-    switch (m_coordinateSpace) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-        {
-            const AnnotationCoordinate* coordOne = NULL;
-            const AnnotationCoordinate* coordTwo = NULL;
-            
-            const AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<const AnnotationTwoDimensionalShape*>(this);
-            if (twoDimShape != NULL) {
-                coordOne = twoDimShape->getCoordinate();
-            }
-            else {
-                const AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<const AnnotationOneDimensionalShape*>(this);
-                if (oneDimShape != NULL) {
-                    coordOne = oneDimShape->getStartCoordinate();
-                    coordTwo = oneDimShape->getEndCoordinate();
-                }
-            }
-            
-            StructureEnum::Enum firstStructure = StructureEnum::INVALID;
-            if (coordOne != NULL) {
-                firstStructure = coordOne->getSurfaceStructure();
-            }
-            
-            StructureEnum::Enum secondStructure = StructureEnum::INVALID;
-            if (coordTwo != NULL) {
-                secondStructure = coordTwo->getSurfaceStructure();
-            }
-            
-            name += (" "
-                    + StructureEnum::toGuiName(firstStructure));
-            if (secondStructure != StructureEnum::INVALID) {
-                if (secondStructure != firstStructure) {
-                    name += (" " + StructureEnum::toGuiName(secondStructure));
-                }
-            }
-        }
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            name += (" " + QString::number(m_tabIndex + 1));
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            name += (" " + QString::number(m_windowIndex + 1));
-            break;
-    }
-    
-    return name;
 }
 
 /**
@@ -1213,41 +1058,6 @@ Annotation::viewportXYZToLimitedRelativeXYZ(const float viewportXYZ[3],
     relativeXYZOut[2] = MathFunctions::limitRange(relativeXYZOut[2], 0.0f, 1.0f);
 }
 
-
-/**
- * Set the selection item for the group/name hierarchy.
- *
- * @param item
- *     The selection item from the group/name hierarchy.
- */
-void
-Annotation::setGroupNameSelectionItem(GroupAndNameHierarchyItem* item)
-{
-    m_groupNameSelectionItem = item;
-}
-
-/**
- * @return The selection item for the Group/Name selection hierarchy.
- *      May be NULL in some circumstances.
- */
-const GroupAndNameHierarchyItem*
-Annotation::getGroupNameSelectionItem() const
-{
-    return m_groupNameSelectionItem;
-}
-
-/**
- * Reset the group and name hierarchy so that
- * it is recreated (when needed).  The hierarchy
- * group is the stereotaxic space so any time the
- * space (type, window, tab) changes, this must
- * be reset.
- */
-void
-Annotation::resetGroupAndNameHierarchyItem()
-{
-    m_groupNameSelectionItem = NULL;
-}
 
 /**
  * Save information specific to this type of model to the scene.
