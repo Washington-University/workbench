@@ -28,6 +28,7 @@ namespace caret {
 
     class BrowserTabContent;
     class GapsAndMargins;
+    class TileTabsConfiguration;
     
     class BrainOpenGLViewportContent : public CaretObject {
         
@@ -55,6 +56,17 @@ namespace caret {
         static void adjustViewportForAspectRatio(int viewport[4],
                                                  const float aspectRatio);
         
+        static void adjustWidthHeightForAspectRatio(const float aspectRatio,
+                                                    int32_t& width,
+                                                    int32_t& height);
+        
+        static std::vector<BrainOpenGLViewportContent*> createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
+                                                                                         TileTabsConfiguration* tileTabsConfiguration,
+                                                                                         const GapsAndMargins* gapsAndMargins,
+                                                                                         const int32_t windowIndex,
+                                                                                         const int32_t windowViewport[4],
+                                                                                         const int32_t highlightTabIndex);
+        
         static std::vector<BrainOpenGLViewportContent*> createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
                                                                                          const int32_t windowIndex,
                                                                                          const int32_t windowViewport[4],
@@ -62,6 +74,11 @@ namespace caret {
                                                                                          const std::vector<int32_t>& columnWidths,
                                                                                          const int32_t highlightTabIndex,
                                                                                          const GapsAndMargins* gapsAndMargins);
+        
+        static BrainOpenGLViewportContent* createViewportForSingleTab(BrowserTabContent* browserTabContent,
+                                                                      const GapsAndMargins* gapsAndMargins,
+                                                                      const int32_t windowIndex,
+                                                                      const int32_t windowViewport[4]);
         
         static BrainOpenGLViewportContent* createViewportForSingleTab(const int windowViewport[4],
                                                                       const int modelViewport[4],
@@ -80,6 +97,13 @@ namespace caret {
                                    const GapsAndMargins* gapsAndMargins,
                                    BrowserTabContent* browserTabContent);
         
+        BrainOpenGLViewportContent(const int windowViewport[4],
+                                   const int tabViewport[4],
+                                   const int modelViewport[4],
+                                   const int windowIndex,
+                                   const bool highlightTabFlag,
+                                   BrowserTabContent* browserTabContent);
+        
         void initializeMembersBrainOpenGLViewportContent();
         
         void copyHelperBrainOpenGLViewportContent(const BrainOpenGLViewportContent& obj);
@@ -93,6 +117,11 @@ namespace caret {
         static BrainOpenGLViewportContent* findViewportAtRowColumn(std::vector<BrainOpenGLViewportContent*>& viewports,
                                                                    const int32_t row,
                                                                    const int32_t column);
+        
+        static void createModelViewport(const int tabViewport[4],
+                                        const int32_t tabIndex,
+                                        const GapsAndMargins* gapsAndMargins,
+                                        int modelViewportOut[4]);
         
         const int32_t m_tileTabsRowIndex;
         

@@ -409,14 +409,25 @@ BrainOpenGLWidget::paintGL()
     
     const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
     
+    const bool useNewViewportAlgorithmFlag = true;
+    
     const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
     if (numToDraw == 1) {
-        BrainOpenGLViewportContent* vc = BrainOpenGLViewportContent::createViewportForSingleTab(windowViewport,
-                                                                                                windowViewport,
-                                                                                                this->windowIndex,
-                                                                                                false,
-                                                                                                gapsAndMargins,
-                                                                                                getModelEvent.getTabContentToDraw(0));
+        BrainOpenGLViewportContent* vc = NULL;
+        if (useNewViewportAlgorithmFlag) {
+            vc = BrainOpenGLViewportContent::createViewportForSingleTab(getModelEvent.getTabContentToDraw(0),
+                                                                        gapsAndMargins,
+                                                                        this->windowIndex,
+                                                                        windowViewport);
+        }
+        else {
+            vc = BrainOpenGLViewportContent::createViewportForSingleTab(windowViewport,
+                                                                        windowViewport,
+                                                                        this->windowIndex,
+                                                                        false,
+                                                                        gapsAndMargins,
+                                                                        getModelEvent.getTabContentToDraw(0));
+        }
         this->drawingViewportContents.push_back(vc);
     }
     else if (numToDraw > 1) {
@@ -451,13 +462,24 @@ BrainOpenGLWidget::paintGL()
         for (int32_t i = 0; i < getModelEvent.getNumberOfItemsToDraw(); i++) {
             allTabs.push_back(getModelEvent.getTabContentToDraw(i));
         }
-        this->drawingViewportContents = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
-                                                                                                     this->windowIndex,
-                                                                                                     windowViewport,
-                                                                                                     rowHeights,
-                                                                                                     columnsWidths,
-                                                                                                     getModelEvent.getTabIndexForTileTabsHighlighting(),
-                                                                                                     gapsAndMargins);
+
+        if (useNewViewportAlgorithmFlag) {
+            this->drawingViewportContents = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
+                                                                                                         tileTabsConfiguration,
+                                                                                                         gapsAndMargins,
+                                                                                                         windowIndex,
+                                                                                                         windowViewport,
+                                                                                                         getModelEvent.getTabIndexForTileTabsHighlighting());
+        }
+        else {
+            this->drawingViewportContents = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
+                                                                                                         this->windowIndex,
+                                                                                                         windowViewport,
+                                                                                                         rowHeights,
+                                                                                                         columnsWidths,
+                                                                                                         getModelEvent.getTabIndexForTileTabsHighlighting(),
+                                                                                                         gapsAndMargins);
+        }
     }
     
     if (this->selectedUserInputProcessor == userInputBordersModeProcessor) {
