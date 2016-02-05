@@ -45,12 +45,6 @@ namespace caret {
     private:
         static BrainOpenGLFixedPipeline* createBrainOpenGL(const int32_t windowIndex);
         
-        static void useParametersOld(OperationParameters* myParams,
-                                  ProgressObject* myProgObj);
-        
-        static void useParametersOptionalImageSize(OperationParameters* myParams,
-                                  ProgressObject* myProgObj);
-        
         static void writeImage(const AString& imageFileName,
                                   const int32_t imageIndex,
                                   const unsigned char* imageContent,
