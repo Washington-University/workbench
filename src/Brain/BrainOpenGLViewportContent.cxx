@@ -439,62 +439,6 @@ BrainOpenGLViewportContent::createViewportForSingleTab(BrowserTabContent* browse
 }
 
 /**
- * Contructor for tile tabs viewport sizing.
- *
- * @param browserTabContent
- *    Content of the browser tab.
- * @param rowIndexFromTop
- *    Row index starting with top row
- * @param columnIndex
- *    Column index starting on left.
- * @param initialWidth
- *    Initial width of the tab prior to application of aspect ratio.
- * @param initialHeight
- *    Initial height of the tab prior to application of aspect ratio.
- */
-BrainOpenGLViewportContent::TileTabsViewportSizingInfo::TileTabsViewportSizingInfo(BrowserTabContent* browserTabContent,
-                                                                                   const int32_t rowIndexFromTop,
-                                                                                   const int32_t columnIndex,
-                                                                                   const float initialWidth,
-                                                                                   const float initialHeight)
-: m_browserTabContent(browserTabContent),
-m_rowIndexFromTop(rowIndexFromTop),
-m_columnIndex(columnIndex),
-m_initialWidth(initialWidth),
-m_initialHeight(initialHeight),
-m_width(initialWidth),
-m_height(initialHeight)
-{
-    if (browserTabContent->isAspectRatioLocked()) {
-        const float aspectRatio = browserTabContent->getAspectRatio();
-        if (aspectRatio > 0.0) {
-            BrainOpenGLViewportContent::adjustWidthHeightForAspectRatio(aspectRatio,
-                                                                        m_width,
-                                                                        m_height);
-        }
-    }
-}
-
-/**
- * Print for debugging.
- *
- * @param x
- *     X-coordinate of tab viewport.
- * @param y
- *     Y-coordinate of tab viewport.
- */
-void
-BrainOpenGLViewportContent::TileTabsViewportSizingInfo::print(const int32_t x,
-                                                              const int32_t y)
-{
-    const QString msg("Model: " + m_browserTabContent->getName()
-                      + "\n   row/col: " + QString::number(m_rowIndexFromTop) + ", " + QString::number(m_columnIndex)
-                      + "\n   x/y: " + QString::number(x) + ", " + QString::number(y)
-                      + "\n   width/height: " + QString::number(m_width) + ", " + QString::number(m_height));
-    std::cout << qPrintable(msg) << std::endl;
-}
-
-/**
  * Create Viewport Contents for the given tab contents, window sizes, and tile sizes.
  *
  * @param tabContents
@@ -770,5 +714,85 @@ BrainOpenGLViewportContent::createModelViewport(const int tabViewport[4],
                            + AString::number(topMargin));
         }
     }
+}
+
+/* =================================================================================================== */
+
+
+/**
+ * Contructor for tile tabs viewport sizing.
+ *
+ * @param browserTabContent
+ *    Content of the browser tab.
+ * @param rowIndexFromTop
+ *    Row index starting with top row
+ * @param columnIndex
+ *    Column index starting on left.
+ * @param initialWidth
+ *    Initial width of the tab prior to application of aspect ratio.
+ * @param initialHeight
+ *    Initial height of the tab prior to application of aspect ratio.
+ */
+BrainOpenGLViewportContent::TileTabsViewportSizingInfo::TileTabsViewportSizingInfo(BrowserTabContent* browserTabContent,
+                                                                                   const int32_t rowIndexFromTop,
+                                                                                   const int32_t columnIndex,
+                                                                                   const float initialWidth,
+                                                                                   const float initialHeight)
+: m_browserTabContent(browserTabContent),
+m_rowIndexFromTop(rowIndexFromTop),
+m_columnIndex(columnIndex),
+m_initialWidth(initialWidth),
+m_initialHeight(initialHeight),
+m_width(initialWidth),
+m_height(initialHeight)
+{
+    if (browserTabContent->isAspectRatioLocked()) {
+        const float aspectRatio = browserTabContent->getAspectRatio();
+        if (aspectRatio > 0.0) {
+            BrainOpenGLViewportContent::adjustWidthHeightForAspectRatio(aspectRatio,
+                                                                        m_width,
+                                                                        m_height);
+        }
+    }
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+BrainOpenGLViewportContent::TileTabsViewportSizingInfo&
+BrainOpenGLViewportContent::TileTabsViewportSizingInfo::operator=(const TileTabsViewportSizingInfo& obj)
+{
+    if (this != &obj) {
+        m_browserTabContent = obj.m_browserTabContent;
+        m_rowIndexFromTop   = obj.m_rowIndexFromTop;
+        m_columnIndex       = obj.m_columnIndex;
+        m_initialWidth      = obj.m_initialWidth;
+        m_initialHeight     = obj.m_initialHeight;
+        m_width             = obj.m_initialWidth;
+        m_height            = obj.m_initialHeight;
+    }
+    
+    return *this;
+}
+
+/**
+ * Print for debugging.
+ *
+ * @param x
+ *     X-coordinate of tab viewport.
+ * @param y
+ *     Y-coordinate of tab viewport.
+ */
+void
+BrainOpenGLViewportContent::TileTabsViewportSizingInfo::print(const int32_t x,
+                                                              const int32_t y)
+{
+    const QString msg("Model: " + m_browserTabContent->getName()
+                      + "\n   row/col: " + QString::number(m_rowIndexFromTop) + ", " + QString::number(m_columnIndex)
+                      + "\n   x/y: " + QString::number(x) + ", " + QString::number(y)
+                      + "\n   width/height: " + QString::number(m_width) + ", " + QString::number(m_height));
+    std::cout << qPrintable(msg) << std::endl;
 }
 

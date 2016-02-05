@@ -83,16 +83,19 @@ namespace caret {
                                        const int32_t columnIndex,
                                        const float initialWidth,
                                        const float initialHeight);
+            
+            TileTabsViewportSizingInfo& operator=(const TileTabsViewportSizingInfo& obj);
+
             void print(const int32_t x,
                        const int32_t y);
             
             BrowserTabContent* m_browserTabContent;
-            const int32_t m_rowIndexFromTop;
-            const int32_t m_columnIndex;
+            int32_t m_rowIndexFromTop;
+            int32_t m_columnIndex;
             
             /** size with application of tile tabs configuration */
-            const float m_initialWidth;
-            const float m_initialHeight;
+            float m_initialWidth;
+            float m_initialHeight;
             
             /** size after application of lock aspect ratio */
             int32_t m_width;
