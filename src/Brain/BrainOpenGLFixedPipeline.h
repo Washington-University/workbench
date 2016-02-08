@@ -369,7 +369,8 @@ namespace caret {
                                                                 const  ProjectionViewTypeEnum::Enum projectionType,
                                                                 const SurfaceFile* surfaceFile);
         
-        void applyViewingTransformations(const float objectCenterXYZ[3],
+        void applyViewingTransformations(const Model* model,
+                                         const float objectCenterXYZ[3],
                                          const ProjectionViewTypeEnum::Enum projectionViewType);
         
         void applyViewingTransformationsVolumeSlice(const ModelVolume* modelVolume,

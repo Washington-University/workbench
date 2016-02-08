@@ -49,6 +49,8 @@ ViewingTransformations::ViewingTransformations()
     m_translation[1] = 0.0;
     m_translation[2] = 0.0;
     m_scaling = 1.0;
+    m_rightCortexFlatMapOffset[0] = 0.0;
+    m_rightCortexFlatMapOffset[1] = 0.0;
     
     m_sceneAssistant->addArray("m_translation",
                                m_translation,
@@ -56,6 +58,10 @@ ViewingTransformations::ViewingTransformations()
                                0.0);
     m_sceneAssistant->add("m_scaling",
                           &m_scaling);
+    m_sceneAssistant->addArray("m_rightCortexFlatMapOffset",
+                               m_rightCortexFlatMapOffset,
+                               2,
+                               0.0);
 }
 
 /**
@@ -108,6 +114,8 @@ ViewingTransformations::copyHelperViewingTransformations(const ViewingTransforma
     m_translation[1]  = obj.m_translation[1];
     m_translation[2]  = obj.m_translation[2];
     m_scaling         = obj.m_scaling;
+    m_rightCortexFlatMapOffset[0] = obj.m_rightCortexFlatMapOffset[0];
+    m_rightCortexFlatMapOffset[1] = obj.m_rightCortexFlatMapOffset[1];
 }
 
 /**
@@ -209,6 +217,39 @@ ViewingTransformations::setRotationMatrix(const Matrix4x4& rotationMatrix)
 }
 
 /**
+ * Get the offset for the right cortex flat map.
+ *
+ * @param rightCortexFlatMapOffsetX
+ *    Output with X offset.
+ * @param rightCortexFlatMapOffsetY
+ *    Output with Y offset.
+ */
+void
+ViewingTransformations::getRightCortexFlatMapOffset(float& rightCortexFlatMapOffsetX,
+                                                    float& rightCortexFlatMapOffsetY) const
+{
+    rightCortexFlatMapOffsetX = m_rightCortexFlatMapOffset[0];
+    rightCortexFlatMapOffsetY = m_rightCortexFlatMapOffset[1];
+}
+
+/**
+ * Set the offset for the right cortex flat map.
+ *
+ * @param rightCortexFlatMapOffsetX
+ *    New X offset.
+ * @param rightCortexFlatMapOffsetY
+ *    New Y offset.
+ */
+void
+ViewingTransformations::setRightCortexFlatMapOffset(const float rightCortexFlatMapOffsetX,
+                                                    const float rightCortexFlatMapOffsetY)
+{
+    m_rightCortexFlatMapOffset[0] = rightCortexFlatMapOffsetX;
+    m_rightCortexFlatMapOffset[1] = rightCortexFlatMapOffsetY;
+}
+
+
+/**
  * Reset the view to the default view for a SURFACE
  */
 void
@@ -217,6 +258,7 @@ ViewingTransformations::resetView()
     setTranslation(0.0, 0.0, 0.0);
     m_rotationMatrix->identity();
     setScaling(1.0);
+    setRightCortexFlatMapOffset(0.0, 0.0);
     leftView();
 }
 

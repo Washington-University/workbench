@@ -88,26 +88,30 @@ namespace caret {
         void updateGraphicsWindow();
         
         void getTransformationControlValues(double& panX,
-                                double& panY,
+                                            double& panY,
                                             double& panZ,
-                                double& rotX,
-                                double& rotY,
-                                double& rotZ,
+                                            double& rotX,
+                                            double& rotY,
+                                            double& rotZ,
                                             double& obRotX,
                                             double& obRotY,
                                             double& obRotZ,
-                                double& zoom) const;
+                                            double& zoom,
+                                            double& rightFlatX,
+                                            double& rightFlatY) const;
         
         void setTransformationControlValues(const double panX,
-                                const double panY,
+                                            const double panY,
                                             const double panZ,
-                                const double rotX,
-                                const double rotY,
-                                const double rotZ,
+                                            const double rotX,
+                                            const double rotY,
+                                            const double rotZ,
                                             const double obRotX,
                                             const double obRotY,
                                             const double obRotZ,
-                                const double zoom) const;
+                                            const double zoom,
+                                            const double rightFlatX,
+                                            const double rightFlatY) const;
         
         // ADD_NEW_MEMBERS_HERE
         
@@ -149,6 +153,10 @@ namespace caret {
         
         QDoubleSpinBox* m_zoomDoubleSpinBox;
 
+        QDoubleSpinBox* m_xRightFlatMapSpinBox;
+        
+        QDoubleSpinBox* m_yRightFlatMapSpinBox;
+        
         WuQWidgetObjectGroup* m_transformWidgetGroup;
         
         BrainBrowserWindowComboBox* m_browserWindowComboBox;

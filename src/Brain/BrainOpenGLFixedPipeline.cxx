@@ -1175,6 +1175,8 @@ BrainOpenGLFixedPipeline::isFeatureClippingEnabled() const
 /**
  * Apply the viewing transformations for the content of the browser tab.
  *
+ * @param model
+ *    Model that is being drawn.
  * @param objectCenterXYZ
  *    If not NULL, contains center of object about
  *    which rotation should take place.
@@ -1182,9 +1184,12 @@ BrainOpenGLFixedPipeline::isFeatureClippingEnabled() const
  *    Projection view type.
  */
 void
-BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXYZ[3],
+BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
+                                                      const float objectCenterXYZ[3],
                                                       const ProjectionViewTypeEnum::Enum projectionViewType)
 {
+    CaretAssert(model);
+    
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -1201,7 +1206,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXY
     float upZ = 0.0;
     
     bool useGluLookAt = false;
-    
+    bool rightCortexFlatFlag = false;
     switch (projectionViewType) {
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
@@ -1227,6 +1232,15 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXY
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+            if (model->getModelType() == ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE) {
+                const ModelSurfaceMontage* surfaceMontageModel = dynamic_cast<const ModelSurfaceMontage*>(model);
+                CaretAssert(surfaceMontageModel);
+                if (surfaceMontageModel != NULL) {
+                    if (surfaceMontageModel->getSelectedConfigurationType(this->windowTabIndex) ==  SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION) {
+                        rightCortexFlatFlag = true;
+                    }
+                }
+            }
             break;
     }
 
@@ -1249,6 +1263,15 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXY
                  translation[1],
                  translation[2]);
     
+    if (rightCortexFlatFlag) {
+        /*
+         * When drawing right flat, the translation is "left translation"
+         * so need to flip sign of X-offset.
+         */
+        float rightFlatOffsetX, rightFlatOffsetY;
+        browserTabContent->getRightCortexFlatMapOffset(rightFlatOffsetX, rightFlatOffsetY);
+        glTranslatef(-rightFlatOffsetX, rightFlatOffsetY, 0.0);
+    }
     
     glMultMatrixd(rotationMatrixElements);
     
@@ -1552,7 +1575,8 @@ BrainOpenGLFixedPipeline::drawSurfaceModel(ModelSurface* surfaceModel,
                                                              browserTabContent->getProjectionViewType(),
                                                              surface);
     
-    this->applyViewingTransformations(center,
+    this->applyViewingTransformations(surfaceModel,
+                                      center,
                                       browserTabContent->getProjectionViewType());
     
     const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceModel, 
@@ -4851,7 +4875,8 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                                                                  mvp->getProjectionViewType(),
                                                                  mvp->getSurface());
         
-        this->applyViewingTransformations(center,
+        this->applyViewingTransformations(surfaceMontageModel,
+                                          center,
                                           mvp->getProjectionViewType());
         
         this->drawSurface(mvp->getSurface(),
@@ -4933,7 +4958,8 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
         this->setViewportAndOrthographicProjection(viewport,
                                                    ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
     }
-    this->applyViewingTransformations(center,
+    this->applyViewingTransformations(wholeBrainModel,
+                                      center,
                                       ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
     
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainModel->getSelectedSurfaceType(tabNumberIndex);

@@ -58,6 +58,12 @@ namespace caret {
         
         void setRotationMatrix(const Matrix4x4& rotationMatrix);
         
+        void getRightCortexFlatMapOffset(float& rightCortexFlatMapOffsetX,
+                                         float& rightCortexFlatMapOffsetY) const;
+        
+        void setRightCortexFlatMapOffset(const float rightCortexFlatMapOffsetX,
+                                         const float rightCortexFlatMapOffsetY);
+        
         virtual void resetView();
         
         virtual void rightView();
@@ -92,6 +98,8 @@ namespace caret {
         /** Scaling. */
         float m_scaling;
         
+        /** Offset for right cortex flat map */
+        float m_rightCortexFlatMapOffset[2];
         
     private:
         void copyHelperViewingTransformations(const ViewingTransformations& obj);

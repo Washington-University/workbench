@@ -218,6 +218,12 @@ namespace caret {
         
         void setObliqueVolumeRotationMatrix(const Matrix4x4& obliqueRotationMatrix);
 
+        void getRightCortexFlatMapOffset(float& offsetX,
+                                         float& offsetY) const;
+        
+        void setRightCortexFlatMapOffset(const float offsetX,
+                                         const float offsetY);
+        
         ProjectionViewTypeEnum::Enum getProjectionViewType() const;
         
         void resetView();

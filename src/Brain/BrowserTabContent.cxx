@@ -1838,6 +1838,37 @@ BrowserTabContent::setObliqueVolumeRotationMatrix(const Matrix4x4& obliqueRotati
 }
 
 /**
+ * Get the offset for the right flat map offset.
+ *
+ * @param offsetX
+ *    Output with X-offset.
+ * @param offsetY
+ *    Output with Y-offset.
+ */
+void
+BrowserTabContent::getRightCortexFlatMapOffset(float& offsetX,
+                                               float& offsetY) const
+{
+    getViewingTransformation()->getRightCortexFlatMapOffset(offsetX, offsetY);
+}
+
+/**
+ * Set the offset for the right flat map offset.
+ *
+ * @param offsetX
+ *    X-offset.
+ * @param offsetY
+ *    Y-offset.
+ */
+void
+BrowserTabContent::setRightCortexFlatMapOffset(const float offsetX,
+                                               const float offsetY)
+{
+    getViewingTransformation()->setRightCortexFlatMapOffset(offsetX, offsetY);
+    updateYokedBrowserTabs();
+}
+
+/**
  * Reset the view to the default view.
  */
 void
@@ -2847,6 +2878,10 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     obliqueRotationMatrix.getMatrix(mob);
     modelTransform.setObliqueRotation(mob);
     
+    float rightFlatX, rightFlatY;
+    getRightCortexFlatMapOffset(rightFlatX, rightFlatY);
+    modelTransform.setRightCortexFlatMapOffset(rightFlatX, rightFlatY);
+    
     modelTransform.setScaling(getScaling());
 }
 
@@ -2881,6 +2916,11 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
 
     const float scale = modelTransform.getScaling();
     setScaling(scale);
+    
+    float rightFlatX, rightFlatY;
+    modelTransform.getRightCortexFlatMapOffset(rightFlatX, rightFlatY);
+    setRightCortexFlatMapOffset(rightFlatX, rightFlatY);
+    
     updateYokedBrowserTabs();
 }
 
