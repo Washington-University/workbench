@@ -122,14 +122,6 @@ AnnotationTextFontNameEnum::initialize()
                                                   ":/Fonts/LinuxLibertine/LinLibertine_RBIah.ttf",
                                                   ":/Fonts/LinuxLibertine/LinLibertine_RIah.ttf"));
     
-    enumData.push_back(AnnotationTextFontNameEnum(OUTLINE,
-                                                  "OUTLINE",
-                                                  "Outline",
-                                                  ":/Fonts/Outline/fenwick_ol_free.ttf",
-                                                  ":/Fonts/Outline/fenwick_ol_free.ttf",
-                                                  ":/Fonts/Outline/fenwick_ol_free.ttf",
-                                                  ":/Fonts/Outline/fenwick_ol_free.ttf"));
-    
    enumData.push_back(AnnotationTextFontNameEnum(VERA,
                                                   "VERA",
                                                   "Vera",

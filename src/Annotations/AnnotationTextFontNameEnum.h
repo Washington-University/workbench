@@ -37,8 +37,6 @@ public:
     enum Enum {
         /** Libertine */
         LIBERTINE,
-        /** Outline */
-        OUTLINE,
         /** Vera Fonts */
         VERA,
         /** Vera Monospaced Fonts */

@@ -1073,7 +1073,6 @@ QGLWidgetTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
     
     switch (fontEnumName) {
         case AnnotationTextFontNameEnum::LIBERTINE:
-        case AnnotationTextFontNameEnum::OUTLINE:
         case AnnotationTextFontNameEnum::VERA:
             fontFileName = "Helvetica";
             break;
