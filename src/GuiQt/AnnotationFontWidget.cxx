@@ -117,11 +117,9 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* boldFontToolButton      = NULL;
     QToolButton* italicFontToolButton    = NULL;
     QToolButton* underlineFontToolButton = NULL;
-    QToolButton* outlineFontToolButton   = NULL;
     m_boldFontAction      = NULL;
     m_italicFontAction    = NULL;
     m_underlineFontAction = NULL;
-    m_outlineFontAction   = NULL;
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
         {
@@ -173,25 +171,6 @@ m_browserWindowIndex(browserWindowIndex)
             QFont underlineFont = underlineFontToolButton->font();
             underlineFont.setUnderline(true);
             underlineFontToolButton->setFont(underlineFont);
-           
-            /*
-             * Outline font toolbutton
-             */
-            outlineFontToolButton = new QToolButton();
-            outlineFontToolButton->setFixedSize(underlineFontToolButton->sizeHint());
-            QPixmap outlinePixmap = createOutlineButtonPixmap(underlineFontToolButton);
-            m_outlineFontAction =  WuQtUtilities::createAction("O", "Enable/disable font outlining",
-                                                                 this, this, SLOT(fontOutlineChanged()));
-            m_outlineFontAction->setIcon(QIcon(outlinePixmap));
-            m_outlineFontAction->setCheckable(true);
-            outlineFontToolButton->setDefaultAction(m_outlineFontAction);
-            
-//            /*
-//             * Change the underline toolbutton's font to underline.
-//             */
-//            QFont outlineFont = outlineFontToolButton->font();
-//            outlineFont.setOutline(true);
-//            outlineFontToolButton->setFont(outlineFont);
         }
             break;
         case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
@@ -216,7 +195,6 @@ m_browserWindowIndex(browserWindowIndex)
                 stylesLayout->addWidget(boldFontToolButton);
                 stylesLayout->addWidget(italicFontToolButton);
                 stylesLayout->addWidget(underlineFontToolButton);
-                stylesLayout->addWidget(outlineFontToolButton);
                 stylesLayout->addStretch();
                 
                 QGridLayout* fontNameSizeLayout = new QGridLayout(this);
@@ -247,7 +225,6 @@ m_browserWindowIndex(browserWindowIndex)
                 bottomRowLayout->addWidget(boldFontToolButton);
                 bottomRowLayout->addWidget(italicFontToolButton);
                 bottomRowLayout->addWidget(underlineFontToolButton);
-                bottomRowLayout->addWidget(outlineFontToolButton);
                 bottomRowLayout->addStretch();
                 bottomRowLayout->addWidget(m_fontSizeSpinBox);
                 
@@ -297,7 +274,6 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
         bool boldOnFlag        = true;
         bool italicOnFlag      = true;
         bool underlineOnFlag   = true;
-        bool outlineOnFlag     = true;
         int32_t stylesEnabledCount = 0;
         
         AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::VERA;
@@ -337,9 +313,6 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
                 if ( ! annText->isUnderlineStyleEnabled()) {
                     underlineOnFlag = false;
                 }
-                if ( ! annText->isOutlineStyleEnabled()) {
-                    outlineOnFlag = false;
-                }
                 
                 ++stylesEnabledCount;
             }
@@ -365,16 +338,12 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
         m_underlineFontAction->setEnabled(stylesEnabledFlag);
         m_underlineFontAction->setChecked(underlineOnFlag && stylesEnabledFlag);
         
-        m_outlineFontAction->setEnabled(stylesEnabledFlag);
-        m_outlineFontAction->setChecked(outlineOnFlag && stylesEnabledFlag);
-        
         AnnotationText::setUserDefaultFont(fontName);
         AnnotationText::setUserDefaultFontPercentViewportSize(fontSizeValue);
         if (stylesEnabledFlag) {
             AnnotationText::setUserDefaultBoldEnabled(boldOnFlag);
             AnnotationText::setUserDefaultItalicEnabled(italicOnFlag);
             AnnotationText::setUserDefaultUnderlineEnabled(underlineOnFlag);
-            AnnotationText::setUserDefaultOutlineEnabled(outlineOnFlag);
         }
     }
     
@@ -612,24 +581,6 @@ AnnotationFontWidget::fontUnderlineChanged()
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
     AnnotationText::setUserDefaultUnderlineEnabled(m_underlineFontAction->isChecked());
-}
-
-/**
- * Gets called when font outline changed.
- */
-void
-AnnotationFontWidget::fontOutlineChanged()
-{
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
-    command->setModeTextFontOutline(m_outlineFontAction->isChecked(),
-                                      annMan->getSelectedAnnotations(m_browserWindowIndex));
-    annMan->applyCommand(command);
-    
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    
-    AnnotationText::setUserDefaultOutlineEnabled(m_outlineFontAction->isChecked());
 }
 
 /**

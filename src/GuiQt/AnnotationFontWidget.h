@@ -67,8 +67,6 @@ namespace caret {
         
         void fontUnderlineChanged();
         
-        void fontOutlineChanged();
-        
     private:
         AnnotationFontWidget(const AnnotationFontWidget&);
 
@@ -92,8 +90,6 @@ namespace caret {
         QAction* m_italicFontAction;
         
         QAction* m_underlineFontAction;
-        
-        QAction* m_outlineFontAction;
         
         AnnotationColorBar* m_annotationColorBar;
         

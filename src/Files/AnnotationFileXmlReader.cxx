@@ -711,10 +711,6 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
     textAnnotation->setUnderlineStyleEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
                                                                    ELEMENT_TEXT_DATA,
                                                                    ATTRIBUTE_TEXT_FONT_UNDERLINE));
-    textAnnotation->setOutlineStyleEnabled(m_streamHelper->getOptionalAttributeBoolValue(attributes,
-                                                                                         ELEMENT_TEXT_DATA,
-                                                                                         ATTRIBUTE_TEXT_FONT_OUTLINE,
-                                                                                         false));
     
     {
         const QString defaultValue = AnnotationTextConnectTypeEnum::toName(AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE);

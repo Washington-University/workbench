@@ -328,8 +328,6 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
                               AnnotationTextFontPointSizeEnum::toName(text->getFontPointSizeProtected()));
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_UNDERLINE,
                               AString::fromBool(text->isUnderlineStyleEnabled()));
-    textDataAttributes.append(ATTRIBUTE_TEXT_FONT_OUTLINE,
-                              AString::fromBool(text->isOutlineStyleEnabled()));
     textDataAttributes.append(ATTRIBUTE_TEXT_HORIZONTAL_ALIGNMENT,
                               AnnotationTextAlignHorizontalEnum::toName(text->getHorizontalAlignment()));
     textDataAttributes.append(ATTRIBUTE_TEXT_ORIENTATION,

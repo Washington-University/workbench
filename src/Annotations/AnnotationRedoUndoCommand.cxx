@@ -330,19 +330,6 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             }
         }
             break;
-        case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_OUTLINE:
-        {
-            AnnotationFontAttributesInterface* textAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
-            const AnnotationFontAttributesInterface* textAnnValue = dynamic_cast<const AnnotationFontAttributesInterface*>(annotationValue);
-            if ((textAnn != NULL)
-                && (textAnnValue != NULL)) {
-                textAnn->setOutlineStyleEnabled(textAnnValue->isOutlineStyleEnabled());
-            }
-            else {
-                CaretAssert(0);
-            }
-        }
-            break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_PERCENT_SIZE:
         {
             AnnotationFontAttributesInterface* textAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
@@ -1626,43 +1613,6 @@ AnnotationRedoUndoCommand::setModeTextFontUnderline(const bool newStatus,
             AnnotationFontAttributesInterface* redoAnnotationFontStyle = dynamic_cast<AnnotationFontAttributesInterface*>(redoAnnotation);
             CaretAssert(redoAnnotationFontStyle);
             redoAnnotationFontStyle->setUnderlineStyleEnabled(newStatus);
-            
-            Annotation* undoAnnotation = annotation->clone();
-            AnnotationMemento* am = new AnnotationMemento(annotation,
-                                                          redoAnnotation,
-                                                          undoAnnotation);
-            m_annotationMementos.push_back(am);
-        }
-    }
-}
-
-/**
- * Set the mode to text font outline and create the undo/redo instances.
- *
- * @param newStatus
- *     New status for font undeline.
- * @param annotations
- *     Annotation that receive this new status.
- */
-void
-AnnotationRedoUndoCommand::setModeTextFontOutline(const bool newStatus,
-                                                    const std::vector<Annotation*>& annotations)
-{
-    m_mode        = AnnotationRedoUndoCommandModeEnum::TEXT_FONT_OUTLINE;
-    setDescription("Text Outline");
-    
-    for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
-         iter != annotations.end();
-         iter++) {
-        Annotation* annotation = *iter;
-        CaretAssert(annotation);
-        
-        AnnotationFontAttributesInterface* fontStyleAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
-        if (fontStyleAnn != NULL) {
-            Annotation* redoAnnotation = annotation->clone();
-            AnnotationFontAttributesInterface* redoAnnotationFontStyle = dynamic_cast<AnnotationFontAttributesInterface*>(redoAnnotation);
-            CaretAssert(redoAnnotationFontStyle);
-            redoAnnotationFontStyle->setOutlineStyleEnabled(newStatus);
             
             Annotation* undoAnnotation = annotation->clone();
             AnnotationMemento* am = new AnnotationMemento(annotation,

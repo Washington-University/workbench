@@ -99,14 +99,6 @@ namespace caret {
                            const double underlineThickness,
                            uint8_t foregroundRgba[4]);
         
-        void drawOutline(const double minX,
-                         const double maxX,
-                         const double minY,
-                         const double maxY,
-                         const double z,
-                         const double outlineThickness,
-                         uint8_t foregroundRgba[4]);
-        
         static void expandBox(float bottomLeft[3],
                               float bottomRight[3],
                               float topRight[3],
@@ -179,7 +171,6 @@ namespace caret {
             TextString(const QString& textString,
                        const AnnotationTextOrientationEnum::Enum orientation,
                        const double underlineThickness,
-                       const double outlineThickness,
                        FTFont* font);
             
             ~TextString();
@@ -194,7 +185,6 @@ namespace caret {
                                                     double& viewportMaxY) const;
             
             const double m_underlineThickness;
-            const double m_outlineThickness;
             
             std::vector<TextCharacter*> m_characters;
             
@@ -253,8 +243,6 @@ namespace caret {
             const double m_rotationAngle;
             
             double m_underlineThickness;
-            
-            double m_outlineThickness;
             
             /*
              * Bounds relative to origin of first character
