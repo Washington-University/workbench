@@ -342,6 +342,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     }
     
     const double underlineOffsetY = (textStringGroup.m_underlineThickness / 2.0);
+    //const double outlineOffsetY   = (textStringGroup.m_outlineThickness / 2.0);
     
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3], rotationPointXYZ[3];
     textStringGroup.getViewportBounds(s_textMarginSize,
@@ -351,7 +352,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     glPushMatrix();
     glLoadIdentity();
     applyBackgroundColoring(textStringGroup);
-    applyForegroundColoring(annotationText);
+    applyTextColoring(annotationText);
     
     const float rotationAngle = annotationText.getRotationAngle();
     glTranslated(rotationPointXYZ[0], rotationPointXYZ[1], rotationPointXYZ[2]);
@@ -365,6 +366,8 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
         double x = ts->m_viewportX;
         double y = ts->m_viewportY;
         double z = ts->m_viewportZ;
+        
+        applyTextColoring(annotationText);
         
         for (std::vector<TextCharacter*>::const_iterator charIter = ts->m_characters.begin();
              charIter != ts->m_characters.end();
@@ -400,6 +403,25 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
                           z, //0.0,  // Z
                           textStringGroup.m_underlineThickness,
                           foregroundRgba);
+            
+            glPopMatrix();
+        }
+        
+        if (ts->m_outlineThickness > 0.0) {
+            glPushMatrix();
+            glTranslated(ts->m_viewportX - rotationPointXYZ[0], ts->m_viewportY - rotationPointXYZ[1], 0.0);
+            
+//            const double outlineMinY = ts->m_stringGlyphsMinY + outlineOffsetY;
+//            const double outlineMaxY = ts->m_stringGlyphsMaxY - outlineOffsetY;
+            uint8_t foregroundRgba[4];
+            annotationText.getForegroundColorRGBA(foregroundRgba);
+            drawOutline(ts->m_stringGlyphsMinX,
+                        ts->m_stringGlyphsMaxX,
+                        ts->m_stringGlyphsMinY,
+                        ts->m_stringGlyphsMaxY,
+                        z, //0.0,  // Z
+                        textStringGroup.m_outlineThickness,
+                        foregroundRgba);
             
             glPopMatrix();
         }
@@ -456,6 +478,75 @@ FtglFontTextRenderer::drawUnderline(const double lineStartX,
     BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
                                            foregroundRgba,
                                            underlineThickness);
+    
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_BLEND);
+}
+
+/**
+ * Draw outline using the given coordinates.
+ *
+ * @param minX
+ *     X start of outline
+ * @param maxX
+ *     X end of outline
+ * @param minY
+ *     Y start of outline
+ * @param maxY
+ *     Y end of outline
+ * @param z
+ *     Z of outline
+ * @param outlineThickness
+ *     Thickness of outline
+ * @param foregroundRGBA
+ *     Color for drawing outline.
+ */
+void
+FtglFontTextRenderer::drawOutline(const double minX,
+                                  const double maxX,
+                                  const double minY,
+                                  const double maxY,
+                                  const double z,
+                                  const double outlineThickness,
+                                  uint8_t foregroundRgba[4])
+{
+    /*
+     * Need to enable anti-aliasing for smooth lines
+     */
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    
+//    const float halfThickness = outlineThickness / 2.0;
+    float bottomLeft[3]  = { minX, minY, z };
+    float bottomRight[3] = { maxX, minY, z };
+    float topRight[3]    = { maxX, maxY, z };
+    float topLeft[3]     = { minX, maxY, z };
+    expandBox(bottomLeft, bottomRight, topRight, topLeft,
+              outlineThickness, outlineThickness);
+    
+    std::vector<float> underlineCoords;
+    underlineCoords.insert(underlineCoords.end(), bottomLeft, bottomLeft + 3);
+    underlineCoords.insert(underlineCoords.end(), bottomRight, bottomRight + 3);
+    underlineCoords.insert(underlineCoords.end(), topRight, topRight + 3);
+    underlineCoords.insert(underlineCoords.end(), topLeft, topLeft + 3);
+//    underlineCoords.insert(underlineCoords.end(), minX);
+//    underlineCoords.insert(underlineCoords.end(), minY);
+//    underlineCoords.insert(underlineCoords.end(), z);
+//    underlineCoords.insert(underlineCoords.end(), maxX);
+//    underlineCoords.insert(underlineCoords.end(), minY);
+//    underlineCoords.insert(underlineCoords.end(), z);
+//    underlineCoords.insert(underlineCoords.end(), maxX);
+//    underlineCoords.insert(underlineCoords.end(), maxY);
+//    underlineCoords.insert(underlineCoords.end(), z);
+//    underlineCoords.insert(underlineCoords.end(), minX);
+//    underlineCoords.insert(underlineCoords.end(), maxY);
+//    underlineCoords.insert(underlineCoords.end(), z);
+    
+    BrainOpenGLPrimitiveDrawing::drawLineLoop(underlineCoords,
+                                              foregroundRgba,
+                                              outlineThickness);
     
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_BLEND);
@@ -729,10 +820,10 @@ FtglFontTextRenderer::applyBackgroundColoring(const TextStringGroup& textStringG
  *   Annotation Text that is to be drawn.
  */
 void
-FtglFontTextRenderer::applyForegroundColoring(const AnnotationText& annotationText)
+FtglFontTextRenderer::applyTextColoring(const AnnotationText& annotationText)
 {
     float foregroundColor[4];
-    annotationText.getForegroundColorRGBA(foregroundColor);
+    annotationText.getTextColorRGBA(foregroundColor);
     glColor4fv(foregroundColor);
 }
 
@@ -1131,14 +1222,18 @@ FtglFontTextRenderer::TextCharacter::print(const AString& offsetString)
  *     Orientation of the text string.
  * @param underlineThickness
  *     Thickness of underline for the text.
+ * @param outlineThickness
+ *     Thickness of outline for the text.
  * @param font
  *     Font for drawing the text string.
  */
 FtglFontTextRenderer::TextString::TextString(const QString& textString,
                                              const AnnotationTextOrientationEnum::Enum orientation,
                                              const double underlineThickness,
+                                             const double outlineThickness,
                                              FTFont* font)
 : m_underlineThickness(underlineThickness),
+m_outlineThickness(outlineThickness),
 m_viewportX(0.0),
 m_viewportY(0.0),
 m_viewportZ(0.0),
@@ -1483,6 +1578,7 @@ m_viewportY(viewportY),
 m_viewportZ(viewportZ),
 m_rotationAngle(rotationAngle),
 m_underlineThickness(0.0),
+m_outlineThickness(0.0),
 m_viewportBoundsMinX(0.0),
 m_viewportBoundsMaxX(0.0),
 m_viewportBoundsMinY(0.0),
@@ -1503,6 +1599,17 @@ m_viewportBoundsMaxY(0.0)
     }
     
     /*
+     * The outline for text is scaled with the size of the font
+     * Outline is drawn anytime thickness is greater than zero
+     */
+    if (annotationText.getForegroundColor() != CaretColorEnum::NONE) {
+        CaretLogSevere("NEED TO SET THE OUTLINE COLOR AND THICKNESS");
+        if (annotationText.getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
+            m_outlineThickness = m_annotationText.getForegroundLineWidth();
+        }
+    }
+    
+    /*
      * Each row (horizontal text) or column (vertical text) is
      * separated by a newline character
      */
@@ -1514,6 +1621,7 @@ m_viewportBoundsMaxY(0.0)
         TextString* ts = new TextString(textList.at(i),
                                         annotationText.getOrientation(),
                                         m_underlineThickness,
+                                        m_outlineThickness,
                                         font);
         m_textStrings.push_back(ts);
     }

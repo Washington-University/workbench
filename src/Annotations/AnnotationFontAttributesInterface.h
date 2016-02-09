@@ -25,6 +25,7 @@
 
 
 #include "AnnotationTextFontNameEnum.h"
+#include "CaretColorEnum.h"
 
 namespace caret {
 
@@ -43,6 +44,22 @@ namespace caret {
         
         virtual void setFontPercentViewportSize(const float fontPercentViewportHeight) = 0;
 
+        virtual CaretColorEnum::Enum getTextColor() const = 0;
+        
+        virtual void setTextColor(const CaretColorEnum::Enum color) = 0;
+        
+        virtual void getTextColorRGBA(float rgbaOut[4]) const = 0;
+        
+        virtual void getTextColorRGBA(uint8_t rgbaOut[4]) const = 0;
+        
+        virtual void getCustomTextColor(float rgbaOut[4]) const = 0;
+        
+        virtual void getCustomTextColor(uint8_t rgbaOut[4]) const = 0;
+        
+        virtual void setCustomTextColor(const float rgba[4]) = 0;
+        
+        virtual void setCustomTextColor(const uint8_t rgba[4]) = 0;
+        
         virtual bool isStylesSupported() const = 0;
         
         virtual bool isBoldStyleEnabled() const = 0;

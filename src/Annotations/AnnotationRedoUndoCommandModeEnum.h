@@ -71,6 +71,8 @@ public:
         TEXT_ALIGNMENT_VERTICAL,
         /** Text Characters */
         TEXT_CHARACTERS,
+        /** Text Color */
+        TEXT_COLOR,
         /** Text Connect to Brainordinate */
         TEXT_CONNECT_TO_BRAINORDINATE,
         /** Text Font Bold */

@@ -90,6 +90,10 @@ namespace caret {
         
         static const QString ATTRIBUTE_TAB_INDEX;
         
+        static const QString ATTRIBUTE_TEXT_CARET_COLOR;
+        
+        static const QString ATTRIBUTE_TEXT_CUSTOM_RGBA;
+        
         static const QString ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE;
         
         static const QString ATTRIBUTE_TEXT_FONT_BOLD;
@@ -191,6 +195,10 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "rotationAngle";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TAB_INDEX = "tabIndex";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_CARET_COLOR = "textCaretColor";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_CUSTOM_RGBA = "textCustomRGBA";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE = "connectBrainordinate";
 

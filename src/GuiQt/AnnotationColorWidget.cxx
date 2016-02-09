@@ -129,7 +129,7 @@ m_browserWindowIndex(browserWindowIndex)
      */
     m_foregroundColorAction = new QAction("F",
                                           this);
-    m_foregroundColorAction->setToolTip("Adjust the line/text color");
+    m_foregroundColorAction->setToolTip("Adjust the line color");
     m_foregroundColorAction->setMenu(m_foregroundColorMenu);
     m_foregroundToolButton = new QToolButton();
     m_foregroundToolButton->setDefaultAction(m_foregroundColorAction);

@@ -58,6 +58,22 @@ namespace caret {
         
         void setPositionMode(const AnnotationColorBarPositionModeEnum::Enum positionMode);
         
+        virtual CaretColorEnum::Enum getTextColor() const;
+        
+        virtual void setTextColor(const CaretColorEnum::Enum color);
+        
+        virtual void getTextColorRGBA(float rgbaOut[4]) const;
+        
+        virtual void getTextColorRGBA(uint8_t rgbaOut[4]) const;
+        
+        virtual void getCustomTextColor(float rgbaOut[4]) const;
+        
+        virtual void getCustomTextColor(uint8_t rgbaOut[4]) const;
+        
+        virtual void setCustomTextColor(const float rgba[4]);
+        
+        virtual void setCustomTextColor(const uint8_t rgba[4]);
+        
         virtual bool isStylesSupported() const;
         
         virtual bool isBoldStyleEnabled() const;
@@ -132,6 +148,10 @@ namespace caret {
         float m_fontPercentViewportHeight;
         
         AnnotationColorBarPositionModeEnum::Enum m_positionMode;
+        
+        CaretColorEnum::Enum m_colorText;
+        
+        float m_customColorText[4];
         
         bool m_displayedFlag;
         

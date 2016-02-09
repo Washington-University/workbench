@@ -2076,10 +2076,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     text->getBackgroundColorRGBA(backgroundRGBA);
     uint8_t foregroundRGBA[4];
     text->getForegroundColorRGBA(foregroundRGBA);
+    uint8_t textColorRGBA[4];
+    text->getTextColorRGBA(textColorRGBA);
     
+    const bool drawTextFlag       = (textColorRGBA[3] > 0.0);
     const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
-    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
-    const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
+    const bool drawAnnotationFlag = (drawBackgroundFlag || drawTextFlag);
     
     if (drawAnnotationFlag) {
         if (m_selectionModeFlag) {
@@ -2112,7 +2114,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                          backgroundRGBA);
             }
             
-            if (drawForegroundFlag) {
+            if (drawTextFlag) {
                 const bool debugFlag = false;
                 if (debugFlag) {
                     if (text->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {

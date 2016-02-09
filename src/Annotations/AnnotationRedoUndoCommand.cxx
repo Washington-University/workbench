@@ -278,6 +278,28 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             }
         }
             break;
+        case AnnotationRedoUndoCommandModeEnum::TEXT_COLOR:
+        {
+            AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
+            const AnnotationText* textAnnValue = dynamic_cast<const AnnotationText*>(annotationValue);
+            if ((textAnn != NULL)
+                && (textAnnValue != NULL)) {
+                textAnn->setTextColor(textAnnValue->getTextColor());
+                float rgba[4];
+                textAnnValue->getCustomTextColor(rgba);
+                textAnn->setCustomTextColor(rgba);
+            }
+            else {
+                CaretAssert(0);
+            }
+            
+            CaretAssert(annotationValue);
+            annotation->setForegroundColor(annotationValue->getForegroundColor());
+            float rgba[4];
+            annotationValue->getCustomForegroundColor(rgba);
+            annotation->setCustomForegroundColor(rgba);
+        }
+            break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_CONNECT_TO_BRAINORDINATE:
         {
             AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
@@ -1340,6 +1362,46 @@ AnnotationRedoUndoCommand::setModeTextCharacters(const AString& text,
         }
     }
 }
+
+/**
+ * Set the mode to text color and create the undo/redo instances.
+ *
+ * @param color
+ *     The color enum.
+ * @param customColor
+ *     The custom color components.
+ * @param annotations
+ *     Annotation that receive this new color.
+ */
+void
+AnnotationRedoUndoCommand::setModeTextColor(const CaretColorEnum::Enum color,
+                                            const float customColor[4],
+                                            const std::vector<Annotation*>& annotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::TEXT_COLOR;
+    setDescription("Text Color");
+    
+    for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
+         iter != annotations.end();
+         iter++) {
+        Annotation* annotation = *iter;
+        CaretAssert(annotation);
+        
+        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+            AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
+            CaretAssert(redoAnnotation);
+            redoAnnotation->setTextColor(color);
+            redoAnnotation->setCustomTextColor(customColor);
+            
+            Annotation* undoAnnotation = annotation->clone();
+            AnnotationMemento* am = new AnnotationMemento(annotation,
+                                                          redoAnnotation,
+                                                          undoAnnotation);
+            m_annotationMementos.push_back(am);
+        }
+    }
+}
+
 
 /**
  * Set the mode to text connect to brainordinate and create the undo/redo instances.

@@ -414,7 +414,6 @@ Annotation::initializeAnnotationMembers()
         case AnnotationTypeEnum::OVAL:
             break;
         case AnnotationTypeEnum::TEXT:
-            disallowForegroundNoneFlag = true;
             break;
     }
     if (disallowForegroundNoneFlag) {
@@ -443,8 +442,12 @@ Annotation::initializeAnnotationMembers()
                           &m_windowIndex);
     m_sceneAssistant->add("m_foregroundLineWidth",
                           &m_foregroundLineWidth);
+    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorBackground",
+                                                               &m_colorBackground);
     m_sceneAssistant->addArray("m_customColorBackground",
                                m_customColorBackground, 4, 0.0);
+    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorForeground",
+                                                               &m_colorForeground);
     m_sceneAssistant->addArray("m_customColorForeground",
                                m_customColorForeground, 4, 1.0);
 }

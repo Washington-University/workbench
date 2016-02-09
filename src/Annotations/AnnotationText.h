@@ -72,6 +72,22 @@ namespace caret {
         
         AnnotationTextFontSizeTypeEnum::Enum getFontSizeType() const;
         
+        virtual CaretColorEnum::Enum getTextColor() const;
+        
+        virtual void setTextColor(const CaretColorEnum::Enum color);
+        
+        virtual void getTextColorRGBA(float rgbaOut[4]) const;
+        
+        virtual void getTextColorRGBA(uint8_t rgbaOut[4]) const;
+        
+        virtual void getCustomTextColor(float rgbaOut[4]) const;
+        
+        virtual void getCustomTextColor(uint8_t rgbaOut[4]) const;
+        
+        virtual void setCustomTextColor(const float rgba[4]);
+        
+        virtual void setCustomTextColor(const uint8_t rgba[4]);
+        
         virtual bool isStylesSupported() const;
         
         virtual bool isBoldStyleEnabled() const;
@@ -110,6 +126,10 @@ namespace caret {
         static void setUserDefaultFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize);
         
         static void setUserDefaultFontPercentViewportSize(const float fontPercentViewportHeight);
+        
+        static void setUserDefaultTextColor(const CaretColorEnum::Enum color);
+        
+        static void setUserDefaultCustomTextColor(const float rgba[4]);
         
         static void setUserDefaultBoldEnabled(const bool enabled);
         
@@ -175,6 +195,10 @@ namespace caret {
         
         float m_fontPercentViewportSize;
         
+        CaretColorEnum::Enum m_colorText;
+        
+        float m_customColorText[4];
+        
         bool m_boldEnabled;
         
         bool m_italicEnabled;
@@ -193,6 +217,10 @@ namespace caret {
         static AnnotationTextFontPointSizeEnum::Enum s_userDefaultPointSize;
         
         static AnnotationTextConnectTypeEnum::Enum s_userDefaultConnectToBrainordinate;
+        
+        static CaretColorEnum::Enum s_userDefaultColorText;
+        
+        static float s_userDefaultCustomColorText[4];
         
         static float s_userDefaultFontPercentViewportSize;
         
@@ -220,6 +248,10 @@ namespace caret {
     AnnotationTextFontPointSizeEnum::Enum AnnotationText::s_userDefaultPointSize = AnnotationTextFontPointSizeEnum::SIZE14;
     
     AnnotationTextConnectTypeEnum::Enum AnnotationText::s_userDefaultConnectToBrainordinate = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
+    
+    CaretColorEnum::Enum AnnotationText::s_userDefaultColorText = CaretColorEnum::WHITE;
+    
+    float AnnotationText::s_userDefaultCustomColorText[4] = { 1.0, 1.0, 1.0, 1.0 };
     
     float AnnotationText::s_userDefaultFontPercentViewportSize = 5.0;
     

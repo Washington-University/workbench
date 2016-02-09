@@ -64,6 +64,10 @@ AnnotationColorBar::AnnotationColorBar(const AnnotationAttributesDefaultTypeEnum
     
     m_sceneAssistant->add("m_showTickMarksSelected",
                           &m_showTickMarksSelected);
+    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorText",
+                                                               &m_colorText);
+    m_sceneAssistant->addArray("m_customColorText",
+                               m_customColorText, 4, 1.0);
 }
 
 /**
@@ -125,6 +129,11 @@ AnnotationColorBar::copyHelperAnnotationColorBar(const AnnotationColorBar& obj)
     m_positionMode              = obj.m_positionMode;
     m_displayedFlag             = obj.m_displayedFlag;
     m_showTickMarksSelected     = obj.m_showTickMarksSelected;
+    m_colorText           = obj.m_colorText;
+    m_customColorText[0]  = obj.m_customColorText[0];
+    m_customColorText[1]  = obj.m_customColorText[1];
+    m_customColorText[2]  = obj.m_customColorText[2];
+    m_customColorText[3]  = obj.m_customColorText[3];
 }
 
 /**
@@ -140,6 +149,12 @@ AnnotationColorBar::reset()
     m_positionMode  = AnnotationColorBarPositionModeEnum::AUTOMATIC;
     m_displayedFlag = false;
     m_showTickMarksSelected = false;
+    
+    m_colorText               = CaretColorEnum::WHITE;
+    m_customColorText[0]      = 1.0;
+    m_customColorText[1]      = 1.0;
+    m_customColorText[2]      = 1.0;
+    m_customColorText[3]      = 1.0;
     
     setForegroundColor(CaretColorEnum::WHITE);
     setBackgroundColor(CaretColorEnum::BLACK);
@@ -216,6 +231,157 @@ bool
 AnnotationColorBar::isStylesSupported() const
 {
     return false;
+}
+
+/**
+ * @return The foreground color.
+ */
+CaretColorEnum::Enum
+AnnotationColorBar::getTextColor() const
+{
+    return m_colorText;
+}
+
+/**
+ * Set the foreground color.
+ *
+ * @param color
+ *     New value for foreground color.
+ */
+void
+AnnotationColorBar::setTextColor(const CaretColorEnum::Enum color)
+{
+    if (m_colorText != color) {
+        m_colorText = color;
+        setModified();
+    }
+}
+
+/**
+ * Get the foreground color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0.0 to 1.0.
+ */
+void
+AnnotationColorBar::getTextColorRGBA(float rgbaOut[4]) const
+{
+    switch (m_colorText) {
+        case CaretColorEnum::NONE:
+            rgbaOut[0] = 0.0;
+            rgbaOut[1] = 0.0;
+            rgbaOut[2] = 0.0;
+            rgbaOut[3] = 0.0;
+            break;
+        case CaretColorEnum::CUSTOM:
+            getCustomTextColor(rgbaOut);
+            break;
+        case CaretColorEnum::AQUA:
+        case CaretColorEnum::BLACK:
+        case CaretColorEnum::BLUE:
+        case CaretColorEnum::FUCHSIA:
+        case CaretColorEnum::GRAY:
+        case CaretColorEnum::GREEN:
+        case CaretColorEnum::LIME:
+        case CaretColorEnum::MAROON:
+        case CaretColorEnum::NAVY:
+        case CaretColorEnum::OLIVE:
+        case CaretColorEnum::PURPLE:
+        case CaretColorEnum::RED:
+        case CaretColorEnum::SILVER:
+        case CaretColorEnum::TEAL:
+        case CaretColorEnum::WHITE:
+        case CaretColorEnum::YELLOW:
+            CaretColorEnum::toRGBFloat(m_colorText,
+                                       rgbaOut);
+            rgbaOut[3] = 1.0;
+            break;
+    }
+}
+
+/**
+ * Get the foreground color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0 to 255.
+ */
+void
+AnnotationColorBar::getTextColorRGBA(uint8_t rgbaOut[4]) const
+{
+    float rgbaFloat[4] = { 0.0, 0.0, 0.0, 0.0 };
+    getTextColorRGBA(rgbaFloat);
+    
+    rgbaOut[0] = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(rgbaFloat[3] * 255.0);
+}
+
+/**
+ * Get the foreground color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+AnnotationColorBar::getCustomTextColor(float rgbaOut[4]) const
+{
+    rgbaOut[0] = m_customColorText[0];
+    rgbaOut[1] = m_customColorText[1];
+    rgbaOut[2] = m_customColorText[2];
+    rgbaOut[3] = m_customColorText[3];
+}
+
+/**
+ * Get the foreground color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+AnnotationColorBar::getCustomTextColor(uint8_t rgbaOut[4]) const
+{
+    rgbaOut[0] = static_cast<uint8_t>(m_customColorText[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(m_customColorText[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(m_customColorText[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(m_customColorText[3] * 255.0);
+}
+
+/**
+ * Set the foreground color with floats.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+AnnotationColorBar::setCustomTextColor(const float rgba[4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        if (rgba[i] != m_customColorText[i]) {
+            m_customColorText[i] = rgba[i];
+            setModified();
+        }
+    }
+}
+
+/**
+ * Set the foreground color with unsigned bytes.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+AnnotationColorBar::setCustomTextColor(const uint8_t rgba[4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        const float component = rgba[i] / 255.0;
+        if (component != m_customColorText[i]) {
+            m_customColorText[i] = component;
+            setModified();
+        }
+    }
 }
 
 /**

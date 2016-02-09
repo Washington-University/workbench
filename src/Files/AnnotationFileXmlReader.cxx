@@ -702,6 +702,78 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
     
     const QXmlStreamAttributes attributes = m_stream->attributes();
     
+    bool haveTextColorFlag = false;
+    
+    {
+        /*
+         * Background color
+         */
+        const QString valueString = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                    annotationTextElementName,
+                                                                                    ATTRIBUTE_TEXT_CARET_COLOR,
+                                                                                    "");
+        if ( ! valueString.isEmpty()) {
+            bool valid = false;
+            CaretColorEnum::Enum value = CaretColorEnum::fromName(valueString,
+                                                                  &valid);
+            if (valid) {
+                textAnnotation->setTextColor(value);
+                haveTextColorFlag = true;
+            }
+            else {
+                m_streamHelper->throwDataFileException("Invalid value "
+                                                       + valueString
+                                                       + " for attribute "
+                                                       + ATTRIBUTE_TEXT_CARET_COLOR);
+            }
+        }
+    }
+    
+    bool haveCustomTextColorFlag = false;
+    {
+        /*
+         * Background custom color
+         */
+        const QString valueString = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                    annotationTextElementName,
+                                                                                    ATTRIBUTE_TEXT_CUSTOM_RGBA,
+                                                                                    "");
+        if ( ! valueString.isEmpty()) {
+            std::vector<float> rgba;
+            AString::toNumbers(valueString, rgba);
+            if (rgba.size() == 4) {
+                textAnnotation->setCustomTextColor(&rgba[0]);
+                haveCustomTextColorFlag = true;
+            }
+            else {
+                m_streamHelper->throwDataFileException(ATTRIBUTE_TEXT_CUSTOM_RGBA
+                                                       + " must contain 4 elements but "
+                                                       + valueString
+                                                       + " contains "
+                                                       + QString::number(rgba.size())
+                                                       + " elements");
+            }
+        }
+    }
+    
+    if (haveTextColorFlag
+        && haveCustomTextColorFlag) {
+        /* nothing */
+    }
+    else {
+        /*
+         * Older (pre Workbench 1.2) annotations did not have a text color
+         * and the text was drawn using the foreground color.
+         * So, copy the foreground color to the text color and set
+         * the foreground color to none.
+         */
+        textAnnotation->setTextColor(textAnnotation->getForegroundColor());
+        float rgba[4];
+        textAnnotation->getCustomForegroundColor(rgba);
+        textAnnotation->setCustomTextColor(rgba);
+        textAnnotation->setForegroundColor(CaretColorEnum::NONE);
+    }
+    
     textAnnotation->setBoldStyleEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
                                                                  ELEMENT_TEXT_DATA,
                                                                  ATTRIBUTE_TEXT_FONT_BOLD));

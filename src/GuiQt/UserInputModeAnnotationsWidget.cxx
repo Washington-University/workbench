@@ -318,7 +318,6 @@ UserInputModeAnnotationsWidget::updateWidget()
     
     m_coordinateSpaceWidget->updateContent(selectedAnnotations);
     m_fontWidget->updateContent(fontStyleAnnotations);
-    //m_fontWidget->updateAnnotationTextContent(textAnnotations);
     m_textEditorWidget->updateContent(textAnnotations);
     m_colorWidget->updateContent(selectedAnnotations);
     m_lineArrowTipsWidget->updateContent(lineAnnotations);
