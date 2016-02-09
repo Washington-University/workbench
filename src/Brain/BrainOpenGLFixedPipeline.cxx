@@ -1263,15 +1263,15 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
                  translation[1],
                  translation[2]);
     
-    if (rightCortexFlatFlag) {
-        /*
-         * When drawing right flat, the translation is "left translation"
-         * so need to flip sign of X-offset.
-         */
-        float rightFlatOffsetX, rightFlatOffsetY;
-        browserTabContent->getRightCortexFlatMapOffset(rightFlatOffsetX, rightFlatOffsetY);
-        glTranslatef(-rightFlatOffsetX, rightFlatOffsetY, 0.0);
-    }
+//    if (rightCortexFlatFlag) {
+//        /*
+//         * When drawing right flat, the translation is "left translation"
+//         * so need to flip sign of X-offset.
+//         */
+//        float rightFlatOffsetX, rightFlatOffsetY;
+//        browserTabContent->getRightCortexFlatMapOffset(rightFlatOffsetX, rightFlatOffsetY);
+//        glTranslatef(-rightFlatOffsetX, rightFlatOffsetY, 0.0);
+//    }
     
     glMultMatrixd(rotationMatrixElements);
     
@@ -1289,6 +1289,16 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
     glScalef(scaling,
              scaling,
              scaling);
+    
+    if (rightCortexFlatFlag) {
+        /*
+         * When drawing right flat, the translation is "left translation"
+         * so need to flip sign of X-offset.
+         */
+        float rightFlatOffsetX, rightFlatOffsetY;
+        browserTabContent->getRightCortexFlatMapOffset(rightFlatOffsetX, rightFlatOffsetY);
+        glTranslatef(-rightFlatOffsetX, rightFlatOffsetY, 0.0);
+    }
     
     if (objectCenterXYZ != NULL) {
         /*
