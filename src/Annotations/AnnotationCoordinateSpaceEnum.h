@@ -56,6 +56,8 @@ public:
     
     static AString toGuiName(Enum enumValue);
     
+    static AString toGuiAbbreviatedName(Enum enumValue);
+    
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
     static int32_t toIntegerCode(Enum enumValue);
@@ -70,8 +72,9 @@ public:
 
 private:
     AnnotationCoordinateSpaceEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+                                  const AString& name,
+                                  const AString& guiName,
+                                  const AString& guiAbbreviatedName);
 
     static const AnnotationCoordinateSpaceEnum* findData(const Enum enumValue);
 
@@ -95,6 +98,9 @@ private:
 
     /** The name, a text string that is identical to the enumerated value */
     AString name;
+    
+    /** An abbreviated user-friendly name that is displayed in the GUI */
+    AString guiAbbreviatedName;
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;

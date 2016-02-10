@@ -79,15 +79,19 @@ using namespace caret;
  *
  * @param guiName
  *    User-friendly name for use in user-interface.
+ * @param guiAbbreviatedName
+ *    Abbreviated User-friendly name for use in user-interface.
  */
 AnnotationCoordinateSpaceEnum::AnnotationCoordinateSpaceEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+                                                             const AString& name,
+                                                             const AString& guiName,
+                                                             const AString& guiAbbreviatedName)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
+    this->guiAbbreviatedName = guiAbbreviatedName;
 }
 
 /**
@@ -110,23 +114,28 @@ AnnotationCoordinateSpaceEnum::initialize()
 
     enumData.push_back(AnnotationCoordinateSpaceEnum(PIXELS,
                                                      "PIXELS",
-                                                     "Pixels"));
+                                                     "Pixels",
+                                                     "P"));
     
     enumData.push_back(AnnotationCoordinateSpaceEnum(STEREOTAXIC,
                                                      "STEREOTAXIC",
-                                                     "Stereotaxic"));
+                                                     "Stereotaxic",
+                                                     "St"));
     
     enumData.push_back(AnnotationCoordinateSpaceEnum(SURFACE,
                                                      "SURFACE",
-                                                     "Surface"));
+                                                     "Surface",
+                                                     "Sf"));
     
     enumData.push_back(AnnotationCoordinateSpaceEnum(TAB,
                                                      "TAB",
-                                                     "Tab"));
+                                                     "Tab",
+                                                     "T"));
     
     enumData.push_back(AnnotationCoordinateSpaceEnum(WINDOW,
                                                      "WINDOW",
-                                                     "Window"));
+                                                     "Window",
+                                                     "W"));
 }
 
 /**
@@ -266,6 +275,21 @@ AnnotationCoordinateSpaceEnum::fromGuiName(const AString& guiNameIn, bool* isVal
         CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationCoordinateSpaceEnum"));
     }
     return enumValue;
+}
+
+/**
+ * Get a GUI abbreviated string representation of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing enumerated value.
+ */
+AString
+AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(Enum enumValue) {
+    if (initializedFlag == false) initialize();
+    
+    const AnnotationCoordinateSpaceEnum* enumInstance = findData(enumValue);
+    return enumInstance->guiAbbreviatedName;
 }
 
 /**

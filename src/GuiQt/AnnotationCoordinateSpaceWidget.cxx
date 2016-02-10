@@ -115,20 +115,16 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
             text = "+";
         }
         else {
+            text = AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(space);
             switch (space) {
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                    text = "St";
                     break;
                 case AnnotationCoordinateSpaceEnum::PIXELS:
-                    text = "P";
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
-                    text = "Sf";
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                 {
-                    text = "T";
-                    
                     QString tabString;
                     for (std::set<int32_t>::iterator iter = tabIndices.begin();
                          iter != tabIndices.end();
@@ -142,11 +138,10 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
                         tabString.append(AString::number(*iter + 1));
                     }
                     
-                    text = "T" + tabString;
+                    text.append(tabString);
                 }
                     break;
                 case AnnotationCoordinateSpaceEnum::WINDOW:
-                    text = "W";
                     break;
             }
         }
