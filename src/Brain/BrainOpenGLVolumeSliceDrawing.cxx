@@ -3973,7 +3973,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
-        annotationText.setForegroundColor(CaretColorEnum::NONE);
+        annotationText.setLineColor(CaretColorEnum::NONE);
         annotationText.setTextColor(CaretColorEnum::CUSTOM);
         
         if (drawLabelsFlag) {

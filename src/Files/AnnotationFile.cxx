@@ -80,7 +80,7 @@ AnnotationFile::createExampleAnnotations()
         at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         coord->setXYZ(0.4, 0.2, 0);
-        at->setForegroundColor(CaretColorEnum::WHITE);
+        at->setLineColor(CaretColorEnum::WHITE);
         at->setText("TAB-4-LEFT-MIDDLE,0.4, 0.2");
         addAnnotationPrivate(at);
     }
@@ -93,7 +93,7 @@ AnnotationFile::createExampleAnnotations()
         at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         coord->setXYZ(0.5, 0.9, 0);
-        at->setForegroundColor(CaretColorEnum::BLUE);
+        at->setLineColor(CaretColorEnum::BLUE);
         at->setBackgroundColor(CaretColorEnum::GRAY);
         at->setFontPercentViewportSize(0.10);
         at->setBoldStyleEnabled(true);
@@ -110,7 +110,7 @@ AnnotationFile::createExampleAnnotations()
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         coord->setXYZ(0.1, 0.6, 0);
         at->setRotationAngle(30.0);
-        at->setForegroundColor(CaretColorEnum::FUCHSIA);
+        at->setLineColor(CaretColorEnum::FUCHSIA);
         at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setFontPercentViewportSize(0.08);
         at->setBoldStyleEnabled(true);
@@ -127,7 +127,7 @@ AnnotationFile::createExampleAnnotations()
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
         at->setOrientation(AnnotationTextOrientationEnum::STACKED);
         coord->setXYZ(0.9, 0.5, 0);
-        at->setForegroundColor(CaretColorEnum::PURPLE);
+        at->setLineColor(CaretColorEnum::PURPLE);
         at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setFontPercentViewportSize(0.15);
         at->setBoldStyleEnabled(false);
@@ -144,7 +144,7 @@ AnnotationFile::createExampleAnnotations()
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
         at->setOrientation(AnnotationTextOrientationEnum::STACKED);
         coord->setXYZ(0.7, 0.7, 0);
-        at->setForegroundColor(CaretColorEnum::TEAL);
+        at->setLineColor(CaretColorEnum::TEAL);
         at->setBackgroundColor(CaretColorEnum::SILVER);
         at->setFontPercentViewportSize(0.15);
         at->setBoldStyleEnabled(false);
@@ -158,12 +158,12 @@ AnnotationFile::createExampleAnnotations()
         at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
         at->setWindowIndex(0);
         coord->setXYZ(0.5, 0.5, 0);
-        at->setForegroundColor(CaretColorEnum::GREEN);
+        at->setLineColor(CaretColorEnum::GREEN);
         at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setWidth(0.2);
         at->setHeight(0.10);
         at->setRotationAngle(-20.0);
-        at->setForegroundLineWidth(3.0);
+        at->setLineWidth(3.0);
         addAnnotationPrivate(at);
     }
     {
@@ -174,7 +174,7 @@ AnnotationFile::createExampleAnnotations()
         startCoord->setXYZ(0.1, 0.1, 0);
         AnnotationCoordinate* endCoord = at->getEndCoordinate();
         endCoord->setXYZ(0.2, 0.3, 0);
-        at->setForegroundColor(CaretColorEnum::RED);
+        at->setLineColor(CaretColorEnum::RED);
         at->setBackgroundColor(CaretColorEnum::WHITE);
         addAnnotationPrivate(at);
     }
@@ -185,11 +185,11 @@ AnnotationFile::createExampleAnnotations()
         at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
         at->setWindowIndex(0);
         coord->setXYZ(0.5, 0.2, 0);
-        at->setForegroundColor(CaretColorEnum::BLUE);
+        at->setLineColor(CaretColorEnum::BLUE);
         at->setWidth(0.05);
         at->setHeight(0.1);
         at->setRotationAngle(30.0);
-        at->setForegroundLineWidth(3.0);
+        at->setLineWidth(3.0);
         addAnnotationPrivate(at);
     }
     
@@ -198,7 +198,7 @@ AnnotationFile::createExampleAnnotations()
         AnnotationCoordinate* coord = at->getCoordinate();
         at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
         coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32492, 7883, 20, AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX);
-        at->setForegroundColor(CaretColorEnum::PURPLE);
+        at->setLineColor(CaretColorEnum::PURPLE);
         at->setText("Vertex 7883");
         addAnnotationPrivate(at);
     }
@@ -212,7 +212,7 @@ AnnotationFile::createExampleAnnotations()
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         at->setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
         coord->setXYZ(0.95, 0.05, 0);
-        at->setForegroundColor(CaretColorEnum::TEAL);
+        at->setLineColor(CaretColorEnum::TEAL);
         at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setFontPercentViewportSize(0.12);
         at->setBoldStyleEnabled(true);

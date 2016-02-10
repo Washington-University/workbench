@@ -118,17 +118,17 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_coordinateSpace     = obj.m_coordinateSpace;
     m_tabIndex            = obj.m_tabIndex;
     m_windowIndex         = obj.m_windowIndex;
-    m_foregroundLineWidth = obj.m_foregroundLineWidth;
-    m_colorForeground     = obj.m_colorForeground;
+    m_lineWidth = obj.m_lineWidth;
+    m_colorLine           = obj.m_colorLine;
     m_colorBackground     = obj.m_colorBackground;
     m_customColorBackground[0]  = obj.m_customColorBackground[0];
     m_customColorBackground[1]  = obj.m_customColorBackground[1];
     m_customColorBackground[2]  = obj.m_customColorBackground[2];
     m_customColorBackground[3]  = obj.m_customColorBackground[3];
-    m_customColorForeground[0]  = obj.m_customColorForeground[0];
-    m_customColorForeground[1]  = obj.m_customColorForeground[1];
-    m_customColorForeground[2]  = obj.m_customColorForeground[2];
-    m_customColorForeground[3]  = obj.m_customColorForeground[3];
+    m_customColorLine[0]  = obj.m_customColorLine[0];
+    m_customColorLine[1]  = obj.m_customColorLine[1];
+    m_customColorLine[2]  = obj.m_customColorLine[2];
+    m_customColorLine[3]  = obj.m_customColorLine[3];
 
     /*
      * Selected status is NOT copied.
@@ -272,7 +272,7 @@ Annotation::getFixedAspectRatio() const
 }
 
 /**
- * Apply coloring including foreground line width from annother annotation.
+ * Apply coloring including line width from annother annotation.
  *
  * @param otherAnnotation
  *     Other annotation from which coloring is copied.
@@ -283,12 +283,12 @@ Annotation::applyColoringFromOther(const Annotation* otherAnnotation)
     CaretAssert(otherAnnotation);
 
     m_colorBackground     = otherAnnotation->m_colorBackground;
-    m_colorForeground     = otherAnnotation->m_colorForeground;
-    m_foregroundLineWidth = otherAnnotation->m_foregroundLineWidth;
+    m_colorLine     = otherAnnotation->m_colorLine;
+    m_lineWidth = otherAnnotation->m_lineWidth;
     
     for (int32_t i = 0; i < 4; i++) {
         m_customColorBackground[i] = otherAnnotation->m_customColorBackground[i];
-        m_customColorForeground[i] = otherAnnotation->m_customColorForeground[i];
+        m_customColorLine[i] = otherAnnotation->m_customColorLine[i];
     }
 }
 
@@ -354,14 +354,14 @@ Annotation::initializeAnnotationMembers()
     
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
-            m_foregroundLineWidth = 3.0;
+            m_lineWidth = 3.0;
             
             m_colorBackground = CaretColorEnum::NONE;
-            m_colorForeground = CaretColorEnum::WHITE;
+            m_colorLine = CaretColorEnum::WHITE;
             
             if (m_type == AnnotationTypeEnum::TEXT) {
                 m_colorBackground = CaretColorEnum::NONE;
-                m_colorForeground = CaretColorEnum::NONE;
+                m_colorLine = CaretColorEnum::NONE;
             }
             
             m_customColorBackground[0]  = 0.0;
@@ -369,26 +369,26 @@ Annotation::initializeAnnotationMembers()
             m_customColorBackground[2]  = 0.0;
             m_customColorBackground[3]  = 1.0;
             
-            m_customColorForeground[0]  = 1.0;
-            m_customColorForeground[1]  = 1.0;
-            m_customColorForeground[2]  = 1.0;
-            m_customColorForeground[3]  = 1.0;
+            m_customColorLine[0]  = 1.0;
+            m_customColorLine[1]  = 1.0;
+            m_customColorLine[2]  = 1.0;
+            m_customColorLine[3]  = 1.0;
             break;
         case AnnotationAttributesDefaultTypeEnum::USER:
-            m_foregroundLineWidth = s_userDefaultForegroundLineWidth;
+            m_lineWidth = s_userDefaultLineWidth;
             
             m_colorBackground = s_userDefaultColorBackground;
-            m_colorForeground = s_userDefaultColorForeground;
+            m_colorLine = s_userDefaultColorLine;
             
             m_customColorBackground[0]  = s_userDefaultCustomColorBackground[0];
             m_customColorBackground[1]  = s_userDefaultCustomColorBackground[1];
             m_customColorBackground[2]  = s_userDefaultCustomColorBackground[2];
             m_customColorBackground[3]  = s_userDefaultCustomColorBackground[3];
             
-            m_customColorForeground[0]  = s_userDefaultCustomColorForeground[0];
-            m_customColorForeground[1]  = s_userDefaultCustomColorForeground[1];
-            m_customColorForeground[2]  = s_userDefaultCustomColorForeground[2];
-            m_customColorForeground[3]  = s_userDefaultCustomColorForeground[3];
+            m_customColorLine[0]  = s_userDefaultCustomColorLine[0];
+            m_customColorLine[1]  = s_userDefaultCustomColorLine[1];
+            m_customColorLine[2]  = s_userDefaultCustomColorLine[2];
+            m_customColorLine[3]  = s_userDefaultCustomColorLine[3];
             break;
     }
     
@@ -398,35 +398,35 @@ Annotation::initializeAnnotationMembers()
      */
     if (m_type != AnnotationTypeEnum::TEXT) {
         if ((m_colorBackground == CaretColorEnum::NONE)
-            && (m_colorForeground == CaretColorEnum::NONE)) {
-            m_colorForeground = CaretColorEnum::WHITE;
+            && (m_colorLine == CaretColorEnum::NONE)) {
+            m_colorLine = CaretColorEnum::WHITE;
         }
     }
     
     
     /*
-     * Don't allow a foregound color of NONE for text or line
+     * Don't allow a line color of NONE for text or line
      */
-    bool disallowForegroundNoneFlag = false;
+    bool disallowLineColorNoneFlag = false;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
-            disallowForegroundNoneFlag = true;
+            disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::IMAGE:
             break;
         case AnnotationTypeEnum::LINE:
-            disallowForegroundNoneFlag = true;
+            disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::OVAL:
             break;
         case AnnotationTypeEnum::TEXT:
             break;
     }
-    if (disallowForegroundNoneFlag) {
-        if (m_colorForeground == CaretColorEnum::NONE) {
-            m_colorForeground = CaretColorEnum::WHITE;
+    if (disallowLineColorNoneFlag) {
+        if (m_colorLine == CaretColorEnum::NONE) {
+            m_colorLine = CaretColorEnum::WHITE;
             
             if (m_colorBackground == CaretColorEnum::WHITE) {
                 m_colorBackground = CaretColorEnum::NONE;
@@ -448,16 +448,16 @@ Annotation::initializeAnnotationMembers()
                           &m_tabIndex);
     m_sceneAssistant->add("m_windowIndex",
                           &m_windowIndex);
-    m_sceneAssistant->add("m_foregroundLineWidth",
-                          &m_foregroundLineWidth);
+    m_sceneAssistant->add("m_foregroundLineWidth",  // use old name !!!
+                          &m_lineWidth);
     m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorBackground",
                                                                &m_colorBackground);
     m_sceneAssistant->addArray("m_customColorBackground",
                                m_customColorBackground, 4, 0.0);
-    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorForeground",
-                                                               &m_colorForeground);
-    m_sceneAssistant->addArray("m_customColorForeground",
-                               m_customColorForeground, 4, 1.0);
+    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorForeground", // use old name !!!
+                                                               &m_colorLine);
+    m_sceneAssistant->addArray("m_customColorForeground",  // use old name !!!!
+                               m_customColorLine, 4, 1.0);
 }
 
 
@@ -575,37 +575,37 @@ Annotation::toString() const
 }
 
 /**
- * @return The foreground line width.
+ * @return The line width.
  */
 float
-Annotation::getForegroundLineWidth() const
+Annotation::getLineWidth() const
 {
-    return m_foregroundLineWidth;
+    return m_lineWidth;
 }
 
 /**
- * Set the foreground line width.
+ * Set the line width.
  *
  * @param lineWidth
- *    New value for foreground line width.
+ *    New value for line width.
  */
 void
-Annotation::setForegroundLineWidth(const float lineWidth)
+Annotation::setLineWidth(const float lineWidth)
 {
-    if (lineWidth != m_foregroundLineWidth) {
-        m_foregroundLineWidth = lineWidth;
+    if (lineWidth != m_lineWidth) {
+        m_lineWidth = lineWidth;
         setModified();
     }
 }
 
 /**
- * @return Is foreground line width supported?
- * Most annotations support a foreground line width.
- * Annotations that do not support a foreground line width
+ * @return Is line width supported?
+ * Most annotations support a line width.
+ * Annotations that do not support a line width
  * must override this method and return a value of false.
  */
 bool
-Annotation::isForegroundLineWidthSupported() const
+Annotation::isLineWidthSupported() const
 {
     return true;
 }
@@ -624,40 +624,40 @@ Annotation::isBackgroundColorSupported() const
 
 
 /**
- * @return The foreground color.
+ * @return The line color.
  */
 CaretColorEnum::Enum
-Annotation::getForegroundColor() const
+Annotation::getLineColor() const
 {
-    return m_colorForeground;
+    return m_colorLine;
 }
 
 /**
- * Set the foreground color.
+ * Set the line color.
  *
  * @param color
- *     New value for foreground color.
+ *     New value for line color.
  */
 void
-Annotation::setForegroundColor(const CaretColorEnum::Enum color)
+Annotation::setLineColor(const CaretColorEnum::Enum color)
 {
-    if (m_colorForeground != color) {
-        m_colorForeground = color;
+    if (m_colorLine != color) {
+        m_colorLine = color;
         setModified();
     }
 }
 
 /**
- * Get the foreground color's RGBA components regardless of
+ * Get the line color's RGBA components regardless of
  * coloring (custom color or a CaretColorEnum) selected by the user.
  *
  * @param rgbaOut
  *     RGBA components ranging 0.0 to 1.0.
  */
 void
-Annotation::getForegroundColorRGBA(float rgbaOut[4]) const
+Annotation::getLineColorRGBA(float rgbaOut[4]) const
 {
-    switch (m_colorForeground) {
+    switch (m_colorLine) {
         case CaretColorEnum::NONE:
             rgbaOut[0] = 0.0;
             rgbaOut[1] = 0.0;
@@ -665,7 +665,7 @@ Annotation::getForegroundColorRGBA(float rgbaOut[4]) const
             rgbaOut[3] = 0.0;
             break;
         case CaretColorEnum::CUSTOM:
-            getCustomForegroundColor(rgbaOut);
+            getCustomLineColor(rgbaOut);
             break;
         case CaretColorEnum::AQUA:
         case CaretColorEnum::BLACK:
@@ -683,7 +683,7 @@ Annotation::getForegroundColorRGBA(float rgbaOut[4]) const
         case CaretColorEnum::TEAL:
         case CaretColorEnum::WHITE:
         case CaretColorEnum::YELLOW:
-            CaretColorEnum::toRGBFloat(m_colorForeground,
+            CaretColorEnum::toRGBFloat(m_colorLine,
                                        rgbaOut);
             rgbaOut[3] = 1.0;
             break;
@@ -691,17 +691,17 @@ Annotation::getForegroundColorRGBA(float rgbaOut[4]) const
 }
 
 /**
- * Get the foreground color's RGBA components regardless of
+ * Get the line color's RGBA components regardless of
  * coloring (custom color or a CaretColorEnum) selected by the user.
  *
  * @param rgbaOut
  *     RGBA components ranging 0 to 255.
  */
 void
-Annotation::getForegroundColorRGBA(uint8_t rgbaOut[4]) const
+Annotation::getLineColorRGBA(uint8_t rgbaOut[4]) const
 {
     float rgbaFloat[4] = { 0.0, 0.0, 0.0, 0.0 };
-    getForegroundColorRGBA(rgbaFloat);
+    getLineColorRGBA(rgbaFloat);
     
     rgbaOut[0] = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
     rgbaOut[1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
@@ -734,7 +734,7 @@ Annotation::setBackgroundColor(const CaretColorEnum::Enum color)
 }
 
 /**
- * Get the foreground color's RGBA components regardless of
+ * Get the background color's RGBA components regardless of
  * coloring (custom color or a CaretColorEnum) selected by the user.
  *
  * @param rgbaOut
@@ -777,7 +777,7 @@ Annotation::getBackgroundColorRGBA(float rgbaOut[4]) const
 }
 
 /**
- * Get the foreground color's RGBA components regardless of
+ * Get the background color's RGBA components regardless of
  * coloring (custom color or a CaretColorEnum) selected by the user.
  *
  * @param rgbaOut
@@ -796,65 +796,65 @@ Annotation::getBackgroundColorRGBA(uint8_t rgbaOut[4]) const
 }
 
 /**
- * Get the foreground color.
+ * Get the custom line color.
  *
  * @param rgbaOut
  *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
  */
 void
-Annotation::getCustomForegroundColor(float rgbaOut[4]) const
+Annotation::getCustomLineColor(float rgbaOut[4]) const
 {
-    rgbaOut[0] = m_customColorForeground[0];
-    rgbaOut[1] = m_customColorForeground[1];
-    rgbaOut[2] = m_customColorForeground[2];
-    rgbaOut[3] = m_customColorForeground[3];
+    rgbaOut[0] = m_customColorLine[0];
+    rgbaOut[1] = m_customColorLine[1];
+    rgbaOut[2] = m_customColorLine[2];
+    rgbaOut[3] = m_customColorLine[3];
 }
 
 /**
- * Get the foreground color.
+ * Get the custom line color.
  *
  * @param rgbaOut
  *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
  */
 void
-Annotation::getCustomForegroundColor(uint8_t rgbaOut[4]) const
+Annotation::getCustomLineColor(uint8_t rgbaOut[4]) const
 {
-    rgbaOut[0] = static_cast<uint8_t>(m_customColorForeground[0] * 255.0);
-    rgbaOut[1] = static_cast<uint8_t>(m_customColorForeground[1] * 255.0);
-    rgbaOut[2] = static_cast<uint8_t>(m_customColorForeground[2] * 255.0);
-    rgbaOut[3] = static_cast<uint8_t>(m_customColorForeground[3] * 255.0);
+    rgbaOut[0] = static_cast<uint8_t>(m_customColorLine[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(m_customColorLine[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(m_customColorLine[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(m_customColorLine[3] * 255.0);
 }
 
 /**
- * Set the foreground color with floats.
+ * Set the custom line color with floats.
  *
  * @param rgba
  *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
  */
 void
-Annotation::setCustomForegroundColor(const float rgba[4])
+Annotation::setCustomLineColor(const float rgba[4])
 {
     for (int32_t i = 0; i < 4; i++) {
-        if (rgba[i] != m_customColorForeground[i]) {
-            m_customColorForeground[i] = rgba[i];
+        if (rgba[i] != m_customColorLine[i]) {
+            m_customColorLine[i] = rgba[i];
             setModified();
         }
     }
 }
 
 /**
- * Set the foreground color with unsigned bytes.
+ * Set the custom line color with unsigned bytes.
  *
  * @param rgba
  *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
  */
 void
-Annotation::setCustomForegroundColor(const uint8_t rgba[4])
+Annotation::setCustomLineColor(const uint8_t rgba[4])
 {
     for (int32_t i = 0; i < 4; i++) {
         const float component = rgba[i] / 255.0;
-        if (component != m_customColorForeground[i]) {
-            m_customColorForeground[i] = component;
+        if (component != m_customColorLine[i]) {
+            m_customColorLine[i] = component;
             setModified();
         }
     }
@@ -1125,15 +1125,15 @@ Annotation::restoreFromScene(const SceneAttributes* sceneAttributes,
 }
 
 /**
- * Set the default value for foreground color
+ * Set the default value for line color
  *
  * @param color
  *     Default for newly created annotations.
  */
 void
-Annotation::setUserDefaultForegroundColor(const CaretColorEnum::Enum color)
+Annotation::setUserDefaultLineColor(const CaretColorEnum::Enum color)
 {
-    s_userDefaultColorForeground = color;
+    s_userDefaultColorLine = color;
 }
 
 /**
@@ -1149,18 +1149,18 @@ Annotation::setUserDefaultBackgroundColor(const CaretColorEnum::Enum color)
 }
 
 /**
- * Set the default value for custom foreground color
+ * Set the default value for custom line color
  *
  * @param rgba
  *     Default for newly created annotations.
  */
 void
-Annotation::setUserDefaultCustomForegroundColor(const float rgba[4])
+Annotation::setUserDefaultCustomLineColor(const float rgba[4])
 {
-    s_userDefaultCustomColorForeground[0] = rgba[0];
-    s_userDefaultCustomColorForeground[1] = rgba[1];
-    s_userDefaultCustomColorForeground[2] = rgba[2];
-    s_userDefaultCustomColorForeground[3] = rgba[3];
+    s_userDefaultCustomColorLine[0] = rgba[0];
+    s_userDefaultCustomColorLine[1] = rgba[1];
+    s_userDefaultCustomColorLine[2] = rgba[2];
+    s_userDefaultCustomColorLine[3] = rgba[3];
 }
 
 /**
@@ -1179,13 +1179,13 @@ Annotation::setUserDefaultCustomBackgroundColor(const float rgba[4])
 }
 
 /**
- * Set the default value for foreground line width
+ * Set the default value for line width
  *
  * @param lineWidth
  *     Default for newly created annotations.
  */
 void
-Annotation::setUserDefaultForegroundLineWidth(const float lineWidth)
+Annotation::setUserDefaultLineWidth(const float lineWidth)
 {
-    s_userDefaultForegroundLineWidth = lineWidth;
+    s_userDefaultLineWidth = lineWidth;
 }

@@ -156,7 +156,7 @@ AnnotationColorBar::reset()
     m_customColorText[2]      = 1.0;
     m_customColorText[3]      = 1.0;
     
-    setForegroundColor(CaretColorEnum::WHITE);
+    setLineColor(CaretColorEnum::WHITE);
     setBackgroundColor(CaretColorEnum::BLACK);
     
     clearSections();
@@ -475,7 +475,7 @@ AnnotationColorBar::setOutlineStyleEnabled(const bool /*enabled*/)
  * must override this method and return a value of false.
  */
 bool
-AnnotationColorBar::isForegroundLineWidthSupported() const
+AnnotationColorBar::isLineWidthSupported() const
 {
     return false;
 }

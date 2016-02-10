@@ -202,7 +202,7 @@ AnnotationImage::initializeMembersAnnotationImage()
  * must override this method and return a value of false.
  */
 bool
-AnnotationImage::isForegroundLineWidthSupported() const
+AnnotationImage::isLineWidthSupported() const
 {
     return false;
 }

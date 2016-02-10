@@ -71,13 +71,13 @@ namespace caret {
         
         void setWindowIndex(const int32_t windowIndex);
         
-        CaretColorEnum::Enum getForegroundColor() const;
+        CaretColorEnum::Enum getLineColor() const;
 
-        void setForegroundColor(const CaretColorEnum::Enum color);
+        void setLineColor(const CaretColorEnum::Enum color);
 
-        void getForegroundColorRGBA(float rgbaOut[4]) const;
+        void getLineColorRGBA(float rgbaOut[4]) const;
         
-        void getForegroundColorRGBA(uint8_t rgbaOut[4]) const;
+        void getLineColorRGBA(uint8_t rgbaOut[4]) const;
         
         CaretColorEnum::Enum getBackgroundColor() const;
         
@@ -87,13 +87,13 @@ namespace caret {
         
         void getBackgroundColorRGBA(uint8_t rgbaOut[4]) const;
         
-        void getCustomForegroundColor(float rgbaOut[4]) const;
+        void getCustomLineColor(float rgbaOut[4]) const;
         
-        void getCustomForegroundColor(uint8_t rgbaOut[4]) const;
+        void getCustomLineColor(uint8_t rgbaOut[4]) const;
         
-        void setCustomForegroundColor(const float rgba[4]);
+        void setCustomLineColor(const float rgba[4]);
         
-        void setCustomForegroundColor(const uint8_t rgba[4]);
+        void setCustomLineColor(const uint8_t rgba[4]);
         
         void getCustomBackgroundColor(float rgbaOut[4]) const;
         
@@ -103,25 +103,25 @@ namespace caret {
         
         void setCustomBackgroundColor(const uint8_t rgba[4]);
         
-        float getForegroundLineWidth() const;
+        float getLineWidth() const;
         
-        void setForegroundLineWidth(const float lineWidth);
+        void setLineWidth(const float lineWidth);
         
-        virtual bool isForegroundLineWidthSupported() const;
+        virtual bool isLineWidthSupported() const;
         
         virtual bool isBackgroundColorSupported() const;
         
         bool isSelected(const int32_t windowIndex) const;
         
-        static void setUserDefaultForegroundColor(const CaretColorEnum::Enum color);
+        static void setUserDefaultLineColor(const CaretColorEnum::Enum color);
         
         static void setUserDefaultBackgroundColor(const CaretColorEnum::Enum color);
         
-        static void setUserDefaultCustomForegroundColor(const float rgba[4]);
+        static void setUserDefaultCustomLineColor(const float rgba[4]);
         
         static void setUserDefaultCustomBackgroundColor(const float rgba[4]);
         
-        static void setUserDefaultForegroundLineWidth(const float lineWidth);
+        static void setUserDefaultLineWidth(const float lineWidth);
         
         virtual bool isDeletable() const;
         
@@ -216,15 +216,15 @@ namespace caret {
         
         int32_t m_windowIndex;
         
-        CaretColorEnum::Enum m_colorForeground;
+        CaretColorEnum::Enum m_colorLine;
         
         CaretColorEnum::Enum m_colorBackground;
         
-        float m_customColorForeground[4];
+        float m_customColorLine[4];
         
         float m_customColorBackground[4];
         
-        float m_foregroundLineWidth;
+        float m_lineWidth;
 
         /**
          * Selection status in each window.
@@ -235,15 +235,15 @@ namespace caret {
         mutable std::bitset<10> m_selectedInWindowFlag;
         
         // defaults
-        static CaretColorEnum::Enum s_userDefaultColorForeground;
+        static CaretColorEnum::Enum s_userDefaultColorLine;
         
         static CaretColorEnum::Enum s_userDefaultColorBackground;
         
-        static float s_userDefaultCustomColorForeground[4];
+        static float s_userDefaultCustomColorLine[4];
         
         static float s_userDefaultCustomColorBackground[4];
         
-        static float s_userDefaultForegroundLineWidth;
+        static float s_userDefaultLineWidth;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -252,15 +252,15 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_DECLARE__
-    CaretColorEnum::Enum Annotation::s_userDefaultColorForeground = CaretColorEnum::WHITE;
+    CaretColorEnum::Enum Annotation::s_userDefaultColorLine = CaretColorEnum::WHITE;
     
     CaretColorEnum::Enum Annotation::s_userDefaultColorBackground = CaretColorEnum::NONE;
     
-    float Annotation::s_userDefaultCustomColorForeground[4] = { 1.0, 1.0, 1.0, 1.0 };
+    float Annotation::s_userDefaultCustomColorLine[4] = { 1.0, 1.0, 1.0, 1.0 };
     
     float Annotation::s_userDefaultCustomColorBackground[4] = { 0.0, 0.0, 0.0, 1.0 };
     
-    float Annotation::s_userDefaultForegroundLineWidth = 3.0;
+    float Annotation::s_userDefaultLineWidth = 3.0;
 #endif // __ANNOTATION_DECLARE__
 
 } // namespace

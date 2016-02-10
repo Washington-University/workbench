@@ -404,14 +404,14 @@ AnnotationFileXmlWriter::getAnnotationPropertiesAsAttributes(const Annotation* a
                       realArrayToString(rgba, 4));
     
     attributes.append(ATTRIBUTE_FOREGROUND_CARET_COLOR,
-                      CaretColorEnum::toName(annotation->getForegroundColor()));
+                      CaretColorEnum::toName(annotation->getLineColor()));
     
-    annotation->getCustomForegroundColor(rgba);
+    annotation->getCustomLineColor(rgba);
     attributes.append(ATTRIBUTE_FOREGROUND_CUSTOM_RGBA,
                       realArrayToString(rgba, 4));
     
     attributes.append(ATTRIBUTE_FOREGROUND_LINE_WIDTH,
-                      QString::number(annotation->getForegroundLineWidth()));
+                      QString::number(annotation->getLineWidth()));
     
     attributes.append(ATTRIBUTE_TAB_INDEX,
                       QString::number(annotation->getTabIndex()));

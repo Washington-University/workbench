@@ -108,7 +108,7 @@ namespace caret {
         
         bool isConnectToBrainordinateValid() const;
         
-        virtual bool isForegroundLineWidthSupported() const;
+        virtual bool isLineWidthSupported() const;
         
         virtual bool applySpatialModification(const AnnotationSpatialModification& spatialModification);
         

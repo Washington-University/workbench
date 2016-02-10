@@ -659,7 +659,7 @@ void
 QGLWidgetTextRenderer::applyForegroundColoring(const AnnotationText& annotationText)
 {
     float rgba[4];
-    annotationText.getForegroundColorRGBA(rgba);
+    annotationText.getLineColorRGBA(rgba);
     glColor4fv(rgba);
 }
 

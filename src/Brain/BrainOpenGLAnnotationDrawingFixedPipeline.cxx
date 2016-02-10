@@ -1141,7 +1141,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
         (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
     };
     
-    const float outlineWidth = box->getForegroundLineWidth();
+    const float outlineWidth = box->getLineWidth();
     
     const bool depthTestFlag = isDrawnWithDepthTesting(box);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
@@ -1157,7 +1157,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     float backgroundRGBA[4];
     box->getBackgroundColorRGBA(backgroundRGBA);
     float foregroundRGBA[4];
-    box->getForegroundColorRGBA(foregroundRGBA);
+    box->getLineColorRGBA(foregroundRGBA);
 
     const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
@@ -1267,7 +1267,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
         (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
     };
     
-    const float outlineWidth = colorBar->getForegroundLineWidth();
+    const float outlineWidth = colorBar->getLineWidth();
     
     const bool depthTestFlag = isDrawnWithDepthTesting(colorBar);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
@@ -1283,7 +1283,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
     float backgroundRGBA[4];
     colorBar->getBackgroundColorRGBA(backgroundRGBA);
     float foregroundRGBA[4];
-    colorBar->getForegroundColorRGBA(foregroundRGBA);
+    colorBar->getLineColorRGBA(foregroundRGBA);
     
     const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
     
@@ -1485,7 +1485,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
     std::vector<ColorBarLine> colorBarLines;
 
     float rgba[4];
-    colorBar->getForegroundColorRGBA(rgba);
+    colorBar->getLineColorRGBA(rgba);
     
     const float z = 0.0;
 
@@ -1758,10 +1758,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
     annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
     annText.setFont(colorBar->getFont());
     annText.setFontPercentViewportSize(textPercentageHeight); //colorBar->getFontPercentViewportSize());
-    annText.setForegroundColor(CaretColorEnum::CUSTOM);
+    annText.setLineColor(CaretColorEnum::CUSTOM);
     float rgba[4];
-    colorBar->getForegroundColorRGBA(rgba);
-    annText.setCustomForegroundColor(rgba);
+    colorBar->getLineColorRGBA(rgba);
+    annText.setCustomLineColor(rgba);
     annText.setRotationAngle(colorBar->getRotationAngle());
     
     float bottomToTopUnitVector[3];
@@ -1843,7 +1843,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     const float majorAxis     = ((oval->getWidth()  / 100.0) * (m_modelSpaceViewport[2] / 2.0));
     const float minorAxis     = ((oval->getHeight() / 100.0) * (m_modelSpaceViewport[3] / 2.0));
     const float rotationAngle = oval->getRotationAngle();
-    const float outlineWidth  = oval->getForegroundLineWidth();
+    const float outlineWidth  = oval->getLineWidth();
     
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
@@ -1857,7 +1857,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     uint8_t backgroundRGBA[4];
     oval->getBackgroundColorRGBA(backgroundRGBA);
     uint8_t foregroundRGBA[4];
-    oval->getForegroundColorRGBA(foregroundRGBA);
+    oval->getLineColorRGBA(foregroundRGBA);
     
     const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
@@ -2006,7 +2006,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                         
                         createLineCoordinates(windowXYZ,
                                               brainordinateXYZ,
-                                              text->getForegroundLineWidth(),
+                                              text->getLineWidth(),
                                               false,
                                               showArrowFlag,
                                               lineCoordinatesOut);
@@ -2075,7 +2075,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     float backgroundRGBA[4];
     text->getBackgroundColorRGBA(backgroundRGBA);
     uint8_t foregroundRGBA[4];
-    text->getForegroundColorRGBA(foregroundRGBA);
+    text->getLineColorRGBA(foregroundRGBA);
     uint8_t textColorRGBA[4];
     text->getTextColorRGBA(textColorRGBA);
     
@@ -2105,7 +2105,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             if ( ! connectLineCoordinates.empty()) {
                 BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
                                                        foregroundRGBA,
-                                                       text->getForegroundLineWidth()); // 2.0);
+                                                       text->getLineWidth()); // 2.0);
             }
             
             if (drawBackgroundFlag) {
@@ -2154,7 +2154,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                         if (boxCoords.size() == 12) {
                             BrainOpenGLPrimitiveDrawing::drawLineLoop(boxCoords,
                                                                       foregroundRGBA,
-                                                                      text->getForegroundLineWidth());
+                                                                      text->getLineWidth());
                         }
                     }
                     else {
@@ -2664,7 +2664,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                                          lineTailXYZ)) {
         return;
     }
-    const float lineWidth = line->getForegroundLineWidth();
+    const float lineWidth = line->getLineWidth();
     const float backgroundLineWidth = lineWidth + 4;
     
     const float selectionCenterXYZ[3] = {
@@ -2679,13 +2679,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     std::vector<float> coords;
     createLineCoordinates(lineHeadXYZ,
                           lineTailXYZ,
-                          line->getForegroundLineWidth(),
+                          line->getLineWidth(),
                           line->isDisplayStartArrow(),
                           line->isDisplayEndArrow(),
                           coords);
     
     uint8_t foregroundRGBA[4];
-    line->getForegroundColorRGBA(foregroundRGBA);
+    line->getLineColorRGBA(foregroundRGBA);
     
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
     

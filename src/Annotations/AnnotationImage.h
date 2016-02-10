@@ -41,7 +41,7 @@ namespace caret {
         
         AnnotationImage& operator=(const AnnotationImage& obj);
         
-        virtual bool isForegroundLineWidthSupported() const;
+        virtual bool isLineWidthSupported() const;
         
         virtual bool isBackgroundColorSupported() const;
         

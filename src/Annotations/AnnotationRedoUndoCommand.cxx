@@ -99,10 +99,10 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
         case AnnotationRedoUndoCommandModeEnum::COLOR_FOREGROUND:
         {
             CaretAssert(annotationValue);
-            annotation->setForegroundColor(annotationValue->getForegroundColor());
+            annotation->setLineColor(annotationValue->getLineColor());
             float rgba[4];
-            annotationValue->getCustomForegroundColor(rgba);
-            annotation->setCustomForegroundColor(rgba);
+            annotationValue->getCustomLineColor(rgba);
+            annotation->setCustomLineColor(rgba);
         }
             break;
         case AnnotationRedoUndoCommandModeEnum::COORDINATE_ONE:
@@ -207,9 +207,9 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             }
             break;
         case AnnotationRedoUndoCommandModeEnum::LINE_WIDTH_FOREGROUND:
-            if (annotation->isForegroundLineWidthSupported()) {
-                //annotation->setForegroundLineWidth(value.m_floatValue);
-                annotation->setForegroundLineWidth(annotationValue->getForegroundLineWidth());
+            if (annotation->isLineWidthSupported()) {
+                //annotation->setLineWidth(value.m_floatValue);
+                annotation->setLineWidth(annotationValue->getLineWidth());
             }
             break;
         case AnnotationRedoUndoCommandModeEnum::LOCATION_AND_SIZE:
@@ -294,10 +294,10 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             }
             
             CaretAssert(annotationValue);
-            annotation->setForegroundColor(annotationValue->getForegroundColor());
+            annotation->setLineColor(annotationValue->getLineColor());
             float rgba[4];
-            annotationValue->getCustomForegroundColor(rgba);
-            annotation->setCustomForegroundColor(rgba);
+            annotationValue->getCustomLineColor(rgba);
+            annotation->setCustomLineColor(rgba);
         }
             break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_CONNECT_TO_BRAINORDINATE:
@@ -861,7 +861,7 @@ AnnotationRedoUndoCommand::setModeLineWidthForeground(const float newLineWidth,
         CaretAssert(annotation);
         
         Annotation* redoAnnotation = annotation->clone();
-        redoAnnotation->setForegroundLineWidth(newLineWidth);
+        redoAnnotation->setLineWidth(newLineWidth);
         Annotation* undoAnnotation = annotation->clone();
         
         AnnotationMemento* am = new AnnotationMemento(annotation,
@@ -933,8 +933,8 @@ AnnotationRedoUndoCommand::setModeColorForeground(const CaretColorEnum::Enum col
         
         
         Annotation* redoAnnotation = annotation->clone();
-        redoAnnotation->setForegroundColor(color);
-        redoAnnotation->setCustomForegroundColor(customColor);
+        redoAnnotation->setLineColor(color);
+        redoAnnotation->setCustomLineColor(customColor);
         Annotation* undoAnnotation = annotation->clone();
         
         AnnotationMemento* am = new AnnotationMemento(annotation,

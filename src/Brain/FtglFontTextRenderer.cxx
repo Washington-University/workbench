@@ -414,7 +414,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
 //            const double outlineMinY = ts->m_stringGlyphsMinY + outlineOffsetY;
 //            const double outlineMaxY = ts->m_stringGlyphsMaxY - outlineOffsetY;
             uint8_t foregroundRgba[4];
-            annotationText.getForegroundColorRGBA(foregroundRgba);
+            annotationText.getLineColorRGBA(foregroundRgba);
             drawOutline(ts->m_stringGlyphsMinX,
                         ts->m_stringGlyphsMaxX,
                         ts->m_stringGlyphsMinY,
@@ -1603,9 +1603,9 @@ m_viewportBoundsMaxY(0.0)
      * Outline is drawn anytime thickness is greater than zero
      * and is drawn using the foreground color
      */
-    if (annotationText.getForegroundColor() != CaretColorEnum::NONE) {
+    if (annotationText.getLineColor() != CaretColorEnum::NONE) {
         if (annotationText.getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
-            m_outlineThickness = m_annotationText.getForegroundLineWidth();
+            m_outlineThickness = m_annotationText.getLineWidth();
         }
     }
     

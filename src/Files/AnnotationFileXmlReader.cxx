@@ -457,7 +457,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
         CaretColorEnum::Enum value = CaretColorEnum::fromName(valueString,
                                                               &valid);
         if (valid) {
-            annotation->setForegroundColor(value);
+            annotation->setLineColor(value);
         }
         else {
             m_streamHelper->throwDataFileException("Invalid value "
@@ -477,7 +477,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
         std::vector<float> rgba;
         AString::toNumbers(valueString, rgba);
         if (rgba.size() == 4) {
-            annotation->setCustomForegroundColor(&rgba[0]);
+            annotation->setCustomLineColor(&rgba[0]);
         }
         else {
             m_streamHelper->throwDataFileException(ATTRIBUTE_FOREGROUND_CUSTOM_RGBA
@@ -492,7 +492,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
     /*
      * Foreground line width
      */
-    annotation->setForegroundLineWidth(m_streamHelper->getRequiredAttributeFloatValue(attributes,
+    annotation->setLineWidth(m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                                       annotationElementName,
                                                                       ATTRIBUTE_FOREGROUND_LINE_WIDTH));
     /*
@@ -767,11 +767,11 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
          * So, copy the foreground color to the text color and set
          * the foreground color to none.
          */
-        textAnnotation->setTextColor(textAnnotation->getForegroundColor());
+        textAnnotation->setTextColor(textAnnotation->getLineColor());
         float rgba[4];
-        textAnnotation->getCustomForegroundColor(rgba);
+        textAnnotation->getCustomLineColor(rgba);
         textAnnotation->setCustomTextColor(rgba);
-        textAnnotation->setForegroundColor(CaretColorEnum::NONE);
+        textAnnotation->setLineColor(CaretColorEnum::NONE);
     }
     
     textAnnotation->setBoldStyleEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,

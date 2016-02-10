@@ -702,7 +702,7 @@ AnnotationText::isUnderlineStyleEnabled() const
  * must override this method and return a value of false.
  */
 bool
-AnnotationText::isForegroundLineWidthSupported() const
+AnnotationText::isLineWidthSupported() const
 {
     return true;
 }

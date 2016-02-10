@@ -422,11 +422,11 @@ AnnotationColorWidget::updateForegroundColorButton()
 //    rgba[3] = 1.0;
 //    
 //    if ( ! m_annotations.empty()) {
-//        colorEnum = m_annotations[0]->getForegroundColor();
-//        m_annotations[0]->getForegroundColorRGBA(rgba);
+//        colorEnum = m_annotations[0]->getLineColor();
+//        m_annotations[0]->getLineColorRGBA(rgba);
 //
 //        float customRGBA[4];
-//        m_annotations[0]->getCustomForegroundColor(customRGBA);
+//        m_annotations[0]->getCustomLineColor(customRGBA);
 //        m_foregroundColorMenu->setCustomIconColor(customRGBA);
 //    }
     CaretColorEnum::Enum colorEnum = CaretColorEnum::NONE;
@@ -442,13 +442,13 @@ AnnotationColorWidget::updateForegroundColorButton()
         
         for (int32_t i = 0; i < numAnnotations; i++) {
                 if (firstColorSupportFlag) {
-                    m_annotations[i]->getForegroundColorRGBA(rgba);
+                    m_annotations[i]->getLineColorRGBA(rgba);
                     firstColorSupportFlag = false;
                     enableForegroundFlag = true;
                 }
                 else {
                     float colorRGBA[4];
-                    m_annotations[i]->getForegroundColorRGBA(colorRGBA);
+                    m_annotations[i]->getLineColorRGBA(colorRGBA);
                     for (int32_t iColor = 0; iColor < 4; iColor++) {
                         if (rgba[iColor] != colorRGBA[iColor]) {
                             allSameColorFlag = false;
@@ -463,17 +463,17 @@ AnnotationColorWidget::updateForegroundColorButton()
         }
         
         if (allSameColorFlag) {
-            colorEnum = m_annotations[0]->getForegroundColor();
-            m_annotations[0]->getForegroundColorRGBA(rgba);
+            colorEnum = m_annotations[0]->getLineColor();
+            m_annotations[0]->getLineColorRGBA(rgba);
             
             float customRGBA[4];
-            m_annotations[0]->getCustomForegroundColor(customRGBA);
+            m_annotations[0]->getCustomLineColor(customRGBA);
             m_foregroundColorMenu->setCustomIconColor(customRGBA);
 
             switch (m_parentWidgetType) {
                 case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-                    Annotation::setUserDefaultForegroundColor(colorEnum);
-                    Annotation::setUserDefaultCustomForegroundColor(customRGBA);
+                    Annotation::setUserDefaultLineColor(colorEnum);
+                    Annotation::setUserDefaultCustomLineColor(customRGBA);
                     break;
                 case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
                     break;
@@ -503,7 +503,7 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
 {
     if ( ! m_annotations.empty()) {
         float rgba[4];
-        m_annotations[0]->getCustomForegroundColor(rgba);
+        m_annotations[0]->getCustomLineColor(rgba);
         
         if (caretColor == CaretColorEnum::CUSTOM) {
             QColor color;
@@ -520,7 +520,7 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
                 
                 switch (m_parentWidgetType) {
                     case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-                        Annotation::setUserDefaultCustomForegroundColor(rgba);
+                        Annotation::setUserDefaultCustomLineColor(rgba);
                         break;
                     case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
                         break;
@@ -539,7 +539,7 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
                                                     annMan->getSelectedAnnotations(m_browserWindowIndex));
                 annMan->applyCommand(undoCommand);
                 
-                Annotation::setUserDefaultForegroundColor(caretColor);
+                Annotation::setUserDefaultLineColor(caretColor);
             }
                 break;
             case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
@@ -547,7 +547,7 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
                      iter != m_annotations.end();
                      iter++) {
                     Annotation* ann = *iter;
-                    ann->setForegroundColor(caretColor);
+                    ann->setLineColor(caretColor);
                     if (caretColor == CaretColorEnum::CUSTOM) {
                         ann->setCustomBackgroundColor(rgba);
                     }
@@ -600,7 +600,7 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
             annMan->applyCommand(undoCommand);
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            Annotation::setUserDefaultForegroundLineWidth(value);
+            Annotation::setUserDefaultLineWidth(value);
         }
             break;
         case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
@@ -608,7 +608,7 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
                  iter != m_annotations.end();
                  iter++) {
                 Annotation* ann = *iter;
-                ann->setForegroundLineWidth(value);
+                ann->setLineWidth(value);
             }
             break;
     }
@@ -633,8 +633,8 @@ AnnotationColorWidget::updateForegroundThicknessSpinBox()
     const int32_t numAnnotations = static_cast<int32_t>(m_annotations.size());
     if (numAnnotations > 0) {
         for (int32_t i = 0; i < numAnnotations; i++) {
-            if (m_annotations[i]->isForegroundLineWidthSupported()) {
-                const float annLineWidth = m_annotations[i]->getForegroundLineWidth();
+            if (m_annotations[i]->isLineWidthSupported()) {
+                const float annLineWidth = m_annotations[i]->getLineWidth();
                 if (lineWidthValid) {
                     if (annLineWidth != lineWidthValue) {
                         haveMultipleLineWidthValues = true;
@@ -652,7 +652,7 @@ AnnotationColorWidget::updateForegroundThicknessSpinBox()
         if (lineWidthValid) {
             switch (m_parentWidgetType) {
                 case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-                    Annotation::setUserDefaultForegroundLineWidth(lineWidthValue);
+                    Annotation::setUserDefaultLineWidth(lineWidthValue);
                     break;
                 case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
                     break;

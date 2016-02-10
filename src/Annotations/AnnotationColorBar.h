@@ -92,7 +92,7 @@ namespace caret {
         
         virtual void setOutlineStyleEnabled(const bool enabled);
         
-        virtual bool isForegroundLineWidthSupported() const;
+        virtual bool isLineWidthSupported() const;
         
         bool isDisplayed() const;
         

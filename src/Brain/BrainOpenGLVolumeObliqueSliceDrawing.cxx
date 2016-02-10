@@ -620,7 +620,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
                         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
-                        annotationText.setForegroundColor(CaretColorEnum::NONE);
+                        annotationText.setLineColor(CaretColorEnum::NONE);
                         annotationText.setTextColor(CaretColorEnum::CUSTOM);
                         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
                         annotationText.setCustomTextColor(foregroundRGBA);
