@@ -620,9 +620,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
                         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
-                        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
+                        annotationText.setForegroundColor(CaretColorEnum::NONE);
+                        annotationText.setTextColor(CaretColorEnum::CUSTOM);
                         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
-                        annotationText.setCustomForegroundColor(foregroundRGBA);
+                        annotationText.setCustomTextColor(foregroundRGBA);
                         annotationText.setCustomBackgroundColor(backgroundRGBA);
                         annotationText.setText(coordText);
                         m_fixedPipelineDrawing->drawTextAtViewportCoords((vpSizeX - 5),
@@ -3365,9 +3366,9 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setBoldStyleEnabled(true);
         annotationText.setFontPointSize(fontSize);
-        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
+        annotationText.setTextColor(CaretColorEnum::CUSTOM);
         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
-        annotationText.setCustomForegroundColor(horizontalAxisRGBA);
+        annotationText.setCustomTextColor(horizontalAxisRGBA);
         annotationText.setCustomBackgroundColor(backgroundRGBA);
 
         annotationText.setText(horizontalLeftText);
@@ -3380,7 +3381,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
                                                          textRightWindowXY[1],
                                                          annotationText);
         
-        annotationText.setCustomForegroundColor(verticalAxisRGBA);
+        annotationText.setCustomTextColor(verticalAxisRGBA);
         annotationText.setText(verticalBottomText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textBottomWindowXY[0],
                                                          textBottomWindowXY[1],
@@ -3653,10 +3654,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
-        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
+        annotationText.setTextColor(CaretColorEnum::CUSTOM);
         
         if (drawLabelsFlag) {
-            annotationText.setCustomForegroundColor(blue);
+            annotationText.setCustomTextColor(blue);
             annotationText.setText("I");
             m_fixedPipelineDrawing->drawTextAtModelCoords(axialTextMin,
                                                           annotationText);
@@ -3674,7 +3675,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
         }
         
         if (drawLabelsFlag) {
-            annotationText.setCustomForegroundColor(green);
+            annotationText.setCustomTextColor(green);
             annotationText.setText("L");
             m_fixedPipelineDrawing->drawTextAtModelCoords(coronalTextMin,
                                                           annotationText);
@@ -3692,7 +3693,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
         }
         
         if (drawLabelsFlag) {
-            annotationText.setCustomForegroundColor(red);
+            annotationText.setCustomTextColor(red);
             annotationText.setText("P");
             m_fixedPipelineDrawing->drawTextAtModelCoords(paraTextMin,
                                                           annotationText);

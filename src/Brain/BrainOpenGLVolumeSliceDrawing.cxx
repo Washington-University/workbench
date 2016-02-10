@@ -623,8 +623,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
                         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
-                        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
-                        annotationText.setCustomForegroundColor(foregroundRGBA);
+                        annotationText.setTextColor(CaretColorEnum::CUSTOM);
+                        annotationText.setCustomTextColor(foregroundRGBA);
                         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
                         annotationText.setCustomBackgroundColor(backgroundRGBA);
                         annotationText.setText(coordText);
@@ -3688,8 +3688,8 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
         annotationText.setBoldStyleEnabled(true);
         annotationText.setFontPointSize(fontSize);
         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
-        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
-        annotationText.setCustomForegroundColor(horizontalAxisRGBA);
+        annotationText.setTextColor(CaretColorEnum::CUSTOM);
+        annotationText.setCustomTextColor(horizontalAxisRGBA);
         annotationText.setCustomBackgroundColor(backgroundRGBA);
         annotationText.setText(horizontalLeftText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textLeftWindowXY[0],
@@ -3701,7 +3701,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                                                          textRightWindowXY[1],
                                                          annotationText);
         
-        annotationText.setCustomForegroundColor(verticalAxisRGBA);
+        annotationText.setCustomTextColor(verticalAxisRGBA);
         annotationText.setText(verticalBottomText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textBottomWindowXY[0],
                                                          textBottomWindowXY[1],
@@ -3973,10 +3973,11 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
-        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
+        annotationText.setForegroundColor(CaretColorEnum::NONE);
+        annotationText.setTextColor(CaretColorEnum::CUSTOM);
         
         if (drawLabelsFlag) {
-            annotationText.setCustomForegroundColor(blue);
+            annotationText.setCustomTextColor(blue);
             annotationText.setText("I");
             m_fixedPipelineDrawing->drawTextAtModelCoords(axialTextMin,
                                                           annotationText);
@@ -3994,7 +3995,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         }
         
         if (drawLabelsFlag) {
-            annotationText.setCustomForegroundColor(green);
+            annotationText.setCustomTextColor(green);
             annotationText.setText("L");
             m_fixedPipelineDrawing->drawTextAtModelCoords(coronalTextMin,
                                                           annotationText);
@@ -4012,7 +4013,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         }
         
         if (drawLabelsFlag) {
-            annotationText.setCustomForegroundColor(red);
+            annotationText.setCustomTextColor(red);
             annotationText.setText("P");
             m_fixedPipelineDrawing->drawTextAtModelCoords(paraTextMin,
                                                           annotationText);

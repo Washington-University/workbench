@@ -396,7 +396,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
             
             const double underlineY = ts->m_stringGlyphsMinY + underlineOffsetY;
             uint8_t foregroundRgba[4];
-            annotationText.getForegroundColorRGBA(foregroundRgba);
+            annotationText.getTextColorRGBA(foregroundRgba);
             drawUnderline(ts->m_stringGlyphsMinX,
                           ts->m_stringGlyphsMaxX,
                           underlineY,
@@ -822,9 +822,9 @@ FtglFontTextRenderer::applyBackgroundColoring(const TextStringGroup& textStringG
 void
 FtglFontTextRenderer::applyTextColoring(const AnnotationText& annotationText)
 {
-    float foregroundColor[4];
-    annotationText.getTextColorRGBA(foregroundColor);
-    glColor4fv(foregroundColor);
+    float textColor[4];
+    annotationText.getTextColorRGBA(textColor);
+    glColor4fv(textColor);
 }
 
 /**
@@ -1601,9 +1601,9 @@ m_viewportBoundsMaxY(0.0)
     /*
      * The outline for text is scaled with the size of the font
      * Outline is drawn anytime thickness is greater than zero
+     * and is drawn using the foreground color
      */
     if (annotationText.getForegroundColor() != CaretColorEnum::NONE) {
-        CaretLogSevere("NEED TO SET THE OUTLINE COLOR AND THICKNESS");
         if (annotationText.getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
             m_outlineThickness = m_annotationText.getForegroundLineWidth();
         }

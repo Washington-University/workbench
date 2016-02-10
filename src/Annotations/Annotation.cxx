@@ -359,6 +359,11 @@ Annotation::initializeAnnotationMembers()
             m_colorBackground = CaretColorEnum::NONE;
             m_colorForeground = CaretColorEnum::WHITE;
             
+            if (m_type == AnnotationTypeEnum::TEXT) {
+                m_colorBackground = CaretColorEnum::NONE;
+                m_colorForeground = CaretColorEnum::NONE;
+            }
+            
             m_customColorBackground[0]  = 0.0;
             m_customColorBackground[1]  = 0.0;
             m_customColorBackground[2]  = 0.0;
@@ -389,12 +394,15 @@ Annotation::initializeAnnotationMembers()
     
     
     /*
-     * May need to override colors if both are none
+     * May need to override colors if both are none BUT NOT for text
      */
-    if ((m_colorBackground == CaretColorEnum::NONE)
-        && (m_colorForeground == CaretColorEnum::NONE)) {
-        m_colorForeground = CaretColorEnum::WHITE;
+    if (m_type != AnnotationTypeEnum::TEXT) {
+        if ((m_colorBackground == CaretColorEnum::NONE)
+            && (m_colorForeground == CaretColorEnum::NONE)) {
+            m_colorForeground = CaretColorEnum::WHITE;
+        }
     }
+    
     
     /*
      * Don't allow a foregound color of NONE for text or line
