@@ -439,6 +439,9 @@ Annotation::initializeAnnotationMembers()
      * are set by constructor.
      *
      * The 'selected' status is not saved to the scene.
+     * 
+     * Currently this is used for saving color bar attributes
+     * to a scene.
      */
     m_sceneAssistant = new SceneClassAssistant();
     
