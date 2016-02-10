@@ -214,13 +214,16 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalS
 void
 AnnotationWidthHeightWidget::heightValueChanged(double value)
 {
+    std::vector<Annotation*> annotations(m_annotations2D.begin(),
+                                         m_annotations2D.end());
+    
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
         {
-            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeTwoDimHeight(value,
-                                             annMan->getSelectedAnnotations(m_browserWindowIndex));
+                                             annotations);
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             annMan->applyCommand(undoCommand);
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -251,13 +254,15 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
 void
 AnnotationWidthHeightWidget::widthValueChanged(double value)
 {
+    std::vector<Annotation*> annotations(m_annotations2D.begin(),
+                                         m_annotations2D.end());
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
         {
-            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeTwoDimWidth(value,
-                                            annMan->getSelectedAnnotations(m_browserWindowIndex));
+                                            annotations);
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             annMan->applyCommand(undoCommand);
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

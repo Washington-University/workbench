@@ -35,9 +35,18 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Parent is the annotation toolbar */
         ANNOTATION_TOOL_BAR_WIDGET,
-        /** */
+        /* 
+         * There is only one enum at this time.  
+         * There was a second enum for use when the color bar was edited
+         * on the Map and Overlay Settings dialog prior to color bar 
+         * becoming an annotation.
+         *
+         * This enumerated type is being preserved in the event there
+         * are other parents for editing annotations such as a
+         * right-click pop-up dialog.
+         */
         COLOR_BAR_EDITOR_WIDGET
     };
 

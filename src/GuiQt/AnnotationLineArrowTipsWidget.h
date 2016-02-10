@@ -30,6 +30,7 @@ class QToolButton;
 
 namespace caret {
 
+    class Annotation;
     class AnnotationLine;
     
     class AnnotationLineArrowTipsWidget : public QWidget {
@@ -63,7 +64,7 @@ namespace caret {
         
         QToolButton* m_endArrowToolButton;
         
-        AnnotationLine* m_annotationLine;
+        std::vector<Annotation*> m_annotations;
         
         // ADD_NEW_MEMBERS_HERE
 

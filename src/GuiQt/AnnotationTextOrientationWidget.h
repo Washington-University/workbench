@@ -31,6 +31,7 @@ class QToolButton;
 
 namespace caret {
 
+    class Annotation;
     class AnnotationText;
     
     class AnnotationTextOrientationWidget : public QWidget {
@@ -62,6 +63,8 @@ namespace caret {
                                                 const AnnotationTextOrientationEnum::Enum orientation);
         
         const int32_t m_browserWindowIndex;
+        
+        std::vector<Annotation*> m_annotations;
         
         QActionGroup* m_orientationActionGroup;
         

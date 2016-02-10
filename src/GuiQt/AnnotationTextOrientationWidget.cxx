@@ -98,6 +98,11 @@ AnnotationTextOrientationWidget::~AnnotationTextOrientationWidget()
 void
 AnnotationTextOrientationWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
 {
+    m_annotations.clear();
+    m_annotations.insert(m_annotations.end(),
+                         annotationTexts.begin(),
+                         annotationTexts.end());
+    
     {
         /*
          * Update orientation
@@ -156,46 +161,6 @@ AnnotationTextOrientationWidget::updateContent(std::vector<AnnotationText*>& ann
     }
     
     setEnabled( ! annotationTexts.empty());
-    
-//    AnnotationText* annotationText = NULL;
-//    if ( ! annotationTexts.empty()) {
-//        annotationText = annotationTexts[0];
-//    }
-//    
-//    if (annotationText != NULL) {
-//        /*
-//         * Update orientation
-//         */
-//        {
-//            QAction* selectedAction = NULL;
-//            QList<QAction*> allActions = m_orientationActionGroup->actions();
-//            QListIterator<QAction*> iter(allActions);
-//            while (iter.hasNext()) {
-//                QAction* action = iter.next();
-//                const int intValue = action->data().toInt();
-//                bool valid = false;
-//                AnnotationTextOrientationEnum::Enum actionOrient = AnnotationTextOrientationEnum::fromIntegerCode(intValue,
-//                                                                                                                         &valid);
-//                if (valid) {
-//                    if (actionOrient == annotationText->getOrientation()) {
-//                        selectedAction = action;
-//                        break;
-//                    }
-//                }
-//            }
-//            
-//            if (selectedAction != NULL) {
-//                m_orientationActionGroup->blockSignals(true);
-//                selectedAction->setChecked(true);
-//                m_orientationActionGroup->blockSignals(false);
-//            }
-//        }
-//        
-//        setEnabled(true);
-//    }
-//    else {
-//        setEnabled(false);
-//    }
 }
 
 /**
@@ -213,10 +178,10 @@ AnnotationTextOrientationWidget::orientationActionSelected(QAction* action)
     AnnotationTextOrientationEnum::Enum actionOrientation = AnnotationTextOrientationEnum::fromIntegerCode(intValue,
                                                                                                          &valid);
     if (valid) {
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeTextOrientation(actionOrientation,
-                                            annMan->getSelectedAnnotations(m_browserWindowIndex));
+                                            m_annotations);
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         annMan->applyCommand(undoCommand);
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

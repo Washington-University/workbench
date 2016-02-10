@@ -56,8 +56,6 @@ AnnotationLineArrowTipsWidget::AnnotationLineArrowTipsWidget(const int32_t brows
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    m_annotationLine = NULL;
-    
     QLabel* label = new QLabel("Line");
     
     const QSize toolButtonSize(18, 18);
@@ -106,14 +104,39 @@ AnnotationLineArrowTipsWidget::~AnnotationLineArrowTipsWidget()
 void
 AnnotationLineArrowTipsWidget::updateContent(std::vector<AnnotationLine*>& annotationLines)
 {
+    m_annotations.clear();
+    m_annotations.insert(m_annotations.end(),
+                         annotationLines.begin(),
+                         annotationLines.end());
+    
     AnnotationLine* line = NULL;
     if ( ! annotationLines.empty()) {
         line = annotationLines[0];
     }
+
+    bool allStartOnFlag = true;
+    bool allEndOnFlag   = true;
     
-    if (line != NULL) {
-        m_startArrowToolButton->setChecked(line->isDisplayStartArrow());
-        m_endArrowToolButton->setChecked(line->isDisplayEndArrow());
+    const int32_t numLines = static_cast<int32_t>(annotationLines.size());
+    for (int32_t i = 0; i < numLines; i++) {
+        CaretAssertVectorIndex(annotationLines, i);
+        if ( ! annotationLines[i]->isDisplayStartArrow()) {
+            allStartOnFlag = false;
+        }
+        if ( ! annotationLines[i]->isDisplayEndArrow()) {
+            allEndOnFlag = false;
+        }
+    }
+
+    if (numLines <= 0) {
+        allStartOnFlag = false;
+        allEndOnFlag   = false;
+    }
+    
+    m_startArrowToolButton->setChecked(allStartOnFlag);
+    m_endArrowToolButton->setChecked(allEndOnFlag);
+    
+    if (numLines > 0) {
         setEnabled(true);
         
         AnnotationLine::setUserDefaultDisplayStartArrow(m_startArrowToolButton->isChecked());
@@ -131,11 +154,10 @@ AnnotationLineArrowTipsWidget::updateContent(std::vector<AnnotationLine*>& annot
 void
 AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
 {
-//    if (m_annotationLine != NULL) {
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLineArrowStart(m_startArrowToolButton->isChecked(),
-                                           annMan->getSelectedAnnotations(m_browserWindowIndex));
+                                           m_annotations);
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         annMan->applyCommand(undoCommand);
         
         
@@ -143,7 +165,6 @@ AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
         AnnotationLine::setUserDefaultDisplayStartArrow(m_startArrowToolButton->isChecked());
-//    }
 }
 
 /**
@@ -152,16 +173,14 @@ AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
 void
 AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
 {
-//    if (m_annotationLine != NULL) {
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLineArrowEnd(m_endArrowToolButton->isChecked(),
-                                         annMan->getSelectedAnnotations(m_browserWindowIndex));
+                                         m_annotations);
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         annMan->applyCommand(undoCommand);
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
         AnnotationLine::setUserDefaultDisplayEndArrow(m_endArrowToolButton->isChecked());
-//    }
 }

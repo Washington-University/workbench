@@ -140,6 +140,8 @@ AnnotationRotationWidget::getValidOneDimAnnotation(Annotation* annotation)
 void
 AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
 {
+    m_annotations.clear();
+    
     if ( ! annotations.empty()) {
         float rotationAngle = 0.0;
         bool rotationAngleValid = false;
@@ -220,8 +222,9 @@ AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
                         rotationAngle = angle;
                         rotationAngleValid = true;
                     }
+                    
+                    m_annotations.push_back(ann);
                 }
-                
             }
         }
         
@@ -244,56 +247,6 @@ AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
     }
 }
 
-///**
-// * Update with the given annotation.
-// *
-// * @param annotations2D.
-// *    Two dimensional annotation.
-// */
-//void
-//AnnotationRotationWidget::updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotations2D)
-//{
-//    if ( ! annotations2D.empty()) {
-//        float rotationAngle = 0.0;
-//        bool haveMultipleRotationAnglesFlag = false;
-//        
-//        const int32_t numAnns = static_cast<int32_t>(annotations2D.size());
-//        for (int32_t i = 0; i < numAnns; i++) {
-//            CaretAssertVectorIndex(annotations2D, i);
-//            float angle = annotations2D[i]->getRotationAngle();
-//            if (angle < 0.0) {
-//                angle += 360.0;
-//            }
-//            
-//            if (i == 0) {
-//                rotationAngle = angle;
-//            }
-//            else {
-//                if (rotationAngle != angle) {
-//                    haveMultipleRotationAnglesFlag = true;
-//                }
-//                rotationAngle = std::min(rotationAngle,
-//                                         angle);
-//            }
-//        }
-//        
-//        m_rotationSpinBox->blockSignals(true);
-//        m_rotationSpinBox->setValue(rotationAngle);
-//        if (haveMultipleRotationAnglesFlag) {
-//            m_rotationSpinBox->setSuffix("+");
-//        }
-//        else {
-//            m_rotationSpinBox->setSuffix("");
-//        }
-//        m_rotationSpinBox->blockSignals(false);
-//        
-//        setEnabled(true);
-//    }
-//    else {
-//        setEnabled(false);
-//    }
-//}
-
 /**
  * Gets called when rotation value is changed.
  *
@@ -303,26 +256,27 @@ AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
 void
 AnnotationRotationWidget::rotationValueChanged(double value)
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> annotations = annMan->getSelectedAnnotations(m_browserWindowIndex);
+//    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+//    std::vector<Annotation*> annotations = annMan->getSelectedAnnotations(m_browserWindowIndex);
+//    
+//    std::vector<Annotation*> rotateAnnotations;
+//    const int32_t numAnns = static_cast<int32_t>(annotations.size());
+//    for (int32_t i = 0; i < numAnns; i++) {
+//        CaretAssertVectorIndex(annotations, i);
+//        Annotation* ann = annotations[i];
+//        AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
+//        AnnotationOneDimensionalShape* oneDimAnn = getValidOneDimAnnotation(ann);
+//        if ((oneDimAnn != NULL)
+//            || (twoDimAnn != NULL)) {
+//            rotateAnnotations.push_back(ann);
+//        }
+//    }
     
-    std::vector<Annotation*> rotateAnnotations;
-    const int32_t numAnns = static_cast<int32_t>(annotations.size());
-    for (int32_t i = 0; i < numAnns; i++) {
-        CaretAssertVectorIndex(annotations, i);
-        Annotation* ann = annotations[i];
-        AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
-        AnnotationOneDimensionalShape* oneDimAnn = getValidOneDimAnnotation(ann);
-        if ((oneDimAnn != NULL)
-            || (twoDimAnn != NULL)) {
-            rotateAnnotations.push_back(ann);
-        }
-    }
-    
-    if ( ! rotateAnnotations.empty()) {
+    if ( ! m_annotations.empty()) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeRotationAngle(value,
-                                          rotateAnnotations);
+                                          m_annotations);
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         annMan->applyCommand(undoCommand);
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

@@ -352,7 +352,8 @@ void
 AnnotationCoordinateWidget::valueChanged()
 {
     const AnnotationCoordinate* coordinate = getCoordinate();
-    if (coordinate != NULL) {
+    if ((m_annotation != NULL)
+        && (coordinate != NULL)) {
         bool surfaceFlag = false;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -405,16 +406,21 @@ AnnotationCoordinateWidget::valueChanged()
                     coordinateCopy.setXYZ(xyz);
                 }
                 
-                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                std::vector<Annotation*> selectedAnnotations;
+                selectedAnnotations.push_back(m_annotation);
+                
                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
                 switch (m_whichCoordinate) {
                     case COORDINATE_ONE:
-                        undoCommand->setModeCoordinateOne(coordinateCopy, annMan->getSelectedAnnotations(m_browserWindowIndex));
+                        undoCommand->setModeCoordinateOne(coordinateCopy,
+                                                          selectedAnnotations);
                         break;
                     case COORDINATE_TWO:
-                        undoCommand->setModeCoordinateTwo(coordinateCopy, annMan->getSelectedAnnotations(m_browserWindowIndex));
+                        undoCommand->setModeCoordinateTwo(coordinateCopy,
+                                                          selectedAnnotations);
                         break;
                 }
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
                 annMan->applyCommand(undoCommand);
                 
                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

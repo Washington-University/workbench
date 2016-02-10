@@ -296,11 +296,11 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
         switch (m_parentWidgetType) {
             case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
             {
-                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
                 undoCommand->setModeColorBackground(caretColor,
                                                     rgba,
-                                                    annMan->getSelectedAnnotations(m_browserWindowIndex));
+                                                    m_annotations);
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
                 annMan->applyCommand(undoCommand);
                 
                 Annotation::setUserDefaultBackgroundColor(caretColor);
@@ -532,11 +532,11 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
         switch (m_parentWidgetType) {
             case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
             {
-                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
                 undoCommand->setModeColorForeground(caretColor,
                                                     rgba,
-                                                    annMan->getSelectedAnnotations(m_browserWindowIndex));
+                                                    m_annotations);
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
                 annMan->applyCommand(undoCommand);
                 
                 Annotation::setUserDefaultLineColor(caretColor);
@@ -594,9 +594,10 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
         {
-            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-            undoCommand->setModeLineWidthForeground(value, annMan->getSelectedAnnotations(m_browserWindowIndex));
+            undoCommand->setModeLineWidthForeground(value,
+                                                    m_annotations);
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             annMan->applyCommand(undoCommand);
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

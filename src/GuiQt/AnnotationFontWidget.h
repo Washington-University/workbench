@@ -103,8 +103,11 @@ namespace caret {
         
         QAction* m_underlineFontAction;
         
-        /** Contains annotations when parent mode is AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET */
-        std::vector<AnnotationFontAttributesInterface*> m_annotations;
+        /** Contains annotations */
+        std::vector<Annotation*> m_annotations;
+        
+        /** Contains annotations with type as font style */
+        std::vector<AnnotationFontAttributesInterface*> m_annotationsFontStyle;
         
         /** Contains annotations when parent mode is AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET */
         AnnotationColorBar* m_annotationColorBar;

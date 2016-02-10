@@ -60,6 +60,8 @@ namespace caret {
         
         AnnotationOneDimensionalShape* getValidOneDimAnnotation(Annotation* annotation);
         
+        std::vector<Annotation*> m_annotations;
+        
         const int32_t m_browserWindowIndex;
         
         QDoubleSpinBox* m_rotationSpinBox;

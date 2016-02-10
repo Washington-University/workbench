@@ -169,6 +169,10 @@ AnnotationTextEditorWidget::textEditorDialogTextChanged(const QString& text)
 void
 AnnotationTextEditorWidget::annotationTextChanged()
 {
+    if (m_annotationText == NULL) {
+        return;
+    }
+    
     /*
      * The update event will cause the text to be reloaded
      * into the line edit and that will cause the cursor
@@ -180,9 +184,12 @@ AnnotationTextEditorWidget::annotationTextChanged()
     QString s(m_textLineEdit->text());
     s.replace("\\n", "\n");
     
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations;
+    selectedAnnotations.push_back(m_annotationText);
+    
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-    undoCommand->setModeTextCharacters(s, annMan->getSelectedAnnotations(m_browserWindowIndex));
+    undoCommand->setModeTextCharacters(s, selectedAnnotations);
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     annMan->applyCommand(undoCommand);
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -212,17 +219,21 @@ AnnotationTextEditorWidget::updateLineEditText(const QString& text)
 void
 AnnotationTextEditorWidget::annotationTextConnectTypeEnumComboBoxItemActivated()
 {
-    if (m_annotationText != NULL) {
-        const AnnotationTextConnectTypeEnum::Enum connectType = m_annotationTextConnectTypeEnumComboBox->getSelectedItem<AnnotationTextConnectTypeEnum,AnnotationTextConnectTypeEnum::Enum>();
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeTextConnectToBrainordinate(connectType,
-                                                       annMan->getSelectedAnnotations(m_browserWindowIndex));
-        annMan->applyCommand(undoCommand);
-        
-        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    if (m_annotationText == NULL) {
+        return;
     }
     
+    std::vector<Annotation*> selectedAnnotations;
+    selectedAnnotations.push_back(m_annotationText);
+    
+    const AnnotationTextConnectTypeEnum::Enum connectType = m_annotationTextConnectTypeEnumComboBox->getSelectedItem<AnnotationTextConnectTypeEnum,AnnotationTextConnectTypeEnum::Enum>();
+    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    undoCommand->setModeTextConnectToBrainordinate(connectType,
+                                                   selectedAnnotations);
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    annMan->applyCommand(undoCommand);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

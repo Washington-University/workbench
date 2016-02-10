@@ -158,6 +158,11 @@ AnnotationTextAlignmentWidget::~AnnotationTextAlignmentWidget()
 void
 AnnotationTextAlignmentWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
 {
+    m_annotations.clear();
+    m_annotations.insert(m_annotations.end(),
+                         annotationTexts.begin(),
+                         annotationTexts.end());
+    
     {
         /*
          * Update horizontal alignment
@@ -289,10 +294,10 @@ AnnotationTextAlignmentWidget::horizontalAlignmentActionSelected(QAction* action
     AnnotationTextAlignHorizontalEnum::Enum actionAlign = AnnotationTextAlignHorizontalEnum::fromIntegerCode(intValue,
                                                                                                              &valid);
     if (valid) {
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeTextAlignmentHorizontal(actionAlign,
-                                                    annMan->getSelectedAnnotations(m_browserWindowIndex));
+                                                    m_annotations);
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         annMan->applyCommand(undoCommand);
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -317,10 +322,10 @@ AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
     AnnotationTextAlignVerticalEnum::Enum actionAlign = AnnotationTextAlignVerticalEnum::fromIntegerCode(intValue,
                                                                                                              &valid);
     if (valid) {
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeTextAlignmentVertical(actionAlign,
-                                                  annMan->getSelectedAnnotations(m_browserWindowIndex));
+                                                  m_annotations);
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         annMan->applyCommand(undoCommand);
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

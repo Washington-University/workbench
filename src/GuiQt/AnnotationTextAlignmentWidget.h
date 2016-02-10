@@ -32,6 +32,7 @@ class QToolButton;
 
 namespace caret {
 
+    class Annotation;
     class AnnotationText;
     
     class AnnotationTextAlignmentWidget : public QWidget {
@@ -74,6 +75,8 @@ namespace caret {
         QActionGroup* m_horizontalAlignActionGroup;
         
         QActionGroup* m_verticalAlignActionGroup;
+        
+        std::vector<Annotation*> m_annotations;
         
         bool m_smallLayoutFlag;
         
