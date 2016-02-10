@@ -280,8 +280,8 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_COLOR:
         {
-            AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
-            const AnnotationText* textAnnValue = dynamic_cast<const AnnotationText*>(annotationValue);
+            AnnotationFontAttributesInterface* textAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+            const AnnotationFontAttributesInterface* textAnnValue = dynamic_cast<const AnnotationFontAttributesInterface*>(annotationValue);
             if ((textAnn != NULL)
                 && (textAnnValue != NULL)) {
                 textAnn->setTextColor(textAnnValue->getTextColor());
@@ -1387,11 +1387,13 @@ AnnotationRedoUndoCommand::setModeTextColor(const CaretColorEnum::Enum color,
         Annotation* annotation = *iter;
         CaretAssert(annotation);
         
-        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
-            CaretAssert(redoAnnotation);
-            redoAnnotation->setTextColor(color);
-            redoAnnotation->setCustomTextColor(customColor);
+        AnnotationFontAttributesInterface* fontStyleAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+        if (fontStyleAnn != NULL) {
+            Annotation* redoAnnotation = annotation->clone();
+            AnnotationFontAttributesInterface* redoAnnotationFontStyle = dynamic_cast<AnnotationFontAttributesInterface*>(redoAnnotation);
+            CaretAssert(redoAnnotationFontStyle);
+            redoAnnotationFontStyle->setTextColor(color);
+            redoAnnotationFontStyle->setCustomTextColor(customColor);
             
             Annotation* undoAnnotation = annotation->clone();
             AnnotationMemento* am = new AnnotationMemento(annotation,

@@ -1758,10 +1758,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
     annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
     annText.setFont(colorBar->getFont());
     annText.setFontPercentViewportSize(textPercentageHeight); //colorBar->getFontPercentViewportSize());
-    annText.setLineColor(CaretColorEnum::CUSTOM);
+    annText.setTextColor(CaretColorEnum::CUSTOM);
     float rgba[4];
-    colorBar->getLineColorRGBA(rgba);
-    annText.setCustomLineColor(rgba);
+    colorBar->getTextColorRGBA(rgba);
+    annText.setCustomTextColor(rgba);
     annText.setRotationAngle(colorBar->getRotationAngle());
     
     float bottomToTopUnitVector[3];
