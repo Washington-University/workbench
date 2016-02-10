@@ -34,7 +34,6 @@ class QToolButton;
 namespace caret {
 
     class Annotation;
-    class AnnotationColorBar;
     class AnnotationFontAttributesInterface;
     class AnnotationText;
     class CaretColorEnumMenu;
@@ -54,8 +53,6 @@ namespace caret {
 
         void updateContent(std::vector<AnnotationFontAttributesInterface*>& annotations);
 
-//        void updateAnnotationColorBarContent(AnnotationColorBar* annotationColorBar);
-        
         // ADD_NEW_METHODS_HERE
         
     private slots:
@@ -78,8 +75,6 @@ namespace caret {
         
         void updateFontSizeSpinBox(const float value,
                                    const bool haveMultipleValuesFlag);
-        
-        QPixmap createOutlineButtonPixmap(const QWidget* widget);
         
         void updateTextColorButton();
         
@@ -108,9 +103,6 @@ namespace caret {
         
         /** Contains annotations with type as font style */
         std::vector<AnnotationFontAttributesInterface*> m_annotationsFontStyle;
-        
-        /** Contains annotations when parent mode is AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET */
-        AnnotationColorBar* m_annotationColorBar;
         
         // ADD_NEW_MEMBERS_HERE
 

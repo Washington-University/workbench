@@ -47,7 +47,7 @@ public:
          * are other parents for editing annotations such as a
          * right-click pop-up dialog.
          */
-        COLOR_BAR_EDITOR_WIDGET
+        PARENT_ENUM_FOR_LATER_USE
     };
 
 

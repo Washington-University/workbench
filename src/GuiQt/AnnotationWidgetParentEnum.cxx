@@ -112,9 +112,9 @@ AnnotationWidgetParentEnum::initialize()
                                     "ANNOTATION_TOOL_BAR_WIDGET", 
                                     "Annotation Tool Bar Widget"));
     
-    enumData.push_back(AnnotationWidgetParentEnum(COLOR_BAR_EDITOR_WIDGET, 
-                                    "COLOR_BAR_EDITOR_WIDGET", 
-                                    "Color Bar Editor Widget"));
+    enumData.push_back(AnnotationWidgetParentEnum(PARENT_ENUM_FOR_LATER_USE,
+                                    "PARENT_ENUM_FOR_LATER_USE",
+                                    "For future usage"));
     
 }
 

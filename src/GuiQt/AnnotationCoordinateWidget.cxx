@@ -83,8 +83,8 @@ m_browserWindowIndex(browserWindowIndex)
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
             colonString = ":";
             break;
-        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
-            colonString = " ";
+        case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+            CaretAssert(0);
             break;
     }
     
@@ -166,7 +166,8 @@ m_browserWindowIndex(browserWindowIndex)
             setCoordinateToolButton = new QToolButton();
             setCoordinateToolButton->setDefaultAction(setCoordinateAction);
             break;
-        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+        case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+            CaretAssert(0);
             break;
     }
     
@@ -426,22 +427,8 @@ AnnotationCoordinateWidget::valueChanged()
                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
             }
                 break;
-            case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
-                if (surfaceFlag) {
-                    CaretAssertMessage(0, "Color Bar Coordinate should never be a surface coordinate.");
-                }
-                else {
-                    AnnotationCoordinate* coordinate = getCoordinate();
-                    if (coordinate != NULL) {
-                        float xyz[3] = {
-                            m_xCoordSpinBox->value(),
-                            m_yCoordSpinBox->value(),
-                            m_zCoordSpinBox->value()
-                        };
-                        
-                        coordinate->setXYZ(xyz);
-                    }
-                }
+            case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+                CaretAssert(0);
                 break;
         }
         
