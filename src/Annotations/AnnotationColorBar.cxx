@@ -48,7 +48,8 @@ using namespace caret;
  */
 AnnotationColorBar::AnnotationColorBar(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
 : AnnotationTwoDimensionalShape(AnnotationTypeEnum::COLOR_BAR,
-                                attributeDefaultType)
+                                attributeDefaultType),
+AnnotationFontAttributesInterface()
 {
     reset();
     
@@ -86,7 +87,8 @@ AnnotationColorBar::~AnnotationColorBar()
  *    Object that is copied.
  */
 AnnotationColorBar::AnnotationColorBar(const AnnotationColorBar& obj)
-: AnnotationTwoDimensionalShape(obj)
+: AnnotationTwoDimensionalShape(obj),
+AnnotationFontAttributesInterface()
 {
     this->copyHelperAnnotationColorBar(obj);
 }

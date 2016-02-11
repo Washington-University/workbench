@@ -56,6 +56,7 @@ using namespace caret;
  */
 AnnotationFile::AnnotationFile()
 : CaretDataFile(DataFileTypeEnum::ANNOTATION),
+DataFileContentCopyMoveInterface(),
 m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
 {
     initializeAnnotationFile();
@@ -323,6 +324,7 @@ AnnotationFile::setAllAnnotationsSelected(const int32_t windowIndex,
 AnnotationFile::AnnotationFile(const AnnotationFile& obj)
 : CaretDataFile(obj),
 EventListenerInterface(),
+DataFileContentCopyMoveInterface(),
 m_fileSubType(obj.m_fileSubType)
 {
     initializeAnnotationFile();

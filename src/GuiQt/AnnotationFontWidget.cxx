@@ -201,8 +201,6 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Layout the widgets
      */
-    
-    const bool newLayoutFlag = true;
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
         {

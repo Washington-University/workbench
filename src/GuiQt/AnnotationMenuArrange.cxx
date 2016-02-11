@@ -173,8 +173,8 @@ AnnotationMenuArrange::menuActionTriggered(QAction* action)
 void
 AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignment)
 {
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
-    CaretAssert(bbw);
+//    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+//    CaretAssert(bbw);
     
     EventGetBrainOpenGLTextRenderer textRendererEvent(m_browserWindowIndex);
     EventManager::get()->sendEvent(textRendererEvent.getPointer());
@@ -210,8 +210,8 @@ AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignm
 void
 AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum distribute)
 {
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
-    CaretAssert(bbw);
+//    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+//    CaretAssert(bbw);
     
     EventGetBrainOpenGLTextRenderer textRendererEvent(m_browserWindowIndex);
     EventManager::get()->sendEvent(textRendererEvent.getPointer());

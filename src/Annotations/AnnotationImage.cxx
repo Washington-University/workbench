@@ -46,7 +46,8 @@ using namespace caret;
  */
 AnnotationImage::AnnotationImage(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
 : AnnotationTwoDimensionalShape(AnnotationTypeEnum::IMAGE,
-                                attributeDefaultType)
+                                attributeDefaultType),
+DrawnWithOpenGLTextureInterface()
 {
     initializeMembersAnnotationImage();
     
@@ -66,7 +67,8 @@ AnnotationImage::~AnnotationImage()
  *    Object that is copied.
  */
 AnnotationImage::AnnotationImage(const AnnotationImage& obj)
-: AnnotationTwoDimensionalShape(obj)
+: AnnotationTwoDimensionalShape(obj),
+DrawnWithOpenGLTextureInterface()
 {
     initializeMembersAnnotationImage();
     this->copyHelperAnnotationImage(obj);

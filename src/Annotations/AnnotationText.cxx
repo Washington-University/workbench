@@ -63,6 +63,7 @@ AnnotationText::AnnotationText(const AnnotationAttributesDefaultTypeEnum::Enum a
                                const AnnotationTextFontSizeTypeEnum::Enum fontSizeType)
 : AnnotationTwoDimensionalShape(AnnotationTypeEnum::TEXT,
                                 attributeDefaultType),
+AnnotationFontAttributesInterface(),
 m_fontSizeType(fontSizeType)
 {
     initializeAnnotationTextMembers();
@@ -82,6 +83,7 @@ AnnotationText::~AnnotationText()
  */
 AnnotationText::AnnotationText(const AnnotationText& obj)
 : AnnotationTwoDimensionalShape(obj),
+AnnotationFontAttributesInterface(),
 m_fontSizeType(obj.m_fontSizeType)
 {
     initializeAnnotationTextMembers();
