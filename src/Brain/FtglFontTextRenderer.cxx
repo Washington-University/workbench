@@ -272,6 +272,11 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     
     saveStateOfOpenGL();
     
+    BrainOpenGL::testForOpenGLError("At beginning of "
+                                    "FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal "
+                                    "while drawing text: "
+                                    + annotationText.getText());
+    
     /*
      * Depth testing ?
      */
@@ -429,7 +434,13 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     
     glPopMatrix();
     
+    BrainOpenGL::testForOpenGLError("At end of "
+                                    "FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal "
+                                    "while drawing text: "
+                                    + annotationText.getText());
+    
     restoreStateOfOpenGL();
+
 #else // HAVE_FREETYPE
     CaretLogSevere("Trying to use FTGL Font rendering but it cannot be used due to FreeType not found.");
 #endif // HAVE_FREETYPE

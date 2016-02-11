@@ -64,6 +64,7 @@ namespace caret {
     class BrainOpenGLTextRenderInterface;
     class BrainOpenGLTextureManager;
     class BrainOpenGLViewportContent;
+    class Model;
     class SurfaceProjectedItem;
     
     /**
@@ -175,6 +176,13 @@ namespace caret {
         static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);
         
         static bool testForVersionOfOpenGLSupported(const AString& versionOfOpenGL);
+        
+        static void testForOpenGLError(const AString& message);
+        
+        static void testForOpenGLError(const AString& message,
+                                       const Model* model,
+                                       const int32_t windowIndex,
+                                       const int32_t tabIndex);
         
         static QString getBestDrawingModeName();
         

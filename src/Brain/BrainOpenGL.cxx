@@ -32,6 +32,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "DummyFontTextRenderer.h"
+#include "Model.h"
 #include "SessionManager.h"
 
 using namespace caret;
@@ -999,6 +1000,95 @@ BrainOpenGL::getBackgroundColor(uint8_t backgroundColor[3]) const
     backgroundColor[0] = m_backgroundColorByte[0];
     backgroundColor[1] = m_backgroundColorByte[1];
     backgroundColor[2] = m_backgroundColorByte[2];
+}
+
+/**
+ * Print information if there is an OpenGL error.
+ */
+void
+BrainOpenGL::testForOpenGLError(const AString& message)
+{
+    testForOpenGLError(message,
+                       NULL,
+                       -1,
+                       -1);
+}
+
+/**
+ * Print information if there is an OpenGL error.
+ *
+ * @param message
+ *    Message that is printed at beginning of text.
+ * @param model
+ *    Model being drawn.
+ * @param windowIndex
+ *    Index of the window.
+ * @param tabIndex
+ *    Index of the tab.
+ */
+void
+BrainOpenGL::testForOpenGLError(const AString& message,
+                                const Model* model,
+                                const int32_t windowIndex,
+                                const int32_t tabIndex)
+{
+    GLenum errorCode = glGetError();
+    if (errorCode != GL_NO_ERROR) {
+        AString msg;
+        if ( ! message.isEmpty()) {
+            msg.appendWithNewLine(message);
+        }
+        msg += ("OpenGL Error: " + AString((char*)gluErrorString(errorCode)) + "\n");
+        msg += ("OpenGL Version: " + AString((char*)glGetString(GL_VERSION)) + "\n");
+        msg += ("OpenGL Vendor:  " + AString((char*)glGetString(GL_VENDOR)) + "\n");
+        if (model != NULL) {
+            msg += ("While drawing brain model " + model->getNameForGUI(true) + "\n");
+        }
+        if (windowIndex >= 0) {
+            msg += ("In window number " + AString::number(windowIndex) + "\n");
+        }
+        if (tabIndex >= 0) {
+            msg += ("In tab number " + AString::number(tabIndex) + "\n");
+        }
+        
+        GLint maxNameStackDepth, maxModelStackDepth, maxProjStackDepth;
+        glGetIntegerv(GL_MAX_PROJECTION_STACK_DEPTH,
+                      &maxProjStackDepth);
+        glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH,
+                      &maxModelStackDepth);
+        glGetIntegerv(GL_MAX_NAME_STACK_DEPTH,
+                      &maxNameStackDepth);
+        
+        GLint nameStackDepth, modelStackDepth, projStackDepth;
+        glGetIntegerv(GL_PROJECTION_STACK_DEPTH,
+                      &projStackDepth);
+        glGetIntegerv(GL_MODELVIEW_STACK_DEPTH,
+                      &modelStackDepth);
+        glGetIntegerv(GL_NAME_STACK_DEPTH,
+                      &nameStackDepth);
+        
+        msg += ("Projection Matrix Stack Depth "
+                + AString::number(projStackDepth)
+                + "  Max Depth "
+                + AString::number(maxProjStackDepth)
+                + "\n");
+        msg += ("Model Matrix Stack Depth "
+                + AString::number(modelStackDepth)
+                + "  Max Depth "
+                + AString::number(maxModelStackDepth)
+                + "\n");
+        msg += ("Name Matrix Stack Depth "
+                + AString::number(nameStackDepth)
+                + "  Max Depth "
+                + AString::number(maxNameStackDepth)
+                + "\n");
+        SystemBacktrace myBacktrace;
+        SystemUtilities::getBackTrace(myBacktrace);
+        msg += ("Backtrace:\n"
+                + myBacktrace.toSymbolString()
+                + "\n");
+        CaretLogSevere(msg);
+    }
 }
 
 
