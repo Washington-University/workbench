@@ -116,44 +116,44 @@ m_browserWindowIndex(browserWindowIndex)
     m_backgroundWidgetGroup->add(m_backgroundToolButton);
     
     /*
-     * Foreground color menu
+     * Line color menu
      */
-    m_foregroundColorMenu = new CaretColorEnumMenu((CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR
+    m_lineColorMenu = new CaretColorEnumMenu((CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR
                                                     | CaretColorEnum::OPTION_INCLUDE_NONE_COLOR));
-    QObject::connect(m_foregroundColorMenu, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
-                     this, SLOT(foregroundColorSelected(const CaretColorEnum::Enum)));
+    QObject::connect(m_lineColorMenu, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
+                     this, SLOT(lineColorSelected(const CaretColorEnum::Enum)));
     
     /*
-     * Foreground color action and toolbutton
+     * Line color action and toolbutton
      */
-    m_foregroundColorAction = new QAction("F",
+    m_lineColorAction = new QAction("F",
                                           this);
-    m_foregroundColorAction->setToolTip("Adjust the line color");
-    m_foregroundColorAction->setMenu(m_foregroundColorMenu);
-    m_foregroundToolButton = new QToolButton();
-    m_foregroundToolButton->setDefaultAction(m_foregroundColorAction);
-    m_foregroundToolButton->setIconSize(toolButtonSize);
+    m_lineColorAction->setToolTip("Adjust the line color");
+    m_lineColorAction->setMenu(m_lineColorMenu);
+    m_lineToolButton = new QToolButton();
+    m_lineToolButton->setDefaultAction(m_lineColorAction);
+    m_lineToolButton->setIconSize(toolButtonSize);
     
     /*
-     * Foreground thickness
+     * Line thickness
      */
     float minimumLineWidth = 0.0;
     float maximumLineWidth = 1.0;
     
-    m_foregroundThicknessSpinBox = NULL;
+    m_lineThicknessSpinBox = NULL;
     if (lineWidthLabel != NULL) {
         BrainOpenGL::getMinMaxLineWidth(minimumLineWidth,
                                         maximumLineWidth);
         minimumLineWidth = std::max(minimumLineWidth, 1.0f);
-        m_foregroundThicknessSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minimumLineWidth,
+        m_lineThicknessSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minimumLineWidth,
                                                                                                       maximumLineWidth,
                                                                                                       1.0,
                                                                                                       0,
                                                                                                       this,
-                                                                                                      SLOT(foregroundThicknessSpinBoxValueChanged(double)));
-        WuQtUtilities::setWordWrappedToolTip(m_foregroundThicknessSpinBox,
+                                                                                                      SLOT(lineThicknessSpinBoxValueChanged(double)));
+        WuQtUtilities::setWordWrappedToolTip(m_lineThicknessSpinBox,
                                              "Adjust the line thickness");
-        m_foregroundThicknessSpinBox->setFixedWidth(45);
+        m_lineThicknessSpinBox->setFixedWidth(45);
     }
     
 
@@ -174,10 +174,10 @@ m_browserWindowIndex(browserWindowIndex)
             gridLayout->addWidget(foreLineColorLabel,
                                   1, 1,
                                   Qt::AlignHCenter);
-            gridLayout->addWidget(m_foregroundThicknessSpinBox,
+            gridLayout->addWidget(m_lineThicknessSpinBox,
                                   2, 0,
                                   Qt::AlignHCenter);
-            gridLayout->addWidget(m_foregroundToolButton,
+            gridLayout->addWidget(m_lineToolButton,
                                   2, 1,
                                   Qt::AlignHCenter);
             gridLayout->addWidget(backFillLabel,
@@ -200,7 +200,7 @@ m_browserWindowIndex(browserWindowIndex)
      * Layout widgets
      */
     backgroundColorSelected(CaretColorEnum::WHITE);
-    foregroundColorSelected(CaretColorEnum::BLACK);
+    lineColorSelected(CaretColorEnum::BLACK);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -231,8 +231,8 @@ AnnotationColorWidget::updateContent(std::vector<Annotation*>& annotations)
     }
     
     updateBackgroundColorButton();
-    updateForegroundColorButton();
-    updateForegroundThicknessSpinBox();
+    updateLineColorButton();
+    updateLineThicknessSpinBox();
 }
 
 /**
@@ -367,10 +367,10 @@ AnnotationColorWidget::updateBackgroundColorButton()
 
 
 /**
- * Update the foreground color.
+ * Update the line color.
  */
 void
-AnnotationColorWidget::updateForegroundColorButton()
+AnnotationColorWidget::updateLineColorButton()
 {
     CaretColorEnum::Enum colorEnum = CaretColorEnum::NONE;
     float rgba[4];
@@ -380,14 +380,14 @@ AnnotationColorWidget::updateForegroundColorButton()
     const int32_t numAnnotations = static_cast<int32_t>(m_annotations.size());
     if (numAnnotations > 0) {
         bool firstColorSupportFlag = true;
-        bool enableForegroundFlag = false;
+        bool enableLineFlag = false;
         bool allSameColorFlag = true;
         
         for (int32_t i = 0; i < numAnnotations; i++) {
                 if (firstColorSupportFlag) {
                     m_annotations[i]->getLineColorRGBA(rgba);
                     firstColorSupportFlag = false;
-                    enableForegroundFlag = true;
+                    enableLineFlag = true;
                 }
                 else {
                     float colorRGBA[4];
@@ -411,12 +411,12 @@ AnnotationColorWidget::updateForegroundColorButton()
             
             float customRGBA[4];
             m_annotations[0]->getCustomLineColor(customRGBA);
-            m_foregroundColorMenu->setCustomIconColor(customRGBA);
+            m_lineColorMenu->setCustomIconColor(customRGBA);
 
             switch (m_parentWidgetType) {
                 case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-                    Annotation::setUserDefaultLineColor(colorEnum);
-                    Annotation::setUserDefaultCustomLineColor(customRGBA);
+                    setUserDefaultLineColor(colorEnum,
+                                            customRGBA);
                     break;
                 case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
                     CaretAssert(0);
@@ -426,24 +426,24 @@ AnnotationColorWidget::updateForegroundColorButton()
         }
         
         
-        if ( ! enableForegroundFlag) {
+        if ( ! enableLineFlag) {
             colorEnum = CaretColorEnum::NONE;
         }
     }
     
-    QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_foregroundToolButton, 24, 24, colorEnum, rgba, true);
-    m_foregroundColorAction->setIcon(QIcon(pm));
-    m_foregroundColorMenu->setSelectedColor(colorEnum);
+    QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_lineToolButton, 24, 24, colorEnum, rgba, true);
+    m_lineColorAction->setIcon(QIcon(pm));
+    m_lineColorMenu->setSelectedColor(colorEnum);
 }
 
 /**
- * Gets called when the foreground color is changed.
+ * Gets called when the line color is changed.
  *
  * @param caretColor
  *     Color that was selected.
  */
 void
-AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretColor)
+AnnotationColorWidget::lineColorSelected(const CaretColorEnum::Enum caretColor)
 {
     if ( ! m_annotations.empty()) {
         float rgba[4];
@@ -455,35 +455,26 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
             
             QColor newColor = QColorDialog::getColor(color,
                                                      m_backgroundToolButton,
-                                                     "Foreground Color");
+                                                     "Line Color");
             if (newColor.isValid()) {
                 rgba[0] = newColor.redF();
                 rgba[1] = newColor.greenF();
                 rgba[2] = newColor.blueF();
-                
-                
-                switch (m_parentWidgetType) {
-                    case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-                        Annotation::setUserDefaultCustomLineColor(rgba);
-                        break;
-                    case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
-                        CaretAssert(0);
-                        break;
-                }
             }
         }
         
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeColorForeground(caretColor,
-                                            rgba,
-                                            m_annotations);
+        undoCommand->setModeColorLine(caretColor,
+                                      rgba,
+                                      m_annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         annMan->applyCommand(undoCommand);
         
-        Annotation::setUserDefaultLineColor(caretColor);
+        setUserDefaultLineColor(caretColor,
+                                rgba);
     }
     
-    updateForegroundColorButton();
+    updateLineColorButton();
     
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
@@ -497,21 +488,72 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
 }
 
 /**
- * Gets called when the foreground thickness value changes.
+ * Set the user default line color.
  *
- * @param value
- *     New value for foreground thickness.
+ * @param caretColor
+ *     The line color.
+ * @param customRGBA
+ *     The custom line color RGBA components.
  */
 void
-AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
+AnnotationColorWidget::setUserDefaultLineColor(const CaretColorEnum::Enum caretColor,
+                                               const float customRGBA[4])
 {
-    if ( ! m_foregroundThicknessSpinBox->specialValueText().isEmpty()) {
-        if (m_foregroundThicknessSpinBox->specialValueText()
-            == m_foregroundThicknessSpinBox->text()) {
+    if ( ! m_annotations.empty()) {
+        bool allTextFlag  = true;
+        bool someTextFlag = false;
+        
+        for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
+             iter != m_annotations.end();
+             iter++) {
+            const Annotation* ann = *iter;
+            if (ann->getType() == AnnotationTypeEnum::TEXT) {
+                someTextFlag = true;
+            }
+            else {
+                allTextFlag = false;
+            }
+        }
+        
+        /*
+         * Note: Text has its own default line color.  Without it, if the
+         * user creates a text annotation it will get a box around it since
+         * other annotations frequently use a line color.
+         */
+        if (allTextFlag
+            || someTextFlag) {
+            Annotation::setUserDefaultForTextLineColor(caretColor);
+            if (caretColor == CaretColorEnum::CUSTOM) {
+                Annotation::setUserDefaultForTextCustomLineColor(customRGBA);
+            }
+        }
+        
+        if (! allTextFlag) {
+            Annotation::setUserDefaultLineColor(caretColor);
+            if (caretColor == CaretColorEnum::CUSTOM) {
+                Annotation::setUserDefaultCustomLineColor(customRGBA);
+            }
+        }
+    }
+}
+
+
+/**
+ * Gets called when the line thickness value changes.
+ *
+ * @param value
+ *     New value for line thickness.
+ */
+void
+AnnotationColorWidget::lineThicknessSpinBoxValueChanged(double value)
+{
+    if ( ! m_lineThicknessSpinBox->specialValueText().isEmpty()) {
+        if (m_lineThicknessSpinBox->specialValueText()
+            == m_lineThicknessSpinBox->text()) {
             /*
              * Ignore special text which is available when 
              * there are multiple annotations with different
-             * foreground thicknesses.
+             * line thicknesses.
              */
             std::cout << "Ignoring special text " << std::endl;
             return;
@@ -519,8 +561,8 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
     }
     
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-    undoCommand->setModeLineWidthForeground(value,
-                                            m_annotations);
+    undoCommand->setModeLineWidth(value,
+                                  m_annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     annMan->applyCommand(undoCommand);
     
@@ -531,12 +573,12 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
 }
 
 /**
- * Update the foreground thickness spin box.
+ * Update the line thickness spin box.
  */
 void
-AnnotationColorWidget::updateForegroundThicknessSpinBox()
+AnnotationColorWidget::updateLineThicknessSpinBox()
 {
-    if (m_foregroundThicknessSpinBox == NULL) {
+    if (m_lineThicknessSpinBox == NULL) {
         return;
     }
     
@@ -580,14 +622,15 @@ AnnotationColorWidget::updateForegroundThicknessSpinBox()
      * widths, the valid displayed is the minimum line
      * width with a suffix consisting of a plus symbol.
      */
-    m_foregroundThicknessSpinBox->blockSignals(true);
-    m_foregroundThicknessSpinBox->setValue(lineWidthValue);
-    m_foregroundThicknessSpinBox->setEnabled(lineWidthValid);
+    m_lineThicknessSpinBox->blockSignals(true);
+    m_lineThicknessSpinBox->setValue(lineWidthValue);
+    m_lineThicknessSpinBox->setEnabled(lineWidthValid);
     if (haveMultipleLineWidthValues) {
-        m_foregroundThicknessSpinBox->setSuffix("+");
+        m_lineThicknessSpinBox->setSuffix("+");
     }
     else {
-        m_foregroundThicknessSpinBox->setSuffix("");
+        m_lineThicknessSpinBox->setSuffix("");
     }
-    m_foregroundThicknessSpinBox->blockSignals(false);
+    m_lineThicknessSpinBox->blockSignals(false);
 }
+

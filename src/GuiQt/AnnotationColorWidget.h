@@ -56,21 +56,24 @@ namespace caret {
     private slots:
         void backgroundColorSelected(const CaretColorEnum::Enum);
         
-        void foregroundColorSelected(const CaretColorEnum::Enum);
+        void lineColorSelected(const CaretColorEnum::Enum);
         
     private slots:
-        void foregroundThicknessSpinBoxValueChanged(double value);
+        void lineThicknessSpinBoxValueChanged(double value);
         
     private:
         AnnotationColorWidget(const AnnotationColorWidget&);
 
         AnnotationColorWidget& operator=(const AnnotationColorWidget&);
 
+        void setUserDefaultLineColor(const CaretColorEnum::Enum caretColor,
+                                     const float customRGBA[4]);
+        
         void updateBackgroundColorButton();
         
-        void updateForegroundColorButton();
+        void updateLineColorButton();
         
-        void updateForegroundThicknessSpinBox();
+        void updateLineThicknessSpinBox();
         
         const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
         
@@ -78,17 +81,17 @@ namespace caret {
         
         QToolButton* m_backgroundToolButton;
         
-        QToolButton* m_foregroundToolButton;
+        QToolButton* m_lineToolButton;
         
-        QAction* m_foregroundColorAction;
+        QAction* m_lineColorAction;
         
         QAction* m_backgroundColorAction;
         
-        CaretColorEnumMenu* m_foregroundColorMenu;
+        CaretColorEnumMenu* m_lineColorMenu;
         
         CaretColorEnumMenu* m_backgroundColorMenu;
         
-        QDoubleSpinBox* m_foregroundThicknessSpinBox;
+        QDoubleSpinBox* m_lineThicknessSpinBox;
         
         WuQWidgetObjectGroup* m_backgroundWidgetGroup;
         

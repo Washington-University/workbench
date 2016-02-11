@@ -375,6 +375,7 @@ Annotation::initializeAnnotationMembers()
             m_customColorLine[3]  = 1.0;
             break;
         case AnnotationAttributesDefaultTypeEnum::USER:
+        {
             m_lineWidth = s_userDefaultLineWidth;
             
             m_colorBackground = s_userDefaultColorBackground;
@@ -389,6 +390,39 @@ Annotation::initializeAnnotationMembers()
             m_customColorLine[1]  = s_userDefaultCustomColorLine[1];
             m_customColorLine[2]  = s_userDefaultCustomColorLine[2];
             m_customColorLine[3]  = s_userDefaultCustomColorLine[3];
+            
+            const bool lineBackNoneFlag = ((m_colorLine == CaretColorEnum::NONE)
+                                           && (m_colorBackground == CaretColorEnum::NONE));
+            const CaretColorEnum::Enum defaultColor = CaretColorEnum::RED;
+            switch (m_type) {
+                case AnnotationTypeEnum::BOX:
+                    if (lineBackNoneFlag) {
+                        m_colorBackground = defaultColor;
+                    }
+                    break;
+                case AnnotationTypeEnum::COLOR_BAR:
+                    break;
+                case AnnotationTypeEnum::IMAGE:
+                    break;
+                case AnnotationTypeEnum::LINE:
+                    if (m_colorLine == CaretColorEnum::NONE) {
+                        m_colorLine = defaultColor;
+                    }
+                    break;
+                case AnnotationTypeEnum::OVAL:
+                    if (lineBackNoneFlag) {
+                        m_colorBackground = defaultColor;
+                    }
+                    break;
+                case AnnotationTypeEnum::TEXT:
+                    m_colorLine          = s_userDefaultForTextColorLine;
+                    m_customColorLine[0] = s_userDefaultForTextCustomColorLine[0];
+                    m_customColorLine[1] = s_userDefaultForTextCustomColorLine[1];
+                    m_customColorLine[2] = s_userDefaultForTextCustomColorLine[2];
+                    m_customColorLine[3] = s_userDefaultForTextCustomColorLine[3];
+                    break;
+            }
+        }
             break;
     }
     
@@ -1140,18 +1174,6 @@ Annotation::setUserDefaultLineColor(const CaretColorEnum::Enum color)
 }
 
 /**
- * Set the default value for background color
- *
- * @param color
- *     Default for newly created annotations.
- */
-void
-Annotation::setUserDefaultBackgroundColor(const CaretColorEnum::Enum color)
-{
-    s_userDefaultColorBackground = color;
-}
-
-/**
  * Set the default value for custom line color
  *
  * @param rgba
@@ -1164,6 +1186,45 @@ Annotation::setUserDefaultCustomLineColor(const float rgba[4])
     s_userDefaultCustomColorLine[1] = rgba[1];
     s_userDefaultCustomColorLine[2] = rgba[2];
     s_userDefaultCustomColorLine[3] = rgba[3];
+}
+
+/**
+ * Set the default value for line color FOR USE BY TEXT ONLY
+ *
+ * @param color
+ *     Default for newly created annotations.
+ */
+void
+Annotation::setUserDefaultForTextLineColor(const CaretColorEnum::Enum color)
+{
+    s_userDefaultForTextColorLine = color;
+}
+
+/**
+ * Set the default value for custom line color FOR USE BY TEXT ONLY
+ *
+ * @param rgba
+ *     Default for newly created annotations.
+ */
+void
+Annotation::setUserDefaultForTextCustomLineColor(const float rgba[4])
+{
+    s_userDefaultForTextCustomColorLine[0] = rgba[0];
+    s_userDefaultForTextCustomColorLine[1] = rgba[1];
+    s_userDefaultForTextCustomColorLine[2] = rgba[2];
+    s_userDefaultForTextCustomColorLine[3] = rgba[3];
+}
+
+/**
+ * Set the default value for background color
+ *
+ * @param color
+ *     Default for newly created annotations.
+ */
+void
+Annotation::setUserDefaultBackgroundColor(const CaretColorEnum::Enum color)
+{
+    s_userDefaultColorBackground = color;
 }
 
 /**

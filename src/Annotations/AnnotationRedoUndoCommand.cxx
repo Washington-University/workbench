@@ -848,11 +848,11 @@ AnnotationRedoUndoCommand::setModeLineArrowEnd(const bool newStatus,
  *     Annotation that receive this new line width.
  */
 void
-AnnotationRedoUndoCommand::setModeLineWidthForeground(const float newLineWidth,
-                                                      const std::vector<Annotation*>& annotations)
+AnnotationRedoUndoCommand::setModeLineWidth(const float newLineWidth,
+                                            const std::vector<Annotation*>& annotations)
 {
     m_mode        = AnnotationRedoUndoCommandModeEnum::LINE_WIDTH_FOREGROUND;
-    setDescription("Foreground Line Width");
+    setDescription("Line Width");
     
     for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
          iter != annotations.end();
@@ -908,22 +908,22 @@ AnnotationRedoUndoCommand::setModeColorBackground(const CaretColorEnum::Enum col
 }
 
 /**
- * Set the mode to color foreground and create the undo/redo instances.
+ * Set the mode to line color and create the undo/redo instances.
  *
  * @param color
- *     The new foreground color.
+ *     The new line color.
  * @param customColor
- *     The new custom foreground color.
+ *     The new custom line color.
  * @param annotations
  *     Annotation that receive this new color.
  */
 void
-AnnotationRedoUndoCommand::setModeColorForeground(const CaretColorEnum::Enum color,
+AnnotationRedoUndoCommand::setModeColorLine(const CaretColorEnum::Enum color,
                             const float customColor[4],
                             const std::vector<Annotation*>& annotations)
 {
     m_mode        = AnnotationRedoUndoCommandModeEnum::COLOR_FOREGROUND;
-    setDescription("Foreground Color");
+    setDescription("Line Color");
     
     for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
          iter != annotations.end();

@@ -2523,6 +2523,11 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
     else {
         CaretAssert(0);
     }
+    
+    if ((m_annotation->getLineColor() == CaretColorEnum::NONE)
+        && (m_annotation->getBackgroundColor() == CaretColorEnum::NONE)) {
+        m_annotation->setLineColor(CaretColorEnum::RED);
+    }
 }
 
 /**

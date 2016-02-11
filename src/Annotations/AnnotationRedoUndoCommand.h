@@ -65,16 +65,16 @@ namespace caret {
         void setModeLineArrowEnd(const bool newStatus,
                                    const std::vector<Annotation*>& annotations);
         
-        void setModeLineWidthForeground(const float newLineWidth,
-                                        const std::vector<Annotation*>& annotations);
+        void setModeLineWidth(const float newLineWidth,
+                              const std::vector<Annotation*>& annotations);
         
         void setModeColorBackground(const CaretColorEnum::Enum color,
                                     const float customColor[4],
                                     const std::vector<Annotation*>& annotations);
         
-        void setModeColorForeground(const CaretColorEnum::Enum color,
-                                    const float customColor[4],
-                                    const std::vector<Annotation*>& annotations);
+        void setModeColorLine(const CaretColorEnum::Enum color,
+                              const float customColor[4],
+                              const std::vector<Annotation*>& annotations);
         
         void setModeCreateAnnotation(AnnotationFile* annotationFile,
                                      Annotation* annotation);

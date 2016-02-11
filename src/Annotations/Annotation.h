@@ -115,9 +115,13 @@ namespace caret {
         
         static void setUserDefaultLineColor(const CaretColorEnum::Enum color);
         
-        static void setUserDefaultBackgroundColor(const CaretColorEnum::Enum color);
-        
         static void setUserDefaultCustomLineColor(const float rgba[4]);
+        
+        static void setUserDefaultForTextLineColor(const CaretColorEnum::Enum color);
+        
+        static void setUserDefaultForTextCustomLineColor(const float rgba[4]);
+        
+        static void setUserDefaultBackgroundColor(const CaretColorEnum::Enum color);
         
         static void setUserDefaultCustomBackgroundColor(const float rgba[4]);
         
@@ -235,11 +239,16 @@ namespace caret {
         mutable std::bitset<10> m_selectedInWindowFlag;
         
         // defaults
+        
         static CaretColorEnum::Enum s_userDefaultColorLine;
         
-        static CaretColorEnum::Enum s_userDefaultColorBackground;
-        
         static float s_userDefaultCustomColorLine[4];
+        
+        static CaretColorEnum::Enum s_userDefaultForTextColorLine;
+        
+        static float s_userDefaultForTextCustomColorLine[4];
+        
+        static CaretColorEnum::Enum s_userDefaultColorBackground;
         
         static float s_userDefaultCustomColorBackground[4];
         
@@ -252,11 +261,15 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_DECLARE__
-    CaretColorEnum::Enum Annotation::s_userDefaultColorLine = CaretColorEnum::WHITE;
-    
-    CaretColorEnum::Enum Annotation::s_userDefaultColorBackground = CaretColorEnum::NONE;
+    CaretColorEnum::Enum Annotation::s_userDefaultColorLine = CaretColorEnum::NONE;
     
     float Annotation::s_userDefaultCustomColorLine[4] = { 1.0, 1.0, 1.0, 1.0 };
+    
+    CaretColorEnum::Enum Annotation::s_userDefaultForTextColorLine = CaretColorEnum::NONE;
+    
+    float Annotation::s_userDefaultForTextCustomColorLine[4] = { 1.0, 1.0, 1.0, 1.0 };
+    
+    CaretColorEnum::Enum Annotation::s_userDefaultColorBackground = CaretColorEnum::NONE;
     
     float Annotation::s_userDefaultCustomColorBackground[4] = { 0.0, 0.0, 0.0, 1.0 };
     
