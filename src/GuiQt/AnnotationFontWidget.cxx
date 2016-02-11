@@ -116,8 +116,7 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Text color menu
      */
-    m_textColorMenu = new CaretColorEnumMenu((CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR
-                                                    | CaretColorEnum::OPTION_INCLUDE_NONE_COLOR));
+    m_textColorMenu = new CaretColorEnumMenu((CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR));
     QObject::connect(m_textColorMenu, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(textColorSelected(const CaretColorEnum::Enum)));
     
