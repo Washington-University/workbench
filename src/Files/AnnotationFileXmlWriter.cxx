@@ -318,12 +318,12 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     
     
     QXmlStreamAttributes textDataAttributes;
-    attributes.append(ATTRIBUTE_TEXT_CARET_COLOR,
+    textDataAttributes.append(ATTRIBUTE_TEXT_CARET_COLOR,
                       CaretColorEnum::toName(text->getTextColor()));
     
     float rgba[4];
     text->getCustomTextColor(rgba);
-    attributes.append(ATTRIBUTE_TEXT_CUSTOM_RGBA,
+    textDataAttributes.append(ATTRIBUTE_TEXT_CUSTOM_RGBA,
                       realArrayToString(rgba, 4));
     
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_BOLD,

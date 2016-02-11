@@ -153,17 +153,17 @@ AnnotationText::initializeAnnotationTextMembers()
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_text",
                           &m_text);
-    m_sceneAssistant->add<AnnotationTextAlignHorizontalEnum>("m_alignmentHorizontal",
+    m_sceneAssistant->add<AnnotationTextAlignHorizontalEnum, AnnotationTextAlignHorizontalEnum::Enum>("m_alignmentHorizontal",
                                                              &m_alignmentHorizontal);
-    m_sceneAssistant->add<AnnotationTextAlignVerticalEnum>("m_alignmentVertical",
+    m_sceneAssistant->add<AnnotationTextAlignVerticalEnum, AnnotationTextAlignVerticalEnum::Enum>("m_alignmentVertical",
                                                            &m_alignmentVertical);
-    m_sceneAssistant->add<AnnotationTextFontNameEnum>("m_font",
+    m_sceneAssistant->add<AnnotationTextFontNameEnum, AnnotationTextFontNameEnum::Enum>("m_font",
                                                   &m_font);
-    m_sceneAssistant->add<AnnotationTextFontPointSizeEnum>("m_fontPointSize",
+    m_sceneAssistant->add<AnnotationTextFontPointSizeEnum, AnnotationTextFontPointSizeEnum::Enum>("m_fontPointSize",
                                                   &m_fontPointSize);
-    m_sceneAssistant->add<AnnotationTextOrientationEnum>("m_orientation",
+    m_sceneAssistant->add<AnnotationTextOrientationEnum, AnnotationTextOrientationEnum::Enum>("m_orientation",
                                                          &m_orientation);
-    m_sceneAssistant->add<AnnotationTextConnectTypeEnum>("m_connectToBrainordinate",
+    m_sceneAssistant->add<AnnotationTextConnectTypeEnum, AnnotationTextConnectTypeEnum::Enum>("m_connectToBrainordinate",
                                                          &m_connectToBrainordinate);
     m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorText",
                                                                &m_colorText);

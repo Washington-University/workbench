@@ -1485,7 +1485,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
     std::vector<ColorBarLine> colorBarLines;
 
     float rgba[4];
-    colorBar->getLineColorRGBA(rgba);
+    colorBar->getTextColorRGBA(rgba);
     
     const float z = 0.0;
 
@@ -2104,8 +2104,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             
             if ( ! connectLineCoordinates.empty()) {
                 BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
-                                                       foregroundRGBA,
-                                                       text->getLineWidth()); // 2.0);
+                                                       textColorRGBA,
+                                                       text->getLineWidth());
             }
             
             if (drawBackgroundFlag) {
