@@ -131,6 +131,7 @@ ProgressReportingWithSlots.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneCreateReplaceDialog.h
 SceneDialog.h
+ScenePreviewDialog.h
 SpecFileManagementDialog.h
 SplashScreen.h
 StructureEnumComboBox.h
@@ -317,6 +318,7 @@ QGLWidgetTextRenderer.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneCreateReplaceDialog.h
 SceneDialog.h
+ScenePreviewDialog.h
 SceneWindowGeometry.h
 SpecFileManagementDialog.h
 SplashScreen.h
@@ -503,6 +505,7 @@ QGLWidgetTextRenderer.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 SceneCreateReplaceDialog.cxx
 SceneDialog.cxx
+ScenePreviewDialog.cxx
 SceneWindowGeometry.cxx
 SpecFileManagementDialog.cxx
 SplashScreen.cxx

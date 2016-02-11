@@ -62,15 +62,17 @@
 #include "GuiManager.h"
 #include "ImageFile.h"
 #include "ProgressReportingDialog.h"
+#include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneCreateReplaceDialog.h"
 #include "SceneFile.h"
 #include "SceneInfo.h"
-#include "Scene.h"
+#include "ScenePreviewDialog.h"
 #include "SessionManager.h"
 #include "UsernamePasswordWidget.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQDialogNonModal.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -1011,54 +1013,65 @@ SceneDialog::showImagePreviewButtonClicked()
         scene->getSceneInfo()->getImageBytes(imageByteArray,
                                              imageBytesFormat);
         
-        WuQDataEntryDialog ded(scene->getName(),
-                               m_showSceneImagePreviewPushButton,
-                               WuQDialog::SCROLL_AREA_AS_NEEDED);
-        ded.setCancelButtonText("");
-        ded.setOkButtonText("Close");
-        
-        try {
-            if (imageByteArray.length() > 0) {
-                ImageFile imageFile;
-                imageFile.setImageFromByteArray(imageByteArray,
-                                                imageBytesFormat);
-                const QImage* image = imageFile.getAsQImage();
-                if (image != NULL) {
-                    if (image->isNull()) {
-                        CaretLogSevere("Preview image is invalid (isNull)");
-                    }
-                    else {
-                        QLabel* imageLabel = new QLabel();
-                        imageLabel->setPixmap(QPixmap::fromImage(*image));
-                        ded.addWidget("",
-                                      imageLabel);
+        bool useNonModalDialogFlag = true;
+        if (useNonModalDialogFlag) {
+            /*
+             * Scene preview dialog will be deleted when user closes it
+             */
+            ScenePreviewDialog* spd = new ScenePreviewDialog(scene,
+                                                             m_showSceneImagePreviewPushButton);
+            spd->show();
+        }
+        else {
+            WuQDataEntryDialog ded(scene->getName(),
+                                   m_showSceneImagePreviewPushButton,
+                                   WuQDialog::SCROLL_AREA_AS_NEEDED);
+            ded.setCancelButtonText("");
+            ded.setOkButtonText("Close");
+            
+            try {
+                if (imageByteArray.length() > 0) {
+                    ImageFile imageFile;
+                    imageFile.setImageFromByteArray(imageByteArray,
+                                                    imageBytesFormat);
+                    const QImage* image = imageFile.getAsQImage();
+                    if (image != NULL) {
+                        if (image->isNull()) {
+                            CaretLogSevere("Preview image is invalid (isNull)");
+                        }
+                        else {
+                            QLabel* imageLabel = new QLabel();
+                            imageLabel->setPixmap(QPixmap::fromImage(*image));
+                            ded.addWidget("",
+                                          imageLabel);
+                        }
                     }
                 }
+                
+            }
+            catch (const DataFileException& dfe) {
+                CaretLogSevere("Converting preview to image: "
+                               + dfe.whatString());
             }
             
-        }
-        catch (const DataFileException& dfe) {
-            CaretLogSevere("Converting preview to image: "
-                           + dfe.whatString());
-        }
-        
-        AString nameText;
-        AString descriptionText;
-        SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
-                                                                         nameText,
-                                                                         descriptionText);
-        QLabel* nameLabel = new QLabel(nameText);
-        ded.addWidget("",
-                      nameLabel);
-        
-        if (! descriptionText.isEmpty()) {
-            QLabel* descriptionLabel = new QLabel(descriptionText);
-            descriptionLabel->setWordWrap(true);
+            AString nameText;
+            AString descriptionText;
+            SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
+                                                                             nameText,
+                                                                             descriptionText);
+            QLabel* nameLabel = new QLabel(nameText);
             ded.addWidget("",
-                          descriptionLabel);
+                          nameLabel);
+            
+            if (! descriptionText.isEmpty()) {
+                QLabel* descriptionLabel = new QLabel(descriptionText);
+                descriptionLabel->setWordWrap(true);
+                ded.addWidget("",
+                              descriptionLabel);
+            }
+            
+            ded.exec();
         }
-        
-        ded.exec();
     }
 }
 
