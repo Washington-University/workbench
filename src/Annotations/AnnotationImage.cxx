@@ -204,7 +204,7 @@ AnnotationImage::initializeMembersAnnotationImage()
 bool
 AnnotationImage::isLineWidthSupported() const
 {
-    return false;
+    return true;
 }
 
 /**

@@ -2252,6 +2252,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
     
     const bool drawAnnotationFlag = true;
     
+    float foregroundRGBA[4];
+    image->getLineColorRGBA(foregroundRGBA);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
+
     if (drawAnnotationFlag) {
         if (m_selectionModeFlag) {
             uint8_t selectionColorRGBA[4];
@@ -2265,75 +2269,34 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                                                     selectionCenterXYZ));
         }
         else {
-            const bool drawWithTextureFlag = true;
-                const bool debugFlag = false;
-                if (debugFlag) {
-                    if (image->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
-                        AString msg("Drawing Image: DepthTest=" + AString::fromBool(depthTestFlag));
-                        const float* xyz = image->getCoordinate()->getXYZ();
-                        msg.appendWithNewLine("    Stereotaxic: " + AString::fromNumbers(xyz, 3, ","));
-                        msg.appendWithNewLine("    Window: " + AString::fromNumbers(windowXYZ, 3, ","));
-                        std::cout << qPrintable(msg) << std::endl;
-                    }
+            const bool debugFlag = false;
+            if (debugFlag) {
+                if (image->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
+                    AString msg("Drawing Image: DepthTest=" + AString::fromBool(depthTestFlag));
+                    const float* xyz = image->getCoordinate()->getXYZ();
+                    msg.appendWithNewLine("    Stereotaxic: " + AString::fromNumbers(xyz, 3, ","));
+                    msg.appendWithNewLine("    Window: " + AString::fromNumbers(windowXYZ, 3, ","));
+                    std::cout << qPrintable(msg) << std::endl;
                 }
-                
-                if (depthTestFlag) {
-                    if (drawWithTextureFlag) {
-                        drawImageBytesWithTexture(image->getDrawWithOpenGLTextureInfo(),
-                                                  bottomLeft,
-                                                  bottomRight,
-                                                  topRight,
-                                                  topLeft,
-                                                  imageRgbaBytes,
-                                                  imageWidth,
-                                                  imageHeight);
-                    }
-                    else {
-                        drawImageBytes(windowXYZ[0],
-                                       windowXYZ[1],
-                                       windowXYZ[2],
-                                       imageRgbaBytes,
-                                       imageWidth,
-                                       imageHeight);
-                    }
-                    
-//                    m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowXYZ[0],
-//                                                                                            windowXYZ[1],
-//                                                                                            windowXYZ[2],
-//                                                                                            *text);
-                }
-                else {
-                        float bl[3];
-                        float br[3];
-                        float tr[3];
-                        float tl[3];
-                        getAnnotationTwoDimShapeBounds(image, windowXYZ, bl, br, tr, tl);
-                        
-                    if (drawWithTextureFlag) {
-                        drawImageBytesWithTexture(image->getDrawWithOpenGLTextureInfo(),
-                                                  bottomLeft,
-                                                  bottomRight,
-                                                  topRight,
-                                                  topLeft,
-                                                  imageRgbaBytes,
-                                                  imageWidth,
-                                                  imageHeight);
-                    }
-                    else {
-                        drawImageBytes(windowXYZ[0],
-                                       windowXYZ[1],
-                                       0.0,
-                                       imageRgbaBytes,
-                                       imageWidth,
-                                       imageHeight);
-                    }
-//                        m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowXYZ[0],
-//                                                                                                windowXYZ[1],
-//                                                                                                *text);
-                }
-                
-                setDepthTestingStatus(depthTestFlag);
             }
+            
+            drawImageBytesWithTexture(image->getDrawWithOpenGLTextureInfo(),
+                                      bottomLeft,
+                                      bottomRight,
+                                      topRight,
+                                      topLeft,
+                                      imageRgbaBytes,
+                                      imageWidth,
+                                      imageHeight);
+            
+            if (drawForegroundFlag) {
+                BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
+                                                          foregroundRGBA,
+                                                          image->getLineWidth());
+            }
+            
+            setDepthTestingStatus(depthTestFlag);
+        }
         
         if (image->isSelected(m_inputs->m_windowIndex)) {
             const float outlineWidth = 2.0;
