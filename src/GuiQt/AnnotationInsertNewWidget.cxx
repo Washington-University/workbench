@@ -345,16 +345,22 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
             break;
         case AnnotationTypeEnum::IMAGE:
         {
+            const int blueAsGray = qGray(25,25,255);
+            QColor skyColor(blueAsGray, blueAsGray, blueAsGray);
+            
             /*
              * Background (sky)
              */
-            painter->fillRect(pixmap.rect(), QColor(25,25,255));
+            painter->fillRect(pixmap.rect(), skyColor);
+            
+            const int greenAsGray = qGray(0, 255, 0);
+            QColor terrainColor(greenAsGray, greenAsGray, greenAsGray);
             
             /*
              * Terrain
              */
-            painter->setBrush(QColor(0, 255, 0));
-            painter->setPen(QColor(0, 255, 0));
+            painter->setBrush(terrainColor);
+            painter->setPen(terrainColor);
             const int w14 = width * 0.25;
             const int h23 = height * 0.667;
             const int h34 = height * 0.75;
@@ -369,11 +375,14 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
             terrain.push_back(QPoint(1, height - 1));
             painter->drawPolygon(terrain);
             
+            const int yellowAsGray = qGray(255, 255, 0);
+            QColor sunColor(yellowAsGray, yellowAsGray, yellowAsGray);
+            
             /*
              * Sun
              */
-            painter->setBrush(QColor(255, 255, 0));
-            painter->setPen(QColor(255, 255, 0));
+            painter->setBrush(sunColor);
+            painter->setPen(sunColor);
             const int radius = width * 0.25;
             painter->drawEllipse(width * 0.33, height * 0.33, radius, radius);
         }
