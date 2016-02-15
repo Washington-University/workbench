@@ -37,7 +37,7 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationChangeCoordinateDialog(const UserInputModeAnnotations::CoordinateInformation& coordInfo,
+        AnnotationChangeCoordinateDialog(const AnnotationCoordinateInformation& coordInfo,
                                          Annotation* annotation,
                                          AnnotationCoordinate* coordinate,
                                          AnnotationCoordinate* secondCoordinate,
@@ -58,7 +58,7 @@ namespace caret {
         
         QWidget* createNewCoordinateWidget();
         
-        const UserInputModeAnnotations::CoordinateInformation& m_coordInfo;
+        const AnnotationCoordinateInformation& m_coordInfo;
         
         Annotation* m_annotation;
         

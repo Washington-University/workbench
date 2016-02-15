@@ -187,6 +187,7 @@ SET(SOURCE_FILES
 AboutWorkbenchDialog.h
 AnnotationChangeCoordinateDialog.h
 AnnotationColorWidget.h
+AnnotationCoordinateInformation.h
 AnnotationCoordinateSelectionWidget.h
 AnnotationCoordinateWidget.h
 AnnotationCreateDialog.h
@@ -376,6 +377,7 @@ WuQtUtilities.h
 AboutWorkbenchDialog.cxx
 AnnotationChangeCoordinateDialog.cxx
 AnnotationColorWidget.cxx
+AnnotationCoordinateInformation.cxx
 AnnotationCoordinateSelectionWidget.cxx
 AnnotationCoordinateWidget.cxx
 AnnotationCreateDialog.cxx

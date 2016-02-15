@@ -29,6 +29,7 @@
 #include "AnnotationCreateDialog.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationCoordinate.h"
+#include "AnnotationCoordinateInformation.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
@@ -586,7 +587,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
         }
         
         
-        CoordinateInformation coordInfo;
+        AnnotationCoordinateInformation coordInfo;
         UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
                                                                  mouseEvent.getViewportContent(),
                                                                  mouseEvent.getX(),
@@ -798,7 +799,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 //        }
 //        
 //        
-//        CoordinateInformation coordInfo;
+//        AnnotationCoordinateInformation coordInfo;
 //        UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
 //                                                                 mouseEvent.getViewportContent(),
 //                                                                 mouseEvent.getX(),
@@ -1353,7 +1354,7 @@ UserInputModeAnnotations::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* open
                                                          BrainOpenGLViewportContent* viewportContent,
                                                          const int32_t windowX,
                                                          const int32_t windowY,
-                                                         CoordinateInformation& coordInfoOut)
+                                                         AnnotationCoordinateInformation& coordInfoOut)
 {
     coordInfoOut.reset();
     
@@ -1437,8 +1438,8 @@ UserInputModeAnnotations::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* open
 bool
 UserInputModeAnnotations::setAnnotationCoordinatesForSpace(Annotation* annotation,
                                                            const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
-                                                           const CoordinateInformation* coordInfoOne,
-                                                           const CoordinateInformation* coordInfoTwo)
+                                                           const AnnotationCoordinateInformation* coordInfoOne,
+                                                           const AnnotationCoordinateInformation* coordInfoTwo)
 {
     CaretAssert(annotation);
     
@@ -1478,8 +1479,8 @@ UserInputModeAnnotations::setAnnotationCoordinatesForSpace(Annotation* annotatio
 bool
 UserInputModeAnnotations::setOneDimAnnotationCoordinatesForSpace(AnnotationOneDimensionalShape* annotation,
                                                    const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
-                                                   const CoordinateInformation* coordInfoOne,
-                                                   const CoordinateInformation* coordInfoTwo)
+                                                   const AnnotationCoordinateInformation* coordInfoOne,
+                                                   const AnnotationCoordinateInformation* coordInfoTwo)
 {
     bool validCoordinateFlag = false;
     
@@ -1624,8 +1625,8 @@ UserInputModeAnnotations::setOneDimAnnotationCoordinatesForSpace(AnnotationOneDi
 bool
 UserInputModeAnnotations::setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDimensionalShape* annotation,
                                                    const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
-                                                   const CoordinateInformation* coordInfoOne,
-                                                   const CoordinateInformation* optionalCoordInfoTwo)
+                                                   const AnnotationCoordinateInformation* coordInfoOne,
+                                                   const AnnotationCoordinateInformation* optionalCoordInfoTwo)
 {
     bool validCoordinateFlag = false;
     
@@ -1821,7 +1822,7 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
         return;
     }
 
-    CoordinateInformation coordInfo;
+    AnnotationCoordinateInformation coordInfo;
     UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
                                                              mouseEvent.getViewportContent(),
                                                              mouseEvent.getX(),
@@ -2267,7 +2268,7 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
  */
 bool
 UserInputModeAnnotations::pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
-                                                   UserInputModeAnnotations::CoordinateInformation& coordInfo)
+                                                   AnnotationCoordinateInformation& coordInfo)
 {
     
     bool tabFlag = false;
@@ -2389,7 +2390,7 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
         Annotation* annotation = annotationManager->getAnnotationOnClipboard()->clone();
         
         BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
-        UserInputModeAnnotations::CoordinateInformation coordInfo;
+        AnnotationCoordinateInformation coordInfo;
         
         UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
                                                                  viewportContent,

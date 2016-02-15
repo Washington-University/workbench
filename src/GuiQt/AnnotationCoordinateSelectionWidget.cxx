@@ -32,6 +32,7 @@
 
 #include "Annotation.h"
 #include "AnnotationCoordinate.h"
+#include "AnnotationCoordinateInformation.h"
 #include "AnnotationImage.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
@@ -73,8 +74,8 @@ using namespace caret;
  *      The parent widget.
  */
 AnnotationCoordinateSelectionWidget::AnnotationCoordinateSelectionWidget(const AnnotationTypeEnum::Enum annotationType,
-                                                                         const UserInputModeAnnotations::CoordinateInformation& coordInfo,
-                                                                         const UserInputModeAnnotations::CoordinateInformation* optionalSecondCoordInfo,
+                                                                         const AnnotationCoordinateInformation& coordInfo,
+                                                                         const AnnotationCoordinateInformation* optionalSecondCoordInfo,
                                                                          QWidget* parent)
 : QWidget(parent),
 m_annotationType(annotationType),

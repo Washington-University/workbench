@@ -52,7 +52,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-AnnotationChangeCoordinateDialog::AnnotationChangeCoordinateDialog(const UserInputModeAnnotations::CoordinateInformation& coordInfo,
+AnnotationChangeCoordinateDialog::AnnotationChangeCoordinateDialog(const AnnotationCoordinateInformation& coordInfo,
                                                                    Annotation* annotation,
                                                                    AnnotationCoordinate* coordinate,
                                                                    AnnotationCoordinate* secondCoordinate,

@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "AnnotationCoordinateInformation.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "UserInputModeAnnotations.h"
@@ -160,9 +161,9 @@ namespace caret {
         int32_t m_imageWidth;
         int32_t m_imageHeight;
         
-        UserInputModeAnnotations::CoordinateInformation m_coordInfo;
+        AnnotationCoordinateInformation m_coordInfo;
         
-        UserInputModeAnnotations::CoordinateInformation m_coordTwoInfo;
+        AnnotationCoordinateInformation m_coordTwoInfo;
         
         static PreviousSelections s_previousSelections;
         

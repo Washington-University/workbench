@@ -34,6 +34,7 @@ namespace caret {
 
     class Annotation;
     class AnnotationCoordinate;
+    class AnnotationCoordinateInformation;
     class AnnotationOneDimensionalShape;
     class AnnotationTwoDimensionalShape;
     class KeyEvent;
@@ -110,68 +111,16 @@ namespace caret {
 
         virtual AString toString() const;
         
-        class CoordinateInformation {
-        public:
-            CoordinateInformation() {
-                reset();
-            };
-            
-            void reset() {
-                m_modelXYZValid    = false;
-                m_surfaceNodeValid = false;
-                m_surfaceStructure = StructureEnum::INVALID;
-                m_surfaceNumberOfNodes = 0;
-                m_surfaceNodeIndex = -1;
-                m_surfaceNodeOffset = 0.0;
-                m_surfaceNodeVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
-                m_tabIndex         = -1;
-                m_tabWidth         = 0;
-                m_tabHeight        = 0;
-                m_windowIndex      = -1;
-                m_windowWidth      = 0;
-                m_windowHeight     = 0;
-                m_modelXYZ[0]  = 0.0;
-                m_modelXYZ[1]  = 0.0;
-                m_modelXYZ[2]  = 0.0;
-                m_tabXYZ[0]    = 0.0;
-                m_tabXYZ[1]    = 0.0;
-                m_tabXYZ[2]    = 0.0;
-                m_windowXYZ[0] = 0.0;
-                m_windowXYZ[1] = 0.0;
-                m_windowXYZ[2] = 0.0;
-            }
-            
-            double m_modelXYZ[3];
-            bool   m_modelXYZValid;
-            
-            float m_tabWidth;
-            float m_tabHeight;
-            float m_tabXYZ[3];
-            int32_t m_tabIndex;
-            
-            float m_windowWidth;
-            float m_windowHeight;
-            float m_windowXYZ[3];
-            int32_t m_windowIndex;
-            
-            StructureEnum::Enum m_surfaceStructure;
-            int32_t m_surfaceNumberOfNodes;
-            int32_t m_surfaceNodeIndex;
-            float m_surfaceNodeOffset;
-            AnnotationSurfaceOffsetVectorTypeEnum::Enum m_surfaceNodeVector;
-            bool m_surfaceNodeValid;
-        };
-        
         static void getValidCoordinateSpacesFromXY(BrainOpenGLWidget* openGLWidget,
                                                    BrainOpenGLViewportContent* viewportContent,
                                                    const int32_t windowX,
                                                    const int32_t windowY,
-                                                   CoordinateInformation& coordInfoOut);
+                                                   AnnotationCoordinateInformation& coordInfoOut);
         
         static bool setAnnotationCoordinatesForSpace(Annotation* annotation,
                                                      const AnnotationCoordinateSpaceEnum::Enum space,
-                                                     const CoordinateInformation* coordInfoOne,
-                                                     const CoordinateInformation* coordInfoTwo);
+                                                     const AnnotationCoordinateInformation* coordInfoOne,
+                                                     const AnnotationCoordinateInformation* coordInfoTwo);
         
         virtual void processEditMenuItemSelection(const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem);
         
@@ -249,18 +198,18 @@ namespace caret {
         
         static bool setOneDimAnnotationCoordinatesForSpace(AnnotationOneDimensionalShape* annotation,
                                                      const AnnotationCoordinateSpaceEnum::Enum space,
-                                                     const CoordinateInformation* coordInfoOne,
-                                                     const CoordinateInformation* coordInfoTwo);
+                                                     const AnnotationCoordinateInformation* coordInfoOne,
+                                                     const AnnotationCoordinateInformation* coordInfoTwo);
         
         static bool setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDimensionalShape* annotation,
                                                            const AnnotationCoordinateSpaceEnum::Enum space,
-                                                           const CoordinateInformation* coordInfoOne,
-                                                           const CoordinateInformation* coordInfoTwo);
+                                                           const AnnotationCoordinateInformation* coordInfoOne,
+                                                           const AnnotationCoordinateInformation* coordInfoTwo);
         
         void pasteAnnotationFromAnnotationClipboard(const MouseEvent& mouseEvent);
         
         bool pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
-                                      UserInputModeAnnotations::CoordinateInformation& coordInfo);
+                                      AnnotationCoordinateInformation& coordInfo);
         
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
