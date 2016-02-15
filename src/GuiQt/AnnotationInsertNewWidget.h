@@ -24,8 +24,10 @@
 
 #include <QWidget>
 
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
 
+class QButtonGroup;
 class QToolButton;
 
 namespace caret {
@@ -45,8 +47,6 @@ namespace caret {
         void updateContent();
         
     private slots:
-        void deleteActionTriggered();
-
         void shapeBoxActionTriggered();
         
         void shapeLineActionTriggered();
@@ -64,18 +64,19 @@ namespace caret {
         
         QWidget* createShapeToolButton(const AnnotationTypeEnum::Enum annotationType);
         
-        QToolButton* createDeleteToolButton();
+        QToolButton* createSpaceToolButton(const AnnotationCoordinateSpaceEnum::Enum annotationSpace);
         
         QPixmap createShapePixmap(const QWidget* widget,
                                   const AnnotationTypeEnum::Enum annotationType);
+        
+        QPixmap createSpacePixmap(const QWidget* widget,
+                                  const AnnotationCoordinateSpaceEnum::Enum annotationSpace);
         
         void createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType);
         
         const int32_t m_browserWindowIndex;
         
-        QToolButton* m_deleteToolButton;
-        
-        QAction* m_deleteToolButtonAction;
+        QButtonGroup* m_spaceButtonGroup;
         
         static AString s_previousImageFileDirectory;
         

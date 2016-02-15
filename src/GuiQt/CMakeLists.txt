@@ -32,6 +32,7 @@ AnnotationColorWidget.h
 AnnotationCoordinateSelectionWidget.h
 AnnotationCoordinateWidget.h
 AnnotationCreateDialog.h
+AnnotationDeleteWidget.h
 AnnotationFontWidget.h
 AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
@@ -189,6 +190,7 @@ AnnotationColorWidget.h
 AnnotationCoordinateSelectionWidget.h
 AnnotationCoordinateWidget.h
 AnnotationCreateDialog.h
+AnnotationDeleteWidget.h
 AnnotationFontWidget.h
 AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
@@ -377,6 +379,7 @@ AnnotationColorWidget.cxx
 AnnotationCoordinateSelectionWidget.cxx
 AnnotationCoordinateWidget.cxx
 AnnotationCreateDialog.cxx
+AnnotationDeleteWidget.cxx
 AnnotationFontWidget.cxx
 AnnotationFormatWidget.cxx
 AnnotationInsertNewWidget.cxx

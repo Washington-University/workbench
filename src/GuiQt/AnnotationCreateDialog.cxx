@@ -77,49 +77,53 @@ using namespace caret;
  * \ingroup GuiQt
  */
 
-/**
- * Get a dialog for creating a new annotation using an annotation.
- *
- * @param mouseEvent
- *     The mouse event indicating where user clicked in the window
- * @param annotation
- *      Annotation that will be copied and added.
- * @param parent
- *      Optional parent for this dialog.
- */
-AnnotationCreateDialog*
-AnnotationCreateDialog::newAnnotation(const MouseEvent& mouseEvent,
-                                      const Annotation* annotation,
-                                      QWidget* parent)
-{
-    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_ADD_NEW_ANNOTATION,
-                                                                mouseEvent,
-                                                                NULL,
-                                                                annotation,
-                                                                annotation->getType(),
-                                                                parent);
-    return dialog;
-}
+///**
+// * Get a dialog for creating a new annotation using an annotation.
+// *
+// * @param mouseEvent
+// *     The mouse event indicating where user clicked in the window
+// * @param annotation
+// *      Annotation that will be copied and added.
+// * @param parent
+// *      Optional parent for this dialog.
+// */
+//AnnotationCreateDialog*
+//AnnotationCreateDialog::newAnnotation(const MouseEvent& mouseEvent,
+//                                      const Annotation* annotation,
+//                                      QWidget* parent)
+//{
+//    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_ADD_NEW_ANNOTATION,
+//                                                                mouseEvent,
+//                                                                NULL,
+//                                                                annotation,
+//                                                                annotation->getType(),
+//                                                                parent);
+//    return dialog;
+//}
 
 /**
- * Get a dialog for creating a new annotation using an annotation type.
+ * Get a dialog for creating a new annotation using an annotation space and type.
  *
  * @param mouseEvent
  *     The mouse event indicating where user clicked in the window
+ * @param annotationSpace
+ *      Space of annotation being created.
  * @param annotationType
  *      Type of annotation that is being created.
  * @param parent
  *      Optional parent for this dialog.
  */
 AnnotationCreateDialog*
-AnnotationCreateDialog::newAnnotationType(const MouseEvent& mouseEvent,
-                                                 const AnnotationTypeEnum::Enum annotationType,
-                                                 QWidget* parent)
+AnnotationCreateDialog::newAnnotationSpaceAndType(const MouseEvent& mouseEvent,
+                                                  const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                  const AnnotationTypeEnum::Enum annotationType,
+                                                  QWidget* parent)
 {
     AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE_CLICK,
                                                                 mouseEvent,
                                                                 NULL,
                                                                 NULL,
+                                                                annotationSpace,
                                                                 annotationType,
                                                                 parent);
     return dialog;
@@ -130,20 +134,24 @@ AnnotationCreateDialog::newAnnotationType(const MouseEvent& mouseEvent,
  *
  * @param mouseEvent
  *     The mouse event.
+ * @param annotationSpace
+ *      Space of annotation being created.
  * @param annotationType
  *      Type of annotation that is being created.
  * @param parent
  *      Optional parent for this dialog.
  */
 AnnotationCreateDialog*
-AnnotationCreateDialog::newAnnotationTypeWithBounds(const MouseEvent& mouseEvent,
-                                          const AnnotationTypeEnum::Enum annotationType,
-                                          QWidget* parent)
+AnnotationCreateDialog::newAnnotationSpaceAndTypeWithBounds(const MouseEvent& mouseEvent,
+                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                            const AnnotationTypeEnum::Enum annotationType,
+                                                            QWidget* parent)
 {
     AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
                                                                 mouseEvent,
                                                                 NULL,
                                                                 NULL,
+                                                                annotationSpace,
                                                                 annotationType,
                                                                 parent);
     return dialog;
@@ -172,6 +180,7 @@ AnnotationCreateDialog::newPasteAnnotation(const MouseEvent& mouseEvent,
                                                                 mouseEvent,
                                                                 annotationFile,
                                                                 annotation,
+                                                                annotation->getCoordinateSpace(),
                                                                 annotation->getType(),
                                                                 parent);
     return dialog;
@@ -188,6 +197,8 @@ AnnotationCreateDialog::newPasteAnnotation(const MouseEvent& mouseEvent,
  *     File containing the annotation that is copied (may be NULL).
  * @param annotation
  *     Annotation that is copied.
+ * @param annotationSpace
+ *      Space of annotation that is being created.
  * @param annotationType
  *      Type of annotation that is being created.
  * @param parent
@@ -197,6 +208,7 @@ AnnotationCreateDialog::AnnotationCreateDialog(const Mode mode,
                                                const MouseEvent& mouseEvent,
                                                const AnnotationFile* annotationFile,
                                                const Annotation* annotation,
+                                               const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                const AnnotationTypeEnum::Enum annotationType,
                                                QWidget* parent)
 : WuQDialogModal("Create Annotation",
@@ -205,6 +217,7 @@ m_mode(mode),
 m_mouseEvent(mouseEvent),
 m_annotationToPastesFile(annotationFile),
 m_annotationToPaste(annotation),
+m_annotationSpace(annotationSpace),
 m_annotationType(annotationType),
 m_annotationThatWasCreated(NULL),
 m_annotationFromBoundsWidth(-1.0),
@@ -380,17 +393,18 @@ m_imageHeight(0)
     
     switch (m_mode) {
         case MODE_ADD_NEW_ANNOTATION:
-        case MODE_NEW_ANNOTATION_TYPE_CLICK:
             setWindowTitle("New Annotation");
             if (s_previousSelections.m_valid) {
                 m_coordinateSelectionWidget->selectCoordinateSpace(s_previousSelections.m_coordinateSpace);
             }
             break;
+        case MODE_NEW_ANNOTATION_TYPE_CLICK:
+            setWindowTitle("New Annotation");
+            m_coordinateSelectionWidget->selectCoordinateSpace(m_annotationSpace);
+            break;
         case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
             setWindowTitle("New Annotation");
-            if (s_previousSelections.m_valid) {
-                m_coordinateSelectionWidget->selectCoordinateSpace(s_previousSelections.m_coordinateSpace);
-            }
+            m_coordinateSelectionWidget->selectCoordinateSpace(m_annotationSpace);
             break;
         case MODE_PASTE_ANNOTATION:
             setWindowTitle("Paste Annotation");

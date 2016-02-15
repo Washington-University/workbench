@@ -87,7 +87,8 @@ m_annotationBeingDragged(NULL)
 {
     m_allowMultipleSelectionModeFlag = true;
     m_mode = MODE_SELECT;
-    m_modeNewAnnotationType = AnnotationTypeEnum::LINE;
+    m_modeNewAnnotationSpaceAndType = std::make_pair(AnnotationCoordinateSpaceEnum::PIXELS,
+                                                     AnnotationTypeEnum::LINE);
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     
     m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
@@ -125,7 +126,8 @@ UserInputModeAnnotations::receiveEvent(Event* event)
         annotationManager->deselectAllAnnotations(m_browserWindowIndex);
         resetAnnotationUnderMouse();
         
-        m_modeNewAnnotationType = annotationEvent->getAnnotationType();
+        m_modeNewAnnotationSpaceAndType = std::make_pair(annotationEvent->getAnnotationSpace(),
+                                                         annotationEvent->getAnnotationType());
         setMode(MODE_NEW_WITH_CLICK);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
@@ -529,7 +531,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
             }
             
-            m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(m_modeNewAnnotationType,
+            m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(m_modeNewAnnotationSpaceAndType.first,
+                                                                                          m_modeNewAnnotationSpaceAndType.second,
                                                                                           mouseEvent));
             m_mode = MODE_NEW_WITH_DRAG;
             return;
@@ -1213,7 +1216,8 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
 {
     if (m_newAnnotationCreatingWithMouseDrag != NULL) {
         
-        CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationTypeWithBounds(mouseEvent,
+        CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationSpaceAndTypeWithBounds(mouseEvent,
+                                                                                                                  m_newAnnotationCreatingWithMouseDrag->getAnnotation()->getCoordinateSpace(),
                                                                                                                   m_newAnnotationCreatingWithMouseDrag->getAnnotation()->getType(),
                                                                                                                   mouseEvent.getOpenGLWidget()));
         if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
@@ -1892,8 +1896,9 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
 {
     resetAnnotationUnderMouse();
     
-    CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationType(mouseEvent,
-                                                                                                    m_modeNewAnnotationType,
+    CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationSpaceAndType(mouseEvent,
+                                                                                                    m_modeNewAnnotationSpaceAndType.first,
+                                                                                                    m_modeNewAnnotationSpaceAndType.second,
                                                                                                     mouseEvent.getOpenGLWidget()));
     if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
@@ -2462,18 +2467,15 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
 /**
  * Constructor.
  *
+ * @param annotationSpace
+ *     Space for annotation being created.
  * @param annotationType
  *     Type of annotation being created.
- * @param mouseWindowX
- *     Mouse window X-coordinate
- * @param mouseWindowY
- *     Mouse window Y-coordinate
- * @param windowWidth
- *     Width of window (will not change while user is drawing the annotation)
- * @param windowHeight
- *     Height of window (will not change while user is drawing the annotation)
+ * @param mouseEvent
+ *     Mouse event.
  */
-UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnotation(const AnnotationTypeEnum::Enum annotationType,
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnotation(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                                                     const AnnotationTypeEnum::Enum annotationType,
                                                                                      const MouseEvent& mouseEvent)
 {
     BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
@@ -2499,7 +2501,7 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
     
     m_annotation = Annotation::newAnnotationOfType(annotationType,
                                                    AnnotationAttributesDefaultTypeEnum::USER);
-    m_annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+    m_annotation->setCoordinateSpace(annotationSpace);
     CaretAssert(m_annotation);
 
     AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);

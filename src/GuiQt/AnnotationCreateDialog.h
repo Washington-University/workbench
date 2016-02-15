@@ -45,17 +45,19 @@ namespace caret {
         Q_OBJECT
 
     public:
-        static AnnotationCreateDialog* newAnnotation(const MouseEvent& mouseEvent,
-                                                     const Annotation* annotation,
-                                                     QWidget* parent = 0);
+//        static AnnotationCreateDialog* newAnnotation(const MouseEvent& mouseEvent,
+//                                                     const Annotation* annotation,
+//                                                     QWidget* parent = 0);
         
-        static AnnotationCreateDialog* newAnnotationType(const MouseEvent& mouseEvent,
-                                                         const AnnotationTypeEnum::Enum annotationType,
-                                                         QWidget* parent = 0);
+        static AnnotationCreateDialog* newAnnotationSpaceAndType(const MouseEvent& mouseEvent,
+                                                                 const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                                 const AnnotationTypeEnum::Enum annotationType,
+                                                                 QWidget* parent = 0);
         
-        static AnnotationCreateDialog* newAnnotationTypeWithBounds(const MouseEvent& mousePressEvent,
-                                                                   const AnnotationTypeEnum::Enum annotationType,
-                                                                   QWidget* parent = 0);
+        static AnnotationCreateDialog* newAnnotationSpaceAndTypeWithBounds(const MouseEvent& mousePressEvent,
+                                                                           const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                                           const AnnotationTypeEnum::Enum annotationType,
+                                                                           QWidget* parent = 0);
         
         static AnnotationCreateDialog* newPasteAnnotation(const MouseEvent& mouseEvent,
                                                           const AnnotationFile* annotationFile,
@@ -102,6 +104,7 @@ namespace caret {
                                const MouseEvent& mouseEvent,
                                const AnnotationFile* annotationFile,
                                const Annotation* annotation,
+                               const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                const AnnotationTypeEnum::Enum annotationType,
                                QWidget* parent = 0);
         
@@ -126,6 +129,8 @@ namespace caret {
         const AnnotationFile* m_annotationToPastesFile;
         
         const Annotation* m_annotationToPaste;
+        
+        const AnnotationCoordinateSpaceEnum::Enum m_annotationSpace;
         
         const AnnotationTypeEnum::Enum m_annotationType;
         

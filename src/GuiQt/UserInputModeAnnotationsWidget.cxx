@@ -33,6 +33,7 @@
 #include "AnnotationCoordinateSpaceWidget.h"
 #include "AnnotationCoordinateWidget.h"
 #include "AnnotationColorWidget.h"
+#include "AnnotationDeleteWidget.h"
 #include "AnnotationFontWidget.h"
 #include "AnnotationFormatWidget.h"
 #include "AnnotationInsertNewWidget.h"
@@ -114,6 +115,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_insertDeleteWidget         = new AnnotationInsertNewWidget(m_browserWindowIndex);
     
+    m_deleteWidget               = new AnnotationDeleteWidget(m_browserWindowIndex);
+    
     m_redoUndoWidget             = new AnnotationRedoUndoWidget(m_browserWindowIndex);
     
     /*
@@ -142,6 +145,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     topRowLayout->addWidget(m_textOrientationWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_insertDeleteWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_deleteWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_formatWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
@@ -326,6 +331,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     m_widthHeightWidget->updateContent(twoDimAnnotations);
     m_rotationWidget->updateContent(selectedAnnotations); //twoDimAnnotations);
     m_insertDeleteWidget->updateContent();
+    m_deleteWidget->updateContent();
     
     Annotation* coordEditAnnotation = NULL;
     AnnotationOneDimensionalShape* coordEditOneDimAnnotation = NULL;

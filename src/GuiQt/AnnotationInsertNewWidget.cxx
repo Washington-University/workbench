@@ -24,6 +24,7 @@
 #undef __ANNOTATION_INSERT_NEW_WIDGET_DECLARE__
 
 #include <QAction>
+#include <QButtonGroup>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
@@ -69,43 +70,103 @@ AnnotationInsertNewWidget::AnnotationInsertNewWidget(const int32_t browserWindow
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    QLabel* insertLabel = new QLabel("Insert");
-    QLabel* deleteLabel = new QLabel("Delete");
-    
     QWidget* shapeBoxToolButton   = createShapeToolButton(AnnotationTypeEnum::BOX);
     QWidget* shapeImageToolButton = createShapeToolButton(AnnotationTypeEnum::IMAGE);
     QWidget* shapeLineToolButton  = createShapeToolButton(AnnotationTypeEnum::LINE);
     QWidget* shapeOvalToolButton  = createShapeToolButton(AnnotationTypeEnum::OVAL);
     QWidget* shapeTextToolButton  = createShapeToolButton(AnnotationTypeEnum::TEXT);
     
-    m_deleteToolButton = createDeleteToolButton();
+    QToolButton* tabSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::TAB);
+    QToolButton* stereotaxicSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
+    QToolButton* surfaceSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::SURFACE);
+    QToolButton* windowSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::WINDOW);
     
-    QSpacerItem* spaceItem = new QSpacerItem(5, 10,
-                                             QSizePolicy::Fixed,
-                                             QSizePolicy::Fixed);
+    m_spaceButtonGroup = new QButtonGroup(this);
+    m_spaceButtonGroup->addButton(tabSpaceToolButton);
+    m_spaceButtonGroup->addButton(stereotaxicSpaceToolButton);
+    m_spaceButtonGroup->addButton(surfaceSpaceToolButton);
+    m_spaceButtonGroup->addButton(windowSpaceToolButton);
+    tabSpaceToolButton->setChecked(true);
+    
+    QLabel* spaceLabel = new QLabel("Space");
+    QLabel* typeLabel = new QLabel("Type");
+//    QLabel* spaceIntertTypeLabel  = new QLabel("Space Insert Type");
+    
+    
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
-    gridLayout->addWidget(insertLabel,
-                          0, 0, 1, 3, Qt::AlignHCenter);
-    gridLayout->addWidget(shapeBoxToolButton,
-                          1, 0);
-    gridLayout->addWidget(shapeImageToolButton,
-                          1, 1);
-    gridLayout->addWidget(shapeLineToolButton,
-                          1, 2);
-    gridLayout->addWidget(shapeOvalToolButton,
-                          2, 0);
-    gridLayout->addWidget(shapeTextToolButton,
-                          2, 1);
     
-    gridLayout->addItem(spaceItem,
-                        0, 3);
-    
-    gridLayout->addWidget(deleteLabel,
-                          0, 4, Qt::AlignHCenter);
-    gridLayout->addWidget(m_deleteToolButton,
-                          1, 4, 2, 1, (Qt::AlignHCenter
-                                       | Qt::AlignTop));
+    const bool rowsLayoutFlag = true;
+    if (rowsLayoutFlag) {
+        QLabel* insertLabel = new QLabel("Insert New");
+        
+        gridLayout->addWidget(insertLabel,
+                              0, 0, 1, 6, Qt::AlignHCenter);
+        
+        gridLayout->addWidget(spaceLabel,
+                              1, 0, Qt::AlignLeft);
+        gridLayout->addWidget(stereotaxicSpaceToolButton,
+                              1, 1);
+        gridLayout->addWidget(surfaceSpaceToolButton,
+                              1, 2);
+        gridLayout->addWidget(tabSpaceToolButton,
+                              1, 3);
+        gridLayout->addWidget(windowSpaceToolButton,
+                              1, 4);
+
+        QSpacerItem* spaceItem = new QSpacerItem(5, 5,
+                                                 QSizePolicy::Fixed,
+                                                 QSizePolicy::Fixed);
+        gridLayout->addItem(spaceItem,
+                            2, 0, 1, 6);
+        
+        gridLayout->addWidget(typeLabel,
+                              3, 0, Qt::AlignLeft);
+        gridLayout->addWidget(shapeBoxToolButton,
+                              3, 1);
+        gridLayout->addWidget(shapeImageToolButton,
+                              3, 2);
+        gridLayout->addWidget(shapeLineToolButton,
+                              3, 3);
+        gridLayout->addWidget(shapeOvalToolButton,
+                              3, 4);
+        gridLayout->addWidget(shapeTextToolButton,
+                              3, 5);
+    }
+    else {
+        QLabel* insertLabel = new QLabel("Insert");
+        gridLayout->addWidget(spaceLabel,
+                              0, 0, 1, 2, Qt::AlignLeft);
+        gridLayout->addWidget(insertLabel,
+                              0, 2, 1, 2, Qt::AlignHCenter);
+        gridLayout->addWidget(typeLabel,
+                              0, 4, 1, 2, Qt::AlignRight);
+        gridLayout->addWidget(shapeBoxToolButton,
+                              1, 3);
+        gridLayout->addWidget(shapeImageToolButton,
+                              1, 4);
+        gridLayout->addWidget(shapeLineToolButton,
+                              1, 5);
+        gridLayout->addWidget(shapeOvalToolButton,
+                              2, 3);
+        gridLayout->addWidget(shapeTextToolButton,
+                              2, 4);
+        
+        QSpacerItem* spaceItem = new QSpacerItem(20, 10,
+                                                 QSizePolicy::Fixed,
+                                                 QSizePolicy::Fixed);
+        gridLayout->addItem(spaceItem,
+                            0, 4);
+        
+        gridLayout->addWidget(tabSpaceToolButton,
+                              1, 0);
+        gridLayout->addWidget(stereotaxicSpaceToolButton,
+                              1, 1);
+        gridLayout->addWidget(surfaceSpaceToolButton,
+                              2, 0);
+        gridLayout->addWidget(windowSpaceToolButton,
+                              2, 1);
+    }
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -124,8 +185,6 @@ AnnotationInsertNewWidget::~AnnotationInsertNewWidget()
 void
 AnnotationInsertNewWidget::updateContent()
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    m_deleteToolButtonAction->setEnabled(annotationManager->isSelectedAnnotationsDeletable(m_browserWindowIndex));
 }
 
 /**
@@ -178,77 +237,6 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
 }
 
 /**
- * @return The delete tool button.
- */
-QToolButton*
-AnnotationInsertNewWidget::createDeleteToolButton()
-{
-    m_deleteToolButtonAction = WuQtUtilities::createAction("",
-                                                         ("Delete the selected annotation\n"
-                                                          "\n"
-                                                          "Pressing the Delete key while an annotation\n"
-                                                          "is selected will also delete an annotation\n"
-                                                          "\n"
-                                                          "Pressing the arrow will show a menu for\n"
-                                                          "undeleting annotations"),
-                                                         this,
-                                                         this,
-                                                         SLOT(deleteActionTriggered()));
-    QToolButton* toolButton = new QToolButton();
-
-    const float width  = 24.0;
-    const float height = 24.0;
-    QPixmap pixmap(static_cast<int>(width),
-                   static_cast<int>(height));
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(toolButton,
-                                                                                pixmap);
-    
-    
-    /* trash can */
-    painter->drawLine(4, 6, 4, 22);
-    painter->drawLine(4, 22, 20, 22);
-    painter->drawLine(20, 22, 20, 6);
-    
-    /* trash can lines */
-    painter->drawLine(12, 8, 12, 20);
-    painter->drawLine(8,  8,  8, 20);
-    painter->drawLine(16, 8, 16, 20);
-    
-    /* trash can lid and handle */
-    painter->drawLine(2, 6, 22, 6);
-    painter->drawLine(8, 6, 8, 2);
-    painter->drawLine(8, 2, 16, 2);
-    painter->drawLine(16, 2, 16, 6);
-    
-
-    m_deleteToolButtonAction->setIcon(QIcon(pixmap));
-
-    toolButton->setIconSize(pixmap.size());
-    toolButton->setDefaultAction(m_deleteToolButtonAction);
-    
-    return toolButton;
-}
-
-/**
- * Gets called when the delete action is triggered.
- */
-void
-AnnotationInsertNewWidget::deleteActionTriggered()
-{
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
-    if ( ! selectedAnnotations.empty()) {
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeDeleteAnnotations(selectedAnnotations);
-        annotationManager->applyCommand(undoCommand);
-        
-        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
-}
-
-
-/**
  * Create an annotation with the given type.
  *
  * @param annotationType
@@ -257,7 +245,24 @@ AnnotationInsertNewWidget::deleteActionTriggered()
 void
 AnnotationInsertNewWidget::createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType)
 {
-    EventManager::get()->sendEvent(EventAnnotationCreateNewType(annotationType).getPointer());
+    QAbstractButton* abstractButton = m_spaceButtonGroup->checkedButton();
+    if (abstractButton == NULL) {
+        WuQMessageBox::errorOk(this, "No space is selected.  Select a space.");
+        return;
+    }
+    const QToolButton* toolButton = qobject_cast<const QToolButton*>(abstractButton);
+    CaretAssert(toolButton);
+    const QAction* action = toolButton->defaultAction();
+    CaretAssert(action);
+    const int spaceInt = action->data().toInt();
+    
+    bool validFlag = false;
+    AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::fromIntegerCode(spaceInt,
+                                                                                               &validFlag);
+    CaretAssert(validFlag);
+    
+    EventManager::get()->sendEvent(EventAnnotationCreateNewType(space,
+                                                                annotationType).getPointer());
 }
 
 /**
@@ -404,6 +409,177 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
         }
             break;
     }
+    
+    return pixmap;
+}
+
+/**
+ * @return Create the space tool button for the given annotation space.
+ *
+ * @param annotationSpace
+ *     The annotation space
+ */
+QToolButton*
+AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpaceEnum::Enum annotationSpace)
+{
+    switch (annotationSpace) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            CaretAssertMessage(0, "Annotations in pixel space not supported.");
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    
+    const bool useIconFlag = true;
+    QToolButton* toolButton = new QToolButton();
+    QAction* action = NULL;
+    if (useIconFlag) {
+        action = new QAction(createSpacePixmap(toolButton,
+                                               annotationSpace),
+                             AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(annotationSpace),
+                             this);
+    }
+    else {
+        action = new QAction(AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(annotationSpace),
+                             this);
+    }
+
+    action->setData((int)AnnotationCoordinateSpaceEnum::toIntegerCode(annotationSpace));
+    action->setToolTip("Set space for new annotations to "
+                       + AnnotationCoordinateSpaceEnum::toGuiName(annotationSpace));
+    action->setCheckable(true);
+    action->setChecked(false);
+    
+    toolButton->setDefaultAction(action);
+    
+    return toolButton;
+}
+
+/**
+ * Create a pixmap for the given annotation coordinate space
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @param annotationSpace
+ *    The annotation coordinate space.
+ * @return
+ *    Pixmap with icon for the given annotation coordinate space.
+ */
+QPixmap
+AnnotationInsertNewWidget::createSpacePixmap(const QWidget* widget,
+                                             const AnnotationCoordinateSpaceEnum::Enum annotationSpace)
+{
+    CaretAssert(widget);
+    
+    /*
+     * Create a small, square pixmap that will contain
+     * the foreground color around the pixmap's perimeter.
+     */
+    const float width  = 24.0;
+    const float height = 24.0;
+    QPixmap pixmap(static_cast<int>(width),
+                   static_cast<int>(height));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
+                                                                                pixmap);
+    
+    /**
+     * NOTE: ORIGIN is in TOP LEFT corner of pixmap.
+     */
+    switch (annotationSpace) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            CaretAssertMessage(0, "Annotations in pixel space not supported.");
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    
+    const QString letter = AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(annotationSpace);
+    QFont font = painter->font();
+    font.setPixelSize(20);
+    painter->setFont(font);
+    painter->drawText(pixmap.rect(),
+                      (Qt::AlignCenter),
+                      letter);
+//        case AnnotationTypeEnum::BOX:
+//            painter->drawRect(1, 1, width - 2, height - 2);
+//            break;
+//        case AnnotationTypeEnum::COLOR_BAR:
+//            CaretAssertMessage(0, "No pixmap for colorbar as user does not create them like other annotations");
+//            break;
+//        case AnnotationTypeEnum::IMAGE:
+//        {
+//            const int blueAsGray = qGray(25,25,255);
+//            QColor skyColor(blueAsGray, blueAsGray, blueAsGray);
+//            
+//            /*
+//             * Background (sky)
+//             */
+//            painter->fillRect(pixmap.rect(), skyColor);
+//            
+//            const int greenAsGray = qGray(0, 255, 0);
+//            QColor terrainColor(greenAsGray, greenAsGray, greenAsGray);
+//            
+//            /*
+//             * Terrain
+//             */
+//            painter->setBrush(terrainColor);
+//            painter->setPen(terrainColor);
+//            const int w14 = width * 0.25;
+//            const int h23 = height * 0.667;
+//            const int h34 = height * 0.75;
+//            QPolygon terrain;
+//            terrain.push_back(QPoint(1, height - 1));
+//            terrain.push_back(QPoint(width - 1, height - 1));
+//            terrain.push_back(QPoint(width - 1, h23));
+//            terrain.push_back(QPoint(w14 * 3, h34));
+//            terrain.push_back(QPoint(w14 * 2, h23));
+//            terrain.push_back(QPoint(w14, h34));
+//            terrain.push_back(QPoint(1, h23));
+//            terrain.push_back(QPoint(1, height - 1));
+//            painter->drawPolygon(terrain);
+//            
+//            const int yellowAsGray = qGray(255, 255, 0);
+//            QColor sunColor(yellowAsGray, yellowAsGray, yellowAsGray);
+//            
+//            /*
+//             * Sun
+//             */
+//            painter->setBrush(sunColor);
+//            painter->setPen(sunColor);
+//            const int radius = width * 0.25;
+//            painter->drawEllipse(width * 0.33, height * 0.33, radius, radius);
+//        }
+//            break;
+//        case AnnotationTypeEnum::LINE:
+//            painter->drawLine(1, height - 1, width - 1, 1);
+//            break;
+//        case AnnotationTypeEnum::OVAL:
+//            painter->drawEllipse(1, 1, width - 1, height - 1);
+//            break;
+//        case AnnotationTypeEnum::TEXT:
+//        {
+//            QFont font = painter->font();
+//            font.setPixelSize(20);
+//            painter->setFont(font);
+//            painter->drawText(pixmap.rect(),
+//                              (Qt::AlignCenter),
+//                              "A");
+//        }
+//            break;
+//    }
     
     return pixmap;
 }

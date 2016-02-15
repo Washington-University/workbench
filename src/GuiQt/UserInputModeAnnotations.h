@@ -184,7 +184,8 @@ namespace caret {
     private:
         class NewMouseDragCreateAnnotation {
         public:
-            NewMouseDragCreateAnnotation(const AnnotationTypeEnum::Enum annotationType,
+            NewMouseDragCreateAnnotation(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                         const AnnotationTypeEnum::Enum annotationType,
                                          const MouseEvent& mousePressEvent);
             
             ~NewMouseDragCreateAnnotation();
@@ -267,7 +268,7 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        AnnotationTypeEnum::Enum m_modeNewAnnotationType;
+        std::pair<AnnotationCoordinateSpaceEnum::Enum, AnnotationTypeEnum::Enum> m_modeNewAnnotationSpaceAndType;
 
         Annotation* m_annotationUnderMouse;
         

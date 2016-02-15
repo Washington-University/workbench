@@ -35,6 +35,7 @@ namespace caret {
     class AnnotationColorWidget;
     class AnnotationCoordinateSpaceWidget;
     class AnnotationCoordinateWidget;
+    class AnnotationDeleteWidget;
     class AnnotationFontWidget;
     class AnnotationFormatWidget;
     class AnnotationInsertNewWidget;
@@ -107,6 +108,8 @@ namespace caret {
         AnnotationTextOrientationWidget* m_textOrientationWidget;
         
         AnnotationInsertNewWidget* m_insertDeleteWidget;
+        
+        AnnotationDeleteWidget* m_deleteWidget;
         
         AnnotationRedoUndoWidget* m_redoUndoWidget;
         

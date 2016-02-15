@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "Event.h"
 
@@ -32,9 +32,12 @@ namespace caret {
     class EventAnnotationCreateNewType : public Event {
         
     public:
-        EventAnnotationCreateNewType(const AnnotationTypeEnum::Enum annotationType);
+        EventAnnotationCreateNewType(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                     const AnnotationTypeEnum::Enum annotationType);
         
         virtual ~EventAnnotationCreateNewType();
+        
+        AnnotationCoordinateSpaceEnum::Enum getAnnotationSpace() const;
         
         AnnotationTypeEnum::Enum getAnnotationType() const;
         
@@ -44,6 +47,8 @@ namespace caret {
         EventAnnotationCreateNewType(const EventAnnotationCreateNewType&);
 
         EventAnnotationCreateNewType& operator=(const EventAnnotationCreateNewType&);
+        
+        const AnnotationCoordinateSpaceEnum::Enum m_annotationSpace;
         
         const AnnotationTypeEnum::Enum m_annotationType;
 
