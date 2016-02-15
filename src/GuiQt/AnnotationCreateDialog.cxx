@@ -363,7 +363,7 @@ m_imageHeight(0)
             break;
     }
     
-    UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+    AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
                                                              mouseEvent.getViewportContent(),
                                                              windowX,
                                                              windowY,
@@ -372,7 +372,7 @@ m_imageHeight(0)
     bool secondCoordValidFlag = false;
     if ((windowTwoX >= 0)
         && (windowTwoY >= 0)) {
-        UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+        AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
                                                                  mouseEvent.getViewportContent(),
                                                                  windowTwoX,
                                                                  windowTwoY,

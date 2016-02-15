@@ -21,13 +21,19 @@
  */
 /*LICENSE_END*/
 
-
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "StructureEnum.h"
 
 
 namespace caret {
 
+    class Annotation;
+    class AnnotationOneDimensionalShape;
+    class AnnotationTwoDimensionalShape;
+    class BrainOpenGLWidget;
+    class BrainOpenGLViewportContent;
+    
     class AnnotationCoordinateInformation {
         
     public:
@@ -37,8 +43,22 @@ namespace caret {
         
         void reset();
         
+        static void getValidCoordinateSpacesFromXY(BrainOpenGLWidget* openGLWidget,
+                                                   BrainOpenGLViewportContent* viewportContent,
+                                                   const int32_t windowX,
+                                                   const int32_t windowY,
+                                                   AnnotationCoordinateInformation& coordInfoOut);
+        
+        static bool setAnnotationCoordinatesForSpace(Annotation* annotation,
+                                                     const AnnotationCoordinateSpaceEnum::Enum space,
+                                                     const AnnotationCoordinateInformation* coordInfoOne,
+                                                     const AnnotationCoordinateInformation* coordInfoTwo);
+        
+        
+        
         // ADD_NEW_METHODS_HERE
 
+        
         double m_modelXYZ[3];
         bool   m_modelXYZValid;
         
@@ -64,6 +84,15 @@ namespace caret {
 
         AnnotationCoordinateInformation& operator=(const AnnotationCoordinateInformation&);
         
+        static bool setOneDimAnnotationCoordinatesForSpace(AnnotationOneDimensionalShape* annotation,
+                                                           const AnnotationCoordinateSpaceEnum::Enum space,
+                                                           const AnnotationCoordinateInformation* coordInfoOne,
+                                                           const AnnotationCoordinateInformation* coordInfoTwo);
+        
+        static bool setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDimensionalShape* annotation,
+                                                           const AnnotationCoordinateSpaceEnum::Enum space,
+                                                           const AnnotationCoordinateInformation* coordInfoOne,
+                                                           const AnnotationCoordinateInformation* coordInfoTwo);
         // ADD_NEW_MEMBERS_HERE
 
     };

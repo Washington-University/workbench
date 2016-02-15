@@ -111,17 +111,6 @@ namespace caret {
 
         virtual AString toString() const;
         
-        static void getValidCoordinateSpacesFromXY(BrainOpenGLWidget* openGLWidget,
-                                                   BrainOpenGLViewportContent* viewportContent,
-                                                   const int32_t windowX,
-                                                   const int32_t windowY,
-                                                   AnnotationCoordinateInformation& coordInfoOut);
-        
-        static bool setAnnotationCoordinatesForSpace(Annotation* annotation,
-                                                     const AnnotationCoordinateSpaceEnum::Enum space,
-                                                     const AnnotationCoordinateInformation* coordInfoOne,
-                                                     const AnnotationCoordinateInformation* coordInfoTwo);
-        
         virtual void processEditMenuItemSelection(const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem);
         
         virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
@@ -195,16 +184,6 @@ namespace caret {
         void resetAnnotationUnderMouse();
         
         bool isEditMenuValid() const;
-        
-        static bool setOneDimAnnotationCoordinatesForSpace(AnnotationOneDimensionalShape* annotation,
-                                                     const AnnotationCoordinateSpaceEnum::Enum space,
-                                                     const AnnotationCoordinateInformation* coordInfoOne,
-                                                     const AnnotationCoordinateInformation* coordInfoTwo);
-        
-        static bool setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDimensionalShape* annotation,
-                                                           const AnnotationCoordinateSpaceEnum::Enum space,
-                                                           const AnnotationCoordinateInformation* coordInfoOne,
-                                                           const AnnotationCoordinateInformation* coordInfoTwo);
         
         void pasteAnnotationFromAnnotationClipboard(const MouseEvent& mouseEvent);
         

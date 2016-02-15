@@ -699,14 +699,14 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
     bool validCoordsFlag = false;
     
     if (oneDimAnn != NULL) {
-        validCoordsFlag = UserInputModeAnnotations::setAnnotationCoordinatesForSpace(oneDimAnn,
+        validCoordsFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(oneDimAnn,
                                                                    coordinateSpace,
                                                                    &m_coordInfo,
                                                                    m_optionalSecondCoordInfo);
 //        setOneDimAnnotationCoordinates(oneDimAnn);
     }
     else if (twoDimAnn != NULL) {
-        validCoordsFlag = UserInputModeAnnotations::setAnnotationCoordinatesForSpace(twoDimAnn,
+        validCoordsFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(twoDimAnn,
                                                                    coordinateSpace,
                                                                    &m_coordInfo,
                                                                    m_optionalSecondCoordInfo);
