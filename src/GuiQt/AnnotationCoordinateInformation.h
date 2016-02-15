@@ -33,6 +33,7 @@ namespace caret {
     class AnnotationTwoDimensionalShape;
     class BrainOpenGLWidget;
     class BrainOpenGLViewportContent;
+    class MouseEvent;
     
     class AnnotationCoordinateInformation {
         
@@ -41,7 +42,12 @@ namespace caret {
         
         virtual ~AnnotationCoordinateInformation();
         
+        bool isCoordinateSpaceValid(const AnnotationCoordinateSpaceEnum::Enum space) const;
+        
         void reset();
+        
+        static void getValidCoordinateSpacesFromXY(const MouseEvent& mouseEvent,
+                                                   AnnotationCoordinateInformation& coordInfoOut);
         
         static void getValidCoordinateSpacesFromXY(BrainOpenGLWidget* openGLWidget,
                                                    BrainOpenGLViewportContent* viewportContent,
@@ -54,7 +60,12 @@ namespace caret {
                                                      const AnnotationCoordinateInformation* coordInfoOne,
                                                      const AnnotationCoordinateInformation* coordInfoTwo);
         
+        static void setAnnotationFromBoundsWidthAndHeight(Annotation* annotation,
+                                                          const MouseEvent& mouseEvent,
+                                                          const float annotationWidth,
+                                                          const float annotationHeight);
         
+
         
         // ADD_NEW_METHODS_HERE
 

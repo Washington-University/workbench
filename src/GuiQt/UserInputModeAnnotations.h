@@ -187,8 +187,8 @@ namespace caret {
         
         void pasteAnnotationFromAnnotationClipboard(const MouseEvent& mouseEvent);
         
-        bool pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
-                                      AnnotationCoordinateInformation& coordInfo);
+//        bool pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
+//                                      AnnotationCoordinateInformation& coordInfo);
         
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         

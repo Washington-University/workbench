@@ -46,9 +46,9 @@ namespace caret {
         Q_OBJECT
 
     public:
-//        static AnnotationCreateDialog* newAnnotation(const MouseEvent& mouseEvent,
-//                                                     const Annotation* annotation,
-//                                                     QWidget* parent = 0);
+        static Annotation* newAnnotationFromSpaceAndType(const MouseEvent& mouseEvent,
+                                                         const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                         const AnnotationTypeEnum::Enum annotationType);
         
         static AnnotationCreateDialog* newAnnotationSpaceAndType(const MouseEvent& mouseEvent,
                                                                  const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
@@ -59,11 +59,6 @@ namespace caret {
                                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                                            const AnnotationTypeEnum::Enum annotationType,
                                                                            QWidget* parent = 0);
-        
-        static AnnotationCreateDialog* newPasteAnnotation(const MouseEvent& mouseEvent,
-                                                          const AnnotationFile* annotationFile,
-                                                          const Annotation* annotation,
-                                                          QWidget* parent = 0);
         
         virtual ~AnnotationCreateDialog();
 
@@ -81,14 +76,10 @@ namespace caret {
     private:
         /** Dialogs mode */
         enum Mode {
-            /** Adding a new annotation */
-            MODE_ADD_NEW_ANNOTATION,
             /** New annotation from annotation type at mouse click */
             MODE_NEW_ANNOTATION_TYPE_CLICK,
             /** New annotation from annotation type at mouse press and release */
-            MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
-            /** Paste an annotation */
-            MODE_PASTE_ANNOTATION
+            MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS
         };
         
         class PreviousSelections {
@@ -121,15 +112,11 @@ namespace caret {
         
         void invalidateImage();
         
-        void setAnnotationFromBoundsWidthAndHeight(Annotation* annotation);
+//        void setAnnotationFromBoundsWidthAndHeight(Annotation* annotation);
         
         const Mode m_mode;
         
         const MouseEvent& m_mouseEvent;
-        
-        const AnnotationFile* m_annotationToPastesFile;
-        
-        const Annotation* m_annotationToPaste;
         
         const AnnotationCoordinateSpaceEnum::Enum m_annotationSpace;
         

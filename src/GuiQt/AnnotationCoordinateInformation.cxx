@@ -33,6 +33,7 @@
 #include "CaretAssert.h"
 #include "EventIdentificationRequest.h"
 #include "EventManager.h"
+#include "MouseEvent.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -93,6 +94,51 @@ AnnotationCoordinateInformation::reset() {
     m_windowXYZ[0] = 0.0;
     m_windowXYZ[1] = 0.0;
     m_windowXYZ[2] = 0.0;
+}
+
+bool
+AnnotationCoordinateInformation::isCoordinateSpaceValid(const AnnotationCoordinateSpaceEnum::Enum space) const
+{
+    bool validSpaceFlag = false;
+    
+    switch (space) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            CaretAssertMessage(0, "Space should never be pixels");
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            validSpaceFlag = m_modelXYZValid;
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            validSpaceFlag = m_surfaceNodeValid;
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            validSpaceFlag = (m_tabIndex >= 0);
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            validSpaceFlag = (m_windowIndex >= 0);
+            break;
+    }
+    
+    return validSpaceFlag;
+}
+
+/**
+ * Get the different types of coordinates at the given mouse location.
+ *
+ * @param mouseEvent
+ *     Mouse event containing mouse location information.
+ * @param coordInfoOut
+ *     Output containing coordinate information.
+ */
+void
+AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(const MouseEvent& mouseEvent,
+                                                                AnnotationCoordinateInformation& coordInfoOut)
+{
+    getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+                                   mouseEvent.getViewportContent(),
+                                   mouseEvent.getX(),
+                                   mouseEvent.getY(),
+                                   coordInfoOut);
 }
 
 /**
@@ -567,4 +613,74 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
     return validCoordinateFlag;
 }
 
+/**
+ * Set the width and height for some two-dim annotations when
+ * they are created from bounds (mouse drag)
+ *
+ * @param annotation
+ *    The annotation.
+ * @param mouseEvent
+ *    Mouse event used for viewport size information.
+ * @param annotationWidth
+ *    Width of annotation (pixels)
+ * @param annotationHeight
+ *    Height of annotation (pixels)
+ */
+void
+AnnotationCoordinateInformation::setAnnotationFromBoundsWidthAndHeight(Annotation* annotation,
+                                                                       const MouseEvent& mouseEvent,
+                                                                       const float annotationWidth,
+                                                                       const float annotationHeight)
+{
+    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+    if (twoDimAnn == NULL) {
+        return;
+    }
+    
+    if ((annotationWidth > 0.0)
+        && (annotationHeight > 0.0)) {
+        bool setWidthHeightFlag = false;
+        switch (annotation->getType()) {
+            case AnnotationTypeEnum::BOX:
+                setWidthHeightFlag = true;
+                break;
+            case AnnotationTypeEnum::COLOR_BAR:
+                setWidthHeightFlag = true;
+                break;
+            case AnnotationTypeEnum::IMAGE:
+                break;
+            case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::OVAL:
+                setWidthHeightFlag = true;
+                break;
+            case AnnotationTypeEnum::TEXT:
+                break;
+        }
+        if (setWidthHeightFlag) {
+            int32_t viewport[4] = { -1, -1, -1, -1 };
+            switch (annotation->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    mouseEvent.getViewportContent()->getModelViewport(viewport);
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    mouseEvent.getViewportContent()->getWindowViewport(viewport);
+                    break;
+            }
+            
+            const float viewportWidth  = viewport[2];
+            const float viewportHeight = viewport[3];
+            if ((viewportWidth > 0)
+                && (viewportHeight > 0)) {
+                const float width  = (annotationWidth  / viewportWidth)  * 100.0;
+                const float height = (annotationHeight / viewportHeight) * 100.0;
+                twoDimAnn->setWidth(width);
+                twoDimAnn->setHeight(height);
+            }
+        }
+    }
+}
 

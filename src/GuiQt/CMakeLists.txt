@@ -30,6 +30,7 @@ AboutWorkbenchDialog.h
 AnnotationChangeCoordinateDialog.h
 AnnotationColorWidget.h
 AnnotationCoordinateSelectionWidget.h
+AnnotationCoordinateSpaceWidget.h
 AnnotationCoordinateWidget.h
 AnnotationCreateDialog.h
 AnnotationDeleteWidget.h
@@ -41,7 +42,7 @@ AnnotationMenuArrange.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
 AnnotationSelectionViewController.h
-AnnotationCoordinateSpaceWidget.h
+AnnotationPasteDialog.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorDialog.h
 AnnotationTextEditorWidget.h
@@ -189,6 +190,7 @@ AnnotationChangeCoordinateDialog.h
 AnnotationColorWidget.h
 AnnotationCoordinateInformation.h
 AnnotationCoordinateSelectionWidget.h
+AnnotationCoordinateSpaceWidget.h
 AnnotationCoordinateWidget.h
 AnnotationCreateDialog.h
 AnnotationDeleteWidget.h
@@ -197,10 +199,10 @@ AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
 AnnotationLineArrowTipsWidget.h
 AnnotationMenuArrange.h
+AnnotationPasteDialog.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
 AnnotationSelectionViewController.h
-AnnotationCoordinateSpaceWidget.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorDialog.h
 AnnotationTextEditorWidget.h
@@ -379,6 +381,7 @@ AnnotationChangeCoordinateDialog.cxx
 AnnotationColorWidget.cxx
 AnnotationCoordinateInformation.cxx
 AnnotationCoordinateSelectionWidget.cxx
+AnnotationCoordinateSpaceWidget.cxx
 AnnotationCoordinateWidget.cxx
 AnnotationCreateDialog.cxx
 AnnotationDeleteWidget.cxx
@@ -387,10 +390,10 @@ AnnotationFormatWidget.cxx
 AnnotationInsertNewWidget.cxx
 AnnotationLineArrowTipsWidget.cxx
 AnnotationMenuArrange.cxx
+AnnotationPasteDialog.cxx
 AnnotationRedoUndoWidget.cxx
 AnnotationRotationWidget.cxx
 AnnotationSelectionViewController.cxx
-AnnotationCoordinateSpaceWidget.cxx
 AnnotationTextAlignmentWidget.cxx
 AnnotationTextEditorDialog.cxx
 AnnotationTextEditorWidget.cxx
