@@ -191,6 +191,7 @@ m_annotationThatWasCreated(NULL)
     layout->addWidget(messageLabel);
     layout->addSpacing(10);
     layout->addWidget(spaceLabel);
+    layout->addSpacing(10);
     layout->addWidget(coordGroupBox);
     
     setCentralWidget(dialogWidget,

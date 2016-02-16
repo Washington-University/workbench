@@ -78,7 +78,9 @@ using namespace caret;
  */
 
 /**
- * Get a dialog for creating a new annotation using an annotation space and type.
+ * Creating a new annotation using an annotation space and type.
+ * A dialog may be displayed when the coordinate space is not valid
+ * for the window location or for text and image annotations.
  *
  * @param mouseEvent
  *     The mouse event indicating where user clicked in the window
@@ -86,18 +88,230 @@ using namespace caret;
  *      Space of annotation being created.
  * @param annotationType
  *      Type of annotation that is being created.
+ * @param annotationFile
+ *      File to which new annotation is added.
+ * @return
+ *      Pointer to annotation that was created or NULL
+ *      if annotation not created (user cancelled).
  */
 Annotation*
 AnnotationCreateDialog::newAnnotationFromSpaceAndType(const MouseEvent& mouseEvent,
                                                       const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-                                                      const AnnotationTypeEnum::Enum annotationType)
+                                                      const AnnotationTypeEnum::Enum annotationType,
+                                                      AnnotationFile* annotationFile)
 {
     AnnotationCoordinateInformation coordInfo;
     AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent,
                                                                     coordInfo);
     
-    const bool needCoordinateSelectionFlag = ( ! coordInfo.isCoordinateSpaceValid(annotationSpace));
+    Annotation* newAnnotation = newAnnotationFromSpaceTypeAndCoords(mouseEvent,
+                                                                    annotationSpace,
+                                                                    annotationType,
+                                                                    &coordInfo,
+                                                                    NULL,
+                                                                    annotationFile);
+    return newAnnotation;
+    
+//    const bool annotationSpaceValidFlag = coordInfo.isCoordinateSpaceValid(annotationSpace);
+//
+//    bool needImageOrTextFlag = false;
+//    switch (annotationType) {
+//        case AnnotationTypeEnum::BOX:
+//            break;
+//        case AnnotationTypeEnum::COLOR_BAR:
+//            CaretAssertMessage(0, "Colorbars do not get created !!!");
+//            break;
+//        case AnnotationTypeEnum::IMAGE:
+//            needImageOrTextFlag = true;
+//            break;
+//        case AnnotationTypeEnum::LINE:
+//            break;
+//        case AnnotationTypeEnum::OVAL:
+//            break;
+//        case AnnotationTypeEnum::TEXT:
+//            needImageOrTextFlag = true;
+//            break;
+//    }
+//
+//    CaretPointer<Annotation> annotationOut(Annotation::newAnnotationOfType(annotationType,
+//                                                                           AnnotationAttributesDefaultTypeEnum::USER));
+//    
+//    if (annotationSpaceValidFlag) {
+//        if ( ! needImageOrTextFlag) {
+//            Annotation* newAnn = Annotation::newAnnotationOfType(annotationType,
+//                                                                 AnnotationAttributesDefaultTypeEnum::USER);
+//            const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(newAnn,
+//                                                                              annotationSpace,
+//                                                                              &coordInfo,
+//                                                                              NULL);
+//            if (validFlag) {
+//                finishAnnotationCreation(annotationFile,
+//                                         newAnn,
+//                                         mouseEvent.getBrowserWindowIndex());
+//                return newAnn;
+//            }
+//        }
+//    }
+//
+//    AnnotationCreateDialog annDialog(MODE_NEW_ANNOTATION_TYPE_CLICK,
+//                                     mouseEvent,
+//                                     annotationFile,
+//                                     annotationSpace,
+//                                     annotationType,
+//                                     mouseEvent.getOpenGLWidget());
+//    if (annDialog.exec() == AnnotationCreateDialog::Accepted) {
+//        return annDialog.getAnnotationThatWasCreated();
+//    }
+//    
+//    return NULL;
+}
 
+/**
+ * Creating a new annotation using an annotation space and type.
+ * A dialog may be displayed when the coordinate space is not valid
+ * for the window location or for text and image annotations.
+ *
+ * @param mouseEvent
+ *     The mouse event indicating where user clicked in the window
+ * @param annotationSpace
+ *      Space of annotation being created.
+ * @param annotationType
+ *      Type of annotation that is being created.
+ * @param annotationFile
+ *      File to which new annotation is added.
+ * @return
+ *      Pointer to annotation that was created or NULL
+ *      if annotation not created (user cancelled).
+ */
+Annotation*
+AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mouseEvent,
+                                                       const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                       const AnnotationTypeEnum::Enum annotationType,
+                                                       AnnotationFile* annotationFile)
+{
+    AnnotationCoordinateInformation coordOne;
+    AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent,
+                                                                    coordOne);
+    
+    AnnotationCoordinateInformation coordTwo;
+    AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+                                                                    mouseEvent.getViewportContent(),
+                                                                    mouseEvent.getPressedX(),
+                                                                    mouseEvent.getPressedY(),
+                                                                    coordTwo);
+    
+    Annotation* newAnnotation = newAnnotationFromSpaceTypeAndCoords(mouseEvent,
+                                                                    annotationSpace,
+                                                                    annotationType,
+                                                                    &coordOne,
+                                                                    &coordTwo,
+                                                                    annotationFile);
+    return newAnnotation;
+    
+//    const bool annotationSpaceValidFlag = coordInfo.isCoordinateSpaceValid(annotationSpace);
+//    
+//    bool needImageOrTextFlag = false;
+//    switch (annotationType) {
+//        case AnnotationTypeEnum::BOX:
+//            break;
+//        case AnnotationTypeEnum::COLOR_BAR:
+//            CaretAssertMessage(0, "Colorbars do not get created !!!");
+//            break;
+//        case AnnotationTypeEnum::IMAGE:
+//            needImageOrTextFlag = true;
+//            break;
+//        case AnnotationTypeEnum::LINE:
+//            break;
+//        case AnnotationTypeEnum::OVAL:
+//            break;
+//        case AnnotationTypeEnum::TEXT:
+//            needImageOrTextFlag = true;
+//            break;
+//    }
+//    
+//    CaretPointer<Annotation> annotationOut(Annotation::newAnnotationOfType(annotationType,
+//                                                                           AnnotationAttributesDefaultTypeEnum::USER));
+//    
+//    if (annotationSpaceValidFlag) {
+//        if ( ! needImageOrTextFlag) {
+//            Annotation* newAnn = Annotation::newAnnotationOfType(annotationType,
+//                                                                 AnnotationAttributesDefaultTypeEnum::USER);
+//            const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(newAnn,
+//                                                                                                     annotationSpace,
+//                                                                                                     &coordInfo,
+//                                                                                                     NULL);
+//            if (validFlag) {
+//                finishAnnotationCreation(annotationFile,
+//                                         newAnn,
+//                                         mouseEvent.getBrowserWindowIndex());
+//                return newAnn;
+//            }
+//        }
+//    }
+//    
+//    AnnotationCreateDialog annDialog(MODE_NEW_ANNOTATION_TYPE_CLICK,
+//                                     mouseEvent,
+//                                     annotationFile,
+//                                     annotationSpace,
+//                                     annotationType,
+//                                     mouseEvent.getOpenGLWidget());
+//    if (annDialog.exec() == AnnotationCreateDialog::Accepted) {
+//        return annDialog.getAnnotationThatWasCreated();
+//    }
+//    
+//    return NULL;
+}
+
+/**
+ * Creating a new annotation using an annotation space and type.
+ * A dialog may be displayed when the coordinate space is not valid
+ * for the window location or for text and image annotations.
+ *
+ * @param mouseEvent
+ *     The mouse event indicating where user clicked in the window
+ * @param annotationSpace
+ *      Space of annotation being created.
+ * @param annotationType
+ *      Type of annotation that is being created.
+ * @param coordOne
+ *      The first coordinate MUST BE VALID (NOT NULL).
+ * @param coordTwo
+ *      Optional second coordinate (NULL if invalid).
+ * @param annotationFile
+ *      File to which new annotation is added.
+ * @return
+ *      Pointer to annotation that was created or NULL
+ *      if annotation not created (user cancelled).
+ */
+Annotation*
+AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const MouseEvent& mouseEvent,
+                                                       const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                       const AnnotationTypeEnum::Enum annotationType,
+                                                       const AnnotationCoordinateInformation* coordOne,
+                                                       const AnnotationCoordinateInformation* coordTwo,
+                                                       AnnotationFile* annotationFile)
+{
+    CaretAssert(coordOne);
+//    AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent,
+//                                                                    coordInfo);
+    
+    /*
+     * Both coordinates must be valid for the annotation space.
+     * Note: Second coordinate is optional.
+     */
+    bool annotationSpaceValidFlag = false;
+    if (coordOne->isCoordinateSpaceValid(annotationSpace)) {
+        if (coordTwo != NULL) {
+            if (coordTwo->isCoordinateSpaceValid(annotationSpace)) {
+                annotationSpaceValidFlag = true;
+            }
+        }
+        else {
+            annotationSpaceValidFlag = true;
+        }
+    }
+    
+    
     bool needImageOrTextFlag = false;
     switch (annotationType) {
         case AnnotationTypeEnum::BOX:
@@ -116,72 +330,93 @@ AnnotationCreateDialog::newAnnotationFromSpaceAndType(const MouseEvent& mouseEve
             needImageOrTextFlag = true;
             break;
     }
-
+    
     CaretPointer<Annotation> annotationOut(Annotation::newAnnotationOfType(annotationType,
                                                                            AnnotationAttributesDefaultTypeEnum::USER));
-
-    if (needCoordinateSelectionFlag
-        || needImageOrTextFlag) {
-        
+    
+    if (annotationSpaceValidFlag) {
+        if ( ! needImageOrTextFlag) {
+            Annotation* newAnn = Annotation::newAnnotationOfType(annotationType,
+                                                                 AnnotationAttributesDefaultTypeEnum::USER);
+            const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(newAnn,
+                                                                                                     annotationSpace,
+                                                                                                     coordOne,
+                                                                                                     coordTwo);
+            if (validFlag) {
+                finishAnnotationCreation(annotationFile,
+                                         newAnn,
+                                         mouseEvent.getBrowserWindowIndex());
+                return newAnn;
+            }
+        }
     }
-    return annotationOut.getPointer();
+    
+    AnnotationCreateDialog annDialog(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
+                                     mouseEvent,
+                                     annotationFile,
+                                     annotationSpace,
+                                     annotationType,
+                                     mouseEvent.getOpenGLWidget());
+    if (annDialog.exec() == AnnotationCreateDialog::Accepted) {
+        return annDialog.getAnnotationThatWasCreated();
+    }
+    
+    return NULL;
 }
 
-/**
- * Get a dialog for creating a new annotation using an annotation space and type.
- *
- * @param mouseEvent
- *     The mouse event indicating where user clicked in the window
- * @param annotationSpace
- *      Space of annotation being created.
- * @param annotationType
- *      Type of annotation that is being created.
- * @param parent
- *      Optional parent for this dialog.
- */
-AnnotationCreateDialog*
-AnnotationCreateDialog::newAnnotationSpaceAndType(const MouseEvent& mouseEvent,
-                                                  const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-                                                  const AnnotationTypeEnum::Enum annotationType,
-                                                  QWidget* parent)
-{
-    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE_CLICK,
-                                                                mouseEvent,
-                                                                NULL,
-                                                                NULL,
-                                                                annotationSpace,
-                                                                annotationType,
-                                                                parent);
-    return dialog;
-}
-
-/**
- * Get a dialog for creating a new annotation using an annotation type.
- *
- * @param mouseEvent
- *     The mouse event.
- * @param annotationSpace
- *      Space of annotation being created.
- * @param annotationType
- *      Type of annotation that is being created.
- * @param parent
- *      Optional parent for this dialog.
- */
-AnnotationCreateDialog*
-AnnotationCreateDialog::newAnnotationSpaceAndTypeWithBounds(const MouseEvent& mouseEvent,
-                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-                                                            const AnnotationTypeEnum::Enum annotationType,
-                                                            QWidget* parent)
-{
-    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
-                                                                mouseEvent,
-                                                                NULL,
-                                                                NULL,
-                                                                annotationSpace,
-                                                                annotationType,
-                                                                parent);
-    return dialog;
-}
+///**
+// * Get a dialog for creating a new annotation using an annotation space and type.
+// *
+// * @param mouseEvent
+// *     The mouse event indicating where user clicked in the window
+// * @param annotationSpace
+// *      Space of annotation being created.
+// * @param annotationType
+// *      Type of annotation that is being created.
+// * @param parent
+// *      Optional parent for this dialog.
+// */
+//AnnotationCreateDialog*
+//AnnotationCreateDialog::newAnnotationSpaceAndType(const MouseEvent& mouseEvent,
+//                                                  const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+//                                                  const AnnotationTypeEnum::Enum annotationType,
+//                                                  QWidget* parent)
+//{
+//    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE_CLICK,
+//                                                                mouseEvent,
+//                                                                NULL,
+//                                                                annotationSpace,
+//                                                                annotationType,
+//                                                                parent);
+//    return dialog;
+//}
+//
+///**
+// * Get a dialog for creating a new annotation using an annotation type.
+// *
+// * @param mouseEvent
+// *     The mouse event.
+// * @param annotationSpace
+// *      Space of annotation being created.
+// * @param annotationType
+// *      Type of annotation that is being created.
+// * @param parent
+// *      Optional parent for this dialog.
+// */
+//AnnotationCreateDialog*
+//AnnotationCreateDialog::newAnnotationSpaceAndTypeWithBounds(const MouseEvent& mouseEvent,
+//                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+//                                                            const AnnotationTypeEnum::Enum annotationType,
+//                                                            QWidget* parent)
+//{
+//    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
+//                                                                mouseEvent,
+//                                                                NULL,
+//                                                                annotationSpace,
+//                                                                annotationType,
+//                                                                parent);
+//    return dialog;
+//}
 
 /**
  * Dialog constructor.
@@ -203,8 +438,7 @@ AnnotationCreateDialog::newAnnotationSpaceAndTypeWithBounds(const MouseEvent& mo
  */
 AnnotationCreateDialog::AnnotationCreateDialog(const Mode mode,
                                                const MouseEvent& mouseEvent,
-                                               const AnnotationFile* annotationFile,
-                                               const Annotation* annotation,
+                                               AnnotationFile* annotationFile,
                                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                const AnnotationTypeEnum::Enum annotationType,
                                                QWidget* parent)
@@ -212,6 +446,7 @@ AnnotationCreateDialog::AnnotationCreateDialog(const Mode mode,
                  parent),
 m_mode(mode),
 m_mouseEvent(mouseEvent),
+m_annotationFile(annotationFile),
 m_annotationSpace(annotationSpace),
 m_annotationType(annotationType),
 m_annotationThatWasCreated(NULL),
@@ -348,6 +583,19 @@ m_imageHeight(0)
                                                                           (secondCoordValidFlag
                                                                            ? &m_coordTwoInfo
                                                                            : NULL));
+    
+    const QString message("The location for the new annotation is incompatible with the "
+                          "coordinate space selected in the toolbar.  "
+                          "Choose one of the coordinate "
+                          "spaces below to create the annotation or press Cancel to cancel creation "
+                          "of the annotation.");
+    QLabel* messageLabel = new QLabel(message);
+    messageLabel->setWordWrap(true);
+    
+    QLabel* spaceLabel = new QLabel("Space of Annotation on Clipboard: "
+                                    + AnnotationCoordinateSpaceEnum::toGuiName(annotationSpace));
+    spaceLabel->setWordWrap(false);
+    
     QGroupBox* coordGroupBox = new QGroupBox("Coordinate Space");
     QVBoxLayout* coordGroupLayout = new QVBoxLayout(coordGroupBox);
     coordGroupLayout->setMargin(0);
@@ -377,6 +625,10 @@ m_imageHeight(0)
     if (m_fileSelectionWidget != NULL) {
         layout->addWidget(m_fileSelectionWidget);
     }
+    layout->addWidget(messageLabel);
+    layout->addSpacing(10);
+    layout->addWidget(spaceLabel);
+    layout->addSpacing(10);
     layout->addWidget(coordGroupBox);
     if (textWidget != NULL) {
         layout->addWidget(textWidget);
@@ -769,24 +1021,63 @@ AnnotationCreateDialog::okButtonClicked()
                                                                                        m_annotationFromBoundsHeight);
             }
             
-            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-            undoCommand->setModeCreateAnnotation(annotationFile,
-                                                 annotationPointer);
-            annotationManager->applyCommand(undoCommand);
+//            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+//            undoCommand->setModeCreateAnnotation(annotationFile,
+//                                                 annotationPointer);
+//            annotationManager->applyCommand(undoCommand);
         }
             break;
     }
     
+    finishAnnotationCreation(annotationFile,
+                             annotationPointer,
+                             m_mouseEvent.getBrowserWindowIndex());
 
-    annotationManager->selectAnnotation(m_mouseEvent.getBrowserWindowIndex(),
-                                        AnnotationManager::SELECTION_MODE_SINGLE,
-                                        false,
-                                        annotationPointer);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+//    annotationManager->selectAnnotation(m_mouseEvent.getBrowserWindowIndex(),
+//                                        AnnotationManager::SELECTION_MODE_SINGLE,
+//                                        false,
+//                                        annotationPointer);
+//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     
     m_annotationThatWasCreated = annotationPointer;
     
     WuQDialog::okButtonClicked();
+}
+
+/**
+ * Finish the creation of an annotation.
+ *
+ * @param annotationFile
+ *     File to which annotation is added.
+ * @param annotation
+ *     Annotation that was created.
+ * @param browserWindowIndex
+ *     Index of window in which annotation was created.
+ */
+void
+AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
+                                                 Annotation* annotation,
+                                                 const int32_t browswerWindowIndex)
+{
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    
+    /*
+     * Add annotation to its file
+     */
+    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    undoCommand->setModeCreateAnnotation(annotationFile,
+                                         annotation);
+    annotationManager->applyCommand(undoCommand);
+    
+    
+    annotationManager->selectAnnotation(browswerWindowIndex,
+                                        AnnotationManager::SELECTION_MODE_SINGLE,
+                                        false,
+                                        annotation);
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    
 }
 

@@ -533,7 +533,11 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
             }
             
-            m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(m_modeNewAnnotationSpaceAndType.first,
+            /*
+             * Note ALWAYS use WINDOW space for the drag anntotion.
+             * Otherwise it will not get displayed if surface/stereotaxic
+             */
+            m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(AnnotationCoordinateSpaceEnum::WINDOW,
                                                                                           m_modeNewAnnotationSpaceAndType.second,
                                                                                           mouseEvent));
             m_mode = MODE_NEW_WITH_DRAG;
@@ -1218,17 +1222,26 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
 {
     if (m_newAnnotationCreatingWithMouseDrag != NULL) {
         
-        CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationSpaceAndTypeWithBounds(mouseEvent,
-                                                                                                                  m_newAnnotationCreatingWithMouseDrag->getAnnotation()->getCoordinateSpace(),
-                                                                                                                  m_newAnnotationCreatingWithMouseDrag->getAnnotation()->getType(),
-                                                                                                                  mouseEvent.getOpenGLWidget()));
-        if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
-            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-            const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
-            if (allSelectedAnnotations.size() == 1) {
-                selectAnnotation(allSelectedAnnotations[0]);
-            }
+        CaretLogSevere("USING SCENE ANNOTION FILE WHEN CREATING ANNOTATION, NOT SELECTED FILE");
+        AnnotationFile* annFile = GuiManager::get()->getBrain()->getSceneAnnotationFile();
+        Annotation* ann = AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(mouseEvent,
+                                                                                      m_modeNewAnnotationSpaceAndType.first,
+                                                                                      m_modeNewAnnotationSpaceAndType.second,
+                                                                                      annFile);
+        if (ann != NULL) {
+            selectAnnotation(ann);
         }
+//        CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationSpaceAndTypeWithBounds(mouseEvent,
+//                                                                                                                  m_newAnnotationCreatingWithMouseDrag->getAnnotation()->getCoordinateSpace(),
+//                                                                                                                  m_newAnnotationCreatingWithMouseDrag->getAnnotation()->getType(),
+//                                                                                                                  mouseEvent.getOpenGLWidget()));
+//        if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
+//            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+//            const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+//            if (allSelectedAnnotations.size() == 1) {
+//                selectAnnotation(allSelectedAnnotations[0]);
+//            }
+//        }
         
        setMode(MODE_SELECT);
         
@@ -1425,17 +1438,27 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
 {
     resetAnnotationUnderMouse();
     
-    CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationSpaceAndType(mouseEvent,
-                                                                                                    m_modeNewAnnotationSpaceAndType.first,
-                                                                                                    m_modeNewAnnotationSpaceAndType.second,
-                                                                                                    mouseEvent.getOpenGLWidget()));
-    if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
-        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-        const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
-        if (allSelectedAnnotations.size() == 1) {
-            selectAnnotation(allSelectedAnnotations[0]);
-        }
+    CaretLogSevere("USING SCENE ANNOTION FILE WHEN CREATING ANNOTATION, NOT SELECTED FILE");
+    AnnotationFile* annFile = GuiManager::get()->getBrain()->getSceneAnnotationFile();
+    Annotation* ann = AnnotationCreateDialog::newAnnotationFromSpaceAndType(mouseEvent,
+                                                                            m_modeNewAnnotationSpaceAndType.first,
+                                                                            m_modeNewAnnotationSpaceAndType.second,
+                                                                            annFile);
+    if (ann != NULL) {
+        selectAnnotation(ann);
     }
+    
+//    CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationSpaceAndType(mouseEvent,
+//                                                                                                    m_modeNewAnnotationSpaceAndType.first,
+//                                                                                                    m_modeNewAnnotationSpaceAndType.second,
+//                                                                                                    mouseEvent.getOpenGLWidget()));
+//    if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
+//        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+//        const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+//        if (allSelectedAnnotations.size() == 1) {
+//            selectAnnotation(allSelectedAnnotations[0]);
+//        }
+//    }
 
     setMode(MODE_SELECT);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

@@ -48,17 +48,23 @@ namespace caret {
     public:
         static Annotation* newAnnotationFromSpaceAndType(const MouseEvent& mouseEvent,
                                                          const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-                                                         const AnnotationTypeEnum::Enum annotationType);
+                                                         const AnnotationTypeEnum::Enum annotationType,
+                                                         AnnotationFile* annotationFile);
         
-        static AnnotationCreateDialog* newAnnotationSpaceAndType(const MouseEvent& mouseEvent,
-                                                                 const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-                                                                 const AnnotationTypeEnum::Enum annotationType,
-                                                                 QWidget* parent = 0);
+//        static AnnotationCreateDialog* newAnnotationSpaceAndType(const MouseEvent& mouseEvent,
+//                                                                 const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+//                                                                 const AnnotationTypeEnum::Enum annotationType,
+//                                                                 QWidget* parent = 0);
+//        
+//        static AnnotationCreateDialog* newAnnotationSpaceAndTypeWithBounds(const MouseEvent& mousePressEvent,
+//                                                                           const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+//                                                                           const AnnotationTypeEnum::Enum annotationType,
+//                                                                           QWidget* parent = 0);
         
-        static AnnotationCreateDialog* newAnnotationSpaceAndTypeWithBounds(const MouseEvent& mousePressEvent,
-                                                                           const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-                                                                           const AnnotationTypeEnum::Enum annotationType,
-                                                                           QWidget* parent = 0);
+        static Annotation* newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mouseEvent,
+                                                               const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                               const AnnotationTypeEnum::Enum annotationType,
+                                                               AnnotationFile* annotationFile);
         
         virtual ~AnnotationCreateDialog();
 
@@ -92,10 +98,16 @@ namespace caret {
             bool m_valid;
         };
         
+        static Annotation* newAnnotationFromSpaceTypeAndCoords(const MouseEvent& mouseEvent,
+                                                               const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                               const AnnotationTypeEnum::Enum annotationType,
+                                                               const AnnotationCoordinateInformation* coordOne,
+                                                               const AnnotationCoordinateInformation* coordTwo,
+                                                               AnnotationFile* annotationFile);
+        
         AnnotationCreateDialog(const Mode mode,
                                const MouseEvent& mouseEvent,
-                               const AnnotationFile* annotationFile,
-                               const Annotation* annotation,
+                               AnnotationFile* annotationFile,
                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                const AnnotationTypeEnum::Enum annotationType,
                                QWidget* parent = 0);
@@ -112,11 +124,17 @@ namespace caret {
         
         void invalidateImage();
         
+        static void finishAnnotationCreation(AnnotationFile* annotationFile,
+                                             Annotation* annotation,
+                                             const int32_t browswerWindowIndex);
+        
 //        void setAnnotationFromBoundsWidthAndHeight(Annotation* annotation);
         
         const Mode m_mode;
         
         const MouseEvent& m_mouseEvent;
+        
+        AnnotationFile* m_annotationFile;
         
         const AnnotationCoordinateSpaceEnum::Enum m_annotationSpace;
         

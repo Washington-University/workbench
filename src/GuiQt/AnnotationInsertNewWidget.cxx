@@ -86,11 +86,14 @@ m_browserWindowIndex(browserWindowIndex)
     m_spaceButtonGroup->addButton(stereotaxicSpaceToolButton);
     m_spaceButtonGroup->addButton(surfaceSpaceToolButton);
     m_spaceButtonGroup->addButton(windowSpaceToolButton);
+    
+    /*
+     * Check the default space tool button
+     */
     tabSpaceToolButton->setChecked(true);
     
     QLabel* spaceLabel = new QLabel("Space");
     QLabel* typeLabel = new QLabel("Type");
-//    QLabel* spaceIntertTypeLabel  = new QLabel("Space Insert Type");
     
     
     QGridLayout* gridLayout = new QGridLayout(this);
@@ -453,10 +456,10 @@ AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpace
     action->setData((int)AnnotationCoordinateSpaceEnum::toIntegerCode(annotationSpace));
     action->setToolTip("Set space for new annotations to "
                        + AnnotationCoordinateSpaceEnum::toGuiName(annotationSpace));
+    toolButton->setDefaultAction(action);
+    
     action->setCheckable(true);
     action->setChecked(false);
-    
-    toolButton->setDefaultAction(action);
     
     return toolButton;
 }

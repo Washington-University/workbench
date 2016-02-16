@@ -25,6 +25,7 @@
 #include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "StructureEnum.h"
 
+class QLabel;
 
 namespace caret {
 
@@ -66,7 +67,6 @@ namespace caret {
                                                           const float annotationHeight);
         
 
-        
         // ADD_NEW_METHODS_HERE
 
         
