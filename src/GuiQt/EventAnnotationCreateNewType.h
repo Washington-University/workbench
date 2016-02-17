@@ -29,13 +29,18 @@
 
 namespace caret {
 
+    class AnnotationFile;
+    
     class EventAnnotationCreateNewType : public Event {
         
     public:
-        EventAnnotationCreateNewType(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+        EventAnnotationCreateNewType(AnnotationFile* annotationFile,
+                                     const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                      const AnnotationTypeEnum::Enum annotationType);
         
         virtual ~EventAnnotationCreateNewType();
+        
+        AnnotationFile* getAnnotationFile() const;
         
         AnnotationCoordinateSpaceEnum::Enum getAnnotationSpace() const;
         
@@ -47,6 +52,8 @@ namespace caret {
         EventAnnotationCreateNewType(const EventAnnotationCreateNewType&);
 
         EventAnnotationCreateNewType& operator=(const EventAnnotationCreateNewType&);
+        
+        AnnotationFile* m_annotationFile;
         
         const AnnotationCoordinateSpaceEnum::Enum m_annotationSpace;
         

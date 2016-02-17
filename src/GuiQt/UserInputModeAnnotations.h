@@ -35,6 +35,7 @@ namespace caret {
     class Annotation;
     class AnnotationCoordinate;
     class AnnotationCoordinateInformation;
+    class AnnotationFile;
     class AnnotationOneDimensionalShape;
     class AnnotationTwoDimensionalShape;
     class KeyEvent;
@@ -122,7 +123,8 @@ namespace caret {
     private:
         class NewMouseDragCreateAnnotation {
         public:
-            NewMouseDragCreateAnnotation(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+            NewMouseDragCreateAnnotation(AnnotationFile* annotationFile,
+                                         const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                          const AnnotationTypeEnum::Enum annotationType,
                                          const MouseEvent& mousePressEvent);
             
@@ -138,6 +140,8 @@ namespace caret {
             const Annotation* getAnnotation() const;
 
         private:
+            AnnotationFile* m_annotationFile;
+            
             Annotation* m_annotation;
             
             int32_t m_mousePressWindowX;
@@ -151,6 +155,20 @@ namespace caret {
             float m_windowWidth;
             
             float m_windowHeight;
+        };
+        
+        class NewAnnotationFileSpaceAndType {
+        public:
+            NewAnnotationFileSpaceAndType(AnnotationFile* annotationFile,
+                                          AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                          AnnotationTypeEnum::Enum annotationType)
+            : m_annotationFile(annotationFile),
+            m_annotationSpace(annotationSpace),
+            m_annotationType(annotationType) { }
+            
+            AnnotationFile*                     m_annotationFile;
+            AnnotationCoordinateSpaceEnum::Enum m_annotationSpace;
+            AnnotationTypeEnum::Enum            m_annotationType;
         };
         
         UserInputModeAnnotations(const UserInputModeAnnotations&);
@@ -196,8 +214,6 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        std::pair<AnnotationCoordinateSpaceEnum::Enum, AnnotationTypeEnum::Enum> m_modeNewAnnotationSpaceAndType;
-
         Annotation* m_annotationUnderMouse;
         
         AnnotationSizingHandleTypeEnum::Enum m_annotationUnderMouseSizeHandleType;
@@ -205,6 +221,8 @@ namespace caret {
         Annotation* m_annotationBeingDragged;
         
         AnnotationSizingHandleTypeEnum::Enum m_annotationBeingDraggedHandleType;
+        
+        CaretPointer<NewAnnotationFileSpaceAndType> m_modeNewAnnotationFileSpaceAndType;
         
         CaretPointer<NewMouseDragCreateAnnotation> m_newAnnotationCreatingWithMouseDrag;
         

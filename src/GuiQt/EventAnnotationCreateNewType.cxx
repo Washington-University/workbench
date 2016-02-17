@@ -45,9 +45,11 @@ using namespace caret;
  *    Type for new annotation.
  *
  */
-EventAnnotationCreateNewType::EventAnnotationCreateNewType(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+EventAnnotationCreateNewType::EventAnnotationCreateNewType(AnnotationFile* annotationFile,
+                                                           const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                            const AnnotationTypeEnum::Enum annotationType)
 : Event(EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE),
+m_annotationFile(annotationFile),
 m_annotationSpace(annotationSpace),
 m_annotationType(annotationType)
 {
@@ -59,6 +61,15 @@ m_annotationType(annotationType)
  */
 EventAnnotationCreateNewType::~EventAnnotationCreateNewType()
 {
+}
+
+/**
+ * @return Annotation file for new anotation.
+ */
+AnnotationFile*
+EventAnnotationCreateNewType::getAnnotationFile() const
+{
+    return m_annotationFile;
 }
 
 /**

@@ -33,8 +33,6 @@ using namespace caret;
  * \class caret::AnnotationCoordinateSpaceEnum 
  * \brief Coordinate space of annotation.
  *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
- *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
  * Header File (.h)
@@ -290,6 +288,35 @@ AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(Enum enumValue) {
     
     const AnnotationCoordinateSpaceEnum* enumInstance = findData(enumValue);
     return enumInstance->guiAbbreviatedName;
+}
+
+/**
+ * @return Text that is displayed for a space's tooltip in the GUI.
+ */
+AString
+AnnotationCoordinateSpaceEnum::toToolTip(Enum enumValue)
+{
+    AString text;
+    
+    switch (enumValue) {
+        case PIXELS:
+            text = "Annotation is drawn at an XY pixel coordinate";
+            break;
+        case STEREOTAXIC:
+            text = "Annotation is drawn at a surface/volume XYZ coordinate";
+            break;
+        case SURFACE:
+            text = "Annotation is drawn at a surface vertex";
+            break;
+        case TAB:
+            text = "Annotation is drawn at an XY coordinate in the tab";
+            break;
+        case WINDOW:
+            text = "Annotation is drawn at an XY coordinate in the window";
+            break;
+    }
+    
+    return text;
 }
 
 /**

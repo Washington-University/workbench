@@ -27,10 +27,12 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
 
-class QButtonGroup;
+class QActionGroup;
 class QToolButton;
 
 namespace caret {
+    class AnnotationMenuFileSelection;
+    
     class AnnotationInsertNewWidget : public QWidget {
         
         Q_OBJECT
@@ -57,6 +59,8 @@ namespace caret {
         
         void shapeOvalActionTriggered();
         
+        void itemSelectedFromFileSelectionMenu();
+        
     private:
         AnnotationInsertNewWidget(const AnnotationInsertNewWidget&);
 
@@ -76,7 +80,11 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        QButtonGroup* m_spaceButtonGroup;
+        QActionGroup* m_spaceActionGroup;
+        
+        QToolButton* m_fileSelectionToolButton;
+        
+        AnnotationMenuFileSelection* m_fileSelectionMenu;
         
         static AString s_previousImageFileDirectory;
         

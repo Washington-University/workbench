@@ -130,7 +130,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     /*
      * Layout top row of widgets
      */
-    QHBoxLayout* topRowLayout = new QHBoxLayout();
+    QWidget* topRowWidget = new QWidget();
+    QHBoxLayout* topRowLayout = new QHBoxLayout(topRowWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 2);
     topRowLayout->addWidget(m_colorWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
@@ -153,6 +154,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     topRowLayout->addWidget(m_redoUndoWidget, 0, Qt::AlignTop);
     topRowLayout->addStretch();
     
+    topRowWidget->setFixedHeight(topRowWidget->sizeHint().height());
+    
     /*
      * Layout bottom row of widgets
      */
@@ -171,7 +174,7 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
-    layout->addLayout(topRowLayout);
+    layout->addWidget(topRowWidget);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(bottomRowLayout);
     
@@ -179,6 +182,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    
+    setFixedHeight(sizeHint().height());
 }
 
 /**

@@ -24,11 +24,8 @@
 #include "AnnotationCoordinateInformation.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
-#include "UserInputModeAnnotations.h"
 #include "WuQDialogModal.h"
 
-class QButtonGroup;
-class QLabel;
 class QTextEdit;
 class QRadioButton;
 
@@ -36,9 +33,6 @@ namespace caret {
     class Annotation;
     class AnnotationCoordinateSelectionWidget;
     class AnnotationFile;
-    class AnnotationTwoDimensionalShape;
-    class CaretDataFileSelectionComboBox;
-    class CaretDataFileSelectionModel;
     class MouseEvent;
     
     class AnnotationCreateDialog : public WuQDialogModal {
@@ -50,16 +44,6 @@ namespace caret {
                                                          const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                          const AnnotationTypeEnum::Enum annotationType,
                                                          AnnotationFile* annotationFile);
-        
-//        static AnnotationCreateDialog* newAnnotationSpaceAndType(const MouseEvent& mouseEvent,
-//                                                                 const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-//                                                                 const AnnotationTypeEnum::Enum annotationType,
-//                                                                 QWidget* parent = 0);
-//        
-//        static AnnotationCreateDialog* newAnnotationSpaceAndTypeWithBounds(const MouseEvent& mousePressEvent,
-//                                                                           const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-//                                                                           const AnnotationTypeEnum::Enum annotationType,
-//                                                                           QWidget* parent = 0);
         
         static Annotation* newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mouseEvent,
                                                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
@@ -75,8 +59,6 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void newAnnotationFileButtonClicked();
-        
         void selectImageButtonClicked();
         
     private:
@@ -86,16 +68,6 @@ namespace caret {
             MODE_NEW_ANNOTATION_TYPE_CLICK,
             /** New annotation from annotation type at mouse press and release */
             MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS
-        };
-        
-        class PreviousSelections {
-        public:
-            PreviousSelections() {
-                m_valid = false;
-            }
-            AnnotationFile* m_annotationFile;
-            AnnotationCoordinateSpaceEnum::Enum m_coordinateSpace;
-            bool m_valid;
         };
         
         static Annotation* newAnnotationFromSpaceTypeAndCoords(const MouseEvent& mouseEvent,
@@ -109,14 +81,13 @@ namespace caret {
                                const MouseEvent& mouseEvent,
                                AnnotationFile* annotationFile,
                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                               const bool annotationSpaceValidFlag,
                                const AnnotationTypeEnum::Enum annotationType,
                                QWidget* parent = 0);
         
         AnnotationCreateDialog(const AnnotationCreateDialog&);
 
         AnnotationCreateDialog& operator=(const AnnotationCreateDialog&);
-        
-        QWidget* createFileSelectionWidget();
         
         QWidget* createTextWidget();
         
@@ -127,8 +98,6 @@ namespace caret {
         static void finishAnnotationCreation(AnnotationFile* annotationFile,
                                              Annotation* annotation,
                                              const int32_t browswerWindowIndex);
-        
-//        void setAnnotationFromBoundsWidthAndHeight(Annotation* annotation);
         
         const Mode m_mode;
         
@@ -146,21 +115,13 @@ namespace caret {
         
         float m_annotationFromBoundsHeight;
         
-        CaretDataFileSelectionModel* m_annotationFileSelectionModel;
-        
-        CaretDataFileSelectionComboBox* m_annotationFileSelectionComboBox;
-        
-        QRadioButton* m_sceneAnnotationFileRadioButton;
-        
-        QRadioButton* m_brainAnnotationFileRadioButton;
-        
-        QWidget* m_fileSelectionWidget;
-        
         AnnotationCoordinateSelectionWidget* m_coordinateSelectionWidget;
         
         QTextEdit* m_textEdit;
         
         QLabel* m_imageFileNameLabel;
+        
+        QLabel* m_imageThumbnailLabel;
         
         std::vector<uint8_t> m_imageRgbaBytes;
         int32_t m_imageWidth;
@@ -170,17 +131,14 @@ namespace caret {
         
         AnnotationCoordinateInformation m_coordTwoInfo;
         
-        static PreviousSelections s_previousSelections;
-        
-        static const QString s_SPACE_PROPERTY_NAME;
+        static const int s_MAXIMUM_THUMB_NAIL_SIZE;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __ANNOTATION_CREATE_DIALOG_DECLARE__
-    AnnotationCreateDialog::PreviousSelections AnnotationCreateDialog::s_previousSelections;
-    const QString AnnotationCreateDialog::s_SPACE_PROPERTY_NAME = "SPACE_NAME";
+    const int AnnotationCreateDialog::s_MAXIMUM_THUMB_NAIL_SIZE = 300;
 #endif // __ANNOTATION_CREATE_DIALOG_DECLARE__;
 
 } // namespace

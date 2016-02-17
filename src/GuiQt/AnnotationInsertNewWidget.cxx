@@ -24,7 +24,7 @@
 #undef __ANNOTATION_INSERT_NEW_WIDGET_DECLARE__
 
 #include <QAction>
-#include <QButtonGroup>
+#include <QActionGroup>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
@@ -35,6 +35,7 @@
 #include "Annotation.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
+#include "AnnotationMenuFileSelection.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
@@ -81,19 +82,28 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* surfaceSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::SURFACE);
     QToolButton* windowSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::WINDOW);
     
-    m_spaceButtonGroup = new QButtonGroup(this);
-    m_spaceButtonGroup->addButton(tabSpaceToolButton);
-    m_spaceButtonGroup->addButton(stereotaxicSpaceToolButton);
-    m_spaceButtonGroup->addButton(surfaceSpaceToolButton);
-    m_spaceButtonGroup->addButton(windowSpaceToolButton);
+    m_spaceActionGroup = new QActionGroup(this);
+    m_spaceActionGroup->addAction(tabSpaceToolButton->defaultAction());
+    m_spaceActionGroup->addAction(stereotaxicSpaceToolButton->defaultAction());
+    m_spaceActionGroup->addAction(surfaceSpaceToolButton->defaultAction());
+    m_spaceActionGroup->addAction(windowSpaceToolButton->defaultAction());
+    
+    m_fileSelectionMenu = new AnnotationMenuFileSelection();
+    QObject::connect(m_fileSelectionMenu, SIGNAL(menuItemSelected()),
+                     this, SLOT(itemSelectedFromFileSelectionMenu()));
+    m_fileSelectionToolButton = new QToolButton();
+    m_fileSelectionToolButton->setMenu(m_fileSelectionMenu);
+    m_fileSelectionToolButton->setPopupMode(QToolButton::InstantPopup);
+    m_fileSelectionToolButton->setToolTip("Choose file for new annotations");
     
     /*
      * Check the default space tool button
      */
-    tabSpaceToolButton->setChecked(true);
+    tabSpaceToolButton->defaultAction()->setChecked(true);
     
+    QLabel* fileLabel  = new QLabel("File");
     QLabel* spaceLabel = new QLabel("Space");
-    QLabel* typeLabel = new QLabel("Type");
+    QLabel* typeLabel  = new QLabel("Type");
     
     
     QGridLayout* gridLayout = new QGridLayout(this);
@@ -104,37 +114,52 @@ m_browserWindowIndex(browserWindowIndex)
         QLabel* insertLabel = new QLabel("Insert New");
         
         gridLayout->addWidget(insertLabel,
-                              0, 0, 1, 6, Qt::AlignHCenter);
+                              0, 0, 1, 8, Qt::AlignHCenter);
         
+        gridLayout->addWidget(fileLabel,
+                              1, 0,
+                              Qt::AlignHCenter);
+        gridLayout->addWidget(m_fileSelectionToolButton,
+                              2, 0, 2, 1,
+                              (Qt::AlignTop | Qt::AlignHCenter));
+        
+        QSpacerItem* columnSpaceItem = new QSpacerItem(5, 5,
+                                                    QSizePolicy::Fixed,
+                                                    QSizePolicy::Fixed);
+        gridLayout->addItem(columnSpaceItem,
+                            1, 1, 3, 1);
+        
+//        gridLayout->addItem(rowSpaceItem,
+//                            2, 3, 1, 6);
         gridLayout->addWidget(spaceLabel,
-                              1, 0, Qt::AlignLeft);
+                              1, 2, Qt::AlignLeft);
         gridLayout->addWidget(stereotaxicSpaceToolButton,
-                              1, 1);
-        gridLayout->addWidget(surfaceSpaceToolButton,
-                              1, 2);
-        gridLayout->addWidget(tabSpaceToolButton,
                               1, 3);
-        gridLayout->addWidget(windowSpaceToolButton,
+        gridLayout->addWidget(surfaceSpaceToolButton,
                               1, 4);
+        gridLayout->addWidget(tabSpaceToolButton,
+                              1, 5);
+        gridLayout->addWidget(windowSpaceToolButton,
+                              1, 6);
 
-        QSpacerItem* spaceItem = new QSpacerItem(5, 5,
+        QSpacerItem* rowSpaceItem = new QSpacerItem(5, 5,
                                                  QSizePolicy::Fixed,
                                                  QSizePolicy::Fixed);
-        gridLayout->addItem(spaceItem,
-                            2, 0, 1, 6);
+        gridLayout->addItem(rowSpaceItem,
+                            2, 3, 1, 6);
         
         gridLayout->addWidget(typeLabel,
-                              3, 0, Qt::AlignLeft);
+                              3, 2, Qt::AlignLeft);
         gridLayout->addWidget(shapeBoxToolButton,
-                              3, 1);
-        gridLayout->addWidget(shapeImageToolButton,
-                              3, 2);
-        gridLayout->addWidget(shapeLineToolButton,
                               3, 3);
-        gridLayout->addWidget(shapeOvalToolButton,
+        gridLayout->addWidget(shapeImageToolButton,
                               3, 4);
-        gridLayout->addWidget(shapeTextToolButton,
+        gridLayout->addWidget(shapeLineToolButton,
                               3, 5);
+        gridLayout->addWidget(shapeOvalToolButton,
+                              3, 6);
+        gridLayout->addWidget(shapeTextToolButton,
+                              3, 7);
     }
     else {
         QLabel* insertLabel = new QLabel("Insert");
@@ -188,6 +213,19 @@ AnnotationInsertNewWidget::~AnnotationInsertNewWidget()
 void
 AnnotationInsertNewWidget::updateContent()
 {
+    itemSelectedFromFileSelectionMenu();
+}
+
+/**
+ * Gets called when an item is selected from the file selection menu.
+ */
+void
+AnnotationInsertNewWidget::itemSelectedFromFileSelectionMenu()
+{
+    /*
+     * Add a space so that the arrow is not
+     */
+    m_fileSelectionToolButton->setText(m_fileSelectionMenu->getSelectedNameForToolButton() + "   ");
 }
 
 /**
@@ -248,14 +286,17 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
 void
 AnnotationInsertNewWidget::createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType)
 {
-    QAbstractButton* abstractButton = m_spaceButtonGroup->checkedButton();
-    if (abstractButton == NULL) {
+    CaretAssert(m_spaceActionGroup);
+    
+    const QAction* action = m_spaceActionGroup->checkedAction();
+    if (action == NULL) {
         WuQMessageBox::errorOk(this, "No space is selected.  Select a space.");
         return;
     }
-    const QToolButton* toolButton = qobject_cast<const QToolButton*>(abstractButton);
-    CaretAssert(toolButton);
-    const QAction* action = toolButton->defaultAction();
+    
+    AnnotationFile* annotationFile = m_fileSelectionMenu->getSelectedAnnotationFile();
+    CaretAssert(annotationFile);
+    
     CaretAssert(action);
     const int spaceInt = action->data().toInt();
     
@@ -264,7 +305,8 @@ AnnotationInsertNewWidget::createAnnotationWithType(const AnnotationTypeEnum::En
                                                                                                &validFlag);
     CaretAssert(validFlag);
     
-    EventManager::get()->sendEvent(EventAnnotationCreateNewType(space,
+    EventManager::get()->sendEvent(EventAnnotationCreateNewType(annotationFile,
+                                                                space,
                                                                 annotationType).getPointer());
 }
 
@@ -454,8 +496,7 @@ AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpace
     }
 
     action->setData((int)AnnotationCoordinateSpaceEnum::toIntegerCode(annotationSpace));
-    action->setToolTip("Set space for new annotations to "
-                       + AnnotationCoordinateSpaceEnum::toGuiName(annotationSpace));
+    action->setToolTip(AnnotationCoordinateSpaceEnum::toToolTip(annotationSpace));
     toolButton->setDefaultAction(action);
     
     action->setCheckable(true);

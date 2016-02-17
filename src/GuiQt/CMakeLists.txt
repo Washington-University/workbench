@@ -39,6 +39,7 @@ AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
 AnnotationLineArrowTipsWidget.h
 AnnotationMenuArrange.h
+AnnotationMenuFileSelection.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
 AnnotationSelectionViewController.h
@@ -199,6 +200,7 @@ AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
 AnnotationLineArrowTipsWidget.h
 AnnotationMenuArrange.h
+AnnotationMenuFileSelection.h
 AnnotationPasteDialog.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
@@ -390,6 +392,7 @@ AnnotationFormatWidget.cxx
 AnnotationInsertNewWidget.cxx
 AnnotationLineArrowTipsWidget.cxx
 AnnotationMenuArrange.cxx
+AnnotationMenuFileSelection.cxx
 AnnotationPasteDialog.cxx
 AnnotationRedoUndoWidget.cxx
 AnnotationRotationWidget.cxx

@@ -89,10 +89,11 @@ m_annotationBeingDragged(NULL)
 {
     m_allowMultipleSelectionModeFlag = true;
     m_mode = MODE_SELECT;
-    m_modeNewAnnotationSpaceAndType = std::make_pair(AnnotationCoordinateSpaceEnum::PIXELS,
-                                                     AnnotationTypeEnum::LINE);
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     
+    m_modeNewAnnotationFileSpaceAndType.grabNew(new NewAnnotationFileSpaceAndType(NULL,
+                                                                                  AnnotationCoordinateSpaceEnum::PIXELS,
+                                                                                  AnnotationTypeEnum::LINE));
     m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
     
     m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this,
@@ -128,8 +129,9 @@ UserInputModeAnnotations::receiveEvent(Event* event)
         annotationManager->deselectAllAnnotations(m_browserWindowIndex);
         resetAnnotationUnderMouse();
         
-        m_modeNewAnnotationSpaceAndType = std::make_pair(annotationEvent->getAnnotationSpace(),
-                                                         annotationEvent->getAnnotationType());
+        m_modeNewAnnotationFileSpaceAndType.grabNew(new NewAnnotationFileSpaceAndType(annotationEvent->getAnnotationFile(),
+                                                                                      annotationEvent->getAnnotationSpace(),
+                                                                                      annotationEvent->getAnnotationType()));
         setMode(MODE_NEW_WITH_CLICK);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
@@ -537,8 +539,9 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
              * Note ALWAYS use WINDOW space for the drag anntotion.
              * Otherwise it will not get displayed if surface/stereotaxic
              */
-            m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(AnnotationCoordinateSpaceEnum::WINDOW,
-                                                                                          m_modeNewAnnotationSpaceAndType.second,
+            m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(m_modeNewAnnotationFileSpaceAndType->m_annotationFile,
+                                                                                          AnnotationCoordinateSpaceEnum::WINDOW,
+                                                                                          m_modeNewAnnotationFileSpaceAndType->m_annotationType,
                                                                                           mouseEvent));
             m_mode = MODE_NEW_WITH_DRAG;
             return;
@@ -1222,12 +1225,10 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
 {
     if (m_newAnnotationCreatingWithMouseDrag != NULL) {
         
-        CaretLogSevere("USING SCENE ANNOTION FILE WHEN CREATING ANNOTATION, NOT SELECTED FILE");
-        AnnotationFile* annFile = GuiManager::get()->getBrain()->getSceneAnnotationFile();
         Annotation* ann = AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(mouseEvent,
-                                                                                      m_modeNewAnnotationSpaceAndType.first,
-                                                                                      m_modeNewAnnotationSpaceAndType.second,
-                                                                                      annFile);
+                                                                                      m_modeNewAnnotationFileSpaceAndType->m_annotationSpace,
+                                                                                      m_modeNewAnnotationFileSpaceAndType->m_annotationType,
+                                                                                      m_modeNewAnnotationFileSpaceAndType->m_annotationFile);
         if (ann != NULL) {
             selectAnnotation(ann);
         }
@@ -1438,12 +1439,10 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
 {
     resetAnnotationUnderMouse();
     
-    CaretLogSevere("USING SCENE ANNOTION FILE WHEN CREATING ANNOTATION, NOT SELECTED FILE");
-    AnnotationFile* annFile = GuiManager::get()->getBrain()->getSceneAnnotationFile();
     Annotation* ann = AnnotationCreateDialog::newAnnotationFromSpaceAndType(mouseEvent,
-                                                                            m_modeNewAnnotationSpaceAndType.first,
-                                                                            m_modeNewAnnotationSpaceAndType.second,
-                                                                            annFile);
+                                                                            m_modeNewAnnotationFileSpaceAndType->m_annotationSpace,
+                                                                            m_modeNewAnnotationFileSpaceAndType->m_annotationType,
+                                                                            m_modeNewAnnotationFileSpaceAndType->m_annotationFile);
     if (ann != NULL) {
         selectAnnotation(ann);
     }
@@ -2031,6 +2030,8 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
 /**
  * Constructor.
  *
+ * @param annotationFile
+ *     File for annotation.
  * @param annotationSpace
  *     Space for annotation being created.
  * @param annotationType
@@ -2038,7 +2039,8 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
  * @param mouseEvent
  *     Mouse event.
  */
-UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnotation(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnotation(AnnotationFile* annotationFile,
+                                                                                     const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                                                      const AnnotationTypeEnum::Enum annotationType,
                                                                                      const MouseEvent& mouseEvent)
 {
@@ -2062,7 +2064,7 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
     m_windowHeight = viewport[3];
     
     
-    
+    m_annotationFile = annotationFile;
     m_annotation = Annotation::newAnnotationOfType(annotationType,
                                                    AnnotationAttributesDefaultTypeEnum::USER);
     m_annotation->setCoordinateSpace(annotationSpace);

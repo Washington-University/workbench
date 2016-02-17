@@ -188,9 +188,9 @@ m_annotationThatWasCreated(NULL)
     
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(dialogWidget);
-    layout->addWidget(messageLabel);
-    layout->addSpacing(10);
     layout->addWidget(spaceLabel);
+    layout->addSpacing(10);
+    layout->addWidget(messageLabel);
     layout->addSpacing(10);
     layout->addWidget(coordGroupBox);
     
