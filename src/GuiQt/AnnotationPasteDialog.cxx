@@ -79,7 +79,7 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
         BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
         AnnotationCoordinateInformation coordInfo;
         
-        AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
                                                                         viewportContent,
                                                                         mouseEvent.getX(),
                                                                         mouseEvent.getY(),
@@ -162,7 +162,7 @@ m_annotationThatWasCreated(NULL)
     /*
      * Get coordinates at the mouse location.
      */
-    AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent,
+    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
                                                                     m_coordInfo);
     m_coordinateSelectionWidget = new AnnotationCoordinateSelectionWidget(m_annotation->getType(),
                                                                           m_coordInfo,

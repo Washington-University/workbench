@@ -70,13 +70,48 @@ namespace caret {
             MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS
         };
         
-        static Annotation* newAnnotationFromSpaceTypeAndCoords(const MouseEvent& mouseEvent,
+        class NewAnnotationInfo {
+        public:
+            NewAnnotationInfo(const MouseEvent& mouseEvent,
+                              const AnnotationCoordinateSpaceEnum::Enum selectedSpace,
+                              const AnnotationTypeEnum::Enum annotationType,
+                              const bool useBothCoordinatesFromMouseFlag,
+                              AnnotationFile* annotationFile);
+            
+            bool isValid() const;
+            
+            bool isSelectedSpaceValid() const;
+            
+            void processTwoCoordInfo();
+            
+            const MouseEvent& m_mouseEvent;
+            
+            const AnnotationCoordinateSpaceEnum::Enum m_selectedSpace;
+            
+            const AnnotationTypeEnum::Enum m_annotationType;
+            
+            AnnotationFile* m_annotationFile;
+            
+            std::vector<AnnotationCoordinateSpaceEnum::Enum> m_validSpaces;
+            
+            AnnotationCoordinateInformation m_coordOneInfo;
+            
+            AnnotationCoordinateInformation m_coordTwoInfo;
+            
+            bool m_coordTwoInfoValid;
+            
+            float m_percentageWidth;
+            
+            float m_percentageHeight;
+            
+        };
+        
+        static Annotation* newAnnotationFromSpaceTypeAndCoords(const Mode mode,
+                                                               const MouseEvent& mouseEvent,
                                                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                                const AnnotationTypeEnum::Enum annotationType,
-                                                               const AnnotationCoordinateInformation* coordOne,
-                                                               const AnnotationCoordinateInformation* coordTwo,
                                                                AnnotationFile* annotationFile);
-        
+
         AnnotationCreateDialog(const Mode mode,
                                const MouseEvent& mouseEvent,
                                AnnotationFile* annotationFile,
@@ -84,6 +119,14 @@ namespace caret {
                                const bool annotationSpaceValidFlag,
                                const AnnotationTypeEnum::Enum annotationType,
                                QWidget* parent = 0);
+
+//        AnnotationCreateDialog(const Mode mode,
+//                               const MouseEvent& mouseEvent,
+//                               AnnotationFile* annotationFile,
+//                               const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+//                               const bool annotationSpaceValidFlag,
+//                               const AnnotationTypeEnum::Enum annotationType,
+//                               QWidget* parent = 0);
         
         AnnotationCreateDialog(const AnnotationCreateDialog&);
 
@@ -98,6 +141,17 @@ namespace caret {
         static void finishAnnotationCreation(AnnotationFile* annotationFile,
                                              Annotation* annotation,
                                              const int32_t browswerWindowIndex);
+        
+        static void setUpAnnotationCoordinateInformation(const Mode mode,
+                                                         const MouseEvent& mouseEvent,
+                                                         const AnnotationTypeEnum::Enum annotationType,
+                                                         AnnotationCoordinateInformation& coordOneOut,
+                                                         AnnotationCoordinateInformation& coordTwoOut,
+                                                         float& widthOut,
+                                                         float& heightOut,
+                                                         bool& coordOneValidOut,
+                                                         bool& coordTwoValidOut,
+                                                         bool& widthHeightValidOut);
         
         const Mode m_mode;
         

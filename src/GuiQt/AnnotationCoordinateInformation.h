@@ -47,10 +47,19 @@ namespace caret {
         
         void reset();
         
-        static void getValidCoordinateSpacesFromXY(const MouseEvent& mouseEvent,
-                                                   AnnotationCoordinateInformation& coordInfoOut);
+        static void getValidCoordinateSpaces(const AnnotationCoordinateInformation* coordInfoOne,
+                                             const AnnotationCoordinateInformation* coordInfoTwo,
+                                             std::vector<AnnotationCoordinateSpaceEnum::Enum>& spacesOut);
         
-        static void getValidCoordinateSpacesFromXY(BrainOpenGLWidget* openGLWidget,
+        static void createCoordinateInformationFromXY(const MouseEvent& mouseEvent,
+                                                      AnnotationCoordinateInformation& coordInfoOut);
+        
+        static void createCoordinateInformationFromXY(const MouseEvent& mouseEvent,
+                                                      const int32_t windowX,
+                                                      const int32_t windowY,
+                                                      AnnotationCoordinateInformation& coordInfoOut);
+        
+        static void createCoordinateInformationFromXY(BrainOpenGLWidget* openGLWidget,
                                                    BrainOpenGLViewportContent* viewportContent,
                                                    const int32_t windowX,
                                                    const int32_t windowY,
@@ -76,11 +85,13 @@ namespace caret {
         float m_tabWidth;
         float m_tabHeight;
         float m_tabXYZ[3];
+        float m_tabPixelXYZ[3];
         int32_t m_tabIndex;
         
         float m_windowWidth;
         float m_windowHeight;
         float m_windowXYZ[3];
+        float m_windowPixelXYZ[3];
         int32_t m_windowIndex;
         
         StructureEnum::Enum m_surfaceStructure;

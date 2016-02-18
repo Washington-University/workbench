@@ -596,7 +596,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
         
         
         AnnotationCoordinateInformation coordInfo;
-        AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
                                                                  mouseEvent.getViewportContent(),
                                                                  mouseEvent.getX(),
                                                                  mouseEvent.getY(),
@@ -808,7 +808,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 //        
 //        
 //        AnnotationCoordinateInformation coordInfo;
-//        UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+//        UserInputModeAnnotations::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
 //                                                                 mouseEvent.getViewportContent(),
 //                                                                 mouseEvent.getX(),
 //                                                                 mouseEvent.getY(),
@@ -1365,7 +1365,7 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
     }
 
     AnnotationCoordinateInformation coordInfo;
-    AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
                                                              mouseEvent.getViewportContent(),
                                                              mouseEvent.getX(),
                                                              mouseEvent.getY(),
@@ -1955,7 +1955,7 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
 //        BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
 //        AnnotationCoordinateInformation coordInfo;
 //        
-//        AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+//        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
 //                                                                 viewportContent,
 //                                                                 mouseEvent.getX(),
 //                                                                 mouseEvent.getY(),

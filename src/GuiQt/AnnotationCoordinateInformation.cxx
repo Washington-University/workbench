@@ -91,9 +91,15 @@ AnnotationCoordinateInformation::reset() {
     m_tabXYZ[0]    = 0.0;
     m_tabXYZ[1]    = 0.0;
     m_tabXYZ[2]    = 0.0;
+    m_tabPixelXYZ[0]    = 0.0;
+    m_tabPixelXYZ[1]    = 0.0;
+    m_tabPixelXYZ[2]    = 0.0;
     m_windowXYZ[0] = 0.0;
     m_windowXYZ[1] = 0.0;
     m_windowXYZ[2] = 0.0;
+    m_windowPixelXYZ[0] = 0.0;
+    m_windowPixelXYZ[1] = 0.0;
+    m_windowPixelXYZ[2] = 0.0;
 }
 
 bool
@@ -123,6 +129,74 @@ AnnotationCoordinateInformation::isCoordinateSpaceValid(const AnnotationCoordina
 }
 
 /**
+ * Get the valid coordinate spaces for the two annotation coordinate information.
+ * If both coordinates are valid, the space must be valid for both coordinates, AND, if tab or window
+ * space the tab or window indices must also be the same.
+ *
+ * @param coordInfoOne
+ *     First coordinate information.
+ * @param coordInfoTwo
+ *     Second coordinate information (optional, NULL if not valid).
+ * @param spacesOut
+ *     Output containing spaces valid for both.
+ */
+void
+AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordinateInformation* coordInfoOne,
+                                                          const AnnotationCoordinateInformation* coordInfoTwo,
+                                                          std::vector<AnnotationCoordinateSpaceEnum::Enum>& spacesOut)
+{
+    CaretAssert(coordInfoOne);
+    spacesOut.clear();
+    
+    std::vector<AnnotationCoordinateSpaceEnum::Enum> allSpaces;
+    AnnotationCoordinateSpaceEnum::getAllEnums(allSpaces);
+    
+    for (std::vector<AnnotationCoordinateSpaceEnum::Enum>::iterator spaceIter = allSpaces.begin();
+         spaceIter != allSpaces.end();
+         spaceIter++) {
+        const AnnotationCoordinateSpaceEnum::Enum space = *spaceIter;
+        
+        switch (space) {
+            case AnnotationCoordinateSpaceEnum::PIXELS:
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+            case AnnotationCoordinateSpaceEnum::TAB:
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                if (coordInfoOne->isCoordinateSpaceValid(space)) {
+                    bool addItFlag = true;
+                    if (coordInfoTwo != NULL) {
+                        addItFlag = coordInfoTwo->isCoordinateSpaceValid(space);
+                        
+                        switch (space) {
+                            case AnnotationCoordinateSpaceEnum::PIXELS:
+                            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                            case AnnotationCoordinateSpaceEnum::SURFACE:
+                                break;
+                            case AnnotationCoordinateSpaceEnum::TAB:
+                                if (coordInfoOne->m_tabIndex != coordInfoTwo->m_tabIndex) {
+                                    addItFlag = false;
+                                }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::WINDOW:
+                                if (coordInfoOne->m_windowIndex != coordInfoTwo->m_windowIndex) {
+                                    addItFlag = false;
+                                }
+                                break;
+                        }
+                    }
+                    
+                    if (addItFlag) {
+                        spacesOut.push_back(space);
+                    }
+                }
+                break;
+        }
+    }
+}
+
+
+/**
  * Get the different types of coordinates at the given mouse location.
  *
  * @param mouseEvent
@@ -131,14 +205,39 @@ AnnotationCoordinateInformation::isCoordinateSpaceValid(const AnnotationCoordina
  *     Output containing coordinate information.
  */
 void
-AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(const MouseEvent& mouseEvent,
+AnnotationCoordinateInformation::createCoordinateInformationFromXY(const MouseEvent& mouseEvent,
                                                                 AnnotationCoordinateInformation& coordInfoOut)
 {
-    getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+    createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
                                    mouseEvent.getViewportContent(),
                                    mouseEvent.getX(),
                                    mouseEvent.getY(),
                                    coordInfoOut);
+}
+
+/**
+ * Get the different types of coordinates at the given mouse location.
+ *
+ * @param mouseEvent
+ *     Mouse event containing mouse location information.
+ * @param windowX
+ *     X-coordinate in the window.
+ * @param windowY
+ *     Y-coordinate in the window.
+ * @param coordInfoOut
+ *     Output containing coordinate information.
+ */
+void
+AnnotationCoordinateInformation::createCoordinateInformationFromXY(const MouseEvent& mouseEvent,
+                                                                   const int32_t windowX,
+                                                                   const int32_t windowY,
+                                                                   AnnotationCoordinateInformation& coordInfoOut)
+{
+    createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
+                                      mouseEvent.getViewportContent(),
+                                      windowX,
+                                      windowY,
+                                      coordInfoOut);
 }
 
 /**
@@ -156,7 +255,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(const MouseEvent
  *     Output containing coordinate information.
  */
 void
-AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* openGLWidget,
+AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWidget* openGLWidget,
                                                                 BrainOpenGLViewportContent* viewportContent,
                                                                 const int32_t windowX,
                                                                 const int32_t windowY,
@@ -207,6 +306,9 @@ AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(BrainOpenGLWidge
             coordInfoOut.m_tabXYZ[0] = tabX;
             coordInfoOut.m_tabXYZ[1] = tabY;
             coordInfoOut.m_tabXYZ[2] = 0.0;
+            coordInfoOut.m_tabPixelXYZ[0] = (windowX - tabViewport[0]);
+            coordInfoOut.m_tabPixelXYZ[1] = (windowY - tabViewport[1]);
+            coordInfoOut.m_tabPixelXYZ[2] = 0;
             coordInfoOut.m_tabIndex  = tabContent->getTabNumber();
             coordInfoOut.m_tabWidth  = tabViewport[2];
             coordInfoOut.m_tabHeight = tabViewport[3];
@@ -215,9 +317,9 @@ AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(BrainOpenGLWidge
     
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
-    coordInfoOut.m_windowXYZ[0] = windowX - windowViewport[0];
-    coordInfoOut.m_windowXYZ[1] = windowY - windowViewport[1];
-    coordInfoOut.m_windowXYZ[2] = 0.0;
+    coordInfoOut.m_windowPixelXYZ[0] = windowX - windowViewport[0];
+    coordInfoOut.m_windowPixelXYZ[1] = windowY - windowViewport[1];
+    coordInfoOut.m_windowPixelXYZ[2] = 0.0;
     coordInfoOut.m_windowIndex  = viewportContent->getWindowIndex();
     coordInfoOut.m_windowWidth  = windowViewport[2];
     coordInfoOut.m_windowHeight = windowViewport[3];
@@ -225,8 +327,9 @@ AnnotationCoordinateInformation::getValidCoordinateSpacesFromXY(BrainOpenGLWidge
     /*
      * Normalize window coordinates (width and height range [0, 100]
      */
-    coordInfoOut.m_windowXYZ[0] = 100.0 * (coordInfoOut.m_windowXYZ[0] / windowViewport[2]);
-    coordInfoOut.m_windowXYZ[1] = 100.0 * (coordInfoOut.m_windowXYZ[1] / windowViewport[3]);
+    coordInfoOut.m_windowXYZ[0] = 100.0 * (coordInfoOut.m_windowPixelXYZ[0] / windowViewport[2]);
+    coordInfoOut.m_windowXYZ[1] = 100.0 * (coordInfoOut.m_windowPixelXYZ[1] / windowViewport[3]);
+    coordInfoOut.m_windowXYZ[2] = 0.0;
 }
 
 /**
