@@ -88,13 +88,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_spaceActionGroup->addAction(surfaceSpaceToolButton->defaultAction());
     m_spaceActionGroup->addAction(windowSpaceToolButton->defaultAction());
     
-    m_fileSelectionMenu = new AnnotationMenuFileSelection();
-    QObject::connect(m_fileSelectionMenu, SIGNAL(menuItemSelected()),
-                     this, SLOT(itemSelectedFromFileSelectionMenu()));
-    m_fileSelectionToolButton = new QToolButton();
-    m_fileSelectionToolButton->setMenu(m_fileSelectionMenu);
-    m_fileSelectionToolButton->setPopupMode(QToolButton::InstantPopup);
-    m_fileSelectionToolButton->setToolTip("Choose file for new annotations");
+    QToolButton* fileSelectionToolButton = createFileSelectionToolButton();
     
     /*
      * Check the default space tool button
@@ -119,15 +113,20 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->addWidget(fileLabel,
                               1, 0,
                               Qt::AlignHCenter);
-        gridLayout->addWidget(m_fileSelectionToolButton,
+        gridLayout->addWidget(fileSelectionToolButton,
                               2, 0, 2, 1,
                               (Qt::AlignTop | Qt::AlignHCenter));
         
-        QSpacerItem* columnSpaceItem = new QSpacerItem(5, 5,
-                                                    QSizePolicy::Fixed,
-                                                    QSizePolicy::Fixed);
-        gridLayout->addItem(columnSpaceItem,
-                            1, 1, 3, 1);
+//        QSpacerItem* columnSpaceItem = new QSpacerItem(5, 5,
+//                                                    QSizePolicy::Fixed,
+//                                                    QSizePolicy::Fixed);
+//        gridLayout->addItem(columnSpaceItem,
+//                            1, 1, 3, 1);
+        
+        gridLayout->setColumnMinimumWidth(1, 15);
+        gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
+                              1, 1, 3, 1,
+                              Qt::AlignHCenter);
         
 //        gridLayout->addItem(rowSpaceItem,
 //                            2, 3, 1, 6);
@@ -225,7 +224,31 @@ AnnotationInsertNewWidget::itemSelectedFromFileSelectionMenu()
     /*
      * Add a space so that the arrow is not
      */
-    m_fileSelectionToolButton->setText(m_fileSelectionMenu->getSelectedNameForToolButton() + "   ");
+    m_fileSelectionToolButtonAction->setText(m_fileSelectionMenu->getSelectedNameForToolButton());
+}
+
+/**
+ * @return Create a file selection/menu toolbutton.
+ */
+QToolButton*
+AnnotationInsertNewWidget::createFileSelectionToolButton()
+{
+    m_fileSelectionMenu = new AnnotationMenuFileSelection();
+    QObject::connect(m_fileSelectionMenu, SIGNAL(menuItemSelected()),
+                     this, SLOT(itemSelectedFromFileSelectionMenu()));
+    
+    m_fileSelectionToolButtonAction = new QAction(m_fileSelectionMenu->getSelectedNameForToolButton(),
+                                                  this);
+    m_fileSelectionToolButtonAction->setToolTip("Choose file for new annotation");
+    m_fileSelectionToolButtonAction->setMenu(m_fileSelectionMenu);
+    
+    QToolButton* fileSelectionToolButton = new QToolButton();
+    fileSelectionToolButton->setDefaultAction(m_fileSelectionToolButtonAction);
+    fileSelectionToolButton->setFixedWidth(fileSelectionToolButton->sizeHint().width());
+//    fileSelectionToolButton->setSizePolicy(QSizePolicy::Fixed,
+//                                           fileSelectionToolButton->sizePolicy().verticalPolicy());
+    
+    return fileSelectionToolButton;
 }
 
 /**
@@ -243,7 +266,7 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
                                                     annotationType),
                                   typeGuiName,
                                   this);
-    action->setToolTip("Create a "
+    action->setToolTip("Insert a new "
                        + typeGuiName
                        + " annotation");
 

@@ -87,7 +87,7 @@ AnnotationMenuFileSelection::getSelectedAnnotationFile()
 AString
 AnnotationMenuFileSelection::getSelectedNameForToolButton()
 {
-    AString name("None");
+    AString name("Scene");
     
     AnnotationFile* annFile = getSelectedAnnotationFile();
     if (annFile != NULL) {
@@ -95,7 +95,7 @@ AnnotationMenuFileSelection::getSelectedNameForToolButton()
             name = "Scene";
         }
         else {
-            name = "Disk";
+            name = "Disk ";
         }
     }
     
@@ -108,29 +108,35 @@ AnnotationMenuFileSelection::getSelectedNameForToolButton()
 void
 AnnotationMenuFileSelection::chooseDiskFile()
 {
-    /*
-     * Let user choose a different path/name
-     */
-    AnnotationFile* newFile = new AnnotationFile();
-    AString newFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::ANNOTATION,
-                                                                 this,
-                                                                 "Choose Annotation File Name",
-                                                                 newFile->getFileName());
-    /*
-     * If user cancels, delete the new border file and return
-     */
-    if (newFileName.isEmpty()) {
-        delete newFile;
-        return;
-    }
+    const AString fileDialogSettingsName("AnnotDiskFileDialog");
     
     /*
-     * Set name of new border file, add file to brain, and make
-     * file the selected annotation file.
+     * Setup file selection dialog.
      */
-    newFile->setFileName(newFileName);
-    EventManager::get()->sendEvent(EventDataFileAdd(newFile).getPointer());
-    m_selectedAnnotationFile = newFile;
+    CaretFileDialog fd(this);
+    fd.setAcceptMode(CaretFileDialog::AcceptSave);
+    fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::ANNOTATION));
+    fd.setFileMode(CaretFileDialog::AnyFile);
+    fd.setViewMode(CaretFileDialog::List);
+    fd.setLabelText(CaretFileDialog::Accept, "Choose"); // OK button shows Insert
+    fd.restoreDialogSettings(fileDialogSettingsName);
+    fd.selectFile(AnnotationFile().getFileNameNoPath());
+    
+    AString errorMessages;
+    
+    if (fd.exec() == CaretFileDialog::Accepted) {
+        fd.saveDialogSettings(fileDialogSettingsName);
+        
+        QStringList selectedFiles = fd.selectedFiles();
+        if ( ! selectedFiles.empty()) {
+            const AString annotationFileName = selectedFiles.at(0);
+            
+            AnnotationFile* newFile = new AnnotationFile();
+            newFile->setFileName(annotationFileName);
+            EventManager::get()->sendEvent(EventDataFileAdd(newFile).getPointer());
+            m_selectedAnnotationFile = newFile;
+        }
+    }
 }
 
 /**

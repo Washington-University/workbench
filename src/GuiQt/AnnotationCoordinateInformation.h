@@ -70,15 +70,6 @@ namespace caret {
                                                      const AnnotationCoordinateInformation* coordInfoOne,
                                                      const AnnotationCoordinateInformation* coordInfoTwo);
         
-        static void setAnnotationFromBoundsWidthAndHeight(Annotation* annotation,
-                                                          const MouseEvent& mouseEvent,
-                                                          const float annotationWidth,
-                                                          const float annotationHeight);
-        
-
-        // ADD_NEW_METHODS_HERE
-
-        
         double m_modelXYZ[3];
         bool   m_modelXYZValid;
         

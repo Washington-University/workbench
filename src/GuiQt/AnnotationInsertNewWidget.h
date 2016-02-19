@@ -76,13 +76,15 @@ namespace caret {
         QPixmap createSpacePixmap(const QWidget* widget,
                                   const AnnotationCoordinateSpaceEnum::Enum annotationSpace);
         
+        QToolButton* createFileSelectionToolButton();
+        
         void createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType);
         
         const int32_t m_browserWindowIndex;
         
         QActionGroup* m_spaceActionGroup;
         
-        QToolButton* m_fileSelectionToolButton;
+        QAction* m_fileSelectionToolButtonAction;
         
         AnnotationMenuFileSelection* m_fileSelectionMenu;
         

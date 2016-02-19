@@ -23,20 +23,18 @@
 #include "AnnotationCreateDialog.h"
 #undef __ANNOTATION_CREATE_DIALOG_DECLARE__
 
+#include <QButtonGroup>
 #include <QGroupBox>
 #include <QLabel>
+#include <QRadioButton>
 #include <QTextEdit>
 #include <QToolButton>
 #include <QVBoxLayout>
 
 #include "AnnotationBox.h"
-#include "AnnotationCoordinate.h"
-#include "AnnotationCoordinateSelectionWidget.h"
 #include "AnnotationFile.h"
 #include "AnnotationImage.h"
-#include "AnnotationLine.h"
 #include "AnnotationManager.h"
-#include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
@@ -91,18 +89,6 @@ AnnotationCreateDialog::newAnnotationFromSpaceAndType(const MouseEvent& mouseEve
                                                       const AnnotationTypeEnum::Enum annotationType,
                                                       AnnotationFile* annotationFile)
 {
-//    AnnotationCoordinateInformation coordInfo;
-//    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
-//                                                                    coordInfo);
-//    
-//    Annotation* newAnnotation = newAnnotationFromSpaceTypeAndCoords(mouseEvent,
-//                                                                    annotationSpace,
-//                                                                    annotationType,
-//                                                                    &coordInfo,
-//                                                                    NULL,
-//                                                                    annotationFile);
-//    return newAnnotation;
-    
     Annotation* newAnnotation = newAnnotationFromSpaceTypeAndCoords(MODE_NEW_ANNOTATION_TYPE_CLICK,
                                                                     mouseEvent,
                                                                     annotationSpace,
@@ -140,57 +126,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mo
                                                                      annotationSpace,
                                                                      annotationType,
                                                                      annotationFile);
-//    if ((annotationWidth > 0.0)
-//        && (annotationHeight > 0.0)) {
-//        CaretLogWarning("This is probably causing annotation size to expand shrink after creation");
-//        AnnotationCoordinateInformation::setAnnotationFromBoundsWidthAndHeight(newAnnotation,
-//                                                                               mouseEvent,
-//                                                                               annotationWidth,
-//                                                                               annotationHeight);
-//    }
-    
     return newAnnotation;
-    
-//        AnnotationCoordinateInformation coordOne;
-//        AnnotationCoordinateInformation coordTwo;
-//        float annotationWidth  = 0.0;
-//        float annotationHeight = 0.0;
-//        bool coordOneValidFlag = false;
-//        bool coordTwoValidFlag = false;
-//        bool widthHeightValidFlag = false;
-//        
-//        setUpAnnotationCoordinateInformation(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
-//                                             mouseEvent,
-//                                             annotationType,
-//                                             coordOne,
-//                                             coordTwo,
-//                                             annotationWidth,
-//                                             annotationHeight,
-//                                             coordOneValidFlag,
-//                                             coordTwoValidFlag,
-//                                             widthHeightValidFlag);
-//        
-//        Annotation* newAnnotation = newAnnotationFromSpaceTypeAndCoords(mouseEvent,
-//                                                                        annotationSpace,
-//                                                                        annotationType,
-//                                                                        &coordOne,
-//                                                                        (coordTwoValidFlag
-//                                                                         ? &coordTwo
-//                                                                         : NULL),
-//                                                                        annotationFile);
-//        if ((annotationWidth > 0.0)
-//            && (annotationHeight > 0.0)) {
-//            CaretLogWarning("This is probably causing annotation size to expand shrink after creation");
-//            AnnotationCoordinateInformation::setAnnotationFromBoundsWidthAndHeight(newAnnotation,
-//                                                                                   mouseEvent,
-//                                                                                   annotationWidth,
-//                                                                                   annotationHeight);
-//        }
-//        
-//        return newAnnotation;
-    
-//    return NULL;
-    
 }
 
 /**
@@ -281,44 +217,10 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
             
             delete newAnn;
             needToLaunchDialogFlag = true;
-            
-//            Annotation* newAnn = Annotation::newAnnotationOfType(annotationType,
-//                                                                 AnnotationAttributesDefaultTypeEnum::USER);
-//            
-//            AnnotationCoordinateInformation* coordTwo = NULL;
-//            if (newInfo.m_coordTwoInfoValid) {
-//                coordTwo = &newInfo.m_coordTwoInfo;
-//            }
-//            const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(newAnn,
-//                                                                                                     annotationSpace,
-//                                                                                                     &newInfo.m_coordOneInfo,
-//                                                                                                     coordTwo);
-//            if (validFlag) {
-//                if ((newInfo.m_percentageWidth > 0)
-//                    && (newInfo.m_percentageHeight > 0)) {
-//                    AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(newAnn);
-//                    if (twoDimShape != NULL) {
-//                        twoDimShape->setWidth(newInfo.m_percentageWidth);
-//                        twoDimShape->setHeight(newInfo.m_percentageHeight);
-//                    }
-//                }
-//                
-//                finishAnnotationCreation(annotationFile,
-//                                         newAnn,
-//                                         mouseEvent.getBrowserWindowIndex());
-//                return newAnn;
-//            }
-//            
-//            else {
-//                CaretAssertMessage(0, "Space should have been valid, we should never get here.");
-//                delete newAnn;
-//                needToLaunchDialogFlag = true;
-//            }
         }
     }
     else {
         needToLaunchDialogFlag = true;
-        CaretLogSevere("NEED TO LAUNCH DIALOG");
     }
     
     if (needToLaunchDialogFlag) {
@@ -332,90 +234,18 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
         }
         
     }
-//    CaretAssert(coordOne);
-//
-//    /*
-//     * Both coordinates must be valid for the annotation space.
-//     * Note: Second coordinate is optional.
-//     */
-//    bool annotationSpaceValidFlag = false;
-//    if (coordOne->isCoordinateSpaceValid(annotationSpace)) {
-//        if (coordTwo != NULL) {
-//            if (coordTwo->isCoordinateSpaceValid(annotationSpace)) {
-//                annotationSpaceValidFlag = true;
-//            }
-//        }
-//        else {
-//            annotationSpaceValidFlag = true;
-//        }
-//    }
-//    
-//    
-//    bool needImageOrTextFlag = false;
-//    switch (annotationType) {
-//        case AnnotationTypeEnum::BOX:
-//            break;
-//        case AnnotationTypeEnum::COLOR_BAR:
-//            CaretAssertMessage(0, "Colorbars do not get created !!!");
-//            break;
-//        case AnnotationTypeEnum::IMAGE:
-//            needImageOrTextFlag = true;
-//            break;
-//        case AnnotationTypeEnum::LINE:
-//            break;
-//        case AnnotationTypeEnum::OVAL:
-//            break;
-//        case AnnotationTypeEnum::TEXT:
-//            needImageOrTextFlag = true;
-//            break;
-//    }
-//    
-//    if (annotationSpaceValidFlag) {
-//        if ( ! needImageOrTextFlag) {
-//            Annotation* newAnn = Annotation::newAnnotationOfType(annotationType,
-//                                                                 AnnotationAttributesDefaultTypeEnum::USER);
-//            const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(newAnn,
-//                                                                                                     annotationSpace,
-//                                                                                                     coordOne,
-//                                                                                                     coordTwo);
-//            if (validFlag) {
-//                finishAnnotationCreation(annotationFile,
-//                                         newAnn,
-//                                         mouseEvent.getBrowserWindowIndex());
-//                return newAnn;
-//            }
-//            else {
-//                CaretAssertMessage(0, "Space should have been valid, we should never get here.");
-//                delete newAnn;
-//                annotationSpaceValidFlag = false;
-//            }
-//        }
-//    }
-//    
-//    AnnotationCreateDialog annDialog(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
-//                                     mouseEvent,
-//                                     annotationFile,
-//                                     annotationSpace,
-//                                     annotationSpaceValidFlag,
-//                                     annotationType,
-//                                     mouseEvent.getOpenGLWidget());
-//    if (annDialog.exec() == AnnotationCreateDialog::Accepted) {
-//        return annDialog.getAnnotationThatWasCreated();
-//    }
-//    
-//
-//    AnnotationCreateDialog annDialog(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
-//                                     NewAnnotationInfo,
-//                                     annotationSpace,
-//                                     annotationSpaceValidFlag,
-//                                     mouseEvent.getOpenGLWidget());
-//    if (annDialog.exec() == AnnotationCreateDialog::Accepted) {
-//        return annDialog.getAnnotationThatWasCreated();
-//    }
 
     return NULL;
 }
 
+/**
+ * Create a new annotation.
+ *
+ * @param newAnnotationInfo
+ *     Information about the new annotation.
+ * @param annotationSpace
+ *     Coordinate space for new annotaiton.
+ */
 Annotation*
 AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                                          const AnnotationCoordinateSpaceEnum::Enum annotationSpace)
@@ -468,16 +298,10 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
  *     The dialog's mode.
  * @param newAnnotationInfo
  *     Information for creating new annotation.
- * @param mouseEvent
- *     The mouse event.
- * @param annotationFile
- *     File containing the annotation that is copied (may be NULL).
  * @param annotationSpace
  *      Space of annotation that is being created.
  * @param annotationSpaceValidFlag
  *      True if annotation space is valid (do not need space selection).
- * @param annotationType
- *      Type of annotation that is being created.
  * @param parent
  *      Optional parent for this dialog.
  */
@@ -492,162 +316,29 @@ m_mode(mode),
 m_newAnnotationInfo(newAnnotationInfo),
 m_annotationSpace(annotationSpace),
 m_annotationThatWasCreated(NULL),
-m_annotationFromBoundsWidth(-1.0),
-m_annotationFromBoundsHeight(-1.0),
 m_imageWidth(0),
 m_imageHeight(0)
 {
-    m_annotationSpaceComboBox = NULL;
+    m_annotationSpaceButtonGroup = NULL;
     m_textEdit = NULL;
     
-//    bool coordOneValid = false;
-//    bool coordTwoValid = false;
-//    bool widthHeightValid = false;
-//    setUpAnnotationCoordinateInformation(m_mode,
-//                                         m_newAnnotationInfo.m_mouseEvent,
-//                                         m_newAnnotationInfo.m_annotationType,
-//                                         m_coordInfo,
-//                                         m_coordTwoInfo,
-//                                         m_annotationFromBoundsWidth,
-//                                         m_annotationFromBoundsHeight,
-//                                         coordOneValid,
-//                                         coordTwoValid,
-//                                         widthHeightValid);
-//    /*
-//     * Get coordinates at the mouse location.
-//     */
-//    int32_t windowX = mouseEvent.getX();
-//    int32_t windowY = mouseEvent.getY();
-//    int32_t windowTwoX = -1;
-//    int32_t windowTwoY = -1;
-//    switch (m_mode) {
-//        case MODE_NEW_ANNOTATION_TYPE_CLICK:
-//            break;
-//        case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
-//        {
-//            windowX = mouseEvent.getPressedX();
-//            windowY = mouseEvent.getPressedY();
-//            windowTwoX = mouseEvent.getX();
-//            windowTwoY = mouseEvent.getY();
-//            
-//            bool useAverageFlag      = false;
-//            bool useTextAligmentFlag = false;
-//            switch (annotationType) {
-//                case AnnotationTypeEnum::BOX:
-//                    useAverageFlag = true;
-//                    break;
-//                case AnnotationTypeEnum::COLOR_BAR:
-//                    useAverageFlag = true;
-//                    break;
-//                case AnnotationTypeEnum::IMAGE:
-//                    useAverageFlag = true;
-//                    break;
-//                case AnnotationTypeEnum::OVAL:
-//                    useAverageFlag = true;
-//                    break;
-//                case AnnotationTypeEnum::LINE:
-//                    useAverageFlag = false;
-//                    break;
-//                case AnnotationTypeEnum::TEXT:
-//                    //useAverageFlag = true;
-//                    useTextAligmentFlag = true;
-//                    break;
-//            }
-//            
-//            if ((windowX >= 0)
-//                && (windowY >= 0)
-//                && (windowTwoX >= 0)
-//                && (windowTwoY >= 0)) {
-//                const float minX = std::min(windowX, windowTwoX);
-//                const float minY = std::min(windowY, windowTwoY);
-//                const float maxX = std::max(windowX, windowTwoX);
-//                const float maxY = std::max(windowY, windowTwoY);
-//                const float centerX = (windowX + windowTwoX) / 2.0;
-//                const float centerY = (windowY + windowTwoY) / 2.0;
-//                
-//                if (useAverageFlag) {
-//                    /*
-//                     * Width and height in pixels
-//                     */
-//                    m_annotationFromBoundsWidth  = maxX - minX;
-//                    m_annotationFromBoundsHeight = maxY - minY;
-//                    
-//                    windowX = centerX;
-//                    windowY = centerY;
-//                    windowTwoX = -1;
-//                    windowTwoY = -1;
-//                }
-//                else if (useTextAligmentFlag) {
-//                    float textX = windowX;
-//                    float textY = windowY;
-//                    
-//                    AnnotationPercentSizeText textAnn(AnnotationAttributesDefaultTypeEnum::USER);
-//                    switch (textAnn.getHorizontalAlignment()) {
-//                        case AnnotationTextAlignHorizontalEnum::CENTER:
-//                            textX = centerX;
-//                            break;
-//                        case AnnotationTextAlignHorizontalEnum::LEFT:
-//                            textX = minX;
-//                            break;
-//                        case AnnotationTextAlignHorizontalEnum::RIGHT:
-//                            textX = maxX;
-//                            break;
-//                    }
-//                    
-//                    switch (textAnn.getVerticalAlignment()) {
-//                        case AnnotationTextAlignVerticalEnum::BOTTOM:
-//                            textY = minY;
-//                            break;
-//                        case AnnotationTextAlignVerticalEnum::MIDDLE:
-//                            textY = centerY;
-//                            break;
-//                        case AnnotationTextAlignVerticalEnum::TOP:
-//                            textY = maxY;
-//                            break;
-//                    }
-//                    
-//                    windowX = textX;
-//                    windowY = textY;
-//                    windowTwoX = -1;
-//                    windowTwoY = -1;
-//                }
-//            }
-//        }
-//            break;
-//    }
-//    
-//    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
-//                                                                    mouseEvent.getViewportContent(),
-//                                                                    windowX,
-//                                                                    windowY,
-//                                                                    m_coordInfo);
-//    
-//    bool secondCoordValidFlag = false;
-//    if ((windowTwoX >= 0)
-//        && (windowTwoY >= 0)) {
-//        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
-//                                                                        mouseEvent.getViewportContent(),
-//                                                                        windowTwoX,
-//                                                                        windowTwoY,
-//                                                                        m_coordTwoInfo);
-//        secondCoordValidFlag = true;
-//    }
-    
     QGroupBox* coordGroupBox = NULL;
-    m_coordinateSelectionWidget = NULL;
     if ( ! annotationSpaceValidFlag) {
-        m_annotationSpaceComboBox = new EnumComboBoxTemplate(this);
-        m_annotationSpaceComboBox->setupWithItems<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(m_newAnnotationInfo.m_validSpaces);
-//        m_coordinateSelectionWidget = new AnnotationCoordinateSelectionWidget(m_newAnnotationInfo.m_annotationType,
-//                                                                              m_coordInfo,
-//                                                                              (coordTwoValid
-//                                                                               ? &m_coordTwoInfo
-//                                                                               : NULL));
-
         coordGroupBox = new QGroupBox("Coordinate Space");
         QVBoxLayout* coordGroupLayout = new QVBoxLayout(coordGroupBox);
         coordGroupLayout->setMargin(0);
-        coordGroupLayout->addWidget(m_annotationSpaceComboBox->getWidget());
+        
+        m_annotationSpaceButtonGroup = new QButtonGroup(this);
+        for (std::vector<AnnotationCoordinateSpaceEnum::Enum>::iterator iter = m_newAnnotationInfo.m_validSpaces.begin();
+             iter != m_newAnnotationInfo.m_validSpaces.end();
+             iter++) {
+            const AnnotationCoordinateSpaceEnum::Enum space = *iter;
+            QRadioButton* rb = new QRadioButton(AnnotationCoordinateSpaceEnum::toGuiName(space));
+            m_annotationSpaceButtonGroup->addButton(rb,
+                                                    AnnotationCoordinateSpaceEnum::toIntegerCode(space));
+            coordGroupLayout->addWidget(rb);
+        }
+
     }
     
     QWidget* textWidget = ((m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::TEXT)
@@ -689,7 +380,9 @@ m_imageHeight(0)
     if (imageWidget != NULL) {
         layout->addWidget(imageWidget);
     }
-    layout->addStretch();
+
+    dialogWidget->setSizePolicy(dialogWidget->sizePolicy().horizontalPolicy(),
+                                QSizePolicy::Fixed);
     
     setCentralWidget(dialogWidget,
                      SCROLL_AREA_NEVER);
@@ -700,425 +393,11 @@ m_imageHeight(0)
     }
 }
 
-///**
-// * Dialog constructor.
-// *
-// * @param mode
-// *     The dialog's mode.
-// * @param mouseEvent
-// *     The mouse event.
-// * @param annotationFile
-// *     File containing the annotation that is copied (may be NULL).
-// * @param annotationSpace
-// *      Space of annotation that is being created.
-// * @param annotationSpaceValidFlag
-// *      True if annotation space is valid (do not need space selection).
-// * @param annotationType
-// *      Type of annotation that is being created.
-// * @param parent
-// *      Optional parent for this dialog.
-// */
-//AnnotationCreateDialog::AnnotationCreateDialog(const Mode mode,
-//                                               const MouseEvent& mouseEvent,
-//                                               AnnotationFile* annotationFile,
-//                                               const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-//                                               const bool annotationSpaceValidFlag,
-//                                               const AnnotationTypeEnum::Enum annotationType,
-//                                               QWidget* parent)
-//: WuQDialogModal("New Annotation",
-//                 parent),
-//m_mode(mode),
-//m_mouseEvent(mouseEvent),
-//m_annotationFile(annotationFile),
-//m_annotationSpace(annotationSpace),
-//m_annotationType(annotationType),
-//m_annotationThatWasCreated(NULL),
-//m_annotationFromBoundsWidth(-1.0),
-//m_annotationFromBoundsHeight(-1.0),
-//m_imageWidth(0),
-//m_imageHeight(0)
-//{
-//    m_textEdit = NULL;
-//    
-//    /*
-//     * Get coordinates at the mouse location.
-//     */
-//    int32_t windowX = mouseEvent.getX();
-//    int32_t windowY = mouseEvent.getY();
-//    int32_t windowTwoX = -1;
-//    int32_t windowTwoY = -1;
-//    switch (m_mode) {
-//        case MODE_NEW_ANNOTATION_TYPE_CLICK:
-//            break;
-//        case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
-//        {
-//            windowX = mouseEvent.getPressedX();
-//            windowY = mouseEvent.getPressedY();
-//            windowTwoX = mouseEvent.getX();
-//            windowTwoY = mouseEvent.getY();
-//            
-//            bool useAverageFlag      = false;
-//            bool useTextAligmentFlag = false;
-//            switch (annotationType) {
-//                case AnnotationTypeEnum::BOX:
-//                    useAverageFlag = true;
-//                    break;
-//                case AnnotationTypeEnum::COLOR_BAR:
-//                    useAverageFlag = true;
-//                    break;
-//                case AnnotationTypeEnum::IMAGE:
-//                    useAverageFlag = true;
-//                    break;
-//                case AnnotationTypeEnum::OVAL:
-//                    useAverageFlag = true;
-//                    break;
-//                case AnnotationTypeEnum::LINE:
-//                    useAverageFlag = false;
-//                    break;
-//                case AnnotationTypeEnum::TEXT:
-//                    //useAverageFlag = true;
-//                    useTextAligmentFlag = true;
-//                    break;
-//            }
-//            
-//            if ((windowX >= 0)
-//                && (windowY >= 0)
-//                && (windowTwoX >= 0)
-//                && (windowTwoY >= 0)) {
-//                const float minX = std::min(windowX, windowTwoX);
-//                const float minY = std::min(windowY, windowTwoY);
-//                const float maxX = std::max(windowX, windowTwoX);
-//                const float maxY = std::max(windowY, windowTwoY);
-//                const float centerX = (windowX + windowTwoX) / 2.0;
-//                const float centerY = (windowY + windowTwoY) / 2.0;
-//                
-//                if (useAverageFlag) {
-//                    /*
-//                     * Width and height in pixels
-//                     */
-//                    m_annotationFromBoundsWidth  = maxX - minX;
-//                    m_annotationFromBoundsHeight = maxY - minY;
-//                    
-//                    windowX = centerX;
-//                    windowY = centerY;
-//                    windowTwoX = -1;
-//                    windowTwoY = -1;
-//                }
-//                else if (useTextAligmentFlag) {
-//                    float textX = windowX;
-//                    float textY = windowY;
-//                    
-//                    AnnotationPercentSizeText textAnn(AnnotationAttributesDefaultTypeEnum::USER);
-//                    switch (textAnn.getHorizontalAlignment()) {
-//                        case AnnotationTextAlignHorizontalEnum::CENTER:
-//                            textX = centerX;
-//                            break;
-//                        case AnnotationTextAlignHorizontalEnum::LEFT:
-//                            textX = minX;
-//                            break;
-//                        case AnnotationTextAlignHorizontalEnum::RIGHT:
-//                            textX = maxX;
-//                            break;
-//                    }
-//                    
-//                    switch (textAnn.getVerticalAlignment()) {
-//                        case AnnotationTextAlignVerticalEnum::BOTTOM:
-//                            textY = minY;
-//                            break;
-//                        case AnnotationTextAlignVerticalEnum::MIDDLE:
-//                            textY = centerY;
-//                            break;
-//                        case AnnotationTextAlignVerticalEnum::TOP:
-//                            textY = maxY;
-//                            break;
-//                    }
-//                    
-//                    windowX = textX;
-//                    windowY = textY;
-//                    windowTwoX = -1;
-//                    windowTwoY = -1;
-//                }
-//            }
-//        }
-//            break;
-//    }
-//    
-//    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
-//                                                             mouseEvent.getViewportContent(),
-//                                                             windowX,
-//                                                             windowY,
-//                                                             m_coordInfo);
-//    
-//    bool secondCoordValidFlag = false;
-//    if ((windowTwoX >= 0)
-//        && (windowTwoY >= 0)) {
-//        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
-//                                                                 mouseEvent.getViewportContent(),
-//                                                                 windowTwoX,
-//                                                                 windowTwoY,
-//                                                                 m_coordTwoInfo);
-//        secondCoordValidFlag = true;
-//    }
-//    
-//    m_coordinateSelectionWidget = new AnnotationCoordinateSelectionWidget(m_annotationType,
-//                                                                          m_coordInfo,
-//                                                                          (secondCoordValidFlag
-//                                                                           ? &m_coordTwoInfo
-//                                                                           : NULL));
-//    
-//    
-//    QGroupBox* coordGroupBox = new QGroupBox("Coordinate Space");
-//    QVBoxLayout* coordGroupLayout = new QVBoxLayout(coordGroupBox);
-//    coordGroupLayout->setMargin(0);
-//    coordGroupLayout->addWidget(m_coordinateSelectionWidget);
-//    
-//    m_coordinateSelectionWidget->selectCoordinateSpace(m_annotationSpace);
-//    
-//    /*
-//     * If input space is valid, no need to show coordinate selection widget
-//     */
-//    bool showSpaceWidgetsFlag = true;
-//    if (annotationSpaceValidFlag) {
-//        bool validFlag = false;
-//        const AnnotationCoordinateSpaceEnum::Enum space = m_coordinateSelectionWidget->getSelectedCoordinateSpace(validFlag);
-//        if (validFlag) {
-//            if (m_annotationSpace == space) {
-//                showSpaceWidgetsFlag = false;
-//            }
-//        }
-//    }
-//    
-//    QWidget* textWidget = ((m_annotationType == AnnotationTypeEnum::TEXT)
-//                           ? createTextWidget()
-//                           : NULL);
-//    
-//    QWidget* imageWidget = ((m_annotationType == AnnotationTypeEnum::IMAGE)
-//                            ? createImageWidget()
-//                            : NULL);
-//    
-//    QWidget* dialogWidget = new QWidget();
-//    QVBoxLayout* layout = new QVBoxLayout(dialogWidget);
-//    if (showSpaceWidgetsFlag) {
-//        const QString message("The location for the new annotation is incompatible with the "
-//                              "coordinate space selected in the toolbar.  "
-//                              "Choose one of the coordinate "
-//                              "spaces below to create the annotation or press Cancel to cancel creation "
-//                              "of the annotation.");
-//        QLabel* messageLabel = new QLabel(message);
-//        messageLabel->setWordWrap(true);
-//        
-//        QLabel* spaceLabel = new QLabel("Space selected in Toolbar: "
-//                                        + AnnotationCoordinateSpaceEnum::toGuiName(annotationSpace));
-//        
-//        spaceLabel->setWordWrap(false);
-//        layout->addWidget(spaceLabel);
-//        layout->addSpacing(10);
-//        layout->addWidget(messageLabel);
-//        layout->addSpacing(10);
-//    }
-//    else {
-//        coordGroupBox->setVisible(false);
-//        coordGroupBox->setFixedSize(0, 0);
-//    }
-//    layout->addWidget(coordGroupBox);
-//    if (textWidget != NULL) {
-//        layout->addWidget(textWidget);
-//    }
-//    if (imageWidget != NULL) {
-//        layout->addWidget(imageWidget);
-//    }
-//    layout->addStretch();
-//    
-//    setCentralWidget(dialogWidget,
-//                     SCROLL_AREA_NEVER);
-//    
-//    if (m_annotationType == AnnotationTypeEnum::TEXT) {
-//        CaretAssert(m_textEdit);
-//        m_textEdit->setFocus();
-//    }
-//}
-
 /**
  * Destructor.
  */
 AnnotationCreateDialog::~AnnotationCreateDialog()
 {
-}
-
-/**
- * Setup the coordinate information for an annotation specified by user a
- * bounds in the window, typically by dragging the mouse to create
- * a rectangle.
- *
- * @param mode
- *     The mode.
- * @param mouseEvent
- *     Mouse event containing window locations.
- * @param annotationType
- *     The annotation type.
- * @param coordOneOut
- *     Output with first coordinate.
- * @param coordTwoOut
- *     Output with second coordinate.
- * @param widthOut
- *     Output width for annotation.
- * @param heightOut
- *     Output height for annotation.
- * @param coordOneValidOut
- *     Output with validity of first coordinate.
- * @param coordTwoValidOut
- *     Output with validity of second coordinate.
- * @param widthHeightValidOut
- *     Output containing validity for output width and height.
- */
-void
-AnnotationCreateDialog::setUpAnnotationCoordinateInformation(const Mode mode,
-                                                             const MouseEvent& mouseEvent,
-                                                             const AnnotationTypeEnum::Enum annotationType,
-                                                             AnnotationCoordinateInformation& coordOneOut,
-                                                             AnnotationCoordinateInformation& coordTwoOut,
-                                                             float& widthOut,
-                                                             float& heightOut,
-                                                             bool& coordOneValidOut,
-                                                             bool& coordTwoValidOut,
-                                                             bool& widthHeightValidOut)
-{
-    coordOneOut.reset();
-    coordTwoOut.reset();
-    coordOneValidOut = false;
-    coordTwoValidOut = false;
-    
-    widthOut            = -1.0;
-    heightOut           = -1.0;
-    widthHeightValidOut = false;
-    
-    /*
-     * Get coordinates at the mouse location.
-     */
-    int32_t windowX    = -1;
-    int32_t windowY    = -1;
-    int32_t windowTwoX = -1;
-    int32_t windowTwoY = -1;
-    switch (mode) {
-        case MODE_NEW_ANNOTATION_TYPE_CLICK:
-            windowX = mouseEvent.getX();
-            windowY = mouseEvent.getY();
-            break;
-        case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
-        {
-            windowX = mouseEvent.getX();
-            windowY = mouseEvent.getY();
-            windowTwoX = mouseEvent.getPressedX();
-            windowTwoY = mouseEvent.getPressedY();
-            
-            bool useAverageFlag      = false;
-            bool useTextAligmentFlag = false;
-            switch (annotationType) {
-                case AnnotationTypeEnum::BOX:
-                    useAverageFlag = true;
-                    break;
-                case AnnotationTypeEnum::COLOR_BAR:
-                    useAverageFlag = true;
-                    break;
-                case AnnotationTypeEnum::IMAGE:
-                    useAverageFlag = true;
-                    break;
-                case AnnotationTypeEnum::OVAL:
-                    useAverageFlag = true;
-                    break;
-                case AnnotationTypeEnum::LINE:
-                    useAverageFlag = false;
-                    break;
-                case AnnotationTypeEnum::TEXT:
-                    useTextAligmentFlag = true;
-                    break;
-            }
-            
-            if ((windowX >= 0)
-                && (windowY >= 0)
-                && (windowTwoX >= 0)
-                && (windowTwoY >= 0)) {
-                const float minX = std::min(windowX, windowTwoX);
-                const float minY = std::min(windowY, windowTwoY);
-                const float maxX = std::max(windowX, windowTwoX);
-                const float maxY = std::max(windowY, windowTwoY);
-                const float centerX = (windowX + windowTwoX) / 2.0;
-                const float centerY = (windowY + windowTwoY) / 2.0;
-                
-                if (useAverageFlag) {
-                    /*
-                     * Width and height in pixels
-                     */
-                    widthOut  = maxX - minX;
-                    heightOut = maxY - minY;
-                    if ((widthOut > 0.0)
-                        && (heightOut > 0.0)) {
-                        widthHeightValidOut = true;
-                    }
-                    
-                    windowX = centerX;
-                    windowY = centerY;
-                    windowTwoX = -1;
-                    windowTwoY = -1;
-                }
-                else if (useTextAligmentFlag) {
-                    float textX = windowX;
-                    float textY = windowY;
-                    
-                    AnnotationPercentSizeText textAnn(AnnotationAttributesDefaultTypeEnum::USER);
-                    switch (textAnn.getHorizontalAlignment()) {
-                        case AnnotationTextAlignHorizontalEnum::CENTER:
-                            textX = centerX;
-                            break;
-                        case AnnotationTextAlignHorizontalEnum::LEFT:
-                            textX = minX;
-                            break;
-                        case AnnotationTextAlignHorizontalEnum::RIGHT:
-                            textX = maxX;
-                            break;
-                    }
-                    
-                    switch (textAnn.getVerticalAlignment()) {
-                        case AnnotationTextAlignVerticalEnum::BOTTOM:
-                            textY = minY;
-                            break;
-                        case AnnotationTextAlignVerticalEnum::MIDDLE:
-                            textY = centerY;
-                            break;
-                        case AnnotationTextAlignVerticalEnum::TOP:
-                            textY = maxY;
-                            break;
-                    }
-                    
-                    windowX = textX;
-                    windowY = textY;
-                    windowTwoX = -1;
-                    windowTwoY = -1;
-                }
-            }
-        }
-            break;
-    }
-    
-    if ((windowX >= 0)
-        && (windowY >= 0)) {
-        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
-                                                                        mouseEvent.getViewportContent(),
-                                                                        windowX,
-                                                                        windowY,
-                                                                        coordOneOut);
-        coordOneValidOut = true;
-    }
-    
-    if ((windowTwoX >= 0)
-        && (windowTwoY >= 0)) {
-        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
-                                                                        mouseEvent.getViewportContent(),
-                                                                        windowTwoX,
-                                                                        windowTwoY,
-                                                                        coordTwoOut);
-        coordTwoValidOut = true;
-    }
 }
 
 /**
@@ -1164,19 +443,18 @@ AnnotationCreateDialog::createImageWidget()
     m_imageFileNameLabel = new QLabel();
     
     m_imageThumbnailLabel = new QLabel();
-    m_imageFileNameLabel->setFixedSize(s_MAXIMUM_THUMB_NAIL_SIZE,
-                                       s_MAXIMUM_THUMB_NAIL_SIZE);
+    m_imageThumbnailLabel->setFixedSize(s_MAXIMUM_THUMB_NAIL_SIZE,
+                                        s_MAXIMUM_THUMB_NAIL_SIZE);
     
     QHBoxLayout* nameLayout = new QHBoxLayout();
     nameLayout->addWidget(newFileToolButton);
     nameLayout->addWidget(m_imageFileNameLabel);
-    nameLayout->addStretch();
     
     QGroupBox* groupBox = new QGroupBox("Image File");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->addLayout(nameLayout);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(m_imageThumbnailLabel);
-    layout->addStretch();
     
     return groupBox;
 }
@@ -1200,7 +478,6 @@ AnnotationCreateDialog::invalidateImage()
 void
 AnnotationCreateDialog::selectImageButtonClicked()
 {
-    
     const AString fileDialogSettingsName("AnnotImageDialog");
     
     /*
@@ -1211,7 +488,7 @@ AnnotationCreateDialog::selectImageButtonClicked()
     fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::IMAGE));
     fd.setFileMode(CaretFileDialog::ExistingFile);
     fd.setViewMode(CaretFileDialog::List);
-    fd.setLabelText(CaretFileDialog::Accept, "Insert"); // OK button shows Insert
+    fd.setLabelText(CaretFileDialog::Accept, "Choose"); // OK button shows Insert
     fd.restoreDialogSettings(fileDialogSettingsName);
     
     AString errorMessages;
@@ -1307,19 +584,15 @@ AnnotationCreateDialog::okButtonClicked()
     }
     
     AnnotationCoordinateSpaceEnum::Enum space = m_newAnnotationInfo.m_selectedSpace;
-    if (m_annotationSpaceComboBox != NULL) {
-        space = m_annotationSpaceComboBox->getSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>();
+    if (m_annotationSpaceButtonGroup != NULL) {
+        const int id = m_annotationSpaceButtonGroup->checkedId();
+        bool validFlag = false;
+        space = AnnotationCoordinateSpaceEnum::fromIntegerCode(id, &validFlag);
+        if ( ! validFlag) {
+            WuQMessageBox::errorOk(this, "No Space is selected.");
+            return;
+        }
     }
-//    if (m_coordinateSelectionWidget != NULL) {
-//        bool valid = false;
-//        m_coordinateSelectionWidget->getSelectedCoordinateSpace(valid);
-//        if ( ! valid) {
-//            const QString msg("A coordinate space has not been selected.");
-//            WuQMessageBox::errorOk(this,
-//                                   msg);
-//            return;
-//        }
-//    }
     
     CaretAssert(m_newAnnotationInfo.m_annotationFile);
     
@@ -1334,14 +607,10 @@ AnnotationCreateDialog::okButtonClicked()
         return;
     }
     
-//    annotation.grabNew(Annotation::newAnnotationOfType(m_newAnnotationInfo.m_annotationType,
-//                                                       AnnotationAttributesDefaultTypeEnum::USER));
     if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::TEXT) {
         AnnotationText* text = dynamic_cast<AnnotationText*>(annotation.getPointer());
-//        AnnotationText* text = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::USER);
         CaretAssert(text);
         text->setText(userText);
-//        annotation.grabNew(text);
     }
     AnnotationImage* annImage = dynamic_cast<AnnotationImage*>(annotation.getPointer());
     if (annImage != NULL) {
@@ -1350,49 +619,12 @@ AnnotationCreateDialog::okButtonClicked()
                                     m_imageHeight);
     }
 
-//    if (m_coordinateSelectionWidget != NULL) {
-//        if ( ! m_coordinateSelectionWidget->setCoordinateForNewAnnotation(annotation,
-//                                                                          errorMessage)) {
-//            WuQMessageBox::errorOk(this, errorMessage);
-//            return;
-//        }
-//    }
-//    else {
-//        AnnotationCoordinateInformation* coordTwoPointer = NULL;
-//        switch (m_mode) {
-//            case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
-//                coordTwoPointer = &m_coordTwoInfo;
-//                break;
-//            case MODE_NEW_ANNOTATION_TYPE_CLICK:
-//                break;
-//        }
-//        const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(annotation,
-//                                                                                                 m_annotationSpace,
-//                                                                                                 &m_coordInfo,
-//                                                                                                 coordTwoPointer);
-//        if ( ! validFlag) {
-//            WuQMessageBox::errorOk(this, "Failed to set coordinates for annotation.");
-//            return;
-//        }
-//    }
-    
     /*
      * Need to release annotation from its CaretPointer since the
      * annotation file will take ownership of the annotation.
      */
     Annotation* annotationPointer = annotation.releasePointer();
     
-//    if (m_mode == MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS) {
-//        AnnotationCoordinateInformation::setAnnotationFromBoundsWidthAndHeight(annotationPointer,
-//                                                                               m_newAnnotationInfo.m_mouseEvent,
-//                                                                               m_annotationFromBoundsWidth,
-//                                                                               m_annotationFromBoundsHeight);
-//    }
-//    
-//    finishAnnotationCreation(m_newAnnotationInfo.m_annotationFile,
-//                             annotationPointer,
-//                             m_newAnnotationInfo.m_mouseEvent.getBrowserWindowIndex());
-
     m_annotationThatWasCreated = annotationPointer;
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

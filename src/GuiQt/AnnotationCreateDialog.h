@@ -26,14 +26,12 @@
 #include "AnnotationTypeEnum.h"
 #include "WuQDialogModal.h"
 
+class QButtonGroup;
 class QTextEdit;
-class QRadioButton;
 
 namespace caret {
     class Annotation;
-    class AnnotationCoordinateSelectionWidget;
     class AnnotationFile;
-    class EnumComboBoxTemplate;
     class MouseEvent;
     
     class AnnotationCreateDialog : public WuQDialogModal {
@@ -119,14 +117,6 @@ namespace caret {
                                const bool annotationSpaceValidFlag,
                                QWidget* parent = 0);
 
-//        AnnotationCreateDialog(const Mode mode,
-//                               const MouseEvent& mouseEvent,
-//                               AnnotationFile* annotationFile,
-//                               const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-//                               const bool annotationSpaceValidFlag,
-//                               const AnnotationTypeEnum::Enum annotationType,
-//                               QWidget* parent = 0);
-        
         AnnotationCreateDialog(const AnnotationCreateDialog&);
 
         AnnotationCreateDialog& operator=(const AnnotationCreateDialog&);
@@ -144,17 +134,6 @@ namespace caret {
                                              Annotation* annotation,
                                              const int32_t browswerWindowIndex);
         
-        static void setUpAnnotationCoordinateInformation(const Mode mode,
-                                                         const MouseEvent& mouseEvent,
-                                                         const AnnotationTypeEnum::Enum annotationType,
-                                                         AnnotationCoordinateInformation& coordOneOut,
-                                                         AnnotationCoordinateInformation& coordTwoOut,
-                                                         float& widthOut,
-                                                         float& heightOut,
-                                                         bool& coordOneValidOut,
-                                                         bool& coordTwoValidOut,
-                                                         bool& widthHeightValidOut);
-        
         const Mode m_mode;
         
         NewAnnotationInfo& m_newAnnotationInfo;
@@ -163,13 +142,11 @@ namespace caret {
         
         Annotation* m_annotationThatWasCreated;
         
-        float m_annotationFromBoundsWidth;
+//        float m_annotationFromBoundsWidth;
+//        
+//        float m_annotationFromBoundsHeight;
         
-        float m_annotationFromBoundsHeight;
-        
-        EnumComboBoxTemplate* m_annotationSpaceComboBox;
-        
-        AnnotationCoordinateSelectionWidget* m_coordinateSelectionWidget;
+        QButtonGroup* m_annotationSpaceButtonGroup;
         
         QTextEdit* m_textEdit;
         
@@ -181,9 +158,9 @@ namespace caret {
         int32_t m_imageWidth;
         int32_t m_imageHeight;
         
-        AnnotationCoordinateInformation m_coordInfo;
-        
-        AnnotationCoordinateInformation m_coordTwoInfo;
+//        AnnotationCoordinateInformation m_coordInfo;
+//        
+//        AnnotationCoordinateInformation m_coordTwoInfo;
         
         static const int s_MAXIMUM_THUMB_NAIL_SIZE;
         
@@ -192,7 +169,7 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_CREATE_DIALOG_DECLARE__
-    const int AnnotationCreateDialog::s_MAXIMUM_THUMB_NAIL_SIZE = 300;
+    const int AnnotationCreateDialog::s_MAXIMUM_THUMB_NAIL_SIZE = 128;
 #endif // __ANNOTATION_CREATE_DIALOG_DECLARE__;
 
 } // namespace

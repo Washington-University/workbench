@@ -163,16 +163,34 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
             case AnnotationCoordinateSpaceEnum::SURFACE:
             case AnnotationCoordinateSpaceEnum::TAB:
             case AnnotationCoordinateSpaceEnum::WINDOW:
+                /*
+                 * See if space for first coord info is valid
+                 */
                 if (coordInfoOne->isCoordinateSpaceValid(space)) {
                     bool addItFlag = true;
                     if (coordInfoTwo != NULL) {
+                        /*
+                         * See if same space is valid for second coord info
+                         */
                         addItFlag = coordInfoTwo->isCoordinateSpaceValid(space);
                         
                         switch (space) {
                             case AnnotationCoordinateSpaceEnum::PIXELS:
                             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                                /*
+                                 * Both coord info's must be in the SAME TAB
+                                 */
+                                if (coordInfoOne->m_tabIndex != coordInfoTwo->m_tabIndex) {
+                                    addItFlag = false;
+                                }
                             case AnnotationCoordinateSpaceEnum::SURFACE:
-                                if (coordInfoOne->m_surfaceStructure != coordInfoTwo->m_surfaceStructure) {
+                                /*
+                                 * Both coord info's must be on same surface and
+                                 * in the SAME TAB
+                                 */
+                                if ((coordInfoOne->m_tabIndex != coordInfoTwo->m_tabIndex)
+                                    || (coordInfoOne->m_surfaceNumberOfNodes != coordInfoTwo->m_surfaceNumberOfNodes)
+                                    || (coordInfoOne->m_surfaceStructure != coordInfoTwo->m_surfaceStructure)) {
                                     addItFlag = false;
                                 }
                                 break;
@@ -717,76 +735,5 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
     }
     
     return validCoordinateFlag;
-}
-
-/**
- * Set the width and height for some two-dim annotations when
- * they are created from bounds (mouse drag)
- *
- * @param annotation
- *    The annotation.
- * @param mouseEvent
- *    Mouse event used for viewport size information.
- * @param annotationWidth
- *    Width of annotation (pixels)
- * @param annotationHeight
- *    Height of annotation (pixels)
- */
-void
-AnnotationCoordinateInformation::setAnnotationFromBoundsWidthAndHeight(Annotation* annotation,
-                                                                       const MouseEvent& mouseEvent,
-                                                                       const float annotationWidth,
-                                                                       const float annotationHeight)
-{
-    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
-    if (twoDimAnn == NULL) {
-        return;
-    }
-    
-    if ((annotationWidth > 0.0)
-        && (annotationHeight > 0.0)) {
-        bool setWidthHeightFlag = false;
-        switch (annotation->getType()) {
-            case AnnotationTypeEnum::BOX:
-                setWidthHeightFlag = true;
-                break;
-            case AnnotationTypeEnum::COLOR_BAR:
-                setWidthHeightFlag = true;
-                break;
-            case AnnotationTypeEnum::IMAGE:
-                break;
-            case AnnotationTypeEnum::LINE:
-                break;
-            case AnnotationTypeEnum::OVAL:
-                setWidthHeightFlag = true;
-                break;
-            case AnnotationTypeEnum::TEXT:
-                break;
-        }
-        if (setWidthHeightFlag) {
-            int32_t viewport[4] = { -1, -1, -1, -1 };
-            switch (annotation->getCoordinateSpace()) {
-                case AnnotationCoordinateSpaceEnum::PIXELS:
-                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                case AnnotationCoordinateSpaceEnum::SURFACE:
-                case AnnotationCoordinateSpaceEnum::TAB:
-                    mouseEvent.getViewportContent()->getModelViewport(viewport);
-                    break;
-                case AnnotationCoordinateSpaceEnum::WINDOW:
-                    mouseEvent.getViewportContent()->getWindowViewport(viewport);
-                    break;
-            }
-            
-            const float viewportWidth  = viewport[2];
-            const float viewportHeight = viewport[3];
-            if ((viewportWidth > 0)
-                && (viewportHeight > 0)) {
-                const float width  = (annotationWidth  / viewportWidth)  * 100.0;
-                const float height = (annotationHeight / viewportHeight) * 100.0;
-                twoDimAnn->setWidth(width);
-                twoDimAnn->setHeight(height);
-            }
-        }
-    }
 }
 

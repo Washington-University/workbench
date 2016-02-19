@@ -300,19 +300,19 @@ AnnotationCoordinateSpaceEnum::toToolTip(Enum enumValue)
     
     switch (enumValue) {
         case PIXELS:
-            text = "Annotation is drawn at an XY pixel coordinate";
+            text = "New annotation is drawn at an XY pixel coordinate";
             break;
         case STEREOTAXIC:
-            text = "Annotation is drawn at a surface/volume XYZ coordinate";
+            text = "New annotation is drawn at a surface/volume XYZ coordinate";
             break;
         case SURFACE:
-            text = "Annotation is drawn at a surface vertex";
+            text = "New annotation is drawn at a surface vertex";
             break;
         case TAB:
-            text = "Annotation is drawn at an XY coordinate in the tab";
+            text = "New annotation is drawn at an XY coordinate in the tab";
             break;
         case WINDOW:
-            text = "Annotation is drawn at an XY coordinate in the window";
+            text = "New annotation is drawn at an XY coordinate in the window";
             break;
     }
     
