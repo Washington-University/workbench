@@ -1340,24 +1340,27 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
 void
 AnnotationTwoDimensionalShape::setWidthAndHeightFromBounds(const float xyzOne[3],
                                                            const float xyzTwo[3],
-                                                           const float /*spaceWidth*/,
-                                                           const float /*spaceHeight*/)
+                                                           const float spaceWidth,
+                                                           const float spaceHeight)
 {
-    const float minX = std::min(xyzOne[0],
-                                xyzTwo[0]);
-    const float maxX = std::max(xyzOne[0],
-                                xyzTwo[0]);
-    
-    const float minY = std::min(xyzOne[1],
-                                xyzTwo[1]);
-    const float maxY = std::max(xyzOne[1],
-                                xyzTwo[1]);
-    
-    const float width  = maxX - minX;
-    const float height = maxY - minY;
-    
-    setWidth(width);
-    setHeight(height);
+    if ((spaceWidth > 0.0)
+        && (spaceHeight > 0.0)) {
+        const float minX = std::min(xyzOne[0],
+                                    xyzTwo[0]);
+        const float maxX = std::max(xyzOne[0],
+                                    xyzTwo[0]);
+        
+        const float minY = std::min(xyzOne[1],
+                                    xyzTwo[1]);
+        const float maxY = std::max(xyzOne[1],
+                                    xyzTwo[1]);
+        
+        const float width  = ((maxX - minX) / spaceWidth) * 100.0;
+        const float height = ((maxY - minY) / spaceHeight) * 100.0;
+        
+        setWidth(width);
+        setHeight(height);
+    }
 }
 
 /**

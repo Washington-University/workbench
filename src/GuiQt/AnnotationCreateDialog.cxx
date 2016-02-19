@@ -784,29 +784,59 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                     /*
                      * Width and height in pixels
                      */
-                    const float width  = maxX - minX;
-                    const float height = maxY - minY;
+                    const float pixelWidth  = maxX - minX;
+                    const float pixelHeight = maxY - minY;
                     
-                    int viewport[4];
+                    float viewportWidth  = 0.0;
+                    float viewportHeight = 0.0;
                     switch (m_selectedSpace) {
                         case AnnotationCoordinateSpaceEnum::PIXELS:
+                            break;
                         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                         case AnnotationCoordinateSpaceEnum::SURFACE:
-                        case AnnotationCoordinateSpaceEnum::TAB:
+                        {
+                            int viewport[4];
                             m_mouseEvent.getViewportContent()->getModelViewport(viewport);
+                            viewportWidth = viewport[2];
+                            viewportHeight = viewport[3];
+                            
+                            float subWidth  = 0.0;
+                            float subHeight = 0.0;
+                            if (adjustViewportForSurfaceMontage(m_mouseEvent.getViewportContent()->getBrowserTabContent(),
+                                                                viewport,
+                                                                subWidth,
+                                                                subHeight)) {
+                                std::cout << "Changing "
+                                << viewportWidth << ", " << viewportHeight << " to "
+                                << subWidth << ", " << subHeight << std::endl;
+                                
+                                viewportWidth  = subWidth;
+                                viewportHeight = subHeight;
+                            }
+                            break;
+                        }
+                        case AnnotationCoordinateSpaceEnum::TAB:
+                        {
+                            int viewport[4];
+                            m_mouseEvent.getViewportContent()->getModelViewport(viewport);
+                            viewportWidth = viewport[2];
+                            viewportHeight = viewport[3];
+                        }
                             break;
                         case AnnotationCoordinateSpaceEnum::WINDOW:
+                        {
+                            int viewport[4];
                             m_mouseEvent.getViewportContent()->getWindowViewport(viewport);
+                            viewportWidth = viewport[2];
+                            viewportHeight = viewport[3];
+                        }
                             break;
                     }
                     
-                    const float viewportWidth = viewport[2];
-                    const float viewportHeight = viewport[3];
-                    
                     if ((viewportWidth > 0.0)
                         && (viewportHeight > 0.0)) {
-                        m_percentageWidth  = ((width  - 0) / viewportWidth)  * 100.0;
-                        m_percentageHeight = ((height - 0) / viewportHeight) * 100.0;
+                        m_percentageWidth  = (pixelWidth  / viewportWidth)  * 100.0;
+                        m_percentageHeight = (pixelHeight / viewportHeight) * 100.0;
                     }
                     windowPixelX = centerX;
                     windowPixelY = centerY;
@@ -862,6 +892,66 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
             }
         }
     }
+}
+
+#include "BrowserTabContent.h"
+#include "ModelSurfaceMontage.h"
+
+/**
+ * Adjust the viewport for surface montage.  A surface montage is a composite of multiple
+ * smaller viewports.  For proper annotation sizing in stereotaxic or surface space,
+ * we need to find the with of the model area in the viewport.
+ *
+ * @param browserTabContent
+ *     Content of browser tab.
+ * @param viewport
+ *     The tab's viewport.
+ * @param widthOut
+ *     Output with width.
+ * @param heightOut
+ *     Output with height.
+ * @return
+ *     True if the width and height are valid, else false.
+ */
+bool
+AnnotationCreateDialog::NewAnnotationInfo::adjustViewportForSurfaceMontage(BrowserTabContent* browserTabContent,
+                                                                           const int viewport[4],
+                                                                           float& widthOut,
+                                                                           float& heightOut)
+{
+    if (browserTabContent == NULL) {
+        return false;
+    }
+    
+    ModelSurfaceMontage* msm = browserTabContent->getDisplayedSurfaceMontageModel();
+    if (msm == NULL) {
+        return false;
+    }
+    
+    std::vector<SurfaceMontageViewport*> montageViewports;
+    msm->getSurfaceMontageViewportsForDrawing(browserTabContent->getTabNumber(),
+                                              montageViewports);
+    
+    int32_t numRows = -1;
+    int32_t numCols = -1;
+    SurfaceMontageViewport::getNumberOfRowsAndColumns(montageViewports,
+                                                      numRows,
+                                                      numCols);
+    
+    if ((numRows > 0)
+        && (numCols > 0)) {
+        const float viewportWidth  = viewport[2];
+        const float viewportHeight = viewport[3];
+        widthOut  = viewportWidth  / static_cast<float>(numCols);
+        heightOut = viewportHeight / static_cast<float>(numRows);
+        
+        if ((widthOut > 0.0)
+            && (heightOut > 0.0)) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 

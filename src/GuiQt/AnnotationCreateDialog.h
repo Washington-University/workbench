@@ -32,6 +32,7 @@ class QTextEdit;
 namespace caret {
     class Annotation;
     class AnnotationFile;
+    class BrowserTabContent;
     class MouseEvent;
     
     class AnnotationCreateDialog : public WuQDialogModal {
@@ -82,6 +83,11 @@ namespace caret {
             bool isSelectedSpaceValid() const;
             
             void processTwoCoordInfo();
+            
+            bool adjustViewportForSurfaceMontage(BrowserTabContent* browserTabContent,
+                                                 const int viewport[4],
+                                                 float& widthOut,
+                                                 float& heightOut);
             
             const MouseEvent& m_mouseEvent;
             
