@@ -33,6 +33,7 @@ namespace caret {
     class Annotation;
     class AnnotationCoordinateSelectionWidget;
     class AnnotationFile;
+    class EnumComboBoxTemplate;
     class MouseEvent;
     
     class AnnotationCreateDialog : public WuQDialogModal {
@@ -113,11 +114,9 @@ namespace caret {
                                                                AnnotationFile* annotationFile);
 
         AnnotationCreateDialog(const Mode mode,
-                               const MouseEvent& mouseEvent,
-                               AnnotationFile* annotationFile,
+                               NewAnnotationInfo& newAnnotationInfo,
                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                const bool annotationSpaceValidFlag,
-                               const AnnotationTypeEnum::Enum annotationType,
                                QWidget* parent = 0);
 
 //        AnnotationCreateDialog(const Mode mode,
@@ -138,6 +137,9 @@ namespace caret {
         
         void invalidateImage();
         
+        static Annotation* createAnnotation(NewAnnotationInfo& newAnnotationInfo,
+                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace);
+        
         static void finishAnnotationCreation(AnnotationFile* annotationFile,
                                              Annotation* annotation,
                                              const int32_t browswerWindowIndex);
@@ -155,19 +157,17 @@ namespace caret {
         
         const Mode m_mode;
         
-        const MouseEvent& m_mouseEvent;
-        
-        AnnotationFile* m_annotationFile;
+        NewAnnotationInfo& m_newAnnotationInfo;
         
         const AnnotationCoordinateSpaceEnum::Enum m_annotationSpace;
-        
-        const AnnotationTypeEnum::Enum m_annotationType;
         
         Annotation* m_annotationThatWasCreated;
         
         float m_annotationFromBoundsWidth;
         
         float m_annotationFromBoundsHeight;
+        
+        EnumComboBoxTemplate* m_annotationSpaceComboBox;
         
         AnnotationCoordinateSelectionWidget* m_coordinateSelectionWidget;
         

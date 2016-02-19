@@ -47,6 +47,7 @@
 #include "CaretLogger.h"
 #include "CaretPointer.h"
 #include "DataFileException.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventDataFileAdd.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -270,43 +271,66 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
             needToLaunchDialogFlag = true;
         }
         else {
-            Annotation* newAnn = Annotation::newAnnotationOfType(annotationType,
-                                                                 AnnotationAttributesDefaultTypeEnum::USER);
+            Annotation* newAnn = createAnnotation(newInfo, annotationSpace);
+            if (newAnn != NULL) {
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
             
-            AnnotationCoordinateInformation* coordTwo = NULL;
-            if (newInfo.m_coordTwoInfoValid) {
-                coordTwo = &newInfo.m_coordTwoInfo;
-            }
-            const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(newAnn,
-                                                                                                     annotationSpace,
-                                                                                                     &newInfo.m_coordOneInfo,
-                                                                                                     coordTwo);
-            if (validFlag) {
-                if ((newInfo.m_percentageWidth > 0)
-                    && (newInfo.m_percentageHeight > 0)) {
-                    AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(newAnn);
-                    if (twoDimShape != NULL) {
-                        twoDimShape->setWidth(newInfo.m_percentageWidth);
-                        twoDimShape->setHeight(newInfo.m_percentageHeight);
-                    }
-                }
-                
-                finishAnnotationCreation(annotationFile,
-                                         newAnn,
-                                         mouseEvent.getBrowserWindowIndex());
                 return newAnn;
             }
             
-            else {
-                CaretAssertMessage(0, "Space should have been valid, we should never get here.");
-                delete newAnn;
-                needToLaunchDialogFlag = true;
-            }
+            delete newAnn;
+            needToLaunchDialogFlag = true;
+            
+//            Annotation* newAnn = Annotation::newAnnotationOfType(annotationType,
+//                                                                 AnnotationAttributesDefaultTypeEnum::USER);
+//            
+//            AnnotationCoordinateInformation* coordTwo = NULL;
+//            if (newInfo.m_coordTwoInfoValid) {
+//                coordTwo = &newInfo.m_coordTwoInfo;
+//            }
+//            const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(newAnn,
+//                                                                                                     annotationSpace,
+//                                                                                                     &newInfo.m_coordOneInfo,
+//                                                                                                     coordTwo);
+//            if (validFlag) {
+//                if ((newInfo.m_percentageWidth > 0)
+//                    && (newInfo.m_percentageHeight > 0)) {
+//                    AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(newAnn);
+//                    if (twoDimShape != NULL) {
+//                        twoDimShape->setWidth(newInfo.m_percentageWidth);
+//                        twoDimShape->setHeight(newInfo.m_percentageHeight);
+//                    }
+//                }
+//                
+//                finishAnnotationCreation(annotationFile,
+//                                         newAnn,
+//                                         mouseEvent.getBrowserWindowIndex());
+//                return newAnn;
+//            }
+//            
+//            else {
+//                CaretAssertMessage(0, "Space should have been valid, we should never get here.");
+//                delete newAnn;
+//                needToLaunchDialogFlag = true;
+//            }
         }
     }
     else {
         needToLaunchDialogFlag = true;
         CaretLogSevere("NEED TO LAUNCH DIALOG");
+    }
+    
+    if (needToLaunchDialogFlag) {
+        AnnotationCreateDialog annDialog(mode,
+                                         newInfo,
+                                         newInfo.m_selectedSpace,
+                                         newInfo.isSelectedSpaceValid(),
+                                         mouseEvent.getOpenGLWidget());
+        if (annDialog.exec() == AnnotationCreateDialog::Accepted) {
+            return annDialog.getAnnotationThatWasCreated();
+        }
+        
     }
 //    CaretAssert(coordOne);
 //
@@ -379,14 +403,71 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
 //        return annDialog.getAnnotationThatWasCreated();
 //    }
 //    
+//
+//    AnnotationCreateDialog annDialog(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
+//                                     NewAnnotationInfo,
+//                                     annotationSpace,
+//                                     annotationSpaceValidFlag,
+//                                     mouseEvent.getOpenGLWidget());
+//    if (annDialog.exec() == AnnotationCreateDialog::Accepted) {
+//        return annDialog.getAnnotationThatWasCreated();
+//    }
+
     return NULL;
 }
+
+Annotation*
+AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
+                                         const AnnotationCoordinateSpaceEnum::Enum annotationSpace)
+{
+    Annotation* newAnnotation = NULL;
+    if (newAnnotationInfo.m_annotationType == AnnotationTypeEnum::TEXT) {
+        newAnnotation = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::USER);
+    }
+    else {
+        newAnnotation = Annotation::newAnnotationOfType(newAnnotationInfo.m_annotationType,
+                                                         AnnotationAttributesDefaultTypeEnum::USER);
+    }
+    
+    AnnotationCoordinateInformation* coordTwo = NULL;
+    if (newAnnotationInfo.m_coordTwoInfoValid) {
+        coordTwo = &newAnnotationInfo.m_coordTwoInfo;
+    }
+    const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(newAnnotation,
+                                                                                             annotationSpace,
+                                                                                             &newAnnotationInfo.m_coordOneInfo,
+                                                                                             coordTwo);
+    if (validFlag) {
+        if ((newAnnotationInfo.m_percentageWidth > 0)
+            && (newAnnotationInfo.m_percentageHeight > 0)) {
+            AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(newAnnotation);
+            if (twoDimShape != NULL) {
+                twoDimShape->setWidth(newAnnotationInfo.m_percentageWidth);
+                twoDimShape->setHeight(newAnnotationInfo.m_percentageHeight);
+            }
+        }
+        
+        finishAnnotationCreation(newAnnotationInfo.m_annotationFile,
+                                 newAnnotation,
+                                 newAnnotationInfo.m_mouseEvent.getBrowserWindowIndex());
+        return newAnnotation;
+    }
+    
+    else {
+        CaretAssertMessage(0, "Space should have been valid, we should never get here.");
+        delete newAnnotation;
+        return NULL;
+    }
+}
+
 
 /**
  * Dialog constructor.
  *
  * @param mode
  *     The dialog's mode.
+ * @param newAnnotationInfo
+ *     Information for creating new annotation.
  * @param mouseEvent
  *     The mouse event.
  * @param annotationFile
@@ -401,40 +482,37 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
  *      Optional parent for this dialog.
  */
 AnnotationCreateDialog::AnnotationCreateDialog(const Mode mode,
-                                               const MouseEvent& mouseEvent,
-                                               AnnotationFile* annotationFile,
+                                               NewAnnotationInfo& newAnnotationInfo,
                                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                const bool annotationSpaceValidFlag,
-                                               const AnnotationTypeEnum::Enum annotationType,
                                                QWidget* parent)
 : WuQDialogModal("New Annotation",
                  parent),
 m_mode(mode),
-m_mouseEvent(mouseEvent),
-m_annotationFile(annotationFile),
+m_newAnnotationInfo(newAnnotationInfo),
 m_annotationSpace(annotationSpace),
-m_annotationType(annotationType),
 m_annotationThatWasCreated(NULL),
 m_annotationFromBoundsWidth(-1.0),
 m_annotationFromBoundsHeight(-1.0),
 m_imageWidth(0),
 m_imageHeight(0)
 {
+    m_annotationSpaceComboBox = NULL;
     m_textEdit = NULL;
     
-    bool coordOneValid = false;
-    bool coordTwoValid = false;
-    bool widthHeightValid = false;
-    setUpAnnotationCoordinateInformation(m_mode,
-                                         mouseEvent,
-                                         annotationType,
-                                         m_coordInfo,
-                                         m_coordTwoInfo,
-                                         m_annotationFromBoundsWidth,
-                                         m_annotationFromBoundsHeight,
-                                         coordOneValid,
-                                         coordTwoValid,
-                                         widthHeightValid);
+//    bool coordOneValid = false;
+//    bool coordTwoValid = false;
+//    bool widthHeightValid = false;
+//    setUpAnnotationCoordinateInformation(m_mode,
+//                                         m_newAnnotationInfo.m_mouseEvent,
+//                                         m_newAnnotationInfo.m_annotationType,
+//                                         m_coordInfo,
+//                                         m_coordTwoInfo,
+//                                         m_annotationFromBoundsWidth,
+//                                         m_annotationFromBoundsHeight,
+//                                         coordOneValid,
+//                                         coordTwoValid,
+//                                         widthHeightValid);
 //    /*
 //     * Get coordinates at the mouse location.
 //     */
@@ -558,24 +636,25 @@ m_imageHeight(0)
     QGroupBox* coordGroupBox = NULL;
     m_coordinateSelectionWidget = NULL;
     if ( ! annotationSpaceValidFlag) {
-        m_coordinateSelectionWidget = new AnnotationCoordinateSelectionWidget(m_annotationType,
-                                                                              m_coordInfo,
-                                                                              (coordTwoValid
-                                                                               ? &m_coordTwoInfo
-                                                                               : NULL));
+        m_annotationSpaceComboBox = new EnumComboBoxTemplate(this);
+        m_annotationSpaceComboBox->setupWithItems<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(m_newAnnotationInfo.m_validSpaces);
+//        m_coordinateSelectionWidget = new AnnotationCoordinateSelectionWidget(m_newAnnotationInfo.m_annotationType,
+//                                                                              m_coordInfo,
+//                                                                              (coordTwoValid
+//                                                                               ? &m_coordTwoInfo
+//                                                                               : NULL));
 
         coordGroupBox = new QGroupBox("Coordinate Space");
         QVBoxLayout* coordGroupLayout = new QVBoxLayout(coordGroupBox);
         coordGroupLayout->setMargin(0);
-        coordGroupLayout->addWidget(m_coordinateSelectionWidget);
-        m_coordinateSelectionWidget->selectCoordinateSpace(m_annotationSpace);
+        coordGroupLayout->addWidget(m_annotationSpaceComboBox->getWidget());
     }
     
-    QWidget* textWidget = ((m_annotationType == AnnotationTypeEnum::TEXT)
+    QWidget* textWidget = ((m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::TEXT)
                            ? createTextWidget()
                            : NULL);
     
-    QWidget* imageWidget = ((m_annotationType == AnnotationTypeEnum::IMAGE)
+    QWidget* imageWidget = ((m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::IMAGE)
                             ? createImageWidget()
                             : NULL);
     
@@ -599,10 +678,10 @@ m_imageHeight(0)
         layout->addSpacing(10);
         layout->addWidget(messageLabel);
         layout->addSpacing(10);
+        
+        layout->addWidget(coordGroupBox);
     }
 
-    layout->addWidget(coordGroupBox);
-    
     if (textWidget != NULL) {
         layout->addWidget(textWidget);
     }
@@ -615,7 +694,7 @@ m_imageHeight(0)
     setCentralWidget(dialogWidget,
                      SCROLL_AREA_NEVER);
     
-    if (m_annotationType == AnnotationTypeEnum::TEXT) {
+    if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::TEXT) {
         CaretAssert(m_textEdit);
         m_textEdit->setFocus();
     }
@@ -1205,7 +1284,7 @@ AnnotationCreateDialog::okButtonClicked()
     AString errorMessage;
     
     QString userText;
-    if (m_annotationType == AnnotationTypeEnum::TEXT) {
+    if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::TEXT) {
         userText = m_textEdit->toPlainText();
         if (userText.isEmpty()) {
             errorMessage.appendWithNewLine("Text is missing.");
@@ -1213,7 +1292,7 @@ AnnotationCreateDialog::okButtonClicked()
         
     }
     
-    if (m_annotationType == AnnotationTypeEnum::IMAGE) {
+    if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::IMAGE) {
         if ((m_imageWidth <= 0)
             || (m_imageHeight <= 0)
             || (m_imageRgbaBytes.empty())) {
@@ -1227,29 +1306,42 @@ AnnotationCreateDialog::okButtonClicked()
         return;
     }
     
-    if (m_coordinateSelectionWidget != NULL) {
-        bool valid = false;
-        m_coordinateSelectionWidget->getSelectedCoordinateSpace(valid);
-        if ( ! valid) {
-            const QString msg("A coordinate space has not been selected.");
-            WuQMessageBox::errorOk(this,
-                                   msg);
-            return;
-        }
+    AnnotationCoordinateSpaceEnum::Enum space = m_newAnnotationInfo.m_selectedSpace;
+    if (m_annotationSpaceComboBox != NULL) {
+        space = m_annotationSpaceComboBox->getSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>();
     }
+//    if (m_coordinateSelectionWidget != NULL) {
+//        bool valid = false;
+//        m_coordinateSelectionWidget->getSelectedCoordinateSpace(valid);
+//        if ( ! valid) {
+//            const QString msg("A coordinate space has not been selected.");
+//            WuQMessageBox::errorOk(this,
+//                                   msg);
+//            return;
+//        }
+//    }
     
-    CaretAssert(m_annotationFile);
+    CaretAssert(m_newAnnotationInfo.m_annotationFile);
     
     CaretPointer<Annotation> annotation;
     annotation.grabNew(NULL);
     
-    annotation.grabNew(Annotation::newAnnotationOfType(m_annotationType,
-                                                       AnnotationAttributesDefaultTypeEnum::USER));
-    if (m_annotationType == AnnotationTypeEnum::TEXT) {
-        AnnotationText* text = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::USER);
+    annotation.grabNew(createAnnotation(m_newAnnotationInfo, space));
+    if (annotation == NULL) {
+        WuQMessageBox::errorOk(this,
+                               "Failed to create annotation in space: "
+                               + AnnotationCoordinateSpaceEnum::toGuiName(space));
+        return;
+    }
+    
+//    annotation.grabNew(Annotation::newAnnotationOfType(m_newAnnotationInfo.m_annotationType,
+//                                                       AnnotationAttributesDefaultTypeEnum::USER));
+    if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::TEXT) {
+        AnnotationText* text = dynamic_cast<AnnotationText*>(annotation.getPointer());
+//        AnnotationText* text = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::USER);
         CaretAssert(text);
         text->setText(userText);
-        annotation.grabNew(text);
+//        annotation.grabNew(text);
     }
     AnnotationImage* annImage = dynamic_cast<AnnotationImage*>(annotation.getPointer());
     if (annImage != NULL) {
@@ -1258,31 +1350,31 @@ AnnotationCreateDialog::okButtonClicked()
                                     m_imageHeight);
     }
 
-    if (m_coordinateSelectionWidget != NULL) {
-        if ( ! m_coordinateSelectionWidget->setCoordinateForNewAnnotation(annotation,
-                                                                          errorMessage)) {
-            WuQMessageBox::errorOk(this, errorMessage);
-            return;
-        }
-    }
-    else {
-        AnnotationCoordinateInformation* coordTwoPointer = NULL;
-        switch (m_mode) {
-            case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
-                coordTwoPointer = &m_coordTwoInfo;
-                break;
-            case MODE_NEW_ANNOTATION_TYPE_CLICK:
-                break;
-        }
-        const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(annotation,
-                                                                                                 m_annotationSpace,
-                                                                                                 &m_coordInfo,
-                                                                                                 coordTwoPointer);
-        if ( ! validFlag) {
-            WuQMessageBox::errorOk(this, "Failed to set coordinates for annotation.");
-            return;
-        }
-    }
+//    if (m_coordinateSelectionWidget != NULL) {
+//        if ( ! m_coordinateSelectionWidget->setCoordinateForNewAnnotation(annotation,
+//                                                                          errorMessage)) {
+//            WuQMessageBox::errorOk(this, errorMessage);
+//            return;
+//        }
+//    }
+//    else {
+//        AnnotationCoordinateInformation* coordTwoPointer = NULL;
+//        switch (m_mode) {
+//            case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
+//                coordTwoPointer = &m_coordTwoInfo;
+//                break;
+//            case MODE_NEW_ANNOTATION_TYPE_CLICK:
+//                break;
+//        }
+//        const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(annotation,
+//                                                                                                 m_annotationSpace,
+//                                                                                                 &m_coordInfo,
+//                                                                                                 coordTwoPointer);
+//        if ( ! validFlag) {
+//            WuQMessageBox::errorOk(this, "Failed to set coordinates for annotation.");
+//            return;
+//        }
+//    }
     
     /*
      * Need to release annotation from its CaretPointer since the
@@ -1290,18 +1382,21 @@ AnnotationCreateDialog::okButtonClicked()
      */
     Annotation* annotationPointer = annotation.releasePointer();
     
-    if (m_mode == MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS) {
-        AnnotationCoordinateInformation::setAnnotationFromBoundsWidthAndHeight(annotationPointer,
-                                                                               m_mouseEvent,
-                                                                               m_annotationFromBoundsWidth,
-                                                                               m_annotationFromBoundsHeight);
-    }
-    
-    finishAnnotationCreation(m_annotationFile,
-                             annotationPointer,
-                             m_mouseEvent.getBrowserWindowIndex());
+//    if (m_mode == MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS) {
+//        AnnotationCoordinateInformation::setAnnotationFromBoundsWidthAndHeight(annotationPointer,
+//                                                                               m_newAnnotationInfo.m_mouseEvent,
+//                                                                               m_annotationFromBoundsWidth,
+//                                                                               m_annotationFromBoundsHeight);
+//    }
+//    
+//    finishAnnotationCreation(m_newAnnotationInfo.m_annotationFile,
+//                             annotationPointer,
+//                             m_newAnnotationInfo.m_mouseEvent.getBrowserWindowIndex());
 
     m_annotationThatWasCreated = annotationPointer;
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     
     WuQDialog::okButtonClicked();
 }
@@ -1336,10 +1431,6 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
                                         AnnotationManager::SELECTION_MODE_SINGLE,
                                         false,
                                         annotation);
-    
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    
 }
 
 /**
@@ -1482,10 +1573,6 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                     
                     if ((viewportWidth > 0.0)
                         && (viewportHeight > 0.0)) {
-                        const float viewportX = viewport[0];
-                        const float viewportY = viewport[1];
-//                        m_percentageWidth  = ((width  - viewportX) / viewportWidth)  * 100.0;
-//                        m_percentageHeight = ((height - viewportY) / viewportHeight) * 100.0;
                         m_percentageWidth  = ((width  - 0) / viewportWidth)  * 100.0;
                         m_percentageHeight = ((height - 0) / viewportHeight) * 100.0;
                     }

@@ -172,6 +172,9 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                             case AnnotationCoordinateSpaceEnum::PIXELS:
                             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                             case AnnotationCoordinateSpaceEnum::SURFACE:
+                                if (coordInfoOne->m_surfaceStructure != coordInfoTwo->m_surfaceStructure) {
+                                    addItFlag = false;
+                                }
                                 break;
                             case AnnotationCoordinateSpaceEnum::TAB:
                                 if (coordInfoOne->m_tabIndex != coordInfoTwo->m_tabIndex) {
