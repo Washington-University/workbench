@@ -439,10 +439,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
 {
     float viewportWidth  = m_modelSpaceViewport[2];
     float viewportHeight = m_modelSpaceViewport[3];
-    if (annotation2D->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
-        viewportWidth  = m_inputs->m_tabViewport[2];
-        viewportHeight = m_inputs->m_tabViewport[3];
-    }
+//    if (annotation2D->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
+//        viewportWidth  = m_inputs->m_tabViewport[2];
+//        viewportHeight = m_inputs->m_tabViewport[3];
+//    }
     
     /*
      * Only use text characters when the text is NOT empty
