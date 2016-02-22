@@ -82,6 +82,23 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* surfaceSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::SURFACE);
     QToolButton* windowSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::WINDOW);
     
+    const bool smallButtonsFlag = true;
+    if (smallButtonsFlag) {
+        const int mw = 24;
+        const int mh = 24;
+        
+        shapeBoxToolButton->setMaximumSize(mw, mh);
+        shapeImageToolButton->setMaximumSize(mw, mh);
+        shapeLineToolButton->setMaximumSize(mw, mh);
+        shapeOvalToolButton->setMaximumSize(mw, mh);
+        shapeTextToolButton->setMaximumSize(mw, mh);
+
+        tabSpaceToolButton->setMaximumSize(mw, mh);
+        stereotaxicSpaceToolButton->setMaximumSize(mw, mh);
+        surfaceSpaceToolButton->setMaximumSize(mw, mh);
+        windowSpaceToolButton->setMaximumSize(mw, mh);
+    }
+    
     m_spaceActionGroup = new QActionGroup(this);
     m_spaceActionGroup->addAction(tabSpaceToolButton->defaultAction());
     m_spaceActionGroup->addAction(stereotaxicSpaceToolButton->defaultAction());
