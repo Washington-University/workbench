@@ -82,7 +82,7 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* surfaceSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::SURFACE);
     QToolButton* windowSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::WINDOW);
     
-    const bool smallButtonsFlag = true;
+    const bool smallButtonsFlag = false;
     if (smallButtonsFlag) {
         const int mw = 24;
         const int mh = 24;
