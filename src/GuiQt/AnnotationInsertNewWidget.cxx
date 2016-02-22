@@ -105,31 +105,33 @@ m_browserWindowIndex(browserWindowIndex)
     
     const bool rowsLayoutFlag = true;
     if (rowsLayoutFlag) {
+        QVBoxLayout* fileLayout = new QVBoxLayout();
+        fileLayout->addWidget(fileLabel, 0, Qt::AlignHCenter);
+        fileLayout->addWidget(fileSelectionToolButton, 0, Qt::AlignHCenter);
+        fileLayout->addStretch();
+        
         QLabel* insertLabel = new QLabel("Insert New");
         
         gridLayout->addWidget(insertLabel,
-                              0, 0, 1, 8, Qt::AlignHCenter);
-        
-        gridLayout->addWidget(fileLabel,
-                              1, 0,
+                              0, 0, 1, 8,
                               Qt::AlignHCenter);
-        gridLayout->addWidget(fileSelectionToolButton,
-                              2, 0, 2, 1,
+        
+        gridLayout->addLayout(fileLayout,
+                              1, 0, 3, 1,
                               (Qt::AlignTop | Qt::AlignHCenter));
         
-//        QSpacerItem* columnSpaceItem = new QSpacerItem(5, 5,
-//                                                    QSizePolicy::Fixed,
-//                                                    QSizePolicy::Fixed);
-//        gridLayout->addItem(columnSpaceItem,
-//                            1, 1, 3, 1);
+//        gridLayout->addWidget(fileLabel,
+//                              1, 0,
+//                              Qt::AlignHCenter);
+//        gridLayout->addWidget(fileSelectionToolButton,
+//                              2, 0, 2, 1,
+//                              (Qt::AlignTop | Qt::AlignHCenter));
         
-        gridLayout->setColumnMinimumWidth(1, 15);
-        gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
-                              1, 1, 3, 1,
-                              Qt::AlignHCenter);
+        gridLayout->setColumnMinimumWidth(1, 5);
+//        gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
+//                              1, 1, 3, 1,
+//                              Qt::AlignHCenter);
         
-//        gridLayout->addItem(rowSpaceItem,
-//                            2, 3, 1, 6);
         gridLayout->addWidget(spaceLabel,
                               1, 2, Qt::AlignLeft);
         gridLayout->addWidget(stereotaxicSpaceToolButton,
@@ -141,11 +143,12 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->addWidget(windowSpaceToolButton,
                               1, 6);
 
-        QSpacerItem* rowSpaceItem = new QSpacerItem(5, 5,
-                                                 QSizePolicy::Fixed,
-                                                 QSizePolicy::Fixed);
-        gridLayout->addItem(rowSpaceItem,
-                            2, 3, 1, 6);
+        gridLayout->setRowMinimumHeight(2, 2);
+//        QSpacerItem* rowSpaceItem = new QSpacerItem(5, 5,
+//                                                 QSizePolicy::Fixed,
+//                                                 QSizePolicy::Fixed);
+//        gridLayout->addItem(rowSpaceItem,
+//                            2, 3, 1, 6);
         
         gridLayout->addWidget(typeLabel,
                               3, 2, Qt::AlignLeft);
@@ -161,38 +164,52 @@ m_browserWindowIndex(browserWindowIndex)
                               3, 7);
     }
     else {
-        QLabel* insertLabel = new QLabel("Insert");
-        gridLayout->addWidget(spaceLabel,
-                              0, 0, 1, 2, Qt::AlignLeft);
+        QLabel* insertLabel = new QLabel("Insert New");
+        
         gridLayout->addWidget(insertLabel,
-                              0, 2, 1, 2, Qt::AlignHCenter);
-        gridLayout->addWidget(typeLabel,
-                              0, 4, 1, 2, Qt::AlignRight);
-        gridLayout->addWidget(shapeBoxToolButton,
-                              1, 3);
-        gridLayout->addWidget(shapeImageToolButton,
-                              1, 4);
-        gridLayout->addWidget(shapeLineToolButton,
-                              1, 5);
-        gridLayout->addWidget(shapeOvalToolButton,
-                              2, 3);
-        gridLayout->addWidget(shapeTextToolButton,
-                              2, 4);
+                              0, 0, 1, 8, Qt::AlignHCenter);
         
-        QSpacerItem* spaceItem = new QSpacerItem(20, 10,
-                                                 QSizePolicy::Fixed,
-                                                 QSizePolicy::Fixed);
-        gridLayout->addItem(spaceItem,
-                            0, 4);
+        gridLayout->addWidget(fileLabel,
+                              1, 0,
+                              Qt::AlignHCenter);
+        gridLayout->addWidget(fileSelectionToolButton,
+                              2, 0, 2, 1,
+                              (Qt::AlignTop | Qt::AlignHCenter));
         
-        gridLayout->addWidget(tabSpaceToolButton,
-                              1, 0);
+        gridLayout->setColumnMinimumWidth(1, 15);
+        gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
+                              1, 1, 3, 1,
+                              Qt::AlignHCenter);
+        
+        gridLayout->addWidget(spaceLabel,
+                              1, 2, Qt::AlignLeft);
         gridLayout->addWidget(stereotaxicSpaceToolButton,
-                              1, 1);
+                              1, 3);
         gridLayout->addWidget(surfaceSpaceToolButton,
-                              2, 0);
+                              1, 4);
+        gridLayout->addWidget(tabSpaceToolButton,
+                              1, 5);
         gridLayout->addWidget(windowSpaceToolButton,
-                              2, 1);
+                              1, 6);
+        
+        QSpacerItem* rowSpaceItem = new QSpacerItem(5, 5,
+                                                    QSizePolicy::Fixed,
+                                                    QSizePolicy::Fixed);
+        gridLayout->addItem(rowSpaceItem,
+                            2, 3, 1, 6);
+        
+        gridLayout->addWidget(typeLabel,
+                              3, 2, Qt::AlignLeft);
+        gridLayout->addWidget(shapeBoxToolButton,
+                              3, 3);
+        gridLayout->addWidget(shapeImageToolButton,
+                              3, 4);
+        gridLayout->addWidget(shapeLineToolButton,
+                              3, 5);
+        gridLayout->addWidget(shapeOvalToolButton,
+                              3, 6);
+        gridLayout->addWidget(shapeTextToolButton,
+                              3, 7);
     }
     
     setSizePolicy(QSizePolicy::Fixed,
@@ -262,10 +279,12 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
 {
     const QString typeGuiName = AnnotationTypeEnum::toGuiName(annotationType);
     QToolButton* toolButton = new QToolButton();
+    
     QAction* action = new QAction(createShapePixmap(toolButton,
                                                     annotationType),
                                   typeGuiName,
                                   this);
+    
     action->setToolTip("Insert a new "
                        + typeGuiName
                        + " annotation");
