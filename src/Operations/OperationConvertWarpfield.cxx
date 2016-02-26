@@ -49,8 +49,8 @@ OperationParameters* OperationConvertWarpfield::getParameters()
     OptionalParameter* toWorld = ret->createOptionalParameter(3, "-to-world", "write output as a NIFTI 'world' warpfield");
     toWorld->addStringParameter(1, "output", "output - the output warpfield");//HACK: fake the output formatting, since we don't have a parameter for affine file (hard to do due to multiple on-disk formats)
     
-    ParameterComponent* toFnirt = ret->createRepeatableParameter(4, "-to-fnirt", "write output as a flirt warpfield");
-    toFnirt->addStringParameter(1, "output", "output - the output warpfield");
+    ParameterComponent* toFnirt = ret->createRepeatableParameter(4, "-to-fnirt", "write output as a fnirt warpfield");
+    toFnirt->addStringParameter(1, "output", "output - the output warpfield");//this argument order is different than other commands, yes - but don't change it, so scripts will still work
     toFnirt->addStringParameter(2, "source-volume", "the volume you want to apply the warpfield to");
     
     ret->setHelpText(
@@ -58,7 +58,7 @@ OperationParameters* OperationConvertWarpfield::getParameters()
         "and adding the sampled values to the coordinate vector, they use the NIFTI coordinate system, that is, " +
         "X is left to right, Y is posterior to anterior, and Z is inferior to superior.\n\n" +
         "NOTE: this command does not invert the warpfield, and to warp a surface, you must use the inverse of the warpfield that warps the corresponding volume.\n\n" +
-        "You must specify exactly one -from option, but you may specify multiple -to options, and any -to option that takes volumes may be specified more than once."
+        "You must specify exactly one -from option, but you may specify multiple -to options, and -to-fnirt may be specified more than once."
     );
     return ret;
 }
