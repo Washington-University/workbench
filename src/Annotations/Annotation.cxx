@@ -115,6 +115,7 @@ Annotation::operator=(const Annotation& obj)
 void 
 Annotation::copyHelperAnnotation(const Annotation& obj)
 {
+    m_uniqueKey           = -1;
     m_coordinateSpace     = obj.m_coordinateSpace;
     m_tabIndex            = obj.m_tabIndex;
     m_windowIndex         = obj.m_windowIndex;
@@ -130,6 +131,11 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_customColorLine[2]  = obj.m_customColorLine[2];
     m_customColorLine[3]  = obj.m_customColorLine[3];
 
+    /*
+     * Initializes unique name
+     */
+    setUniqueKey(m_uniqueKey);
+    
     /*
      * Selected status is NOT copied.
      */
@@ -352,6 +358,16 @@ Annotation::initializeAnnotationMembers()
     m_tabIndex    = -1;
     m_windowIndex = -1;
     
+    /*
+     * Default the unique identifier.
+     *
+     * NOTE: do not call 'setUniqueIdentifier()'
+     * from here as the
+     * type of annotation has not been set
+     * and may cause a crash.
+     */
+    m_uniqueKey = -1;
+
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
             m_lineWidth = 3.0;
@@ -485,6 +501,8 @@ Annotation::initializeAnnotationMembers()
                           &m_tabIndex);
     m_sceneAssistant->add("m_windowIndex",
                           &m_windowIndex);
+    m_sceneAssistant->add("m_uniqueKey",
+                          &m_uniqueKey);
     m_sceneAssistant->add("m_foregroundLineWidth",  // use old name !!!
                           &m_lineWidth);
     m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorBackground",
@@ -962,6 +980,68 @@ Annotation::setCustomBackgroundColor(const uint8_t rgba[4])
             setModified();
         }
     }
+}
+
+/**
+ * Set the unique key for this annotation.  This method is
+ * called by the annotation file when the annotation 
+ * is added to the file.
+ *
+ * @param uniqueKey
+ *     Unique key displayed in an annotation name.
+ */
+void
+Annotation::setUniqueKey(const int32_t uniqueKey)
+{
+    m_uniqueKey = uniqueKey;
+    
+    textAnnotationResetName();
+}
+
+/**
+ * @return Unique key displayed in annotation name.
+ */
+int32_t
+Annotation::getUniqueKey() const
+{
+    return m_uniqueKey;
+}
+
+/**
+ * Called by text annotation to reset the name
+ * displayed in the gui.
+ */
+void
+Annotation::textAnnotationResetName()
+{
+    AString suffixName;
+    switch (m_type) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::TEXT:
+        {
+            const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(this);
+            CaretAssert(textAnn);
+            suffixName = (" : "
+                          + textAnn->getText());
+        }
+            break;
+    }
+    
+    m_name = (AnnotationTypeEnum::toGuiName(m_type)
+              + " "
+              + AString::number(m_uniqueKey)
+              + suffixName);
+    
+//    m_displayGroupAndSelectionStatus->setName(guiName);
 }
 
 /**

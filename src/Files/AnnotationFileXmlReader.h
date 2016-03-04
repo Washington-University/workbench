@@ -33,6 +33,7 @@ namespace caret {
     class Annotation;
     class AnnotationCoordinate;
     class AnnotationFile;
+    class AnnotationGroup;
     class AnnotationImage;
     class AnnotationOneDimensionalShape;
     class AnnotationText;
@@ -63,6 +64,10 @@ namespace caret {
                                                 AnnotationFile* annotationFile);
         
         void readVersionOne(AnnotationFile* annotationFile);
+        
+        void readVersionTwo(AnnotationFile* annotationFile);
+        
+        void readGroup(AnnotationFile* annotationFile);
         
         void readOneDimensionalAnnotation(const QString& annotationElementName,
                                           AnnotationOneDimensionalShape* annotation);

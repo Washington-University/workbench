@@ -188,29 +188,30 @@ AnnotationManager::deselectAllAnnotations(const int32_t windowIndex)
 std::vector<AnnotationFile*>
 AnnotationManager::getFilesContainingAnnotations(const std::vector<Annotation*> annotations) const
 {
-    std::vector<AnnotationFile*> allFiles;
-    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allFiles);
+    CaretAssertMessage(0, "Use annotation's getAnnotationFile() method.");
+//    std::vector<AnnotationFile*> allFiles;
+//    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allFiles);
     
     std::vector<AnnotationFile*> filesOut;
     
-    for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
-         annIter != annotations.end();
-         annIter++) {
-        Annotation* ann = *annIter;
-        
-        AnnotationFile* file = NULL;
-        for (std::vector<AnnotationFile*>::const_iterator fileIter = allFiles.begin();
-             fileIter != allFiles.end();
-             fileIter++) {
-            AnnotationFile* annFile = *fileIter;
-            if (annFile->containsAnnotation(ann)) {
-                file = annFile;
-                break;
-            }
-        }
-        
-        filesOut.push_back(file);
-    }
+//    for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
+//         annIter != annotations.end();
+//         annIter++) {
+//        Annotation* ann = *annIter;
+//        
+//        AnnotationFile* file = NULL;
+//        for (std::vector<AnnotationFile*>::const_iterator fileIter = allFiles.begin();
+//             fileIter != allFiles.end();
+//             fileIter++) {
+//            AnnotationFile* annFile = *fileIter;
+//            if (annFile->containsAnnotation(ann)) {
+//                file = annFile;
+//                break;
+//            }
+//        }
+//        
+//        filesOut.push_back(file);
+//    }
 
     
     CaretAssert(filesOut.size() == annotations.size());
@@ -365,7 +366,8 @@ AnnotationManager::getAllAnnotations() const
         AnnotationFile* file = *fileIter;
         CaretAssert(file);
         
-        std::vector<Annotation*> annotations = file->getAllAnnotations();
+        std::vector<Annotation*> annotations;
+        file->getAllAnnotations(annotations);
         if ( ! annotations.empty()) {
             allAnnotations.insert(allAnnotations.end(),
                                   annotations.begin(),
@@ -468,7 +470,8 @@ AnnotationManager::getSelectedAnnotations(const int32_t windowIndex,
         AnnotationFile* file = *fileIter;
         CaretAssert(file);
         
-        std::vector<Annotation*> annotations = file->getAllAnnotations();
+        std::vector<Annotation*> annotations;
+        file->getAllAnnotations(annotations);
         for (std::vector<Annotation*>::iterator annIter = annotations.begin();
              annIter != annotations.end();
              annIter++) {
@@ -684,10 +687,15 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
         CaretAssertVectorIndex(annotationFiles, iFile);
         const AnnotationFile* annFile = annotationFiles[iFile];
         
-        const int32_t numAnnotations = annFile->getNumberOfAnnotations();
-        for (int32_t jAnn = 0; jAnn < numAnnotations; jAnn++) {
+        std::vector<Annotation*> annotations;
+        annFile->getAllAnnotations(annotations);
+        const int32_t numberOfAnnotations = static_cast<int32_t>(annotations.size());
+        for (int32_t i = 0; i < numberOfAnnotations; i++) {
+            CaretAssertVectorIndex(annotations, i);
+            const Annotation* ann = annotations[i];
+            CaretAssert(ann);
+
             bool displayedFlag = false;
-            const Annotation* ann = annFile->getAnnotation(jAnn);
             switch (ann->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::PIXELS:
                     break;

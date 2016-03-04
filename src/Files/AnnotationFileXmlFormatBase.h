@@ -76,6 +76,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_FOREGROUND_LINE_WIDTH;
         
+        static const QString ATTRIBUTE_GROUP_TYPE;
+        
         static const QString ATTRIBUTE_HEIGHT;
         
         static const QString ATTRIBUTE_IMAGE_WIDTH;
@@ -89,6 +91,8 @@ namespace caret {
         static const QString ATTRIBUTE_ROTATION_ANGLE;
         
         static const QString ATTRIBUTE_TAB_INDEX;
+        
+        static const QString ATTRIBUTE_TAB_OR_WINDOW_INDEX;
         
         static const QString ATTRIBUTE_TEXT_CARET_COLOR;
         
@@ -114,6 +118,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT;
         
+        static const QString ATTRIBUTE_UNIQUE_KEY;
+        
         static const QString ATTRIBUTE_VERSION;
         
         static const QString ATTRIBUTE_WIDTH;
@@ -129,6 +135,8 @@ namespace caret {
         static const QString ELEMENT_COORDINATE_ONE;
         
         static const QString ELEMENT_COORDINATE_TWO;
+        
+        static const QString ELEMENT_GROUP;
         
         static const QString ELEMENT_IMAGE;
         
@@ -147,6 +155,8 @@ namespace caret {
         static const QString ELEMENT_TEXT_DATA;
         
         static const int32_t XML_VERSION_ONE;
+        
+        static const int32_t XML_VERSION_TWO;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -182,6 +192,8 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_LINE_WIDTH = "foregroundLineWidth";
     
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_GROUP_TYPE = "groupType";
+    
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_HEIGHT = "height";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_IMAGE_WIDTH = "imageWidth";
@@ -195,6 +207,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "rotationAngle";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TAB_INDEX = "tabIndex";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TAB_OR_WINDOW_INDEX = "tabOrWindowIndex";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_CARET_COLOR = "textCaretColor";
     
@@ -220,6 +234,8 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT = "verticalAlignment";
     
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_UNIQUE_KEY = "uniqueKey";
+    
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_VERSION = "version";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_WIDTH = "width";
@@ -235,6 +251,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_ONE = "coordOne";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_TWO = "coordTwo";
+    
+    const QString AnnotationFileXmlFormatBase::ELEMENT_GROUP = "group";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_IMAGE = "image";
     
@@ -253,6 +271,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ELEMENT_TEXT_DATA = "textData";
     
     const int32_t AnnotationFileXmlFormatBase::XML_VERSION_ONE = 1;
+    
+    const int32_t AnnotationFileXmlFormatBase::XML_VERSION_TWO = 2;
     
 #endif // __ANNOTATION_FILE_XML_FORMAT_BASE_DECLARE__
 

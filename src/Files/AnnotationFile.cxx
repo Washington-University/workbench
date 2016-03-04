@@ -27,10 +27,12 @@
 #include "AnnotationCoordinate.h"
 #include "AnnotationFileXmlReader.h"
 #include "AnnotationFileXmlWriter.h"
+#include "AnnotationGroup.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
+#include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
@@ -290,7 +292,7 @@ AnnotationFile::clearPrivate()
 {
     m_metadata->clear();
 
-    m_annotations.clear();
+    m_annotationGroups.clear();
     m_removedAnnotations.clear();
 }
 
@@ -307,12 +309,12 @@ void
 AnnotationFile::setAllAnnotationsSelected(const int32_t windowIndex,
                                           const bool selectedStatus)
 {
-    for (AnnotationIterator iter = m_annotations.begin();
-         iter != m_annotations.end();
+    std::vector<Annotation*> allAnnotations;
+    getAllAnnotations(allAnnotations);
+    for (std::vector<Annotation*>::iterator iter = allAnnotations.begin();
+         iter != allAnnotations.end();
          iter++) {
-        QSharedPointer<Annotation>& a = *iter;
-        a->setSelected(windowIndex,
-                       selectedStatus);
+        (*iter)->setSelected(windowIndex, selectedStatus);
     }
 }
 
@@ -355,6 +357,8 @@ AnnotationFile::operator=(const AnnotationFile& obj)
 void
 AnnotationFile::initializeAnnotationFile()
 {
+    m_uniqueKeyGenerator = 0;
+    
     m_metadata.grabNew(new GiftiMetaData());
     m_sceneAssistant = new SceneClassAssistant();
     
@@ -362,11 +366,78 @@ AnnotationFile::initializeAnnotationFile()
 }
 
 /**
+ * Get the coordinate space annotation group with the given space and for tab/window
+ * spaces, the tab/window index.  If the group does not exist, it will be created.
+ *
+ * @param coordinateSpace
+ *    Space for the group.
+ * @param tabOrWindowIndex
+ *    Index of tab/window for tab/window coordinateSpaces.
+ * @return
+ *    Group for the coordinateSpace.
+ */
+AnnotationGroup*
+AnnotationFile::getSpaceAnnotationGroup(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                                        const int32_t tabOrWindowIndex)
+{
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        AnnotationGroup* group = (*groupIter).data();
+        if (group->getCoordinateSpace() == coordinateSpace) {
+            switch (coordinateSpace) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    CaretAssert(0);
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    return group;
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    if (tabOrWindowIndex == group->getTabOrWindowIndex()) {
+                        return group;
+                    }
+                    break;
+            }
+        }
+    }
+    
+    switch (coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            CaretAssert(0);
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            CaretAssert((tabOrWindowIndex >= 0)
+                        && (tabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            CaretAssert((tabOrWindowIndex >= 0)
+                        && (tabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
+            break;
+    }
+    
+    AnnotationGroup* group = new AnnotationGroup(this,
+                                                 AnnotationGroupTypeEnum::SPACE,
+                                                 coordinateSpace,
+                                                 tabOrWindowIndex);
+    group->setUniqueKey(generateUniqueKey());
+    
+    m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
+    
+    return group;
+}
+
+
+
+/**
  * Helps with copying an object of this type.
  * @param obj
  *    Object that is copied.
  */
-void 
+void
 AnnotationFile::copyHelperAnnotationFile(const AnnotationFile& /* obj */)
 {
     CaretAssertMessage(0, "Copying of annotation file not implemented.  "
@@ -448,7 +519,15 @@ AnnotationFile::receiveEvent(Event* event)
 bool
 AnnotationFile::isEmpty() const
 {
-    return (m_annotations.empty());
+    for (AnnotationGroupConstIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        if ( ! (*groupIter)->isEmpty()) {
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 /**
@@ -523,7 +602,31 @@ AnnotationFile::addAnnotationPrivate(Annotation* annotation)
         }
     }
     
-    m_annotations.push_back(QSharedPointer<Annotation>(annotation));
+    const AnnotationCoordinateSpaceEnum::Enum coordinateSpace = annotation->getCoordinateSpace();
+    int32_t tabOrWindowIndex = -1;
+    switch (coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            tabOrWindowIndex = annotation->getTabIndex();
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            tabOrWindowIndex = annotation->getWindowIndex();
+            break;
+    }
+    
+    AnnotationGroup* group = getSpaceAnnotationGroup(annotation->getCoordinateSpace(),
+                                                     tabOrWindowIndex);
+    CaretAssert(group);
+    
+    annotation->setUniqueKey(generateUniqueKey());
+    
+    group->addAnnotationPrivate(annotation);
+    
     setModified();
 }
 
@@ -542,28 +645,6 @@ void
 AnnotationFile::addAnnotationDuringFileReading(Annotation* annotation)
 {
     addAnnotationPrivate(annotation);
-}
-
-/**
- * @return True if the given annotation is in this file, else false.
- * 
- * @param annotation
- *     Annotation tested for inside this file.
- */
-bool
-AnnotationFile::containsAnnotation(const Annotation* annotation) const
-{
-    for (AnnotationConstIterator iter = m_annotations.begin();
-         iter != m_annotations.end();
-         iter++) {
-        //        Annotation* annotationPointer = *iter;
-        const QSharedPointer<Annotation>& annotationPointer = *iter;
-        if (annotationPointer == annotation) {
-            return true;
-        }
-    }
-    
-    return false;
 }
 
 /**
@@ -606,7 +687,8 @@ AnnotationFile::restoreAnnotation(Annotation* annotation)
          iter++) {
         QSharedPointer<Annotation> annotationPointer = *iter;
         if (annotationPointer == annotation) {
-            m_annotations.push_back(annotationPointer);
+            CaretAssertMessage(0, "Need to add annotation to group but unique key does not need to be set");
+//            m_annotations.push_back(annotationPointer);
             m_removedAnnotations.erase(iter);
             setModified();
             
@@ -633,23 +715,37 @@ AnnotationFile::restoreAnnotation(Annotation* annotation)
 bool
 AnnotationFile::removeAnnotation(Annotation* annotation)
 {
-    for (AnnotationIterator iter = m_annotations.begin();
-         iter != m_annotations.end();
-         iter++) {
-        QSharedPointer<Annotation>& annotationPointer = *iter;
-        if (annotationPointer == annotation) {
-            m_removedAnnotations.insert(annotationPointer);
-            
-            m_annotations.erase(iter);
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        QSharedPointer<AnnotationGroup> group = *groupIter;
+        if (group->removeAnnotation(annotation)) {
+            CaretAssertMessage(0, "Need to move annotation from group to removed annotations");
+//            m_removedAnnotations.insert(annotationPointer);
+//            
+//            m_annotations.erase(iter);
             
             setModified();
-            
-            /*
-             * Successfully removed
-             */
             return true;
         }
     }
+//    for (AnnotationIterator iter = m_annotations.begin();
+//         iter != m_annotations.end();
+//         iter++) {
+//        QSharedPointer<Annotation>& annotationPointer = *iter;
+//        if (annotationPointer == annotation) {
+//            m_removedAnnotations.insert(annotationPointer);
+//            
+//            m_annotations.erase(iter);
+//            
+//            setModified();
+//            
+//            /*
+//             * Successfully removed
+//             */
+//            return true;
+//        }
+//    }
     
     /*
      * Annotation not in this file
@@ -658,62 +754,43 @@ AnnotationFile::removeAnnotation(Annotation* annotation)
 }
 
 /**
- * @return All annotations in this file.
- */
-//const std::vector<Annotation*>&
-const std::vector<Annotation*>
-AnnotationFile::getAllAnnotations() const
-{
-    std::vector<Annotation*> allAnnotations;
-    
-    for (AnnotationConstIterator iter = m_annotations.begin();
-         iter != m_annotations.end();
-         iter++) {
-        //        Annotation* annotationPointer = *iter;
-        const QSharedPointer<Annotation>& annotationPointer = *iter;
-        allAnnotations.push_back(annotationPointer.data());
-    }
-
-    return allAnnotations;
-}
-
-/**
- * @return Number of annotations in the file.
- */
-int32_t
-AnnotationFile::getNumberOfAnnotations() const
-{
-    return m_annotations.size();
-}
-
-/**
- * Get the annotation at the given index.
+ * Get all annotations in this file.
  * 
- * @param index
- *     Index of the annotation.
- * @return
- *     Annotation at the given index.
+ * @param annotationsOut
+ *    Output containing all annotations.
  */
-Annotation*
-AnnotationFile::getAnnotation(const int32_t index)
+void
+AnnotationFile::getAllAnnotations(std::vector<Annotation*>& annotationsOut) const
 {
-    CaretAssertVectorIndex(m_annotations, index);
-    return m_annotations[index].data();
+    annotationsOut.clear();
+
+    for (AnnotationGroupConstIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        std::vector<Annotation*> groupAnnotations;
+        (*groupIter)->getAllAnnotations(groupAnnotations);
+        annotationsOut.insert(annotationsOut.end(),
+                              groupAnnotations.begin(),
+                              groupAnnotations.end());
+    }
 }
 
 /**
- * Get the annotation at the given index (const method).
+ * Get all annotation groups in this file.
  *
- * @param index
- *     Index of the annotation.
- * @return
- *     Annotation at the given index.
+ * @param annotationGroupsOut
+ *    Output containing all annotation groups.
  */
-const Annotation*
-AnnotationFile::getAnnotation(const int32_t index) const
+void
+AnnotationFile::getAllAnnotationGroups(std::vector<AnnotationGroup*>& annotationGroupsOut) const
 {
-    CaretAssertVectorIndex(m_annotations, index);
-    return m_annotations[index].data();
+    annotationGroupsOut.clear();
+    
+    for (AnnotationGroupConstIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        annotationGroupsOut.push_back((*groupIter).data());
+    }
 }
 
 /**
@@ -730,11 +807,10 @@ AnnotationFile::isModified() const
         return true;
     }
     
-    for (AnnotationConstIterator iter = m_annotations.begin();
-         iter != m_annotations.end();
+    for (AnnotationGroupConstIterator iter = m_annotationGroups.begin();
+         iter != m_annotationGroups.end();
          iter++) {
-        const QSharedPointer<Annotation>& annotationPointer = *iter;
-        if (annotationPointer->isModified()) {
+        if ((*iter)->isModified()) {
             return true;
         }
     }
@@ -752,14 +828,73 @@ AnnotationFile::clearModified()
     
     m_metadata->clearModified();
     
-    for (AnnotationConstIterator iter = m_annotations.begin();
-         iter != m_annotations.end();
-         iter++) {
-        const QSharedPointer<Annotation>& annotationPointer = *iter;
-        annotationPointer->clearModified();
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        (*groupIter)->clearModified();
     }
 }
 
+/**
+ * @return A new unique key (each annotation and
+ * annotation group in the file contains a unique key.
+ */
+int32_t
+AnnotationFile::generateUniqueKey()
+{
+    if (m_uniqueKeyGenerator < 0) {
+        m_uniqueKeyGenerator = 0;
+    }
+    
+    m_uniqueKeyGenerator++;
+    
+    return m_uniqueKeyGenerator;
+}
+
+/**
+ * Update the unqiue keys after reading the file
+ * Older files did not have unique keys
+ */
+void
+AnnotationFile::updateUniqueKeysAfterReadingFile()
+{
+    CaretAssertToDoFatal();
+    
+//    /*
+//     * Find maximum unique identifier from annotations AND annotation groups
+//     */
+//    int32_t maximumUniqueIdentifierFound = 0;
+//    for (AnnotationIterator iter = m_annotations.begin();
+//         iter != m_annotations.end();
+//         iter++) {
+//        QSharedPointer<Annotation>& ann = *iter;
+//        maximumUniqueIdentifierFound = std::max(maximumUniqueIdentifierFound,
+//                                                ann->getUniqueIdentifier());
+//    }
+//    
+//    for (std::vector<AnnotationGroup*>::iterator groupIter = m_annotationGroups.begin();
+//         groupIter != m_annotationGroups.end();
+//         groupIter++) {
+//        maximumUniqueIdentifierFound = std::max(maximumUniqueIdentifierFound,
+//                                                (*groupIter)->getUniqueIdentifier());
+//    }
+//    
+//    m_uniqueIdentifierCounter = maximumUniqueIdentifierFound;
+//    
+//    /*
+//     * Set the unique identifier for annotations that do
+//     * not have a unique identifier.  Note that older annotations
+//     * did not have unique identifiers.
+//     */
+//    for (AnnotationIterator iter = m_annotations.begin();
+//         iter != m_annotations.end();
+//         iter++) {
+//        QSharedPointer<Annotation>& ann = *iter;
+//        if (ann->getUniqueIdentifier() <= 0) {
+//            ann->setUniqueIdentifier(generateNewUniqueIdentifier());
+//        }
+//    }
+}
 
 /**
  * Read the data file.
@@ -914,14 +1049,16 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveInterface
                                 "annotation file.");
     }
     
-    const int32_t numAnn = copyFromFile->getNumberOfAnnotations();
-    for (int32_t i = 0; i < numAnn; i++) {
-        const Annotation* ann = copyFromFile->getAnnotation(i);
-        CaretAssert(ann);
-        Annotation* annCopy = ann->clone();
-        CaretAssert(annCopy);
-        addAnnotationPrivate(annCopy);
-    }
+    CaretAssertMessage(0, "Need to copy annotation groups.  Should be able to copy groups with their unique keys since new file");
+//    for (AnnotationIterator annIter = m_annotations.begin();
+//         annIter != m_annotations.end();
+//         annIter++) {
+//        const Annotation* ann = (*annIter).data();
+//        CaretAssert(ann);
+//        Annotation* annCopy = ann->clone();
+//        CaretAssert(annCopy);
+//        addAnnotationPrivate(annCopy);
+//    }
 }
 
 /**

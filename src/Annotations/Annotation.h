@@ -53,6 +53,10 @@ namespace caret {
         
         Annotation* clone() const;
         
+        int32_t getUniqueKey() const;
+        
+        AString getName() const;
+        
         void replaceWithCopyOfAnnotation(const Annotation* annotation);
         
         QString getShortDescriptiveString() const;
@@ -211,7 +215,11 @@ namespace caret {
         
         const AnnotationAttributesDefaultTypeEnum::Enum m_attributeDefaultType;
         
+        void textAnnotationResetName();
+        
     private:
+        void setUniqueKey(const int32_t uniqueKey);
+        
         SceneClassAssistant* m_sceneAssistant;
         
         AnnotationCoordinateSpaceEnum::Enum  m_coordinateSpace;
@@ -230,6 +238,10 @@ namespace caret {
         
         float m_lineWidth;
 
+        AString m_name;
+        
+        int32_t m_uniqueKey;
+        
         /**
          * Selection status in each window.
          *

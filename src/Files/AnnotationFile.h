@@ -25,6 +25,7 @@
 
 #include <QSharedPointer>
 
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
 #include "DataFileContentCopyMoveInterface.h"
@@ -34,6 +35,7 @@
 namespace caret {
 
     class Annotation;
+    class AnnotationGroup;
     class SceneClassAssistant;
     
     class AnnotationFile
@@ -51,6 +53,7 @@ namespace caret {
              * to a file
              */
             ANNOTATION_FILE_SAVE_TO_FILE,
+            
             /**
              * Special variant of annotation file that restores and saves the
              * annotations with the scene methods.  This is used by the 
@@ -82,17 +85,9 @@ namespace caret {
         
         virtual const GiftiMetaData* getFileMetaData() const;
 
-        void addAnnotationDuringFileReading(Annotation* annotation);
+        void getAllAnnotations(std::vector<Annotation*>& annotationsOut) const;
         
-        const std::vector<Annotation*> getAllAnnotations() const;
-        
-        int32_t getNumberOfAnnotations() const;
-        
-        Annotation* getAnnotation(const int32_t index);
-        
-        const Annotation* getAnnotation(const int32_t index) const;
-        
-        bool containsAnnotation(const Annotation* annotation) const;
+        void getAllAnnotationGroups(std::vector<AnnotationGroup*>& annotationGroupsOut) const;
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
@@ -140,11 +135,20 @@ namespace caret {
         
         void addAnnotationPrivate(Annotation* annotation);
         
+        void addAnnotationDuringFileReading(Annotation* annotation);
+        
         bool restoreAnnotation(Annotation* annotation);
         
         bool restoreAnnotationAddIfNotFound(Annotation* annotation);
         
         bool removeAnnotation(Annotation* annotation);
+        
+        int32_t generateUniqueKey();
+        
+        void updateUniqueKeysAfterReadingFile();
+        
+        AnnotationGroup* getSpaceAnnotationGroup(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                                                 const int32_t tabOrWindowIndex);
         
         const AnnotationFileSubType m_fileSubType;
         
@@ -152,20 +156,23 @@ namespace caret {
 
         CaretPointer<GiftiMetaData> m_metadata;
         
-        std::vector<QSharedPointer<Annotation> > m_annotations;
+        int32_t m_uniqueKeyGenerator;
+        
+        std::vector<QSharedPointer<AnnotationGroup> > m_annotationGroups;
         
         /**
          * Contains annotation that have been delete/removed so that
          * they can be 'undeleted' or 're-pasted'.
          */
         std::set<QSharedPointer<Annotation> > m_removedAnnotations;
+                
+        typedef std::vector<QSharedPointer<AnnotationGroup> >::iterator AnnotationGroupIterator;
         
-        typedef std::vector<QSharedPointer<Annotation> >::iterator AnnotationIterator;
-        
-        typedef std::vector<QSharedPointer<Annotation> >::const_iterator AnnotationConstIterator;
+        typedef std::vector<QSharedPointer<AnnotationGroup> >::const_iterator AnnotationGroupConstIterator;
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class AnnotationFileXmlReader;
     };
     
 #ifdef __ANNOTATION_FILE_DECLARE__

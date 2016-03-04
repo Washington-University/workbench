@@ -34,6 +34,7 @@ namespace caret {
     class AnnotationBox;
     class AnnotationCoordinate;
     class AnnotationFile;
+    class AnnotationGroup;
     class AnnotationImage;
     class AnnotationLine;
     class AnnotationOneDimensionalShape;
@@ -79,6 +80,8 @@ namespace caret {
         
         void writeCoordinate(const AnnotationCoordinate* coordinate,
                              const QString& coordinateXmlElement);
+        
+        void writeGroup(const AnnotationGroup* group);
         
         void writeImage(const AnnotationImage* image);
         

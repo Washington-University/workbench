@@ -30,6 +30,7 @@
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
+#include "AnnotationGroup.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
@@ -167,13 +168,87 @@ AnnotationFileXmlWriter::writeFileContentToXmlStreamWriter(const AnnotationFile*
     
     m_stream->writeStartElement(ELEMENT_ANNOTATION_FILE);
     m_stream->writeAttribute(ATTRIBUTE_VERSION,
-                             AString::number(XML_VERSION_ONE));
+                             AString::number(XML_VERSION_TWO));
     
     m_streamHelper->writeMetaData(annotationFile->getFileMetaData());
     
-    const int32_t numberOfAnnotations = annotationFile->getNumberOfAnnotations();
-    for (int32_t i = 0; i < numberOfAnnotations; i++) {
-        const Annotation* annotation = annotationFile->getAnnotation(i);
+//    std::vector<Annotation*> annotations;
+//    annotationFile->getAllAnnotations(annotations);
+//    const int32_t numberOfAnnotations = static_cast<int32_t>(annotations.size());
+//    for (int32_t i = 0; i < numberOfAnnotations; i++) {
+//        CaretAssertVectorIndex(annotations, i);
+//        const Annotation* annotation = annotations[i];
+//        CaretAssert(annotation);
+//        
+//        switch (annotation->getType()) {
+//            case AnnotationTypeEnum::BOX:
+//                writeBox(dynamic_cast<const AnnotationBox*>(annotation));
+//                break;
+//            case AnnotationTypeEnum::COLOR_BAR:
+//                CaretAssertMessage(0, "Color bar is NEVER written to an annotation file");
+//                break;
+//            case AnnotationTypeEnum::IMAGE:
+//                writeImage(dynamic_cast<const AnnotationImage*>(annotation));
+//                break;
+//            case AnnotationTypeEnum::LINE:
+//                writeLine(dynamic_cast<const AnnotationLine*>(annotation));
+//                break;
+//            case AnnotationTypeEnum::OVAL:
+//                writeOval(dynamic_cast<const AnnotationOval*>(annotation));
+//                break;
+//            case AnnotationTypeEnum::TEXT:
+//                writeText(dynamic_cast<const AnnotationText*>(annotation));
+//                break;
+//        }
+//    }
+
+    std::vector<AnnotationGroup*> annotationGroups;
+    annotationFile->getAllAnnotationGroups(annotationGroups);
+    
+    for (std::vector<AnnotationGroup*>::iterator groupIter = annotationGroups.begin();
+         groupIter != annotationGroups.end();
+         groupIter++) {
+        writeGroup(*groupIter);
+    }
+
+    m_stream->writeEndElement(); // ELEMENT_ANNOTATION_FILE
+    
+    m_stream->writeEndDocument();
+}
+
+/**
+ * Write the given annotation group in XML.
+ *
+ * @param group
+ *     The annotation group.
+ */
+void
+AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
+{
+    CaretAssert(group);
+    
+    if (group->isEmpty()) {
+        return;
+    }
+    
+    m_stream->writeStartElement(ELEMENT_GROUP);
+    
+    m_stream->writeAttribute(ATTRIBUTE_COORDINATE_SPACE,
+                             AnnotationCoordinateSpaceEnum::toName(group->getCoordinateSpace()));
+    m_stream->writeAttribute(ATTRIBUTE_GROUP_TYPE,
+                             AnnotationGroupTypeEnum::toName(group->getGroupType()));
+    m_stream->writeAttribute(ATTRIBUTE_TAB_OR_WINDOW_INDEX,
+                             QString::number(group->getTabOrWindowIndex()));
+    m_stream->writeAttribute(ATTRIBUTE_UNIQUE_KEY,
+                             QString::number(group->getUniqueKey()));
+    
+    std::vector<Annotation*> annotations;
+    group->getAllAnnotations(annotations);
+    
+    for (std::vector<Annotation*>::iterator annIter = annotations.begin();
+         annIter != annotations.end();
+         annIter++) {
+        const Annotation* annotation = *annIter;
         CaretAssert(annotation);
         
         switch (annotation->getType()) {
@@ -198,11 +273,11 @@ AnnotationFileXmlWriter::writeFileContentToXmlStreamWriter(const AnnotationFile*
         }
     }
     
-    m_stream->writeEndElement(); // ELEMENT_ANNOTATION_FILE
+    //    const AString indicesString = AString::fromNumbers(group->getAnnotationUniqueIdentifiers(), " ");
+    //    m_stream->writeCharacters(indicesString);
     
-    m_stream->writeEndDocument();
+    m_stream->writeEndElement();
 }
-
 
 /**
  * Write the given annotation box in XML.
@@ -419,7 +494,8 @@ AnnotationFileXmlWriter::getAnnotationPropertiesAsAttributes(const Annotation* a
     attributes.append(ATTRIBUTE_WINDOW_INDEX,
                       QString::number(annotation->getWindowIndex()));
     
-    
+    attributes.append(ATTRIBUTE_UNIQUE_KEY,
+                      QString::number(annotation->getUniqueKey()));
 }
 
 /*

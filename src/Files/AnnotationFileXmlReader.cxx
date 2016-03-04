@@ -192,6 +192,9 @@ AnnotationFileXmlReader::readFileContentFromXmlStreamReader(const QString& filen
     if (versionNumber == XML_VERSION_ONE) {
         readVersionOne(annotationFile);
     }
+    else if (versionNumber == XML_VERSION_TWO) {
+        readVersionTwo(annotationFile);
+    }
     else {
         m_streamHelper->throwDataFileException("File version number "
                                                + versionText.toString()
@@ -269,6 +272,48 @@ AnnotationFileXmlReader::readVersionOne(AnnotationFile* annotationFile)
         if (skipCurrentElementFlag) {
             m_stream->skipCurrentElement();
         }
+    }
+}
+
+/**
+ * Read a version two Annotation XML file.
+ *
+ * @param annotationFile
+ *     Add annotations to this file.
+ */
+void
+AnnotationFileXmlReader::readVersionTwo(AnnotationFile* annotationFile)
+{
+    while (m_stream->readNextStartElement()) {
+        bool skipCurrentElementFlag = true;
+        
+        const QString elementName = m_stream->name().toString();
+        
+        if (elementName == GiftiXmlElements::TAG_METADATA) {
+            m_streamHelper->readMetaData(annotationFile->getFileMetaData());
+            skipCurrentElementFlag = false;
+        }
+        else if (elementName == ELEMENT_GROUP) {
+            readGroup(annotationFile);
+            skipCurrentElementFlag = false;
+        }
+        else {
+            m_streamHelper->throwDataFileException("Unexpected XML element "
+                                                   + elementName);
+        }
+        
+        /*
+         * These elements have no other child elements so move on
+         */
+        if (skipCurrentElementFlag) {
+            m_stream->skipCurrentElement();
+        }
+    }
+    
+    {
+        std::vector<Annotation*> as;
+        annotationFile->getAllAnnotations(as);
+        std::cout << "Read: " << as.size() << " annotations" << std::endl;
     }
 }
 
@@ -545,6 +590,81 @@ AnnotationFileXmlReader::readOneDimensionalAnnotation(const QString& annotationE
                    annotation->getStartCoordinate());
     readCoordinate(ELEMENT_COORDINATE_TWO,
                    annotation->getEndCoordinate());
+}
+
+/**
+ * Read an annotation group.
+ *
+ * @param annotationFile
+ *     File that is being read.
+ */
+void
+AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
+{
+    const QXmlStreamAttributes attributes = m_stream->attributes();
+
+    CaretAssertToDoFatal(); // need to create group from its attributes and add to annotaiton file
+    
+    while (m_stream->readNextStartElement()) {
+        bool skipCurrentElementFlag = true;
+        
+        const QString elementName = m_stream->name().toString();
+        
+        std::cout << "Reading element: " << qPrintable(elementName) << " in readGroup()" << std::endl;
+        if (elementName == ELEMENT_BOX) {
+            CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readTwoDimensionalAnnotation(ELEMENT_BOX,
+                                         annotation);
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_IMAGE) {
+            CaretPointer<AnnotationImage> annotation(new AnnotationImage(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readTwoDimensionalAnnotation(ELEMENT_IMAGE,
+                                         annotation);
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_LINE) {
+            CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readOneDimensionalAnnotation(ELEMENT_LINE,
+                                         annotation);
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_OVAL) {
+            CaretPointer<AnnotationOval> annotation(new AnnotationOval(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readTwoDimensionalAnnotation(ELEMENT_OVAL,
+                                         annotation);
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {
+            CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readTwoDimensionalAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
+                                         annotation);
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_POINT_SIZE_TEXT) {
+            CaretPointer<AnnotationText> annotation(new AnnotationPointSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readTwoDimensionalAnnotation(ELEMENT_POINT_SIZE_TEXT,
+                                         annotation);
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_TEXT_OBSOLETE) {
+            CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readTwoDimensionalAnnotation(ELEMENT_TEXT_OBSOLETE,
+                                         annotation);
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+        }
+        else {
+            m_streamHelper->throwDataFileException("Unexpected XML element "
+                                                   + elementName);
+        }
+        
+        /*
+         * These elements have no other child elements so move on
+         */
+        if (skipCurrentElementFlag) {
+            m_stream->skipCurrentElement();
+        }
+    }
 }
 
 /**
