@@ -70,19 +70,19 @@ CubicSpline CubicSpline::bspline(float frac, bool lowEdge, bool highEdge)
     CubicSpline ret;
     float frac2 = frac * frac;
     float frac3 = frac2 * frac;
+    ret.m_weights[0] = (-frac3 + 3.0f * frac2 - 3.0f * frac + 1.0f) / 6.0f;//the standard blending function
     ret.m_weights[1] = (3.0f * frac3 - 6.0f * frac2 + 4.0f) / 6.0f;
     ret.m_weights[2] = (-3.0f * frac3 + 3.0f * frac2 + 3.0f * frac + 1.0f) / 6.0f;
+    ret.m_weights[3] = frac3 / 6.0f;
     if (lowEdge)
     {
-        ret.m_weights[0] = 0.0f;//assume outside range is zero
-    } else {
-        ret.m_weights[0] = (-frac3 + 3.0f * frac2 - 3.0f * frac + 1.0f) / 6.0f;//the standard blending function
+        ret.m_weights[1] += ret.m_weights[0];//pretend outside range repeats the edge value
+        ret.m_weights[0] = 0.0f;//ignore input outside the range
     }
     if (highEdge)
     {
+        ret.m_weights[2] += ret.m_weights[3];//ditto
         ret.m_weights[3] = 0.0f;
-    } else {
-        ret.m_weights[3] = frac3 / 6.0f;
     }
     return ret;
 }

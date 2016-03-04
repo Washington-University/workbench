@@ -156,7 +156,7 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
 
 float VolumeSpline::sample(const float& ifloat, const float& jfloat, const float& kfloat)
 {
-    if (m_dims[0] < 1 || ifloat < 0.0f || jfloat < 0.0f || kfloat < 0.0f || ifloat > m_dims[0] - 1 || jfloat > m_dims[1] - 1 || kfloat > m_dims[2] - 1) return 0.0f;//yeesh
+    if (m_dims[0] < 2 || ifloat < 0.0f || jfloat < 0.0f || kfloat < 0.0f || ifloat > m_dims[0] - 1 || jfloat > m_dims[1] - 1 || kfloat > m_dims[2] - 1) return 0.0f;//yeesh
     const int64_t zstep = m_dims[0] * m_dims[1];
     float iparti, ipartj, ipartk;
     float fparti = modf(ifloat, &iparti);
@@ -235,11 +235,13 @@ void VolumeSpline::deconvolve(float* data, const float* backsubs, const int64_t&
     if (length < 1) return;
     const float A = 1.0f / 6.0f, B = 2.0f / 3.0f;//the coefficients of a bspline at center and +/-1
     //forward pass simulating gaussian elimination on matrix of bspline kernels and data
-    data[0] /= B;
-    for (int i = 1; i < length; ++i)//the first row is handled slightly differently
+    data[0] /= B + A;//repeat final value for data outside the bounding box, to prevent bright edges
+    for (int i = 1; i < length - 1; ++i)//the first and last rows are handled slightly differently
     {
         data[i] = (data[i] - A * data[i - 1]) / (B - A * backsubs[i - 1]);
-    }//back substitution, making it gauss-jordan
+    }
+    data[length - 1] = (data[length - 1] - A * data[length - 2]) / (B + A - A * backsubs[length - 2]);//repeat final value for data outside the bounding box, to prevent bright edges
+    //back substitution, making it gauss-jordan
     for (int i = length - 2; i >= 0; --i)//the last row doesn't need back-substitution
     {
         data[i] -= backsubs[i] * data[i + 1];
@@ -250,7 +252,7 @@ void VolumeSpline::predeconvolve(float* backsubs, const int64_t& length)
 {
     if (length < 1) return;
     const float A = 1.0f / 6.0f, B = 2.0f / 3.0f;
-    backsubs[0] = A / B;
+    backsubs[0] = A / (B + A);//repeat final value for data outside the bounding box, to prevent bright edges
     for (int i = 1; i < length; ++i)
     {
         backsubs[i] = A / (B - A * backsubs[i - 1]);
