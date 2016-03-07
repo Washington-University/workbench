@@ -77,6 +77,7 @@ OperationParameters* OperationMetricWeightedStats::getParameters()
     
     ret->setHelpText(
         AString("For each column of the input, a single number is printed, resulting from the specified operation.  ") +
+        "You must specify exactly one of -area-surface or -weight-metric.  " +
         "Use -column to only give output for a single column.  " +
         "Use -roi to consider only the data within a region.  " +
         "Exactly one of -reduce or -percentile must be specified, and exactly one of -mean, -stdev, -percentile or -sum must be specified.\n\n" +
