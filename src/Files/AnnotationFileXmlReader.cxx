@@ -30,6 +30,7 @@
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
+#include "AnnotationGroup.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
@@ -81,6 +82,8 @@ void
 AnnotationFileXmlReader::readFile(const QString& filename,
                                   AnnotationFile* annotationFile)
 {
+    m_fileVersionNumber = -1;
+    
     CaretAssert(annotationFile);
     m_filename = filename;
 
@@ -188,11 +191,11 @@ AnnotationFileXmlReader::readFileContentFromXmlStreamReader(const QString& filen
                                                + ELEMENT_ANNOTATION_FILE);
     }
     
-    const int32_t versionNumber  = versionText.toString().toInt();
-    if (versionNumber == XML_VERSION_ONE) {
+    m_fileVersionNumber  = versionText.toString().toInt();
+    if (m_fileVersionNumber == XML_VERSION_ONE) {
         readVersionOne(annotationFile);
     }
-    else if (versionNumber == XML_VERSION_TWO) {
+    else if (m_fileVersionNumber == XML_VERSION_TWO) {
         readVersionTwo(annotationFile);
     }
     else {
@@ -223,43 +226,43 @@ AnnotationFileXmlReader::readVersionOne(AnnotationFile* annotationFile)
             CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_BOX,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_IMAGE) {
             CaretPointer<AnnotationImage> annotation(new AnnotationImage(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_IMAGE,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_LINE) {
             CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readOneDimensionalAnnotation(ELEMENT_LINE,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_OVAL) {
             CaretPointer<AnnotationOval> annotation(new AnnotationOval(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_OVAL,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_POINT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPointSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_POINT_SIZE_TEXT,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_TEXT_OBSOLETE) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_TEXT_OBSOLETE,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else {
             m_streamHelper->throwDataFileException("Unexpected XML element "
@@ -308,12 +311,6 @@ AnnotationFileXmlReader::readVersionTwo(AnnotationFile* annotationFile)
         if (skipCurrentElementFlag) {
             m_stream->skipCurrentElement();
         }
-    }
-    
-    {
-        std::vector<Annotation*> as;
-        annotationFile->getAllAnnotations(as);
-        std::cout << "Read: " << as.size() << " annotations" << std::endl;
     }
 }
 
@@ -552,6 +549,15 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
     annotation->setWindowIndex(m_streamHelper->getRequiredAttributeIntValue(attributes,
                                                             annotationElementName,
                                                             ATTRIBUTE_WINDOW_INDEX));
+    
+    /*
+     * Unique Key
+     */
+    if (m_fileVersionNumber >= XML_VERSION_TWO) {
+        annotation->setUniqueKey(m_streamHelper->getRequiredAttributeIntValue(attributes,
+                                                                              annotationElementName,
+                                                                              ATTRIBUTE_UNIQUE_KEY));
+    }
 }
 
 /**
@@ -603,55 +609,100 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
 {
     const QXmlStreamAttributes attributes = m_stream->attributes();
 
-    CaretAssertToDoFatal(); // need to create group from its attributes and add to annotaiton file
+    /*
+     * Coordinate space
+     */
+    AnnotationCoordinateSpaceEnum::Enum coordSpace = AnnotationCoordinateSpaceEnum::PIXELS;
+    {
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
+                                                                                    ELEMENT_GROUP,
+                                                                                    ATTRIBUTE_COORDINATE_SPACE);
+        bool valid = false;
+        coordSpace = AnnotationCoordinateSpaceEnum::fromName(valueString,
+                                                                                            &valid);
+        if ( ! valid) {
+            m_streamHelper->throwDataFileException("While reading annotation group, invalid value "
+                                                   + valueString
+                                                   + " for attribute "
+                                                   + ATTRIBUTE_COORDINATE_SPACE);
+        }
+    }
+
+    /*
+     * Group tyoe
+     */
+    AnnotationGroupTypeEnum::Enum groupType = AnnotationGroupTypeEnum::INVALID;
+    {
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
+                                                                                    ELEMENT_GROUP,
+                                                                                    ATTRIBUTE_GROUP_TYPE);
+        bool valid = false;
+        groupType = AnnotationGroupTypeEnum::fromName(valueString,
+                                                             &valid);
+        if ( ! valid) {
+            m_streamHelper->throwDataFileException("While reading annotation group, invalid value "
+                                                   + valueString
+                                                   + " for attribute "
+                                                   + ATTRIBUTE_GROUP_TYPE);
+        }
+    }
     
+    const int32_t tabOrWindowIndex = m_streamHelper->getRequiredAttributeIntValue(attributes,
+                                                                                  ELEMENT_GROUP,
+                                                                                  ATTRIBUTE_TAB_OR_WINDOW_INDEX);
+    
+    const int32_t uniqueKey = m_streamHelper->getRequiredAttributeIntValue(attributes,
+                                                                                  ELEMENT_GROUP,
+                                                                                  ATTRIBUTE_UNIQUE_KEY);
+    
+    
+    std::vector<Annotation*> annotations;
     while (m_stream->readNextStartElement()) {
         bool skipCurrentElementFlag = true;
         
         const QString elementName = m_stream->name().toString();
         
-        std::cout << "Reading element: " << qPrintable(elementName) << " in readGroup()" << std::endl;
         if (elementName == ELEMENT_BOX) {
             CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_BOX,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_IMAGE) {
             CaretPointer<AnnotationImage> annotation(new AnnotationImage(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_IMAGE,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_LINE) {
             CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readOneDimensionalAnnotation(ELEMENT_LINE,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_OVAL) {
             CaretPointer<AnnotationOval> annotation(new AnnotationOval(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_OVAL,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_POINT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPointSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_POINT_SIZE_TEXT,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_TEXT_OBSOLETE) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_TEXT_OBSOLETE,
                                          annotation);
-            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
+            annotations.push_back(annotation.releasePointer());
         }
         else {
             m_streamHelper->throwDataFileException("Unexpected XML element "
@@ -664,6 +715,14 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
         if (skipCurrentElementFlag) {
             m_stream->skipCurrentElement();
         }
+    }
+    
+    if ( ! annotations.empty()) {
+        annotationFile->addAnnotationGroupDuringFileReading(groupType,
+                                                            coordSpace,
+                                                            tabOrWindowIndex,
+                                                            uniqueKey,
+                                                            annotations);
     }
 }
 

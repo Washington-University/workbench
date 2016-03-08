@@ -642,10 +642,102 @@ AnnotationFile::addAnnotationPrivate(Annotation* annotation)
  *     Annotation that is added.
  */
 void
-AnnotationFile::addAnnotationDuringFileReading(Annotation* annotation)
+AnnotationFile::addAnnotationDuringFileVersionOneReading(Annotation* annotation)
 {
     addAnnotationPrivate(annotation);
 }
+
+/**
+ * Add a group while reading an annotation file.
+ *
+ * @param groupType
+ *     Type of annotation group.
+ * @param coordinateSpace
+ *     Coordinate space of the group's annotaitons.
+ * @param tabOrWindowIndex
+ *     Tab or window index for groups in tab or window space.
+ * @param uniqueKey
+ *     Unique key for the annotation group.
+ * @param annotations
+ *     Annotation that are members of the group.
+ * @throw DataFileException
+ *     If there is an error.
+ */
+void
+AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnum::Enum groupType,
+                                                    const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                                                    const int32_t tabOrWindowIndex,
+                                                    const int32_t uniqueKey,
+                                                    const std::vector<Annotation*>& annotations)
+{
+    switch (groupType) {
+        case AnnotationGroupTypeEnum::INVALID:
+            throw DataFileException("INVALID group type is not allowed while annotation file.");
+            break;
+        case AnnotationGroupTypeEnum::SPACE:
+            break;
+        case AnnotationGroupTypeEnum::USER:
+            break;
+    }
+    
+    switch (coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            throw DataFileException("PIXELS coordinate space is not allowed for group while annotation file.");
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            if ((tabOrWindowIndex < 0)
+                || (tabOrWindowIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+                throw DataFileException("Invalid tab/window index for group while reading annotation file: "
+                                        + QString::number(tabOrWindowIndex));
+            }
+            break;
+    }
+    
+    if (uniqueKey <= 0) {
+        throw DataFileException("Invalid unique key for group while reading annotation file: "
+                                + AString::number(uniqueKey));
+    }
+    
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        QSharedPointer<AnnotationGroup> group = *groupIter;
+        if (group->getUniqueKey() == uniqueKey) {
+            throw DataFileException("More than one group using unique key "
+                                    + AString::number(uniqueKey)
+                                    + " while reading annotation file.");
+        }
+
+        if (group->getGroupType() == groupType) {
+            if (groupType == AnnotationGroupTypeEnum::SPACE) {
+                if (group->getCoordinateSpace() == coordinateSpace) {
+                    throw DataFileException("There is more than one annotation space group with space "
+                                            + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
+                                            + ".  Only one space group for each space is allowed.");
+                }
+            }
+        }
+    }
+    
+    AnnotationGroup* group = new AnnotationGroup(this,
+                                                 groupType,
+                                                 coordinateSpace,
+                                                 tabOrWindowIndex);
+    group->setUniqueKey(uniqueKey);
+    for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
+         annIter != annotations.end();
+         annIter++) {
+        group->addAnnotationPrivate(*annIter);
+    }
+    
+    m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
+}
+
 
 /**
  * Restore an annotation that had been removed and possibly
@@ -858,42 +950,20 @@ AnnotationFile::generateUniqueKey()
 void
 AnnotationFile::updateUniqueKeysAfterReadingFile()
 {
-    CaretAssertToDoFatal();
+
+    /*
+     * Find maximum unique identifier from annotations AND annotation groups
+     */
+    int32_t maximumKeyFound = 0;
     
-//    /*
-//     * Find maximum unique identifier from annotations AND annotation groups
-//     */
-//    int32_t maximumUniqueIdentifierFound = 0;
-//    for (AnnotationIterator iter = m_annotations.begin();
-//         iter != m_annotations.end();
-//         iter++) {
-//        QSharedPointer<Annotation>& ann = *iter;
-//        maximumUniqueIdentifierFound = std::max(maximumUniqueIdentifierFound,
-//                                                ann->getUniqueIdentifier());
-//    }
-//    
-//    for (std::vector<AnnotationGroup*>::iterator groupIter = m_annotationGroups.begin();
-//         groupIter != m_annotationGroups.end();
-//         groupIter++) {
-//        maximumUniqueIdentifierFound = std::max(maximumUniqueIdentifierFound,
-//                                                (*groupIter)->getUniqueIdentifier());
-//    }
-//    
-//    m_uniqueIdentifierCounter = maximumUniqueIdentifierFound;
-//    
-//    /*
-//     * Set the unique identifier for annotations that do
-//     * not have a unique identifier.  Note that older annotations
-//     * did not have unique identifiers.
-//     */
-//    for (AnnotationIterator iter = m_annotations.begin();
-//         iter != m_annotations.end();
-//         iter++) {
-//        QSharedPointer<Annotation>& ann = *iter;
-//        if (ann->getUniqueIdentifier() <= 0) {
-//            ann->setUniqueIdentifier(generateNewUniqueIdentifier());
-//        }
-//    }
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        maximumKeyFound = std::max(maximumKeyFound,
+                                   (*groupIter)->getMaximumUniqueKey());
+    }
+    
+    m_uniqueKeyGenerator = maximumKeyFound;
 }
 
 /**
@@ -914,6 +984,8 @@ AnnotationFile::readFile(const AString& filename)
     AnnotationFileXmlReader reader;
     reader.readFile(filename,
                     this);
+
+    updateUniqueKeysAfterReadingFile();
     
     setFileName(filename);
     

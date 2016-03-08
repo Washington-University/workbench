@@ -269,6 +269,7 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
 
         friend class AnnotationFile;
+        friend class AnnotationFileXmlReader;
         friend class AnnotationManager;
     };
     

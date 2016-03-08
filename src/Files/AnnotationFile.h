@@ -26,6 +26,7 @@
 #include <QSharedPointer>
 
 #include "AnnotationCoordinateSpaceEnum.h"
+#include "AnnotationGroupTypeEnum.h"
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
 #include "DataFileContentCopyMoveInterface.h"
@@ -135,7 +136,13 @@ namespace caret {
         
         void addAnnotationPrivate(Annotation* annotation);
         
-        void addAnnotationDuringFileReading(Annotation* annotation);
+        void addAnnotationDuringFileVersionOneReading(Annotation* annotation);
+        
+        void addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnum::Enum groupType,
+                                                 const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                                                 const int32_t tabOrWindowIndex,
+                                                 const int32_t uniqueKey,
+                                                 const std::vector<Annotation*>& annotations);
         
         bool restoreAnnotation(Annotation* annotation);
         

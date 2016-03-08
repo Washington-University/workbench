@@ -93,6 +93,8 @@ namespace caret {
         
         QString m_filename;
         
+        int32_t m_fileVersionNumber;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

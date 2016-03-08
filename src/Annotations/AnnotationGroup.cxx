@@ -311,6 +311,26 @@ AnnotationGroup::addAnnotationPrivate(Annotation* annotation)
 }
 
 /**
+ * @return The maximum unique key found in this group and
+ * its annotations.
+ */
+int32_t
+AnnotationGroup::getMaximumUniqueKey() const
+{
+    int32_t maxUniqueKey = m_uniqueKey;
+    
+    for (AnnotationConstIterator iter = m_annotations.begin();
+         iter != m_annotations.end();
+         iter++) {
+        maxUniqueKey = std::max(maxUniqueKey,
+                                (*iter)->getUniqueKey());
+    }
+    
+    return maxUniqueKey;
+}
+
+
+/**
  * Remove the annotation.  NOTE: The annotation is NOT deleted
  * but instead it is saved so that it can be 'undeleted'
  * or 're-pasted'.

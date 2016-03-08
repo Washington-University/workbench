@@ -109,6 +109,8 @@ namespace caret {
         
         bool removeAnnotation(Annotation* annotation);
         
+        int32_t getMaximumUniqueKey() const;
+        
         void initializeInstance();
         
         SceneClassAssistant* m_sceneAssistant;
