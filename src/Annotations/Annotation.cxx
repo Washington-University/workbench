@@ -134,7 +134,9 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     /*
      * Initializes unique name
      */
-    setUniqueKey(m_uniqueKey);
+    m_uniqueKey = -1;
+    m_name = "";
+    //setUniqueKey(m_uniqueKey); calling this will cause a crash since we could be in copy constructor and subclass has not been constructed
     
     /*
      * Selected status is NOT copied.
@@ -1009,7 +1011,8 @@ Annotation::getUniqueKey() const
 
 /**
  * Called by text annotation to reset the name
- * displayed in the gui.
+ * displayed in the gui.  DO NOT CALL FROM
+ * A CONSTRUCTOR !!!
  */
 void
 Annotation::textAnnotationResetName()
@@ -1029,7 +1032,9 @@ Annotation::textAnnotationResetName()
         case AnnotationTypeEnum::TEXT:
         {
             const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(this);
-            CaretAssert(textAnn);
+            CaretAssertMessage(textAnn,
+                               "If this fails, it may be due to this method being called from a constructor "
+                               "and the subclass constructor has not yet executed.");
             suffixName = (" : "
                           + textAnn->getText());
         }

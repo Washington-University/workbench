@@ -62,166 +62,6 @@ DataFileContentCopyMoveInterface(),
 m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
 {
     initializeAnnotationFile();
-    
-    const bool addExampleDataFlag = false;
-    if (addExampleDataFlag) {
-        createExampleAnnotations();
-    }
-}
-
-/**
- * Create example annotations for testing.
- */
-void
-AnnotationFile::createExampleAnnotations()
-{
-    {
-        AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-        at->setTabIndex(3);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        coord->setXYZ(0.4, 0.2, 0);
-        at->setLineColor(CaretColorEnum::WHITE);
-        at->setText("TAB-4-LEFT-MIDDLE,0.4, 0.2");
-        addAnnotationPrivate(at);
-    }
-    
-    {
-        AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        coord->setXYZ(0.5, 0.9, 0);
-        at->setLineColor(CaretColorEnum::BLUE);
-        at->setBackgroundColor(CaretColorEnum::GRAY);
-        at->setFontPercentViewportSize(0.10);
-        at->setBoldStyleEnabled(true);
-        at->setText("WINDOW-CENTER-MIDDLE,0.5,0.9");
-        addAnnotationPrivate(at);
-    }
-    
-    {
-        AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        coord->setXYZ(0.1, 0.6, 0);
-        at->setRotationAngle(30.0);
-        at->setLineColor(CaretColorEnum::FUCHSIA);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        at->setFontPercentViewportSize(0.08);
-        at->setBoldStyleEnabled(true);
-        at->setText("Rotated");
-        addAnnotationPrivate(at);
-    }
-    
-    {
-        AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-        at->setOrientation(AnnotationTextOrientationEnum::STACKED);
-        coord->setXYZ(0.9, 0.5, 0);
-        at->setLineColor(CaretColorEnum::PURPLE);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        at->setFontPercentViewportSize(0.15);
-        at->setBoldStyleEnabled(false);
-        at->setText("STACKED-VERT-0.9-0.5");
-        addAnnotationPrivate(at);
-    }
-    
-    {
-        AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-        at->setOrientation(AnnotationTextOrientationEnum::STACKED);
-        coord->setXYZ(0.7, 0.7, 0);
-        at->setLineColor(CaretColorEnum::TEAL);
-        at->setBackgroundColor(CaretColorEnum::SILVER);
-        at->setFontPercentViewportSize(0.15);
-        at->setBoldStyleEnabled(false);
-        at->setText("STACK-ROT");
-        at->setRotationAngle(-90.0);
-        addAnnotationPrivate(at);
-    }
-    {
-        AnnotationBox* at = new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        coord->setXYZ(0.5, 0.5, 0);
-        at->setLineColor(CaretColorEnum::GREEN);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        at->setWidth(0.2);
-        at->setHeight(0.10);
-        at->setRotationAngle(-20.0);
-        at->setLineWidth(3.0);
-        addAnnotationPrivate(at);
-    }
-    {
-        AnnotationLine* at = new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        AnnotationCoordinate* startCoord = at->getStartCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        startCoord->setXYZ(0.1, 0.1, 0);
-        AnnotationCoordinate* endCoord = at->getEndCoordinate();
-        endCoord->setXYZ(0.2, 0.3, 0);
-        at->setLineColor(CaretColorEnum::RED);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        addAnnotationPrivate(at);
-    }
-    
-    {
-        AnnotationOval* at = new AnnotationOval(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        coord->setXYZ(0.5, 0.2, 0);
-        at->setLineColor(CaretColorEnum::BLUE);
-        at->setWidth(0.05);
-        at->setHeight(0.1);
-        at->setRotationAngle(30.0);
-        at->setLineWidth(3.0);
-        addAnnotationPrivate(at);
-    }
-    
-    {
-        AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-        coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32492, 7883, 20, AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX);
-        at->setLineColor(CaretColorEnum::PURPLE);
-        at->setText("Vertex 7883");
-        addAnnotationPrivate(at);
-    }
-    
-    for (int32_t iTab = 0; iTab < 10; iTab++) {
-        AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-        at->setTabIndex(iTab);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        at->setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
-        coord->setXYZ(0.95, 0.05, 0);
-        at->setLineColor(CaretColorEnum::TEAL);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        at->setFontPercentViewportSize(0.12);
-        at->setBoldStyleEnabled(true);
-        at->setText(AString::number(iTab + 1));
-        addAnnotationPrivate(at);
-    }
 }
 
 /**
@@ -366,26 +206,40 @@ AnnotationFile::initializeAnnotationFile()
 }
 
 /**
- * Get the coordinate space annotation group with the given space and for tab/window
+ * Get the coordinate space annotation group with the given annotation's space and for tab/window
  * spaces, the tab/window index.  If the group does not exist, it will be created.
  *
- * @param coordinateSpace
- *    Space for the group.
- * @param tabOrWindowIndex
- *    Index of tab/window for tab/window coordinateSpaces.
+ * @param annotation
+ *    Annotation whose group is needed.
  * @return
  *    Group for the coordinateSpace.
  */
 AnnotationGroup*
-AnnotationFile::getSpaceAnnotationGroup(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
-                                        const int32_t tabOrWindowIndex)
+AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
 {
+    const AnnotationCoordinateSpaceEnum::Enum annotationSpace = annotation->getCoordinateSpace();
+    int32_t annotationTabOrWindowIndex = -1;
+    switch (annotationSpace) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            annotationTabOrWindowIndex = annotation->getTabIndex();
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            annotationTabOrWindowIndex = annotation->getWindowIndex();
+            break;
+    }
+    
     for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
          groupIter != m_annotationGroups.end();
          groupIter++) {
         AnnotationGroup* group = (*groupIter).data();
-        if (group->getCoordinateSpace() == coordinateSpace) {
-            switch (coordinateSpace) {
+        if (group->getCoordinateSpace() == annotationSpace) {
+            switch (annotationSpace) {
                 case AnnotationCoordinateSpaceEnum::PIXELS:
                     CaretAssert(0);
                     break;
@@ -395,7 +249,7 @@ AnnotationFile::getSpaceAnnotationGroup(const AnnotationCoordinateSpaceEnum::Enu
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                 case AnnotationCoordinateSpaceEnum::WINDOW:
-                    if (tabOrWindowIndex == group->getTabOrWindowIndex()) {
+                    if (annotationTabOrWindowIndex == group->getTabOrWindowIndex()) {
                         return group;
                     }
                     break;
@@ -403,7 +257,7 @@ AnnotationFile::getSpaceAnnotationGroup(const AnnotationCoordinateSpaceEnum::Enu
         }
     }
     
-    switch (coordinateSpace) {
+    switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::PIXELS:
             CaretAssert(0);
             break;
@@ -411,26 +265,24 @@ AnnotationFile::getSpaceAnnotationGroup(const AnnotationCoordinateSpaceEnum::Enu
         case AnnotationCoordinateSpaceEnum::SURFACE:
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            CaretAssert((tabOrWindowIndex >= 0)
-                        && (tabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
+            CaretAssert((annotationTabOrWindowIndex >= 0)
+                        && (annotationTabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            CaretAssert((tabOrWindowIndex >= 0)
-                        && (tabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
+            CaretAssert((annotationTabOrWindowIndex >= 0)
+                        && (annotationTabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
             break;
     }
     
     AnnotationGroup* group = new AnnotationGroup(this,
                                                  AnnotationGroupTypeEnum::SPACE,
-                                                 coordinateSpace,
-                                                 tabOrWindowIndex);
+                                                 annotationSpace,
+                                                 annotationTabOrWindowIndex);
     group->setUniqueKey(generateUniqueKey());
     
     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
     
     return group;
 }
-
-
 
 /**
  * Helps with copying an object of this type.
@@ -588,9 +440,12 @@ AnnotationFile::addToDataFileContentInformation(DataFileContentInformation& data
  *
  * @param annotation
  *     Annotation that is added.
+ * @param uniqueKey
+ *     Unique key for the annotation.
  */
 void
-AnnotationFile::addAnnotationPrivate(Annotation* annotation)
+AnnotationFile::addAnnotationPrivate(Annotation* annotation,
+                                     const int32_t uniqueKey)
 {
     if (annotation->getType() == AnnotationTypeEnum::TEXT) {
         AnnotationPointSizeText* pointSizeAnnotation = dynamic_cast<AnnotationPointSizeText*>(annotation);
@@ -601,35 +456,49 @@ AnnotationFile::addAnnotationPrivate(Annotation* annotation)
             return;
         }
     }
-    
-    const AnnotationCoordinateSpaceEnum::Enum coordinateSpace = annotation->getCoordinateSpace();
-    int32_t tabOrWindowIndex = -1;
-    switch (coordinateSpace) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            tabOrWindowIndex = annotation->getTabIndex();
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            tabOrWindowIndex = annotation->getWindowIndex();
-            break;
+
+    CaretAssert(uniqueKey > 0);
+    if (uniqueKey <= 0) {
+        CaretLogSevere("invalid key less than zero.");
     }
     
-    AnnotationGroup* group = getSpaceAnnotationGroup(annotation->getCoordinateSpace(),
-                                                     tabOrWindowIndex);
+    AnnotationGroup* group = getSpaceAnnotationGroup(annotation);
     CaretAssert(group);
     
-    annotation->setUniqueKey(generateUniqueKey());
+    annotation->setUniqueKey(uniqueKey);
     
     group->addAnnotationPrivate(annotation);
     
     setModified();
 }
 
+void
+AnnotationFile::addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& annotation,
+                                                  const int32_t uniqueKey)
+{
+    if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+        AnnotationPointSizeText* pointSizeAnnotation = dynamic_cast<AnnotationPointSizeText*>(annotation.data());
+        if (pointSizeAnnotation != NULL) {
+            CaretLogWarning("Point size text annotations are not supported in AnnotationFile.  "
+                            "The annotation has been discarded.");
+            return;
+        }
+    }
+    
+    CaretAssert(uniqueKey > 0);
+    if (uniqueKey <= 0) {
+        CaretLogSevere("invalid key less than zero.");
+    }
+    
+    AnnotationGroup* group = getSpaceAnnotationGroup(annotation.data());
+    CaretAssert(group);
+    
+    annotation->setUniqueKey(uniqueKey);
+    
+    group->addAnnotationPrivateSharedPointer(annotation);
+    
+    setModified();
+}
 
 /**
  * Add an annotation to this file while the file is being read.
@@ -644,7 +513,8 @@ AnnotationFile::addAnnotationPrivate(Annotation* annotation)
 void
 AnnotationFile::addAnnotationDuringFileVersionOneReading(Annotation* annotation)
 {
-    addAnnotationPrivate(annotation);
+    addAnnotationPrivate(annotation,
+                         generateUniqueKey());
 }
 
 /**
@@ -713,12 +583,48 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                     + " while reading annotation file.");
         }
 
+        /*
+         * For default groups (NOT user groups), there may not be 
+         * more than one group of each type.
+         *
+         * There is:
+         *     - One group for stereotaxic
+         *     - One group for surface
+         *     - One group for each Tab
+         *     - One group for each Window
+         */
         if (group->getGroupType() == groupType) {
             if (groupType == AnnotationGroupTypeEnum::SPACE) {
                 if (group->getCoordinateSpace() == coordinateSpace) {
-                    throw DataFileException("There is more than one annotation space group with space "
-                                            + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
-                                            + ".  Only one space group for each space is allowed.");
+                    switch (coordinateSpace) {
+                        case AnnotationCoordinateSpaceEnum::PIXELS:
+                            CaretAssert(0);
+                            break;
+                        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                        case AnnotationCoordinateSpaceEnum::SURFACE:
+                            throw DataFileException("There is more than one annotation space group with space "
+                                                    + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
+                                                    + ".  Only one space group for each space is allowed.");
+                            break;
+                        case AnnotationCoordinateSpaceEnum::TAB:
+                            if (tabOrWindowIndex == group->getTabOrWindowIndex()) {
+                                throw DataFileException("There is more than one annotation space group with space "
+                                                        + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
+                                                        + " for tab "
+                                                        + AString::number(tabOrWindowIndex)
+                                                        + ".  Only one space group for each space is allowed.");
+                            }
+                            break;
+                        case AnnotationCoordinateSpaceEnum::WINDOW:
+                            if (tabOrWindowIndex == group->getTabOrWindowIndex()) {
+                                throw DataFileException("There is more than one annotation space group with space "
+                                                        + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
+                                                        + " for window "
+                                                        + AString::number(tabOrWindowIndex)
+                                                        + ".  Only one space group for each space is allowed.");
+                            }
+                            break;
+                    }
                 }
             }
         }
@@ -757,7 +663,8 @@ AnnotationFile::restoreAnnotationAddIfNotFound(Annotation* annotation)
         return true;
     }
     
-    addAnnotationPrivate(annotation);
+    addAnnotationPrivate(annotation,
+                         generateUniqueKey());
     
     return true;
 }
@@ -778,9 +685,11 @@ AnnotationFile::restoreAnnotation(Annotation* annotation)
          iter != m_removedAnnotations.end();
          iter++) {
         QSharedPointer<Annotation> annotationPointer = *iter;
-        if (annotationPointer == annotation) {
-            CaretAssertMessage(0, "Need to add annotation to group but unique key does not need to be set");
-//            m_annotations.push_back(annotationPointer);
+        if (annotationPointer.data() == annotation) {
+            
+            addAnnotationPrivateSharedPointer(annotationPointer,
+                                              annotationPointer->getUniqueKey());
+            
             m_removedAnnotations.erase(iter);
             setModified();
             
@@ -807,15 +716,23 @@ AnnotationFile::restoreAnnotation(Annotation* annotation)
 bool
 AnnotationFile::removeAnnotation(Annotation* annotation)
 {
+    
     for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
          groupIter != m_annotationGroups.end();
          groupIter++) {
         QSharedPointer<AnnotationGroup> group = *groupIter;
-        if (group->removeAnnotation(annotation)) {
-            CaretAssertMessage(0, "Need to move annotation from group to removed annotations");
-//            m_removedAnnotations.insert(annotationPointer);
-//            
-//            m_annotations.erase(iter);
+        QSharedPointer<Annotation> removedAnnotationPointer;
+        if (group->removeAnnotation(annotation,
+                                    removedAnnotationPointer)) {
+            
+            m_removedAnnotations.insert(removedAnnotationPointer);
+            
+            /*
+             * Remove group if it is empty.
+             */
+            if (group->isEmpty()) {
+                m_annotationGroups.erase(groupIter);
+            }
             
             setModified();
             return true;

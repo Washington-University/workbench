@@ -266,21 +266,79 @@ AnnotationGroup::getUniqueKey() const
 void
 AnnotationGroup::addAnnotationPrivate(Annotation* annotation)
 {
+    if ( ! validateAddedAnnotation(annotation)) {
+        delete annotation;
+        return;
+    }
+//    if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+//        AnnotationPointSizeText* pointSizeAnnotation = dynamic_cast<AnnotationPointSizeText*>(annotation);
+//        if (pointSizeAnnotation != NULL) {
+//            CaretLogWarning("Point size text annotations are not supported in AnnotationGroup.  "
+//                            "The annotation has been discarded.");
+//            delete annotation;
+//            return;
+//        }
+//    }
+//    
+//    const AnnotationCoordinateSpaceEnum::Enum space = annotation->getCoordinateSpace();
+//    if (space != m_coordinateSpace) {
+//        CaretLogSevere("Attempting to add annotation with non-matching coordinate space");
+//        CaretAssert(0);
+//        return;
+//    }
+//    
+//    switch (space) {
+//        case AnnotationCoordinateSpaceEnum::PIXELS:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SURFACE:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::TAB:
+//            if (m_tabOrWindowIndex != annotation->getTabIndex()) {
+//                CaretLogSevere("Attempting to add anntation with non-matching tab index: ");
+//                CaretAssert(0);
+//                return;
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::WINDOW:
+//            if (m_tabOrWindowIndex != annotation->getWindowIndex()) {
+//                CaretLogSevere("Attempting to add anntation with non-matching tab index: ");
+//                CaretAssert(0);
+//                return;
+//            }
+//            break;
+//    }
+
+    m_annotations.push_back(QSharedPointer<Annotation>(annotation));
+    setModified();
+}
+
+/**
+ * Validate the annotation that is being added to this group.
+ *
+ * @param annotation
+ *     Pointer to annotation.
+ * @return
+ *     True if the annotation is compatible with this group.
+ */
+bool
+AnnotationGroup::validateAddedAnnotation(const Annotation* annotation)
+{
     if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-        AnnotationPointSizeText* pointSizeAnnotation = dynamic_cast<AnnotationPointSizeText*>(annotation);
+        const AnnotationPointSizeText* pointSizeAnnotation = dynamic_cast<const AnnotationPointSizeText*>(annotation);
         if (pointSizeAnnotation != NULL) {
             CaretLogWarning("Point size text annotations are not supported in AnnotationGroup.  "
                             "The annotation has been discarded.");
-            delete annotation;
-            return;
+            return false;
         }
     }
     
     const AnnotationCoordinateSpaceEnum::Enum space = annotation->getCoordinateSpace();
     if (space != m_coordinateSpace) {
-        CaretLogSevere("Attempting to add anntation with non-matching coordinate space");
+        CaretLogSevere("Attempting to add annotation with non-matching coordinate space");
         CaretAssert(0);
-        return;
+        return false;
     }
     
     switch (space) {
@@ -294,21 +352,41 @@ AnnotationGroup::addAnnotationPrivate(Annotation* annotation)
             if (m_tabOrWindowIndex != annotation->getTabIndex()) {
                 CaretLogSevere("Attempting to add anntation with non-matching tab index: ");
                 CaretAssert(0);
-                return;
+                return false;
             }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if (m_tabOrWindowIndex != annotation->getWindowIndex()) {
                 CaretLogSevere("Attempting to add anntation with non-matching tab index: ");
                 CaretAssert(0);
-                return;
+                return false;
             }
             break;
     }
+    
+    return true;
+}
 
-    m_annotations.push_back(QSharedPointer<Annotation>(annotation));
+/**
+ * Private method for adding annotations to this file using shared pointer.
+ *
+ * In the GUI, annotations are added using the AnnotationRedoUndoCommand
+ * which allows undo/redo operations.
+ *
+ * @param annotation
+ *     Annotation that is added.
+ */
+void
+AnnotationGroup::addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& annotation)
+{
+    if ( ! validateAddedAnnotation(annotation.data())) {
+        return;
+    }
+    
+    m_annotations.push_back(annotation);
     setModified();
 }
+
 
 /**
  * @return The maximum unique key found in this group and
@@ -337,17 +415,26 @@ AnnotationGroup::getMaximumUniqueKey() const
  *
  * @param annotation
  *     Annotation that is removed.
+ * @param removedAnnotationOut
+ *     Shared pointer for annotation that was removed so
+ *     the file can later undelete the annotation.  Only 
+ *     valid when true is returned.
  * @return
  *     True if the annotation was removed, otherwise false.
  */
 bool
-AnnotationGroup::removeAnnotation(Annotation* annotation)
+AnnotationGroup::removeAnnotation(Annotation* annotation,
+                                  QSharedPointer<Annotation>& removedAnnotationOut)
 {
+    removedAnnotationOut.clear();
+    
     for (AnnotationIterator iter = m_annotations.begin();
          iter != m_annotations.end();
          iter++) {
         QSharedPointer<Annotation>& annotationPointer = *iter;
         if (annotationPointer == annotation) {
+            removedAnnotationOut = annotationPointer;
+            
             m_annotations.erase(iter);
             
             setModified();

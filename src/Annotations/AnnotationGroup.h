@@ -107,7 +107,12 @@ namespace caret {
         
         void addAnnotationPrivate(Annotation* annotation);
         
-        bool removeAnnotation(Annotation* annotation);
+        void addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& annotation);
+        
+        bool validateAddedAnnotation(const Annotation* annotation);
+        
+        bool removeAnnotation(Annotation* annotation,
+                              QSharedPointer<Annotation>& removedAnnotationOut);
         
         int32_t getMaximumUniqueKey() const;
         

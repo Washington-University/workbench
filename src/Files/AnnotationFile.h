@@ -130,11 +130,13 @@ namespace caret {
 
         void clearPrivate();
         
-        void createExampleAnnotations();
-        
         void initializeAnnotationFile();
         
-        void addAnnotationPrivate(Annotation* annotation);
+        void addAnnotationPrivate(Annotation* annotation,
+                                  const int32_t uniqueKey);
+        
+        void addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& annotation,
+                                               const int32_t uniqueKey);
         
         void addAnnotationDuringFileVersionOneReading(Annotation* annotation);
         
@@ -154,8 +156,7 @@ namespace caret {
         
         void updateUniqueKeysAfterReadingFile();
         
-        AnnotationGroup* getSpaceAnnotationGroup(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
-                                                 const int32_t tabOrWindowIndex);
+        AnnotationGroup* getSpaceAnnotationGroup(const Annotation* annotation);
         
         const AnnotationFileSubType m_fileSubType;
         
