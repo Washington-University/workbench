@@ -38,6 +38,7 @@
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "EventAnnotationAddToRemoveFromFile.h"
+#include "EventAnnotationGrouping.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
 #include "SceneClass.h"
@@ -203,6 +204,7 @@ AnnotationFile::initializeAnnotationFile()
     m_sceneAssistant = new SceneClassAssistant();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUPING);
 }
 
 /**
@@ -361,6 +363,24 @@ AnnotationFile::receiveEvent(Event* event)
                         annEvent->setSuccessful(true);
                     }
                 }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GROUPING) {
+        EventAnnotationGrouping* groupEvent = dynamic_cast<EventAnnotationGrouping*>(event);
+        CaretAssert(event);
+
+        switch (groupEvent->getMode()) {
+            case EventAnnotationGrouping::MODE_INVALID:
+                break;
+            case EventAnnotationGrouping::MODE_GROUP:
+                processGroupingAnnotations(groupEvent);
+                break;
+            case EventAnnotationGrouping::MODE_REGROUP:
+                processRegroupingAnnotations(groupEvent);
+                break;
+            case EventAnnotationGrouping::MODE_UNGROUP:
+                processUngroupingAnnotations(groupEvent);
+                break;
         }
     }
 }
@@ -800,6 +820,102 @@ AnnotationFile::getAllAnnotationGroups(std::vector<AnnotationGroup*>& annotation
          groupIter++) {
         annotationGroupsOut.push_back((*groupIter).data());
     }
+}
+
+/**
+ * Group annotations.
+ * 
+ * @param groupingEvent
+ *     The grouping event.
+ */
+void
+AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEvent)
+{
+    CaretAssert(groupingEvent);
+    
+    AnnotationGroup* spaceGroup = groupingEvent->getAnnotationGroup();
+    AnnotationGroupIterator groupIter = std::find(m_annotationGroups.begin(),
+                                                  m_annotationGroups.end(),
+                                                  spaceGroup);
+    
+    if (groupIter == m_annotationGroups.end()) {
+        return;
+    }
+    groupingEvent->setEventProcessed();
+    
+    if (spaceGroup->getGroupType() != AnnotationGroupTypeEnum::SPACE) {
+        groupingEvent->setErrorMessage("PROGRAM ERROR: Trying to group annotations in a NON-space group");
+        CaretAssert(0);
+        return;
+    }
+    
+    std::vector<Annotation*> annotations = groupingEvent->getAnnotations();
+    if (annotations.size() < 2) {
+        groupingEvent->setErrorMessage("PROGRAM ERROR: Trying to group annotations less than two annotations");
+        CaretAssert(0);
+        return;
+    }
+    
+    
+    bool allMovedFlag = true;
+    std::vector<QSharedPointer<Annotation> > movedAnnotations;
+    for (std::vector<Annotation*>::iterator annIter = annotations.begin();
+         annIter != annotations.end();
+         annIter++) {
+        QSharedPointer<Annotation> annPtr;
+        if (spaceGroup->removeAnnotation(*annIter, annPtr)) {
+            movedAnnotations.push_back(annPtr);
+        }
+        else {
+            allMovedFlag = false;
+            break;
+        }
+    }
+    
+    if (allMovedFlag) {
+        AnnotationGroup* group = new AnnotationGroup(this,
+                                                     AnnotationGroupTypeEnum::USER,
+                                                     spaceGroup->getCoordinateSpace(),
+                                                     spaceGroup->getTabOrWindowIndex());
+        
+        for (std::vector<QSharedPointer<Annotation> >::iterator annPtrIter = movedAnnotations.begin();
+             annPtrIter != movedAnnotations.end();
+             annPtrIter++) {
+            group->addAnnotationPrivateSharedPointer(*annPtrIter);
+        }
+        group->setUniqueKey(generateUniqueKey());
+        m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
+    }
+    else {
+        /*
+         * Put the annotations back into the space group
+         */
+        groupingEvent->setErrorMessage("Creating group failed, annotations not found in space group");
+    }
+}
+
+/**
+ * Group annotations.
+ *
+ * @param groupingEvent
+ *     The grouping event.
+ */
+void
+AnnotationFile::processUngroupingAnnotations(EventAnnotationGrouping* groupingEvent)
+{
+    CaretAssert(groupingEvent);
+}
+
+/**
+ * Group annotations.
+ *
+ * @param groupingEvent
+ *     The grouping event.
+ */
+void
+AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEvent)
+{
+    CaretAssert(groupingEvent);
 }
 
 /**

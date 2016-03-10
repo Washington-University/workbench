@@ -37,6 +37,7 @@ namespace caret {
     class AnnotationArrangerInputs;
     class AnnotationFile;
     class AnnotationRedoUndoCommand;
+    class AnnotationSelectionInformation;
     class Brain;
     class CaretUndoStack;
     class EventGetDisplayedDataFiles;
@@ -81,6 +82,8 @@ namespace caret {
         bool isSelectedAnnotationsDeletable(const int32_t windowIndex) const;
         
         std::vector<Annotation*> getAllAnnotations() const;
+        
+        const AnnotationSelectionInformation* getSelectionInformation(const int32_t windowIndex) const;
         
         std::vector<Annotation*> getSelectedAnnotations(const int32_t windowIndex) const;
         
@@ -167,6 +170,13 @@ namespace caret {
         
         Annotation* m_annotationBeingDrawnInWindow[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
+        /*
+         * DO NOT directly reference this.  Instead, call this class'
+         * getSelectionInformation() method so that the selection 
+         * information is updated.
+         */
+        mutable AnnotationSelectionInformation* m_selectionInformation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        
         /** 
          * Do not use a Caret Pointer for this as it points to a file in the brain.
          * If a pointer was used it may get deleted which will cause deletion of the
@@ -181,32 +191,6 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
 
     };
-    
-//    class AnnotationManagerDeleteUndoCommand : public CaretUndoCommand {
-//        
-//    public:
-//        AnnotationManagerDeleteUndoCommand(Brain* brain,
-//                                           AnnotationFile* annotationFile,
-//                                           Annotation* annotation);
-//        
-//        ~AnnotationManagerDeleteUndoCommand();
-//        
-//        virtual void redo();
-//        
-//        virtual void undo();
-//        
-//        AnnotationFile* getAnnotationFile() const;
-//        
-//        const Annotation* getAnnotation() const;
-//        
-//    private:
-//        Brain* m_brain;
-//        
-//        AnnotationFile* m_annotationFile;
-//        
-//        Annotation* m_annotation;
-//        
-//    };
     
 #ifdef __ANNOTATION_MANAGER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

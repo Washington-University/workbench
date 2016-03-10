@@ -27,9 +27,11 @@
 #include "AnnotationArrangerInputs.h"
 #include "AnnotationManager.h"
 #include "AnnotationRedoUndoCommand.h"
+#include "AnnotationSelectionInformation.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "EventAnnotationGrouping.h"
 #include "EventGetBrainOpenGLTextRenderer.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -67,6 +69,12 @@ m_browserWindowIndex(browserWindowIndex)
     
     addDistributeSelections();
 
+    addSeparator();
+    
+    addGroupingSelections();
+    
+    QObject::connect(this, SIGNAL(aboutToShow()),
+                     this, SLOT(menuAboutToShow()));
     QObject::connect(this, SIGNAL(triggered(QAction*)),
                      this, SLOT(menuActionTriggered(QAction*)));
 }
@@ -129,6 +137,67 @@ AnnotationMenuArrange::addDistributeSelections()
 }
 
 /**
+ * Add distribution items to the menu.
+ */
+void
+AnnotationMenuArrange::addGroupingSelections()
+{
+    m_groupAction = NULL;
+    m_regroupAction  = NULL;
+    m_ungroupAction  = NULL;
+    
+    std::vector<AnnotationGroupingModeEnum::Enum> groupings;
+    AnnotationGroupingModeEnum::getAllEnums(groupings);
+    
+    for (std::vector<AnnotationGroupingModeEnum::Enum>::iterator iter = groupings.begin();
+         iter != groupings.end();
+         iter++) {
+        const AnnotationGroupingModeEnum::Enum groupingMode = *iter;
+        const QString enumText = AnnotationGroupingModeEnum::toGuiName(groupingMode);
+        const QString enumName = AnnotationGroupingModeEnum::toName(groupingMode);
+        
+        //        QPixmap pixmap = createDistributePixmap(this, annDist);
+        
+        QAction* action = addAction(enumText);
+        //        action->setIcon(pixmap);
+        action->setData(enumName);
+        
+        switch (groupingMode) {
+            case  AnnotationGroupingModeEnum::GROUP:
+                m_groupAction = action;
+                break;
+            case AnnotationGroupingModeEnum::REGROUP:
+                m_regroupAction = action;
+                break;
+            case AnnotationGroupingModeEnum::UNGROUP:
+                m_ungroupAction = action;
+                break;
+        }
+    }
+
+    CaretAssert(m_groupAction);
+    CaretAssert(m_regroupAction);
+    CaretAssert(m_ungroupAction);
+}
+
+/*
+ * Gets called when the menu is about to show
+ * so that its menu items can be enabled/disabled.
+ */
+void
+AnnotationMenuArrange::menuAboutToShow()
+{
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    const AnnotationSelectionInformation* selectionInfo = annMan->getSelectionInformation(m_browserWindowIndex);
+    CaretAssert(selectionInfo);
+    
+    m_groupAction->setEnabled(selectionInfo->isGroupingModeValid(AnnotationGroupingModeEnum::GROUP));
+    m_regroupAction->setEnabled(selectionInfo->isGroupingModeValid(AnnotationGroupingModeEnum::REGROUP));
+    m_ungroupAction->setEnabled(selectionInfo->isGroupingModeValid(AnnotationGroupingModeEnum::UNGROUP));
+}
+
+
+/**
  * Gets called when the user selects a menu item.
  */
 void
@@ -145,11 +214,18 @@ AnnotationMenuArrange::menuActionTriggered(QAction* action)
     bool validDistributeFlag = false;
     const AnnotationDistributeEnum::Enum annDist = AnnotationDistributeEnum::fromName(enumName,
                                                                                        &validDistributeFlag);
+    bool validGroupingFlag = false;
+    const AnnotationGroupingModeEnum::Enum annGroup = AnnotationGroupingModeEnum::fromName(enumName,
+                                                                                           &validGroupingFlag);
+
     if (validAlignmentFlag) {
         applyAlignment(annAlign);
     }
     else if (validDistributeFlag) {
         applyDistribute(annDist);
+    }
+    else if (validGroupingFlag) {
+        applyGrouping(annGroup);
     }
     else {
         const AString msg("Unrecognized Enum name in Annotation Align Menu \""
@@ -234,6 +310,66 @@ AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum dist
                                errorMessage);
     }
     
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Apply grouping selection.
+ *
+ * @param grouping
+ *     Selected grouping.
+ */
+void
+AnnotationMenuArrange::applyGrouping(const AnnotationGroupingModeEnum::Enum grouping)
+{
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+
+    const AnnotationSelectionInformation* selectionInfo = annMan->getSelectionInformation(m_browserWindowIndex);
+    CaretAssert(selectionInfo);
+    
+    if ( ! selectionInfo->isGroupingModeValid(AnnotationGroupingModeEnum::GROUP)) {
+        const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
+                          "should not have been called.  Grouping is invalid.");
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
+        return;
+    }
+    
+    std::vector<const AnnotationGroup*> groups = selectionInfo->getSelectedAnnotationGroups();
+    std::vector<Annotation*> annotations = selectionInfo->getSelectedAnnotations();
+    
+    switch (grouping) {
+        case AnnotationGroupingModeEnum::GROUP:
+        {
+            if (groups.size() != 1) {
+                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
+                                  "should not have been called.  More than one selected group.");
+                CaretAssertMessage(0, msg);
+                CaretLogSevere(msg);
+                return;
+            }
+            CaretAssertVectorIndex(groups, 0);
+            const AnnotationGroup* annotationGroup = groups[0];
+            
+            EventAnnotationGrouping groupEvent;
+            groupEvent.setModeGroupAnnotations(annotationGroup,
+                                               annotations);
+            EventManager::get()->sendEvent(groupEvent.getPointer());
+            
+            if (groupEvent.isError()) {
+                WuQMessageBox::errorOk(this,
+                                       groupEvent.getErrorMessage());
+            }
+            std::cout << "GROUPING EVENT SENT" << std::endl;
+        }
+            break;
+        case AnnotationGroupingModeEnum::REGROUP:
+            break;
+        case AnnotationGroupingModeEnum::UNGROUP:
+            break;
+    }
+
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

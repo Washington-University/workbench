@@ -30,6 +30,7 @@
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
 #include "DataFileContentCopyMoveInterface.h"
+#include "EventAnnotationGrouping.h"
 #include "EventListenerInterface.h"
 
 
@@ -145,6 +146,12 @@ namespace caret {
                                                  const int32_t tabOrWindowIndex,
                                                  const int32_t uniqueKey,
                                                  const std::vector<Annotation*>& annotations);
+        
+        void processGroupingAnnotations(EventAnnotationGrouping* groupingEvent);
+        
+        void processUngroupingAnnotations(EventAnnotationGrouping* groupingEvent);
+        
+        void processRegroupingAnnotations(EventAnnotationGrouping* groupingEvent);
         
         bool restoreAnnotation(Annotation* annotation);
         

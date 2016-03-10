@@ -28,6 +28,8 @@
 
 #include "AnnotationAlignmentEnum.h"
 #include "AnnotationDistributeEnum.h"
+#include "AnnotationGroupingModeEnum.h"
+
 
 namespace caret {
 
@@ -47,14 +49,20 @@ namespace caret {
     private slots:
         void menuActionTriggered(QAction* action);
         
+        void menuAboutToShow();
+        
     private:
         void addAlignmentSelections();
         
         void addDistributeSelections();
         
+        void addGroupingSelections();
+        
         void applyAlignment(const AnnotationAlignmentEnum::Enum alignment);
         
         void applyDistribute(const AnnotationDistributeEnum::Enum distribute);
+        
+        void applyGrouping(const AnnotationGroupingModeEnum::Enum grouping);
         
         AnnotationMenuArrange(const AnnotationMenuArrange&);
 
@@ -78,6 +86,12 @@ namespace caret {
                       const qreal y);
         
         const int32_t m_browserWindowIndex;
+        
+        QAction* m_groupAction;
+        
+        QAction* m_regroupAction;
+        
+        QAction* m_ungroupAction;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -81,6 +81,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_CREATE_NEW_TYPE",
                                      "Event to create a new annotation of a particular type"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_GROUPING,
+                                     "EVENT_ANNOTATION_GROUPING",
+                                     "Event for annotation grouping"));
+    
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TOOLBAR_UPDATE,
                                      "EVENT_ANNOTATION_TOOLBAR_UPDATE",
                                      "Event to update annotation toolbar"));

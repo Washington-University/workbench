@@ -46,6 +46,8 @@ public:
         EVENT_ANNOTATION_COLOR_BAR_GET,
         /** Annotation create new of a particular type */
         EVENT_ANNOTATION_CREATE_NEW_TYPE,
+        /** Annotation grouping (group, regroup, ungroup) operation */
+        EVENT_ANNOTATION_GROUPING,
         /** Annotation toolbar update */
         EVENT_ANNOTATION_TOOLBAR_UPDATE,
         /** Inform that Brain has been reset (new spec or scene loaded) */

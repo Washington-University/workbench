@@ -33,6 +33,7 @@
 #include "AnnotationFile.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRedoUndoCommand.h"
+#include "AnnotationSelectionInformation.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
 #include "CaretAssert.h"
@@ -73,6 +74,7 @@ m_brain(brain)
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         m_annotationBeingDrawnInWindow[i] = NULL;
+        m_selectionInformation[i] = new AnnotationSelectionInformation(i);
     }
 
     m_sceneAssistant = new SceneClassAssistant();
@@ -89,6 +91,8 @@ AnnotationManager::~AnnotationManager()
         if (m_annotationBeingDrawnInWindow[i] != NULL) {
             delete m_annotationBeingDrawnInWindow[i];
         }
+        
+        delete m_selectionInformation[i];
     }
 
     m_annotationRedoUndoStack->clear();
@@ -389,17 +393,23 @@ AnnotationManager::getAllAnnotations() const
 }
 
 /**
- * @return A vector containing all SELECTED annotations.
+ * Get the annotation selection information for the given window.
  *
  * @param windowIndex
- *     Index of window for annotation selection.
+ *     Index of window.
+ * @return 
+ *     Annotation selection information.
  */
-std::vector<Annotation*>
-AnnotationManager::getSelectedAnnotations(const int32_t windowIndex) const
+const
+AnnotationSelectionInformation*
+AnnotationManager::getSelectionInformation(const int32_t windowIndex) const
 {
+    CaretAssertArrayIndex(m_selectionInformation, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    
+    AnnotationSelectionInformation* asi = m_selectionInformation[windowIndex];
+    
     std::vector<Annotation*> allAnnotations = getAllAnnotations();
     std::vector<Annotation*> selectedAnnotations;
-    
     for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
          annIter != allAnnotations.end();
          annIter++) {
@@ -410,7 +420,41 @@ AnnotationManager::getSelectedAnnotations(const int32_t windowIndex) const
         }
     }
     
+    asi->update(selectedAnnotations);
+    
+    return asi;
+}
+
+/**
+ * @return A vector containing all SELECTED annotations.
+ *
+ * @param windowIndex
+ *     Index of window for annotation selection.
+ */
+std::vector<Annotation*>
+AnnotationManager::getSelectedAnnotations(const int32_t windowIndex) const
+{
+    std::vector<Annotation*> selectedAnnotations;
+
+    const AnnotationSelectionInformation* asi = getSelectionInformation(windowIndex);
+    asi->getSelectedAnnotations(selectedAnnotations);
+    
     return selectedAnnotations;
+    
+//    std::vector<Annotation*> allAnnotations = getAllAnnotations();
+//    std::vector<Annotation*> selectedAnnotations;
+//    
+//    for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
+//         annIter != allAnnotations.end();
+//         annIter++) {
+//        Annotation* annotation = *annIter;
+//        
+//        if (annotation->isSelected(windowIndex)) {
+//            selectedAnnotations.push_back(annotation);
+//        }
+//    }
+//    
+//    return selectedAnnotations;
 }
 
 /**

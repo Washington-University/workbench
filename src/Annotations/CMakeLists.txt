@@ -31,6 +31,7 @@ AnnotationDistributeEnum.h
 AnnotationFontAttributesInterface.h
 AnnotationGroup.h
 AnnotationGroupTypeEnum.h
+AnnotationGroupingModeEnum.h
 AnnotationImage.h
 AnnotationLine.h
 AnnotationOneDimensionalShape.h
@@ -39,6 +40,7 @@ AnnotationPercentSizeText.h
 AnnotationPointSizeText.h
 AnnotationRedoUndoCommand.h
 AnnotationRedoUndoCommandModeEnum.h
+AnnotationSelectionInformation.h
 AnnotationSizingHandleTypeEnum.h
 AnnotationSpatialModification.h
 AnnotationSurfaceOffsetVectorTypeEnum.h
@@ -53,6 +55,7 @@ AnnotationTextOrientationEnum.h
 AnnotationTwoDimensionalShape.h
 AnnotationTypeEnum.h
 EventAnnotationAddToRemoveFromFile.h
+EventAnnotationGrouping.h
 
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
@@ -67,6 +70,7 @@ AnnotationCoordinateSpaceEnum.cxx
 AnnotationDistributeEnum.cxx
 AnnotationGroup.cxx
 AnnotationGroupTypeEnum.cxx
+AnnotationGroupingModeEnum.cxx
 AnnotationImage.cxx
 AnnotationLine.cxx
 AnnotationOneDimensionalShape.cxx
@@ -75,6 +79,7 @@ AnnotationPercentSizeText.cxx
 AnnotationPointSizeText.cxx
 AnnotationRedoUndoCommand.cxx
 AnnotationRedoUndoCommandModeEnum.cxx
+AnnotationSelectionInformation.cxx
 AnnotationSizingHandleTypeEnum.cxx
 AnnotationSpatialModification.cxx
 AnnotationSurfaceOffsetVectorTypeEnum.cxx
@@ -89,6 +94,7 @@ AnnotationTextOrientationEnum.cxx
 AnnotationTwoDimensionalShape.cxx
 AnnotationTypeEnum.cxx
 EventAnnotationAddToRemoveFromFile.cxx
+EventAnnotationGrouping.cxx
 )
 
 #

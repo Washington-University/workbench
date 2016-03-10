@@ -33,6 +33,8 @@
 
 
 namespace caret {
+    class AnnotationFile;
+    class AnnotationGroup;
     class AnnotationSpatialModification;
     class SceneClassAssistant;
 
@@ -52,6 +54,12 @@ namespace caret {
                                                const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         Annotation* clone() const;
+        
+        const AnnotationFile* getAnnotationFile() const;
+        
+        const AnnotationGroup* getAnnotationGroup() const;
+        
+        int32_t getRegroupUniqueKey() const;
         
         int32_t getUniqueKey() const;
         
@@ -220,6 +228,9 @@ namespace caret {
     private:
         void setUniqueKey(const int32_t uniqueKey);
         
+        void setAnnotationFileAndGroup(AnnotationFile* annotationFile,
+                                       AnnotationGroup* annotationGroup);
+        
         SceneClassAssistant* m_sceneAssistant;
         
         AnnotationCoordinateSpaceEnum::Enum  m_coordinateSpace;
@@ -241,6 +252,13 @@ namespace caret {
         AString m_name;
         
         int32_t m_uniqueKey;
+        
+        AnnotationFile* m_annotationFile;
+        
+        
+        AnnotationGroup* m_annotationGroup;
+        
+        int32_t m_regroupUniqueKey;
         
         /**
          * Selection status in each window.
@@ -270,6 +288,7 @@ namespace caret {
 
         friend class AnnotationFile;
         friend class AnnotationFileXmlReader;
+        friend class AnnotationGroup;
         friend class AnnotationManager;
     };
     
