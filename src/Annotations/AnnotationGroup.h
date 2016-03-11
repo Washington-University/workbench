@@ -24,7 +24,7 @@
 #include <QSharedPointer>
 
 #include "AnnotationCoordinateSpaceEnum.h"
-#include "AnnotationGroupTypeEnum.h"
+#include "AnnotationGroupKey.h"
 #include "CaretObjectTracksModification.h"
 
 #include "SceneableInterface.h"
@@ -32,7 +32,6 @@
 
 namespace caret {
     class Annotation;
-    class AnnotationFile;
     class SceneClassAssistant;
 
     class AnnotationGroup : public CaretObjectTracksModification, public SceneableInterface {
@@ -40,6 +39,7 @@ namespace caret {
     public:
         AnnotationGroup(AnnotationFile* annotationFile,
                         const AnnotationGroupTypeEnum::Enum groupType,
+                        const int32_t uniqueKey,
                         const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                         const int32_t tabOrWindowIndex);
         
@@ -50,6 +50,8 @@ namespace caret {
         int32_t getUniqueKey() const;
         
         AString getName() const;
+        
+        AnnotationGroupKey getAnnotationGroupKey() const;
         
         AnnotationFile* getAnnotationFile() const;
         
@@ -103,16 +105,18 @@ namespace caret {
         
         void copyHelperAnnotationGroup(const AnnotationGroup& obj);
 
-        void setUniqueKey(const int32_t uniqueKey);
-        
         void addAnnotationPrivate(Annotation* annotation);
         
         void addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& annotation);
+        
+        void assignGroupKeyToAnnotation(Annotation* annotation);
         
         bool validateAddedAnnotation(const Annotation* annotation);
         
         bool removeAnnotation(Annotation* annotation,
                               QSharedPointer<Annotation>& removedAnnotationOut);
+        
+        void removeAllAnnotations(std::vector<QSharedPointer<Annotation> >& allRemovedAnnotationsOut);
         
         int32_t getMaximumUniqueKey() const;
         
@@ -120,17 +124,13 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
 
-        AnnotationFile* m_annotationFile;
-        
-        AnnotationGroupTypeEnum::Enum m_groupType;
+        AnnotationGroupKey m_groupKey;
         
         AnnotationCoordinateSpaceEnum::Enum m_coordinateSpace;
         
         int32_t m_tabOrWindowIndex;
         
         AString m_name;
-        
-        int32_t m_uniqueKey;
         
         std::vector<QSharedPointer<Annotation> > m_annotations;
         

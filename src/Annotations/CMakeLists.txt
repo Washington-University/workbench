@@ -30,6 +30,7 @@ AnnotationCoordinateSpaceEnum.h
 AnnotationDistributeEnum.h
 AnnotationFontAttributesInterface.h
 AnnotationGroup.h
+AnnotationGroupKey.h
 AnnotationGroupTypeEnum.h
 AnnotationGroupingModeEnum.h
 AnnotationImage.h
@@ -69,6 +70,7 @@ AnnotationCoordinate.cxx
 AnnotationCoordinateSpaceEnum.cxx
 AnnotationDistributeEnum.cxx
 AnnotationGroup.cxx
+AnnotationGroupKey.cxx
 AnnotationGroupTypeEnum.cxx
 AnnotationGroupingModeEnum.cxx
 AnnotationImage.cxx

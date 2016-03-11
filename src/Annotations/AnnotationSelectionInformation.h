@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "AnnotationGroupKey.h"
 #include "AnnotationGroupingModeEnum.h"
 #include "CaretObject.h"
 
@@ -29,7 +30,6 @@
 namespace caret {
 
     class Annotation;
-    class AnnotationGroup;
     
     class AnnotationSelectionInformation : public CaretObject {
         
@@ -44,7 +44,7 @@ namespace caret {
         
         int32_t getWindowIndex() const;
 
-        std::vector<const AnnotationGroup*> getSelectedAnnotationGroups() const;
+        std::vector<AnnotationGroupKey> getSelectedAnnotationGroupKeys() const;
         
         int32_t getNumberOfSelectedAnnotations() const;
         
@@ -70,7 +70,7 @@ namespace caret {
 
         const int32_t m_windowIndex;
         
-        std::vector<const AnnotationGroup*> m_annotationGroups;
+        std::vector<AnnotationGroupKey> m_annotationGroupKeys;
         
         std::vector<Annotation*> m_annotations;
         

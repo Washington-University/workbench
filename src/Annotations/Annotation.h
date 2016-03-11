@@ -25,6 +25,7 @@
 
 #include "AnnotationAttributesDefaultTypeEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
+#include "AnnotationGroupKey.h"
 #include "AnnotationSizingHandleTypeEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "CaretColorEnum.h"
@@ -33,8 +34,6 @@
 
 
 namespace caret {
-    class AnnotationFile;
-    class AnnotationGroup;
     class AnnotationSpatialModification;
     class SceneClassAssistant;
 
@@ -55,11 +54,7 @@ namespace caret {
         
         Annotation* clone() const;
         
-        const AnnotationFile* getAnnotationFile() const;
-        
-        const AnnotationGroup* getAnnotationGroup() const;
-        
-        int32_t getRegroupUniqueKey() const;
+        AnnotationGroupKey getAnnotationGroupKey() const;
         
         int32_t getUniqueKey() const;
         
@@ -226,10 +221,9 @@ namespace caret {
         void textAnnotationResetName();
         
     private:
+        void setAnnotationGroupKey(const AnnotationGroupKey annotationGroupKey);
+
         void setUniqueKey(const int32_t uniqueKey);
-        
-        void setAnnotationFileAndGroup(AnnotationFile* annotationFile,
-                                       AnnotationGroup* annotationGroup);
         
         SceneClassAssistant* m_sceneAssistant;
         
@@ -253,12 +247,7 @@ namespace caret {
         
         int32_t m_uniqueKey;
         
-        AnnotationFile* m_annotationFile;
-        
-        
-        AnnotationGroup* m_annotationGroup;
-        
-        int32_t m_regroupUniqueKey;
+        AnnotationGroupKey m_annotationGroupKey;
         
         /**
          * Selection status in each window.

@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 
+#include "AnnotationGroupKey.h"
 #include "Event.h"
 
 
@@ -29,7 +30,6 @@
 namespace caret {
 
     class Annotation;
-    class AnnotationGroup;
     
     class EventAnnotationGrouping : public Event {
         
@@ -45,12 +45,15 @@ namespace caret {
         
         virtual ~EventAnnotationGrouping();
         
-        void setModeGroupAnnotations(const AnnotationGroup* spaceGroup,
+        void setModeGroupAnnotations(const AnnotationGroupKey spaceGroupKey,
                                      std::vector<Annotation*>& annotations);
 
+        void setModeUngroupAnnotations(const AnnotationGroupKey userGroupKey,
+                                       std::vector<Annotation*>& annotations);
+        
         Mode getMode() const;
         
-        AnnotationGroup* getAnnotationGroup() const;
+        AnnotationGroupKey getAnnotationGroupKey() const;
         
         std::vector<Annotation*> getAnnotations() const;
         
@@ -64,7 +67,7 @@ namespace caret {
         
         Mode m_mode;
         
-        AnnotationGroup* m_annotationGroup;
+        AnnotationGroupKey m_annotationGroupKey;
         
         std::vector<Annotation*> m_annotations;
         

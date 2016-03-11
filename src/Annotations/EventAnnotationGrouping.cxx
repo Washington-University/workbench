@@ -41,9 +41,9 @@ using namespace caret;
  */
 EventAnnotationGrouping::EventAnnotationGrouping()
 : Event(EventTypeEnum::EVENT_ANNOTATION_GROUPING),
-m_mode(MODE_INVALID),
-m_annotationGroup(NULL)
+m_mode(MODE_INVALID)
 {
+    m_annotationGroupKey.reset();
 }
 
 /**
@@ -56,18 +56,35 @@ EventAnnotationGrouping::~EventAnnotationGrouping()
 /**
  * Set the mode to group annotations.
  *
- * @param spaceGroup
- *     The annotation space group whose annotations are moved into a user group.
+ * @param spaceGroupKey
+ *     The annotation space group key whose annotations are moved into a user group.
  * @param annotations
  *     Annotations move to user group.
  */
 void
-EventAnnotationGrouping::setModeGroupAnnotations(const AnnotationGroup* spaceGroup,
+EventAnnotationGrouping::setModeGroupAnnotations(const AnnotationGroupKey spaceGroupKey,
                                                  std::vector<Annotation*>& annotations)
 {
-    m_mode            = MODE_GROUP;
-    m_annotationGroup = const_cast<AnnotationGroup*>(spaceGroup);
-    m_annotations     = annotations;
+    m_mode               = MODE_GROUP;
+    m_annotationGroupKey = spaceGroupKey;
+    m_annotations        = annotations;
+}
+
+/**
+ * Set the mode to ungroup annotations.
+ *
+ * @param userGroupKey
+ *     The annotation user group key whose annotations are moved out of a user group.
+ * @param annotations
+ *     Annotations move out of user group.
+ */
+void
+EventAnnotationGrouping::setModeUngroupAnnotations(const AnnotationGroupKey userGroupKey,
+                                                   std::vector<Annotation*>& annotations)
+{
+    m_mode               = MODE_UNGROUP;
+    m_annotationGroupKey = userGroupKey;
+    m_annotations        = annotations;
 }
 
 /*
@@ -80,12 +97,12 @@ EventAnnotationGrouping::getMode() const
 }
 
 /*
- * @return The annotation group.
+ * @return The annotation group Key
  */
-AnnotationGroup*
-EventAnnotationGrouping::getAnnotationGroup() const
+AnnotationGroupKey
+EventAnnotationGrouping::getAnnotationGroupKey() const
 {
-    return m_annotationGroup;
+    return m_annotationGroupKey;
 }
 
 /*

@@ -277,9 +277,9 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
     
     AnnotationGroup* group = new AnnotationGroup(this,
                                                  AnnotationGroupTypeEnum::SPACE,
+                                                 generateUniqueKey(),
                                                  annotationSpace,
                                                  annotationTabOrWindowIndex);
-    group->setUniqueKey(generateUniqueKey());
     
     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
     
@@ -369,18 +369,20 @@ AnnotationFile::receiveEvent(Event* event)
         EventAnnotationGrouping* groupEvent = dynamic_cast<EventAnnotationGrouping*>(event);
         CaretAssert(event);
 
-        switch (groupEvent->getMode()) {
-            case EventAnnotationGrouping::MODE_INVALID:
-                break;
-            case EventAnnotationGrouping::MODE_GROUP:
-                processGroupingAnnotations(groupEvent);
-                break;
-            case EventAnnotationGrouping::MODE_REGROUP:
-                processRegroupingAnnotations(groupEvent);
-                break;
-            case EventAnnotationGrouping::MODE_UNGROUP:
-                processUngroupingAnnotations(groupEvent);
-                break;
+        if (groupEvent->getAnnotationGroupKey().getAnnotationFile() == this) {
+            switch (groupEvent->getMode()) {
+                case EventAnnotationGrouping::MODE_INVALID:
+                    break;
+                case EventAnnotationGrouping::MODE_GROUP:
+                    processGroupingAnnotations(groupEvent);
+                    break;
+                case EventAnnotationGrouping::MODE_REGROUP:
+                    processRegroupingAnnotations(groupEvent);
+                    break;
+                case EventAnnotationGrouping::MODE_UNGROUP:
+                    processUngroupingAnnotations(groupEvent);
+                    break;
+            }
         }
     }
 }
@@ -652,9 +654,9 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
     
     AnnotationGroup* group = new AnnotationGroup(this,
                                                  groupType,
+                                                 uniqueKey,
                                                  coordinateSpace,
                                                  tabOrWindowIndex);
-    group->setUniqueKey(uniqueKey);
     for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
          annIter != annotations.end();
          annIter++) {
@@ -745,6 +747,8 @@ AnnotationFile::removeAnnotation(Annotation* annotation)
         if (group->removeAnnotation(annotation,
                                     removedAnnotationPointer)) {
             
+            removedAnnotationPointer->setAnnotationGroupKey(AnnotationGroupKey());
+            
             m_removedAnnotations.insert(removedAnnotationPointer);
             
             /*
@@ -833,12 +837,21 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
 {
     CaretAssert(groupingEvent);
     
-    AnnotationGroup* spaceGroup = groupingEvent->getAnnotationGroup();
-    AnnotationGroupIterator groupIter = std::find(m_annotationGroups.begin(),
-                                                  m_annotationGroups.end(),
-                                                  spaceGroup);
+    AnnotationGroupKey spaceGroupKey = groupingEvent->getAnnotationGroupKey();
     
-    if (groupIter == m_annotationGroups.end()) {
+    AnnotationGroup* spaceGroup = NULL;
+    
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        if (spaceGroupKey == (*groupIter)->getAnnotationGroupKey()) {
+            spaceGroup = (*groupIter).data();
+            break;
+        }
+    }
+    
+    if (spaceGroup == NULL) {
+        groupingEvent->setErrorMessage("PROGRAM ERROR: Did not find space group for source of grouping annotations");
         return;
     }
     groupingEvent->setEventProcessed();
@@ -857,7 +870,7 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
     }
     
     
-    bool allMovedFlag = true;
+    bool allValidFlag = true;
     std::vector<QSharedPointer<Annotation> > movedAnnotations;
     for (std::vector<Annotation*>::iterator annIter = annotations.begin();
          annIter != annotations.end();
@@ -867,14 +880,15 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
             movedAnnotations.push_back(annPtr);
         }
         else {
-            allMovedFlag = false;
+            allValidFlag = false;
             break;
         }
     }
     
-    if (allMovedFlag) {
+    if (allValidFlag) {
         AnnotationGroup* group = new AnnotationGroup(this,
                                                      AnnotationGroupTypeEnum::USER,
+                                                     generateUniqueKey(),
                                                      spaceGroup->getCoordinateSpace(),
                                                      spaceGroup->getTabOrWindowIndex());
         
@@ -883,8 +897,9 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
              annPtrIter++) {
             group->addAnnotationPrivateSharedPointer(*annPtrIter);
         }
-        group->setUniqueKey(generateUniqueKey());
         m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
+        
+        setModified();
     }
     else {
         /*
@@ -904,6 +919,59 @@ void
 AnnotationFile::processUngroupingAnnotations(EventAnnotationGrouping* groupingEvent)
 {
     CaretAssert(groupingEvent);
+    
+    AnnotationGroupKey userGroupKey = groupingEvent->getAnnotationGroupKey();
+    
+    AnnotationGroupIterator groupIter = m_annotationGroups.end();
+    for (groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        if (userGroupKey == (*groupIter)->getAnnotationGroupKey()) {
+            break;
+        }
+    }
+
+    if (groupIter == m_annotationGroups.end()) {
+        groupingEvent->setErrorMessage("PROGRAM ERROR: Did not find group for ungrouping annotations");
+        return;
+    }
+    
+    AnnotationGroup* userGroup = (*groupIter).data();
+    CaretAssert(userGroup);
+    
+    groupingEvent->setEventProcessed();
+    
+    if (userGroup->getGroupType() != AnnotationGroupTypeEnum::USER) {
+        groupingEvent->setErrorMessage("PROGRAM ERROR: Trying to ungroup annotations in a NON-user group");
+        CaretAssert(0);
+        return;
+    }
+    
+    std::vector<Annotation*> annotations = groupingEvent->getAnnotations();
+    if (annotations.size() < 2) {
+        groupingEvent->setErrorMessage("PROGRAM ERROR: Trying to ungroup annotations less than two annotations");
+        CaretAssert(0);
+        return;
+    }
+    
+    std::vector<QSharedPointer<Annotation> > allGroupAnnotations;
+    userGroup->removeAllAnnotations(allGroupAnnotations);
+    
+    for (std::vector<QSharedPointer<Annotation> >::iterator annIter = allGroupAnnotations.begin();
+         annIter != allGroupAnnotations.end();
+         annIter++) {
+        QSharedPointer<Annotation> annPtr = *annIter;
+        AnnotationGroup* spaceGroup = getSpaceAnnotationGroup(annPtr.data());
+        spaceGroup->addAnnotationPrivateSharedPointer(annPtr);
+    }
+    
+    /**
+     * Remove the group 
+     * SAVE IT FOR REGROUP????
+     */
+    m_annotationGroups.erase(groupIter);
+    
+    setModified();
 }
 
 /**
@@ -916,6 +984,7 @@ void
 AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEvent)
 {
     CaretAssert(groupingEvent);
+    CaretAssertMessage(0, "Not implemented");
 }
 
 /**

@@ -116,10 +116,8 @@ Annotation::operator=(const Annotation& obj)
 void 
 Annotation::copyHelperAnnotation(const Annotation& obj)
 {
+    m_annotationGroupKey.reset();
     m_uniqueKey           = -1;
-    m_annotationGroup     = NULL;
-    m_regroupUniqueKey    = -1;
-    m_annotationFile      = NULL;
     m_coordinateSpace     = obj.m_coordinateSpace;
     m_tabIndex            = obj.m_tabIndex;
     m_windowIndex         = obj.m_windowIndex;
@@ -373,11 +371,9 @@ Annotation::initializeAnnotationMembers()
      * and may cause a crash.
      */
     m_uniqueKey = -1;
-    
-    m_annotationGroup = NULL;
-    m_regroupUniqueKey = -1;
-    m_annotationFile = NULL;
 
+    m_annotationGroupKey.reset();
+    
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
             m_lineWidth = 3.0;
@@ -993,6 +989,28 @@ Annotation::setCustomBackgroundColor(const uint8_t rgba[4])
 }
 
 /**
+ * @return The key to the annotation group that owns this annotation.
+ */
+AnnotationGroupKey
+Annotation::getAnnotationGroupKey() const
+{
+    return m_annotationGroupKey;
+}
+
+/**
+ * Set the annotation group key.
+ *
+ * @param annotationGroupKey
+ *     The key to the annotation group that contains this annotation.
+ */
+void
+Annotation::setAnnotationGroupKey(const AnnotationGroupKey annotationGroupKey)
+{
+    m_annotationGroupKey = annotationGroupKey;
+}
+
+
+/**
  * Set the unique key for this annotation.  This method is
  * called by the annotation file when the annotation 
  * is added to the file.
@@ -1016,70 +1034,6 @@ Annotation::getUniqueKey() const
 {
     return m_uniqueKey;
 }
-
-/**
- * @return Get the annotation group to which this annotation is a member.
- * Will be NULL if the annotation has not been placed into a group.
- */
-const AnnotationGroup*
-Annotation::getAnnotationGroup() const
-{
-    return m_annotationGroup;
-}
-
-/**
- * Set the annotation group to which this annotation is a member.
- *
- * @param annotationFile
- *     The file.
- * @param annotationGroup
- *     The group.
- */
-void
-Annotation::setAnnotationFileAndGroup(AnnotationFile* annotationFile,
-                                      AnnotationGroup* annotationGroup)
-{
-    m_annotationFile  = annotationFile;
-    m_annotationGroup = annotationGroup;
-    
-    /*
-     * If assigned to a user group, save the user group's 
-     * unique key used by a 'regroup' operation.
-     */
-    if (m_annotationGroup != NULL) {
-        switch (m_annotationGroup->getGroupType()) {
-            case AnnotationGroupTypeEnum::INVALID:
-                break;
-            case AnnotationGroupTypeEnum::SPACE:
-                break;
-            case AnnotationGroupTypeEnum::USER:
-                m_regroupUniqueKey = m_annotationGroup->getUniqueKey();
-                break;
-        }
-    }
-}
-
-/**
- * @return Get the annotation file to which this annotation is a member.
- * Will be NULL if the annotation has not been placed into a file.
- */
-const AnnotationFile*
-Annotation::getAnnotationFile() const
-{
-    return m_annotationFile;
-}
-
-/**
- * @return The unique key of the user group to which
- * this annotation is either a member of or was a
- * member of.  It is used to regroup annotations.
- */
-int32_t
-Annotation::getRegroupUniqueKey() const
-{
-    return m_regroupUniqueKey;
-}
-
 
 /**
  * Called by text annotation to reset the name

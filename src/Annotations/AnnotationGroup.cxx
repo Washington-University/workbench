@@ -46,10 +46,12 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param annotationFile
+ *     File to which this group belongs.
  * @param groupType
  *     Type of annotation group.
- * @param annotationFile
- *     Annotation file that contains this group.
+ * @param uniqueKey
+ *     Unique key for this group.
  * @param coordinateSpace
  *     Annotation coordinate space for the group.
  * @param tabOrWindowIndex
@@ -57,19 +59,35 @@ using namespace caret;
  */
 AnnotationGroup::AnnotationGroup(AnnotationFile* annotationFile,
                                  const AnnotationGroupTypeEnum::Enum groupType,
+                                 const int32_t uniqueKey,
                                  const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                  const int32_t tabOrWindowIndex)
 : CaretObjectTracksModification()
 {
+    CaretAssert(annotationFile);
+    CaretAssert(groupType != AnnotationGroupTypeEnum::INVALID);
+    CaretAssert(uniqueKey > 0);
+    CaretAssert(coordinateSpace != AnnotationCoordinateSpaceEnum::PIXELS);
+    
     initializeInstance();
     
-    m_annotationFile   = annotationFile;
-    m_groupType        = groupType;
+    m_groupKey.setAnnotationFile(annotationFile);
+    m_groupKey.setGroupType(groupType);
+    
+    switch (groupType) {
+        case AnnotationGroupTypeEnum::INVALID:
+            CaretAssertMessage(0, "Should never get here");
+            break;
+        case AnnotationGroupTypeEnum::SPACE:
+            m_groupKey.setSpaceGroupUniqueKey(uniqueKey);
+            break;
+        case AnnotationGroupTypeEnum::USER:
+            m_groupKey.setUserGroupUniqueKey(uniqueKey);
+            break;
+    }
+    
     m_coordinateSpace  = coordinateSpace;
     m_tabOrWindowIndex = tabOrWindowIndex;
-    
-    CaretAssert(m_annotationFile);
-    CaretAssert(m_coordinateSpace != AnnotationCoordinateSpaceEnum::PIXELS);
     
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -139,12 +157,10 @@ AnnotationGroup::operator=(const AnnotationGroup& obj)
 void
 AnnotationGroup::copyHelperAnnotationGroup(const AnnotationGroup& obj)
 {
-    m_annotationFile   = obj.m_annotationFile;
-    m_groupType        = obj.m_groupType;
+    m_groupKey         = obj.m_groupKey;
     m_coordinateSpace  = obj.m_coordinateSpace;
     m_name             = obj.m_name;
     m_tabOrWindowIndex = obj.m_tabOrWindowIndex;
-    m_uniqueKey        = obj.m_uniqueKey;
     CaretAssertMessage(0, "What to do with annotations remove copy constructor/operator=");
 }
 
@@ -154,12 +170,10 @@ AnnotationGroup::copyHelperAnnotationGroup(const AnnotationGroup& obj)
 void
 AnnotationGroup::initializeInstance()
 {
-    m_annotationFile   = NULL;
-    m_groupType        = AnnotationGroupTypeEnum::INVALID;
+    m_groupKey.reset();
     m_coordinateSpace  = AnnotationCoordinateSpaceEnum::PIXELS;
     m_name             = "";
     m_tabOrWindowIndex = -1;
-    m_uniqueKey        = -1;
     
     m_sceneAssistant = new SceneClassAssistant();
 }
@@ -174,12 +188,21 @@ AnnotationGroup::isEmpty() const
 }
 
 /**
+ * @return The annotation group key.
+ */
+AnnotationGroupKey
+AnnotationGroup::getAnnotationGroupKey() const
+{
+    return m_groupKey;
+}
+
+/**
  * @return Annotation file that contains this group.
  */
 AnnotationFile*
 AnnotationGroup::getAnnotationFile() const
 {
-    return m_annotationFile;
+    return m_groupKey.getAnnotationFile();
 }
 
 /**
@@ -188,7 +211,7 @@ AnnotationGroup::getAnnotationFile() const
 AnnotationGroupTypeEnum::Enum
 AnnotationGroup::getGroupType() const
 {
-    return m_groupType;
+    return m_groupKey.getGroupType();
 }
 
 /**
@@ -230,28 +253,26 @@ AnnotationGroup::getTabOrWindowIndex() const
 }
 
 /**
- * Set the unique key for this annotation group.  This method is
- * called when the annotation group is added to the annotation file.
- *
- * @param uniqueKey
- *     Unique key displayed in an annotation group name.
- */
-void
-AnnotationGroup::setUniqueKey(const int32_t uniqueKey)
-{
-    m_uniqueKey = uniqueKey;
-
-    m_name = ("Group "
-              + AString::number(m_uniqueKey));
-}
-
-/**
  * @return Unique key displayed in annotation group name.
  */
 int32_t
 AnnotationGroup::getUniqueKey() const
 {
-    return m_uniqueKey;
+    int32_t uniqueKey = -1;
+    
+    switch (m_groupKey.getGroupType()) {
+        case AnnotationGroupTypeEnum::INVALID:
+            CaretAssertMessage(0, "Should never get here");
+            break;
+        case AnnotationGroupTypeEnum::SPACE:
+            uniqueKey = m_groupKey.getSpaceGroupUniqueKey();
+            break;
+        case AnnotationGroupTypeEnum::USER:
+            uniqueKey = m_groupKey.getUserGroupUniqueKey();
+            break;
+    }
+    
+    return uniqueKey;
 }
 
 /**
@@ -271,8 +292,8 @@ AnnotationGroup::addAnnotationPrivate(Annotation* annotation)
         return;
     }
 
-    annotation->setAnnotationFileAndGroup(m_annotationFile,
-                                          this);
+    assignGroupKeyToAnnotation(annotation);
+    
     m_annotations.push_back(QSharedPointer<Annotation>(annotation));
     setModified();
 }
@@ -293,12 +314,59 @@ AnnotationGroup::addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& a
         return;
     }
     
-    annotation->setAnnotationFileAndGroup(m_annotationFile,
-                                          this);
+    assignGroupKeyToAnnotation(annotation.data());
+    
     m_annotations.push_back(annotation);
     setModified();
 }
 
+/**
+ * Assign group key for the given annotation.
+ *
+ * @param annotation
+ *     The annotation.
+ */
+void
+AnnotationGroup::assignGroupKeyToAnnotation(Annotation* annotation)
+{
+    switch (m_groupKey.getGroupType()) {
+        case AnnotationGroupTypeEnum::INVALID:
+            CaretAssert(0);
+            break;
+        case AnnotationGroupTypeEnum::SPACE:
+            CaretAssert(m_groupKey.getSpaceGroupUniqueKey() > 0);
+            break;
+        case AnnotationGroupTypeEnum::USER:
+            CaretAssert(m_groupKey.getUserGroupUniqueKey() > 0);
+            break;
+    }
+    
+    annotation->setAnnotationGroupKey(m_groupKey);
+    
+//    AnnotationGroupKey annotationGroupKey;
+//    annotationGroupKey.setAnnotationFile(m_groupKey.getAnnotationFile());
+//    switch (m_groupKey.getGroupType()) {
+//        case AnnotationGroupTypeEnum::INVALID:
+//            CaretAssert(0);
+//            break;
+//        case AnnotationGroupTypeEnum::SPACE:
+//            /*
+//             * For space group, do not reset user group key
+//             * since it is used for a regroup operation.
+//             */
+//            annotationGroupKey.setGroupType(AnnotationGroupTypeEnum::SPACE);
+//            CaretAssert(m_groupKey.getSpaceGroupUniqueKey() > 0);
+//            annotationGroupKey.setSpaceGroupUniqueKey(m_groupKey.getSpaceGroupUniqueKey());
+//            break;
+//        case AnnotationGroupTypeEnum::USER:
+//            annotationGroupKey.setGroupType(AnnotationGroupTypeEnum::USER);
+//            annotationGroupKey.setSpaceGroupUniqueKey(-1);
+//            CaretAssert(m_groupKey.getUserGroupUniqueKey() > 0);
+//            annotationGroupKey.setUserGroupUniqueKey(m_groupKey.getUserGroupUniqueKey());
+//            break;
+//    }
+//    annotation->setAnnotationGroupKey(annotationGroupKey);
+}
 
 /**
  * Validate the annotation that is being added to this group.
@@ -360,7 +428,7 @@ AnnotationGroup::validateAddedAnnotation(const Annotation* annotation)
 int32_t
 AnnotationGroup::getMaximumUniqueKey() const
 {
-    int32_t maxUniqueKey = m_uniqueKey;
+    int32_t maxUniqueKey = getUniqueKey();
     
     for (AnnotationConstIterator iter = m_annotations.begin();
          iter != m_annotations.end();
@@ -373,8 +441,23 @@ AnnotationGroup::getMaximumUniqueKey() const
 }
 
 /**
+ * Remove all annotations from this group.
+ *
+ * @param allRemovedAnnotationsOut
+ *    Output containing all annotations from this group.
+ */
+void
+AnnotationGroup::removeAllAnnotations(std::vector<QSharedPointer<Annotation> >& allRemovedAnnotationsOut)
+{
+    allRemovedAnnotationsOut = m_annotations;
+    m_annotations.clear();
+    setModified();
+}
+
+
+/**
  * Remove the annotation.  NOTE: The annotation is NOT deleted
- * but instead it is saved so that it can be 'undeleted'
+ * but instead it is returned so that it can be 'undeleted'
  * or 're-pasted'.
  *
  * @param annotation
@@ -398,8 +481,7 @@ AnnotationGroup::removeAnnotation(Annotation* annotation,
         QSharedPointer<Annotation>& annotationPointer = *iter;
         if (annotationPointer == annotation) {
             removedAnnotationOut = annotationPointer;
-            removedAnnotationOut->setAnnotationFileAndGroup(NULL,
-                                                            NULL);
+            
             m_annotations.erase(iter);
             
             setModified();

@@ -117,7 +117,7 @@ void
 AnnotationSelectionInformation::clear()
 {
     m_annotations.clear();
-    m_annotationGroups.clear();
+    m_annotationGroupKeys.clear();
     
     m_groupingValid = false;
     m_regroupValid  = false;
@@ -147,28 +147,34 @@ AnnotationSelectionInformation::update(const std::vector<Annotation*>& selectedA
     
     m_annotations = selectedAnnotations;
     
-    std::set<const AnnotationGroup*> groupSet;
+    std::set<AnnotationGroupKey> groupKeysSet;
     for (std::vector<Annotation*>::iterator annIter = m_annotations.begin();
          annIter != m_annotations.end();
          annIter++) {
-        const AnnotationGroup* annGroup = (*annIter)->getAnnotationGroup();
-        CaretAssert(annGroup);
-        groupSet.insert(annGroup);
+        groupKeysSet.insert((*annIter)->getAnnotationGroupKey());
     }
     
-    m_annotationGroups.insert(m_annotationGroups.end(),
-                              groupSet.begin(),
-                              groupSet.end());
+//    std::set<const AnnotationGroup*> groupSet;
+//    for (std::vector<Annotation*>::iterator annIter = m_annotations.begin();
+//         annIter != m_annotations.end();
+//         annIter++) {
+//        const AnnotationGroup* annGroup = (*annIter)->getAnnotationGroup();
+//        CaretAssert(annGroup);
+//        groupSet.insert(annGroup);
+//    }
     
-    const int32_t numGroups = static_cast<int32_t>(m_annotationGroups.size());
+    m_annotationGroupKeys.insert(m_annotationGroupKeys.end(),
+                              groupKeysSet.begin(),
+                              groupKeysSet.end());
+    
+    const int32_t numGroups = static_cast<int32_t>(m_annotationGroupKeys.size());
     
     if (m_annotations.size() > 1) {
         if (numGroups == 1) {
-            CaretAssertVectorIndex(m_annotationGroups, 0);
-            const AnnotationGroup* group = m_annotationGroups[0];
-            CaretAssert(group);
+            CaretAssertVectorIndex(m_annotationGroupKeys, 0);
+            const AnnotationGroupKey& groupKey = m_annotationGroupKeys[0];
             
-            switch (group->getGroupType()) {
+            switch (groupKey.getGroupType()) {
                 case AnnotationGroupTypeEnum::INVALID:
                     break;
                 case AnnotationGroupTypeEnum::SPACE:
@@ -199,12 +205,12 @@ AnnotationSelectionInformation::update(const std::vector<Annotation*>& selectedA
 }
 
 /**
- * @return Vector containing the selected annotation groups.
+ * @return Vector containing the selected annotation group keys.
  */
-std::vector<const AnnotationGroup*>
-AnnotationSelectionInformation::getSelectedAnnotationGroups() const
+std::vector<AnnotationGroupKey>
+AnnotationSelectionInformation::getSelectedAnnotationGroupKeys() const
 {
-    return m_annotationGroups;
+    return m_annotationGroupKeys;
 }
 
 /**

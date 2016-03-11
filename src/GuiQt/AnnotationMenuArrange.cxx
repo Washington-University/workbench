@@ -328,32 +328,34 @@ AnnotationMenuArrange::applyGrouping(const AnnotationGroupingModeEnum::Enum grou
     const AnnotationSelectionInformation* selectionInfo = annMan->getSelectionInformation(m_browserWindowIndex);
     CaretAssert(selectionInfo);
     
-    if ( ! selectionInfo->isGroupingModeValid(AnnotationGroupingModeEnum::GROUP)) {
+    if ( ! selectionInfo->isGroupingModeValid(grouping)) {
         const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
-                          "should not have been called.  Grouping is invalid.");
+                          "should not have been called.  Grouping mode "
+                          + AnnotationGroupingModeEnum::toGuiName(grouping)
+                          + " is invalid for the selected annotations.");
         CaretAssertMessage(0, msg);
         CaretLogSevere(msg);
         return;
     }
     
-    std::vector<const AnnotationGroup*> groups = selectionInfo->getSelectedAnnotationGroups();
+    std::vector<AnnotationGroupKey> groupKeys = selectionInfo->getSelectedAnnotationGroupKeys();
     std::vector<Annotation*> annotations = selectionInfo->getSelectedAnnotations();
     
     switch (grouping) {
         case AnnotationGroupingModeEnum::GROUP:
         {
-            if (groups.size() != 1) {
+            if (groupKeys.size() != 1) {
                 const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
                                   "should not have been called.  More than one selected group.");
                 CaretAssertMessage(0, msg);
                 CaretLogSevere(msg);
                 return;
             }
-            CaretAssertVectorIndex(groups, 0);
-            const AnnotationGroup* annotationGroup = groups[0];
+            CaretAssertVectorIndex(groupKeys, 0);
+            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
             
             EventAnnotationGrouping groupEvent;
-            groupEvent.setModeGroupAnnotations(annotationGroup,
+            groupEvent.setModeGroupAnnotations(annotationGroupKey,
                                                annotations);
             EventManager::get()->sendEvent(groupEvent.getPointer());
             
@@ -361,12 +363,32 @@ AnnotationMenuArrange::applyGrouping(const AnnotationGroupingModeEnum::Enum grou
                 WuQMessageBox::errorOk(this,
                                        groupEvent.getErrorMessage());
             }
-            std::cout << "GROUPING EVENT SENT" << std::endl;
         }
             break;
         case AnnotationGroupingModeEnum::REGROUP:
             break;
         case AnnotationGroupingModeEnum::UNGROUP:
+        {
+            if (groupKeys.size() != 1) {
+                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
+                                  "should not have been called.  More than one selected group.");
+                CaretAssertMessage(0, msg);
+                CaretLogSevere(msg);
+                return;
+            }
+            CaretAssertVectorIndex(groupKeys, 0);
+            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
+            
+            EventAnnotationGrouping groupEvent;
+            groupEvent.setModeUngroupAnnotations(annotationGroupKey,
+                                               annotations);
+            EventManager::get()->sendEvent(groupEvent.getPointer());
+            
+            if (groupEvent.isError()) {
+                WuQMessageBox::errorOk(this,
+                                       groupEvent.getErrorMessage());
+            }
+        }
             break;
     }
 
