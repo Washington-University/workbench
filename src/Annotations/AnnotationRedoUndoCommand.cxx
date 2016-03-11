@@ -31,6 +31,7 @@
 #include "AnnotationPointSizeText.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "EventAnnotationAddToRemoveFromFile.h"
+#include "EventAnnotationGrouping.h"
 #include "EventGetViewportSize.h"
 #include "EventManager.h"
 #include "CaretAssert.h"
@@ -54,6 +55,7 @@ AnnotationRedoUndoCommand::AnnotationRedoUndoCommand()
 : CaretUndoCommand()
 {
     m_mode       = AnnotationRedoUndoCommandModeEnum::INVALID;
+    m_annotationGroupMemento = NULL;
     m_sortedFlag = false;
 }
 
@@ -66,6 +68,10 @@ AnnotationRedoUndoCommand::~AnnotationRedoUndoCommand()
          iter != m_annotationMementos.end();
          iter++) {
         delete *iter;
+    }
+    
+    if (m_annotationGroupMemento != NULL) {
+        delete m_annotationGroupMemento;
     }
 }
 
@@ -445,6 +451,18 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
 void
 AnnotationRedoUndoCommand::redo()
 {
+    if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP) {
+        CaretAssert(m_annotationGroupMemento);
+        EventAnnotationGrouping groupEvent;
+        groupEvent.setModeGroupAnnotations(m_annotationGroupMemento->m_annotationGroupKey,
+                                           m_annotationGroupMemento->m_annotations);
+        EventManager::get()->sendEvent(groupEvent.getPointer());
+        
+        m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getAnnotationGroupKeyForUndo());
+        
+        return;
+    }
+    
     for (std::vector<AnnotationMemento*>::iterator iter = m_annotationMementos.begin();
          iter != m_annotationMementos.end();
          iter++) {
@@ -488,6 +506,16 @@ AnnotationRedoUndoCommand::redo()
 void
 AnnotationRedoUndoCommand::undo()
 {
+    if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP) {
+        CaretAssert(m_annotationGroupMemento);
+        EventAnnotationGrouping groupEvent;
+        groupEvent.setModeUngroupAnnotations(m_annotationGroupMemento->m_undoAnnotationGroupKey,
+                                             m_annotationGroupMemento->m_annotations);
+        EventManager::get()->sendEvent(groupEvent.getPointer());
+        
+        return;
+    }
+    
     for (std::vector<AnnotationMemento*>::iterator iter = m_annotationMementos.begin();
          iter != m_annotationMementos.end();
          iter++) {
@@ -526,12 +554,21 @@ AnnotationRedoUndoCommand::undo()
 }
 
 /**
- * @return Number of modified annotations.
+ * @return Is the command valid?
  */
-int32_t
-AnnotationRedoUndoCommand::count() const
+bool
+AnnotationRedoUndoCommand::isValid() const
 {
-    return m_annotationMementos.size();
+    if (m_annotationMementos.size() > 0) {
+        return true;
+    }
+    else if (m_annotationGroupMemento != NULL) {
+        return true;
+    }
+    
+    return false;
+    
+//    return m_annotationMementos.size();
 }
 
 /**
@@ -1058,6 +1095,49 @@ AnnotationRedoUndoCommand::setModeDeleteAnnotations(const std::vector<Annotation
         
         m_annotationMementos.push_back(am);
     }
+}
+
+/**
+ * Set the mode to move annotations into a user group.
+ *
+ * @param annotationGroupKey
+ *     Group key for source of annotations.
+ * @param annotations
+ *     Annotations that will be moved to a user group.
+ */
+void
+AnnotationRedoUndoCommand::setModeGroupingGroupAnnotations(const AnnotationGroupKey& annotationGroupKey,
+                                                           const std::vector<Annotation*>& annotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP;
+    setDescription("Group Annotations");
+    m_annotationGroupMemento = new AnnotationGroupMemento(annotationGroupKey,
+                                                          annotations);
+}
+
+
+/**
+ * Set the mode to remove annotations from a user group.
+ *
+ * @param annotationGroupKey
+ *     Group key of user group containing annotations.
+ */
+void
+AnnotationRedoUndoCommand::setModeGroupingUngroupAnnotations(const AnnotationGroupKey& annotationGroupKey)
+{
+    
+}
+
+/**
+ * Set the mode to move annotations back to a previous user group.
+ *
+ * @param annotationGroupKey
+ *     Group key of previous user group.
+ */
+void
+AnnotationRedoUndoCommand::setModeGroupingRegroupAnnotations(const AnnotationGroupKey& annotationGroupKey)
+{
+    
 }
 
 /**

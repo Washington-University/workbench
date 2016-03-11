@@ -129,7 +129,8 @@ AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command)
     /*
      * Ignore command if it does not apply to any annotations
      */
-    if (command->count() <= 0) {
+    if ( ! command->isValid()) {
+//    if (command->count() <= 0) {
         delete command;
         return;
     }
@@ -640,15 +641,20 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             CaretAssertVectorIndex(groupKeys, 0);
             const AnnotationGroupKey annotationGroupKey = groupKeys[0];
             
-            EventAnnotationGrouping groupEvent;
-            groupEvent.setModeGroupAnnotations(annotationGroupKey,
-                                               annotations);
-            EventManager::get()->sendEvent(groupEvent.getPointer());
+            AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+            command->setModeGroupingGroupAnnotations(annotationGroupKey,
+                                                     annotations);
+            applyCommand(command);
             
-            if (groupEvent.isError()) {
-                errorMessageOut = groupEvent.getErrorMessage();
-                return false;
-            }
+//            EventAnnotationGrouping groupEvent;
+//            groupEvent.setModeGroupAnnotations(annotationGroupKey,
+//                                               annotations);
+//            EventManager::get()->sendEvent(groupEvent.getPointer());
+//            
+//            if (groupEvent.isError()) {
+//                errorMessageOut = groupEvent.getErrorMessage();
+//                return false;
+//            }
         }
             break;
         case AnnotationGroupingModeEnum::REGROUP:

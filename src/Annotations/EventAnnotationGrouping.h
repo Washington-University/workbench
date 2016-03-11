@@ -57,6 +57,10 @@ namespace caret {
         
         std::vector<Annotation*> getAnnotations() const;
         
+        AnnotationGroupKey getAnnotationGroupKeyForUndo() const;
+        
+        void setAnnotationGroupKeyForUndo(const AnnotationGroupKey& undoKey);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -70,6 +74,8 @@ namespace caret {
         AnnotationGroupKey m_annotationGroupKey;
         
         std::vector<Annotation*> m_annotations;
+        
+        AnnotationGroupKey m_undoKey;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -918,6 +918,8 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
         }
         m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
         
+        groupingEvent->setAnnotationGroupKeyForUndo(group->getAnnotationGroupKey());
+        
         setModified();
     }
     else {

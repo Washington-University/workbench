@@ -105,6 +105,25 @@ EventAnnotationGrouping::getAnnotationGroupKey() const
     return m_annotationGroupKey;
 }
 
+/**
+ * @return The annotation group key for undo'ing this operation.
+ */
+AnnotationGroupKey
+EventAnnotationGrouping::getAnnotationGroupKeyForUndo() const
+{
+    return m_undoKey;
+}
+
+/**
+ * Set the annotation group key for undo'ing this operation.
+ */
+void
+EventAnnotationGrouping::setAnnotationGroupKeyForUndo(const AnnotationGroupKey& undoKey)
+{
+    m_undoKey = undoKey;
+}
+
+
 /*
  * @return The annotations.
  */

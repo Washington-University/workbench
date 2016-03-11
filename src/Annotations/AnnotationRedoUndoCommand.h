@@ -45,7 +45,7 @@ namespace caret {
         
         virtual void undo();
         
-        int32_t count() const;
+        bool isValid() const;
         
         virtual bool mergeWith(const CaretUndoCommand* command);
         
@@ -82,6 +82,13 @@ namespace caret {
         void setModeCutAnnotations(const std::vector<Annotation*>& annotations);
         
         void setModeDeleteAnnotations(const std::vector<Annotation*>& annotations);
+        
+        void setModeGroupingGroupAnnotations(const AnnotationGroupKey& annotationGroupKey,
+                                             const std::vector<Annotation*>& annotations);
+        
+        void setModeGroupingUngroupAnnotations(const AnnotationGroupKey& annotationGroupKey);
+        
+        void setModeGroupingRegroupAnnotations(const AnnotationGroupKey& annotationGroupKey);
         
         void setModeLocationAndSize(const std::vector<Annotation*>& annotationsBeforeMoveAndResize,
                                     const std::vector<Annotation*>& annotationsAfterMoveAndResize);
@@ -189,6 +196,34 @@ namespace caret {
             
         };
         
+        class AnnotationGroupMemento {
+        public:
+            AnnotationGroupMemento(const AnnotationGroupKey& annotationGroupKey) {
+                m_annotationGroupKey = annotationGroupKey;
+            }
+
+            AnnotationGroupMemento(const AnnotationGroupKey& annotationGroupKey,
+                                   const std::vector<Annotation*>& annotations) {
+                m_annotationGroupKey = annotationGroupKey;
+                m_annotations        = annotations;
+            }
+            
+            void setUndoAnnotationGroupKey(const AnnotationGroupKey& undoAnnotationGroupKey) {
+                m_undoAnnotationGroupKey = undoAnnotationGroupKey;
+            }
+            
+            bool isValid() const {
+                return (m_annotationGroupKey.getGroupType() != AnnotationGroupTypeEnum::INVALID);
+            }
+            
+            AnnotationGroupKey m_annotationGroupKey;
+            
+            std::vector<Annotation*> m_annotations;
+            
+            AnnotationGroupKey m_undoAnnotationGroupKey;
+            
+        };
+        
         AnnotationRedoUndoCommand(const AnnotationRedoUndoCommand&);
 
         AnnotationRedoUndoCommand& operator=(const AnnotationRedoUndoCommand&);
@@ -207,6 +242,8 @@ namespace caret {
         AnnotationRedoUndoCommandModeEnum::Enum m_mode;
         
         mutable std::vector<AnnotationMemento*> m_annotationMementos;
+        
+        mutable AnnotationGroupMemento* m_annotationGroupMemento;
         
         mutable bool m_sortedFlag;
         
