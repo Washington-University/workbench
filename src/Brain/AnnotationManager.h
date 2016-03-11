@@ -24,6 +24,7 @@
 #include "AnnotationAlignmentEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationDistributeEnum.h"
+#include "AnnotationGroupingModeEnum.h"
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "CaretUndoCommand.h"
@@ -36,6 +37,7 @@ namespace caret {
     class Annotation;
     class AnnotationArrangerInputs;
     class AnnotationFile;
+    class AnnotationGroupKey;
     class AnnotationRedoUndoCommand;
     class AnnotationSelectionInformation;
     class Brain;
@@ -123,6 +125,13 @@ namespace caret {
         bool distributeAnnotations(const AnnotationArrangerInputs& arrangerInputs,
                               const AnnotationDistributeEnum::Enum distribute,
                               AString& errorMessageOut);
+        
+        bool applyGroupingMode(const int32_t windowIndex,
+                               const AnnotationGroupingModeEnum::Enum groupingMode,
+                               AString& errorMessageOut);
+        
+        bool isGroupingModeValid(const int32_t windowIndex,
+                                 const AnnotationGroupingModeEnum::Enum groupingMode) const;
         
         // ADD_NEW_METHODS_HERE
 

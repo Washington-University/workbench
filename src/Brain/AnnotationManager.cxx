@@ -31,6 +31,7 @@
 #include "AnnotationArrangerExecutor.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationFile.h"
+#include "AnnotationGroup.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationSelectionInformation.h"
@@ -41,6 +42,7 @@
 #include "CaretUndoStack.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "EventAnnotationColorBarGet.h"
+#include "EventAnnotationGroupGetWithKey.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
 #include "SceneClass.h"
@@ -252,6 +254,25 @@ AnnotationManager::selectAnnotation(const int32_t windowIndex,
             processSingleModeSelection(windowIndex,
                                        selectedAnnotation);
             break;
+    }
+    
+    /*
+     * If the annotation is in a user group, select all
+     * annotations in the group.
+     */
+    if (selectedAnnotation != NULL) {
+        const bool selectedStatus = selectedAnnotation->isSelected(windowIndex);
+        const AnnotationGroupKey groupKey = selectedAnnotation->getAnnotationGroupKey();
+        if (groupKey.getGroupType() == AnnotationGroupTypeEnum::USER) {
+            EventAnnotationGroupGetWithKey getGroupEvent(groupKey);
+            EventManager::get()->sendEvent(getGroupEvent.getPointer());
+            
+            AnnotationGroup* annotationGroup = getGroupEvent.getAnnotationGroup();
+            if (annotationGroup != NULL) {
+                annotationGroup->setAllAnnotationsSelected(windowIndex,
+                                                           selectedStatus);
+            }
+        }
     }
 }
 
@@ -571,6 +592,108 @@ AnnotationManager::distributeAnnotations(const AnnotationArrangerInputs& arrange
                                      arrangerInputs,
                                      distribute,
                                      errorMessageOut);
+}
+
+/**
+ * Apply given grouping mode valid in the given window.
+ *
+ * @param windowIndex
+ *     Index of the window.
+ * @param groupingMode
+ *     The grouping mode.
+ * @param errorMessageOut
+ *     Contains error message if grouping fails.
+ * @return
+ *     True if successful, else false.
+ */
+bool
+AnnotationManager::applyGroupingMode(const int32_t windowIndex,
+                                     const AnnotationGroupingModeEnum::Enum groupingMode,
+                                     AString& errorMessageOut)
+{
+    const AnnotationSelectionInformation* selectionInfo = getSelectionInformation(windowIndex);
+    CaretAssert(selectionInfo);
+    
+    if ( ! selectionInfo->isGroupingModeValid(groupingMode)) {
+        const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
+                          "should not have been called.  Grouping mode "
+                          + AnnotationGroupingModeEnum::toGuiName(groupingMode)
+                          + " is invalid for the selected annotations.");
+        CaretAssertMessage(0, msg);
+        errorMessageOut = msg;
+        return false;
+    }
+    
+    std::vector<AnnotationGroupKey> groupKeys = selectionInfo->getSelectedAnnotationGroupKeys();
+    std::vector<Annotation*> annotations = selectionInfo->getSelectedAnnotations();
+    
+    switch (groupingMode) {
+        case AnnotationGroupingModeEnum::GROUP:
+        {
+            if (groupKeys.size() != 1) {
+                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
+                                  "should not have been called.  More than one selected group.");
+                CaretAssertMessage(0, msg);
+                errorMessageOut = msg;
+                return false;
+            }
+            CaretAssertVectorIndex(groupKeys, 0);
+            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
+            
+            EventAnnotationGrouping groupEvent;
+            groupEvent.setModeGroupAnnotations(annotationGroupKey,
+                                               annotations);
+            EventManager::get()->sendEvent(groupEvent.getPointer());
+            
+            if (groupEvent.isError()) {
+                errorMessageOut = groupEvent.getErrorMessage();
+                return false;
+            }
+        }
+            break;
+        case AnnotationGroupingModeEnum::REGROUP:
+            CaretAssertMessage(0, "REGROUP not implemented");
+            break;
+        case AnnotationGroupingModeEnum::UNGROUP:
+        {
+            if (groupKeys.size() != 1) {
+                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
+                                  "should not have been called.  More than one selected group.");
+                CaretAssertMessage(0, msg);
+                errorMessageOut = msg;
+                return false;
+            }
+            CaretAssertVectorIndex(groupKeys, 0);
+            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
+            
+            EventAnnotationGrouping groupEvent;
+            groupEvent.setModeUngroupAnnotations(annotationGroupKey,
+                                                 annotations);
+            EventManager::get()->sendEvent(groupEvent.getPointer());
+            
+            if (groupEvent.isError()) {
+                errorMessageOut = groupEvent.getErrorMessage();
+                return false;
+            }
+        }
+            break;
+    }
+    return true;
+}
+
+/**
+ * Is the given grouping mode valid in the given window.
+ * 
+ * @param windowIndex
+ *     Index of the window.
+ * @param groupingMode
+ *     The grouping mode.
+ */
+bool
+AnnotationManager::isGroupingModeValid(const int32_t windowIndex,
+                                       const AnnotationGroupingModeEnum::Enum groupingMode) const
+{
+    return getSelectionInformation(windowIndex)->isGroupingModeValid(groupingMode);
 }
 
 

@@ -553,6 +553,27 @@ AnnotationGroup::getAllAnnotations(std::vector<Annotation*>& annotationsOut) con
 }
 
 /**
+ * Set the selection status for all annotations in this group
+ * in the given window.
+ *
+ * @param windowIndex
+ *     Index of window.
+ * @param selectedStatus
+ *     The selection status.
+ */
+void
+AnnotationGroup::setAllAnnotationsSelected(const int32_t windowIndex,
+                                           const bool selectedStatus)
+{
+    for (AnnotationIterator iter = m_annotations.begin();
+         iter != m_annotations.end();
+         iter++) {
+        (*iter)->setSelected(windowIndex,
+                             selectedStatus);
+    }
+}
+
+/**
  * @return true if file is modified, else false.
  */
 bool

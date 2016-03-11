@@ -81,6 +81,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_CREATE_NEW_TYPE",
                                      "Event to create a new annotation of a particular type"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_GROUP_GET_WITH_KEY,
+                                     "EVENT_ANNOTATION_GROUP_GET_WITH_KEY",
+                                     "Event for getting an annotation group using its key"));
+    
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_GROUPING,
                                      "EVENT_ANNOTATION_GROUPING",
                                      "Event for annotation grouping"));

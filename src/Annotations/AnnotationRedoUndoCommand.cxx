@@ -182,6 +182,12 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
                                    + AnnotationRedoUndoCommandModeEnum::toName(m_mode)
                                    + " is handle in the redo() and undo() functions."));
             break;
+        case AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP:
+            CaretAssert(0);
+        case AnnotationRedoUndoCommandModeEnum::GROUPING_REGROUP:
+            CaretAssert(0);
+        case AnnotationRedoUndoCommandModeEnum::GROUPING_UNGROUP:
+            CaretAssert(0);
         case AnnotationRedoUndoCommandModeEnum::LINE_ARROW_START:
             if ((annType == AnnotationTypeEnum::LINE)
                 && (annotationValue->getType() == AnnotationTypeEnum::LINE)) {

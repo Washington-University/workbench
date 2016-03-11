@@ -138,6 +138,18 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                          "DELETE_ANNOTATIONS",
                                                          "Delete Annotations"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(GROUPING_GROUP,
+                                                         "GROUPING_GROUP",
+                                                         "Group Annotations"));
+    
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(GROUPING_REGROUP,
+                                                         "GROUPING_REGROUP",
+                                                         "Regroup Annotations"));
+    
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(GROUPING_UNGROUP,
+                                                         "GROUPING_UNGROUP",
+                                                         "Ungroup Annotations"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(LINE_ARROW_START,
                                                      "LINE_ARROW_START",
                                                      "Line Arrow Start"));

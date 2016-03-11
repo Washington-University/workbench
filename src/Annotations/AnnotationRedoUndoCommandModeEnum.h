@@ -53,6 +53,12 @@ public:
         CUT_ANNOTATION,
         /** Delete Annotations */
         DELETE_ANNOTATIONS,
+        /** Group Annotations */
+        GROUPING_GROUP,
+        /** Regroup Annotations */
+        GROUPING_REGROUP,
+        /** Ungroup Annotations */
+        GROUPING_UNGROUP,
         /** Line Arrow Start */
         LINE_ARROW_START,
         /** Line Arrow End */

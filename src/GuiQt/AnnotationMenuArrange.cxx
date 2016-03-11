@@ -26,8 +26,6 @@
 #include "Annotation.h"
 #include "AnnotationArrangerInputs.h"
 #include "AnnotationManager.h"
-#include "AnnotationRedoUndoCommand.h"
-#include "AnnotationSelectionInformation.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -36,7 +34,6 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
-#include "MathFunctions.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -188,12 +185,13 @@ void
 AnnotationMenuArrange::menuAboutToShow()
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    const AnnotationSelectionInformation* selectionInfo = annMan->getSelectionInformation(m_browserWindowIndex);
-    CaretAssert(selectionInfo);
     
-    m_groupAction->setEnabled(selectionInfo->isGroupingModeValid(AnnotationGroupingModeEnum::GROUP));
-    m_regroupAction->setEnabled(selectionInfo->isGroupingModeValid(AnnotationGroupingModeEnum::REGROUP));
-    m_ungroupAction->setEnabled(selectionInfo->isGroupingModeValid(AnnotationGroupingModeEnum::UNGROUP));
+    m_groupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
+                                                          AnnotationGroupingModeEnum::GROUP));
+    m_regroupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
+                                                            AnnotationGroupingModeEnum::REGROUP));
+    m_ungroupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
+                                                            AnnotationGroupingModeEnum::UNGROUP));
 }
 
 
@@ -325,72 +323,80 @@ AnnotationMenuArrange::applyGrouping(const AnnotationGroupingModeEnum::Enum grou
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
 
-    const AnnotationSelectionInformation* selectionInfo = annMan->getSelectionInformation(m_browserWindowIndex);
-    CaretAssert(selectionInfo);
-    
-    if ( ! selectionInfo->isGroupingModeValid(grouping)) {
-        const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
-                          "should not have been called.  Grouping mode "
-                          + AnnotationGroupingModeEnum::toGuiName(grouping)
-                          + " is invalid for the selected annotations.");
-        CaretAssertMessage(0, msg);
-        CaretLogSevere(msg);
-        return;
+    AString errorMessage;
+    if ( ! annMan->applyGroupingMode(m_browserWindowIndex,
+                                     grouping,
+                                     errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
     }
-    
-    std::vector<AnnotationGroupKey> groupKeys = selectionInfo->getSelectedAnnotationGroupKeys();
-    std::vector<Annotation*> annotations = selectionInfo->getSelectedAnnotations();
-    
-    switch (grouping) {
-        case AnnotationGroupingModeEnum::GROUP:
-        {
-            if (groupKeys.size() != 1) {
-                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
-                                  "should not have been called.  More than one selected group.");
-                CaretAssertMessage(0, msg);
-                CaretLogSevere(msg);
-                return;
-            }
-            CaretAssertVectorIndex(groupKeys, 0);
-            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
-            
-            EventAnnotationGrouping groupEvent;
-            groupEvent.setModeGroupAnnotations(annotationGroupKey,
-                                               annotations);
-            EventManager::get()->sendEvent(groupEvent.getPointer());
-            
-            if (groupEvent.isError()) {
-                WuQMessageBox::errorOk(this,
-                                       groupEvent.getErrorMessage());
-            }
-        }
-            break;
-        case AnnotationGroupingModeEnum::REGROUP:
-            break;
-        case AnnotationGroupingModeEnum::UNGROUP:
-        {
-            if (groupKeys.size() != 1) {
-                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
-                                  "should not have been called.  More than one selected group.");
-                CaretAssertMessage(0, msg);
-                CaretLogSevere(msg);
-                return;
-            }
-            CaretAssertVectorIndex(groupKeys, 0);
-            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
-            
-            EventAnnotationGrouping groupEvent;
-            groupEvent.setModeUngroupAnnotations(annotationGroupKey,
-                                               annotations);
-            EventManager::get()->sendEvent(groupEvent.getPointer());
-            
-            if (groupEvent.isError()) {
-                WuQMessageBox::errorOk(this,
-                                       groupEvent.getErrorMessage());
-            }
-        }
-            break;
-    }
+
+//    const AnnotationSelectionInformation* selectionInfo = annMan->getSelectionInformation(m_browserWindowIndex);
+//    CaretAssert(selectionInfo);
+//    
+//    if ( ! selectionInfo->isGroupingModeValid(grouping)) {
+//        const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
+//                          "should not have been called.  Grouping mode "
+//                          + AnnotationGroupingModeEnum::toGuiName(grouping)
+//                          + " is invalid for the selected annotations.");
+//        CaretAssertMessage(0, msg);
+//        CaretLogSevere(msg);
+//        return;
+//    }
+//    
+//    std::vector<AnnotationGroupKey> groupKeys = selectionInfo->getSelectedAnnotationGroupKeys();
+//    std::vector<Annotation*> annotations = selectionInfo->getSelectedAnnotations();
+//    
+//    switch (grouping) {
+//        case AnnotationGroupingModeEnum::GROUP:
+//        {
+//            if (groupKeys.size() != 1) {
+//                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
+//                                  "should not have been called.  More than one selected group.");
+//                CaretAssertMessage(0, msg);
+//                CaretLogSevere(msg);
+//                return;
+//            }
+//            CaretAssertVectorIndex(groupKeys, 0);
+//            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
+//            
+//            EventAnnotationGrouping groupEvent;
+//            groupEvent.setModeGroupAnnotations(annotationGroupKey,
+//                                               annotations);
+//            EventManager::get()->sendEvent(groupEvent.getPointer());
+//            
+//            if (groupEvent.isError()) {
+//                WuQMessageBox::errorOk(this,
+//                                       groupEvent.getErrorMessage());
+//            }
+//        }
+//            break;
+//        case AnnotationGroupingModeEnum::REGROUP:
+//            break;
+//        case AnnotationGroupingModeEnum::UNGROUP:
+//        {
+//            if (groupKeys.size() != 1) {
+//                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
+//                                  "should not have been called.  More than one selected group.");
+//                CaretAssertMessage(0, msg);
+//                CaretLogSevere(msg);
+//                return;
+//            }
+//            CaretAssertVectorIndex(groupKeys, 0);
+//            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
+//            
+//            EventAnnotationGrouping groupEvent;
+//            groupEvent.setModeUngroupAnnotations(annotationGroupKey,
+//                                               annotations);
+//            EventManager::get()->sendEvent(groupEvent.getPointer());
+//            
+//            if (groupEvent.isError()) {
+//                WuQMessageBox::errorOk(this,
+//                                       groupEvent.getErrorMessage());
+//            }
+//        }
+//            break;
+//    }
 
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

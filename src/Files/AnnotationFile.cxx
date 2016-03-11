@@ -38,6 +38,7 @@
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "EventAnnotationAddToRemoveFromFile.h"
+#include "EventAnnotationGroupGetWithKey.h"
 #include "EventAnnotationGrouping.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
@@ -204,6 +205,7 @@ AnnotationFile::initializeAnnotationFile()
     m_sceneAssistant = new SceneClassAssistant();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUPING);
 }
 
@@ -363,6 +365,23 @@ AnnotationFile::receiveEvent(Event* event)
                         annEvent->setSuccessful(true);
                     }
                 }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY) {
+        EventAnnotationGroupGetWithKey* getGroupEvent = dynamic_cast<EventAnnotationGroupGetWithKey*>(event);
+        CaretAssert(getGroupEvent);
+        
+        const AnnotationGroupKey groupKey = getGroupEvent->getGroupKey();
+        
+        for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+             groupIter != m_annotationGroups.end();
+             groupIter++) {
+            AnnotationGroup* group = (*groupIter).data();
+            if (groupKey == group->getAnnotationGroupKey()) {
+                getGroupEvent->setAnnotationGroup(group);
+                getGroupEvent->setEventProcessed();
+                return;
+            }
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GROUPING) {

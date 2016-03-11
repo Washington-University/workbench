@@ -56,6 +56,7 @@ AnnotationTextOrientationEnum.h
 AnnotationTwoDimensionalShape.h
 AnnotationTypeEnum.h
 EventAnnotationAddToRemoveFromFile.h
+EventAnnotationGroupGetWithKey.h
 EventAnnotationGrouping.h
 
 Annotation.cxx
@@ -96,6 +97,7 @@ AnnotationTextOrientationEnum.cxx
 AnnotationTwoDimensionalShape.cxx
 AnnotationTypeEnum.cxx
 EventAnnotationAddToRemoveFromFile.cxx
+EventAnnotationGroupGetWithKey.cxx
 EventAnnotationGrouping.cxx
 )
 
