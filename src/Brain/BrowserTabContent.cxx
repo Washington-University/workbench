@@ -1869,6 +1869,27 @@ BrowserTabContent::setRightCortexFlatMapOffset(const float offsetX,
 }
 
 /**
+ * @return The right cortex flat map zoom factor.
+ */
+float
+BrowserTabContent::getRightCortexFlatMapZoomFactor() const
+{
+    return getViewingTransformation()->getRightCortexFlatMapZoomFactor();
+}
+
+/**
+ * Set the right cortex flat map zoom factor.
+ *
+ * @param zoomFactor
+ *     The zoom factor.
+ */
+void
+BrowserTabContent::setRightCortexFlatMapZoomFactor(const float zoomFactor)
+{
+    getViewingTransformation()->setRightCortexFlatMapZoomFactor(zoomFactor);
+}
+
+/**
  * Reset the view to the default view.
  */
 void
@@ -2882,6 +2903,8 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     getRightCortexFlatMapOffset(rightFlatX, rightFlatY);
     modelTransform.setRightCortexFlatMapOffset(rightFlatX, rightFlatY);
     
+    modelTransform.setRightCortexFlatMapZoomFactor(getRightCortexFlatMapZoomFactor());
+
     modelTransform.setScaling(getScaling());
 }
 
@@ -2920,6 +2943,9 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
     float rightFlatX, rightFlatY;
     modelTransform.getRightCortexFlatMapOffset(rightFlatX, rightFlatY);
     setRightCortexFlatMapOffset(rightFlatX, rightFlatY);
+    
+    const float rightFlatZoom = modelTransform.getRightCortexFlatMapZoomFactor();
+    setRightCortexFlatMapZoomFactor(rightFlatZoom);
     
     updateYokedBrowserTabs();
 }

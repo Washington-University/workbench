@@ -48,6 +48,8 @@ namespace caret {
         void getRightCortexFlatMapOffset(float& rightCortexFlatMapOffsetX,
                                          float& rightCortexFlatMapOffsetY) const;
         
+        float getRightCortexFlatMapZoomFactor() const;
+        
         float getScaling() const;
         
         void setName(const AString& name);
@@ -69,6 +71,8 @@ namespace caret {
         void setRightCortexFlatMapOffset(const float rightCortexFlatMapOffsetX,
                                          const float rightCortexFlatMapOffsetY);
         
+        void setRightCortexFlatMapZoomFactor(const float rightCortexFlatMapZoomFactor);
+        
         void setScaling(const float scaling);
         
         void setPanningRotationMatrixAndZoom(const float panX,
@@ -78,7 +82,8 @@ namespace caret {
                                              const float obliqueRotationMatrix[4][4],
                                              const float zoom,
                                              const float rightCortexFlatMapOffsetX,
-                                             const float rightCortexFlatMapOffsetY);
+                                             const float rightCortexFlatMapOffsetY,
+                                             const float rightCortexFlatMapZoomFactor);
         
         void getPanningRotationMatrixAndZoom(float& panX,
                                              float& panY,
@@ -87,7 +92,8 @@ namespace caret {
                                              float obliqueRotationMatrix[4][4],
                                              float& zoom,
                                              float& rightCortexFlatMapOffsetX,
-                                             float& rightCortexFlatMapOffsetY) const;
+                                             float& rightCortexFlatMapOffsetY,
+                                             float& rightCortexFlatMapZoomFactor) const;
         
         AString getAsString() const;
         
@@ -118,6 +124,8 @@ namespace caret {
         float scaling;
         
         float rightCortexFlatMapOffsetXY[2];
+        
+        float rightCortexFlatMapZoomFactor;
         
         static const QString s_separatorInPreferences;
     };

@@ -82,6 +82,7 @@ ModelTransform::setToIdentity()
     
     this->rightCortexFlatMapOffsetXY[0] = 0.0;
     this->rightCortexFlatMapOffsetXY[1] = 0.0;
+    this->rightCortexFlatMapZoomFactor  = 1.0;
     
     this->scaling = 1.0;    
 }
@@ -183,6 +184,15 @@ ModelTransform::getRightCortexFlatMapOffset(float& rightCortexFlatMapOffsetX,
 {
     rightCortexFlatMapOffsetX = this->rightCortexFlatMapOffsetXY[0];
     rightCortexFlatMapOffsetY = this->rightCortexFlatMapOffsetXY[1];
+}
+
+/**
+ * @return Zoom factor for right cortex flat map.
+ */
+float
+ModelTransform::getRightCortexFlatMapZoomFactor() const
+{
+    return this->rightCortexFlatMapZoomFactor;
 }
 
 
@@ -330,6 +340,18 @@ ModelTransform::setRightCortexFlatMapOffset(const float rightCortexFlatMapOffset
 }
 
 /**
+ * Set the right cortex flat map zoom factor.
+ * 
+ * @param rightCortexFlatMapZoomFactor
+ *    Zoom factor for right cortex flat map.
+ */
+void
+ModelTransform::setRightCortexFlatMapZoomFactor(const float rightCortexFlatMapZoomFactor)
+{
+    this->rightCortexFlatMapZoomFactor = rightCortexFlatMapZoomFactor;
+}
+
+/**
  * Set the scaling
  * @param scaling
  *    New value for scaling.
@@ -371,6 +393,7 @@ ModelTransform::getAsString() const
     
     s += (s_separatorInPreferences + AString::number(this->rightCortexFlatMapOffsetXY[0]));
     s += (s_separatorInPreferences + AString::number(this->rightCortexFlatMapOffsetXY[1]));
+    s += (s_separatorInPreferences + AString::number(this->rightCortexFlatMapZoomFactor));
     
     return s;
 }
@@ -387,13 +410,20 @@ ModelTransform::setFromString(const AString& s)
     bool hasComment = false;
     bool hasObliqueRotation = false;
     bool hasRightFlatMapOffset = false;
+    bool hasRightFlatMapZoomFactor = false;
     
     QStringList sl;
     if (s.contains(s_separatorInPreferences)) {
         sl = s.split(s_separatorInPreferences,
                                  QString::KeepEmptyParts);
         const int numElements = sl.count();
-        if (numElements == 40) {
+        if (numElements == 41) {
+            hasComment = true;
+            hasObliqueRotation = true;
+            hasRightFlatMapOffset = true;
+            hasRightFlatMapZoomFactor = true;
+        }
+        else if (numElements == 40) {
             hasComment = true;
             hasObliqueRotation = true;
             hasRightFlatMapOffset = true;
@@ -468,6 +498,12 @@ ModelTransform::setFromString(const AString& s)
         this->rightCortexFlatMapOffsetXY[1] = 0;
     }
     
+    if (hasRightFlatMapZoomFactor) {
+        this->rightCortexFlatMapZoomFactor = sl.at(ctr++).toFloat();
+    }
+    else {
+        this->rightCortexFlatMapZoomFactor = 1.0;
+    }
     return true;
 }
 
@@ -497,6 +533,8 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
     
     this->rightCortexFlatMapOffsetXY[0] = modelTransform.rightCortexFlatMapOffsetXY[0];
     this->rightCortexFlatMapOffsetXY[1] = modelTransform.rightCortexFlatMapOffsetXY[1];
+    
+    this->rightCortexFlatMapZoomFactor = modelTransform.rightCortexFlatMapZoomFactor;
 }
 
 /**
@@ -518,6 +556,8 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
  *    Offset X for right cortex flat map.
  * @param rightCortexFlatMapOffsetY
  *    Offset Y for right cortex flat map.
+ * @param rightCortexFlatMapZoomFactor
+ *    Zoom factor for right cortex flat map.
  */
 void
 ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
@@ -527,7 +567,8 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
                                                 const float obliqueRotationMatrix[4][4],
                                                 const float zoom,
                                                 const float rightCortexFlatMapOffsetX,
-                                                const float rightCortexFlatMapOffsetY)
+                                                const float rightCortexFlatMapOffsetY,
+                                                const float rightCortexFlatMapZoomFactor)
 {
     this->setTranslation(panX, panY, panZ);
 
@@ -539,6 +580,8 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
     
     this->setRightCortexFlatMapOffset(rightCortexFlatMapOffsetX,
                                       rightCortexFlatMapOffsetY);
+    
+    this->setRightCortexFlatMapZoomFactor(rightCortexFlatMapZoomFactor);
 }
 
 /**
@@ -558,6 +601,8 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
  *    Offset X for right cortex flat map.
  * @param rightCortexFlatMapOffsetY
  *    Offset Y for right cortex flat map.
+ * @param rightCortexFlatMapZoomFactor
+ *    Zoom factor for right cortex flat map.
  */
 void
 ModelTransform::getPanningRotationMatrixAndZoom(float& panX,
@@ -567,7 +612,8 @@ ModelTransform::getPanningRotationMatrixAndZoom(float& panX,
                                                 float obliqueRotationMatrix[4][4],
                                                 float& zoom,
                                                 float& rightCortexFlatMapOffsetX,
-                                                float& rightCortexFlatMapOffsetY) const
+                                                float& rightCortexFlatMapOffsetY,
+                                                float& rightCortexFlatMapZoomFactor) const
 {
     panX = this->translation[0];
     panY = this->translation[1];
@@ -581,6 +627,8 @@ ModelTransform::getPanningRotationMatrixAndZoom(float& panX,
     
     getRightCortexFlatMapOffset(rightCortexFlatMapOffsetX,
                                 rightCortexFlatMapOffsetY);
+    
+    rightCortexFlatMapZoomFactor = this->getRightCortexFlatMapZoomFactor();
 }
 
 

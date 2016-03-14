@@ -98,7 +98,8 @@ namespace caret {
                                             double& obRotZ,
                                             double& zoom,
                                             double& rightFlatX,
-                                            double& rightFlatY) const;
+                                            double& rightFlatY,
+                                            double& rightFlatZoom) const;
         
         void setTransformationControlValues(const double panX,
                                             const double panY,
@@ -111,7 +112,8 @@ namespace caret {
                                             const double obRotZ,
                                             const double zoom,
                                             const double rightFlatX,
-                                            const double rightFlatY) const;
+                                            const double rightFlatY,
+                                            const double rightFlatZoom) const;
         
         // ADD_NEW_MEMBERS_HERE
         
@@ -156,6 +158,8 @@ namespace caret {
         QDoubleSpinBox* m_xRightFlatMapSpinBox;
         
         QDoubleSpinBox* m_yRightFlatMapSpinBox;
+        
+        QDoubleSpinBox* m_rightFlatMapZoomFactorSpinBox;
         
         WuQWidgetObjectGroup* m_transformWidgetGroup;
         

@@ -1298,6 +1298,9 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
         float rightFlatOffsetX, rightFlatOffsetY;
         browserTabContent->getRightCortexFlatMapOffset(rightFlatOffsetX, rightFlatOffsetY);
         glTranslatef(-rightFlatOffsetX, rightFlatOffsetY, 0.0);
+        
+        const float rightFlatMapZoomFactor = browserTabContent->getRightCortexFlatMapZoomFactor();
+        glScalef(rightFlatMapZoomFactor, rightFlatMapZoomFactor, rightFlatMapZoomFactor);
     }
     
     if (objectCenterXYZ != NULL) {

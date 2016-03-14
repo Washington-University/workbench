@@ -224,6 +224,10 @@ namespace caret {
         void setRightCortexFlatMapOffset(const float offsetX,
                                          const float offsetY);
         
+        float getRightCortexFlatMapZoomFactor() const;
+        
+        void setRightCortexFlatMapZoomFactor(const float zoomFactor);
+        
         ProjectionViewTypeEnum::Enum getProjectionViewType() const;
         
         void resetView();

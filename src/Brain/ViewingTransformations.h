@@ -63,6 +63,10 @@ namespace caret {
         
         void setRightCortexFlatMapOffset(const float rightCortexFlatMapOffsetX,
                                          const float rightCortexFlatMapOffsetY);
+
+        float getRightCortexFlatMapZoomFactor() const;
+        
+        void setRightCortexFlatMapZoomFactor(const float rightCortexFlatMapZoomFactor);
         
         virtual void resetView();
         
@@ -100,6 +104,8 @@ namespace caret {
         
         /** Offset for right cortex flat map */
         float m_rightCortexFlatMapOffset[2];
+        
+        float m_rightCortexFlatMapZoomFactor;
         
     private:
         void copyHelperViewingTransformations(const ViewingTransformations& obj);
