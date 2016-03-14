@@ -63,8 +63,11 @@ OperationParameters* AlgorithmSurfaceResample::getParameters()
     
     AString myHelpText =
         AString("Resamples a surface file, given two spherical surfaces that are in register.  ") +
-        "If the method does area correction, exactly one of -area-surfs or -area-metrics must be specified.  " +
-        "This option is not used in normal circumstances, but is provided for completeness.\n\n" +
+        "If ADAP_BARY_AREA is used, exactly one of -area-surfs or -area-metrics must be specified.  " +
+        "This method is not generally recommended for surface resampling, but is provided for completeness.\n\n" +
+        "The BARYCENTRIC method is generally recommended for anatomical surfaces, in order to minimize smoothing.\n\n" +
+        "For cut surfaces (including flatmaps), use -surface-cut-resample.\n\n" +
+        "Instead of resampling a spherical surface, the -surface-sphere-project-unproject command is recommended.\n\n" +
         "The <method> argument must be one of the following:\n\n";
     
     vector<SurfaceResamplingMethodEnum::Enum> allEnums;
@@ -74,9 +77,6 @@ OperationParameters* AlgorithmSurfaceResample::getParameters()
         myHelpText += SurfaceResamplingMethodEnum::toName(allEnums[i]) + "\n";
     }
     
-    myHelpText += AString("\nThe BARYCENTRIC method is recommended for anatomical surfaces, unless they are fairly rough, in order to minimize smoothing.\n\n") +
-        "For cut surfaces (including flatmaps), use -surface-cut-resample.\n\n" +
-        "Instead of resampling a spherical surface, the -surface-sphere-project-unproject command is recommended.";
     ret->setHelpText(myHelpText);
     return ret;
 }

@@ -72,8 +72,10 @@ OperationParameters* AlgorithmLabelResample::getParameters()
     
     AString myHelpText =
         AString("Resamples a label file, given two spherical surfaces that are in register.  ") +
-        "If the method does area correction, exactly one of -area-surfs or -area-metrics must be specified.\n\n" +
-        "The -largest option results in nearest vertex behavior when used with BARYCENTRIC, it uses the value of the source vertex that has the largest weight.  " +
+        "If ADAP_BARY_AREA is used, exactly one of -area-surfs or -area-metrics must be specified.\n\n" +
+        "The ADAP_BARY_AREA method is recommended for label data, because it should be better at resolving vertices that are near multiple labels, or in case of downsampling.  " +
+        "Midthickness surfaces are recommended for the vertex areas for most data.\n\n" +
+        "The -largest option results in nearest vertex behavior when used with BARYCENTRIC, as it uses the value of the source vertex that has the largest weight.\n\n" +
         "When -largest is not specified, the vertex weights are summed according to which label they correspond to, and the label with the largest sum is used.\n\n" +
         "The <method> argument must be one of the following:\n\n";
     
@@ -83,8 +85,6 @@ OperationParameters* AlgorithmLabelResample::getParameters()
     {
         myHelpText += SurfaceResamplingMethodEnum::toName(allEnums[i]) + "\n";
     }
-    
-    myHelpText += "\nThe ADAP_BARY_AREA method is recommended for label data, because it should be better at resolving vertices that are near multiple labels, or in case of downsampling.";
     ret->setHelpText(myHelpText);
     return ret;
 }

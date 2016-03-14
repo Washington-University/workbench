@@ -71,11 +71,13 @@ OperationParameters* AlgorithmMetricResample::getParameters()
     
     AString myHelpText =
         AString("Resamples a metric file, given two spherical surfaces that are in register.  ") +
-        "If the method does area correction, exactly one of -area-surfs or -area-metrics must be specified.\n\n" +
+        "If ADAP_BARY_AREA is used, exactly one of -area-surfs or -area-metrics must be specified.\n\n" +
+        "The ADAP_BARY_AREA method is recommended for ordinary metric data, because it should use all data while downsampling, unlike BARYCENTRIC.  " +
+        "The recommended areas option for most data is individual midthicknesses for individual data, and averaged vertex area metrics from individual midthicknesses for group average data.\n\n"
         "The -current-roi option only masks the input, the output may be slightly dilated in comparison, consider using -metric-mask on the output " +
         "when using -current-roi.\n\n" +
-        "The -largest option results in nearest vertex behavior when used with BARYCENTRIC, instead of doing a weighted average, it uses the value " +
-        "of the source vertex that has the largest weight for each target vertex.  This is mainly intended for resampling ROI metrics.\n\n" +
+        "The -largest option results in nearest vertex behavior when used with BARYCENTRIC.  " +
+        "When resampling a binary metric, consider thresholding at 0.5 after resampling rather than using -largest.\n\n" +
         "The <method> argument must be one of the following:\n\n";
     
     vector<SurfaceResamplingMethodEnum::Enum> allEnums;
@@ -85,7 +87,6 @@ OperationParameters* AlgorithmMetricResample::getParameters()
         myHelpText += SurfaceResamplingMethodEnum::toName(allEnums[i]) + "\n";
     }
     
-    myHelpText += "\nThe ADAP_BARY_AREA method is recommended for ordinary metric data, because it should use all data while downsampling, unlike BARYCENTRIC.";
     ret->setHelpText(myHelpText);
     return ret;
 }
