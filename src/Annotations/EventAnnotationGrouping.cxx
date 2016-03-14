@@ -44,6 +44,7 @@ EventAnnotationGrouping::EventAnnotationGrouping()
 m_mode(MODE_INVALID)
 {
     m_annotationGroupKey.reset();
+    m_groupKeyToWhichAnnotationsWereMoved.reset();
 }
 
 /**
@@ -75,16 +76,25 @@ EventAnnotationGrouping::setModeGroupAnnotations(const AnnotationGroupKey spaceG
  *
  * @param userGroupKey
  *     The annotation user group key whose annotations are moved out of a user group.
- * @param annotations
- *     Annotations move out of user group.
  */
 void
-EventAnnotationGrouping::setModeUngroupAnnotations(const AnnotationGroupKey userGroupKey,
-                                                   std::vector<Annotation*>& annotations)
+EventAnnotationGrouping::setModeUngroupAnnotations(const AnnotationGroupKey userGroupKey)
 {
     m_mode               = MODE_UNGROUP;
     m_annotationGroupKey = userGroupKey;
-    m_annotations        = annotations;
+}
+
+/**
+ * Set the mode to regroup annotations.
+ *
+ * @param userGroupKey
+ *     The annotation user group key whose annotations are moved back to a user group.
+ */
+void
+EventAnnotationGrouping::setModeRegroupAnnotations(const AnnotationGroupKey userGroupKey)
+{
+    m_mode               = MODE_REGROUP;
+    m_annotationGroupKey = userGroupKey;
 }
 
 /*
@@ -106,21 +116,30 @@ EventAnnotationGrouping::getAnnotationGroupKey() const
 }
 
 /**
- * @return The annotation group key for undo'ing this operation.
+ * @return The annotation group key to which the annotations were
+ * moved.  This value is set by the receiver of the event and
+ * can be used to assist with 'undo' of this event.  This method
+ * must be called after the event has successfully executed.
  */
 AnnotationGroupKey
-EventAnnotationGrouping::getAnnotationGroupKeyForUndo() const
+EventAnnotationGrouping::getGroupKeyToWhichAnnotationsWereMoved() const
 {
-    return m_undoKey;
+    return m_groupKeyToWhichAnnotationsWereMoved;
 }
 
 /**
- * Set the annotation group key for undo'ing this operation.
+ * Set the annotation group key to which the anntotations were
+ * moved.  This method is called by the receiver of the event
+ * so that the caller may be able to 'undo' this event.
+ *
+ * @param movedToKey
+ *     Key of group that now contains the annotations after
+ *     the event is executed.
  */
 void
-EventAnnotationGrouping::setAnnotationGroupKeyForUndo(const AnnotationGroupKey& undoKey)
+EventAnnotationGrouping::setGroupKeyToWhichAnnotationsWereMoved(const AnnotationGroupKey& movedToKey)
 {
-    m_undoKey = undoKey;
+    m_groupKeyToWhichAnnotationsWereMoved = movedToKey;
 }
 
 

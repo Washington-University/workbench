@@ -221,7 +221,7 @@ namespace caret {
         void textAnnotationResetName();
         
     private:
-        void setAnnotationGroupKey(const AnnotationGroupKey annotationGroupKey);
+        void setAnnotationGroupKey(const AnnotationGroupKey& annotationGroupKey);
 
         void setUniqueKey(const int32_t uniqueKey);
         

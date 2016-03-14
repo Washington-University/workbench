@@ -1004,9 +1004,32 @@ Annotation::getAnnotationGroupKey() const
  *     The key to the annotation group that contains this annotation.
  */
 void
-Annotation::setAnnotationGroupKey(const AnnotationGroupKey annotationGroupKey)
+Annotation::setAnnotationGroupKey(const AnnotationGroupKey& annotationGroupKey)
 {
-    m_annotationGroupKey = annotationGroupKey;
+    AnnotationGroupKey newGroupKeyForAnnotation = annotationGroupKey;
+    
+    switch (newGroupKeyForAnnotation.getGroupType()) {
+        case AnnotationGroupTypeEnum::INVALID:
+            CaretAssert(0);
+            break;
+        case AnnotationGroupTypeEnum::SPACE:
+            CaretAssert(newGroupKeyForAnnotation.getSpaceGroupUniqueKey() > 0);
+            
+            /*
+             * When an annotation is moved to a space group (from a user group),
+             * we want to preserve the user group unique key so that it can
+             * be used to 'regroup' annotations
+             */
+            if (m_annotationGroupKey.getGroupType() == AnnotationGroupTypeEnum::USER) {
+                newGroupKeyForAnnotation.setUserGroupUniqueKey(m_annotationGroupKey.getUserGroupUniqueKey());
+            }            
+            break;
+        case AnnotationGroupTypeEnum::USER:
+            CaretAssert(newGroupKeyForAnnotation.getUserGroupUniqueKey() > 0);
+            break;
+    }
+    
+    m_annotationGroupKey = newGroupKeyForAnnotation;
 }
 
 

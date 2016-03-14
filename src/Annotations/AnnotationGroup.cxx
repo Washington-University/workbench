@@ -329,18 +329,6 @@ AnnotationGroup::addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& a
 void
 AnnotationGroup::assignGroupKeyToAnnotation(Annotation* annotation)
 {
-    switch (m_groupKey.getGroupType()) {
-        case AnnotationGroupTypeEnum::INVALID:
-            CaretAssert(0);
-            break;
-        case AnnotationGroupTypeEnum::SPACE:
-            CaretAssert(m_groupKey.getSpaceGroupUniqueKey() > 0);
-            break;
-        case AnnotationGroupTypeEnum::USER:
-            CaretAssert(m_groupKey.getUserGroupUniqueKey() > 0);
-            break;
-    }
-    
     annotation->setAnnotationGroupKey(m_groupKey);
     
 //    AnnotationGroupKey annotationGroupKey;

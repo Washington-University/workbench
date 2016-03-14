@@ -169,6 +169,9 @@ AnnotationSelectionInformation::update(const std::vector<Annotation*>& selectedA
     
     const int32_t numGroups = static_cast<int32_t>(m_annotationGroupKeys.size());
     
+    /*
+     * Are TWO or more annotations selected
+     */
     if (m_annotations.size() > 1) {
         if (numGroups == 1) {
             CaretAssertVectorIndex(m_annotationGroupKeys, 0);
@@ -193,13 +196,34 @@ AnnotationSelectionInformation::update(const std::vector<Annotation*>& selectedA
         }
     }
     
-    if (numGroups > 0) {
+    /*
+     * Is ANY annotation selected
+     */
+    if (m_annotations.size() > 0) {
         /*
-         * If all annotations are in a user group and were 
+         * If all annotations are in a space group and were
          * in the same previous user group, enable regroup.
          */
         if (numGroups == 1) {
+            CaretAssertVectorIndex(m_annotationGroupKeys, 0);
+            const AnnotationGroupKey& groupKey = m_annotationGroupKeys[0];
             
+            switch (groupKey.getGroupType()) {
+                case AnnotationGroupTypeEnum::INVALID:
+                    break;
+                case AnnotationGroupTypeEnum::SPACE:
+                    /*
+                     * The current group type is a 'space' group but 
+                     * the annotation(s) were previously in a 'user'
+                     * group so enable 'regroup'.
+                     */
+                    if (groupKey.getUserGroupUniqueKey() > 0) {
+                        m_regroupValid = true;
+                    }
+                    break;
+                case AnnotationGroupTypeEnum::USER:
+                    break;
+            }
         }
     }
 }

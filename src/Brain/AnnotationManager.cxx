@@ -658,7 +658,22 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
         }
             break;
         case AnnotationGroupingModeEnum::REGROUP:
-            CaretAssertMessage(0, "REGROUP not implemented");
+        {
+            if (groupKeys.size() != 1) {
+                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
+                                  "should not have been called.  More than one selected group.");
+                CaretAssertMessage(0, msg);
+                errorMessageOut = msg;
+                return false;
+            }
+            CaretAssertVectorIndex(groupKeys, 0);
+            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
+            
+            AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+            command->setModeGroupingRegroupAnnotations(annotationGroupKey);
+            
+            applyCommand(command);
+        }
             break;
         case AnnotationGroupingModeEnum::UNGROUP:
         {
@@ -672,15 +687,21 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             CaretAssertVectorIndex(groupKeys, 0);
             const AnnotationGroupKey annotationGroupKey = groupKeys[0];
             
-            EventAnnotationGrouping groupEvent;
-            groupEvent.setModeUngroupAnnotations(annotationGroupKey,
-                                                 annotations);
-            EventManager::get()->sendEvent(groupEvent.getPointer());
+
+            AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+            command->setModeGroupingUngroupAnnotations(annotationGroupKey);
             
-            if (groupEvent.isError()) {
-                errorMessageOut = groupEvent.getErrorMessage();
-                return false;
-            }
+            applyCommand(command);
+            
+//            EventAnnotationGrouping groupEvent;
+//            groupEvent.setModeUngroupAnnotations(annotationGroupKey,
+//                                                 annotations);
+//            EventManager::get()->sendEvent(groupEvent.getPointer());
+//            
+//            if (groupEvent.isError()) {
+//                errorMessageOut = groupEvent.getErrorMessage();
+//                return false;
+//            }
         }
             break;
     }

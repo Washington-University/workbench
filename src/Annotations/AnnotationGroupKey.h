@@ -79,8 +79,8 @@ namespace caret {
         
         int32_t m_userGroupUniqueKey;
         
+        friend class Annotation;
         friend class AnnotationFile;
-        
         friend class AnnotationGroup;
         
         // ADD_NEW_MEMBERS_HERE

@@ -48,8 +48,9 @@ namespace caret {
         void setModeGroupAnnotations(const AnnotationGroupKey spaceGroupKey,
                                      std::vector<Annotation*>& annotations);
 
-        void setModeUngroupAnnotations(const AnnotationGroupKey userGroupKey,
-                                       std::vector<Annotation*>& annotations);
+        void setModeUngroupAnnotations(const AnnotationGroupKey userGroupKey);
+        
+        void setModeRegroupAnnotations(const AnnotationGroupKey userGroupKey);
         
         Mode getMode() const;
         
@@ -57,9 +58,9 @@ namespace caret {
         
         std::vector<Annotation*> getAnnotations() const;
         
-        AnnotationGroupKey getAnnotationGroupKeyForUndo() const;
+        AnnotationGroupKey getGroupKeyToWhichAnnotationsWereMoved() const;
         
-        void setAnnotationGroupKeyForUndo(const AnnotationGroupKey& undoKey);
+        void setGroupKeyToWhichAnnotationsWereMoved(const AnnotationGroupKey& movedToKey);
         
         // ADD_NEW_METHODS_HERE
 
@@ -75,7 +76,7 @@ namespace caret {
         
         std::vector<Annotation*> m_annotations;
         
-        AnnotationGroupKey m_undoKey;
+        AnnotationGroupKey m_groupKeyToWhichAnnotationsWereMoved;
         
         // ADD_NEW_MEMBERS_HERE
 

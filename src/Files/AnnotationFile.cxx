@@ -918,7 +918,7 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
         }
         m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
         
-        groupingEvent->setAnnotationGroupKeyForUndo(group->getAnnotationGroupKey());
+        groupingEvent->setGroupKeyToWhichAnnotationsWereMoved(group->getAnnotationGroupKey());
         
         setModified();
     }
@@ -968,13 +968,6 @@ AnnotationFile::processUngroupingAnnotations(EventAnnotationGrouping* groupingEv
         return;
     }
     
-    std::vector<Annotation*> annotations = groupingEvent->getAnnotations();
-    if (annotations.size() < 2) {
-        groupingEvent->setErrorMessage("PROGRAM ERROR: Trying to ungroup annotations less than two annotations");
-        CaretAssert(0);
-        return;
-    }
-    
     std::vector<QSharedPointer<Annotation> > allGroupAnnotations;
     userGroup->removeAllAnnotations(allGroupAnnotations);
     
@@ -1005,7 +998,97 @@ void
 AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEvent)
 {
     CaretAssert(groupingEvent);
-    CaretAssertMessage(0, "Not implemented");
+    
+    /*
+     * Unique key of group that annotations were once a member of
+     */
+    const int32_t userGroupUniqueKey = groupingEvent->getAnnotationGroupKey().getUserGroupUniqueKey();
+    CaretAssert(userGroupUniqueKey > 0);
+    
+    std::vector<Annotation*> annotations;
+    std::set<AnnotationGroup*> groups;
+    
+    /*
+     * Find annotations in ONE space group that were
+     * previously assigned to the previous user group.
+     */
+    AnnotationGroupIterator groupIter = m_annotationGroups.end();
+    for (groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        AnnotationGroup* group = (*groupIter).data();
+        
+        switch (group->getGroupType()) {
+            case  AnnotationGroupTypeEnum::INVALID:
+                break;
+            case AnnotationGroupTypeEnum::SPACE:
+            {
+                std::vector<Annotation*> groupAnnotations;
+                group->getAllAnnotations(groupAnnotations);
+                
+                for (std::vector<Annotation*>::iterator annIter = groupAnnotations.begin();
+                     annIter != groupAnnotations.end();
+                     annIter++) {
+                    Annotation* ann = *annIter;
+                    if (ann->getAnnotationGroupKey().getUserGroupUniqueKey() == userGroupUniqueKey) {
+                        groups.insert(group);
+                        annotations.push_back(ann);
+                    }
+                }
+            }
+                break;
+            case AnnotationGroupTypeEnum::USER:
+                break;
+        }
+    }
+
+    /*
+     * Annotations must be in one space group (same space!)
+     */
+    if  (groups.size() == 1) {
+        AnnotationGroup* spaceGroup = *(groups.begin());
+        const int32_t numAnn = static_cast<int32_t>(annotations.size());
+        if (numAnn > 1) {
+            AnnotationGroup* group = new AnnotationGroup(this,
+                                                         AnnotationGroupTypeEnum::USER,
+                                                         reuseUniqueKeyOrGenerateNewUniqueKey(userGroupUniqueKey),
+                                                         spaceGroup->getCoordinateSpace(),
+                                                         spaceGroup->getTabOrWindowIndex());
+            
+            bool allValidFlag = true;
+            std::vector<QSharedPointer<Annotation> > movedAnnotations;
+            for (std::vector<Annotation*>::iterator annIter = annotations.begin();
+                 annIter != annotations.end();
+                 annIter++) {
+                QSharedPointer<Annotation> annPtr;
+                if (spaceGroup->removeAnnotation(*annIter, annPtr)) {
+                    movedAnnotations.push_back(annPtr);
+                }
+                else {
+                    allValidFlag = false;
+                    break;
+                }
+            }
+            
+            for (std::vector<QSharedPointer<Annotation> >::iterator annPtrIter = movedAnnotations.begin();
+                 annPtrIter != movedAnnotations.end();
+                 annPtrIter++) {
+                group->addAnnotationPrivateSharedPointer(*annPtrIter);
+            }
+            m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
+            
+            groupingEvent->setGroupKeyToWhichAnnotationsWereMoved(group->getAnnotationGroupKey());
+            
+            setModified();
+        }
+        else {
+            groupingEvent->setErrorMessage("ERROR: Unable to regroup annotations due to only one annotation for regrouping.");
+        }
+    }
+    else {
+        groupingEvent->setErrorMessage("ERROR: Annotations that were in a previous group are no longer "
+                                       "in the same space group.");
+    }
 }
 
 /**
@@ -1049,6 +1132,75 @@ AnnotationFile::clearModified()
         (*groupIter)->clearModified();
     }
 }
+
+/**
+ * Reuse the given unique key (if it is not used in a group or annotation
+ * and is less than the current value of the unique key generator.  Otherwise,
+ * generate a new unique key.
+ *
+ * @param reuseUniqueKey
+ *     Key that is requested and tested to see if it can be used.
+ * @return
+ *     The input key if it can be reused, otherwise, a new key.
+ */
+int32_t
+AnnotationFile::reuseUniqueKeyOrGenerateNewUniqueKey(const int32_t reuseUniqueKey)
+{
+    
+    bool canBeReusedFlag = true;
+    
+    /*
+     * Search the groups and the annotations within the groups to
+     * see if the desired unique key is already used.
+     */
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        AnnotationGroup* group = (*groupIter).data();
+        if (group->getUniqueKey() == reuseUniqueKey) {
+            canBeReusedFlag = false;
+            break;
+        }
+        else {
+            std::vector<Annotation*> groupAnnotations;
+            group->getAllAnnotations(groupAnnotations);
+            
+            for (std::vector<Annotation*>::iterator annIter = groupAnnotations.begin();
+                 annIter != groupAnnotations.end();
+                 annIter++) {
+                if ((*annIter)->getUniqueKey() == reuseUniqueKey) {
+                    canBeReusedFlag = false;
+                    break;
+                }
+            }
+        }
+    }
+    
+    /*
+     * Check annotations that were deleted since they can be undeleted
+     */
+    if (canBeReusedFlag) {
+        for (std::set<QSharedPointer<Annotation> >::iterator removedAnnIter = m_removedAnnotations.begin();
+             removedAnnIter != m_removedAnnotations.end();
+             removedAnnIter++) {
+            if ((*removedAnnIter)->getUniqueKey() == reuseUniqueKey) {
+                canBeReusedFlag = false;
+            }
+        }
+    }
+    
+    int32_t outputUniqueKey = -1;
+    
+    if (canBeReusedFlag) {
+        outputUniqueKey = reuseUniqueKey;
+    }
+    else {
+        outputUniqueKey = generateUniqueKey();
+    }
+    
+    return outputUniqueKey;
+}
+
 
 /**
  * @return A new unique key (each annotation and

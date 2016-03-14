@@ -458,7 +458,31 @@ AnnotationRedoUndoCommand::redo()
                                            m_annotationGroupMemento->m_annotations);
         EventManager::get()->sendEvent(groupEvent.getPointer());
         
-        m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getAnnotationGroupKeyForUndo());
+        m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
+        
+        return;
+    }
+    else if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_UNGROUP) {
+        CaretAssert(m_annotationGroupMemento);
+        
+        EventAnnotationGrouping groupEvent;
+        groupEvent.setModeUngroupAnnotations(m_annotationGroupMemento->m_annotationGroupKey);
+        
+        EventManager::get()->sendEvent(groupEvent.getPointer());
+        
+        m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
+
+        return;
+    }
+    else if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_REGROUP) {
+        CaretAssert(m_annotationGroupMemento);
+        
+        EventAnnotationGrouping groupEvent;
+        groupEvent.setModeRegroupAnnotations(m_annotationGroupMemento->m_annotationGroupKey);
+        
+        EventManager::get()->sendEvent(groupEvent.getPointer());
+        
+        m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
         
         return;
     }
@@ -509,8 +533,7 @@ AnnotationRedoUndoCommand::undo()
     if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP) {
         CaretAssert(m_annotationGroupMemento);
         EventAnnotationGrouping groupEvent;
-        groupEvent.setModeUngroupAnnotations(m_annotationGroupMemento->m_undoAnnotationGroupKey,
-                                             m_annotationGroupMemento->m_annotations);
+        groupEvent.setModeUngroupAnnotations(m_annotationGroupMemento->m_undoAnnotationGroupKey);
         EventManager::get()->sendEvent(groupEvent.getPointer());
         
         return;
@@ -1125,7 +1148,11 @@ AnnotationRedoUndoCommand::setModeGroupingGroupAnnotations(const AnnotationGroup
 void
 AnnotationRedoUndoCommand::setModeGroupingUngroupAnnotations(const AnnotationGroupKey& annotationGroupKey)
 {
-    
+    m_mode = AnnotationRedoUndoCommandModeEnum::GROUPING_UNGROUP;
+    setDescription("Ungroup Annotations");
+    std::vector<Annotation*> emptyAnnotations;
+    m_annotationGroupMemento = new AnnotationGroupMemento(annotationGroupKey,
+                                                          emptyAnnotations);
 }
 
 /**
@@ -1137,7 +1164,11 @@ AnnotationRedoUndoCommand::setModeGroupingUngroupAnnotations(const AnnotationGro
 void
 AnnotationRedoUndoCommand::setModeGroupingRegroupAnnotations(const AnnotationGroupKey& annotationGroupKey)
 {
-    
+    m_mode = AnnotationRedoUndoCommandModeEnum::GROUPING_REGROUP;
+    setDescription("Regroup Annotations");
+    std::vector<Annotation*> emptyAnnotations;
+    m_annotationGroupMemento = new AnnotationGroupMemento(annotationGroupKey,
+                                                          emptyAnnotations);
 }
 
 /**

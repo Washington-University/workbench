@@ -161,6 +161,8 @@ namespace caret {
         
         int32_t generateUniqueKey();
         
+        int32_t reuseUniqueKeyOrGenerateNewUniqueKey(const int32_t reuseUniqueKey);
+        
         void updateUniqueKeysAfterReadingFile();
         
         AnnotationGroup* getSpaceAnnotationGroup(const Annotation* annotation);
