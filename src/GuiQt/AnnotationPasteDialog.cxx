@@ -370,7 +370,7 @@ AnnotationPasteDialog::okButtonClicked()
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     undoCommand->setModePasteAnnotation(m_annotationFile,
                                         annotationPointer);
-    annotationManager->applyCommand(undoCommand);    
+    annotationManager->applyCommand(undoCommand);
     
     annotationManager->selectAnnotation(m_mouseEvent.getBrowserWindowIndex(),
                                         AnnotationManager::SELECTION_MODE_SINGLE,

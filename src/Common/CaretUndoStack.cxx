@@ -271,6 +271,30 @@ CaretUndoStack::command(const int32_t index) const
 }
 
 /**
+ * Execute (redo()) the command and then push the command.
+ *
+ * @seealso push()
+ *
+ * @param newCommand
+ *    Command that is executed and then pushed onto the stack.
+ * @param windowIndex
+ *     Index of window (may be invalid => negative)
+ */
+void
+CaretUndoStack::pushAndRedo(CaretUndoCommand* newCommand,
+                            const int32_t windowIndex)
+{
+    CaretAssert(newCommand);
+ 
+    newCommand->setWindowIndex(windowIndex);
+    newCommand->redo();
+    newCommand->setWindowIndex(-1);
+    
+    push(newCommand);
+}
+
+
+/**
  * Pushes the given command onto the stack.  Unlike QUndoStack the
  * command's redo() method IS NOT called.
  *
@@ -333,7 +357,38 @@ CaretUndoStack::push(CaretUndoCommand* newCommand)
 }
 
 /**
- * Redoes the current command by calling QUndoCommand::redo(). 
+ * Redoes the current command by calling QUndoCommand::redo().
+ * Increments the current command index.
+ *
+ * If the stack is empty, or if the top command on the stack has already
+ * been redone, this function does nothing.
+ *
+ * @param windowIndex
+ *     Index of window in which redo was requested.
+ */
+void
+CaretUndoStack::redoInWindow(const int32_t windowIndex)
+{
+//    redo();
+    
+    if (m_undoStack.empty()) {
+        return;
+    }
+    
+    if ((m_undoStackIndex >= 0)
+        && (m_undoStackIndex < count())) {
+        CaretUndoCommand* command = m_undoStack.at(m_undoStackIndex);
+        CaretAssert(command);
+        command->setWindowIndex(windowIndex);
+        redoCommand(command);
+        command->setWindowIndex(-1);
+        ++m_undoStackIndex;
+    }
+}
+
+
+/**
+ * Redoes the current command by calling QUndoCommand::redo().
  * Increments the current command index. 
  *
  * If the stack is empty, or if the top command on the stack has already
@@ -342,15 +397,17 @@ CaretUndoStack::push(CaretUndoCommand* newCommand)
 void
 CaretUndoStack::redo()
 {
-    if (m_undoStack.empty()) {
-        return;
-    }
+    redoInWindow(-1);
     
-    if ((m_undoStackIndex >= 0)
-        && (m_undoStackIndex < count())) {
-        redoCommand(m_undoStack.at(m_undoStackIndex));
-        ++m_undoStackIndex;
-    }
+//    if (m_undoStack.empty()) {
+//        return;
+//    }
+//    
+//    if ((m_undoStackIndex >= 0)
+//        && (m_undoStackIndex < count())) {
+//        redoCommand(m_undoStack.at(m_undoStackIndex));
+//        ++m_undoStackIndex;
+//    }
 }
 
 /**
@@ -372,9 +429,38 @@ CaretUndoStack::redoText()
     return text;
 }
 
+/**
+ * Undoes the command below the current command by calling QUndoCommand::undo().
+ * Decrements the current command index.
+ *
+ * If the stack is empty, or if the bottom command on the stack has already
+ * been undone, this function does nothing.
+ *
+ * @param windowIndex
+ *     Index of window in which undo was requested.
+ */
+void
+CaretUndoStack::undoInWindow(const int32_t windowIndex)
+{
+//    undo();
+    
+    if (m_undoStack.empty()) {
+        return;
+    }
+    
+    if ((m_undoStackIndex > 0)
+        && (m_undoStackIndex <= count())) {
+        --m_undoStackIndex;
+        CaretUndoCommand* command = m_undoStack.at(m_undoStackIndex);
+        CaretAssert(command);
+        command->setWindowIndex(windowIndex);
+        undoCommand(command);
+        command->setWindowIndex(-1);
+    }
+}
 
 /**
- * Undoes the command below the current command by calling QUndoCommand::undo(). 
+ * Undoes the command below the current command by calling QUndoCommand::undo().
  * Decrements the current command index.
  *
  * If the stack is empty, or if the bottom command on the stack has already 
@@ -383,15 +469,17 @@ CaretUndoStack::redoText()
 void
 CaretUndoStack::undo()
 {
-    if (m_undoStack.empty()) {
-        return;
-    }
+    undoInWindow(-1);
     
-    if ((m_undoStackIndex > 0)
-        && (m_undoStackIndex <= count())) {
-        --m_undoStackIndex;
-        undoCommand(m_undoStack.at(m_undoStackIndex));
-    }
+//    if (m_undoStack.empty()) {
+//        return;
+//    }
+//    
+//    if ((m_undoStackIndex > 0)
+//        && (m_undoStackIndex <= count())) {
+//        --m_undoStackIndex;
+//        undoCommand(m_undoStack.at(m_undoStackIndex));
+//    }
 }
 
 
@@ -487,6 +575,3 @@ CaretUndoStack::undoAll()
         undo();
     }
 }
-
-
-

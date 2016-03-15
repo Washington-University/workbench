@@ -91,6 +91,10 @@ namespace caret {
         
         virtual bool mergeWith(const CaretUndoCommand* command);
 
+        int32_t getWindowIndex() const;
+        
+        void setWindowIndex(const int32_t windowIndex);
+        
         /**
          * Operation that "redoes" the command.
          */
@@ -109,6 +113,8 @@ namespace caret {
         CaretUndoCommand& operator=(const CaretUndoCommand&);
         
         AString m_description;
+        
+        int32_t m_windowIndex;
         
         bool m_mergeFlag;
         

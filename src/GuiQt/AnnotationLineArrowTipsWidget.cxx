@@ -177,8 +177,8 @@ AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
         undoCommand->setModeLineArrowEnd(m_endArrowToolButton->isChecked(),
                                          m_annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        annMan->applyCommand(undoCommand);
-        
+    annMan->applyCommand(undoCommand);
+    
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     

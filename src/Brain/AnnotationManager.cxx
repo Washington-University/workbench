@@ -124,26 +124,50 @@ AnnotationManager::reset()
 void
 AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command)
 {
+    applyCommandInWindow(command, -1);
+}
+
+/**
+ * Apply a new command to the selected annotations.  After execution of
+ * the command, the command is placed on the undo stack so that the
+ * user can undo or redo the command.
+ *
+ * @param command
+ *     Command that will be applied to the selected annotations.
+ *     Annotation manager will take ownership of the command and
+ *     destroy it at the appropriate time.
+ * @param windowIndex
+ *     Index of window in which command was requested.
+ */
+void
+AnnotationManager::applyCommandInWindow(AnnotationRedoUndoCommand* command,
+                                        const int32_t windowIndex)
+{
      CaretAssert(command);
     
     /*
      * Ignore command if it does not apply to any annotations
      */
     if ( ! command->isValid()) {
-//    if (command->count() <= 0) {
         delete command;
         return;
     }
     
     /*
-     * "Redo" applies the command
+     * "Redo" the command and add it to the undo stack
      */
-    command->redo();
-
-    /*
-     * Add command to undo stack
-     */
-    m_annotationRedoUndoStack->push(command);
+    m_annotationRedoUndoStack->pushAndRedo(command,
+                                           windowIndex);
+    
+//    /*
+//     * "Redo" applies the command
+//     */
+//    command->redo();
+//
+//    /*
+//     * Add command to undo stack
+//     */
+//    m_annotationRedoUndoStack->push(command);
 }
 
 /**
@@ -644,7 +668,8 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingGroupAnnotations(annotationGroupKey,
                                                      annotations);
-            applyCommand(command);
+            applyCommandInWindow(command,
+                                 windowIndex);
             
 //            EventAnnotationGrouping groupEvent;
 //            groupEvent.setModeGroupAnnotations(annotationGroupKey,
@@ -672,7 +697,8 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingRegroupAnnotations(annotationGroupKey);
             
-            applyCommand(command);
+            applyCommandInWindow(command,
+                                 windowIndex);
         }
             break;
         case AnnotationGroupingModeEnum::UNGROUP:
@@ -691,7 +717,8 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingUngroupAnnotations(annotationGroupKey);
             
-            applyCommand(command);
+            applyCommandInWindow(command,
+                                 windowIndex);
             
 //            EventAnnotationGrouping groupEvent;
 //            groupEvent.setModeUngroupAnnotations(annotationGroupKey,

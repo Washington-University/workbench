@@ -45,12 +45,15 @@ namespace caret {
         
         virtual ~EventAnnotationGrouping();
         
-        void setModeGroupAnnotations(const AnnotationGroupKey spaceGroupKey,
+        void setModeGroupAnnotations(const int32_t windowIndex,
+                                     const AnnotationGroupKey spaceGroupKey,
                                      std::vector<Annotation*>& annotations);
 
-        void setModeUngroupAnnotations(const AnnotationGroupKey userGroupKey);
+        void setModeUngroupAnnotations(const int32_t windowIndex,
+                                       const AnnotationGroupKey userGroupKey);
         
-        void setModeRegroupAnnotations(const AnnotationGroupKey userGroupKey);
+        void setModeRegroupAnnotations(const int32_t windowIndex,
+                                       const AnnotationGroupKey userGroupKey);
         
         Mode getMode() const;
         
@@ -62,6 +65,8 @@ namespace caret {
         
         void setGroupKeyToWhichAnnotationsWereMoved(const AnnotationGroupKey& movedToKey);
         
+        int32_t getWindowIndex() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -71,6 +76,8 @@ namespace caret {
         EventAnnotationGrouping& operator=(const EventAnnotationGrouping&);
         
         Mode m_mode;
+        
+        int32_t m_windowIndex;
         
         AnnotationGroupKey m_annotationGroupKey;
         

@@ -95,6 +95,7 @@ using namespace caret;
  */
 CaretUndoCommand::CaretUndoCommand()
 : CaretObject(),
+m_windowIndex(-1),
 m_mergeFlag(false)
 {
 }
@@ -156,6 +157,27 @@ CaretUndoCommand::setMergeEnabled(const bool mergeStatus)
     m_mergeFlag = mergeStatus;
 }
 
+/**
+ * @return Index of window in which command is executed.
+ * Will be negative if not valid.
+ */
+int32_t
+CaretUndoCommand::getWindowIndex() const
+{
+    return m_windowIndex;
+}
+
+/**
+ * Set index of window in which command is executed.
+ *
+ * @param windowIndex
+ *     Index of window.  Will be negative if invalid.
+ */
+void
+CaretUndoCommand::setWindowIndex(const int32_t windowIndex)
+{
+    m_windowIndex = windowIndex;
+}
 
 /**
  * Attempts to merge this command with command. Returns true on success; otherwise returns false.

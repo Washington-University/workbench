@@ -72,6 +72,9 @@ namespace caret {
 
         void applyCommand(AnnotationRedoUndoCommand* command);
         
+        void applyCommandInWindow(AnnotationRedoUndoCommand* command,
+                                  const int32_t windowIndex);
+        
         void reset();
         
         void deselectAllAnnotations(const int32_t windowIndex);

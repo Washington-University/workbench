@@ -454,7 +454,8 @@ AnnotationRedoUndoCommand::redo()
     if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP) {
         CaretAssert(m_annotationGroupMemento);
         EventAnnotationGrouping groupEvent;
-        groupEvent.setModeGroupAnnotations(m_annotationGroupMemento->m_annotationGroupKey,
+        groupEvent.setModeGroupAnnotations(getWindowIndex(),
+                                           m_annotationGroupMemento->m_annotationGroupKey,
                                            m_annotationGroupMemento->m_annotations);
         EventManager::get()->sendEvent(groupEvent.getPointer());
         
@@ -466,11 +467,12 @@ AnnotationRedoUndoCommand::redo()
         CaretAssert(m_annotationGroupMemento);
         
         EventAnnotationGrouping groupEvent;
-        groupEvent.setModeUngroupAnnotations(m_annotationGroupMemento->m_annotationGroupKey);
+        groupEvent.setModeUngroupAnnotations(getWindowIndex(),
+                                             m_annotationGroupMemento->m_annotationGroupKey);
         
         EventManager::get()->sendEvent(groupEvent.getPointer());
         
-        m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
+        //m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
 
         return;
     }
@@ -478,7 +480,8 @@ AnnotationRedoUndoCommand::redo()
         CaretAssert(m_annotationGroupMemento);
         
         EventAnnotationGrouping groupEvent;
-        groupEvent.setModeRegroupAnnotations(m_annotationGroupMemento->m_annotationGroupKey);
+        groupEvent.setModeRegroupAnnotations(getWindowIndex(),
+                                             m_annotationGroupMemento->m_annotationGroupKey);
         
         EventManager::get()->sendEvent(groupEvent.getPointer());
         
@@ -533,8 +536,35 @@ AnnotationRedoUndoCommand::undo()
     if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP) {
         CaretAssert(m_annotationGroupMemento);
         EventAnnotationGrouping groupEvent;
-        groupEvent.setModeUngroupAnnotations(m_annotationGroupMemento->m_undoAnnotationGroupKey);
+        groupEvent.setModeUngroupAnnotations(getWindowIndex(),
+                                             m_annotationGroupMemento->m_undoAnnotationGroupKey);
         EventManager::get()->sendEvent(groupEvent.getPointer());
+        
+        return;
+    }
+    else if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_UNGROUP) {
+        CaretAssert(m_annotationGroupMemento);
+        
+        EventAnnotationGrouping groupEvent;
+        groupEvent.setModeRegroupAnnotations(getWindowIndex(),
+                                             m_annotationGroupMemento->m_annotationGroupKey);
+        
+        EventManager::get()->sendEvent(groupEvent.getPointer());
+        
+        //m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
+        
+        return;
+    }
+    else if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_REGROUP) {
+        CaretAssert(m_annotationGroupMemento);
+        
+        EventAnnotationGrouping groupEvent;
+        groupEvent.setModeUngroupAnnotations(getWindowIndex(),
+                                             m_annotationGroupMemento->m_undoAnnotationGroupKey);
+        
+        EventManager::get()->sendEvent(groupEvent.getPointer());
+        
+        m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
         
         return;
     }

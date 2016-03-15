@@ -100,11 +100,18 @@ namespace caret {
         
         void push(CaretUndoCommand* newCommand);
         
+        void pushAndRedo(CaretUndoCommand* newCommand,
+                         const int32_t windowIndex);
+        
         void redo();
+        
+        void redoInWindow(const int32_t windowIndex);
         
         AString redoText();
         
         void undo();
+        
+        void undoInWindow(const int32_t windowIndex);
         
         void undoAll();
         

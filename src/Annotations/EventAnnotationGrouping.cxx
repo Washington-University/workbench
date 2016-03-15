@@ -57,16 +57,21 @@ EventAnnotationGrouping::~EventAnnotationGrouping()
 /**
  * Set the mode to group annotations.
  *
+ * @param windowIndex
+ *     Index of window in which operation was requested.  
+ *     Will be negative if invalid.
  * @param spaceGroupKey
  *     The annotation space group key whose annotations are moved into a user group.
  * @param annotations
  *     Annotations move to user group.
  */
 void
-EventAnnotationGrouping::setModeGroupAnnotations(const AnnotationGroupKey spaceGroupKey,
+EventAnnotationGrouping::setModeGroupAnnotations(const int32_t windowIndex,
+                                                 const AnnotationGroupKey spaceGroupKey,
                                                  std::vector<Annotation*>& annotations)
 {
     m_mode               = MODE_GROUP;
+    m_windowIndex        = windowIndex;
     m_annotationGroupKey = spaceGroupKey;
     m_annotations        = annotations;
 }
@@ -74,26 +79,36 @@ EventAnnotationGrouping::setModeGroupAnnotations(const AnnotationGroupKey spaceG
 /**
  * Set the mode to ungroup annotations.
  *
+ * @param windowIndex
+ *     Index of window in which operation was requested.
+ *     Will be negative if invalid.
  * @param userGroupKey
  *     The annotation user group key whose annotations are moved out of a user group.
  */
 void
-EventAnnotationGrouping::setModeUngroupAnnotations(const AnnotationGroupKey userGroupKey)
+EventAnnotationGrouping::setModeUngroupAnnotations(const int32_t windowIndex,
+                                                   const AnnotationGroupKey userGroupKey)
 {
     m_mode               = MODE_UNGROUP;
+    m_windowIndex        = windowIndex;
     m_annotationGroupKey = userGroupKey;
 }
 
 /**
  * Set the mode to regroup annotations.
  *
+ * @param windowIndex
+ *     Index of window in which operation was requested.
+ *     Will be negative if invalid.
  * @param userGroupKey
  *     The annotation user group key whose annotations are moved back to a user group.
  */
 void
-EventAnnotationGrouping::setModeRegroupAnnotations(const AnnotationGroupKey userGroupKey)
+EventAnnotationGrouping::setModeRegroupAnnotations(const int32_t windowIndex,
+                                                   const AnnotationGroupKey userGroupKey)
 {
     m_mode               = MODE_REGROUP;
+    m_windowIndex        = windowIndex;
     m_annotationGroupKey = userGroupKey;
 }
 
@@ -151,3 +166,14 @@ EventAnnotationGrouping::getAnnotations() const
 {
     return m_annotations;
 }
+
+/**
+ * @return Index of window in which operation was requested.
+ *         Will be negative if invalid.
+ */
+int32_t
+EventAnnotationGrouping::getWindowIndex() const
+{
+    return m_windowIndex;
+}
+

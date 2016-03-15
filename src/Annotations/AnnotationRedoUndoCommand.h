@@ -199,11 +199,13 @@ namespace caret {
         class AnnotationGroupMemento {
         public:
             AnnotationGroupMemento(const AnnotationGroupKey& annotationGroupKey) {
+                m_windowIndex        = -1;
                 m_annotationGroupKey = annotationGroupKey;
             }
 
             AnnotationGroupMemento(const AnnotationGroupKey& annotationGroupKey,
                                    const std::vector<Annotation*>& annotations) {
+                m_windowIndex        = -1;
                 m_annotationGroupKey = annotationGroupKey;
                 m_annotations        = annotations;
             }
@@ -221,6 +223,8 @@ namespace caret {
             std::vector<Annotation*> m_annotations;
             
             AnnotationGroupKey m_undoAnnotationGroupKey;
+            
+            int32_t m_windowIndex;
             
         };
         

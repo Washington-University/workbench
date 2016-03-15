@@ -121,7 +121,7 @@ AnnotationRedoUndoWidget::redoActionTriggered()
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
-    undoStack->redo();
+    undoStack->redoInWindow(m_browserWindowIndex);
 
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -135,7 +135,7 @@ AnnotationRedoUndoWidget::undoActionTriggered()
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
-    undoStack->undo();
+    undoStack->undoInWindow(m_browserWindowIndex);
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

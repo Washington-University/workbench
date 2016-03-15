@@ -1042,10 +1042,12 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
         }
     }
 
+    const int32_t windowIndex = groupingEvent->getWindowIndex();
+    
     /*
      * Annotations must be in one space group (same space!)
      */
-    if  (groups.size() == 1) {
+    if (groups.size() == 1) {
         AnnotationGroup* spaceGroup = *(groups.begin());
         const int32_t numAnn = static_cast<int32_t>(annotations.size());
         if (numAnn > 1) {
@@ -1073,6 +1075,11 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
             for (std::vector<QSharedPointer<Annotation> >::iterator annPtrIter = movedAnnotations.begin();
                  annPtrIter != movedAnnotations.end();
                  annPtrIter++) {
+                if ((windowIndex >= 0)
+                    && (windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
+                    (*annPtrIter)->setSelected(windowIndex,
+                                               true);
+                }
                 group->addAnnotationPrivateSharedPointer(*annPtrIter);
             }
             m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
