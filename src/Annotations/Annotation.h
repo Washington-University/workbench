@@ -223,6 +223,8 @@ namespace caret {
     private:
         void setAnnotationGroupKey(const AnnotationGroupKey& annotationGroupKey);
 
+        void invalidateAnnotationGroupKey();
+        
         void setUniqueKey(const int32_t uniqueKey);
         
         SceneClassAssistant* m_sceneAssistant;

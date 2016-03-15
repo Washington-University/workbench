@@ -766,7 +766,7 @@ AnnotationFile::removeAnnotation(Annotation* annotation)
         if (group->removeAnnotation(annotation,
                                     removedAnnotationPointer)) {
             
-            removedAnnotationPointer->setAnnotationGroupKey(AnnotationGroupKey());
+            removedAnnotationPointer->invalidateAnnotationGroupKey();
             
             m_removedAnnotations.insert(removedAnnotationPointer);
             

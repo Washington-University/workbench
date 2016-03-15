@@ -1010,7 +1010,9 @@ Annotation::setAnnotationGroupKey(const AnnotationGroupKey& annotationGroupKey)
     
     switch (newGroupKeyForAnnotation.getGroupType()) {
         case AnnotationGroupTypeEnum::INVALID:
-            CaretAssert(0);
+            CaretAssertMessage(0,
+                               "Do not call this method with invalid key.  "
+                               "Instead call invalidateAnnotationGroupKey().");
             break;
         case AnnotationGroupTypeEnum::SPACE:
             CaretAssert(newGroupKeyForAnnotation.getSpaceGroupUniqueKey() > 0);
@@ -1032,6 +1034,14 @@ Annotation::setAnnotationGroupKey(const AnnotationGroupKey& annotationGroupKey)
     m_annotationGroupKey = newGroupKeyForAnnotation;
 }
 
+/**
+ * Set the annotation group key so that it is invalid.
+ */
+void
+Annotation::invalidateAnnotationGroupKey()
+{
+    m_annotationGroupKey = AnnotationGroupKey();
+}
 
 /**
  * Set the unique key for this annotation.  This method is
