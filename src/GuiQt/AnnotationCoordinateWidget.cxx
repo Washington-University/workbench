@@ -152,23 +152,26 @@ m_browserWindowIndex(browserWindowIndex)
     m_plusButtonToolTipText = ("Click the mouse to set the new location for the coordinate.\n"
                                "After clicking the mouse, a dialog allows selection of the\n"
                                "coordinate space.");
-    QAction* setCoordinateAction = WuQtUtilities::createAction("+",
-                                                               ("After pressing this button: \n"
-                                                                + m_plusButtonToolTipText),
-                                                               this,
-                                                               this,
-                                                               SLOT(setCoordinateActionTriggered()));
     
 
     QToolButton* setCoordinateToolButton = NULL;
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-            setCoordinateToolButton = new QToolButton();
-            setCoordinateToolButton->setDefaultAction(setCoordinateAction);
+            // disabled as change space cause grouping problems.   setCoordinateToolButton = new QToolButton();
             break;
         case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
             CaretAssert(0);
             break;
+    }
+    
+    if (setCoordinateToolButton != NULL) {
+        QAction* setCoordinateAction = WuQtUtilities::createAction("+",
+                                                                   ("After pressing this button: \n"
+                                                                    + m_plusButtonToolTipText),
+                                                                   this,
+                                                                   this,
+                                                                   SLOT(setCoordinateActionTriggered()));
+        setCoordinateToolButton->setDefaultAction(setCoordinateAction);
     }
     
     m_surfaceWidget = new QWidget();
