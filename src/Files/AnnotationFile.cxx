@@ -1403,16 +1403,54 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveInterface
                                 "annotation file.");
     }
     
-    CaretAssertMessage(0, "Need to copy annotation groups.  Should be able to copy groups with their unique keys since new file");
-//    for (AnnotationIterator annIter = m_annotations.begin();
-//         annIter != m_annotations.end();
-//         annIter++) {
-//        const Annotation* ann = (*annIter).data();
-//        CaretAssert(ann);
-//        Annotation* annCopy = ann->clone();
-//        CaretAssert(annCopy);
-//        addAnnotationPrivate(annCopy);
-//    }
+    std::vector<AnnotationGroup*> annotationGroups;
+    copyFromFile->getAllAnnotationGroups(annotationGroups);
+    
+    for (std::vector<AnnotationGroup*>::iterator groupIter = annotationGroups.begin();
+         groupIter != annotationGroups.end();
+         groupIter++) {
+        const AnnotationGroup* groupToCopy = *groupIter;
+        CaretAssert(groupToCopy);
+        
+        const int32_t numAnnInGroupToCopy = groupToCopy->getNumberOfAnnotations();
+        if (numAnnInGroupToCopy > 0) {
+            AnnotationGroup* group = NULL;
+            switch (groupToCopy->getGroupType()) {
+                case AnnotationGroupTypeEnum::INVALID:
+                    break;
+                case AnnotationGroupTypeEnum::SPACE:
+                    /*
+                     * All annotations in a group are in identical spaces
+                     * so use the first annotation to find the space group.
+                     */
+                    group = getSpaceAnnotationGroup(groupToCopy->getAnnotation(0));
+                    break;
+                case AnnotationGroupTypeEnum::USER:
+                    /*
+                     * Create a new user group
+                     */
+                    group = new AnnotationGroup(this,
+                                                AnnotationGroupTypeEnum::USER,
+                                                generateUniqueKey(),
+                                                groupToCopy->getCoordinateSpace(),
+                                                groupToCopy->getTabOrWindowIndex());
+                    m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
+                    break;
+            }
+            
+            CaretAssert(group);
+            
+            /*
+             * Copy annotations and add them to the group.
+             */
+            for (int32_t ia = 0; ia < numAnnInGroupToCopy; ia++) {
+                const Annotation* annToCopy = groupToCopy->getAnnotation(ia);
+                CaretAssert(annToCopy);
+                Annotation* ann = annToCopy->clone();
+                group->addAnnotationPrivate(ann);
+            }
+        }
+    }
 }
 
 /**
