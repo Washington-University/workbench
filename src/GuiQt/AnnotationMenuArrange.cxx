@@ -153,10 +153,10 @@ AnnotationMenuArrange::addGroupingSelections()
         const QString enumText = AnnotationGroupingModeEnum::toGuiName(groupingMode);
         const QString enumName = AnnotationGroupingModeEnum::toName(groupingMode);
         
-        //        QPixmap pixmap = createDistributePixmap(this, annDist);
+        QPixmap pixmap = createGroupingPixmap(this, groupingMode);
         
         QAction* action = addAction(enumText);
-        //        action->setIcon(pixmap);
+        action->setIcon(pixmap);
         action->setData(enumName);
         
         switch (groupingMode) {
@@ -500,7 +500,7 @@ AnnotationMenuArrange::createAlignmentPixmap(const QWidget* widget,
  * @param distribute
  *    The distribute type.
  * @return
- *    Pixmap with icon for the given alignment.
+ *    Pixmap with icon for the given distribute.
  */
 QPixmap
 AnnotationMenuArrange::createDistributePixmap(const QWidget* widget,
@@ -569,6 +569,150 @@ AnnotationMenuArrange::createDistributePixmap(const QWidget* widget,
     
     return pixmap;
 }
+
+/**
+ * Create a grouping pixmap.
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @param grouping
+ *    The grouping type.
+ * @return
+ *    Pixmap with icon for the given grouping.
+ */
+QPixmap
+AnnotationMenuArrange::createGroupingPixmap(const QWidget* widget,
+                                            const AnnotationGroupingModeEnum::Enum grouping)
+{
+    CaretAssert(widget);
+    
+    const float pixmapSize = 24.0;
+    
+    QPixmap pixmap(static_cast<int>(pixmapSize),
+                   static_cast<int>(pixmapSize));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginCenter100x100(widget,
+                                                                                                   pixmap);
+    
+    const float xyOne = 75.0;
+    const float xyTwo = 25.0;
+    const float boxSize = 100.0;
+    
+    painter->drawRect(-xyOne, -xyTwo, boxSize, boxSize);
+    painter->drawRect(-xyTwo, -xyOne, boxSize, boxSize);
+    
+//    painter->drawLine(-100.0, 100.0, 100.0, -100.0);
+//    QBrush foregroundBrush = widget->palette().brush(widget->foregroundRole());
+//    QPen foregroundPen = painter->pen();
+QColor foregroundColor = widget->palette().brush(widget->foregroundRole()).color();
+//    
+//    
+//    
+//    const qreal minInset = 2;
+//    const qreal minInset2 = minInset * 2;
+//    const qreal minInset3 = minInset * 3;
+//    const qreal maxInset = pixmapSize - minInset;
+//    
+//    const QLineF horizontalLine(minInset, 0.0, maxInset, 0.0);
+//    const QLineF verticalLine(0.0, minInset, 0.0, maxInset);
+//    
+//    const qreal rectangleThickness = pixmapSize * 0.15;
+//    const qreal longRectangleLength = pixmapSize - (minInset3 * 2);
+//    const qreal shortRectangleLength = longRectangleLength * 0.50;
+//    const qreal midSizeRectangleLength = longRectangleLength * 0.75;
+//    const QRectF longVerticalRectangle(QPointF(0.0, 0.0),
+//                                       QPointF(rectangleThickness, longRectangleLength));
+//    const QRectF midSizeVerticalRectangle(QPointF(0.0, 0.0),
+//                                          QPointF(rectangleThickness, midSizeRectangleLength));
+//    const QRectF shortVerticalRectangle(QPointF(0.0, 0.0),
+//                                        QPointF(rectangleThickness, shortRectangleLength));
+//    const qreal shortVerticalRectangleOffset = halfPixmapSize - (rectangleThickness / 2.0);
+//    const qreal midSizeVerticalRectangleOffset = pixmapSize - minInset2 - rectangleThickness;
+//    
+//    const QRectF longHorizontalRectangle(QPointF(0.0, 0.0),
+//                                         QPointF(longRectangleLength, rectangleThickness));
+//    const QRectF midSizeHorizontalRectangle(QPointF(0.0, 0.0),
+//                                            QPointF(midSizeRectangleLength, rectangleThickness));
+//    const QRectF shortHorizontalRectangle(QPointF(0.0, 0.0),
+//                                          QPointF(shortRectangleLength, rectangleThickness));
+//    
+//    const qreal shortRectangleSpace = pixmapSize - shortRectangleLength;
+//    const qreal midSizeRectangleSpace = pixmapSize - midSizeRectangleLength;
+//    
+//    QBrush foregroundBrush = widget->palette().brush(widget->foregroundRole());
+//    QPen foregroundPen = painter->pen();
+//    QColor foregroundColor = widget->palette().brush(widget->foregroundRole()).color();
+    
+    painter->setBrush(foregroundColor);
+    const float dotSize = 20.0;
+    switch (grouping) {
+        case AnnotationGroupingModeEnum::GROUP:
+            painter->drawEllipse(QPointF(-xyOne, -xyOne), dotSize, dotSize);
+            painter->drawEllipse(QPointF( xyOne, -xyOne), dotSize, dotSize);
+            painter->drawEllipse(QPointF( xyOne,  xyOne), dotSize, dotSize);
+            painter->drawEllipse(QPointF(-xyOne,  xyOne), dotSize, dotSize);
+            break;
+        case AnnotationGroupingModeEnum::REGROUP:
+            painter->drawEllipse(QPointF(-xyOne, -xyOne), dotSize, dotSize);
+            painter->drawEllipse(QPointF( xyOne, -xyOne), dotSize, dotSize);
+            painter->drawEllipse(QPointF( xyOne,  xyOne), dotSize, dotSize);
+            painter->drawEllipse(QPointF(-xyOne,  xyOne), dotSize, dotSize);
+            if (grouping == AnnotationGroupingModeEnum::REGROUP) {
+                QVector<QPoint> points;
+//                points.push_back(QPoint(-80, -80));
+//                points.push_back(QPoint(-80, -5));
+//                points.push_back(QPoint(  0, -5));
+//                points.push_back(QPoint(  0, -50));
+//                points.push_back(QPoint( 50,   0));
+//                points.push_back(QPoint(  0,  50));
+//                points.push_back(QPoint(  0,  5));
+//                points.push_back(QPoint(-90,  5));
+//                points.push_back(QPoint(-90, -80));
+//                points.push_back(QPoint(-80, -80));
+                
+                points.push_back(QPoint(-100, -10));
+                points.push_back(QPoint( 10, -10));
+                points.push_back(QPoint( 10, -50));
+                points.push_back(QPoint( 80,   0));
+                points.push_back(QPoint( 10,  50));
+                points.push_back(QPoint( 10,  10));
+                points.push_back(QPoint(-100,  10));
+                points.push_back(QPoint(-100, -10));
+                
+                painter->drawPolygon(QPolygon(points));
+            }
+            break;
+        case AnnotationGroupingModeEnum::UNGROUP:
+            painter->drawEllipse(QPointF(-xyTwo, -xyOne), dotSize, dotSize);
+            painter->drawEllipse(QPointF(-xyTwo + boxSize, -xyOne), dotSize, dotSize);
+            painter->drawEllipse(QPointF(-xyTwo + boxSize, -xyOne + boxSize), dotSize, dotSize);
+            painter->drawEllipse(QPointF(-xyTwo, -xyOne + boxSize), dotSize, dotSize);
+            painter->drawEllipse(QPointF(-xyOne, -xyTwo), dotSize, dotSize);
+            painter->drawEllipse(QPointF(-xyOne + boxSize, -xyTwo), dotSize, dotSize);
+            painter->drawEllipse(QPointF(-xyOne + boxSize, -xyTwo + boxSize), dotSize, dotSize);
+            painter->drawEllipse(QPointF(-xyOne, -xyTwo + boxSize), dotSize, dotSize);
+
+            //80.0  40.0
+            break;
+//        case AnnotationDistributeEnum::HORIZONTALLY:
+//            drawLine(painter, horizontalLine, 0.0, maxInset);
+//            drawLine(painter, horizontalLine, 0.0, minInset);
+//            drawRect(painter, foregroundColor, longVerticalRectangle, minInset2, minInset3);
+//            drawRect(painter, foregroundColor, shortVerticalRectangle, shortVerticalRectangleOffset, (shortRectangleSpace / 2.0));
+//            drawRect(painter, foregroundColor, midSizeVerticalRectangle, midSizeVerticalRectangleOffset, (midSizeRectangleSpace / 2.0));
+//            break;
+//        case AnnotationDistributeEnum::VERTICALLY:
+//            drawLine(painter, verticalLine, minInset, 0.0);
+//            drawLine(painter, verticalLine, maxInset, 0.0);
+//            drawRect(painter, foregroundColor, longHorizontalRectangle, minInset3, minInset2);
+//            drawRect(painter, foregroundColor, shortHorizontalRectangle, (shortRectangleSpace / 2.0), shortVerticalRectangleOffset);
+//            drawRect(painter, foregroundColor, midSizeHorizontalRectangle, (midSizeRectangleSpace / 2.0), midSizeVerticalRectangleOffset);
+//            break;
+    }
+    
+    return pixmap;
+}
+
 
 /**
  * Draw a line at the given X,Y using the painter.

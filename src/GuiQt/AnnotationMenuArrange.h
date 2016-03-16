@@ -74,6 +74,9 @@ namespace caret {
         QPixmap createDistributePixmap(const QWidget* widget,
                                        const AnnotationDistributeEnum::Enum distribute);
         
+        QPixmap createGroupingPixmap(const QWidget* widget,
+                                     const AnnotationGroupingModeEnum::Enum grouping);
+        
         void drawLine(QSharedPointer<QPainter>& painter,
                       const QLineF& line,
                       const qreal x,
