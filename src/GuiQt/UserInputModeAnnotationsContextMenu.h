@@ -58,7 +58,7 @@ namespace caret {
         
         void cutAnnnotation();
         
-        void deleteAnnotation();
+        void deleteAnnotations();
         
         void pasteAnnotationFromAnnotationClipboard();
         

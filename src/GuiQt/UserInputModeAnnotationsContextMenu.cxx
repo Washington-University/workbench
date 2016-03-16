@@ -115,9 +115,10 @@ m_newAnnotationCreatedByContextMenu(NULL)
                   this, SLOT(cutAnnnotation()));
     }
     
-    if (m_annotation != NULL) {
+    //if (m_annotation != NULL) {
+    if ( ! selectedAnnotations.empty()) {
         addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::DELETER),
-                  this, SLOT(deleteAnnotation()));
+                  this, SLOT(deleteAnnotations()));
     }
     
     if (m_textAnnotation != NULL) {
@@ -176,17 +177,13 @@ UserInputModeAnnotationsContextMenu::cutAnnnotation()
  * Delete the annotation.
  */
 void
-UserInputModeAnnotationsContextMenu::deleteAnnotation()
+UserInputModeAnnotationsContextMenu::deleteAnnotations()
 {
-    CaretAssert(m_annotationFile);
-    CaretAssert(m_annotation);
- 
     /*
      * Delete the annotation that is under the mouse
      */
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> selectedAnnotations;
-    selectedAnnotations.push_back(m_annotation);
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_mouseEvent.getBrowserWindowIndex());
     if ( ! selectedAnnotations.empty()) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeDeleteAnnotations(selectedAnnotations);
