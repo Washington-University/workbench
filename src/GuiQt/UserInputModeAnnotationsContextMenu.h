@@ -24,6 +24,7 @@
 
 #include <QMenu>
 
+#include "AnnotationGroupingModeEnum.h"
 #include "MouseEvent.h"
 
 namespace caret {
@@ -66,10 +67,18 @@ namespace caret {
         
         void setAnnotationText();
         
+        void applyGroupingGroup();
+        
+        void applyGroupingRegroup();
+        
+        void applyGroupingUngroup();
+        
     private:
         UserInputModeAnnotationsContextMenu(const UserInputModeAnnotationsContextMenu&);
 
         UserInputModeAnnotationsContextMenu& operator=(const UserInputModeAnnotationsContextMenu&);
+        
+        void applyGrouping(const AnnotationGroupingModeEnum::Enum grouping);
         
         UserInputModeAnnotations* m_userInputModeAnnotations;
         

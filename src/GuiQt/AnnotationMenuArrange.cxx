@@ -128,8 +128,6 @@ AnnotationMenuArrange::addDistributeSelections()
         QAction* action = addAction(enumText);
         action->setIcon(pixmap);
         action->setData(enumName);
-        
-        //action->setEnabled(false);
     }
 }
 
@@ -247,9 +245,6 @@ AnnotationMenuArrange::menuActionTriggered(QAction* action)
 void
 AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignment)
 {
-//    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
-//    CaretAssert(bbw);
-    
     EventGetBrainOpenGLTextRenderer textRendererEvent(m_browserWindowIndex);
     EventManager::get()->sendEvent(textRendererEvent.getPointer());
     BrainOpenGLTextRenderInterface* textRenderer = textRendererEvent.getTextRenderer();
@@ -284,9 +279,6 @@ AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignm
 void
 AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum distribute)
 {
-//    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
-//    CaretAssert(bbw);
-    
     EventGetBrainOpenGLTextRenderer textRendererEvent(m_browserWindowIndex);
     EventManager::get()->sendEvent(textRendererEvent.getPointer());
     BrainOpenGLTextRenderInterface* textRenderer = textRendererEvent.getTextRenderer();
@@ -330,73 +322,6 @@ AnnotationMenuArrange::applyGrouping(const AnnotationGroupingModeEnum::Enum grou
         WuQMessageBox::errorOk(this,
                                errorMessage);
     }
-
-//    const AnnotationSelectionInformation* selectionInfo = annMan->getSelectionInformation(m_browserWindowIndex);
-//    CaretAssert(selectionInfo);
-//    
-//    if ( ! selectionInfo->isGroupingModeValid(grouping)) {
-//        const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
-//                          "should not have been called.  Grouping mode "
-//                          + AnnotationGroupingModeEnum::toGuiName(grouping)
-//                          + " is invalid for the selected annotations.");
-//        CaretAssertMessage(0, msg);
-//        CaretLogSevere(msg);
-//        return;
-//    }
-//    
-//    std::vector<AnnotationGroupKey> groupKeys = selectionInfo->getSelectedAnnotationGroupKeys();
-//    std::vector<Annotation*> annotations = selectionInfo->getSelectedAnnotations();
-//    
-//    switch (grouping) {
-//        case AnnotationGroupingModeEnum::GROUP:
-//        {
-//            if (groupKeys.size() != 1) {
-//                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
-//                                  "should not have been called.  More than one selected group.");
-//                CaretAssertMessage(0, msg);
-//                CaretLogSevere(msg);
-//                return;
-//            }
-//            CaretAssertVectorIndex(groupKeys, 0);
-//            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
-//            
-//            EventAnnotationGrouping groupEvent;
-//            groupEvent.setModeGroupAnnotations(annotationGroupKey,
-//                                               annotations);
-//            EventManager::get()->sendEvent(groupEvent.getPointer());
-//            
-//            if (groupEvent.isError()) {
-//                WuQMessageBox::errorOk(this,
-//                                       groupEvent.getErrorMessage());
-//            }
-//        }
-//            break;
-//        case AnnotationGroupingModeEnum::REGROUP:
-//            break;
-//        case AnnotationGroupingModeEnum::UNGROUP:
-//        {
-//            if (groupKeys.size() != 1) {
-//                const QString msg("PROGRAM ERROR: AnnotationMenuArrange::applyGrouping "
-//                                  "should not have been called.  More than one selected group.");
-//                CaretAssertMessage(0, msg);
-//                CaretLogSevere(msg);
-//                return;
-//            }
-//            CaretAssertVectorIndex(groupKeys, 0);
-//            const AnnotationGroupKey annotationGroupKey = groupKeys[0];
-//            
-//            EventAnnotationGrouping groupEvent;
-//            groupEvent.setModeUngroupAnnotations(annotationGroupKey,
-//                                               annotations);
-//            EventManager::get()->sendEvent(groupEvent.getPointer());
-//            
-//            if (groupEvent.isError()) {
-//                WuQMessageBox::errorOk(this,
-//                                       groupEvent.getErrorMessage());
-//            }
-//        }
-//            break;
-//    }
 
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -601,47 +526,7 @@ AnnotationMenuArrange::createGroupingPixmap(const QWidget* widget,
     painter->drawRect(-xyOne, -xyTwo, boxSize, boxSize);
     painter->drawRect(-xyTwo, -xyOne, boxSize, boxSize);
     
-//    painter->drawLine(-100.0, 100.0, 100.0, -100.0);
-//    QBrush foregroundBrush = widget->palette().brush(widget->foregroundRole());
-//    QPen foregroundPen = painter->pen();
-QColor foregroundColor = widget->palette().brush(widget->foregroundRole()).color();
-//    
-//    
-//    
-//    const qreal minInset = 2;
-//    const qreal minInset2 = minInset * 2;
-//    const qreal minInset3 = minInset * 3;
-//    const qreal maxInset = pixmapSize - minInset;
-//    
-//    const QLineF horizontalLine(minInset, 0.0, maxInset, 0.0);
-//    const QLineF verticalLine(0.0, minInset, 0.0, maxInset);
-//    
-//    const qreal rectangleThickness = pixmapSize * 0.15;
-//    const qreal longRectangleLength = pixmapSize - (minInset3 * 2);
-//    const qreal shortRectangleLength = longRectangleLength * 0.50;
-//    const qreal midSizeRectangleLength = longRectangleLength * 0.75;
-//    const QRectF longVerticalRectangle(QPointF(0.0, 0.0),
-//                                       QPointF(rectangleThickness, longRectangleLength));
-//    const QRectF midSizeVerticalRectangle(QPointF(0.0, 0.0),
-//                                          QPointF(rectangleThickness, midSizeRectangleLength));
-//    const QRectF shortVerticalRectangle(QPointF(0.0, 0.0),
-//                                        QPointF(rectangleThickness, shortRectangleLength));
-//    const qreal shortVerticalRectangleOffset = halfPixmapSize - (rectangleThickness / 2.0);
-//    const qreal midSizeVerticalRectangleOffset = pixmapSize - minInset2 - rectangleThickness;
-//    
-//    const QRectF longHorizontalRectangle(QPointF(0.0, 0.0),
-//                                         QPointF(longRectangleLength, rectangleThickness));
-//    const QRectF midSizeHorizontalRectangle(QPointF(0.0, 0.0),
-//                                            QPointF(midSizeRectangleLength, rectangleThickness));
-//    const QRectF shortHorizontalRectangle(QPointF(0.0, 0.0),
-//                                          QPointF(shortRectangleLength, rectangleThickness));
-//    
-//    const qreal shortRectangleSpace = pixmapSize - shortRectangleLength;
-//    const qreal midSizeRectangleSpace = pixmapSize - midSizeRectangleLength;
-//    
-//    QBrush foregroundBrush = widget->palette().brush(widget->foregroundRole());
-//    QPen foregroundPen = painter->pen();
-//    QColor foregroundColor = widget->palette().brush(widget->foregroundRole()).color();
+    QColor foregroundColor = widget->palette().brush(widget->foregroundRole()).color();
     
     painter->setBrush(foregroundColor);
     const float dotSize = 20.0;
@@ -659,17 +544,6 @@ QColor foregroundColor = widget->palette().brush(widget->foregroundRole()).color
             painter->drawEllipse(QPointF(-xyOne,  xyOne), dotSize, dotSize);
             if (grouping == AnnotationGroupingModeEnum::REGROUP) {
                 QVector<QPoint> points;
-//                points.push_back(QPoint(-80, -80));
-//                points.push_back(QPoint(-80, -5));
-//                points.push_back(QPoint(  0, -5));
-//                points.push_back(QPoint(  0, -50));
-//                points.push_back(QPoint( 50,   0));
-//                points.push_back(QPoint(  0,  50));
-//                points.push_back(QPoint(  0,  5));
-//                points.push_back(QPoint(-90,  5));
-//                points.push_back(QPoint(-90, -80));
-//                points.push_back(QPoint(-80, -80));
-                
                 points.push_back(QPoint(-100, -10));
                 points.push_back(QPoint( 10, -10));
                 points.push_back(QPoint( 10, -50));
@@ -691,23 +565,7 @@ QColor foregroundColor = widget->palette().brush(widget->foregroundRole()).color
             painter->drawEllipse(QPointF(-xyOne + boxSize, -xyTwo), dotSize, dotSize);
             painter->drawEllipse(QPointF(-xyOne + boxSize, -xyTwo + boxSize), dotSize, dotSize);
             painter->drawEllipse(QPointF(-xyOne, -xyTwo + boxSize), dotSize, dotSize);
-
-            //80.0  40.0
             break;
-//        case AnnotationDistributeEnum::HORIZONTALLY:
-//            drawLine(painter, horizontalLine, 0.0, maxInset);
-//            drawLine(painter, horizontalLine, 0.0, minInset);
-//            drawRect(painter, foregroundColor, longVerticalRectangle, minInset2, minInset3);
-//            drawRect(painter, foregroundColor, shortVerticalRectangle, shortVerticalRectangleOffset, (shortRectangleSpace / 2.0));
-//            drawRect(painter, foregroundColor, midSizeVerticalRectangle, midSizeVerticalRectangleOffset, (midSizeRectangleSpace / 2.0));
-//            break;
-//        case AnnotationDistributeEnum::VERTICALLY:
-//            drawLine(painter, verticalLine, minInset, 0.0);
-//            drawLine(painter, verticalLine, maxInset, 0.0);
-//            drawRect(painter, foregroundColor, longHorizontalRectangle, minInset3, minInset2);
-//            drawRect(painter, foregroundColor, shortHorizontalRectangle, (shortRectangleSpace / 2.0), shortVerticalRectangleOffset);
-//            drawRect(painter, foregroundColor, midSizeHorizontalRectangle, (midSizeRectangleSpace / 2.0), midSizeVerticalRectangleOffset);
-//            break;
     }
     
     return pixmap;
@@ -765,151 +623,4 @@ AnnotationMenuArrange::drawRect(QSharedPointer<QPainter>& painter,
                       color);
     painter->restore();
 }
-
-///**
-// * Create an alignment pixmap.
-// *
-// * @param widget
-// *    To color the pixmap with backround and foreground,
-// *    the palette from the given widget is used.
-// * @param horizontalAlignment
-// *    The horizontal alignment.
-// * @return
-// *    Pixmap with icon for the given horizontal alignment.
-// */
-//QPixmap
-//AnnotationMenuArrange::createAlignmentPixmap(const QWidget* widget,
-//                                                     const AnnotationAlignmentEnum::Enum alignment)
-//{
-//    CaretAssert(widget);
-//    
-//    /*
-//     * Create a small, square pixmap that will contain
-//     * the foreground color around the pixmap's perimeter.
-//     */
-//    const float pixmapSize = 24.0;
-//    
-//    const float halfSize  = pixmapSize / 2.0;
-//    
-////    int32_t numLines = 5;
-//    
-////    if (m_smallLayoutFlag) {
-////        width    = 12.0;
-////        height   = 12.0;
-////        numLines = 3;
-////    }
-//    QPixmap pixmap(static_cast<int>(pixmapSize),
-//                   static_cast<int>(pixmapSize));
-//    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
-//                                                                                pixmap);
-//    
-//    const qreal margin          = pixmapSize * 0.05;
-//    const qreal margin2 = margin * 2.0;
-//    const qreal margin3 = margin * 3.0;
-////    const qreal lineLength  = width - (margin * 2.0);
-//    
-//    /*
-//     * Origin is at TOP !!!
-//     */
-//    const qreal xLeft   = margin;
-//    const qreal xRight  = pixmapSize - margin;
-//    const qreal yTop    = margin;
-//    const qreal yBottom = pixmapSize - margin;
-//    
-//    const qreal lineStart = margin;
-//    const qreal lineEnd   = pixmapSize - margin;
-//    
-//    const qreal verticalRectangleWidth = (pixmapSize * 0.25); //(width - (margin * 8.0)) / 2.0;
-//    const qreal verticalRectangleHeight = pixmapSize - (margin * 6.0);
-//    
-//    QBrush foregroundBrush = widget->palette().brush(widget->foregroundRole());
-//    QPen foregroundPen = painter->pen();
-//    QColor foregroundColor = widget->palette().brush(widget->foregroundRole()).color();
-//    
-//    const qreal minInset = xLeft + margin2;
-//    const qreal maxInset = xRight - margin2;
-//    const qreal rectangleLongLength = (yBottom - margin3) - (yTop + margin);
-//    
-//    switch (alignment) {
-//        case AnnotationAlignmentEnum::ALIGN_BOTTOM:
-//            painter->drawLine(QLineF(lineStart, lineEnd,
-//                                     lineEnd, lineEnd));
-//////            painter->fillRect(QRectF(QPointF(minInset, yTop + margin),  // big rectangle
-//////                                     QPointF((minInset + verticalRectangleWidth), yBottom - margin3)),
-//////                              foregroundColor);
-////            painter->fillRect(QRectF(QPointF(minInset, yTop + margin),  // big rectangle
-////                                     QPointF((minInset + verticalRectangleWidth), yTop + margin + rectangleLongLength)),
-////                              foregroundColor);
-////            painter->fillRect(QRectF(QPointF(maxInset - verticalRectangleWidth, yTop + (pixmapSize * 0.3)),
-////                                     QPointF(maxInset, yBottom - margin3)),   // small rectangle
-////                              foregroundColor);
-//            break;
-//        case AnnotationAlignmentEnum::ALIGN_CENTER:
-//            painter->drawLine(QLineF(halfSize, lineEnd,
-//                                     halfSize, lineStart));
-//            break;
-//        case AnnotationAlignmentEnum::ALIGN_LEFT:
-//            painter->drawLine(QLineF(lineStart, lineEnd,
-//                                     lineStart, lineStart));
-//            break;
-//        case AnnotationAlignmentEnum::ALIGN_MIDDLE:
-//            painter->drawLine(QLineF(lineStart, halfSize,
-//                                     lineEnd, halfSize));
-//            break;
-//        case AnnotationAlignmentEnum::ALIGN_RIGHT:
-//            painter->drawLine(QLineF(lineEnd, lineEnd,
-//                                     lineEnd, lineStart));
-//            break;
-//        case AnnotationAlignmentEnum::ALIGN_TOP:
-//            painter->drawLine(QLineF(lineStart, lineStart,
-//                                     lineEnd, lineStart));
-//            break;
-//    }
-//    
-////    for (int32_t i = 1; i <= numLines; i++) {
-////        const qreal lineLength = (((i % 2) == 0)
-////                                  ? shortLineLength
-////                                  : longLineLength);
-////        const qreal y = yStep * i;
-////        
-////        qreal xStart = 0.0;
-////        qreal xEnd   = width;
-////        
-////        switch (alignment) {
-////            case AnnotationAlignmentEnum::ALIGN_BOTTOM:
-////                break;
-////            case AnnotationAlignmentEnum::ALIGN_CENTER:
-////                break;
-////            case AnnotationAlignmentEnum::ALIGN_LEFT:
-////                break;
-////            case AnnotationAlignmentEnum::ALIGN_MIDDLE:
-////                break;
-////            case AnnotationAlignmentEnum::ALIGN_RIGHT:
-////                break;
-////            case AnnotationAlignmentEnum::ALIGN_TOP:
-////                break;
-////        }
-//////        switch (alignment) {
-//////            case AnnotationTextAlignHorizontalEnum::CENTER:
-//////                xStart = (width - lineLength) / 2.0;
-//////                xEnd   = xStart + lineLength;
-//////                break;
-//////            case AnnotationTextAlignHorizontalEnum::LEFT:
-//////                xStart = margin;
-//////                xEnd   = xStart + lineLength;
-//////                break;
-//////            case AnnotationTextAlignHorizontalEnum::RIGHT:
-//////                xEnd   = width - margin;
-//////                xStart = xEnd - lineLength;
-//////                break;
-//////        }
-////        
-////        painter->drawLine(QLineF(xStart,
-////                                 y,
-////                                 xEnd,
-////                                 y));
-////    }
-//    
-//    return pixmap;
-//}
 

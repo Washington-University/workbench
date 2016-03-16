@@ -48,6 +48,7 @@
 #include "SelectionManager.h"
 #include "UserInputModeAnnotations.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
@@ -86,18 +87,21 @@ m_newAnnotationCreatedByContextMenu(NULL)
 {
     CaretAssert(m_userInputModeAnnotations);
     
+    const int32_t browserWindexIndex = m_mouseEvent.getBrowserWindowIndex();
     std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->getSelectedAnnotations(m_mouseEvent.getBrowserWindowIndex(),
+    annotationManager->getSelectedAnnotations(browserWindexIndex,
                                               selectedAnnotations);
     
     m_annotationFile = NULL;
     m_annotation     = NULL;
 
+    bool oneAnnotationSelectedFlag = false;
     if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
         m_annotationFile = selectedAnnotations[0].second;
         m_annotation     = selectedAnnotations[0].first;
+        oneAnnotationSelectedFlag = true;
     }
     
     m_textAnnotation = NULL;
@@ -105,36 +109,82 @@ m_newAnnotationCreatedByContextMenu(NULL)
         m_textAnnotation = dynamic_cast<AnnotationText*>(m_annotation);
     }
     
-    if (m_annotation != NULL) {
-        addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::COPY),
-                  this, SLOT(copyAnnotationToAnnotationClipboard()));
-    }
+    /*
+     * Cut
+     */
+    QAction* cutAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::CUT),
+                                   this, SLOT(cutAnnnotation()));
+    cutAction->setEnabled(oneAnnotationSelectedFlag);
     
-    if (m_annotation != NULL) {
-        addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::CUT),
-                  this, SLOT(cutAnnnotation()));
-    }
+    /*
+     * Copy
+     */
+    QAction* copyAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::COPY),
+                                    this, SLOT(copyAnnotationToAnnotationClipboard()));
+    copyAction->setEnabled(oneAnnotationSelectedFlag);
+
+    /*
+     * Delete
+     */
+    QAction* deleteAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::DELETER),
+                                      this, SLOT(deleteAnnotations()));
+    deleteAction->setEnabled( ! selectedAnnotations.empty());
     
-    //if (m_annotation != NULL) {
-    if ( ! selectedAnnotations.empty()) {
-        addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::DELETER),
-                  this, SLOT(deleteAnnotations()));
-    }
+    /*
+     * Paste
+     */
+    QAction* pasteAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::PASTE),
+                                     this, SLOT(pasteAnnotationFromAnnotationClipboard()));
+    pasteAction->setEnabled(annotationManager->isAnnotationOnClipboardValid());
+
+    /*
+     * Paste Special
+     */
+    QAction* pasteSpecialAction = addAction(UserInputModeAnnotations::s_pasteSpecialMenuItemText,
+                                           this, SLOT(pasteSpecialAnnotationFromAnnotationClipboard()));
+    pasteSpecialAction->setEnabled(annotationManager->isAnnotationOnClipboardValid());
+
+    /*
+     * Separator
+     */
+    addSeparator();
     
-    if (m_textAnnotation != NULL) {
-        addAction("Edit Text...",
-                  this, SLOT(setAnnotationText()));
-    }
+    /*
+     * Edit Text
+     */
+    QAction* editTextAction = addAction("Edit Text...",
+                                        this, SLOT(setAnnotationText()));
+    editTextAction->setEnabled(m_textAnnotation != NULL);
     
-    if (annotationManager->isAnnotationOnClipboardValid()) {
-        addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::PASTE),
-                  this, SLOT(pasteAnnotationFromAnnotationClipboard()));
-    }
+    /*
+     * Separator
+     */
+    addSeparator();
     
-    if (annotationManager->isAnnotationOnClipboardValid()) {
-        addAction(UserInputModeAnnotations::s_pasteSpecialMenuItemText,
-                  this, SLOT(pasteSpecialAnnotationFromAnnotationClipboard()));
-    }
+    /*
+     * Group annotations
+     */
+    QAction* groupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::GROUP),
+                                     this, SLOT(applyGroupingGroup()));
+    groupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
+                                                                   AnnotationGroupingModeEnum::GROUP));
+    
+    /*
+     * Ungroup annotations
+     */
+    QAction* ungroupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::UNGROUP),
+                                     this, SLOT(applyGroupingUngroup()));
+    ungroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
+                                                                     AnnotationGroupingModeEnum::UNGROUP));
+    
+    /*
+     * Regroup annotations
+     */
+    QAction* regroupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::REGROUP),
+                                       this, SLOT(applyGroupingRegroup()));
+    regroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
+                                                                     AnnotationGroupingModeEnum::REGROUP));
+    
 }
 
 /**
@@ -232,4 +282,55 @@ UserInputModeAnnotationsContextMenu::setAnnotationText()
     ted.exec();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
+
+/**
+ * Group annotations.
+ */
+void
+UserInputModeAnnotationsContextMenu::applyGroupingGroup()
+{
+    applyGrouping(AnnotationGroupingModeEnum::GROUP);
+}
+
+/**
+ * Ungroup annotations.
+ */
+void
+UserInputModeAnnotationsContextMenu::applyGroupingRegroup()
+{
+    applyGrouping(AnnotationGroupingModeEnum::REGROUP);
+}
+
+/**
+ * Regroup annotations.
+ */
+void
+UserInputModeAnnotationsContextMenu::applyGroupingUngroup()
+{
+    applyGrouping(AnnotationGroupingModeEnum::UNGROUP);
+}
+
+/**
+ * Apply grouping selection.
+ *
+ * @param grouping
+ *     Selected grouping.
+ */
+void
+UserInputModeAnnotationsContextMenu::applyGrouping(const AnnotationGroupingModeEnum::Enum grouping)
+{
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    
+    AString errorMessage;
+    if ( ! annMan->applyGroupingMode(m_mouseEvent.getBrowserWindowIndex(),
+                                     grouping,
+                                     errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
 
