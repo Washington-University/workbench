@@ -61,6 +61,8 @@ using namespace caret;
  *
  * @param mouseEvent
  *     Information about where to paste the annotation.
+ * @param windowIndex
+ *     Window in which annotation is pasted.
  * @return
  *     Pointer to annotation that was pasted or NULL if the annotation
  *     on the clipboard was not pasted.
@@ -126,12 +128,19 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
             delete annotation;
             annotation = NULL;
             
+            const QString message("The location for pasting the annotation is incompatible with the "
+                                  "coordinate space "
+                                  "used by the annotation on the clipboard.  Choose one of the coordinate "
+                                  "spaces below to paste the annotation or press Cancel to cancel pasting "
+                                  "of the annotation.");
+            
             /*
              * The annotation dialog will create a new annotation for pasting
              */
             AnnotationPasteDialog pasteDialog(mouseEvent,
                                               annotationFile,
                                               annotationManager->getAnnotationOnClipboard(),
+                                              message,
                                               mouseEvent.getOpenGLWidget());
             if (pasteDialog.exec() == AnnotationPasteDialog::Accepted) {
                 newPastedAnnotation = pasteDialog.getAnnotationThatWasCreated();
@@ -143,11 +152,59 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
 }
 
 /**
+ * Paste the annotation on the clipboard using the mouse information
+ * and allow the user to change the coordinate space.
+ *
+ * @param mouseEvent
+ *     Information about where to paste the annotation.
+ * @return
+ *     Pointer to annotation that was pasted or NULL if the annotation
+ *     on the clipboard was not pasted.
+ */
+Annotation*
+AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(const MouseEvent& mouseEvent)
+{
+    Annotation* newPastedAnnotation = NULL;
+    
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    if (annotationManager->isAnnotationOnClipboardValid()) {
+        AnnotationFile* annotationFile = annotationManager->getAnnotationFileOnClipboard();
+        Annotation* annotation = annotationManager->getAnnotationOnClipboard()->clone();
+        
+        AString message("Choose one of the coordinate "
+                        "spaces below to paste the annotation or press Cancel to cancel pasting "
+                        "of the annotation.");
+        AnnotationPasteDialog pasteDialog(mouseEvent,
+                                          annotationFile,
+                                          annotation,
+                                          message,
+                                          mouseEvent.getOpenGLWidget());
+        if (pasteDialog.exec() == AnnotationPasteDialog::Accepted) {
+            newPastedAnnotation = pasteDialog.getAnnotationThatWasCreated();
+        }
+    }
+    
+    return newPastedAnnotation;
+}
+
+/**
  * Constructor.
+ *
+ * @param mouseEvent
+ *     Information about where mouse was clicked.
+ * @param annotationFile
+ *     File that contains the annotation.
+ * @param annotation
+ *     Annotation that is copied and pasted.
+ * @param informationMessage
+ *     Message shown on dialog.
+ * @param parent
+ *     Parent widget of dialog.
  */
 AnnotationPasteDialog::AnnotationPasteDialog(const MouseEvent& mouseEvent,
                                              AnnotationFile* annotationFile,
                                              const Annotation* annotation,
+                                             const AString& informationMessage,
                                              QWidget* parent)
 : WuQDialogModal("Paste Annotation",
                  parent),
@@ -169,12 +226,7 @@ m_annotationThatWasCreated(NULL)
                                                                           NULL);
     m_coordinateSelectionWidget->selectCoordinateSpace(m_annotation->getCoordinateSpace());
     
-    const QString message("The location for pasting the annotation is incompatible with the "
-                          "coordinate space "
-                          "used by the annotation on the clipboard.  Choose one of the coordinate "
-                          "spaces below to paste the annotation or press Cancel to cancel pasting "
-                          "of the annotation.");
-    QLabel* messageLabel = new QLabel(message);
+    QLabel* messageLabel = new QLabel(informationMessage);
     messageLabel->setWordWrap(true);
     
     QLabel* spaceLabel = new QLabel("Space of Annotation on Clipboard: "

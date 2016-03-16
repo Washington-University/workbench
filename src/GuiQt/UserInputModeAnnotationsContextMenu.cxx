@@ -106,17 +106,17 @@ m_newAnnotationCreatedByContextMenu(NULL)
     }
     
     if (m_annotation != NULL) {
-        addAction("Copy",
+        addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::COPY),
                   this, SLOT(copyAnnotationToAnnotationClipboard()));
     }
     
     if (m_annotation != NULL) {
-        addAction("Cut",
+        addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::CUT),
                   this, SLOT(cutAnnnotation()));
     }
     
     if (m_annotation != NULL) {
-        addAction("Delete",
+        addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::DELETER),
                   this, SLOT(deleteAnnotation()));
     }
     
@@ -126,8 +126,13 @@ m_newAnnotationCreatedByContextMenu(NULL)
     }
     
     if (annotationManager->isAnnotationOnClipboardValid()) {
-        addAction("Paste",
+        addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::PASTE),
                   this, SLOT(pasteAnnotationFromAnnotationClipboard()));
+    }
+    
+    if (annotationManager->isAnnotationOnClipboardValid()) {
+        addAction(UserInputModeAnnotations::s_pasteSpecialMenuItemText,
+                  this, SLOT(pasteSpecialAnnotationFromAnnotationClipboard()));
     }
 }
 
@@ -199,6 +204,15 @@ void
 UserInputModeAnnotationsContextMenu::pasteAnnotationFromAnnotationClipboard()
 {
     m_userInputModeAnnotations->pasteAnnotationFromAnnotationClipboard(m_mouseEvent);
+}
+
+/**
+ * Paste special the annotation from the annotation clipboard.
+ */
+void
+UserInputModeAnnotationsContextMenu::pasteSpecialAnnotationFromAnnotationClipboard()
+{
+    m_userInputModeAnnotations->pasteAnnotationFromAnnotationClipboardAndChangeSpace(m_mouseEvent);
 }
 
 /**

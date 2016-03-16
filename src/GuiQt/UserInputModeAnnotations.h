@@ -56,6 +56,8 @@ namespace caret {
             MODE_NEW_WITH_DRAG,
             /** User selected Paste from Edit Menu, user may need to click mouse to paste the annotation */
             MODE_PASTE,
+            /** User selected Paste Special from Edit Menu, user may need to click mouse to paste the annotation */
+            MODE_PASTE_SPECIAL,
             /** Mouse selects annotation */
             MODE_SELECT,
             /** Set coordinate one in annotation*/
@@ -116,7 +118,8 @@ namespace caret {
         
         virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
                                              AString& redoMenuItemSuffixTextOut,
-                                             AString& undoMenuItemSuffixTextOut);
+                                             AString& undoMenuItemSuffixTextOut,
+                                             AString& pasteSpecialTextOut);
         
         // ADD_NEW_METHODS_HERE
 
@@ -205,6 +208,8 @@ namespace caret {
         
         void pasteAnnotationFromAnnotationClipboard(const MouseEvent& mouseEvent);
         
+        void pasteAnnotationFromAnnotationClipboardAndChangeSpace(const MouseEvent& mouseEvent);
+        
 //        bool pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
 //                                      AnnotationCoordinateInformation& coordInfo);
         
@@ -228,6 +233,7 @@ namespace caret {
         
         bool m_allowMultipleSelectionModeFlag;
         
+        static const AString s_pasteSpecialMenuItemText;
         // ADD_NEW_MEMBERS_HERE
 
         /*
@@ -238,7 +244,7 @@ namespace caret {
     };
     
 #ifdef __USER_INPUT_MODE_ANNOTATIONS_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const AString UserInputModeAnnotations::s_pasteSpecialMenuItemText = "Paste and Change Space";
 #endif // __USER_INPUT_MODE_ANNOTATIONS_DECLARE__
 
 } // namespace

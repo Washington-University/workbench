@@ -1589,6 +1589,8 @@ BrainBrowserWindow::createMenuEdit()
                       BrainBrowserWindowEditMenuItemEnum::COPY);
     addItemToEditMenu(m_editMenu,
                       BrainBrowserWindowEditMenuItemEnum::PASTE);
+    addItemToEditMenu(m_editMenu,
+                      BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL);
     QKeySequence noKeySequence;
     addItemToEditMenu(m_editMenu,
                       BrainBrowserWindowEditMenuItemEnum::DELETER);
@@ -1668,10 +1670,12 @@ BrainBrowserWindow::processEditMenuAboutToShow()
     UserInputModeAbstract* inputProcessor = inputEvent.getUserInputProcessor();
     AString redoMenuItemSuffix;
     AString undoMenuItemSuffix;
+    AString pasteSpecialTextOut;
     if (inputProcessor != NULL) {
         inputProcessor->getEnabledEditMenuItems(editMenuItemsEnabled,
                                                 redoMenuItemSuffix,
-                                                undoMenuItemSuffix);
+                                                undoMenuItemSuffix,
+                                                pasteSpecialTextOut);
     }
     
     /*
@@ -1694,6 +1698,15 @@ BrainBrowserWindow::processEditMenuAboutToShow()
                                   editMenuItemsEnabled.end(),
                                   editMenuItem) != editMenuItemsEnabled.end()) {
                         action->setEnabled(true);
+                        
+                        if (editMenuItem == BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL) {
+                            if (pasteSpecialTextOut.isEmpty()) {
+                                action->setText(BrainBrowserWindowEditMenuItemEnum::toGuiName(editMenuItem));
+                            }
+                            else {
+                                action->setText(pasteSpecialTextOut);
+                            }
+                        }
                     }
                 }
                 else {

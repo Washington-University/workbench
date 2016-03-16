@@ -44,6 +44,8 @@ public:
         DELETER,
         /** Paste */
         PASTE,
+        /** Paste Special */
+        PASTE_SPECIAL,
         /** Redo */
         REDO,
         /** Select All */

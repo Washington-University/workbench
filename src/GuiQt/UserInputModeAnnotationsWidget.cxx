@@ -275,6 +275,8 @@ UserInputModeAnnotationsWidget::updateWidget()
             break;
         case UserInputModeAnnotations::MODE_PASTE:
             break;
+        case UserInputModeAnnotations::MODE_PASTE_SPECIAL:
+            break;
         case UserInputModeAnnotations::MODE_SELECT:
             break;
         case UserInputModeAnnotations::MODE_SET_COORDINATE_ONE:

@@ -43,10 +43,7 @@ namespace caret {
         static Annotation* pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
                                                       const int32_t windowIndex);
         
-        AnnotationPasteDialog(const MouseEvent& mouseEvent,
-                              AnnotationFile* annotationFile,
-                              const Annotation* annotation,
-                              QWidget* parent = 0);
+        static Annotation* pasteAnnotationOnClipboardChangeSpace(const MouseEvent& mouseEvent);
         
         virtual ~AnnotationPasteDialog();
         
@@ -55,6 +52,12 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        AnnotationPasteDialog(const MouseEvent& mouseEvent,
+                              AnnotationFile* annotationFile,
+                              const Annotation* annotation,
+                              const AString& informationMessage,
+                              QWidget* parent = 0);
+        
         AnnotationPasteDialog(const AnnotationPasteDialog&);
 
         AnnotationPasteDialog& operator=(const AnnotationPasteDialog&);

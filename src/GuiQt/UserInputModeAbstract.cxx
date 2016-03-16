@@ -145,15 +145,19 @@ UserInputModeAbstract::processEditMenuItemSelection(const BrainBrowserWindowEdit
  * @param undoMenuItemSuffixTextOut
  *     If the undo menu is enabled, the contents of string becomes
  *     the suffix for the 'Undo' menu item.
+ * @param pasteSpecialTextOut
+ *     If not empty, this text is shown for the PASTE_SPECIAL menu item
  */
 void
 UserInputModeAbstract::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
                                                AString& redoMenuItemSuffixTextOut,
-                                               AString& undoMenuItemSuffixTextOut)
+                                               AString& undoMenuItemSuffixTextOut,
+                                               AString& pasteSpecialTextOut)
 {
     enabledEditMenuItemsOut.clear();
     redoMenuItemSuffixTextOut = "";
     undoMenuItemSuffixTextOut = "";
+    pasteSpecialTextOut       = "";
 }
 
 /**

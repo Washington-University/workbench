@@ -62,6 +62,8 @@ namespace caret {
         
         void pasteAnnotationFromAnnotationClipboard();
         
+        void pasteSpecialAnnotationFromAnnotationClipboard();
+        
         void setAnnotationText();
         
     private:

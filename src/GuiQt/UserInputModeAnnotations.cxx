@@ -230,6 +230,9 @@ UserInputModeAnnotations::getCursor() const
         case MODE_PASTE:
             cursor = CursorEnum::CURSOR_CROSS;
             break;
+        case MODE_PASTE_SPECIAL:
+            cursor = CursorEnum::CURSOR_CROSS;
+            break;
         case MODE_SELECT:
             if (m_annotationUnderMouse != NULL) {
                 cursor = CursorEnum::CURSOR_FOUR_ARROWS;
@@ -341,6 +344,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     break;
                 case MODE_PASTE:
                     break;
+                case MODE_PASTE_SPECIAL:
+                    break;
                 case MODE_SELECT:
                     deleteSelectedAnnotations();
                     break;
@@ -360,6 +365,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                 case MODE_NEW_WITH_DRAG:
                     break;
                 case MODE_PASTE:
+                    selectModeFlag = true;
+                    break;
+                case MODE_PASTE_SPECIAL:
                     selectModeFlag = true;
                     break;
                 case MODE_SELECT:
@@ -552,6 +560,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             return;
             break;
         case MODE_PASTE:
+            break;
+        case MODE_PASTE_SPECIAL:
             break;
         case MODE_SELECT:
             break;
@@ -1094,6 +1104,9 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
         case MODE_PASTE:
             pasteAnnotationFromAnnotationClipboard(mouseEvent);
             break;
+        case MODE_PASTE_SPECIAL:
+            pasteAnnotationFromAnnotationClipboardAndChangeSpace(mouseEvent);
+            break;
         case MODE_SELECT:
             break;
         case MODE_SET_COORDINATE_ONE:
@@ -1120,6 +1133,8 @@ UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
         case MODE_NEW_WITH_DRAG:
             break;
         case MODE_PASTE:
+            break;
+        case MODE_PASTE_SPECIAL:
             break;
         case MODE_SELECT:
             if (m_allowMultipleSelectionModeFlag) {
@@ -1149,6 +1164,8 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
         case MODE_NEW_WITH_DRAG:
             break;
         case MODE_PASTE:
+            break;
+        case MODE_PASTE_SPECIAL:
             break;
         case MODE_SELECT:
             processMouseSelectAnnotation(mouseEvent,
@@ -1274,6 +1291,8 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
             break;
         case MODE_PASTE:
             break;
+        case MODE_PASTE_SPECIAL:
+            break;
         case MODE_SELECT:
             break;
         case MODE_SET_COORDINATE_ONE:
@@ -1382,6 +1401,8 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
         case MODE_NEW_WITH_DRAG:
             break;
         case MODE_PASTE:
+            break;
+        case MODE_PASTE_SPECIAL:
             break;
         case MODE_SELECT:
             break;
@@ -1614,6 +1635,9 @@ UserInputModeAnnotations::isEditMenuValid() const
         case MODE_PASTE:
             editMenuValid = true;
             break;
+        case MODE_PASTE_SPECIAL:
+            editMenuValid = true;
+            break;
         case MODE_SELECT:
             editMenuValid = true;
             break;
@@ -1705,6 +1729,17 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
             }
         }
             break;
+        case BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL:
+        {
+            const MouseEvent* mouseEvent = getMousePosition();
+            if (mouseEvent != NULL) {
+                pasteAnnotationFromAnnotationClipboardAndChangeSpace(*mouseEvent);
+            }
+            else {
+                setMode(MODE_PASTE_SPECIAL);
+            }
+        }
+            break;
         case BrainBrowserWindowEditMenuItemEnum::REDO:
         {
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
@@ -1743,11 +1778,14 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
  * @param undoMenuItemSuffixTextOut
  *     If the undo menu is enabled, the contents of string becomes
  *     the suffix for the 'Undo' menu item.
+ * @param pasteSpecialTextOut
+ *     If not empty, this text is shown for the PASTE_SPECIAL menu item
  */
 void
 UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
                                                   AString& redoMenuItemSuffixTextOut,
-                                                  AString& undoMenuItemSuffixTextOut)
+                                                  AString& undoMenuItemSuffixTextOut,
+                                                  AString& pasteSpecialTextOut)
 {
     enabledEditMenuItemsOut.clear();
     redoMenuItemSuffixTextOut = "";
@@ -1788,6 +1826,8 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
         
         if (annotationManager->isAnnotationOnClipboardValid()) {
             enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::PASTE);
+            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL);
+            pasteSpecialTextOut = s_pasteSpecialMenuItemText;
         }
         
         CaretUndoStack* undoStack = annotationManager->getCommandRedoUndoStack();
@@ -1934,94 +1974,37 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
 void
 UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEvent& mouseEvent)
 {
-    {
-        Annotation* newPastedAnnotation = AnnotationPasteDialog::pasteAnnotationOnClipboard(mouseEvent,
-                                                                                            m_browserWindowIndex);
-        if (newPastedAnnotation != NULL) {
-            selectAnnotation(newPastedAnnotation);
-        }
-
-        setMode(MODE_SELECT);
-        
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    Annotation* newPastedAnnotation = AnnotationPasteDialog::pasteAnnotationOnClipboard(mouseEvent,
+                                                                                        m_browserWindowIndex);
+    if (newPastedAnnotation != NULL) {
+        selectAnnotation(newPastedAnnotation);
     }
     
-//    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-//    if (annotationManager->isAnnotationOnClipboardValid()) {
-//        AnnotationFile* annotationFile = annotationManager->getAnnotationFileOnClipboard();
-//        Annotation* annotation = annotationManager->getAnnotationOnClipboard()->clone();
-//        
-//        BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
-//        AnnotationCoordinateInformation coordInfo;
-//        
-//        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
-//                                                                 viewportContent,
-//                                                                 mouseEvent.getX(),
-//                                                                 mouseEvent.getY(),
-//                                                                 coordInfo);
-//        
-//        bool validCoordsFlag = false;
-//        
-//        AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
-//        if (oneDimShape != NULL) {
-//            /*
-//             * Pasting line while preserving its orientation only
-//             * works for tab and window spaces.
-//             */
-//            validCoordsFlag = pasteOneDimensionalShape(oneDimShape,
-//                                                       coordInfo);
-//        }
-//        
-//        if (! validCoordsFlag) {
-//            validCoordsFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(annotation,
-//                                                                                         annotation->getCoordinateSpace(),
-//                                                                                         &coordInfo,
-//                                                                                         NULL);
-//        }
-//        
-//        Annotation* newPastedAnnotation = NULL;
-//        
-//        if (validCoordsFlag) {
-//            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-//            undoCommand->setModePasteAnnotation(annotationFile,
-//                                                annotation);
-//            annotationManager->applyCommand(undoCommand);
-//            
-//            newPastedAnnotation = annotation;
-//            
-//            annotationManager->selectAnnotation(m_browserWindowIndex,
-//                                                AnnotationManager::SELECTION_MODE_SINGLE,
-//                                                false,
-//                                                annotation);
-//        }
-//        else {
-//            /*
-//             * Pasting annotation in its coordinate failed (user may have tried to paste
-//             * an annotation in surface space where there is no surface).
-//             */
-//            delete annotation;
-//            annotation = NULL;
-//
-//            /*
-//             * The annotation dialog will create a new annotation for pasting
-//             */
-//            AnnotationPasteDialog pasteDialog(mouseEvent,
-//                                              annotationFile,
-//                                              annotationManager->getAnnotationOnClipboard(),
-//                                              mouseEvent.getOpenGLWidget());
-//            if (pasteDialog.exec() == AnnotationPasteDialog::Accepted) {
-//                newPastedAnnotation = pasteDialog.getAnnotationThatWasCreated();
-//            }
-//        }
-//        
-//        selectAnnotation(newPastedAnnotation);
-//    }
-//    
-//    setMode(MODE_SELECT);
-//    
-//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    setMode(MODE_SELECT);
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
+/**
+ * Paste the annotation from the annotation clipboard and allow user to change its space.
+ *
+ * @param mouseEvent
+ *     Mouse event containing XY location for placement of
+ *     pasted annotation.
+ */
+void
+UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboardAndChangeSpace(const MouseEvent& mouseEvent)
+{
+    Annotation* newPastedAnnotation = AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(mouseEvent);
+    if (newPastedAnnotation != NULL) {
+        selectAnnotation(newPastedAnnotation);
+    }
+    
+    setMode(MODE_SELECT);
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 

@@ -131,6 +131,11 @@ BrainBrowserWindowEditMenuItemEnum::initialize()
                                                           "Paste",
                                                           (Qt::CTRL + Qt::Key_V)));
     
+    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(PASTE_SPECIAL,
+                                                          "PASTE",
+                                                          "Paste Special",
+                                                          (Qt::CTRL + Qt::SHIFT + Qt::Key_V)));
+    
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(REDO,
                                                           "REDO",
                                                           "Redo",
