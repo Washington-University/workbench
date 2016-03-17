@@ -26,15 +26,16 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationGroupKey.h"
 #include "CaretObjectTracksModification.h"
-
+#include "DisplayGroupAndTabItemInterface.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
     class Annotation;
+    class DisplayGroupAndTabItemHelper;
     class SceneClassAssistant;
 
-    class AnnotationGroup : public CaretObjectTracksModification, public SceneableInterface {
+    class AnnotationGroup : public CaretObjectTracksModification, public DisplayGroupAndTabItemInterface, public SceneableInterface {
         
     public:
         AnnotationGroup(AnnotationFile* annotationFile,
@@ -88,7 +89,32 @@ namespace caret {
 
           
           
-          
+        virtual std::vector<DisplayGroupAndTabItemInterface*> getItemChildren() const;
+        
+        virtual DisplayGroupAndTabItemInterface* getItemParent() const;
+        
+        virtual void setItemParent(DisplayGroupAndTabItemInterface* itemParent);
+        
+        virtual AString getItemName() const;
+        
+        virtual void getItemIconColorRGBA(float rgbaOut[4]) const;
+        
+        virtual bool isItemExpandable() const;
+        
+        virtual bool isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex) const;
+        
+        virtual void setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t tabIndex,
+                                     const bool status);
+        
+        virtual TriStateSelectionStatusEnum::Enum getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex) const;
+        
+        virtual void setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t tabIndex,
+                                     const TriStateSelectionStatusEnum::Enum status);
+        
           
           
 // If there will be sub-classes of this class that need to save
@@ -127,6 +153,8 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
 
+        DisplayGroupAndTabItemHelper* m_displayGroupAndTabItemHelper;
+        
         AnnotationGroupKey m_groupKey;
         
         AnnotationCoordinateSpaceEnum::Enum m_coordinateSpace;

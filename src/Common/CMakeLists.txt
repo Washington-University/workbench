@@ -67,6 +67,8 @@ DataFileInterface.h
 DataFileTypeEnum.h
 DescriptiveStatistics.h
 DeveloperFlagsEnum.h
+DisplayGroupAndTabItemInterface.h 
+DisplayGroupEnum.h
 DrawnWithOpenGLTextureInfo.h
 DrawnWithOpenGLTextureInterface.h
 ElapsedTimer.h
@@ -120,6 +122,7 @@ StructureEnum.h
 SystemUtilities.h
 TileTabsConfiguration.h
 TracksModificationInterface.h
+TriStateSelectionStatusEnum.h
 Vector3D.h
 VectorOperation.h
 VoxelIJK.h
@@ -158,6 +161,7 @@ DataFileException.cxx
 DataFileTypeEnum.cxx
 DescriptiveStatistics.cxx
 DeveloperFlagsEnum.cxx
+DisplayGroupEnum.cxx
 DrawnWithOpenGLTextureInfo.cxx
 ElapsedTimer.cxx
 Event.cxx
@@ -203,6 +207,7 @@ StringTableModel.cxx
 StructureEnum.cxx
 SystemUtilities.cxx
 TileTabsConfiguration.cxx
+TriStateSelectionStatusEnum.cxx
 Vector3D.cxx
 VectorOperation.cxx
 YokingGroupEnum.cxx

@@ -28,6 +28,7 @@ INCLUDE(${QT_USE_FILE})
 # Create a Library
 #
 ADD_LIBRARY(Scenes
+DisplayGroupAndTabItemHelper.h
 Scene.h
 SceneAttributes.h
 SceneBoolean.h
@@ -60,6 +61,7 @@ SceneWriterXml.h
 SceneXmlElements.h
 SceneableInterface.h
 
+DisplayGroupAndTabItemHelper.cxx
 Scene.cxx
 SceneAttributes.cxx
 SceneBoolean.cxx

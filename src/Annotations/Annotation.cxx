@@ -35,6 +35,7 @@
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DisplayGroupAndTabItemHelper.h"
 #include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -73,6 +74,7 @@ Annotation::~Annotation()
 {
     //std::cout << "Deleting annotation of type: " << qPrintable(AnnotationTypeEnum::toGuiName(m_type)) << std::endl;
     
+    delete m_displayGroupAndTabItemHelper;
     delete m_sceneAssistant;
 }
 
@@ -133,6 +135,8 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_customColorLine[2]  = obj.m_customColorLine[2];
     m_customColorLine[3]  = obj.m_customColorLine[3];
 
+    *m_displayGroupAndTabItemHelper = *obj.m_displayGroupAndTabItemHelper;
+    
     /*
      * Initializes unique name
      */
@@ -362,6 +366,8 @@ Annotation::initializeAnnotationMembers()
     m_tabIndex    = -1;
     m_windowIndex = -1;
     
+    m_displayGroupAndTabItemHelper = new DisplayGroupAndTabItemHelper();
+    
     /*
      * Default the unique identifier.
      *
@@ -519,6 +525,9 @@ Annotation::initializeAnnotationMembers()
                                                                &m_colorLine);
     m_sceneAssistant->addArray("m_customColorForeground",  // use old name !!!!
                                m_customColorLine, 4, 1.0);
+    m_sceneAssistant->add("m_displayGroupAndTabItemHelper",
+                          "DisplayGroupAndTabItemHelper",
+                          m_displayGroupAndTabItemHelper);
 }
 
 
@@ -1069,6 +1078,16 @@ Annotation::getUniqueKey() const
 }
 
 /**
+ * @return Name of annotation.
+ */
+AString
+Annotation::getName() const
+{
+    return m_name;
+}
+
+
+/**
  * Called by text annotation to reset the name
  * displayed in the gui.  DO NOT CALL FROM
  * A CONSTRUCTOR !!!
@@ -1303,6 +1322,144 @@ Annotation::restoreFromScene(const SceneAttributes* sceneAttributes,
     restoreSubClassDataFromScene(sceneAttributes,
                                  sceneClass);
     
+}
+
+
+/**
+ * @return Children of this item.
+ */
+std::vector<DisplayGroupAndTabItemInterface*>
+Annotation::getItemChildren() const
+{
+    /*
+     * Annotation has no children.
+     */
+    std::vector<DisplayGroupAndTabItemInterface*> children;
+    return children;
+}
+
+
+/**
+ * @return Parent of this item.
+ */
+DisplayGroupAndTabItemInterface*
+Annotation::getItemParent() const
+{
+    return m_displayGroupAndTabItemHelper->getParent();
+}
+
+/**
+ * Set the parent of this item.
+ *
+ * @param itemParent
+ *     Parent of this item.
+ */
+void
+Annotation::setItemParent(DisplayGroupAndTabItemInterface* itemParent)
+{
+    m_displayGroupAndTabItemHelper->setParent(itemParent);
+}
+
+/**
+ * @return Name of this item.
+ */
+AString
+Annotation::getItemName() const
+{
+    return getName();
+}
+
+/**
+ * Get the icon color for this item.
+ *
+ * @param rgbaOut
+ *     Red, green, blue, alpha components ranging [0, 1].
+ */
+void
+Annotation::getItemIconColorRGBA(float rgbaOut[4]) const
+{
+    getLineColorRGBA(rgbaOut);
+}
+
+/**
+ * @return This item can be expanded.
+ */
+bool
+Annotation::isItemExpandable() const
+{
+    return false;
+}
+
+/**
+ * @return Is this item expanded in the given display group/tab?
+ *
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab.
+ */
+bool
+Annotation::isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
+                           const int32_t tabIndex) const
+{
+    return m_displayGroupAndTabItemHelper->isExpanded(displayGroup,
+                                                      tabIndex);
+}
+
+/**
+ * Set this item's expanded status in the given display group/tab.
+ *
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab.
+ * @param status
+ *     New expanded status.
+ */
+void
+Annotation::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex,
+                            const bool status)
+{
+    m_displayGroupAndTabItemHelper->setExpanded(displayGroup,
+                                                tabIndex,
+                                                status);
+}
+
+/**
+ * Get selection status in the given display group/tab?
+ *
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab.
+ */
+TriStateSelectionStatusEnum::Enum
+Annotation::getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex) const
+{
+    return m_displayGroupAndTabItemHelper->getSelected(displayGroup,
+                                                       tabIndex);
+}
+
+/**
+ * Set this item selected in the given display group/tab.
+ *
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab.
+ * @param status
+ *     New selection status.
+ */
+void
+Annotation::setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+                             const int32_t tabIndex,
+                             const TriStateSelectionStatusEnum::Enum status)
+{
+    m_displayGroupAndTabItemHelper->setSelected(displayGroup,
+                                                tabIndex,
+                                                status);
 }
 
 /**

@@ -30,14 +30,16 @@
 #include "AnnotationTypeEnum.h"
 #include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
+#include "DisplayGroupAndTabItemInterface.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
     class AnnotationSpatialModification;
+    class DisplayGroupAndTabItemHelper;
     class SceneClassAssistant;
 
-    class Annotation : public CaretObjectTracksModification, public SceneableInterface {
+    class Annotation : public CaretObjectTracksModification, public DisplayGroupAndTabItemInterface, public SceneableInterface {
         
     public:
         Annotation(const AnnotationTypeEnum::Enum type,
@@ -189,8 +191,34 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
 
-          
-          
+        
+        
+        virtual std::vector<DisplayGroupAndTabItemInterface*> getItemChildren() const;
+        
+        virtual DisplayGroupAndTabItemInterface* getItemParent() const;
+        
+        virtual void setItemParent(DisplayGroupAndTabItemInterface* itemParent);
+
+        virtual AString getItemName() const;
+        
+        virtual void getItemIconColorRGBA(float rgbaOut[4]) const;
+        
+        virtual bool isItemExpandable() const;
+        
+        virtual bool isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex) const;
+        
+        virtual void setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t tabIndex,
+                                     const bool status);
+        
+        virtual TriStateSelectionStatusEnum::Enum getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex) const;
+        
+        virtual void setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t tabIndex,
+                                     const TriStateSelectionStatusEnum::Enum status);
+        
           
           
           
@@ -228,6 +256,8 @@ namespace caret {
         void setUniqueKey(const int32_t uniqueKey);
         
         SceneClassAssistant* m_sceneAssistant;
+        
+        DisplayGroupAndTabItemHelper* m_displayGroupAndTabItemHelper;
         
         AnnotationCoordinateSpaceEnum::Enum  m_coordinateSpace;
         

@@ -37,6 +37,7 @@
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
 #include "DataFileException.h"
+#include "DisplayGroupAndTabItemHelper.h"
 #include "EventAnnotationAddToRemoveFromFile.h"
 #include "EventAnnotationGroupGetWithKey.h"
 #include "EventAnnotationGrouping.h"
@@ -92,6 +93,7 @@ AnnotationFile::~AnnotationFile()
     clearPrivate();
     
     EventManager::get()->removeAllEventsFromListener(this);
+    delete m_displayGroupAndTabItemHelper;
     delete m_sceneAssistant;
 }
 
@@ -202,7 +204,12 @@ AnnotationFile::initializeAnnotationFile()
     m_uniqueKeyGenerator = 0;
     
     m_metadata.grabNew(new GiftiMetaData());
+    m_displayGroupAndTabItemHelper = new DisplayGroupAndTabItemHelper();
+    
     m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_displayGroupAndTabItemHelper",
+                          "DisplayGroupAndTabItemHelper",
+                          m_displayGroupAndTabItemHelper);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY);
@@ -282,7 +289,7 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
                                                  generateUniqueKey(),
                                                  annotationSpace,
                                                  annotationTabOrWindowIndex);
-    
+    group->setItemParent(this);
     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
     
     return group;
@@ -294,11 +301,12 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
  *    Object that is copied.
  */
 void
-AnnotationFile::copyHelperAnnotationFile(const AnnotationFile& /* obj */)
+AnnotationFile::copyHelperAnnotationFile(const AnnotationFile& obj)
 {
     CaretAssertMessage(0, "Copying of annotation file not implemented.  "
                        "Will need to check subtype or have a 'clone' method' that each "
                        "subclass (AnnotationText) implements.");
+    *m_displayGroupAndTabItemHelper = *obj.m_displayGroupAndTabItemHelper;
 }
 
 /**
@@ -682,6 +690,8 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
         group->addAnnotationPrivate(*annIter);
     }
     
+    group->setItemParent(this);
+    
     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
 }
 
@@ -916,6 +926,7 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
              annPtrIter++) {
             group->addAnnotationPrivateSharedPointer(*annPtrIter);
         }
+        group->setItemParent(this);
         m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
         
         groupingEvent->setGroupKeyToWhichAnnotationsWereMoved(group->getAnnotationGroupKey());
@@ -1082,6 +1093,7 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
                 }
                 group->addAnnotationPrivateSharedPointer(*annPtrIter);
             }
+            group->setItemParent(this);
             m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
             
             groupingEvent->setGroupKeyToWhichAnnotationsWereMoved(group->getAnnotationGroupKey());
@@ -1434,6 +1446,7 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveInterface
                                                 generateUniqueKey(),
                                                 groupToCopy->getCoordinateSpace(),
                                                 groupToCopy->getTabOrWindowIndex());
+                    group->setItemParent(this);
                     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
                     break;
             }
@@ -1460,5 +1473,150 @@ DataFileContentCopyMoveInterface*
 AnnotationFile::newInstanceOfDataFile() const
 {
     return new AnnotationFile();
+}
+
+
+/**
+ * @return Children of this item.
+ */
+std::vector<DisplayGroupAndTabItemInterface*>
+AnnotationFile::getItemChildren() const
+{
+    std::vector<DisplayGroupAndTabItemInterface*> children;
+    
+    for (AnnotationGroupConstIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        children.push_back((*groupIter).data());
+    }
+    
+    return children;
+}
+
+
+/**
+ * @return Parent of this item.
+ */
+DisplayGroupAndTabItemInterface*
+AnnotationFile::getItemParent() const
+{
+    return m_displayGroupAndTabItemHelper->getParent();
+}
+
+/**
+ * Set the parent of this item.
+ *
+ * @param itemParent
+ *     Parent of this item.
+ */
+void
+AnnotationFile::setItemParent(DisplayGroupAndTabItemInterface* itemParent)
+{
+    m_displayGroupAndTabItemHelper->setParent(itemParent);
+}
+
+/**
+ * @return Name of this item.
+ */
+AString
+AnnotationFile::getItemName() const
+{
+    return getFileNameNoPath();
+}
+
+/**
+ * Get the icon color for this item.
+ *
+ * @param rgbaOut
+ *     Red, green, blue, alpha components ranging [0, 1].
+ */
+void
+AnnotationFile::getItemIconColorRGBA(float rgbaOut[4]) const
+{
+    rgbaOut[0] = 0.0;
+    rgbaOut[1] = 0.0;
+    rgbaOut[2] = 0.0;
+    rgbaOut[3] = 0.0;
+}
+
+/**
+ * @return This item can be expanded.
+ */
+bool
+AnnotationFile::isItemExpandable() const
+{
+    return true;
+}
+
+/**
+ * @return Is this item expanded in the given display group/tab?
+ *
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab.
+ */
+bool
+AnnotationFile::isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t tabIndex) const
+{
+    return m_displayGroupAndTabItemHelper->isExpanded(displayGroup,
+                                                      tabIndex);
+}
+
+/**
+ * Set this item's expanded status in the given display group/tab.
+ *
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab.
+ * @param status
+ *     New expanded status.
+ */
+void
+AnnotationFile::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                const int32_t tabIndex,
+                                const bool status)
+{
+    m_displayGroupAndTabItemHelper->setExpanded(displayGroup,
+                                                tabIndex,
+                                                status);
+}
+
+/**
+ * Get selection status in the given display group/tab?
+ *
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab.
+ */
+TriStateSelectionStatusEnum::Enum
+AnnotationFile::getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+                                const int32_t tabIndex) const
+{
+    return m_displayGroupAndTabItemHelper->getSelected(displayGroup,
+                                                       tabIndex);
+}
+
+/**
+ * Set this item selected in the given display group/tab.
+ *
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab.
+ * @param status
+ *     New selection status.
+ */
+void
+AnnotationFile::setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+                                const int32_t tabIndex,
+                                const TriStateSelectionStatusEnum::Enum status)
+{
+    m_displayGroupAndTabItemHelper->setSelected(displayGroup,
+                                                tabIndex,
+                                                status);
 }
 

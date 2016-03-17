@@ -30,20 +30,22 @@
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
 #include "DataFileContentCopyMoveInterface.h"
+#include "DisplayGroupAndTabItemInterface.h"
 #include "EventAnnotationGrouping.h"
 #include "EventListenerInterface.h"
-
 
 namespace caret {
 
     class Annotation;
     class AnnotationGroup;
+    class DisplayGroupAndTabItemHelper;
     class SceneClassAssistant;
     
     class AnnotationFile
     : public CaretDataFile,
     public EventListenerInterface,
-    public DataFileContentCopyMoveInterface {
+    public DataFileContentCopyMoveInterface,
+    public DisplayGroupAndTabItemInterface {
         
     public:
         /**
@@ -115,7 +117,33 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
         
-          
+        
+        virtual std::vector<DisplayGroupAndTabItemInterface*> getItemChildren() const;
+        
+        virtual DisplayGroupAndTabItemInterface* getItemParent() const;
+        
+        virtual void setItemParent(DisplayGroupAndTabItemInterface* itemParent);
+        
+        virtual AString getItemName() const;
+        
+        virtual void getItemIconColorRGBA(float rgbaOut[4]) const;
+        
+        virtual bool isItemExpandable() const;
+        
+        virtual bool isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex) const;
+        
+        virtual void setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t tabIndex,
+                                     const bool status);
+        
+        virtual TriStateSelectionStatusEnum::Enum getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+                                                                  const int32_t tabIndex) const;
+        
+        virtual void setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t tabIndex,
+                                     const TriStateSelectionStatusEnum::Enum status);
+        
           
           
           
@@ -172,6 +200,8 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
 
         CaretPointer<GiftiMetaData> m_metadata;
+        
+        DisplayGroupAndTabItemHelper* m_displayGroupAndTabItemHelper;
         
         int32_t m_uniqueKeyGenerator;
         
