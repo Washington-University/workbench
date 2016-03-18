@@ -1370,15 +1370,40 @@ Annotation::getItemName() const
 }
 
 /**
- * Get the icon color for this item.
+ * Get the icon color for this item.  Icon is filled with background
+ * color, outline color is drawn around edges, and text color is small
+ * square in center.  For any colors that do not apply, use an alpha
+ * value (last element) of zero.
  *
- * @param rgbaOut
- *     Red, green, blue, alpha components ranging [0, 1].
+ * @param backgroundRgbaOut
+ *     Red, green, blue, alpha components for background ranging [0, 1].
+ * @param outlineRgbaOut
+ *     Red, green, blue, alpha components for outline ranging [0, 1].
+ * @param textRgbaOut
+ *     Red, green, blue, alpha components for text ranging [0, 1].
  */
 void
-Annotation::getItemIconColorRGBA(float rgbaOut[4]) const
+Annotation::getItemIconColorsRGBA(float backgroundRgbaOut[4],
+                                  float outlineRgbaOut[4],
+                                  float textRgbaOut[4]) const
 {
-    getLineColorRGBA(rgbaOut);
+    for (int32_t i = 0; i < 4; i++) {
+        backgroundRgbaOut[i] = 0.0;
+        outlineRgbaOut[i] = 0.0;
+        textRgbaOut[i] = 0.0;
+    }
+    
+    getBackgroundColorRGBA(backgroundRgbaOut);
+
+    getLineColorRGBA(outlineRgbaOut);
+    
+    /*
+     * Note: AnnotationText overrides this method to set text color
+     */
+    textRgbaOut[0] = 0.0;
+    textRgbaOut[1] = 0.0;
+    textRgbaOut[2] = 0.0;
+    textRgbaOut[3] = 0.0;
 }
 
 /**

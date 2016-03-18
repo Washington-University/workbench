@@ -1525,18 +1525,37 @@ AnnotationFile::getItemName() const
 }
 
 /**
- * Get the icon color for this item.
+ * Get the icon color for this item.  Icon is filled with background
+ * color, outline color is drawn around edges, and text color is small
+ * square in center.  For any colors that do not apply, use an alpha
+ * value (last element) of zero.
  *
- * @param rgbaOut
- *     Red, green, blue, alpha components ranging [0, 1].
+ * @param backgroundRgbaOut
+ *     Red, green, blue, alpha components for background ranging [0, 1].
+ * @param outlineRgbaOut
+ *     Red, green, blue, alpha components for outline ranging [0, 1].
+ * @param textRgbaOut
+ *     Red, green, blue, alpha components for text ranging [0, 1].
  */
 void
-AnnotationFile::getItemIconColorRGBA(float rgbaOut[4]) const
+AnnotationFile::getItemIconColorsRGBA(float backgroundRgbaOut[4],
+                                      float outlineRgbaOut[4],
+                                      float textRgbaOut[4]) const
 {
-    rgbaOut[0] = 0.0;
-    rgbaOut[1] = 0.0;
-    rgbaOut[2] = 0.0;
-    rgbaOut[3] = 0.0;
+    backgroundRgbaOut[0] = 0.0;
+    backgroundRgbaOut[1] = 0.0;
+    backgroundRgbaOut[2] = 0.0;
+    backgroundRgbaOut[3] = 0.0;
+    
+    outlineRgbaOut[0] = 0.0;
+    outlineRgbaOut[1] = 0.0;
+    outlineRgbaOut[2] = 0.0;
+    outlineRgbaOut[3] = 0.0;
+    
+    textRgbaOut[0] = 0.0;
+    textRgbaOut[1] = 0.0;
+    textRgbaOut[2] = 0.0;
+    textRgbaOut[3] = 0.0;
 }
 
 /**

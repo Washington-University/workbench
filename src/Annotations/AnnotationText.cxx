@@ -264,6 +264,7 @@ AnnotationText::setText(const AString& text)
 {
     if (text != m_text) {
         m_text = text;
+        textAnnotationResetName();
         setModified();
     }
 }
@@ -476,6 +477,35 @@ AnnotationText::setOrientation(const AnnotationTextOrientationEnum::Enum orienta
         setModified();
     }
 }
+
+/**
+ * Get the icon color for this item.  Icon is filled with background
+ * color, outline color is drawn around edges, and text color is small
+ * square in center.  For any colors that do not apply, use an alpha
+ * value (last element) of zero.
+ *
+ * @param backgroundRgbaOut
+ *     Red, green, blue, alpha components for background ranging [0, 1].
+ * @param outlineRgbaOut
+ *     Red, green, blue, alpha components for outline ranging [0, 1].
+ * @param textRgbaOut
+ *     Red, green, blue, alpha components for text ranging [0, 1].
+ */
+void
+AnnotationText::getItemIconColorsRGBA(float backgroundRgbaOut[4],
+                                  float outlineRgbaOut[4],
+                                  float textRgbaOut[4]) const
+{
+    /*
+     * Sets the background and outline colors
+     */
+    Annotation::getItemIconColorsRGBA(backgroundRgbaOut,
+                                      outlineRgbaOut,
+                                      textRgbaOut);
+    
+    getTextColorRGBA(textRgbaOut);
+}
+
 
 /**
  * @return The foreground color.

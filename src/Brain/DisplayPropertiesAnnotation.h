@@ -23,6 +23,7 @@
 
 
 #include "BrainConstants.h"
+#include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
 
 
@@ -40,6 +41,13 @@ namespace caret {
         virtual void reset();
         
         virtual void update();
+        
+        DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
+        
+        void setDisplayGroupForTab(const int32_t browserTabIndex,
+                                   const DisplayGroupEnum::Enum displayGroup);
+        
+
         
         bool isDisplayModelAnnotationsInTab(const int32_t tabIndex) const;
         
@@ -84,6 +92,8 @@ namespace caret {
         void resetPrivate();
         
         Brain* m_parentBrain;
+        
+        DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         bool m_displayModelAnnotations[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

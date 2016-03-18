@@ -97,7 +97,9 @@ namespace caret {
         
         virtual AString getItemName() const;
         
-        virtual void getItemIconColorRGBA(float rgbaOut[4]) const;
+        virtual void getItemIconColorsRGBA(float backgroundRgbaOut[4],
+                                           float outlineRgbaOut[4],
+                                           float textRgbaOut[4]) const;
         
         virtual bool isItemExpandable() const;
         
@@ -161,7 +163,7 @@ namespace caret {
         
         int32_t m_tabOrWindowIndex;
         
-        AString m_name;
+        mutable AString m_name;
         
         std::vector<QSharedPointer<Annotation> > m_annotations;
         

@@ -114,6 +114,10 @@ namespace caret {
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
 
+        virtual void getItemIconColorsRGBA(float backgroundRgbaOut[4],
+                                           float outlineRgbaOut[4],
+                                           float textRgbaOut[4]) const;
+        
 
         static void setUserDefaultHorizontalAlignment(const AnnotationTextAlignHorizontalEnum::Enum alignment);
         

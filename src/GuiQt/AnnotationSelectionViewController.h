@@ -24,12 +24,15 @@
 
 #include <QWidget>
 
+#include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 class QCheckBox;
 
 namespace caret {
+    class DisplayGroupAndTabItemViewController;
+    class DisplayGroupEnumComboBox;
     class SceneClassAssistant;
 
     class AnnotationSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
@@ -70,14 +73,22 @@ namespace caret {
     private slots:
         void checkBoxToggled();
         
+        void displayGroupSelected(const DisplayGroupEnum::Enum);
+        
     private:
         AnnotationSelectionViewController(const AnnotationSelectionViewController&);
 
         AnnotationSelectionViewController& operator=(const AnnotationSelectionViewController&);
         
+        QWidget* createSelectionWidget();
+        
         SceneClassAssistant* m_sceneAssistant;
 
         int32_t m_browserWindowIndex;
+        
+        DisplayGroupEnumComboBox* m_displayGroupComboBox;
+        
+        DisplayGroupAndTabItemViewController* m_selectionViewController;
         
         QCheckBox* m_displayModelAnnotationCheckBox;
         

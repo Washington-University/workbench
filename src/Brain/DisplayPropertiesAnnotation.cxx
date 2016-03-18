@@ -49,6 +49,8 @@ m_parentBrain(parentBrain)
     
     resetPrivate();
     
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
+                                                                                                m_displayGroup);
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayModelAnnotations",
                                                 m_displayModelAnnotations);
     m_sceneAssistant->addTabIndexedBooleanArray("m_displaySurfaceAnnotations",
@@ -80,6 +82,8 @@ void
 DisplayPropertiesAnnotation::copyDisplayProperties(const int32_t sourceTabIndex,
                                                    const int32_t targetTabIndex)
 {
+    const DisplayGroupEnum::Enum displayGroup = this->getDisplayGroupForTab(sourceTabIndex);
+    this->setDisplayGroupForTab(targetTabIndex, displayGroup);
     m_displayModelAnnotations[targetTabIndex] = m_displayModelAnnotations[sourceTabIndex];
     m_displaySurfaceAnnotations[targetTabIndex] = m_displaySurfaceAnnotations[sourceTabIndex];
     m_displayTabAnnotations[targetTabIndex] = m_displayTabAnnotations[sourceTabIndex];
@@ -96,6 +100,7 @@ DisplayPropertiesAnnotation::resetPrivate()
         m_displayModelAnnotations[i] = true;
         m_displaySurfaceAnnotations[i] = true;
         m_displayTabAnnotations[i] = true;
+        m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
     }
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
@@ -120,6 +125,37 @@ void
 DisplayPropertiesAnnotation::update()
 {
     
+}
+
+/**
+ * Get the display group for a given browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ */
+DisplayGroupEnum::Enum
+DisplayPropertiesAnnotation::getDisplayGroupForTab(const int32_t browserTabIndex) const
+{
+    CaretAssertArrayIndex(this->displayGroup,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          browserTabIndex);
+    return m_displayGroup[browserTabIndex];
+}
+
+/**
+ * Set the display group for a given browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param displayGroup
+ *    New value for display group.
+ */
+void
+DisplayPropertiesAnnotation::setDisplayGroupForTab(const int32_t browserTabIndex,
+                                                const DisplayGroupEnum::Enum  displayGroup)
+{
+    CaretAssertArrayIndex(this->displayGroup,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          browserTabIndex);
+    m_displayGroup[browserTabIndex] = displayGroup;
 }
 
 /**

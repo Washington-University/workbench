@@ -130,7 +130,7 @@ void
 DisplayGroupAndTabItemHelper::clearPrivate()
 {
     m_parent = NULL;
-    bool defaultExpandStatus = false;
+    bool defaultExpandStatus = true;
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         m_selectedInDisplayGroup[i] = TriStateSelectionStatusEnum::Enum::SELECTED;

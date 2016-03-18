@@ -201,7 +201,9 @@ namespace caret {
 
         virtual AString getItemName() const;
         
-        virtual void getItemIconColorRGBA(float rgbaOut[4]) const;
+        virtual void getItemIconColorsRGBA(float backgroundRgbaOut[4],
+                                           float outlineRgbaOut[4],
+                                           float textRgbaOut[4]) const;
         
         virtual bool isItemExpandable() const;
         

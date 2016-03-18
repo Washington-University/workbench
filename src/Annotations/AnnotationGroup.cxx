@@ -250,6 +250,45 @@ AnnotationGroup::toString() const
 AString
 AnnotationGroup::getName() const
 {
+    if (m_name.isEmpty()) {
+        
+        
+        AString spaceName = AnnotationCoordinateSpaceEnum::toGuiName(m_coordinateSpace);
+        switch (m_coordinateSpace) {
+            case AnnotationCoordinateSpaceEnum::PIXELS:
+                CaretAssertMessage(0, "Should never be pixels");
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                spaceName.append(" "
+                                 + AString::number(getTabOrWindowIndex() + 1));
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                spaceName.append(" "
+                                 + AString::number(getTabOrWindowIndex() + 1));
+                break;
+        }
+        
+        switch (m_groupKey.getGroupType()) {
+            case AnnotationGroupTypeEnum::INVALID:
+                CaretAssertMessage(0, "Should never get here");
+                break;
+            case AnnotationGroupTypeEnum::SPACE:
+                m_name.append("Space Group "
+                              + spaceName);
+                break;
+            case AnnotationGroupTypeEnum::USER:
+                m_name.append("Group "
+                              + AString::number(m_groupKey.getUserGroupUniqueKey())
+                              + " "
+                              + spaceName);
+                break;
+        }
+    }
+    
     return m_name;
 }
 
@@ -705,22 +744,41 @@ AnnotationGroup::setItemParent(DisplayGroupAndTabItemInterface* itemParent)
 AString
 AnnotationGroup::getItemName() const
 {
-    return m_name;
+    return getName();
 }
 
 /**
- * Get the icon color for this item.
+ * Get the icon color for this item.  Icon is filled with background
+ * color, outline color is drawn around edges, and text color is small
+ * square in center.  For any colors that do not apply, use an alpha
+ * value (last element) of zero.
  *
- * @param rgbaOut
- *     Red, green, blue, alpha components ranging [0, 1].
+ * @param backgroundRgbaOut
+ *     Red, green, blue, alpha components for background ranging [0, 1].
+ * @param outlineRgbaOut
+ *     Red, green, blue, alpha components for outline ranging [0, 1].
+ * @param textRgbaOut
+ *     Red, green, blue, alpha components for text ranging [0, 1].
  */
 void
-AnnotationGroup::getItemIconColorRGBA(float rgbaOut[4]) const
+AnnotationGroup::getItemIconColorsRGBA(float backgroundRgbaOut[4],
+                                       float outlineRgbaOut[4],
+                                       float textRgbaOut[4]) const
 {
-    rgbaOut[0] = 0.0;
-    rgbaOut[1] = 0.0;
-    rgbaOut[2] = 0.0;
-    rgbaOut[3] = 0.0;
+    backgroundRgbaOut[0] = 0.0;
+    backgroundRgbaOut[1] = 0.0;
+    backgroundRgbaOut[2] = 0.0;
+    backgroundRgbaOut[3] = 0.0;
+
+    outlineRgbaOut[0] = 0.0;
+    outlineRgbaOut[1] = 0.0;
+    outlineRgbaOut[2] = 0.0;
+    outlineRgbaOut[3] = 0.0;
+
+    textRgbaOut[0] = 0.0;
+    textRgbaOut[1] = 0.0;
+    textRgbaOut[2] = 0.0;
+    textRgbaOut[3] = 0.0;
 }
 
 /**

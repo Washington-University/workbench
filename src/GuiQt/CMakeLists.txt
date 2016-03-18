@@ -90,6 +90,7 @@ ClippingPlanesDialog.h
 ColorEditorWidget.h
 CustomViewDialog.h
 DataFileContentCopyMoveDialog.h
+DisplayGroupAndTabItemViewController.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 FiberOrientationSelectionViewController.h
@@ -257,6 +258,8 @@ CursorEnum.h
 CursorManager.h
 CustomViewDialog.h
 DataFileContentCopyMoveDialog.h
+DisplayGroupAndTabItemTreeWidgetItem.h
+DisplayGroupAndTabItemViewController.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 EventAnnotationCreateNewType.h
@@ -449,6 +452,8 @@ CursorEnum.cxx
 CursorManager.cxx
 CustomViewDialog.cxx
 DataFileContentCopyMoveDialog.cxx
+DisplayGroupAndTabItemTreeWidgetItem.cxx
+DisplayGroupAndTabItemViewController.cxx
 DisplayGroupEnumComboBox.cxx
 EventAnnotationCreateNewType.cxx
 EventBrowserTabGetAllViewed.cxx
