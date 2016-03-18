@@ -25,6 +25,7 @@
 
 #include <QPainter>
 #include <QPen>
+#include <QTreeWidget>
 
 #include "CaretAssert.h"
 #include "DisplayGroupAndTabItemInterface.h"
@@ -48,15 +49,18 @@ using namespace caret;
  */
 DisplayGroupAndTabItemTreeWidgetItem::DisplayGroupAndTabItemTreeWidgetItem(DisplayGroupAndTabItemInterface *displayGroupAndTabItem)
 : QTreeWidgetItem(),
-m_displayGroupAndTabItem(displayGroupAndTabItem),
 m_displayGroup(DisplayGroupEnum::DISPLAY_GROUP_A)
 {
-    CaretAssert(m_displayGroupAndTabItem);
+    CaretAssert(displayGroupAndTabItem);
     
     setText(NAME_COLUMN,
-            m_displayGroupAndTabItem->getItemName());
+            displayGroupAndTabItem->getItemName());
     
-    std::vector<DisplayGroupAndTabItemInterface*> itemChildren = m_displayGroupAndTabItem->getItemChildren();
+    setData(NAME_COLUMN,
+            Qt::UserRole,
+            qVariantFromValue<void*>(displayGroupAndTabItem));
+    
+    std::vector<DisplayGroupAndTabItemInterface*> itemChildren = displayGroupAndTabItem->getItemChildren();
     for (std::vector<DisplayGroupAndTabItemInterface*>::iterator childIter = itemChildren.begin();
          childIter != itemChildren.end();
          childIter++) {
@@ -64,8 +68,6 @@ m_displayGroup(DisplayGroupEnum::DISPLAY_GROUP_A)
         
         DisplayGroupAndTabItemTreeWidgetItem* childWidget = new DisplayGroupAndTabItemTreeWidgetItem(itemChild);
         addChild(childWidget);
-        
-        m_childWidgets.push_back(childWidget);
     }
 }
 
@@ -85,30 +87,35 @@ DisplayGroupAndTabItemTreeWidgetItem::~DisplayGroupAndTabItemTreeWidgetItem()
  *     The tab index.
  */
 void
-DisplayGroupAndTabItemTreeWidgetItem::updateContent(const DisplayGroupEnum::Enum displayGroup,
+DisplayGroupAndTabItemTreeWidgetItem::updateContent(QTreeWidget* treeWidget,
+                                                    const DisplayGroupEnum::Enum displayGroup,
                                                     const int32_t tabIndex)
 {
     m_displayGroup = displayGroup;
     m_tabIndex     = tabIndex;
     
-    Qt::CheckState qtCheckState = toQCheckState(m_displayGroupAndTabItem->getItemSelected(m_displayGroup,
+    void* myDataPtr = data(NAME_COLUMN, Qt::UserRole).value<void*>();
+    DisplayGroupAndTabItemInterface* myData = (DisplayGroupAndTabItemInterface*)myDataPtr;
+    CaretAssert(myData);
+    
+    
+    Qt::CheckState qtCheckState = toQCheckState(myData->getItemSelected(m_displayGroup,
                                                                                           m_tabIndex));
     setCheckState(NAME_COLUMN,
                   qtCheckState);
     
-    setItemIcon();
+    setItemIcon(treeWidget,
+                myData);
     
-    for (std::vector<DisplayGroupAndTabItemTreeWidgetItem*>::iterator childIter = m_childWidgets.begin();
-         childIter != m_childWidgets.end();
-         childIter++) {
-        DisplayGroupAndTabItemTreeWidgetItem* child = *childIter;
-        child->updateContent(displayGroup,
-                             tabIndex);
+    const int32_t numChildren = childCount();
+    for (int32_t i = 0; i < numChildren; i++) {
+        QTreeWidgetItem* ch = child(i);
+        DisplayGroupAndTabItemTreeWidgetItem* item = dynamic_cast<DisplayGroupAndTabItemTreeWidgetItem*>(ch);
+        item->updateContent(treeWidget, displayGroup, tabIndex);
     }
 
-    const bool expandedFlag = m_displayGroupAndTabItem->isItemExpanded(m_displayGroup,
+    const bool expandedFlag = myData->isItemExpanded(m_displayGroup,
                                                                        m_tabIndex);
-    std::cout << "Expanded flag: " << qPrintable(AString::fromBool(expandedFlag)) << std::endl;
     setExpanded(expandedFlag);
 }
 
@@ -116,42 +123,36 @@ DisplayGroupAndTabItemTreeWidgetItem::updateContent(const DisplayGroupEnum::Enum
  * Set the icon for this item.
  */
 void
-DisplayGroupAndTabItemTreeWidgetItem::setItemIcon()
+DisplayGroupAndTabItemTreeWidgetItem::setItemIcon(QTreeWidget* treeWidget,
+                                                  DisplayGroupAndTabItemInterface* myDataItem)
 {
-    CaretAssert(m_displayGroupAndTabItem);
+    CaretAssert(myDataItem);
     
     float backgroundRGBA[4];
     float outlineRGBA[4];
     float textRGBA[4];
-    m_displayGroupAndTabItem->getItemIconColorsRGBA(backgroundRGBA,
+    myDataItem->getItemIconColorsRGBA(backgroundRGBA,
                                                     outlineRGBA,
                                                     textRGBA);
     if ((backgroundRGBA[3] > 0.0)
         || (outlineRGBA[3] > 0.0)
         || (textRGBA[3] > 0.0)) {
         
-        AString msg(m_displayGroupAndTabItem->getItemName()
-                    + " background="
-                    + AString::fromNumbers(backgroundRGBA, 4, ",")
-                    + " outline="
-                    + AString::fromNumbers(outlineRGBA, 4, ",")
-                    + " text="
-                    + AString::fromNumbers(textRGBA, 4, ","));
-        std::cout << qPrintable(msg) << std::endl;
-        const AString msg2("   Alphas="
-                           + AString::number(backgroundRGBA[3], 'f', 6)
-                           + ","
-                           + AString::number(outlineRGBA[3], 'f', 6)
-                           + ","
-                           + AString::number(textRGBA[3], 'f', 6));
-        std::cout << qPrintable(msg2) << std::endl;
-        
         const int pixmapSize = 24;
         QPixmap pixmap(pixmapSize,
                        pixmapSize);
         
-        QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapPainterOriginBottomLeft(pixmap,
-                                                                                              backgroundRGBA);
+//        QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapPainterOriginBottomLeft(pixmap,
+//                                                                                              backgroundRGBA);
+        QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(treeWidget,
+                                                                                              pixmap);
+        if (backgroundRGBA[3] > 0.0) {
+            painter->fillRect(pixmap.rect(),
+                              QColor::fromRgbF(backgroundRGBA[0],
+                                               backgroundRGBA[1],
+                                               backgroundRGBA[2]));
+        }
+        
         if (outlineRGBA[3] > 0.0) {
             QPen pen = painter->pen();
             
@@ -161,7 +162,7 @@ DisplayGroupAndTabItemTreeWidgetItem::setItemIcon()
             painter->fillRect(0, 0, 3, pixmapSize, outlineColor);
             painter->fillRect(pixmapSize - 3, 0, 3, pixmapSize, outlineColor);
             painter->fillRect(0, 0, pixmapSize, 3, outlineColor);
-            painter->fillRect(0, pixmapSize - 3, pixmapSize, 3, outlineColor);
+            painter->fillRect(0, pixmapSize - 4, pixmapSize, 3, outlineColor);
         }
         
         if (textRGBA[3] > 0.0) {

@@ -86,7 +86,8 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
          itemIterator++) {
         DisplayGroupAndTabItemTreeWidgetItem* itemWidget = new DisplayGroupAndTabItemTreeWidgetItem(*itemIterator);
         m_treeWidget->addTopLevelItem(itemWidget);
-        itemWidget->updateContent(displayGroup,
+        itemWidget->updateContent(m_treeWidget,
+                                  displayGroup,
                                   tabIndex);
         m_contentItemWidgets.push_back(itemWidget);
     }

@@ -27,6 +27,8 @@
 #include "DisplayGroupEnum.h"
 #include "TriStateSelectionStatusEnum.h"
 
+class QTreeWidget;
+
 namespace caret {
 
     class DisplayGroupAndTabItemInterface;
@@ -38,7 +40,8 @@ namespace caret {
         
         virtual ~DisplayGroupAndTabItemTreeWidgetItem();
 
-        void updateContent(const DisplayGroupEnum::Enum displayGroup,
+        void updateContent(QTreeWidget* treeWidget,
+                           const DisplayGroupEnum::Enum displayGroup,
                            const int32_t tabIndex);
 
         // ADD_NEW_METHODS_HERE
@@ -50,15 +53,12 @@ namespace caret {
         
         static Qt::CheckState toQCheckState(const TriStateSelectionStatusEnum::Enum triStateStatus);
         
-        void setItemIcon();
-        
-        DisplayGroupAndTabItemInterface *m_displayGroupAndTabItem;
+        void setItemIcon(QTreeWidget* treeWidget,
+                         DisplayGroupAndTabItemInterface* myDataItem);
         
         DisplayGroupEnum::Enum m_displayGroup;
         
         int32_t m_tabIndex;
-        
-        std::vector<DisplayGroupAndTabItemTreeWidgetItem*> m_childWidgets;
         
         // ADD_NEW_MEMBERS_HERE
 

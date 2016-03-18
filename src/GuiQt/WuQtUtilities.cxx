@@ -1296,71 +1296,19 @@ WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(const QWidget* widget,
     QSharedPointer<QPainter> painter = createPixmapWidgetPainter(widget,
                                                                  pixmap);
     
-    QTransform transform;
-    transform.translate(0, pixmap.height() - 1);
-    transform.scale(1.0, -1.0);
-    painter->setWorldTransform(transform);
-    
-    return painter;
-}
-
-/**
- * Create a painter for the given pixmap.  The origin will
- * be in the bottom left corner.
- * 
- * @param pixmap
- *     The pixmap.
- * @param backgroundColor
- *     Background color for pixmap (ignored if alpha, backgroundColor[3] <= 0)
- *     If the color is not valid (alpha <= 0), the background will
- *     be transparent.
- */
-QSharedPointer<QPainter>
-WuQtUtilities::createPixmapPainterOriginBottomLeft(QPixmap& pixmap,
-                                                   const float backgroundColor[4])
-{
-    CaretAssert(pixmap.width() > 0);
-    CaretAssert(pixmap.height() > 0);
-    
-    /*
-     * Create a painter and fill the pixmap with
-     * the background color
-     */
-    QSharedPointer<QPainter> painter(new QPainter(&pixmap));
-    painter->setRenderHint(QPainter::Antialiasing,
-                           true);
-    painter->setBackgroundMode(Qt::OpaqueMode);
-    
-    if (backgroundColor[3] > 0.0) {
-        painter->setBackgroundMode(Qt::OpaqueMode);
-        painter->fillRect(pixmap.rect(),
-                          QColor::fromRgbF(backgroundColor[0],
-                                           backgroundColor[1],
-                                           backgroundColor[2]));
-    }
-    else {
-        painter->setBackgroundMode(Qt::TransparentMode);
-        painter->fillRect(pixmap.rect(),
-                          QColor(0, 0, 0, 0));
-    }
-
     /*
      * Note: QPainter has its origin at the top left.
      * Using a negative for the Y-scale value will
      * move the origin to the bottom.
      */
     painter->translate(0.0,
-                       pixmap.height());
+                       pixmap.height() - 1);
     painter->scale(1.0,
                    -1.0);
-
-//    QTransform transform;
-//    transform.translate(0, pixmap.height() - 1);
-//    transform.scale(1.0, -1.0);
-//    painter->setWorldTransform(transform);
     
     return painter;
 }
+
 
 /**
  * Create a painter for the given pixmap that will be placed

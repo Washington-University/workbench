@@ -94,10 +94,7 @@ namespace caret {
         
         static QSharedPointer<QPainter> createPixmapWidgetPainterOriginBottomLeft(const QWidget* widget,
                                                                                   QPixmap& pixmap);
-        
-        static QSharedPointer<QPainter> createPixmapPainterOriginBottomLeft(QPixmap& pixmap,
-                                                                            const float backgroundColor[4]);
-        
+                
         static QSharedPointer<QPainter> createPixmapWidgetPainterOriginCenter100x100(const QWidget* widget,
                                                                                      QPixmap& pixmap);
         
