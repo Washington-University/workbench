@@ -1475,6 +1475,30 @@ AnnotationFile::newInstanceOfDataFile() const
     return new AnnotationFile();
 }
 
+/**
+ * @return Number of children.
+ */
+int32_t
+AnnotationFile::getNumberOfItemChildren() const
+{
+    return m_annotationGroups.size();
+}
+
+/**
+ * Get child at the given index.
+ *
+ * @param index
+ *     Index of the child.
+ * @return
+ *     Child at the given index.
+ */
+DisplayGroupAndTabItemInterface*
+AnnotationFile::getItemChild(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_annotationGroups,
+                           index);
+    return m_annotationGroups[index].data();
+}
 
 /**
  * @return Children of this item.

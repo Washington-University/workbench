@@ -1324,6 +1324,34 @@ Annotation::restoreFromScene(const SceneAttributes* sceneAttributes,
     
 }
 
+/**
+ * @return Number of children.
+ */
+int32_t
+Annotation::getNumberOfItemChildren() const
+{
+    /*
+     * Annotation has no children.
+     */
+    return 0;
+}
+
+/**
+ * Get child at the given index.
+ *
+ * @param index
+ *     Index of the child.
+ * @return
+ *     Child at the given index.
+ */
+DisplayGroupAndTabItemInterface*
+Annotation::getItemChild(const int32_t /* index */) const
+{
+    /*
+     * Annotation has no children.
+     */
+    return NULL;
+}
 
 /**
  * @return Children of this item.

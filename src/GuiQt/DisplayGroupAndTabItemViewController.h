@@ -27,7 +27,7 @@
 #include "DisplayGroupEnum.h"
 
 class QTreeWidget;
-
+class QTreeWidgetItem;
 namespace caret {
 
     class DisplayGroupAndTabItemInterface;
@@ -49,12 +49,30 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+    private slots:
+        void itemWasCollapsed(QTreeWidgetItem* item);
+        
+        void itemWasExpanded(QTreeWidgetItem* item);
+        
+        void itemWasChanged(QTreeWidgetItem* item,
+                            int column);
+        
     private:
         DisplayGroupAndTabItemViewController(const DisplayGroupAndTabItemViewController&);
 
         DisplayGroupAndTabItemViewController& operator=(const DisplayGroupAndTabItemViewController&);
         
         DisplayGroupAndTabItemInterface *m_displayGroupAndTabItem;
+        
+        void getDisplayGroupAndTabIndex(DisplayGroupEnum::Enum& displayGroupOut,
+                                        int32_t& tabIndexOut) const;
+        
+        void processItemExpanded(QTreeWidgetItem* item,
+                                 const bool expandedStatus);
+        
+        DisplayGroupAndTabItemInterface* getDataItem(QTreeWidgetItem* item) const;
+        
+        void updateGraphics();
         
         const int32_t m_browserWindowIndex;
         

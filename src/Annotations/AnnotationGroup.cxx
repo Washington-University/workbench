@@ -699,6 +699,30 @@ AnnotationGroup::restoreFromScene(const SceneAttributes* sceneAttributes,
     
 }
 
+/**
+ * @return Number of children.
+ */
+int32_t
+AnnotationGroup::getNumberOfItemChildren() const
+{
+    return m_annotations.size();
+}
+
+/**
+ * Get child at the given index.
+ *
+ * @param index
+ *     Index of the child.
+ * @return
+ *     Child at the given index.
+ */
+DisplayGroupAndTabItemInterface*
+AnnotationGroup::getItemChild(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_annotations,
+                           index);
+    return m_annotations[index].data();
+}
 
 /**
  * @return Children of this item.

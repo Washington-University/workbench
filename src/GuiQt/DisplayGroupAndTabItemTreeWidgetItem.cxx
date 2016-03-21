@@ -43,6 +43,16 @@ using namespace caret;
 
 /**
  * Constructor.
+ */
+DisplayGroupAndTabItemTreeWidgetItem::DisplayGroupAndTabItemTreeWidgetItem()
+: QTreeWidgetItem()
+{
+    m_displayGroup = DisplayGroupEnum::DISPLAY_GROUP_A;
+    m_tabIndex     = -1;
+}
+
+/**
+ * Constructor.
  *
  * @param displayGroupAndTabItem
  *     Item for display in this instance.
@@ -51,6 +61,7 @@ DisplayGroupAndTabItemTreeWidgetItem::DisplayGroupAndTabItemTreeWidgetItem(Displ
 : QTreeWidgetItem(),
 m_displayGroup(DisplayGroupEnum::DISPLAY_GROUP_A)
 {
+    CaretAssertToDoFatal();  // REMOVE THIS CONSTRUCTOR
     CaretAssert(displayGroupAndTabItem);
     
     setText(NAME_COLUMN,
@@ -81,6 +92,95 @@ DisplayGroupAndTabItemTreeWidgetItem::~DisplayGroupAndTabItemTreeWidgetItem()
 /**
  * Update the content of this widget.
  *
+ * @param displayGroupAndTabItem
+ *     Display group and tab item for this instance.
+ * @param treeWidget
+ *     Tree widget that owns this item.
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     The tab index.
+ */
+void
+DisplayGroupAndTabItemTreeWidgetItem::updateContent(DisplayGroupAndTabItemInterface *displayGroupAndTabItem,
+                                                    QTreeWidget* treeWidget,
+                                                    const DisplayGroupEnum::Enum displayGroup,
+                                                    const int32_t tabIndex)
+{
+    CaretAssert(displayGroupAndTabItem);
+    
+    m_displayGroup = displayGroup;
+    m_tabIndex     = tabIndex;
+    
+    setText(NAME_COLUMN,
+            displayGroupAndTabItem->getItemName());
+    
+    setData(NAME_COLUMN,
+            Qt::UserRole,
+            qVariantFromValue<void*>(displayGroupAndTabItem));
+    
+    Qt::CheckState qtCheckState = toQCheckState(displayGroupAndTabItem->getItemSelected(m_displayGroup,
+                                                                        m_tabIndex));
+    setCheckState(NAME_COLUMN,
+                  qtCheckState);
+    
+    setItemIcon(treeWidget,
+                displayGroupAndTabItem);
+    
+    const int32_t numExistingChildren = childCount();
+    const int32_t numValidChildren    = displayGroupAndTabItem->getNumberOfItemChildren();
+    const int32_t maxCount = std::max(numExistingChildren,
+                                      numValidChildren);
+    
+    const int32_t numberOfChildrenToAdd = numValidChildren - numExistingChildren;
+    for (int32_t i = 0; i < numberOfChildrenToAdd; i++) {
+        addChild(new DisplayGroupAndTabItemTreeWidgetItem());
+    }
+    
+    CaretAssert(childCount() >= numValidChildren);
+    CaretAssert(childCount() >= maxCount);
+    
+    for (int32_t i = 0; i < maxCount; i++) {
+        QTreeWidgetItem* treeWidgetChild = child(i);
+        
+        if (i < numValidChildren) {
+            treeWidgetChild->setHidden(false);
+            DisplayGroupAndTabItemTreeWidgetItem* dgtChild = dynamic_cast<DisplayGroupAndTabItemTreeWidgetItem*>(treeWidgetChild);
+            CaretAssert(dgtChild);
+            dgtChild->updateContent(displayGroupAndTabItem->getItemChild(i),
+                                    treeWidget,
+                                    displayGroup,
+                                    tabIndex);
+            
+            const bool expandedFlag = displayGroupAndTabItem->isItemExpanded(m_displayGroup,
+                                                                             m_tabIndex);
+            setExpanded(expandedFlag);
+        }
+        else {
+            treeWidgetChild->setHidden(true);
+            treeWidgetChild->setData(NAME_COLUMN,
+                                     Qt::UserRole,
+                                     qVariantFromValue<void*>(NULL));
+        }
+    }
+}
+
+/**
+ * @return The data item in this tree widget item.
+ */
+DisplayGroupAndTabItemInterface*
+DisplayGroupAndTabItemTreeWidgetItem::getDisplayGroupAndTabItem() const
+{
+    void* myDataPtr = data(NAME_COLUMN, Qt::UserRole).value<void*>();
+    DisplayGroupAndTabItemInterface* myItem = (DisplayGroupAndTabItemInterface*)myDataPtr;
+    CaretAssert(myItem);
+    return myItem;
+}
+
+
+/**
+ * Update the content of this widget.
+ *
  * @param displayGroup
  *     The display group.
  * @param tabIndex
@@ -91,16 +191,19 @@ DisplayGroupAndTabItemTreeWidgetItem::updateContent(QTreeWidget* treeWidget,
                                                     const DisplayGroupEnum::Enum displayGroup,
                                                     const int32_t tabIndex)
 {
+    CaretAssertMessage(0, "Use other update method.");
+    
     m_displayGroup = displayGroup;
     m_tabIndex     = tabIndex;
     
-    void* myDataPtr = data(NAME_COLUMN, Qt::UserRole).value<void*>();
-    DisplayGroupAndTabItemInterface* myData = (DisplayGroupAndTabItemInterface*)myDataPtr;
-    CaretAssert(myData);
+    DisplayGroupAndTabItemInterface* myData = getDisplayGroupAndTabItem();
+//    void* myDataPtr = data(NAME_COLUMN, Qt::UserRole).value<void*>();
+//    DisplayGroupAndTabItemInterface* myData = (DisplayGroupAndTabItemInterface*)myDataPtr;
+//    CaretAssert(myData);
     
     
     Qt::CheckState qtCheckState = toQCheckState(myData->getItemSelected(m_displayGroup,
-                                                                                          m_tabIndex));
+                                                                        m_tabIndex));
     setCheckState(NAME_COLUMN,
                   qtCheckState);
     
@@ -181,6 +284,30 @@ DisplayGroupAndTabItemTreeWidgetItem::setItemIcon(QTreeWidget* treeWidget,
         setIcon(NAME_COLUMN,
                 QIcon());
     }
+}
+
+/**
+ * Convert QCheckState to GroupAndNameCheckStateEnum
+ * @param checkState
+ *    The QCheckState
+ * @return GroupAndNameCheckStateEnum converted from QCheckState
+ */
+TriStateSelectionStatusEnum::Enum
+DisplayGroupAndTabItemTreeWidgetItem::fromQCheckState(const Qt::CheckState checkState)
+{
+    switch (checkState) {
+        case Qt::Unchecked:
+            return TriStateSelectionStatusEnum::UNSELECTED;
+            break;
+        case Qt::PartiallyChecked:
+            return TriStateSelectionStatusEnum::PARTIALLY_SELECTED;
+            break;
+        case Qt::Checked:
+            return TriStateSelectionStatusEnum::SELECTED;
+            break;
+    }
+    
+    return TriStateSelectionStatusEnum::UNSELECTED;
 }
 
 /**

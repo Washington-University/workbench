@@ -48,6 +48,21 @@ namespace caret {
         virtual ~DisplayGroupAndTabItemInterface() { }
         
         /**
+         * @return Number of children.
+         */
+        virtual int32_t getNumberOfItemChildren() const = 0;
+
+        /**
+         * Get child at the given index.
+         *
+         * @param index
+         *     Index of the child.
+         * @return 
+         *     Child at the given index.
+         */
+        virtual DisplayGroupAndTabItemInterface* getItemChild(const int32_t index) const = 0;
+        
+        /**
          * @return Children of this item.
          */
         virtual std::vector<DisplayGroupAndTabItemInterface*> getItemChildren() const = 0;

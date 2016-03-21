@@ -658,6 +658,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             }
             break;
     }
+    
+    /*
+     * Note: When window annotations are being drawn, the
+     * tab index is invalid so it must be ignored.
+     */
+    DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::DISPLAY_GROUP_A;
+    if (drawingCoordinateSpace != AnnotationCoordinateSpaceEnum::WINDOW) {
+        displayGroup = dpa->getDisplayGroupForTab(m_inputs->m_tabIndex);
+    }
+    
     SelectionItemAnnotation* annotationID = m_inputs->m_brain->getSelectionManager()->getAnnotationIdentification();
     
     GLint savedShadeModel = 0;
@@ -804,6 +814,24 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             CaretAssertVectorIndex(annotationsFromFile, iAnn);
             Annotation* annotation = annotationsFromFile[iAnn];
             CaretAssert(annotation);
+            
+            bool drawItFlag = false;
+            if (annotation->getType() != AnnotationTypeEnum::COLOR_BAR) {
+                switch (annotation->getItemSelected(displayGroup, m_inputs->m_tabIndex)) {
+                    case TriStateSelectionStatusEnum::PARTIALLY_SELECTED:
+                        CaretAssertMessage(0, "An annotation should never be partially selected");
+                        break;
+                    case TriStateSelectionStatusEnum::SELECTED:
+                        drawItFlag = true;
+                        break;
+                    case TriStateSelectionStatusEnum::UNSELECTED:
+                        break;
+                }
+            }
+            
+            if ( ! drawItFlag) {
+                continue;
+            }
             
             AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
             AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);

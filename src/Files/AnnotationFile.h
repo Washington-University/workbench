@@ -118,6 +118,10 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
         
+        virtual int32_t getNumberOfItemChildren() const;
+        
+        virtual DisplayGroupAndTabItemInterface* getItemChild(const int32_t index) const;
+        
         virtual std::vector<DisplayGroupAndTabItemInterface*> getItemChildren() const;
         
         virtual DisplayGroupAndTabItemInterface* getItemParent() const;

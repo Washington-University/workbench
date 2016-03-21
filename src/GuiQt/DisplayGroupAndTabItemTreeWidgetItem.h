@@ -40,16 +40,27 @@ namespace caret {
         
         virtual ~DisplayGroupAndTabItemTreeWidgetItem();
 
+        void updateContent(DisplayGroupAndTabItemInterface *displayGroupAndTabItem,
+                               QTreeWidget* treeWidget,
+                               const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t tabIndex);
+
         void updateContent(QTreeWidget* treeWidget,
                            const DisplayGroupEnum::Enum displayGroup,
                            const int32_t tabIndex);
-
+        
+        DisplayGroupAndTabItemInterface* getDisplayGroupAndTabItem() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:
+        DisplayGroupAndTabItemTreeWidgetItem();
+        
         DisplayGroupAndTabItemTreeWidgetItem(const DisplayGroupAndTabItemTreeWidgetItem&);
 
         DisplayGroupAndTabItemTreeWidgetItem& operator=(const DisplayGroupAndTabItemTreeWidgetItem&);
+        
+        static TriStateSelectionStatusEnum::Enum fromQCheckState(const Qt::CheckState checkState);
         
         static Qt::CheckState toQCheckState(const TriStateSelectionStatusEnum::Enum triStateStatus);
         
@@ -63,6 +74,8 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
 
         static const int NAME_COLUMN;
+        
+        friend class DisplayGroupAndTabItemViewController;
     };
     
 #ifdef __DISPLAY_GROUP_AND_TAB_ITEM_TREE_WIDGET_ITEM_DECLARE__

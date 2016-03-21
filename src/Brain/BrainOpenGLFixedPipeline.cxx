@@ -780,6 +780,11 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
         cb->setWindowIndex(m_windowIndex);
     }
     
+    /*
+     * No valid tab
+     */
+    this->windowTabIndex = -1;
+    
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
