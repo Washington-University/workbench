@@ -142,7 +142,7 @@ AnnotationFile::clearPrivate()
 
 
 /**
- * Set the selection status of all annotations.
+ * Set the selection for editing status of all annotations.
  *
  * @param windowIndex
  *     Index of window for annotation selection.
@@ -150,7 +150,7 @@ AnnotationFile::clearPrivate()
  *     New selection status for all annotations.
  */
 void
-AnnotationFile::setAllAnnotationsSelected(const int32_t windowIndex,
+AnnotationFile::setAllAnnotationsSelectedForEditing(const int32_t windowIndex,
                                           const bool selectedStatus)
 {
     std::vector<Annotation*> allAnnotations;
@@ -158,7 +158,7 @@ AnnotationFile::setAllAnnotationsSelected(const int32_t windowIndex,
     for (std::vector<Annotation*>::iterator iter = allAnnotations.begin();
          iter != allAnnotations.end();
          iter++) {
-        (*iter)->setSelected(windowIndex, selectedStatus);
+        (*iter)->setSelectedForEditing(windowIndex, selectedStatus);
     }
 }
 
@@ -1088,7 +1088,7 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
                  annPtrIter++) {
                 if ((windowIndex >= 0)
                     && (windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
-                    (*annPtrIter)->setSelected(windowIndex,
+                    (*annPtrIter)->setSelectedForEditing(windowIndex,
                                                true);
                 }
                 group->addAnnotationPrivateSharedPointer(*annPtrIter);

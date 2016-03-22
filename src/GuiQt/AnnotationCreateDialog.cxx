@@ -659,7 +659,7 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
     annotationManager->applyCommand(undoCommand);
     
     
-    annotationManager->selectAnnotation(browswerWindowIndex,
+    annotationManager->selectAnnotationForEditing(browswerWindowIndex,
                                         AnnotationManager::SELECTION_MODE_SINGLE,
                                         false,
                                         annotation);

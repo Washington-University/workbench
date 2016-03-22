@@ -592,7 +592,7 @@ AnnotationGroup::getAllAnnotations(std::vector<Annotation*>& annotationsOut) con
 }
 
 /**
- * Set the selection status for all annotations in this group
+ * Set the selection for editing status for all annotations in this group
  * in the given window.
  *
  * @param windowIndex
@@ -601,13 +601,13 @@ AnnotationGroup::getAllAnnotations(std::vector<Annotation*>& annotationsOut) con
  *     The selection status.
  */
 void
-AnnotationGroup::setAllAnnotationsSelected(const int32_t windowIndex,
+AnnotationGroup::setAllAnnotationsSelectedForEditing(const int32_t windowIndex,
                                            const bool selectedStatus)
 {
     for (AnnotationIterator iter = m_annotations.begin();
          iter != m_annotations.end();
          iter++) {
-        (*iter)->setSelected(windowIndex,
+        (*iter)->setSelectedForEditing(windowIndex,
                              selectedStatus);
     }
 }

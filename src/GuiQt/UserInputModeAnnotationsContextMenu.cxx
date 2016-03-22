@@ -90,7 +90,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
     const int32_t browserWindexIndex = m_mouseEvent.getBrowserWindowIndex();
     std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->getSelectedAnnotations(browserWindexIndex,
+    annotationManager->getAnnotationsSelectedForEditing(browserWindexIndex,
                                               selectedAnnotations);
     
     m_annotationFile = NULL;
@@ -233,7 +233,7 @@ UserInputModeAnnotationsContextMenu::deleteAnnotations()
      * Delete the annotation that is under the mouse
      */
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_mouseEvent.getBrowserWindowIndex());
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_mouseEvent.getBrowserWindowIndex());
     if ( ! selectedAnnotations.empty()) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeDeleteAnnotations(selectedAnnotations);

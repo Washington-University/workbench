@@ -533,7 +533,7 @@ AnnotationColorBar::setDisplayed(const bool displayed)
 {
     if (displayed != m_displayedFlag) {
         m_displayedFlag = displayed;
-        setDeselected();
+        setDeselectedForEditing();
         setModified();
     }
 }

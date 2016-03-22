@@ -126,7 +126,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
         
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
         
-        annotationManager->deselectAllAnnotations(m_browserWindowIndex);
+        annotationManager->deselectAllAnnotationsForEditing(m_browserWindowIndex);
         resetAnnotationUnderMouse();
         
         m_modeNewAnnotationFileSpaceAndType.grabNew(new NewAnnotationFileSpaceAndType(annotationEvent->getAnnotationFile(),
@@ -295,8 +295,8 @@ void
 UserInputModeAnnotations::deleteSelectedAnnotations()
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    if (annotationManager->isSelectedAnnotationsDeletable(m_browserWindowIndex)) {
-        std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+    if (annotationManager->isAnnotationSelectedForEditingDeletable(m_browserWindowIndex)) {
+        std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
         if ( ! selectedAnnotations.empty()) {
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeDeleteAnnotations(selectedAnnotations);
@@ -304,7 +304,7 @@ UserInputModeAnnotations::deleteSelectedAnnotations()
         }
     }
     else {
-        std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+        std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
         for (std::vector<Annotation*>::iterator iter = selectedAnnotations.begin();
              iter != selectedAnnotations.end();
              iter++) {
@@ -573,7 +573,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
     
     AnnotationCoordinateSpaceEnum::Enum draggingCoordinateSpace = AnnotationCoordinateSpaceEnum::PIXELS;
     
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
     const int32_t numSelectedAnnotations = static_cast<int32_t>(selectedAnnotations.size());
     
     bool draggingValid = false;
@@ -785,7 +785,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 //    
 //    AnnotationCoordinateSpaceEnum::Enum draggingCoordinateSpace = AnnotationCoordinateSpaceEnum::PIXELS;
 //    
-//    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
+//    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing();
 //    const int32_t numSelectedAnnotations = static_cast<int32_t>(selectedAnnotations.size());
 //    
 //    bool draggingValid = false;
@@ -1255,7 +1255,7 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
 //                                                                                                                  mouseEvent.getOpenGLWidget()));
 //        if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
 //            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-//            const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+//            const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
 //            if (allSelectedAnnotations.size() == 1) {
 //                selectAnnotation(allSelectedAnnotations[0]);
 //            }
@@ -1474,7 +1474,7 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
 //                                                                                                    mouseEvent.getOpenGLWidget()));
 //    if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
 //        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-//        const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+//        const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
 //        if (allSelectedAnnotations.size() == 1) {
 //            selectAnnotation(allSelectedAnnotations[0]);
 //        }
@@ -1493,7 +1493,7 @@ Annotation*
 UserInputModeAnnotations::getSingleSelectedAnnotation()
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+    std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
     Annotation* selectedAnnotation = NULL;
     if (allSelectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(allSelectedAnnotations, 0);
@@ -1555,7 +1555,7 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     if (m_allowMultipleSelectionModeFlag) {
         selectionMode = AnnotationManager::SELECTION_MODE_EXTENDED;
     }
-    annotationManager->selectAnnotation(m_browserWindowIndex,
+    annotationManager->selectAnnotationForEditing(m_browserWindowIndex,
                                         selectionMode,
                                         shiftKeyDownFlag,
                                         selectedAnnotation);
@@ -1659,7 +1659,7 @@ UserInputModeAnnotations::cutAnnotation()
 {
     std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->getSelectedAnnotations(m_browserWindowIndex,
+    annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex,
                                               selectedAnnotations);
     
     if (selectedAnnotations.size() == 1) {
@@ -1702,7 +1702,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         {
             AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
             std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
-            annotationManager->getSelectedAnnotations(m_browserWindowIndex,
+            annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex,
                                                       selectedAnnotations);
             
             if (selectedAnnotations.size() == 1) {
@@ -1793,7 +1793,7 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
     
     if (isEditMenuValid()) {
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-        const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations(m_browserWindowIndex);
+        const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
         
         /*
          * Copy, Cut, and Delete disabled if ANY colorbar is selected.

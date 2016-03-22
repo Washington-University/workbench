@@ -70,7 +70,7 @@ namespace caret {
         
         void getAllAnnotations(std::vector<Annotation*>& annotationsOut) const;
 
-        void setAllAnnotationsSelected(const int32_t windowIndex,
+        void setAllAnnotationsSelectedForEditing(const int32_t windowIndex,
                                        const bool selectedStatus);
         
         bool isModified() const;

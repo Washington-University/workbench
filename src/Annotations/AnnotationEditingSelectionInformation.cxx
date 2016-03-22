@@ -22,7 +22,7 @@
 #include <set>
 
 #define __ANNOTATION_SELECTION_INFORMATION_DECLARE__
-#include "AnnotationSelectionInformation.h"
+#include "AnnotationEditingSelectionInformation.h"
 #undef __ANNOTATION_SELECTION_INFORMATION_DECLARE__
 
 #include "Annotation.h"
@@ -35,7 +35,7 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationSelectionInformation 
+ * \class caret::AnnotationEditingSelectionInformation 
  * \brief Contains selected annotations and related information.
  * \ingroup Annotations
  */
@@ -46,7 +46,7 @@ using namespace caret;
  * @param windowIndex
  *    Index of window in which annotations are selected.
  */
-AnnotationSelectionInformation::AnnotationSelectionInformation(const int32_t windowIndex)
+AnnotationEditingSelectionInformation::AnnotationEditingSelectionInformation(const int32_t windowIndex)
 : CaretObject(),
 m_windowIndex(windowIndex)
 {
@@ -56,7 +56,7 @@ m_windowIndex(windowIndex)
 /**
  * Destructor.
  */
-AnnotationSelectionInformation::~AnnotationSelectionInformation()
+AnnotationEditingSelectionInformation::~AnnotationEditingSelectionInformation()
 {
 }
 
@@ -65,7 +65,7 @@ AnnotationSelectionInformation::~AnnotationSelectionInformation()
  * @param obj
  *    Object that is copied.
  */
-AnnotationSelectionInformation::AnnotationSelectionInformation(const AnnotationSelectionInformation& obj)
+AnnotationEditingSelectionInformation::AnnotationEditingSelectionInformation(const AnnotationEditingSelectionInformation& obj)
 : CaretObject(obj),
 m_windowIndex(obj.m_windowIndex)
 {
@@ -79,8 +79,8 @@ m_windowIndex(obj.m_windowIndex)
  * @return 
  *    Reference to this object.
  */
-AnnotationSelectionInformation&
-AnnotationSelectionInformation::operator=(const AnnotationSelectionInformation& obj)
+AnnotationEditingSelectionInformation&
+AnnotationEditingSelectionInformation::operator=(const AnnotationEditingSelectionInformation& obj)
 {
     if (this != &obj) {
         if (m_windowIndex == obj.m_windowIndex) {
@@ -88,7 +88,7 @@ AnnotationSelectionInformation::operator=(const AnnotationSelectionInformation& 
             this->copyHelperAnnotationSelectionInformation(obj);
         }
         else {
-            const QString msg("Cannot copy AnnotationSelectionInformation to different window.");
+            const QString msg("Cannot copy AnnotationEditingSelectionInformation to different window.");
             CaretAssertMessage(0, msg);
             CaretLogSevere(msg);
             m_annotations.clear();
@@ -104,7 +104,7 @@ AnnotationSelectionInformation::operator=(const AnnotationSelectionInformation& 
  *    Object that is copied.
  */
 void 
-AnnotationSelectionInformation::copyHelperAnnotationSelectionInformation(const AnnotationSelectionInformation& obj)
+AnnotationEditingSelectionInformation::copyHelperAnnotationSelectionInformation(const AnnotationEditingSelectionInformation& obj)
 {
     CaretAssertMessage(0, "Copying not allowed");
     m_annotations = obj.m_annotations;
@@ -114,7 +114,7 @@ AnnotationSelectionInformation::copyHelperAnnotationSelectionInformation(const A
  *
  */
 void
-AnnotationSelectionInformation::clear()
+AnnotationEditingSelectionInformation::clear()
 {
     m_annotations.clear();
     m_annotationGroupKeys.clear();
@@ -128,7 +128,7 @@ AnnotationSelectionInformation::clear()
  * @return Index of window in which annotations are selected.
  */
 int32_t
-AnnotationSelectionInformation::getWindowIndex() const
+AnnotationEditingSelectionInformation::getWindowIndex() const
 {
     return m_windowIndex;
 }
@@ -141,7 +141,7 @@ AnnotationSelectionInformation::getWindowIndex() const
  * @param annotation.
  */
 void
-AnnotationSelectionInformation::update(const std::vector<Annotation*>& selectedAnnotations)
+AnnotationEditingSelectionInformation::update(const std::vector<Annotation*>& selectedAnnotations)
 {
     clear();
     
@@ -232,7 +232,7 @@ AnnotationSelectionInformation::update(const std::vector<Annotation*>& selectedA
  * @return Vector containing the selected annotation group keys.
  */
 std::vector<AnnotationGroupKey>
-AnnotationSelectionInformation::getSelectedAnnotationGroupKeys() const
+AnnotationEditingSelectionInformation::getSelectedAnnotationGroupKeys() const
 {
     return m_annotationGroupKeys;
 }
@@ -241,7 +241,7 @@ AnnotationSelectionInformation::getSelectedAnnotationGroupKeys() const
  * @return Number of annotations selected.
  */
 int32_t
-AnnotationSelectionInformation::getNumberOfSelectedAnnotations() const
+AnnotationEditingSelectionInformation::getNumberOfSelectedAnnotations() const
 {
     return m_annotations.size();
 }
@@ -250,7 +250,7 @@ AnnotationSelectionInformation::getNumberOfSelectedAnnotations() const
  * @return True if any annotations are selected.
  */
 bool
-AnnotationSelectionInformation::isAnyAnnotationSelected() const
+AnnotationEditingSelectionInformation::isAnyAnnotationSelected() const
 {
     return ( ! m_annotations.empty());
 }
@@ -259,7 +259,7 @@ AnnotationSelectionInformation::isAnyAnnotationSelected() const
  * @return Vector containing the selected annotations.
  */
 std::vector<Annotation*>
-AnnotationSelectionInformation::getSelectedAnnotations() const
+AnnotationEditingSelectionInformation::getAnnotationsSelectedForEditing() const
 {
     return m_annotations;
 }
@@ -271,13 +271,13 @@ AnnotationSelectionInformation::getSelectedAnnotations() const
  *    Output containing the selected anntotations.
  */
 void
-AnnotationSelectionInformation::getSelectedAnnotations(std::vector<Annotation*>& annotationsOut) const
+AnnotationEditingSelectionInformation::getAnnotationsSelectedForEditing(std::vector<Annotation*>& annotationsOut) const
 {
     annotationsOut = m_annotations;
 }
 
 bool
-AnnotationSelectionInformation::isGroupingModeValid(const AnnotationGroupingModeEnum::Enum groupingMode) const
+AnnotationEditingSelectionInformation::isGroupingModeValid(const AnnotationGroupingModeEnum::Enum groupingMode) const
 {
     bool valid = false;
     
@@ -302,8 +302,8 @@ AnnotationSelectionInformation::isGroupingModeValid(const AnnotationGroupingMode
  * @return String describing this object's content.
  */
 AString 
-AnnotationSelectionInformation::toString() const
+AnnotationEditingSelectionInformation::toString() const
 {
-    return "AnnotationSelectionInformation";
+    return "AnnotationEditingSelectionInformation";
 }
 

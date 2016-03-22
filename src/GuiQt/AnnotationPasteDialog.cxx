@@ -115,7 +115,7 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
             
             newPastedAnnotation = annotation;
             
-            annotationManager->selectAnnotation(windowIndex,
+            annotationManager->selectAnnotationForEditing(windowIndex,
                                                 AnnotationManager::SELECTION_MODE_SINGLE,
                                                 false,
                                                 annotation);
@@ -424,7 +424,7 @@ AnnotationPasteDialog::okButtonClicked()
                                         annotationPointer);
     annotationManager->applyCommand(undoCommand);
     
-    annotationManager->selectAnnotation(m_mouseEvent.getBrowserWindowIndex(),
+    annotationManager->selectAnnotationForEditing(m_mouseEvent.getBrowserWindowIndex(),
                                         AnnotationManager::SELECTION_MODE_SINGLE,
                                         false,
                                         annotationPointer);

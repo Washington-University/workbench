@@ -529,8 +529,8 @@ AnnotationArrangerExecutor::getAnnotationsForArranging(const AnnotationArrangerI
     spaces.push_back(AnnotationCoordinateSpaceEnum::WINDOW);
     
     
-    const std::vector<Annotation*> allSpaceAnnotations = m_annotationManager->getSelectedAnnotations(arrangerInputs.getWindowIndex());
-    annotationsOut = m_annotationManager->getSelectedAnnotationsInSpaces(arrangerInputs.getWindowIndex(),
+    const std::vector<Annotation*> allSpaceAnnotations = m_annotationManager->getAnnotationsSelectedForEditing(arrangerInputs.getWindowIndex());
+    annotationsOut = m_annotationManager->getAnnotationsSelectedForEditingInSpaces(arrangerInputs.getWindowIndex(),
                                                                                                spaces);
     if (allSpaceAnnotations.size() != annotationsOut.size()) {
         QString spaceString;

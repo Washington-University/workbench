@@ -39,7 +39,7 @@ namespace caret {
     class AnnotationFile;
     class AnnotationGroupKey;
     class AnnotationRedoUndoCommand;
-    class AnnotationSelectionInformation;
+    class AnnotationEditingSelectionInformation;
     class Brain;
     class CaretUndoStack;
     class EventGetDisplayedDataFiles;
@@ -77,25 +77,25 @@ namespace caret {
         
         void reset();
         
-        void deselectAllAnnotations(const int32_t windowIndex);
+        void deselectAllAnnotationsForEditing(const int32_t windowIndex);
         
-        void selectAnnotation(const int32_t windowIndex,
+        void selectAnnotationForEditing(const int32_t windowIndex,
                               const SelectionMode selectionMode,
                               const bool shiftKeyDownFlag,
                               Annotation* selectedAnnotation);
         
-        bool isSelectedAnnotationsDeletable(const int32_t windowIndex) const;
+        bool isAnnotationSelectedForEditingDeletable(const int32_t windowIndex) const;
         
         std::vector<Annotation*> getAllAnnotations() const;
         
-        const AnnotationSelectionInformation* getSelectionInformation(const int32_t windowIndex) const;
+        const AnnotationEditingSelectionInformation* getAnnotationEditingSelectionInformation(const int32_t windowIndex) const;
         
-        std::vector<Annotation*> getSelectedAnnotations(const int32_t windowIndex) const;
+        std::vector<Annotation*> getAnnotationsSelectedForEditing(const int32_t windowIndex) const;
         
-        std::vector<Annotation*> getSelectedAnnotationsInSpaces(const int32_t windowIndex,
+        std::vector<Annotation*> getAnnotationsSelectedForEditingInSpaces(const int32_t windowIndex,
                                                                 const std::vector<AnnotationCoordinateSpaceEnum::Enum>& spaces) const;
         
-        void getSelectedAnnotations(const int32_t windowIndex,
+        void getAnnotationsSelectedForEditing(const int32_t windowIndex,
                                     std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const;
         
         std::vector<AnnotationFile*> getFilesContainingAnnotations(const std::vector<Annotation*> annotations) const;
@@ -168,11 +168,11 @@ namespace caret {
 
         AnnotationManager& operator=(const AnnotationManager&);
         
-        void processExtendedModeSelection(const int32_t windowIndex,
+        void processExtendedModeSelectionForEditing(const int32_t windowIndex,
                                           const bool shiftKeyDownFlag,
                                           Annotation* selectedAnnotation);
         
-        void processSingleModeSelection(const int32_t windowIndex,
+        void processSingleModeSelectionForEditing(const int32_t windowIndex,
                                         Annotation* selectedAnnotation);
         
         SceneClassAssistant* m_sceneAssistant;
@@ -184,10 +184,10 @@ namespace caret {
         
         /*
          * DO NOT directly reference this.  Instead, call this class'
-         * getSelectionInformation() method so that the selection 
+         * getAnnotationEditingSelectionInformation() method so that the selection 
          * information is updated.
          */
-        mutable AnnotationSelectionInformation* m_selectionInformation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        mutable AnnotationEditingSelectionInformation* m_selectionInformation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         /** 
          * Do not use a Caret Pointer for this as it points to a file in the brain.

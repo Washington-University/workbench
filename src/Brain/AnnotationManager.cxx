@@ -34,7 +34,7 @@
 #include "AnnotationGroup.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRedoUndoCommand.h"
-#include "AnnotationSelectionInformation.h"
+#include "AnnotationEditingSelectionInformation.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
 #include "CaretAssert.h"
@@ -76,7 +76,7 @@ m_brain(brain)
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         m_annotationBeingDrawnInWindow[i] = NULL;
-        m_selectionInformation[i] = new AnnotationSelectionInformation(i);
+        m_selectionInformation[i] = new AnnotationEditingSelectionInformation(i);
     }
 
     m_sceneAssistant = new SceneClassAssistant();
@@ -171,13 +171,13 @@ AnnotationManager::applyCommandInWindow(AnnotationRedoUndoCommand* command,
 }
 
 /**
- * Deselect all annotations.
+ * Deselect all annotations for editing in the given window.
  *
  * @param windowIndex
  *     Index of window for deselection of window annotations.
  */
 void
-AnnotationManager::deselectAllAnnotations(const int32_t windowIndex)
+AnnotationManager::deselectAllAnnotationsForEditing(const int32_t windowIndex)
 {
     std::vector<AnnotationFile*> annotationFiles;
     m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
@@ -188,7 +188,7 @@ AnnotationManager::deselectAllAnnotations(const int32_t windowIndex)
         AnnotationFile* file = *fileIter;
         CaretAssert(file);
         
-        file->setAllAnnotationsSelected(windowIndex,
+        file->setAllAnnotationsSelectedForEditing(windowIndex,
                                         false);
     }
 
@@ -200,8 +200,8 @@ AnnotationManager::deselectAllAnnotations(const int32_t windowIndex)
          iter != colorBars.end();
          iter++) {
         AnnotationColorBar* cb = *iter;
-        cb->setSelected(windowIndex,
-                        false);
+        cb->setSelectedForEditing(windowIndex,
+                                  false);
     }
 }
 
@@ -251,7 +251,7 @@ AnnotationManager::getFilesContainingAnnotations(const std::vector<Annotation*> 
 
 
 /**
- * Select the given annotation using the given mode.
+ * Select the given annotation for editing using the given mode.
  *
  * @param windowIndex
  *     Index of window for annotation selection.
@@ -264,19 +264,19 @@ AnnotationManager::getFilesContainingAnnotations(const std::vector<Annotation*> 
  *     May be NULL.
  */
 void
-AnnotationManager::selectAnnotation(const int32_t windowIndex,
+AnnotationManager::selectAnnotationForEditing(const int32_t windowIndex,
                                     const SelectionMode selectionMode,
                                     const bool shiftKeyDownFlag,
                                     Annotation* selectedAnnotation)
 {
     switch (selectionMode) {
         case SELECTION_MODE_EXTENDED:
-            processExtendedModeSelection(windowIndex,
+            processExtendedModeSelectionForEditing(windowIndex,
                                          shiftKeyDownFlag,
                                          selectedAnnotation);
             break;
         case SELECTION_MODE_SINGLE:
-            processSingleModeSelection(windowIndex,
+            processSingleModeSelectionForEditing(windowIndex,
                                        selectedAnnotation);
             break;
     }
@@ -286,7 +286,7 @@ AnnotationManager::selectAnnotation(const int32_t windowIndex,
      * annotations in the group.
      */
     if (selectedAnnotation != NULL) {
-        const bool selectedStatus = selectedAnnotation->isSelected(windowIndex);
+        const bool selectedStatus = selectedAnnotation->isSelectedForEditing(windowIndex);
         const AnnotationGroupKey groupKey = selectedAnnotation->getAnnotationGroupKey();
         if (groupKey.getGroupType() == AnnotationGroupTypeEnum::USER) {
             EventAnnotationGroupGetWithKey getGroupEvent(groupKey);
@@ -294,7 +294,7 @@ AnnotationManager::selectAnnotation(const int32_t windowIndex,
             
             AnnotationGroup* annotationGroup = getGroupEvent.getAnnotationGroup();
             if (annotationGroup != NULL) {
-                annotationGroup->setAllAnnotationsSelected(windowIndex,
+                annotationGroup->setAllAnnotationsSelectedForEditing(windowIndex,
                                                            selectedStatus);
             }
         }
@@ -302,7 +302,7 @@ AnnotationManager::selectAnnotation(const int32_t windowIndex,
 }
 
 /**
- * Process extended mode annotation selection.
+ * Process extended mode annotation selection for editing.
  * 
  * @param windowIndex
  *     Index of window for annotation selection.
@@ -312,7 +312,7 @@ AnnotationManager::selectAnnotation(const int32_t windowIndex,
  *     Annotation that was selected (NULL if no annotation selected).
  */
 void
-AnnotationManager::processExtendedModeSelection(const int32_t windowIndex,
+AnnotationManager::processExtendedModeSelectionForEditing(const int32_t windowIndex,
                                                 const bool shiftKeyDownFlag,
                                                 Annotation* selectedAnnotation)
 {
@@ -322,11 +322,11 @@ AnnotationManager::processExtendedModeSelection(const int32_t windowIndex,
              * When shift key is down, the annotation's selection status
              * is toggled
              */
-            selectedAnnotation->setSelected(windowIndex,
-                                            ! selectedAnnotation->isSelected(windowIndex));
+            selectedAnnotation->setSelectedForEditing(windowIndex,
+                                            ! selectedAnnotation->isSelectedForEditing(windowIndex));
         }
         else {
-            if (selectedAnnotation->isSelected(windowIndex)) {
+            if (selectedAnnotation->isSelectedForEditing(windowIndex)) {
                 /* cannot deselect an annotation WITHOUT shift key down */
             }
             else {
@@ -334,8 +334,8 @@ AnnotationManager::processExtendedModeSelection(const int32_t windowIndex,
                  * Clicking an annotation without shift key selects the
                  * annotation but deselects all other annotations.
                  */
-                deselectAllAnnotations(windowIndex);
-                selectedAnnotation->setSelected(windowIndex,
+                deselectAllAnnotationsForEditing(windowIndex);
+                selectedAnnotation->setSelectedForEditing(windowIndex,
                                                 true);
             }
         }
@@ -345,13 +345,13 @@ AnnotationManager::processExtendedModeSelection(const int32_t windowIndex,
             /* do nothing with shift key down and no annotation clicked */
         }
         else {
-            deselectAllAnnotations(windowIndex);
+            deselectAllAnnotationsForEditing(windowIndex);
         }
     }
 }
 
 /**
- * Process single mode annotation selection.
+ * Process single mode annotation selection for editing.
  *
  * @param windowIndex
  *     Index of window for annotation selection.
@@ -359,29 +359,29 @@ AnnotationManager::processExtendedModeSelection(const int32_t windowIndex,
  *     Annotation that was selected (NULL if no annotation selected).
  */
 void
-AnnotationManager::processSingleModeSelection(const int32_t windowIndex,
+AnnotationManager::processSingleModeSelectionForEditing(const int32_t windowIndex,
                                               Annotation* selectedAnnotation)
 {
-    deselectAllAnnotations(windowIndex);
+    deselectAllAnnotationsForEditing(windowIndex);
     
     if (selectedAnnotation != NULL) {
-        selectedAnnotation->setSelected(windowIndex,
+        selectedAnnotation->setSelectedForEditing(windowIndex,
                                         true);
     }
 }
 
 /**
- * @return True if all of the selected annotations are deletable.
+ * @return True if all of the selected annotations for editing are deletable.
  *
  * @param windowIndex
  *     Index of window for annotation selection.
  */
 bool
-AnnotationManager::isSelectedAnnotationsDeletable(const int32_t windowIndex) const
+AnnotationManager::isAnnotationSelectedForEditingDeletable(const int32_t windowIndex) const
 {
     bool selectedAnnotationsDeletableFlag = false;
     
-    std::vector<Annotation*> selectedAnnotations = getSelectedAnnotations(windowIndex);
+    std::vector<Annotation*> selectedAnnotations = getAnnotationsSelectedForEditing(windowIndex);
     if ( ! selectedAnnotations.empty()) {
         selectedAnnotationsDeletableFlag = true;
         for (std::vector<Annotation*>::const_iterator iter = selectedAnnotations.begin();
@@ -439,7 +439,7 @@ AnnotationManager::getAllAnnotations() const
 }
 
 /**
- * Get the annotation selection information for the given window.
+ * Get the annotation editing selection information for the given window.
  *
  * @param windowIndex
  *     Index of window.
@@ -447,12 +447,12 @@ AnnotationManager::getAllAnnotations() const
  *     Annotation selection information.
  */
 const
-AnnotationSelectionInformation*
-AnnotationManager::getSelectionInformation(const int32_t windowIndex) const
+AnnotationEditingSelectionInformation*
+AnnotationManager::getAnnotationEditingSelectionInformation(const int32_t windowIndex) const
 {
     CaretAssertArrayIndex(m_selectionInformation, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
     
-    AnnotationSelectionInformation* asi = m_selectionInformation[windowIndex];
+    AnnotationEditingSelectionInformation* asi = m_selectionInformation[windowIndex];
     
     std::vector<Annotation*> allAnnotations = getAllAnnotations();
     std::vector<Annotation*> selectedAnnotations;
@@ -461,7 +461,7 @@ AnnotationManager::getSelectionInformation(const int32_t windowIndex) const
          annIter++) {
         Annotation* annotation = *annIter;
         
-        if (annotation->isSelected(windowIndex)) {
+        if (annotation->isSelectedForEditing(windowIndex)) {
             selectedAnnotations.push_back(annotation);
         }
     }
@@ -472,18 +472,18 @@ AnnotationManager::getSelectionInformation(const int32_t windowIndex) const
 }
 
 /**
- * @return A vector containing all SELECTED annotations.
+ * @return A vector containing all SELECTED annotations for editing
  *
  * @param windowIndex
  *     Index of window for annotation selection.
  */
 std::vector<Annotation*>
-AnnotationManager::getSelectedAnnotations(const int32_t windowIndex) const
+AnnotationManager::getAnnotationsSelectedForEditing(const int32_t windowIndex) const
 {
     std::vector<Annotation*> selectedAnnotations;
 
-    const AnnotationSelectionInformation* asi = getSelectionInformation(windowIndex);
-    asi->getSelectedAnnotations(selectedAnnotations);
+    const AnnotationEditingSelectionInformation* asi = getAnnotationEditingSelectionInformation(windowIndex);
+    asi->getAnnotationsSelectedForEditing(selectedAnnotations);
     
     return selectedAnnotations;
     
@@ -504,7 +504,7 @@ AnnotationManager::getSelectedAnnotations(const int32_t windowIndex) const
 }
 
 /**
- * @return A vector containing all SELECTED annotations and in the 
+ * @return A vector containing all SELECTED annotations for editing and in the
  * given spaces.
  *
  * @param windowIndex
@@ -513,10 +513,10 @@ AnnotationManager::getSelectedAnnotations(const int32_t windowIndex) const
  *     Limit returned annotations to annotations in these spaces.
  */
 std::vector<Annotation*>
-AnnotationManager::getSelectedAnnotationsInSpaces(const int32_t windowIndex,
+AnnotationManager::getAnnotationsSelectedForEditingInSpaces(const int32_t windowIndex,
                                                   const std::vector<AnnotationCoordinateSpaceEnum::Enum>& spaces) const
 {
-    std::vector<Annotation*> annotations = getSelectedAnnotations(windowIndex);
+    std::vector<Annotation*> annotations = getAnnotationsSelectedForEditing(windowIndex);
     
     std::vector<Annotation*> annotationsOut;
     for (std::vector<Annotation*>::iterator iter = annotations.begin();
@@ -538,7 +538,7 @@ AnnotationManager::getSelectedAnnotationsInSpaces(const int32_t windowIndex,
 
 
 /**
- * Get the selected annotations and the files that contain them.
+ * Get the selected annotations for editing and the files that contain them.
  *
  * @param windowIndex
  *     Index of window for annotation selection.
@@ -546,7 +546,7 @@ AnnotationManager::getSelectedAnnotationsInSpaces(const int32_t windowIndex,
  *    A 'pair' containing a selected annotation and the file that contains the annotation.
  */
 void
-AnnotationManager::getSelectedAnnotations(const int32_t windowIndex,
+AnnotationManager::getAnnotationsSelectedForEditing(const int32_t windowIndex,
                                           std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const
 {
     annotationsAndFileOut.clear();
@@ -566,7 +566,7 @@ AnnotationManager::getSelectedAnnotations(const int32_t windowIndex,
              annIter != annotations.end();
              annIter++) {
             Annotation* ann = *annIter;
-            if (ann->isSelected(windowIndex)) {
+            if (ann->isSelectedForEditing(windowIndex)) {
                 annotationsAndFileOut.push_back(std::make_pair(ann, file));
             }
         }
@@ -636,7 +636,7 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
                                      const AnnotationGroupingModeEnum::Enum groupingMode,
                                      AString& errorMessageOut)
 {
-    const AnnotationSelectionInformation* selectionInfo = getSelectionInformation(windowIndex);
+    const AnnotationEditingSelectionInformation* selectionInfo = getAnnotationEditingSelectionInformation(windowIndex);
     CaretAssert(selectionInfo);
     
     if ( ! selectionInfo->isGroupingModeValid(groupingMode)) {
@@ -650,7 +650,7 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
     }
     
     std::vector<AnnotationGroupKey> groupKeys = selectionInfo->getSelectedAnnotationGroupKeys();
-    std::vector<Annotation*> annotations = selectionInfo->getSelectedAnnotations();
+    std::vector<Annotation*> annotations = selectionInfo->getAnnotationsSelectedForEditing();
     
     switch (groupingMode) {
         case AnnotationGroupingModeEnum::GROUP:
@@ -747,7 +747,7 @@ bool
 AnnotationManager::isGroupingModeValid(const int32_t windowIndex,
                                        const AnnotationGroupingModeEnum::Enum groupingMode) const
 {
-    return getSelectionInformation(windowIndex)->isGroupingModeValid(groupingMode);
+    return getAnnotationEditingSelectionInformation(windowIndex)->isGroupingModeValid(groupingMode);
 }
 
 

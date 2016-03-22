@@ -31,12 +31,12 @@ namespace caret {
 
     class Annotation;
     
-    class AnnotationSelectionInformation : public CaretObject {
+    class AnnotationEditingSelectionInformation : public CaretObject {
         
     public:
-        AnnotationSelectionInformation(const int32_t windowIndex);
+        AnnotationEditingSelectionInformation(const int32_t windowIndex);
         
-        virtual ~AnnotationSelectionInformation();
+        virtual ~AnnotationEditingSelectionInformation();
 
         void clear();
         
@@ -50,9 +50,9 @@ namespace caret {
         
         bool isAnyAnnotationSelected() const;
         
-        std::vector<Annotation*> getSelectedAnnotations() const;
+        std::vector<Annotation*> getAnnotationsSelectedForEditing() const;
         
-        void getSelectedAnnotations(std::vector<Annotation*>& annotationsOut) const;
+        void getAnnotationsSelectedForEditing(std::vector<Annotation*>& annotationsOut) const;
         
         bool isGroupingModeValid(const AnnotationGroupingModeEnum::Enum groupingMode) const;
         
@@ -62,11 +62,11 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        AnnotationSelectionInformation(const AnnotationSelectionInformation& obj);
+        AnnotationEditingSelectionInformation(const AnnotationEditingSelectionInformation& obj);
         
-        AnnotationSelectionInformation& operator=(const AnnotationSelectionInformation& obj);
+        AnnotationEditingSelectionInformation& operator=(const AnnotationEditingSelectionInformation& obj);
         
-        void copyHelperAnnotationSelectionInformation(const AnnotationSelectionInformation& obj);
+        void copyHelperAnnotationSelectionInformation(const AnnotationEditingSelectionInformation& obj);
 
         const int32_t m_windowIndex;
         

@@ -41,7 +41,7 @@ AnnotationPercentSizeText.h
 AnnotationPointSizeText.h
 AnnotationRedoUndoCommand.h
 AnnotationRedoUndoCommandModeEnum.h
-AnnotationSelectionInformation.h
+AnnotationEditingSelectionInformation.h
 AnnotationSizingHandleTypeEnum.h
 AnnotationSpatialModification.h
 AnnotationSurfaceOffsetVectorTypeEnum.h
@@ -82,7 +82,7 @@ AnnotationPercentSizeText.cxx
 AnnotationPointSizeText.cxx
 AnnotationRedoUndoCommand.cxx
 AnnotationRedoUndoCommandModeEnum.cxx
-AnnotationSelectionInformation.cxx
+AnnotationEditingSelectionInformation.cxx
 AnnotationSizingHandleTypeEnum.cxx
 AnnotationSpatialModification.cxx
 AnnotationSurfaceOffsetVectorTypeEnum.cxx

@@ -147,7 +147,7 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     /*
      * Selected status is NOT copied.
      */
-    m_selectedInWindowFlag.reset();
+    m_selectedForEditingInWindowFlag.reset();
 }
 
 /**
@@ -352,14 +352,14 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
 void
 Annotation::initializeAnnotationMembers()
 {
-    CaretAssertMessage((m_selectedInWindowFlag.size() == BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS),
+    CaretAssertMessage((m_selectedForEditingInWindowFlag.size() == BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS),
                        ("m_selectedInWindowFlag (size="
-                        + QString::number(m_selectedInWindowFlag.size())
+                        + QString::number(m_selectedForEditingInWindowFlag.size())
                         + ") must be the same size as BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS (size="
                         + QString::number(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)
                         + ")"));
 
-    m_selectedInWindowFlag.reset();
+    m_selectedForEditingInWindowFlag.reset();
     
     m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     
@@ -1128,7 +1128,7 @@ Annotation::textAnnotationResetName()
 }
 
 /**
- * @return The annotation's selected status.
+ * @return The annotation's selected for editing status.
  *
  * Note: (1) The selection status is never saved to a scene
  * or file.  (2) Changing the selection status DOES NOT
@@ -1138,15 +1138,15 @@ Annotation::textAnnotationResetName()
  *    Window for annotation selection status.
  */
 bool
-Annotation::isSelected(const int32_t windowIndex) const
+Annotation::isSelectedForEditing(const int32_t windowIndex) const
 {
     CaretAssert((windowIndex >= 0)
-                && (windowIndex < static_cast<int32_t>(m_selectedInWindowFlag.size())));
-    return m_selectedInWindowFlag.test(windowIndex);
+                && (windowIndex < static_cast<int32_t>(m_selectedForEditingInWindowFlag.size())));
+    return m_selectedForEditingInWindowFlag.test(windowIndex);
 }
 
 /**
- * Set the annotation's selected status.
+ * Set the annotation's selected for editing status.
  *
  * This method is private - AnnotationManager handles selection and allowing
  * public access to this method could cause improper selection status.
@@ -1161,30 +1161,30 @@ Annotation::isSelected(const int32_t windowIndex) const
  *    New selection status.
  */
 void
-Annotation::setSelected(const int32_t windowIndex,
+Annotation::setSelectedForEditing(const int32_t windowIndex,
                         const bool selectedStatus) const
 {
     CaretAssert((windowIndex >= 0)
-                && (windowIndex < static_cast<int32_t>(m_selectedInWindowFlag.size())));
+                && (windowIndex < static_cast<int32_t>(m_selectedForEditingInWindowFlag.size())));
     
     if (selectedStatus) {
-        m_selectedInWindowFlag.set(windowIndex);
+        m_selectedForEditingInWindowFlag.set(windowIndex);
     }
     else {
-        m_selectedInWindowFlag.reset(windowIndex);
+        m_selectedForEditingInWindowFlag.reset(windowIndex);
     }
 }
 
 /**
- * Set the annotation's selected status to deselected.
+ * Set the annotation's selected for editing status to deselected.
  */
 void
-Annotation::setDeselected()
+Annotation::setDeselectedForEditing()
 {
     /*
      * Clear selected status in ALL windows
      */
-    m_selectedInWindowFlag.reset();
+    m_selectedForEditingInWindowFlag.reset();
 }
 
 /**
