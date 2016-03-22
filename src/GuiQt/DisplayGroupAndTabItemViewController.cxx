@@ -138,7 +138,7 @@ DisplayGroupAndTabItemViewController::itemWasChanged(QTreeWidgetItem* item,
 
     updateSelectedAndExpandedCheckboxes(displayGroup,
                                         tabIndex);
-    updateSelectedAndExpandedCheckboxesInOtherViewControllers(displayGroup);
+    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
     
     updateGraphics();
 }
@@ -165,7 +165,7 @@ DisplayGroupAndTabItemViewController::processItemExpanded(QTreeWidgetItem* item,
                               expandedStatus);
     updateSelectedAndExpandedCheckboxes(displayGroup,
                                         tabIndex);
-    updateSelectedAndExpandedCheckboxesInOtherViewControllers(displayGroup);
+    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
     
 }
 
@@ -302,20 +302,13 @@ DisplayGroupAndTabItemViewController::updateSelectedAndExpandedCheckboxes(const 
 }
 
 /**
- * Update the selection and expansion controls in other view controllers
- * that are set to the same display group (not tab) and contain the
- * same type of data.
- *
- * @param myDisplayGroup
- *     Group currently selected.
+ * Update the selection and expansion controls in ALL other view controllers.
+ * All of them need to be updated since window annotation selection is not
+ * affected by the display group and tab selection.
  */
 void
-DisplayGroupAndTabItemViewController::updateSelectedAndExpandedCheckboxesInOtherViewControllers(const DisplayGroupEnum::Enum myDisplayGroup)
+DisplayGroupAndTabItemViewController::updateSelectedAndExpandedCheckboxesInOtherViewControllers()
 {
-    if (myDisplayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        return;
-    }
-    
     for (std::set<DisplayGroupAndTabItemViewController*>::iterator iter = s_allViewControllers.begin();
          iter != s_allViewControllers.end();
          iter++) {
@@ -326,10 +319,8 @@ DisplayGroupAndTabItemViewController::updateSelectedAndExpandedCheckboxesInOther
                 int32_t otherTabIndex = -1;
                 otherViewController->getDisplayGroupAndTabIndex(otherDisplayGroup,
                                                                 otherTabIndex);
-                if (otherDisplayGroup == myDisplayGroup) {
-                    otherViewController->updateSelectedAndExpandedCheckboxes(otherDisplayGroup,
-                                                                             otherTabIndex);
-                }
+                otherViewController->updateSelectedAndExpandedCheckboxes(otherDisplayGroup,
+                                                                         otherTabIndex);
             }
         }
     }

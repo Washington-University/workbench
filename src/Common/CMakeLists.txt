@@ -161,6 +161,7 @@ DataFileException.cxx
 DataFileTypeEnum.cxx
 DescriptiveStatistics.cxx
 DeveloperFlagsEnum.cxx
+DisplayGroupAndTabItemInterface.cxx
 DisplayGroupEnum.cxx
 DrawnWithOpenGLTextureInfo.cxx
 ElapsedTimer.cxx

@@ -33,8 +33,11 @@ using namespace caret;
     
 /**
  * \class caret::DisplayGroupAndTabItemHelper 
- * \brief Helper for display group and tab selection items
+ * \brief Helper for display group and tab selection items.
  * \ingroup Scenes
+ *
+ * Helps track selection and expansion statuses for items
+ * selected with display group and tab or for a window.
  */
 
 /**
@@ -121,6 +124,10 @@ DisplayGroupAndTabItemHelper::copyHelperDisplayGroupAndTabItemHelper(const Displ
         m_selectedInTab[i] = m_selectedInTab[i];
         m_expandedStatusInTab[i] = m_expandedStatusInTab[i];
     }
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
+        m_selectedInWindow[i] = m_selectedInWindow[i];
+        m_expandedInWindow[i] = m_expandedInWindow[i];
+    }
 }
 
 /**
@@ -140,7 +147,10 @@ DisplayGroupAndTabItemHelper::clearPrivate()
         m_selectedInTab[i] = TriStateSelectionStatusEnum::SELECTED;
         m_expandedStatusInTab[i] = defaultExpandStatus;
     }
-    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
+        m_selectedInWindow[i] = TriStateSelectionStatusEnum::Enum::SELECTED;
+        m_expandedInWindow[i] = defaultExpandStatus;
+    }
 }
 
 /**
@@ -170,6 +180,17 @@ DisplayGroupAndTabItemHelper::initializeNewInstance()
                                m_expandedStatusInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                m_expandedStatusInDisplayGroup[0]);
+
+    m_sceneAssistant->addArray<TriStateSelectionStatusEnum,
+    TriStateSelectionStatusEnum::Enum>("m_selectedInWindow",
+                                       m_selectedInWindow,
+                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS,
+                                       m_selectedInWindow[0]);
+    
+    m_sceneAssistant->addArray("m_expandedInWindow",
+                               m_expandedInWindow,
+                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS,
+                               m_expandedInWindow[0]);
 }
 
 /**
@@ -213,7 +234,7 @@ DisplayGroupAndTabItemHelper::getSelected(const DisplayGroupEnum::Enum displayGr
  */
 void
 DisplayGroupAndTabItemHelper::setSelected(const DisplayGroupEnum::Enum displayGroup,
-                                               const int32_t tabIndex,
+                                          const int32_t tabIndex,
                                           const TriStateSelectionStatusEnum::Enum status)
 {
     const int32_t displayIndex = (int32_t)displayGroup;
@@ -230,6 +251,69 @@ DisplayGroupAndTabItemHelper::setSelected(const DisplayGroupEnum::Enum displayGr
         m_selectedInDisplayGroup[displayIndex] = status;
     }
 }
+
+/**
+ * Get the selected status of this item for the given window.
+ *
+ * @param windowIndex
+ *    Index of browser window in which item is controlled/viewed.
+ * @return
+ *    The selection status.
+ */
+TriStateSelectionStatusEnum::Enum
+DisplayGroupAndTabItemHelper::getSelectedInWindow(const int32_t windowIndex) const
+{
+    CaretAssertArrayIndex(m_selectedInWindow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    return m_selectedInWindow[windowIndex];
+}
+
+/**
+ * Set the selected status of this item for the given window.
+ *
+ * @param windowIndex
+ *    Index of browser window in which item is controlled/viewed.
+ * @param status
+ *    New selection status.
+ */
+void
+DisplayGroupAndTabItemHelper::setSelectedInWindow(const int32_t windowIndex,
+                         const TriStateSelectionStatusEnum::Enum status)
+{
+    CaretAssertArrayIndex(m_selectedInWindow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    m_selectedInWindow[windowIndex] = status;
+}
+
+/**
+ * Get the expanded status of this item for the given window.
+ *
+ * @param windowIndex
+ *    Index of browser window in which item is controlled/viewed.
+ * @return
+ *    The expanded status.
+ */
+bool
+DisplayGroupAndTabItemHelper::isExpandedInWindow(const int32_t windowIndex) const
+{
+    CaretAssertArrayIndex(m_expandedInWindow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    return m_expandedInWindow[windowIndex];
+}
+
+/**
+ * Set the expanded status of this item for the given window.
+ *
+ * @param windowIndex
+ *    Index of browser window in which item is controlled/viewed.
+ * @param status
+ *    New expanded status.
+ */
+void
+DisplayGroupAndTabItemHelper::setExpandedInWindow(const int32_t windowIndex,
+                         const bool status)
+{
+    CaretAssertArrayIndex(m_expandedInWindow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    m_expandedInWindow[windowIndex] = status;
+}
+
 
 /**
  * Is this item expanded to display its children in the

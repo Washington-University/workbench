@@ -1687,8 +1687,22 @@ AnnotationFile::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup
                                 const int32_t tabIndex,
                                 const TriStateSelectionStatusEnum::Enum status)
 {
-    m_displayGroupAndTabItemHelper->setSelected(displayGroup,
-                                                tabIndex,
-                                                status);
+//    m_displayGroupAndTabItemHelper->setSelected(displayGroup,
+//                                                tabIndex,
+//                                                status);
+    /*
+     * Note: An annotation file's selection status is based
+     * of the the file's annotation groups so we do not need to set
+     * an explicit selection status for the file.
+     */
+    
+    DisplayGroupAndTabItemInterface::setChildrenDisplaySelectedHelper(this,
+                                                                      displayGroup,
+                                                                      tabIndex,
+                                                                      status);
+    DisplayGroupAndTabItemInterface::setChildrenDisplaySelectedHelper(this,
+                                                                displayGroup,
+                                                                tabIndex,
+                                                                status);
 }
 

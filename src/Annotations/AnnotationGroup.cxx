@@ -826,6 +826,10 @@ bool
 AnnotationGroup::isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex) const
 {
+    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+       return  m_displayGroupAndTabItemHelper->isExpandedInWindow(m_tabOrWindowIndex);
+    }
+    
     return m_displayGroupAndTabItemHelper->isExpanded(displayGroup,
                                                       tabIndex);
 }
@@ -845,9 +849,15 @@ AnnotationGroup::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
                                  const int32_t tabIndex,
                                  const bool status)
 {
-    m_displayGroupAndTabItemHelper->setExpanded(displayGroup,
-                                                tabIndex,
-                                                status);
+    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+        m_displayGroupAndTabItemHelper->setExpandedInWindow(m_tabOrWindowIndex,
+                                                            status);
+    }
+    else {
+        m_displayGroupAndTabItemHelper->setExpanded(displayGroup,
+                                                    tabIndex,
+                                                    status);
+    }
 }
 
 /**
@@ -919,12 +929,22 @@ AnnotationGroup::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGrou
             break;
     }
     
-    const int numChildren = getNumberOfAnnotations();
-    for (int32_t i = 0; i < numChildren; i++) {
-        CaretAssertVectorIndex(m_annotations, i);
-        m_annotations[i]->setItemDisplaySelected(displayGroup,
-                                          tabIndex,
-                                          status);
-    }
+    /*
+     * Note: An annotation group's selection status is based
+     * of the the group's annotations so we do not need to set
+     * an explicit selection status for the group.
+     */
+    
+    DisplayGroupAndTabItemInterface::setChildrenDisplaySelectedHelper(this,
+                                                                displayGroup,
+                                                                tabIndex,
+                                                                status);
+//    const int numChildren = getNumberOfAnnotations();
+//    for (int32_t i = 0; i < numChildren; i++) {
+//        CaretAssertVectorIndex(m_annotations, i);
+//        m_annotations[i]->setItemDisplaySelected(displayGroup,
+//                                          tabIndex,
+//                                          status);
+//    }
 }
 

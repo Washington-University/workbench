@@ -25,11 +25,6 @@
 #include "DisplayGroupEnum.h"
 #include "TriStateSelectionStatusEnum.h"
 
-/**
- * \class caret::DisplayGroupAndTabItemInterface
- * \brief Interface for items in a display group tab selection hierarchy
- * \ingroup Common
- */
 
 namespace caret {
 
@@ -39,13 +34,13 @@ namespace caret {
         /**
          * Constructor
          */
-        DisplayGroupAndTabItemInterface() { }
+        DisplayGroupAndTabItemInterface();
         
     public:
         /**
          * Destructor
          */
-        virtual ~DisplayGroupAndTabItemInterface() { }
+        virtual ~DisplayGroupAndTabItemInterface();
         
         /**
          * @return Number of children.
@@ -158,6 +153,15 @@ namespace caret {
                                      const TriStateSelectionStatusEnum::Enum status) = 0;
         
 
+        TriStateSelectionStatusEnum::Enum getChildrenDisplaySelectedHelper(DisplayGroupAndTabItemInterface* displayGroupTabInterface,
+                                                                           const DisplayGroupEnum::Enum displayGroup,
+                                                                           const int32_t tabIndex);
+        
+        static bool setChildrenDisplaySelectedHelper(DisplayGroupAndTabItemInterface* displayGroupTabInterface,
+                                                     const DisplayGroupEnum::Enum displayGroup,
+                                                     const int32_t tabIndex,
+                                                     const TriStateSelectionStatusEnum::Enum status);
+        
         // ADD_NEW_METHODS_HERE
         
     private:

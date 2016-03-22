@@ -1446,6 +1446,10 @@ Annotation::isItemExpandable() const
 /**
  * @return Is this item expanded in the given display group/tab?
  *
+ * Note: If this annotation is in window space, the display group
+ * and tab are ignored and window status is used with the window index
+ * of the annotation.
+ *
  * @param displayGroup
  *     The display group.
  * @param tabIndex
@@ -1455,12 +1459,20 @@ bool
 Annotation::isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
                            const int32_t tabIndex) const
 {
+    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+        return m_displayGroupAndTabItemHelper->isExpandedInWindow(m_windowIndex);
+    }
+    
     return m_displayGroupAndTabItemHelper->isExpanded(displayGroup,
                                                       tabIndex);
 }
 
 /**
  * Set this item's expanded status in the given display group/tab.
+ *
+ * Note: If this annotation is in window space, the display group
+ * and tab are ignored and window status is used with the window index
+ * of the annotation.
  *
  * @param displayGroup
  *     The display group.
@@ -1474,13 +1486,24 @@ Annotation::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex,
                             const bool status)
 {
-    m_displayGroupAndTabItemHelper->setExpanded(displayGroup,
-                                                tabIndex,
-                                                status);
+    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+        m_displayGroupAndTabItemHelper->setExpandedInWindow(m_windowIndex,
+                                                            status);
+    }
+    else {
+        m_displayGroupAndTabItemHelper->setExpanded(displayGroup,
+                                                    tabIndex,
+                                                    status);
+    }
+    
 }
 
 /**
  * Get display selection status in the given display group/tab?
+ *
+ * Note: If this annotation is in window space, the display group
+ * and tab are ignored and window status is used with the window index
+ * of the annotation.
  *
  * @param displayGroup
  *     The display group.
@@ -1491,12 +1514,20 @@ TriStateSelectionStatusEnum::Enum
 Annotation::getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex) const
 {
+    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+        return m_displayGroupAndTabItemHelper->getSelectedInWindow(m_windowIndex);
+    }
+    
     return m_displayGroupAndTabItemHelper->getSelected(displayGroup,
                                                        tabIndex);
 }
 
 /**
  * Set display this item selected in the given display group/tab.
+ *
+ * Note: If this annotation is in window space, the display group
+ * and tab are ignored and window status is used with the window index
+ * of the annotation.
  *
  * @param displayGroup
  *     The display group.
@@ -1510,9 +1541,15 @@ Annotation::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                              const int32_t tabIndex,
                              const TriStateSelectionStatusEnum::Enum status)
 {
-    m_displayGroupAndTabItemHelper->setSelected(displayGroup,
-                                                tabIndex,
-                                                status);
+    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+        m_displayGroupAndTabItemHelper->setSelectedInWindow(m_windowIndex,
+                                                            status);
+    }
+    else {
+        m_displayGroupAndTabItemHelper->setSelected(displayGroup,
+                                                    tabIndex,
+                                                    status);
+    }
 }
 
 /**

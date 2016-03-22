@@ -80,7 +80,7 @@ namespace caret {
         void updateSelectedAndExpandedCheckboxes(const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex);
         
-        void updateSelectedAndExpandedCheckboxesInOtherViewControllers(const DisplayGroupEnum::Enum displayGroup);
+        void updateSelectedAndExpandedCheckboxesInOtherViewControllers();
         
         const DataFileTypeEnum::Enum m_dataFileType;
         

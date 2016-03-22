@@ -62,6 +62,16 @@ namespace caret {
                          const int32_t tabIndex,
                          const TriStateSelectionStatusEnum::Enum status);
         
+        TriStateSelectionStatusEnum::Enum getSelectedInWindow(const int32_t windowIndex) const;
+        
+        void setSelectedInWindow(const int32_t windowIndex,
+                                 const TriStateSelectionStatusEnum::Enum status);
+        
+        bool isExpandedInWindow(const int32_t windowIndex) const;
+        
+        void setExpandedInWindow(const int32_t windowIndex,
+                                 const bool status);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -106,6 +116,12 @@ namespace caret {
         
         /** Expanded (collapsed) status in tab */
         bool m_expandedStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** Selection for each window */
+        TriStateSelectionStatusEnum::Enum m_selectedInWindow[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        
+        /** Expanded (collapsed) status in window */
+        bool m_expandedInWindow[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         // ADD_NEW_MEMBERS_HERE
 
