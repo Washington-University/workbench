@@ -51,36 +51,6 @@ DisplayGroupAndTabItemTreeWidgetItem::DisplayGroupAndTabItemTreeWidgetItem()
     m_tabIndex     = -1;
 }
 
-/**
- * Constructor.
- *
- * @param displayGroupAndTabItem
- *     Item for display in this instance.
- */
-DisplayGroupAndTabItemTreeWidgetItem::DisplayGroupAndTabItemTreeWidgetItem(DisplayGroupAndTabItemInterface *displayGroupAndTabItem)
-: QTreeWidgetItem(),
-m_displayGroup(DisplayGroupEnum::DISPLAY_GROUP_A)
-{
-    CaretAssertToDoFatal();  // REMOVE THIS CONSTRUCTOR
-    CaretAssert(displayGroupAndTabItem);
-    
-    setText(NAME_COLUMN,
-            displayGroupAndTabItem->getItemName());
-    
-    setData(NAME_COLUMN,
-            Qt::UserRole,
-            qVariantFromValue<void*>(displayGroupAndTabItem));
-    
-    std::vector<DisplayGroupAndTabItemInterface*> itemChildren = displayGroupAndTabItem->getItemChildren();
-    for (std::vector<DisplayGroupAndTabItemInterface*>::iterator childIter = itemChildren.begin();
-         childIter != itemChildren.end();
-         childIter++) {
-        DisplayGroupAndTabItemInterface* itemChild = *childIter;
-        
-        DisplayGroupAndTabItemTreeWidgetItem* childWidget = new DisplayGroupAndTabItemTreeWidgetItem(itemChild);
-        addChild(childWidget);
-    }
-}
 
 /**
  * Destructor.
@@ -115,11 +85,9 @@ DisplayGroupAndTabItemTreeWidgetItem::updateContent(DisplayGroupAndTabItemInterf
     setText(NAME_COLUMN,
             displayGroupAndTabItem->getItemName());
     
-    setData(NAME_COLUMN,
-            Qt::UserRole,
-            qVariantFromValue<void*>(displayGroupAndTabItem));
+    setDisplayGroupAndTabItem(displayGroupAndTabItem);
     
-    Qt::CheckState qtCheckState = toQCheckState(displayGroupAndTabItem->getItemSelected(m_displayGroup,
+    Qt::CheckState qtCheckState = toQCheckState(displayGroupAndTabItem->getItemDisplaySelected(m_displayGroup,
                                                                         m_tabIndex));
     setCheckState(NAME_COLUMN,
                   qtCheckState);
@@ -158,69 +126,41 @@ DisplayGroupAndTabItemTreeWidgetItem::updateContent(DisplayGroupAndTabItemInterf
         }
         else {
             treeWidgetChild->setHidden(true);
-            treeWidgetChild->setData(NAME_COLUMN,
-                                     Qt::UserRole,
-                                     qVariantFromValue<void*>(NULL));
+            setDisplayGroupAndTabItem(NULL);
         }
     }
 }
 
 /**
- * @return The data item in this tree widget item.
+ * @return The data item in this tree widget item (may be NULL).
  */
 DisplayGroupAndTabItemInterface*
 DisplayGroupAndTabItemTreeWidgetItem::getDisplayGroupAndTabItem() const
 {
+    DisplayGroupAndTabItemInterface* myItem = NULL;
     void* myDataPtr = data(NAME_COLUMN, Qt::UserRole).value<void*>();
-    DisplayGroupAndTabItemInterface* myItem = (DisplayGroupAndTabItemInterface*)myDataPtr;
-    CaretAssert(myItem);
+    if (myDataPtr != NULL) {
+        myItem = (DisplayGroupAndTabItemInterface*)myDataPtr;
+        CaretAssert(myItem);
+    }
     return myItem;
 }
 
-
 /**
- * Update the content of this widget.
+ * Set the data item in this tree widget item.
  *
- * @param displayGroup
- *     The display group.
- * @param tabIndex
- *     The tab index.
+ * @param displayGroupAndTabItem
+ *     The data item (may be NULL).
  */
 void
-DisplayGroupAndTabItemTreeWidgetItem::updateContent(QTreeWidget* treeWidget,
-                                                    const DisplayGroupEnum::Enum displayGroup,
-                                                    const int32_t tabIndex)
+DisplayGroupAndTabItemTreeWidgetItem::setDisplayGroupAndTabItem(DisplayGroupAndTabItemInterface* displayGroupAndTabItem)
 {
-    CaretAssertMessage(0, "Use other update method.");
-    
-    m_displayGroup = displayGroup;
-    m_tabIndex     = tabIndex;
-    
-    DisplayGroupAndTabItemInterface* myData = getDisplayGroupAndTabItem();
-//    void* myDataPtr = data(NAME_COLUMN, Qt::UserRole).value<void*>();
-//    DisplayGroupAndTabItemInterface* myData = (DisplayGroupAndTabItemInterface*)myDataPtr;
-//    CaretAssert(myData);
-    
-    
-    Qt::CheckState qtCheckState = toQCheckState(myData->getItemSelected(m_displayGroup,
-                                                                        m_tabIndex));
-    setCheckState(NAME_COLUMN,
-                  qtCheckState);
-    
-    setItemIcon(treeWidget,
-                myData);
-    
-    const int32_t numChildren = childCount();
-    for (int32_t i = 0; i < numChildren; i++) {
-        QTreeWidgetItem* ch = child(i);
-        DisplayGroupAndTabItemTreeWidgetItem* item = dynamic_cast<DisplayGroupAndTabItemTreeWidgetItem*>(ch);
-        item->updateContent(treeWidget, displayGroup, tabIndex);
-    }
-
-    const bool expandedFlag = myData->isItemExpanded(m_displayGroup,
-                                                                       m_tabIndex);
-    setExpanded(expandedFlag);
+    setData(NAME_COLUMN,
+            Qt::UserRole,
+            qVariantFromValue<void*>(displayGroupAndTabItem));
 }
+
+
 
 /**
  * Set the icon for this item.
@@ -245,8 +185,6 @@ DisplayGroupAndTabItemTreeWidgetItem::setItemIcon(QTreeWidget* treeWidget,
         QPixmap pixmap(pixmapSize,
                        pixmapSize);
         
-//        QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapPainterOriginBottomLeft(pixmap,
-//                                                                                              backgroundRGBA);
         QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(treeWidget,
                                                                                               pixmap);
         if (backgroundRGBA[3] > 0.0) {
@@ -283,6 +221,45 @@ DisplayGroupAndTabItemTreeWidgetItem::setItemIcon(QTreeWidget* treeWidget,
     else {
         setIcon(NAME_COLUMN,
                 QIcon());
+    }
+}
+
+/**
+ * Update the selected and expanded checkboxes.
+ *
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab.
+ */
+void
+DisplayGroupAndTabItemTreeWidgetItem::updateSelectedAndExpandedCheckboxes(const DisplayGroupEnum::Enum displayGroup,
+                                                                          const int32_t tabIndex)
+{
+    const int32_t numChildren = childCount();
+    for (int32_t iChild = 0; iChild < numChildren; iChild++) {
+        QTreeWidgetItem* treeChild = child(iChild);
+        CaretAssert(treeChild);
+        
+        DisplayGroupAndTabItemTreeWidgetItem* item = dynamic_cast<DisplayGroupAndTabItemTreeWidgetItem*>(treeChild);
+        CaretAssert(item);
+        
+        DisplayGroupAndTabItemInterface* data = item->getDisplayGroupAndTabItem();
+        if (data != NULL) {
+            item->updateSelectedAndExpandedCheckboxes(displayGroup,
+                                                      tabIndex);
+        }
+    }
+
+    DisplayGroupAndTabItemInterface* myData = getDisplayGroupAndTabItem();
+    if (myData != NULL) {
+        Qt::CheckState checkState = toQCheckState(myData->getItemDisplaySelected(displayGroup,
+                                                                          tabIndex));
+        setCheckState(NAME_COLUMN,
+                      checkState);
+        
+        setExpanded(myData->isItemExpanded(displayGroup,
+                                           tabIndex));
     }
 }
 

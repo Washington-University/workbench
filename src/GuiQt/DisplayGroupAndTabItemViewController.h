@@ -74,13 +74,12 @@ namespace caret {
         
         void updateGraphics();
         
+        void updateSelectedAndExpandedCheckboxes(const DisplayGroupEnum::Enum displayGroup,
+                                                 const int32_t tabIndex);
+        
         const int32_t m_browserWindowIndex;
         
         QTreeWidget* m_treeWidget;
-        
-        std::vector<DisplayGroupAndTabItemInterface*> m_contentItems;
-        
-        std::vector<DisplayGroupAndTabItemTreeWidgetItem*> m_contentItemWidgets;
         
         // ADD_NEW_MEMBERS_HERE
 

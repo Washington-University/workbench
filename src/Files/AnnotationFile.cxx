@@ -1628,7 +1628,7 @@ AnnotationFile::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
 }
 
 /**
- * Get selection status in the given display group/tab?
+ * Get display selection status in the given display group/tab?
  *
  * @param displayGroup
  *     The display group.
@@ -1636,15 +1636,44 @@ AnnotationFile::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
  *     Index of the tab.
  */
 TriStateSelectionStatusEnum::Enum
-AnnotationFile::getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+AnnotationFile::getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex) const
 {
-    return m_displayGroupAndTabItemHelper->getSelected(displayGroup,
-                                                       tabIndex);
+    TriStateSelectionStatusEnum::Enum status = TriStateSelectionStatusEnum::UNSELECTED;
+    
+    const int numChildren = static_cast<int32_t>(m_annotationGroups.size());
+    if (numChildren > 0) {
+        int32_t selectedCount = 0;
+        int32_t partialSelectedCount = 0;
+        for (int32_t i = 0; i < numChildren; i++) {
+            CaretAssertVectorIndex(m_annotationGroups, i);
+            switch (m_annotationGroups[i]->getItemDisplaySelected(displayGroup,
+                                                           tabIndex)) {
+                case TriStateSelectionStatusEnum::PARTIALLY_SELECTED:
+                    partialSelectedCount++;
+                    break;
+                case TriStateSelectionStatusEnum::SELECTED:
+                    selectedCount++;
+                    break;
+                case TriStateSelectionStatusEnum::UNSELECTED:
+                    break;
+            }
+        }
+        
+        if (selectedCount == numChildren) {
+            status = TriStateSelectionStatusEnum::SELECTED;
+        }
+        else if ((selectedCount > 0)
+                 || (partialSelectedCount > 0)) {
+            status = TriStateSelectionStatusEnum::PARTIALLY_SELECTED;
+        }
+    }
+    
+    return status;
 }
 
 /**
- * Set this item selected in the given display group/tab.
+ * Set display this item selected in the given display group/tab.
  *
  * @param displayGroup
  *     The display group.
@@ -1654,7 +1683,7 @@ AnnotationFile::getItemSelected(const DisplayGroupEnum::Enum displayGroup,
  *     New selection status.
  */
 void
-AnnotationFile::setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+AnnotationFile::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex,
                                 const TriStateSelectionStatusEnum::Enum status)
 {

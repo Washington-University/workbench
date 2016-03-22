@@ -82,6 +82,8 @@ namespace caret {
         
         QWidget* createSelectionWidget();
         
+        void updateAnnotationSelections();
+        
         SceneClassAssistant* m_sceneAssistant;
 
         int32_t m_browserWindowIndex;
@@ -90,13 +92,7 @@ namespace caret {
         
         DisplayGroupAndTabItemViewController* m_selectionViewController;
         
-        QCheckBox* m_displayModelAnnotationCheckBox;
-        
-        QCheckBox* m_displaySurfaceAnnotationCheckBox;
-        
-        QCheckBox* m_displayTabAnnotationCheckBox;
-        
-        QCheckBox* m_displayWindowAnnotationCheckBox;
+        QCheckBox* m_displayWindowAnnotationInSingleTabViewsCheckBox;
         
         // ADD_NEW_MEMBERS_HERE
 

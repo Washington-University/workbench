@@ -133,18 +133,18 @@ namespace caret {
                                      const bool status) = 0;
         
         /**
-         * Get selection status in the given display group/tab?
+         * Get display selection status in the given display group/tab?
          *
          * @param displayGroup
          *     The display group.
          * @param tabIndex
          *     Index of the tab.
          */
-        virtual TriStateSelectionStatusEnum::Enum getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+        virtual TriStateSelectionStatusEnum::Enum getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                                                  const int32_t tabIndex) const = 0;
         
         /**
-         * Set this item selected in the given display group/tab.
+         * Set display this item selected in the given display group/tab.
          *
          * @param displayGroup
          *     The display group.
@@ -153,7 +153,7 @@ namespace caret {
          * @param status
          *     New selection status.
          */
-        virtual void setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+        virtual void setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                      const int32_t tabIndex,
                                      const TriStateSelectionStatusEnum::Enum status) = 0;
         

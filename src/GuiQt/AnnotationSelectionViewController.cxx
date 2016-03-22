@@ -75,36 +75,17 @@ m_browserWindowIndex(browserWindowIndex)
     groupLayout->addWidget(groupLabel);
     groupLayout->addWidget(m_displayGroupComboBox->getWidget());
     groupLayout->addStretch();
-    
-    
 
-    m_displayModelAnnotationCheckBox = new QCheckBox("Show Stereotaxic Annotations");
-    QObject::connect(m_displayModelAnnotationCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(checkBoxToggled()));
-    
-    m_displaySurfaceAnnotationCheckBox = new QCheckBox("Show Surface Annotations");
-    QObject::connect(m_displaySurfaceAnnotationCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(checkBoxToggled()));
-    
-    m_displayTabAnnotationCheckBox = new QCheckBox("Show Tab Annotations");
-    QObject::connect(m_displayTabAnnotationCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(checkBoxToggled()));
-    
-    m_displayWindowAnnotationCheckBox = new QCheckBox("Show Window Annotations in Window "
+    m_displayWindowAnnotationInSingleTabViewsCheckBox = new QCheckBox("Show Window Annotations in Single Tab Views "
                                                       + QString::number(m_browserWindowIndex + 1));
-    QObject::connect(m_displayWindowAnnotationCheckBox, SIGNAL(clicked(bool)),
+    QObject::connect(m_displayWindowAnnotationInSingleTabViewsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(checkBoxToggled()));
     
     m_sceneAssistant = new SceneClassAssistant();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addWidget(m_displayWindowAnnotationInSingleTabViewsCheckBox);
     layout->addLayout(groupLayout);
-    layout->addWidget(m_displayModelAnnotationCheckBox);
-    layout->addWidget(m_displaySurfaceAnnotationCheckBox);
-    layout->addWidget(m_displayTabAnnotationCheckBox);
-    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    layout->addWidget(m_displayWindowAnnotationCheckBox);
-    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(createSelectionWidget(), 100);
     
     layout->addStretch();
@@ -134,54 +115,48 @@ AnnotationSelectionViewController::receiveEvent(Event* event)
        EventUserInterfaceUpdate* eventUI = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(eventUI);
 
-        DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
-        
-        BrowserTabContent* browserTabContent =
-        GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-        if (browserTabContent == NULL) {
-            return;
-        }
-        const int32_t browserTabIndex = browserTabContent->getTabNumber();
-        
-        const QString inTabText("in Tab "
-                                + QString::number(browserTabIndex + 1));
-        
-        m_displayModelAnnotationCheckBox->setChecked(dpa->isDisplayModelAnnotationsInTab(browserTabIndex));
-        m_displayModelAnnotationCheckBox->setText("Display Stereotaxic Annotations "
-                                                  + inTabText);
-        
-        m_displaySurfaceAnnotationCheckBox->setChecked(dpa->isDisplaySurfaceAnnotationsInTab(browserTabIndex));
-        m_displaySurfaceAnnotationCheckBox->setText("Display Surface Annotations "
-                                                  + inTabText);
-        
-        m_displayTabAnnotationCheckBox->setChecked(dpa->isDisplayTabAnnotationsInTab(browserTabIndex));
-        m_displayTabAnnotationCheckBox->setText("Display Tab Annotations "
-                                                  + inTabText);
-        
-        m_displayWindowAnnotationCheckBox->setChecked(dpa->isDisplayWindowAnnotationsInTab(m_browserWindowIndex));
-        
-        Brain* brain = GuiManager::get()->getBrain();
-        std::vector<AnnotationFile*> annotationFiles;
-        brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
-        
-        std::vector<DisplayGroupAndTabItemInterface*> fileItems;
-        for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
-             fileIter != annotationFiles.end();
-             fileIter++) {
-            AnnotationFile* annFile = *fileIter;
-            CaretAssert(annFile);
-            fileItems.push_back(annFile);
-        }
-        
-        const DisplayGroupEnum::Enum displayGroup = dpa->getDisplayGroupForTab(browserTabIndex);
-        m_displayGroupComboBox->setSelectedDisplayGroup(displayGroup);
-        
-        m_selectionViewController->updateContent(fileItems,
-                                                 displayGroup,
-                                                 browserTabIndex);
+        updateAnnotationSelections();
         
         eventUI->setEventProcessed();
     }
+}
+
+/**
+ * Update the annotation selections.
+ */
+void
+AnnotationSelectionViewController::updateAnnotationSelections()
+{
+    DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+    
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return;
+    }
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    
+    m_displayWindowAnnotationInSingleTabViewsCheckBox->setChecked(dpa->isDisplayWindowAnnotationsInSingleTabViews(m_browserWindowIndex));
+    
+    Brain* brain = GuiManager::get()->getBrain();
+    std::vector<AnnotationFile*> annotationFiles;
+    brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+    
+    std::vector<DisplayGroupAndTabItemInterface*> fileItems;
+    for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
+         fileIter != annotationFiles.end();
+         fileIter++) {
+        AnnotationFile* annFile = *fileIter;
+        CaretAssert(annFile);
+        fileItems.push_back(annFile);
+    }
+    
+    const DisplayGroupEnum::Enum displayGroup = dpa->getDisplayGroupForTab(browserTabIndex);
+    m_displayGroupComboBox->setSelectedDisplayGroup(displayGroup);
+    
+    m_selectionViewController->updateContent(fileItems,
+                                             displayGroup,
+                                             browserTabIndex);
 }
 
 QWidget*
@@ -207,14 +182,8 @@ AnnotationSelectionViewController::checkBoxToggled()
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
 
-    dpa->setDisplayModelAnnotationsInTab(browserTabIndex,
-                                    m_displayModelAnnotationCheckBox->isChecked());
-    dpa->setDisplaySurfaceAnnotationsInTab(browserTabIndex,
-                                      m_displaySurfaceAnnotationCheckBox->isChecked());
-    dpa->setDisplayTabAnnotationsInTab(browserTabIndex,
-                                  m_displayTabAnnotationCheckBox->isChecked());
-    dpa->setDisplayWindowAnnotationsInTab(m_browserWindowIndex,
-                                     m_displayWindowAnnotationCheckBox->isChecked());
+    dpa->setDisplayWindowAnnotationsInSingleTabViews(m_browserWindowIndex,
+                                     m_displayWindowAnnotationInSingleTabViewsCheckBox->isChecked());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -236,22 +205,7 @@ AnnotationSelectionViewController::displayGroupSelected(const DisplayGroupEnum::
 
     dpa->setDisplayGroupForTab(browserTabIndex, displayGroup);
     
-    
-//    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    Brain* brain = GuiManager::get()->getBrain();
-//    DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
-//    dsb->setDisplayGroupForTab(browserTabIndex,
-//                               displayGroup);
-//    
-//    /*
-//     * Since display group has changed, need to update controls
-//     */
-//    updateBorderViewController();
-//    
-//    /*
-//     * Apply the changes.
-//     */
-//    processBorderSelectionChanges();
+    updateAnnotationSelections();
 }
 
 

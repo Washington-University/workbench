@@ -106,6 +106,7 @@ namespace caret {
         
         /** Expanded (collapsed) status in tab */
         bool m_expandedStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

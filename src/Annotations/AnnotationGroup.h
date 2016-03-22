@@ -114,10 +114,10 @@ namespace caret {
                                      const int32_t tabIndex,
                                      const bool status);
         
-        virtual TriStateSelectionStatusEnum::Enum getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+        virtual TriStateSelectionStatusEnum::Enum getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                     const int32_t tabIndex) const;
         
-        virtual void setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+        virtual void setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                      const int32_t tabIndex,
                                      const TriStateSelectionStatusEnum::Enum status);
         

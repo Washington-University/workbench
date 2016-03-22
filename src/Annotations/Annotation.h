@@ -218,10 +218,10 @@ namespace caret {
                                      const int32_t tabIndex,
                                      const bool status);
         
-        virtual TriStateSelectionStatusEnum::Enum getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+        virtual TriStateSelectionStatusEnum::Enum getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                     const int32_t tabIndex) const;
         
-        virtual void setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+        virtual void setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                      const int32_t tabIndex,
                                      const TriStateSelectionStatusEnum::Enum status);
         
@@ -288,7 +288,7 @@ namespace caret {
         AnnotationGroupKey m_annotationGroupKey;
         
         /**
-         * Selection status in each window.
+         * Selection (NOT DISPLAY) status in each window.
          *
          * Number of elements must be same as Constants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS
          * An assertion will fail in the if number of elements differs.

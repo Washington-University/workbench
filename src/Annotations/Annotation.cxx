@@ -1480,7 +1480,7 @@ Annotation::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
 }
 
 /**
- * Get selection status in the given display group/tab?
+ * Get display selection status in the given display group/tab?
  *
  * @param displayGroup
  *     The display group.
@@ -1488,7 +1488,7 @@ Annotation::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
  *     Index of the tab.
  */
 TriStateSelectionStatusEnum::Enum
-Annotation::getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+Annotation::getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex) const
 {
     return m_displayGroupAndTabItemHelper->getSelected(displayGroup,
@@ -1496,7 +1496,7 @@ Annotation::getItemSelected(const DisplayGroupEnum::Enum displayGroup,
 }
 
 /**
- * Set this item selected in the given display group/tab.
+ * Set display this item selected in the given display group/tab.
  *
  * @param displayGroup
  *     The display group.
@@ -1506,7 +1506,7 @@ Annotation::getItemSelected(const DisplayGroupEnum::Enum displayGroup,
  *     New selection status.
  */
 void
-Annotation::setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+Annotation::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                              const int32_t tabIndex,
                              const TriStateSelectionStatusEnum::Enum status)
 {

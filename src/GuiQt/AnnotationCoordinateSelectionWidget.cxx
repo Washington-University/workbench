@@ -819,8 +819,6 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (m_coordInfo.m_tabIndex >= 0) {
-                dpa->setDisplayModelAnnotationsInTab(m_coordInfo.m_tabIndex,
-                                                true);
             }
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -828,16 +826,12 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (m_coordInfo.m_tabIndex >= 0) {
-                dpa->setDisplaySurfaceAnnotationsInTab(m_coordInfo.m_tabIndex,
-                                                  true);
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            dpa->setDisplayTabAnnotationsInTab(annotation->getTabIndex(),
-                                          true);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            dpa->setDisplayWindowAnnotationsInTab(annotation->getWindowIndex(),
+            dpa->setDisplayWindowAnnotationsInSingleTabViews(annotation->getWindowIndex(),
                                              true);
             break;
     }

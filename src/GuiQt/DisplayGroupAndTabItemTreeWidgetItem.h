@@ -36,25 +36,20 @@ namespace caret {
     class DisplayGroupAndTabItemTreeWidgetItem : public QTreeWidgetItem {
         
     public:
-        DisplayGroupAndTabItemTreeWidgetItem(DisplayGroupAndTabItemInterface *displayGroupAndTabItem);
-        
+        DisplayGroupAndTabItemTreeWidgetItem();
+
         virtual ~DisplayGroupAndTabItemTreeWidgetItem();
 
         void updateContent(DisplayGroupAndTabItemInterface *displayGroupAndTabItem,
                                QTreeWidget* treeWidget,
                                const DisplayGroupEnum::Enum displayGroup,
                                const int32_t tabIndex);
-
-        void updateContent(QTreeWidget* treeWidget,
-                           const DisplayGroupEnum::Enum displayGroup,
-                           const int32_t tabIndex);
         
         DisplayGroupAndTabItemInterface* getDisplayGroupAndTabItem() const;
         
         // ADD_NEW_METHODS_HERE
 
     private:
-        DisplayGroupAndTabItemTreeWidgetItem();
         
         DisplayGroupAndTabItemTreeWidgetItem(const DisplayGroupAndTabItemTreeWidgetItem&);
 
@@ -66,6 +61,11 @@ namespace caret {
         
         void setItemIcon(QTreeWidget* treeWidget,
                          DisplayGroupAndTabItemInterface* myDataItem);
+        
+        void setDisplayGroupAndTabItem(DisplayGroupAndTabItemInterface* displayGroupAndTabItem);
+        
+        void updateSelectedAndExpandedCheckboxes(const DisplayGroupEnum::Enum displayGroup,
+                                                 const int32_t tabIndex);
         
         DisplayGroupEnum::Enum m_displayGroup;
         

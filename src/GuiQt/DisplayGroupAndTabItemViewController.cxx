@@ -49,8 +49,10 @@ using namespace caret;
 /**
  * Constructor.
  * 
+ * @param browserWindowIndex
+ *     The browser window containing this instance.
  * @param parent
- *     The parent widget.
+ *     Parent of this instance.
  */
 DisplayGroupAndTabItemViewController::DisplayGroupAndTabItemViewController(const int32_t browserWindowIndex,
                                                                            QWidget* parent)
@@ -123,13 +125,14 @@ DisplayGroupAndTabItemViewController::itemWasChanged(QTreeWidgetItem* item,
     
     const Qt::CheckState checkState = item->checkState(DisplayGroupAndTabItemTreeWidgetItem::NAME_COLUMN);
     const TriStateSelectionStatusEnum::Enum itemCheckState = DisplayGroupAndTabItemTreeWidgetItem::fromQCheckState(checkState);
-    dataItem->setItemSelected(displayGroup,
+    dataItem->setItemDisplaySelected(displayGroup,
                               tabIndex,
                               itemCheckState);
-//
-//    updateSelectedAndExpandedCheckboxes();
+
+    updateSelectedAndExpandedCheckboxes(displayGroup,
+                                        tabIndex);
 //    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
-//    updateGraphics();
+    updateGraphics();
 }
 
 /**
@@ -152,8 +155,8 @@ DisplayGroupAndTabItemViewController::processItemExpanded(QTreeWidgetItem* item,
     dataItem->setItemExpanded(displayGroup,
                               tabIndex,
                               expandedStatus);
-    //
-    //    updateSelectedAndExpandedCheckboxes();
+    updateSelectedAndExpandedCheckboxes(displayGroup,
+                                        tabIndex);
     //    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
     
 }
@@ -225,11 +228,11 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
     for (int32_t i = 0; i < maxCount; i++) {
         QTreeWidgetItem* treeWidgetChild = m_treeWidget->topLevelItem(i);
         CaretAssert(treeWidgetChild);
+        DisplayGroupAndTabItemTreeWidgetItem* dgtChild = dynamic_cast<DisplayGroupAndTabItemTreeWidgetItem*>(treeWidgetChild);
+        CaretAssert(dgtChild);
         
         if (i < numValidChildren) {
             treeWidgetChild->setHidden(false);
-            DisplayGroupAndTabItemTreeWidgetItem* dgtChild = dynamic_cast<DisplayGroupAndTabItemTreeWidgetItem*>(treeWidgetChild);
-            CaretAssert(dgtChild);
             
             CaretAssertVectorIndex(contentItems, i);
             DisplayGroupAndTabItemInterface* displayGroupAndTabItem = contentItems[i];
@@ -238,40 +241,21 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
                                     displayGroup,
                                     tabIndex);
             
-            const bool expandedFlag = displayGroupAndTabItem->isItemExpanded(displayGroup,
-                                                                             tabIndex);
-            treeWidgetChild->setExpanded(expandedFlag);
+//            const bool expandedFlag = displayGroupAndTabItem->isItemExpanded(displayGroup,
+//                                                                             tabIndex);
+//            treeWidgetChild->setExpanded(expandedFlag);
         }
         else {
             treeWidgetChild->setHidden(true);
-            treeWidgetChild->setData(DisplayGroupAndTabItemTreeWidgetItem::NAME_COLUMN,
-                                     Qt::UserRole,
-                                     qVariantFromValue<void*>(NULL));
+            dgtChild->setDisplayGroupAndTabItem(NULL);
         }
     }
-
     
     m_treeWidget->blockSignals(false);
     
-//    CaretAssertMessage(0, "Use new update method for children");
-//    
-//    m_contentItems = contentItems;
-//    m_contentItemWidgets.clear();
-//    
-//    m_treeWidget->clear();
-//
-////    Need to show hide create children using 4 parameter update method
-//    
-//    for (std::vector<DisplayGroupAndTabItemInterface*>::iterator itemIterator = m_contentItems.begin();
-//         itemIterator != m_contentItems.end();
-//         itemIterator++) {
-//        DisplayGroupAndTabItemTreeWidgetItem* itemWidget = new DisplayGroupAndTabItemTreeWidgetItem(*itemIterator);
-//        m_treeWidget->addTopLevelItem(itemWidget);
-//        itemWidget->updateContent(m_treeWidget,
-//                                  displayGroup,
-//                                  tabIndex);
-//        m_contentItemWidgets.push_back(itemWidget);
-//    }
+    updateSelectedAndExpandedCheckboxes(displayGroup,
+                                        
+                                        tabIndex);
 }
 
 /**
@@ -282,3 +266,32 @@ DisplayGroupAndTabItemViewController::updateGraphics()
 {
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
+/**
+ * Update the selected and expanded checkboxes.
+ */
+void
+DisplayGroupAndTabItemViewController::updateSelectedAndExpandedCheckboxes(const DisplayGroupEnum::Enum displayGroup,
+                                                                          const int32_t tabIndex)
+{
+    m_treeWidget->blockSignals(true);
+    
+    const int32_t numChildren = m_treeWidget->topLevelItemCount();
+    for (int32_t itemIndex = 0; itemIndex < numChildren; itemIndex++) {
+        QTreeWidgetItem* treeChild = m_treeWidget->topLevelItem(itemIndex);
+        CaretAssert(treeChild);
+        
+        DisplayGroupAndTabItemTreeWidgetItem* item = dynamic_cast<DisplayGroupAndTabItemTreeWidgetItem*>(treeChild);
+        CaretAssert(item);
+        
+        DisplayGroupAndTabItemInterface* data = item->getDisplayGroupAndTabItem();
+        if (data != NULL) {
+            item->updateSelectedAndExpandedCheckboxes(displayGroup,
+                                                      tabIndex);
+        }
+    }
+    
+    m_treeWidget->blockSignals(false);
+}
+
+

@@ -851,7 +851,7 @@ AnnotationGroup::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
 }
 
 /**
- * Get selection status in the given display group/tab?
+ * Get display selection status in the given display group/tab?
  *
  * @param displayGroup
  *     The display group.
@@ -859,15 +859,42 @@ AnnotationGroup::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
  *     Index of the tab.
  */
 TriStateSelectionStatusEnum::Enum
-AnnotationGroup::getItemSelected(const DisplayGroupEnum::Enum displayGroup,
+AnnotationGroup::getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                  const int32_t tabIndex) const
 {
-    return m_displayGroupAndTabItemHelper->getSelected(displayGroup,
-                                                      tabIndex);
+    TriStateSelectionStatusEnum::Enum status = TriStateSelectionStatusEnum::UNSELECTED;
+    
+    const int numChildren = getNumberOfAnnotations();
+    if (numChildren > 0) {
+        int32_t selectedCount = 0;
+        for (int32_t i = 0; i < numChildren; i++) {
+            CaretAssertVectorIndex(m_annotations, i);
+            switch (m_annotations[i]->getItemDisplaySelected(displayGroup,
+                                                      tabIndex)) {
+                case TriStateSelectionStatusEnum::PARTIALLY_SELECTED:
+                    CaretAssertMessage(0, "Annotation should never be partially selected.");
+                    break;
+                case TriStateSelectionStatusEnum::SELECTED:
+                    selectedCount++;
+                    break;
+                case TriStateSelectionStatusEnum::UNSELECTED:
+                    break;
+            }
+        }
+        
+        if (selectedCount == numChildren) {
+            status = TriStateSelectionStatusEnum::SELECTED;
+        }
+        else if (selectedCount > 0) {
+            status = TriStateSelectionStatusEnum::PARTIALLY_SELECTED;
+        }
+    }
+    
+    return status;
 }
 
 /**
- * Set this item selected in the given display group/tab.
+ * Set display this item selected in the given display group/tab.
  *
  * @param displayGroup
  *     The display group.
@@ -877,12 +904,27 @@ AnnotationGroup::getItemSelected(const DisplayGroupEnum::Enum displayGroup,
  *     New selection status.
  */
 void
-AnnotationGroup::setItemSelected(const DisplayGroupEnum::Enum displayGroup,
+AnnotationGroup::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                  const int32_t tabIndex,
                                  const TriStateSelectionStatusEnum::Enum status)
 {
-    m_displayGroupAndTabItemHelper->setSelected(displayGroup,
-                                                tabIndex,
-                                                status);
+    switch (status) {
+        case TriStateSelectionStatusEnum::PARTIALLY_SELECTED:
+            CaretAssertMessage(0, "Annotation group should never be set to partially selected.");
+            return;
+            break;
+        case TriStateSelectionStatusEnum::SELECTED:
+            break;
+        case TriStateSelectionStatusEnum::UNSELECTED:
+            break;
+    }
+    
+    const int numChildren = getNumberOfAnnotations();
+    for (int32_t i = 0; i < numChildren; i++) {
+        CaretAssertVectorIndex(m_annotations, i);
+        m_annotations[i]->setItemDisplaySelected(displayGroup,
+                                          tabIndex,
+                                          status);
+    }
 }
 

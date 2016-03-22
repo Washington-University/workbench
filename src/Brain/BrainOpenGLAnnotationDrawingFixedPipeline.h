@@ -65,7 +65,7 @@ namespace caret {
             m_drawingMode(drawingMode),
             m_centerToEyeDistance(centerToEyeDistance),
             m_windowIndex(windowIndex),
-            m_tabIndex(tabIndex) {
+            m_tabIndex(tabIndex)  {
                 m_tabViewport[0] = tabViewport[0];
                 m_tabViewport[1] = tabViewport[1];
                 m_tabViewport[2] = tabViewport[2];
@@ -78,7 +78,6 @@ namespace caret {
             int32_t m_tabViewport[4];
             const int32_t m_windowIndex;
             const int32_t m_tabIndex;
-            
         };
         
         BrainOpenGLAnnotationDrawingFixedPipeline(BrainOpenGLFixedPipeline* brainOpenGLFixedPipeline);

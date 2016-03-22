@@ -624,26 +624,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
     switch (drawingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            if ( ! dpa->isDisplayModelAnnotationsInTab(m_inputs->m_tabIndex)) {
-                return;
-            }
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
             CaretAssertMessage(0, "Never draw annotations in pixel space.");
             return;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            if ( ! dpa->isDisplaySurfaceAnnotationsInTab(m_inputs->m_tabIndex)) {
-                return;
-            }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            if ( ! dpa->isDisplayTabAnnotationsInTab(m_inputs->m_tabIndex)) {
-                return;
-            }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            if ( ! dpa->isDisplayWindowAnnotationsInTab(m_inputs->m_windowIndex)) {
+            if ( ! dpa->isDisplayWindowAnnotationsInSingleTabViews(m_inputs->m_windowIndex)) {
+                CaretLogSevere("NEED TO TEST FOR SINGLE or TILE TABS VIEW");
                 if (annotationBeingDrawn != NULL) {
                     /*
                      * Window annotation are not being drawn.
@@ -817,7 +809,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             
             bool drawItFlag = false;
             if (annotation->getType() != AnnotationTypeEnum::COLOR_BAR) {
-                switch (annotation->getItemSelected(displayGroup, m_inputs->m_tabIndex)) {
+                switch (annotation->getItemDisplaySelected(displayGroup, m_inputs->m_tabIndex)) {
                     case TriStateSelectionStatusEnum::PARTIALLY_SELECTED:
                         CaretAssertMessage(0, "An annotation should never be partially selected");
                         break;

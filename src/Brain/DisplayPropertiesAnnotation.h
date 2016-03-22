@@ -47,31 +47,10 @@ namespace caret {
         void setDisplayGroupForTab(const int32_t browserTabIndex,
                                    const DisplayGroupEnum::Enum displayGroup);
         
-
+        bool isDisplayWindowAnnotationsInSingleTabViews(const int32_t windowIndex) const;
         
-        bool isDisplayModelAnnotationsInTab(const int32_t tabIndex) const;
-        
-        bool isDisplayModelAnnotationsInTabs(const std::vector<int32_t>& tabIndices) const;
-        
-        void setDisplayModelAnnotationsInTab(const int32_t tabIndex,
-                                        const bool status);
-        
-        bool isDisplaySurfaceAnnotationsInTab(const int32_t tabIndex) const;
-        
-        bool isDisplaySurfaceAnnotationsInTabs(const std::vector<int32_t>& tabIndices) const;
-        
-        void setDisplaySurfaceAnnotationsInTab(const int32_t tabIndex,
-                                        const bool status);
-        
-        bool isDisplayTabAnnotationsInTab(const int32_t tabIndex) const;
-        
-        void setDisplayTabAnnotationsInTab(const int32_t tabIndex,
-                                        const bool status);
-        
-        bool isDisplayWindowAnnotationsInTab(const int32_t windowIndex) const;
-        
-        void setDisplayWindowAnnotationsInTab(const int32_t windowIndex,
-                                        const bool status);
+        void setDisplayWindowAnnotationsInSingleTabViews(const int32_t windowIndex,
+                                                   const bool status);
         
         virtual void copyDisplayProperties(const int32_t sourceTabIndex,
                                            const int32_t targetTabIndex);
@@ -95,13 +74,7 @@ namespace caret {
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool m_displayModelAnnotations[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool m_displaySurfaceAnnotations[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool m_displayTabAnnotations[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool m_displayWindowAnnotations[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        bool m_displayWindowAnnotationsInSingleTabViews[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         // ADD_NEW_MEMBERS_HERE
 
