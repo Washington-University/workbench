@@ -21,7 +21,6 @@
  */
 /*LICENSE_END*/
 
-
 #include <QWidget>
 
 #include "DisplayGroupEnum.h"

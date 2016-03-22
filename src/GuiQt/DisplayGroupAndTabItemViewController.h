@@ -21,9 +21,11 @@
  */
 /*LICENSE_END*/
 
+#include <set>
 
 #include <QWidget>
 
+#include "DataFileTypeEnum.h"
 #include "DisplayGroupEnum.h"
 
 class QTreeWidget;
@@ -38,7 +40,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        DisplayGroupAndTabItemViewController(const int32_t browserWindowIndex,
+        DisplayGroupAndTabItemViewController(const DataFileTypeEnum::Enum dataFileType,
+                                             const int32_t browserWindowIndex,
                                              QWidget* parent = 0);
         
         virtual ~DisplayGroupAndTabItemViewController();
@@ -77,16 +80,22 @@ namespace caret {
         void updateSelectedAndExpandedCheckboxes(const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex);
         
+        void updateSelectedAndExpandedCheckboxesInOtherViewControllers(const DisplayGroupEnum::Enum displayGroup);
+        
+        const DataFileTypeEnum::Enum m_dataFileType;
+        
         const int32_t m_browserWindowIndex;
         
         QTreeWidget* m_treeWidget;
+        
+        static std::set<DisplayGroupAndTabItemViewController*> s_allViewControllers;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __DISPLAY_GROUP_AND_TAB_ITEM_VIEW_CONTROLLER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::set<DisplayGroupAndTabItemViewController*> DisplayGroupAndTabItemViewController::s_allViewControllers;
 #endif // __DISPLAY_GROUP_AND_TAB_ITEM_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

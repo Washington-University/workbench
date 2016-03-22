@@ -90,6 +90,7 @@ m_browserWindowIndex(browserWindowIndex)
     
     layout->addStretch();
     
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
@@ -111,13 +112,21 @@ AnnotationSelectionViewController::~AnnotationSelectionViewController()
 void
 AnnotationSelectionViewController::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+    bool doUpdateFlag = false;
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE) {
+        doUpdateFlag = true;
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
        EventUserInterfaceUpdate* eventUI = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(eventUI);
 
-        updateAnnotationSelections();
+        doUpdateFlag = true;
         
         eventUI->setEventProcessed();
+    }
+    
+    if (doUpdateFlag) {
+        updateAnnotationSelections();
     }
 }
 
@@ -162,7 +171,8 @@ AnnotationSelectionViewController::updateAnnotationSelections()
 QWidget*
 AnnotationSelectionViewController::createSelectionWidget()
 {
-    m_selectionViewController = new DisplayGroupAndTabItemViewController(m_browserWindowIndex);
+    m_selectionViewController = new DisplayGroupAndTabItemViewController(DataFileTypeEnum::ANNOTATION,
+                                                                         m_browserWindowIndex);
     return m_selectionViewController;
 }
 

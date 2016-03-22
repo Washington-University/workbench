@@ -49,14 +49,18 @@ using namespace caret;
 /**
  * Constructor.
  * 
+ * @param dataFileType
+ *     Type of data file using this view controller.
  * @param browserWindowIndex
  *     The browser window containing this instance.
  * @param parent
  *     Parent of this instance.
  */
-DisplayGroupAndTabItemViewController::DisplayGroupAndTabItemViewController(const int32_t browserWindowIndex,
+DisplayGroupAndTabItemViewController::DisplayGroupAndTabItemViewController(const DataFileTypeEnum::Enum dataFileType,
+                                                                           const int32_t browserWindowIndex,
                                                                            QWidget* parent)
 : QWidget(parent),
+m_dataFileType(dataFileType),
 m_browserWindowIndex(browserWindowIndex)
 {
     m_treeWidget = new QTreeWidget();
@@ -70,6 +74,8 @@ m_browserWindowIndex(browserWindowIndex)
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(m_treeWidget, 100);
+    
+    s_allViewControllers.insert(this);
 }
 
 /**
@@ -77,6 +83,7 @@ m_browserWindowIndex(browserWindowIndex)
  */
 DisplayGroupAndTabItemViewController::~DisplayGroupAndTabItemViewController()
 {
+    s_allViewControllers.erase(this);
 }
 
 /**
@@ -131,7 +138,8 @@ DisplayGroupAndTabItemViewController::itemWasChanged(QTreeWidgetItem* item,
 
     updateSelectedAndExpandedCheckboxes(displayGroup,
                                         tabIndex);
-//    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
+    updateSelectedAndExpandedCheckboxesInOtherViewControllers(displayGroup);
+    
     updateGraphics();
 }
 
@@ -157,7 +165,7 @@ DisplayGroupAndTabItemViewController::processItemExpanded(QTreeWidgetItem* item,
                               expandedStatus);
     updateSelectedAndExpandedCheckboxes(displayGroup,
                                         tabIndex);
-    //    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
+    updateSelectedAndExpandedCheckboxesInOtherViewControllers(displayGroup);
     
 }
 
@@ -254,7 +262,6 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
     m_treeWidget->blockSignals(false);
     
     updateSelectedAndExpandedCheckboxes(displayGroup,
-                                        
                                         tabIndex);
 }
 
@@ -294,4 +301,37 @@ DisplayGroupAndTabItemViewController::updateSelectedAndExpandedCheckboxes(const 
     m_treeWidget->blockSignals(false);
 }
 
+/**
+ * Update the selection and expansion controls in other view controllers
+ * that are set to the same display group (not tab) and contain the
+ * same type of data.
+ *
+ * @param myDisplayGroup
+ *     Group currently selected.
+ */
+void
+DisplayGroupAndTabItemViewController::updateSelectedAndExpandedCheckboxesInOtherViewControllers(const DisplayGroupEnum::Enum myDisplayGroup)
+{
+    if (myDisplayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        return;
+    }
+    
+    for (std::set<DisplayGroupAndTabItemViewController*>::iterator iter = s_allViewControllers.begin();
+         iter != s_allViewControllers.end();
+         iter++) {
+        DisplayGroupAndTabItemViewController* otherViewController = *iter;
+        if (otherViewController != this) {
+            if (otherViewController->m_dataFileType == m_dataFileType) {
+                DisplayGroupEnum::Enum otherDisplayGroup = DisplayGroupEnum::DISPLAY_GROUP_TAB;
+                int32_t otherTabIndex = -1;
+                otherViewController->getDisplayGroupAndTabIndex(otherDisplayGroup,
+                                                                otherTabIndex);
+                if (otherDisplayGroup == myDisplayGroup) {
+                    otherViewController->updateSelectedAndExpandedCheckboxes(otherDisplayGroup,
+                                                                             otherTabIndex);
+                }
+            }
+        }
+    }
+}
 
