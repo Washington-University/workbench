@@ -881,7 +881,7 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
     }
     
     if (spaceGroupIter == m_annotationGroups.end()) {
-        groupingEvent->setErrorMessage("PROGRAM ERROR: Did not find group for ungrouping annotations");
+        groupingEvent->setErrorMessage("PROGRAM ERROR: Did not find group for grouping annotations");
         return;
     }
     

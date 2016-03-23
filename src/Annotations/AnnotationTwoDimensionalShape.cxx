@@ -135,15 +135,6 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
     
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
-//    m_sceneAssistant->add("m_coordinate",
-//                          "AnnotationCoordinate",
-//                          m_coordinate);
-//    m_sceneAssistant->add("m_width",
-//                          &m_width);
-//    m_sceneAssistant->add("m_height",
-//                          &m_height);
-//    m_sceneAssistant->add("m_rotationAngle",
-//                          &m_rotationAngle);
 }
 
 /**
@@ -708,11 +699,6 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
     
     float viewportXYZ[3] = { 0.0, 0.0, 0.0 };
     relativeXYZToViewportXYZ(xyz, spatialModification.m_viewportWidth, spatialModification.m_viewportHeight, viewportXYZ);
-//    float viewportXYZ[3] = {
-//        (xyz[0] / 100.0) * spatialModification.m_viewportWidth,
-//        (xyz[1] / 100.0) * spatialModification.m_viewportHeight,
-//        xyz[2]
-//    };
     
     float bottomLeftXYZ[3];
     float bottomRightXYZ[3];
@@ -1072,22 +1058,7 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
                 
                 m_width  = newWidth;
                 m_height = newHeight;
-            }
-            
-//            if (isFixedAspectRatio()) {
-//                const float widthDiff  = std::fabs(m_width  - newWidth);
-//                const float heightDiff = std::fabs(m_height - newHeight);
-//                if (widthDiff > heightDiff) {
-//                    setWidth(newWidth);
-//                }
-//                else {
-//                    setHeight(newHeight);
-//                }
-//            }
-//            else {
-//                m_width  = newWidth;
-//                m_height = newHeight;
-//            }
+            }            
         }
         else {
             validCoordinatesFlag = false;

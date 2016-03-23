@@ -189,7 +189,6 @@ AnnotationSelectionViewController::checkBoxToggled()
     if (browserTabContent == NULL) {
         return;
     }
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
 
     dpa->setDisplayWindowAnnotationsInSingleTabViews(m_browserWindowIndex,
                                      m_displayWindowAnnotationInSingleTabViewsCheckBox->isChecked());

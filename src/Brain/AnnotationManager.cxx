@@ -158,16 +158,6 @@ AnnotationManager::applyCommandInWindow(AnnotationRedoUndoCommand* command,
      */
     m_annotationRedoUndoStack->pushAndRedo(command,
                                            windowIndex);
-    
-//    /*
-//     * "Redo" applies the command
-//     */
-//    command->redo();
-//
-//    /*
-//     * Add command to undo stack
-//     */
-//    m_annotationRedoUndoStack->push(command);
 }
 
 /**
@@ -205,49 +195,49 @@ AnnotationManager::deselectAllAnnotationsForEditing(const int32_t windowIndex)
     }
 }
 
-/**
- * Get the files containing the given annotations.  If a file is not found
- * for an annotation NULL is selected for the file.
- *
- * @param annotations
- *     Annotations for which file is found.
- * @return
- *     Files containing the annotations (NULL entry if file not found).  The
- *     size of this vector will ALWAYS be the same as the size of the 
- *     input vector.
- */
-std::vector<AnnotationFile*>
-AnnotationManager::getFilesContainingAnnotations(const std::vector<Annotation*> annotations) const
-{
-    CaretAssertMessage(0, "Use annotation's getAnnotationFile() method.");
-//    std::vector<AnnotationFile*> allFiles;
-//    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allFiles);
-    
-    std::vector<AnnotationFile*> filesOut;
-    
-//    for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
-//         annIter != annotations.end();
-//         annIter++) {
-//        Annotation* ann = *annIter;
-//        
-//        AnnotationFile* file = NULL;
-//        for (std::vector<AnnotationFile*>::const_iterator fileIter = allFiles.begin();
-//             fileIter != allFiles.end();
-//             fileIter++) {
-//            AnnotationFile* annFile = *fileIter;
-//            if (annFile->containsAnnotation(ann)) {
-//                file = annFile;
-//                break;
-//            }
-//        }
-//        
-//        filesOut.push_back(file);
-//    }
-
-    
-    CaretAssert(filesOut.size() == annotations.size());
-    return filesOut;
-}
+///**
+// * Get the files containing the given annotations.  If a file is not found
+// * for an annotation NULL is selected for the file.
+// *
+// * @param annotations
+// *     Annotations for which file is found.
+// * @return
+// *     Files containing the annotations (NULL entry if file not found).  The
+// *     size of this vector will ALWAYS be the same as the size of the 
+// *     input vector.
+// */
+//std::vector<AnnotationFile*>
+//AnnotationManager::getFilesContainingAnnotations(const std::vector<Annotation*> annotations) const
+//{
+//    CaretAssertMessage(0, "Use annotation's getAnnotationFile() method.");
+////    std::vector<AnnotationFile*> allFiles;
+////    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allFiles);
+//    
+//    std::vector<AnnotationFile*> filesOut;
+//    
+////    for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
+////         annIter != annotations.end();
+////         annIter++) {
+////        Annotation* ann = *annIter;
+////        
+////        AnnotationFile* file = NULL;
+////        for (std::vector<AnnotationFile*>::const_iterator fileIter = allFiles.begin();
+////             fileIter != allFiles.end();
+////             fileIter++) {
+////            AnnotationFile* annFile = *fileIter;
+////            if (annFile->containsAnnotation(ann)) {
+////                file = annFile;
+////                break;
+////            }
+////        }
+////        
+////        filesOut.push_back(file);
+////    }
+//
+//    
+//    CaretAssert(filesOut.size() == annotations.size());
+//    return filesOut;
+//}
 
 
 /**
@@ -486,21 +476,6 @@ AnnotationManager::getAnnotationsSelectedForEditing(const int32_t windowIndex) c
     asi->getAnnotationsSelectedForEditing(selectedAnnotations);
     
     return selectedAnnotations;
-    
-//    std::vector<Annotation*> allAnnotations = getAllAnnotations();
-//    std::vector<Annotation*> selectedAnnotations;
-//    
-//    for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
-//         annIter != allAnnotations.end();
-//         annIter++) {
-//        Annotation* annotation = *annIter;
-//        
-//        if (annotation->isSelected(windowIndex)) {
-//            selectedAnnotations.push_back(annotation);
-//        }
-//    }
-//    
-//    return selectedAnnotations;
 }
 
 /**
@@ -670,16 +645,6 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
                                                      annotations);
             applyCommandInWindow(command,
                                  windowIndex);
-            
-//            EventAnnotationGrouping groupEvent;
-//            groupEvent.setModeGroupAnnotations(annotationGroupKey,
-//                                               annotations);
-//            EventManager::get()->sendEvent(groupEvent.getPointer());
-//            
-//            if (groupEvent.isError()) {
-//                errorMessageOut = groupEvent.getErrorMessage();
-//                return false;
-//            }
         }
             break;
         case AnnotationGroupingModeEnum::REGROUP:
@@ -719,16 +684,6 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             
             applyCommandInWindow(command,
                                  windowIndex);
-            
-//            EventAnnotationGrouping groupEvent;
-//            groupEvent.setModeUngroupAnnotations(annotationGroupKey,
-//                                                 annotations);
-//            EventManager::get()->sendEvent(groupEvent.getPointer());
-//            
-//            if (groupEvent.isError()) {
-//                errorMessageOut = groupEvent.getErrorMessage();
-//                return false;
-//            }
         }
             break;
     }
@@ -1003,111 +958,4 @@ AnnotationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     //                             sceneClass);
     
 }
-
-
-
-///* ============================================================================================================ */
-//
-///**
-// * \class caret::AnnotationManagerDeleteUndoCommand
-// * \brief Undo command for annotations deleted by AnnotationManager.
-// * \ingroup Brain
-// */
-//
-///**
-// * Constructor.
-// * 
-// * @param annotationFile
-// *     File that contained deleted annotation.
-// * @param annotation
-// *     Annotation that was removed from the file.
-// */
-//AnnotationManagerDeleteUndoCommand::AnnotationManagerDeleteUndoCommand(Brain* brain,
-//                                                                       AnnotationFile* annotationFile,
-//                                                                       Annotation* annotation)
-//{
-//    CaretAssert(brain);
-//    CaretAssert(annotationFile);
-//    CaretAssert(annotation);
-// 
-//    m_brain          = brain;
-//    m_annotationFile = annotationFile;
-//    m_annotation     = annotation;
-//}
-//
-///**
-// * Destructor.
-// */
-//AnnotationManagerDeleteUndoCommand::~AnnotationManagerDeleteUndoCommand()
-//{
-//    /*
-//     * We DO NOT own file
-//     * We DO own annotation
-//     * If annotation is NULL, it was "undone".
-//     * If annotation is NOT NULL, it was not "undone" and must be deleted.
-//     */
-//    m_annotationFile = NULL;
-//    if (m_annotation != NULL) {
-//        delete m_annotation;
-//        m_annotation = NULL;
-//    }
-//}
-//
-///**
-// * Operation that "redoes" the command.
-// */
-//void
-//AnnotationManagerDeleteUndoCommand::redo()
-//{
-//    
-//}
-//
-///**
-// * Operation that "undoes" the command.
-// * This will restore the annotation.
-// */
-//void
-//AnnotationManagerDeleteUndoCommand::undo()
-//{
-//    std::vector<AnnotationFile*> files;
-//    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(files);
-//    
-//    /*
-//     * Cannot add annotation to file if the file is not valid
-//     */
-//    std::vector<AnnotationFile*>::iterator fileIter = std::find(files.begin(),
-//                                                                files.end(),
-//                                                                m_annotationFile);
-//    if (fileIter != files.end()) {
-//        m_annotationFile->addAnnotation(m_annotation);
-//        m_annotation = NULL;
-//        m_annotationFile = NULL;
-//    }
-//    else {
-//        CaretLogWarning("Attempted to undo the deletion of an annotation "
-//                        "whose file is no longer valid.  Calling getUndoStack() "
-//                        "should have prevented this from happenning.");
-//    }
-//}
-//
-///**
-// * @return The annotation file that contained the annotation.
-// */
-//AnnotationFile*
-//AnnotationManagerDeleteUndoCommand::getAnnotationFile() const
-//{
-//    return m_annotationFile;
-//}
-//
-///**
-// * @return The annotation for undeleting it.
-// * Method is const since this class "owns" and will delete the annotation.
-// * Caller will need to clone the returned annotation.
-// */
-//const Annotation*
-//AnnotationManagerDeleteUndoCommand::getAnnotation() const
-//{
-//    return m_annotation;
-//}
-
 

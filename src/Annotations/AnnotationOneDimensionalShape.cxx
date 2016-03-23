@@ -116,12 +116,6 @@ AnnotationOneDimensionalShape::initializeMembersAnnotationOneDimensionalShape()
     m_endCoordinate.grabNew(new AnnotationCoordinate());
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
-//    m_sceneAssistant->add("m_startCoordinate",
-//                          "AnnotationCoordinate",
-//                          m_startCoordinate);
-//    m_sceneAssistant->add("m_endCoordinate",
-//                          "AnnotationCoordinate",
-//                          m_endCoordinate);
 }
 
 /**
@@ -279,26 +273,7 @@ AnnotationOneDimensionalShape::setRotationAngle(const float viewportWidth,
     if ( ! isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
         return;
     }
-//    bool allowRotationFlag = false;
-//    switch (getCoordinateSpace()) {
-//        case AnnotationCoordinateSpaceEnum::PIXELS:
-//            break;
-//        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-//            break;
-//        case AnnotationCoordinateSpaceEnum::SURFACE:
-//            break;
-//        case AnnotationCoordinateSpaceEnum::TAB:
-//            allowRotationFlag = true;
-//            break;
-//        case AnnotationCoordinateSpaceEnum::WINDOW:
-//            allowRotationFlag = true;
-//            break;
-//    }
-//    
-//    if ( ! allowRotationFlag) {
-//        return;
-//    }
-    
+
     float annOneX = 0.0;
     float annOneY = 0.0;
     float annTwoX = 0.0;

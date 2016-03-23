@@ -116,7 +116,6 @@ AnnotationGroup::AnnotationGroup(AnnotationFile* annotationFile,
  */
 AnnotationGroup::~AnnotationGroup()
 {
-    std::cout << "Deleting annotation group: " << qPrintable(getName()) << std::endl;
     m_annotations.clear();
     
     delete m_displayGroupAndTabItemHelper;
@@ -381,30 +380,6 @@ AnnotationGroup::assignGroupKeyToAnnotation(Annotation* annotation)
 {
     annotation->setAnnotationGroupKey(m_groupKey);
     annotation->setItemParent(this);
-    
-//    AnnotationGroupKey annotationGroupKey;
-//    annotationGroupKey.setAnnotationFile(m_groupKey.getAnnotationFile());
-//    switch (m_groupKey.getGroupType()) {
-//        case AnnotationGroupTypeEnum::INVALID:
-//            CaretAssert(0);
-//            break;
-//        case AnnotationGroupTypeEnum::SPACE:
-//            /*
-//             * For space group, do not reset user group key
-//             * since it is used for a regroup operation.
-//             */
-//            annotationGroupKey.setGroupType(AnnotationGroupTypeEnum::SPACE);
-//            CaretAssert(m_groupKey.getSpaceGroupUniqueKey() > 0);
-//            annotationGroupKey.setSpaceGroupUniqueKey(m_groupKey.getSpaceGroupUniqueKey());
-//            break;
-//        case AnnotationGroupTypeEnum::USER:
-//            annotationGroupKey.setGroupType(AnnotationGroupTypeEnum::USER);
-//            annotationGroupKey.setSpaceGroupUniqueKey(-1);
-//            CaretAssert(m_groupKey.getUserGroupUniqueKey() > 0);
-//            annotationGroupKey.setUserGroupUniqueKey(m_groupKey.getUserGroupUniqueKey());
-//            break;
-//    }
-//    annotation->setAnnotationGroupKey(annotationGroupKey);
 }
 
 /**
@@ -971,12 +946,5 @@ AnnotationGroup::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGrou
                                                                 displayGroup,
                                                                 tabIndex,
                                                                 status);
-//    const int numChildren = getNumberOfAnnotations();
-//    for (int32_t i = 0; i < numChildren; i++) {
-//        CaretAssertVectorIndex(m_annotations, i);
-//        m_annotations[i]->setItemDisplaySelected(displayGroup,
-//                                          tabIndex,
-//                                          status);
-//    }
 }
 

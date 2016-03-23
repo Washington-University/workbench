@@ -58,8 +58,6 @@ DisplayGroupAndTabItemTreeWidgetItem::DisplayGroupAndTabItemTreeWidgetItem()
  */
 DisplayGroupAndTabItemTreeWidgetItem::~DisplayGroupAndTabItemTreeWidgetItem()
 {
-    std::cout << "Deleting tree widget item "
-    << text(NAME_COLUMN) << std::endl;
 }
 
 /**
@@ -144,25 +142,16 @@ DisplayGroupAndTabItemTreeWidgetItem::updateContent(DisplayGroupAndTabItemInterf
         else {
             treeWidgetChild->setHidden(true);
             setDisplayGroupAndTabItem(NULL);
-            
-            std::cout
-            << "Hiding "
-            << qPrintable(treeWidgetChild->text(DisplayGroupAndTabItemTreeWidgetItem::NAME_COLUMN)) << std::endl;
         }
     }
     
     for (int32_t i = (numExistingChildren - 1); i >= numValidChildren; i--) {
-        QTreeWidgetItem* treeWidgetChild = child(i);
-        std::cout
-        << "Taking Child Item index="
-        << i << ": "
-        << qPrintable(treeWidgetChild->text(DisplayGroupAndTabItemTreeWidgetItem::NAME_COLUMN)) << std::endl;
-        
+        /*
+         * Take removes it from the parent but
+         * does not destruct it.
+         */
         QTreeWidgetItem* item = takeChild(i);
-        
-        //            treeWidgetChild->setHidden(true);
-        //            dgtChild->setDisplayGroupAndTabItem(NULL);
-        
+        delete item;
     }
 }
 

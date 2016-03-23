@@ -243,9 +243,6 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
         m_treeWidget->addTopLevelItem(new DisplayGroupAndTabItemTreeWidgetItem());
     }
     
-    std::cout << "Top Item Count=" << numExistingChildren
-    << " child count=" << numValidChildren << std::endl;
-    
     CaretAssert(m_treeWidget->topLevelItemCount() >= numValidChildren);
     CaretAssert(m_treeWidget->topLevelItemCount() >= maxCount);
     
@@ -264,23 +261,15 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
                                     m_treeWidget,
                                     displayGroup,
                                     tabIndex);
-        std::cout << "Updating top level index="
-        << i << ": "
-        << qPrintable(treeWidgetChild->text(DisplayGroupAndTabItemTreeWidgetItem::NAME_COLUMN)) << std::endl;
     }
     
     for (int32_t i = (numExistingChildren - 1); i >= numValidChildren; i--) {
-        QTreeWidgetItem* treeWidgetChild = m_treeWidget->topLevelItem(i);
-            std::cout
-            << "Taking Top Level Item index="
-        << i << ": "
-            << qPrintable(treeWidgetChild->text(DisplayGroupAndTabItemTreeWidgetItem::NAME_COLUMN)) << std::endl;
-
+        /*
+         * Take removes it from the parent but
+         * does not destruct it.
+         */
         QTreeWidgetItem* item = m_treeWidget->takeTopLevelItem(i);
-            
-//            treeWidgetChild->setHidden(true);
-//            dgtChild->setDisplayGroupAndTabItem(NULL);
-            
+        delete item;
     }
     
     /*
