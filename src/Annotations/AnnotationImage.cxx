@@ -188,10 +188,10 @@ AnnotationImage::initializeMembersAnnotationImage()
     m_imageHeight = 0;
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_imageWidth",
-                          &m_imageWidth);
-    m_sceneAssistant->add("m_imageHeight",
-                          &m_imageHeight);
+//    m_sceneAssistant->add("m_imageWidth",
+//                          &m_imageWidth);
+//    m_sceneAssistant->add("m_imageHeight",
+//                          &m_imageHeight);
     
     /* Texture info not saved to scenes */
     m_drawnWithOpenGLTextureInfo.grabNew(new DrawnWithOpenGLTextureInfo);

@@ -175,6 +175,8 @@ namespace caret {
         
         typedef std::vector<QSharedPointer<Annotation> >::const_iterator AnnotationConstIterator;
         
+        static AString getSceneClassNameForAnnotationUniqueKey(const int32_t uniqueKey);
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class AnnotationFile;

@@ -135,15 +135,15 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
     
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
-    m_sceneAssistant->add("m_coordinate",
-                          "AnnotationCoordinate",
-                          m_coordinate);
-    m_sceneAssistant->add("m_width",
-                          &m_width);
-    m_sceneAssistant->add("m_height",
-                          &m_height);
-    m_sceneAssistant->add("m_rotationAngle",
-                          &m_rotationAngle);
+//    m_sceneAssistant->add("m_coordinate",
+//                          "AnnotationCoordinate",
+//                          m_coordinate);
+//    m_sceneAssistant->add("m_width",
+//                          &m_width);
+//    m_sceneAssistant->add("m_height",
+//                          &m_height);
+//    m_sceneAssistant->add("m_rotationAngle",
+//                          &m_rotationAngle);
 }
 
 /**

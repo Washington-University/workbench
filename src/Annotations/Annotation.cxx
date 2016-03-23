@@ -507,24 +507,24 @@ Annotation::initializeAnnotationMembers()
      */
     m_sceneAssistant = new SceneClassAssistant();
     
-    m_sceneAssistant->add<AnnotationCoordinateSpaceEnum>("m_coordinateSpace",
-                                                         &m_coordinateSpace);
-    m_sceneAssistant->add("m_tabIndex",
-                          &m_tabIndex);
-    m_sceneAssistant->add("m_windowIndex",
-                          &m_windowIndex);
-    m_sceneAssistant->add("m_uniqueKey",
-                          &m_uniqueKey);
-    m_sceneAssistant->add("m_foregroundLineWidth",  // use old name !!!
-                          &m_lineWidth);
-    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorBackground",
-                                                               &m_colorBackground);
-    m_sceneAssistant->addArray("m_customColorBackground",
-                               m_customColorBackground, 4, 0.0);
-    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorForeground", // use old name !!!
-                                                               &m_colorLine);
-    m_sceneAssistant->addArray("m_customColorForeground",  // use old name !!!!
-                               m_customColorLine, 4, 1.0);
+//    m_sceneAssistant->add<AnnotationCoordinateSpaceEnum>("m_coordinateSpace",
+//                                                         &m_coordinateSpace);
+//    m_sceneAssistant->add("m_tabIndex",
+//                          &m_tabIndex);
+//    m_sceneAssistant->add("m_windowIndex",
+//                          &m_windowIndex);
+//    m_sceneAssistant->add("m_uniqueKey",
+//                          &m_uniqueKey);
+//    m_sceneAssistant->add("m_foregroundLineWidth",  // use old name !!!
+//                          &m_lineWidth);
+//    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorBackground",
+//                                                               &m_colorBackground);
+//    m_sceneAssistant->addArray("m_customColorBackground",
+//                               m_customColorBackground, 4, 0.0);
+//    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorForeground", // use old name !!!
+//                                                               &m_colorLine);
+//    m_sceneAssistant->addArray("m_customColorForeground",  // use old name !!!!
+//                               m_customColorLine, 4, 1.0);
     m_sceneAssistant->add("m_displayGroupAndTabItemHelper",
                           "DisplayGroupAndTabItemHelper",
                           m_displayGroupAndTabItemHelper);

@@ -281,7 +281,7 @@ AnnotationGroup::getName() const
                               + spaceName);
                 break;
             case AnnotationGroupTypeEnum::USER:
-                m_name.append("Group "
+                m_name.append("User Group "
                               + AString::number(m_groupKey.getUserGroupUniqueKey())
                               + " "
                               + spaceName);
@@ -644,6 +644,19 @@ AnnotationGroup::clearModified()
 }
 
 /**
+ * @return name for an annotation saved to scene.
+ *
+ * @param uniqueKey
+ *     Unique key of the annotation in the file.
+ */
+AString
+AnnotationGroup::getSceneClassNameForAnnotationUniqueKey(const int32_t uniqueKey)
+{
+    return ("Ann-" + AString::number(uniqueKey));
+}
+
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -663,6 +676,14 @@ AnnotationGroup::saveToScene(const SceneAttributes* sceneAttributes,
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
+    
+    const int32_t annCount = getNumberOfAnnotations();
+    for (int32_t i = 0; i < annCount; i++) {
+        const int32_t uniqueKey = getAnnotation(i)->getUniqueKey();
+        SceneClass* annClass = getAnnotation(i)->saveToScene(sceneAttributes,
+                                      getSceneClassNameForAnnotationUniqueKey(uniqueKey));
+        sceneClass->addClass(annClass);
+    }
     
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
@@ -692,6 +713,16 @@ AnnotationGroup::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
+
+    const int32_t annCount = getNumberOfAnnotations();
+    for (int32_t i = 0; i < annCount; i++) {
+        const int32_t uniqueKey = getAnnotation(i)->getUniqueKey();
+        const SceneClass* annClass = sceneClass->getClass(getSceneClassNameForAnnotationUniqueKey(uniqueKey));
+        if (sceneClass != NULL) {
+            getAnnotation(i)->restoreFromScene(sceneAttributes,
+                                               annClass);
+        }
+    }
     
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,

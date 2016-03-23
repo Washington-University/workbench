@@ -117,10 +117,10 @@ AnnotationLine::initializeMembersAnnotationLine()
     
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
-    m_sceneAssistant->add("m_displayStartArrow",
-                          &m_displayStartArrow);
-    m_sceneAssistant->add("m_displayEndArrow",
-                          &m_displayEndArrow);
+//    m_sceneAssistant->add("m_displayStartArrow",
+//                          &m_displayStartArrow);
+//    m_sceneAssistant->add("m_displayEndArrow",
+//                          &m_displayEndArrow);
 }
 
 /**

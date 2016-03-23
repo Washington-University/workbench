@@ -116,12 +116,12 @@ AnnotationOneDimensionalShape::initializeMembersAnnotationOneDimensionalShape()
     m_endCoordinate.grabNew(new AnnotationCoordinate());
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
-    m_sceneAssistant->add("m_startCoordinate",
-                          "AnnotationCoordinate",
-                          m_startCoordinate);
-    m_sceneAssistant->add("m_endCoordinate",
-                          "AnnotationCoordinate",
-                          m_endCoordinate);
+//    m_sceneAssistant->add("m_startCoordinate",
+//                          "AnnotationCoordinate",
+//                          m_startCoordinate);
+//    m_sceneAssistant->add("m_endCoordinate",
+//                          "AnnotationCoordinate",
+//                          m_endCoordinate);
 }
 
 /**

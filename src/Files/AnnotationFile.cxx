@@ -1345,6 +1345,19 @@ AnnotationFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
             }
             break;
     }
+    
+    /*
+     * Save groups to scene
+     */
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        AnnotationGroup* group = (*groupIter).data();
+        const int32_t uniqueKey = group->getUniqueKey();
+        SceneClass* groupClass = group->saveToScene(sceneAttributes,
+                           AnnotationGroup::getSceneClassNameForAnnotationUniqueKey(uniqueKey));
+        sceneClass->addClass(groupClass);
+    }
 }
 
 /**
@@ -1384,6 +1397,21 @@ AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                 }
             }
             break;
+    }
+    
+    /*
+     * Restore groups from scene
+     */
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        AnnotationGroup* group = (*groupIter).data();
+        const int32_t uniqueKey = group->getUniqueKey();
+        const SceneClass* annClass = sceneClass->getClass(AnnotationGroup::getSceneClassNameForAnnotationUniqueKey(uniqueKey));
+        if (sceneClass != NULL) {
+            group->restoreFromScene(sceneAttributes,
+                                               annClass);
+        }
     }
 }
 

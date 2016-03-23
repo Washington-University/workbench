@@ -153,32 +153,32 @@ AnnotationText::initializeAnnotationTextMembers()
     m_text = "";
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
-    m_sceneAssistant->add("m_text",
-                          &m_text);
-    m_sceneAssistant->add<AnnotationTextAlignHorizontalEnum, AnnotationTextAlignHorizontalEnum::Enum>("m_alignmentHorizontal",
-                                                             &m_alignmentHorizontal);
-    m_sceneAssistant->add<AnnotationTextAlignVerticalEnum, AnnotationTextAlignVerticalEnum::Enum>("m_alignmentVertical",
-                                                           &m_alignmentVertical);
-    m_sceneAssistant->add<AnnotationTextFontNameEnum, AnnotationTextFontNameEnum::Enum>("m_font",
-                                                  &m_font);
-    m_sceneAssistant->add<AnnotationTextFontPointSizeEnum, AnnotationTextFontPointSizeEnum::Enum>("m_fontPointSize",
-                                                  &m_fontPointSize);
-    m_sceneAssistant->add<AnnotationTextOrientationEnum, AnnotationTextOrientationEnum::Enum>("m_orientation",
-                                                         &m_orientation);
-    m_sceneAssistant->add<AnnotationTextConnectTypeEnum, AnnotationTextConnectTypeEnum::Enum>("m_connectToBrainordinate",
-                                                         &m_connectToBrainordinate);
-    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorText",
-                                                               &m_colorText);
-    m_sceneAssistant->addArray("m_customColorText",
-                               m_customColorText, 4, 1.0);
-    m_sceneAssistant->add("m_boldEnabled",
-                          &m_boldEnabled);
-    m_sceneAssistant->add("m_italicEnabled",
-                          &m_italicEnabled);
-    m_sceneAssistant->add("m_underlineEnabled",
-                          &m_underlineEnabled);
-    m_sceneAssistant->add("m_fontPercentViewportSize",
-                          &m_fontPercentViewportSize);
+//    m_sceneAssistant->add("m_text",
+//                          &m_text);
+//    m_sceneAssistant->add<AnnotationTextAlignHorizontalEnum, AnnotationTextAlignHorizontalEnum::Enum>("m_alignmentHorizontal",
+//                                                             &m_alignmentHorizontal);
+//    m_sceneAssistant->add<AnnotationTextAlignVerticalEnum, AnnotationTextAlignVerticalEnum::Enum>("m_alignmentVertical",
+//                                                           &m_alignmentVertical);
+//    m_sceneAssistant->add<AnnotationTextFontNameEnum, AnnotationTextFontNameEnum::Enum>("m_font",
+//                                                  &m_font);
+//    m_sceneAssistant->add<AnnotationTextFontPointSizeEnum, AnnotationTextFontPointSizeEnum::Enum>("m_fontPointSize",
+//                                                  &m_fontPointSize);
+//    m_sceneAssistant->add<AnnotationTextOrientationEnum, AnnotationTextOrientationEnum::Enum>("m_orientation",
+//                                                         &m_orientation);
+//    m_sceneAssistant->add<AnnotationTextConnectTypeEnum, AnnotationTextConnectTypeEnum::Enum>("m_connectToBrainordinate",
+//                                                         &m_connectToBrainordinate);
+//    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorText",
+//                                                               &m_colorText);
+//    m_sceneAssistant->addArray("m_customColorText",
+//                               m_customColorText, 4, 1.0);
+//    m_sceneAssistant->add("m_boldEnabled",
+//                          &m_boldEnabled);
+//    m_sceneAssistant->add("m_italicEnabled",
+//                          &m_italicEnabled);
+//    m_sceneAssistant->add("m_underlineEnabled",
+//                          &m_underlineEnabled);
+//    m_sceneAssistant->add("m_fontPercentViewportSize",
+//                          &m_fontPercentViewportSize);
 }
 
 /**
