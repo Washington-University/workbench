@@ -28,6 +28,7 @@
 #include <QTreeWidget>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "DisplayGroupAndTabItemInterface.h"
 #include "WuQtUtilities.h"
 
@@ -57,7 +58,23 @@ DisplayGroupAndTabItemTreeWidgetItem::DisplayGroupAndTabItemTreeWidgetItem()
  */
 DisplayGroupAndTabItemTreeWidgetItem::~DisplayGroupAndTabItemTreeWidgetItem()
 {
+    std::cout << "Deleting tree widget item "
+    << text(NAME_COLUMN) << std::endl;
 }
+
+/**
+ * @return A deep copy of the item.
+ */
+QTreeWidgetItem*
+DisplayGroupAndTabItemTreeWidgetItem::clone() const
+{
+    const QString msg("Cloning of DisplayGroupAndTabItemTreeWidgetItem not allowed.");
+    CaretAssertMessage(0, msg);
+    CaretLogSevere(msg);
+    
+    return NULL;
+}
+
 
 /**
  * Update the content of this widget.
@@ -108,7 +125,7 @@ DisplayGroupAndTabItemTreeWidgetItem::updateContent(DisplayGroupAndTabItemInterf
     CaretAssert(childCount() >= numValidChildren);
     CaretAssert(childCount() >= maxCount);
     
-    for (int32_t i = 0; i < maxCount; i++) {
+    for (int32_t i = 0; i < numValidChildren; i++) {
         QTreeWidgetItem* treeWidgetChild = child(i);
         
         if (i < numValidChildren) {
@@ -127,7 +144,25 @@ DisplayGroupAndTabItemTreeWidgetItem::updateContent(DisplayGroupAndTabItemInterf
         else {
             treeWidgetChild->setHidden(true);
             setDisplayGroupAndTabItem(NULL);
+            
+            std::cout
+            << "Hiding "
+            << qPrintable(treeWidgetChild->text(DisplayGroupAndTabItemTreeWidgetItem::NAME_COLUMN)) << std::endl;
         }
+    }
+    
+    for (int32_t i = (numExistingChildren - 1); i >= numValidChildren; i--) {
+        QTreeWidgetItem* treeWidgetChild = child(i);
+        std::cout
+        << "Taking Child Item index="
+        << i << ": "
+        << qPrintable(treeWidgetChild->text(DisplayGroupAndTabItemTreeWidgetItem::NAME_COLUMN)) << std::endl;
+        
+        QTreeWidgetItem* item = takeChild(i);
+        
+        //            treeWidgetChild->setHidden(true);
+        //            dgtChild->setDisplayGroupAndTabItem(NULL);
+        
     }
 }
 

@@ -249,21 +249,23 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
          groupIter != m_annotationGroups.end();
          groupIter++) {
         AnnotationGroup* group = (*groupIter).data();
-        if (group->getCoordinateSpace() == annotationSpace) {
-            switch (annotationSpace) {
-                case AnnotationCoordinateSpaceEnum::PIXELS:
-                    CaretAssert(0);
-                    break;
-                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                case AnnotationCoordinateSpaceEnum::SURFACE:
-                    return group;
-                    break;
-                case AnnotationCoordinateSpaceEnum::TAB:
-                case AnnotationCoordinateSpaceEnum::WINDOW:
-                    if (annotationTabOrWindowIndex == group->getTabOrWindowIndex()) {
+        if (group->getGroupType() == AnnotationGroupTypeEnum::SPACE) {
+            if (group->getCoordinateSpace() == annotationSpace) {
+                switch (annotationSpace) {
+                    case AnnotationCoordinateSpaceEnum::PIXELS:
+                        CaretAssert(0);
+                        break;
+                    case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    case AnnotationCoordinateSpaceEnum::SURFACE:
                         return group;
-                    }
-                    break;
+                        break;
+                    case AnnotationCoordinateSpaceEnum::TAB:
+                    case AnnotationCoordinateSpaceEnum::WINDOW:
+                        if (annotationTabOrWindowIndex == group->getTabOrWindowIndex()) {
+                            return group;
+                        }
+                        break;
+                }
             }
         }
     }
@@ -865,24 +867,51 @@ void
 AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEvent)
 {
     CaretAssert(groupingEvent);
-    
     AnnotationGroupKey spaceGroupKey = groupingEvent->getAnnotationGroupKey();
     
-    AnnotationGroup* spaceGroup = NULL;
     
-    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
-         groupIter != m_annotationGroups.end();
-         groupIter++) {
-        if (spaceGroupKey == (*groupIter)->getAnnotationGroupKey()) {
-            spaceGroup = (*groupIter).data();
+    
+    AnnotationGroupIterator spaceGroupIter = m_annotationGroups.end();
+    for (spaceGroupIter = m_annotationGroups.begin();
+         spaceGroupIter != m_annotationGroups.end();
+         spaceGroupIter++) {
+        if (spaceGroupKey == (*spaceGroupIter)->getAnnotationGroupKey()) {
             break;
         }
     }
     
-    if (spaceGroup == NULL) {
-        groupingEvent->setErrorMessage("PROGRAM ERROR: Did not find space group for source of grouping annotations");
+    if (spaceGroupIter == m_annotationGroups.end()) {
+        groupingEvent->setErrorMessage("PROGRAM ERROR: Did not find group for ungrouping annotations");
         return;
     }
+    
+    AnnotationGroup* spaceGroup = (*spaceGroupIter).data();
+    CaretAssert(spaceGroup);
+
+    
+    
+    
+    
+//    AnnotationGroupKey spaceGroupKey = groupingEvent->getAnnotationGroupKey();
+//    
+//    AnnotationGroup* spaceGroup = NULL;
+//    AnnotationGroupIterator spaceGroupIter = m_annotationGroups.end();
+//    for (spaceGroupIter = m_annotationGroups.begin();
+//         spaceGroupIter != m_annotationGroups.end();
+//         spaceGroupIter++) {
+//        QSharedPointer<AnnotationGroup> groupPointer = *spaceGroupIter;
+//        if (spaceGroupKey == groupPointer->getAnnotationGroupKey()) {
+//            spaceGroup = groupPointer.data();
+//            break;
+//        }
+//    }
+//    
+//    if (spaceGroup == NULL) {
+//        groupingEvent->setErrorMessage("PROGRAM ERROR: Did not find space group for source of grouping annotations");
+//        return;
+//    }
+
+    
     groupingEvent->setEventProcessed();
     
     if (spaceGroup->getGroupType() != AnnotationGroupTypeEnum::SPACE) {
@@ -927,15 +956,27 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
             group->addAnnotationPrivateSharedPointer(*annPtrIter);
         }
         group->setItemParent(this);
-        m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
+         groupingEvent->setGroupKeyToWhichAnnotationsWereMoved(group->getAnnotationGroupKey());
         
-        groupingEvent->setGroupKeyToWhichAnnotationsWereMoved(group->getAnnotationGroupKey());
+        /*
+         * If space group becomes empty, remove it.
+         * Need to remove it before adding new group, otherwise
+         * iterator will become invalid
+         */
+        if (spaceGroup->isEmpty()) {
+            m_annotationGroups.erase(spaceGroupIter);
+        }
+        
+        /*
+         * Add new user group
+         */
+        m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
         
         setModified();
     }
     else {
         /*
-         * Put the annotations back into the space group
+         * Error
          */
         groupingEvent->setErrorMessage("Creating group failed, annotations not found in space group");
     }
@@ -954,24 +995,22 @@ AnnotationFile::processUngroupingAnnotations(EventAnnotationGrouping* groupingEv
     
     AnnotationGroupKey userGroupKey = groupingEvent->getAnnotationGroupKey();
     
-    AnnotationGroupIterator groupIter = m_annotationGroups.end();
-    for (groupIter = m_annotationGroups.begin();
-         groupIter != m_annotationGroups.end();
-         groupIter++) {
-        if (userGroupKey == (*groupIter)->getAnnotationGroupKey()) {
+    AnnotationGroupIterator userGroupIter = m_annotationGroups.end();
+    for (userGroupIter = m_annotationGroups.begin();
+         userGroupIter != m_annotationGroups.end();
+         userGroupIter++) {
+        if (userGroupKey == (*userGroupIter)->getAnnotationGroupKey()) {
             break;
         }
     }
 
-    if (groupIter == m_annotationGroups.end()) {
+    if (userGroupIter == m_annotationGroups.end()) {
         groupingEvent->setErrorMessage("PROGRAM ERROR: Did not find group for ungrouping annotations");
         return;
     }
     
-    AnnotationGroup* userGroup = (*groupIter).data();
+    AnnotationGroup* userGroup = (*userGroupIter).data();
     CaretAssert(userGroup);
-    
-    groupingEvent->setEventProcessed();
     
     if (userGroup->getGroupType() != AnnotationGroupTypeEnum::USER) {
         groupingEvent->setErrorMessage("PROGRAM ERROR: Trying to ungroup annotations in a NON-user group");
@@ -982,6 +1021,13 @@ AnnotationFile::processUngroupingAnnotations(EventAnnotationGrouping* groupingEv
     std::vector<QSharedPointer<Annotation> > allGroupAnnotations;
     userGroup->removeAllAnnotations(allGroupAnnotations);
     
+    /**
+     * Remove the group since it is empty.  Must be done before adding annotations back to
+     * space group since the space group may not exist and if a new
+     * space group is created the iterator will be invalid.
+     */
+    m_annotationGroups.erase(userGroupIter);
+    
     for (std::vector<QSharedPointer<Annotation> >::iterator annIter = allGroupAnnotations.begin();
          annIter != allGroupAnnotations.end();
          annIter++) {
@@ -990,11 +1036,7 @@ AnnotationFile::processUngroupingAnnotations(EventAnnotationGrouping* groupingEv
         spaceGroup->addAnnotationPrivateSharedPointer(annPtr);
     }
     
-    /**
-     * Remove the group 
-     * SAVE IT FOR REGROUP????
-     */
-    m_annotationGroups.erase(groupIter);
+    groupingEvent->setEventProcessed();
     
     setModified();
 }
@@ -1023,11 +1065,11 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
      * Find annotations in ONE space group that were
      * previously assigned to the previous user group.
      */
-    AnnotationGroupIterator groupIter = m_annotationGroups.end();
-    for (groupIter = m_annotationGroups.begin();
-         groupIter != m_annotationGroups.end();
-         groupIter++) {
-        AnnotationGroup* group = (*groupIter).data();
+    //AnnotationGroupIterator spaceGroupIter = m_annotationGroups.end();
+    for (AnnotationGroupIterator spaceGroupIter = m_annotationGroups.begin();
+         spaceGroupIter != m_annotationGroups.end();
+         spaceGroupIter++) {
+        AnnotationGroup* group = (*spaceGroupIter).data();
         
         switch (group->getGroupType()) {
             case  AnnotationGroupTypeEnum::INVALID:
@@ -1094,7 +1136,23 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
                 group->addAnnotationPrivateSharedPointer(*annPtrIter);
             }
             group->setItemParent(this);
+            
             m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
+            
+            /*
+             * If the space group is empty it is no longer needed
+             * so delete it.
+             */
+            if (spaceGroup->isEmpty()) {
+                for (AnnotationGroupIterator spaceGroupIter = m_annotationGroups.begin();
+                     spaceGroupIter != m_annotationGroups.end();
+                     spaceGroupIter++) {
+                    if (spaceGroup == (*spaceGroupIter).data()) {
+                        m_annotationGroups.erase(spaceGroupIter);
+                        break;
+                    }
+                }
+            }
             
             groupingEvent->setGroupKeyToWhichAnnotationsWereMoved(group->getAnnotationGroupKey());
             

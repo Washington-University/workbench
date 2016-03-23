@@ -156,7 +156,6 @@ AnnotationSelectionViewController::updateAnnotationSelections()
          fileIter != annotationFiles.end();
          fileIter++) {
         AnnotationFile* annFile = *fileIter;
-        CaretAssert(annFile);
         fileItems.push_back(annFile);
     }
     

@@ -207,14 +207,27 @@ DisplayGroupAndTabItemViewController::getDisplayGroupAndTabIndex(DisplayGroupEnu
 /**
  * Update the content.
  *
- * @param displayGroupAndTabItem
+ * @param displayGroupAndTabItemIn
  *     Display group for this instance.
  */
 void
-DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndTabItemInterface*>& contentItems,
+DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndTabItemInterface*>& contentItemsIn,
                                                     const DisplayGroupEnum::Enum displayGroup,
                                                     const int32_t tabIndex)
 {
+    /*
+     * Ignore items without children
+     */
+    std::vector<DisplayGroupAndTabItemInterface*> contentItems;
+    for (std::vector<DisplayGroupAndTabItemInterface*>::iterator contIter = contentItemsIn.begin();
+         contIter != contentItemsIn.end();
+         contIter++) {
+        DisplayGroupAndTabItemInterface* item = *contIter;
+        if (item->getNumberOfItemChildren() > 0) {
+            contentItems.push_back(item);
+        }
+    }
+    
     /*
      * Updating the tree will cause signals so block them until update is done
      */
@@ -230,39 +243,50 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
         m_treeWidget->addTopLevelItem(new DisplayGroupAndTabItemTreeWidgetItem());
     }
     
+    std::cout << "Top Item Count=" << numExistingChildren
+    << " child count=" << numValidChildren << std::endl;
+    
     CaretAssert(m_treeWidget->topLevelItemCount() >= numValidChildren);
     CaretAssert(m_treeWidget->topLevelItemCount() >= maxCount);
     
-    for (int32_t i = 0; i < maxCount; i++) {
+    for (int32_t i = 0; i < numValidChildren; i++) {
         QTreeWidgetItem* treeWidgetChild = m_treeWidget->topLevelItem(i);
         CaretAssert(treeWidgetChild);
         DisplayGroupAndTabItemTreeWidgetItem* dgtChild = dynamic_cast<DisplayGroupAndTabItemTreeWidgetItem*>(treeWidgetChild);
         CaretAssert(dgtChild);
         
-        if (i < numValidChildren) {
             treeWidgetChild->setHidden(false);
             
             CaretAssertVectorIndex(contentItems, i);
+            CaretAssert(contentItems[i]);
             DisplayGroupAndTabItemInterface* displayGroupAndTabItem = contentItems[i];
             dgtChild->updateContent(displayGroupAndTabItem,
                                     m_treeWidget,
                                     displayGroup,
                                     tabIndex);
-            
-//            const bool expandedFlag = displayGroupAndTabItem->isItemExpanded(displayGroup,
-//                                                                             tabIndex);
-//            treeWidgetChild->setExpanded(expandedFlag);
-        }
-        else {
-            treeWidgetChild->setHidden(true);
-            dgtChild->setDisplayGroupAndTabItem(NULL);
-        }
+        std::cout << "Updating top level index="
+        << i << ": "
+        << qPrintable(treeWidgetChild->text(DisplayGroupAndTabItemTreeWidgetItem::NAME_COLUMN)) << std::endl;
     }
     
-    m_treeWidget->blockSignals(false);
+    for (int32_t i = (numExistingChildren - 1); i >= numValidChildren; i--) {
+        QTreeWidgetItem* treeWidgetChild = m_treeWidget->topLevelItem(i);
+            std::cout
+            << "Taking Top Level Item index="
+        << i << ": "
+            << qPrintable(treeWidgetChild->text(DisplayGroupAndTabItemTreeWidgetItem::NAME_COLUMN)) << std::endl;
+
+        QTreeWidgetItem* item = m_treeWidget->takeTopLevelItem(i);
+            
+//            treeWidgetChild->setHidden(true);
+//            dgtChild->setDisplayGroupAndTabItem(NULL);
+            
+    }
     
-    updateSelectedAndExpandedCheckboxes(displayGroup,
-                                        tabIndex);
+    /*
+     * Allow signals now that updating is done
+     */
+    m_treeWidget->blockSignals(false);
 }
 
 /**

@@ -47,6 +47,8 @@ namespace caret {
         
         DisplayGroupAndTabItemInterface* getDisplayGroupAndTabItem() const;
         
+        virtual QTreeWidgetItem* clone() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

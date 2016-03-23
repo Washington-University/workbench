@@ -116,6 +116,7 @@ AnnotationGroup::AnnotationGroup(AnnotationFile* annotationFile,
  */
 AnnotationGroup::~AnnotationGroup()
 {
+    std::cout << "Deleting annotation group: " << qPrintable(getName()) << std::endl;
     m_annotations.clear();
     
     delete m_displayGroupAndTabItemHelper;

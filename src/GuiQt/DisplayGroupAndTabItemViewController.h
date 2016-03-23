@@ -46,7 +46,7 @@ namespace caret {
         
         virtual ~DisplayGroupAndTabItemViewController();
 
-        void updateContent(std::vector<DisplayGroupAndTabItemInterface*>& contentItems,
+        void updateContent(std::vector<DisplayGroupAndTabItemInterface*>& contentItemsIn,
                            const DisplayGroupEnum::Enum displayGroup,
                            const int32_t tabIndex);
 
