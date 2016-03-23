@@ -76,8 +76,7 @@ m_browserWindowIndex(browserWindowIndex)
     groupLayout->addWidget(m_displayGroupComboBox->getWidget());
     groupLayout->addStretch();
 
-    m_displayWindowAnnotationInSingleTabViewsCheckBox = new QCheckBox("Show Window Annotations in Single Tab Views "
-                                                      + QString::number(m_browserWindowIndex + 1));
+    m_displayWindowAnnotationInSingleTabViewsCheckBox = new QCheckBox("Show Window Annotations in Single Tab View");
     QObject::connect(m_displayWindowAnnotationInSingleTabViewsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(checkBoxToggled()));
     

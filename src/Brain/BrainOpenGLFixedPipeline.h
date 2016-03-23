@@ -567,7 +567,10 @@ namespace caret {
         
         /** Performs node coloring */
         SurfaceNodeColoring* surfaceNodeColoring;
-         
+        
+        /** Tile tabs active */
+        bool m_tileTabsActiveFlag;
+        
         /** Sphere symbol */
         BrainOpenGLShapeSphere* m_shapeSphere;
         

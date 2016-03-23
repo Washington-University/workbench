@@ -36,6 +36,7 @@
 #include <QImage>
 
 #include "AnnotationColorBar.h"
+#include "AnnotationManager.h"
 #include "AnnotationPointSizeText.h"
 #include "Border.h"
 #include "BorderFile.h"
@@ -73,6 +74,7 @@
 #include "ClippingPlaneGroup.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayGroupEnum.h"
+#include "DisplayPropertiesAnnotation.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
@@ -180,6 +182,8 @@ m_windowIndex(windowIndex)
     this->surfaceNodeColoring = new SurfaceNodeColoring();
     m_brain = NULL;
     m_clippingPlaneGroup = NULL;
+
+    m_tileTabsActiveFlag = false;
     
     setTabViewport(NULL);
 }
@@ -498,6 +502,8 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     
     setAnnotationColorBarsForDrawing(viewportContents);
     
+    m_tileTabsActiveFlag = (viewportContents.size() > 1);
+    
     this->inverseRotationMatrixValid = false;
     
     m_clippingPlaneGroup = NULL;
@@ -734,12 +740,14 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabCont
     
     this->windowTabIndex = this->browserTabContent->getTabNumber();
     
+    const bool drawWindowAnnotationsFlag = false;
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              tabViewport,
                                                              m_windowIndex,
-                                                             this->windowTabIndex);
+                                                             this->windowTabIndex,
+                                                             drawWindowAnnotationsFlag);
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
@@ -761,6 +769,21 @@ void
 BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
 {
     CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing window annotations.");
+    
+    /*
+     * User may want window annotations only when in tile tabs view.
+     */
+    bool drawWindowAnnotationsFlag = false;
+    if (m_tileTabsActiveFlag) {
+        drawWindowAnnotationsFlag = true;
+    }
+    else {
+        const DisplayPropertiesAnnotation* dpa = m_brain->getDisplayPropertiesAnnotation();
+        if (dpa->isDisplayWindowAnnotationsInSingleTabViews(m_windowIndex)) {
+            drawWindowAnnotationsFlag = true;
+        }
+    }
+    
     glViewport(windowViewport[0],
                windowViewport[1],
                windowViewport[2],
@@ -790,7 +813,8 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              windowViewport,
                                                              m_windowIndex,
-                                                             this->windowTabIndex);
+                                                             this->windowTabIndex,
+                                                             drawWindowAnnotationsFlag);
     
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::WINDOW,
@@ -888,12 +912,14 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                 this->drawAllPalettes(model->getBrain());
             }
             
+            const bool drawWindowAnnotationsFlag = false;
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_tabViewport,
                                                                      m_windowIndex,
-                                                                     this->windowTabIndex);
+                                                                     this->windowTabIndex,
+                                                                     drawWindowAnnotationsFlag);
             if ( ! drawTabAnnotationsAfterTabContentFlag) {
                 m_annotationDrawing->drawAnnotations(&inputs,
                                                      AnnotationCoordinateSpaceEnum::TAB,
@@ -1719,12 +1745,14 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * Draw annotations for this surface and maybe draw
              * the model annotations.
              */
+            const bool drawWindowAnnotationsFlag = false;
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_tabViewport,
                                                                      m_windowIndex,
-                                                                     this->windowTabIndex);
+                                                                     this->windowTabIndex,
+                                                                     drawWindowAnnotationsFlag);
             std::vector<AnnotationColorBar*> emptyColorBars;
             m_annotationDrawing->drawAnnotations(&inputs,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,
@@ -1764,12 +1792,14 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * Draw annotations for this surface and maybe draw
              * the model annotations.
              */
+            const bool drawWindowAnnotationsFlag = false;
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_tabViewport,
                                                                      m_windowIndex,
-                                                                     this->windowTabIndex);
+                                                                     this->windowTabIndex,
+                                                                     drawWindowAnnotationsFlag);
             std::vector<AnnotationColorBar*> emptyColorBars;
             m_annotationDrawing->drawAnnotations(&inputs,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,

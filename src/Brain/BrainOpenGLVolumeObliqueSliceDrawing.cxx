@@ -845,12 +845,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const Volume
             }
         }
     }
+    const bool drawWindowAnnotationsFlag = false;
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              m_fixedPipelineDrawing->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              m_fixedPipelineDrawing->m_tabViewport,
                                                              m_fixedPipelineDrawing->m_windowIndex,
-                                                             m_fixedPipelineDrawing->windowTabIndex);
+                                                             m_fixedPipelineDrawing->windowTabIndex,
+                                                             drawWindowAnnotationsFlag);
     m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
                                                                                         slicePlane,
                                                                                         sliceThickness);

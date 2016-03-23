@@ -634,20 +634,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            if ( ! dpa->isDisplayWindowAnnotationsInSingleTabViews(m_inputs->m_windowIndex)) {
-                CaretLogSevere("NEED TO TEST FOR SINGLE or TILE TABS VIEW");
-                if (annotationBeingDrawn != NULL) {
-                    /*
-                     * Window annotation are not being drawn.
-                     * BUT, the annotation being drawn by the user is always in window space
-                     * so we need to continue but skip drawing the window annotations.
-                     */
-                    drawAnnotationsFromFilesFlag = false;
-                }
-                else {
-                    return;
-                }
+            if ( ! m_inputs->m_drawWindowAnnotationsFlag) {
+                drawAnnotationsFromFilesFlag = false;
             }
+//            if ( ! dpa->isDisplayWindowAnnotationsInSingleTabViews(m_inputs->m_windowIndex)) {
+//                CaretLogSevere("NEED TO TEST FOR SINGLE or TILE TABS VIEW");
+//                if (annotationBeingDrawn != NULL) {
+//                    /*
+//                     * Window annotation are not being drawn.
+//                     * BUT, the annotation being drawn by the user is always in window space
+//                     * so we need to continue but skip drawing the window annotations.
+//                     */
+//                    drawAnnotationsFromFilesFlag = false;
+//                }
+//                else {
+//                    return;
+//                }
+//            }
             break;
     }
     
