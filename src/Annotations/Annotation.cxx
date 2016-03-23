@@ -1092,7 +1092,7 @@ Annotation::textAnnotationResetName()
             CaretAssertMessage(textAnn,
                                "If this fails, it may be due to this method being called from a constructor "
                                "and the subclass constructor has not yet executed.");
-            suffixName = (" : "
+            suffixName = (": "
                           + textAnn->getText());
         }
             break;

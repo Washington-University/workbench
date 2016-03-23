@@ -277,13 +277,13 @@ AnnotationGroup::getName() const
                 CaretAssertMessage(0, "Should never get here");
                 break;
             case AnnotationGroupTypeEnum::SPACE:
-                m_name.append("Space Group "
+                m_name.append("Space Group: "
                               + spaceName);
                 break;
             case AnnotationGroupTypeEnum::USER:
                 m_name.append("User Group "
                               + AString::number(m_groupKey.getUserGroupUniqueKey())
-                              + " "
+                              + ": "
                               + spaceName);
                 break;
         }
