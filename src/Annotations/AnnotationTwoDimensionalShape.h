@@ -123,6 +123,10 @@ namespace caret {
         
         bool applySpatialModificationTabOrWindowSpace(const AnnotationSpatialModification& spatialModification);
         
+        bool rotationAngleTest(const float previousMouseXYZ[3],
+                               const float shapeXYZ[3],
+                               const float currentMouseXYZ[3]) const;
+        
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
         CaretPointer<AnnotationCoordinate> m_coordinate;
