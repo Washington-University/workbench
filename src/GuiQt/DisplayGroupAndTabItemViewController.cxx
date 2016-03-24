@@ -65,6 +65,9 @@ m_browserWindowIndex(browserWindowIndex)
 {
     m_treeWidget = new QTreeWidget();
     m_treeWidget->setHeaderHidden(true);
+    //m_treeWidget->setSelectionMode(QTreeWidget::ExtendedSelection);
+    m_treeWidget->setSelectionMode(QTreeWidget::NoSelection);
+    
     QObject::connect(m_treeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
                      this, SLOT(itemWasCollapsed(QTreeWidgetItem*)));
     QObject::connect(m_treeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
