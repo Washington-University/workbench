@@ -101,7 +101,6 @@ void
 DisplayGroupAndTabItemViewController::itemsWereSelected()
 {
     QList<QTreeWidgetItem*> itemsSelected = m_treeWidget->selectedItems();
-    std::cout << itemsSelected.size() << " annotations are selected." << std::endl;
     
     if ( ! itemsSelected.empty()) {
         
@@ -116,8 +115,6 @@ DisplayGroupAndTabItemViewController::itemsWereSelected()
             if (itemInterface != NULL) {
                 itemInterfacesVector.push_back(itemInterface);
             }
-            
-            std::cout << "    " << qPrintable(itemInterface->getItemName()) << std::endl;
         }
         
         if ( ! itemInterfacesVector.empty()) {
@@ -389,6 +386,7 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
 void
 DisplayGroupAndTabItemViewController::updateGraphics()
 {
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
