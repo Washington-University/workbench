@@ -50,6 +50,8 @@ public:
             STDEV,
             SAMPSTDEV,
             VARIANCE,
+            TSNR,
+            COV,
             PRODUCT,
             MEDIAN,
             MODE,

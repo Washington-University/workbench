@@ -39,7 +39,9 @@ float ReductionOperation::reduce(const float* data, const int64_t& numElems, con
         case ReductionEnum::INVALID:
             throw CaretException("reduction requested with 'INVALID' method");
         case ReductionEnum::SAMPSTDEV://all of these start by taking the average, for stability
-            if (numElems < 2) throw CaretException("'SAMPSTDEV' reduction on 1 element would require dividing by zero");
+        case ReductionEnum::TSNR:
+        case ReductionEnum::COV:
+            if (numElems < 2) throw CaretException("taking the sample standard deviation of 1 element would require dividing by zero");
         case ReductionEnum::MEAN:
         case ReductionEnum::STDEV:
         case ReductionEnum::VARIANCE:
@@ -70,6 +72,10 @@ float ReductionOperation::reduce(const float* data, const int64_t& numElems, con
                             return sqrt(residsqr / (numElems - 1));
                         case ReductionEnum::VARIANCE:
                             return residsqr / numElems;
+                        case ReductionEnum::TSNR:
+                            return mean / sqrt(residsqr / (numElems - 1));
+                        case ReductionEnum::COV:
+                            return sqrt(residsqr / (numElems - 1)) / mean;
                         default:
                             CaretAssertMessage(0, "unhandled type in sum-based reduction");
                             return 0.0f;
@@ -339,6 +345,8 @@ float ReductionOperation::reduceWeighted(const float* data, const float* weights
         case ReductionEnum::COUNT_NONZERO:
             throw CaretException("weighted reduction not supported for '" + ReductionEnum::toName(type) + "' method");
         case ReductionEnum::SAMPSTDEV://all of these start by taking the average, for stability
+        case ReductionEnum::TSNR:
+        case ReductionEnum::COV:
             if (numElems < 2) throw CaretException("'SAMPSTDEV' weighted reduction on 1 element would require dividing by zero");
         case ReductionEnum::MEAN:
         case ReductionEnum::STDEV:
@@ -362,10 +370,22 @@ float ReductionOperation::reduceWeighted(const float* data, const float* weights
                 accum += weights[i] * tempf * tempf;
                 weightsum2 += weights[i] * weights[i];
             }
-            if (type == ReductionEnum::STDEV) return sqrt(accum / weightsum);
-            if (type == ReductionEnum::VARIANCE) return accum / weightsum;
-            CaretAssert(type == ReductionEnum::SAMPSTDEV);
-            return sqrt(accum / (weightsum - weightsum2 / weightsum));//http://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Weighted_sample_variance
+            switch (type)
+            {
+                case ReductionEnum::STDEV:
+                    return sqrt(accum / weightsum);
+                case ReductionEnum::VARIANCE:
+                    return accum / weightsum;
+                case ReductionEnum::SAMPSTDEV:
+                    return sqrt(accum / (weightsum - weightsum2 / weightsum));//http://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Weighted_sample_variance
+                case ReductionEnum::TSNR:
+                    return mean / sqrt(accum / (weightsum - weightsum2 / weightsum));
+                case ReductionEnum::COV:
+                    return sqrt(accum / (weightsum - weightsum2 / weightsum)) / mean;
+                default:
+                    CaretAssertMessage(0, "unhandled type in sum-based reduction");
+                    return 0.0f;
+            }
         }
         case ReductionEnum::MEDIAN:
         {
