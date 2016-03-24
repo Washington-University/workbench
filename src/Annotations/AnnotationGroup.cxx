@@ -948,3 +948,17 @@ AnnotationGroup::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGrou
                                                                 status);
 }
 
+/**
+ * Is this item selected for editing in the given window?
+ *
+ * @param windowIndex
+ *     Index of the window.
+ * @return
+ *     Selection status.
+ */
+bool
+AnnotationGroup::isItemSelectedForEditingInWindow(const int32_t windowIndex)
+{
+    return false;
+}
+

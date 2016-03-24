@@ -48,7 +48,8 @@ namespace caret {
 
         void updateContent(std::vector<DisplayGroupAndTabItemInterface*>& contentItemsIn,
                            const DisplayGroupEnum::Enum displayGroup,
-                           const int32_t tabIndex);
+                           const int32_t tabIndex,
+                           const bool allowSelectionFlag);
 
         // ADD_NEW_METHODS_HERE
 
@@ -59,6 +60,8 @@ namespace caret {
         
         void itemWasChanged(QTreeWidgetItem* item,
                             int column);
+        
+        void itemsWereSelected();
         
     private:
         DisplayGroupAndTabItemViewController(const DisplayGroupAndTabItemViewController&);
@@ -72,6 +75,8 @@ namespace caret {
         
         void processItemExpanded(QTreeWidgetItem* item,
                                  const bool expandedStatus);
+        
+        void processAnnotationDataSelection(const std::vector<DisplayGroupAndTabItemInterface*>& interfaceItems);
         
         DisplayGroupAndTabItemInterface* getDataItem(QTreeWidgetItem* item) const;
         

@@ -34,6 +34,7 @@
 #include "DisplayGroupAndTabItemViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesAnnotation.h"
+#include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
@@ -161,9 +162,15 @@ AnnotationSelectionViewController::updateAnnotationSelections()
     const DisplayGroupEnum::Enum displayGroup = dpa->getDisplayGroupForTab(browserTabIndex);
     m_displayGroupComboBox->setSelectedDisplayGroup(displayGroup);
     
+    EventGetOrSetUserInputModeProcessor inputModeEvent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(inputModeEvent.getPointer());
+    UserInputModeAbstract::UserInputMode mode = inputModeEvent.getUserInputMode();
+    const bool annotationsValidFlag = (mode == UserInputModeAbstract::ANNOTATIONS);
+    
     m_selectionViewController->updateContent(fileItems,
                                              displayGroup,
-                                             browserTabIndex);
+                                             browserTabIndex,
+                                             annotationsValidFlag);
 }
 
 QWidget*

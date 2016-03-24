@@ -292,6 +292,55 @@ AnnotationManager::selectAnnotationForEditing(const int32_t windowIndex,
 }
 
 /**
+ * Set the annotations for editing to the given annotations in the given window.
+ *
+ * @param windowIndex
+ *     Index of window for annotation selection.
+ * @param selectedAnnotations
+ *     Annotation that become the selected annotations.
+ */
+void
+AnnotationManager::setAnnotationsForEditing(const int32_t windowIndex,
+                                            const std::vector<Annotation*>& selectedAnnotations)
+{
+    deselectAllAnnotationsForEditing(windowIndex);
+    
+    std::set<Annotation*> uniqueAnnotationsSet;
+    for (std::vector<Annotation*>::const_iterator annIter = selectedAnnotations.begin();
+         annIter != selectedAnnotations.end();
+         annIter++) {
+        Annotation* ann = *annIter;
+        CaretAssert(ann);
+
+        const AnnotationGroupKey groupKey = ann->getAnnotationGroupKey();
+        if (groupKey.getGroupType() == AnnotationGroupTypeEnum::USER) {
+            EventAnnotationGroupGetWithKey getGroupEvent(groupKey);
+            EventManager::get()->sendEvent(getGroupEvent.getPointer());
+            
+            AnnotationGroup* annotationGroup = getGroupEvent.getAnnotationGroup();
+            if (annotationGroup != NULL) {
+                std::vector<Annotation*> groupAnns;
+                annotationGroup->getAllAnnotations(groupAnns);
+                uniqueAnnotationsSet.insert(groupAnns.begin(),
+                                            groupAnns.end());
+            }
+        }
+        else {
+            uniqueAnnotationsSet.insert(ann);
+        }
+    }
+    
+    for (std::set<Annotation*>::iterator annIter = uniqueAnnotationsSet.begin();
+         annIter != uniqueAnnotationsSet.end();
+         annIter++) {
+        Annotation* ann = *annIter;
+        ann->setSelectedForEditing(windowIndex,
+                                   true);
+    }
+}
+
+
+/**
  * Process extended mode annotation selection for editing.
  * 
  * @param windowIndex

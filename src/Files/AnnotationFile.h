@@ -150,9 +150,8 @@ namespace caret {
                                      const int32_t tabIndex,
                                      const TriStateSelectionStatusEnum::Enum status);
         
-          
-          
-          
+        virtual bool isItemSelectedForEditingInWindow(const int32_t windowIndex);
+        
     protected: 
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);

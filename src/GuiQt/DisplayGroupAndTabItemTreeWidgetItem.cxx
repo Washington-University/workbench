@@ -45,8 +45,9 @@ using namespace caret;
 /**
  * Constructor.
  */
-DisplayGroupAndTabItemTreeWidgetItem::DisplayGroupAndTabItemTreeWidgetItem()
-: QTreeWidgetItem()
+DisplayGroupAndTabItemTreeWidgetItem::DisplayGroupAndTabItemTreeWidgetItem(const int32_t browserWindowIndex)
+: QTreeWidgetItem(),
+m_browserWindowIndex(browserWindowIndex)
 {
     m_displayGroup = DisplayGroupEnum::DISPLAY_GROUP_A;
     m_tabIndex     = -1;
@@ -115,7 +116,7 @@ DisplayGroupAndTabItemTreeWidgetItem::updateContent(DisplayGroupAndTabItemInterf
     
     const int32_t numberOfChildrenToAdd = numValidChildren - numExistingChildren;
     for (int32_t i = 0; i < numberOfChildrenToAdd; i++) {
-        addChild(new DisplayGroupAndTabItemTreeWidgetItem());
+        addChild(new DisplayGroupAndTabItemTreeWidgetItem(m_browserWindowIndex));
     }
     
     CaretAssert(childCount() >= numValidChildren);
@@ -132,9 +133,6 @@ DisplayGroupAndTabItemTreeWidgetItem::updateContent(DisplayGroupAndTabItemInterf
                                     displayGroup,
                                     tabIndex);
             
-            const bool expandedFlag = displayGroupAndTabItem->isItemExpanded(m_displayGroup,
-                                                                             m_tabIndex);
-            setExpanded(expandedFlag);
         }
         else {
             treeWidgetChild->setHidden(true);
@@ -142,6 +140,11 @@ DisplayGroupAndTabItemTreeWidgetItem::updateContent(DisplayGroupAndTabItemInterf
         }
     }
     
+//    const bool expandedFlag = displayGroupAndTabItem->isItemExpanded(m_displayGroup,
+//                                                                     m_tabIndex);
+//    setExpanded(expandedFlag);
+    
+//    setSelected(displayGroupAndTabItem->isItemSelectedForEditingInWindow())
     for (int32_t i = (numExistingChildren - 1); i >= numValidChildren; i--) {
         /*
          * Take removes it from the parent but
@@ -281,6 +284,8 @@ DisplayGroupAndTabItemTreeWidgetItem::updateSelectedAndExpandedCheckboxes(const 
         
         setExpanded(myData->isItemExpanded(displayGroup,
                                            tabIndex));
+        
+        setSelected(myData->isItemSelectedForEditingInWindow(m_browserWindowIndex));
     }
 }
 

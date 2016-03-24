@@ -36,7 +36,7 @@ namespace caret {
     class DisplayGroupAndTabItemTreeWidgetItem : public QTreeWidgetItem {
         
     public:
-        DisplayGroupAndTabItemTreeWidgetItem();
+        DisplayGroupAndTabItemTreeWidgetItem(const int32_t browserWindowIndex);
 
         virtual ~DisplayGroupAndTabItemTreeWidgetItem();
 
@@ -68,6 +68,8 @@ namespace caret {
         
         void updateSelectedAndExpandedCheckboxes(const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex);
+        
+        const int32_t m_browserWindowIndex;
         
         DisplayGroupEnum::Enum m_displayGroup;
         

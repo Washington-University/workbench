@@ -1792,3 +1792,17 @@ AnnotationFile::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup
                                                                 status);
 }
 
+/**
+ * Is this item selected for editing in the given window?
+ *
+ * @param windowIndex
+ *     Index of the window.
+ * @return
+ *     Selection status.
+ */
+bool
+AnnotationFile::isItemSelectedForEditingInWindow(const int32_t windowIndex)
+{
+    return false;
+}
+

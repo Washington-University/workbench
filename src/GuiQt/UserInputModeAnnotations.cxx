@@ -743,7 +743,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
         annotationsAfterMoveAndResize.clear();
         
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-        m_annotationToolsWidget->updateWidget();
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+//        m_annotationToolsWidget->updateWidget();
     }
 }
 
@@ -1569,7 +1570,8 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    m_annotationToolsWidget->updateWidget();
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+//    m_annotationToolsWidget->updateWidget();
 }
 
 /**

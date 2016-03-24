@@ -26,6 +26,9 @@
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
+#include "Annotation.h"
+#include "AnnotationGroup.h"
+#include "AnnotationManager.h"
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -74,6 +77,8 @@ m_browserWindowIndex(browserWindowIndex)
                      this, SLOT(itemWasExpanded(QTreeWidgetItem*)));
     QObject::connect(m_treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
                      this, SLOT(itemWasChanged(QTreeWidgetItem*, int)));
+    QObject::connect(m_treeWidget, SIGNAL(itemSelectionChanged()),
+                     this, SLOT(itemsWereSelected()));
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(m_treeWidget, 100);
@@ -88,6 +93,89 @@ DisplayGroupAndTabItemViewController::~DisplayGroupAndTabItemViewController()
 {
     s_allViewControllers.erase(this);
 }
+
+/**
+ * Gets called when items are selected.
+ */
+void
+DisplayGroupAndTabItemViewController::itemsWereSelected()
+{
+    QList<QTreeWidgetItem*> itemsSelected = m_treeWidget->selectedItems();
+    std::cout << itemsSelected.size() << " annotations are selected." << std::endl;
+    
+    if ( ! itemsSelected.empty()) {
+        
+        std::vector<DisplayGroupAndTabItemInterface*> itemInterfacesVector;
+        QListIterator<QTreeWidgetItem*> itemsIter(itemsSelected);
+        while (itemsIter.hasNext()) {
+            QTreeWidgetItem* item = itemsIter.next();
+            DisplayGroupAndTabItemTreeWidgetItem* widgetItem = dynamic_cast<DisplayGroupAndTabItemTreeWidgetItem*>(item);
+            CaretAssert(widgetItem);
+            DisplayGroupAndTabItemInterface* itemInterface = widgetItem->getDisplayGroupAndTabItem();
+            CaretAssert(itemInterface);
+            if (itemInterface != NULL) {
+                itemInterfacesVector.push_back(itemInterface);
+            }
+            
+            std::cout << "    " << qPrintable(itemInterface->getItemName()) << std::endl;
+        }
+        
+        if ( ! itemInterfacesVector.empty()) {
+            if (m_dataFileType == DataFileTypeEnum::ANNOTATION) {
+                processAnnotationDataSelection(itemInterfacesVector);
+            }
+        }
+    }
+    
+    DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::DISPLAY_GROUP_TAB;
+    int32_t tabIndex = -1;
+    getDisplayGroupAndTabIndex(displayGroup, tabIndex);
+    updateSelectedAndExpandedCheckboxes(displayGroup,
+                                        tabIndex);
+    //updateSelectedAndExpandedCheckboxesInOtherViewControllers();
+    
+    updateGraphics();
+}
+
+/**
+ * Process the selection of annotations.
+ *
+ * @param interfaceItems
+ *     Items that should be annotations !
+ */
+void
+DisplayGroupAndTabItemViewController::processAnnotationDataSelection(const std::vector<DisplayGroupAndTabItemInterface*>& interfaceItems)
+{
+    std::set<Annotation*> annotationSet;
+    
+    for (std::vector<DisplayGroupAndTabItemInterface*>::const_iterator iter = interfaceItems.begin();
+         iter != interfaceItems.end();
+         iter++) {
+        Annotation* ann = dynamic_cast<Annotation*>(*iter);
+        if (ann != NULL) {
+            annotationSet.insert(ann);
+        }
+        else {
+            AnnotationGroup* annGroup = dynamic_cast<AnnotationGroup*>(*iter);
+            if (annGroup != NULL) {
+                std::vector<Annotation*> groupAnns;
+                annGroup->getAllAnnotations(groupAnns);
+                
+                annotationSet.insert(groupAnns.begin(),
+                                     groupAnns.end());
+            }
+        }
+    }
+    
+    if ( ! annotationSet.empty()) {
+        std::vector<Annotation*> selectedAnnotations(annotationSet.begin(),
+                                                     annotationSet.end());
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        annMan->setAnnotationsForEditing(m_browserWindowIndex,
+                                         selectedAnnotations);
+    }
+}
+
 
 /**
  * Gets called when an item is collapsed so that its children are not visible.
@@ -210,14 +298,28 @@ DisplayGroupAndTabItemViewController::getDisplayGroupAndTabIndex(DisplayGroupEnu
 /**
  * Update the content.
  *
- * @param displayGroupAndTabItemIn
- *     Display group for this instance.
+ * @param contentItemsIn
+ *     Items that are displayed.
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab
+ * @param allowSelectionFlag
+ *     Allows selection of items by user clicking items.
  */
 void
 DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndTabItemInterface*>& contentItemsIn,
                                                     const DisplayGroupEnum::Enum displayGroup,
-                                                    const int32_t tabIndex)
+                                                    const int32_t tabIndex,
+                                                    const bool allowSelectionFlag)
 {
+    if (allowSelectionFlag) {
+        m_treeWidget->setSelectionMode(QTreeWidget::ExtendedSelection);
+    }
+    else {
+        m_treeWidget->setSelectionMode(QTreeWidget::NoSelection);
+    }
+    
     /*
      * Ignore items without children
      */
@@ -241,7 +343,7 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
     
     const int32_t numberOfChildrenToAdd = numValidChildren - numExistingChildren;
     for (int32_t i = 0; i < numberOfChildrenToAdd; i++) {
-        m_treeWidget->addTopLevelItem(new DisplayGroupAndTabItemTreeWidgetItem());
+        m_treeWidget->addTopLevelItem(new DisplayGroupAndTabItemTreeWidgetItem(m_browserWindowIndex));
     }
     
     CaretAssert(m_treeWidget->topLevelItemCount() >= numValidChildren);
@@ -271,6 +373,9 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
         QTreeWidgetItem* item = m_treeWidget->takeTopLevelItem(i);
         delete item;
     }
+
+    updateSelectedAndExpandedCheckboxes(displayGroup,
+                                        tabIndex);
     
     /*
      * Allow signals now that updating is done

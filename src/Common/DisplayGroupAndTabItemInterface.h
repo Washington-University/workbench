@@ -152,8 +152,17 @@ namespace caret {
                                      const int32_t tabIndex,
                                      const TriStateSelectionStatusEnum::Enum status) = 0;
         
-
-        TriStateSelectionStatusEnum::Enum getChildrenDisplaySelectedHelper(DisplayGroupAndTabItemInterface* displayGroupTabInterface,
+        /**
+         * Is this item selected for editing in the given window?
+         *
+         * @param windowIndex
+         *     Index of the window.
+         * @return
+         *     Selection status.
+         */
+        virtual bool isItemSelectedForEditingInWindow(const int32_t windowIndex) = 0;
+        
+        static TriStateSelectionStatusEnum::Enum getChildrenDisplaySelectedHelper(DisplayGroupAndTabItemInterface* displayGroupTabInterface,
                                                                            const DisplayGroupEnum::Enum displayGroup,
                                                                            const int32_t tabIndex);
         

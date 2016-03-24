@@ -2363,7 +2363,9 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
     }
     
     EventManager::get()->sendEvent(EventGetOrSetUserInputModeProcessor(this->browserWindowIndex,
-                                                                       inputMode).getPointer());    
+                                                                       inputMode).getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    
     this->updateModeWidget(tabContent);
     this->updateDisplayedModeUserInputWidget();
 }

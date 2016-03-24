@@ -121,7 +121,8 @@ namespace caret {
                                      const int32_t tabIndex,
                                      const TriStateSelectionStatusEnum::Enum status);
         
-          
+        virtual bool isItemSelectedForEditingInWindow(const int32_t windowIndex);
+        
           
 // If there will be sub-classes of this class that need to save
 // and restore data from scenes, these pure virtual methods can

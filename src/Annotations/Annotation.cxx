@@ -1530,6 +1530,20 @@ Annotation::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
 }
 
 /**
+ * Is this item selected for editing in the given window?
+ *
+ * @param windowIndex
+ *     Index of the window.
+ * @return
+ *     Selection status.
+ */
+bool
+Annotation::isItemSelectedForEditingInWindow(const int32_t windowIndex)
+{
+    return isSelectedForEditing(windowIndex);
+}
+
+/**
  * Set the default value for line color
  *
  * @param color
