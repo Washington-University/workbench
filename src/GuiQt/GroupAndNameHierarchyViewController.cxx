@@ -89,7 +89,8 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addWidget(allOnOffWidget);
     layout->addSpacing(5);
-    layout->addLayout(m_modelTreeWidgetLayout);
+    layout->addLayout(m_modelTreeWidgetLayout, 100);
+    layout->addStretch();
     
     s_allViewControllers.insert(this);
 }
