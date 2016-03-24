@@ -238,8 +238,6 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
     
     const int32_t numExistingChildren = m_treeWidget->topLevelItemCount();
     const int32_t numValidChildren    = contentItems.size();
-    const int32_t maxCount = std::max(numExistingChildren,
-                                      numValidChildren);
     
     const int32_t numberOfChildrenToAdd = numValidChildren - numExistingChildren;
     for (int32_t i = 0; i < numberOfChildrenToAdd; i++) {
@@ -247,7 +245,6 @@ DisplayGroupAndTabItemViewController::updateContent(std::vector<DisplayGroupAndT
     }
     
     CaretAssert(m_treeWidget->topLevelItemCount() >= numValidChildren);
-    CaretAssert(m_treeWidget->topLevelItemCount() >= maxCount);
     
     for (int32_t i = 0; i < numValidChildren; i++) {
         QTreeWidgetItem* treeWidgetChild = m_treeWidget->topLevelItem(i);

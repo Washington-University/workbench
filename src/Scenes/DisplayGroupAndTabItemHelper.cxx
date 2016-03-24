@@ -140,7 +140,7 @@ DisplayGroupAndTabItemHelper::clearPrivate()
     bool defaultExpandStatus = true;
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        m_selectedInDisplayGroup[i] = TriStateSelectionStatusEnum::Enum::SELECTED;
+        m_selectedInDisplayGroup[i] = TriStateSelectionStatusEnum::SELECTED;
         m_expandedStatusInDisplayGroup[i] = defaultExpandStatus;
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -148,7 +148,7 @@ DisplayGroupAndTabItemHelper::clearPrivate()
         m_expandedStatusInTab[i] = defaultExpandStatus;
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
-        m_selectedInWindow[i] = TriStateSelectionStatusEnum::Enum::SELECTED;
+        m_selectedInWindow[i] = TriStateSelectionStatusEnum::SELECTED;
         m_expandedInWindow[i] = defaultExpandStatus;
     }
 }
