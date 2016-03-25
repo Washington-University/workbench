@@ -842,6 +842,16 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                     windowPixelY = centerY;
                     windowTwoPixelX = -1;
                     windowTwoPixelY = -1;
+                    
+                    /* 25 Mar 2016
+                     * Note: windowPixelX,Y has origin in locked viewport
+                     * but we need X,Y in window as if there was no locked
+                     * viewport.
+                     */
+                    int wvp[4];
+                    m_mouseEvent.getViewportContent()->getWindowViewport(wvp);
+                    windowPixelX = centerX + wvp[0];
+                    windowPixelY = centerY + wvp[1];
                 }
                 else if (useTextAligmentFlag) {
                     float textX = windowPixelX;
@@ -876,6 +886,16 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                     windowPixelY = textY;
                     windowTwoPixelX = -1;
                     windowTwoPixelY = -1;
+                    
+                    /* 25 Mar 2016
+                     * Note: windowPixelX,Y has origin in locked viewport
+                     * but we need X,Y in window as if there was no locked
+                     * viewport.
+                     */
+                    int wvp[4];
+                    m_mouseEvent.getViewportContent()->getWindowViewport(wvp);
+                    windowPixelX = textX + wvp[0];
+                    windowPixelY = textY + wvp[1];
                 }
                 
                 AnnotationCoordinateInformation::createCoordinateInformationFromXY(m_mouseEvent,
