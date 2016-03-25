@@ -30,6 +30,7 @@
 #include "VoxelIJK.h"
 
 #include <cmath>
+#include <map>
 
 using namespace caret;
 using namespace std;
@@ -54,6 +55,9 @@ OperationParameters* AlgorithmVolumeDilate::getParameters()
     ret->addStringParameter(3, "method", "dilation method to use");
     
     ret->addVolumeOutputParameter(4, "volume-out", "the output volume");
+    
+    OptionalParameter* exponentOpt = ret->createOptionalParameter(8, "-exponent", "use a different exponent in the weighting function");
+    exponentOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (1 / (distance ^ n)) as the weighting function (default 2)");
     
     OptionalParameter* badRoiOpt = ret->createOptionalParameter(5, "-bad-voxel-roi", "specify an roi of voxels to overwrite, rather than voxels with value zero");
     badRoiOpt->addVolumeParameter(1, "roi-volume", "volume file, positive values denote voxels to have their values replaced");
@@ -92,6 +96,12 @@ void AlgorithmVolumeDilate::useParameters(OperationParameters* myParams, Progres
         throw AlgorithmException("invalid method specified, use NEAREST or WEIGHTED");
     }
     VolumeFile* volOut = myParams->getOutputVolume(4);
+    OptionalParameter* exponentOpt = myParams->getOptionalParameter(8);
+    float exponent = 2.0f;
+    if (exponentOpt->m_present)
+    {
+        exponent = (float)exponentOpt->getDouble(1);
+    }
     OptionalParameter* badRoiOpt = myParams->getOptionalParameter(5);
     VolumeFile* badRoi = NULL;
     if (badRoiOpt->m_present)
@@ -111,11 +121,11 @@ void AlgorithmVolumeDilate::useParameters(OperationParameters* myParams, Progres
         subvol = volIn->getMapIndexFromNameOrNumber(subvolSelect->getString(1));
         if (subvol < 0) throw AlgorithmException("invalid subvolume specified");
     }
-    AlgorithmVolumeDilate(myProgObj, volIn, distance, myMethod, volOut, badRoi, dataRoi, subvol);
+    AlgorithmVolumeDilate(myProgObj, volIn, distance, myMethod, volOut, badRoi, dataRoi, subvol, exponent);
 }
 
 AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const VolumeFile* volIn, const float& distance, const Method& myMethod,
-                                             VolumeFile* volOut, const VolumeFile* badRoi, const VolumeFile* dataRoi, const int& subvol) : AbstractAlgorithm(myProgObj)
+                                             VolumeFile* volOut, const VolumeFile* badRoi, const VolumeFile* dataRoi, const int& subvol, const float& exponent) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myDims;
@@ -136,9 +146,10 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
     {
         throw AlgorithmException("data roi volume space does not match input volume");
     }
-    if (volIn->getType() == SubvolumeAttributes::LABEL && myMethod == WEIGHTED)
+    bool isLabelData = false;
+    if (volIn->getType() == SubvolumeAttributes::LABEL)
     {
-        CaretLogWarning("dilating a volume label file with weighted method, expect strangeness");
+        isLabelData = true;
     }
     vector<vector<float> > volSpace = volIn->getSform();
     Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
@@ -178,7 +189,7 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
                             break;
                         case WEIGHTED:
                             if (tempf == 0.0f) throw AlgorithmException("volume space is degenerate, aborting");
-                            stenWeights.push_back(1.0f / (tempf * tempf));
+                            stenWeights.push_back(1.0f / pow(tempf, exponent));
                             break;
                     }
                 }
@@ -237,13 +248,23 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
         {
             for (int c = 0; c < myDims[4]; ++c)
             {
-                dilateFrame(volIn, s, c, volOut, s, badRoi, dataRoi, myMethod, stencil, stenWeights);
+                if (isLabelData)
+                {
+                    dilateFrameLabel(volIn, s, c, volOut, s, badRoi, dataRoi, myMethod, stencil, stenWeights);
+                } else {
+                    dilateFrame(volIn, s, c, volOut, s, badRoi, dataRoi, myMethod, stencil, stenWeights);
+                }
             }
         }
     } else {
         for (int c = 0; c < myDims[4]; ++c)
         {
-            dilateFrame(volIn, subvol, c, volOut, 0, badRoi, dataRoi, myMethod, stencil, stenWeights);
+            if (isLabelData)
+            {
+                dilateFrameLabel(volIn, subvol, c, volOut, 0, badRoi, dataRoi, myMethod, stencil, stenWeights);
+            } else {
+                dilateFrame(volIn, subvol, c, volOut, 0, badRoi, dataRoi, myMethod, stencil, stenWeights);
+            }
         }
     }
 }
@@ -377,6 +398,161 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
                             } else {
                                 volOut->setValue(0.0f, i, j, k, outsubvol, component);
                             }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void AlgorithmVolumeDilate::dilateFrameLabel(const VolumeFile* volIn, const int& insubvol, const int& component, VolumeFile* volOut, const int& outsubvol,
+                                             const VolumeFile* badRoi, const VolumeFile* dataRoi, const Method& myMethod, const vector<int>& stencil, const vector<float>& stenWeights)
+{
+    vector<int64_t> myDims;
+    volIn->getDimensions(myDims);
+    int stensize = (int)stenWeights.size();
+    int32_t unlabeledKey = volIn->getMapLabelTable(insubvol)->getUnassignedLabelKey();
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int k = 0; k < myDims[2]; ++k)
+    {
+        for (int j = 0; j < myDims[1]; ++j)
+        {
+            for (int i = 0; i < myDims[0]; ++i)
+            {
+                bool copy = true;
+                int32_t keyIn = floor(volIn->getValue(i, j, k, insubvol, component) + 0.5f);//fix non-integers
+                if (badRoi == NULL)
+                {
+                    copy = keyIn != unlabeledKey || (dataRoi != NULL && !(dataRoi->getValue(i, j, k) > 0.0f));
+                } else {
+                    copy = !(badRoi->getValue(i, j, k) > 0.0f);//in case some clown uses NaNs as bad in an roi
+                }
+                if (copy)
+                {
+                    volOut->setValue(keyIn, i, j, k, outsubvol, component);
+                } else {
+                    Vector3D voxcoord;
+                    volIn->indexToSpace(i, j, k, voxcoord);
+                    switch (myMethod)
+                    {
+                        case NEAREST:
+                        {
+                            int best = -1;
+                            if (badRoi == NULL)
+                            {
+                                for (int stenind = 0; stenind < stensize; ++stenind)
+                                {
+                                    int base = stenind * 3;
+                                    int64_t tempindex[3];
+                                    tempindex[0] = stencil[base] + i;
+                                    tempindex[1] = stencil[base + 1] + j;
+                                    tempindex[2] = stencil[base + 2] + k;
+                                    if (volIn->indexValid(tempindex))
+                                    {
+                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && volIn->getValue(tempindex, insubvol, component) != 0.0f)
+                                        {
+                                            best = stenind;
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else {
+                                for (int stenind = 0; stenind < stensize; ++stenind)
+                                {
+                                    int base = stenind * 3;
+                                    int64_t tempindex[3];
+                                    tempindex[0] = stencil[base] + i;
+                                    tempindex[1] = stencil[base + 1] + j;
+                                    tempindex[2] = stencil[base + 2] + k;
+                                    if (volIn->indexValid(tempindex))
+                                    {
+                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && !(badRoi->getValue(tempindex) > 0.0f))
+                                        {
+                                            best = stenind;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (best == -1)
+                            {
+                                volOut->setValue(unlabeledKey, i, j, k, outsubvol, component);
+                            } else {
+                                int base = best * 3;
+                                int64_t tempindex[3];
+                                tempindex[0] = stencil[base] + i;
+                                tempindex[1] = stencil[base + 1] + j;
+                                tempindex[2] = stencil[base + 2] + k;
+                                volOut->setValue((int32_t)floor(volIn->getValue(tempindex, insubvol, component) + 0.5f), i, j, k, outsubvol, component);//fix non-integers
+                            }//yes, the cast is undefined for silly things like NaN that shouldn't be in a label file, but so are the other paths - we just want consistency between behavior of old and new values
+                            break;
+                        }
+                        case WEIGHTED:
+                        {
+                            map<int32_t, float> labelSums;
+                            if (badRoi == NULL)
+                            {
+                                for (int stenind = 0; stenind < stensize; ++stenind)
+                                {
+                                    int base = stenind * 3;
+                                    int64_t tempindex[3];
+                                    tempindex[0] = stencil[base] + i;
+                                    tempindex[1] = stencil[base + 1] + j;
+                                    tempindex[2] = stencil[base + 2] + k;
+                                    if (volIn->indexValid(tempindex))
+                                    {
+                                        int32_t tempKey = floor(volIn->getValue(tempindex, insubvol, component) + 0.5f);//fix non-integers
+                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && tempKey != unlabeledKey)
+                                        {
+                                            float weight = stenWeights[stenind];
+                                            map<int32_t, float>::iterator iter = labelSums.find(tempKey);
+                                            if (iter == labelSums.end())
+                                            {
+                                                labelSums[tempKey] = weight;
+                                            } else {
+                                                iter->second += weight;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                for (int stenind = 0; stenind < stensize; ++stenind)
+                                {
+                                    int base = stenind * 3;
+                                    int64_t tempindex[3];
+                                    tempindex[0] = stencil[base] + i;
+                                    tempindex[1] = stencil[base + 1] + j;
+                                    tempindex[2] = stencil[base + 2] + k;
+                                    if (volIn->indexValid(tempindex))
+                                    {
+                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && !(badRoi->getValue(tempindex) > 0.0f))
+                                        {
+                                            int32_t tempKey = floor(volIn->getValue(tempindex, insubvol, component) + 0.5f);//fix non-integers
+                                            float weight = stenWeights[stenind];
+                                            map<int32_t, float>::iterator iter = labelSums.find(tempKey);
+                                            if (iter == labelSums.end())
+                                            {
+                                                labelSums[tempKey] = weight;
+                                            } else {
+                                                iter->second += weight;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            int32_t outVal = unlabeledKey;
+                            float bestSum = -1.0f;//weights should all be positive, so should the sums
+                            for (map<int32_t, float>::iterator iter = labelSums.begin(); iter != labelSums.end(); ++iter)
+                            {
+                                if (iter->second > bestSum)
+                                {
+                                    outVal = iter->first;
+                                    bestSum = iter->second;
+                                }
+                            }
+                            volOut->setValue(outVal, i, j, k, outsubvol, component);
                             break;
                         }
                     }

@@ -47,9 +47,15 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
+        enum Method
+        {
+            NEAREST,
+            WEIGHTED,
+            LINEAR
+        };
         AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const float& distance,
                               MetricFile* myMetricOut, const MetricFile* badNodeRoi = NULL, const MetricFile* dataRoi = NULL, const int& columnNum = -1,
-                              const bool& nearest = false, const bool& linear = false, const float& exponent = 2.0f, const MetricFile* corrAreas = NULL);
+                              const Method& myMethod = WEIGHTED, const float& exponent = 2.0f, const MetricFile* corrAreas = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

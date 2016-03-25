@@ -118,9 +118,19 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
             throw AlgorithmException("invalid column specified");
         }
     }
-    bool nearest = myParams->getOptionalParameter(7)->m_present;
-    bool linear = myParams->getOptionalParameter(10)->m_present;
-    if (nearest && linear) throw AlgorithmException("-nearest and -linear may not be specified together");
+    Method myMethod = WEIGHTED;
+    bool methodSpecified = false;
+    if (myParams->getOptionalParameter(7)->m_present)
+    {
+        methodSpecified = true;
+        myMethod = NEAREST;
+    }
+    if (myParams->getOptionalParameter(10)->m_present)
+    {
+        if (methodSpecified) throw AlgorithmException("-nearest and -linear may not be specified together");
+        methodSpecified = true;
+        myMethod = LINEAR;
+    }
     float exponent = 2.0f;
     OptionalParameter* exponentOpt = myParams->getOptionalParameter(8);
     if (exponentOpt->m_present)
@@ -133,15 +143,14 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
     {
         corrAreas = corrAreaOpt->getMetric(1);
     }
-    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, dataRoi, columnNum, nearest, linear, exponent, corrAreas);
+    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, dataRoi, columnNum, myMethod, exponent, corrAreas);
 }
 
 AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const float& distance, MetricFile* myMetricOut,
                                              const MetricFile* badNodeRoi, const MetricFile* dataRoi, const int& columnNum,
-                                             const bool& nearest, const bool& linear, const float& exponent, const MetricFile* corrAreas) : AbstractAlgorithm(myProgObj)
+                                             const Method& myMethod, const float& exponent, const MetricFile* corrAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (nearest && linear) throw AlgorithmException("cannot dilate in nearest and linear modes together");
     int numNodes = mySurf->getNumberOfNodes();
     if (numNodes != myMetric->getNumberOfNodes())
     {
@@ -180,7 +189,8 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
     } else {
         myAreas = corrAreas->getValuePointerForColumn(0);
     }
-    if (!linear && badNodeRoi != NULL)
+    bool linear = (myMethod == LINEAR), nearest = (myMethod == NEAREST);
+    if (!linear && badNodeRoi != NULL)//if we know which nodes need to have their values replaced, then we can do the same thing at each vertex for each column
     {
         if (nearest)
         {
@@ -197,15 +207,21 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
             *(myMetricOut->getMapPaletteColorMapping(thisCol)) = *(myMetric->getMapPaletteColorMapping(thisCol));
             const float* myInputData = myMetric->getValuePointerForColumn(thisCol);
             myMetricOut->setColumnName(thisCol, myMetric->getColumnName(thisCol));
-            if (linear || badNodeRoi == NULL)
+            if (badNodeRoi == NULL)
             {
                 processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent);
             } else {
-                if (nearest)
+                switch (myMethod)
                 {
-                    processColumn(colScratch.data(), numNodes, myInputData, myNearest);
-                } else {
-                    processColumn(colScratch.data(), numNodes, myInputData, myStencils);
+                    case NEAREST:
+                        processColumn(colScratch.data(), numNodes, myInputData, myNearest);
+                        break;
+                    case WEIGHTED:
+                        processColumn(colScratch.data(), numNodes, myInputData, myStencils);
+                        break;
+                    case LINEAR:
+                        processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent);
+                        break;
                 }
             }
             myMetricOut->setValuesForColumn(thisCol, colScratch.data());
@@ -215,15 +231,21 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         *(myMetricOut->getMapPaletteColorMapping(0)) = *(myMetric->getMapPaletteColorMapping(columnNum));
         const float* myInputData = myMetric->getValuePointerForColumn(columnNum);
         myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum));
-        if (linear || badNodeRoi == NULL)
+        if (badNodeRoi == NULL)
         {
             processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent);
         } else {
-            if (nearest)
+            switch (myMethod)
             {
-                processColumn(colScratch.data(), numNodes, myInputData, myNearest);
-            } else {
-                processColumn(colScratch.data(), numNodes, myInputData, myStencils);
+                case NEAREST:
+                    processColumn(colScratch.data(), numNodes, myInputData, myNearest);
+                    break;
+                case WEIGHTED:
+                    processColumn(colScratch.data(), numNodes, myInputData, myStencils);
+                    break;
+                case LINEAR:
+                    processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent);
+                    break;
             }
         }
         myMetricOut->setValuesForColumn(0, colScratch.data());
@@ -238,7 +260,7 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const int& numNodes
     }
     int numStencils = (int)myNearest.size();
 #pragma omp CARET_PARFOR schedule(dynamic)
-    for (int i = 0; i < numStencils; ++i)//no idea if parallel actually helps here
+    for (int i = 0; i < numStencils; ++i)//parallel may not matter here, but we do other stuff parallel, so...
     {
         const int& node = myNearest[i].first;
         const int& nearest = myNearest[i].second;
@@ -259,7 +281,7 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const int& numNodes
     }
     int numStencils = (int)myStencils.size();
 #pragma omp CARET_PARFOR schedule(dynamic)
-    for (int i = 0; i < numStencils; ++i)//does parallel help here?
+    for (int i = 0; i < numStencils; ++i)//ditto
     {
         const int& node = myStencils[i].first;
         const StencilElem& stencil = myStencils[i].second;
@@ -294,32 +316,58 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
     }
     int numNodes = mySurf->getNumberOfNodes();
     vector<char> charRoi(numNodes);
+    const float* badRoiData = NULL;
+    if (badNodeRoi != NULL) badRoiData = badNodeRoi->getValuePointerForColumn(0);
     const float* dataRoiVals = NULL;
     if (dataRoi != NULL)
     {
         dataRoiVals = dataRoi->getValuePointerForColumn(0);
-        for (int i = 0; i < numNodes; ++i)
+        if (badRoiData != NULL)
         {
-            if (dataRoiVals[i] > 0.0f && myInputData[i] != 0.0f)
+            for (int i = 0; i < numNodes; ++i)
             {
-                charRoi[i] = 1;
-            } else {
-                charRoi[i] = 0;
+                if (dataRoiVals[i] > 0.0f && !(badRoiData[i] > 0.0f))//"not greater than" to trap NaNs
+                {
+                    charRoi[i] = 1;
+                } else {
+                    charRoi[i] = 0;
+                }
+            }
+        } else {
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if (dataRoiVals[i] > 0.0f && myInputData[i] != 0.0f)
+                {
+                    charRoi[i] = 1;
+                } else {
+                    charRoi[i] = 0;
+                }
             }
         }
     } else {
-        for (int i = 0; i < numNodes; ++i)
+        if (badRoiData != NULL)
         {
-            if (myInputData[i] != 0.0f)
+            for (int i = 0; i < numNodes; ++i)
             {
-                charRoi[i] = 1;
-            } else {
-                charRoi[i] = 0;
+                if (!(badRoiData[i] > 0.0f))//ditto
+                {
+                    charRoi[i] = 1;
+                } else {
+                    charRoi[i] = 0;
+                }
+            }
+        } else {
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if (myInputData[i] != 0.0f)
+                {
+                    charRoi[i] = 1;
+                } else {
+                    charRoi[i] = 0;
+                }
             }
         }
     }
-    const float* badRoiData = NULL;
-    if (badNodeRoi != NULL) badRoiData = badNodeRoi->getValuePointerForColumn(0);
     CaretPointer<GeodesicHelperBase> correctedBase;
     if (corrAreas != NULL)
     {
@@ -347,7 +395,7 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
             }
             if ((dataRoiVals == NULL || dataRoiVals[i] > 0.0f) && badNode)
             {
-                float closestDist;
+                float closestDist;//NOTE: the only time this function is called with a badRoi is when using linear, which doesn't use the closest distance
                 int closestNode = myGeoHelp->getClosestNodeInRoi(i, charRoi.data(), distance, closestDist);
                 if (closestNode == -1)//check neighbors, to ensure we dilate by at least one node everywhere
                 {
@@ -449,7 +497,7 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
                                 colScratch[i] = myInputData[node1] + (myInputData[node2] - myInputData[node1]) * usableDists[bestj] / (usableDists[bestj] + usableDists[bestk]);
                             }
                         } else {
-                            myGeoHelp->getNodesToGeoDist(i, closestDist * cutoffRatio, nodeList, distList);
+                            myGeoHelp->getNodesToGeoDist(i, closestDist * cutoffRatio, nodeList, distList);//NOTE: guaranteed to find at least the closest node
                             int numInRange = (int)nodeList.size();
                             float totalWeight = 0.0f, weightedSum = 0.0f;
                             for (int j = 0; j < numInRange; ++j)
@@ -510,7 +558,7 @@ void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& 
         dataRoiVals = dataRoi->getValuePointerForColumn(0);
         for (int i = 0; i < numNodes; ++i)
         {
-            if (!(badNodeData[i] > 0.0f))//in case some clown uses NaN as "bad" in the ROI
+            if (!(badNodeData[i] > 0.0f))//in case some clown uses NaN in the ROI instead of 0
             {
                 if (dataRoiVals[i] > 0.0f)
                 {

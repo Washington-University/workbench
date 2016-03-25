@@ -241,8 +241,10 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myLabelOut);
         } else {
             MetricFile myMetric, myMetricOut;
+            AlgorithmMetricDilate::Method myMethod = AlgorithmMetricDilate::WEIGHTED;
+            if (nearest) myMethod = AlgorithmMetricDilate::NEAREST;
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &dataRoiMetric);
-            AlgorithmMetricDilate(NULL, &myMetric, mySurf, surfDist, &myMetricOut, badRoiPtr, &dataRoiMetric, -1, nearest, false, 2.0f, myCorrAreas);
+            AlgorithmMetricDilate(NULL, &myMetric, mySurf, surfDist, &myMetricOut, badRoiPtr, &dataRoiMetric, -1, myMethod, 2.0f, myCorrAreas);
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
         }
     }

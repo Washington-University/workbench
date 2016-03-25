@@ -22,6 +22,8 @@
 /*LICENSE_END*/
 
 #include "AbstractAlgorithm.h"
+#include "AlgorithmMetricDilate.h" //for dilate method enums
+#include "AlgorithmVolumeDilate.h"
 #include "FloatMatrix.h"
 #include "StructureEnum.h"
 #include "SurfaceResamplingMethodEnum.h"
@@ -36,11 +38,13 @@ namespace caret {
         AlgorithmCiftiResample();
         void processSurfaceComponent(const CiftiFile* myCiftiIn, const int& direction, const StructureEnum::Enum& myStruct, const SurfaceResamplingMethodEnum::Enum& mySurfMethod,
                                      CiftiFile* myCiftiOut, const bool& surfLargest, const float& surfdilatemm, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                     const MetricFile* curAreas, const MetricFile* newAreas);
+                                     const MetricFile* curAreas, const MetricFile* newAreas, const AlgorithmMetricDilate::Method& surfDilateMethod, const float& surfDilateExponent);
         void processVolumeWarpfield(const CiftiFile* myCiftiIn, const int& direction, const StructureEnum::Enum& myStruct, const VolumeFile::InterpType& myVolMethod,
-                                    CiftiFile* myCiftiOut, const float& voldilatemm, const VolumeFile* warpfield);
+                                    CiftiFile* myCiftiOut, const float& voldilatemm, const VolumeFile* warpfield,
+                                    const AlgorithmVolumeDilate::Method& volDilateMethod, const float& volDilateExponent);
         void processVolumeAffine(const CiftiFile* myCiftiIn, const int& direction, const StructureEnum::Enum& myStruct, const VolumeFile::InterpType& myVolMethod,
-                                 CiftiFile* myCiftiOut, const float& voldilatemm, const FloatMatrix& affine);
+                                 CiftiFile* myCiftiOut, const float& voldilatemm, const FloatMatrix& affine,
+                                 const AlgorithmVolumeDilate::Method& volDilateMethod, const float& volDilateExponent);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
@@ -58,7 +62,9 @@ namespace caret {
                                const VolumeFile* warpfield,
                                const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
                                const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
-                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas);
+                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas,
+                               const AlgorithmVolumeDilate::Method& volDilateMethod = AlgorithmVolumeDilate::WEIGHTED, const float& volDilateExponent = 2.0f,
+                               const AlgorithmMetricDilate::Method& surfDilateMethod = AlgorithmMetricDilate::WEIGHTED, const float& surfDilateExponent = 2.0f);
         
         AlgorithmCiftiResample(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const int& direction, const CiftiFile* myTemplate, const int& templateDir,
                                const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const VolumeFile::InterpType& myVolMethod, CiftiFile* myCiftiOut,
@@ -66,7 +72,9 @@ namespace caret {
                                const FloatMatrix& affine,
                                const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
                                const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
-                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas);
+                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas,
+                               const AlgorithmVolumeDilate::Method& volDilateMethod = AlgorithmVolumeDilate::WEIGHTED, const float& volDilateExponent = 2.0f,
+                               const AlgorithmMetricDilate::Method& surfDilateMethod = AlgorithmMetricDilate::WEIGHTED, const float& surfDilateExponent = 2.0f);
         
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
