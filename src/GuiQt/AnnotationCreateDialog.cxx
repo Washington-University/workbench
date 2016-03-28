@@ -40,6 +40,7 @@
 #include "Brain.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainOpenGLViewportContent.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretLogger.h"
@@ -52,6 +53,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
+#include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
 #include "WuQtUtilities.h"
 #include "WuQMessageBox.h"
@@ -806,9 +808,9 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                                                                 viewport,
                                                                 subWidth,
                                                                 subHeight)) {
-                                std::cout << "Changing "
-                                << viewportWidth << ", " << viewportHeight << " to "
-                                << subWidth << ", " << subHeight << std::endl;
+//                                std::cout << "Changing "
+//                                << viewportWidth << ", " << viewportHeight << " to "
+//                                << subWidth << ", " << subHeight << std::endl;
                                 
                                 viewportWidth  = subWidth;
                                 viewportHeight = subHeight;
@@ -913,9 +915,6 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
         }
     }
 }
-
-#include "BrowserTabContent.h"
-#include "ModelSurfaceMontage.h"
 
 /**
  * Adjust the viewport for surface montage.  A surface montage is a composite of multiple
