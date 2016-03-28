@@ -72,12 +72,12 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     
     ret->addCiftiOutputParameter(7, "cifti-out", "the output cifti file");
     
-    ret->createOptionalParameter(8, "-surface-largest", "use largest weight instead of weighted average when doing surface resampling");
+    ret->createOptionalParameter(8, "-surface-largest", "use largest weight instead of weighted average or popularity when doing surface resampling");
     
     OptionalParameter* volDilateOpt = ret->createOptionalParameter(9, "-volume-predilate", "dilate the volume components before resampling");
     volDilateOpt->addDoubleParameter(1, "dilate-mm", "distance, in mm, to dilate");
     volDilateOpt->createOptionalParameter(2, "-nearest", "use nearest value dilation");
-    OptionalParameter* volDilateWeightedOpt = volDilateOpt->createOptionalParameter(3, "-weighted", "use weighted dilation");
+    OptionalParameter* volDilateWeightedOpt = volDilateOpt->createOptionalParameter(3, "-weighted", "use weighted dilation (default)");
     OptionalParameter* volDilateExpOpt = volDilateWeightedOpt->createOptionalParameter(1, "-exponent", "specify exponent in weighting function");
     volDilateExpOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (1 / (distance ^ n)) as the weighting function (default 2)");
     
@@ -85,7 +85,7 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     surfDilateOpt->addDoubleParameter(1, "dilate-mm", "distance, in mm, to dilate");
     surfDilateOpt->createOptionalParameter(2, "-nearest", "use nearest value dilation");
     surfDilateOpt->createOptionalParameter(3, "-linear", "use linear dilation");
-    OptionalParameter* surfDilateWeightedOpt = surfDilateOpt->createOptionalParameter(4, "-weighted", "use weighted dilation");
+    OptionalParameter* surfDilateWeightedOpt = surfDilateOpt->createOptionalParameter(4, "-weighted", "use weighted dilation (default for non-label data)");
     OptionalParameter* surfDilateExpOpt = surfDilateWeightedOpt->createOptionalParameter(1, "-exponent", "specify exponent in weighting function");
     surfDilateExpOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (area / (distance ^ n)) as the weighting function (default 2)");
     

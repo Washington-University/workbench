@@ -158,6 +158,7 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
                                                  const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas, const bool& mergedVolume) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (!(surfKern > 0.0f) && !(volKern > 0.0f)) throw AlgorithmException("zero smoothing kernels requested for both volume and surface");
     const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
     vector<StructureEnum::Enum> surfaceList, volumeList;
     if (myDir == CiftiXMLOld::ALONG_COLUMN)
@@ -248,36 +249,51 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         }
         MetricFile myMetric, myRoi, myMetricOut;
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &myRoi);
-        if (roiCifti != NULL)
-        {//due to above testing, we know the structure mask is the same, so just overwrite the ROI from the mask
-            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &myRoi);
+        if (surfKern > 0.0f)
+        {
+            if (roiCifti != NULL)
+            {//due to above testing, we know the structure mask is the same, so just overwrite the ROI from the mask
+                AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &myRoi);
+            }
+            AlgorithmMetricSmoothing(NULL, mySurf, &myMetric, surfKern, &myMetricOut, &myRoi, false, fixZerosSurf, -1, myAreas);
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
+        } else {
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetric);
         }
-        AlgorithmMetricSmoothing(NULL, mySurf, &myMetric, surfKern, &myMetricOut, &myRoi, false, fixZerosSurf, -1, myAreas);
-        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
     }
     if (mergedVolume)
     {
         VolumeFile myVol, myRoi, myVolOut;
         int64_t offset[3];
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, &myVol, offset, &myRoi, true);
-        if (roiCifti != NULL)
-        {//due to above testing, we know the structure mask is the same, so just overwrite the ROI from the mask
-            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, &myRoi, offset, NULL, true);
+        if (volKern > 0.0f)
+        {
+            if (roiCifti != NULL)
+            {//due to above testing, we know the structure mask is the same, so just overwrite the ROI from the mask
+                AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, &myRoi, offset, NULL, true);
+            }
+            AlgorithmVolumeSmoothing(NULL, &myVol, volKern, &myVolOut, &myRoi, fixZerosVol);
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, &myVolOut, true);
+        } else {
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, &myVol, true);
         }
-        AlgorithmVolumeSmoothing(NULL, &myVol, volKern, &myVolOut, &myRoi, fixZerosVol);
-        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, &myVolOut, true);
     } else {
         for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
         {
             VolumeFile myVol, myRoi, myVolOut;
             int64_t offset[3];
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, volumeList[whichStruct], &myVol, offset, &myRoi, true);
-            if (roiCifti != NULL)
-            {//due to above testing, we know the structure mask is the same, so just overwrite the ROI from the mask
-                AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, volumeList[whichStruct], &myRoi, offset, NULL, true);
+            if (volKern > 0.0f)
+            {
+                if (roiCifti != NULL)
+                {//due to above testing, we know the structure mask is the same, so just overwrite the ROI from the mask
+                    AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, volumeList[whichStruct], &myRoi, offset, NULL, true);
+                }
+                AlgorithmVolumeSmoothing(NULL, &myVol, volKern, &myVolOut, &myRoi, fixZerosVol);
+                AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);
+            } else {
+                AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVol, true);
             }
-            AlgorithmVolumeSmoothing(NULL, &myVol, volKern, &myVolOut, &myRoi, fixZerosVol);
-            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);
         }
     }
 }

@@ -23,6 +23,7 @@
 
 #include "CaretLogger.h"
 #include "CaretOMP.h"
+#include "NiftiIO.h"
 #include "Vector3D.h"
 #include "WarpfieldFile.h"
 
@@ -46,7 +47,7 @@ OperationParameters* AlgorithmVolumeWarpfieldResample::getParameters()
     
     ret->addStringParameter(2, "warpfield", "the warpfield to apply");
     
-    ret->addVolumeParameter(3, "volume-space", "a volume file in the volume space you want for the output");
+    ret->addStringParameter(3, "volume-space", "a volume file in the volume space you want for the output");
     
     ret->addStringParameter(4, "method", "the resampling method");
     
@@ -68,7 +69,7 @@ void AlgorithmVolumeWarpfieldResample::useParameters(OperationParameters* myPara
 {
     VolumeFile* inVol = myParams->getVolume(1);
     AString warpName = myParams->getString(2);
-    VolumeFile* refSpace = myParams->getVolume(3);
+    AString refSpaceName = myParams->getString(3);
     AString method = myParams->getString(4);
     VolumeFile* outVol = myParams->getOutputVolume(5);
     OptionalParameter* fnirtOpt = myParams->getOptionalParameter(6);
@@ -90,9 +91,9 @@ void AlgorithmVolumeWarpfieldResample::useParameters(OperationParameters* myPara
     } else {
         throw AlgorithmException("unrecognized interpolation method");
     }
-    vector<int64_t> refDims;
-    refSpace->getDimensions(refDims);
-    AlgorithmVolumeWarpfieldResample(myProgObj, inVol, myWarpfield.getWarpfield(), refDims.data(), refSpace->getSform(), myMethod, outVol);
+    NiftiIO refSpaceIO;
+    refSpaceIO.openRead(refSpaceName);
+    AlgorithmVolumeWarpfieldResample(myProgObj, inVol, myWarpfield.getWarpfield(), refSpaceIO.getDimensions().data(), refSpaceIO.getHeader().getSForm(), myMethod, outVol);
 }
 
 AlgorithmVolumeWarpfieldResample::AlgorithmVolumeWarpfieldResample(ProgressObject* myProgObj, const VolumeFile* inVol, const VolumeFile* warpfield,

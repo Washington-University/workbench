@@ -23,6 +23,7 @@
 #include "AlgorithmException.h"
 #include "CaretLogger.h"
 #include "CaretOMP.h"
+#include "NiftiIO.h"
 #include "Vector3D.h"
 
 using namespace caret;
@@ -46,7 +47,7 @@ OperationParameters* AlgorithmVolumeAffineResample::getParameters()
     
     ret->addStringParameter(2, "affine", "the affine file to apply");
     
-    ret->addVolumeParameter(3, "volume-space", "a volume file in the volume space you want for the output");
+    ret->addStringParameter(3, "volume-space", "a volume file in the volume space you want for the output");
     
     ret->addStringParameter(4, "method", "the resampling method");
     
@@ -69,7 +70,7 @@ void AlgorithmVolumeAffineResample::useParameters(OperationParameters* myParams,
 {
     VolumeFile* inVol = myParams->getVolume(1);
     AString affName = myParams->getString(2);
-    VolumeFile* refSpace = myParams->getVolume(3);
+    AString refSpaceName = myParams->getString(3);
     AString method = myParams->getString(4);
     VolumeFile* outVol = myParams->getOutputVolume(5);
     OptionalParameter* flirtOpt = myParams->getOptionalParameter(6);
@@ -92,9 +93,9 @@ void AlgorithmVolumeAffineResample::useParameters(OperationParameters* myParams,
         throw AlgorithmException("unrecognized interpolation method");
     }
     FloatMatrix affMat = FloatMatrix(myAffine.getMatrix());
-    vector<int64_t> refDims;
-    refSpace->getDimensions(refDims);
-    AlgorithmVolumeAffineResample(myProgObj, inVol, affMat, refDims.data(), refSpace->getSform(), myMethod, outVol);
+    NiftiIO refSpaceIO;
+    refSpaceIO.openRead(refSpaceName);
+    AlgorithmVolumeAffineResample(myProgObj, inVol, affMat, refSpaceIO.getDimensions().data(), refSpaceIO.getHeader().getSForm(), myMethod, outVol);
 }
 
 AlgorithmVolumeAffineResample::AlgorithmVolumeAffineResample(ProgressObject* myProgObj, const VolumeFile* inVol, const FloatMatrix& myAffine,
