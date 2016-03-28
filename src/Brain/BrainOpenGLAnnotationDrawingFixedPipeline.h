@@ -55,19 +55,45 @@ namespace caret {
     public:
         class Inputs {
         public:
+            /**
+             * Viewport height used for setting text height
+             */
+            enum TextHeightMode {
+                /** 
+                 * Use the viewport height from OpenGL drawing (last set by call to glViewport()).
+                 * This is the viewport that is active when annotation drawing is executed and in
+                 * which the model is drawn.
+                 */
+                TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
+                /**
+                 * Use the tab viewport height from the "Inputs".
+                 * This mode is primarily used when drawing a surface montage and results in
+                 * the same text height for a stereotaxic or surface annotation in both 
+                 * surface montage and single surface mode.
+                 */
+                TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT
+            };
+            
+            enum WindowDrawingMode {
+                WINDOW_DRAWING_NO,
+                WINDOW_DRAWING_YES
+            };
+            
             Inputs(Brain* brain,
                    const BrainOpenGLFixedPipeline::Mode drawingMode,
                    const float centerToEyeDistance,
                    const int32_t tabViewport[4],
                    const int32_t windowIndex,
                    const int32_t tabIndex,
-                   const bool drawWindowAnnotationsFlag)
+                   const TextHeightMode textHeightMode,
+                   const WindowDrawingMode windowDrawingMode)
             : m_brain(brain),
             m_drawingMode(drawingMode),
             m_centerToEyeDistance(centerToEyeDistance),
             m_windowIndex(windowIndex),
             m_tabIndex(tabIndex),
-            m_drawWindowAnnotationsFlag(drawWindowAnnotationsFlag) {
+            m_textHeightMode(textHeightMode),
+            m_windowDrawingMode(windowDrawingMode) {
                 m_tabViewport[0] = tabViewport[0];
                 m_tabViewport[1] = tabViewport[1];
                 m_tabViewport[2] = tabViewport[2];
@@ -80,7 +106,8 @@ namespace caret {
             int32_t m_tabViewport[4];
             const int32_t m_windowIndex;
             const int32_t m_tabIndex;
-            const bool m_drawWindowAnnotationsFlag;
+            const TextHeightMode m_textHeightMode;
+            const WindowDrawingMode m_windowDrawingMode;
         };
         
         BrainOpenGLAnnotationDrawingFixedPipeline(BrainOpenGLFixedPipeline* brainOpenGLFixedPipeline);
@@ -320,7 +347,7 @@ namespace caret {
         GLint m_modelSpaceViewport[4];
         
         /** Browser tab's viewport */
-        GLint m_tabViewport[4];
+        //GLint m_tabViewport[4];
         
         /** volume space plane */
         Plane m_volumeSpacePlane;

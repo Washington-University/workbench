@@ -634,22 +634,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            if ( ! m_inputs->m_drawWindowAnnotationsFlag) {
-                drawAnnotationsFromFilesFlag = false;
+            switch (m_inputs->m_windowDrawingMode) {
+                case Inputs::WINDOW_DRAWING_NO:
+                    drawAnnotationsFromFilesFlag = false;
+                    break;
+                case Inputs::WINDOW_DRAWING_YES:
+                    break;
             }
-//            if ( ! dpa->isDisplayWindowAnnotationsInSingleTabViews(m_inputs->m_windowIndex)) {
-//                CaretLogSevere("NEED TO TEST FOR SINGLE or TILE TABS VIEW");
-//                if (annotationBeingDrawn != NULL) {
-//                    /*
-//                     * Window annotation are not being drawn.
-//                     * BUT, the annotation being drawn by the user is always in window space
-//                     * so we need to continue but skip drawing the window annotations.
-//                     */
-//                    drawAnnotationsFromFilesFlag = false;
-//                }
-//                else {
-//                    return;
-//                }
+//            if ( ! m_inputs->m_drawWindowAnnotationsFlag) {
+//                drawAnnotationsFromFilesFlag = false;
 //            }
             break;
     }
@@ -2057,11 +2050,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
 {
     CaretAssert(text);
     CaretAssert(text->getType() == AnnotationTypeEnum::TEXT);
-    
-    
 
     float windowXYZ[3];
-    
     if ( ! getAnnotationWindowCoordinate(text->getCoordinate(),
                                          text->getCoordinateSpace(),
                                          surfaceDisplayed,
@@ -2073,8 +2063,36 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     float bottomRight[3];
     float topRight[3];
     float topLeft[3];
+    
+    /*
+     *
+     */
+    AnnotationPercentSizeText* percentSizeText = NULL;
+    float savedFontPercentViewportHeight = -1.0;
+    const bool modifiedStatus = text->isModified();
+    
+    switch (m_inputs->m_textHeightMode) {
+        case Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT:
+            break;
+        case Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT:
+            if (m_inputs->m_tabViewport[3] != m_modelSpaceViewport[3]) {
+                percentSizeText = dynamic_cast<AnnotationPercentSizeText*>(text);
+                if (percentSizeText != NULL) {
+                    savedFontPercentViewportHeight = percentSizeText->getFontPercentViewportSize();
+                    if (savedFontPercentViewportHeight > 0.0) {
+                        CaretAssert(m_modelSpaceViewport[3]);
+                        const float heightScaling = m_inputs->m_tabViewport[3] / m_modelSpaceViewport[3];
+                        percentSizeText->setFontPercentViewportSize(savedFontPercentViewportHeight
+                                                                    * heightScaling);
+                    }
+                }
+            }
+            break;
+    }
+    
     m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*text,
                                                                                     windowXYZ[0], windowXYZ[1], windowXYZ[2],
+                                                                                    //textDrawingViewportHeight,
                                                                                     m_modelSpaceViewport[3],
                                                                                     bottomLeft, bottomRight, topRight, topLeft);
     
@@ -2204,8 +2222,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
         }
     }
 
-
-
+    if (percentSizeText != NULL) {
+        if (savedFontPercentViewportHeight > 0.0) {
+            percentSizeText->setFontPercentViewportSize(savedFontPercentViewportHeight);
+            if ( ! modifiedStatus) {
+                percentSizeText->clearModified();
+            }
+        }
+    }
 
     setDepthTestingStatus(savedDepthTestStatus);
 }
