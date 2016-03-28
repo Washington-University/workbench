@@ -195,7 +195,7 @@ DisplayPropertiesAnnotation::saveToScene(const SceneAttributes* sceneAttributes,
     
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "DisplayPropertiesAnnotation",
-                                            1);
+                                            2);
     
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -232,6 +232,15 @@ DisplayPropertiesAnnotation::restoreFromScene(const SceneAttributes* sceneAttrib
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+
+    /*
+     * Default to TAB for version one and earlier scenes
+     */
+    if (sceneClass->getVersionNumber() <= 1) {
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_displayGroup[i] = DisplayGroupEnum::DISPLAY_GROUP_TAB;
+        }
+    }
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
