@@ -64,10 +64,17 @@ VolumeMapUndoCommand::~VolumeMapUndoCommand()
 
 /**
  * Operation that "redoes" the command.
+ *
+ * @param errorMessageOut
+ *     Output containing error message.
+ * @return
+ *     True if the command executed successfully, else false.
  */
-void
-VolumeMapUndoCommand::redo()
+bool
+VolumeMapUndoCommand::redo(AString& errorMessageOut)
 {
+    errorMessageOut.clear();
+    
     for (std::vector<VoxelMemento*>::iterator iter = m_voxelMementos.begin();
          iter != m_voxelMementos.end();
          iter++) {
@@ -76,14 +83,18 @@ VolumeMapUndoCommand::redo()
                                voxelMod->m_ijk,
                                m_mapIndex);
     }
+    
+    return true;
 }
 
 /**
  * Operation that "undoes" the command.
  */
-void
-VolumeMapUndoCommand::undo()
+bool
+VolumeMapUndoCommand::undo(AString& errorMessageOut)
 {
+    errorMessageOut.clear();
+    
     for (std::vector<VoxelMemento*>::iterator iter = m_voxelMementos.begin();
          iter != m_voxelMementos.end();
          iter++) {
@@ -92,6 +103,8 @@ VolumeMapUndoCommand::undo()
                                voxelMod->m_ijk,
                                m_mapIndex);
     }
+    
+    return true;
 }
 
 /**

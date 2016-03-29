@@ -70,6 +70,10 @@ namespace caret {
         
         void getAllAnnotations(std::vector<Annotation*>& annotationsOut) const;
 
+        bool containsAnnotation(const Annotation* annotation) const;
+        
+        bool containsAllAnnotation(const std::vector<Annotation*> annotations) const;
+        
         void setAllAnnotationsSelectedForEditing(const int32_t windowIndex,
                                        const bool selectedStatus);
         

@@ -37,6 +37,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -150,8 +151,13 @@ AnnotationDeleteWidget::deleteActionTriggered()
     if ( ! selectedAnnotations.empty()) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeDeleteAnnotations(selectedAnnotations);
-        annotationManager->applyCommand(undoCommand);
-        
+
+        AString errorMessage;
+        if ( ! annotationManager->applyCommand(undoCommand,
+                                    errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }

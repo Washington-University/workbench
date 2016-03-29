@@ -100,20 +100,23 @@ namespace caret {
         
         void push(CaretUndoCommand* newCommand);
         
-        void pushAndRedo(CaretUndoCommand* newCommand,
-                         const int32_t windowIndex);
+        bool pushAndRedo(CaretUndoCommand* newCommand,
+                         const int32_t windowIndex,
+                         AString& errorMessageOut);
         
-        void redo();
+        bool redo(AString& errorMessageOut);
         
-        void redoInWindow(const int32_t windowIndex);
+        bool redoInWindow(const int32_t windowIndex,
+                          AString& errorMessageOut);
         
         AString redoText();
         
-        void undo();
+        bool undo(AString& errorMessageOut);
         
-        void undoInWindow(const int32_t windowIndex);
+        bool undoInWindow(const int32_t windowIndex,
+                          AString& errorMessageOut);
         
-        void undoAll();
+        bool undoAll(AString& errorMessageOut);
         
         AString undoText();
         
@@ -122,9 +125,11 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     protected:
-        virtual void redoCommand(CaretUndoCommand* cmd);
+        virtual bool redoCommand(CaretUndoCommand* cmd,
+                                 AString& errorMessageOut);
         
-        virtual void undoCommand(CaretUndoCommand* cmd);
+        virtual bool undoCommand(CaretUndoCommand* cmd,
+                                 AString& errorMessageOut);
         
     private:
         CaretUndoStack(const CaretUndoStack&);

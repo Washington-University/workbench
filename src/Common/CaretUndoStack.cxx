@@ -278,19 +278,27 @@ CaretUndoStack::command(const int32_t index) const
  * @param newCommand
  *    Command that is executed and then pushed onto the stack.
  * @param windowIndex
- *     Index of window (may be invalid => negative)
+ *    Index of window (may be invalid => negative)
+ * @param errorMessageOut
+ *    Output containing error message.
+ * @return
+ *    True if the redo executed successfully, else false.
  */
-void
+bool
 CaretUndoStack::pushAndRedo(CaretUndoCommand* newCommand,
-                            const int32_t windowIndex)
+                            const int32_t windowIndex,
+                            AString& errorMessageOut)
 {
     CaretAssert(newCommand);
+    errorMessageOut.clear();
  
     newCommand->setWindowIndex(windowIndex);
-    newCommand->redo();
+    const bool validFlag = newCommand->redo(errorMessageOut);
     newCommand->setWindowIndex(-1);
     
     push(newCommand);
+    
+    return validFlag;
 }
 
 
@@ -365,25 +373,37 @@ CaretUndoStack::push(CaretUndoCommand* newCommand)
  *
  * @param windowIndex
  *     Index of window in which redo was requested.
+ * @param errorMessageOut
+ *    Output containing error message.
+ * @return
+ *    True if the redo executed successfully, else false.
  */
-void
-CaretUndoStack::redoInWindow(const int32_t windowIndex)
+bool
+CaretUndoStack::redoInWindow(const int32_t windowIndex,
+                             AString& errorMessageOut)
 {
 //    redo();
+    errorMessageOut.clear();
     
     if (m_undoStack.empty()) {
-        return;
+        errorMessageOut = "No command to redo.";
+        return false;
     }
+    
+    bool validFlag = true;
     
     if ((m_undoStackIndex >= 0)
         && (m_undoStackIndex < count())) {
         CaretUndoCommand* command = m_undoStack.at(m_undoStackIndex);
         CaretAssert(command);
         command->setWindowIndex(windowIndex);
-        redoCommand(command);
+        validFlag = redoCommand(command,
+                                errorMessageOut);
         command->setWindowIndex(-1);
         ++m_undoStackIndex;
     }
+    
+    return validFlag;
 }
 
 
@@ -393,11 +413,17 @@ CaretUndoStack::redoInWindow(const int32_t windowIndex)
  *
  * If the stack is empty, or if the top command on the stack has already
  * been redone, this function does nothing.
+ *
+ * @param errorMessageOut
+ *    Output containing error message.
+ * @return
+ *    True if the redo executed successfully, else false.
  */
-void
-CaretUndoStack::redo()
+bool
+CaretUndoStack::redo(AString& errorMessageOut)
 {
-    redoInWindow(-1);
+    return redoInWindow(-1,
+                        errorMessageOut);
     
 //    if (m_undoStack.empty()) {
 //        return;
@@ -438,15 +464,24 @@ CaretUndoStack::redoText()
  *
  * @param windowIndex
  *     Index of window in which undo was requested.
+ * @param errorMessageOut
+ *    Output containing error message.
+ * @return
+ *    True if the redo executed successfully, else false.
  */
-void
-CaretUndoStack::undoInWindow(const int32_t windowIndex)
+bool
+CaretUndoStack::undoInWindow(const int32_t windowIndex,
+                             AString& errorMessageOut)
 {
 //    undo();
+    errorMessageOut.clear();
     
     if (m_undoStack.empty()) {
-        return;
+        errorMessageOut = "No command to undo.";
+        return false;
     }
+    
+    bool validFlag = true;
     
     if ((m_undoStackIndex > 0)
         && (m_undoStackIndex <= count())) {
@@ -454,9 +489,12 @@ CaretUndoStack::undoInWindow(const int32_t windowIndex)
         CaretUndoCommand* command = m_undoStack.at(m_undoStackIndex);
         CaretAssert(command);
         command->setWindowIndex(windowIndex);
-        undoCommand(command);
+        validFlag = undoCommand(command,
+                                errorMessageOut);
         command->setWindowIndex(-1);
     }
+    
+    return validFlag;
 }
 
 /**
@@ -465,11 +503,17 @@ CaretUndoStack::undoInWindow(const int32_t windowIndex)
  *
  * If the stack is empty, or if the bottom command on the stack has already 
  * been undone, this function does nothing. 
+ *
+ * @param errorMessageOut
+ *     Output containing error message.
+ * @return
+ *     True if the command executed successfully, else false.void
  */
-void
-CaretUndoStack::undo()
+bool
+CaretUndoStack::undo(AString& errorMessageOut)
 {
-    undoInWindow(-1);
+    return undoInWindow(-1,
+                        errorMessageOut);
     
 //    if (m_undoStack.empty()) {
 //        return;
@@ -540,13 +584,18 @@ CaretUndoStack::setUndoLimit(const int32_t undoLimit)
  *
  * @param cmd
  *     Command that performs a 'redo'.
- */
-void
-CaretUndoStack::redoCommand(CaretUndoCommand* cmd)
+ * @param errorMessageOut
+ *     Output containing error message.
+ * @return
+ *     True if the command executed successfully, else false. */
+bool
+CaretUndoStack::redoCommand(CaretUndoCommand* cmd,
+                            AString& errorMessageOut)
 {
     CaretAssert(cmd);
     
-    cmd->redo();
+    const bool validFlag = cmd->redo(errorMessageOut);
+    return validFlag;
 }
 
 /**
@@ -556,22 +605,37 @@ CaretUndoStack::redoCommand(CaretUndoCommand* cmd)
  *
  * @param cmd
  *     Command that performs a 'undo'.
- */
-void
-CaretUndoStack::undoCommand(CaretUndoCommand* cmd)
+ * @param errorMessageOut
+ *     Output containing error message.
+ * @return
+ *     True if the command executed successfully, else false. */
+bool
+CaretUndoStack::undoCommand(CaretUndoCommand* cmd,
+                            AString& errorMessageOut)
 {
     CaretAssert(cmd);
     
-    cmd->undo();
+    return cmd->undo(errorMessageOut);
 }
 
 /**
  * Undo ALL changes.
- */
-void
-CaretUndoStack::undoAll()
+ *
+ * @param errorMessageOut
+ *     Output containing error message.
+ * @return
+ *     True if the command executed successfully, else false. */
+bool
+CaretUndoStack::undoAll(AString& errorMessageOut)
 {
+    bool validFlag = true;
     while (canUndo()) {
-        undo();
+        AString msg;
+        if ( ! undo(msg)) {
+            validFlag = false;
+            errorMessageOut.appendWithNewLine(msg);
+        }
     }
+    
+    return validFlag;
 }

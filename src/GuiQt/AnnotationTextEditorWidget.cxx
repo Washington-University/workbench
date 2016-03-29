@@ -39,6 +39,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -190,8 +191,12 @@ AnnotationTextEditorWidget::annotationTextChanged()
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     undoCommand->setModeTextCharacters(s, selectedAnnotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->applyCommand(undoCommand);
-    
+    AString errorMessage;
+    if ( ! annMan->applyCommand(undoCommand,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -231,8 +236,12 @@ AnnotationTextEditorWidget::annotationTextConnectTypeEnumComboBoxItemActivated()
     undoCommand->setModeTextConnectToBrainordinate(connectType,
                                                    selectedAnnotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->applyCommand(undoCommand);
-    
+    AString errorMessage;
+    if ( ! annMan->applyCommand(undoCommand,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

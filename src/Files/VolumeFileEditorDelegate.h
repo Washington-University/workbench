@@ -57,11 +57,14 @@ namespace caret {
                                      const float voxelValueOff,
                                      AString& errorMessageOut);
         
-        void undo(const int64_t mapIndex);
+        bool undo(const int64_t mapIndex,
+                  AString& errorMessageOut);
         
-        void reset(const int64_t mapIndex);
+        bool reset(const int64_t mapIndex,
+                   AString& errorMessageOut);
         
-        void redo(const int64_t mapIndex);
+        bool redo(const int64_t mapIndex,
+                  AString& errorMessageOut);
         
         bool isLocked(const int64_t mapIndex) const;
         

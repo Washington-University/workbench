@@ -43,6 +43,7 @@
 #include "GuiManager.h"
 #include "MathFunctions.h"
 #include "WuQFactory.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -277,8 +278,12 @@ AnnotationRotationWidget::rotationValueChanged(double value)
         undoCommand->setModeRotationAngle(value,
                                           m_annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        annMan->applyCommand(undoCommand);
-        
+        AString errorMessage;
+        if ( ! annMan->applyCommand(undoCommand,
+                                    errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }

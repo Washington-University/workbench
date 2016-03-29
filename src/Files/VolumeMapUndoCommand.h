@@ -38,9 +38,9 @@ namespace caret {
         
         virtual ~VolumeMapUndoCommand();
         
-        virtual void redo();
+        virtual bool redo(AString& errorMessageOut);
         
-        virtual void undo();
+        virtual bool undo(AString& errorMessageOut);
         
         int32_t count() const;
         

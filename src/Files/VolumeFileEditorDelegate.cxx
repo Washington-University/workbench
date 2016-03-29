@@ -397,12 +397,17 @@ VolumeFileEditorDelegate::updateIfVolumeFileChangedNumberOfMaps()
  *
  * @param mapIndex
  *     Index of map that has last voxel operation 'undone'.
+ * @param errorMessageOut
+ *    Output containing error message.
+ * @return
+ *    True if the redo executed successfully, else false.
  */
-void
-VolumeFileEditorDelegate::undo(const int64_t mapIndex)
+bool
+VolumeFileEditorDelegate::undo(const int64_t mapIndex,
+                               AString& errorMessageOut)
 {
     CaretAssertVectorIndex(m_volumeMapUndoStacks, mapIndex);
-    m_volumeMapUndoStacks[mapIndex]->undo();
+    return m_volumeMapUndoStacks[mapIndex]->undo(errorMessageOut);
 }
 
 /**
@@ -413,12 +418,17 @@ VolumeFileEditorDelegate::undo(const int64_t mapIndex)
  *
  * @param mapIndex
  *     Index of map that has last voxel operation 'undone'.
- */
-void
-VolumeFileEditorDelegate::reset(const int64_t mapIndex)
+ * @param errorMessageOut
+ *    Output containing error message.
+ * @return
+ *    True if the redo executed successfully, else false.
+*/
+bool
+VolumeFileEditorDelegate::reset(const int64_t mapIndex,
+                                AString& errorMessageOut)
 {
     CaretAssertVectorIndex(m_volumeMapUndoStacks, mapIndex);
-    m_volumeMapUndoStacks[mapIndex]->undoAll();
+    return m_volumeMapUndoStacks[mapIndex]->undoAll(errorMessageOut);
 }
 
 
@@ -427,12 +437,17 @@ VolumeFileEditorDelegate::reset(const int64_t mapIndex)
  *
  * @param mapIndex
  *     Index of map that has last voxel operation 'redone'.
+ * @param errorMessageOut
+ *    Output containing error message.
+ * @return
+ *    True if the redo executed successfully, else false. 
  */
-void
-VolumeFileEditorDelegate::redo(const int64_t mapIndex)
+bool
+VolumeFileEditorDelegate::redo(const int64_t mapIndex,
+                               AString& errorMessageOut)
 {
     CaretAssertVectorIndex(m_volumeMapUndoStacks, mapIndex);
-    m_volumeMapUndoStacks[mapIndex]->redo();
+    return m_volumeMapUndoStacks[mapIndex]->redo(errorMessageOut);
 }
 
 
@@ -825,12 +840,12 @@ VolumeFileEditorDelegate::performDilateOrErode(const EditInfo& editInfo,
     /*
      * Calling 'redo' will apply the changes to the volume file.
      */
-    modifiedVoxels->redo();
+    const bool validFlag = modifiedVoxels->redo(errorMessageOut);
     
     addToMapUndoStacks(editInfo.m_mapIndex,
                        modifiedVoxels.releasePointer());
     
-    return true;
+    return validFlag;
 }
 
 /**

@@ -536,7 +536,12 @@ UserInputModeVolumeEditWidget::undoActionTriggered()
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
     if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
-        volumeEditInfo.m_volumeFileEditorDelegate->undo(volumeEditInfo.m_mapIndex);
+        AString errorMessage;
+        if ( ! volumeEditInfo.m_volumeFileEditorDelegate->undo(volumeEditInfo.m_mapIndex,
+                                                               errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
         m_inputModeVolumeEdit->updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
                                                           volumeEditInfo.m_mapIndex);
     }
@@ -550,7 +555,12 @@ UserInputModeVolumeEditWidget::redoActionTriggered()
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
     if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
-        volumeEditInfo.m_volumeFileEditorDelegate->redo(volumeEditInfo.m_mapIndex);
+        AString errorMessage;
+        if ( ! volumeEditInfo.m_volumeFileEditorDelegate->redo(volumeEditInfo.m_mapIndex,
+                                                               errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
         m_inputModeVolumeEdit->updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
                                                           volumeEditInfo.m_mapIndex);
     }
@@ -564,7 +574,12 @@ UserInputModeVolumeEditWidget::resetActionTriggered()
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
     if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
-        volumeEditInfo.m_volumeFileEditorDelegate->reset(volumeEditInfo.m_mapIndex);
+        AString errorMessage;
+        if ( ! volumeEditInfo.m_volumeFileEditorDelegate->reset(volumeEditInfo.m_mapIndex,
+                                                               errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
         m_inputModeVolumeEdit->updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
                                                           volumeEditInfo.m_mapIndex);
     }

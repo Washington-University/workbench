@@ -121,10 +121,13 @@ AnnotationManager::reset()
  *     Annotation manager will take ownership of the command and
  *     destroy it at the appropriate time.
  */
-void
-AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command)
+bool
+AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command,
+                                AString& errorMessageOut)
 {
-    applyCommandInWindow(command, -1);
+    return applyCommandInWindow(command,
+                                -1,
+                                errorMessageOut);
 }
 
 /**
@@ -139,25 +142,31 @@ AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command)
  * @param windowIndex
  *     Index of window in which command was requested.
  */
-void
+bool
 AnnotationManager::applyCommandInWindow(AnnotationRedoUndoCommand* command,
-                                        const int32_t windowIndex)
+                                        const int32_t windowIndex,
+                                        AString& errorMessageOut)
 {
-     CaretAssert(command);
+    errorMessageOut.clear();
+    
+    CaretAssert(command);
     
     /*
      * Ignore command if it does not apply to any annotations
      */
     if ( ! command->isValid()) {
         delete command;
-        return;
+        errorMessageOut = "Command was not valid.";
+        return false;
     }
     
     /*
      * "Redo" the command and add it to the undo stack
      */
-    m_annotationRedoUndoStack->pushAndRedo(command,
-                                           windowIndex);
+    const bool result = m_annotationRedoUndoStack->pushAndRedo(command,
+                                                               windowIndex,
+                                                               errorMessageOut);
+    return result;
 }
 
 /**
@@ -660,6 +669,8 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
                                      const AnnotationGroupingModeEnum::Enum groupingMode,
                                      AString& errorMessageOut)
 {
+    errorMessageOut.clear();
+    
     const AnnotationEditingSelectionInformation* selectionInfo = getAnnotationEditingSelectionInformation(windowIndex);
     CaretAssert(selectionInfo);
     
@@ -676,6 +687,7 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
     std::vector<AnnotationGroupKey> groupKeys = selectionInfo->getSelectedAnnotationGroupKeys();
     std::vector<Annotation*> annotations = selectionInfo->getAnnotationsSelectedForEditing();
     
+    bool validFlag = false;
     switch (groupingMode) {
         case AnnotationGroupingModeEnum::GROUP:
         {
@@ -692,8 +704,9 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingGroupAnnotations(annotationGroupKey,
                                                      annotations);
-            applyCommandInWindow(command,
-                                 windowIndex);
+            validFlag = applyCommandInWindow(command,
+                                             windowIndex,
+                                             errorMessageOut);
         }
             break;
         case AnnotationGroupingModeEnum::REGROUP:
@@ -711,8 +724,9 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingRegroupAnnotations(annotationGroupKey);
             
-            applyCommandInWindow(command,
-                                 windowIndex);
+            validFlag = applyCommandInWindow(command,
+                                             windowIndex,
+                                             errorMessageOut);
         }
             break;
         case AnnotationGroupingModeEnum::UNGROUP:
@@ -731,12 +745,14 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingUngroupAnnotations(annotationGroupKey);
             
-            applyCommandInWindow(command,
-                                 windowIndex);
+            validFlag = applyCommandInWindow(command,
+                                             windowIndex,
+                                             errorMessageOut);
         }
             break;
     }
-    return true;
+    
+    return validFlag;
 }
 
 /**

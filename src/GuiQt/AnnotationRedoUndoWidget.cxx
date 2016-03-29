@@ -35,6 +35,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -121,8 +122,14 @@ AnnotationRedoUndoWidget::redoActionTriggered()
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
-    undoStack->redoInWindow(m_browserWindowIndex);
-
+    
+    AString errorMessage;
+    if ( ! undoStack->redoInWindow(m_browserWindowIndex,
+                                   errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+    
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -135,7 +142,13 @@ AnnotationRedoUndoWidget::undoActionTriggered()
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
-    undoStack->undoInWindow(m_browserWindowIndex);
+    
+    AString errorMessage;
+    if ( ! undoStack->undoInWindow(m_browserWindowIndex,
+                                   errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

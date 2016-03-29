@@ -38,6 +38,7 @@
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
@@ -658,8 +659,14 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     undoCommand->setModeCreateAnnotation(annotationFile,
                                          annotation);
-    annotationManager->applyCommand(undoCommand);
     
+    AString errorMessage;
+    if ( ! annotationManager->applyCommand(undoCommand,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(GuiManager::get()->getBrowserWindowByWindowIndex(browswerWindowIndex),
+                               errorMessage);
+    }
+
     
     annotationManager->selectAnnotationForEditing(browswerWindowIndex,
                                         AnnotationManager::SELECTION_MODE_SINGLE,

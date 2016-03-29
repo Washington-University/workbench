@@ -43,6 +43,7 @@
 #include "GuiManager.h"
 #include "StructureEnumComboBox.h"
 #include "WuQFactory.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -425,7 +426,13 @@ AnnotationCoordinateWidget::valueChanged()
                         break;
                 }
                 AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-                annMan->applyCommand(undoCommand);
+
+                AString errorMessage;
+                if ( ! annMan->applyCommand(undoCommand,
+                                            errorMessage)) {
+                    WuQMessageBox::errorOk(this,
+                                           errorMessage);
+                }
                 
                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
             }

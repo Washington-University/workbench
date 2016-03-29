@@ -41,9 +41,9 @@ namespace caret {
         
         virtual ~AnnotationRedoUndoCommand();
         
-        virtual void redo();
+        virtual bool redo(AString& errorMessageOut);
         
-        virtual void undo();
+        virtual bool undo(AString& errorMessageOut);
         
         bool isValid() const;
         

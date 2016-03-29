@@ -111,8 +111,12 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModePasteAnnotation(annotationFile,
                                                 annotation);
-            annotationManager->applyCommand(undoCommand);
-            
+            AString errorMessage;
+            if ( ! annotationManager->applyCommand(undoCommand,
+                                        errorMessage)) {
+                WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
+                                       errorMessage);
+            }
             newPastedAnnotation = annotation;
             
             annotationManager->selectAnnotationForEditing(windowIndex,
@@ -422,7 +426,11 @@ AnnotationPasteDialog::okButtonClicked()
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     undoCommand->setModePasteAnnotation(m_annotationFile,
                                         annotationPointer);
-    annotationManager->applyCommand(undoCommand);
+    if ( ! annotationManager->applyCommand(undoCommand,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     
     annotationManager->selectAnnotationForEditing(m_mouseEvent.getBrowserWindowIndex(),
                                         AnnotationManager::SELECTION_MODE_SINGLE,

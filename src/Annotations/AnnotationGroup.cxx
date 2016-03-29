@@ -542,6 +542,63 @@ AnnotationGroup::getAnnotation(const int32_t index)
 }
 
 /**
+ * Are all of the given annotations in this group?
+ *
+ * @param annotations
+ *     Annotations tested for membership in this group.
+ * @return 
+ *     True if all of the annotations are in this group.
+ *     False if (a) not all annotations are in this group;
+ *         or if (b) the annotations are empty
+ *         or if (c) this group contains no annotations.
+ */
+bool
+AnnotationGroup::containsAllAnnotation(const std::vector<Annotation*> annotations) const
+{
+    if (annotations.empty()) {
+        return false;
+    }
+    if (m_annotations.empty()) {
+        return false;
+    }
+    
+    for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
+         annIter != annotations.end();
+         annIter++) {
+        CaretAssert(*annIter);
+        if ( ! containsAnnotation(*annIter)) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * Is the given annotation in this group.
+ *
+ * @param annotation
+ *     Annotation tested for membership in this group.
+ * @return
+ *     True if annotation is in this group, else false.
+ */
+bool
+AnnotationGroup::containsAnnotation(const Annotation* annotation) const
+{
+    CaretAssert(annotation);
+    
+    for (AnnotationConstIterator annIter = m_annotations.begin();
+         annIter != m_annotations.end();
+         annIter++) {
+        if (annotation == (*annIter).data()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+/**
  * @param index
  *     Get the annotation at the given index.
  * @return

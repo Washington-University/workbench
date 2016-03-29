@@ -300,7 +300,12 @@ UserInputModeAnnotations::deleteSelectedAnnotations()
         if ( ! selectedAnnotations.empty()) {
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeDeleteAnnotations(selectedAnnotations);
-            annotationManager->applyCommand(undoCommand);
+            AString errorMessage;
+            if ( !  annotationManager->applyCommand(undoCommand,
+                                                    errorMessage)) {
+                WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                       errorMessage);
+            }
         }
     }
     else {
@@ -511,7 +516,12 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                 }
                                 
                                 AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-                                annMan->applyCommand(undoCommand);
+                                AString errorMessage;
+                                if ( ! annMan->applyCommand(undoCommand,
+                                                            errorMessage)) {
+                                    WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                                           errorMessage);
+                                }
                                 
                                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
                                 EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -732,7 +742,12 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 command->setMergeEnabled(true);
             }
             
-            annotationManager->applyCommand(command);
+            AString errorMessage;
+            if ( !  annotationManager->applyCommand(command,
+                                                    errorMessage)) {
+                WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                       errorMessage);
+            }
         }
         
         for (std::vector<Annotation*>::iterator iter = annotationsAfterMoveAndResize.begin();
@@ -1676,7 +1691,12 @@ UserInputModeAnnotations::cutAnnotation()
         annotationVector.push_back(annotation);
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeCutAnnotations(annotationVector);
-        annotationManager->applyCommand(undoCommand);
+        AString errorMessage;
+        if ( ! annotationManager->applyCommand(undoCommand,
+                                               errorMessage)) {
+            WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                   errorMessage);
+        }
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -1746,7 +1766,12 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         {
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
-            undoStack->redo();
+            
+            AString errorMessage;
+            if ( ! undoStack->redo(errorMessage)) {
+                WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                       errorMessage);
+            }
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -1758,7 +1783,12 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         {
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
-            undoStack->undo();
+            
+            AString errorMessage;
+            if ( ! undoStack->undo(errorMessage)) {
+                WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                       errorMessage);
+            }
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

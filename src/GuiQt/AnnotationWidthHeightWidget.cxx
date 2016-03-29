@@ -37,6 +37,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "WuQFactory.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -221,8 +222,12 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
     undoCommand->setModeTwoDimHeight(value,
                                      annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->applyCommand(undoCommand);
-    
+    AString errorMessage;
+    if ( ! annMan->applyCommand(undoCommand,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     
     switch (m_parentWidgetType) {
@@ -254,8 +259,12 @@ AnnotationWidthHeightWidget::widthValueChanged(double value)
     undoCommand->setModeTwoDimWidth(value,
                                     annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->applyCommand(undoCommand);
-    
+    AString errorMessage;
+    if ( ! annMan->applyCommand(undoCommand,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     
     switch (m_parentWidgetType) {

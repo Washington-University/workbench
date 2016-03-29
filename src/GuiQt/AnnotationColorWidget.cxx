@@ -43,6 +43,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "WuQFactory.h"
+#include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -277,7 +278,13 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
                                             rgba,
                                             m_annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        annMan->applyCommand(undoCommand);
+        
+        AString errorMessage;
+        if ( ! annMan->applyCommand(undoCommand,
+                                    errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
         
         Annotation::setUserDefaultBackgroundColor(caretColor);
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -468,8 +475,13 @@ AnnotationColorWidget::lineColorSelected(const CaretColorEnum::Enum caretColor)
                                       rgba,
                                       m_annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        annMan->applyCommand(undoCommand);
         
+        AString errorMessage;
+        if ( ! annMan->applyCommand(undoCommand,
+                                    errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
         setUserDefaultLineColor(caretColor,
                                 rgba);
     }
@@ -564,7 +576,13 @@ AnnotationColorWidget::lineThicknessSpinBoxValueChanged(double value)
     undoCommand->setModeLineWidth(value,
                                   m_annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->applyCommand(undoCommand);
+    
+    AString errorMessage;
+    if ( ! annMan->applyCommand(undoCommand,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     Annotation::setUserDefaultLineWidth(value);

@@ -97,13 +97,23 @@ namespace caret {
         
         /**
          * Operation that "redoes" the command.
+         *
+         * @param errorMessageOut
+         *     Output containing error message.
+         * @return
+         *     True if the command executed successfully, else false.
          */
-        virtual void redo() = 0;
+        virtual bool redo(AString& errorMessageOut) = 0;
         
         /**
          * Operation that "undoes" the command.
+         *
+         * @param errorMessageOut
+         *     Output containing error message.
+         * @return
+         *     True if the command executed successfully, else false.
          */
-        virtual void undo() = 0;
+        virtual bool undo(AString& errorMessageOut) = 0;
 
         // ADD_NEW_METHODS_HERE
 

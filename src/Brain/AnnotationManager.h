@@ -70,10 +70,12 @@ namespace caret {
         
         virtual ~AnnotationManager();
 
-        void applyCommand(AnnotationRedoUndoCommand* command);
+        bool applyCommand(AnnotationRedoUndoCommand* command,
+                          AString& errorMessageOut);
         
-        void applyCommandInWindow(AnnotationRedoUndoCommand* command,
-                                  const int32_t windowIndex);
+        bool applyCommandInWindow(AnnotationRedoUndoCommand* command,
+                                  const int32_t windowIndex,
+                                  AString& errorMessageOut);
         
         void reset();
         

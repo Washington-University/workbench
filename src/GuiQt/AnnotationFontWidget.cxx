@@ -44,6 +44,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "WuQSpecialIncrementDoubleSpinBox.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -419,8 +420,12 @@ AnnotationFontWidget::textColorSelected(const CaretColorEnum::Enum caretColor)
                                               rgba,
                                               m_annotations);
                 AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-                annMan->applyCommand(undoCommand);
-                
+                AString errorMessage;
+                if ( ! annMan->applyCommand(undoCommand,
+                                            errorMessage)) {
+                    WuQMessageBox::errorOk(this,
+                                           errorMessage);
+                }
                 AnnotationText::setUserDefaultTextColor(caretColor);
             }
                 break;
@@ -534,8 +539,12 @@ AnnotationFontWidget::fontBoldChanged()
     command->setModeTextFontBold(m_boldFontAction->isChecked(),
                                  m_annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->applyCommand(command);
-    
+    AString errorMessage;
+    if ( ! annMan->applyCommand(command,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -558,8 +567,12 @@ AnnotationFontWidget::fontItalicChanged()
     command->setModeTextFontItalic(m_italicFontAction->isChecked(),
                                    m_annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->applyCommand(command);
-    
+    AString errorMessage;
+    if ( ! annMan->applyCommand(command,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -584,8 +597,12 @@ AnnotationFontWidget::fontNameChanged()
     command->setModeTextFontName(fontName,
                                  m_annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->applyCommand(command);
-    
+    AString errorMessage;
+    if ( ! annMan->applyCommand(command,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     
     switch (m_parentWidgetType) {
@@ -612,8 +629,12 @@ AnnotationFontWidget::fontSizeChanged()
     command->setModeTextFontPercentSize(fontPercentSize,
                                         m_annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->applyCommand(command);
-    
+    AString errorMessage;
+    if ( ! annMan->applyCommand(command,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     
     switch (m_parentWidgetType) {
@@ -639,8 +660,12 @@ AnnotationFontWidget::fontUnderlineChanged()
     command->setModeTextFontUnderline(m_underlineFontAction->isChecked(),
                                       m_annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->applyCommand(command);
-    
+    AString errorMessage;
+    if ( ! annMan->applyCommand(command,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     

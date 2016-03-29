@@ -327,6 +327,9 @@ AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrange
         afterMoving.push_back(annotationModified);
     }
     
+    bool validFlag = true;
+    AString errorMessage;
+    
     /*
      * If any annotations were moved, use a redo command
      * so that the user may undo the alignment.
@@ -338,7 +341,8 @@ AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrange
                                             afterMoving);
         undoCommand->setDescription(AnnotationDistributeEnum::toGuiName(m_distribute));
         
-        m_annotationManager->applyCommand(undoCommand);
+        validFlag = m_annotationManager->applyCommand(undoCommand,
+                                                      errorMessage);
     }
     
     /*
@@ -351,6 +355,10 @@ AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrange
         Annotation* ann = *annIter;
         CaretAssert(ann);
         delete ann;
+    }
+    
+    if ( ! validFlag) {
+        throw CaretException(errorMessage);
     }
 }
 
@@ -429,6 +437,9 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
                                afterMoving);
     }
     
+    bool validFlag = true;
+    AString errorMessage;
+    
     /*
      * If any annotations were moved, use a redo command
      * so that the user may undo the alignment.
@@ -440,7 +451,8 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
                                             afterMoving);
         undoCommand->setDescription(AnnotationAlignmentEnum::toGuiName(m_alignment));
         
-        m_annotationManager->applyCommand(undoCommand);
+        validFlag = m_annotationManager->applyCommand(undoCommand,
+                                                      errorMessage);
     }
     
     /*
@@ -453,6 +465,10 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
         Annotation* ann = *annIter;
         CaretAssert(ann);
         delete ann;
+    }
+    
+    if ( ! validFlag) {
+        throw CaretException(errorMessage);
     }
 }
 

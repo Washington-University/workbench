@@ -50,6 +50,7 @@
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionManager.h"
 #include "Surface.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
@@ -663,8 +664,14 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                                     annotationsAfterMoveAndResize);
     command->setDescription("Change Coordinate");
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->applyCommand(command);
-    
+ 
+    AString errorMessage;
+    if ( ! annotationManager->applyCommand(command,
+                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+
     updateAnnotationDisplayProperties(redoAnnotation);
     
     return true;

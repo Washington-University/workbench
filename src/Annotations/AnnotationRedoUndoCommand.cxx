@@ -447,10 +447,17 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
 
 /**
  * Operation that "redoes" the command.
+ *
+ * @param errorMessageOut
+ *     Output containing error message.
+ * @return
+ *     True if the command executed successfully, else false.
  */
-void
-AnnotationRedoUndoCommand::redo()
+bool
+AnnotationRedoUndoCommand::redo(AString& errorMessageOut)
 {
+    errorMessageOut.clear();
+    
     if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP) {
         CaretAssert(m_annotationGroupMemento);
         EventAnnotationGrouping groupEvent;
@@ -461,7 +468,11 @@ AnnotationRedoUndoCommand::redo()
         
         m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
         
-        return;
+        if (groupEvent.isError()) {
+            errorMessageOut = groupEvent.getErrorMessage();
+            return false;
+        }
+        return true;
     }
     else if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_UNGROUP) {
         CaretAssert(m_annotationGroupMemento);
@@ -474,7 +485,11 @@ AnnotationRedoUndoCommand::redo()
         
         //m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
 
-        return;
+        if (groupEvent.isError()) {
+            errorMessageOut = groupEvent.getErrorMessage();
+            return false;
+        }
+        return true;
     }
     else if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_REGROUP) {
         CaretAssert(m_annotationGroupMemento);
@@ -487,8 +502,14 @@ AnnotationRedoUndoCommand::redo()
         
         m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
         
-        return;
+        if (groupEvent.isError()) {
+            errorMessageOut = groupEvent.getErrorMessage();
+            return false;
+        }
+        return true;
     }
+    
+    bool validFlag = true;
     
     for (std::vector<AnnotationMemento*>::iterator iter = m_annotationMementos.begin();
          iter != m_annotationMementos.end();
@@ -501,38 +522,66 @@ AnnotationRedoUndoCommand::redo()
                                                      annMem->m_annotationFile,
                                                      annMem->m_annotation);
             EventManager::get()->sendEvent(event.getPointer());
+            
+            if (event.isError()) {
+                errorMessageOut.appendWithNewLine(event.getErrorMessage());
+                validFlag = false;
+            }
         }
         else if (m_mode == AnnotationRedoUndoCommandModeEnum::CUT_ANNOTATION) {
             EventAnnotationAddToRemoveFromFile event(EventAnnotationAddToRemoveFromFile::MODE_CUT,
                                                      annMem->m_annotationFile,
                                                      annMem->m_annotation);
             EventManager::get()->sendEvent(event.getPointer());
+            
+            if (event.isError()) {
+                errorMessageOut.appendWithNewLine(event.getErrorMessage());
+                validFlag = false;
+            }
         }
         else if (m_mode == AnnotationRedoUndoCommandModeEnum::DELETE_ANNOTATIONS) {
             EventAnnotationAddToRemoveFromFile event(EventAnnotationAddToRemoveFromFile::MODE_DELETE,
                                                      annMem->m_annotationFile,
                                                      annMem->m_annotation);
             EventManager::get()->sendEvent(event.getPointer());
+            
+            if (event.isError()) {
+                errorMessageOut.appendWithNewLine(event.getErrorMessage());
+                validFlag = false;
+            }
         }
         else if (m_mode == AnnotationRedoUndoCommandModeEnum::PASTE_ANNOTATION) {
             EventAnnotationAddToRemoveFromFile pasteEvent(EventAnnotationAddToRemoveFromFile::MODE_PASTE,
                                                            annMem->m_annotationFile,
                                                            annMem->m_annotation);
             EventManager::get()->sendEvent(pasteEvent.getPointer());
+            
+            if (pasteEvent.isError()) {
+                errorMessageOut.appendWithNewLine(pasteEvent.getErrorMessage());
+                validFlag = false;
+            }
         }
         else {
             applyRedoOrUndo(annMem->m_annotation,
                             annMem->m_redoAnnotation);
         }
     }
+    
+    return validFlag;
 }
 
 /**
  * Operation that "undoes" the command.
- */
-void
-AnnotationRedoUndoCommand::undo()
+ *
+ * @param errorMessageOut
+ *     Output containing error message.
+ * @return
+ *     True if the command executed successfully, else false. */
+bool
+AnnotationRedoUndoCommand::undo(AString& errorMessageOut)
 {
+    errorMessageOut.clear();
+    
     if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP) {
         CaretAssert(m_annotationGroupMemento);
         EventAnnotationGrouping groupEvent;
@@ -540,7 +589,11 @@ AnnotationRedoUndoCommand::undo()
                                              m_annotationGroupMemento->m_undoAnnotationGroupKey);
         EventManager::get()->sendEvent(groupEvent.getPointer());
         
-        return;
+        if (groupEvent.isError()) {
+            errorMessageOut = groupEvent.getErrorMessage();
+            return false;
+        }
+        return true;
     }
     else if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_UNGROUP) {
         CaretAssert(m_annotationGroupMemento);
@@ -553,7 +606,12 @@ AnnotationRedoUndoCommand::undo()
         
         //m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
         
-        return;
+        
+        if (groupEvent.isError()) {
+            errorMessageOut = groupEvent.getErrorMessage();
+            return false;
+        }
+        return true;
     }
     else if (m_mode == AnnotationRedoUndoCommandModeEnum::GROUPING_REGROUP) {
         CaretAssert(m_annotationGroupMemento);
@@ -566,8 +624,15 @@ AnnotationRedoUndoCommand::undo()
         
         m_annotationGroupMemento->setUndoAnnotationGroupKey(groupEvent.getGroupKeyToWhichAnnotationsWereMoved());
         
-        return;
+        
+        if (groupEvent.isError()) {
+            errorMessageOut = groupEvent.getErrorMessage();
+            return false;
+        }
+        return true;
     }
+    
+    bool validFlag = true;
     
     for (std::vector<AnnotationMemento*>::iterator iter = m_annotationMementos.begin();
          iter != m_annotationMementos.end();
@@ -580,30 +645,52 @@ AnnotationRedoUndoCommand::undo()
                                                      annMem->m_annotationFile,
                                                      annMem->m_annotation);
             EventManager::get()->sendEvent(event.getPointer());
+            
+            if (event.isError()) {
+                errorMessageOut.appendWithNewLine(event.getErrorMessage());
+                validFlag = false;
+            }
         }
         else if (m_mode == AnnotationRedoUndoCommandModeEnum::CUT_ANNOTATION) {
             EventAnnotationAddToRemoveFromFile event(EventAnnotationAddToRemoveFromFile::MODE_UNCUT,
                                                      annMem->m_annotationFile,
                                                      annMem->m_annotation);
             EventManager::get()->sendEvent(event.getPointer());
+            
+            if (event.isError()) {
+                errorMessageOut.appendWithNewLine(event.getErrorMessage());
+                validFlag = false;
+            }
         }
         else if (m_mode == AnnotationRedoUndoCommandModeEnum::DELETE_ANNOTATIONS) {
             EventAnnotationAddToRemoveFromFile event(EventAnnotationAddToRemoveFromFile::MODE_UNDELETE,
                                                      annMem->m_annotationFile,
                                                      annMem->m_annotation);
             EventManager::get()->sendEvent(event.getPointer());
+            
+            if (event.isError()) {
+                errorMessageOut.appendWithNewLine(event.getErrorMessage());
+                validFlag = false;
+            }
         }
         else if (m_mode == AnnotationRedoUndoCommandModeEnum::PASTE_ANNOTATION) {
             EventAnnotationAddToRemoveFromFile pasteEvent(EventAnnotationAddToRemoveFromFile::MODE_UNPASTE,
                                                            annMem->m_annotationFile,
                                                            annMem->m_annotation);
             EventManager::get()->sendEvent(pasteEvent.getPointer());
+            
+            if (pasteEvent.isError()) {
+                errorMessageOut.appendWithNewLine(pasteEvent.getErrorMessage());
+                validFlag = false;
+            }
         }
         else {
             applyRedoOrUndo(annMem->m_annotation,
                             annMem->m_undoAnnotation);
         }
     }
+    
+    return validFlag;
 }
 
 /**

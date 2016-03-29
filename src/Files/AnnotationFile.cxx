@@ -870,18 +870,30 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
     AnnotationGroupKey spaceGroupKey = groupingEvent->getAnnotationGroupKey();
     
     
+    std::vector<Annotation*> annotationsToGroup = groupingEvent->getAnnotations();
+    if (annotationsToGroup.size() < 2) {
+        groupingEvent->setErrorMessage("PROGRAM ERROR: Trying to group annotations less than two annotations");
+        CaretAssert(0);
+        return;
+    }
     
     AnnotationGroupIterator spaceGroupIter = m_annotationGroups.end();
     for (spaceGroupIter = m_annotationGroups.begin();
          spaceGroupIter != m_annotationGroups.end();
          spaceGroupIter++) {
-        if (spaceGroupKey == (*spaceGroupIter)->getAnnotationGroupKey()) {
-            break;
+        AnnotationGroup* group = (*spaceGroupIter).data();
+        if (group->getAnnotationGroupKey().getGroupType() == AnnotationGroupTypeEnum::SPACE) {
+            if (group->containsAllAnnotation(annotationsToGroup)) {
+                break;
+            }
         }
     }
     
     if (spaceGroupIter == m_annotationGroups.end()) {
-        groupingEvent->setErrorMessage("PROGRAM ERROR: Did not find group for grouping annotations");
+        groupingEvent->setErrorMessage("Did not find annotations in a space group.  This may occur when "
+                                       "annotations have been ungrouped, an annotation is modified that moves "
+                                       "it to a different group or the annotation is deleted, and there "
+                                       "is an attempt to regroup the annotations.");
         return;
     }
     
@@ -920,18 +932,12 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
         return;
     }
     
-    std::vector<Annotation*> annotations = groupingEvent->getAnnotations();
-    if (annotations.size() < 2) {
-        groupingEvent->setErrorMessage("PROGRAM ERROR: Trying to group annotations less than two annotations");
-        CaretAssert(0);
-        return;
-    }
     
     
     bool allValidFlag = true;
     std::vector<QSharedPointer<Annotation> > movedAnnotations;
-    for (std::vector<Annotation*>::iterator annIter = annotations.begin();
-         annIter != annotations.end();
+    for (std::vector<Annotation*>::iterator annIter = annotationsToGroup.begin();
+         annIter != annotationsToGroup.end();
          annIter++) {
         QSharedPointer<Annotation> annPtr;
         if (spaceGroup->removeAnnotation(*annIter, annPtr)) {
@@ -943,43 +949,46 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
         }
     }
     
-    if (allValidFlag) {
-        AnnotationGroup* group = new AnnotationGroup(this,
-                                                     AnnotationGroupTypeEnum::USER,
-                                                     generateUniqueKey(),
-                                                     spaceGroup->getCoordinateSpace(),
-                                                     spaceGroup->getTabOrWindowIndex());
-        
+    if ( ! allValidFlag) {
         for (std::vector<QSharedPointer<Annotation> >::iterator annPtrIter = movedAnnotations.begin();
              annPtrIter != movedAnnotations.end();
              annPtrIter++) {
-            group->addAnnotationPrivateSharedPointer(*annPtrIter);
-        }
-        group->setItemParent(this);
-         groupingEvent->setGroupKeyToWhichAnnotationsWereMoved(group->getAnnotationGroupKey());
-        
-        /*
-         * If space group becomes empty, remove it.
-         * Need to remove it before adding new group, otherwise
-         * iterator will become invalid
-         */
-        if (spaceGroup->isEmpty()) {
-            m_annotationGroups.erase(spaceGroupIter);
+            spaceGroup->addAnnotationPrivateSharedPointer(*annPtrIter);
         }
         
-        /*
-         * Add new user group
-         */
-        m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
-        
-        setModified();
+        groupingEvent->setErrorMessage("PROGRAM ERROR: Failed to remove an anntotation from its space group.");
+        return;
     }
-    else {
-        /*
-         * Error
-         */
-        groupingEvent->setErrorMessage("Creating group failed, annotations not found in space group");
+    
+    AnnotationGroup* group = new AnnotationGroup(this,
+                                                 AnnotationGroupTypeEnum::USER,
+                                                 generateUniqueKey(),
+                                                 spaceGroup->getCoordinateSpace(),
+                                                 spaceGroup->getTabOrWindowIndex());
+    
+    for (std::vector<QSharedPointer<Annotation> >::iterator annPtrIter = movedAnnotations.begin();
+         annPtrIter != movedAnnotations.end();
+         annPtrIter++) {
+        group->addAnnotationPrivateSharedPointer(*annPtrIter);
     }
+    group->setItemParent(this);
+    groupingEvent->setGroupKeyToWhichAnnotationsWereMoved(group->getAnnotationGroupKey());
+    
+    /*
+     * If space group becomes empty, remove it.
+     * Need to remove it before adding new group, otherwise
+     * iterator will become invalid
+     */
+    if (spaceGroup->isEmpty()) {
+        m_annotationGroups.erase(spaceGroupIter);
+    }
+    
+    /*
+     * Add new user group
+     */
+    m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
+    
+    setModified();
 }
 
 /**
