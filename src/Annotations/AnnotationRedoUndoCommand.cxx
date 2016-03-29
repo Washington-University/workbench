@@ -562,6 +562,9 @@ AnnotationRedoUndoCommand::redo(AString& errorMessageOut)
             }
         }
         else {
+            /*
+             * Note: Does not report any errors
+             */
             applyRedoOrUndo(annMem->m_annotation,
                             annMem->m_redoAnnotation);
         }

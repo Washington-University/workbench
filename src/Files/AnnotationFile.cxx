@@ -1810,8 +1810,11 @@ AnnotationFile::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup
  *     Selection status.
  */
 bool
-AnnotationFile::isItemSelectedForEditingInWindow(const int32_t windowIndex)
+AnnotationFile::isItemSelectedForEditingInWindow(const int32_t /*windowIndex*/)
 {
+    /*
+     * The annotation file is never selected for editing.
+     */
     return false;
 }
 
