@@ -76,14 +76,15 @@ OperationParameters* AlgorithmCiftiDilate::getParameters()
     OptionalParameter* roiOpt = ret->createOptionalParameter(9, "-bad-brainordinate-roi", "specify an roi of brainordinates to overwrite, rather than zeros");
     roiOpt->addCiftiParameter(1, "roi-cifti", "cifti dscalar or dtseries file, positive values denote brainordinates to have their values replaced");
     
-    ret->createOptionalParameter(10, "-nearest", "use nearest value when dilating non-label data");
+    ret->createOptionalParameter(10, "-nearest", "use nearest value");
     
     ret->createOptionalParameter(11, "-merged-volume", "treat volume components as if they were a single component");
     
     ret->setHelpText(
         AString("For all data values designated as bad, if they neighbor a good value or are within the specified distance of a good value in the same kind of model, ") +
         "replace the value with a distance weighted average of nearby good values, otherwise set the value to zero.  " +
-        "If -nearest is specified, it will use the value from the closest good value within range instead of a weighted average.\n\n" +
+        "If -nearest is specified, it will use the value from the closest good value within range instead of a weighted average.  " +
+        "When the input file contains label data, nearest dilation is used on the surface, and weighted popularity is used in the volume.\n\n" +
         "The -*-corrected-areas options are intended for dilating on group average surfaces, but it is only an approximate correction " +
         "for the reduction of structure in a group average surface.\n\n" +
         "If -bad-brainordinate-roi is specified, all values, including those with value zero, are good, except for locations with a positive value in the ROI.  " +
@@ -250,13 +251,13 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
     }
     if (mergedVolume)
     {
-        if (myCifti->getCiftiXMLOld().hasVolumeData(myDir))
+        if (myXML.hasVolumeData(myDir))
         {
             VolumeFile myVol, roiVol, myVolOut;
             VolumeFile* roiPtr = NULL;
             int64_t offset[3];
             AlgorithmVolumeDilate::Method myMethod = AlgorithmVolumeDilate::WEIGHTED;
-            if (nearest || myXML.getMappingType(1 - myDir) == CIFTI_INDEX_TYPE_LABELS)
+            if (nearest)
             {
                 myMethod = AlgorithmVolumeDilate::NEAREST;
             }
@@ -271,7 +272,7 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
         }
     } else {
         AlgorithmVolumeDilate::Method myMethod = AlgorithmVolumeDilate::WEIGHTED;
-        if (nearest || myXML.getMappingType(1 - myDir) == CIFTI_INDEX_TYPE_LABELS)
+        if (nearest)
         {
             myMethod = AlgorithmVolumeDilate::NEAREST;
         }
