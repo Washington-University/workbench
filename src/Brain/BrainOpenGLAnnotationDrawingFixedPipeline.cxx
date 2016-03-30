@@ -2065,29 +2065,37 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     float topLeft[3];
     
     /*
-     *
+     * The fonts are sized using either the height 
+     * of the OpenGL viewport or the height of the
+     * TAB viewport.  During a single surface view,
+     * they will be the same but different in a 
+     * surface montage view if there are two or more
+     * rows.
      */
     AnnotationPercentSizeText* percentSizeText = NULL;
     float savedFontPercentViewportHeight = -1.0;
     const bool modifiedStatus = text->isModified();
     
-    switch (m_inputs->m_textHeightMode) {
-        case Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT:
-            break;
-        case Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT:
-            if (m_inputs->m_tabViewport[3] != m_modelSpaceViewport[3]) {
-                percentSizeText = dynamic_cast<AnnotationPercentSizeText*>(text);
-                if (percentSizeText != NULL) {
-                    savedFontPercentViewportHeight = percentSizeText->getFontPercentViewportSize();
-                    if (savedFontPercentViewportHeight > 0.0) {
-                        CaretAssert(m_modelSpaceViewport[3]);
-                        const float heightScaling = m_inputs->m_tabViewport[3] / m_modelSpaceViewport[3];
-                        percentSizeText->setFontPercentViewportSize(savedFontPercentViewportHeight
-                                                                    * heightScaling);
+    const bool allowDifferentHeightModesFlag = false;
+    if (allowDifferentHeightModesFlag) {
+        switch (m_inputs->m_textHeightMode) {
+            case Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT:
+                break;
+            case Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT:
+                if (m_inputs->m_tabViewport[3] != m_modelSpaceViewport[3]) {
+                    percentSizeText = dynamic_cast<AnnotationPercentSizeText*>(text);
+                    if (percentSizeText != NULL) {
+                        savedFontPercentViewportHeight = percentSizeText->getFontPercentViewportSize();
+                        if (savedFontPercentViewportHeight > 0.0) {
+                            CaretAssert(m_modelSpaceViewport[3]);
+                            const float heightScaling = m_inputs->m_tabViewport[3] / m_modelSpaceViewport[3];
+                            percentSizeText->setFontPercentViewportSize(savedFontPercentViewportHeight
+                                                                        * heightScaling);
+                        }
                     }
                 }
-            }
-            break;
+                break;
+        }
     }
     
     m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*text,
