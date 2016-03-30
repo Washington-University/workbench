@@ -223,13 +223,26 @@ ADD_DEFINITIONS(-DCOMPILER_VERSION="${CMAKE_CXX_COMPILER_VERSION}")
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Common
 )
-ADD_CUSTOM_COMMAND(
-    OUTPUT ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
-    COMMAND ${CMAKE_COMMAND}
-        -DINFILE="${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
-        -DOUTFILE="${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
-        -P "${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
-    DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in ${CMAKE_SOURCE_DIR}/../.git/HEAD ${CMAKE_SOURCE_DIR}/../.git/index
-    COMMENT "Setting commit info"
-)
+
+SET (GIT_REPOSITORY "${CMAKE_SOURCE_DIR}/../.git")
+IF (EXISTS ${GIT_REPOSITORY})
+    ADD_CUSTOM_COMMAND(
+        OUTPUT ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
+        COMMAND ${CMAKE_COMMAND}
+            -DINFILE="${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
+            -DOUTFILE="${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
+            -P "${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
+        DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in ${CMAKE_SOURCE_DIR}/../.git/HEAD ${CMAKE_SOURCE_DIR}/../.git/index
+        COMMENT "Setting commit info"
+    )
+ELSE(EXISTS ${GIT_REPOSITORY})
+    ADD_CUSTOM_COMMAND(
+        OUTPUT ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
+        COMMAND ${CMAKE_COMMAND}
+        ARGS -E copy
+             "${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
+             "${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
+        COMMENT "No repository found.  No commit information will be available."
+    )
+ENDIF(EXISTS ${GIT_REPOSITORY})
