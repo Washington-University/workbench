@@ -49,7 +49,8 @@ using namespace caret;
  * Constructor.
  */
 DrawnWithOpenGLTextureInfo::DrawnWithOpenGLTextureInfo()
-: CaretObject()
+: CaretObject(),
+  EventListenerInterface()
 {
     resetTextureNames();
     
@@ -82,7 +83,7 @@ DrawnWithOpenGLTextureInfo::~DrawnWithOpenGLTextureInfo()
  *    Object that is copied.
  */
 DrawnWithOpenGLTextureInfo::DrawnWithOpenGLTextureInfo(const DrawnWithOpenGLTextureInfo& obj)
-: CaretObject(obj)
+: CaretObject(obj), EventListenerInterface()
 {
     this->copyHelperDrawnWithOpenGLTextureInfo(obj);
 }

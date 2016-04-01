@@ -63,7 +63,9 @@ AnnotationGroup::AnnotationGroup(AnnotationFile* annotationFile,
                                  const int32_t uniqueKey,
                                  const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                  const int32_t tabOrWindowIndex)
-: CaretObjectTracksModification()
+: CaretObjectTracksModification(),
+DisplayGroupAndTabItemInterface(),
+SceneableInterface()
 {
     CaretAssert(annotationFile);
     CaretAssert(groupType != AnnotationGroupTypeEnum::INVALID);
@@ -128,7 +130,9 @@ AnnotationGroup::~AnnotationGroup()
  *    Object that is copied.
  */
 AnnotationGroup::AnnotationGroup(const AnnotationGroup& obj)
-: CaretObjectTracksModification(obj)
+: CaretObjectTracksModification(obj),
+DisplayGroupAndTabItemInterface(obj),
+SceneableInterface(obj)
 {
     initializeInstance();
     this->copyHelperAnnotationGroup(obj);

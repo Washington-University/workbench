@@ -63,7 +63,7 @@ DisplayGroupAndTabItemHelper::~DisplayGroupAndTabItemHelper()
  *    Object that is copied.
  */
 DisplayGroupAndTabItemHelper::DisplayGroupAndTabItemHelper(const DisplayGroupAndTabItemHelper& obj)
-: CaretObject(obj)
+: CaretObject(obj), SceneableInterface(obj)
 {
     initializeNewInstance();
     

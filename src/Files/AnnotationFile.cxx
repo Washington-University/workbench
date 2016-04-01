@@ -61,7 +61,9 @@ using namespace caret;
  */
 AnnotationFile::AnnotationFile()
 : CaretDataFile(DataFileTypeEnum::ANNOTATION),
-DataFileContentCopyMoveInterface(),
+EventListenerInterface(),
+ DataFileContentCopyMoveInterface(),
+ DisplayGroupAndTabItemInterface(),
 m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
 {
     initializeAnnotationFile();
@@ -171,6 +173,7 @@ AnnotationFile::AnnotationFile(const AnnotationFile& obj)
 : CaretDataFile(obj),
 EventListenerInterface(),
 DataFileContentCopyMoveInterface(),
+DisplayGroupAndTabItemInterface(obj),
 m_fileSubType(obj.m_fileSubType)
 {
     initializeAnnotationFile();

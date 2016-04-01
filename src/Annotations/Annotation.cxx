@@ -61,6 +61,8 @@ using namespace caret;
 Annotation::Annotation(const AnnotationTypeEnum::Enum type,
                        const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
 : CaretObjectTracksModification(),
+DisplayGroupAndTabItemInterface(),
+SceneableInterface(),
 m_type(type),
 m_attributeDefaultType(attributeDefaultType)
 {
@@ -83,6 +85,7 @@ Annotation::~Annotation()
  */
 Annotation::Annotation(const Annotation& obj)
 : CaretObjectTracksModification(obj),
+DisplayGroupAndTabItemInterface(obj),
 SceneableInterface(obj),
 m_type(obj.m_type),
 m_attributeDefaultType(obj.m_attributeDefaultType)
