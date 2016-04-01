@@ -663,13 +663,12 @@ MathFunctions::dotProduct(
  * @return     Dot product of the two vectors.
  *
  */
-float
+double
 MathFunctions::dotProduct(
                           const double p1[3],
                           const double p2[3])
 {
-    float dot = p1[0]*p2[0] + p1[1]*p2[1] + p1[2]*p2[2];
-    return dot;
+    return p1[0]*p2[0] + p1[1]*p2[1] + p1[2]*p2[2];
 }
 
 /**
@@ -1774,16 +1773,16 @@ bool MathFunctions::matrixToQuatern(const float matrix[3][3], float cijk[4])
 bool MathFunctions::matrixToQuatern(const double matrix[3][3], double cijk[4])
 {//formulas from http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
     const float toler = 0.0001f;
-    float ivec[3] = { matrix[0][0], matrix[1][0], matrix[2][0] };
-    float jvec[3] = { matrix[0][1], matrix[1][1], matrix[2][1] };
-    float kvec[3] = { matrix[0][2], matrix[1][2], matrix[2][2] };
+    double ivec[3] = { matrix[0][0], matrix[1][0], matrix[2][0] };
+    double jvec[3] = { matrix[0][1], matrix[1][1], matrix[2][1] };
+    double kvec[3] = { matrix[0][2], matrix[1][2], matrix[2][2] };
     if (!(std::abs(1.0f - normalizeVector(ivec)) <= toler)) return false;//use the "not less than or equal to" trick to catch NaNs
     if (!(std::abs(1.0f - normalizeVector(jvec)) <= toler)) return false;
     if (!(std::abs(1.0f - normalizeVector(kvec)) <= toler)) return false;
     if (!(dotProduct(ivec, jvec) <= toler)) return false;
     if (!(dotProduct(ivec, kvec) <= toler)) return false;
     if (!(dotProduct(jvec, kvec) <= toler)) return false;
-    float tempvec[3];
+    double tempvec[3];
     crossProduct(ivec, jvec, tempvec);
     if (!(dotProduct(tempvec, kvec) >= 0.9f)) return false;//i cross j must be k, otherwise it contains a flip
     int method = 0;

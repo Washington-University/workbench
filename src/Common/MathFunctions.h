@@ -168,7 +168,7 @@ public:
                     const float p1[3],
                     const float p2[3]);
 
-    static float dotProduct(
+    static double dotProduct(
                             const double p1[3],
                             const double p2[3]);
     
