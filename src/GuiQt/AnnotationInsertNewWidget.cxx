@@ -71,11 +71,11 @@ AnnotationInsertNewWidget::AnnotationInsertNewWidget(const int32_t browserWindow
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    QWidget* shapeBoxToolButton   = createShapeToolButton(AnnotationTypeEnum::BOX);
-    QWidget* shapeImageToolButton = createShapeToolButton(AnnotationTypeEnum::IMAGE);
-    QWidget* shapeLineToolButton  = createShapeToolButton(AnnotationTypeEnum::LINE);
-    QWidget* shapeOvalToolButton  = createShapeToolButton(AnnotationTypeEnum::OVAL);
-    QWidget* shapeTextToolButton  = createShapeToolButton(AnnotationTypeEnum::TEXT);
+    QToolButton* shapeBoxToolButton   = createShapeToolButton(AnnotationTypeEnum::BOX);
+    QToolButton* shapeImageToolButton = createShapeToolButton(AnnotationTypeEnum::IMAGE);
+    QToolButton* shapeLineToolButton  = createShapeToolButton(AnnotationTypeEnum::LINE);
+    QToolButton* shapeOvalToolButton  = createShapeToolButton(AnnotationTypeEnum::OVAL);
+    QToolButton* shapeTextToolButton  = createShapeToolButton(AnnotationTypeEnum::TEXT);
     
     QToolButton* tabSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::TAB);
     QToolButton* stereotaxicSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
@@ -104,13 +104,20 @@ m_browserWindowIndex(browserWindowIndex)
     m_spaceActionGroup->addAction(stereotaxicSpaceToolButton->defaultAction());
     m_spaceActionGroup->addAction(surfaceSpaceToolButton->defaultAction());
     m_spaceActionGroup->addAction(windowSpaceToolButton->defaultAction());
+    QObject::connect(m_spaceActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(spaceOrShapeActionTriggered()));
+    
+    m_shapeActionGroup = new QActionGroup(this);
+    m_shapeActionGroup->addAction(shapeBoxToolButton->defaultAction());
+    m_shapeActionGroup->addAction(shapeImageToolButton->defaultAction());
+    m_shapeActionGroup->addAction(shapeLineToolButton->defaultAction());
+    m_shapeActionGroup->addAction(shapeOvalToolButton->defaultAction());
+    m_shapeActionGroup->addAction(shapeTextToolButton->defaultAction());
+    QObject::connect(m_shapeActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(spaceOrShapeActionTriggered()));
     
     QToolButton* fileSelectionToolButton = createFileSelectionToolButton();
     
-    /*
-     * Check the default space tool button
-     */
-    tabSpaceToolButton->defaultAction()->setChecked(true);
     
     QLabel* fileLabel  = new QLabel("File");
     QLabel* spaceLabel = new QLabel("Space");
@@ -137,17 +144,7 @@ m_browserWindowIndex(browserWindowIndex)
                               1, 0, 3, 1,
                               (Qt::AlignTop | Qt::AlignHCenter));
         
-//        gridLayout->addWidget(fileLabel,
-//                              1, 0,
-//                              Qt::AlignHCenter);
-//        gridLayout->addWidget(fileSelectionToolButton,
-//                              2, 0, 2, 1,
-//                              (Qt::AlignTop | Qt::AlignHCenter));
-        
         gridLayout->setColumnMinimumWidth(1, 5);
-//        gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
-//                              1, 1, 3, 1,
-//                              Qt::AlignHCenter);
         
         gridLayout->addWidget(spaceLabel,
                               1, 2, Qt::AlignLeft);
@@ -161,11 +158,6 @@ m_browserWindowIndex(browserWindowIndex)
                               1, 6);
 
         gridLayout->setRowMinimumHeight(2, 2);
-//        QSpacerItem* rowSpaceItem = new QSpacerItem(5, 5,
-//                                                 QSizePolicy::Fixed,
-//                                                 QSizePolicy::Fixed);
-//        gridLayout->addItem(rowSpaceItem,
-//                            2, 3, 1, 6);
         
         gridLayout->addWidget(typeLabel,
                               3, 2, Qt::AlignLeft);
@@ -231,6 +223,20 @@ m_browserWindowIndex(browserWindowIndex)
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
+    
+    /*
+     * Default Space to Tab
+     * Default Shape to Text
+     * Do this before creating action groups to avoid
+     * triggering signals.
+     */
+    m_spaceActionGroup->blockSignals(true);
+    tabSpaceToolButton->defaultAction()->setChecked(true);
+    m_spaceActionGroup->blockSignals(false);
+
+    m_shapeActionGroup->blockSignals(true);
+    shapeTextToolButton->defaultAction()->setChecked(true);
+    m_shapeActionGroup->blockSignals(false);
 }
 
 /**
@@ -279,8 +285,6 @@ AnnotationInsertNewWidget::createFileSelectionToolButton()
     QToolButton* fileSelectionToolButton = new QToolButton();
     fileSelectionToolButton->setDefaultAction(m_fileSelectionToolButtonAction);
     fileSelectionToolButton->setFixedWidth(fileSelectionToolButton->sizeHint().width());
-//    fileSelectionToolButton->setSizePolicy(QSizePolicy::Fixed,
-//                                           fileSelectionToolButton->sizePolicy().verticalPolicy());
     
     return fileSelectionToolButton;
 }
@@ -291,7 +295,7 @@ AnnotationInsertNewWidget::createFileSelectionToolButton()
  * @param annotationType
  *     The annotation type.
  */
-QWidget*
+QToolButton*
 AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum annotationType)
 {
     const QString typeGuiName = AnnotationTypeEnum::toGuiName(annotationType);
@@ -302,34 +306,13 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
                                   typeGuiName,
                                   this);
     
-    action->setToolTip("Insert a new "
-                       + typeGuiName
+    action->setData(AnnotationTypeEnum::toIntegerCode(annotationType));
+    
+    action->setToolTip(typeGuiName
                        + " annotation");
 
-    switch (annotationType) {
-        case AnnotationTypeEnum::BOX:
-            QObject::connect(action, SIGNAL(triggered(bool)),
-                             this, SLOT(shapeBoxActionTriggered()));
-            break;
-        case AnnotationTypeEnum::COLOR_BAR:
-            break;
-        case AnnotationTypeEnum::IMAGE:
-            QObject::connect(action, SIGNAL(triggered(bool)),
-                             this, SLOT(shapeImageActionTriggered()));
-            break;
-        case AnnotationTypeEnum::LINE:
-            QObject::connect(action, SIGNAL(triggered(bool)),
-                             this, SLOT(shapeLineActionTriggered()));
-            break;
-        case AnnotationTypeEnum::OVAL:
-            QObject::connect(action, SIGNAL(triggered(bool)),
-                             this, SLOT(shapeOvalActionTriggered()));
-            break;
-        case AnnotationTypeEnum::TEXT:
-            QObject::connect(action, SIGNAL(triggered(bool)),
-                             this, SLOT(shapeTextActionTriggered()));
-            break;
-    }
+    action->setCheckable(true);
+    action->setChecked(false);
     
     toolButton->setDefaultAction(action);
     
@@ -337,81 +320,43 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
 }
 
 /**
- * Create an annotation with the given type.
- *
- * @param annotationType
- *    Type of annotation.
+ * Called when a space or shape action triggered.
  */
 void
-AnnotationInsertNewWidget::createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType)
+AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
 {
-    CaretAssert(m_spaceActionGroup);
-    
-    const QAction* action = m_spaceActionGroup->checkedAction();
-    if (action == NULL) {
+    const QAction* spaceAction = m_spaceActionGroup->checkedAction();
+    if (spaceAction == NULL) {
         WuQMessageBox::errorOk(this, "No space is selected.  Select a space.");
+        return;
+    }
+    
+    const QAction* shapeAction = m_shapeActionGroup->checkedAction();
+    if (shapeAction == NULL) {
+        WuQMessageBox::errorOk(this, "No shape is selected.  Select a shape.");
         return;
     }
     
     AnnotationFile* annotationFile = m_fileSelectionMenu->getSelectedAnnotationFile();
     CaretAssert(annotationFile);
     
-    CaretAssert(action);
-    const int spaceInt = action->data().toInt();
-    
-    bool validFlag = false;
-    AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::fromIntegerCode(spaceInt,
-                                                                                               &validFlag);
-    CaretAssert(validFlag);
+    CaretAssert(spaceAction);
+    const int spaceInt = spaceAction->data().toInt();
+    bool spaceValidFlag = false;
+    AnnotationCoordinateSpaceEnum::Enum annSpace = AnnotationCoordinateSpaceEnum::fromIntegerCode(spaceInt,
+                                                                                               &spaceValidFlag);
+    CaretAssert(spaceValidFlag);
+
+    CaretAssert(shapeAction);
+    const int shapeInt = shapeAction->data().toInt();
+    bool shapeValidFlag = false;
+    AnnotationTypeEnum::Enum annShape = AnnotationTypeEnum::fromIntegerCode(shapeInt,
+                                                                            &shapeValidFlag);
+    CaretAssert(shapeValidFlag);
     
     EventManager::get()->sendEvent(EventAnnotationCreateNewType(annotationFile,
-                                                                space,
-                                                                annotationType).getPointer());
-}
-
-/**
- * Gets called when box action is triggered.
- */
-void
-AnnotationInsertNewWidget::shapeBoxActionTriggered()
-{
-    createAnnotationWithType(AnnotationTypeEnum::BOX);
-}
-
-/**
- * Gets called when line action is triggered.
- */
-void
-AnnotationInsertNewWidget::shapeLineActionTriggered()
-{
-    createAnnotationWithType(AnnotationTypeEnum::LINE);
-}
-
-/**
- * Gets called when image action is triggered.
- */
-void
-AnnotationInsertNewWidget::shapeImageActionTriggered()
-{
-    createAnnotationWithType(AnnotationTypeEnum::IMAGE);
-}
-
-/**
- * Gets called when text action is triggered.
- */
-void
-AnnotationInsertNewWidget::shapeTextActionTriggered()
-{
-    createAnnotationWithType(AnnotationTypeEnum::TEXT);
-}
-
-/**
- * Gets called when oval action is triggered.
- */
-void
-AnnotationInsertNewWidget::shapeOvalActionTriggered()
-{
-    createAnnotationWithType(AnnotationTypeEnum::OVAL);
+                                                                annSpace,
+                                                                annShape).getPointer());
 }
 
 /**
@@ -616,73 +561,6 @@ AnnotationInsertNewWidget::createSpacePixmap(const QWidget* widget,
     painter->drawText(pixmap.rect(),
                       (Qt::AlignCenter),
                       letter);
-//        case AnnotationTypeEnum::BOX:
-//            painter->drawRect(1, 1, width - 2, height - 2);
-//            break;
-//        case AnnotationTypeEnum::COLOR_BAR:
-//            CaretAssertMessage(0, "No pixmap for colorbar as user does not create them like other annotations");
-//            break;
-//        case AnnotationTypeEnum::IMAGE:
-//        {
-//            const int blueAsGray = qGray(25,25,255);
-//            QColor skyColor(blueAsGray, blueAsGray, blueAsGray);
-//            
-//            /*
-//             * Background (sky)
-//             */
-//            painter->fillRect(pixmap.rect(), skyColor);
-//            
-//            const int greenAsGray = qGray(0, 255, 0);
-//            QColor terrainColor(greenAsGray, greenAsGray, greenAsGray);
-//            
-//            /*
-//             * Terrain
-//             */
-//            painter->setBrush(terrainColor);
-//            painter->setPen(terrainColor);
-//            const int w14 = width * 0.25;
-//            const int h23 = height * 0.667;
-//            const int h34 = height * 0.75;
-//            QPolygon terrain;
-//            terrain.push_back(QPoint(1, height - 1));
-//            terrain.push_back(QPoint(width - 1, height - 1));
-//            terrain.push_back(QPoint(width - 1, h23));
-//            terrain.push_back(QPoint(w14 * 3, h34));
-//            terrain.push_back(QPoint(w14 * 2, h23));
-//            terrain.push_back(QPoint(w14, h34));
-//            terrain.push_back(QPoint(1, h23));
-//            terrain.push_back(QPoint(1, height - 1));
-//            painter->drawPolygon(terrain);
-//            
-//            const int yellowAsGray = qGray(255, 255, 0);
-//            QColor sunColor(yellowAsGray, yellowAsGray, yellowAsGray);
-//            
-//            /*
-//             * Sun
-//             */
-//            painter->setBrush(sunColor);
-//            painter->setPen(sunColor);
-//            const int radius = width * 0.25;
-//            painter->drawEllipse(width * 0.33, height * 0.33, radius, radius);
-//        }
-//            break;
-//        case AnnotationTypeEnum::LINE:
-//            painter->drawLine(1, height - 1, width - 1, 1);
-//            break;
-//        case AnnotationTypeEnum::OVAL:
-//            painter->drawEllipse(1, 1, width - 1, height - 1);
-//            break;
-//        case AnnotationTypeEnum::TEXT:
-//        {
-//            QFont font = painter->font();
-//            font.setPixelSize(20);
-//            painter->setFont(font);
-//            painter->drawText(pixmap.rect(),
-//                              (Qt::AlignCenter),
-//                              "A");
-//        }
-//            break;
-//    }
     
     return pixmap;
 }

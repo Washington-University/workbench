@@ -49,24 +49,16 @@ namespace caret {
         void updateContent();
         
     private slots:
-        void shapeBoxActionTriggered();
-        
-        void shapeLineActionTriggered();
-        
-        void shapeImageActionTriggered();
-        
-        void shapeTextActionTriggered();
-        
-        void shapeOvalActionTriggered();
-        
         void itemSelectedFromFileSelectionMenu();
+        
+        void spaceOrShapeActionTriggered();
         
     private:
         AnnotationInsertNewWidget(const AnnotationInsertNewWidget&);
 
         AnnotationInsertNewWidget& operator=(const AnnotationInsertNewWidget&);
         
-        QWidget* createShapeToolButton(const AnnotationTypeEnum::Enum annotationType);
+        QToolButton* createShapeToolButton(const AnnotationTypeEnum::Enum annotationType);
         
         QToolButton* createSpaceToolButton(const AnnotationCoordinateSpaceEnum::Enum annotationSpace);
         
@@ -78,11 +70,11 @@ namespace caret {
         
         QToolButton* createFileSelectionToolButton();
         
-        void createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType);
-        
         const int32_t m_browserWindowIndex;
         
         QActionGroup* m_spaceActionGroup;
+        
+        QActionGroup* m_shapeActionGroup;
         
         QAction* m_fileSelectionToolButtonAction;
         
