@@ -256,6 +256,50 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
     Annotation* newAnnotation = NULL;
     if (newAnnotationInfo.m_annotationType == AnnotationTypeEnum::TEXT) {
         newAnnotation = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::USER);
+        
+        /*
+         * In surface montage, percentage size text may need alteration
+         */
+        if (AnnotationPercentSizeText::isSurfaceSpaceMontageTabSizingEnabled()) {
+            bool adjustTextPctSizeFlag = false;
+            switch (annotationSpace) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    adjustTextPctSizeFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    break;
+            }
+            if (adjustTextPctSizeFlag) {
+                AnnotationPercentSizeText* pctText = dynamic_cast<AnnotationPercentSizeText*>(newAnnotation);
+                if (pctText != NULL) {
+                    const int32_t browserWindowIndex = newAnnotationInfo.m_mouseEvent.getBrowserWindowIndex();
+                    BrowserTabContent* browserTabContent = GuiManager::get()->getBrowserTabContentForBrowserWindow(browserWindowIndex,
+                                                                                                                   false);
+                    if (browserTabContent != NULL) {
+                        ModelSurfaceMontage* msm = browserTabContent->getDisplayedSurfaceMontageModel();
+                        if (msm != NULL) {
+                            const int32_t tabIndex = browserTabContent->getTabNumber();
+                            int32_t rowCount = 1;
+                            int32_t columnCount = 1;
+                            msm->getSurfaceMontageNumberOfRowsAndColumns(tabIndex,
+                                                                         rowCount,
+                                                                         columnCount);
+                            if (rowCount > 0) {
+                                float pctSize = pctText->getFontPercentViewportSize();
+                                pctSize *= static_cast<float>(rowCount);
+                                pctText->setFontPercentViewportSize(pctSize);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     else {
         newAnnotation = Annotation::newAnnotationOfType(newAnnotationInfo.m_annotationType,

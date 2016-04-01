@@ -925,6 +925,34 @@ ModelSurfaceMontage::restoreFromSceneVersionTwoAndEarlier(const SceneAttributes*
 }
 
 /**
+ * Get the number of rows and columns in the displayed surface montage.
+ *
+ * @param tabIndex
+ *     Index of tab.
+ * @param numberOfRowsOut
+ *     Number of rows in the displayed montage.
+ * @param numberOfColumnsOut
+ *     Number of columns in the displayed montage.
+ */
+void
+ModelSurfaceMontage::getSurfaceMontageNumberOfRowsAndColumns(const int32_t tabIndex,
+                                                             int32_t& numberOfRowsOut,
+                                                             int32_t& numberOfColumnsOut) const
+{
+    numberOfRowsOut    = 1;
+    numberOfColumnsOut = 1;
+    
+    ModelSurfaceMontage* nonConstMSM = const_cast<ModelSurfaceMontage*>(this);
+    std::vector<SurfaceMontageViewport*> surfaceMontageViewports;
+    nonConstMSM->getSurfaceMontageViewportsForDrawing(tabIndex,
+                                                      surfaceMontageViewports);
+    SurfaceMontageViewport::getNumberOfRowsAndColumns(surfaceMontageViewports,
+                                                      numberOfRowsOut,
+                                                      numberOfColumnsOut);
+}
+
+
+/**
  * Get the montage viewports for drawing by OpenGL.  The montage viewports
  * will be updated prior to returning them.   OpenGL will update
  * the viewing dimensions (x, y, width, height) in the returned montage

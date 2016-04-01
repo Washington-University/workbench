@@ -37,12 +37,15 @@
 #include "AnnotationTextFontPointSizeEnum.h"
 #include "AnnotationPercentSizeText.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumMenu.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "ModelSurfaceMontage.h"
 #include "WuQSpecialIncrementDoubleSpinBox.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -104,7 +107,7 @@ m_browserWindowIndex(browserWindowIndex)
      * Combo box for font size
      */
     m_fontSizeSpinBox = new WuQSpecialIncrementDoubleSpinBox(new FontSizeFunctionObject);
-    m_fontSizeSpinBox->setRange(0.0, 100.0);
+    m_fontSizeSpinBox->setRange(0.0, 1000.0);
     m_fontSizeSpinBox->setDecimals(1);
     m_fontSizeSpinBox->setSingleStep(0.1);
     m_fontSizeSpinBox->setSuffix("%");
@@ -274,6 +277,8 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
         float fontSizeValue = 5.0;
         bool haveMultipleFontSizeValues = false;
         
+        const float surfaceMontageRowCount = getSurfaceMontageRowCount();
+        
         const int32_t numAnn = static_cast<int32_t>(m_annotationsFontStyle.size());
         for (int32_t i = 0; i < numAnn; i++) {
             CaretAssertVectorIndex(m_annotationsFontStyle, i);
@@ -284,7 +289,24 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
             CaretAssert(annotation);
             m_annotations.push_back(annotation);
             
-            const float sizeValue = annText->getFontPercentViewportSize();
+            float sizeValue = annText->getFontPercentViewportSize();
+            
+            Annotation* ann = dynamic_cast<Annotation*>(annText);
+            CaretAssert(ann);
+            switch (ann->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    sizeValue /= surfaceMontageRowCount;
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    break;
+                case  AnnotationCoordinateSpaceEnum::WINDOW:
+                    break;
+            }
+            
             if (i == 0) {
                 fontName = annText->getFont();
                 fontSizeValue = sizeValue;
@@ -627,7 +649,8 @@ AnnotationFontWidget::fontSizeChanged()
     
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontPercentSize(fontPercentSize,
-                                        m_annotations);
+                                        m_annotations,
+                                        getSurfaceMontageRowCount());
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
     if ( ! annMan->applyCommand(command,
@@ -648,6 +671,32 @@ AnnotationFontWidget::fontSizeChanged()
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
+}
+
+/**
+ * @return Number of rows in a surface montage.
+ *         If a surface montage is not displayed, one is returned.
+ */
+float
+AnnotationFontWidget::getSurfaceMontageRowCount() const
+{
+    const BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    CaretAssert(bbw);
+    const BrowserTabContent* btc = bbw->getBrowserTabContent();
+    CaretAssert(btc);
+    int32_t surfaceMontageRowCount = 1;
+    
+    if (AnnotationPercentSizeText::isSurfaceSpaceMontageTabSizingEnabled()) {
+        const ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+        if (msm != NULL) {
+            int32_t columnCount = 1;
+            msm->getSurfaceMontageNumberOfRowsAndColumns(btc->getTabNumber(),
+                                                         surfaceMontageRowCount,
+                                                         columnCount);
+        }
+    }
+    
+    return surfaceMontageRowCount;
 }
 
 /**

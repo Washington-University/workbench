@@ -43,7 +43,8 @@ namespace caret {
         
         virtual void setFontPercentViewportSize(const float fontPercentViewportHeight);
         
-
+        static bool isSurfaceSpaceMontageTabSizingEnabled();
+        
         // ADD_NEW_METHODS_HERE
 
     private:

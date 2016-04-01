@@ -60,6 +60,10 @@ namespace caret {
         
         virtual AString getNameForBrowserTab() const;
         
+        void getSurfaceMontageNumberOfRowsAndColumns(const int32_t tabIndex,
+                                                     int32_t& numberOfRowsOut,
+                                                     int32_t& numberOfColumnsOut) const;
+        
         void getSurfaceMontageViewportsForDrawing(const int32_t tabIndex,
                                                   std::vector<SurfaceMontageViewport*>& surfaceMontageViewports);
         

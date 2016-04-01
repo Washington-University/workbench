@@ -128,7 +128,8 @@ namespace caret {
                                    const std::vector<Annotation*>& annotations);
         
         void setModeTextFontPercentSize(const float newFontPercentSize,
-                                        const std::vector<Annotation*>& annotations);
+                                        const std::vector<Annotation*>& annotation,
+                                        const float surfaceSpaceRowCount);
         
         void setModeTextFontUnderline(const bool newStatus,
                                       const std::vector<Annotation*>& annotations);

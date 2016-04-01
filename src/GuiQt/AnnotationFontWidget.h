@@ -78,6 +78,8 @@ namespace caret {
         
         void updateTextColorButton();
         
+        float getSurfaceMontageRowCount() const;
+        
         const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
         
         const int32_t m_browserWindowIndex;

@@ -1833,7 +1833,8 @@ AnnotationRedoUndoCommand::setModeTextFontPointSize(const AnnotationTextFontPoin
  */
 void
 AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercentSize,
-                                                      const std::vector<Annotation*>& annotations)
+                                                      const std::vector<Annotation*>& annotations,
+                                                      const float surfaceSpaceRowCount)
 {
     m_mode        = AnnotationRedoUndoCommandModeEnum::TEXT_FONT_PERCENT_SIZE;
     setDescription("Text Font Percent Size");
@@ -1849,7 +1850,23 @@ AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercent
             Annotation* redoAnnotation = annotation->clone();
             AnnotationFontAttributesInterface* redoAnnotationFontStyle = dynamic_cast<AnnotationFontAttributesInterface*>(redoAnnotation);
             CaretAssert(redoAnnotationFontStyle);
-            redoAnnotationFontStyle->setFontPercentViewportSize(newFontPercentSize);
+            
+            float percentSize = newFontPercentSize;
+            switch (redoAnnotation->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    percentSize *= surfaceSpaceRowCount;
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    break;
+                case  AnnotationCoordinateSpaceEnum::WINDOW:
+                    break;
+            }
+            
+            redoAnnotationFontStyle->setFontPercentViewportSize(percentSize);
             
             Annotation* undoAnnotation = annotation->clone();
             AnnotationMemento* am = new AnnotationMemento(annotation,
