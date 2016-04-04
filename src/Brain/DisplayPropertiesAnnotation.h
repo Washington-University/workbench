@@ -70,6 +70,8 @@ namespace caret {
         
         void resetPrivate();
         
+        void restoreVersionOne(const SceneClass* sceneClass);
+        
         Brain* m_parentBrain;
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];

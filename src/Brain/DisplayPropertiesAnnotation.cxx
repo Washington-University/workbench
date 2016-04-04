@@ -23,11 +23,16 @@
 #include "DisplayPropertiesAnnotation.h"
 #undef __DISPLAY_PROPERTIES_ANNOTATION_DECLARE__
 
+#include "Annotation.h"
+#include "AnnotationManager.h"
 #include "Brain.h"
 #include "CaretLogger.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
+#include "SceneObjectMapIntegerKey.h"
+
 using namespace caret;
 
 
@@ -233,13 +238,8 @@ DisplayPropertiesAnnotation::restoreFromScene(const SceneAttributes* sceneAttrib
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 
-    /*
-     * Default to TAB for version one and earlier scenes
-     */
     if (sceneClass->getVersionNumber() <= 1) {
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            m_displayGroup[i] = DisplayGroupEnum::DISPLAY_GROUP_TAB;
-        }
+        restoreVersionOne(sceneClass);
     }
     
     switch (sceneAttributes->getSceneType()) {
@@ -249,4 +249,157 @@ DisplayPropertiesAnnotation::restoreFromScene(const SceneAttributes* sceneAttrib
             break;
     }
 }
+
+/**
+ * Restore version one that contains a type display for each tab
+ * (before the file->group->annotation hierarchy).
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously
+ *     saved and should be restored.
+ */
+void
+DisplayPropertiesAnnotation::restoreVersionOne(const SceneClass* sceneClass)
+{
+    /*
+     * Version one did not have display groups so default the display group
+     * in each to to "Tab".
+     */
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_displayGroup[i] = DisplayGroupEnum::DISPLAY_GROUP_TAB;
+    }
+    
+    /*
+     * Default version one selections to "on"
+     */
+    bool stereoStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+    bool surfaceStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+    bool tabStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        stereoStatusInTab[i]  = true;
+        surfaceStatusInTab[i] = true;
+        tabStatusInTab[i]     = true;
+    }
+    bool windowStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
+        windowStatusInTab[i] = true;
+    }
+    
+    /*
+     * Look for version one selections in the scene
+     */
+    const SceneObjectMapIntegerKey* stereoAnnDisplay = sceneClass->getMapIntegerKey("m_displayModelAnnotations");
+    if (stereoAnnDisplay != NULL) {
+        const std::vector<int32_t> mapKeys = stereoAnnDisplay->getKeys();
+        for (std::vector<int32_t>::const_iterator keyIter = mapKeys.begin();
+             keyIter != mapKeys.end();
+             keyIter++) {
+            stereoStatusInTab[*keyIter] = stereoAnnDisplay->booleanValue(*keyIter);
+        }
+    }
+    
+    const SceneObjectMapIntegerKey* surfaceAnnDisplay = sceneClass->getMapIntegerKey("m_displaySurfaceAnnotations");
+    if (surfaceAnnDisplay != NULL) {
+        const std::vector<int32_t> mapKeys = surfaceAnnDisplay->getKeys();
+        for (std::vector<int32_t>::const_iterator keyIter = mapKeys.begin();
+             keyIter != mapKeys.end();
+             keyIter++) {
+            surfaceStatusInTab[*keyIter] = stereoAnnDisplay->booleanValue(*keyIter);
+        }
+    }
+    
+    const SceneObjectMapIntegerKey* tabAnnDisplay = sceneClass->getMapIntegerKey("m_displayTabAnnotations");
+    if (tabAnnDisplay != NULL) {
+        const std::vector<int32_t> mapKeys = tabAnnDisplay->getKeys();
+        for (std::vector<int32_t>::const_iterator keyIter = mapKeys.begin();
+             keyIter != mapKeys.end();
+             keyIter++) {
+            tabStatusInTab[*keyIter] = tabAnnDisplay->booleanValue(*keyIter);
+        }
+    }
+    
+    bool windowStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+    const int32_t numWindowStatus = sceneClass->getBooleanArrayValue("m_displayWindowAnnotations",
+                                                                     windowStatus,
+                                                                     BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS);
+    
+    /*
+     * Apply version one selections to the annotations.
+     */
+    std::vector<Annotation*> allAnnotations = m_parentBrain->getAnnotationManager()->getAllAnnotations();
+    for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
+         annIter != allAnnotations.end();
+         annIter++) {
+        Annotation* ann = *annIter;
+        switch (ann->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::PIXELS:
+                CaretAssert(0);
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            if (stereoAnnDisplay != NULL) {
+                for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+                    TriStateSelectionStatusEnum::Enum triStatus = TriStateSelectionStatusEnum::UNSELECTED;
+                    if (stereoStatusInTab[iTab]) {
+                        triStatus = TriStateSelectionStatusEnum::SELECTED;
+                    }
+                    ann->setItemDisplaySelected(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                iTab,
+                                                triStatus);
+                }
+            }
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+            if (surfaceAnnDisplay != NULL) {
+                for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+                    TriStateSelectionStatusEnum::Enum triStatus = TriStateSelectionStatusEnum::UNSELECTED;
+                    if (surfaceStatusInTab[iTab]) {
+                        triStatus = TriStateSelectionStatusEnum::SELECTED;
+                    }
+                    ann->setItemDisplaySelected(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                iTab,
+                                                triStatus);
+                }
+            }
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+            if (tabAnnDisplay != NULL) {
+                const int32_t tabIndex = ann->getTabIndex();
+                if ((tabIndex >= 0)
+                    && (tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+                    TriStateSelectionStatusEnum::Enum triStatus = TriStateSelectionStatusEnum::UNSELECTED;
+                    if (tabStatusInTab[tabIndex]) {
+                        triStatus = TriStateSelectionStatusEnum::SELECTED;
+                    }
+                    ann->setItemDisplaySelected(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                tabIndex,
+                                                triStatus);
+                }
+            }
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+            if (numWindowStatus) {
+                const int32_t windowIndex = ann->getWindowIndex();
+                if ((windowIndex >= 0)
+                    && (windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
+                    TriStateSelectionStatusEnum::Enum triStatus = TriStateSelectionStatusEnum::UNSELECTED;
+                    if (windowStatus[windowIndex]) {
+                        triStatus = TriStateSelectionStatusEnum::SELECTED;
+                    }
+                    /*
+                     * Note: For window annotations, the display group
+                     * and tab are ignored.  Window status is set using
+                     * the window index contained in the annotation.
+                     */
+                    const int32_t tabIndex = 0;
+                    ann->setItemDisplaySelected(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                tabIndex,
+                                                triStatus);
+                }
+            }
+                break;
+        }
+    }
+}
+
+
 
