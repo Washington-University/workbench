@@ -71,6 +71,10 @@ namespace caret {
         
         void insertSceneButtonClicked();
         
+        void moveSceneUpButtonClicked();
+        
+        void moveSceneDownButtonClicked();
+        
         void replaceSceneButtonClicked();
         
         void showSceneButtonClicked();
@@ -112,6 +116,8 @@ namespace caret {
         
         bool checkForModifiedFiles();
         
+        void enableSceneMoveUpAndDownButtons();
+        
         // ADD_NEW_MEMBERS_HERE
 
         QComboBox* m_sceneFileSelectionComboBox;
@@ -121,6 +127,10 @@ namespace caret {
         QPushButton* m_insertNewScenePushButton;
         
         QPushButton* m_deleteScenePushButton;
+        
+        QPushButton* m_moveSceneUpPushButton;
+        
+        QPushButton* m_moveSceneDownPushButton;
         
         QPushButton* m_replaceScenePushButton;
         

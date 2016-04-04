@@ -54,6 +54,8 @@ namespace caret {
 
         void addScene(Scene* scene);
         
+        int32_t getIndexOfScene(const Scene* scene) const;
+        
         void insertScene(Scene* newScene,
                          const Scene* insertAboveThisScene);
         
@@ -62,9 +64,12 @@ namespace caret {
         
         int32_t getNumberOfScenes() const;
         
-        Scene* getSceneAtIndex(const int32_t indx);
+        Scene* getSceneAtIndex(const int32_t indx) const;
         
         Scene* getSceneWithName(const AString& sceneName);
+        
+        void moveScene(Scene* scene,
+                       const int32_t indexDelta);
         
         void removeScene(Scene* scene);
         

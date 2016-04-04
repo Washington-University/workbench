@@ -32,7 +32,6 @@
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QTextEdit>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -345,12 +344,28 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
             validScene = true;
         }
     }
+    
+    enableSceneMoveUpAndDownButtons();
+    
     m_addNewScenePushButton->setEnabled(validFile);
     m_deleteScenePushButton->setEnabled(validScene);
     m_insertNewScenePushButton->setEnabled(validScene);
     m_replaceScenePushButton->setEnabled(validScene);
     m_showScenePushButton->setEnabled(validScene);
     m_showSceneImagePreviewPushButton->setEnabled(validScene);
+}
+
+/**
+ * Enable the move up/down buttons
+ */
+void
+SceneDialog::enableSceneMoveUpAndDownButtons()
+{
+    const int32_t numberOfSceneInfoWidgets = static_cast<int32_t>(m_sceneClassInfoWidgets.size());
+    m_moveSceneUpPushButton->setEnabled(m_selectedSceneClassInfoIndex > 0);
+    m_moveSceneDownPushButton->setEnabled((m_selectedSceneClassInfoIndex >= 0)
+                                          && (m_selectedSceneClassInfoIndex < (numberOfSceneInfoWidgets - 1)));
+    
 }
 
 /**
@@ -382,6 +397,8 @@ SceneDialog::highlightSceneAtIndex(const int32_t sceneIndex)
     if ( ! sceneIndexValid) {
         m_selectedSceneClassInfoIndex = -1;
     }
+    
+    enableSceneMoveUpAndDownButtons();
 }
 
 /**
@@ -487,6 +504,37 @@ SceneDialog::insertSceneButtonClicked()
     }
 }
 
+/**
+ * Move the selected scene up.
+ */
+void
+SceneDialog::moveSceneUpButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile != NULL) {
+        Scene* scene = getSelectedScene();
+        if (scene != NULL) {
+            sceneFile->moveScene(scene, -1);
+            loadScenesIntoDialog(scene);
+        }
+    }
+}
+
+/**
+ * Move the selected scene down.
+ */
+void
+SceneDialog::moveSceneDownButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile != NULL) {
+        Scene* scene = getSelectedScene();
+        if (scene != NULL) {
+            sceneFile->moveScene(scene, 1);
+            loadScenesIntoDialog(scene);
+        }
+    }
+}
 
 /**
  * Called when replace scene button clicked.
@@ -736,6 +784,22 @@ SceneDialog::createMainPage()
                      this, SLOT(deleteSceneButtonClicked()));
     
     /*
+     * Move scene up button
+     */
+    m_moveSceneUpPushButton = new QPushButton("Move Up");
+    m_moveSceneUpPushButton->setToolTip("Move the selected scene up one position");
+    QObject::connect(m_moveSceneUpPushButton, SIGNAL(clicked()),
+                     this, SLOT(moveSceneUpButtonClicked()));
+    
+    /*
+     * Move scene down button
+     */
+    m_moveSceneDownPushButton = new QPushButton("Move Down");
+    m_moveSceneDownPushButton->setToolTip("Move the selected scene down one position");
+    QObject::connect(m_moveSceneDownPushButton, SIGNAL(clicked()),
+                     this, SLOT(moveSceneDownButtonClicked()));
+    
+    /*
      * Insert scene button
      */
     m_insertNewScenePushButton = new QPushButton("Insert...");
@@ -774,11 +838,15 @@ SceneDialog::createMainPage()
     QVBoxLayout* sceneButtonLayout = new QVBoxLayout();
     sceneButtonLayout->addWidget(m_showScenePushButton);
     sceneButtonLayout->addWidget(m_showSceneImagePreviewPushButton);
-    sceneButtonLayout->addSpacing(20);
+//    sceneButtonLayout->addSpacing(20);
     sceneButtonLayout->addStretch();
     sceneButtonLayout->addWidget(m_addNewScenePushButton);
     sceneButtonLayout->addWidget(m_insertNewScenePushButton);
     sceneButtonLayout->addWidget(m_replaceScenePushButton);
+    sceneButtonLayout->addSpacing(20);
+    sceneButtonLayout->addWidget(m_moveSceneUpPushButton);
+    sceneButtonLayout->addWidget(m_moveSceneDownPushButton);
+    sceneButtonLayout->addSpacing(20);
     sceneButtonLayout->addWidget(m_deleteScenePushButton);
 
     /*

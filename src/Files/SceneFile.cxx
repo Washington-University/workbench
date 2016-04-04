@@ -203,10 +203,31 @@ SceneFile::getNumberOfScenes() const
  *     Scene at the given index.
  */
 Scene* 
-SceneFile::getSceneAtIndex(const int32_t indx)
+SceneFile::getSceneAtIndex(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_scenes, indx);
     return m_scenes[indx];
+}
+
+/**
+ * Get the index of the given scene.
+ *
+ * @param scene
+ *     Scene for which index is requested.
+ * @return
+ *     Index of the scene or negative if scene not found.
+ */
+int32_t
+SceneFile::getIndexOfScene(const Scene* scene) const
+{
+    const int32_t numScenes = getNumberOfScenes();
+    for (int32_t i = 0; i < numScenes; i++) {
+        if (scene == getSceneAtIndex(i)) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 /**
@@ -229,7 +250,6 @@ SceneFile::getSceneWithName(const AString& sceneName)
     }
     return NULL;
 }
-
 
 /**
  * Remove the given scene.
@@ -262,6 +282,62 @@ SceneFile::removeSceneAtIndex(const int32_t indx)
     CaretAssertVectorIndex(m_scenes, indx);
     Scene* scene = getSceneAtIndex(indx);
     removeScene(scene);
+}
+
+/**
+ * Move the scene in the file by the given change in index.
+ * 
+ * @param scene
+ *     Scene that is moved.
+ * @param indexDelta
+ *     Change of index of scene in the file.
+ */
+void
+SceneFile::moveScene(Scene* scene,
+                     const int32_t indexDelta)
+{
+    if (indexDelta == 0) {
+        return;
+    }
+    
+    const int32_t numberOfScenes = getNumberOfScenes();
+    if (numberOfScenes == 1) {
+        return;
+    }
+    
+    const int32_t sceneIndex = getIndexOfScene(scene);
+    
+    const int32_t newSceneIndex = sceneIndex + indexDelta;
+    
+    if ((sceneIndex >= 0)
+        && (sceneIndex < numberOfScenes)) {
+        if (newSceneIndex < sceneIndex) {
+            if (newSceneIndex >= 0) {
+                /*
+                 * Remove scene from its index
+                 * insert scene into its new index
+                 */
+                m_scenes.erase(m_scenes.begin() + sceneIndex);
+                m_scenes.insert(m_scenes.begin() + newSceneIndex,
+                                scene);
+                setModified();
+            }
+        }
+        else {
+            CaretAssert(newSceneIndex > sceneIndex);
+            
+            if (newSceneIndex < numberOfScenes) {
+                /*
+                 * Innsert scene into its new index
+                 * Remove scene from its index
+                 */
+                m_scenes.insert(m_scenes.begin() + newSceneIndex + 1,
+                                scene);
+                m_scenes.erase(m_scenes.begin() + sceneIndex);
+                setModified();
+            }
+        }
+    }
 }
 
 /**
