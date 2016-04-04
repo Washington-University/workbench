@@ -387,6 +387,8 @@ SceneDialog::highlightSceneAtIndex(const int32_t sceneIndex)
                 sciw->setBackgroundForSelected(true);
                 sceneIndexValid = true;
                 m_selectedSceneClassInfoIndex = i;
+                
+                m_sceneSelectionScrollArea->ensureWidgetVisible(sciw);
             }
             else {
                 sciw->setBackgroundForSelected(false);
@@ -859,11 +861,11 @@ SceneDialog::createMainPage()
     QVBoxLayout* sceneSelectionWidgetLayout = new QVBoxLayout(m_sceneSelectionWidget);
     sceneSelectionWidgetLayout->addLayout(m_sceneSelectionLayout);
     sceneSelectionWidgetLayout->addStretch();
-    QScrollArea* sceneSelectionScrollArea = new QScrollArea();
-    sceneSelectionScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    sceneSelectionScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    sceneSelectionScrollArea->setWidget(m_sceneSelectionWidget);
-    sceneSelectionScrollArea->setWidgetResizable(true);
+    m_sceneSelectionScrollArea = new QScrollArea();
+    m_sceneSelectionScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_sceneSelectionScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_sceneSelectionScrollArea->setWidget(m_sceneSelectionWidget);
+    m_sceneSelectionScrollArea->setWidgetResizable(true);
     
     /*
      * Layout widgets
@@ -878,7 +880,7 @@ SceneDialog::createMainPage()
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3);
     row++;
     gridLayout->addWidget(sceneLabel, row, 0, (Qt::AlignTop | Qt::AlignRight));
-    gridLayout->addWidget(sceneSelectionScrollArea, row, 1);
+    gridLayout->addWidget(m_sceneSelectionScrollArea, row, 1);
     gridLayout->addLayout(sceneButtonLayout, row, 2);
     row++;
     

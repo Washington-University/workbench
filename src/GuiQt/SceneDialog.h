@@ -30,6 +30,7 @@ class QCheckBox;
 class QComboBox;
 class QLabel;
 class QPushButton;
+class QScrollArea;
 class QVBoxLayout;
 
 namespace caret {
@@ -138,6 +139,8 @@ namespace caret {
         
         QPushButton* m_showSceneImagePreviewPushButton;
         
+        QScrollArea* m_sceneSelectionScrollArea;
+        
         QWidget* m_sceneSelectionWidget;
         
         QVBoxLayout* m_sceneSelectionLayout;
@@ -206,6 +209,7 @@ namespace caret {
         bool m_previewImageValid;
         
         bool m_defaultAutoFillBackgroundStatus;
+        
         QPalette::ColorRole m_defaultBackgroundRole;
         
     };
