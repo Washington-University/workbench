@@ -67,6 +67,9 @@ namespace caret {
         
         virtual void okButtonClicked();
         
+        void adjustTextAnnotationFontHeight(const AnnotationCoordinateSpaceEnum::Enum previousSpace,
+                                            Annotation* annotation);
+        
         const MouseEvent& m_mouseEvent;
         
         AnnotationFile* m_annotationFile;

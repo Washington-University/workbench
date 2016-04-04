@@ -34,14 +34,18 @@
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
+#include "AnnotationPercentSizeText.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "BrainOpenGLWidget.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -408,7 +412,8 @@ AnnotationPasteDialog::okButtonClicked()
     }
     
     CaretPointer<Annotation> newAnnotation(m_annotation->clone());
-
+    const AnnotationCoordinateSpaceEnum::Enum previousSpace = m_annotation->getCoordinateSpace();
+    
     if ( ! m_coordinateSelectionWidget->setCoordinateForNewAnnotation(newAnnotation,
                                                                       errorMessage)) {
         WuQMessageBox::errorOk(this, errorMessage);
@@ -420,6 +425,9 @@ AnnotationPasteDialog::okButtonClicked()
      * annotation file will take ownership of the annotation.
      */
     Annotation* annotationPointer = newAnnotation.releasePointer();
+    
+    adjustTextAnnotationFontHeight(previousSpace,
+                                   annotationPointer);
     
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     
@@ -443,3 +451,53 @@ AnnotationPasteDialog::okButtonClicked()
 
     WuQDialog::okButtonClicked();
 }
+
+/**
+ * If the given annotation is a text annotation and the space is changed to 
+ * surface, we may need to adjust the height if in surface montage.  This 
+ * results in the surface space pixel height being the same as the tab 
+ * space text pixel height when in surface montage.
+ *
+ * @param previousSpace
+ *      Space of annotation that was on the clipboard.
+ * @param annotation
+ *      Annotation that is being pasted.
+ */
+void
+AnnotationPasteDialog::adjustTextAnnotationFontHeight(const AnnotationCoordinateSpaceEnum::Enum previousSpace,
+                                                      Annotation* annotation)
+{
+    CaretAssert(annotation);
+    
+    const BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_mouseEvent.getBrowserWindowIndex());
+    CaretAssert(bbw);
+    const BrowserTabContent* btc = bbw->getBrowserTabContent();
+    CaretAssert(btc);
+    int32_t surfaceMontageRowCount = 1;
+    
+    if (AnnotationPercentSizeText::isSurfaceSpaceMontageTabSizingEnabled()) {
+        const ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+        if (msm != NULL) {
+            int32_t columnCount = 1;
+            msm->getSurfaceMontageNumberOfRowsAndColumns(btc->getTabNumber(),
+                                                         surfaceMontageRowCount,
+                                                         columnCount);
+        }
+    }
+    
+    if (surfaceMontageRowCount > 1) {
+        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+            if ((previousSpace != AnnotationCoordinateSpaceEnum::SURFACE)
+                && (annotation->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE)) {
+                AnnotationPercentSizeText* textAnn = dynamic_cast<AnnotationPercentSizeText*>(annotation);
+                if (textAnn != NULL) {
+                    float percentHeight = textAnn->getFontPercentViewportSize();
+                    percentHeight *= surfaceMontageRowCount;
+                    textAnn->setFontPercentViewportSize(percentHeight);
+                }
+            }
+        }
+    }
+}
+
+
