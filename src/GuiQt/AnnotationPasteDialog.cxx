@@ -458,6 +458,9 @@ AnnotationPasteDialog::okButtonClicked()
  * results in the surface space pixel height being the same as the tab 
  * space text pixel height when in surface montage.
  *
+ * Inverse logic is need when converting text annotation from surface
+ * space to another space.
+ *
  * @param previousSpace
  *      Space of annotation that was on the clipboard.
  * @param annotation
@@ -487,12 +490,31 @@ AnnotationPasteDialog::adjustTextAnnotationFontHeight(const AnnotationCoordinate
     
     if (surfaceMontageRowCount > 1) {
         if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            if ((previousSpace != AnnotationCoordinateSpaceEnum::SURFACE)
-                && (annotation->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE)) {
+            
+            float heightMultiplier = 0.0;
+            
+            if (previousSpace != AnnotationCoordinateSpaceEnum::SURFACE) {
+                if (annotation->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+                    /*
+                     * Converting to surface
+                     */
+                    heightMultiplier = surfaceMontageRowCount;
+                }
+            }
+            else {
+                if (annotation->getCoordinateSpace() != AnnotationCoordinateSpaceEnum::SURFACE) {
+                    /*
+                     * Converting from surface
+                     */
+                    heightMultiplier = 1.0 / surfaceMontageRowCount;
+                }
+            }
+            
+            if (heightMultiplier != 0.0) {
                 AnnotationPercentSizeText* textAnn = dynamic_cast<AnnotationPercentSizeText*>(annotation);
                 if (textAnn != NULL) {
                     float percentHeight = textAnn->getFontPercentViewportSize();
-                    percentHeight *= surfaceMontageRowCount;
+                    percentHeight *= heightMultiplier;
                     textAnn->setFontPercentViewportSize(percentHeight);
                 }
             }
