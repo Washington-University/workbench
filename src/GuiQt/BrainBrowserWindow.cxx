@@ -1670,12 +1670,14 @@ BrainBrowserWindow::processEditMenuAboutToShow()
     UserInputModeAbstract* inputProcessor = inputEvent.getUserInputProcessor();
     AString redoMenuItemSuffix;
     AString undoMenuItemSuffix;
-    AString pasteSpecialTextOut;
+    AString pasteText;
+    AString pasteSpecialText;
     if (inputProcessor != NULL) {
         inputProcessor->getEnabledEditMenuItems(editMenuItemsEnabled,
                                                 redoMenuItemSuffix,
                                                 undoMenuItemSuffix,
-                                                pasteSpecialTextOut);
+                                                pasteText,
+                                                pasteSpecialText);
     }
     
     /*
@@ -1699,13 +1701,35 @@ BrainBrowserWindow::processEditMenuAboutToShow()
                                   editMenuItem) != editMenuItemsEnabled.end()) {
                         action->setEnabled(true);
                         
-                        if (editMenuItem == BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL) {
-                            if (pasteSpecialTextOut.isEmpty()) {
-                                action->setText(BrainBrowserWindowEditMenuItemEnum::toGuiName(editMenuItem));
-                            }
-                            else {
-                                action->setText(pasteSpecialTextOut);
-                            }
+                        switch (editMenuItem) {
+                            case BrainBrowserWindowEditMenuItemEnum::COPY:
+                                break;
+                            case BrainBrowserWindowEditMenuItemEnum::CUT:
+                                break;
+                            case BrainBrowserWindowEditMenuItemEnum::DELETER:
+                                break;
+                            case BrainBrowserWindowEditMenuItemEnum::PASTE:
+                                if (pasteText.isEmpty()) {
+                                    action->setText(BrainBrowserWindowEditMenuItemEnum::toGuiName(editMenuItem));
+                                }
+                                else {
+                                    action->setText(pasteText);
+                                }
+                                break;
+                            case BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL:
+                                if (pasteSpecialText.isEmpty()) {
+                                    action->setText(BrainBrowserWindowEditMenuItemEnum::toGuiName(editMenuItem));
+                                }
+                                else {
+                                    action->setText(pasteSpecialText);
+                                }
+                                break;
+                            case BrainBrowserWindowEditMenuItemEnum::REDO:
+                                break;
+                            case BrainBrowserWindowEditMenuItemEnum::SELECT_ALL:
+                                break;
+                            case BrainBrowserWindowEditMenuItemEnum::UNDO:
+                                break;
                         }
                     }
                 }

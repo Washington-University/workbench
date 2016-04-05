@@ -1810,6 +1810,8 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
  * @param undoMenuItemSuffixTextOut
  *     If the undo menu is enabled, the contents of string becomes
  *     the suffix for the 'Undo' menu item.
+ * @param pasteTextOut
+ *     If not empty, this text is shown for the PASTE menu item
  * @param pasteSpecialTextOut
  *     If not empty, this text is shown for the PASTE_SPECIAL menu item
  */
@@ -1817,11 +1819,16 @@ void
 UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
                                                   AString& redoMenuItemSuffixTextOut,
                                                   AString& undoMenuItemSuffixTextOut,
+                                                  AString& pasteTextOut,
                                                   AString& pasteSpecialTextOut)
 {
     enabledEditMenuItemsOut.clear();
     redoMenuItemSuffixTextOut = "";
     undoMenuItemSuffixTextOut = "";
+    
+    pasteTextOut        = BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::PASTE);
+    pasteSpecialTextOut = BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL);
+    
     
     if (isEditMenuValid()) {
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
@@ -1857,9 +1864,14 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
         }
         
         if (annotationManager->isAnnotationOnClipboardValid()) {
+            const Annotation* clipBoardAnn = annotationManager->getAnnotationOnClipboard();
+            CaretAssert(clipBoardAnn);
+
             enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::PASTE);
             enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL);
-            pasteSpecialTextOut = s_pasteSpecialMenuItemText;
+            
+            clipBoardAnn->getTextForPasteMenuItems(pasteTextOut,
+                                                   pasteSpecialTextOut);
         }
         
         CaretUndoStack* undoStack = annotationManager->getCommandRedoUndoStack();

@@ -119,6 +119,7 @@ namespace caret {
         virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
                                              AString& redoMenuItemSuffixTextOut,
                                              AString& undoMenuItemSuffixTextOut,
+                                             AString& pasteTextOut,
                                              AString& pasteSpecialTextOut);
         
         // ADD_NEW_METHODS_HERE
@@ -233,7 +234,7 @@ namespace caret {
         
         bool m_allowMultipleSelectionModeFlag;
         
-        static const AString s_pasteSpecialMenuItemText;
+        //static const AString s_pasteSpecialMenuItemText;
         // ADD_NEW_MEMBERS_HERE
 
         /*
@@ -244,7 +245,7 @@ namespace caret {
     };
     
 #ifdef __USER_INPUT_MODE_ANNOTATIONS_DECLARE__
-    const AString UserInputModeAnnotations::s_pasteSpecialMenuItemText = "Paste and Change Space";
+    //const AString UserInputModeAnnotations::s_pasteSpecialMenuItemText = "Paste and Change Space";
 #endif // __USER_INPUT_MODE_ANNOTATIONS_DECLARE__
 
 } // namespace

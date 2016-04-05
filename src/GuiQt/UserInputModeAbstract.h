@@ -220,6 +220,7 @@ namespace caret {
         virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
                                              AString& redoMenuItemSuffixTextOut,
                                              AString& undoMenuItemSuffixTextOut,
+                                             AString& pasteTextOut,
                                              AString& pasteSpecialTextOut);
         
         const MouseEvent* getMousePosition() const;

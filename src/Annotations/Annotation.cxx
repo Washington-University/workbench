@@ -535,6 +535,55 @@ Annotation::getShortDescriptiveString() const
     return s;
 }
 
+/**
+ * Get text displayed in the Paste Menu Items
+ *
+ * @param pasteMenuItemText
+ *     Text for paste menu item.
+ * @param pasteSpecialMenuItemText
+ *     Text for paste special menu item.
+ */
+void
+Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
+                                AString& pasteSpecialMenuItemText) const
+{
+    AString typeName = AnnotationTypeEnum::toGuiName(m_type);
+    switch (m_type) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::TEXT:
+        {
+            const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(this);
+            CaretAssertMessage(textAnn,
+                               "If this fails, it may be due to this method being called from a constructor "
+                               "and the subclass constructor has not yet executed.");
+            typeName = ("\""
+                        + textAnn->getText()
+                        + "\"");
+        }
+            break;
+    }
+    
+    const AString spaceName = AnnotationCoordinateSpaceEnum::toGuiName(m_coordinateSpace);
+    
+    pasteMenuItemText = ("Paste "
+                         + typeName
+                         + " in "
+                         + spaceName
+                         + " Space");
+    
+    pasteSpecialMenuItemText = ("Paste "
+                                + typeName
+                                + " and Change Space");
+}
 
 /**
  * @return The coordinate space.

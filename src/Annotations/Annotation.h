@@ -66,6 +66,9 @@ namespace caret {
         
         QString getShortDescriptiveString() const;
         
+        void getTextForPasteMenuItems(AString& pasteMenuItemText,
+                                      AString& pasteSpecialMenuItemText) const;
+        
         AnnotationTypeEnum::Enum getType() const ;
         
         AnnotationCoordinateSpaceEnum::Enum getCoordinateSpace() const;

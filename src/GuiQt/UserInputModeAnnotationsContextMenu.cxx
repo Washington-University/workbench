@@ -109,6 +109,17 @@ m_newAnnotationCreatedByContextMenu(NULL)
         m_textAnnotation = dynamic_cast<AnnotationText*>(m_annotation);
     }
     
+    std::vector<BrainBrowserWindowEditMenuItemEnum::Enum> editMenuItemsEnabled;
+    AString redoMenuItemSuffix;
+    AString undoMenuItemSuffix;
+    AString pasteText;
+    AString pasteSpecialText;
+    userInputModeAnnotations->getEnabledEditMenuItems(editMenuItemsEnabled,
+                                                      redoMenuItemSuffix,
+                                                      undoMenuItemSuffix,
+                                                      pasteText,
+                                                      pasteSpecialText);
+    
     /*
      * Cut
      */
@@ -133,14 +144,14 @@ m_newAnnotationCreatedByContextMenu(NULL)
     /*
      * Paste
      */
-    QAction* pasteAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::PASTE),
+    QAction* pasteAction = addAction(pasteText,
                                      this, SLOT(pasteAnnotationFromAnnotationClipboard()));
     pasteAction->setEnabled(annotationManager->isAnnotationOnClipboardValid());
 
     /*
      * Paste Special
      */
-    QAction* pasteSpecialAction = addAction(UserInputModeAnnotations::s_pasteSpecialMenuItemText,
+    QAction* pasteSpecialAction = addAction(pasteSpecialText,
                                            this, SLOT(pasteSpecialAnnotationFromAnnotationClipboard()));
     pasteSpecialAction->setEnabled(annotationManager->isAnnotationOnClipboardValid());
 
