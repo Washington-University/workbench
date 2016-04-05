@@ -1011,7 +1011,7 @@ BrainOpenGLPrimitiveDrawing::drawRectangleOutline(const float bottomLeft[3],
         float tli[3];
         createRectangle(center,
                         leftToRightUnitVector, bottomToTopUnitVector,
-                        width - halfThickness, height - halfThickness,
+                        width - halfThickness*2, height - halfThickness*2,
                         bli, bri, tri, tli);
         
         coords.insert(coords.end(),
@@ -1044,7 +1044,7 @@ BrainOpenGLPrimitiveDrawing::drawRectangleOutline(const float bottomLeft[3],
         float tlo[3];
         createRectangle(center,
                         leftToRightUnitVector, bottomToTopUnitVector,
-                        width + halfThickness, height + halfThickness,
+                        width + halfThickness*2, height + halfThickness*2,
                         blo, bro, tro, tlo);
         
         coords.insert(coords.end(),
@@ -1102,9 +1102,28 @@ BrainOpenGLPrimitiveDrawing::drawRectangleOutline(const float bottomLeft[3],
     indices.push_back(7);
     indices.push_back(0);
     indices.push_back(4);
+
+    const bool enableAntiAliasingFlag = false;
+    if (enableAntiAliasingFlag) {
+        glPushAttrib(GL_COLOR_BUFFER_BIT
+                     | GL_HINT_BIT
+                     | GL_POLYGON_BIT);
+        
+        glBlendFunc (GL_SRC_ALPHA_SATURATE, GL_ONE);
+        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        
+        glHint(GL_POLYGON_SMOOTH_HINT,
+               GL_NICEST);
+        glEnable(GL_POLYGON_SMOOTH);
+    }
     
     drawQuadStrips(coords,
                    normals,
                    rgbaBytes,
                    indices);
+    
+    if (enableAntiAliasingFlag) {
+        glPopAttrib();
+    }
 }

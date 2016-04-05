@@ -49,6 +49,7 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
+#include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
@@ -1218,15 +1219,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
             }
             
             if (drawForegroundFlag) {
-                const bool useNewRectangleCodeFlag = false;
-                if (useNewRectangleCodeFlag) {
+                const bool drawOutlineWithPolygonsFlag = true;
+                if (drawOutlineWithPolygonsFlag) {
                     BrainOpenGLPrimitiveDrawing::drawRectangleOutline(bottomLeft, bottomRight, topRight, topLeft,
                                                                       outlineWidth,
                                                                       foregroundRGBA);
                 }
                 else {
+                    const float tempRGBA[4] = { 1.0, 1.0, 0.0, 1.0 };
                     BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                              foregroundRGBA,
+                                                              tempRGBA, //foregroundRGBA,
                                                               outlineWidth);
                 }
             }
