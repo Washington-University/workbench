@@ -304,7 +304,7 @@ DisplayPropertiesAnnotation::restoreVersionOne(const SceneClass* sceneClass)
         for (std::vector<int32_t>::const_iterator keyIter = mapKeys.begin();
              keyIter != mapKeys.end();
              keyIter++) {
-            surfaceStatusInTab[*keyIter] = stereoAnnDisplay->booleanValue(*keyIter);
+            surfaceStatusInTab[*keyIter] = surfaceAnnDisplay->booleanValue(*keyIter);
         }
     }
     
