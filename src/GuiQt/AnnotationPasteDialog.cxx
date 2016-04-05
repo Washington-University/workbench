@@ -38,6 +38,7 @@
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -472,12 +473,12 @@ AnnotationPasteDialog::adjustTextAnnotationFontHeight(const AnnotationCoordinate
 {
     CaretAssert(annotation);
     
-    const BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_mouseEvent.getBrowserWindowIndex());
-    CaretAssert(bbw);
-    const BrowserTabContent* btc = bbw->getBrowserTabContent();
+    BrainOpenGLViewportContent* vpContent = m_mouseEvent.getViewportContent();
+    CaretAssert(vpContent);
+    BrowserTabContent* btc = vpContent->getBrowserTabContent();
     CaretAssert(btc);
-    int32_t surfaceMontageRowCount = 1;
     
+    int32_t surfaceMontageRowCount = 1;
     if (AnnotationPercentSizeText::isSurfaceSpaceMontageTabSizingEnabled()) {
         const ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
         if (msm != NULL) {
