@@ -6828,6 +6828,11 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
     
 
     /*
+     * Clear modification status of scene annotations
+     */
+    m_sceneAnnotationFile->clearModified();
+    
+    /*
      * Save all models
      */
     std::vector<SceneClass*> modelClassVector;

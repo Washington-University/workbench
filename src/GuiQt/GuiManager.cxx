@@ -645,10 +645,11 @@ GuiManager::exitProgram(QWidget* parent)
     /*
      * Are there scene annotations ?
      */
-    const bool haveSceneAnnotationsFlag = ( ! getBrain()->getSceneAnnotationFile()->isEmpty());
+    const CaretDataFile* sceneAnnotationFile = getBrain()->getSceneAnnotationFile();
+    const bool sceneAnnotationsModifiedFlag = sceneAnnotationFile->isModified();
     
     if ((modFileCount > 0)
-        || haveSceneAnnotationsFlag) {
+        || sceneAnnotationsModifiedFlag) {
         /*
          * Display dialog allowing user to save files (goes to Save/Manage
          * Files dialog), exit without saving, or cancel.
@@ -667,8 +668,8 @@ GuiManager::exitProgram(QWidget* parent)
             }
         }
         
-        if (haveSceneAnnotationsFlag) {
-            infoTextMsg.appendWithNewLine("There are scene annotations but a scene has not been saved.");
+        if (sceneAnnotationsModifiedFlag) {
+            infoTextMsg.appendWithNewLine("   Scene annotations are modified.");
         }
         
         infoTextMsg.appendWithNewLine("");
