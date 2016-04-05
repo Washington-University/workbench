@@ -23,13 +23,13 @@
 #include "BrainOpenGLPrimitiveDrawing.h"
 #undef __BRAIN_OPEN_G_L_PRIMITIVE_DRAWING_DECLARE__
 
+#include "AString.h"
 #include "BrainOpenGL.h"
 #include "CaretOpenGLInclude.h"
-
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MathFunctions.h"
 
-#include "AString.h"
 
 using namespace caret;
 
@@ -926,4 +926,185 @@ BrainOpenGLPrimitiveDrawing::drawPrimitiveWithVertexArrays(GLenum mode,
     }
 }
 
+static void
+createRectangle(const float center[3],
+                const float leftToRightUnitVector[3],
+                const float bottomToTopUnitVector[3],
+                const float width,
+                const float height,
+                float bottomLeftOut[3],
+                float bottomRightOut[3],
+                float topRightOut[3],
+                float topLeftOut[3]) {
+    
+    const float halfWidth = width / 2.0;
+    const float halfHeight = height / 2.0;
 
+    for (int32_t i = 0; i < 3; i++) {
+        bottomLeftOut[i] = (center[i]
+                            - (bottomToTopUnitVector[i] * halfHeight)
+                            - (leftToRightUnitVector[i] * halfWidth));
+        bottomRightOut[i] = (center[i]
+                            - (bottomToTopUnitVector[i] * halfHeight)
+                            + (leftToRightUnitVector[i] * halfWidth));
+        topRightOut[i] = (center[i]
+                            + (bottomToTopUnitVector[i] * halfHeight)
+                            + (leftToRightUnitVector[i] * halfWidth));
+        topLeftOut[i] = (center[i]
+                            + (bottomToTopUnitVector[i] * halfHeight)
+                            - (leftToRightUnitVector[i] * halfWidth));
+    }
+}
+
+/**
+ * Draw a outlined rectangle.
+ *
+ * @param bottomLeft
+ *     Bottom left corner.
+ * @param bottomRight
+ *     Bottom right corner.
+ * @param topRight
+ *     Top right corner.
+ * @param topLeft
+ *     Top left corner.
+ * @param lineThickness
+ *     Thickness of outline.
+ * @param rgba
+ *     RGBA colors (4 elements) ranging [0.0, 1.0] that is used for drawing all of the lines.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawRectangleOutline(const float bottomLeft[3],
+                                                  const float bottomRight[3],
+                                                  const float topRight[3],
+                                                  const float topLeft[3],
+                                                  const float lineThickness,
+                                                  const float rgba[4])
+{
+    float leftToRightUnitVector[3];
+    MathFunctions::createUnitVector(bottomLeft, bottomRight, leftToRightUnitVector);
+    const float width = MathFunctions::distance3D(bottomLeft, bottomRight);
+    
+    float bottomToTopUnitVector[3];
+    MathFunctions::createUnitVector(bottomLeft, topLeft, bottomToTopUnitVector);
+    const float height = MathFunctions::distance3D(bottomLeft, topLeft);
+    
+    const float center[3] = {
+        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
+        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
+        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
+    };
+    
+    float normalVector[3];
+    MathFunctions::normalVector(topLeft, bottomLeft, bottomRight, normalVector);
+    
+    const float halfThickness = std::min(lineThickness / 2.0f,
+                                         std::min(width / 2.0f,
+                                                  height / 2.0f));
+    
+    std::vector<float> coords;
+    coords.reserve(8*3);
+    
+    {
+        float bli[3];
+        float bri[3];
+        float tri[3];
+        float tli[3];
+        createRectangle(center,
+                        leftToRightUnitVector, bottomToTopUnitVector,
+                        width - halfThickness, height - halfThickness,
+                        bli, bri, tri, tli);
+        
+        coords.insert(coords.end(),
+                               bli, bli + 3);
+        coords.insert(coords.end(),
+                               bri, bri + 3);
+        coords.insert(coords.end(),
+                               tri, tri + 3);
+        coords.insert(coords.end(),
+                               tli, tli + 3);
+        
+        
+        
+//        std::vector<float> innerRectCoords;
+//        innerRectCoords.insert(innerRectCoords.end(),
+//                               bli, bli + 3);
+//        innerRectCoords.insert(innerRectCoords.end(),
+//                               bri, bri + 3);
+//        innerRectCoords.insert(innerRectCoords.end(),
+//                               tri, tri + 3);
+//        innerRectCoords.insert(innerRectCoords.end(),
+//                               tli, tli + 3);
+//        drawLineLoop(innerRectCoords, rgba, 1);
+    }
+    
+    {
+        float blo[3];
+        float bro[3];
+        float tro[3];
+        float tlo[3];
+        createRectangle(center,
+                        leftToRightUnitVector, bottomToTopUnitVector,
+                        width + halfThickness, height + halfThickness,
+                        blo, bro, tro, tlo);
+        
+        coords.insert(coords.end(),
+                               blo, blo + 3);
+        coords.insert(coords.end(),
+                               bro, bro + 3);
+        coords.insert(coords.end(),
+                               tro, tro + 3);
+        coords.insert(coords.end(),
+                               tlo, tlo + 3);
+//        std::vector<float> outerRectCoords;
+//        outerRectCoords.insert(outerRectCoords.end(),
+//                               blo, blo + 3);
+//        outerRectCoords.insert(outerRectCoords.end(),
+//                               bro, bro + 3);
+//        outerRectCoords.insert(outerRectCoords.end(),
+//                               tro, tro + 3);
+//        outerRectCoords.insert(outerRectCoords.end(),
+//                               tlo, tlo + 3);
+//        drawLineLoop(outerRectCoords, rgba, 1);
+    }
+    
+    const int32_t numCoords = static_cast<int32_t>(coords.size() / 3);
+    
+    std::vector<float> normals;
+    normals.reserve(numCoords*3);
+    std::vector<uint8_t> rgbaBytes;
+    rgbaBytes.reserve(numCoords*4);
+    
+    const uint8_t colorBytes[4] = {
+        static_cast<uint8_t>(rgba[0] * 255.0),
+        static_cast<uint8_t>(rgba[1] * 255.0),
+        static_cast<uint8_t>(rgba[2] * 255.0),
+        static_cast<uint8_t>(rgba[3] * 255.0)
+    };
+    
+    for (int32_t i = 0; i < numCoords; i++) {
+        normals.insert(normals.end(),
+                       normalVector, normalVector + 3);
+        rgbaBytes.insert(rgbaBytes.end(),
+                         colorBytes, colorBytes + 4);
+    }
+    
+    CaretAssert(coords.size() == normals.size());
+    CaretAssert(coords.size() == ((rgbaBytes.size() / 4) * 3));
+    
+    std::vector<uint32_t> indices;
+    indices.push_back(0);
+    indices.push_back(4);
+    indices.push_back(1);
+    indices.push_back(5);
+    indices.push_back(2);
+    indices.push_back(6);
+    indices.push_back(3);
+    indices.push_back(7);
+    indices.push_back(0);
+    indices.push_back(4);
+    
+    drawQuadStrips(coords,
+                   normals,
+                   rgbaBytes,
+                   indices);
+}

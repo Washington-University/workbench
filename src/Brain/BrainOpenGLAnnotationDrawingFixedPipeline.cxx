@@ -1218,9 +1218,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
             }
             
             if (drawForegroundFlag) {
-                BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                          foregroundRGBA,
-                                                          outlineWidth);
+                const bool useNewRectangleCodeFlag = false;
+                if (useNewRectangleCodeFlag) {
+                    BrainOpenGLPrimitiveDrawing::drawRectangleOutline(bottomLeft, bottomRight, topRight, topLeft,
+                                                                      outlineWidth,
+                                                                      foregroundRGBA);
+                }
+                else {
+                    BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
+                                                              foregroundRGBA,
+                                                              outlineWidth);
+                }
             }
         }
         if (box->isSelectedForEditing(m_inputs->m_windowIndex)) {

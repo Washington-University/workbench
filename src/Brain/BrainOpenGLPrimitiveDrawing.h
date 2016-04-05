@@ -82,6 +82,13 @@ namespace caret {
                                 const std::vector<float>& normals,
                                 const uint8_t rgba[4]);
         
+        static void drawRectangleOutline(const float bottomLeft[3],
+                                         const float bottomRight[3],
+                                         const float topRight[3],
+                                         const float topLeft[3],
+                                         const float lineThickness,
+                                         const float rgba[4]);
+        
     private:
         BrainOpenGLPrimitiveDrawing();
         
