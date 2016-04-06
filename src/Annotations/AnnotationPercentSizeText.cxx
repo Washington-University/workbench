@@ -117,18 +117,3 @@ AnnotationPercentSizeText::setFontPercentViewportSize(const float fontPercentVie
     setFontPercentViewportSizeProtected(fontPercentViewportHeight);
 }
 
-/**
- * @return Is surface space montage tab sizing enabled?
- *
- * When enabled, surface annotation percentage size uses the
- * viewport height of the tab (rather than viewport height
- * of the surface).
- */
-bool
-AnnotationPercentSizeText::isSurfaceSpaceMontageTabSizingEnabled()
-{
-    return true;
-}
-
-
-

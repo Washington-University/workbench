@@ -479,14 +479,12 @@ AnnotationPasteDialog::adjustTextAnnotationFontHeight(const AnnotationCoordinate
     CaretAssert(btc);
     
     int32_t surfaceMontageRowCount = 1;
-    if (AnnotationPercentSizeText::isSurfaceSpaceMontageTabSizingEnabled()) {
-        const ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
-        if (msm != NULL) {
-            int32_t columnCount = 1;
-            msm->getSurfaceMontageNumberOfRowsAndColumns(btc->getTabNumber(),
-                                                         surfaceMontageRowCount,
-                                                         columnCount);
-        }
+    const ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+    if (msm != NULL) {
+        int32_t columnCount = 1;
+        msm->getSurfaceMontageNumberOfRowsAndColumns(btc->getTabNumber(),
+                                                     surfaceMontageRowCount,
+                                                     columnCount);
     }
     
     const AnnotationCoordinateSpaceEnum::Enum newSpace = annotation->getCoordinateSpace();

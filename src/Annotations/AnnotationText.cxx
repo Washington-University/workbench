@@ -807,11 +807,10 @@ AnnotationText::setFontPercentViewportSizeProtected(const float fontPercentViewp
     else if (fontPercentViewportHeight > 100.0) {
         /*
          * With surface montage tab sizing, percentage may exceed 100.0
+         * SO NOTHING TO DO
          */
-        if ( ! AnnotationPercentSizeText::isSurfaceSpaceMontageTabSizingEnabled()) {
-            validPercentSizeFlag = false;
-        }
     }
+    
     if ( ! validPercentSizeFlag) {
         const QString msg("Percent viewport height should range [0.0, 100.0] but value is "
                           + QString::number(fontPercentViewportHeight));
