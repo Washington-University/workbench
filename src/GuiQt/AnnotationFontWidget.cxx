@@ -297,6 +297,7 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
                 case AnnotationCoordinateSpaceEnum::PIXELS:
                     break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    sizeValue /= surfaceMontageRowCount;
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
                     sizeValue /= surfaceMontageRowCount;

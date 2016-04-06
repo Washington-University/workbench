@@ -489,13 +489,19 @@ AnnotationPasteDialog::adjustTextAnnotationFontHeight(const AnnotationCoordinate
         }
     }
     
+    const AnnotationCoordinateSpaceEnum::Enum newSpace = annotation->getCoordinateSpace();
+    
+    const bool previousSpaceStereoOrSurfaceFlag = ((previousSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC)
+                                                   || (previousSpace == AnnotationCoordinateSpaceEnum::SURFACE));
+    const bool newSpaceStereoOrSurfaceFlag = ((newSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC)
+                                                   || (newSpace == AnnotationCoordinateSpaceEnum::SURFACE));
     if (surfaceMontageRowCount > 1) {
         if (annotation->getType() == AnnotationTypeEnum::TEXT) {
             
             float heightMultiplier = 0.0;
             
-            if (previousSpace != AnnotationCoordinateSpaceEnum::SURFACE) {
-                if (annotation->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+            if ( ! previousSpaceStereoOrSurfaceFlag) {
+                if (newSpaceStereoOrSurfaceFlag) {
                     /*
                      * Converting to surface
                      */
@@ -503,13 +509,30 @@ AnnotationPasteDialog::adjustTextAnnotationFontHeight(const AnnotationCoordinate
                 }
             }
             else {
-                if (annotation->getCoordinateSpace() != AnnotationCoordinateSpaceEnum::SURFACE) {
+                if ( ! newSpaceStereoOrSurfaceFlag) {
                     /*
                      * Converting from surface
                      */
                     heightMultiplier = 1.0 / surfaceMontageRowCount;
                 }
             }
+
+//            if (previousSpace != AnnotationCoordinateSpaceEnum::SURFACE) {
+//                if (annotation->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+//                    /*
+//                     * Converting to surface
+//                     */
+//                    heightMultiplier = surfaceMontageRowCount;
+//                }
+//            }
+//            else {
+//                if (annotation->getCoordinateSpace() != AnnotationCoordinateSpaceEnum::SURFACE) {
+//                    /*
+//                     * Converting from surface
+//                     */
+//                    heightMultiplier = 1.0 / surfaceMontageRowCount;
+//                }
+//            }
             
             if (heightMultiplier != 0.0) {
                 AnnotationPercentSizeText* textAnn = dynamic_cast<AnnotationPercentSizeText*>(annotation);

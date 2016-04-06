@@ -266,6 +266,7 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                 case AnnotationCoordinateSpaceEnum::PIXELS:
                     break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    adjustTextPctSizeFlag = true;
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
                     adjustTextPctSizeFlag = true;

@@ -1856,6 +1856,7 @@ AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercent
                 case AnnotationCoordinateSpaceEnum::PIXELS:
                     break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    percentSize *= surfaceSpaceRowCount;
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
                     percentSize *= surfaceSpaceRowCount;
