@@ -711,7 +711,7 @@ GuiManager::exitProgram(QWidget* parent)
         }
     }
     else {
-        const AString textMsg("Exit Workbench");
+        const AString textMsg("Exit Workbench?");
 
         QMessageBox quitDialog(QMessageBox::Warning,
                                "Exit Workbench",
