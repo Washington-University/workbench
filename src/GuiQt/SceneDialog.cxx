@@ -480,6 +480,10 @@ SceneDialog::addNewSceneButtonClicked()
     if (sceneFile != NULL) {
         Scene* newScene = SceneCreateReplaceDialog::createNewScene(m_addNewScenePushButton,
                                                                    sceneFile);
+        if (newScene != NULL) {
+            s_informUserAboutScenesOnExitFlag = false;
+        }
+        
         loadScenesIntoDialog(newScene);
     }
 }
@@ -501,6 +505,10 @@ SceneDialog::insertSceneButtonClicked()
             Scene* newScene = SceneCreateReplaceDialog::createNewSceneInsertBeforeScene(m_insertNewScenePushButton,
                                                                                        sceneFile,
                                                                                        scene);
+            if (newScene != NULL) {
+                s_informUserAboutScenesOnExitFlag = false;
+            }
+            
             loadScenesIntoDialog(newScene);
         }
     }
@@ -555,6 +563,10 @@ SceneDialog::replaceSceneButtonClicked()
             Scene* newScene = SceneCreateReplaceDialog::replaceExistingScene(m_addNewScenePushButton,
                                                                              sceneFile,
                                                                              scene);
+            if (newScene != NULL) {
+                s_informUserAboutScenesOnExitFlag = false;
+            }
+            
             loadScenesIntoDialog(newScene);
         }
     }
@@ -1299,6 +1311,17 @@ SceneDialog::receiveEvent(Event* event)
         loadSceneFileComboBox(lastSceneFileRead);
         loadScenesIntoDialog(NULL);
     }
+}
+
+/**
+ * @return True if user should be informed about
+ * creating scenes when exiting wb_view (user
+ * never created a scene).
+ */
+bool
+SceneDialog::isInformUserAboutScenesOnExit()
+{
+    return s_informUserAboutScenesOnExitFlag;
 }
 
 

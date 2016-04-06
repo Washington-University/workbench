@@ -56,6 +56,8 @@ namespace caret {
         bool displayScene(SceneFile* sceneFile,
                           Scene* scene);
         
+        static bool isInformUserAboutScenesOnExit();
+
     private:
         SceneDialog(const SceneDialog&);
 
@@ -150,6 +152,8 @@ namespace caret {
         int32_t m_selectedSceneClassInfoIndex;
         
         static const AString PREFERRED_IMAGE_FORMAT;
+        
+        static bool s_informUserAboutScenesOnExitFlag;
     };
     
     class SceneClassInfoWidget : public QGroupBox {
@@ -215,6 +219,7 @@ namespace caret {
     };
 #ifdef __SCENE_DIALOG_DECLARE__
     const AString SceneDialog::PREFERRED_IMAGE_FORMAT = "jpg";
+    bool SceneDialog::s_informUserAboutScenesOnExitFlag = true;
 #endif // __SCENE_DIALOG_DECLARE__
 
 } // namespace

@@ -711,31 +711,33 @@ GuiManager::exitProgram(QWidget* parent)
         }
     }
     else {
-        const AString textMsg("Exiting Workbench");
-        const AString infoTextMsg("<html>Would you like to save your Workbench windows in scene file "
-                                  "so you can easily pick up where you left off?"
-                                  "<p>"
-                                  "Click the <B>Show Details</B> button for "
-                                  "more information.</html>");
-        const AString detailTextMsg("Scenes allow one to regenerate exactly what is displayed in "
-                                    "Workbench.  This can be useful in these and other situations:"
-                                    "\n\n"
-                                    " * During manuscript preparation to restore Workbench to match "
-                                    "a previously generated figure (image capture)."
-                                    "\n\n"
-                                    " * When returning to this dataset for further analysis."
-                                    "\n\n"
-                                    " * When sharing data sets with others to provide a particular "
-                                    "view of a surface/volume with desired data (overlay and feature) "
-                                    "selections.");
+        const AString textMsg("Exit Workbench");
 
         QMessageBox quitDialog(QMessageBox::Warning,
                                "Exit Workbench",
                                textMsg,
                                QMessageBox::NoButton,
                                parent);
-        quitDialog.setInformativeText(infoTextMsg);
-        quitDialog.setDetailedText(detailTextMsg);
+        if (SceneDialog::isInformUserAboutScenesOnExit()) {
+            const AString infoTextMsg("<html>Would you like to save your Workbench windows in scene file "
+                                      "so you can easily pick up where you left off?"
+                                      "<p>"
+                                      "Click the <B>Show Details</B> button for "
+                                      "more information.</html>");
+            const AString detailTextMsg("Scenes allow one to regenerate exactly what is displayed in "
+                                        "Workbench.  This can be useful in these and other situations:"
+                                        "\n\n"
+                                        " * During manuscript preparation to restore Workbench to match "
+                                        "a previously generated figure (image capture)."
+                                        "\n\n"
+                                        " * When returning to this dataset for further analysis."
+                                        "\n\n"
+                                        " * When sharing data sets with others to provide a particular "
+                                        "view of a surface/volume with desired data (overlay and feature) "
+                                        "selections.");
+            quitDialog.setInformativeText(infoTextMsg);
+            quitDialog.setDetailedText(detailTextMsg);
+        }
         
         QPushButton* exitButton = quitDialog.addButton("Exit",
                                                        QMessageBox::AcceptRole);
