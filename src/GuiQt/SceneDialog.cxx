@@ -32,6 +32,7 @@
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -388,7 +389,12 @@ SceneDialog::highlightSceneAtIndex(const int32_t sceneIndex)
                 sceneIndexValid = true;
                 m_selectedSceneClassInfoIndex = i;
                 
-                m_sceneSelectionScrollArea->ensureWidgetVisible(sciw);
+                const int xMargin = 0;
+                const int yMargin = 50;
+                m_sceneSelectionScrollArea->ensureWidgetVisible(sciw,
+                                                                xMargin,
+                                                                yMargin);
+                m_sceneSelectionScrollArea->horizontalScrollBar()->setSliderPosition(0);
             }
             else {
                 sciw->setBackgroundForSelected(false);
@@ -852,7 +858,6 @@ SceneDialog::createMainPage()
     QVBoxLayout* sceneButtonLayout = new QVBoxLayout();
     sceneButtonLayout->addWidget(m_showScenePushButton);
     sceneButtonLayout->addWidget(m_showSceneImagePreviewPushButton);
-//    sceneButtonLayout->addSpacing(20);
     sceneButtonLayout->addStretch();
     sceneButtonLayout->addWidget(m_addNewScenePushButton);
     sceneButtonLayout->addWidget(m_insertNewScenePushButton);
@@ -874,7 +879,7 @@ SceneDialog::createMainPage()
     sceneSelectionWidgetLayout->addLayout(m_sceneSelectionLayout);
     sceneSelectionWidgetLayout->addStretch();
     m_sceneSelectionScrollArea = new QScrollArea();
-    m_sceneSelectionScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_sceneSelectionScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_sceneSelectionScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_sceneSelectionScrollArea->setWidget(m_sceneSelectionWidget);
     m_sceneSelectionScrollArea->setWidgetResizable(true);
@@ -1310,6 +1315,7 @@ SceneDialog::receiveEvent(Event* event)
     if (lastSceneFileRead != NULL) {
         loadSceneFileComboBox(lastSceneFileRead);
         loadScenesIntoDialog(NULL);
+        highlightSceneAtIndex(0);
     }
 }
 
