@@ -178,14 +178,14 @@ AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(const MouseEvent& m
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     if (annotationManager->isAnnotationOnClipboardValid()) {
         AnnotationFile* annotationFile = annotationManager->getAnnotationFileOnClipboard();
-        Annotation* annotation = annotationManager->getAnnotationOnClipboard()->clone();
+        //Annotation* annotation = annotationManager->getAnnotationOnClipboard()->clone();
         
         AString message("Choose one of the coordinate "
                         "spaces below to paste the annotation or press Cancel to cancel pasting "
                         "of the annotation.");
         AnnotationPasteDialog pasteDialog(mouseEvent,
                                           annotationFile,
-                                          annotation,
+                                          annotationManager->getAnnotationOnClipboard(), //annotation,
                                           message,
                                           mouseEvent.getOpenGLWidget());
         if (pasteDialog.exec() == AnnotationPasteDialog::Accepted) {
