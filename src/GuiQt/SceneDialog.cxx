@@ -114,8 +114,6 @@ SceneDialog::SceneDialog(QWidget* parent)
      */
     disableAutoDefaultForAllPushButtons();
     
-//    setDialogSizeHint(650,
-//                      500);
     setSaveWindowPositionForNextTime(true);
     
     /*
@@ -389,12 +387,17 @@ SceneDialog::highlightSceneAtIndex(const int32_t sceneIndex)
                 sceneIndexValid = true;
                 m_selectedSceneClassInfoIndex = i;
                 
+                /*
+                 * Ensure that the selected scene remains visible
+                 * and do not alter value of horiztonal scroll bar
+                 */
+                const int horizValue = m_sceneSelectionScrollArea->horizontalScrollBar()->value();
                 const int xMargin = 0;
                 const int yMargin = 50;
                 m_sceneSelectionScrollArea->ensureWidgetVisible(sciw,
                                                                 xMargin,
                                                                 yMargin);
-                m_sceneSelectionScrollArea->horizontalScrollBar()->setSliderPosition(0);
+                m_sceneSelectionScrollArea->horizontalScrollBar()->setSliderPosition(horizValue);
             }
             else {
                 sciw->setBackgroundForSelected(false);
@@ -905,40 +908,6 @@ SceneDialog::createMainPage()
 }
 
 /**
- * Called when a scene is dropped by the user dragging a scene in the list box
- */
-void 
-SceneDialog::sceneWasDropped()
-{
-//    std::vector<Scene*> newlyOrderedScenes;
-//    
-//    /*
-//     * Get the scenes from this list widget to obtain the new scene ordering.
-//     */
-//    const int32_t numItems = m_sceneSelectionListWidget->count();
-//    for (int32_t i = 0; i < numItems; i++) {
-//        QListWidgetItem* lwi = m_sceneSelectionListWidget->item(i);
-//        if (lwi != NULL) {
-//            if (lwi != NULL) {
-//                Scene* scene = reinterpret_cast<Scene*>(qVariantValue<quintptr>(lwi->data(Qt::UserRole)));
-//                newlyOrderedScenes.push_back(scene);
-//            }
-//        }
-//    }
-//    
-//    if (newlyOrderedScenes.empty() == false) {
-//        /*
-//         * Update the order of the scenes in the scene file.
-//         */
-//        SceneFile* sceneFile = getSelectedSceneFile();
-//        if (sceneFile != NULL) {
-//            sceneFile->reorderScenes(newlyOrderedScenes);
-//            sceneFileSelected();
-//        }
-//    }
-}
-
-/**
  * Gets called to verify the content of the scene creation dialog.
  * @param sceneCreateDialog
  *    Scene creation dialog.
@@ -1072,18 +1041,9 @@ SceneDialog::showSceneButtonClicked()
                                                this);
         progressDialog.setValue(0);
         
-//        ElapsedTimer timer;
-//        timer.start();
-        
         displayScenePrivate(sceneFile,
                             scene,
                             false);
-        
-//        const AString msg = ("Time to load scene: "
-//                             + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
-//                             + " seconds.");
-//        WuQMessageBox::informationOk(m_showScenePushButton,
-//                                     msg);
     }
 }
 
@@ -1316,6 +1276,7 @@ SceneDialog::receiveEvent(Event* event)
         loadSceneFileComboBox(lastSceneFileRead);
         loadScenesIntoDialog(NULL);
         highlightSceneAtIndex(0);
+        m_sceneSelectionScrollArea->horizontalScrollBar()->setSliderPosition(0);
     }
 }
 
@@ -1482,9 +1443,6 @@ SceneClassInfoWidget::updateContent(Scene* scene,
             m_leftSideWidget->setMaximumHeight(maxHeight);
             m_rightSideWidget->setMaximumHeight(maxHeight);
         }
-        
-//        const int maximumLabelSize = maximumPreviewImageSize + 8;
-//        m_previewImageLabel->setFixedWidth(maximumLabelSize);
     }
 }
 

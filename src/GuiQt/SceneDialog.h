@@ -86,8 +86,6 @@ namespace caret {
         
         void validateContentOfCreateSceneDialog(WuQDataEntryDialog*);
         
-        void sceneWasDropped();
-        
         void sceneHighlighted(const int32_t sceneIndex);
         
         void sceneActivated(const int32_t sceneIndex);
