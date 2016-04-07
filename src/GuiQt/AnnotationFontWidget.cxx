@@ -683,16 +683,16 @@ AnnotationFontWidget::getSurfaceMontageRowCount() const
 {
     const BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
     CaretAssert(bbw);
-    const BrowserTabContent* btc = bbw->getBrowserTabContent();
-    CaretAssert(btc);
     int32_t surfaceMontageRowCount = 1;
-    
-    const ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
-    if (msm != NULL) {
-        int32_t columnCount = 1;
-        msm->getSurfaceMontageNumberOfRowsAndColumns(btc->getTabNumber(),
-                                                     surfaceMontageRowCount,
-                                                     columnCount);
+    const BrowserTabContent* btc = bbw->getBrowserTabContent();
+    if (btc != NULL) {
+        const ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+        if (msm != NULL) {
+            int32_t columnCount = 1;
+            msm->getSurfaceMontageNumberOfRowsAndColumns(btc->getTabNumber(),
+                                                         surfaceMontageRowCount,
+                                                         columnCount);
+        }
     }
     
     return surfaceMontageRowCount;
