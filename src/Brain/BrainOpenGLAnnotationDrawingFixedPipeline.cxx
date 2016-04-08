@@ -805,7 +805,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             CaretAssert(annotation);
             
             bool drawItFlag = false;
-            if (annotation->getType() != AnnotationTypeEnum::COLOR_BAR) {
+            if (annotation->getType() == AnnotationTypeEnum::COLOR_BAR) {
+                AnnotationColorBar* colorBar = dynamic_cast<AnnotationColorBar*>(annotation);
+                CaretAssert(colorBar);
+                drawItFlag = colorBar->isDisplayed();
+            }
+            else {
                 switch (annotation->getItemDisplaySelected(displayGroup, m_inputs->m_tabIndex)) {
                     case TriStateSelectionStatusEnum::PARTIALLY_SELECTED:
                         CaretAssertMessage(0, "An annotation should never be partially selected");
