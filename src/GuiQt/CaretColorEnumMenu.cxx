@@ -186,6 +186,35 @@ CaretColorEnumMenu::colorActionSelected(QAction* action)
 }
 
 /**
+ * @return The selected color.
+ */
+CaretColorEnum::Enum
+CaretColorEnumMenu::getSelectedColor()
+{
+    QList<QAction*> actionList = actions();
+    QListIterator<QAction*> actionIter(actionList);
+    while (actionIter.hasNext()) {
+        QAction* action = actionIter.next();
+        CaretAssert(action);
+        
+        if (action->isChecked()) {
+            const int actionIntegerCode = action->data().toInt();
+            bool valid = false;
+            CaretColorEnum::Enum colorSelected = CaretColorEnum::fromIntegerCode(actionIntegerCode, &valid);
+            if (valid) {
+                return colorSelected;
+            }
+        }
+    }
+    
+    CaretAssertMessage(0,
+                       "Did not find selected color.");
+    
+    return CaretColorEnum::WHITE;
+}
+
+
+/**
  * Set the color for the custom color's icon.
  *
  * @param rgb

@@ -273,6 +273,13 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
             }
         }
         
+        if ( ! isBothColorsSetToNoneAllowed(this,
+                                            caretColor,
+                                            m_lineColorMenu->getSelectedColor(),
+                                            m_annotations)) {
+            return;
+        }
+        
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeColorBackground(caretColor,
                                             rgba,
@@ -444,6 +451,69 @@ AnnotationColorWidget::updateLineColorButton()
 }
 
 /**
+ * Tests for both background and line colors both set to none.  This is allowed
+ * for some annotations types such as text, which uses a text color, or images.
+ *
+ * @param widget
+ *     Widget on which error dialog is displayed.
+ * @param colorOne
+ *     One of the background or line colors.
+ * @param colorTwo
+ *     The other one of the background or line colors.
+ * @param annotations
+ *     The selected annotations.
+ * @return
+ *     True if the colors are acceptable, else false (and a an error
+ *     message dialog is displayed).
+ */
+bool
+AnnotationColorWidget::isBothColorsSetToNoneAllowed(QWidget* widget,
+                                                    const CaretColorEnum::Enum colorOne,
+                                                    const CaretColorEnum::Enum colorTwo,
+                                                    const std::vector<Annotation*>& annotations)
+{
+    if ((colorOne == CaretColorEnum::NONE)
+        && (colorTwo == CaretColorEnum::NONE)) {
+        
+        bool allowBothColorsNoneFlag = true;
+        
+        for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
+             iter != annotations.end();
+             iter++) {
+            const Annotation* ann = *iter;
+            CaretAssert(ann);
+            switch (ann->getType()) {
+                case AnnotationTypeEnum::BOX:
+                    allowBothColorsNoneFlag = false;
+                    break;
+                case AnnotationTypeEnum::COLOR_BAR:
+                    break;
+                case AnnotationTypeEnum::IMAGE:
+                    break;
+                case AnnotationTypeEnum::LINE:
+                    allowBothColorsNoneFlag = false;
+                    break;
+                case AnnotationTypeEnum::OVAL:
+                    allowBothColorsNoneFlag = false;
+                    break;
+                case AnnotationTypeEnum::TEXT:
+                    break;
+            }
+        }
+        
+        if ( ! allowBothColorsNoneFlag) {
+            const AString message("Setting both Line and Fill colors to NONE is not allowed for the selected annotation(s).");
+            WuQMessageBox::errorOk(widget,
+                                   message);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+/**
  * Gets called when the line color is changed.
  *
  * @param caretColor
@@ -453,6 +523,8 @@ void
 AnnotationColorWidget::lineColorSelected(const CaretColorEnum::Enum caretColor)
 {
     if ( ! m_annotations.empty()) {
+        CaretAssertVectorIndex(m_annotations, 0);
+        
         float rgba[4];
         m_annotations[0]->getCustomLineColor(rgba);
         
@@ -468,6 +540,13 @@ AnnotationColorWidget::lineColorSelected(const CaretColorEnum::Enum caretColor)
                 rgba[1] = newColor.greenF();
                 rgba[2] = newColor.blueF();
             }
+        }
+        
+        if ( ! isBothColorsSetToNoneAllowed(this,
+                                            caretColor,
+                                            m_backgroundColorMenu->getSelectedColor(),
+                                            m_annotations)) {
+            return;
         }
         
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();

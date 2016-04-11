@@ -75,6 +75,11 @@ namespace caret {
         
         void updateLineThicknessSpinBox();
         
+        static bool isBothColorsSetToNoneAllowed(QWidget* widget,
+                                                 const CaretColorEnum::Enum colorOne,
+                                                 const CaretColorEnum::Enum colorTwo,
+                                                 const std::vector<Annotation*>& annotations);
+        
         const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
         
         const int32_t m_browserWindowIndex;
