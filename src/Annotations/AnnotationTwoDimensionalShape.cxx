@@ -135,6 +135,20 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
     
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
+    if (getType() == AnnotationTypeEnum::COLOR_BAR) {
+        /*
+         * Saves/restores color bar manual position and size mode.
+         */
+        m_sceneAssistant->add("m_coordinate",
+                              "AnnotationCoordinate",
+                              m_coordinate);
+        m_sceneAssistant->add("m_width",
+                              &m_width);
+        m_sceneAssistant->add("m_height",
+                              &m_height);
+        m_sceneAssistant->add("m_rotationAngle",
+                              &m_rotationAngle);
+    }
 }
 
 /**
