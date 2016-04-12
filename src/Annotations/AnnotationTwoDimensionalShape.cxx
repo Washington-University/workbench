@@ -951,55 +951,77 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
         {
-            const float oldRotationAngle = m_rotationAngle;
-            
-            /*
-             * Determine rotation direction by mouse movement relative to
-             * the center of the annotation.
-             */
-            const float previousMouseXY[3] = {
-                spatialModification.m_mouseX - spatialModification.m_mouseDX,
-                spatialModification.m_mouseY - spatialModification.m_mouseDY,
-                0.0
-            };
-            const float currentMouseXY[3] = {
-                spatialModification.m_mouseX,
-                spatialModification.m_mouseY,
-                0.0
-            };
-            
-            const float shapeXY[3] = {
-                viewportXYZ[0],
-                viewportXYZ[1],
-                0.0
-            };
-            
-            if (rotationAngleTest(previousMouseXY,
-                                  shapeXY,
-                                  currentMouseXY)) {
-                float normalVector[3];
-                MathFunctions::normalVector(shapeXY,
-                                            currentMouseXY,
-                                            previousMouseXY,
-                                            normalVector);
+            const bool newRotationFlag = true;
+            if (newRotationFlag) {
+                /*
+                 * Rotation angle is a formed by the triangle
+                 * (Mouse XY, Annotation XY, Positive X-axis).
+                 */
+                const float dy = spatialModification.m_mouseY - viewportXYZ[1];
+                const float dx = spatialModification.m_mouseX - viewportXYZ[0];
                 
-                
-                float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX
-                                        + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
-                if (normalVector[2] < 0.0) {
-                    delta = -delta;
+                const float angleRadians = std::atan2(dy, dx);
+                const float angleDegrees = MathFunctions::toDegrees(angleRadians);
+                m_rotationAngle = 90.0 - angleDegrees;
+                if (m_rotationAngle > 360.0) {
+                    m_rotationAngle -= 360.0;
                 }
-                m_rotationAngle += delta;
+                if (m_rotationAngle < 0.0) {
+                    m_rotationAngle += 360.0;
+                }
+                validRotationFlag = true;
+            }
+            else {
+                const float oldRotationAngle = m_rotationAngle;
                 
-                if (m_rotationAngle != oldRotationAngle) {
-                    if (m_rotationAngle > 360.0) {
-                        m_rotationAngle -= 360.0;
-                    }
-                    if (m_rotationAngle < 0.0) {
-                        m_rotationAngle += 360.0;
-                    }
+                /*
+                 * Determine rotation direction by mouse movement relative to
+                 * the center of the annotation.
+                 */
+                const float previousMouseXY[3] = {
+                    spatialModification.m_mouseX - spatialModification.m_mouseDX,
+                    spatialModification.m_mouseY - spatialModification.m_mouseDY,
+                    0.0
+                };
+                const float currentMouseXY[3] = {
+                    spatialModification.m_mouseX,
+                    spatialModification.m_mouseY,
+                    0.0
+                };
+                
+                const float shapeXY[3] = {
+                    viewportXYZ[0],
+                    viewportXYZ[1],
+                    0.0
+                };
+                
+                if (rotationAngleTest(previousMouseXY,
+                                      shapeXY,
+                                      currentMouseXY)) {
+                    float normalVector[3];
+                    MathFunctions::normalVector(shapeXY,
+                                                currentMouseXY,
+                                                previousMouseXY,
+                                                normalVector);
                     
-                    validRotationFlag = true;
+                    
+                    float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX
+                                            + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
+                    if (normalVector[2] < 0.0) {
+                        delta = -delta;
+                    }
+                    m_rotationAngle += delta;
+                    
+                    if (m_rotationAngle != oldRotationAngle) {
+                        if (m_rotationAngle > 360.0) {
+                            m_rotationAngle -= 360.0;
+                        }
+                        if (m_rotationAngle < 0.0) {
+                            m_rotationAngle += 360.0;
+                        }
+                        
+                        validRotationFlag = true;
+                    }
                 }
             }
         }
