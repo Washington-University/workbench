@@ -115,7 +115,7 @@ namespace caret {
                                  Scene* scene,
                                  const bool showWaitCursor);
         
-        bool checkForModifiedFiles();
+        bool checkForModifiedFiles(const bool creatingSceneFlag);
         
         void enableSceneMoveUpAndDownButtons();
         

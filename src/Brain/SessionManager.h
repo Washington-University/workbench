@@ -53,7 +53,7 @@ namespace caret {
         
         int32_t getNumberOfBrains() const;
         
-        Brain* getBrain(const int32_t brainIndex);
+        Brain* getBrain(const int32_t brainIndex) const;
         
         CaretPreferences* getCaretPreferences();
         

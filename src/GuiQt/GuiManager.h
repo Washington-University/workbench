@@ -29,6 +29,7 @@
 
 #include <QObject>
 
+#include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 #include "WuQWebView.h"
@@ -81,7 +82,7 @@ namespace caret {
         
         static void beep();
         
-        Brain* getBrain();
+        Brain* getBrain() const;
         
         int32_t getNumberOfOpenBrainBrowserWindows() const;
         
@@ -166,6 +167,22 @@ namespace caret {
         void processIdentification(const int32_t tabIndex,
                                    SelectionManager* selectionManager,
                                    QWidget* parentWidget);
+        
+        /*
+         * Mode used when testing for modified files
+         */
+        enum TestModifiedMode {
+            /** Testing when user is exiting Workbench */
+            TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT,
+            /** Testing when a scene is added */
+            TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD,
+            /** Testing when a scene is shown */
+            TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW
+        };
+        
+        bool testForModifiedFiles(const TestModifiedMode testModifiedMode,
+                                  AString& textMesssageOut,
+                                  AString& modifiedFilesMessageOut) const;
         
     public slots:
         void processBringAllWindowsToFront();

@@ -236,7 +236,7 @@ SessionManager::getNumberOfBrains() const
  *    Brain at specified index.
  */
 Brain* 
-SessionManager::getBrain(const int32_t brainIndex)
+SessionManager::getBrain(const int32_t brainIndex) const
 {
     CaretAssertVectorIndex(m_brains, brainIndex);
     

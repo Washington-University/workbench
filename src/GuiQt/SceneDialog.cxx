@@ -481,7 +481,7 @@ SceneDialog::sceneFileSelected()
 void 
 SceneDialog::addNewSceneButtonClicked()
 {
-    if (checkForModifiedFiles() == false) {
+    if ( ! checkForModifiedFiles(true)) {
         return;
     }
     
@@ -503,7 +503,7 @@ SceneDialog::addNewSceneButtonClicked()
 void
 SceneDialog::insertSceneButtonClicked()
 {
-    if (checkForModifiedFiles() == false) {
+    if ( ! checkForModifiedFiles(true)) {
         return;
     }
     
@@ -561,7 +561,7 @@ SceneDialog::moveSceneDownButtonClicked()
 void
 SceneDialog::replaceSceneButtonClicked()
 {
-    if (checkForModifiedFiles() == false) {
+    if ( ! checkForModifiedFiles(true)) {
         return;
     }
     
@@ -664,98 +664,59 @@ SceneDialog::addImageToScene(Scene* scene)
     }
 }
 
-
 /**
  * Check to see if there are modified files.  If there are
  * allow the user to continue or cancel creation of the scene.
  *
+ * param creatingSceneFlag
+ *     When true scene is being created, else a scene is being shown
  * @return
  *     true if the scene should be created, otherwise false.
  */
 bool
-SceneDialog::checkForModifiedFiles()
+SceneDialog::checkForModifiedFiles(const bool creatingSceneFlag)
 {
-    /*
-     * Exclude all 
-     *   Scene Files
-     *   Spec Files
-     */
-    std::vector<DataFileTypeEnum::Enum> dataFileTypesToExclude;
-    dataFileTypesToExclude.push_back(DataFileTypeEnum::SCENE);
-    dataFileTypesToExclude.push_back(DataFileTypeEnum::SPECIFICATION);
-    
-    std::vector<CaretDataFile*> allDataFiles;
-    GuiManager::get()->getBrain()->getAllDataFiles(allDataFiles);
-
-    AString modifiedDataFilesMessage;
-    AString modifiedPaletteFilesMessage;
-    
-    for (std::vector<CaretDataFile*>::iterator iter = allDataFiles.begin();
-         iter != allDataFiles.end();
-         iter++) {
-        CaretDataFile* caretDataFile = *iter;
-        
-        const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
-        if (std::find(dataFileTypesToExclude.begin(),
-                      dataFileTypesToExclude.end(),
-                      dataFileType) != dataFileTypesToExclude.end()) {
-            continue;
-        }
-        
-        CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
-        
-        if (caretDataFile->isModified()) {
-            AString fileMsg = caretDataFile->getFileNameNoPath();
-            
-            /*
-             * Is modification just the palette color mapping?
-             */
-            bool paletteOnlyModFlag = false;
-            if (mappableDataFile != NULL) {
-                if (mappableDataFile->isModifiedPaletteColorMapping()) {
-                    if ( ! mappableDataFile->isModifiedExcludingPaletteColorMapping()) {
-                        paletteOnlyModFlag = true;
-                    }
-                }
-            }
-            
-            if (paletteOnlyModFlag) {
-                modifiedPaletteFilesMessage.appendWithNewLine("    " + fileMsg);
-            }
-            else {
-                modifiedDataFilesMessage.appendWithNewLine("    " + fileMsg);
-            }
-        }
+    AString dialogMessage;
+    AString modifiedFilesMessage;
+    GuiManager::TestModifiedMode testMode = GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW;
+    if (creatingSceneFlag) {
+        testMode = GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD;
     }
-    
-    if ( ! modifiedDataFilesMessage.isEmpty()) {
-        modifiedDataFilesMessage.insert(0,
-                                        "These file(s) contain modified data:\n");
-        modifiedDataFilesMessage.append("\n");
-    }
-    
-    if ( ! modifiedPaletteFilesMessage.isEmpty()) {
-        modifiedPaletteFilesMessage.insert(0,
-                                           "These file(s) contain modified palette color mapping.  It is not "
-                                           "necessary to save these file(s) if the save palette color mapping "
-                                           "option is selected on the scene creation dialog:\n");
-        modifiedPaletteFilesMessage.append("\n");
-    }
+    const bool haveModifiedFilesFlag = GuiManager::get()->testForModifiedFiles(testMode,
+                                                                               dialogMessage,
+                                                                               modifiedFilesMessage);
 
     bool result = true;
-    if (( ! modifiedDataFilesMessage.isEmpty())
-        || ( ! modifiedPaletteFilesMessage.isEmpty())) {
-
-        const AString msg = (modifiedDataFilesMessage
-                             + modifiedPaletteFilesMessage
-                             + "\nContinue creating the scene?");
-        result = WuQMessageBox::warningYesNo(this,
-                                             WuQtUtilities::createWordWrappedToolTipText(msg));
+    
+    if (haveModifiedFilesFlag) {
+        QMessageBox warningDialog(QMessageBox::Warning,
+                               "Warning",
+                               dialogMessage,
+                               QMessageBox::NoButton,
+                               this);
+        warningDialog.setInformativeText(modifiedFilesMessage);
+        
+        QPushButton* yesButton = warningDialog.addButton("Yes", QMessageBox::AcceptRole);
+        QPushButton* noButton = warningDialog.addButton("No", QMessageBox::RejectRole);
+        
+        warningDialog.setDefaultButton(noButton);
+        warningDialog.setEscapeButton(noButton);
+        
+        warningDialog.exec();
+        const QAbstractButton* clickedButton = warningDialog.clickedButton();
+        if (clickedButton == yesButton) {
+            result = true;
+        }
+        else if (clickedButton == noButton) {
+            result = false;
+        }
+        else {
+            CaretAssert(0);
+        }
     }
-
+    
     return result;
 }
-
 
 /**
  * Create the main page.
@@ -1008,6 +969,10 @@ SceneDialog::deleteSceneButtonClicked()
 void 
 SceneDialog::showSceneButtonClicked()
 {
+    if ( ! checkForModifiedFiles(false)) {
+        return;
+    }
+    
     AString sceneFileName;
     SceneFile* sceneFile = getSelectedSceneFile();
     if (sceneFile != NULL) {

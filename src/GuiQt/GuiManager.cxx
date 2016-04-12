@@ -363,7 +363,7 @@ GuiManager::beep()
  * @return The brain.
  */
 Brain* 
-GuiManager::getBrain()
+GuiManager::getBrain() const
 {
     return SessionManager::get()->getBrain(0);
 }
@@ -614,15 +614,27 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
 }
 
 /**
- * Exit the program.
- * @param
- *    Parent over which dialogs are displayed for saving/verifying.
- * return 
- *    true if application should exit, else false.
+ * Test for modified data files.
+ *
+ * @param testModifiedMode
+ *    Mode of testing for modified files.
+ * @param textMessageOut
+ *    Message displayed at top of dialog.
+ * @param modifiedFilesMessageOut
+ *    If there are any modified files, this will contain information
+ *    about the modified files.
+ * @return
+ *    True if there are modified files and the warning message is valid,
+ *    else false.
  */
-bool 
-GuiManager::exitProgram(QWidget* parent)
+bool
+GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
+                                 AString& textMessageOut,
+                                 AString& modifiedFilesMessageOut) const
 {
+    textMessageOut.clear();
+    modifiedFilesMessageOut.clear();
+    
     /*
      * Exclude all
      *   Connectivity Files
@@ -631,16 +643,70 @@ GuiManager::exitProgram(QWidget* parent)
     dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE);
     dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY);
     dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY);
-
-    bool okToExit = false;
+    
+    switch (testModifiedMode) {
+        case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
+            break;
+        case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD:
+            dataFileTypesToExclude.push_back(DataFileTypeEnum::SCENE);
+            dataFileTypesToExclude.push_back(DataFileTypeEnum::SPECIFICATION);
+            break;
+        case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW:
+            dataFileTypesToExclude.push_back(DataFileTypeEnum::SCENE);
+            break;
+    }
     
     /*
      * Are files modified?
      */
-    std::vector<CaretDataFile*> modifiedDataFiles;
+    std::vector<CaretDataFile*> allModifiedDataFiles;
     getBrain()->getAllModifiedFiles(dataFileTypesToExclude,
-                                    modifiedDataFiles);
+                                    allModifiedDataFiles);
+    
+    std::vector<CaretDataFile*> modifiedDataFiles;
+    std::vector<CaretDataFile*> paletteModifiedDataFiles;
+    
+    for (std::vector<CaretDataFile*>::iterator allModFilesIter = allModifiedDataFiles.begin();
+         allModFilesIter != allModifiedDataFiles.end();
+         allModFilesIter++) {
+        CaretDataFile* file = *allModFilesIter;
+        CaretAssert(file);
+        
+        switch (testModifiedMode) {
+            case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
+                modifiedDataFiles.push_back(file);
+                break;
+            case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD:
+            {
+                /*
+                 * Is modification just the palette color mapping?
+                 */
+                CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(file);
+                bool paletteOnlyModFlag = false;
+                if (mappableDataFile != NULL) {
+                    if (mappableDataFile->isModifiedPaletteColorMapping()) {
+                        if ( ! mappableDataFile->isModifiedExcludingPaletteColorMapping()) {
+                            paletteOnlyModFlag = true;
+                        }
+                    }
+                }
+                if (paletteOnlyModFlag) {
+                    paletteModifiedDataFiles.push_back(file);
+                }
+                else {
+                    modifiedDataFiles.push_back(file);
+                }
+                
+            }
+                break;
+            case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW:
+                modifiedDataFiles.push_back(file);
+                break;
+        }
+    }
+    
     const int32_t modFileCount = static_cast<int32_t>(modifiedDataFiles.size());
+    const int32_t paletteModFileCount = static_cast<int32_t>(paletteModifiedDataFiles.size());
     
     /*
      * Are there scene annotations ?
@@ -649,12 +715,23 @@ GuiManager::exitProgram(QWidget* parent)
     const bool sceneAnnotationsModifiedFlag = sceneAnnotationFile->isModified();
     
     if ((modFileCount > 0)
-        || sceneAnnotationsModifiedFlag) {
+        || sceneAnnotationsModifiedFlag
+        || paletteModFileCount) {
         /*
          * Display dialog allowing user to save files (goes to Save/Manage
          * Files dialog), exit without saving, or cancel.
          */
-        const AString textMsg("Do you want to save changes you made to these files?");
+        switch (testModifiedMode) {
+            case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
+                textMessageOut = "Do you want to save changes you made to these files?";
+                break;
+            case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD:
+                textMessageOut = "Do you want to continue creating the scene?";
+                break;
+            case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW:
+                textMessageOut = "Do you want to continue showing the scene?";
+                break;
+        }
         
         AString infoTextMsg;
         if (modFileCount > 0) {
@@ -666,19 +743,58 @@ GuiManager::exitProgram(QWidget* parent)
                 infoTextMsg.appendWithNewLine("   "
                                               + cdf->getFileNameNoPath());
             }
+            infoTextMsg.append("\n");
+        }
+        if (paletteModFileCount > 0) {
+            infoTextMsg.appendWithNewLine("These file(s) contain modified palette color mapping.  It is not "
+                                          "necessary to save these file(s) if the save palette color mapping "
+                                          "option is selected on the scene creation dialog:\n");
+            for (std::vector<CaretDataFile*>::iterator iter = paletteModifiedDataFiles.begin();
+                 iter != paletteModifiedDataFiles.end();
+                 iter++) {
+                const CaretDataFile* cdf = *iter;
+                infoTextMsg.appendWithNewLine("   "
+                                              + cdf->getFileNameNoPath());
+            }
+            infoTextMsg.append("\n");
         }
         
         if (sceneAnnotationsModifiedFlag) {
-            infoTextMsg.appendWithNewLine("   Scene annotations are modified.");
+            infoTextMsg.appendWithNewLine("Scene annotations are modified.");
         }
         
-        infoTextMsg.appendWithNewLine("");
+        modifiedFilesMessageOut = infoTextMsg;
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Exit the program.
+ * @param
+ *    Parent over which dialogs are displayed for saving/verifying.
+ * return 
+ *    true if application should exit, else false.
+ */
+bool 
+GuiManager::exitProgram(QWidget* parent)
+{
+    bool okToExit = false;
+    
+    AString textMessage;
+    AString modifiedFilesMessage;
+    if (testForModifiedFiles(TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT,
+                             textMessage,
+                             modifiedFilesMessage)) {
+        modifiedFilesMessage.appendWithNewLine("");
+        
         QMessageBox quitDialog(QMessageBox::Warning,
                                "Exit Workbench",
-                               textMsg,
+                               textMessage,
                                QMessageBox::NoButton,
                                parent);
-        quitDialog.setInformativeText(infoTextMsg);
+        quitDialog.setInformativeText(modifiedFilesMessage);
         
         QPushButton* saveButton = quitDialog.addButton("Save...", QMessageBox::AcceptRole);
         saveButton->setToolTip("Display manage files window to save files");
