@@ -966,7 +966,7 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
                 if (m_rotationAngle > 360.0) {
                     m_rotationAngle -= 360.0;
                 }
-                if (m_rotationAngle < 0.0) {
+                else if (m_rotationAngle < 0.0) {
                     m_rotationAngle += 360.0;
                 }
                 validRotationFlag = true;
