@@ -528,116 +528,52 @@ AnnotationOneDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
         {
-            const bool newRotationFlag = true;
-            if (newRotationFlag) {
-                float vpOneXYZ[3] = { 0.0, 0.0, 0.0 };
-                relativeXYZToViewportXYZ(xyz1,
-                                         spatialModification.m_viewportWidth,
-                                         spatialModification.m_viewportHeight,
-                                         vpOneXYZ);
-                float vpTwoXYZ[3] = { 0.0, 0.0, 0.0 };
-                relativeXYZToViewportXYZ(xyz2,
-                                         spatialModification.m_viewportWidth,
-                                         spatialModification.m_viewportHeight,
-                                         vpTwoXYZ);
-                
-                float vpXYZ[3] = {
-                    (vpOneXYZ[0] + vpTwoXYZ[0]) / 2.0,
-                    (vpOneXYZ[1] + vpTwoXYZ[1]) / 2.0,
-                    (vpOneXYZ[2] + vpTwoXYZ[2]) / 2.0
-                };
-                
-                /*
-                 * Rotation angle is a formed by the triangle
-                 * (Mouse XY, Annotation XY, Positive X-axis).
-                 */
-                const float dy = spatialModification.m_mouseY - vpXYZ[1];
-                const float dx = spatialModification.m_mouseX - vpXYZ[0];
-                
-                const float angleRadians = std::atan2(dy, dx);
-                const float angleDegrees = MathFunctions::toDegrees(angleRadians);
-                float rotationAngle = -angleDegrees;
-                if (rotationAngle > 360.0) {
-                    rotationAngle -= 360.0;
-                }
-                else if (rotationAngle < 0.0) {
-                    rotationAngle += 360.0;
-                }
-                
-                CaretPointer<AnnotationOneDimensionalShape> shapeCopy(dynamic_cast<AnnotationOneDimensionalShape*>(this->clone()));
-                shapeCopy->setRotationAngle(spatialModification.m_viewportWidth,
-                                            spatialModification.m_viewportHeight,
-                                            rotationAngle);
-                
-                const float* xyzOne = shapeCopy->getStartCoordinate()->getXYZ();
-                const float* xyzTwo = shapeCopy->getEndCoordinate()->getXYZ();
-                newX1 = xyzOne[0];
-                newY1 = xyzOne[1];
-                newX2 = xyzTwo[0];
-                newY2 = xyzTwo[1];
-                validFlag = true;
+            float vpOneXYZ[3] = { 0.0, 0.0, 0.0 };
+            relativeXYZToViewportXYZ(xyz1,
+                                     spatialModification.m_viewportWidth,
+                                     spatialModification.m_viewportHeight,
+                                     vpOneXYZ);
+            float vpTwoXYZ[3] = { 0.0, 0.0, 0.0 };
+            relativeXYZToViewportXYZ(xyz2,
+                                     spatialModification.m_viewportWidth,
+                                     spatialModification.m_viewportHeight,
+                                     vpTwoXYZ);
+            
+            float vpXYZ[3] = {
+                (vpOneXYZ[0] + vpTwoXYZ[0]) / 2.0,
+                (vpOneXYZ[1] + vpTwoXYZ[1]) / 2.0,
+                (vpOneXYZ[2] + vpTwoXYZ[2]) / 2.0
+            };
+            
+            /*
+             * Rotation angle is a formed by the triangle
+             * (Mouse XY, Annotation XY, Positive X-axis).
+             */
+            const float dy = spatialModification.m_mouseY - vpXYZ[1];
+            const float dx = spatialModification.m_mouseX - vpXYZ[0];
+            
+            const float angleRadians = std::atan2(dy, dx);
+            const float angleDegrees = MathFunctions::toDegrees(angleRadians);
+            float rotationAngle = -angleDegrees;
+            if (rotationAngle > 360.0) {
+                rotationAngle -= 360.0;
             }
-            else {
-                CaretPointer<AnnotationOneDimensionalShape> shapeCopy(dynamic_cast<AnnotationOneDimensionalShape*>(this->clone()));
-                const float oldRotationAngle = shapeCopy->getRotationAngle(spatialModification.m_viewportWidth,
-                                                                           spatialModification.m_viewportHeight);
-                
-                /*
-                 * Determine rotation direction by mouse movement relative to where
-                 * mouse was first pressed.
-                 */
-                const float previousMouseXY[3] = {
-                    spatialModification.m_mouseX - spatialModification.m_mouseDX,
-                    spatialModification.m_mouseY - spatialModification.m_mouseDY,
-                    0.0
-                };
-                const float currentMouseXY[3] = {
-                    spatialModification.m_mouseX,
-                    spatialModification.m_mouseY,
-                    0.0
-                };
-                const float pressXY[3] = {
-                    spatialModification.m_mousePressX,
-                    spatialModification.m_mousePressY,
-                    0.0
-                };
-                
-                float normalVector[3];
-                MathFunctions::normalVector(pressXY,
-                                            currentMouseXY,
-                                            previousMouseXY,
-                                            normalVector);
-                
-                
-                float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX
-                                        + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
-                if (normalVector[2] < 0.0) {
-                    delta = -delta;
-                }
-                
-                float rotationAngle = oldRotationAngle + delta;
-                
-                if (rotationAngle != oldRotationAngle) {
-                    if (rotationAngle > 360.0) {
-                        rotationAngle -= 360.0;
-                    }
-                    if (rotationAngle < 0.0) {
-                        rotationAngle += 360.0;
-                    }
-                    
-                    shapeCopy->setRotationAngle(spatialModification.m_viewportWidth,
-                                                spatialModification.m_viewportHeight,
-                                                rotationAngle);
-                    
-                    const float* xyzOne = shapeCopy->getStartCoordinate()->getXYZ();
-                    const float* xyzTwo = shapeCopy->getEndCoordinate()->getXYZ();
-                    newX1 = xyzOne[0];
-                    newY1 = xyzOne[1];
-                    newX2 = xyzTwo[0];
-                    newY2 = xyzTwo[1];
-                    validFlag = true;
-                }
+            else if (rotationAngle < 0.0) {
+                rotationAngle += 360.0;
             }
+            
+            CaretPointer<AnnotationOneDimensionalShape> shapeCopy(dynamic_cast<AnnotationOneDimensionalShape*>(this->clone()));
+            shapeCopy->setRotationAngle(spatialModification.m_viewportWidth,
+                                        spatialModification.m_viewportHeight,
+                                        rotationAngle);
+            
+            const float* xyzOne = shapeCopy->getStartCoordinate()->getXYZ();
+            const float* xyzTwo = shapeCopy->getEndCoordinate()->getXYZ();
+            newX1 = xyzOne[0];
+            newY1 = xyzOne[1];
+            newX2 = xyzTwo[0];
+            newY2 = xyzTwo[1];
+            validFlag = true;
         }
             break;
     }
