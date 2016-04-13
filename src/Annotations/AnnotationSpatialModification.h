@@ -41,7 +41,8 @@ namespace caret {
                                       const float mouseX,
                                       const float mouseY,
                                       const float mouseDX,
-                                      const float mouseDY);
+                                      const float mouseDY,
+                                      const bool  startOfDraggingFlag);
         
         void setSurfaceCoordinateAtMouseXY(const StructureEnum::Enum structure,
                                      const int32_t surfaceNumberOfNodes,
@@ -113,6 +114,8 @@ namespace caret {
         const float m_mouseDX;
         
         const float m_mouseDY;
+        
+        const bool  m_startOfDraggingFlag;
         
         SurfaceCoord m_surfaceCoordinateAtMouseXY;
         

@@ -55,6 +55,8 @@ using namespace caret;
  *     Change in mouse X-coordinate.
  * @param mouseDY
  *     Change in mouse Y-coordinate.
+ * @param startOfDraggingFlag
+ *     True when user starts to drag mouse.
  */
 AnnotationSpatialModification::AnnotationSpatialModification(const AnnotationSizingHandleTypeEnum::Enum sizingHandleType,
                                                              const float viewportWidth,
@@ -64,7 +66,8 @@ AnnotationSpatialModification::AnnotationSpatialModification(const AnnotationSiz
                                                              const float mouseX,
                                                              const float mouseY,
                                                              const float mouseDX,
-                                                             const float mouseDY)
+                                                             const float mouseDY,
+                                                             const bool  startOfDraggingFlag)
 : CaretObject(),
 m_sizingHandleType(sizingHandleType),
 m_viewportWidth(viewportWidth),
@@ -74,7 +77,8 @@ m_mousePressY(mousePressY),
 m_mouseX(mouseX),
 m_mouseY(mouseY),
 m_mouseDX(mouseDX),
-m_mouseDY(mouseDY)
+m_mouseDY(mouseDY),
+m_startOfDraggingFlag(startOfDraggingFlag)
 {
 }
 

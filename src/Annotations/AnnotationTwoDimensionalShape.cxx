@@ -588,54 +588,94 @@ AnnotationTwoDimensionalShape::applySpatialModificationSurfaceOrStereotaxicSpace
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
         {
-            const float oldRotationAngle = m_rotationAngle;
-            
-            /*
-             * Determine rotation direction by mouse movement relative to where
-             * mouse was first pressed.
-             */
-            const float previousMouseXY[3] = {
-                spatialModification.m_mouseX - spatialModification.m_mouseDX,
-                spatialModification.m_mouseY - spatialModification.m_mouseDY,
-                0.0
-            };
-            const float currentMouseXY[3] = {
-                spatialModification.m_mouseX,
-                spatialModification.m_mouseY,
-                0.0
-            };
-            const float pressXY[3] = {
-                spatialModification.m_mousePressX,
-                spatialModification.m_mousePressY,
-                0.0
-            };
-            
-            if (rotationAngleTest(previousMouseXY,
-                                  pressXY,
-                                  currentMouseXY)) {
-                float normalVector[3];
-                MathFunctions::normalVector(pressXY,
-                                            currentMouseXY,
-                                            previousMouseXY,
-                                            normalVector);
+            const bool newRotationFlag = true;
+            if (newRotationFlag) {
+                static float centerX = 0.0;
+                static float centerY = 0.0;
                 
-                
-                float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX
-                                        + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
-                if (normalVector[2] < 0.0) {
-                    delta = -delta;
-                }
-                m_rotationAngle += delta;
-                
-                if (m_rotationAngle != oldRotationAngle) {
-                    if (m_rotationAngle > 360.0) {
-                        m_rotationAngle -= 360.0;
-                    }
-                    if (m_rotationAngle < 0.0) {
-                        m_rotationAngle += 360.0;
-                    }
+                if (spatialModification.m_startOfDraggingFlag) {
+                    const float height = ((m_height / 100.0) * spatialModification.m_viewportHeight);
+                    const float halfHeight = height / 2.0;
                     
-                    validFlag = true;
+                    const float handleOffsetHeight = 15.0;
+                    const float centerAngleRadians = MathFunctions::toRadians(m_rotationAngle - 90);
+                    const float centerOffsetY =  (halfHeight  + handleOffsetHeight) * std::sin(centerAngleRadians);
+                    const float centerOffsetX = -halfHeight * std::cos(centerAngleRadians);
+                    centerX = spatialModification.m_mousePressX + centerOffsetX;
+                    centerY = spatialModification.m_mousePressY + centerOffsetY;
+                }
+                
+                /*
+                 * Rotation angle is a formed by the triangle
+                 * (Mouse XY, Annotation XY, Positive X-axis).
+                 */
+                const float dy = (spatialModification.m_mouseY
+                                  - centerY);
+                const float dx = (spatialModification.m_mouseX
+                                  - centerX);
+                
+                const float angleRadians = std::atan2(dy, dx);
+                const float angleDegrees = MathFunctions::toDegrees(angleRadians);
+                m_rotationAngle = 90.0 - angleDegrees;
+                if (m_rotationAngle > 360.0) {
+                    m_rotationAngle -= 360.0;
+                }
+                else if (m_rotationAngle < 0.0) {
+                    m_rotationAngle += 360.0;
+                }
+                
+                validFlag = true;
+            }
+            else {
+                const float oldRotationAngle = m_rotationAngle;
+                
+                /*
+                 * Determine rotation direction by mouse movement relative to where
+                 * mouse was first pressed.
+                 */
+                const float previousMouseXY[3] = {
+                    spatialModification.m_mouseX - spatialModification.m_mouseDX,
+                    spatialModification.m_mouseY - spatialModification.m_mouseDY,
+                    0.0
+                };
+                const float currentMouseXY[3] = {
+                    spatialModification.m_mouseX,
+                    spatialModification.m_mouseY,
+                    0.0
+                };
+                const float pressXY[3] = {
+                    spatialModification.m_mousePressX,
+                    spatialModification.m_mousePressY,
+                    0.0
+                };
+                
+                if (rotationAngleTest(previousMouseXY,
+                                      pressXY,
+                                      currentMouseXY)) {
+                    float normalVector[3];
+                    MathFunctions::normalVector(pressXY,
+                                                currentMouseXY,
+                                                previousMouseXY,
+                                                normalVector);
+                    
+                    
+                    float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX
+                                            + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
+                    if (normalVector[2] < 0.0) {
+                        delta = -delta;
+                    }
+                    m_rotationAngle += delta;
+                    
+                    if (m_rotationAngle != oldRotationAngle) {
+                        if (m_rotationAngle > 360.0) {
+                            m_rotationAngle -= 360.0;
+                        }
+                        if (m_rotationAngle < 0.0) {
+                            m_rotationAngle += 360.0;
+                        }
+                        
+                        validFlag = true;
+                    }
                 }
             }
         }

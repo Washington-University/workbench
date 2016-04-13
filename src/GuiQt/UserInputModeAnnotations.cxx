@@ -694,15 +694,19 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
         const float mouseViewportX = mouseEvent.getX() - spaceOriginX;
         const float mouseViewportY = mouseEvent.getY() - spaceOriginY;
         
+        const float mousePressViewportX = mouseEvent.getPressedX() - spaceOriginX;
+        const float mousePressViewportY = mouseEvent.getPressedY() - spaceOriginY;
+        
         AnnotationSpatialModification annSpatialMod(m_annotationBeingDraggedHandleType,
                                                     spaceWidth,
                                                     spaceHeight,
-                                                    mouseEvent.getPressedX(),
-                                                    mouseEvent.getPressedY(),
+                                                    mousePressViewportX,
+                                                    mousePressViewportY,
                                                     mouseViewportX,
                                                     mouseViewportY,
                                                     dx,
-                                                    dy);
+                                                    dy,
+                                                    mouseEvent.isFirstDragging());
         if (coordInfo.m_surfaceNodeValid) {
             annSpatialMod.setSurfaceCoordinateAtMouseXY(coordInfo.m_surfaceStructure,
                                                         coordInfo.m_surfaceNumberOfNodes,
