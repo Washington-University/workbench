@@ -712,7 +712,20 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
      * Are there scene annotations ?
      */
     const CaretDataFile* sceneAnnotationFile = getBrain()->getSceneAnnotationFile();
-    const bool sceneAnnotationsModifiedFlag = sceneAnnotationFile->isModified();
+    bool sceneAnnotationsModifiedFlag = sceneAnnotationFile->isModified();
+    switch (testModifiedMode) {
+        case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
+            break;
+        case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD:
+            /*
+             * Do not need to notify about modified scene annotations
+             * since scene annotations are saved to the scene
+             */
+            sceneAnnotationsModifiedFlag = false;
+            break;
+        case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW:
+            break;
+    }
     
     if ((modFileCount > 0)
         || sceneAnnotationsModifiedFlag
