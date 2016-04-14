@@ -133,6 +133,8 @@ MapSettingsLabelsWidget::updateContent(Overlay* overlay)
                 m_drawingTypeComboBox->setSelectedItem<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>(labelProps->getDrawingType());
                 m_outlineColorComboBox->setSelectedColor(labelProps->getOutlineColor());
                 m_drawMedialWallFilledCheckBox->setChecked(labelProps->isDrawMedialWallFilled());
+                m_drawMedialWallFilledCheckBox->setEnabled(mapFile->isMedialWallLabelInMapLabelTable(mapIndex));
+                
                 enableWidget = true;
             }
         }

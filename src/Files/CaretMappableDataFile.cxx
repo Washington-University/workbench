@@ -931,6 +931,32 @@ CaretMappableDataFile::helpGetSupportedLineSeriesChartDataTypes(std::vector<Char
 }
 
 /**
+ * Is a medial wall label in the label table for the given map index?
+ *
+ * NOTE: This does not test to see if a data element in
+ *     the map is set to the key of the medial wall label.  So, it is
+ *     possible that true is returned but no vertices or voxels are
+ *     assigned to the medial wall.
+ *
+ * @param mapIndex
+ *     Index of the map.
+ * @return
+ *     True if map the map's label table contains a medial wall label,
+ *     else false.
+ */
+bool
+CaretMappableDataFile::isMedialWallLabelInMapLabelTable(const int32_t mapIndex) const
+{
+    if (isMappedWithLabelTable()) {
+        const GiftiLabelTable* labelTable = getMapLabelTable(mapIndex);
+        return labelTable->hasMedialWallLabel();
+    }
+    
+    return false;
+}
+
+
+/**
  * @return The label drawing properties for this file.  A valid pointer
  * will always be returned even if the file does not provide label data.
  */

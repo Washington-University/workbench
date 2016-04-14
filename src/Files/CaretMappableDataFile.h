@@ -354,6 +354,8 @@ namespace caret {
          */         
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const = 0;
         
+        bool isMedialWallLabelInMapLabelTable(const int32_t mapIndex) const;
+        
         /**
          * Get the palette normalization modes that are supported by the file.
          *

@@ -977,6 +977,26 @@ GiftiLabelTable::resetLabelCounts()
     }
 }
 
+/**
+ * @return True if this label table contains a label with the
+ * name of the medial wall, else false.
+ */
+bool
+GiftiLabelTable::hasMedialWallLabel() const
+{
+    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        const GiftiLabel* label = iter->second;
+        CaretAssert(label);
+        if (label->isMedialWallName()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 ///**
 // * @return Are there any labels that have an invalid group/name
 // * hierarchy settings.  This can be caused by changing the name

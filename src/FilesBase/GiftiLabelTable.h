@@ -171,6 +171,8 @@ public:
 
     void createLabelsForKeys(const std::set<int32_t>& newKeys);
 
+    bool hasMedialWallLabel() const;
+    
     void writeAsXML(XmlWriter& xmlWriter);
 
     void writeAsXML(QXmlStreamWriter& xmlWriter) const;
