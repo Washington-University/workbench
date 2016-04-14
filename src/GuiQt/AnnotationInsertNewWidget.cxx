@@ -37,9 +37,10 @@
 #include "AnnotationManager.h"
 #include "AnnotationMenuFileSelection.h"
 #include "AnnotationRedoUndoCommand.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
-#include "Brain.h"
+#include "DisplayPropertiesAnnotation.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
@@ -354,6 +355,8 @@ AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
                                                                             &shapeValidFlag);
     CaretAssert(shapeValidFlag);
     
+    DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+    dpa->setDisplayAnnotations(true);
     EventManager::get()->sendEvent(EventAnnotationCreateNewType(annotationFile,
                                                                 annSpace,
                                                                 annShape).getPointer());

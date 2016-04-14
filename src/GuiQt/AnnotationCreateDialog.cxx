@@ -47,6 +47,7 @@
 #include "CaretLogger.h"
 #include "CaretPointer.h"
 #include "DataFileException.h"
+#include "DisplayPropertiesAnnotation.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventDataFileAdd.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -212,6 +213,8 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
         else {
             Annotation* newAnn = createAnnotation(newInfo, annotationSpace);
             if (newAnn != NULL) {
+                DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+                dpa->updateForNewAnnotation(newAnn);
                 EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                 EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
             
@@ -673,6 +676,8 @@ AnnotationCreateDialog::okButtonClicked()
     
     m_annotationThatWasCreated = annotationPointer;
     
+    DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+    dpa->updateForNewAnnotation(m_annotationThatWasCreated);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     

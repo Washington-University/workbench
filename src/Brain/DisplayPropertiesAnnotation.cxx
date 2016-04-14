@@ -73,6 +73,35 @@ DisplayPropertiesAnnotation::~DisplayPropertiesAnnotation()
 }
 
 /**
+ * Update the properties for a new/modified annotation.
+ *
+ * @param annotation
+ *     The new/updated annotation.
+ */
+void
+DisplayPropertiesAnnotation::updateForNewAnnotation(const Annotation* annotation)
+{
+    CaretAssert(annotation);
+    
+    switch (annotation->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            setDisplayWindowAnnotationsInSingleTabViews(annotation->getWindowIndex(),
+                                                        true);
+            break;
+    }
+    
+    setDisplayAnnotations(true);
+}
+
+/**
  * Copy the border display properties from one tab to another.
  * @param sourceTabIndex
  *    Index of tab from which properties are copied.

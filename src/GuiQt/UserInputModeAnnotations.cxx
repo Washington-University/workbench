@@ -48,6 +48,7 @@
 #include "CaretUndoStack.h"
 #include "CursorEnum.h"
 #include "CaretPreferences.h"
+#include "DisplayPropertiesAnnotation.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationRequest.h"
@@ -146,6 +147,8 @@ void
 UserInputModeAnnotations::initialize()
 {
     m_mode = MODE_SELECT;
+    DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+    dpa->setDisplayAnnotations(true);
     resetAnnotationUnderMouse();
 }
 
@@ -2026,6 +2029,9 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
                                                                                         m_browserWindowIndex);
     if (newPastedAnnotation != NULL) {
         selectAnnotation(newPastedAnnotation);
+        
+        DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+        dpa->updateForNewAnnotation(newPastedAnnotation);
     }
     
     setMode(MODE_SELECT);
@@ -2047,6 +2053,9 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboardAndChangeSpace(c
     Annotation* newPastedAnnotation = AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(mouseEvent);
     if (newPastedAnnotation != NULL) {
         selectAnnotation(newPastedAnnotation);
+        
+        DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+        dpa->updateForNewAnnotation(newPastedAnnotation);
     }
     
     setMode(MODE_SELECT);

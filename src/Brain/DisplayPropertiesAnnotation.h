@@ -29,6 +29,7 @@
 
 
 namespace caret {
+    class Annotation;
     class Brain;
 
     class DisplayPropertiesAnnotation : public DisplayProperties {
@@ -55,6 +56,8 @@ namespace caret {
         
         void setDisplayWindowAnnotationsInSingleTabViews(const int32_t windowIndex,
                                                    const bool status);
+        
+        void updateForNewAnnotation(const Annotation* annotation);
         
         virtual void copyDisplayProperties(const int32_t sourceTabIndex,
                                            const int32_t targetTabIndex);
