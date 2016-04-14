@@ -42,6 +42,10 @@ namespace caret {
         
         virtual void update();
         
+        bool isDisplayAnnotations() const;
+        
+        void setDisplayAnnotations(const bool status);
+        
         DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
         
         void setDisplayGroupForTab(const int32_t browserTabIndex,
@@ -73,6 +77,8 @@ namespace caret {
         void restoreVersionOne(const SceneClass* sceneClass);
         
         Brain* m_parentBrain;
+        
+        bool m_displayAnnotations;
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
 #include <QWidget>
 
 #include "DisplayGroupEnum.h"
@@ -83,6 +85,8 @@ namespace caret {
         
         void updateAnnotationSelections();
         
+        void updateOtherAnnotationViewControllers();
+        
         SceneClassAssistant* m_sceneAssistant;
 
         int32_t m_browserWindowIndex;
@@ -91,14 +95,17 @@ namespace caret {
         
         DisplayGroupAndTabItemViewController* m_selectionViewController;
         
+        QCheckBox* m_displayAnnotationsCheckBox;
+        
         QCheckBox* m_displayWindowAnnotationInSingleTabViewsCheckBox;
         
+        static std::set<AnnotationSelectionViewController*> s_allAnnotationSelectionViewControllers;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __ANNOTATION_SELECTION_VIEW_CONTROLLER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::set<AnnotationSelectionViewController*> AnnotationSelectionViewController::s_allAnnotationSelectionViewControllers;
 #endif // __ANNOTATION_SELECTION_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

@@ -72,26 +72,43 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_displayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
                      this, SLOT(displayGroupSelected(const DisplayGroupEnum::Enum)));
     
-    QHBoxLayout* groupLayout = new QHBoxLayout();
-    groupLayout->addWidget(groupLabel);
-    groupLayout->addWidget(m_displayGroupComboBox->getWidget());
-    groupLayout->addStretch();
+    QHBoxLayout* groupSelectionLayout = new QHBoxLayout();
+    groupSelectionLayout->addWidget(groupLabel);
+    groupSelectionLayout->addWidget(m_displayGroupComboBox->getWidget());
+    groupSelectionLayout->addStretch();
+    QMargins groupLayoutMargins = groupSelectionLayout->contentsMargins();
+    groupLayoutMargins.setBottom(0);
+    groupLayoutMargins.setTop(0);
 
-    m_displayWindowAnnotationInSingleTabViewsCheckBox = new QCheckBox("Show Window Annotations in Single Tab View");
+    m_displayAnnotationsCheckBox = new QCheckBox("Display Annotations");
+    m_displayAnnotationsCheckBox->setToolTip("Disables/enables display of annotations in all windows");
+    QObject::connect(m_displayAnnotationsCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(checkBoxToggled()));
+    
+    m_displayWindowAnnotationInSingleTabViewsCheckBox = new QCheckBox("Show Window "
+                                                                      + QString::number(m_browserWindowIndex + 1)
+                                                                      + " Annotations in Single Tab View");
+    const QString singTT(WuQtUtilities::createWordWrappedToolTipText("When checked, window annotations are always displayed."
+                                                                     "When unchecked, window annotations are only displayed when tile tabs is enabled."));
+    m_displayWindowAnnotationInSingleTabViewsCheckBox->setToolTip(singTT);
     QObject::connect(m_displayWindowAnnotationInSingleTabViewsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(checkBoxToggled()));
     
     m_sceneAssistant = new SceneClassAssistant();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addWidget(m_displayAnnotationsCheckBox);
     layout->addWidget(m_displayWindowAnnotationInSingleTabViewsCheckBox);
-    layout->addLayout(groupLayout);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addLayout(groupSelectionLayout);
     layout->addWidget(createSelectionWidget(), 100);
     
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    
+    s_allAnnotationSelectionViewControllers.insert(this);
 }
 
 /**
@@ -101,6 +118,8 @@ AnnotationSelectionViewController::~AnnotationSelectionViewController()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     delete m_sceneAssistant;
+    
+    s_allAnnotationSelectionViewControllers.erase(this);
 }
 
 /**
@@ -131,12 +150,28 @@ AnnotationSelectionViewController::receiveEvent(Event* event)
 }
 
 /**
+ * Update other selection annotation selector since they may share properties
+ */
+void
+AnnotationSelectionViewController::updateOtherAnnotationViewControllers()
+{
+    for (std::set<AnnotationSelectionViewController*>::iterator iter = s_allAnnotationSelectionViewControllers.begin();
+         iter != s_allAnnotationSelectionViewControllers.end();
+         iter++) {
+        AnnotationSelectionViewController* avc = *iter;
+        if (avc != this) {
+            avc->updateAnnotationSelections();
+        }
+    }
+}
+
+/**
  * Update the annotation selections.
  */
 void
 AnnotationSelectionViewController::updateAnnotationSelections()
 {
-    DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+    const DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
     
     BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
@@ -145,6 +180,7 @@ AnnotationSelectionViewController::updateAnnotationSelections()
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     
+    m_displayAnnotationsCheckBox->setChecked(dpa->isDisplayAnnotations());
     m_displayWindowAnnotationInSingleTabViewsCheckBox->setChecked(dpa->isDisplayWindowAnnotationsInSingleTabViews(m_browserWindowIndex));
     
     Brain* brain = GuiManager::get()->getBrain();
@@ -196,9 +232,11 @@ AnnotationSelectionViewController::checkBoxToggled()
         return;
     }
 
+    dpa->setDisplayAnnotations(m_displayAnnotationsCheckBox->isChecked());
     dpa->setDisplayWindowAnnotationsInSingleTabViews(m_browserWindowIndex,
                                      m_displayWindowAnnotationInSingleTabViewsCheckBox->isChecked());
     
+    updateOtherAnnotationViewControllers();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

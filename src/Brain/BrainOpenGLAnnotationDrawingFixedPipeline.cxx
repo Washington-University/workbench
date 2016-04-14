@@ -604,6 +604,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
         return;
     }
     
+    const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
+    if ( ! dpa->isDisplayAnnotations()) {
+        return;
+    }
+    
     m_volumeSliceThickness  = sliceThickness;
     
     setSelectionBoxColor();
@@ -622,7 +627,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     
     bool drawAnnotationsFromFilesFlag = true;
     
-    const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
     switch (drawingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;

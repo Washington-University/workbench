@@ -54,6 +54,9 @@ m_parentBrain(parentBrain)
     
     resetPrivate();
     
+    m_sceneAssistant->add("m_displayAnnotations",
+                          &m_displayAnnotations);
+    
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
     m_sceneAssistant->addArray("m_displayWindowAnnotationsInSingleTabViews",
@@ -91,6 +94,8 @@ DisplayPropertiesAnnotation::copyDisplayProperties(const int32_t sourceTabIndex,
 void
 DisplayPropertiesAnnotation::resetPrivate()
 {
+    m_displayAnnotations = true;
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         m_displayWindowAnnotationsInSingleTabViews[i] = true;
     }
@@ -117,6 +122,28 @@ DisplayPropertiesAnnotation::update()
 {
     
 }
+
+/**
+ * @return Status for displaying annotations
+ */
+bool
+DisplayPropertiesAnnotation::isDisplayAnnotations() const
+{
+    return m_displayAnnotations;
+}
+
+/**
+ * Set the display status for annotations
+ *
+ * @param status
+ *     New display status.
+ */
+void
+DisplayPropertiesAnnotation::setDisplayAnnotations(const bool status)
+{
+    m_displayAnnotations = status;
+}
+
 
 /**
  * Get the display group for a given browser tab.
