@@ -5350,6 +5350,34 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
                                               boundingBox->getDifferenceZ()) / 2.0;
     float modelHalfWidth = modelHalfHeight;
     
+    float windowHorizontalSize = boundingBox->getDifferenceY();
+    float windowVerticalSize   = boundingBox->getDifferenceZ();
+    
+    switch (projectionType) {
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+            windowHorizontalSize = boundingBox->getDifferenceX();
+            windowVerticalSize   = boundingBox->getDifferenceY();
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+            break;
+    }
+    
     /*
      * The default view was changed to a lateral view and the above
      * code results in problems during some window resize operations.
@@ -5358,22 +5386,22 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
      * See also BrowserTabContent::restoreFromScene() that tries to make
      * old scenes compatible with this new scaling.
      */
-    const float zDiff = boundingBox->getDifferenceZ();
-    if (zDiff != 0.0) {
-        modelHalfHeight = zDiff / 2.0;
+    //const float zDiff = boundingBox->getDifferenceZ();
+    if (windowVerticalSize != 0.0) {
+        modelHalfHeight = windowVerticalSize / 2.0;
         
-        const float yDiff = boundingBox->getDifferenceY();
-        if ((yDiff > 0.0)
+//        const float yDiff = boundingBox->getDifferenceY();
+        if ((windowHorizontalSize > 0.0)
             && (viewport[2] > 0.0)) {
             /*
              * Note Z is vertical, Y is horizontal when viewed
              */
-            const float surfaceAspectRatio  = zDiff / yDiff;
+            const float surfaceAspectRatio  = windowVerticalSize / windowHorizontalSize;
             const float viewportAspectRatio = (static_cast<float>(viewport[3])
                                                / static_cast<float>(viewport[2]));
             
             if (viewportAspectRatio > surfaceAspectRatio) {
-                modelHalfWidth = yDiff / 2.0;
+                modelHalfWidth  = windowHorizontalSize / 2.0;
                 modelHalfHeight = modelHalfWidth * viewportAspectRatio;
             }
         }
