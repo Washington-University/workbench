@@ -99,10 +99,10 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     m_tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addLayout(groupLayout);
-    layout->addSpacing(10);
+    //WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(m_bordersDisplayCheckBox);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addLayout(groupLayout);
     layout->addWidget(m_tabWidget->getWidget(), 0, Qt::AlignLeft);
     layout->addStretch();
     
