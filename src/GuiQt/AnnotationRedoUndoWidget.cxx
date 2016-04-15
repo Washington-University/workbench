@@ -56,7 +56,7 @@ AnnotationRedoUndoWidget::AnnotationRedoUndoWidget(const int32_t browserWindowIn
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    QLabel* titleLabel = new QLabel("Oops");
+    QLabel* titleLabel = new QLabel("Edit");
     
     m_redoAction = WuQtUtilities::createAction("Redo",
                                                "Redo ToolTip",
