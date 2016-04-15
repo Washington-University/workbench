@@ -3107,95 +3107,125 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
     
     const float sizeHandleSize = 5.0;
     
-    const float rotationOffset = sizeHandleSize * 3.0;
-    const float handleRotation[3] = {
-        handleTop[0] + (rotationOffset * heightVector[0]),
-        handleTop[1] + (rotationOffset * heightVector[1]),
-        handleTop[2] + (rotationOffset * heightVector[2])
-    };
-    
-    const float handleRotationLineEnd[3] = {
-        handleTop[0] + (rotationOffset * 0.75 * heightVector[0] ),
-        handleTop[1] + (rotationOffset * 0.75 * heightVector[1]),
-        handleTop[2] + (rotationOffset * 0.75 * heightVector[2])
-    };
-    
-        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT)) {
-            drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT,
-                             annotationFile,
-                             annotation,
-                             handleBottomLeft,
-                             sizeHandleSize,
-                             rotationAngle);
-        }
-        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT)) {
-            drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT,
-                             annotationFile,
-                             annotation,
-                             handleBottomRight,
-                             sizeHandleSize,
-                             rotationAngle);
-        }
-        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT)) {
-            drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT,
-                             annotationFile,
-                             annotation,
-                             handleTopRight,
-                             sizeHandleSize,
-                             rotationAngle);
-        }
-        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT)) {
-            drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT,
-                             annotationFile,
-                             annotation,
-                             handleTopLeft,
-                             sizeHandleSize,
-                             rotationAngle);
-        }
-        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP)) {
-            drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP,
-                             annotationFile,
-                             annotation,
-                             handleTop,
-                             sizeHandleSize,
-                             rotationAngle);
-        }
-        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM)) {
-            drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM,
-                             annotationFile,
-                             annotation,
-                             handleBottom,
-                             sizeHandleSize,
-                             rotationAngle);
-        }
-        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT)) {
-            drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT,
-                             annotationFile,
-                             annotation,
-                             handleRight,
-                             sizeHandleSize,
-                             rotationAngle);
-        }
-        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT)) {
-            drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT,
-                             annotationFile,
-                             annotation,
-                             handleLeft,
-                             sizeHandleSize,
-                             rotationAngle);
-        }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT,
+                         annotationFile,
+                         annotation,
+                         handleBottomLeft,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT,
+                         annotationFile,
+                         annotation,
+                         handleBottomRight,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT,
+                         annotationFile,
+                         annotation,
+                         handleTopRight,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT,
+                         annotationFile,
+                         annotation,
+                         handleTopLeft,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP,
+                         annotationFile,
+                         annotation,
+                         handleTop,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM,
+                         annotationFile,
+                         annotation,
+                         handleBottom,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT,
+                         annotationFile,
+                         annotation,
+                         handleRight,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT,
+                         annotationFile,
+                         annotation,
+                         handleLeft,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
     
     if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
-        /* 
+        
+        float handleOffset[3] = {
+            handleTop[0],
+            handleTop[1],
+            handleTop[2]
+        };
+        
+        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+            const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(annotation);
+            CaretAssert(textAnn);
+            
+            /*
+             * The rotation point of a text annotation
+             * is adjusted for the horizontal alignment.
+             */
+            switch (textAnn->getHorizontalAlignment()) {
+                case AnnotationTextAlignHorizontalEnum::CENTER:
+                    break;
+                case AnnotationTextAlignHorizontalEnum::LEFT:
+                    handleOffset[0] = handleTopLeft[0];
+                    handleOffset[1] = handleTopLeft[1];
+                    handleOffset[2] = handleTopLeft[2];
+                    break;
+                case AnnotationTextAlignHorizontalEnum::RIGHT:
+                    handleOffset[0] = handleTopRight[0];
+                    handleOffset[1] = handleTopRight[1];
+                    handleOffset[2] = handleTopRight[2];
+                    break;
+            }
+        }
+
+        const float rotationOffset = sizeHandleSize * 3.0;
+        const float handleRotation[3] = {
+            handleOffset[0] + (rotationOffset * heightVector[0]),
+            handleOffset[1] + (rotationOffset * heightVector[1]),
+            handleOffset[2] + (rotationOffset * heightVector[2])
+        };
+        
+        const float handleRotationLineEnd[3] = {
+            handleOffset[0] + (rotationOffset * 0.75 * heightVector[0] ),
+            handleOffset[1] + (rotationOffset * 0.75 * heightVector[1]),
+            handleOffset[2] + (rotationOffset * 0.75 * heightVector[2])
+        };
+        
+        /*
          * Rotation handle and line connecting rotation handle to selection box
          */
         std::vector<float> coords;
         coords.insert(coords.end(), handleRotationLineEnd, handleRotationLineEnd + 3);
-        coords.insert(coords.end(), handleTop, handleTop + 3);
+        coords.insert(coords.end(), handleOffset, handleOffset + 3);
         BrainOpenGLPrimitiveDrawing::drawLines(coords,
                                                m_selectionBoxRGBA,
                                                2.0);
-        
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
                          annotationFile,
                          annotation,
