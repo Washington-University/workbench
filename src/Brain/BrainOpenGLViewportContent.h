@@ -41,6 +41,10 @@ namespace caret {
         
         void getModelViewport(int modelViewportOut[4]) const;
         
+        void getSurfaceMontageModelViewport(const int32_t montageX,
+                                            const int32_t montageY,
+                                            int subViewportOut[4]) const;
+        
         void getTabViewportBeforeApplyingMargins(int tabViewportOut[4]) const;
         
         void getWindowViewport(int windowViewportOut[4]) const;

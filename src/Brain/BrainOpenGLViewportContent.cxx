@@ -33,6 +33,8 @@
 #include "CaretLogger.h"
 #include "GapsAndMargins.h"
 #include "MathFunctions.h"
+#include "ModelSurfaceMontage.h"
+#include "SurfaceMontageConfigurationAbstract.h"
 #include "TileTabsConfiguration.h"
 
 using namespace caret;
@@ -715,6 +717,67 @@ BrainOpenGLViewportContent::createModelViewport(const int tabViewport[4],
         }
     }
 }
+
+/**
+ * When viewing a surface montage, "getModelViewport()" returns the viewport
+ * for the entire surface montage (viewport containing all of the surfaces).
+ * However, the are instance where we need the viewport for one of surfaces
+ * in a surface montage.  This method will find the viewport for one of the 
+ * surfaces within the surface montage using the given X and Y coordinates.
+ *
+ * @param montageX
+ *     X-coordinate within the surface montage.
+ * @param montageX
+ *     X-coordinate within the surface montage.
+ * @param subViewportOut
+ *     Viewport for individual surface in the montage at the given X, Y 
+ *     coordinates.   Note: if a surface montage is not displayed, 
+ *     this method returns the same viewport as getModelViewport().
+ */
+void
+BrainOpenGLViewportContent::getSurfaceMontageModelViewport(const int32_t montageX,
+                                                           const int32_t montageY,
+                                                           int subViewportOut[4]) const
+{
+    getModelViewport(subViewportOut);
+    
+    if (this->m_browserTabContent == NULL) {
+        return;
+    }
+    
+    ModelSurfaceMontage* msm = m_browserTabContent->getDisplayedSurfaceMontageModel();
+    if (msm != NULL) {
+        std::vector<const SurfaceMontageViewport*> montageViewports;
+        msm->getSurfaceMontageViewportsForTransformation(m_browserTabContent->getTabNumber(),
+                                                         montageViewports);
+        
+        const int x = montageX; // + m_tabX;
+        const int y = montageY; // + m_tabY;
+        
+        for (std::vector<const SurfaceMontageViewport*>::const_iterator iter = montageViewports.begin();
+             iter != montageViewports.end();
+             iter++) {
+            const SurfaceMontageViewport* smv = *iter;
+            
+            int vp[4];
+            smv->getViewport(vp);
+            
+            const int offsetX = x - vp[0];
+            if ((offsetX >= 0)
+                && (offsetX < vp[2])) {
+                const int offsetY = y - vp[1];
+                
+                if ((offsetY >= 0)
+                    && (offsetY < vp[3])) {
+                    smv->getViewport(subViewportOut);
+                    return;
+                }
+            }
+            
+        }
+    }
+}
+
 
 /* =================================================================================================== */
 
