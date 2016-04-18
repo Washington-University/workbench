@@ -2972,7 +2972,8 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrowserTabContent",
-                                            5); // WB-576
+                                            6); // WB-491 Flat Fixes
+                                            //5); // WB-576
                                             //4);  // WB-491, 1/28/2015
                                             //3); // version 3 as of 4/22/2014
 
@@ -3224,6 +3225,22 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
             m_userName.insert(0,
                               "(" + AString::number(m_tabNumber + 1) + ") ");
 
+        }
+    }
+
+    if (sceneClass->getVersionNumber() < 6) {
+        /*
+         * WB-491 sets the viewport for flat surfaces to fit the 
+         * flat surface when viewing a flat montage
+         */
+        const ModelSurfaceMontage* msm = getDisplayedSurfaceMontageModel();
+        if (msm != NULL) {
+            const SurfaceMontageConfigurationAbstract* smc = msm->getSelectedConfiguration(m_tabNumber);
+            if (smc != NULL) {
+                if (smc->getConfigurationType() == SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION) {
+                    setScaling(1.0);
+                }
+            }
         }
     }
 }
