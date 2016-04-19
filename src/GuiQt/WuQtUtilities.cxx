@@ -441,12 +441,26 @@ WuQtUtilities::moveAndSizeWindow(QWidget* window,
         if (yPos > maxY) {
             yPos = maxY;
         }
+        
+        /*
+         * ScreenRect width/height is size of screen
+         * reduced by menu bars, docks and other items
+         * that reduce available screen space
+         */
+        const int32_t maxWidth = screenRect.width();
+        if (width > maxWidth) {
+            width = maxWidth;
+        }
+        
+        const int32_t maxHeight = screenRect.height();
+        if (height > maxHeight) {
+            height = maxHeight;
+        }
     }
+
     /*
      * Move and size window
      */
-//    std::cout << "Moving to " << xPos << ", " << yPos << std::endl;
-//    std::cout << "Width " << width << ", " << height << std::endl;
     window->move(xPos,
                  yPos);
     window->resize(width,
