@@ -510,6 +510,10 @@ Annotation::initializeAnnotationMembers()
     m_sceneAssistant->add("m_displayGroupAndTabItemHelper",
                           "DisplayGroupAndTabItemHelper",
                           m_displayGroupAndTabItemHelper);
+    if (m_type == AnnotationTypeEnum::COLOR_BAR) {
+        m_sceneAssistant->add<AnnotationCoordinateSpaceEnum, AnnotationCoordinateSpaceEnum::Enum>("m_coordinateSpace",
+                                                                                                  &m_coordinateSpace);
+    }
 }
 
 
