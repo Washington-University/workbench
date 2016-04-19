@@ -456,6 +456,10 @@ WuQtUtilities::moveAndSizeWindow(QWidget* window,
         if (height > maxHeight) {
             height = maxHeight;
         }
+        
+        const QRect geom = dw->screenGeometry(nearestScreen);
+        CaretLogInfo(QString("Window Available width/height: %1, %2 \n      Screen width/height: %3, %4"
+                             ).arg(maxWidth).arg(maxHeight).arg(geom.width()).arg(geom.height()));
     }
 
     /*
