@@ -277,8 +277,17 @@ CaretDataFile::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    const bool modifiedStatus = isModified();
+    
     restoreFileDataFromScene(sceneAttributes,
                              sceneClass);
+    
+    if ( ! modifiedStatus) {
+        /*
+         * restoring scene info may cause an invalid modified status
+         */
+        clearModified();
+    }
 }
 
 /**
