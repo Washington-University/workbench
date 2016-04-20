@@ -46,7 +46,7 @@ namespace caret
         NiftiHeader(const NiftiHeader& rhs);
         NiftiHeader& operator=(const NiftiHeader& rhs);
         void read(CaretBinaryFile& inFile);
-        void write(CaretBinaryFile& outFile, const int& version = 1, const bool& swapEndian = false);//returns new vox_offset, doesn't set it internally
+        void write(CaretBinaryFile& outFile, const int& version = 1, const bool& swapEndian = false);
         bool canWriteVersion(const int& version) const;
         bool isSwapped() const { return m_isSwapped; }
         int version() const { return m_version; }
@@ -58,7 +58,7 @@ namespace caret
         int64_t getDataOffset() const { return m_header.vox_offset; }
         int16_t getDataType() const { return m_header.datatype; }
         int32_t getIntentCode() const { return m_header.intent_code; }
-        const char* getIntentName() const { return m_header.intent_name; }//NOTE: MAY NOT HAVE A NULL TERMINATOR
+        const char* getIntentName() const { return m_header.intent_name; }//NOTE: 16 BYTES, MAY NOT HAVE A NULL TERMINATOR
         bool getDataScaling(double& mult, double& offset) const;//returns false if scaling not needed
         QString toString() const;
         

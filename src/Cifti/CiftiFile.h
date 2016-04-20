@@ -36,13 +36,21 @@ namespace caret
     class CiftiFile : public CiftiInterface
     {
     public:
-        CiftiFile() { }
+        enum ENDIAN
+        {
+            ANY,//so that writeFile() with default endian argument can do nothing after setWritingFile with any endian argument - uses native if there is no rewrite to avoid
+            NATIVE,//as long as there are more than two options anyway, provide a convenience option so people don't need to figure out the machine endianness for a common case
+            LITTLE,
+            BIG
+        };
+
+        CiftiFile() { m_endianPref = NATIVE; }
         explicit CiftiFile(const QString &fileName);//calls openFile
         void openFile(const QString& fileName);//starts on-disk reading
         void openURL(const QString& url, const QString& user, const QString& pass);//open from XNAT
         void openURL(const QString& url);//same, without user/pass (or curently, reusing existing auth if the server matches
-        void setWritingFile(const QString& fileName, const CiftiVersion& writingVersion = CiftiVersion());//starts on-disk writing
-        void writeFile(const QString& fileName, const CiftiVersion& writingVersion = CiftiVersion());//leaves current state as-is, rewrites if already writing to that filename and version mismatch
+        void setWritingFile(const QString& fileName, const CiftiVersion& writingVersion = CiftiVersion(), const ENDIAN& endian = NATIVE);//starts on-disk writing
+        void writeFile(const QString& fileName, const CiftiVersion& writingVersion = CiftiVersion(), const ENDIAN& endian = ANY);//leaves current state as-is, rewrites if already writing to that filename and version mismatch
         void convertToInMemory();
         QString getFileName() const { return m_fileName; }
         
@@ -86,6 +94,8 @@ namespace caret
         QString m_writingFile, m_fileName;
         //CiftiXML m_xml;//uncomment when we drop CiftiInterface
         CiftiVersion m_onDiskVersion;
+        ENDIAN m_endianPref;
+        
         void verifyWriteImpl();
         static void copyImplData(const ReadImplInterface* from, WriteImplInterface* to, const std::vector<int64_t>& dims);
     };

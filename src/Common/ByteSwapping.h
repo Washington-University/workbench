@@ -65,6 +65,12 @@ namespace caret {
         template<typename T>
         static void swapArray(T* toSwap, const uint64_t& count);
 
+        inline static bool isBigEndian()
+        {
+            uint16_t test = 1;
+            return (((char*)&test)[0] == 0);
+        }
+
     };
 
     template<typename T>
