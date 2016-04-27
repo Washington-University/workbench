@@ -542,10 +542,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
      */
     const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     uint8_t foregroundRGBA[4];
-    prefs->getColorForegroundVolumeView(foregroundRGBA);
+    prefs->getBackgroundAndForegroundColors()->getColorForegroundVolumeView(foregroundRGBA);
     foregroundRGBA[3] = 255;
     uint8_t backgroundRGBA[4];
-    prefs->getColorBackgroundVolumeView(backgroundRGBA);
+    prefs->getBackgroundAndForegroundColors()->getColorBackgroundVolumeView(backgroundRGBA);
     backgroundRGBA[3] = 255;
     const bool showCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
     

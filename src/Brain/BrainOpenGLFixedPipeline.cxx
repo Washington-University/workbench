@@ -379,9 +379,9 @@ BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(BrainOpenGLViewpor
      * Default to colors for surface
      */
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->getColorForegroundSurfaceView(m_foregroundColorByte);
+    prefs->getBackgroundAndForegroundColors()->getColorForegroundSurfaceView(m_foregroundColorByte);
     m_foregroundColorByte[3] = 255;
-    prefs->getColorBackgroundSurfaceView(m_backgroundColorByte);
+    prefs->getBackgroundAndForegroundColors()->getColorBackgroundSurfaceView(m_backgroundColorByte);
     m_backgroundColorByte[3] = 255;
     
     if (vpContent != NULL) {
@@ -391,26 +391,26 @@ BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(BrainOpenGLViewpor
             if (model != NULL) {
                 switch (model->getModelType()) {
                     case ModelTypeEnum::MODEL_TYPE_CHART:
-                        prefs->getColorForegroundChartView(m_foregroundColorByte);
-                        prefs->getColorBackgroundChartView(m_backgroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorForegroundChartView(m_foregroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorBackgroundChartView(m_backgroundColorByte);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                        prefs->getColorForegroundSurfaceView(m_foregroundColorByte);
-                        prefs->getColorBackgroundSurfaceView(m_backgroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorForegroundSurfaceView(m_foregroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorBackgroundSurfaceView(m_backgroundColorByte);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                        prefs->getColorForegroundSurfaceView(m_foregroundColorByte);
-                        prefs->getColorBackgroundSurfaceView(m_backgroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorForegroundSurfaceView(m_foregroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorBackgroundSurfaceView(m_backgroundColorByte);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                        prefs->getColorForegroundVolumeView(m_foregroundColorByte);
-                        prefs->getColorBackgroundVolumeView(m_backgroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorForegroundVolumeView(m_foregroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorBackgroundVolumeView(m_backgroundColorByte);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                        prefs->getColorForegroundAllView(m_foregroundColorByte);
-                        prefs->getColorBackgroundAllView(m_backgroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorForegroundAllView(m_foregroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorBackgroundAllView(m_backgroundColorByte);
                         break;
                 }
             }

@@ -532,288 +532,75 @@ CaretPreferences::removeTileTabsConfigurationByUniqueIdentifier(const AString& t
 }
 
 
-
-
-
 /**
- * Get the foreground color for viewing the ALL model.
- *
- * @param colorForeground
- *    RGB color components ranging [0, 255].
+ * @return Pointer to the background and foreground colors for
+ * use when drawing graphics.  The colors returned may be
+ * either the user's preferences or the from the currently
+ * loaded scene.
  */
-void
-CaretPreferences::getColorForegroundAllView(uint8_t colorForeground[3]) const
+const BackgroundAndForegroundColors*
+CaretPreferences::getBackgroundAndForegroundColors() const
 {
-    for (int32_t i = 0; i < 3; i++) {
-        colorForeground[i] = this->colorForegroundAll[i];
-    }
+    return &this->userColors;
 }
 
 /**
- * Set the foreground color for viewing the ALL model.
- *
- * @param colorForeground
- *    RGB color components ranging [0, 255].
+ * @return The USER'S preferred background and foreground colors.
+ *    This method is used only by the PreferencesDialog to
+ *    update the user's preferred colors.
+ */
+BackgroundAndForegroundColors
+CaretPreferences::getUserBackgroundAndForegroundColors()
+{
+    return this->userColors;
+}
+
+/**
+ * Set the USER'S preferred background and foreground colors.
+ *    This method is used only by the PreferencesDialog to
+ *    update the user's preferred colors.
  */
 void
-CaretPreferences::setColorForegroundAllView(const uint8_t colorForeground[3])
+CaretPreferences::setUserBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors)
 {
-    for (int32_t i = 0; i < 3; i++) {
-        this->colorForegroundAll[i] = colorForeground[i];
-    }
+    /*
+     * "in memory" colors
+     */
+    this->userColors = colors;
     
+    /*
+     * Update preferences file with colors
+     */
     writeUnsignedByteArray(NAME_COLOR_FOREGROUND_ALL,
-                           colorForegroundAll,
+                           this->userColors.m_colorForegroundAll,
                            3);
-}
-
-/**
- * Get the background color for viewing the ALL model.
- *
- * @param colorBackground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::getColorBackgroundAllView(uint8_t colorBackground[3]) const
-{
-    for (int32_t i = 0; i < 3; i++) {
-        colorBackground[i] = this->colorBackgroundAll[i];
-    }
-}
-
-/**
- * Set the background color for viewing the ALL model.
- *
- * @param colorBackground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::setColorBackgroundAllView(const uint8_t colorBackground[3])
-{
-    for (int32_t i = 0; i < 3; i++) {
-        this->colorBackgroundAll[i] = colorBackground[i];
-    }
     writeUnsignedByteArray(NAME_COLOR_BACKGROUND_ALL,
-                           colorBackgroundAll,
+                           this->userColors.m_colorBackgroundAll,
                            3);
-}
-
-
-/**
- * Get the foreground color for viewing the CHART model.
- *
- * @param colorForeground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::getColorForegroundChartView(uint8_t colorForeground[3]) const
-{
-    for (int32_t i = 0; i < 3; i++) {
-        colorForeground[i] = this->colorForegroundChart[i];
-    }
-}
-
-/**
- * Set the foreground color for viewing the CHART model.
- *
- * @param colorForeground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::setColorForegroundChartView(const uint8_t colorForeground[3])
-{
-    for (int32_t i = 0; i < 3; i++) {
-        this->colorForegroundChart[i] = colorForeground[i];
-    }
+    
     writeUnsignedByteArray(NAME_COLOR_FOREGROUND_CHART,
-                           colorForegroundChart,
+                           this->userColors.m_colorForegroundChart,
                            3);
-}
-
-/**
- * Get the background color for viewing the CHART model.
- *
- * @param colorBackground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::getColorBackgroundChartView(uint8_t colorBackground[3]) const
-{
-    for (int32_t i = 0; i < 3; i++) {
-        colorBackground[i] = this->colorBackgroundChart[i];
-    }
-}
-
-/**
- * Set the background color for viewing the CHART model.
- *
- * @param colorBackground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::setColorBackgroundChartView(const uint8_t colorBackground[3])
-{
-    for (int32_t i = 0; i < 3; i++) {
-        this->colorBackgroundChart[i] = colorBackground[i];
-    }
     writeUnsignedByteArray(NAME_COLOR_BACKGROUND_CHART,
-                           colorBackgroundChart,
+                           this->userColors.m_colorBackgroundChart,
                            3);
-}
-
-
-/**
- * Get the foreground color for viewing the SURFACE model.
- *
- * @param colorForeground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::getColorForegroundSurfaceView(uint8_t colorForeground[3]) const
-{
-    for (int32_t i = 0; i < 3; i++) {
-        colorForeground[i] = this->colorForegroundSurface[i];
-    }
-}
-
-/**
- * Set the foreground color for viewing the SURFACE model.
- *
- * @param colorForeground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::setColorForegroundSurfaceView(const uint8_t colorForeground[3])
-{
-    for (int32_t i = 0; i < 3; i++) {
-        this->colorForegroundSurface[i] = colorForeground[i];
-    }
+    
     writeUnsignedByteArray(NAME_COLOR_FOREGROUND_SURFACE,
-                           colorForegroundSurface,
+                           this->userColors.m_colorForegroundSurface,
                            3);
-}
-
-/**
- * Get the background color for viewing the SURFACE model.
- *
- * @param colorBackground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::getColorBackgroundSurfaceView(uint8_t colorBackground[3]) const
-{
-    for (int32_t i = 0; i < 3; i++) {
-        colorBackground[i] = this->colorBackgroundSurface[i];
-    }
-}
-
-/**
- * Get the background color for viewing the SURFACE model.
- *
- * @param colorBackground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::setColorBackgroundSurfaceView(const uint8_t colorBackground[3])
-{
-    for (int32_t i = 0; i < 3; i++) {
-        this->colorBackgroundSurface[i] = colorBackground[i];
-    }
     writeUnsignedByteArray(NAME_COLOR_BACKGROUND_SURFACE,
-                           colorBackgroundSurface,
+                           this->userColors.m_colorBackgroundSurface,
                            3);
-}
-
-/**
- * Get the foreground color for viewing the VOLUME model.
- *
- * @param colorForeground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::getColorForegroundVolumeView(uint8_t colorForeground[3]) const
-{
-    for (int32_t i = 0; i < 3; i++) {
-        colorForeground[i] = this->colorForegroundVolume[i];
-    }
-}
-
-/**
- * Set the foreground color for viewing the VOLUME model.
- *
- * @param colorForeground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::setColorForegroundVolumeView(const uint8_t colorForeground[3])
-{
-    for (int32_t i = 0; i < 3; i++) {
-        this->colorForegroundVolume[i] = colorForeground[i];
-    }
+    
     writeUnsignedByteArray(NAME_COLOR_FOREGROUND_VOLUME,
-                           colorForegroundVolume,
+                           this->userColors.m_colorForegroundVolume,
                            3);
-}
-
-/**
- * Get the background color for viewing the VOLUME model.
- *
- * @param colorBackground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::getColorBackgroundVolumeView(uint8_t colorBackground[3]) const
-{
-    for (int32_t i = 0; i < 3; i++) {
-        colorBackground[i] = this->colorBackgroundVolume[i];
-    }
-}
-
-/**
- * Set the background color for viewing the VOLUME model.
- *
- * @param colorBackground
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::setColorBackgroundVolumeView(const uint8_t colorBackground[3])
-{
-    for (int32_t i = 0; i < 3; i++) {
-        this->colorBackgroundVolume[i] = colorBackground[i];
-    }
     writeUnsignedByteArray(NAME_COLOR_BACKGROUND_VOLUME,
-                           colorBackgroundVolume,
+                           this->userColors.m_colorBackgroundVolume,
                            3);
-}
-
-/**
- * Get the color for chart matrix grid lines
- *
- * @param colorChartMatrixGridLines
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::getColorChartMatrixGridLines(uint8_t colorChartMatrixGridLines[3]) const
-{
-    for (int32_t i = 0; i < 3; i++) {
-        colorChartMatrixGridLines[i] = this->colorChartMatrixGridLines[i];
-    }
-}
-
-/**
- * Set the color for chart matrix grid lines
- *
- * @param colorChartMatrixGridLines
- *    RGB color components ranging [0, 255].
- */
-void
-CaretPreferences::setColorChartMatrixGridLines(const uint8_t colorChartMatrixGridLines[3])
-{
-    for (int32_t i = 0; i < 3; i++) {
-        this->colorChartMatrixGridLines[i] = colorChartMatrixGridLines[i];
-    }
+    
     writeUnsignedByteArray(NAME_COLOR_CHART_MATRIX_GRID_LINES,
-                           colorChartMatrixGridLines,
+                           this->userColors.m_colorChartMatrixGridLines,
                            3);
 }
 
@@ -1473,65 +1260,63 @@ CaretPreferences::writeUnsignedByteArray(const AString& name,
 void 
 CaretPreferences::readPreferences()
 {
-    uint8_t colorForeground[3] = { 255, 255, 255 };
-    readUnsignedByteArray(NAME_COLOR_FOREGROUND,
-                          colorForeground,
-                          3);
+    userColors.reset();
     
-    uint8_t colorBackground[3] = { 0, 0, 0 };
-    readUnsignedByteArray(NAME_COLOR_BACKGROUND,
-                          colorBackground,
-                          3);
+    uint8_t colorRGB[3] = { 0, 0, 0 };
     
-    /*
-     * At one time, there was one foreground and background color that applied
-     * to all model views.  Use it to initialize the newer background and
-     * foreground colors for each model type.
-     */
-    for (int32_t i = 0; i < 3; i++) {
-        this->colorBackgroundAll[i]        = colorBackground[i];
-        this->colorBackgroundChart[i]      = colorBackground[i];
-        this->colorBackgroundSurface[i]    = colorBackground[i];
-        this->colorBackgroundVolume[i]     = colorBackground[i];
-        
-        this->colorForegroundAll[i]        = colorForeground[i];
-        this->colorForegroundChart[i]      = colorForeground[i];
-        this->colorForegroundSurface[i]    = colorForeground[i];
-        this->colorForegroundVolume[i]     = colorForeground[i];
-        this->colorChartMatrixGridLines[i] = colorForeground[i];
-    }
-    
+    userColors.getColorForegroundAllView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_FOREGROUND_ALL,
-                          this->colorForegroundAll,
+                          colorRGB,
                           3);
+    userColors.setColorForegroundAllView(colorRGB);
+    
+    userColors.getColorBackgroundAllView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_BACKGROUND_ALL,
-                          this->colorBackgroundAll,
+                          colorRGB,
                           3);
+    userColors.setColorBackgroundAllView(colorRGB);
+    
+    userColors.getColorForegroundChartView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_FOREGROUND_CHART,
-                          this->colorForegroundChart,
+                          colorRGB,
                           3);
+    userColors.setColorForegroundChartView(colorRGB);
+    
+    userColors.getColorBackgroundChartView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_BACKGROUND_CHART,
-                          this->colorBackgroundChart,
+                          colorRGB,
                           3);
+    userColors.setColorBackgroundChartView(colorRGB);
+    
+    userColors.getColorForegroundSurfaceView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_FOREGROUND_SURFACE,
-                          this->colorForegroundSurface,
+                          colorRGB,
                           3);
+    userColors.setColorForegroundSurfaceView(colorRGB);
+    
+    userColors.getColorBackgroundSurfaceView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_BACKGROUND_SURFACE,
-                          this->colorBackgroundSurface,
+                          colorRGB,
                           3);
+    userColors.setColorBackgroundSurfaceView(colorRGB);
+    
+    userColors.getColorForegroundVolumeView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_FOREGROUND_VOLUME,
-                          this->colorForegroundVolume,
+                          colorRGB,
                           3);
+    userColors.setColorForegroundVolumeView(colorRGB);
+    
+    userColors.getColorBackgroundVolumeView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_BACKGROUND_VOLUME,
-                          this->colorBackgroundVolume,
+                          colorRGB,
                           3);
+    userColors.setColorBackgroundVolumeView(colorRGB);
 
-    this->colorChartMatrixGridLines[0] = 0;
-    this->colorChartMatrixGridLines[1] = 0;
-    this->colorChartMatrixGridLines[2] = 0;
+    userColors.getColorChartMatrixGridLines(colorRGB);
     readUnsignedByteArray(NAME_COLOR_CHART_MATRIX_GRID_LINES,
-                          this->colorChartMatrixGridLines,
+                          colorRGB,
                           3);
+    userColors.setColorChartMatrixGridLines(colorRGB);
     
     this->previousSpecFiles.clear();    
     const int numPrevSpec = this->qSettings->beginReadArray(NAME_PREVIOUS_SPEC_FILES);

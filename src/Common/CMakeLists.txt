@@ -29,6 +29,7 @@ ApplicationInformation.h
 ApplicationTypeEnum.h
 AString.h
 AStringNaturalComparison.h
+BackgroundAndForegroundColors.h
 Base64.h
 BoundingBox.h
 BrainConstants.h
@@ -133,6 +134,7 @@ ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
 ApplicationTypeEnum.cxx
 AString.cxx
 AStringNaturalComparison.cxx
+BackgroundAndForegroundColors.cxx
 Base64.cxx
 BoundingBox.cxx
 BrainConstants.cxx

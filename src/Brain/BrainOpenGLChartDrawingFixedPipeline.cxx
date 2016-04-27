@@ -938,7 +938,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     uint8_t highlightRGBByte[3];
-    prefs->getColorForegroundChartView(highlightRGBByte);
+    prefs->getBackgroundAndForegroundColors()->getColorForegroundChartView(highlightRGBByte);
     const float highlightRGB[3] = {
         highlightRGBByte[0] / 255.0,
         highlightRGBByte[1] / 255.0,
@@ -1221,7 +1221,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
              */
             if (displayGridLinesFlag) {
                 uint8_t gridLineColorBytes[3];
-                prefs->getColorChartMatrixGridLines(gridLineColorBytes);
+                prefs->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridLineColorBytes);
                 float gridLineColorFloats[4];
                 CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
                                                     gridLineColorFloats);

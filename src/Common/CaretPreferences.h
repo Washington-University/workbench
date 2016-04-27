@@ -23,6 +23,7 @@
 
 #include <utility>
 
+#include "BackgroundAndForegroundColors.h"
 #include "CaretObject.h"
 #include "LogLevelEnum.h"
 #include "ImageCaptureMethodEnum.h"
@@ -43,45 +44,12 @@ namespace caret {
         CaretPreferences();
         
         virtual ~CaretPreferences();
+
+        const BackgroundAndForegroundColors* getBackgroundAndForegroundColors() const;
         
-        void getColorForegroundAllView(uint8_t colorForeground[3]) const;
+        BackgroundAndForegroundColors getUserBackgroundAndForegroundColors();
         
-        void setColorForegroundAllView(const uint8_t colorForeground[3]);
-        
-        void getColorBackgroundAllView(uint8_t colorForeground[3]) const;
-        
-        void setColorBackgroundAllView(const uint8_t colorForeground[3]);
-        
-        
-        void getColorForegroundChartView(uint8_t colorForeground[3]) const;
-        
-        void setColorForegroundChartView(const uint8_t colorForeground[3]);
-        
-        void getColorBackgroundChartView(uint8_t colorForeground[3]) const;
-        
-        void setColorBackgroundChartView(const uint8_t colorForeground[3]);
-        
-        
-        void getColorForegroundSurfaceView(uint8_t colorForeground[3]) const;
-        
-        void setColorForegroundSurfaceView(const uint8_t colorForeground[3]);
-        
-        void getColorBackgroundSurfaceView(uint8_t colorForeground[3]) const;
-        
-        void setColorBackgroundSurfaceView(const uint8_t colorForeground[3]);
-        
-        
-        void getColorForegroundVolumeView(uint8_t colorForeground[3]) const;
-        
-        void setColorForegroundVolumeView(const uint8_t colorForeground[3]);
-        
-        void getColorBackgroundVolumeView(uint8_t colorForeground[3]) const;
-        
-        void setColorBackgroundVolumeView(const uint8_t colorForeground[3]);
-        
-        void getColorChartMatrixGridLines(uint8_t colorChartMatrixGridLines[3]) const;
-        
-        void setColorChartMatrixGridLines(const uint8_t colorChartMatrixGridLines[3]);
+        void setUserBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors);
         
         void getPreviousSpecFiles(std::vector<AString>& previousSpecFiles) const;
         
@@ -255,23 +223,9 @@ namespace caret {
         
         mutable QSettings* qSettings;
         
-        uint8_t colorForegroundAll[3];
+        BackgroundAndForegroundColors userColors;
         
-        uint8_t colorBackgroundAll[3];
-        
-        uint8_t colorForegroundChart[3];
-        
-        uint8_t colorBackgroundChart[3];
-        
-        uint8_t colorForegroundSurface[3];
-        
-        uint8_t colorBackgroundSurface[3];
-        
-        uint8_t colorForegroundVolume[3];
-        
-        uint8_t colorBackgroundVolume[3];
-        
-        uint8_t colorChartMatrixGridLines[3];
+        //BackgroundAndForegroundColors sceneColors;
         
         std::vector<AString> previousSpecFiles;
         
