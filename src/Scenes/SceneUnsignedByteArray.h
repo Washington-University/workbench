@@ -1,5 +1,5 @@
-#ifndef __SCENE_FLOAT_ARRAY_H__
-#define __SCENE_FLOAT_ARRAY_H__
+#ifndef __SCENE_UNSIGNED_BYTE_ARRAY_H__
+#define __SCENE_UNSIGNED_BYTE_ARRAY_H__
 
 /*LICENSE_START*/
 /*
@@ -26,23 +26,23 @@
 
 namespace caret {
 
-    class SceneFloatArray : public ScenePrimitiveArray {
+    class SceneUnsignedByteArray : public ScenePrimitiveArray {
         
     public:
-        SceneFloatArray(const AString& name,
-                               const float values[],
+        SceneUnsignedByteArray(const AString& name,
+                               const uint8_t values[],
                                const int32_t numberOfArrayElements);
         
-        SceneFloatArray(const AString& name,
-                          const std::vector<float>& values);
+        SceneUnsignedByteArray(const AString& name,
+                          const std::vector<uint8_t>& values);
         
-        SceneFloatArray(const AString& name,
+        SceneUnsignedByteArray(const AString& name,
                           const int numberOfArrayElements);
         
-        virtual ~SceneFloatArray();
+        virtual ~SceneUnsignedByteArray();
         
         void setValue(const int32_t arrayIndex,
-                      const float value);
+                      const uint8_t value);
         
         virtual bool booleanValue(const int32_t arrayIndex) const;
         
@@ -55,9 +55,9 @@ namespace caret {
         virtual uint8_t unsignedByteValue(const int32_t arrayIndex) const;
         
     private:
-        SceneFloatArray(const SceneFloatArray&);
+        SceneUnsignedByteArray(const SceneUnsignedByteArray&);
 
-        SceneFloatArray& operator=(const SceneFloatArray&);
+        SceneUnsignedByteArray& operator=(const SceneUnsignedByteArray&);
         
     public:
 
@@ -65,15 +65,15 @@ namespace caret {
 
     private:
 
-        std::vector<float> m_values;
+        std::vector<uint8_t> m_values;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __SCENE_FLOAT_ARRAY_DECLARE__
+#ifdef __SCENE_UNSIGNED_BYTE_ARRAY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_FLOAT_ARRAY_DECLARE__
+#endif // __SCENE_UNSIGNED_BYTE_ARRAY_DECLARE__
 
 } // namespace
-#endif  //__SCENE_FLOAT_ARRAY_H__
+#endif  //__SCENE_UNSIGNED_BYTE_ARRAY_H__

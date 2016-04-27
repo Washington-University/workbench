@@ -44,6 +44,7 @@ SceneAttributes::SceneAttributes(const SceneTypeEnum::Enum sceneType)
     m_restoreWindowBehaviorInSceneDisplay = RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES;
     m_specFileNameSavedToScene   = true;
     m_allLoadedFilesSavedToScene = true;
+    m_useSceneForgroundAndBackgroundColorsFlag = true;
 }
 
 /**
@@ -312,5 +313,31 @@ SceneAttributes::clearErrorMessage()
     m_errorMessage.clear();
 }
 
+/**
+ * @return Use the foreground and background colors from the scene?
+ *
+ * Note that scenes prior May 2016 may not contain foreground and
+ * background colors.
+ */
+bool
+SceneAttributes::isUseSceneForegroundAndBackgroundColors() const
+{
+    return m_useSceneForgroundAndBackgroundColorsFlag;
+}
+
+/**
+ * Set use the foreground and background colors from the scene.
+ *
+ * Note that scenes prior May 2016 may not contain foreground and
+ * background colors.
+ *
+ * @param status
+ *     New status for using colors from scene.
+ */
+void
+SceneAttributes::setUseSceneForegroundAndBackgroundColors(const bool status)
+{
+    m_useSceneForgroundAndBackgroundColorsFlag = status;
+}
 
 

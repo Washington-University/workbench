@@ -44,6 +44,8 @@ namespace caret {
         
         virtual AString stringValue() const;
         
+        virtual uint8_t unsignedByteValue() const;
+        
     private:
         SceneString(const SceneString&);
 

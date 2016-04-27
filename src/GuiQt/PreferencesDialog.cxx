@@ -724,6 +724,12 @@ PreferencesDialog::updateDialog()
     m_allWidgets->blockAllSignals(false);
 }
 
+/**
+ * Update the colors in the dialog.
+ *
+ * @param prefColor
+ *     Color that will be updated.
+ */
 void
 PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
 {
@@ -826,6 +832,7 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
         }
         
         prefs->setUserBackgroundAndForegroundColors(colors);
+        prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
         
         updateColorWidget(prefs);
         

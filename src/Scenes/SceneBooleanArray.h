@@ -52,6 +52,8 @@ namespace caret {
         
         virtual AString stringValue(const int32_t arrayIndex) const;
         
+        virtual uint8_t unsignedByteValue(const int32_t arrayIndex) const;
+        
     private:
         SceneBooleanArray(const SceneBooleanArray&);
 

@@ -50,7 +50,9 @@ public:
         /** Pathname (path to file) */
         SCENE_PATH_NAME,
         /** String */
-        SCENE_STRING
+        SCENE_STRING,
+        /** Unsigned Byte */
+        SCENE_UNSIGNED_BYTE
     };
 
 

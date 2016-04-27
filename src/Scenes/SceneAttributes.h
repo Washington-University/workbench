@@ -83,6 +83,10 @@ namespace caret {
         
         void clearErrorMessage();
         
+        bool isUseSceneForegroundAndBackgroundColors() const;
+        
+        void setUseSceneForegroundAndBackgroundColors(const bool status);
+        
     private:
         SceneAttributes(const SceneAttributes&);
 
@@ -111,6 +115,8 @@ namespace caret {
         bool m_allLoadedFilesSavedToScene;
         
         bool m_modifiedPaletteSettingsSavedToScene;
+        
+        bool m_useSceneForgroundAndBackgroundColorsFlag;
         
         mutable AString m_errorMessage;
         

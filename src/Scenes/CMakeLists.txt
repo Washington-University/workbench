@@ -28,6 +28,7 @@ INCLUDE(${QT_USE_FILE})
 # Create a Library
 #
 ADD_LIBRARY(Scenes
+BackgroundAndForegroundColorsSceneHelper.h
 DisplayGroupAndTabItemHelper.h
 Scene.h
 SceneAttributes.h
@@ -56,11 +57,14 @@ SceneSaxReader.h
 SceneString.h
 SceneStringArray.h
 SceneTypeEnum.h
+SceneUnsignedByte.h
+SceneUnsignedByteArray.h
 SceneWriterInterface.h
 SceneWriterXml.h
 SceneXmlElements.h
 SceneableInterface.h
 
+BackgroundAndForegroundColorsSceneHelper.cxx
 DisplayGroupAndTabItemHelper.cxx
 Scene.cxx
 SceneAttributes.cxx
@@ -89,6 +93,8 @@ SceneSaxReader.cxx
 SceneString.cxx
 SceneStringArray.cxx
 SceneTypeEnum.cxx
+SceneUnsignedByte.cxx
+SceneUnsignedByteArray.cxx
 SceneWriterXml.cxx
 )
 

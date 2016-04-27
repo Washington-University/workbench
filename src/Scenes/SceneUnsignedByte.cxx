@@ -19,17 +19,19 @@
  */
 /*LICENSE_END*/
 
-#define __SCENE_BOOLEAN_DECLARE__
-#include "SceneBoolean.h"
-#undef __SCENE_BOOLEAN_DECLARE__
+#include <limits>
+
+#define __SCENE_UNSIGNED_BYTE_DECLARE__
+#include "SceneUnsignedByte.h"
+#undef __SCENE_UNSIGNED_BYTE_DECLARE__
 
 using namespace caret;
 
 
     
 /**
- * \class caret::SceneBoolean 
- * \brief For storage of a boolean value in a scene.
+ * \class caret::SceneUnsignedByte 
+ * \brief For storage of an integer value in a scene.
  * \ingroup Scene
  *
  * See the documentation in the class Scene for how to use the Scene system.
@@ -43,10 +45,10 @@ using namespace caret;
  * @param value
  *   Value of object.
  */
-SceneBoolean::SceneBoolean(const AString& name,
-                           const bool value)
+SceneUnsignedByte::SceneUnsignedByte(const AString& name,
+                       const uint8_t value)
 : ScenePrimitive(name,
-                 SceneObjectDataTypeEnum::SCENE_BOOLEAN)
+                 SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE)
 {
     m_value = value;
 }
@@ -54,7 +56,7 @@ SceneBoolean::SceneBoolean(const AString& name,
 /**
  * Destructor.
  */
-SceneBoolean::~SceneBoolean()
+SceneUnsignedByte::~SceneUnsignedByte()
 {
     
 }
@@ -65,7 +67,7 @@ SceneBoolean::~SceneBoolean()
  *    The new value.
  */
 void 
-SceneBoolean::setValue(const bool value)
+SceneUnsignedByte::setValue(const uint8_t value)
 {
     m_value = value;
 }
@@ -74,18 +76,19 @@ SceneBoolean::setValue(const bool value)
  * @return The value as a boolean data type.
  */
 bool 
-SceneBoolean::booleanValue() const
+SceneUnsignedByte::booleanValue() const
 {
-    return m_value;
+    const bool b = ((m_value != 0) ? true : false);
+    return b;
 }
 
 /**
  * @return The value as a float data type.
  */
 float
-SceneBoolean::floatValue() const
+SceneUnsignedByte::floatValue() const
 {
-    const float f = (m_value ? 1.0 : 0.0);
+    const float f = static_cast<float>(m_value);
     return f;
 }
 
@@ -93,19 +96,18 @@ SceneBoolean::floatValue() const
  * @return The value as a integer data type.
  */
 int32_t 
-SceneBoolean::integerValue() const
+SceneUnsignedByte::integerValue() const
 {
-    const int32_t i = (m_value ? 1 : 0);
-    return i;
+    return m_value;
 }
 
 /**
  * @return The value as a string data type.
  */
 AString 
-SceneBoolean::stringValue() const
+SceneUnsignedByte::stringValue() const
 {
-    const AString s = (m_value ? "true" : "false");
+    const AString s = AString::number(m_value);
     return s;
 }
 
@@ -113,7 +115,7 @@ SceneBoolean::stringValue() const
  * @return The value as an unsigned byte data type.
  */
 uint8_t
-SceneBoolean::unsignedByteValue() const
+SceneUnsignedByte::unsignedByteValue() const
 {
     return m_value;
 }

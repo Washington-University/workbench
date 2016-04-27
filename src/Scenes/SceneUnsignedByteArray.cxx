@@ -21,9 +21,9 @@
 
 #include <algorithm>
 
-#define __SCENE_INTEGER_ARRAY_DECLARE__
-#include "SceneIntegerArray.h"
-#undef __SCENE_INTEGER_ARRAY_DECLARE__
+#define __SCENE_UNSIGNED_BYTE_ARRAY_DECLARE__
+#include "SceneUnsignedByteArray.h"
+#undef __SCENE_UNSIGNED_BYTE_ARRAY_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -32,7 +32,7 @@ using namespace caret;
 
     
 /**
- * \class caret::SceneIntegerArray 
+ * \class caret::SceneUnsignedByteArray 
  * \brief For storage of a integer value in a scene.
  * \ingroup Scene
  *
@@ -49,11 +49,11 @@ using namespace caret;
  * @param numberOfArrayElements
  *   Number of values in the array.
  */
-SceneIntegerArray::SceneIntegerArray(const AString& name,
-                                     const int32_t values[],
+SceneUnsignedByteArray::SceneUnsignedByteArray(const AString& name,
+                                     const uint8_t values[],
                                      const int32_t numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                 SceneObjectDataTypeEnum::SCENE_INTEGER,
+                 SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE,
                  numberOfArrayElements)
 {
     m_values.resize(numberOfArrayElements);
@@ -70,10 +70,10 @@ SceneIntegerArray::SceneIntegerArray(const AString& name,
  * @param values
  *   Value in the array.
  */
-SceneIntegerArray::SceneIntegerArray(const AString& name,
-                                     const std::vector<int32_t>& values)
+SceneUnsignedByteArray::SceneUnsignedByteArray(const AString& name,
+                                     const std::vector<uint8_t>& values)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_INTEGER,
+                      SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE,
                       values.size())
 {
     m_values = values;
@@ -87,10 +87,10 @@ SceneIntegerArray::SceneIntegerArray(const AString& name,
  * @param numberOfArrayElements
  *   Number of values in the array.
  */
-SceneIntegerArray::SceneIntegerArray(const AString& name,
+SceneUnsignedByteArray::SceneUnsignedByteArray(const AString& name,
                                      const int numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_INTEGER,
+                      SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE,
                       numberOfArrayElements)
 {
     m_values.resize(numberOfArrayElements);
@@ -102,7 +102,7 @@ SceneIntegerArray::SceneIntegerArray(const AString& name,
 /**
  * Destructor.
  */
-SceneIntegerArray::~SceneIntegerArray()
+SceneUnsignedByteArray::~SceneUnsignedByteArray()
 {
     
 }
@@ -116,8 +116,8 @@ SceneIntegerArray::~SceneIntegerArray()
  *    Value of element.
  */
 void 
-SceneIntegerArray::setValue(const int32_t arrayIndex,
-                            const int32_t value)
+SceneUnsignedByteArray::setValue(const int32_t arrayIndex,
+                            const uint8_t value)
 {
     CaretAssertVectorIndex(m_values, arrayIndex);
     m_values[arrayIndex] = value;
@@ -130,7 +130,7 @@ SceneIntegerArray::setValue(const int32_t arrayIndex,
  * @return The value.
  */
 bool 
-SceneIntegerArray::booleanValue(const int32_t arrayIndex) const
+SceneUnsignedByteArray::booleanValue(const int32_t arrayIndex) const
 {    
     CaretAssertVectorIndex(m_values, arrayIndex);
     const bool b = ((m_values[arrayIndex] != 0.0) ? true : false);
@@ -144,7 +144,7 @@ SceneIntegerArray::booleanValue(const int32_t arrayIndex) const
  * @return The value.
  */
 float 
-SceneIntegerArray::floatValue(const int32_t arrayIndex) const
+SceneUnsignedByteArray::floatValue(const int32_t arrayIndex) const
 {    
     CaretAssertVectorIndex(m_values, arrayIndex);
     const float f = static_cast<float>(m_values[arrayIndex]);
@@ -158,10 +158,11 @@ SceneIntegerArray::floatValue(const int32_t arrayIndex) const
  * @return The value.
  */
 int32_t 
-SceneIntegerArray::integerValue(const int32_t arrayIndex) const
+SceneUnsignedByteArray::integerValue(const int32_t arrayIndex) const
 {    
     CaretAssertVectorIndex(m_values, arrayIndex);
-    return m_values[arrayIndex];
+    const int32_t i = static_cast<int32_t>(m_values[arrayIndex]);
+    return i;
 }
 
 /** 
@@ -171,7 +172,7 @@ SceneIntegerArray::integerValue(const int32_t arrayIndex) const
  * @return The value.
  */
 AString 
-SceneIntegerArray::stringValue(const int32_t arrayIndex) const
+SceneUnsignedByteArray::stringValue(const int32_t arrayIndex) const
 {    
     CaretAssertVectorIndex(m_values, arrayIndex);
     const AString s = AString::number(m_values[arrayIndex]);
@@ -185,18 +186,10 @@ SceneIntegerArray::stringValue(const int32_t arrayIndex) const
  * @return The value.
  */
 uint8_t
-SceneIntegerArray::unsignedByteValue(const int32_t arrayIndex) const
+SceneUnsignedByteArray::unsignedByteValue(const int32_t arrayIndex) const
 {
     CaretAssertVectorIndex(m_values, arrayIndex);
-    const int32_t i = m_values[arrayIndex];
-    if (i > std::numeric_limits<uint8_t>::max()) {
-        return std::numeric_limits<uint8_t>::max();
-    }
-    else if (i < std::numeric_limits<uint8_t>::min()) {
-        return std::numeric_limits<uint8_t>::min();
-    }
-    
-    const uint8_t b = static_cast<uint8_t>(i);
-    return b;
+    return m_values[arrayIndex];
 }
+
 

@@ -119,6 +119,11 @@ SceneObjectDataTypeEnum::initialize()
                                                "string",
                                                "string"));
     
+    enumData.push_back(SceneObjectDataTypeEnum(SCENE_UNSIGNED_BYTE,
+                                               "SCENE_UNSIGNED_BYTE",
+                                               "unsignedByte",
+                                               "unsignedByte"));
+    
 }
 
 /**

@@ -185,7 +185,10 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
                 break;
             case SceneObjectDataTypeEnum::SCENE_STRING:
                 break;
+            case SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE:
+                break;
         }
+        
         if (scenePrimitive != NULL) {
             if (scenePrimitive->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {
                 m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
@@ -337,6 +340,7 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
                     case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
                     case SceneObjectDataTypeEnum::SCENE_FLOAT:
                     case SceneObjectDataTypeEnum::SCENE_INTEGER:
+                    case SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE:
                     {
                         const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(sceneObject);
                         m_xmlWriter.writeElementCharacters(SceneXmlElements::OBJECT_MAP_VALUE_TAG,

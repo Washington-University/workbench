@@ -215,6 +215,10 @@ namespace caret {
                              const int32_t values[],
                              const int32_t arrayNumberOfElements);
         
+        void addUnsignedByteArray(const AString& name,
+                             const uint8_t values[],
+                             const int32_t arrayNumberOfElements);
+        
         void addString(const AString& name,
                        const AString& value);
         
@@ -257,7 +261,12 @@ namespace caret {
         int32_t getIntegerArrayValue(const AString& name,
                                    int32_t values[],
                                    const int32_t arrayNumberOfElements,
-                                   const int32_t defaultValue = 0.0) const;
+                                   const int32_t defaultValue = 0) const;
+        
+        int32_t getUnsignedByteArrayValue(const AString& name,
+                                     uint8_t values[],
+                                     const int32_t arrayNumberOfElements,
+                                     const uint8_t defaultValue = 0) const;
         
         AString getPathNameValue(const AString& name,
                                  const AString& defaultValue = "") const;

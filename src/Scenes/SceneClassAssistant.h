@@ -103,6 +103,11 @@ namespace caret {
                       const int32_t numberOfElements,
                       const int32_t defaultValue);
         
+        void addArray(const AString& name,
+                      uint8_t* byteArray,
+                      const int32_t numberOfElements,
+                      const uint8_t defaultValue);
+        
         /**
          * Add an enumerated type array.
          * @param name
@@ -283,6 +288,25 @@ namespace caret {
             int32_t* m_dataPointer;
             int32_t m_defaultValue; 
         };
+        
+//        /* ========================================= */
+//        class UnsignedByteData : public Data {
+//        public:
+//            UnsignedByteData(const AString& name,
+//                             uint8_t* dataPointer,
+//                             const uint8_t defaultValue);
+//            
+//            virtual ~UnsignedByteData() { }
+//            
+//            void restore(const SceneAttributes& sceneAttributes,
+//                         const SceneClass& sceneClass);
+//            void save(const SceneAttributes& sceneAttributes,
+//                      SceneClass& sceneClass);
+//            
+//        private:
+//            uint8_t* m_dataPointer;
+//            uint8_t m_defaultValue;
+//        };
         
         /* ========================================= */
         class BooleanData : public Data {
@@ -486,6 +510,24 @@ namespace caret {
         private:
             int32_t* m_integerArray;
             int32_t m_defaultValue;
+        };
+        
+        /* ========================================= */
+        class UnsignedByteArrayData : public ArrayData {
+        public:
+            UnsignedByteArrayData(const AString& name,
+                             uint8_t* integerArray,
+                             const int32_t numberOfArrayElements,
+                             const uint8_t defaultValue);
+            
+            virtual ~UnsignedByteArrayData() { }
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            uint8_t* m_integerArray;
+            uint8_t m_defaultValue;
         };
         
         /* ========================================= */

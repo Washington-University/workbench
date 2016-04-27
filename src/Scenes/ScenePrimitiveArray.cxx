@@ -279,6 +279,60 @@ ScenePrimitiveArray::stringValues(std::vector<AString>& valuesOut,
     }
 }
 
+/**
+ * Load the array with unsigned byte values.
+ * @param valuesOut
+ *    Array into which unsigned byte values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.  If this value is greater
+ *    than the number of elements in the scene, the remaining
+ *    elements will be filled with the default value
+ * @param defaultValue
+ *    Default value used when output array contains more elements
+ *    than are in this instance's array.
+ */
+void
+ScenePrimitiveArray::unsignedByteValues(uint8_t valuesOut[],
+                                   const int32_t arrayNumberOfElements,
+                                   const uint8_t defaultValue) const
+{
+    const int32_t numElem = std::min(arrayNumberOfElements,
+                                     m_numberOfArrayElements);
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = unsignedByteValue(i);
+    }
+    
+    for (int32_t i = numElem; i < arrayNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the vector with the unsigned byte values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The vector
+ *     will contain the number of elements that were saved
+ *     to the scene.
+ * @param defaultValue
+ *    Default value used when output vector contains more elements
+ *    than are in this instance's array.
+ */
+void
+ScenePrimitiveArray::unsignedByteValues(std::vector<uint8_t>& valuesOut,
+                                   const uint8_t defaultValue) const
+{
+    const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
+    const int32_t numElem = std::min(valuesOutNumberOfElements,
+                                     m_numberOfArrayElements);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = unsignedByteValue(i);
+    }
+    for (int32_t i = numElem; i < valuesOutNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
 
 
 

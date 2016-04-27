@@ -39,6 +39,7 @@
 #include "ScenePathNameArray.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
+#include "SceneUnsignedByteArray.h"
 
 using namespace caret;
 
@@ -323,6 +324,26 @@ SceneClass::addIntegerArray(const AString& name,
     addChild(new SceneIntegerArray(name,
                                  values,
                                  arrayNumberOfElements));
+}
+
+/**
+ * Add a child unsigned byte array values to the class.
+ *
+ * @param name
+ *    Name associated with value.
+ * @param values
+ *    The array containing the values.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ */
+void
+SceneClass::addUnsignedByteArray(const AString& name,
+                            const uint8_t values[],
+                            const int32_t arrayNumberOfElements)
+{
+    addChild(new SceneUnsignedByteArray(name,
+                                   values,
+                                   arrayNumberOfElements));
 }
 
 /**
@@ -619,6 +640,41 @@ SceneClass::getIntegerArrayValue(const AString& name,
         return primitiveArray->getNumberOfArrayElements();
     }
 
+    for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+        values[i] = defaultValue;
+    }
+    return 0;
+}
+
+/**
+ * Get the values for the unsigned byte array.  If no array is
+ * found with the given name, all values are set to the
+ * default value.
+ * @param name
+ *    Name of the value.
+ * @param values
+ *    Output array into which values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used for missing elements.
+ * @return Number of elements actually read form scene class.
+ */
+int32_t
+SceneClass::getUnsignedByteArrayValue(const AString& name,
+                                 uint8_t values[],
+                                 const int32_t arrayNumberOfElements,
+                                 const uint8_t defaultValue) const
+{
+    const ScenePrimitiveArray* primitiveArray = getPrimitiveArray(name);
+    
+    if (primitiveArray != NULL) {
+        primitiveArray->unsignedByteValues(values,
+                                      arrayNumberOfElements,
+                                      defaultValue);
+        return primitiveArray->getNumberOfArrayElements();
+    }
+    
     for (int32_t i = 0; i < arrayNumberOfElements; i++) {
         values[i] = defaultValue;
     }

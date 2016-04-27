@@ -178,3 +178,17 @@ SceneBooleanArray::stringValue(const int32_t arrayIndex) const
     return s;
 }
 
+/**
+ * Get the values as an unsigned byte.
+ * @param arrayIndex
+ *    Index of element.
+ * @return The value.
+ */
+uint8_t
+SceneBooleanArray::unsignedByteValue(const int32_t arrayIndex) const
+{
+    CaretAssertVectorIndex(m_values, arrayIndex);
+    const uint8_t b = (m_values[arrayIndex] ? 1 : 0);
+    return b;
+}
+

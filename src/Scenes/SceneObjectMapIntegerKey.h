@@ -58,6 +58,9 @@ namespace caret {
         void addString(const int32_t key,
                        const AString& value);
         
+        void addUnsignedByte(const int32_t key,
+                             const uint8_t value);
+        
         void addEnumeratedType(const int32_t key,
                                const AString& value);
         

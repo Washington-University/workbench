@@ -1,5 +1,5 @@
-#ifndef __SCENE_INTEGER__H_
-#define __SCENE_INTEGER__H_
+#ifndef __SCENE_UNSIGNED_BYTE__H_
+#define __SCENE_UNSIGNED_BYTE__H_
 
 /*LICENSE_START*/
 /*
@@ -26,15 +26,15 @@
 
 namespace caret {
 
-    class SceneInteger : public ScenePrimitive {
+    class SceneUnsignedByte : public ScenePrimitive {
         
     public:
-        SceneInteger(const AString& name,
-                     const int32_t value);
+        SceneUnsignedByte(const AString& name,
+                     const uint8_t value);
         
-        virtual ~SceneInteger();
+        virtual ~SceneUnsignedByte();
         
-        void setValue(const int32_t value);
+        void setValue(const uint8_t value);
         
         virtual bool booleanValue() const;
         
@@ -47,9 +47,9 @@ namespace caret {
         virtual uint8_t unsignedByteValue() const;
         
     private:
-        SceneInteger(const SceneInteger&);
+        SceneUnsignedByte(const SceneUnsignedByte&);
 
-        SceneInteger& operator=(const SceneInteger&);
+        SceneUnsignedByte& operator=(const SceneUnsignedByte&);
         
     public:
 
@@ -57,15 +57,15 @@ namespace caret {
 
     private:
 
-        int32_t m_value;
+        uint8_t m_value;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __SCENE_INTEGER_DECLARE__
+#ifdef __SCENE_UNSIGNED_BYTE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_INTEGER_DECLARE__
+#endif // __SCENE_UNSIGNED_BYTE_DECLARE__
 
 } // namespace
-#endif  //__SCENE_INTEGER__H_
+#endif  //__SCENE_UNSIGNED_BYTE__H_

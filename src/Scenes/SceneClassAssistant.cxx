@@ -299,6 +299,35 @@ SceneClassAssistant::addArray(const AString& name,
 }
 
 /**
+ * Add an unsigned byte array member.
+ * @param name
+ *    Name of member.
+ * @param byteArray
+ *    The array (pointer to first element)
+ * @param numberOfArrayElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used if the member is not found when restoring scene.
+ */
+void
+SceneClassAssistant::addArray(const AString& name,
+                              uint8_t* byteArray,
+                              const int32_t numberOfElements,
+                              const uint8_t defaultValue)
+{
+    CaretAssert(name.isEmpty() == false);
+    CaretAssert(byteArray);
+    CaretAssert(numberOfElements >= 0);
+    
+    UnsignedByteArrayData* iad = new UnsignedByteArrayData(name,
+                                                 byteArray,
+                                                 numberOfElements,
+                                                 defaultValue);
+    m_dataStorage.push_back(iad);
+}
+
+
+/**
  * Add a string array member.
  * @param name
  *    Name of member.
@@ -1065,6 +1094,62 @@ void SceneClassAssistant::IntegerArrayData::save(const SceneAttributes& /*sceneA
     if (m_numberOfArrayElements > 0) {
         sceneClass.addIntegerArray(m_name, 
                                    m_integerArray, 
+                                   m_numberOfArrayElements);
+    }
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::IntegerArrayData
+ * \brief Boolean array added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
+ */
+SceneClassAssistant::UnsignedByteArrayData::UnsignedByteArrayData(const AString& name,
+                                                        uint8_t* integerArray,
+                                                        const int32_t numberOfArrayElements,
+                                                        const uint8_t defaultValue)
+: ArrayData(name,
+            numberOfArrayElements),
+m_integerArray(integerArray),
+m_defaultValue(defaultValue)
+{
+    
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void
+SceneClassAssistant::UnsignedByteArrayData::restore(const SceneAttributes& /*sceneAttributes*/,
+                                               const SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.getUnsignedByteArrayValue(m_name,
+                                        m_integerArray,
+                                        m_numberOfArrayElements,
+                                        m_defaultValue);
+    }
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void SceneClassAssistant::UnsignedByteArrayData::save(const SceneAttributes& /*sceneAttributes*/,
+                                                 SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.addUnsignedByteArray(m_name,
+                                   m_integerArray,
                                    m_numberOfArrayElements);
     }
 }

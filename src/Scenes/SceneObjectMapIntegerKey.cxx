@@ -32,6 +32,7 @@
 #include "ScenePathName.h"
 #include "ScenePrimitive.h"
 #include "SceneString.h"
+#include "SceneUnsignedByte.h"
 
 using namespace caret;
 
@@ -170,6 +171,22 @@ SceneObjectMapIntegerKey::addPathName(const int32_t key,
     CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_PATH_NAME);
     m_dataMap.insert(std::make_pair(key,
                                     new ScenePathName("s", value)));
+}
+
+/**
+ * Add the given unsigned byte value to the map using the given key.
+ * @param key
+ *    The key.
+ * @param value
+ *    The value.
+ */
+void
+SceneObjectMapIntegerKey::addUnsignedByte(const int32_t key,
+                                          const uint8_t value)
+{
+    CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE);
+    m_dataMap.insert(std::make_pair(key,
+                                    new SceneUnsignedByte("u", value)));
 }
 
 /**

@@ -56,6 +56,9 @@ namespace caret {
         /** @return Value as a string data type */
         virtual AString stringValue() const = 0;
                 
+        /** @return Value as a unsigned byte data type */
+        virtual uint8_t unsignedByteValue() const = 0;
+        
     private:
 
         // ADD_NEW_MEMBERS_HERE

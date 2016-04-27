@@ -56,6 +56,7 @@
 #include "EventDataFileAdd.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventImageCapture.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -848,11 +849,17 @@ SceneDialog::createMainPage()
     m_sceneSelectionScrollArea->setWidget(m_sceneSelectionWidget);
     m_sceneSelectionScrollArea->setWidgetResizable(true);
     
+    QVBoxLayout* showOptionsLabelsLayout = new QVBoxLayout();
+    WuQtUtilities::setLayoutMargins(showOptionsLabelsLayout, 0);
+    showOptionsLabelsLayout->addWidget(new QLabel(" Show Scene"), 0, Qt::AlignRight);
+    showOptionsLabelsLayout->addWidget(new QLabel("Options"), 0, Qt::AlignHCenter);
+    
     /*
      * Layout widgets
      */
     QWidget* widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(widget);
+    WuQtUtilities::setLayoutMargins(gridLayout, 0);
     int row = 0;
     gridLayout->addWidget(sceneFileLabel, row, 0);
     gridLayout->addWidget(m_sceneFileSelectionComboBox, row, 1);
@@ -864,8 +871,48 @@ SceneDialog::createMainPage()
     gridLayout->addWidget(m_sceneSelectionScrollArea, row, 1);
     gridLayout->addLayout(sceneButtonLayout, row, 2);
     row++;
+    gridLayout->addLayout(showOptionsLabelsLayout, row, 0);
+    gridLayout->addWidget(createShowOptionsWidget(), row, 1, 1, 1, Qt::AlignTop);
+    row++;
     
     return widget;
+}
+
+/**
+ * Create the show scene options widget.
+ */
+QWidget*
+SceneDialog::createShowOptionsWidget()
+{
+    /*
+     * Use colors contained in the scene for background and foreground
+     */
+    const QString colorTip1("Scenes created after 01 May 2016 contain the active background and foreground\n"
+                            "colors.  When this box is checked and the colors are present in the scene loaded,\n"
+                            "they will temporarily override the colors in the Preferences Dialog.  The background\n"
+                            "and foreground colors will revert to those on the Preferences Dialog when any\n"
+                            "of these events occur:\n"
+                            "   * This checkbox is unchecked\n"
+                            "   * A scene without background and foreground colors is loaded\n"
+                            "   * A Spec File and its data files are loaded\n"
+                            "   * File Menu->Close All Files is selected\n"
+                            "   * Any of the colors on the Preferences Dialog are changed\n"
+                            "   * The user quits wb_view");
+
+    m_useSceneColorsCheckBox = new QCheckBox("Use background and foreground colors from scene");
+    m_useSceneColorsCheckBox->setToolTip(colorTip1);
+    m_useSceneColorsCheckBox->setChecked(true);
+    QObject::connect(m_useSceneColorsCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(useSceneColorsCheckBoxClicked(bool)));
+    
+    QGroupBox* groupBox = new QGroupBox();
+    QVBoxLayout* layout = new QVBoxLayout(groupBox);
+    WuQtUtilities::setLayoutMargins(layout, 0);
+    layout->addWidget(m_useSceneColorsCheckBox, 0, Qt::AlignLeft);
+    groupBox->setFixedHeight(groupBox->QWidget::minimumSizeHint().height());
+
+    
+    return groupBox;
 }
 
 /**
@@ -1088,6 +1135,22 @@ SceneDialog::showImagePreviewButtonClicked()
 }
 
 /**
+ * Gets called when the use scene colors checkbox is clicked.
+ *
+ * @param checked
+ *     New checked status.
+ */
+void
+SceneDialog::useSceneColorsCheckBoxClicked(bool checked)
+{
+    if ( ! checked) {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+/**
  * Display the given scene from the given scene file.
  * @param sceneFile
  *     Scene file.
@@ -1142,7 +1205,7 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
     if (showWaitCursor) {
         cursor.showWaitCursor();
     }
-    
+
     /*
      * Setup scene attributes
      */
@@ -1151,6 +1214,7 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
     sceneAttributes->setSceneFileName(sceneFileName);
     sceneAttributes->setSceneName(scene->getName());
     sceneAttributes->setWindowRestoreBehaviorInSceneDisplay(SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES);
+    sceneAttributes->setUseSceneForegroundAndBackgroundColors(m_useSceneColorsCheckBox->isChecked());
     
     GuiManager::get()->restoreFromScene(sceneAttributes,
                                         guiManagerClass);

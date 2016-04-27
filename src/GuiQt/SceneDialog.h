@@ -90,6 +90,8 @@ namespace caret {
         
         void sceneActivated(const int32_t sceneIndex);
         
+        void useSceneColorsCheckBoxClicked(bool checked);
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -110,6 +112,8 @@ namespace caret {
         void highlightScene(const Scene* scene);
         
         QWidget* createMainPage();
+        
+        QWidget* createShowOptionsWidget();
         
         bool displayScenePrivate(SceneFile* sceneFile,
                                  Scene* scene,
@@ -138,6 +142,8 @@ namespace caret {
         QPushButton* m_showScenePushButton;
         
         QPushButton* m_showSceneImagePreviewPushButton;
+        
+        QCheckBox* m_useSceneColorsCheckBox;
         
         QScrollArea* m_sceneSelectionScrollArea;
         

@@ -38,6 +38,8 @@
 #include "SceneSaxReader.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
+#include "SceneUnsignedByte.h"
+#include "SceneUnsignedByteArray.h"
 #include "SceneXmlElements.h"
 
 #include "XmlAttributes.h"
@@ -290,6 +292,10 @@ SceneSaxReader::processObjectStartTag(const XmlAttributes& attributes)
             sceneObject = new SceneString(objectName,
                                           "");
             break;
+        case SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE:
+            sceneObject = new SceneUnsignedByte(objectName,
+                                                0);
+            break;
         case SceneObjectDataTypeEnum::SCENE_INVALID:
             CaretAssert(0);  // should never get here, 'validObjectType' above
             break;
@@ -376,6 +382,10 @@ SceneSaxReader::processObjectArrayStartTag(const XmlAttributes& attributes)
         case SceneObjectDataTypeEnum::SCENE_STRING:
             sceneObject = new SceneStringArray(objectName, 
                                                objectNumberOfElements);
+            break;
+        case SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE:
+            sceneObject = new SceneUnsignedByteArray(objectName,
+                                                     objectNumberOfElements);
             break;
         case SceneObjectDataTypeEnum::SCENE_INVALID:
             break;
@@ -548,6 +558,19 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                     addChildToParentClass(sceneString);
                 }
                     break;
+                case SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE:
+                {
+                    SceneUnsignedByte* sceneUnsignedByte = dynamic_cast<SceneUnsignedByte*>(sceneObject);
+                    CaretAssert(sceneUnsignedByte);
+                    uint32_t value = stringValue.toUInt();
+                    if (value > std::numeric_limits<uint8_t>::max()) {
+                        value = std::numeric_limits<uint8_t>::max();
+                    }
+                    const uint8_t byteValue = static_cast<uint8_t>(value);
+                    sceneUnsignedByte->setValue(byteValue);
+                    addChildToParentClass(sceneUnsignedByte);
+                }
+                    break;
                 case SceneObjectDataTypeEnum::SCENE_INVALID:
                     break;
             }    
@@ -645,6 +668,19 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                                           stringValue);
                 }
                     break;
+                case SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE:
+                {
+                    SceneUnsignedByteArray* unsignedByteArray = dynamic_cast<SceneUnsignedByteArray*>(sceneArray);
+                    CaretAssert(unsignedByteArray);
+                    uint32_t i = stringValue.toUInt();
+                    if (i > std::numeric_limits<uint8_t>::max()) {
+                        i = std::numeric_limits<uint8_t>::max();
+                    }
+                    const uint8_t value = static_cast<uint8_t>(i);
+                    unsignedByteArray->setValue(m_objectArrayBeingReadElementIndexStack.top(),
+                                                value);
+                }
+                    break;
             }
             
             m_objectArrayBeingReadElementIndexStack.pop();
@@ -734,6 +770,17 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                 {
                     sceneMap->addString(key,
                                         stringValue);
+                }
+                    break;
+                case SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE:
+                {
+                    uint32_t i = stringValue.toUInt();
+                    if (i > std::numeric_limits<uint8_t>::max()) {
+                        i = std::numeric_limits<uint8_t>::max();
+                    }
+                    const uint8_t value = static_cast<uint8_t>(i);
+                    sceneMap->addUnsignedByte(key,
+                                              value);
                 }
                     break;
             }

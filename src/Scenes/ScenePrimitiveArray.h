@@ -77,6 +77,14 @@ namespace caret {
          */
         virtual AString stringValue(const int32_t arrayIndex) const = 0;
         
+        /**
+         * Get the values as an unsigned byte.
+         * @param arrayIndex
+         *    Index of element.
+         * @return The value.
+         */
+        virtual uint8_t unsignedByteValue(const int32_t arrayIndex) const = 0;
+        
         virtual void booleanValues(bool valuesOut[],
                                    const int32_t arrayNumberOfElements,
                                    const bool defaultValue) const;
@@ -104,6 +112,13 @@ namespace caret {
         
         virtual void stringValues(std::vector<AString>& valuesOut,
                                    const AString& defaultValue) const;
+        
+        virtual void unsignedByteValues(uint8_t valuesOut[],
+                                   const int32_t arrayNumberOfElements,
+                                   const uint8_t defaultValue) const;
+        
+        virtual void unsignedByteValues(std::vector<uint8_t>& valuesOut,
+                                   const uint8_t defaultValue) const;
         
         
     private:

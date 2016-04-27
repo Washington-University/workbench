@@ -2819,6 +2819,9 @@ BrainBrowserWindow::processCloseAllFiles()
     Brain* brain = GuiManager::get()->getBrain();
     brain->resetBrain();
     
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+    
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
