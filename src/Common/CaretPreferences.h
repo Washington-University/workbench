@@ -24,6 +24,7 @@
 #include <utility>
 
 #include "BackgroundAndForegroundColors.h"
+#include "BackgroundAndForegroundColorsModeEnum.h"
 #include "CaretObject.h"
 #include "LogLevelEnum.h"
 #include "ImageCaptureMethodEnum.h"
@@ -50,6 +51,12 @@ namespace caret {
         BackgroundAndForegroundColors getUserBackgroundAndForegroundColors();
         
         void setUserBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors);
+        
+        BackgroundAndForegroundColorsModeEnum::Enum getBackgroundAndForegroundColorsMode() const;
+        
+        void setSceneBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors);
+        
+        void setBackgroundAndForegroundColorsMode(const BackgroundAndForegroundColorsModeEnum::Enum colorsMode);
         
         void getPreviousSpecFiles(std::vector<AString>& previousSpecFiles) const;
         
@@ -225,7 +232,10 @@ namespace caret {
         
         BackgroundAndForegroundColors userColors;
         
-        //BackgroundAndForegroundColors sceneColors;
+        BackgroundAndForegroundColors sceneColors;
+        
+        /** NOTE: colors mode is NOT saved to preferences */
+        BackgroundAndForegroundColorsModeEnum::Enum m_colorsMode;
         
         std::vector<AString> previousSpecFiles;
         

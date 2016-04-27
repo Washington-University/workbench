@@ -5191,6 +5191,9 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
 
     resetBrain();
     
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+    
     try  {
         m_specFile->clear();
         *m_specFile = *sf;

@@ -30,6 +30,7 @@ ApplicationTypeEnum.h
 AString.h
 AStringNaturalComparison.h
 BackgroundAndForegroundColors.h
+BackgroundAndForegroundColorsModeEnum.h
 Base64.h
 BoundingBox.h
 BrainConstants.h
@@ -135,6 +136,7 @@ ApplicationTypeEnum.cxx
 AString.cxx
 AStringNaturalComparison.cxx
 BackgroundAndForegroundColors.cxx
+BackgroundAndForegroundColorsModeEnum.cxx
 Base64.cxx
 BoundingBox.cxx
 BrainConstants.cxx

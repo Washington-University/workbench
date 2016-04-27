@@ -109,6 +109,7 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class BackgroundAndForegroundColorsSceneHelper;
         friend class CaretPreferences;
     };
     

@@ -26,6 +26,7 @@
 #undef __SESSION_MANAGER_DECLARE__
 
 #include "ApplicationInformation.h"
+#include "BackgroundAndForegroundColorsSceneHelper.h"
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -502,6 +503,17 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
     
     sceneClass->addChild(m_imageCaptureDialogSettings->saveToScene(sceneAttributes,
                                                                    "m_imageCaptureDialogSettings"));
+
+    /*
+     * Save the background and foreground colors to the scene
+     */
+    const BackgroundAndForegroundColors* colorsPointer = m_caretPreferences->getBackgroundAndForegroundColors();
+    CaretAssert(colorsPointer);
+    BackgroundAndForegroundColors colors(*colorsPointer);
+    
+    BackgroundAndForegroundColorsSceneHelper colorHelper(colors);
+    sceneClass->addChild(colorHelper.saveToScene(sceneAttributes,
+                                                 "backgroundAndForegroundColors"));
     
     return sceneClass;
 }
@@ -522,6 +534,11 @@ void
 SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                         const SceneClass* sceneClass)
 {
+    /*
+     * Default to user preferences for colors
+     */
+    m_caretPreferences->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+
     if (sceneClass == NULL) {
         return;
     }
@@ -725,6 +742,23 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         const int32_t tabIndex = tab->getTabNumber();
         CaretAssert(tabIndex >= 0);
         m_browserTabs[tabIndex] = tab;
+    }
+    
+    /*
+     * Restore foreground and background colors to scene foreground and background colors
+     */
+    if (sceneAttributes->isUseSceneForegroundAndBackgroundColors()) {
+        BackgroundAndForegroundColors colors;
+        BackgroundAndForegroundColorsSceneHelper colorHelper(colors);
+        colorHelper.restoreFromScene(sceneAttributes,
+                                     sceneClass->getClass("backgroundAndForegroundColors"));
+        if (colorHelper.wasRestoredFromScene()) {
+            m_caretPreferences->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::SCENE);
+            m_caretPreferences->setSceneBackgroundAndForegroundColors(colors);
+        }
+        else {
+            m_caretPreferences->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+        }
     }
     
     m_imageCaptureDialogSettings->restoreFromScene(sceneAttributes,

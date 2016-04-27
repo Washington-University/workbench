@@ -56,6 +56,8 @@ CaretPreferences::CaretPreferences()
     this->qSettings = new QSettings("brainvis.wustl.edu",
                                     "Caret7");
     this->readPreferences();
+    
+    m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
 
 /**
@@ -541,6 +543,16 @@ CaretPreferences::removeTileTabsConfigurationByUniqueIdentifier(const AString& t
 const BackgroundAndForegroundColors*
 CaretPreferences::getBackgroundAndForegroundColors() const
 {
+    switch (m_colorsMode) {
+        case BackgroundAndForegroundColorsModeEnum::SCENE:
+            return &this->sceneColors;
+            break;
+        case BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES:
+            return &this->userColors;
+            break;
+    }
+    
+    CaretAssert(0);
     return &this->userColors;
 }
 
@@ -603,6 +615,39 @@ CaretPreferences::setUserBackgroundAndForegroundColors(const BackgroundAndForegr
                            this->userColors.m_colorChartMatrixGridLines,
                            3);
 }
+
+/**
+ * Set the SCENE background and foreground colors.
+ *    This method is called when scenes are restored.
+ */
+void
+CaretPreferences::setSceneBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors)
+{
+    this->sceneColors = colors;
+}
+
+/**
+ * @return Mode for background and foreground colors.
+ */
+BackgroundAndForegroundColorsModeEnum::Enum
+CaretPreferences::getBackgroundAndForegroundColorsMode() const
+{
+    return m_colorsMode;
+}
+
+/**
+ * Set the mode for background and foreground colors.
+ * NOTE: This is a transient value and NOT saved to preferences.
+ *
+ * @param colorsMode
+ *      New colors mode.
+ */
+void
+CaretPreferences::setBackgroundAndForegroundColorsMode(const BackgroundAndForegroundColorsModeEnum::Enum colorsMode)
+{
+    m_colorsMode = colorsMode;
+}
+
 
 /**
  * Get the previous spec files.
