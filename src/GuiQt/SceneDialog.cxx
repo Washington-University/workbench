@@ -823,11 +823,11 @@ SceneDialog::createMainPage()
     QVBoxLayout* sceneButtonLayout = new QVBoxLayout();
     sceneButtonLayout->addWidget(m_showScenePushButton);
     sceneButtonLayout->addWidget(m_showSceneImagePreviewPushButton);
-    sceneButtonLayout->addStretch();
+    sceneButtonLayout->addSpacing(20);
     sceneButtonLayout->addWidget(m_addNewScenePushButton);
     sceneButtonLayout->addWidget(m_insertNewScenePushButton);
     sceneButtonLayout->addWidget(m_replaceScenePushButton);
-    sceneButtonLayout->addSpacing(20);
+    sceneButtonLayout->addStretch();
     sceneButtonLayout->addWidget(m_moveSceneUpPushButton);
     sceneButtonLayout->addWidget(m_moveSceneDownPushButton);
     sceneButtonLayout->addSpacing(20);
@@ -861,7 +861,7 @@ SceneDialog::createMainPage()
     QGridLayout* gridLayout = new QGridLayout(widget);
     WuQtUtilities::setLayoutMargins(gridLayout, 0);
     int row = 0;
-    gridLayout->addWidget(sceneFileLabel, row, 0);
+    gridLayout->addWidget(sceneFileLabel, row, 0, Qt::AlignRight);
     gridLayout->addWidget(m_sceneFileSelectionComboBox, row, 1);
     gridLayout->addWidget(newSceneFilePushButton, row, 2);
     row++;
@@ -871,8 +871,10 @@ SceneDialog::createMainPage()
     gridLayout->addWidget(m_sceneSelectionScrollArea, row, 1);
     gridLayout->addLayout(sceneButtonLayout, row, 2);
     row++;
-    gridLayout->addLayout(showOptionsLabelsLayout, row, 0);
-    gridLayout->addWidget(createShowOptionsWidget(), row, 1, 1, 1, Qt::AlignTop);
+    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3);
+    row++;
+    gridLayout->addLayout(showOptionsLabelsLayout, row, 0, Qt::AlignTop);
+    gridLayout->addWidget(createShowOptionsWidget(), row, 1, 1, 1); //, Qt::AlignTop);
     row++;
     
     return widget;
@@ -905,14 +907,19 @@ SceneDialog::createShowOptionsWidget()
     QObject::connect(m_useSceneColorsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(useSceneColorsCheckBoxClicked(bool)));
     
-    QGroupBox* groupBox = new QGroupBox();
-    QVBoxLayout* layout = new QVBoxLayout(groupBox);
-    WuQtUtilities::setLayoutMargins(layout, 0);
+    QFrame* frame = new QFrame();
+    frame->setFrameShape(QFrame::StyledPanel);
+    frame->setFrameShadow(QFrame::Plain);
+    frame->setLineWidth(1);
+    frame->setMidLineWidth(1);
+    QVBoxLayout* layout = new QVBoxLayout(frame);
+    WuQtUtilities::setLayoutMargins(layout, 5);
     layout->addWidget(m_useSceneColorsCheckBox, 0, Qt::AlignLeft);
-    groupBox->setFixedHeight(groupBox->QWidget::minimumSizeHint().height());
+    //layout->addStretch();
+    //frame->setFixedHeight(frame->minimumSizeHint().height());
 
     
-    return groupBox;
+    return frame;
 }
 
 /**
