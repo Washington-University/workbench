@@ -1459,7 +1459,7 @@ AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                     AnnotationFileXmlReader reader;
                     reader.readFileFromString(fileContentInString,
                                               this);
-                    
+                    updateUniqueKeysAfterReadingFile();
                     clearModified();
                 }
                 catch (const DataFileException& dfe) {
