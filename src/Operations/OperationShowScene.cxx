@@ -104,6 +104,8 @@ OperationShowScene::getParameters()
     const QString windowSizeSwitch("-use-window-size");
     ret->createOptionalParameter(6, windowSizeSwitch, "Override image size with window size");
     
+    ret->createOptionalParameter(7, "-no-scene-colors", "Do not use background and foreground colors in scene");
+    
     AString helpText("Render content of browser windows displayed in a scene "
                      "into image file(s).  The image file name should be "
                      "similar to \"capture.png\".  If there is only one image "
@@ -175,6 +177,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     OptionalParameter* useWindowSizeParam = myParams->getOptionalParameter(6);
     const bool useWindowSizeForImageSizeFlag = useWindowSizeParam->m_present;
     
+    const bool doNotUseSceneColorsFlag = myParams->getOptionalParameter(7)->m_present;
+    
     if ( ! useWindowSizeForImageSizeFlag) {
         if ((userImageWidth <= 0)
             || (userImageHeight <= 0)) {
@@ -215,6 +219,10 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     VolumeFile::setVoxelColoringEnabled(true);
     
     SceneAttributes sceneAttributes(SceneTypeEnum::SCENE_TYPE_FULL);
+    
+    if (doNotUseSceneColorsFlag) {
+        sceneAttributes.setUseSceneForegroundAndBackgroundColors(false);
+    }
     
     /*
      * Restore the scene
