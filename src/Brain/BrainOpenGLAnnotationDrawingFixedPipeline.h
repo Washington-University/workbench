@@ -303,6 +303,10 @@ namespace caret {
         
         void getTextLineToBrainordinateLineCoordinates(const AnnotationText* text,
                                                        const Surface* surfaceDisplayed,
+                                                       const float bottomLeft[3],
+                                                       const float bottomRight[3],
+                                                       const float topRight[3],
+                                                       const float topLeft[3],
                                                        std::vector<float>& lineCoordinatesOut) const;
         
         static void expandBox(float bottomLeft[3],
@@ -319,6 +323,13 @@ namespace caret {
         
         void endOpenGLForDrawing(GLint savedShadeModel,
                                  GLboolean savedLightingEnabled);
+        
+        void clipLineAtTextBox(const float bottomLeft[3],
+                               const float bottomRight[3],
+                               const float topRight[3],
+                               const float topLeft[3],
+                               const float startXYZ[3],
+                               float endXYZ[3]) const;
         
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
         

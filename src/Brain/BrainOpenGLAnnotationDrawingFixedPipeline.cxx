@@ -1983,6 +1983,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordinates(const AnnotationText* text,
                                                                                      const Surface* surfaceDisplayed,
+                                                                                     const float bottomLeft[3],
+                                                                                     const float bottomRight[3],
+                                                                                     const float topRight[3],
+                                                                                     const float topLeft[3],
                                                                                      std::vector<float>& lineCoordinatesOut) const
 {
     lineCoordinatesOut.clear();
@@ -2039,6 +2043,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                                                       surfaceDisplayed,
                                                       windowXYZ)) {
                         
+                        const bool clipAtBoxFlag = true;
+                        if (clipAtBoxFlag) {
+                            clipLineAtTextBox(bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              brainordinateXYZ,
+                                              windowXYZ);
+                        }
+                        
                         createLineCoordinates(windowXYZ,
                                               brainordinateXYZ,
                                               text->getLineWidth(),
@@ -2049,6 +2063,86 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                 }
             }
         }
+    }
+}
+
+/*
+ * Clip the line that connects the text to the surface so that the line
+ * does not enter a 'box' that encloses the text.
+ * 
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * param startXYZ
+ *    XYZ of where line attaches to surface
+ * @param endXYZ
+ *    XYZ of where line attaches to text and may be changed to avoid
+ *    overlapping the text.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomLeft[3],
+                                                             const float bottomRight[3],
+                                                             const float topRight[3],
+                                                             const float topLeft[3],
+                                                             const float startXYZ[3],
+                                                             float endXYZ[3]) const
+{
+    const float tol = 0.01;
+
+    float clippedXYZ[3] = { 0.0, 0.0, 0.0 };
+    float clippedDistance = std::numeric_limits<float>::max();
+    bool clippedValid = false;
+    
+    for (int32_t i = 0; i < 4; i++) {
+        float* p1 = NULL;
+        float* p2 = NULL;
+        switch (i) {
+            case 0:
+                p1 = const_cast<float*>(bottomLeft);
+                p2 = const_cast<float*>(bottomRight);
+                break;
+            case 1:
+                p1 = const_cast<float*>(bottomRight);
+                p2 = const_cast<float*>(topRight);
+                break;
+            case 2:
+                p1 = const_cast<float*>(topRight);
+                p2 = const_cast<float*>(topLeft);
+                break;
+            case 3:
+                p1 = const_cast<float*>(topLeft);
+                p2 = const_cast<float*>(bottomLeft);
+                break;
+        }
+        
+        float intersection[3] = { 0.0, 0.0, 0.0 };
+        const bool yesFlag = MathFunctions::lineIntersection2D(p1, p2,
+                                                               startXYZ, endXYZ,
+                                                               tol, intersection);
+        
+        if (yesFlag) {
+            const float dist = MathFunctions::distance3D(startXYZ,
+                                                         intersection);
+            if ( ( ! clippedValid)
+                || (dist < clippedDistance)) {
+                clippedDistance = dist;
+                clippedValid    = true;
+                clippedXYZ[0]   = intersection[0];
+                clippedXYZ[1]   = intersection[1];
+                clippedXYZ[2]   = intersection[2];
+            }
+        }
+    }
+    
+    if (clippedValid) {
+        endXYZ[0] = clippedXYZ[0];
+        endXYZ[1] = clippedXYZ[1];
+        endXYZ[2] = clippedXYZ[2];
     }
 }
 
@@ -2168,6 +2262,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
 
             getTextLineToBrainordinateLineCoordinates(text,
                                                       surfaceDisplayed,
+                                                      bottomLeft,
+                                                      bottomRight,
+                                                      topRight,
+                                                      topLeft,
                                                       connectLineCoordinates);
             
             if ( ! connectLineCoordinates.empty()) {
