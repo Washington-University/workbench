@@ -513,6 +513,13 @@ Annotation::initializeAnnotationMembers()
     if (m_type == AnnotationTypeEnum::COLOR_BAR) {
         m_sceneAssistant->add<AnnotationCoordinateSpaceEnum, AnnotationCoordinateSpaceEnum::Enum>("m_coordinateSpace",
                                                                                                   &m_coordinateSpace);
+        m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_colorBackground",
+                                                                    &m_colorBackground);
+        m_sceneAssistant->addArray("m_customColorBackground", m_customColorBackground, 4, 0.0);
+        
+        m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_colorLine",
+                                                                    &m_colorLine);
+        m_sceneAssistant->addArray("m_customColorLine", m_customColorLine, 4, 0.0);
     }
 }
 
