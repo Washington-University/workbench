@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <limits>
+
 #define __SCENE_STRING_DECLARE__
 #include "SceneString.h"
 #undef __SCENE_STRING_DECLARE__

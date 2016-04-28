@@ -18,6 +18,8 @@
  */
 /*LICENSE_END*/
 
+#include <limits>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DataFile.h"

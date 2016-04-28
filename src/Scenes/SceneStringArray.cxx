@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include <limits>
 
 #define __SCENE_STRING_ARRAY_DECLARE__
 #include "SceneStringArray.h"

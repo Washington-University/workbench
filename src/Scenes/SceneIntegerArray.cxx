@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include <limits>
 
 #define __SCENE_INTEGER_ARRAY_DECLARE__
 #include "SceneIntegerArray.h"
