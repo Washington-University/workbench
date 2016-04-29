@@ -388,9 +388,22 @@ Annotation::initializeAnnotationMembers()
             m_colorBackground = CaretColorEnum::NONE;
             m_colorLine = CaretColorEnum::WHITE;
             
-            if (m_type == AnnotationTypeEnum::TEXT) {
-                m_colorBackground = CaretColorEnum::NONE;
-                m_colorLine = CaretColorEnum::NONE;
+            switch (m_type) {
+                case AnnotationTypeEnum::BOX:
+                    break;
+                case AnnotationTypeEnum::COLOR_BAR:
+                    m_colorBackground = CaretColorEnum::BLACK;
+                    break;
+                case AnnotationTypeEnum::IMAGE:
+                    break;
+                case AnnotationTypeEnum::LINE:
+                    break;
+                case AnnotationTypeEnum::OVAL:
+                    break;
+                case AnnotationTypeEnum::TEXT:
+                    m_colorBackground = CaretColorEnum::NONE;
+                    m_colorLine = CaretColorEnum::NONE;
+                    break;
             }
             
             m_customColorBackground[0]  = 0.0;

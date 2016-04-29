@@ -590,7 +590,23 @@ AnnotationColorBar::restoreSubClassDataFromScene(const SceneAttributes* sceneAtt
     AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
                                                                 sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);    
+                                     sceneClass);
+    
+    /*
+     * Prior to WB-617 (28 Apr 2016), scenes may
+     * not have contained the color bar background
+     * color so it may be necessary to ensure 
+     * the background is not the same as the text 
+     * color.
+     */
+    if (getTextColor() == getBackgroundColor()) {
+        if (getTextColor() == CaretColorEnum::BLACK) {
+            setBackgroundColor(CaretColorEnum::WHITE);
+        }
+        else {
+            setBackgroundColor(CaretColorEnum::BLACK);
+        }
+    }
 }
 
 /**
