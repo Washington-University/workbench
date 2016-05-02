@@ -372,7 +372,14 @@ SceneCreateReplaceDialog::addImageToScene(Scene* scene)
                                                                       numImagesPerRow,
                                                                       backgroundColor);
             
-            compositeImageFile.resizeToMaximumWidth(512);
+            if (backgroundColorValid) {
+                const int marginSize = 5;
+                compositeImageFile.cropImageRemoveBackground(marginSize,
+                                                             backgroundColor);
+            }
+            
+            const int MAXIMUM_IMAGE_WIDTH = 1024;
+            compositeImageFile.resizeToMaximumWidth(MAXIMUM_IMAGE_WIDTH);
             
             const AString PREFERRED_IMAGE_FORMAT = "png";
             
