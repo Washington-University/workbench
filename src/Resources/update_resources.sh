@@ -2,7 +2,7 @@
 
 mv HelpFiles OLD_HelpFiles
 
-cp -r /mnt/myelin/shared/WB_Tutorial/WB_1.0_Help ./HelpFiles
+cp -r /mnt/myelin/shared/WB_Tutorial/WB_1.2_Help ./HelpFiles
 
 rm -rf OLD_HelpFiles
 
