@@ -68,6 +68,8 @@ namespace caret {
         
         AString operatingSystemName;
         
+        AString compiledWithOpenMP;
+        
         static ApplicationTypeEnum::Enum s_applicationType;
     };
     

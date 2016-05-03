@@ -25,6 +25,7 @@
 #include "ApplicationInformation.h"
 #undef __APPLICATION_INFORMATION_DECLARE__
 
+#include "CaretOMP.h"
 #include "FileInformation.h"
 
 using namespace caret;
@@ -54,6 +55,12 @@ ApplicationInformation::ApplicationInformation()
 #else
     this->compiledWithDebugOn = "Compiled Debug: YES";
 #endif // NDEBUG
+
+#ifdef CARET_OMP
+    this->compiledWithOpenMP = "Compiled with OpenMP: YES";
+#else
+    this->compiledWithOpenMP = "Compiled with OpenMP: NO";
+#endif
 
     this->operatingSystemName = "Operating System: Unknown";
     
@@ -138,6 +145,8 @@ ApplicationInformation::getAllInformation(std::vector<AString>& informationValue
     informationValues.push_back(commit);
     
     informationValues.push_back(commitDate);
+
+    informationValues.push_back(compiledWithOpenMP);
 
 #if defined COMPILER_NAME
     FileInformation fileInfo(COMPILER_NAME);
