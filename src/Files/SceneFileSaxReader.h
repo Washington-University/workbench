@@ -81,6 +81,8 @@ namespace caret {
             STATE_METADATA,
             /// processing SceneInfoDirectory tag
             STATE_SCENE_INFO_DIRECTORY,
+            /// processing scene info Balsa Study ID tag
+            STATE_SCENE_INFO_BALSA_STUDY_ID,
             /// processing SceneInfo tag
             STATE_SCENE_INFO,
             /// processing Scene tag

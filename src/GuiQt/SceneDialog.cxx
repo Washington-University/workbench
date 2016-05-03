@@ -247,8 +247,24 @@ SceneDialog::loadSceneFileComboBox(SceneFile* selectedSceneFileIn)
                                               qVariantFromValue((void*)sceneFile));
     }
     
+    
     if (numSceneFiles > 0) {
         m_sceneFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
+        loadSceneFileBalsaStudyIDLineEdit();
+    }
+}
+
+/**
+ * Load the Scene File BALSA Study ID Line Edit
+ */
+void
+SceneDialog::loadSceneFileBalsaStudyIDLineEdit()
+{
+    m_fileBalsaStudyIDLineEdit->clear();
+    
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile != NULL) {
+        m_fileBalsaStudyIDLineEdit->setText(sceneFile->getBalsaStudyID());
     }
 }
 
@@ -474,12 +490,37 @@ void
 SceneDialog::sceneFileSelected()
 {
     loadScenesIntoDialog(NULL);
+    loadSceneFileBalsaStudyIDLineEdit();
+}
+
+/**
+ * Called when Edit Study ID button is clicked.
+ */
+void
+SceneDialog::editFileBalsaStudyIDButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        return;
+    }
+    
+    WuQDataEntryDialog ded(sceneFile->getBalsaStudyID(),
+                           m_fileBalsaStudyIDPushButton,
+                           WuQDialog::SCROLL_AREA_AS_NEEDED);
+    
+    QLineEdit* lineEdit = ded.addLineEditWidget("BALSA Study ID");
+    lineEdit->setText(sceneFile->getBalsaStudyID());
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        const AString idText = lineEdit->text().trimmed();
+        sceneFile->setBalsaStudyID(idText);
+        loadSceneFileBalsaStudyIDLineEdit();
+    }
 }
 
 /**
  * Called when add new scene button clicked.
  */
-void 
+void
 SceneDialog::addNewSceneButtonClicked()
 {
     if ( ! checkForModifiedFiles(true)) {
@@ -748,6 +789,21 @@ SceneDialog::createMainPage()
                      this, SLOT(newSceneFileButtonClicked()));
     
     /*
+     * Scene BALSA Study ID
+     */
+    QLabel* fileStudyIDLabel = new QLabel("Study ID");
+    m_fileBalsaStudyIDLineEdit = new QLineEdit();
+    m_fileBalsaStudyIDLineEdit->setReadOnly(true);
+    
+    /*
+     * Edit BALSA Study ID button
+     */
+    m_fileBalsaStudyIDPushButton = new QPushButton("Edit...");
+    m_fileBalsaStudyIDPushButton->setToolTip("Edit the Scene File's BALSA Study ID");
+    QObject::connect(m_fileBalsaStudyIDPushButton, SIGNAL(clicked()),
+                     this, SLOT(editFileBalsaStudyIDButtonClicked()));
+    
+    /*
      * Scene controls
      */ 
     QLabel* sceneLabel = new QLabel("Scenes");
@@ -864,6 +920,10 @@ SceneDialog::createMainPage()
     gridLayout->addWidget(sceneFileLabel, row, 0, Qt::AlignRight);
     gridLayout->addWidget(m_sceneFileSelectionComboBox, row, 1);
     gridLayout->addWidget(newSceneFilePushButton, row, 2);
+    row++;
+    gridLayout->addWidget(fileStudyIDLabel, row, 0, Qt::AlignRight);
+    gridLayout->addWidget(m_fileBalsaStudyIDLineEdit, row, 1);
+    gridLayout->addWidget(m_fileBalsaStudyIDPushButton, row, 2);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3);
     row++;

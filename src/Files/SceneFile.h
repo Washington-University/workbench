@@ -83,6 +83,10 @@ namespace caret {
         
         const GiftiMetaData* getFileMetaData() const;
         
+        AString getBalsaStudyID() const;
+        
+        void setBalsaStudyID(const AString& balsaStudyID);
+        
         void reorderScenes(std::vector<Scene*>& orderedScenes);
 
         // ADD_NEW_METHODS_HERE
@@ -109,6 +113,9 @@ namespace caret {
         /** the metadata */
         GiftiMetaData* m_metadata;
 
+        /** the BALSA Study ID */
+        AString m_balsaStudyID;
+        
         // ADD_NEW_MEMBERS_HERE
 
         /** Version of this SceneFile */

@@ -145,6 +145,11 @@ namespace caret {
          * Name for Base64 encoding used in Scene Info image encoding attribute.
          */
         static const AString SCENE_INFO_ENCODING_BASE64_NAME = "Base64";
+        
+        /**
+         * XML Tag for BALSA Study ID element.
+         */
+        static const AString SCENE_INFO_BALSA_STUDY_ID_TAG = "BalsaStudyID";
     
     } // namespace SceneXmlElements
     

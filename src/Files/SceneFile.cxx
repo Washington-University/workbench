@@ -38,6 +38,7 @@
 #include "Scene.h"
 #include "SceneFileSaxReader.h"
 #include "SceneInfo.h"
+#include "SceneXmlElements.h"
 #include "SceneWriterXml.h"
 #include "XmlSaxParser.h"
 #include "XmlWriter.h"
@@ -57,6 +58,7 @@ using namespace caret;
 SceneFile::SceneFile()
 : CaretDataFile(DataFileTypeEnum::SCENE)
 {
+    m_balsaStudyID = "";
     m_metadata = new GiftiMetaData();
 }
 
@@ -84,6 +86,8 @@ SceneFile::clear()
     CaretDataFile::clear();
     
     m_metadata->clear();
+    
+    m_balsaStudyID = "";
     
     for (std::vector<Scene*>::iterator iter = m_scenes.begin();
          iter != m_scenes.end();
@@ -419,6 +423,30 @@ SceneFile::getFileMetaData() const
 }
 
 /**
+ * @return The BALSA Study ID.
+ */
+AString
+SceneFile::getBalsaStudyID() const
+{
+    return m_balsaStudyID;
+}
+
+/**
+ * Set the BALSA Study ID.
+ *
+ * @param balsaStudyID
+ *     New value for BALSA Study ID.
+ */
+void
+SceneFile::setBalsaStudyID(const AString& balsaStudyID)
+{
+    if (balsaStudyID != m_balsaStudyID) {
+        m_balsaStudyID = balsaStudyID;
+        setModified();
+    }
+}
+
+/**
  * Read the scene file.
  * @param filenameIn
  *    Name of scene file.
@@ -544,6 +572,8 @@ SceneFile::writeFile(const AString& filename)
          * Write the scene info directory
          */
         xmlWriter.writeStartElement(SceneFile::XML_TAG_SCENE_INFO_DIRECTORY_TAG);
+        xmlWriter.writeElementCharacters(SceneXmlElements::SCENE_INFO_BALSA_STUDY_ID_TAG,
+                                         getBalsaStudyID());
         for (int32_t i = 0; i < numScenes; i++) {
             m_scenes[i]->getSceneInfo()->writeSceneInfo(xmlWriter,
                                                         i);

@@ -29,6 +29,7 @@
 class QCheckBox;
 class QComboBox;
 class QLabel;
+class QLineEdit;
 class QPushButton;
 class QScrollArea;
 class QVBoxLayout;
@@ -92,6 +93,8 @@ namespace caret {
         
         void useSceneColorsCheckBoxClicked(bool checked);
         
+        void editFileBalsaStudyIDButtonClicked();
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -122,6 +125,8 @@ namespace caret {
         bool checkForModifiedFiles(const bool creatingSceneFlag);
         
         void enableSceneMoveUpAndDownButtons();
+        
+        void loadSceneFileBalsaStudyIDLineEdit();
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -154,6 +159,10 @@ namespace caret {
         std::vector<SceneClassInfoWidget*> m_sceneClassInfoWidgets;
         
         int32_t m_selectedSceneClassInfoIndex;
+        
+        QPushButton* m_fileBalsaStudyIDPushButton;
+        
+        QLineEdit* m_fileBalsaStudyIDLineEdit;
         
         static const AString PREFERRED_IMAGE_FORMAT;
         
