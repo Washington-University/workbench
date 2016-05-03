@@ -47,7 +47,7 @@ OperationParameters* OperationConvertWarpfield::getParameters()
     fromFnirt->addStringParameter(2, "source-volume", "the source volume used when generating the input warpfield");
     
     OptionalParameter* toWorld = ret->createOptionalParameter(3, "-to-world", "write output as a NIFTI 'world' warpfield");
-    toWorld->addStringParameter(1, "output", "output - the output warpfield");//HACK: fake the output formatting, since we don't have a parameter for affine file (hard to do due to multiple on-disk formats)
+    toWorld->addStringParameter(1, "output", "output - the output warpfield");//HACK: fake the output formatting, since the warpfield uses separate calls for writing each output type, and by design doesn't give access to the raw with-quirks volume file
     
     ParameterComponent* toFnirt = ret->createRepeatableParameter(4, "-to-fnirt", "write output as a fnirt warpfield");
     toFnirt->addStringParameter(1, "output", "output - the output warpfield");//this argument order is different than other commands, yes - but don't change it, so scripts will still work

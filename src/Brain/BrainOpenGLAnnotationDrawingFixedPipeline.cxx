@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <cmath>
+#include <limits>
 
 #include <QColor>
 
