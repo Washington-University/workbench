@@ -124,6 +124,9 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     QLabel* nameLabel = new QLabel("Name");
     m_nameLineEdit = new QLineEdit();
     
+    QLabel* sceneIDLabel = new QLabel("Balsa ID");
+    m_balsaSceneIDLineEdit = new QLineEdit();
+    
     QLabel* descriptionLabel = new QLabel("Description");
     m_descriptionTextEdit = new QPlainTextEdit();
     
@@ -144,6 +147,12 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
                               rowCounter, labelColumn,
                               labelAlignment);
     infoGridLayout->addWidget(m_nameLineEdit,
+                              rowCounter, widgetColumn);
+    rowCounter++;
+    infoGridLayout->addWidget(sceneIDLabel,
+                              rowCounter, labelColumn,
+                              labelAlignment);
+    infoGridLayout->addWidget(m_balsaSceneIDLineEdit,
                               rowCounter, widgetColumn);
     rowCounter++;
     infoGridLayout->setRowStretch(rowCounter, 100);
@@ -195,6 +204,7 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
             break;
         case MODE_REPLACE_SCENE:
             m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
+            m_balsaSceneIDLineEdit->setText(sceneToInsertOrReplace->getBalsaSceneID());
             m_descriptionTextEdit->setPlainText(sceneToInsertOrReplace->getDescription());
             break;
     }
@@ -502,6 +512,7 @@ SceneCreateReplaceDialog::okButtonClicked()
     Scene::setSceneBeingCreated(newScene);
     newScene->setName(newSceneName);
     newScene->setDescription(m_descriptionTextEdit->toPlainText());
+    newScene->setBalsaSceneID(m_balsaSceneIDLineEdit->text().trimmed());
 
     const std::vector<int32_t> windowIndices = GuiManager::get()->getAllOpenBrainBrowserWindowIndices();
     

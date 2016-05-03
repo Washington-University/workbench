@@ -44,6 +44,10 @@ namespace caret {
         
         void setDescription(const AString& description);
         
+        AString getBalsaSceneID() const;
+        
+        void setBalsaSceneID(const AString& balsaSceneID);
+        
         void getImageBytes(QByteArray& imageBytesOut,
                                     AString& imageFormatOut) const;
 
@@ -74,6 +78,9 @@ namespace caret {
         
         /** description of scene */
         AString m_sceneDescription;
+        
+        /** balsa scene ID */
+        AString m_balsaSceneID;
         
         /** thumbnail image bytes */
         QByteArray m_imageBytes;

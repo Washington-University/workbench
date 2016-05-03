@@ -60,6 +60,10 @@ namespace caret {
 
         void setName(const AString& sceneName);
 
+        AString getBalsaSceneID() const;
+        
+        void setBalsaSceneID(const AString& balsaSceneID);
+        
         AString getDescription() const;
         
         void setDescription(const AString& description);

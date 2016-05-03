@@ -73,6 +73,8 @@ namespace caret {
             STATE_NONE,
             /// processing Scene Info tag
             STATE_SCENE_INFO,
+            /// processing Balsa Scene ID tag
+            STATE_SCENE_INFO_BALSA_ID,
             /// processing Scene Info Name tag
             STATE_SCENE_INFO_NAME,
             /// processing Scene Info Description tag

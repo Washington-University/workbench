@@ -343,6 +343,28 @@ Scene::setName(const AString& sceneName)
 }
 
 /**
+ * @return The BALSA Scene ID.
+ */
+AString
+Scene::getBalsaSceneID() const
+{
+    return m_sceneInfo->getBalsaSceneID();
+}
+
+/**
+ * Set the BALSA Scene ID.
+ *
+ * @param balsaSceneID
+ *     The BALSA scene ID.
+ */
+void
+Scene::setBalsaSceneID(const AString& balsaSceneID)
+{
+    m_sceneInfo->setBalsaSceneID(balsaSceneID);
+}
+
+
+/**
  * @return description of scene
  */
 AString

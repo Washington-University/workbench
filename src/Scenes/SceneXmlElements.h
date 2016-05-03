@@ -132,6 +132,11 @@ namespace caret {
         static const AString SCENE_INFO_IMAGE_TAG = "Image";
     
         /**
+         * XML Tag for Scene Info Balsa Scene ID element.
+         */
+        static const AString SCENE_INFO_BALSA_SCENE_ID_TAG = "BalsaSceneID";
+        
+        /**
          * XML Tag for Scene Info image format attribute.
          */
         static const AString SCENE_INFO_IMAGE_FORMAT_ATTRIBUTE = "Format";

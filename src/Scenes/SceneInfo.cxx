@@ -143,6 +143,27 @@ SceneInfo::hasImage() const
 }
 
 /**
+ * @return The BALSA Scene ID.
+ */
+AString
+SceneInfo::getBalsaSceneID() const
+{
+    return m_balsaSceneID;
+}
+
+/**
+ * Set the BALSA Scene ID.
+ *
+ * @param balsaSceneID
+ *     The BALSA scene ID.
+ */
+void
+SceneInfo::setBalsaSceneID(const AString& balsaSceneID)
+{
+    m_balsaSceneID = balsaSceneID;
+}
+
+/**
  * Write the scene info element.
  *
  * @param sceneInfo
@@ -164,6 +185,9 @@ SceneInfo::writeSceneInfo(XmlWriter& xmlWriter,
     xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_NAME_TAG,
                                      m_sceneName);
     
+    xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_SCENE_ID_TAG,
+                                m_balsaSceneID);
+    
     xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_DESCRIPTION_TAG,
                                        m_sceneDescription);
     
@@ -171,7 +195,6 @@ SceneInfo::writeSceneInfo(XmlWriter& xmlWriter,
                         SceneXmlElements::SCENE_INFO_IMAGE_TAG,
                         m_imageBytes,
                         m_imageFormat);
-    
     
     /*
      * End class element.

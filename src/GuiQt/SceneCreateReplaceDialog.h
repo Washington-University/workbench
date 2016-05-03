@@ -94,6 +94,8 @@ namespace caret {
         
         QLineEdit* m_nameLineEdit;
         
+        QLineEdit* m_balsaSceneIDLineEdit;
+        
         QPlainTextEdit* m_descriptionTextEdit;
         
         QCheckBox* m_addSpecFileNameToSceneCheckBox;
