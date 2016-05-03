@@ -244,9 +244,11 @@ ELSE(EXISTS ${GIT_REPOSITORY})
     ADD_CUSTOM_COMMAND(
         OUTPUT ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
         COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy
-             "${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
-             "${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
-        COMMENT "No repository found.  No commit information will be available."
+            -DINFILE="${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
+            -DOUTFILE="${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
+            -P "${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
+        DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in
+        COMMENT "No repository found, setting commit info to 'unknown'.  Reconfigure to look for the repository again."
     )
 ENDIF(EXISTS ${GIT_REPOSITORY})

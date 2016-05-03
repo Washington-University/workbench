@@ -1,27 +1,32 @@
-FIND_PACKAGE(Git)
+FIND_PACKAGE(Git QUIET)
 IF(GIT_FOUND)
     EXECUTE_PROCESS(
         COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
-        OUTPUT_VARIABLE "commit"
+        OUTPUT_VARIABLE "COMMIT"
         OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+        RESULT_VARIABLE commit_success
     )
+    IF(NOT ${commit_success} EQUAL 0)
+        SET(COMMIT "unknown")
+    ENDIF(NOT ${commit_success} EQUAL 0)
+
     EXECUTE_PROCESS(
         COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%ai
-        OUTPUT_VARIABLE "commit_date"
+        OUTPUT_VARIABLE "COMMIT_DATE"
         OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+        RESULT_VARIABLE commit_date_success
     )
+    IF(NOT ${commit_date_success} EQUAL 0)
+        SET(COMMIT_DATE "unknown")
+    ENDIF(NOT ${commit_date_success} EQUAL 0)
 ELSE(GIT_FOUND)
-    SET(commit "unknown")
-    SET(commit_date "unknown")
+    SET(COMMIT "unknown")
+    SET(COMMIT_DATE "unknown")
 ENDIF(GIT_FOUND)
-IF(WIN32)
-    EXECUTE_PROCESS(
-        COMMAND powershell.exe -Command "& {(Get-Content ${INFILE}) | ForEach-Object { ($_ -replace \"@COMMIT@\", \"${commit}\") -replace \"@COMMIT_DATE@\", \"${commit_date}\" } | Set-Content ${OUTFILE}}"
-    )
-ELSE(WIN32)
-    EXECUTE_PROCESS(
-        INPUT_FILE "${INFILE}"
-        COMMAND sed -e "s/@COMMIT@/${commit}/g" -e "s/@COMMIT_DATE@/${commit_date}/g"
-        OUTPUT_FILE "${OUTFILE}"
-    )
-ENDIF(WIN32)
+
+#configure_file only detects changes to the input file, not changes to variable values being used (not surprising)
+#so, let the custom command that calls this script handle dependencies as to when it should run, then force it to run whenever this script is used by deleting the output first
+FILE(REMOVE ${OUTFILE})
+CONFIGURE_FILE(${INFILE} ${OUTFILE} @ONLY)
