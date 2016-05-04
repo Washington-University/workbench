@@ -504,12 +504,13 @@ SceneDialog::editFileBalsaStudyIDButtonClicked()
         return;
     }
     
-    WuQDataEntryDialog ded(sceneFile->getBalsaStudyID(),
+    WuQDataEntryDialog ded("Edit BALSA Database Info",
                            m_fileBalsaStudyIDPushButton,
                            WuQDialog::SCROLL_AREA_AS_NEEDED);
     
     QLineEdit* lineEdit = ded.addLineEditWidget("BALSA Study ID");
     lineEdit->setText(sceneFile->getBalsaStudyID());
+    lineEdit->setMinimumWidth(200);
     if (ded.exec() == WuQDataEntryDialog::Accepted) {
         const AString idText = lineEdit->text().trimmed();
         sceneFile->setBalsaStudyID(idText);
@@ -791,8 +792,14 @@ SceneDialog::createMainPage()
     /*
      * Scene BALSA Study ID
      */
-    QLabel* fileStudyIDLabel = new QLabel("Study ID");
+    QLabel* studyIDLabelOne = new QLabel("BALSA");
+    QLabel* studyIDLabelTwo = new QLabel("Study ID");
+    QVBoxLayout* studyIDLayout = new QVBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(studyIDLayout, 2, 0);
+    studyIDLayout->addWidget(studyIDLabelOne, 0, Qt::AlignHCenter);
+    studyIDLayout->addWidget(studyIDLabelTwo, 0, Qt::AlignHCenter);
     m_fileBalsaStudyIDLineEdit = new QLineEdit();
+    m_fileBalsaStudyIDLineEdit->setToolTip("Press Edit button to change Study ID for use with BALSA Database");
     m_fileBalsaStudyIDLineEdit->setReadOnly(true);
     
     /*
@@ -921,7 +928,7 @@ SceneDialog::createMainPage()
     gridLayout->addWidget(m_sceneFileSelectionComboBox, row, 1);
     gridLayout->addWidget(newSceneFilePushButton, row, 2);
     row++;
-    gridLayout->addWidget(fileStudyIDLabel, row, 0, Qt::AlignRight);
+    gridLayout->addLayout(studyIDLayout, row, 0, Qt::AlignRight);
     gridLayout->addWidget(m_fileBalsaStudyIDLineEdit, row, 1);
     gridLayout->addWidget(m_fileBalsaStudyIDPushButton, row, 2);
     row++;

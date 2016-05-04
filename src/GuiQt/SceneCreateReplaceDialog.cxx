@@ -124,8 +124,9 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     QLabel* nameLabel = new QLabel("Name");
     m_nameLineEdit = new QLineEdit();
     
-    QLabel* sceneIDLabel = new QLabel("Balsa ID");
+    QLabel* sceneIDLabel = new QLabel("BALSA Scene ID");
     m_balsaSceneIDLineEdit = new QLineEdit();
+    m_balsaSceneIDLineEdit->setToolTip("Scene ID is for use with BALSA Database");
     
     QLabel* descriptionLabel = new QLabel("Description");
     m_descriptionTextEdit = new QPlainTextEdit();
