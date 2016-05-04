@@ -236,8 +236,8 @@ IF (EXISTS ${GIT_REPOSITORY})
             -DINFILE="${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
             -DOUTFILE="${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
             -P "${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
-        DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in ${CMAKE_SOURCE_DIR}/../.git/HEAD ${CMAKE_SOURCE_DIR}/../.git/index
+        WORKING_DIRECTORY ${GIT_REPOSITORY}/..
+        DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in ${GIT_REPOSITORY}/HEAD ${GIT_REPOSITORY}/index
         COMMENT "Setting commit info"
     )
 ELSE(EXISTS ${GIT_REPOSITORY})
