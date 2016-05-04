@@ -59,6 +59,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventImageCapture.h"
 #include "EventManager.h"
+#include "EventModelGetAll.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
@@ -719,6 +720,18 @@ SceneDialog::addImageToScene(Scene* scene)
 bool
 SceneDialog::checkForModifiedFiles(const bool creatingSceneFlag)
 {
+    if (creatingSceneFlag) {
+        EventModelGetAll allModelsEvent;
+        EventManager::get()->sendEvent(allModelsEvent.getPointer());
+        if (allModelsEvent.getModels().empty()) {
+            const QString msg("No surfaces or volumes are loaded.  Continue creating scene?");
+            if ( ! WuQMessageBox::warningYesNo(this,
+                                               msg)) {
+                return false;
+            }
+        }
+    }
+    
     AString dialogMessage;
     AString modifiedFilesMessage;
     GuiManager::TestModifiedMode testMode = GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW;
