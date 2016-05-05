@@ -136,8 +136,10 @@ SceneDialog::SceneDialog(QWidget* parent)
     EventManager::get()->addProcessedEventListener(this,
                                                    EventTypeEnum::EVENT_DATA_FILE_RELOAD);
     
-    resize(650,
-           500);
+//    resize(650,
+//           500);
+    resize(900,
+           700);
 }
 
 /**
@@ -1537,7 +1539,7 @@ SceneClassInfoWidget::updateContent(Scene* scene,
                                                       imageBytesFormat);
         
         
-        const int previewImageWidth = 128;
+        const int previewImageWidth = 192; //128;
         
         QImage  previewImage;
         bool    previewImageValid = false;
