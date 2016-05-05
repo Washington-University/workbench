@@ -132,8 +132,9 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
                 const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::SCENE_INFO_TAG,
                                                                                    qName);
                 XmlSaxParserException e(msg);
-                CaretLogThrowing(e);
-                throw e;
+                warning(e);
+//                CaretLogThrowing(e);
+//                throw e;
             }
             break;
         case STATE_SCENE_INFO_BALSA_STUDY_ID:
@@ -177,8 +178,9 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
                 const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::SCENE_TAG, 
                                                                                    qName);
                 XmlSaxParserException e(msg);
-                CaretLogThrowing(e);
-                throw e;
+                warning(e);
+//                CaretLogThrowing(e);
+//                throw e;
             }
             break;
         case STATE_METADATA:
