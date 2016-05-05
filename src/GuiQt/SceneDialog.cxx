@@ -1464,8 +1464,8 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     leftLayout->addWidget(m_previewImageLabel);
     leftLayout->addStretch();
     
-    WuQtUtilities::matchWidgetHeights(m_leftSideWidget,
-                                      m_rightSideWidget);
+//    WuQtUtilities::matchWidgetHeights(m_leftSideWidget,
+//                                      m_rightSideWidget);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 3, 0, 0);
@@ -1473,8 +1473,8 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     layout->addWidget(m_leftSideWidget);
     layout->addWidget(m_rightSideWidget, 100);
 
-    setSizePolicy(sizePolicy().horizontalPolicy(),
-                  QSizePolicy::Fixed);
+//    setSizePolicy(sizePolicy().horizontalPolicy(),
+//                  QSizePolicy::Fixed);
 }
 
 /**
@@ -1563,18 +1563,40 @@ SceneClassInfoWidget::updateContent(Scene* scene,
                                           | Qt::AlignTop);
         if (previewImageValid) {
             m_previewImageLabel->setPixmap(QPixmap::fromImage(previewImage));
-            m_leftSideWidget->setMaximumHeight(1000);
-            m_rightSideWidget->setMaximumHeight(m_leftSideWidget->sizeHint().height());
+//            m_leftSideWidget->setMaximumHeight(1000);
+//            m_rightSideWidget->setMaximumHeight(m_leftSideWidget->sizeHint().height());
         }
         else {
             m_previewImageLabel->setText("<html>No preview<br>image</html>");
-            int32_t maxHeight = std::max(m_leftSideWidget->sizeHint().height(),
-                                              m_rightSideWidget->sizeHint().height());
-            maxHeight = std::min(maxHeight,
-                                    previewImageWidth);
-            m_leftSideWidget->setMaximumHeight(maxHeight);
-            m_rightSideWidget->setMaximumHeight(maxHeight);
+//            int32_t maxHeight = std::max(m_leftSideWidget->sizeHint().height(),
+//                                         m_rightSideWidget->sizeHint().height());
+//            maxHeight = std::min(maxHeight,
+//                                 previewImageWidth);
+//            m_leftSideWidget->setMaximumHeight(maxHeight);
+//            m_rightSideWidget->setMaximumHeight(maxHeight);
         }
+        
+        const int32_t maxHeight = 150;
+        const int32_t maxSizeHintHeight = std::max(m_leftSideWidget->sizeHint().height(),
+                                                   m_rightSideWidget->sizeHint().height());
+        const int32_t fixedHeight = std::min(maxSizeHintHeight,
+                                             maxHeight);
+        setFixedHeight(fixedHeight);
+        
+//        if (previewImageValid) {
+//            m_previewImageLabel->setPixmap(QPixmap::fromImage(previewImage));
+//            m_leftSideWidget->setMaximumHeight(1000);
+//            m_rightSideWidget->setMaximumHeight(m_leftSideWidget->sizeHint().height());
+//        }
+//        else {
+//            m_previewImageLabel->setText("<html>No preview<br>image</html>");
+//            int32_t maxHeight = std::max(m_leftSideWidget->sizeHint().height(),
+//                                         m_rightSideWidget->sizeHint().height());
+//            maxHeight = std::min(maxHeight,
+//                                 previewImageWidth);
+//            m_leftSideWidget->setMaximumHeight(maxHeight);
+//            m_rightSideWidget->setMaximumHeight(maxHeight);
+//        }
     }
 }
 
