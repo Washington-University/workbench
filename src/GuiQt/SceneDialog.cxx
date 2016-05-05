@@ -136,8 +136,6 @@ SceneDialog::SceneDialog(QWidget* parent)
     EventManager::get()->addProcessedEventListener(this,
                                                    EventTypeEnum::EVENT_DATA_FILE_RELOAD);
     
-//    resize(650,
-//           500);
     resize(900,
            700);
 }
@@ -997,9 +995,6 @@ SceneDialog::createShowOptionsWidget()
     QVBoxLayout* layout = new QVBoxLayout(frame);
     WuQtUtilities::setLayoutMargins(layout, 5);
     layout->addWidget(m_useSceneColorsCheckBox, 0, Qt::AlignLeft);
-    //layout->addStretch();
-    //frame->setFixedHeight(frame->minimumSizeHint().height());
-
     
     return frame;
 }
@@ -1451,9 +1446,7 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     rightLayout->setContentsMargins(0, 0, 0, 0);
     rightLayout->setSpacing(3);
     rightLayout->addWidget(m_nameLabel);
-    //rightLayout->addSpacing(5);
     rightLayout->addWidget(m_sceneIdLabel);
-    //rightLayout->addSpacing(5);
     rightLayout->addWidget(m_descriptionLabel);
     rightLayout->addStretch();
     
@@ -1464,17 +1457,11 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     leftLayout->addWidget(m_previewImageLabel);
     leftLayout->addStretch();
     
-//    WuQtUtilities::matchWidgetHeights(m_leftSideWidget,
-//                                      m_rightSideWidget);
-    
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 3, 0, 0);
     layout->setSpacing(3);
     layout->addWidget(m_leftSideWidget);
     layout->addWidget(m_rightSideWidget, 100);
-
-//    setSizePolicy(sizePolicy().horizontalPolicy(),
-//                  QSizePolicy::Fixed);
 }
 
 /**
@@ -1563,17 +1550,9 @@ SceneClassInfoWidget::updateContent(Scene* scene,
                                           | Qt::AlignTop);
         if (previewImageValid) {
             m_previewImageLabel->setPixmap(QPixmap::fromImage(previewImage));
-//            m_leftSideWidget->setMaximumHeight(1000);
-//            m_rightSideWidget->setMaximumHeight(m_leftSideWidget->sizeHint().height());
         }
         else {
             m_previewImageLabel->setText("<html>No preview<br>image</html>");
-//            int32_t maxHeight = std::max(m_leftSideWidget->sizeHint().height(),
-//                                         m_rightSideWidget->sizeHint().height());
-//            maxHeight = std::min(maxHeight,
-//                                 previewImageWidth);
-//            m_leftSideWidget->setMaximumHeight(maxHeight);
-//            m_rightSideWidget->setMaximumHeight(maxHeight);
         }
         
         const int32_t maxHeight = 150;
@@ -1582,21 +1561,6 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         const int32_t fixedHeight = std::min(maxSizeHintHeight,
                                              maxHeight);
         setFixedHeight(fixedHeight);
-        
-//        if (previewImageValid) {
-//            m_previewImageLabel->setPixmap(QPixmap::fromImage(previewImage));
-//            m_leftSideWidget->setMaximumHeight(1000);
-//            m_rightSideWidget->setMaximumHeight(m_leftSideWidget->sizeHint().height());
-//        }
-//        else {
-//            m_previewImageLabel->setText("<html>No preview<br>image</html>");
-//            int32_t maxHeight = std::max(m_leftSideWidget->sizeHint().height(),
-//                                         m_rightSideWidget->sizeHint().height());
-//            maxHeight = std::min(maxHeight,
-//                                 previewImageWidth);
-//            m_leftSideWidget->setMaximumHeight(maxHeight);
-//            m_rightSideWidget->setMaximumHeight(maxHeight);
-//        }
     }
 }
 
