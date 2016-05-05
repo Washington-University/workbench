@@ -190,6 +190,7 @@ namespace caret {
         
         static void getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
                                                                AString& nameTextOut,
+                                                               AString& sceneIdTextOut,
                                                                AString& descriptionTextOut);
         
     signals:
@@ -216,6 +217,8 @@ namespace caret {
         QLabel* m_previewImageLabel;
         
         QLabel* m_nameLabel;
+        
+        QLabel* m_sceneIdLabel;
         
         QLabel* m_descriptionLabel;
         

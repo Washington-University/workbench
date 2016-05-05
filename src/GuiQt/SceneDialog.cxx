@@ -1201,13 +1201,19 @@ SceneDialog::showImagePreviewButtonClicked()
             }
             
             AString nameText;
+            AString sceneIdText;
             AString descriptionText;
             SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                              nameText,
+                                                                             sceneIdText,
                                                                              descriptionText);
             QLabel* nameLabel = new QLabel(nameText);
             ded.addWidget("",
                           nameLabel);
+            
+            QLabel* sceneIdLabel = new QLabel(sceneIdText);
+            ded.addWidget("",
+                          sceneIdLabel);
             
             if (! descriptionText.isEmpty()) {
                 QLabel* descriptionLabel = new QLabel(descriptionText);
@@ -1433,14 +1439,19 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     m_descriptionLabel = new QLabel();
     m_descriptionLabel->setWordWrap(true);
     
+    m_sceneIdLabel = new QLabel();
+    
     m_previewImageLabel = new QLabel();
     m_previewImageLabel->setContentsMargins(0, 0, 0, 0);
     
     m_rightSideWidget = new QWidget();
     QVBoxLayout* rightLayout = new QVBoxLayout(m_rightSideWidget);
     rightLayout->setContentsMargins(0, 0, 0, 0);
+    rightLayout->setSpacing(3);
     rightLayout->addWidget(m_nameLabel);
-    rightLayout->addSpacing(5);
+    //rightLayout->addSpacing(5);
+    rightLayout->addWidget(m_sceneIdLabel);
+    //rightLayout->addSpacing(5);
     rightLayout->addWidget(m_descriptionLabel);
     rightLayout->addStretch();
     
@@ -1510,11 +1521,14 @@ SceneClassInfoWidget::updateContent(Scene* scene,
     if ((m_scene != NULL)
         && (m_sceneIndex >= 0)) {
         AString nameText;
+        AString sceneIdText;
         AString descriptionText;
         SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                          nameText,
+                                                                         sceneIdText,
                                                                          descriptionText);
         m_nameLabel->setText(nameText);
+        m_sceneIdLabel->setText(sceneIdText);
         m_descriptionLabel->setText(descriptionText);
         
         QByteArray imageByteArray;
@@ -1569,13 +1583,16 @@ SceneClassInfoWidget::updateContent(Scene* scene,
  *    Info for the scene.
  * @param nameTextOut
  *    Text for name.
+ * @param sceneIdTextOut
+ *    Text for scene ID.
  * @param desciptionTextOut
  *    Text for description.
  */
 void
 SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
-                                                       AString& nameTextOut,
-                                                       AString& descriptionTextOut)
+                                                                 AString& nameTextOut,
+                                                                 AString& sceneIdTextOut,
+                                                                 AString& descriptionTextOut)
 {
     CaretAssert(sceneInfo);
     
@@ -1587,6 +1604,11 @@ SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo
     nameTextOut = ("<html><b>NAME</b>:  "
                    + name
                    + "</html>");
+    
+    sceneIdTextOut = ("<html><b>BALSA SCENE ID</b>:  "
+                      + sceneInfo->getBalsaSceneID()
+                      + "</html>");
+    
     AString description = sceneInfo->getDescription();
     if ( ! description.isEmpty()) {
         /*

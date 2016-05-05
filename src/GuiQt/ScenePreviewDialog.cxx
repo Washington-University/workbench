@@ -93,11 +93,15 @@ ScenePreviewDialog::ScenePreviewDialog(const Scene* scene,
     }
     
     AString nameText;
+    AString sceneIdText;
     AString descriptionText;
     SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                      nameText,
+                                                                     sceneIdText,
                                                                      descriptionText);
     QLabel* nameLabel = new QLabel(nameText);
+    
+    QLabel* sceneIdLabel = new QLabel(sceneIdText);
     
     QLabel* descriptionLabel = NULL;
     if (! descriptionText.isEmpty()) {
@@ -109,6 +113,7 @@ ScenePreviewDialog::ScenePreviewDialog(const Scene* scene,
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(imageLabel);
     layout->addWidget(nameLabel);
+    layout->addWidget(sceneIdLabel);
     if (descriptionLabel != NULL) {
         layout->addWidget(descriptionLabel);
     }
