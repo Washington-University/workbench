@@ -1012,6 +1012,21 @@ ImageFile::resizeToWidth(const int32_t width)
 }
 
 /**
+ * Resize the image to the given height while preserving the aspect ratio
+ * of the image.
+ *
+ * @param height
+ *     Height for image.
+ */
+void
+ImageFile::resizeToHeight(const int32_t height)
+{
+    CaretAssert(m_image);
+    *m_image = m_image->scaledToHeight(height,
+                                       Qt::SmoothTransformation);
+}
+
+/**
  * Resize the image so that its width is no larger than the given value.
  * If the image's current width is less than the given value, no
  * resizing takes place.

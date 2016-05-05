@@ -130,6 +130,8 @@ public:
     
     void resizeToMaximumHeight(const int32_t maximumHeight);
     
+    void resizeToHeight(const int32_t height);
+    
     void resizeToWidth(const int32_t width);
     
     void getImageInByteArray(QByteArray& byteArrayOut,
