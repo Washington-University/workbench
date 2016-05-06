@@ -59,6 +59,8 @@
 <file>./HelpFiles/Features_Toolbox/Foci/Foci.html</file>
 <file>./HelpFiles/Features_Toolbox/Foci/Foci_Attributes.png</file>
 <file>./HelpFiles/Features_Toolbox/Foci/Foci_Selection.png</file>
+<file>./HelpFiles/Features_Toolbox/Images/Images.html</file>
+<file>./HelpFiles/Features_Toolbox/Images/Images_Selection.png</file>
 <file>./HelpFiles/Features_Toolbox/Labels/Labels.html</file>
 <file>./HelpFiles/Features_Toolbox/Labels/Labels_Attributes.png</file>
 <file>./HelpFiles/Features_Toolbox/Labels/Labels_Selection.png</file>
@@ -77,11 +79,6 @@
 <file>./HelpFiles/Information_Window/Information_Window.png</file>
 <file>./HelpFiles/Information_Window/Properties/Information_Properties.png</file>
 <file>./HelpFiles/Information_Window/Properties/Properties.html</file>
-<file>./HelpFiles/Information_Window/Select_Brainordinate/CiftiFileRow.png</file>
-<file>./HelpFiles/Information_Window/Select_Brainordinate/Indentify_Brainordinate.png</file>
-<file>./HelpFiles/Information_Window/Select_Brainordinate/Select_Brainordinate.html</file>
-<file>./HelpFiles/Menus/Connect_Menu/Connect_Menu.html</file>
-<file>./HelpFiles/Menus/Connect_Menu/Connect_Menu.jpg</file>
 <file>./HelpFiles/Menus/Data_Menu/Data_Menu.html</file>
 <file>./HelpFiles/Menus/Data_Menu/Project_Foci_Dialog.png</file>
 <file>./HelpFiles/Menus/Develop_Menu/Develop_Menu.html</file>
@@ -89,10 +86,12 @@
 <file>./HelpFiles/Menus/File_Menu/Animation_Control/Animation_Control_dialog.png</file>
 <file>./HelpFiles/Menus/File_Menu/Capture_Image/Capture_Image.html</file>
 <file>./HelpFiles/Menus/File_Menu/Capture_Image/Capture_Image_dialog.png</file>
+<file>./HelpFiles/Menus/File_Menu/Capture_Image/File_menu.png</file>
 <file>./HelpFiles/Menus/File_Menu/File_Menu.html</file>
 <file>./HelpFiles/Menus/File_Menu/File_menu.png</file>
 <file>./HelpFiles/Menus/File_Menu/Preferences/Preferences.html</file>
 <file>./HelpFiles/Menus/File_Menu/Preferences/Preferences_Colors.png</file>
+<file>./HelpFiles/Menus/File_Menu/Preferences/Preferences_ID.png</file>
 <file>./HelpFiles/Menus/File_Menu/Preferences/Preferences_Misc.png</file>
 <file>./HelpFiles/Menus/File_Menu/Preferences/Preferences_OpenGL.png</file>
 <file>./HelpFiles/Menus/File_Menu/Preferences/Preferences_Vol.png</file>
@@ -112,12 +111,15 @@
 <file>./HelpFiles/Menus/Surface_Menu/Surface_Menu.html</file>
 <file>./HelpFiles/Menus/Surface_Menu/Surface_Properties.png</file>
 <file>./HelpFiles/Menus/Surface_Menu/Volume_Interaction_Surfaces.png</file>
+<file>./HelpFiles/Menus/View_Menu/Gaps_And_Margins/Gaps_And_Margins.html</file>
+<file>./HelpFiles/Menus/View_Menu/Gaps_And_Margins/Gaps_And_Margins.png</file>
 <file>./HelpFiles/Menus/View_Menu/Tile_Tabs_Configuration/Tile_Tabs_Configuration.html</file>
 <file>./HelpFiles/Menus/View_Menu/Tile_Tabs_Configuration/Tile_Tabs_Configuration.png</file>
 <file>./HelpFiles/Menus/View_Menu/View_Menu.html</file>
 <file>./HelpFiles/Menus/View_Menu/View_Menu.png</file>
 <file>./HelpFiles/Menus/wb_view_Menu/wb_view_Menu.html</file>
 <file>./HelpFiles/Menus/wb_view_Menu/wb_view_Menu.png</file>
+<file>./HelpFiles/Menus/Window_Menu/IdentifyBrainordinateDialog.png</file>
 <file>./HelpFiles/Menus/Window_Menu/Rename_tab.png</file>
 <file>./HelpFiles/Menus/Window_Menu/Window_Menu.html</file>
 <file>./HelpFiles/Menus/Window_Menu/Window_Menu.png</file>
@@ -152,6 +154,9 @@
 <file>./HelpFiles/Scenes_Window/Create_New_Scene_File/Scenes button.png</file>
 <file>./HelpFiles/Scenes_Window/Scenes_Window.html</file>
 <file>./HelpFiles/Scenes_Window/Scenes_Window.png</file>
+<file>./HelpFiles/Select_Brainordinate_Window/CiftiFileRow.png</file>
+<file>./HelpFiles/Select_Brainordinate_Window/Indentify_Brainordinate.png</file>
+<file>./HelpFiles/Select_Brainordinate_Window/Select_Brainordinate_Window.html</file>
 <file>./HelpFiles/Splash_Screen/Splash_Screen.html</file>
 <file>./HelpFiles/Splash_Screen/Splash_screen.png</file>
 <file>./HelpFiles/Toolbar/All_View/All_Toolbar.png</file>
@@ -163,6 +168,8 @@
 <file>./HelpFiles/Toolbar/Chart_View/ChartView_pscalar_Matrix.png</file>
 <file>./HelpFiles/Toolbar/Chart_View/Data-Time_Series_Chart_View/ChartDataSeries.png</file>
 <file>./HelpFiles/Toolbar/Chart_View/Data-Time_Series_Chart_View/ChartView_DataSeries_Toolbar.png</file>
+<file>./HelpFiles/Toolbar/Chart_View/Data-Time_Series_Chart_View/ChartView_dtseries_DataSeries.png</file>
+<file>./HelpFiles/Toolbar/Chart_View/Data-Time_Series_Chart_View/ChartView_pscalar_Matrix.png</file>
 <file>./HelpFiles/Toolbar/Chart_View/Data-Time_Series_Chart_View/Data-Time_Series_Chart_View.html</file>
 <file>./HelpFiles/Toolbar/Chart_View/Matrix_Chart_View/ChartView_Matrix_Toolbar.png</file>
 <file>./HelpFiles/Toolbar/Chart_View/Matrix_Chart_View/Matrix_Chart_View.html</file>
@@ -190,6 +197,7 @@
 <file>./HelpFiles/Toolbar/Mode/Foci_Creation/Foci_Tools.png</file>
 <file>./HelpFiles/Toolbar/Mode/Foci_Tools.png</file>
 <file>./HelpFiles/Toolbar/Mode/Mode.html</file>
+<file>./HelpFiles/Toolbar/Mode/Volume_Tools.png</file>
 <file>./HelpFiles/Toolbar/Montage_View/Montage_toolbar.png</file>
 <file>./HelpFiles/Toolbar/Montage_View/Montage_View.html</file>
 <file>./HelpFiles/Toolbar/Surface_View/Surface_View.html</file>
@@ -213,6 +221,8 @@
 <file>./HelpFiles/Workbench_Window/WBwindow_Horiz_Labels.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Features_TB_icon.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Help_button.png</file>
+<file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Identify_Brainordinate_Icon.png</file>
+<file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Identify_icon.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Information_icon.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Overlay_TB_icon.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Scenes_icon.png</file>
