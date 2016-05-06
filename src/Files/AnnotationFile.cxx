@@ -283,6 +283,7 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
         case AnnotationCoordinateSpaceEnum::TAB:
             CaretAssert((annotationTabOrWindowIndex >= 0)
                         && (annotationTabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             CaretAssert((annotationTabOrWindowIndex >= 0)
                         && (annotationTabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
