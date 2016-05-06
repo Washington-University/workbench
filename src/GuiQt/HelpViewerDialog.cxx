@@ -109,6 +109,9 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     loadHelpTopicsIntoIndexTree();
     
     loadSearchListWidget();
+    
+    resize(800,
+           600);
 }
 
 /**
