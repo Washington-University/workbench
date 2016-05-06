@@ -95,10 +95,12 @@ ScenePreviewDialog::ScenePreviewDialog(const Scene* scene,
     AString nameText;
     AString sceneIdText;
     AString descriptionText;
+    const int32_t negativeIsUnlimitedNumberOfLines = -1;
     SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                      nameText,
                                                                      sceneIdText,
-                                                                     descriptionText);
+                                                                     descriptionText,
+                                                                     negativeIsUnlimitedNumberOfLines);
     QLabel* nameLabel = new QLabel(nameText);
     
     QLabel* sceneIdLabel = new QLabel(sceneIdText);

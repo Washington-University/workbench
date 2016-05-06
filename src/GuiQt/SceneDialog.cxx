@@ -1200,10 +1200,12 @@ SceneDialog::showImagePreviewButtonClicked()
             AString nameText;
             AString sceneIdText;
             AString descriptionText;
+            const int32_t negativeIsUnlimitedNumberOfLines = -1;
             SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                              nameText,
                                                                              sceneIdText,
-                                                                             descriptionText);
+                                                                             descriptionText,
+                                                                             negativeIsUnlimitedNumberOfLines);
             QLabel* nameLabel = new QLabel(nameText);
             ded.addWidget("",
                           nameLabel);
@@ -1462,6 +1464,9 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     layout->setSpacing(3);
     layout->addWidget(m_leftSideWidget);
     layout->addWidget(m_rightSideWidget, 100);
+    
+    setSizePolicy(sizePolicy().horizontalPolicy(),
+                  QSizePolicy::Fixed);
 }
 
 /**
@@ -1512,10 +1517,13 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         AString nameText;
         AString sceneIdText;
         AString descriptionText;
+        const int32_t numLinesToDisplay = 9;
         SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                          nameText,
                                                                          sceneIdText,
-                                                                         descriptionText);
+                                                                         descriptionText,
+                                                                         numLinesToDisplay);
+        
         m_nameLabel->setText(nameText);
         m_sceneIdLabel->setText(sceneIdText);
         m_descriptionLabel->setText(descriptionText);
@@ -1555,13 +1563,44 @@ SceneClassInfoWidget::updateContent(Scene* scene,
             m_previewImageLabel->setText("<html>No preview<br>image</html>");
         }
         
-        const int32_t maxHeight = 150;
-        const int32_t maxSizeHintHeight = std::max(m_leftSideWidget->sizeHint().height(),
-                                                   m_rightSideWidget->sizeHint().height());
-        const int32_t fixedHeight = std::min(maxSizeHintHeight,
-                                             maxHeight);
-        setFixedHeight(fixedHeight);
+//        const int32_t maxHeight = 150;
+//        const int32_t maxSizeHintHeight = std::max(m_leftSideWidget->sizeHint().height(),
+//                                                   m_rightSideWidget->sizeHint().height());
+//        const int32_t fixedHeight = std::min(maxSizeHintHeight,
+//                                             maxHeight);
+//        setFixedHeight(fixedHeight);
     }
+}
+
+/**
+ * Examine the given string for newlines and remove
+ * any lines that exceed the maximum allowed.
+ *
+ * @param textLines
+ *     String containing lines of text separated by a newline character.
+ * @param maximumNumberOfLines
+ *     Maximum number of lines for the text.
+ */
+void
+SceneClassInfoWidget::limitToNumberOfLines(AString& textLines,
+                                           const int32_t maximumNumberOfLines)
+{
+    if (textLines.isEmpty()) {
+        return;
+    }
+    
+    const QString lineSeparator("\n");
+    
+    QStringList descriptionLines = textLines.split(lineSeparator,
+                                                   QString::KeepEmptyParts);
+    const int32_t numLines = descriptionLines.size();
+    const int32_t numLinesToRemove = numLines - maximumNumberOfLines;
+    if (numLinesToRemove > 0) {
+        for (int32_t i = 0; i < numLinesToRemove; i++) {
+            descriptionLines.pop_back();
+        }
+    }
+    textLines = descriptionLines.join(lineSeparator);
 }
 
 /**
@@ -1575,12 +1614,16 @@ SceneClassInfoWidget::updateContent(Scene* scene,
  *    Text for scene ID.
  * @param desciptionTextOut
  *    Text for description.
+ * @param maximumLinesInDescription
+ *    Maximum number of lines allowed in description.
+ *    If value is negative, an unlimited number of lines are allowed.
  */
 void
 SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
                                                                  AString& nameTextOut,
                                                                  AString& sceneIdTextOut,
-                                                                 AString& descriptionTextOut)
+                                                                 AString& descriptionTextOut,
+                                                                 const int32_t maximumLinesInDescription)
 {
     CaretAssert(sceneInfo);
     
@@ -1598,6 +1641,12 @@ SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo
                       + "</html>");
     
     AString description = sceneInfo->getDescription();
+    
+    if (maximumLinesInDescription > 0) {
+        SceneClassInfoWidget::limitToNumberOfLines(description,
+                                                   maximumLinesInDescription);
+    }
+    
     if ( ! description.isEmpty()) {
         /*
          * HTML formatting is needed so text is properly displayed.

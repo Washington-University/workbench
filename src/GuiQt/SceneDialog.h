@@ -191,7 +191,8 @@ namespace caret {
         static void getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
                                                                AString& nameTextOut,
                                                                AString& sceneIdTextOut,
-                                                               AString& descriptionTextOut);
+                                                               AString& descriptionTextOut,
+                                                               const int32_t maximumLinesInDescription);
         
     signals:
         /**
@@ -210,6 +211,9 @@ namespace caret {
         virtual void mouseDoubleClickEvent(QMouseEvent* event);
         
     private:
+        static void limitToNumberOfLines(AString& textLines,
+                                         const int32_t maximumNumberOfLines);
+        
         QWidget* m_leftSideWidget;
         
         QWidget* m_rightSideWidget;
