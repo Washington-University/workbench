@@ -26,6 +26,7 @@
 #undef __SCENE_CREATE_REPLACE_DIALOG_DECLARE__
 
 #include <QCheckBox>
+#include <QDateTime>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -186,7 +187,11 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     setCentralWidget(dialogWidget,
                      WuQDialog::SCROLL_AREA_NEVER);
 
+    QDateTime dateTime = QDateTime::currentDateTime();
+    const QString dateTimeText = dateTime.toString("dd MMM yyyy hh:mm:ss");
+
     PlainTextStringBuilder description;
+    description.addLine("Created " + dateTimeText);
     std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
     for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
          iter != windows.end();
