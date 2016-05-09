@@ -277,17 +277,16 @@ CaretDataFile::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
-    const bool modifiedStatus = isModified();
-    
+    /*
+     * Resoration of file data from the scene may cause
+     * a modified palette status if the palette color
+     * mapping was saved to the scene.  We want to
+     * keep this modified status so that if the scene
+     * is resaved, the modified palette information
+     * is added to the scene.
+     */
     restoreFileDataFromScene(sceneAttributes,
                              sceneClass);
-    
-    if ( ! modifiedStatus) {
-        /*
-         * restoring scene info may cause an invalid modified status
-         */
-        clearModified();
-    }
 }
 
 /**
