@@ -231,6 +231,8 @@ namespace caret {
         void processEditMenuItemTriggered(QAction* action);
         void processEditMenuAboutToShow();
         
+        void showBalsaDatabaseDialog();
+        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {

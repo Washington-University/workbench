@@ -38,6 +38,7 @@
 
 #include "AboutWorkbenchDialog.h"
 #include "ApplicationInformation.h"
+#include "BalsaDatabaseDialog.h"
 #include "BorderFile.h"
 #include "BorderFileSplitDialog.h"
 #include "Brain.h"
@@ -1422,6 +1423,10 @@ BrainBrowserWindow::createMenuDevelop()
         }
     }
     
+    menu->addAction("BALSA Database...",
+                    this,
+                    SLOT(showBalsaDatabaseDialog()));
+    
     return menu;
 }
 
@@ -2361,6 +2366,7 @@ BrainBrowserWindow::createMenuConnect()
     if (m_connectToAllenDatabaseAction->isEnabled()) {
         menu->addAction(m_connectToAllenDatabaseAction);
     }
+    
     if (m_connectToConnectomeDatabaseAction->isEnabled()) {
         menu->addAction(m_connectToConnectomeDatabaseAction);
     }
@@ -4003,6 +4009,22 @@ void
 BrainBrowserWindow::processConnectToConnectomeDataBase()
 {
     GuiManager::get()->processShowConnectomeDataBaseWebView(this);
+}
+
+/**
+ * Show the BALSA database dialog
+ */
+void
+BrainBrowserWindow::showBalsaDatabaseDialog()
+{
+    static BalsaDatabaseDialog* balsaDialog = NULL;
+    if (balsaDialog == NULL) {
+        balsaDialog = new BalsaDatabaseDialog(this);
+    }
+    
+    balsaDialog->setVisible(true);
+    balsaDialog->show();
+    balsaDialog->activateWindow();
 }
 
 /**

@@ -49,6 +49,7 @@ AnnotationTextEditorDialog.h
 AnnotationTextEditorWidget.h
 AnnotationTextOrientationWidget.h
 AnnotationWidthHeightWidget.h
+BalsaDatabaseDialog.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -212,6 +213,7 @@ AnnotationTextEditorWidget.h
 AnnotationTextOrientationWidget.h
 AnnotationWidgetParentEnum.h
 AnnotationWidthHeightWidget.h
+BalsaDatabaseDialog.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -406,6 +408,7 @@ AnnotationTextEditorWidget.cxx
 AnnotationTextOrientationWidget.cxx
 AnnotationWidgetParentEnum.cxx
 AnnotationWidthHeightWidget.cxx
+BalsaDatabaseDialog.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
 BorderOptimizeDialog.cxx
