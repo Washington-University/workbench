@@ -58,7 +58,7 @@ BalsaDatabaseDialog::BalsaDatabaseDialog(QWidget* parent)
     setApplyButtonText("");
     
     QLabel* uploadLabel = new QLabel("<html>"
-                                     "Upload Scene File to "
+                                     "Login for "
                                      "<bold><a href=\"https://balsa.wustl.edu\">BALSA Database</a></bold>"
                                      "</html>");
     QObject::connect(uploadLabel, SIGNAL(linkActivated(const QString&)),
@@ -180,7 +180,7 @@ BalsaDatabaseDialog::createUsernamePasswordWidget()
 
     const int minimumLineEditWidth = 250;
     
-    QLabel* usernameLabel = new QLabel("User Name: ");
+    QLabel* usernameLabel = new QLabel("Username: ");
     m_usernameLineEdit = new QLineEdit();
     m_usernameLineEdit->setMinimumWidth(minimumLineEditWidth);
     
@@ -217,7 +217,7 @@ BalsaDatabaseDialog::createUsernamePasswordWidget()
     linkLabelsLayout->addSpacing(5);
     
     
-    QGroupBox* widget = new QGroupBox();
+    QWidget* widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(widget);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 100);
