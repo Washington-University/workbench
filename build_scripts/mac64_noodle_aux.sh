@@ -15,7 +15,7 @@ BUILD_ROOT_DIR=/Users/caret/caret7_autobuild
 GIT_ROOT_DIR=${BUILD_ROOT_DIR}/caret7_source
 SRC_DIR=${GIT_ROOT_DIR}/src
 BUILD_SCRIPT_DIR=${SRC_DIR}/build_scripts
-BUILD_SCRIPT_DIR=/Users/caret/develop_build_script
+#BUILD_SCRIPT_DIR=/Users/caret/develop_build_script
 BUILD_DIR=${BUILD_ROOT_DIR}/build
 cd ${BUILD_ROOT_DIR}
 echo "BUILD_DIR: ${BUILD_DIR}"
@@ -86,6 +86,7 @@ ${CMAKE_EXE} \
    -DCMAKE_C_COMPILER=${CC_COMPILER} \
    -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
    -DCMAKE_VERBOSE_MAKEFILE=FALSE \
+   -DCMAKE_OSX_DEPLOYMENT_TARGET=10.6
    ${SRC_DIR}
 
 #
