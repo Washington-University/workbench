@@ -14,7 +14,7 @@
 BUILD_ROOT_DIR=/Users/caret/caret7_autobuild
 GIT_ROOT_DIR=${BUILD_ROOT_DIR}/caret7_source
 SRC_DIR=${GIT_ROOT_DIR}/src
-BUILD_SCRIPT_DIR=${SRC_DIR}/build_scripts
+BUILD_SCRIPT_DIR=${GIT_ROOT_DIR}/build_scripts
 #BUILD_SCRIPT_DIR=/Users/caret/develop_build_script
 BUILD_DIR=${BUILD_ROOT_DIR}/build
 cd ${BUILD_ROOT_DIR}
