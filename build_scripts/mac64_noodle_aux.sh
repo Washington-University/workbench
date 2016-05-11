@@ -86,7 +86,8 @@ ${CMAKE_EXE} \
    -DCMAKE_C_COMPILER=${CC_COMPILER} \
    -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
    -DCMAKE_VERBOSE_MAKEFILE=FALSE \
-   -DCMAKE_OSX_DEPLOYMENT_TARGET=10.6 \
+   -DCMAKE_OSX_DEPLOYMENT_TARGET=10.7 \
+   -DCMAKE_OSX_SYSROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk" \
    ${SRC_DIR}
 
 #
