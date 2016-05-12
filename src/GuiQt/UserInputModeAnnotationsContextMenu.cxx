@@ -181,6 +181,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
     QAction* turnOnDisplayAction = addAction("Turn On Display in All Tabs",
                                               this, SLOT(turnOnDisplayInAllTabs()));
     turnOffDisplayAction->setEnabled(false);
+    turnOnDisplayAction->setEnabled(false);
     if (m_annotation != NULL) {
         bool stereoOrSurfaceSpaceFlag = false;
         switch (m_annotation->getCoordinateSpace()) {
