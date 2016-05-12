@@ -95,6 +95,33 @@ m_newAnnotationCreatedByContextMenu(NULL)
     
     m_annotationFile = NULL;
     m_annotation     = NULL;
+    
+    m_stereotaxicAndSurfaceAnnotations.clear();
+    for (std::vector<std::pair<Annotation*, AnnotationFile*> >::iterator iter = selectedAnnotations.begin();
+         iter != selectedAnnotations.end();
+         iter++) {
+        Annotation* ann = iter->first;
+        CaretAssert(ann);
+        
+        bool stereoOrSurfaceSpaceFlag = false;
+        switch (ann->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::PIXELS:
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                stereoOrSurfaceSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                stereoOrSurfaceSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                break;
+        }
+        if (stereoOrSurfaceSpaceFlag) {
+            m_stereotaxicAndSurfaceAnnotations.push_back(ann);
+        }
+    }
 
     bool oneAnnotationSelectedFlag = false;
     if (selectedAnnotations.size() == 1) {
@@ -180,29 +207,8 @@ m_newAnnotationCreatedByContextMenu(NULL)
                                               this, SLOT(turnOffDisplayInOtherTabs()));
     QAction* turnOnDisplayAction = addAction("Turn On Display in All Tabs",
                                               this, SLOT(turnOnDisplayInAllTabs()));
-    turnOffDisplayAction->setEnabled(false);
-    turnOnDisplayAction->setEnabled(false);
-    if (m_annotation != NULL) {
-        bool stereoOrSurfaceSpaceFlag = false;
-        switch (m_annotation->getCoordinateSpace()) {
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-                break;
-            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                stereoOrSurfaceSpaceFlag = true;
-                break;
-            case AnnotationCoordinateSpaceEnum::SURFACE:
-                stereoOrSurfaceSpaceFlag = true;
-                break;
-            case AnnotationCoordinateSpaceEnum::TAB:
-                break;
-            case AnnotationCoordinateSpaceEnum::WINDOW:
-                break;
-        }
-        if (stereoOrSurfaceSpaceFlag) {
-            turnOffDisplayAction->setEnabled(true);
-            turnOnDisplayAction->setEnabled(true);
-        }
-    }
+    turnOffDisplayAction->setDisabled(m_stereotaxicAndSurfaceAnnotations.empty());
+    turnOnDisplayAction->setDisabled(m_stereotaxicAndSurfaceAnnotations.empty());
     
     /*
      * Separator
@@ -341,30 +347,14 @@ UserInputModeAnnotationsContextMenu::setAnnotationText()
 void
 UserInputModeAnnotationsContextMenu::turnOffDisplayInOtherTabs()
 {
-    if (m_browserTabContent != NULL) {
-        if (m_annotation != NULL) {
-            bool stereoOrSurfaceSpaceFlag = false;
-            switch (m_annotation->getCoordinateSpace()) {
-                case AnnotationCoordinateSpaceEnum::PIXELS:
-                    break;
-                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                    stereoOrSurfaceSpaceFlag = true;
-                    break;
-                case AnnotationCoordinateSpaceEnum::SURFACE:
-                    stereoOrSurfaceSpaceFlag = true;
-                    break;
-                case AnnotationCoordinateSpaceEnum::TAB:
-                    break;
-                case AnnotationCoordinateSpaceEnum::WINDOW:
-                    break;
-            }
-            if (stereoOrSurfaceSpaceFlag) {
-                m_annotation->setItemDisplaySelectedInOneTab(m_browserTabContent->getTabNumber());
-                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-            }
-        }
+    for (std::vector<Annotation*>::iterator iter = m_stereotaxicAndSurfaceAnnotations.begin();
+         iter != m_stereotaxicAndSurfaceAnnotations.end();
+         iter++) {
+        (*iter)->setItemDisplaySelectedInOneTab(m_browserTabContent->getTabNumber());
     }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -373,30 +363,14 @@ UserInputModeAnnotationsContextMenu::turnOffDisplayInOtherTabs()
 void
 UserInputModeAnnotationsContextMenu::turnOnDisplayInAllTabs()
 {
-    if (m_browserTabContent != NULL) {
-        if (m_annotation != NULL) {
-            bool stereoOrSurfaceSpaceFlag = false;
-            switch (m_annotation->getCoordinateSpace()) {
-                case AnnotationCoordinateSpaceEnum::PIXELS:
-                    break;
-                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                    stereoOrSurfaceSpaceFlag = true;
-                    break;
-                case AnnotationCoordinateSpaceEnum::SURFACE:
-                    stereoOrSurfaceSpaceFlag = true;
-                    break;
-                case AnnotationCoordinateSpaceEnum::TAB:
-                    break;
-                case AnnotationCoordinateSpaceEnum::WINDOW:
-                    break;
-            }
-            if (stereoOrSurfaceSpaceFlag) {
-                m_annotation->setItemDisplaySelectedInAllTabs();
-                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-            }
-        }
+    for (std::vector<Annotation*>::iterator iter = m_stereotaxicAndSurfaceAnnotations.begin();
+         iter != m_stereotaxicAndSurfaceAnnotations.end();
+         iter++) {
+        (*iter)->setItemDisplaySelectedInAllTabs();
     }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

@@ -99,6 +99,8 @@ namespace caret {
         
         AnnotationFile* m_annotationFile;
         
+        std::vector<Annotation*> m_stereotaxicAndSurfaceAnnotations;
+        
         Annotation* m_annotation;
         
         AnnotationText* m_textAnnotation;
