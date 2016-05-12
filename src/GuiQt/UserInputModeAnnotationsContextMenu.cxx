@@ -167,6 +167,42 @@ m_newAnnotationCreatedByContextMenu(NULL)
                                         this, SLOT(setAnnotationText()));
     editTextAction->setEnabled(m_textAnnotation != NULL);
     
+    
+    /*
+     * Separator
+     */
+    addSeparator();
+    
+    /*
+     * Turn off display in other tabs
+     */
+    QAction* turnOffDisplayAction = addAction("Turn Off Display in Other Tabs",
+                                              this, SLOT(turnOffDisplayInOtherTabs()));
+    QAction* turnOnDisplayAction = addAction("Turn On Display in All Tabs",
+                                              this, SLOT(turnOnDisplayInAllTabs()));
+    turnOffDisplayAction->setEnabled(false);
+    if (m_annotation != NULL) {
+        bool stereoOrSurfaceSpaceFlag = false;
+        switch (m_annotation->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::PIXELS:
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                stereoOrSurfaceSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                stereoOrSurfaceSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                break;
+        }
+        if (stereoOrSurfaceSpaceFlag) {
+            turnOffDisplayAction->setEnabled(true);
+            turnOnDisplayAction->setEnabled(true);
+        }
+    }
+    
     /*
      * Separator
      */
@@ -296,6 +332,70 @@ UserInputModeAnnotationsContextMenu::setAnnotationText()
     ted.move(diaglogPos);
     ted.exec();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
+/**
+ * Turn off display of annotation in other tabs.
+ */
+void
+UserInputModeAnnotationsContextMenu::turnOffDisplayInOtherTabs()
+{
+    if (m_browserTabContent != NULL) {
+        if (m_annotation != NULL) {
+            bool stereoOrSurfaceSpaceFlag = false;
+            switch (m_annotation->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    stereoOrSurfaceSpaceFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    stereoOrSurfaceSpaceFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    break;
+            }
+            if (stereoOrSurfaceSpaceFlag) {
+                m_annotation->setItemDisplaySelectedInOneTab(m_browserTabContent->getTabNumber());
+                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            }
+        }
+    }
+}
+
+/**
+ * Turn on display of annotation in all tabs.
+ */
+void
+UserInputModeAnnotationsContextMenu::turnOnDisplayInAllTabs()
+{
+    if (m_browserTabContent != NULL) {
+        if (m_annotation != NULL) {
+            bool stereoOrSurfaceSpaceFlag = false;
+            switch (m_annotation->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    stereoOrSurfaceSpaceFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    stereoOrSurfaceSpaceFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    break;
+            }
+            if (stereoOrSurfaceSpaceFlag) {
+                m_annotation->setItemDisplaySelectedInAllTabs();
+                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            }
+        }
+    }
 }
 
 /**

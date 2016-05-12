@@ -87,6 +87,39 @@ DisplayGroupAndTabItemInterface::~DisplayGroupAndTabItemInterface()
 //}
 
 /**
+ * Set the display status to SELECTED for the given tab and 
+ * UNSELECTED for all other tabs.
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ */
+void
+DisplayGroupAndTabItemInterface::setItemDisplaySelectedInOneTab(const int32_t tabIndex)
+{
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        setItemDisplaySelected(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                               i,
+                               TriStateSelectionStatusEnum::UNSELECTED);
+    }
+    setItemDisplaySelected(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                           tabIndex,
+                           TriStateSelectionStatusEnum::SELECTED);
+}
+
+/**
+ * Set the display status to SELECTED for all tabs.
+ */
+void
+DisplayGroupAndTabItemInterface::setItemDisplaySelectedInAllTabs()
+{
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        setItemDisplaySelected(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                               i,
+                               TriStateSelectionStatusEnum::SELECTED);
+    }
+}
+
+/**
  * Helps with display selection status of all children.
  *
  * @param displayGroupTabInterface

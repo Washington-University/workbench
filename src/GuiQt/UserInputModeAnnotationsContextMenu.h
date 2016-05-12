@@ -67,6 +67,10 @@ namespace caret {
         
         void setAnnotationText();
         
+        void turnOffDisplayInOtherTabs();
+        
+        void turnOnDisplayInAllTabs();
+        
         void applyGroupingGroup();
         
         void applyGroupingRegroup();

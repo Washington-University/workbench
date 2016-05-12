@@ -152,6 +152,11 @@ namespace caret {
                                      const int32_t tabIndex,
                                      const TriStateSelectionStatusEnum::Enum status) = 0;
         
+        virtual void setItemDisplaySelectedInOneTab(const int32_t tabIndex);
+        
+        virtual void setItemDisplaySelectedInAllTabs();
+        
+        
         /**
          * Is this item selected for editing in the given window?
          *
