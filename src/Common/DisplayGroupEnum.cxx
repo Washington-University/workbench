@@ -307,6 +307,29 @@ DisplayGroupEnum::getAllEnums(std::vector<DisplayGroupEnum::Enum>& allEnums)
 }
 
 /**
+ * Get all of the enumerated type values for GROUPs.  Like getAllEnums()
+ * except TAB is excluded.  DISPLAY_GROUP_A, DISPLAY_GROUP_B, etc.
+ *
+ * @param allGroupEnums
+ *     A vector that is OUTPUT containing all of the GROUP enumerated values (TAB excluded).
+ */
+void
+DisplayGroupEnum::getAllEnumsExceptTab(std::vector<DisplayGroupEnum::Enum>& allGroupEnums)
+{
+    if (initializedFlag == false) initialize();
+    
+    allGroupEnums.clear();
+    
+    for (std::vector<DisplayGroupEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        if (iter->enumValue != DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+            allGroupEnums.push_back(iter->enumValue);
+        }
+    }
+}
+
+/**
  * Get all of the names of the enumerated type values.
  *
  * @param allNames

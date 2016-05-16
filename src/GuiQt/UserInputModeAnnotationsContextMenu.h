@@ -71,6 +71,10 @@ namespace caret {
         
         void turnOnDisplayInAllTabs();
         
+        void turnOnDisplayInAllGroups();
+        
+        void turnOnDisplayInGroup(QAction*);
+        
         void applyGroupingGroup();
         
         void applyGroupingRegroup();
@@ -83,6 +87,8 @@ namespace caret {
         UserInputModeAnnotationsContextMenu& operator=(const UserInputModeAnnotationsContextMenu&);
         
         void applyGrouping(const AnnotationGroupingModeEnum::Enum grouping);
+        
+        QMenu* createTurnOnInDisplayGroupMenu();
         
         UserInputModeAnnotations* m_userInputModeAnnotations;
         

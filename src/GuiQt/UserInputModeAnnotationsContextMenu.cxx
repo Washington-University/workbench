@@ -122,6 +122,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
             m_stereotaxicAndSurfaceAnnotations.push_back(ann);
         }
     }
+    const bool haveStereotaxicAnnotationsFlag = ( ! m_stereotaxicAndSurfaceAnnotations.empty());
 
     bool oneAnnotationSelectedFlag = false;
     if (selectedAnnotations.size() == 1) {
@@ -201,15 +202,25 @@ m_newAnnotationCreatedByContextMenu(NULL)
     addSeparator();
     
     /*
-     * Turn off display in other tabs
+     * Turn on/off display in tabs
      */
-    QAction* turnOffDisplayAction = addAction("Turn Off Display in Other Tabs",
+    QAction* turnOffTabDisplayAction = addAction("Turn Off Stereotaxic/Surface Annotation Display in Other Tabs",
                                               this, SLOT(turnOffDisplayInOtherTabs()));
-    QAction* turnOnDisplayAction = addAction("Turn On Display in All Tabs",
+    QAction* turnOnTabDisplayAction = addAction("Turn On Stereotaxic/Surface Annotation Display in All Tabs",
                                               this, SLOT(turnOnDisplayInAllTabs()));
-    turnOffDisplayAction->setDisabled(m_stereotaxicAndSurfaceAnnotations.empty());
-    turnOnDisplayAction->setDisabled(m_stereotaxicAndSurfaceAnnotations.empty());
+    turnOffTabDisplayAction->setEnabled(haveStereotaxicAnnotationsFlag);
+    turnOnTabDisplayAction->setEnabled(haveStereotaxicAnnotationsFlag);
     
+    /*
+     * Turn on/off display in groups
+     */
+    QAction* turnOnGroupDisplayAction = addAction("Turn On Stereotaxic/Surface Annotation Display in All Groups",
+                                                this, SLOT(turnOnDisplayInAllGroups()));
+    turnOnGroupDisplayAction->setEnabled(haveStereotaxicAnnotationsFlag);
+    QMenu* turnOnInDisplayGroupMenu = createTurnOnInDisplayGroupMenu();
+    turnOnInDisplayGroupMenu->setEnabled(haveStereotaxicAnnotationsFlag);
+    addMenu(turnOnInDisplayGroupMenu);
+
     /*
      * Separator
      */
@@ -371,6 +382,76 @@ UserInputModeAnnotationsContextMenu::turnOnDisplayInAllTabs()
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Turn on display of annotation in all groups.
+ */
+void
+UserInputModeAnnotationsContextMenu::turnOnDisplayInAllGroups()
+{
+    for (std::vector<Annotation*>::iterator iter = m_stereotaxicAndSurfaceAnnotations.begin();
+         iter != m_stereotaxicAndSurfaceAnnotations.end();
+         iter++) {
+        (*iter)->setItemDisplaySelectedInAllGroups();
+    }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Turn on display of annotation in a group and off in other groups
+ *
+ * @param action
+ *    Menu action that was selected.
+ */
+void
+UserInputModeAnnotationsContextMenu::turnOnDisplayInGroup(QAction* action)
+{
+    const int intValue = action->data().toInt();
+    bool validFlag = false;
+    DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::fromIntegerCode(intValue,
+                                                                            &validFlag);
+    if ( ! validFlag) {
+        CaretAssert(0);
+        return;
+    }
+    
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssert(0);  // TAB NOT ALLOWED
+        return;
+    }
+    
+    for (std::vector<Annotation*>::iterator iter = m_stereotaxicAndSurfaceAnnotations.begin();
+         iter != m_stereotaxicAndSurfaceAnnotations.end();
+         iter++) {
+        (*iter)->setItemDisplaySelectedInOneGroup(displayGroup);
+    }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+QMenu*
+UserInputModeAnnotationsContextMenu::createTurnOnInDisplayGroupMenu()
+{
+    QMenu* menu = new QMenu("Turn On Stereotaxic/Surface Annotation Only in Group");
+    QObject::connect(menu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(turnOnDisplayInGroup(QAction*)));
+    
+    std::vector<DisplayGroupEnum::Enum> groupEnums;
+    DisplayGroupEnum::getAllEnumsExceptTab(groupEnums);
+    
+    for (std::vector<DisplayGroupEnum::Enum>::iterator iter = groupEnums.begin();
+         iter != groupEnums.end();
+         iter++) {
+        const DisplayGroupEnum::Enum dg = *iter;
+        QAction* action = menu->addAction(DisplayGroupEnum::toGuiName(dg));
+        action->setData((int)DisplayGroupEnum::toIntegerCode(dg));
+    }
+    
+    return menu;
 }
 
 /**

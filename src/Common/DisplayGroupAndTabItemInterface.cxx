@@ -24,6 +24,8 @@
 #undef __DISPLAY_GROUP_AND_TAB_ITEM_INTERFACE_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+
 using namespace caret;
 
 /**
@@ -118,6 +120,58 @@ DisplayGroupAndTabItemInterface::setItemDisplaySelectedInAllTabs()
                                TriStateSelectionStatusEnum::SELECTED);
     }
 }
+
+/**
+ * Set the display status to SELECTED for all groups (except TAB).
+ */
+void
+DisplayGroupAndTabItemInterface::setItemDisplaySelectedInAllGroups()
+{
+    std::vector<DisplayGroupEnum::Enum> groupEnums;
+    DisplayGroupEnum::getAllEnumsExceptTab(groupEnums);
+    
+    for (std::vector<DisplayGroupEnum::Enum>::iterator iter = groupEnums.begin();
+         iter != groupEnums.end();
+         iter++) {
+        setItemDisplaySelected(*iter,
+                               0,
+                               TriStateSelectionStatusEnum::SELECTED);
+    }
+}
+
+/**
+ * Set the display status to SELECTED for the given group (not TAB) and
+ * UNSELECTED for all other groups (not TAB).
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ */
+void
+DisplayGroupAndTabItemInterface::setItemDisplaySelectedInOneGroup(const DisplayGroupEnum::Enum displayGroup)
+{
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretLogWarning("DisplayGroupEnum::DISPLAY_GROUP_TAB not allowed.");
+        return;
+    }
+
+    std::vector<DisplayGroupEnum::Enum> groupEnums;
+    DisplayGroupEnum::getAllEnumsExceptTab(groupEnums);
+    
+    for (std::vector<DisplayGroupEnum::Enum>::iterator iter = groupEnums.begin();
+         iter != groupEnums.end();
+         iter++) {
+        const DisplayGroupEnum::Enum enumValue = *iter;
+        TriStateSelectionStatusEnum::Enum status = TriStateSelectionStatusEnum::UNSELECTED;
+        if (displayGroup == enumValue) {
+            status = TriStateSelectionStatusEnum::SELECTED;
+        }
+        
+        setItemDisplaySelected(*iter,
+                               0,
+                               status);
+    }
+}
+
 
 /**
  * Helps with display selection status of all children.

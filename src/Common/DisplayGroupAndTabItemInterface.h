@@ -156,6 +156,9 @@ namespace caret {
         
         virtual void setItemDisplaySelectedInAllTabs();
         
+        virtual void setItemDisplaySelectedInAllGroups();
+        
+        virtual void setItemDisplaySelectedInOneGroup(const DisplayGroupEnum::Enum displayGroup);
         
         /**
          * Is this item selected for editing in the given window?
