@@ -471,6 +471,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE:
         case EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET:
         case EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE:
+        case EventTypeEnum::EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW:
         case EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY:
         case EventTypeEnum::EVENT_ANNOTATION_GROUPING:
         case EventTypeEnum::EVENT_BRAIN_RESET:

@@ -198,14 +198,14 @@ namespace caret {
                             Annotation* annotation,
                             const Surface* surfaceDisplayed);
         
-        void drawBox(AnnotationFile* annotationFile,
+        bool drawBox(AnnotationFile* annotationFile,
                      AnnotationBox* box,
                        const Surface* surfaceDisplayed);
         
         void drawColorBar(AnnotationFile* annotationFile,
                           AnnotationColorBar* colorBar);
         
-        void drawImage(AnnotationFile* annotationFile,
+        bool drawImage(AnnotationFile* annotationFile,
                        AnnotationImage* image,
                       const Surface* surfaceDisplayed);
         
@@ -225,15 +225,15 @@ namespace caret {
                                         const int32_t imageWidth,
                                         const int32_t imageHeight);
         
-        void drawLine(AnnotationFile* annotationFile,
+        bool drawLine(AnnotationFile* annotationFile,
                       AnnotationLine* line,
                       const Surface* surfaceDisplayed);
         
-        void drawOval(AnnotationFile* annotationFile,
+        bool drawOval(AnnotationFile* annotationFile,
                       AnnotationOval* oval,
                       const Surface* surfaceDisplayed);
         
-        void drawText(AnnotationFile* annotationFile,
+        bool drawText(AnnotationFile* annotationFile,
                       AnnotationText* text,
                        const Surface* surfaceDisplayed);
         

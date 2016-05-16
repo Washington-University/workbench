@@ -187,6 +187,17 @@ m_newAnnotationCreatedByContextMenu(NULL)
      * Separator
      */
     addSeparator();
+
+    /*
+     * Select All annotations
+     */
+    addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL),
+              this, SLOT(selectAllAnnotations()));
+    
+    /*
+     * Separator
+     */
+    addSeparator();
     
     /*
      * Edit Text
@@ -330,6 +341,16 @@ UserInputModeAnnotationsContextMenu::pasteSpecialAnnotationFromAnnotationClipboa
 {
     m_userInputModeAnnotations->pasteAnnotationFromAnnotationClipboardAndChangeSpace(m_mouseEvent);
 }
+
+/**
+ * Select all annotations in the window.
+ */
+void
+UserInputModeAnnotationsContextMenu::selectAllAnnotations()
+{
+    m_userInputModeAnnotations->processSelectAllAnnotations();
+}
+
 
 /**
  * Set the text for an annotation.

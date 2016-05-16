@@ -203,6 +203,8 @@ namespace caret {
         
         void deleteSelectedAnnotations();
         
+        void processSelectAllAnnotations();
+        
         void resetAnnotationUnderMouse();
         
         bool isEditMenuValid() const;

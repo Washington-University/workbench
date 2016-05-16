@@ -65,6 +65,8 @@ namespace caret {
         
         void pasteSpecialAnnotationFromAnnotationClipboard();
         
+        void selectAllAnnotations();
+        
         void setAnnotationText();
         
         void turnOffDisplayInOtherTabs();

@@ -46,6 +46,8 @@ public:
         EVENT_ANNOTATION_COLOR_BAR_GET,
         /** Annotation create new of a particular type */
         EVENT_ANNOTATION_CREATE_NEW_TYPE,
+        /** Get the annotations drawn in a window */
+        EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW,
         /** Get an annotation group */
         EVENT_ANNOTATION_GROUP_GET_WITH_KEY,
         /** Annotation grouping (group, regroup, ungroup) operation */

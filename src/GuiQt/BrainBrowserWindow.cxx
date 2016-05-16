@@ -1602,7 +1602,7 @@ BrainBrowserWindow::createMenuEdit()
     
     
     QAction* selectAllAction = NULL;
-    const bool addSelectAllFlag = false;
+    const bool addSelectAllFlag = true;
     if (addSelectAllFlag) {
         selectAllAction = addItemToEditMenu(m_editMenu,
                                             BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);

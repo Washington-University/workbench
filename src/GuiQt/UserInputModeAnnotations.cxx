@@ -50,6 +50,7 @@
 #include "CaretPreferences.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "EventAnnotationCreateNewType.h"
+#include "EventAnnotationGetDrawnInWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationRequest.h"
 #include "EventUserInterfaceUpdate.h"
@@ -1483,6 +1484,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         }
             break;
         case BrainBrowserWindowEditMenuItemEnum::SELECT_ALL:
+            processSelectAllAnnotations();
             break;
         case BrainBrowserWindowEditMenuItemEnum::UNDO:
         {
@@ -1501,6 +1503,28 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
             break;
     }
 }
+
+/**
+ * Process the selection of all annotations.
+ */
+void
+UserInputModeAnnotations::processSelectAllAnnotations()
+{
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    annMan->deselectAllAnnotationsForEditing(m_browserWindowIndex);
+    
+    EventAnnotationGetDrawnInWindow getDrawnEvent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(getDrawnEvent.getPointer());
+    std::vector<Annotation*> annotationsSelected;
+    getDrawnEvent.getAnnotations(annotationsSelected);
+    
+    annMan->setAnnotationsForEditing(m_browserWindowIndex,
+                                     annotationsSelected);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
 
 /**
  * Get the menu items that should be enabled for the current user input processor.

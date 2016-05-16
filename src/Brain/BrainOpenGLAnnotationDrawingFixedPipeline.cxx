@@ -1093,36 +1093,42 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
 {
     CaretAssert(annotation);
     
+    bool drawnFlag = false;
+    
     switch (annotation->getType()) {
         case AnnotationTypeEnum::BOX:
-            drawBox(annotationFile,
-                    dynamic_cast<AnnotationBox*>(annotation),
-                    surfaceDisplayed);
+            drawnFlag = drawBox(annotationFile,
+                                dynamic_cast<AnnotationBox*>(annotation),
+                                surfaceDisplayed);
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             drawColorBar(annotationFile,
                          dynamic_cast<AnnotationColorBar*>(annotation));
             break;
         case AnnotationTypeEnum::IMAGE:
-            drawImage(annotationFile,
-                      dynamic_cast<AnnotationImage*>(annotation),
-                      surfaceDisplayed);
+            drawnFlag = drawImage(annotationFile,
+                                  dynamic_cast<AnnotationImage*>(annotation),
+                                  surfaceDisplayed);
             break;
         case AnnotationTypeEnum::LINE:
-            drawLine(annotationFile,
-                     dynamic_cast<AnnotationLine*>(annotation),
-                     surfaceDisplayed);
+            drawnFlag = drawLine(annotationFile,
+                                 dynamic_cast<AnnotationLine*>(annotation),
+                                 surfaceDisplayed);
             break;
         case AnnotationTypeEnum::OVAL:
-            drawOval(annotationFile,
-                     dynamic_cast<AnnotationOval*>(annotation),
-                     surfaceDisplayed);
+            drawnFlag = drawOval(annotationFile,
+                                 dynamic_cast<AnnotationOval*>(annotation),
+                                 surfaceDisplayed);
             break;
         case AnnotationTypeEnum::TEXT:
-            drawText(annotationFile,
-                     dynamic_cast<AnnotationText*>(annotation),
-                     surfaceDisplayed);
+            drawnFlag = drawText(annotationFile,
+                                 dynamic_cast<AnnotationText*>(annotation),
+                                 surfaceDisplayed);
             break;
+    }
+    
+    if (drawnFlag) {
+        annotation->setDrawnInWindowStatus(m_inputs->m_windowIndex);
     }
 }
 
@@ -1136,8 +1142,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
  *    box to draw.
  * @param surfaceDisplayed
  *    Surface that is displayed (may be NULL).
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
  */
-void
+bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFile,
                                                    AnnotationBox* box,
                                                    const Surface* surfaceDisplayed)
@@ -1150,7 +1158,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                                          box->getCoordinateSpace(),
                                          surfaceDisplayed,
                                          windowXYZ)) {
-        return;
+        return false;
     }
     
     float bottomLeft[3];
@@ -1159,7 +1167,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     float topLeft[3];
     if ( ! getAnnotationTwoDimShapeBounds(box, windowXYZ,
                                bottomLeft, bottomRight, topRight, topLeft)) {
-        return;
+        return false;
     }
     
     const float selectionCenterXYZ[3] = {
@@ -1189,6 +1197,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
     const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
+    
+    bool drawnFlag = false;
     
     if (drawAnnotationFlag) {
         if (m_selectionModeFlag) {
@@ -1226,6 +1236,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                 BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
                                                          dummyNormals,
                                                          backgroundRGBA);
+                drawnFlag = true;
             }
             
             if (drawForegroundFlag) {
@@ -1241,6 +1252,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                                                               tempRGBA, //foregroundRGBA,
                                                               outlineWidth);
                 }
+                drawnFlag = true;
             }
         }
         if (box->isSelectedForEditing(m_inputs->m_windowIndex)) {
@@ -1256,6 +1268,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     }
 
     setDepthTestingStatus(savedDepthTestStatus);
+    
+    return drawnFlag;
 }
 
 /**
@@ -1849,8 +1863,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
  *    Annotation oval to draw.
  * @param surfaceDisplayed
  *    Surface that is displayed (may be NULL).
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
  */
-void
+bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFile,
                                                     AnnotationOval* oval,
                                                     const Surface* surfaceDisplayed)
@@ -1864,7 +1880,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
                                          oval->getCoordinateSpace(),
                                          surfaceDisplayed,
                                          windowXYZ)) {
-        return;
+        return false;
     }
     
     float bottomLeft[3];
@@ -1873,7 +1889,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     float topLeft[3];
     if ( ! getAnnotationTwoDimShapeBounds(oval, windowXYZ,
                                           bottomLeft, bottomRight, topRight, topLeft)) {
-        return;
+        return false;
     }
     
     const float majorAxis     = ((oval->getWidth()  / 100.0) * (m_modelSpaceViewport[2] / 2.0));
@@ -1898,6 +1914,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
     const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
+    
+    bool drawnFlag = false;
     
     if (drawAnnotationFlag) {
         glPushMatrix();
@@ -1942,6 +1960,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
                 m_brainOpenGLFixedPipeline->drawEllipseFilled(backgroundRGBA,
                                                               majorAxis,
                                                               minorAxis);
+                drawnFlag = true;
             }
             
             if (drawForegroundFlag) {
@@ -1949,6 +1968,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
                                                                majorAxis,
                                                                minorAxis,
                                                                outlineWidth);
+                drawnFlag = true;
             }
         }
         glPopMatrix();
@@ -1965,10 +1985,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
         }
     }
     
-    
-    
-    
     setDepthTestingStatus(savedDepthTestStatus);
+    
+    return drawnFlag;
 }
 
 /**
@@ -2156,8 +2175,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomL
  *    Annotation text to draw.
  * @param surfaceDisplayed
  *    Surface that is displayed (may be NULL).
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
  */
-void
+bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFile,
                                                     AnnotationText* text,
                                                     const Surface* surfaceDisplayed)
@@ -2170,7 +2191,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                          text->getCoordinateSpace(),
                                          surfaceDisplayed,
                                          windowXYZ)) {
-        return;
+        return false;
     }
     
     float bottomLeft[3];
@@ -2246,6 +2267,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
     const bool drawAnnotationFlag = (drawBackgroundFlag || drawTextFlag);
     
+    bool drawnFlag = false;
+    
     if (drawAnnotationFlag) {
         if (m_selectionModeFlag) {
             uint8_t selectionColorRGBA[4];
@@ -2298,6 +2321,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                                                             windowXYZ[1],
                                                                                             windowXYZ[2],
                                                                                             *text);
+                    drawnFlag = true;
                 }
                 else {
                     if (text->getText().isEmpty()) {
@@ -2328,6 +2352,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                         m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowXYZ[0],
                                                                                            windowXYZ[1],
                                                                                            *text);
+                        drawnFlag = true;
                     }
                 }
                 
@@ -2358,6 +2383,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     }
 
     setDepthTestingStatus(savedDepthTestStatus);
+    
+    return drawnFlag;
 }
 
 /**
@@ -2369,8 +2396,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
  *    Annotation image to draw.
  * @param surfaceDisplayed
  *    Surface that is displayed (may be NULL).
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
  */
-void
+bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationFile,
                                                      AnnotationImage* image,
                                                     const Surface* surfaceDisplayed)
@@ -2394,7 +2423,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                                          image->getCoordinateSpace(),
                                          surfaceDisplayed,
                                          windowXYZ)) {
-        return;
+        return false;
     }
     
     float bottomLeft[3];
@@ -2403,7 +2432,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
     float topLeft[3];
     if ( ! getAnnotationTwoDimShapeBounds(image, windowXYZ,
                                           bottomLeft, bottomRight, topRight, topLeft)) {
-        return;
+        return false;
     }
     
     std::vector<float> coords;
@@ -2429,6 +2458,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
     image->getLineColorRGBA(foregroundRGBA);
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
 
+    bool drawnFlag = false;
+    
     if (drawAnnotationFlag) {
         if (m_selectionModeFlag) {
             uint8_t selectionColorRGBA[4];
@@ -2461,6 +2492,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                                       imageRgbaBytes,
                                       imageWidth,
                                       imageHeight);
+            drawnFlag = true;
             
             if (drawForegroundFlag) {
                 BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
@@ -2485,6 +2517,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
     }
 
     setDepthTestingStatus(savedDepthTestStatus);
+    
+    return drawnFlag;
 }
 
 
@@ -2776,8 +2810,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::createLineCoordinates(const float lin
  *    Annotation line to draw.
  * @param surfaceDisplayed
  *    Surface that is displayed (may be NULL).
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
  */
-void
+bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFile,
                                                     AnnotationLine* line,
                                                     const Surface* surfaceDisplayed)
@@ -2792,13 +2828,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                                          line->getCoordinateSpace(),
                                          surfaceDisplayed,
                                          lineHeadXYZ)) {
-        return;
+        return false;
     }
     if ( ! getAnnotationWindowCoordinate(line->getEndCoordinate(),
                                          line->getCoordinateSpace(),
                                          surfaceDisplayed,
                                          lineTailXYZ)) {
-        return;
+        return false;
     }
     const float lineWidth = line->getLineWidth();
     const float backgroundLineWidth = lineWidth + 4;
@@ -2825,6 +2861,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
     
+    bool drawnFlag = false;
+    
     if (drawForegroundFlag) {
         if (m_selectionModeFlag) {
             uint8_t selectionColorRGBA[4];
@@ -2842,7 +2880,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                 BrainOpenGLPrimitiveDrawing::drawLines(coords,
                                                        foregroundRGBA,
                                                        lineWidth);
-                
+                drawnFlag = true;
             }
         }
         
@@ -2856,6 +2894,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     }
     
     setDepthTestingStatus(savedDepthTestStatus);
+    
+    return drawnFlag;
 }
 
 /**

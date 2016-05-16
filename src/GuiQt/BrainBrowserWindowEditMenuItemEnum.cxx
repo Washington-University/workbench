@@ -144,7 +144,7 @@ BrainBrowserWindowEditMenuItemEnum::initialize()
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(SELECT_ALL,
                                                           "SELECT_ALL",
                                                           "Select All",
-                                                          noShortCutKeySequence));
+                                                          (Qt::CTRL + Qt::Key_A)));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(UNDO, 
                                                           "UNDO", 

@@ -230,7 +230,7 @@ namespace caret {
         
         virtual bool isItemSelectedForEditingInWindow(const int32_t windowIndex);
         
-          
+        void setDrawnInWindowStatus(const int32_t windowIndex);
           
     protected: 
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
@@ -257,6 +257,10 @@ namespace caret {
         const AnnotationAttributesDefaultTypeEnum::Enum m_attributeDefaultType;
         
         void textAnnotationResetName();
+        
+        bool isDrawnInWindowStatus(const int32_t windowIndex);
+        
+        void clearDrawnInWindowStatusForAllWindows();
         
     private:
         void setAnnotationGroupKey(const AnnotationGroupKey& annotationGroupKey);
@@ -290,6 +294,8 @@ namespace caret {
         int32_t m_uniqueKey;
         
         AnnotationGroupKey m_annotationGroupKey;
+        
+        bool m_drawnInWindowStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         /**
          * Selection (NOT DISPLAY) status in each window.

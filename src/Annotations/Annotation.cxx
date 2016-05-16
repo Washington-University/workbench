@@ -1181,6 +1181,72 @@ Annotation::textAnnotationResetName()
 }
 
 /**
+ * Set the drawn status to true for the given window.
+ *
+ * @param windowIndex
+ *     Index of the window.
+ *
+ * This method is called from the graphics 
+ * code when an annotation is drawn.
+ *
+ * NOTE: To find the annotations drawn in a window,
+ * the drawn status is cleared, annotations are drawn
+ * in one window, and the graphics system sets the
+ * drawn status for annotations that are drawn.
+ * A query is then made to find all annotations with
+ * the drawn status set.
+ */
+void
+Annotation::setDrawnInWindowStatus(const int32_t windowIndex)
+{
+    CaretAssertArrayIndex(m_drawnInWindowStatus, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    m_drawnInWindowStatus[windowIndex] = true;
+}
+
+/**
+ * Is the drawn status set for the given window.
+ *
+ * @param windowIndex
+ *     Index of the window.
+ *
+ * NOTE: To find the annotations drawn in a window,
+ * the drawn status is cleared, annotations are drawn
+ * in one window, and the graphics system sets the
+ * drawn status for annotations that are drawn.
+ * A query is then made to find all annotations with
+ * the drawn status set.
+ */
+bool
+Annotation::isDrawnInWindowStatus(const int32_t windowIndex)
+{
+    CaretAssertArrayIndex(m_drawnInWindowStatus, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    return m_drawnInWindowStatus[windowIndex];
+}
+
+/**
+ * Clear the drawn status for all windows.
+ *
+ * This method is called by the Annotation File
+ * containing this annotation to clear the drawn status.
+ *
+ * NOTE: To find the annotations drawn in a window,
+ * the drawn status is cleared, annotations are drawn
+ * in one window, and the graphics system sets the
+ * drawn status for annotations that are drawn.
+ * A query is then made to find all annotations with
+ * the drawn status set.
+ */
+void
+Annotation::clearDrawnInWindowStatusForAllWindows()
+{
+    for (int32_t iWindow = 0; iWindow < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; iWindow++) {
+        CaretAssertArrayIndex(m_drawnInWindowStatus, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, iWindow);
+        m_drawnInWindowStatus[iWindow] = false;
+    }
+}
+
+
+/**
  * @return The annotation's selected for editing status.
  *
  * Note: (1) The selection status is never saved to a scene

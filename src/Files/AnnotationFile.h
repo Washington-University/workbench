@@ -93,6 +93,11 @@ namespace caret {
         
         void getAllAnnotationGroups(std::vector<AnnotationGroup*>& annotationGroupsOut) const;
         
+        void clearAllAnnotationsDrawnInWindowStatus();
+        
+        void getAllAnnotationWithDrawnInWindowStatusSet(const int32_t windowIndex,
+                                                        std::vector<Annotation*>& annotationsOut);
+        
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         void setAllAnnotationsSelectedForEditing(const int32_t windowIndex,

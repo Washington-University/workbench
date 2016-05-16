@@ -1182,6 +1182,47 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
 }
 
 /**
+ * Clear drawn in window status for all annotations.
+ */
+void
+AnnotationFile::clearAllAnnotationsDrawnInWindowStatus()
+{
+    std::vector<Annotation*> allAnnotations;
+    getAllAnnotations(allAnnotations);
+    
+    for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
+         annIter != allAnnotations.end();
+         annIter++) {
+        (*annIter)->clearDrawnInWindowStatusForAllWindows();
+    }
+}
+
+/**
+ * Get annotations drawin in the given window.
+ *
+ * @param windowIndex
+ *     Index of the window.
+ * @param annotationsOut
+ *     Output containing annotations with draw in window status set for
+ *     the given window index.
+ */
+void
+AnnotationFile::getAllAnnotationWithDrawnInWindowStatusSet(const int32_t windowIndex,
+                                                           std::vector<Annotation*>& annotationsOut)
+{
+    std::vector<Annotation*> allAnnotations;
+    getAllAnnotations(allAnnotations);
+    
+    for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
+         annIter != allAnnotations.end();
+         annIter++) {
+        if ((*annIter)->isDrawnInWindowStatus(windowIndex)) {
+            annotationsOut.push_back(*annIter);
+        }
+    }
+}
+
+/**
  * @return true if file is modified, else false.
  */
 bool

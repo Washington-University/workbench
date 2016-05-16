@@ -55,6 +55,7 @@
 #include "DataFileException.h"
 #include "ElapsedTimer.h"
 #include "EventAlertUser.h"
+#include "EventAnnotationGetDrawnInWindow.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -277,6 +278,7 @@ GuiManager::initializeGuiManager()
     m_helpViewerDialogDisplayAction->blockSignals(false);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ALERT_USER);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAC_DOCK_MENU_UPDATE);
@@ -1141,6 +1143,42 @@ GuiManager::receiveEvent(Event* event)
         CaretAssert(bbw);
         
         WuQMessageBox::errorOk(bbw, message);
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW) {
+        EventAnnotationGetDrawnInWindow* annGetEvent = dynamic_cast<EventAnnotationGetDrawnInWindow*>(event);
+        CaretAssert(annGetEvent);
+        
+        const int32_t windowIndex = annGetEvent->getWindowIndex();
+        
+        Brain* brain = getBrain();
+        std::vector<AnnotationFile*> allAnnotationFiles;
+        brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+        
+        /*
+         * Clear "drawn in window status" for all annotations
+         */
+        for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
+             fileIter != allAnnotationFiles.end();
+             fileIter++) {
+            (*fileIter)->clearAllAnnotationsDrawnInWindowStatus();
+        }
+        
+        /*
+         * Draw the given window
+         */
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+        
+        /*
+         * Find annotations that were drawn in the given window.
+         */
+        for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
+             fileIter != allAnnotationFiles.end();
+             fileIter++) {
+            std::vector<Annotation*> annotations;
+            (*fileIter)->getAllAnnotationWithDrawnInWindowStatusSet(windowIndex,
+                                                                    annotations);
+            annGetEvent->addAnnotations(annotations);
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_NEW) {
         EventBrowserWindowNew* eventNewBrowser =
