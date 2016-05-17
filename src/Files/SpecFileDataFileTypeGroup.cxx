@@ -24,6 +24,7 @@
 #undef __SPEC_FILE_GROUP_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretMappableDataFile.h"
 #include "SpecFileDataFile.h"
 
 using namespace caret;
@@ -246,9 +247,25 @@ SpecFileDataFileTypeGroup::setModifiedFilesSelectedForSaving()
          iter != this->files.end();
          iter++) {
         SpecFileDataFile* file = *iter;
-        if (file->getCaretDataFile() != NULL) {
-            if (file->getCaretDataFile()->isModified()) {
-                file->setSavingSelected(true);
+        CaretDataFile* cdf = file->getCaretDataFile();
+        if (cdf != NULL) {
+            if (cdf->isModified()) {
+                CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(cdf);
+                if (mapFile != NULL) {
+                    /*
+                     * For mappable data file, we only default saving to on when the modification
+                     * does not involve the color palette.  Color palettes can be saved to a
+                     * scene so it not necessary to save the file when the palette is modified.
+                     * This prevents unintentional saving of the mappable data files,
+                     * especially when creating scenes.
+                     */
+                    if (mapFile->isModifiedExcludingPaletteColorMapping()) {
+                        file->setSavingSelected(true);
+                    }
+                }
+                else {
+                    file->setSavingSelected(true);
+                }
             }
         }
     }
