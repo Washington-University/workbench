@@ -40,6 +40,7 @@
 #include "SceneDialog.h"
 #undef __SCENE_DIALOG_DECLARE__
 
+#include "BalsaDatabaseDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainConstants.h"
@@ -61,6 +62,7 @@
 #include "EventManager.h"
 #include "EventModelGetAll.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FileInformation.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
 #include "ProgressReportingDialog.h"
@@ -77,6 +79,7 @@
 #include "WuQDialogNonModal.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+#include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
 
@@ -251,21 +254,25 @@ SceneDialog::loadSceneFileComboBox(SceneFile* selectedSceneFileIn)
     
     if (numSceneFiles > 0) {
         m_sceneFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
-        loadSceneFileBalsaStudyIDLineEdit();
+        loadSceneFileMetaDataWidgets();
     }
+    
+    m_sceneFileButtonsGroup->setEnabled(getSelectedSceneFile() != NULL);
 }
 
 /**
  * Load the Scene File BALSA Study ID Line Edit
  */
 void
-SceneDialog::loadSceneFileBalsaStudyIDLineEdit()
+SceneDialog::loadSceneFileMetaDataWidgets()
 {
     m_fileBalsaStudyIDLineEdit->clear();
+    m_fileBaseDirectoryLineEdit->clear();
     
     SceneFile* sceneFile = getSelectedSceneFile();
     if (sceneFile != NULL) {
         m_fileBalsaStudyIDLineEdit->setText(sceneFile->getBalsaStudyID());
+        m_fileBaseDirectoryLineEdit->setText(sceneFile->getBaseDirectory());
     }
 }
 
@@ -483,6 +490,21 @@ SceneDialog::newSceneFileButtonClicked()
     this->sceneFileSelected();    
 }
 
+/**
+ * Called when upload scene file is selected.
+ */
+void
+SceneDialog::uploadSceneFileButtonClicked()
+{
+    static BalsaDatabaseDialog* balsaDialog = NULL;
+    if (balsaDialog == NULL) {
+        balsaDialog = new BalsaDatabaseDialog(this);
+    }
+    
+    balsaDialog->setVisible(true);
+    balsaDialog->show();
+    balsaDialog->activateWindow();
+}
 
 /**
  * Called when a scene file is selected.
@@ -491,7 +513,7 @@ void
 SceneDialog::sceneFileSelected()
 {
     loadScenesIntoDialog(NULL);
-    loadSceneFileBalsaStudyIDLineEdit();
+    loadSceneFileMetaDataWidgets();
 }
 
 /**
@@ -506,7 +528,7 @@ SceneDialog::editFileBalsaStudyIDButtonClicked()
     }
     
     WuQDataEntryDialog ded("Edit BALSA Database Info",
-                           m_fileBalsaStudyIDPushButton,
+                           m_editBalsaStudyIDPushButton,
                            WuQDialog::SCROLL_AREA_AS_NEEDED);
     
     QLineEdit* lineEdit = ded.addLineEditWidget("BALSA Study ID");
@@ -515,8 +537,71 @@ SceneDialog::editFileBalsaStudyIDButtonClicked()
     if (ded.exec() == WuQDataEntryDialog::Accepted) {
         const AString idText = lineEdit->text().trimmed();
         sceneFile->setBalsaStudyID(idText);
-        loadSceneFileBalsaStudyIDLineEdit();
+        loadSceneFileMetaDataWidgets();
     }
+}
+
+/**
+ * Called when upload scene file is selected.
+ */
+void
+SceneDialog::editBaseDirectoryPushButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        return;
+    }
+    
+    WuQDataEntryDialog ded("Edit Base Directory",
+                           m_editBaseDirectoryPushButton,
+                           WuQDialog::SCROLL_AREA_AS_NEEDED);
+    
+    QLineEdit* lineEdit = ded.addLineEditWidget("Base Directory");
+    lineEdit->setText(sceneFile->getBaseDirectory());
+    lineEdit->setMinimumWidth(500);
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        const AString idText = lineEdit->text().trimmed();
+        sceneFile->setBaseDirectory(idText);
+        loadSceneFileMetaDataWidgets();
+    }
+}
+
+/**
+ * Called when upload scene file is selected.
+ */
+void
+SceneDialog::browseBaseDirectoryPushButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        return;
+    }
+    
+    /*
+     * Let user choose directory path
+     */
+    QString directoryName;
+    FileInformation fileInfo(sceneFile->getBaseDirectory());
+    if (fileInfo.exists()) {
+        if (fileInfo.isDirectory()) {
+            directoryName = fileInfo.getAbsoluteFilePath();
+        }
+    }
+    AString newDirectoryName = CaretFileDialog::getExistingDirectoryDialog(m_browseBaseDirectoryPushButton,
+                                                                           "Choose Base Directory",
+                                                                           directoryName);
+    /*
+     * If user cancels,  return
+     */
+    if (newDirectoryName.isEmpty()) {
+        return;
+    }
+    
+    /*
+     * Set name of new scene file and add to brain
+     */
+    sceneFile->setBaseDirectory(newDirectoryName);
+    loadSceneFileMetaDataWidgets();
 }
 
 /**
@@ -781,47 +866,7 @@ SceneDialog::checkForModifiedFiles(const bool creatingSceneFlag)
 QWidget* 
 SceneDialog::createMainPage()
 {
-    /*
-     * Scene File Controls
-     */
-    QLabel* sceneFileLabel = new QLabel("Scene File");
-    m_sceneFileSelectionComboBox = new QComboBox();
-    m_sceneFileSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
-    m_sceneFileSelectionComboBox->setSizePolicy(QSizePolicy::MinimumExpanding,
-                                                m_sceneFileSelectionComboBox->sizePolicy().verticalPolicy());
-    WuQtUtilities::setToolTipAndStatusTip(m_sceneFileSelectionComboBox, 
-                                          "Selects an existing scene file\n"
-                                          "to which new scenes are added.");
-    QObject::connect(m_sceneFileSelectionComboBox, SIGNAL(activated(int)),
-                     this, SLOT(sceneFileSelected()));
-    
-    /*
-     * New File button
-     */
-    QPushButton* newSceneFilePushButton = new QPushButton("New...");
-    QObject::connect(newSceneFilePushButton, SIGNAL(clicked()),
-                     this, SLOT(newSceneFileButtonClicked()));
-    
-    /*
-     * Scene BALSA Study ID
-     */
-    QLabel* studyIDLabelOne = new QLabel("BALSA");
-    QLabel* studyIDLabelTwo = new QLabel("Study ID");
-    QVBoxLayout* studyIDLayout = new QVBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(studyIDLayout, 2, 0);
-    studyIDLayout->addWidget(studyIDLabelOne, 0, Qt::AlignHCenter);
-    studyIDLayout->addWidget(studyIDLabelTwo, 0, Qt::AlignHCenter);
-    m_fileBalsaStudyIDLineEdit = new QLineEdit();
-    m_fileBalsaStudyIDLineEdit->setToolTip("Press Edit button to change Study ID for use with BALSA Database");
-    m_fileBalsaStudyIDLineEdit->setReadOnly(true);
-    
-    /*
-     * Edit BALSA Study ID button
-     */
-    m_fileBalsaStudyIDPushButton = new QPushButton("Edit...");
-    m_fileBalsaStudyIDPushButton->setToolTip("Edit the Scene File's BALSA Study ID");
-    QObject::connect(m_fileBalsaStudyIDPushButton, SIGNAL(clicked()),
-                     this, SLOT(editFileBalsaStudyIDButtonClicked()));
+    QWidget* sceneFileWidget = createSceneFileWidget();
     
     /*
      * Scene controls
@@ -935,15 +980,13 @@ SceneDialog::createMainPage()
      */
     QWidget* widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(widget);
+    gridLayout->setColumnStretch(0,   0);
+    gridLayout->setColumnStretch(1, 100);
+    gridLayout->setColumnStretch(2,   0);
+    gridLayout->setSpacing(6);
     WuQtUtilities::setLayoutMargins(gridLayout, 0);
     int row = 0;
-    gridLayout->addWidget(sceneFileLabel, row, 0, Qt::AlignRight);
-    gridLayout->addWidget(m_sceneFileSelectionComboBox, row, 1);
-    gridLayout->addWidget(newSceneFilePushButton, row, 2);
-    row++;
-    gridLayout->addLayout(studyIDLayout, row, 0, Qt::AlignRight);
-    gridLayout->addWidget(m_fileBalsaStudyIDLineEdit, row, 1);
-    gridLayout->addWidget(m_fileBalsaStudyIDPushButton, row, 2);
+    gridLayout->addWidget(sceneFileWidget, row, 0, 1, 3);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3);
     row++;
@@ -961,7 +1004,117 @@ SceneDialog::createMainPage()
 }
 
 /**
- * Create the show scene options widget.
+ * @return The Scene File Widget.
+ */
+QWidget*
+SceneDialog::createSceneFileWidget()
+{
+    /*
+     * Scene File Controls
+     */
+    QLabel* sceneFileLabel = new QLabel("Scene File");
+    m_sceneFileSelectionComboBox = new QComboBox();
+    m_sceneFileSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
+    m_sceneFileSelectionComboBox->setSizePolicy(QSizePolicy::MinimumExpanding,
+                                                m_sceneFileSelectionComboBox->sizePolicy().verticalPolicy());
+    WuQtUtilities::setToolTipAndStatusTip(m_sceneFileSelectionComboBox,
+                                          "Selects an existing scene file\n"
+                                          "to which new scenes are added.");
+    QObject::connect(m_sceneFileSelectionComboBox, SIGNAL(activated(int)),
+                     this, SLOT(sceneFileSelected()));
+    
+    /*
+     * New File button
+     */
+    QPushButton* newSceneFilePushButton = new QPushButton("New...");
+    newSceneFilePushButton->setToolTip("Create a new scene file");
+    QObject::connect(newSceneFilePushButton, SIGNAL(clicked()),
+                     this, SLOT(newSceneFileButtonClicked()));
+    
+    /*
+     * Upload button
+     */
+    m_uploadSceneFilePushButton = new QPushButton("Upload...");
+    m_uploadSceneFilePushButton->setToolTip("Upload the selected scene to the BALSA Database");
+    QObject::connect(m_uploadSceneFilePushButton, SIGNAL(clicked()),
+                     this, SLOT(uploadSceneFileButtonClicked()));
+    
+    /*
+     * Scene BALSA Study ID
+     */
+    QLabel* studyIDLabel = new QLabel("BALSA Study ID");
+    m_fileBalsaStudyIDLineEdit = new QLineEdit();
+    m_fileBalsaStudyIDLineEdit->setToolTip("Press Edit button to change Study ID for use with BALSA Database");
+    m_fileBalsaStudyIDLineEdit->setReadOnly(true);
+    
+    /*
+     * Edit BALSA Study ID button
+     */
+    m_editBalsaStudyIDPushButton = new QPushButton("Edit...");
+    m_editBalsaStudyIDPushButton->setToolTip("Edit the Scene File's BALSA Study ID");
+    QObject::connect(m_editBalsaStudyIDPushButton, SIGNAL(clicked()),
+                     this, SLOT(editFileBalsaStudyIDButtonClicked()));
+    
+    /*
+     * Base Directory
+     */
+    QLabel* baseDirectoryLabel = new QLabel("Base Directory");
+    m_fileBaseDirectoryLineEdit = new QLineEdit();
+    m_fileBaseDirectoryLineEdit->setToolTip("Press Browse or Edit button to change base directory");
+    m_fileBaseDirectoryLineEdit->setReadOnly(true);
+    m_editBaseDirectoryPushButton = new QPushButton("Edit...");
+    m_editBaseDirectoryPushButton->setToolTip("Edit the base directory in a text edit");
+    QObject::connect(m_editBaseDirectoryPushButton, SIGNAL(clicked()),
+                     this, SLOT(editBaseDirectoryPushButtonClicked()));
+    m_browseBaseDirectoryPushButton = new QPushButton("Browse...");
+    m_browseBaseDirectoryPushButton->setToolTip("Use a file system dialog to choose the base directory");
+    QObject::connect(m_browseBaseDirectoryPushButton, SIGNAL(clicked()),
+                     this, SLOT(browseBaseDirectoryPushButtonClicked()));
+    
+    /*
+     * Group for scene file buttons that are only valid when a scene file is available
+     */
+    m_sceneFileButtonsGroup = new WuQWidgetObjectGroup(this);
+    m_sceneFileButtonsGroup->add(m_uploadSceneFilePushButton);
+    m_sceneFileButtonsGroup->add(m_editBalsaStudyIDPushButton);
+    m_sceneFileButtonsGroup->add(m_editBaseDirectoryPushButton);
+    m_sceneFileButtonsGroup->add(m_browseBaseDirectoryPushButton);
+    
+    /*
+     * Layout widgets
+     */
+    QWidget* widget = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(widget);
+    QMargins gridMargins = gridLayout->contentsMargins();
+    gridMargins.setBottom(0);
+    gridMargins.setTop(3);
+    gridLayout->setContentsMargins(gridMargins);
+    gridLayout->setSpacing(6);
+    gridLayout->setColumnStretch(0,   0);
+    gridLayout->setColumnStretch(1, 100);
+    gridLayout->setColumnStretch(2,   0);
+    gridLayout->setColumnStretch(3,   0);
+    int row = 0;
+    gridLayout->addWidget(sceneFileLabel, row, 0, Qt::AlignRight);
+    gridLayout->addWidget(m_sceneFileSelectionComboBox, row, 1);
+    gridLayout->addWidget(newSceneFilePushButton, row, 2);
+    gridLayout->addWidget(m_uploadSceneFilePushButton, row, 3);
+    row++;
+    gridLayout->addWidget(baseDirectoryLabel, row, 0, Qt::AlignRight);
+    gridLayout->addWidget(m_fileBaseDirectoryLineEdit, row, 1);
+    gridLayout->addWidget(m_editBaseDirectoryPushButton, row, 2);
+    gridLayout->addWidget(m_browseBaseDirectoryPushButton, row, 3);
+    row++;
+    gridLayout->addWidget(studyIDLabel, row, 0, Qt::AlignRight);
+    gridLayout->addWidget(m_fileBalsaStudyIDLineEdit, row, 1);
+    gridLayout->addWidget(m_editBalsaStudyIDPushButton, row, 2);
+    
+    return widget;
+}
+
+
+/**
+ * @return The show scene options widget.
  */
 QWidget*
 SceneDialog::createShowOptionsWidget()

@@ -41,6 +41,7 @@ namespace caret {
     class SceneFile;
     class SceneInfo;
     class WuQDataEntryDialog;
+    class WuQWidgetObjectGroup;
     
     class SceneDialog : public WuQDialogNonModal, public EventListenerInterface {
         Q_OBJECT
@@ -69,6 +70,8 @@ namespace caret {
         
         void newSceneFileButtonClicked();
         
+        void uploadSceneFileButtonClicked();
+        
         void addNewSceneButtonClicked();
                 
         void deleteSceneButtonClicked();
@@ -95,6 +98,10 @@ namespace caret {
         
         void editFileBalsaStudyIDButtonClicked();
         
+        void editBaseDirectoryPushButtonClicked();
+        
+        void browseBaseDirectoryPushButtonClicked();
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -118,6 +125,8 @@ namespace caret {
         
         QWidget* createShowOptionsWidget();
         
+        QWidget* createSceneFileWidget();
+        
         bool displayScenePrivate(SceneFile* sceneFile,
                                  Scene* scene,
                                  const bool showWaitCursor);
@@ -126,11 +135,13 @@ namespace caret {
         
         void enableSceneMoveUpAndDownButtons();
         
-        void loadSceneFileBalsaStudyIDLineEdit();
+        void loadSceneFileMetaDataWidgets();
         
         // ADD_NEW_MEMBERS_HERE
 
         QComboBox* m_sceneFileSelectionComboBox;
+        
+        QPushButton* m_uploadSceneFilePushButton;
         
         QPushButton* m_addNewScenePushButton;
         
@@ -160,9 +171,17 @@ namespace caret {
         
         int32_t m_selectedSceneClassInfoIndex;
         
-        QPushButton* m_fileBalsaStudyIDPushButton;
+        QPushButton* m_editBalsaStudyIDPushButton;
         
         QLineEdit* m_fileBalsaStudyIDLineEdit;
+        
+        QPushButton* m_browseBaseDirectoryPushButton;
+        
+        QPushButton* m_editBaseDirectoryPushButton;
+        
+        QLineEdit* m_fileBaseDirectoryLineEdit;
+        
+        WuQWidgetObjectGroup* m_sceneFileButtonsGroup;
         
         static const AString PREFERRED_IMAGE_FORMAT;
         

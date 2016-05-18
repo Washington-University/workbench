@@ -59,6 +59,7 @@ SceneFile::SceneFile()
 : CaretDataFile(DataFileTypeEnum::SCENE)
 {
     m_balsaStudyID = "";
+    m_baseDirectory = "";
     m_metadata = new GiftiMetaData();
 }
 
@@ -88,6 +89,7 @@ SceneFile::clear()
     m_metadata->clear();
     
     m_balsaStudyID = "";
+    m_baseDirectory = "";
     
     for (std::vector<Scene*>::iterator iter = m_scenes.begin();
          iter != m_scenes.end();
@@ -445,6 +447,31 @@ SceneFile::setBalsaStudyID(const AString& balsaStudyID)
         setModified();
     }
 }
+
+/**
+ * @return The Base Directory
+ */
+AString
+SceneFile::getBaseDirectory() const
+{
+    return m_baseDirectory;
+}
+
+/**
+ * Set the Base Directory.
+ *
+ * @param baseDirectory
+ *     New value for Base Directory.
+ */
+void
+SceneFile::setBaseDirectory(const AString& baseDirectory)
+{
+    if (baseDirectory != m_baseDirectory) {
+        m_baseDirectory = baseDirectory;
+        setModified();
+    }
+}
+
 
 /**
  * Read the scene file.
