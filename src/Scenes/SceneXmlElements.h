@@ -156,6 +156,12 @@ namespace caret {
          */
         static const AString SCENE_INFO_BALSA_STUDY_ID_TAG = "BalsaStudyID";
     
+        
+        /**
+         * XML Tag for Base Directory ID element.
+         */
+        static const AString SCENE_INFO_BASE_DIRECTORY_TAG = "BaseDirectory";
+        
     } // namespace SceneXmlElements
     
 } // namespace caret

@@ -601,6 +601,8 @@ SceneFile::writeFile(const AString& filename)
         xmlWriter.writeStartElement(SceneFile::XML_TAG_SCENE_INFO_DIRECTORY_TAG);
         xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_STUDY_ID_TAG,
                                     getBalsaStudyID());
+        xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BASE_DIRECTORY_TAG,
+                                    getBaseDirectory());
         for (int32_t i = 0; i < numScenes; i++) {
             m_scenes[i]->getSceneInfo()->writeSceneInfo(xmlWriter,
                                                         i);

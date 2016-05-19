@@ -128,6 +128,9 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
             else if (qName == SceneXmlElements::SCENE_INFO_BALSA_STUDY_ID_TAG) {
                 m_state = STATE_SCENE_INFO_BALSA_STUDY_ID;
             }
+            else if (qName == SceneXmlElements::SCENE_INFO_BASE_DIRECTORY_TAG) {
+                m_state = STATE_SCENE_INFO_BASE_DIRECTORY;
+            }
             else {
                 const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::SCENE_INFO_TAG,
                                                                                    qName);
@@ -138,6 +141,8 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
             }
             break;
         case STATE_SCENE_INFO_BALSA_STUDY_ID:
+            break;
+        case STATE_SCENE_INFO_BASE_DIRECTORY:
             break;
         case STATE_SCENE_INFO:
             m_sceneInfoSaxReader->startElement(namespaceURI, localName, qName, attributes);
@@ -222,6 +227,9 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
             break;
         case STATE_SCENE_INFO_BALSA_STUDY_ID:
             m_sceneFile->setBalsaStudyID(m_elementText);
+            break;
+        case STATE_SCENE_INFO_BASE_DIRECTORY:
+            m_sceneFile->setBaseDirectory(m_elementText);
             break;
         case STATE_SCENE_INFO:
             CaretAssert(m_sceneInfo);
