@@ -22,17 +22,21 @@
 /*LICENSE_END*/
 
 
-#include "EventListenerInterface.h"
-#include "WuQDialogNonModal.h"
-
+#include <QWizard>
 
 class QLineEdit;
+class QWizardPage;
 
 namespace caret {
 
+    class BalsaDatabaseLoginPage;
+    class BalsaDatabaseTestingPage;
     class SceneFile;
     
-    class BalsaDatabaseDialog : public WuQDialogNonModal, public EventListenerInterface {
+    /*
+     * BALSA Wizard Dialog
+     */
+    class BalsaDatabaseDialog : public QWizard {
         
         Q_OBJECT
 
@@ -42,39 +46,74 @@ namespace caret {
         
         virtual ~BalsaDatabaseDialog();
         
-        void updateDialog();
-        
 
         // ADD_NEW_METHODS_HERE
 
-        virtual void receiveEvent(Event* event);
-
-    private slots:
-        void labelHtmlLinkClicked(const QString&);
-        
-        void runZipSceneFile();
-        
     private:
-        const SceneFile* m_sceneFile;
-        
-        QWidget* createUsernamePasswordWidget();
-        
         BalsaDatabaseDialog(const BalsaDatabaseDialog&);
 
         BalsaDatabaseDialog& operator=(const BalsaDatabaseDialog&);
         
-        QWidget* createTestingWidget();
+        const SceneFile* m_sceneFile;
+        
+        BalsaDatabaseLoginPage* m_pageLogin;
+        
+        BalsaDatabaseTestingPage* m_pageCreateZipFile;
+        
+        // ADD_NEW_MEMBERS_HERE
+
+        friend BalsaDatabaseTestingPage;
+    };
+    
+    /*
+     * BALSA login page
+     */
+    class BalsaDatabaseLoginPage : public QWizardPage {
+        Q_OBJECT
+        
+    public:
+        BalsaDatabaseLoginPage(BalsaDatabaseDialog* parentDialog);
+        
+        virtual ~BalsaDatabaseLoginPage();
+        
+        virtual bool isComplete() const;
+        
+    private slots:
+        void labelHtmlLinkClicked(const QString&);
+        
+    private:
+        BalsaDatabaseDialog* m_parentDialog;
         
         QLineEdit* m_usernameLineEdit;
         
         QLineEdit* m_passwordLineEdit;
+        
 
+    };
+    
+    /*
+     * Balsa Testing (create zip) page
+     */
+    class BalsaDatabaseTestingPage : public QWizardPage {
+        Q_OBJECT
+        
+    public:
+        BalsaDatabaseTestingPage(BalsaDatabaseDialog* parentDialog);
+        
+        virtual ~BalsaDatabaseTestingPage();
+        
+        virtual bool isComplete() const;
+        
+    private slots:
+        void runZipSceneFile();
+        
+    private:
+        BalsaDatabaseDialog* m_parentDialog;
+        
         QLineEdit* m_testingZipFileNameLineEdit;
         
         QLineEdit* m_testingExtractDirectoryNameLineEdit;
         
-        // ADD_NEW_MEMBERS_HERE
-
     };
     
 #ifdef __BALSA_DATABASE_DIALOG_DECLARE__

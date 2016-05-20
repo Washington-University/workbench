@@ -508,15 +508,16 @@ SceneDialog::uploadSceneFileButtonClicked()
         return;
     }
     
-    static BalsaDatabaseDialog* balsaDialog = NULL;
-    if (balsaDialog == NULL) {
-        balsaDialog = new BalsaDatabaseDialog(sceneFile,
-                                              this);
+    if (sceneFile->getBalsaStudyID().trimmed().isEmpty()) {
+        const QString msg("The BALSA Study ID is missing.  You must go to the "
+                          "<a href=\"https://balsa.wustl.edu\">BALSA Database</a> and get a BALSA Study ID.");
+        WuQMessageBox::errorOk(m_uploadSceneFilePushButton, msg);
+        return;
     }
     
-    balsaDialog->setVisible(true);
-    balsaDialog->show();
-    balsaDialog->activateWindow();
+    BalsaDatabaseDialog balsaDialog(sceneFile,
+                                    this);
+    balsaDialog.exec();
 }
 
 /**
