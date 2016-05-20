@@ -62,7 +62,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
-        friend BalsaDatabaseTestingPage;
+        friend class BalsaDatabaseLoginPage;
+        friend class BalsaDatabaseTestingPage;
     };
     
     /*
