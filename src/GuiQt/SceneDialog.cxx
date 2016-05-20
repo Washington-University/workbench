@@ -496,9 +496,22 @@ SceneDialog::newSceneFileButtonClicked()
 void
 SceneDialog::uploadSceneFileButtonClicked()
 {
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        WuQMessageBox::errorOk(m_uploadSceneFilePushButton,
+                               "No Scene File is selected.");
+        return;
+    }
+    if (sceneFile->isModified()) {
+        WuQMessageBox::errorOk(m_uploadSceneFilePushButton,
+                               "Selected Scene File is modified and must be saved prior to uploading.");
+        return;
+    }
+    
     static BalsaDatabaseDialog* balsaDialog = NULL;
     if (balsaDialog == NULL) {
-        balsaDialog = new BalsaDatabaseDialog(this);
+        balsaDialog = new BalsaDatabaseDialog(sceneFile,
+                                              this);
     }
     
     balsaDialog->setVisible(true);

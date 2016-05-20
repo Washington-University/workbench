@@ -24,6 +24,7 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -32,9 +33,17 @@
 #undef __BALSA_DATABASE_DIALOG_DECLARE__
 
 #include "CaretAssert.h"
+#include "CursorDisplayScoped.h"
+#include "CommandOperationManager.h"
 #include "EventManager.h"
-#include "UsernamePasswordWidget.h"
+#include "FileInformation.h"
+#include "OperationException.h"
+#include "OperationZipSceneFile.h"
+#include "ProgramParameters.h"
+#include "SceneFile.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+
 using namespace caret;
 
 
@@ -47,11 +56,20 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param sceneFileName
+ *     Name of Scene File that will be uploaded to BALSA.
+ * @param parent
+ *     Parent widget of dialog.
  */
-BalsaDatabaseDialog::BalsaDatabaseDialog(QWidget* parent)
+BalsaDatabaseDialog::BalsaDatabaseDialog(const SceneFile* sceneFile,
+                                         QWidget* parent)
 : WuQDialogNonModal("BALSA Database",
-                    parent)
+                    parent),
+m_sceneFile(sceneFile)
 {
+    CaretAssert(sceneFile);
+    
     /*
      * No apply buton
      */
@@ -70,6 +88,7 @@ BalsaDatabaseDialog::BalsaDatabaseDialog(QWidget* parent)
     QVBoxLayout* controlsLayout = new QVBoxLayout(controlsWidget);
     controlsLayout->addWidget(uploadLabel, 0, Qt::AlignHCenter);
     controlsLayout->addWidget(loginWidget, 0, Qt::AlignHCenter);
+    controlsLayout->addWidget(createTestingWidget(), 0, Qt::AlignHCenter);
     //WuQtUtilities::setLayoutSpacingAndMargins(controlsLayout, 4, 2);
     
     setCentralWidget(controlsWidget,
@@ -247,5 +266,125 @@ BalsaDatabaseDialog::labelHtmlLinkClicked(const QString& linkURL)
         QDesktopServices::openUrl(QUrl(linkURL));
     }
 }
+
+/**
+ * @return Widget containing items for help with testing.
+ */
+QWidget*
+BalsaDatabaseDialog::createTestingWidget()
+{
+    QLabel* zipFileNameLabel = new QLabel("Zip File Name");
+    m_testingZipFileNameLineEdit = new QLineEdit;
+    m_testingZipFileNameLineEdit->setText("Scene.zip");
+    
+    QLabel* extractDirectoryLabel = new QLabel("Extract to Directory");
+    m_testingExtractDirectoryNameLineEdit = new QLineEdit();
+    m_testingExtractDirectoryNameLineEdit->setText("ExtDir");
+    
+    QPushButton* zipScenePushButton = new QPushButton("Zip Scene File");
+    QObject::connect(zipScenePushButton, SIGNAL(clicked()),
+                     this, SLOT(runZipSceneFile()));
+    
+    QGroupBox* groupBox = new QGroupBox("Testing");
+    QGridLayout* layout = new QGridLayout(groupBox);
+    int32_t row = 0;
+    layout->addWidget(zipFileNameLabel, row, 0);
+    layout->addWidget(m_testingZipFileNameLineEdit, row, 1);
+    row++;
+    layout->addWidget(extractDirectoryLabel, row, 0);
+    layout->addWidget(m_testingExtractDirectoryNameLineEdit, row, 1);
+    row++;
+    layout->addWidget(zipScenePushButton, row, 0, 1, 2, Qt::AlignHCenter);
+    row++;
+    
+    return groupBox;
+}
+
+/**
+ * Run the Zip Scene File command.
+ */
+void
+BalsaDatabaseDialog::runZipSceneFile()
+{
+    if (m_sceneFile == NULL) {
+        WuQMessageBox::errorOk(this,
+                               "Scene file is invalid.");
+        return;
+    }
+    const QString sceneFileName = m_sceneFile->getFileName();
+    if (sceneFileName.isEmpty()) {
+        WuQMessageBox::errorOk(this, "Scene File does not have a name.");
+        return;
+    }
+    
+    const AString extractToDirectoryName = m_testingExtractDirectoryNameLineEdit->text().trimmed();
+    if (extractToDirectoryName.isEmpty()) {
+        WuQMessageBox::errorOk(this, "Extract to directory is empty.");
+        return;
+    }
+    
+    const AString zipFileName = m_testingZipFileNameLineEdit->text().trimmed();
+    if (zipFileName.isEmpty()) {
+        WuQMessageBox::errorOk(this, "Zip File name is empty");
+        return;
+    }
+    
+    AString baseDirectoryName;
+    if ( ! m_sceneFile->getBaseDirectory().isEmpty()) {
+        /* validate ? */
+        baseDirectoryName = m_sceneFile->getBaseDirectory();
+    }
+    
+    /*
+     * Create parameters for running zip scene file command.
+     * Need to use strdup() since QString::toAscii() returns
+     * QByteArray instance that will go out of scope.  Use
+     * strdup() for all parameters since "free" is later
+     * used to free the memory allocated by strdup().
+     */
+    std::vector<char*> argvVector;
+    argvVector.push_back(strdup("wb_command_in_wb_view"));
+    argvVector.push_back(strdup(OperationZipSceneFile::getCommandSwitch().toAscii().constData()));
+    argvVector.push_back(strdup(sceneFileName.toAscii().constData()));
+    argvVector.push_back(strdup(extractToDirectoryName.toAscii().constData()));
+    argvVector.push_back(strdup(zipFileName.toAscii().constData()));
+    if ( ! baseDirectoryName.isEmpty()) {
+        argvVector.push_back(strdup("-base-dir"));
+        argvVector.push_back(strdup(baseDirectoryName.toAscii().constData()));
+    }
+    
+//    for (uint32_t i = 0; i < argvVector.size(); i++) {
+//        std::cout << "Zip Scene File Param " << i << ": " << argvVector[i] << std::endl;
+//    }
+    
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    try {
+        CommandOperationManager* cmdMgr = CommandOperationManager::getCommandOperationManager();
+        ProgramParameters progParams(argvVector.size(),
+                                     &argvVector[0]);
+        cmdMgr->runCommand(progParams);
+        
+        WuQMessageBox::informationOk(this, "Zip file successfully created.");
+    }
+    catch (const CaretException& e) {
+        cursor.restoreCursor();
+        WuQMessageBox::errorOk(this, e.whatString());
+    }
+    
+    /*
+     * Free memory from use of strdup().
+     */
+    for (std::vector<char*>::iterator charIter = argvVector.begin();
+         charIter != argvVector.end();
+         charIter++) {
+         std::free(*charIter);
+    }
+    
+    cursor.restoreCursor();
+}
+
+
 
 

@@ -30,12 +30,15 @@ class QLineEdit;
 
 namespace caret {
 
+    class SceneFile;
+    
     class BalsaDatabaseDialog : public WuQDialogNonModal, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        BalsaDatabaseDialog(QWidget* parent);
+        BalsaDatabaseDialog(const SceneFile* sceneFile,
+                            QWidget* parent);
         
         virtual ~BalsaDatabaseDialog();
         
@@ -49,17 +52,27 @@ namespace caret {
     private slots:
         void labelHtmlLinkClicked(const QString&);
         
+        void runZipSceneFile();
+        
     private:
+        const SceneFile* m_sceneFile;
+        
         QWidget* createUsernamePasswordWidget();
         
         BalsaDatabaseDialog(const BalsaDatabaseDialog&);
 
         BalsaDatabaseDialog& operator=(const BalsaDatabaseDialog&);
         
+        QWidget* createTestingWidget();
+        
         QLineEdit* m_usernameLineEdit;
         
         QLineEdit* m_passwordLineEdit;
 
+        QLineEdit* m_testingZipFileNameLineEdit;
+        
+        QLineEdit* m_testingExtractDirectoryNameLineEdit;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
