@@ -24,12 +24,16 @@
 
 #include <QWizard>
 
+#include "CaretPointer.h"
+
 class QLineEdit;
 class QWizardPage;
 
 namespace caret {
 
+    class BalsaDatabaseDialogSharedData;
     class BalsaDatabaseLoginPage;
+    class BalsaDatabaseManager;
     class BalsaDatabaseTestingPage;
     class SceneFile;
     
@@ -54,7 +58,7 @@ namespace caret {
 
         BalsaDatabaseDialog& operator=(const BalsaDatabaseDialog&);
         
-        const SceneFile* m_sceneFile;
+        CaretPointer<BalsaDatabaseDialogSharedData> m_dialogData;
         
         BalsaDatabaseLoginPage* m_pageLogin;
         
@@ -67,29 +71,47 @@ namespace caret {
     };
     
     /*
+     * Data shared by dialog and its pages
+     */
+    class BalsaDatabaseDialogSharedData {
+    public:
+        BalsaDatabaseDialogSharedData(const SceneFile* sceneFile);
+        
+        const SceneFile* m_sceneFile;
+        
+        CaretPointer<BalsaDatabaseManager> m_balsaDatabaseManager;
+        
+    private:
+        BalsaDatabaseDialogSharedData(const BalsaDatabaseDialogSharedData&);
+        
+        BalsaDatabaseDialogSharedData& operator=(const BalsaDatabaseDialogSharedData&);
+    };
+    
+    /*
      * BALSA login page
      */
     class BalsaDatabaseLoginPage : public QWizardPage {
         Q_OBJECT
         
     public:
-        BalsaDatabaseLoginPage(BalsaDatabaseDialog* parentDialog);
+        BalsaDatabaseLoginPage(BalsaDatabaseDialogSharedData* dialogData);
         
         virtual ~BalsaDatabaseLoginPage();
         
         virtual bool isComplete() const;
         
+        virtual bool validatePage();
+        
     private slots:
         void labelHtmlLinkClicked(const QString&);
         
     private:
-        BalsaDatabaseDialog* m_parentDialog;
+        BalsaDatabaseDialogSharedData* m_dialogData;
         
         QLineEdit* m_usernameLineEdit;
         
         QLineEdit* m_passwordLineEdit;
         
-
     };
     
     /*
@@ -99,7 +121,7 @@ namespace caret {
         Q_OBJECT
         
     public:
-        BalsaDatabaseTestingPage(BalsaDatabaseDialog* parentDialog);
+        BalsaDatabaseTestingPage(BalsaDatabaseDialogSharedData* dialogData);
         
         virtual ~BalsaDatabaseTestingPage();
         
@@ -109,7 +131,7 @@ namespace caret {
         void runZipSceneFile();
         
     private:
-        BalsaDatabaseDialog* m_parentDialog;
+        BalsaDatabaseDialogSharedData* m_dialogData;
         
         QLineEdit* m_testingZipFileNameLineEdit;
         

@@ -32,7 +32,9 @@
 #include <QUrl>
 #include <QVBoxLayout>
 
+#include "BalsaDatabaseManager.h"
 #include "CaretAssert.h"
+#include "CaretHttpManager.h"
 #include "CursorDisplayScoped.h"
 #include "CommandOperationManager.h"
 #include "EventManager.h"
@@ -41,6 +43,7 @@
 #include "OperationZipSceneFile.h"
 #include "ProgramParameters.h"
 #include "SceneFile.h"
+#include "SystemUtilities.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -64,16 +67,17 @@ using namespace caret;
  */
 BalsaDatabaseDialog::BalsaDatabaseDialog(const SceneFile* sceneFile,
                                          QWidget* parent)
-: QWizard(parent),
-m_sceneFile(sceneFile)
+: QWizard(parent)
 {
     CaretAssert(sceneFile);
     
+    m_dialogData.grabNew(new BalsaDatabaseDialogSharedData(sceneFile));
+    
     setWindowTitle("BALSA Database");
     
-    m_pageLogin = new BalsaDatabaseLoginPage(this);
+    m_pageLogin = new BalsaDatabaseLoginPage(m_dialogData);
     
-    m_pageCreateZipFile = new BalsaDatabaseTestingPage(this);
+    m_pageCreateZipFile = new BalsaDatabaseTestingPage(m_dialogData);
  
     addPage(m_pageLogin);
     addPage(m_pageCreateZipFile);
@@ -98,13 +102,16 @@ BalsaDatabaseDialog::~BalsaDatabaseDialog()
 /**
  * Contruct Login page.
  *
- * @param parentDialog
- *     Parent BalsaDatabaseDialog.
+ * @param dialogData
+ *     Data shared by dialog and its pages
  */
-BalsaDatabaseLoginPage::BalsaDatabaseLoginPage(BalsaDatabaseDialog* parentDialog)
+BalsaDatabaseLoginPage::BalsaDatabaseLoginPage(BalsaDatabaseDialogSharedData* dialogData)
 : QWizardPage(0),
-m_parentDialog(parentDialog)
+m_dialogData(dialogData)
 {
+    const QString defaultUserName = "balsaTest";
+    const QString defaultPassword = "@2password";
+    
     setTitle("Login to the BALSA Database");
     setSubTitle("Enter username and password to login to the BALSA Database");
     
@@ -121,11 +128,13 @@ m_parentDialog(parentDialog)
     QLabel* usernameLabel = new QLabel("Username: ");
     m_usernameLineEdit = new QLineEdit();
     m_usernameLineEdit->setMinimumWidth(minimumLineEditWidth);
+    m_usernameLineEdit->setText(defaultUserName);
     
     QLabel* passwordLabel = new QLabel("Password: ");
     m_passwordLineEdit = new QLineEdit();
     m_passwordLineEdit->setMinimumWidth(minimumLineEditWidth);
     m_passwordLineEdit->setEchoMode(QLineEdit::Password);
+    m_passwordLineEdit->setText(defaultPassword);
     
     QLabel* forgotUsernameLabel = new QLabel("<html>"
                                              "<bold><a href=\"https://balsa.wustl.edu/register/forgotUsername\">Forgot Username</a></bold>"
@@ -201,6 +210,36 @@ BalsaDatabaseLoginPage::isComplete() const
     return true;
 }
 
+/**
+ * Called when Next button clicked.  Validates content and indicates
+ * if we can go on to next page.
+ *
+ * @return True if okay to go to next page, else false.
+ */
+bool
+BalsaDatabaseLoginPage::validatePage()
+{
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    AString errorMessage;
+    if ( ! m_dialogData->m_balsaDatabaseManager->login(m_usernameLineEdit->text().trimmed(),
+                                                       m_passwordLineEdit->text().trimmed(),
+                                                       errorMessage)) {
+        cursor.restoreCursor();
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+        
+        return false;
+    }
+    
+    std::cout << "SESSION ID: " << qPrintable(m_dialogData->m_balsaDatabaseManager->getJSessionIdCookie()) << std::endl;
+
+    return true;
+}
+
+
+
 /* =============================================================================
  *
  * Test Upload Page
@@ -209,12 +248,12 @@ BalsaDatabaseLoginPage::isComplete() const
 /**
  * Contruct Login page.
  *
- * @param parentDialog
- *     Parent BalsaDatabaseDialog.
+ * @param dialogData
+ *     Data shared by dialog and its pages
  */
-BalsaDatabaseTestingPage::BalsaDatabaseTestingPage(BalsaDatabaseDialog* parentDialog)
+BalsaDatabaseTestingPage::BalsaDatabaseTestingPage(BalsaDatabaseDialogSharedData* dialogData)
 : QWizardPage(0),
-m_parentDialog(parentDialog)
+m_dialogData(dialogData)
 {
     setTitle("Create Zip File");
     setSubTitle("Creates the ZIP file that will be uploaded to the BALSA Database.");
@@ -226,6 +265,11 @@ m_parentDialog(parentDialog)
     QLabel* extractDirectoryLabel = new QLabel("Extract to Directory");
     m_testingExtractDirectoryNameLineEdit = new QLineEdit();
     m_testingExtractDirectoryNameLineEdit->setText("ExtDir");
+    
+    const AString defaultDirName(SystemUtilities::getUserName()
+                                 + "_"
+                                 + m_dialogData->m_sceneFile->getBalsaStudyID());
+    m_testingExtractDirectoryNameLineEdit->setText(defaultDirName);
     
     QPushButton* zipScenePushButton = new QPushButton("Zip Scene File");
     QObject::connect(zipScenePushButton, SIGNAL(clicked()),
@@ -259,7 +303,7 @@ BalsaDatabaseTestingPage::isComplete() const
 void
 BalsaDatabaseTestingPage::runZipSceneFile()
 {
-    const SceneFile* sceneFile = m_parentDialog->m_sceneFile;
+    const SceneFile* sceneFile = m_dialogData->m_sceneFile;
     
     if (sceneFile == NULL) {
         WuQMessageBox::errorOk(this,
@@ -338,6 +382,21 @@ BalsaDatabaseTestingPage::runZipSceneFile()
         std::free(*charIter);
     }
     
+}
+
+
+
+
+/* =============================================================================
+ *
+ * Data shared with pages
+ */
+BalsaDatabaseDialogSharedData::BalsaDatabaseDialogSharedData(const SceneFile* sceneFile)
+: m_sceneFile(sceneFile)
+{
+    CaretAssert(m_sceneFile);
+    
+    m_balsaDatabaseManager.grabNew(new BalsaDatabaseManager());
 }
 
 

@@ -214,6 +214,7 @@ AnnotationTextOrientationWidget.h
 AnnotationWidgetParentEnum.h
 AnnotationWidthHeightWidget.h
 BalsaDatabaseDialog.h
+BalsaDatabaseManager.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -410,6 +411,7 @@ AnnotationTextOrientationWidget.cxx
 AnnotationWidgetParentEnum.cxx
 AnnotationWidthHeightWidget.cxx
 BalsaDatabaseDialog.cxx
+BalsaDatabaseManager.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
 BorderOptimizeDialog.cxx
