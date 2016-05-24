@@ -105,6 +105,23 @@ logHeadersFromRequest(const QNetworkRequest& request,
     CaretLogWarning(infoText);
 }
 
+void
+CaretHttpManager::getHeaders(const QNetworkReply& reply,
+                             std::map<AString, AString>& headersOut)
+{
+    QList<QByteArray> readHeaderList = reply.rawHeaderList();
+    const int numItems = readHeaderList.size();
+    if (numItems > 0) {
+        for (int32_t i = 0; i < numItems; i++) {
+            const QByteArray headerName = readHeaderList.at(i);
+            if ( ! headerName.isEmpty()) {
+                const QByteArray headerValue = reply.rawHeader(headerName);
+                headersOut.insert(make_pair(QString(headerName), QString(headerValue)));
+            }
+        }
+    }
+}
+
 static void
 logHeadersFromReply(const QNetworkReply& reply,
                     const CaretHttpRequest &caretHttpRequest,
@@ -142,6 +159,14 @@ logHeadersFromReply(const QNetworkReply& reply,
 void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpResponse &response)
 {
     /*
+     * Clear headers from response here only.
+     * For logging into Spring, it always redirects and the 
+     * JSESSIONID is provided in the first reply but not
+     * in the reply from the redirect.
+     */
+    response.m_headers.clear();
+
+    /*
      * Code for redirection is from the Qt HTTP example httpwindow.cpp. 
      */
     httpRequestPrivate(request,
@@ -157,13 +182,15 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
                            + redirectedRequest.m_url);
             
             CaretHttpResponse redirectedResponse;
+            redirectedResponse.m_headers = response.m_headers; // copy headers from first attempt (may have JSESSIONID)
             httpRequestPrivate(redirectedRequest,
                                redirectedResponse);
             response = redirectedResponse;
             if (redirectedResponse.m_body.size() > 0) {
                 redirectedResponse.m_body.push_back(0);
                 QString str(&redirectedResponse.m_body[0]);
-                std::cout << "Redirected response content: " << qPrintable(str) << std::endl;
+                CaretLogFine("Redirected response content: " + str);
+                //std::cout << "Redirected response content: " << qPrintable(str) << std::endl;
             }
         }
     }
@@ -274,6 +301,8 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
             }
         }
     }
+    
+    getHeaders(*myReply, response.m_headers);
     
     const bool showHeaderValues = false;
     if (showHeaderValues

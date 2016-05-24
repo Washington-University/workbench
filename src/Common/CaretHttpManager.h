@@ -20,7 +20,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /*LICENSE_END*/
-
+#include <map>
 #include <QtNetwork>
 #include <vector>
 #include "stdint.h"
@@ -46,6 +46,9 @@ namespace caret {
         std::vector<AuthEntry> m_authList;
         static AString getServerString(const AString& url);        
         static void httpRequestPrivate(const CaretHttpRequest& request, CaretHttpResponse& response);
+        
+        static void getHeaders(const QNetworkReply& reply,
+                               std::map<AString, AString>& headersOut);
     public:
         enum Method
         {
@@ -72,6 +75,7 @@ namespace caret {
         bool m_responseCodeValid;
         QUrl m_redirectionUrl;
         bool m_redirectionUrlValid;
+        std::map<AString, AString> m_headers; // map so that newer values replace older values
     };
 
     struct CaretHttpRequest
