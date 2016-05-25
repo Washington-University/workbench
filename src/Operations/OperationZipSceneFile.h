@@ -28,10 +28,21 @@ namespace caret {
     class OperationZipSceneFile : public AbstractOperation
     {
     public:
+        enum ProgressMode {
+            PROGRESS_COMMAND_LINE,
+            PROGRESS_GUI_EVENT
+        };
+        
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
+        static void createZipFile(const AString& sceneFileName,
+                                  const AString& outputSubDirectory,
+                                  const AString& zipFileName,
+                                  const AString& baseDirectory,
+                                  const ProgressMode progressMode,
+                                  ProgressObject* myProgObj);
     };
 
     typedef TemplateAutoOperation<OperationZipSceneFile> AutoOperationZipSceneFile;
