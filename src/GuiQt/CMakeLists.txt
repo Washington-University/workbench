@@ -131,7 +131,9 @@ PaletteColorMappingEditorDialog.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
+ProgressReportingBar.h
 ProgressReportingDialog.h
+ProgressReportingFromEvent.h
 ProgressReportingWithSlots.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneCreateReplaceDialog.h
@@ -326,7 +328,9 @@ PaletteColorMappingEditorDialog.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
+ProgressReportingBar.h
 ProgressReportingDialog.h
+ProgressReportingFromEvent.h
 ProgressReportingWithSlots.h
 QGLWidgetTextRenderer.h
 RegionOfInterestCreateFromBorderDialog.h
@@ -522,7 +526,9 @@ PaletteColorMappingEditorDialog.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
 PreferencesDialog.cxx
+ProgressReportingBar.cxx
 ProgressReportingDialog.cxx
+ProgressReportingFromEvent.cxx
 ProgressReportingWithSlots.cxx
 QGLWidgetTextRenderer.cxx
 RegionOfInterestCreateFromBorderDialog.cxx

@@ -29,6 +29,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "EventProgressUpdate.h"
+#include "ProgressReportingFromEvent.h"
 #include "ProgressReportingWithSlots.h"
 
 using namespace caret;
@@ -148,72 +149,72 @@ ProgressReportingDialog::runEvent(Event* event,
     prd.setValue(prd.maximum());
 }
 
-//=============================================================================
-/**
- * \class caret::ProgressReportingWithSlots
- * \brief Interfaces between the ProgressReportingDialog and the Workbench event system
- *
- * Listens for EventProgressUpdate events and then updates the progress
- * dialog using signals and slots.  Using signals and slots should allow 
- * the progress events to be sent from a thread that is not the GUI thread.
- */
-
-/**
- * Constructor.
- */
-ProgressReportingFromEvent::ProgressReportingFromEvent(QObject* parent)
-: ProgressReportingWithSlots(parent),
-  EventListenerInterface()
-{
-    EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_PROGRESS_UPDATE);
-}
-
-/**
- * Constructor.
- */
-ProgressReportingFromEvent::~ProgressReportingFromEvent()
-{
-    EventManager::get()->removeAllEventsFromListener(this);
-}
-
-void
-ProgressReportingFromEvent::receiveEvent(Event* event)
-{
-    if (event->getEventType() == EventTypeEnum::EVENT_PROGRESS_UPDATE) {
-        EventProgressUpdate* progressEvent = dynamic_cast<EventProgressUpdate*>(event);
-        CaretAssert(progressEvent);
-        
-        const int minProg = progressEvent->getMinimumProgressValue();
-        const int maxProg = progressEvent->getMaximumProgressValue();
-        const int progValue = progressEvent->getProgressValue();
-        const AString progMessage = progressEvent->getProgressMessage();
-        
-        /*
-         * Note: It appears that the content of the progress dialog
-         * only changes when the progress value is changed.  So, set
-         * the message prior to the progress value so that if the message
-         * changes, the message in the progress dialog will be updated
-         * when the progress value changes.
-         */
-        if (progMessage.isEmpty() == false) {
-            setProgressMessage(progMessage);
-        }
-        if ((minProg >= 0) && (maxProg >= minProg)) {
-            setProgressRange(minProg,
-                             maxProg);
-        }
-        if (progValue >= 0) {
-            setProgressValue(progValue);
-        }
-        
-        if (isCancelRequested()) {
-            progressEvent->setCancelled();
-        }
-        
-        QApplication::processEvents();
-        
-        progressEvent->setEventProcessed();
-    }
-}
+////=============================================================================
+///**
+// * \class caret::ProgressReportingFromEvent
+// * \brief Interfaces between the ProgressReportingDialog and the Workbench event system
+// *
+// * Listens for EventProgressUpdate events and then updates the progress
+// * dialog using signals and slots.  Using signals and slots should allow 
+// * the progress events to be sent from a thread that is not the GUI thread.
+// */
+//
+///**
+// * Constructor.
+// */
+//ProgressReportingFromEvent::ProgressReportingFromEvent(QObject* parent)
+//: ProgressReportingWithSlots(parent),
+//  EventListenerInterface()
+//{
+//    EventManager::get()->addEventListener(this,
+//                                          EventTypeEnum::EVENT_PROGRESS_UPDATE);
+//}
+//
+///**
+// * Constructor.
+// */
+//ProgressReportingFromEvent::~ProgressReportingFromEvent()
+//{
+//    EventManager::get()->removeAllEventsFromListener(this);
+//}
+//
+//void
+//ProgressReportingFromEvent::receiveEvent(Event* event)
+//{
+//    if (event->getEventType() == EventTypeEnum::EVENT_PROGRESS_UPDATE) {
+//        EventProgressUpdate* progressEvent = dynamic_cast<EventProgressUpdate*>(event);
+//        CaretAssert(progressEvent);
+//        
+//        const int minProg = progressEvent->getMinimumProgressValue();
+//        const int maxProg = progressEvent->getMaximumProgressValue();
+//        const int progValue = progressEvent->getProgressValue();
+//        const AString progMessage = progressEvent->getProgressMessage();
+//        
+//        /*
+//         * Note: It appears that the content of the progress dialog
+//         * only changes when the progress value is changed.  So, set
+//         * the message prior to the progress value so that if the message
+//         * changes, the message in the progress dialog will be updated
+//         * when the progress value changes.
+//         */
+//        if (progMessage.isEmpty() == false) {
+//            setProgressMessage(progMessage);
+//        }
+//        if ((minProg >= 0) && (maxProg >= minProg)) {
+//            setProgressRange(minProg,
+//                             maxProg);
+//        }
+//        if (progValue >= 0) {
+//            setProgressValue(progValue);
+//        }
+//        
+//        if (isCancelRequested()) {
+//            progressEvent->setCancelled();
+//        }
+//        
+//        QApplication::processEvents();
+//        
+//        progressEvent->setEventProcessed();
+//    }
+//}
 
