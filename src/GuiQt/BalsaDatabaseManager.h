@@ -29,6 +29,8 @@
 
 namespace caret {
 
+    class SceneFile;
+    
     class BalsaDatabaseManager : public CaretObject, public EventListenerInterface {
         
     public:
@@ -41,6 +43,11 @@ namespace caret {
                    AString& errorMessageOut);
 
         AString getJSessionIdCookie() const;
+        
+        bool zipSceneAndDataFiles(const SceneFile* sceneFile,
+                                  const AString& extractDirectory,
+                                  const AString& zipFileName,
+                                  AString& errorMessageOut);
         
         // ADD_NEW_METHODS_HERE
 

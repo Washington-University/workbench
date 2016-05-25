@@ -24,6 +24,7 @@
 
 #include <QWizard>
 
+#include "AString.h"
 #include "CaretPointer.h"
 
 class QLineEdit;
@@ -31,10 +32,12 @@ class QWizardPage;
 
 namespace caret {
 
+    class BalsaDatabaseCreateZipFilePage;
     class BalsaDatabaseDialogSharedData;
     class BalsaDatabaseLoginPage;
     class BalsaDatabaseManager;
-    class BalsaDatabaseTestingPage;
+    class BalsaDatabaseUploadPage;
+    class ProgressReportingBar;
     class SceneFile;
     
     /*
@@ -62,12 +65,15 @@ namespace caret {
         
         BalsaDatabaseLoginPage* m_pageLogin;
         
-        BalsaDatabaseTestingPage* m_pageCreateZipFile;
+        BalsaDatabaseCreateZipFilePage* m_pageCreateZipFile;
+        
+        BalsaDatabaseUploadPage* m_pageUpload;
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class BalsaDatabaseCreateZipFilePage;
         friend class BalsaDatabaseLoginPage;
-        friend class BalsaDatabaseTestingPage;
+        friend class BalsaDatabaseUploadPage;
     };
     
     /*
@@ -80,6 +86,8 @@ namespace caret {
         const SceneFile* m_sceneFile;
         
         CaretPointer<BalsaDatabaseManager> m_balsaDatabaseManager;
+        
+        AString m_zipFileName;
         
     private:
         BalsaDatabaseDialogSharedData(const BalsaDatabaseDialogSharedData&);
@@ -115,29 +123,61 @@ namespace caret {
     };
     
     /*
-     * Balsa Testing (create zip) page
+     * Create ZIP file page
      */
-    class BalsaDatabaseTestingPage : public QWizardPage {
+    class BalsaDatabaseCreateZipFilePage : public QWizardPage {
         Q_OBJECT
         
     public:
-        BalsaDatabaseTestingPage(BalsaDatabaseDialogSharedData* dialogData);
+        BalsaDatabaseCreateZipFilePage(BalsaDatabaseDialogSharedData* dialogData);
         
-        virtual ~BalsaDatabaseTestingPage();
+        virtual ~BalsaDatabaseCreateZipFilePage();
         
         virtual bool isComplete() const;
         
-    private slots:
-        void runZipSceneFile();
+        virtual void initializePage();
+        
+        virtual bool validatePage();
         
     private:
+        bool runZipSceneFile();
+        
         BalsaDatabaseDialogSharedData* m_dialogData;
         
-        QLineEdit* m_testingZipFileNameLineEdit;
+        QLineEdit* m_zipFileNameLineEdit;
         
-        QLineEdit* m_testingExtractDirectoryNameLineEdit;
+        QLineEdit* m_extractDirectoryNameLineEdit;
         
+        ProgressReportingBar* m_progressReportingBar;
     };
+    
+    /*
+     * Balsa Upload Page
+     */
+    class BalsaDatabaseUploadPage : public QWizardPage {
+        Q_OBJECT
+        
+    public:
+        BalsaDatabaseUploadPage(BalsaDatabaseDialogSharedData* dialogData);
+        
+        virtual ~BalsaDatabaseUploadPage();
+        
+        virtual bool isComplete() const;
+        
+        virtual void initializePage();
+        
+        virtual bool validatePage();
+        
+    private:
+        bool uploadZipFile();
+        
+        BalsaDatabaseDialogSharedData* m_dialogData;
+        
+        QLineEdit* m_zipFileNameLineEdit;
+        
+        ProgressReportingBar* m_progressReportingBar;
+    };
+
     
 #ifdef __BALSA_DATABASE_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
