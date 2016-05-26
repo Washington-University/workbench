@@ -53,7 +53,8 @@ namespace caret {
         enum Method
         {
             GET,
-            POST,
+            POST_ARGUMENTS,
+            POST_FILE,
             HEAD
         };
         static CaretHttpManager* getHttpManager();
@@ -82,7 +83,9 @@ namespace caret {
     {
         CaretHttpManager::Method m_method;
         AString m_url;
-        std::vector<std::pair<AString, AString> > m_arguments, m_queries;//arguments go to post data if method is post, queries stay as queries
+        AString m_uploadFileName;  // used when mode is POST_FILE
+        std::vector<std::pair<AString, AString> > m_arguments, m_queries;//arguments go to post data if method is POST_ARGUMENTS, queries stay as queries
+        std::map<AString, AString> m_headers; // map so that newer values replace older values
     };
 
 }

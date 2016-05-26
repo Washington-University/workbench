@@ -572,7 +572,7 @@ CiftiXnatImpl::CiftiXnatImpl(const QString& url)
 void CiftiXnatImpl::init(const QString& url)
 {
     m_baseRequest.m_url = url;
-    m_baseRequest.m_method = CaretHttpManager::POST;
+    m_baseRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
     int32_t start = url.indexOf('?');
     bool foundSearchID = false;
     bool foundResource = false;

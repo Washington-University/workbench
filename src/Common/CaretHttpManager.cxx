@@ -20,8 +20,9 @@
 
 #include "CaretHttpManager.h"
 #include "CaretAssert.h"
-#include "NetworkException.h"
+#include "CaretPointer.h"
 #include "CaretLogger.h"
+#include "NetworkException.h"
 #include <QNetworkRequest>
 
 using namespace caret;
@@ -71,8 +72,11 @@ caretHttpRequestToName(const CaretHttpRequest &caretHttpRequest)
         case CaretHttpManager::HEAD:
             name = "HEAD";
             break;
-        case CaretHttpManager::POST:
-            name = "POST";
+        case CaretHttpManager::POST_ARGUMENTS:
+            name = "POST ARGUMENTS";
+            break;
+        case CaretHttpManager::POST_FILE:
+            name = "POST FILE";
             break;
     }
     return name;
@@ -158,13 +162,13 @@ logHeadersFromReply(const QNetworkReply& reply,
 
 void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpResponse &response)
 {
-    /*
-     * Clear headers from response here only.
-     * For logging into Spring, it always redirects and the 
-     * JSESSIONID is provided in the first reply but not
-     * in the reply from the redirect.
-     */
-    response.m_headers.clear();
+//    /*
+//     * Clear headers from response here only.
+//     * For logging into Spring, it always redirects and the 
+//     * JSESSIONID is provided in the first reply but not
+//     * in the reply from the redirect.
+//     */
+//    response.m_headers.clear();
 
     /*
      * Code for redirection is from the Qt HTTP example httpwindow.cpp. 
@@ -185,7 +189,12 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
             redirectedResponse.m_headers = response.m_headers; // copy headers from first attempt (may have JSESSIONID)
             httpRequestPrivate(redirectedRequest,
                                redirectedResponse);
+            /* need header from orginal and redirected response */
+            std::map<AString,AString> allHeaders = response.m_headers;
+            allHeaders.insert(redirectedRequest.m_headers.begin(),
+                                redirectedRequest.m_headers.end());
             response = redirectedResponse;
+            response.m_headers = allHeaders;
             if (redirectedResponse.m_body.size() > 0) {
                 redirectedResponse.m_body.push_back(0);
                 QString str(&redirectedResponse.m_body[0]);
@@ -228,9 +237,10 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
     QNetworkAccessManager* myQNetMgr = &(myCaretMgr->m_netMgr);
     bool first = true;
     QByteArray postData;
+    CaretPointer<QFile> postUploadFile; // file needs to remain in scope until upload finished
     switch (request.m_method)
     {
-    case POST:
+    case POST_ARGUMENTS:
         {
             for (int32_t i = 0; i < (int32_t)request.m_arguments.size(); ++i)
             {
@@ -244,9 +254,35 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
                 first = false;
             }
             myRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+            for (std::map<AString,AString>::const_iterator headerIter = request.m_headers.begin();
+                 headerIter != request.m_headers.end();
+                 headerIter++) {
+                myRequest.setRawHeader(headerIter->first.toAscii(), headerIter->second.toAscii());
+            }
             myRequest.setUrl(myUrl);
             myReply = myQNetMgr->post(myRequest, postData);
-            CaretLogInfo("POST URL: " + myUrl.toString());
+            CaretLogInfo("POST ARGUMENTS URL: " + myUrl.toString());
+        }
+        break;
+    case POST_FILE:
+        {
+            postUploadFile.grabNew(new QFile(request.m_uploadFileName));
+            if (postUploadFile->open(QFile::ReadOnly)) {
+                //myRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+                for (std::map<AString,AString>::const_iterator headerIter = request.m_headers.begin();
+                     headerIter != request.m_headers.end();
+                     headerIter++) {
+                    myRequest.setRawHeader(headerIter->first.toAscii(), headerIter->second.toAscii());
+                    std::cout << "POST FILE header: " << qPrintable(headerIter->first)
+                    << ": " << qPrintable(headerIter->second) << std::endl;
+                }
+                myRequest.setUrl(myUrl);
+                myReply = myQNetMgr->post(myRequest, postUploadFile);
+                CaretLogInfo("POST FILE URL: " + myUrl.toString());
+            }
+            else {
+                
+            }
         }
         break;
     case GET:
@@ -267,8 +303,6 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
         CaretLogInfo("HEAD URL: " + myUrl.toString());
         myReply = myQNetMgr->head(myRequest);
         break;
-    default:
-        CaretAssertMessage(false, "Unrecognized http request method");
     };
     //QObject::connect(myReply, SIGNAL(sslErrors(QList<QSslError>)), &myLoop, SLOT(quit()));
     //QObject::connect(myQNetMgr, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), myCaretMgr, SLOT(authenticationCallback(QNetworkReply*,QAuthenticator*)));
@@ -283,6 +317,7 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
     response.m_redirectionUrlValid = false;
     response.m_responseCode = -1;
     response.m_responseCodeValid = false;
+    response.m_headers.clear();
     const QVariant responseCodeVariant = myReply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     if ( ! responseCodeVariant.isNull()) {
         response.m_responseCode = myReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
