@@ -27,6 +27,7 @@
 #include "AString.h"
 #include "CaretPointer.h"
 
+class QComboBox;
 class QLineEdit;
 class QWizardPage;
 
@@ -87,6 +88,8 @@ namespace caret {
         
         CaretPointer<BalsaDatabaseManager> m_balsaDatabaseManager;
         
+        AString m_databaseURL;
+        
         AString m_zipFileName;
         
     private:
@@ -114,7 +117,11 @@ namespace caret {
         void labelHtmlLinkClicked(const QString&);
         
     private:
+        AString getDataBaseURL() const;
+        
         BalsaDatabaseDialogSharedData* m_dialogData;
+        
+        QComboBox* m_databaseComboBox;
         
         QLineEdit* m_usernameLineEdit;
         
@@ -169,6 +176,12 @@ namespace caret {
         virtual bool validatePage();
         
     private:
+        enum Progress {
+            PROGRESS_NONE      = 0,
+            PROGRESS_UPLOADING = 1,
+            PROGRESS_DONE      = 2
+        };
+        
         bool uploadZipFile();
         
         BalsaDatabaseDialogSharedData* m_dialogData;

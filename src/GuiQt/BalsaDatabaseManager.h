@@ -38,11 +38,17 @@ namespace caret {
         
         virtual ~BalsaDatabaseManager();
         
-        bool login(const AString& username,
+        bool login(const AString& loginURL,
+                   const AString& username,
                    const AString& password,
                    AString& errorMessageOut);
 
         AString getJSessionIdCookie() const;
+        
+        bool uploadFile(const AString& uploadURL,
+                        const AString& fileName,
+                        const AString& httpContentTypeName,
+                        AString& errorMessageOut);
         
         bool zipSceneAndDataFiles(const SceneFile* sceneFile,
                                   const AString& extractDirectory,

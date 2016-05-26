@@ -23,6 +23,7 @@
 #include "BalsaDatabaseDialog.h"
 #undef __BALSA_DATABASE_DIALOG_DECLARE__
 
+#include <QComboBox>
 #include <QDesktopServices>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -118,13 +119,20 @@ m_dialogData(dialogData)
     setTitle("Login to the BALSA Database");
     setSubTitle("Enter username and password to login to the BALSA Database");
     
-    QLabel* uploadLabel = new QLabel("<html>"
-                                     "Login for "
-                                     "<bold><a href=\"https://balsa.wustl.edu\">BALSA Database</a></bold>"
-                                     "</html>");
-    QObject::connect(uploadLabel, SIGNAL(linkActivated(const QString&)),
-                     this, SLOT(labelHtmlLinkClicked(const QString&)));
+//    QLabel* loginLabel = new QLabel("<html>"
+//                                     "Login for "
+//                                     "<bold><a href=\"/\">BALSA Database</a></bold>"
+//                                     "</html>");
+//    QObject::connect(loginLabel, SIGNAL(linkActivated(const QString&)),
+//                     this, SLOT(labelHtmlLinkClicked(const QString&)));
     
+    
+    QLabel* databaseNameLabel = new QLabel("DataBase: ");
+    m_databaseComboBox = new QComboBox();
+    m_databaseComboBox->setEditable(true);
+    m_databaseComboBox->addItem("http://johnsdev.wustl.edu:8080");
+    m_databaseComboBox->addItem("https://johnsdev.wustl.edu:8080");
+    m_databaseComboBox->addItem("https://balsa.wustl.edu");
     
     const int minimumLineEditWidth = 250;
     
@@ -140,19 +148,19 @@ m_dialogData(dialogData)
     m_passwordLineEdit->setText(defaultPassword);
     
     QLabel* forgotUsernameLabel = new QLabel("<html>"
-                                             "<bold><a href=\"https://balsa.wustl.edu/register/forgotUsername\">Forgot Username</a></bold>"
+                                             "<bold><a href=\"register/forgotUsername\">Forgot Username</a></bold>"
                                              "</html>");
     QObject::connect(forgotUsernameLabel, SIGNAL(linkActivated(const QString&)),
                      this, SLOT(labelHtmlLinkClicked(const QString&)));
     
     QLabel* forgotPasswordLabel = new QLabel("<html>"
-                                             "<bold><a href=\"https://balsa.wustl.edu/register/forgotPassword\">Forgot Password</a></bold>"
+                                             "<bold><a href=\"register/forgotPassword\">Forgot Password</a></bold>"
                                              "</html>");
     QObject::connect(forgotPasswordLabel, SIGNAL(linkActivated(const QString&)),
                      this, SLOT(labelHtmlLinkClicked(const QString&)));
     
     QLabel* registerLabel = new QLabel("<html>"
-                                       "<bold><a href=\"https://balsa.wustl.edu/register/register\">Register</a></bold>"
+                                       "<bold><a href=\"register/register\">Register</a></bold>"
                                        "</html>");
     QObject::connect(registerLabel, SIGNAL(linkActivated(const QString&)),
                      this, SLOT(labelHtmlLinkClicked(const QString&)));
@@ -170,7 +178,10 @@ m_dialogData(dialogData)
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 100);
     int row = 0;
-    gridLayout->addWidget(uploadLabel, row, 0, 1, 2);
+//    gridLayout->addWidget(loginLabel, row, 0, 1, 2);
+//    row++;
+    gridLayout->addWidget(databaseNameLabel, row, 0);
+    gridLayout->addWidget(m_databaseComboBox, row, 1);
     row++;
     gridLayout->addWidget(usernameLabel, row, 0);
     gridLayout->addWidget(m_usernameLineEdit, row, 1);
@@ -191,13 +202,30 @@ BalsaDatabaseLoginPage::~BalsaDatabaseLoginPage()
 }
 
 /**
+ * @return Name of selected database.
+ */
+AString
+BalsaDatabaseLoginPage::getDataBaseURL() const
+{
+    return m_databaseComboBox->currentText().trimmed();
+}
+
+
+/**
  * Gets called when the user clicks a link in the forgot username
  * or password label.
+ *
+ * @param linkPath
+ *     Path relative to database.
  */
 void
-BalsaDatabaseLoginPage::labelHtmlLinkClicked(const QString& linkURL)
+BalsaDatabaseLoginPage::labelHtmlLinkClicked(const QString& linkPath)
 {
-    if (linkURL.isEmpty() == false) {
+    if (linkPath.isEmpty() == false) {
+        const QString dbURL = getDataBaseURL();
+        const AString linkURL = (getDataBaseURL() +
+                                 (linkPath.startsWith("/") ? "" : "/")
+                                 + linkPath);
         QDesktopServices::openUrl(QUrl(linkURL));
     }
 }
@@ -224,8 +252,11 @@ BalsaDatabaseLoginPage::validatePage()
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
     
+    const AString loginURL(getDataBaseURL()
+                           + "/j_spring_security_check");
     AString errorMessage;
-    if ( ! m_dialogData->m_balsaDatabaseManager->login(m_usernameLineEdit->text().trimmed(),
+    if ( ! m_dialogData->m_balsaDatabaseManager->login(loginURL,
+                                                       m_usernameLineEdit->text().trimmed(),
                                                        m_passwordLineEdit->text().trimmed(),
                                                        errorMessage)) {
         cursor.restoreCursor();
@@ -234,6 +265,8 @@ BalsaDatabaseLoginPage::validatePage()
         
         return false;
     }
+    
+    m_dialogData->m_databaseURL = getDataBaseURL();
     
     std::cout << "SESSION ID: " << qPrintable(m_dialogData->m_balsaDatabaseManager->getJSessionIdCookie()) << std::endl;
 
@@ -476,7 +509,13 @@ m_dialogData(dialogData)
     m_zipFileNameLineEdit = new QLineEdit;
     m_zipFileNameLineEdit->setReadOnly(true);
     
+    /*
+     * Setup progress bar for manual updates
+     */
     m_progressReportingBar = new ProgressReportingBar(this);
+    m_progressReportingBar->setRange(PROGRESS_NONE,
+                                     PROGRESS_DONE);
+    m_progressReportingBar->setEnabledForUpdates(false);
     
     QGridLayout* layout = new QGridLayout(this);
     int32_t row = 0;
@@ -502,6 +541,8 @@ BalsaDatabaseUploadPage::initializePage()
 {
     m_progressReportingBar->reset();
     m_zipFileNameLineEdit->setText(m_dialogData->m_zipFileName);
+    m_progressReportingBar->setValue(PROGRESS_NONE);
+    m_progressReportingBar->setMessage("");
 }
 
 
@@ -519,11 +560,20 @@ BalsaDatabaseUploadPage::isComplete() const
 bool
 BalsaDatabaseUploadPage::validatePage()
 {
-    m_progressReportingBar->setEnabledForUpdates(true);
+    m_progressReportingBar->setValue(PROGRESS_UPLOADING);
+    m_progressReportingBar->setMessage("Uploading: "
+                                       + m_dialogData->m_zipFileName);
     const bool successFlag = uploadZipFile();
-    m_progressReportingBar->setEnabledForUpdates(false);
-    if ( ! successFlag) {
+    if (successFlag) {
+        m_progressReportingBar->setValue(PROGRESS_DONE);
+        m_progressReportingBar->setMessage("Uploading Successful: "
+                                           + m_dialogData->m_zipFileName);
+    }
+    else {
         m_progressReportingBar->reset();
+        m_progressReportingBar->setValue(PROGRESS_NONE);
+        m_progressReportingBar->setMessage("Uploading Failed: "
+                                           + m_dialogData->m_zipFileName);
     }
     
     return successFlag;
@@ -535,6 +585,26 @@ BalsaDatabaseUploadPage::validatePage()
 bool
 BalsaDatabaseUploadPage::uploadZipFile()
 {
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    const AString uploadURL(m_dialogData->m_databaseURL
+                           + "/study/handleUpload/"
+                           + m_dialogData->m_sceneFile->getBalsaStudyID());
+    AString errorMessage;
+    if ( ! m_dialogData->m_balsaDatabaseManager->uploadFile(uploadURL,
+                                                            m_dialogData->m_zipFileName,
+                                                            "application/zip",
+                                                            errorMessage)) {
+        cursor.restoreCursor();
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+        
+        return false;
+    }
+    
+    
+    std::cout << "SESSION ID: " << qPrintable(m_dialogData->m_balsaDatabaseManager->getJSessionIdCookie()) << std::endl;
     WuQMessageBox::errorOk(this, "Upload not implemented yet.");
     return false;
     

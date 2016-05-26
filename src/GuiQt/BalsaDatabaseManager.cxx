@@ -29,6 +29,7 @@
 #include "CaretHttpManager.h"
 #include "CommandOperationManager.h"
 #include "EventManager.h"
+#include "FileInformation.h"
 #include "OperationZipSceneFile.h"
 #include "ProgramParameters.h"
 #include "SceneFile.h"
@@ -49,7 +50,7 @@ using namespace caret;
 BalsaDatabaseManager::BalsaDatabaseManager()
 : CaretObject()
 {
-    
+    m_debugFlag = true;
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
@@ -74,6 +75,8 @@ BalsaDatabaseManager::toString() const
 /**
  * Login to the BALSA Database.
  *
+ * @param loginURL
+ *     URL for logging in.
  * @param username
  *     Name for login.
  * @param password
@@ -84,7 +87,8 @@ BalsaDatabaseManager::toString() const
  *     True if login is successful, else false.
  */
 bool
-BalsaDatabaseManager::login(const AString& username,
+BalsaDatabaseManager::login(const AString& loginURL,
+                            const AString& username,
                             const AString& password,
                             AString& errorMessageOut)
 {
@@ -110,12 +114,13 @@ BalsaDatabaseManager::login(const AString& username,
     //                                        m_passwordLineEdit->text().trimmed());
     
     CaretHttpRequest loginRequest;
-    loginRequest.m_method = CaretHttpManager::POST;
+    loginRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
     loginRequest.m_url    = "https://balsa.wustl.edu/j_spring_security_check";
 //    loginRequest.m_url    = "https://balsa.wustl.edu/j_spring_security_check/login/auth";
 //    loginRequest.m_url    = "https://balsa.wustl.edu/login/auth";
     //    loginRequest.m_headers.push_back(std::make_pair("Authorization", "Basic"));
     //    loginRequest.m_headers.push_back(std::make_pair("Connection", "Keep-Alive"));
+    loginRequest.m_url = loginURL;
     loginRequest.m_arguments.push_back(std::make_pair("j_username",
                                                       m_username));
     loginRequest.m_arguments.push_back(std::make_pair("j_password",
@@ -161,6 +166,89 @@ BalsaDatabaseManager::login(const AString& username,
     errorMessageOut = ("Login appears to have failed.\n"
                        "HTTP Code: " + AString::number(loginResponse.m_responseCode));
 
+    return false;
+}
+
+/**
+ * Upload file to the BALSA Database.
+ *
+ * @param uploadURL
+ *     URL for uploading file.
+ * @param fileName
+ *     Name of file.
+ * @param httpContentTypeName
+ *     Type of content for upload (eg: application/zip, see http://www.freeformatter.com/mime-types-list.html)
+ * @param errorMessageOut
+ *     Contains error information if upload failed.
+ * @return
+ *     True if upload is successful, else false.
+ */
+bool
+BalsaDatabaseManager::uploadFile(const AString& uploadURL,
+                                 const AString& fileName,
+                                 const AString& httpContentTypeName,
+                                 AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (httpContentTypeName.isEmpty()) {
+        errorMessageOut = ("Content Type Name is empty.  "
+                           "See http://www.freeformatter.com/mime-types-list.html for examples.");
+        return false;
+    }
+    
+    FileInformation fileInfo(fileName);
+    if ( ! fileInfo.exists()) {
+        errorMessageOut = (fileName
+                           + " does not exist.");
+        return false;
+    }
+    const int64_t fileSize = fileInfo.size();
+    if (fileSize <= 0) {
+        errorMessageOut = (fileName
+                           + " does not contain any data (size=0)");
+        return false;
+    }
+    
+    const AString fileSizeString(AString::number(fileSize));
+    
+    CaretHttpRequest uploadRequest;
+    uploadRequest.m_method = CaretHttpManager::POST_FILE;
+    uploadRequest.m_url    = uploadURL;
+    uploadRequest.m_uploadFileName = fileName;
+    uploadRequest.m_headers.insert(std::make_pair("Content-Type",
+                                                  httpContentTypeName));
+    uploadRequest.m_headers.insert(std::make_pair("Cookie",
+                                                  getJSessionIdCookie()));
+    uploadRequest.m_headers.insert(std::make_pair("X-File-Name",
+                                                 fileName));
+    uploadRequest.m_headers.insert(std::make_pair("X-File-Size",
+                                                 fileSizeString));
+    
+
+    
+    CaretHttpResponse uploadResponse;
+    CaretHttpManager::httpRequest(uploadRequest, uploadResponse);
+    
+    if (m_debugFlag) {
+        std::cout << "Upload response Code: " << uploadResponse.m_responseCode << std::endl;
+    }
+    
+    for (std::map<AString, AString>::iterator mapIter = uploadResponse.m_headers.begin();
+         mapIter != uploadResponse.m_headers.end();
+         mapIter++) {
+        if (m_debugFlag) {
+            std::cout << "   Response Header: " << qPrintable(mapIter->first)
+            << " -> " << qPrintable(mapIter->second) << std::endl;
+        }
+    }
+    
+    uploadResponse.m_body.push_back('\0');
+    QString bodyString(&uploadResponse.m_body[0]);
+    std::cout << "Upload reply body: " << qPrintable(bodyString) << std::endl;
+    
+    
+    
     return false;
 }
 
