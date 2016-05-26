@@ -44,6 +44,11 @@ namespace caret {
         
         void reset();
 
+        void setRange(const int32_t minimum,
+                      const int32_t maximum);
+        
+        void setValue(const int32_t value);
+        
         void setMessage(const QString& text);
         
         // ADD_NEW_METHODS_HERE

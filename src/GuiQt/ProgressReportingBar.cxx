@@ -95,6 +95,33 @@ ProgressReportingBar::setEnabledForUpdates(const bool enabledForUpdates)
 }
 
 /**
+ * Set range for progress (Use to set progress manually when not using EventProgressUpdate events).
+ *
+ * @param minimum
+ *     Minimum progress value.
+ * @param maximum
+ *     Minimum progress value.
+ */
+void
+ProgressReportingBar::setRange(const int32_t minimum,
+                                  const int32_t maximum)
+{
+    m_progressBar->setRange(minimum, maximum);
+    m_progressBar->setValue(minimum);
+}
+
+/**
+ * Set value for progress (Use to set progress manually when not using EventProgressUpdate events).
+ *
+ * @param value
+ *     Current progress value.
+ */
+void
+ProgressReportingBar::setValue(const int32_t value)
+{
+    m_progressBar->setValue(value);
+}
+/**
  * Set message for progress.  Note: May get overridden by progress update.
  *
  * @param text
