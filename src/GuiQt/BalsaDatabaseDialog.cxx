@@ -82,9 +82,12 @@ BalsaDatabaseDialog::BalsaDatabaseDialog(const SceneFile* sceneFile,
 
     m_pageUpload = new BalsaDatabaseUploadPage(m_dialogData);
     
+    m_afterUploadPage = new BalsaDatabaseAfterUploadPage(m_dialogData);
+    
     addPage(m_pageLogin);
     addPage(m_pageCreateZipFile);
     addPage(m_pageUpload);
+    addPage(m_afterUploadPage);
 
     setOption(QWizard::NoCancelButton, false);
     setOption(QWizard::NoDefaultButton, false);
@@ -165,6 +168,14 @@ m_dialogData(dialogData)
     QObject::connect(registerLabel, SIGNAL(linkActivated(const QString&)),
                      this, SLOT(labelHtmlLinkClicked(const QString&)));
     
+    /*
+     * Setup progress bar for manual updates
+     */
+    m_progressReportingBar = new ProgressReportingBar(this);
+    m_progressReportingBar->setRange(PROGRESS_NONE,
+                                     PROGRESS_DONE);
+    m_progressReportingBar->setEnabledForUpdates(false);
+    
     QHBoxLayout* linkLabelsLayout = new QHBoxLayout();
     linkLabelsLayout->addSpacing(5);
     linkLabelsLayout->addWidget(forgotUsernameLabel);
@@ -190,6 +201,8 @@ m_dialogData(dialogData)
     gridLayout->addWidget(m_passwordLineEdit, row, 1);
     row++;
     gridLayout->addLayout(linkLabelsLayout, row, 0, 1, 2);
+    row++;
+    gridLayout->addWidget(m_progressReportingBar, row, 0, 1, 2);
 }
 
 
@@ -230,6 +243,15 @@ BalsaDatabaseLoginPage::labelHtmlLinkClicked(const QString& linkPath)
     }
 }
 
+/**
+ * Called just before page is shown.
+ */
+void
+BalsaDatabaseLoginPage::initializePage()
+{
+    m_progressReportingBar->setValue(PROGRESS_NONE);
+    m_progressReportingBar->setMessage("");
+}
 
 /**
  * Returns true if Next/Finish page should be enabled
@@ -249,6 +271,9 @@ BalsaDatabaseLoginPage::isComplete() const
 bool
 BalsaDatabaseLoginPage::validatePage()
 {
+    m_progressReportingBar->setValue(PROGRESS_LOGGING_IN);
+    m_progressReportingBar->setMessage("Trying to Login...");
+    
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
     
@@ -259,6 +284,9 @@ BalsaDatabaseLoginPage::validatePage()
                                                        m_usernameLineEdit->text().trimmed(),
                                                        m_passwordLineEdit->text().trimmed(),
                                                        errorMessage)) {
+        m_progressReportingBar->setValue(PROGRESS_NONE);
+        m_progressReportingBar->setMessage("Login failed.");
+        
         cursor.restoreCursor();
         WuQMessageBox::errorOk(this,
                                errorMessage);
@@ -270,6 +298,9 @@ BalsaDatabaseLoginPage::validatePage()
     
     std::cout << "SESSION ID: " << qPrintable(m_dialogData->m_balsaDatabaseManager->getJSessionIdCookie()) << std::endl;
 
+    m_progressReportingBar->setValue(PROGRESS_DONE);
+    m_progressReportingBar->setMessage("Login successful with Session ID: "
+                                       + m_dialogData->m_balsaDatabaseManager->getJSessionIdCookie());
     return true;
 }
 
@@ -539,7 +570,6 @@ BalsaDatabaseUploadPage::~BalsaDatabaseUploadPage()
 void
 BalsaDatabaseUploadPage::initializePage()
 {
-    m_progressReportingBar->reset();
     m_zipFileNameLineEdit->setText(m_dialogData->m_zipFileName);
     m_progressReportingBar->setValue(PROGRESS_NONE);
     m_progressReportingBar->setMessage("");
@@ -570,7 +600,6 @@ BalsaDatabaseUploadPage::validatePage()
                                            + m_dialogData->m_zipFileName);
     }
     else {
-        m_progressReportingBar->reset();
         m_progressReportingBar->setValue(PROGRESS_NONE);
         m_progressReportingBar->setMessage("Uploading Failed: "
                                            + m_dialogData->m_zipFileName);
@@ -652,6 +681,66 @@ BalsaDatabaseUploadPage::uploadZipFile()
 //    }
 //    
 //    return successFlag;
+}
+
+
+/* =============================================================================
+ *
+ * After upload Page
+ */
+
+/**
+ * Contruct Login page.
+ *
+ * @param dialogData
+ *     Data shared by dialog and its pages
+ */
+BalsaDatabaseAfterUploadPage::BalsaDatabaseAfterUploadPage(BalsaDatabaseDialogSharedData* dialogData)
+: QWizardPage(0),
+m_dialogData(dialogData)
+{
+    setTitle("Upload Result from BALSA");
+    setSubTitle("Information received from BALSA after successful file upload.");
+    
+    m_statusLabel = new QLabel("");
+    
+    QGridLayout* layout = new QGridLayout(this);
+    int32_t row = 0;
+    layout->addWidget(m_statusLabel, row, 0);
+    row++;
+    
+}
+
+BalsaDatabaseAfterUploadPage::~BalsaDatabaseAfterUploadPage()
+{
+    
+}
+
+/**
+ * Called just before page is shown.
+ */
+void
+BalsaDatabaseAfterUploadPage::initializePage()
+{
+    m_statusLabel->clear();
+}
+
+
+bool
+BalsaDatabaseAfterUploadPage::isComplete() const
+{
+    return true;
+}
+
+/**
+ * Called when Next/Finish button is clicked on page.
+ *
+ * @return True if next page is shown (or wizard is closed).
+ */
+bool
+BalsaDatabaseAfterUploadPage::validatePage()
+{
+    return true;
 }
 
 

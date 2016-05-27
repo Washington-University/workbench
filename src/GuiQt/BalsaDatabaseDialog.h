@@ -28,11 +28,13 @@
 #include "CaretPointer.h"
 
 class QComboBox;
+class QLabel;
 class QLineEdit;
 class QWizardPage;
 
 namespace caret {
 
+    class BalsaDatabaseAfterUploadPage;
     class BalsaDatabaseCreateZipFilePage;
     class BalsaDatabaseDialogSharedData;
     class BalsaDatabaseLoginPage;
@@ -69,6 +71,8 @@ namespace caret {
         BalsaDatabaseCreateZipFilePage* m_pageCreateZipFile;
         
         BalsaDatabaseUploadPage* m_pageUpload;
+        
+        BalsaDatabaseAfterUploadPage* m_afterUploadPage;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -109,6 +113,8 @@ namespace caret {
         
         virtual ~BalsaDatabaseLoginPage();
         
+        virtual void initializePage();
+        
         virtual bool isComplete() const;
         
         virtual bool validatePage();
@@ -117,6 +123,11 @@ namespace caret {
         void labelHtmlLinkClicked(const QString&);
         
     private:
+        enum Progress {
+            PROGRESS_NONE       = 0,
+            PROGRESS_LOGGING_IN = 1,
+            PROGRESS_DONE       = 2
+        };
         AString getDataBaseURL() const;
         
         BalsaDatabaseDialogSharedData* m_dialogData;
@@ -127,6 +138,7 @@ namespace caret {
         
         QLineEdit* m_passwordLineEdit;
         
+        ProgressReportingBar* m_progressReportingBar;
     };
     
     /*
@@ -191,6 +203,29 @@ namespace caret {
         ProgressReportingBar* m_progressReportingBar;
     };
 
+    /*
+     * Balsa Upload Page
+     */
+    class BalsaDatabaseAfterUploadPage : public QWizardPage {
+        Q_OBJECT
+        
+    public:
+        BalsaDatabaseAfterUploadPage(BalsaDatabaseDialogSharedData* dialogData);
+        
+        virtual ~BalsaDatabaseAfterUploadPage();
+        
+        virtual bool isComplete() const;
+        
+        virtual void initializePage();
+        
+        virtual bool validatePage();
+        
+    private:
+        
+        BalsaDatabaseDialogSharedData* m_dialogData;
+        
+        QLabel* m_statusLabel;
+    };
     
 #ifdef __BALSA_DATABASE_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

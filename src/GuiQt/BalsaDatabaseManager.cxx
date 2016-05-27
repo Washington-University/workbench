@@ -160,10 +160,15 @@ BalsaDatabaseManager::login(const AString& loginURL,
     }
     
     if (loginResponse.m_responseCode == 200) {
+        if (m_jSessionIdCookie.isEmpty()) {
+            errorMessageOut = ("Login was successful but BALSA failed to provide a Session ID.");
+            return false;
+        }
+        
         return true;
     }
     
-    errorMessageOut = ("Login appears to have failed.\n"
+    errorMessageOut = ("Login has failed.\n"
                        "HTTP Code: " + AString::number(loginResponse.m_responseCode));
 
     return false;
@@ -300,23 +305,23 @@ BalsaDatabaseManager::zipSceneAndDataFiles(const SceneFile* sceneFile,
         /* validate ? */
         baseDirectoryName = sceneFile->getBaseDirectory();
     }
-    /*
-     * Create parameters for running zip scene file command.
-     * Need to use strdup() since QString::toAscii() returns
-     * QByteArray instance that will go out of scope.  Use
-     * strdup() for all parameters since "free" is later
-     * used to free the memory allocated by strdup().
-     */
-    std::vector<char*> argvVector;
-    argvVector.push_back(strdup("wb_command_in_wb_view"));
-    argvVector.push_back(strdup(OperationZipSceneFile::getCommandSwitch().toAscii().constData()));
-    argvVector.push_back(strdup(sceneFileName.toAscii().constData()));
-    argvVector.push_back(strdup(extractToDirectoryName.toAscii().constData()));
-    argvVector.push_back(strdup(zipFileName.toAscii().constData()));
-    if ( ! baseDirectoryName.isEmpty()) {
-        argvVector.push_back(strdup("-base-dir"));
-        argvVector.push_back(strdup(baseDirectoryName.toAscii().constData()));
-    }
+//    /*
+//     * Create parameters for running zip scene file command.
+//     * Need to use strdup() since QString::toAscii() returns
+//     * QByteArray instance that will go out of scope.  Use
+//     * strdup() for all parameters since "free" is later
+//     * used to free the memory allocated by strdup().
+//     */
+//    std::vector<char*> argvVector;
+//    argvVector.push_back(strdup("wb_command_in_wb_view"));
+//    argvVector.push_back(strdup(OperationZipSceneFile::getCommandSwitch().toAscii().constData()));
+//    argvVector.push_back(strdup(sceneFileName.toAscii().constData()));
+//    argvVector.push_back(strdup(extractToDirectoryName.toAscii().constData()));
+//    argvVector.push_back(strdup(zipFileName.toAscii().constData()));
+//    if ( ! baseDirectoryName.isEmpty()) {
+//        argvVector.push_back(strdup("-base-dir"));
+//        argvVector.push_back(strdup(baseDirectoryName.toAscii().constData()));
+//    }
     
     //    for (uint32_t i = 0; i < argvVector.size(); i++) {
     //        std::cout << "Zip Scene File Param " << i << ": " << argvVector[i] << std::endl;
@@ -341,14 +346,14 @@ BalsaDatabaseManager::zipSceneAndDataFiles(const SceneFile* sceneFile,
         errorMessageOut = e.whatString();
     }
     
-    /*
-     * Free memory from use of strdup().
-     */
-    for (std::vector<char*>::iterator charIter = argvVector.begin();
-         charIter != argvVector.end();
-         charIter++) {
-        std::free(*charIter);
-    }
+//    /*
+//     * Free memory from use of strdup().
+//     */
+//    for (std::vector<char*>::iterator charIter = argvVector.begin();
+//         charIter != argvVector.end();
+//         charIter++) {
+//        std::free(*charIter);
+//    }
     
     return successFlag;
 }

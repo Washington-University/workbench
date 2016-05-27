@@ -120,6 +120,7 @@ void
 ProgressReportingBar::setValue(const int32_t value)
 {
     m_progressBar->setValue(value);
+    QApplication::processEvents();
 }
 /**
  * Set message for progress.  Note: May get overridden by progress update.
