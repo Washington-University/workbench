@@ -4897,7 +4897,10 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                             const AString& dataFileNameIn,
                             const bool markDataFileAsModified)
 {
-    AString dataFileName = dataFileNameIn;
+    /*
+     * Need absolute path
+     */
+    AString dataFileName = convertFilePathNameToAbsolutePathName(dataFileNameIn);
     
     CaretDataFile* caretDataFileRead = NULL;
 
@@ -5651,7 +5654,8 @@ Brain::convertFilePathNameToAbsolutePathName(const AString& filename) const
     }
 
     if (m_currentDirectory.isEmpty()) {
-        return filename;
+        AString fullPathName = FileInformation(filename).getAbsoluteFilePath();
+        return fullPathName;
     }
     
     FileInformation pathFileInfo(m_currentDirectory, filename);
