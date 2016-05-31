@@ -45,7 +45,9 @@ OperationParameters* OperationSurfaceClosestVertex::getParameters()
     ret->addStringParameter(2, "coord-list-file", "text file with coordinates");
     ret->addStringParameter(3, "vertex-list-out", "output - the output text file with vertex numbers");//HACK: we don't currently have an "output text file" parameter type, fake the formatting
     ret->setHelpText(
-        AString("For each coordinate XYZ triple, find the closest vertex in the surface, and output its vertex number into a text file.")
+        AString("For each coordinate XYZ triple, find the closest vertex in the surface, and output its vertex number into a text file.  ") +
+        "The input file should only use whitespace to separate coordinates (spaces, newlines, tabs), for instance:\n\n" +
+        "20 30 25\n30 -20 10"
     );
     return ret;
 }
@@ -68,11 +70,19 @@ void OperationSurfaceClosestVertex::useParameters(OperationParameters* myParams,
     }
     vector<float> coords;
     float x, y, z;
-    while (coordFile >> x >> y >> z)//yes, really, thats how they intended it to be used, more or less
+    while (coordFile >> x)//yes, really, thats how they intended it to be used, more or less
     {
+        if (!(coordFile >> y >> z))//if we fail to read the rest of the triple, error
+        {
+            throw OperationException("read incomplete coordinate triple, would have been coordinate number " + AString::number(coords.size() / 3 + 1));
+        }
         coords.push_back(x);
         coords.push_back(y);
         coords.push_back(z);
+    }//because of how we parse the file, we know that coords contains a multiple of 3
+    if (coords.empty())
+    {
+        throw OperationException("did not find any coordinates in file, make sure you use only whitespace to separate numbers");
     }
     for (int i = 0; i < (int)coords.size(); i += 3)
     {
