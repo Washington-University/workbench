@@ -23,12 +23,12 @@
 
 #include <QProgressDialog>
 
+#include "AString.h"
 #include "EventListenerInterface.h"
-#include "ProgressReportingWithSlots.h"
 
 namespace caret {
 
-    class ProgressReportingFromEvent;
+    class ProgressReportingInterface;
     
     class ProgressReportingDialog : public QProgressDialog {
         
@@ -62,19 +62,7 @@ namespace caret {
 
         ProgressReportingInterface* m_progressReporter;
     };
-    
-//    class ProgressReportingFromEvent : public ProgressReportingWithSlots, public EventListenerInterface {
-//        Q_OBJECT
-//        
-//    public:
-//        ProgressReportingFromEvent(QObject* parent);
-//        
-//        virtual ~ProgressReportingFromEvent();
-//        
-//        void receiveEvent(Event* event);
-//        
-//    };
-    
+
 #ifdef __PROGRESS_REPORTING_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __PROGRESS_REPORTING_DIALOG_DECLARE__
