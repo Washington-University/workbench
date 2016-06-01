@@ -96,6 +96,8 @@ namespace caret {
         
         AString m_zipFileName;
         
+        AString m_uploadResultText;
+        
     private:
         BalsaDatabaseDialogSharedData(const BalsaDatabaseDialogSharedData&);
         

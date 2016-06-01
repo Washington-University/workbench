@@ -48,6 +48,7 @@ namespace caret {
         bool uploadFile(const AString& uploadURL,
                         const AString& fileName,
                         const AString& httpContentTypeName,
+                        AString& responseContentOut,
                         AString& errorMessageOut);
         
         bool zipSceneAndDataFiles(const SceneFile* sceneFile,

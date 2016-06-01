@@ -37,6 +37,7 @@
 #include "BalsaDatabaseManager.h"
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
+#include "CaretLogger.h"
 #include "CursorDisplayScoped.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -296,7 +297,8 @@ BalsaDatabaseLoginPage::validatePage()
     
     m_dialogData->m_databaseURL = getDataBaseURL();
     
-    std::cout << "SESSION ID: " << qPrintable(m_dialogData->m_balsaDatabaseManager->getJSessionIdCookie()) << std::endl;
+    CaretLogInfo("SESSION ID from BALSA Login: "
+                 + m_dialogData->m_balsaDatabaseManager->getJSessionIdCookie());
 
     m_progressReportingBar->setValue(PROGRESS_DONE);
     m_progressReportingBar->setMessage("Login successful with Session ID: "
@@ -573,6 +575,7 @@ BalsaDatabaseUploadPage::initializePage()
     m_zipFileNameLineEdit->setText(m_dialogData->m_zipFileName);
     m_progressReportingBar->setValue(PROGRESS_NONE);
     m_progressReportingBar->setMessage("");
+    m_dialogData->m_uploadResultText.clear();
 }
 
 
@@ -590,10 +593,11 @@ BalsaDatabaseUploadPage::isComplete() const
 bool
 BalsaDatabaseUploadPage::validatePage()
 {
-    m_progressReportingBar->setValue(PROGRESS_UPLOADING);
-    m_progressReportingBar->setMessage("Uploading: "
-                                       + m_dialogData->m_zipFileName);
+    m_progressReportingBar->setEnabledForUpdates(true);
     const bool successFlag = uploadZipFile();
+    m_progressReportingBar->setEnabledForUpdates(false);
+    
+    m_progressReportingBar->setRange(PROGRESS_NONE, PROGRESS_DONE);
     if (successFlag) {
         m_progressReportingBar->setValue(PROGRESS_DONE);
         m_progressReportingBar->setMessage("Uploading Successful: "
@@ -604,6 +608,23 @@ BalsaDatabaseUploadPage::validatePage()
         m_progressReportingBar->setMessage("Uploading Failed: "
                                            + m_dialogData->m_zipFileName);
     }
+    
+    
+    
+//    m_progressReportingBar->setValue(PROGRESS_UPLOADING);
+//    m_progressReportingBar->setMessage("Uploading: "
+//                                       + m_dialogData->m_zipFileName);
+//    const bool successFlag = uploadZipFile();
+//    if (successFlag) {
+//        m_progressReportingBar->setValue(PROGRESS_DONE);
+//        m_progressReportingBar->setMessage("Uploading Successful: "
+//                                           + m_dialogData->m_zipFileName);
+//    }
+//    else {
+//        m_progressReportingBar->setValue(PROGRESS_NONE);
+//        m_progressReportingBar->setMessage("Uploading Failed: "
+//                                           + m_dialogData->m_zipFileName);
+//    }
     
     return successFlag;
 }
@@ -624,6 +645,7 @@ BalsaDatabaseUploadPage::uploadZipFile()
     if ( ! m_dialogData->m_balsaDatabaseManager->uploadFile(uploadURL,
                                                             m_dialogData->m_zipFileName,
                                                             "application/zip",
+                                                            m_dialogData->m_uploadResultText,
                                                             errorMessage)) {
         cursor.restoreCursor();
         WuQMessageBox::errorOk(this,
@@ -631,11 +653,8 @@ BalsaDatabaseUploadPage::uploadZipFile()
         
         return false;
     }
-    
-    
-    std::cout << "SESSION ID: " << qPrintable(m_dialogData->m_balsaDatabaseManager->getJSessionIdCookie()) << std::endl;
-    WuQMessageBox::errorOk(this, "Upload not implemented yet.");
-    return false;
+
+    return true;
     
 //    const SceneFile* sceneFile = m_dialogData->m_sceneFile;
 //    
@@ -722,7 +741,7 @@ BalsaDatabaseAfterUploadPage::~BalsaDatabaseAfterUploadPage()
 void
 BalsaDatabaseAfterUploadPage::initializePage()
 {
-    m_statusLabel->clear();
+    m_statusLabel->setText(m_dialogData->m_uploadResultText);
 }
 
 

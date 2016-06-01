@@ -27,6 +27,7 @@
 
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
+#include "CaretLogger.h"
 #include "CommandOperationManager.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -50,7 +51,7 @@ using namespace caret;
 BalsaDatabaseManager::BalsaDatabaseManager()
 : CaretObject()
 {
-    m_debugFlag = true;
+    m_debugFlag = false;
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
@@ -183,6 +184,8 @@ BalsaDatabaseManager::login(const AString& loginURL,
  *     Name of file.
  * @param httpContentTypeName
  *     Type of content for upload (eg: application/zip, see http://www.freeformatter.com/mime-types-list.html)
+ * @param responseContentOut
+ *     If successful, contains the response content received after successful upload.
  * @param errorMessageOut
  *     Contains error information if upload failed.
  * @return
@@ -192,8 +195,10 @@ bool
 BalsaDatabaseManager::uploadFile(const AString& uploadURL,
                                  const AString& fileName,
                                  const AString& httpContentTypeName,
+                                 AString& responseContentOut,
                                  AString& errorMessageOut)
 {
+    responseContentOut.clear();
     errorMessageOut.clear();
     
     if (httpContentTypeName.isEmpty()) {
@@ -249,10 +254,19 @@ BalsaDatabaseManager::uploadFile(const AString& uploadURL,
     }
     
     uploadResponse.m_body.push_back('\0');
-    QString bodyString(&uploadResponse.m_body[0]);
-    std::cout << "Upload reply body: " << qPrintable(bodyString) << std::endl;
+    responseContentOut.append(&uploadResponse.m_body[0]);
+    //QString bodyString(&uploadResponse.m_body[0]);
+    CaretLogInfo("Upload file to BALSA reply body: "
+                 + responseContentOut);
     
+    if (uploadResponse.m_responseCode == 200) {
+        return true;
+    }
     
+    errorMessageOut = ("Upload failed code: "
+                       + QString::number(uploadResponse.m_responseCode)
+                       + "\n"
+                       + responseContentOut);
     
     return false;
 }

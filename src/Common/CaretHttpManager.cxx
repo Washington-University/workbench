@@ -106,7 +106,7 @@ logHeadersFromRequest(const QNetworkRequest& request,
         infoText.appendWithNewLine("        Contains no headers");
     }
     
-    CaretLogWarning(infoText);
+    CaretLogInfo(infoText);
 }
 
 void
@@ -157,7 +157,7 @@ logHeadersFromReply(const QNetworkReply& reply,
         infoText.appendWithNewLine("    Contains no headers");
     }
     
-    CaretLogWarning(infoText);
+    CaretLogInfo(infoText);
 }
 
 void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpResponse &response)
@@ -180,7 +180,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
             CaretHttpRequest redirectedRequest = request;
             redirectedRequest.m_url = response.m_redirectionUrl.toString();
 
-            CaretLogSevere("Received and processing redirection request from "
+            CaretLogInfo("Received and processing redirection request from "
                            + request.m_url
                            + " to "
                            + redirectedRequest.m_url);
@@ -273,8 +273,8 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
                      headerIter != request.m_headers.end();
                      headerIter++) {
                     myRequest.setRawHeader(headerIter->first.toAscii(), headerIter->second.toAscii());
-                    std::cout << "POST FILE header: " << qPrintable(headerIter->first)
-                    << ": " << qPrintable(headerIter->second) << std::endl;
+//                    std::cout << "POST FILE header: " << qPrintable(headerIter->first)
+//                    << ": " << qPrintable(headerIter->second) << std::endl;
                 }
                 myRequest.setUrl(myUrl);
                 myReply = myQNetMgr->post(myRequest, postUploadFile);
