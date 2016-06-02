@@ -92,9 +92,9 @@ namespace caret {
                                AString& fileNameWithoutExtensionOut,
                                AString& extensionWithoutDotOut) const;
         
-        static AString assembleFileComponents(AString& pathName,
-                                              AString& fileNameWithoutExtension,
-                                              AString& extensionWithoutDot);
+        static AString assembleFileComponents(const AString& pathName,
+                                              const AString& fileNameWithoutExtension,
+                                              const AString& extensionWithoutDot);
         
         bool remove();
         

@@ -555,9 +555,9 @@ FileInformation::getFileComponents(AString& absolutePathOut,
  *     The file extension without the leading dot.
  */
 AString
-FileInformation::assembleFileComponents(AString& pathName,
-                                        AString& fileNameWithoutExtension,
-                                        AString& extensionWithoutDot)
+FileInformation::assembleFileComponents(const AString& pathName,
+                                        const AString& fileNameWithoutExtension,
+                                        const AString& extensionWithoutDot)
 {
     AString name;
     if ( ! pathName.isEmpty()) {
