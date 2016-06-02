@@ -343,6 +343,42 @@ CaretDataFile::supportsWriting() const
 }
 
 /**
+ * @return The name of the file with both the file's path and
+ * filename's extension removed.
+ *
+ * First, the filename is tested to see if it ends with any of the valid
+ * file extensions for the DataFileTypeEnum.  If any of the extensions match,
+ * the filename, with the extension removed, is returned.  The valud
+ * file extensions are used since many GIFTI and CIFTI files contain
+ * a "." in their extensions (eg: .surf.gii   .dconn.nii).
+ *
+ *  /mnt/path/anatomical.surf.gii "returns" anatomical
+ *
+ * Second, the last "/" (directory separator) is found to locate where
+ * the name of the file, excluding the path, is located.  Using just
+ * the name of the file, anything before the last "." is returned.
+ * removed.
+ *
+ * Third, if there is not "." in the name of the file
+ * the equivalent of getFileName() is returned.
+ */
+AString
+CaretDataFile::getFileNameNoPathNoExtension() const
+{
+    AString nameNoExt = getFileNameNoExtension();
+    const int lastSlashIndex = std::max(nameNoExt.lastIndexOf("/"),
+                                        nameNoExt.lastIndexOf("\\"));
+    if (lastSlashIndex >= 0) {
+        if ((lastSlashIndex + 1) < nameNoExt.length()) {
+            nameNoExt = nameNoExt.mid(lastSlashIndex + 1);
+        }
+    }
+    
+    return nameNoExt;
+}
+
+
+/**
  * @return The name (and path if present) of the file with the
  * filename's extension removed.  
  *

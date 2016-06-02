@@ -66,6 +66,8 @@ namespace caret {
         
         virtual AString getFileNameNoExtension() const;
         
+        virtual AString getFileNameNoPathNoExtension() const;
+        
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         virtual bool supportsWriting() const;
