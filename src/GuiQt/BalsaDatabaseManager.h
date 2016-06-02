@@ -51,6 +51,11 @@ namespace caret {
                         AString& responseContentOut,
                         AString& errorMessageOut);
         
+        bool processUploadedFile(const AString& processUploadURL,
+                                 const AString& httpContentTypeName,
+                                 AString& responseContentOut,
+                                 AString& errorMessageOut);
+        
         bool zipSceneAndDataFiles(const SceneFile* sceneFile,
                                   const AString& extractDirectory,
                                   const AString& zipFileName,

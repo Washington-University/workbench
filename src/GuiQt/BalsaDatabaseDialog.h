@@ -34,7 +34,7 @@ class QWizardPage;
 
 namespace caret {
 
-    class BalsaDatabaseAfterUploadPage;
+    class BalsaDatabaseProcessUploadPage;
     class BalsaDatabaseCreateZipFilePage;
     class BalsaDatabaseDialogSharedData;
     class BalsaDatabaseLoginPage;
@@ -72,7 +72,7 @@ namespace caret {
         
         BalsaDatabaseUploadPage* m_pageUpload;
         
-        BalsaDatabaseAfterUploadPage* m_afterUploadPage;
+        BalsaDatabaseProcessUploadPage* m_processUploadPage;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -97,6 +97,8 @@ namespace caret {
         AString m_zipFileName;
         
         AString m_uploadResultText;
+        
+        AString m_processUploadResultText;
         
     private:
         BalsaDatabaseDialogSharedData(const BalsaDatabaseDialogSharedData&);
@@ -200,21 +202,21 @@ namespace caret {
         
         BalsaDatabaseDialogSharedData* m_dialogData;
         
-        QLineEdit* m_zipFileNameLineEdit;
+        QLabel* m_uploadZipFileLabel;
         
         ProgressReportingBar* m_progressReportingBar;
     };
 
     /*
-     * Balsa Upload Page
+     * Balsa Process Upload Page
      */
-    class BalsaDatabaseAfterUploadPage : public QWizardPage {
+    class BalsaDatabaseProcessUploadPage : public QWizardPage {
         Q_OBJECT
         
     public:
-        BalsaDatabaseAfterUploadPage(BalsaDatabaseDialogSharedData* dialogData);
+        BalsaDatabaseProcessUploadPage(BalsaDatabaseDialogSharedData* dialogData);
         
-        virtual ~BalsaDatabaseAfterUploadPage();
+        virtual ~BalsaDatabaseProcessUploadPage();
         
         virtual bool isComplete() const;
         
@@ -223,10 +225,21 @@ namespace caret {
         virtual bool validatePage();
         
     private:
+        enum Progress {
+            PROGRESS_NONE      = 0,
+            PROGRESS_UPLOADING = 1,
+            PROGRESS_DONE      = 2
+        };
+        
+        bool processUpload();
         
         BalsaDatabaseDialogSharedData* m_dialogData;
         
-        QLabel* m_statusLabel;
+        QLabel* m_uploadStatusLabel;
+        
+        QLabel* m_processUploadStatusLabel;
+
+        ProgressReportingBar* m_progressReportingBar;
     };
     
 #ifdef __BALSA_DATABASE_DIALOG_DECLARE__

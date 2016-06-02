@@ -399,3 +399,78 @@ BalsaDatabaseManager::receiveEvent(Event* /*event*/)
 //    }
 }
 
+/**
+ * Upload file to the BALSA Database.
+ *
+ * @param uploadURL
+ *     URL for uploading file.
+ * @param fileName
+ *     Name of file.
+ * @param httpContentTypeName
+ *     Type of content for upload (eg: application/zip, see http://www.freeformatter.com/mime-types-list.html)
+ * @param responseContentOut
+ *     If successful, contains the response content received after successful upload.
+ * @param errorMessageOut
+ *     Contains error information if upload failed.
+ * @return
+ *     True if upload is successful, else false.
+ */
+bool
+BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
+                         const AString& httpContentTypeName,
+                         AString& responseContentOut,
+                         AString& errorMessageOut)
+{
+    responseContentOut.clear();
+    errorMessageOut.clear();
+    
+    if (httpContentTypeName.isEmpty()) {
+        errorMessageOut = ("Content Type Name is empty.  "
+                           "See http://www.freeformatter.com/mime-types-list.html for examples.");
+        return false;
+    }
+    
+    CaretHttpRequest uploadRequest;
+    uploadRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
+    uploadRequest.m_url    = processUploadURL;
+    uploadRequest.m_headers.insert(std::make_pair("Content-Type",
+                                                  httpContentTypeName));
+    uploadRequest.m_headers.insert(std::make_pair("Cookie",
+                                                  getJSessionIdCookie()));
+    
+    CaretHttpResponse uploadResponse;
+    CaretHttpManager::httpRequest(uploadRequest, uploadResponse);
+    
+    if (m_debugFlag) {
+        std::cout << "Process upload response Code: " << uploadResponse.m_responseCode << std::endl;
+    }
+    
+    for (std::map<AString, AString>::iterator mapIter = uploadResponse.m_headers.begin();
+         mapIter != uploadResponse.m_headers.end();
+         mapIter++) {
+        if (m_debugFlag) {
+            std::cout << "   Process Upload Response Header: " << qPrintable(mapIter->first)
+            << " -> " << qPrintable(mapIter->second) << std::endl;
+        }
+    }
+    
+    uploadResponse.m_body.push_back('\0');
+    responseContentOut.append(&uploadResponse.m_body[0]);
+    //QString bodyString(&uploadResponse.m_body[0]);
+    CaretLogInfo("Process Upload to BALSA reply body: "
+                 + responseContentOut);
+    
+    if (uploadResponse.m_responseCode == 200) {
+        return true;
+    }
+    
+    errorMessageOut = ("Process Upload failed code: "
+                       + QString::number(uploadResponse.m_responseCode)
+                       + "\n"
+                       + responseContentOut);
+    
+    return false;
+    
+}
+
+

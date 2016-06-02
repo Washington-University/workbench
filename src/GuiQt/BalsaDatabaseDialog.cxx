@@ -83,12 +83,12 @@ BalsaDatabaseDialog::BalsaDatabaseDialog(const SceneFile* sceneFile,
 
     m_pageUpload = new BalsaDatabaseUploadPage(m_dialogData);
     
-    m_afterUploadPage = new BalsaDatabaseAfterUploadPage(m_dialogData);
+    m_processUploadPage = new BalsaDatabaseProcessUploadPage(m_dialogData);
     
     addPage(m_pageLogin);
     addPage(m_pageCreateZipFile);
     addPage(m_pageUpload);
-    addPage(m_afterUploadPage);
+    addPage(m_processUploadPage);
 
     setOption(QWizard::NoCancelButton, false);
     setOption(QWizard::NoDefaultButton, false);
@@ -314,7 +314,7 @@ BalsaDatabaseLoginPage::validatePage()
  */
 
 /**
- * Contruct Login page.
+ * Contruct Zip File page.
  *
  * @param dialogData
  *     Data shared by dialog and its pages
@@ -380,7 +380,7 @@ void
 BalsaDatabaseCreateZipFilePage::initializePage()
 {
     m_progressReportingBar->reset();
-    m_dialogData->m_zipFileName = "";
+    m_zipFileNameLineEdit->setText(m_dialogData->m_zipFileName);
 }
 
 
@@ -436,8 +436,8 @@ BalsaDatabaseCreateZipFilePage::runZipSceneFile()
         return false;
     }
     
-    const AString zipFileName = m_zipFileNameLineEdit->text().trimmed();
-    if (zipFileName.isEmpty()) {
+    m_dialogData->m_zipFileName = m_zipFileNameLineEdit->text().trimmed();
+    if (m_dialogData->m_zipFileName.isEmpty()) {
         WuQMessageBox::errorOk(this, "Zip File name is empty");
         return false;
     }
@@ -449,14 +449,13 @@ BalsaDatabaseCreateZipFilePage::runZipSceneFile()
     AString errorMessage;
     if ( ! m_dialogData->m_balsaDatabaseManager->zipSceneAndDataFiles(sceneFile,
                                                                       extractToDirectoryName,
-                                                                      zipFileName,
+                                                                      m_dialogData->m_zipFileName,
                                                                       errorMessage)) {
         cursor.restoreCursor();
         m_progressReportingBar->reset();
         WuQMessageBox::errorOk(this, errorMessage);
     }
     else {
-        m_dialogData->m_zipFileName = zipFileName;
         successFlag = true;
     }
 
@@ -526,7 +525,7 @@ BalsaDatabaseCreateZipFilePage::runZipSceneFile()
  */
 
 /**
- * Contruct Login page.
+ * Contruct upload page.
  *
  * @param dialogData
  *     Data shared by dialog and its pages
@@ -539,8 +538,7 @@ m_dialogData(dialogData)
     setSubTitle("Upload the ZIP file to the BALSA DataBase.");
     
     QLabel* zipFileNameLabel = new QLabel("Zip File Name");
-    m_zipFileNameLineEdit = new QLineEdit;
-    m_zipFileNameLineEdit->setReadOnly(true);
+    m_uploadZipFileLabel = new QLabel();
     
     /*
      * Setup progress bar for manual updates
@@ -553,7 +551,7 @@ m_dialogData(dialogData)
     QGridLayout* layout = new QGridLayout(this);
     int32_t row = 0;
     layout->addWidget(zipFileNameLabel, row, 0);
-    layout->addWidget(m_zipFileNameLineEdit, row, 1);
+    layout->addWidget(m_uploadZipFileLabel, row, 1);
     row++;
     layout->addWidget(m_progressReportingBar, row, 0, 1, 2);
     row++;
@@ -572,7 +570,8 @@ BalsaDatabaseUploadPage::~BalsaDatabaseUploadPage()
 void
 BalsaDatabaseUploadPage::initializePage()
 {
-    m_zipFileNameLineEdit->setText(m_dialogData->m_zipFileName);
+    m_uploadZipFileLabel->setText("Upload Zip File: "
+                                  + m_dialogData->m_zipFileName);
     m_progressReportingBar->setValue(PROGRESS_NONE);
     m_progressReportingBar->setMessage("");
     m_dialogData->m_uploadResultText.clear();
@@ -705,32 +704,44 @@ BalsaDatabaseUploadPage::uploadZipFile()
 
 /* =============================================================================
  *
- * After upload Page
+ * Process upload Page
  */
 
 /**
- * Contruct Login page.
+ * Construct rocess upload page.
  *
  * @param dialogData
  *     Data shared by dialog and its pages
  */
-BalsaDatabaseAfterUploadPage::BalsaDatabaseAfterUploadPage(BalsaDatabaseDialogSharedData* dialogData)
+BalsaDatabaseProcessUploadPage::BalsaDatabaseProcessUploadPage(BalsaDatabaseDialogSharedData* dialogData)
 : QWizardPage(0),
 m_dialogData(dialogData)
 {
-    setTitle("Upload Result from BALSA");
-    setSubTitle("Information received from BALSA after successful file upload.");
+    setTitle("Process Upload in BALSA");
+    setSubTitle("Request BALSA process the uploaded file and check for errors.");
     
-    m_statusLabel = new QLabel("");
+    m_uploadStatusLabel = new QLabel("");
+    m_processUploadStatusLabel = new QLabel("");
+    
+    /*
+     * Setup progress bar for manual updates
+     */
+    m_progressReportingBar = new ProgressReportingBar(this);
+    m_progressReportingBar->setRange(PROGRESS_NONE,
+                                     PROGRESS_DONE);
+    m_progressReportingBar->setEnabledForUpdates(false);
     
     QGridLayout* layout = new QGridLayout(this);
     int32_t row = 0;
-    layout->addWidget(m_statusLabel, row, 0);
+    layout->addWidget(m_uploadStatusLabel, row, 0);
     row++;
-    
+    layout->addWidget(m_processUploadStatusLabel, row, 0);
+    row++;
+    layout->addWidget(m_progressReportingBar, row, 0);
+    row++;
 }
 
-BalsaDatabaseAfterUploadPage::~BalsaDatabaseAfterUploadPage()
+BalsaDatabaseProcessUploadPage::~BalsaDatabaseProcessUploadPage()
 {
     
 }
@@ -739,14 +750,20 @@ BalsaDatabaseAfterUploadPage::~BalsaDatabaseAfterUploadPage()
  * Called just before page is shown.
  */
 void
-BalsaDatabaseAfterUploadPage::initializePage()
+BalsaDatabaseProcessUploadPage::initializePage()
 {
-    m_statusLabel->setText(m_dialogData->m_uploadResultText);
+    m_uploadStatusLabel->setText(m_dialogData->m_uploadResultText);
+
+    m_dialogData->m_processUploadResultText = "";
+    m_processUploadStatusLabel->setText("");
+
+    m_progressReportingBar->setValue(PROGRESS_NONE);
+    m_progressReportingBar->setMessage("");
 }
 
 
 bool
-BalsaDatabaseAfterUploadPage::isComplete() const
+BalsaDatabaseProcessUploadPage::isComplete() const
 {
     return true;
 }
@@ -757,11 +774,75 @@ BalsaDatabaseAfterUploadPage::isComplete() const
  * @return True if next page is shown (or wizard is closed).
  */
 bool
-BalsaDatabaseAfterUploadPage::validatePage()
+BalsaDatabaseProcessUploadPage::validatePage()
 {
-    return true;
+    m_progressReportingBar->setEnabledForUpdates(true);
+    const bool successFlag = processUpload();
+    m_progressReportingBar->setEnabledForUpdates(false);
+    
+    m_progressReportingBar->setRange(PROGRESS_NONE, PROGRESS_DONE);
+    if (successFlag) {
+        m_progressReportingBar->setValue(PROGRESS_DONE);
+        m_progressReportingBar->setMessage("Process of Upload Successful: "
+                                           + m_dialogData->m_zipFileName);
+    }
+    else {
+        m_progressReportingBar->setValue(PROGRESS_NONE);
+        m_progressReportingBar->setMessage("Process of Upload Failed: "
+                                           + m_dialogData->m_zipFileName);
+    }
+    
+    
+    
+    //    m_progressReportingBar->setValue(PROGRESS_UPLOADING);
+    //    m_progressReportingBar->setMessage("Uploading: "
+    //                                       + m_dialogData->m_zipFileName);
+    //    const bool successFlag = uploadZipFile();
+    //    if (successFlag) {
+    //        m_progressReportingBar->setValue(PROGRESS_DONE);
+    //        m_progressReportingBar->setMessage("Uploading Successful: "
+    //                                           + m_dialogData->m_zipFileName);
+    //    }
+    //    else {
+    //        m_progressReportingBar->setValue(PROGRESS_NONE);
+    //        m_progressReportingBar->setMessage("Uploading Failed: "
+    //                                           + m_dialogData->m_zipFileName);
+    //    }
+    
+    return successFlag;
 }
 
+/**
+ * @return True if processing of upload was successful, else false.
+ */
+bool
+BalsaDatabaseProcessUploadPage::processUpload()
+{
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    const AString uploadURL(m_dialogData->m_databaseURL
+                            + "/study/processUpload/"
+                            + m_dialogData->m_sceneFile->getBalsaStudyID());
+    AString errorMessage;
+    if ( ! m_dialogData->m_balsaDatabaseManager->processUploadedFile(uploadURL,
+                                                            "application/x-www-form-urlencoded",
+                                                            m_dialogData->m_processUploadResultText,
+                                                            errorMessage)) {
+        m_processUploadStatusLabel->setText(m_dialogData->m_processUploadResultText);
+        cursor.restoreCursor();
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+        
+        return false;
+    }
+    
+    m_processUploadStatusLabel->setText(m_dialogData->m_processUploadResultText);
+    
+    return false;
+    
+    return true;
+}
 
 /* =============================================================================
  *
@@ -773,7 +854,15 @@ BalsaDatabaseDialogSharedData::BalsaDatabaseDialogSharedData(const SceneFile* sc
     CaretAssert(m_sceneFile);
     
     m_balsaDatabaseManager.grabNew(new BalsaDatabaseManager());
-}
+    
+    std::cout << "Scene file no path no extension: " << sceneFile->getFileNameNoPathNoExtension() << std::endl;
+
+    AString tempDirName(SystemUtilities::getTempDirectory());
+    
+    m_zipFileName = FileInformation::assembleFileComponents(SystemUtilities::getTempDirectory(),
+                                                            sceneFile->getFileNameNoPathNoExtension() ,
+                                                            "zip");
+};
 
 
 
