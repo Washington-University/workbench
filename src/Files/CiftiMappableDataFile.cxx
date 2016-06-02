@@ -2314,6 +2314,12 @@ CiftiMappableDataFile::indexValid(const int64_t& indexIn1,
     return false;
 }
 
+const VolumeSpace& CiftiMappableDataFile::getVolumeSpace() const
+{
+    CaretAssert(m_voxelIndicesToOffset);//because this is where the other space functions get their volume space from, just roll with it for now
+    return m_voxelIndicesToOffset->getVolumeSpace();
+}
+
 /**
  * Get a bounding box for the voxel coordinate ranges.
  *

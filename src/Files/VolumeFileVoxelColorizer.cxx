@@ -373,22 +373,55 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
     int64_t jEnd   = lastCornerVoxelIndex[1];
     int64_t kStart = firstCornerVoxelIndex[2];
     int64_t kEnd   = lastCornerVoxelIndex[2];
-    switch (slicePlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
+    
+    VolumeSpace::OrientTypes orient[3];
+    m_volumeFile->getOrientation(orient);
+    int sliceDim = -1;
+    
+    for (int i = 0; i < 3; ++i)
+    {
+        switch (orient[i])
+        {
+            case VolumeSpace::LEFT_TO_RIGHT:
+            case VolumeSpace::RIGHT_TO_LEFT:
+                if (slicePlane == VolumeSliceViewPlaneEnum::PARASAGITTAL)
+                {
+                    sliceDim = i;
+                }
+                break;
+            case VolumeSpace::POSTERIOR_TO_ANTERIOR:
+            case VolumeSpace::ANTERIOR_TO_POSTERIOR:
+                if (slicePlane == VolumeSliceViewPlaneEnum::CORONAL)
+                {
+                    sliceDim = i;
+                }
+                break;
+            case VolumeSpace::INFERIOR_TO_SUPERIOR:
+            case VolumeSpace::SUPERIOR_TO_INFERIOR:
+                if (slicePlane == VolumeSliceViewPlaneEnum::AXIAL)
+                {
+                    sliceDim = i;
+                }
+                break;
+        }
+        if (sliceDim != -1) break;
+    }
+    
+    switch (sliceDim) {
+        case 2:
             kStart = sliceIndex;
             kEnd   = sliceIndex;
             break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
+        case 1:
             jStart = sliceIndex;
             jEnd   = sliceIndex;
             break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+        case 0:
             iStart = sliceIndex;
             iEnd   = sliceIndex;
             break;
+        default:
+            CaretAssert(false);
     }
     
     const int64_t voxelCount = (voxelCountIJK[0] * voxelCountIJK[1] * voxelCountIJK[2]);

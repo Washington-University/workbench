@@ -285,6 +285,8 @@ namespace caret {
                                 const int64_t brickIndex = 0,
                                 const int64_t component = 0) const;
         
+        virtual const VolumeSpace& getVolumeSpace() const;
+        
         virtual void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const;
         
         virtual int64_t getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,

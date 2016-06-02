@@ -2409,12 +2409,64 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
             /* volume does not have slice within the culled region */
             continue;
         }
-        const int64_t numVoxelsI = std::abs(culledLastVoxelIJK[0] - culledFirstVoxelIJK[0]) + 1;
+        /*const int64_t numVoxelsI = std::abs(culledLastVoxelIJK[0] - culledFirstVoxelIJK[0]) + 1;
         const int64_t numVoxelsJ = std::abs(culledLastVoxelIJK[1] - culledFirstVoxelIJK[1]) + 1;
-        const int64_t numVoxelsK = std::abs(culledLastVoxelIJK[2] - culledFirstVoxelIJK[2]) + 1;
+        const int64_t numVoxelsK = std::abs(culledLastVoxelIJK[2] - culledFirstVoxelIJK[2]) + 1;//*/
         
+        int64_t numVoxelsX = -1, numVoxelsY = -1, numVoxelsZ = -1;
+        int64_t sliceIndexForDrawing = -1;
         int64_t dimIJK[3], numMaps, numComponents;
         volumeFile->getDimensions(dimIJK[0], dimIJK[1], dimIJK[2], numMaps, numComponents);
+        
+        VolumeSpace::OrientTypes orient[3];
+        volumeFile->getVolumeSpace().getOrientation(orient);//use the volume's orientation to get the correct dimension for each axis
+        
+        bool skipDraw = false;
+        for (int whichDim = 0; whichDim < 3; ++whichDim)
+        {
+            int64_t numVoxelsIndex = std::abs(culledLastVoxelIJK[whichDim] - culledFirstVoxelIJK[whichDim]) + 1;
+            switch (orient[whichDim])
+            {
+                case VolumeSpace::LEFT_TO_RIGHT:
+                case VolumeSpace::RIGHT_TO_LEFT:
+                    numVoxelsX = numVoxelsIndex;
+                    if (sliceViewPlane == VolumeSliceViewPlaneEnum::PARASAGITTAL)
+                    {
+                        sliceIndexForDrawing = culledFirstVoxelIJK[whichDim];
+                        if ((sliceIndexForDrawing < 0) || (sliceIndexForDrawing >= dimIJK[whichDim]))
+                        {
+                            skipDraw = true;
+                        }
+                    }
+                    break;
+                case VolumeSpace::POSTERIOR_TO_ANTERIOR:
+                case VolumeSpace::ANTERIOR_TO_POSTERIOR:
+                    numVoxelsY = numVoxelsIndex;
+                    if (sliceViewPlane == VolumeSliceViewPlaneEnum::CORONAL)
+                    {
+                        sliceIndexForDrawing = culledFirstVoxelIJK[whichDim];
+                        if ((sliceIndexForDrawing < 0) || (sliceIndexForDrawing >= dimIJK[whichDim]))
+                        {
+                            skipDraw = true;
+                        }
+                    }
+                    break;
+                case VolumeSpace::INFERIOR_TO_SUPERIOR:
+                case VolumeSpace::SUPERIOR_TO_INFERIOR:
+                    numVoxelsZ = numVoxelsIndex;
+                    if (sliceViewPlane == VolumeSliceViewPlaneEnum::AXIAL)
+                    {
+                        sliceIndexForDrawing = culledFirstVoxelIJK[whichDim];
+                        if ((sliceIndexForDrawing < 0) || (sliceIndexForDrawing >= dimIJK[whichDim]))
+                        {
+                            skipDraw = true;
+                        }
+                    }
+                    break;
+            }
+        }
+        if (skipDraw) continue;
+        
         const int64_t mapIndex = volInfo.mapIndex;
         
         float firstVoxelXYZ[3];
@@ -2425,35 +2477,19 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
         const float voxelStepY = voxelDeltaXYZ[1];
         const float voxelStepZ = voxelDeltaXYZ[2];
         
-        int64_t sliceIndexForDrawing = -1;
         int64_t numVoxelsInSlice = 0;
         switch (sliceViewPlane) {
             case VolumeSliceViewPlaneEnum::ALL:
                 CaretAssert(0);
                 break;
             case VolumeSliceViewPlaneEnum::AXIAL:
-                sliceIndexForDrawing = culledFirstVoxelIJK[2];
-                if ((sliceIndexForDrawing < 0)
-                    || (sliceIndexForDrawing >= dimIJK[2])) {
-                    continue;
-                }
-                numVoxelsInSlice = numVoxelsI * numVoxelsJ;
+                numVoxelsInSlice = numVoxelsX * numVoxelsY;
                 break;
             case VolumeSliceViewPlaneEnum::CORONAL:
-                sliceIndexForDrawing = culledFirstVoxelIJK[1];
-                if ((sliceIndexForDrawing < 0)
-                    || (sliceIndexForDrawing >= dimIJK[1])) {
-                    continue;
-                }
-                numVoxelsInSlice = numVoxelsI * numVoxelsK;
+                numVoxelsInSlice = numVoxelsX * numVoxelsZ;
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                sliceIndexForDrawing = culledFirstVoxelIJK[0];
-                if ((sliceIndexForDrawing < 0)
-                    || (sliceIndexForDrawing >= dimIJK[0])) {
-                    continue;
-                }
-                numVoxelsInSlice = numVoxelsJ * numVoxelsK;
+                numVoxelsInSlice = numVoxelsY * numVoxelsZ;
                 break;
         }
         
@@ -2470,11 +2506,11 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
         /*
          * Get colors for all voxels in the slice.
          */
-        const int64_t voxelCountIJK[3] = {
-            numVoxelsI,
-            numVoxelsJ,
-            numVoxelsK
-        };
+        const int64_t voxelCountXYZ[3] = {
+            numVoxelsX,
+            numVoxelsY,
+            numVoxelsZ
+        };//only used to multiply them all together to get an element count for the presumed array size, so just provide them as XYZ
         
         const int64_t validVoxelCount =
            volumeFile->getVoxelColorsForSubSliceInMap(m_brain->getPaletteFile(),
@@ -2483,7 +2519,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
                                                    sliceIndexForDrawing,
                                                    culledFirstVoxelIJK,
                                                    culledLastVoxelIJK,
-                                                   voxelCountIJK,
+                                                   voxelCountXYZ,
                                                    displayGroup,
                                                    browserTabIndex,
                                                    sliceVoxelsRGBA);
@@ -2499,16 +2535,16 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
                     CaretAssert(0);
                     break;
                 case VolumeSliceViewPlaneEnum::AXIAL:
-                    xdim = numVoxelsI;
-                    ydim = numVoxelsJ;
+                    xdim = numVoxelsX;
+                    ydim = numVoxelsY;
                     break;
                 case VolumeSliceViewPlaneEnum::CORONAL:
-                    xdim = numVoxelsI;
-                    ydim = numVoxelsK;
+                    xdim = numVoxelsX;
+                    ydim = numVoxelsZ;
                     break;
                 case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    xdim = numVoxelsJ;
-                    ydim = numVoxelsK;
+                    xdim = numVoxelsY;
+                    ydim = numVoxelsZ;
                     break;
             }
             
@@ -2562,20 +2598,20 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
             case VolumeSliceViewPlaneEnum::AXIAL:
                 rowStep[1] = voxelStepY;
                 columnStep[0] = voxelStepX;
-                numberOfRows    = numVoxelsJ;
-                numberOfColumns = numVoxelsI;
+                numberOfRows    = numVoxelsY;//WARNING: this is actually length of row, not number of rows, ditto for the rest
+                numberOfColumns = numVoxelsX;//leaving it alone for now...
                 break;
             case VolumeSliceViewPlaneEnum::CORONAL:
                 rowStep[2] = voxelStepZ;
                 columnStep[0] = voxelStepX;
-                numberOfRows    = numVoxelsK;
-                numberOfColumns = numVoxelsI;
+                numberOfRows    = numVoxelsZ;
+                numberOfColumns = numVoxelsX;
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                 rowStep[2] = voxelStepZ;
                 columnStep[1] = voxelStepY;
-                numberOfRows    = numVoxelsK;
-                numberOfColumns = numVoxelsJ;
+                numberOfRows    = numVoxelsZ;
+                numberOfColumns = numVoxelsY;
                 break;
         }
         

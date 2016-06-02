@@ -64,6 +64,8 @@ namespace caret {
                                        const float y,
                                        const float z) const;
         
+        inline const VolumeSpace& getVolumeSpace() const { return m_volumeSpace; }
+        
     private:
         SparseVolumeIndexer(const SparseVolumeIndexer&);
 

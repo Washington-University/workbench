@@ -23,6 +23,7 @@
 
 #include "DisplayGroupEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
+#include "VolumeSpace.h"
 
 namespace caret {
     
@@ -352,6 +353,11 @@ namespace caret {
                                         const DisplayGroupEnum::Enum displayGroup,
                                         const int32_t tabIndex,
                                         uint8_t rgbaOut[4]) const = 0;
+        
+        /**
+         * Get the volume space object, so we have access to all functions associated with volume spaces
+         */
+        virtual const VolumeSpace& getVolumeSpace() const = 0;
     };
     
 #ifdef __VOLUME_MAPPABLE_INTERFACE_DECLARE__
