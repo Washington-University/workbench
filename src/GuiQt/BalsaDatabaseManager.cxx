@@ -220,6 +220,10 @@ BalsaDatabaseManager::uploadFile(const AString& uploadURL,
         return false;
     }
     
+    /*
+     * Upload file name must be name of file without path
+     */
+    const AString uploadFileName(fileInfo.getFileName());
     const AString fileSizeString(AString::number(fileSize));
     
     CaretHttpRequest uploadRequest;
@@ -231,7 +235,7 @@ BalsaDatabaseManager::uploadFile(const AString& uploadURL,
     uploadRequest.m_headers.insert(std::make_pair("Cookie",
                                                   getJSessionIdCookie()));
     uploadRequest.m_headers.insert(std::make_pair("X-File-Name",
-                                                 fileName));
+                                                 uploadFileName));
     uploadRequest.m_headers.insert(std::make_pair("X-File-Size",
                                                  fileSizeString));
     
