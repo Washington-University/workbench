@@ -31,6 +31,8 @@
 #include "NodeAndVoxelColoring.h"
 #include "VolumeFile.h"
 
+#include <cmath>
+
 using namespace caret;
 
 
@@ -367,58 +369,50 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
     CaretAssert(sliceIndex >= 0);
     CaretAssert(rgbaOut);
     
-    int64_t iStart = firstCornerVoxelIndex[0];
-    int64_t iEnd   = lastCornerVoxelIndex[0];
-    int64_t jStart = firstCornerVoxelIndex[1];
-    int64_t jEnd   = lastCornerVoxelIndex[1];
-    int64_t kStart = firstCornerVoxelIndex[2];
-    int64_t kEnd   = lastCornerVoxelIndex[2];
-    
     VolumeSpace::OrientTypes orient[3];
     m_volumeFile->getOrientation(orient);
-    int sliceDim = -1;
+    int orient2dim[3];
+    int64_t incrementijk[3];
     
     for (int i = 0; i < 3; ++i)
     {
-        switch (orient[i])
+        incrementijk[i] = (lastCornerVoxelIndex[i] > firstCornerVoxelIndex[i]) ? 1 : -1;
+        switch (orient[i])//easier to read than indexing by (orient[i] & 3)
         {
             case VolumeSpace::LEFT_TO_RIGHT:
             case VolumeSpace::RIGHT_TO_LEFT:
-                if (slicePlane == VolumeSliceViewPlaneEnum::PARASAGITTAL)
-                {
-                    sliceDim = i;
-                }
+                orient2dim[0] = i;
                 break;
             case VolumeSpace::POSTERIOR_TO_ANTERIOR:
             case VolumeSpace::ANTERIOR_TO_POSTERIOR:
-                if (slicePlane == VolumeSliceViewPlaneEnum::CORONAL)
-                {
-                    sliceDim = i;
-                }
+                orient2dim[1] = i;
                 break;
             case VolumeSpace::INFERIOR_TO_SUPERIOR:
             case VolumeSpace::SUPERIOR_TO_INFERIOR:
-                if (slicePlane == VolumeSliceViewPlaneEnum::AXIAL)
-                {
-                    sliceDim = i;
-                }
+                orient2dim[2] = i;
                 break;
         }
-        if (sliceDim != -1) break;
     }
     
-    switch (sliceDim) {
-        case 2:
-            kStart = sliceIndex;
-            kEnd   = sliceIndex;
+    int outerLoop = -1, innerLoop = -1;
+    int64_t iterijk[3];
+    
+    switch (slicePlane)
+    {
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            outerLoop = orient2dim[2];
+            innerLoop = orient2dim[1];
+            iterijk[orient2dim[0]] = sliceIndex;
             break;
-        case 1:
-            jStart = sliceIndex;
-            jEnd   = sliceIndex;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            outerLoop = orient2dim[2];
+            innerLoop = orient2dim[0];
+            iterijk[orient2dim[1]] = sliceIndex;
             break;
-        case 0:
-            iStart = sliceIndex;
-            iEnd   = sliceIndex;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            outerLoop = orient2dim[1];
+            innerLoop = orient2dim[0];
+            iterijk[orient2dim[2]] = sliceIndex;
             break;
         default:
             CaretAssert(false);
@@ -441,92 +435,62 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
     
     int64_t validVoxelCount = 0;
     
+    int64_t innerCount = std::abs(lastCornerVoxelIndex[innerLoop] - firstCornerVoxelIndex[innerLoop]) + 1;//to check validity of index
+    
+    int64_t rgbaOutIndex = 0;
+    for (iterijk[outerLoop] = firstCornerVoxelIndex[outerLoop];
+         iterijk[outerLoop] != lastCornerVoxelIndex[outerLoop] + incrementijk[outerLoop];
+         iterijk[outerLoop] += incrementijk[outerLoop])
     {
-        int64_t rgbaOutIndex = 0;
-        
-        /*
-         * Note that step indices may be positive or negative
-         */
-        const int64_t kStep = ((kEnd < kStart) ? -1 : 1);
-        const int64_t jStep = ((jEnd < jStart) ? -1 : 1);
-        const int64_t iStep = ((iEnd < iStart) ? -1 : 1);
-        
-        int64_t k = kStart;
-        bool kLoopFlag = true;
-        while (kLoopFlag) {
+        for (iterijk[innerLoop] = firstCornerVoxelIndex[innerLoop];
+            iterijk[innerLoop] != lastCornerVoxelIndex[innerLoop] + incrementijk[innerLoop];
+            iterijk[innerLoop] += incrementijk[innerLoop])
+        {
+            CaretAssert(rgbaOutIndex == 4 * (innerCount * std::abs(iterijk[outerLoop] - firstCornerVoxelIndex[outerLoop]) +
+                        std::abs(iterijk[innerLoop] - firstCornerVoxelIndex[innerLoop])));
+            CaretAssertArrayIndex(rgbaOut, rgbaCount, rgbaOutIndex + 3);
             
-            int64_t j = jStart;
-            bool jLoopFlag = true;
-            while (jLoopFlag) {
-                
-                int64_t i = iStart;
-                bool iLoopFlag = true;
-                while (iLoopFlag) {
-                    /*
-                     * Zero indices are
-                     */
-                    const int64_t rgbaOffset = getRgbaOffsetForVoxelIndex(i, j, k);
-                    CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
-                    CaretAssertArrayIndex(rgbaOut, rgbaCount, rgbaOutIndex + 3);
-                    rgbaOut[rgbaOutIndex]   = mapRGBA[rgbaOffset];
-                    rgbaOut[rgbaOutIndex+1] = mapRGBA[rgbaOffset+1];
-                    rgbaOut[rgbaOutIndex+2] = mapRGBA[rgbaOffset+2];
-                    uint8_t alpha = mapRGBA[rgbaOffset+3];
+            const int64_t rgbaOffset = getRgbaOffsetForVoxelIndex(iterijk[0], iterijk[1], iterijk[2]);
+            CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
+            
+            rgbaOut[rgbaOutIndex]   = mapRGBA[rgbaOffset];
+            rgbaOut[rgbaOutIndex+1] = mapRGBA[rgbaOffset+1];
+            rgbaOut[rgbaOutIndex+2] = mapRGBA[rgbaOffset+2];
+            uint8_t alpha = mapRGBA[rgbaOffset+3];
+            
+            if (alpha > 0)
+            {
+                if (labelTable != NULL)
+                {
+                    //For label data, verify that the label is displayed.
+                    //If NOT displayed, zero out the alpha value to
+                    //prevent display of the data.
                     
-                    if (alpha > 0) {
-                        if (labelTable != NULL) {
-                            /*
-                             * For label data, verify that the label is displayed.
-                             * If NOT displayed, zero out the alpha value to
-                             * prevent display of the data.
-                             */
-                            const int32_t dataValue = static_cast<int32_t>(m_volumeFile->getValue(i,
-                                                                                                  j,
-                                                                                                  k,
-                                                                                                  mapIndex));
-                            const GiftiLabel* label = labelTable->getLabel(dataValue);
-                            if (label != NULL) {
-                                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-                                if (item != NULL) {
-                                    if (item->isSelected(displayGroup, tabIndex) == false) {
-                                        alpha = 0;
-                                    }
-                                }
+                    const int32_t dataValue = static_cast<int32_t>(m_volumeFile->getValue(iterijk, mapIndex));
+                    const GiftiLabel* label = labelTable->getLabel(dataValue);
+                    if (label != NULL)
+                    {
+                        const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                        if (item != NULL)
+                        {
+                            if (item->isSelected(displayGroup, tabIndex) == false)
+                            {
+                                alpha = 0;
                             }
                         }
                     }
-                    
-                    if (alpha > 0.0) {
-                        ++validVoxelCount;
-                    }
-                    rgbaOut[rgbaOutIndex+3] = alpha;
-                    rgbaOutIndex += 4;
-                    
-                    if (i == iEnd) {
-                        iLoopFlag = false;
-                    }
-                    else {
-                        i += iStep;
-                    }
-                }
-                
-                if (j == jEnd) {
-                    jLoopFlag = false;
-                }
-                else {
-                    j += jStep;
                 }
             }
             
-            if (k == kEnd) {
-                kLoopFlag = false;
+            if (alpha > 0.0) {
+                ++validVoxelCount;
             }
-            else {
-                k += kStep;
-            }
+            rgbaOut[rgbaOutIndex+3] = alpha;
+
+            rgbaOutIndex += 4;
         }
     }
-    
+
     return validVoxelCount;
 }
 
