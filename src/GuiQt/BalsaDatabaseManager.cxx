@@ -30,7 +30,10 @@
 #include "CaretLogger.h"
 #include "CommandOperationManager.h"
 #include "EventManager.h"
+#include "EventProgressUpdate.h"
 #include "FileInformation.h"
+#include "HttpCommunicator.h"
+#include "HttpCommunicatorResult.h"
 #include "OperationZipSceneFile.h"
 #include "ProgramParameters.h"
 #include "SceneFile.h"
@@ -48,8 +51,8 @@ using namespace caret;
 /**
  * Constructor.
  */
-BalsaDatabaseManager::BalsaDatabaseManager()
-: CaretObject()
+BalsaDatabaseManager::BalsaDatabaseManager(QObject* parent)
+: QObject(parent)
 {
     m_debugFlag = false;
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
@@ -201,6 +204,53 @@ BalsaDatabaseManager::uploadFile(const AString& uploadURL,
     responseContentOut.clear();
     errorMessageOut.clear();
     
+    bool successFlag = false;
+    
+    const bool useCaretHttpFlag = false;
+    if (useCaretHttpFlag) {
+        successFlag = uploadFileWithCaretHttpManager(uploadURL,
+                                                     fileName,
+                                                     httpContentTypeName,
+                                                     responseContentOut,
+                                                     errorMessageOut);
+    }
+    else {
+        successFlag = uploadFileWithHttpCommunicator(uploadURL,
+                                                     fileName,
+                                                     httpContentTypeName,
+                                                     responseContentOut,
+                                                     errorMessageOut);
+    }
+    
+    return successFlag;
+}
+
+/**
+ * Upload file to the BALSA Database.
+ *
+ * @param uploadURL
+ *     URL for uploading file.
+ * @param fileName
+ *     Name of file.
+ * @param httpContentTypeName
+ *     Type of content for upload (eg: application/zip, see http://www.freeformatter.com/mime-types-list.html)
+ * @param responseContentOut
+ *     If successful, contains the response content received after successful upload.
+ * @param errorMessageOut
+ *     Contains error information if upload failed.
+ * @return
+ *     True if upload is successful, else false.
+ */
+bool
+BalsaDatabaseManager::uploadFileWithCaretHttpManager(const AString& uploadURL,
+                                 const AString& fileName,
+                                 const AString& httpContentTypeName,
+                                 AString& responseContentOut,
+                                 AString& errorMessageOut)
+{
+    responseContentOut.clear();
+    errorMessageOut.clear();
+    
     if (httpContentTypeName.isEmpty()) {
         errorMessageOut = ("Content Type Name is empty.  "
                            "See http://www.freeformatter.com/mime-types-list.html for examples.");
@@ -235,11 +285,11 @@ BalsaDatabaseManager::uploadFile(const AString& uploadURL,
     uploadRequest.m_headers.insert(std::make_pair("Cookie",
                                                   getJSessionIdCookie()));
     uploadRequest.m_headers.insert(std::make_pair("X-File-Name",
-                                                 uploadFileName));
+                                                  uploadFileName));
     uploadRequest.m_headers.insert(std::make_pair("X-File-Size",
-                                                 fileSizeString));
+                                                  fileSizeString));
     
-
+    
     
     CaretHttpResponse uploadResponse;
     CaretHttpManager::httpRequest(uploadRequest, uploadResponse);
@@ -271,6 +321,117 @@ BalsaDatabaseManager::uploadFile(const AString& uploadURL,
                        + QString::number(uploadResponse.m_responseCode)
                        + "\n"
                        + responseContentOut);
+    
+    return false;
+}
+
+/**
+ * Upload file to the BALSA Database.
+ *
+ * @param uploadURL
+ *     URL for uploading file.
+ * @param fileName
+ *     Name of file.
+ * @param httpContentTypeName
+ *     Type of content for upload (eg: application/zip, see http://www.freeformatter.com/mime-types-list.html)
+ * @param responseContentOut
+ *     If successful, contains the response content received after successful upload.
+ * @param errorMessageOut
+ *     Contains error information if upload failed.
+ * @return
+ *     True if upload is successful, else false.
+ */
+bool
+BalsaDatabaseManager::uploadFileWithHttpCommunicator(const AString& uploadURL,
+                                                     const AString& fileName,
+                                                     const AString& httpContentTypeName,
+                                                     AString& responseContentOut,
+                                                     AString& errorMessageOut)
+{
+    responseContentOut.clear();
+    errorMessageOut.clear();
+    
+    if (httpContentTypeName.isEmpty()) {
+        errorMessageOut = ("Content Type Name is empty.  "
+                           "See http://www.freeformatter.com/mime-types-list.html for examples.");
+        return false;
+    }
+    
+    FileInformation fileInfo(fileName);
+    if ( ! fileInfo.exists()) {
+        errorMessageOut = (fileName
+                           + " does not exist.");
+        return false;
+    }
+    const int64_t fileSize = fileInfo.size();
+    if (fileSize <= 0) {
+        errorMessageOut = (fileName
+                           + " does not contain any data (size=0)");
+        return false;
+    }
+    
+    /*
+     * Upload file name must be name of file without path
+     */
+    const AString uploadFileName(fileInfo.getFileName());
+    const AString fileSizeString(AString::number(fileSize));
+    
+    std::map<AString, AString> headers;
+    headers.insert(std::make_pair("Content-Type",
+                                                  httpContentTypeName));
+    headers.insert(std::make_pair("Cookie",
+                                                  getJSessionIdCookie()));
+    headers.insert(std::make_pair("X-File-Name",
+                                                  uploadFileName));
+    headers.insert(std::make_pair("X-File-Size",
+                                                  fileSizeString));
+    
+    
+    HttpCommunicator* httpComm = HttpCommunicator::newInstancePostFile(NULL,
+                                                                       uploadURL,
+                                                                       fileName,
+                                                                       headers);
+    QObject::connect(httpComm, SIGNAL(progressReport(const HttpCommunicatorProgress&)),
+                     this, SLOT(receiveProgress(const HttpCommunicatorProgress&)));
+    
+    httpComm->runUntilDone();
+    
+    const HttpCommunicatorResult* result = httpComm->getResult();
+    
+    const int32_t httpCode = result->getHttpCode();
+    responseContentOut = result->getContent();
+    
+    return (httpCode == 200);
+    
+//    if (m_debugFlag) {
+//        std::cout << "Upload response Code: " << uploadResponse.m_responseCode << std::endl;
+//    }
+//    
+//    for (std::map<AString, AString>::iterator mapIter = uploadResponse.m_headers.begin();
+//         mapIter != uploadResponse.m_headers.end();
+//         mapIter++) {
+//        if (m_debugFlag) {
+//            std::cout << "   Response Header: " << qPrintable(mapIter->first)
+//            << " -> " << qPrintable(mapIter->second) << std::endl;
+//        }
+//    }
+//    
+//    uploadResponse.m_body.push_back('\0');
+//    responseContentOut.append(&uploadResponse.m_body[0]);
+//    //QString bodyString(&uploadResponse.m_body[0]);
+//    CaretLogInfo("Upload file to BALSA reply body: "
+//                 + responseContentOut);
+//    
+//    if (uploadResponse.m_responseCode == 200) {
+//        return true;
+//    }
+//    
+//    errorMessageOut = ("Upload failed code: "
+//                       + QString::number(uploadResponse.m_responseCode)
+//                       + "\n"
+//                       + responseContentOut);
+    
+   // NEED TO CHECK FOR SUCCESS AND GET REPLY CODE AND REPLY CONTENT
     
     return false;
 }
@@ -475,6 +636,147 @@ BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
     
     return false;
     
+}
+
+void
+BalsaDatabaseManager::receiveProgress(const HttpCommunicatorProgress& progress)
+{
+    std::cout << "Progress Received: " << progress.getProgressValue() << " of " << progress.getProgressMaximum() << std::endl;
+    emit reportProgress(progress);
+    
+//    EventProgressUpdate progressUpdate;
+//    progressUpdate.setProgress(-1, ("Uploading "
+//                                    + QString::number(progress.getProgressValue())
+//                                    + " of "
+//                                    + QString::number(progress.getProgressMaximum())));
+//    EventManager::get()->sendEvent(progressUpdate.getPointer());
+
+}
+
+bool
+BalsaDatabaseManager::uploadZippedSceneFile(const AString& databaseURL,
+                           const AString& username,
+                           const AString& password,
+                           const SceneFile* sceneFile,
+                           const AString& zipFileName,
+                           const AString& extractToDirectoryName,
+                           AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    /*
+     * Check for errors
+     */
+    if (sceneFile == NULL) {
+        errorMessageOut = "Scene file is invalid.";
+        return false;
+    }
+    const AString sceneFileName = sceneFile->getFileName();
+    if (sceneFileName.isEmpty()) {
+        errorMessageOut = "Scene file does not have a name.";
+        return false;
+    }
+    if (sceneFile->getNumberOfScenes() <= 0) {
+        errorMessageOut = "Scene file does not contain any scenes.";
+        return false;
+    }
+    
+    if (zipFileName.isEmpty()) {
+        errorMessageOut = "Zip file does not have a name.";
+        return false;
+    }
+    if ( ! zipFileName.endsWith(".zip")) {
+        errorMessageOut = "Zip file name must end with \".zip\"";
+        return false;
+    }
+    
+    if (extractToDirectoryName.isEmpty()) {
+        errorMessageOut = "The extract directory name is empty.";
+        return false;
+    }
+    
+    EventProgressUpdate progressUpdate(0,
+                                       5,
+                                       0,
+                                       "Logging in...");
+    EventManager::get()->sendEvent(progressUpdate.getPointer());
+    
+    /*
+     * Login
+     */
+    const AString loginURL(databaseURL
+                           + "/j_spring_security_check");
+    if ( ! login(loginURL,
+                 username,
+                 password,
+                 errorMessageOut)) {
+        
+        return false;
+    }
+    
+    CaretLogInfo("SESSION ID from BALSA Login: "
+                 + getJSessionIdCookie());
+    
+    progressUpdate.setProgress(1, "Zipping Scene and Data Files");
+    EventManager::get()->sendEvent(progressUpdate.getPointer());
+    
+    /*
+     * Zip the scene file and its data files
+     */
+    if ( ! zipSceneAndDataFiles(sceneFile,
+                                extractToDirectoryName,
+                                zipFileName,
+                                errorMessageOut)) {
+        return false;
+    }
+    
+    std::cout << "Zip file has been created " << std::endl;
+    
+    progressUpdate.setProgress(2, "Uploading zip file");
+    EventManager::get()->sendEvent(progressUpdate.getPointer());
+    
+    /*
+     * Upload the ZIP file
+     */
+    AString uploadResultText;
+    const AString uploadURL(databaseURL
+                            + "/study/handleUpload/"
+                            + sceneFile->getBalsaStudyID());
+    const bool uploadSuccessFlag = uploadFile(uploadURL,
+                                              zipFileName,
+                                              "application/zip",
+                                              uploadResultText,
+                                              errorMessageOut);
+    std::cout << "Output of uploading zip file: " << uploadResultText << std::endl;
+    
+    
+    if ( ! uploadSuccessFlag) {
+        return false;
+    }
+    progressUpdate.setProgress(3, "Zip files has been uploaded");
+    EventManager::get()->sendEvent(progressUpdate.getPointer());
+    
+    /*
+     * Process the uploaded file
+     */
+    const AString processUploadURL(databaseURL
+                            + "/study/processUpload/"
+                            + sceneFile->getBalsaStudyID());
+    AString processUploadResultText;
+    const bool processUploadSuccessFlag = processUploadedFile(processUploadURL,
+                                                                     "application/x-www-form-urlencoded",
+                                                                     processUploadResultText,
+                                                              errorMessageOut);
+    
+    std::cout << "Result of processing the uploaded ZIP file" << std::endl;
+    if ( ! processUploadSuccessFlag) {
+        return false;
+    }
+    
+    progressUpdate.setProgress(4, "Zip files has been processed after uploading.");
+    EventManager::get()->sendEvent(progressUpdate.getPointer());
+
+    return true;
 }
 
 

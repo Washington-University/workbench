@@ -17,6 +17,7 @@ INCLUDE(${QT_USE_FILE})
 
 SET(MOC_INPUT_HEADER_FILES
 CaretHttpManager.h
+HttpCommunicator.h
 )
 
 QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
@@ -90,6 +91,9 @@ FileInformation.h
 FloatMatrix.h
 Histogram.h
 HtmlStringBuilder.h
+HttpCommunicator.h
+HttpCommunicatorProgress.h
+HttpCommunicatorResult.h
 ImageCaptureMethodEnum.h
 Logger.h
 LogHandler.h
@@ -184,6 +188,9 @@ FileInformation.cxx
 FloatMatrix.cxx
 Histogram.cxx
 HtmlStringBuilder.cxx
+HttpCommunicator.cxx
+HttpCommunicatorProgress.cxx
+HttpCommunicatorResult.cxx
 ImageCaptureMethodEnum.cxx
 Logger.cxx
 LogHandler.cxx

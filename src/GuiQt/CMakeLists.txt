@@ -49,7 +49,8 @@ AnnotationTextEditorDialog.h
 AnnotationTextEditorWidget.h
 AnnotationTextOrientationWidget.h
 AnnotationWidthHeightWidget.h
-BalsaDatabaseDialog.h
+BalsaDatabaseManager.h
+BalsaDatabaseUploadSceneFileDialog.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -131,7 +132,6 @@ PaletteColorMappingEditorDialog.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
-ProgressReportingBar.h
 ProgressReportingDialog.h
 ProgressReportingFromEvent.h
 ProgressReportingWithSlots.h
@@ -215,8 +215,8 @@ AnnotationTextEditorWidget.h
 AnnotationTextOrientationWidget.h
 AnnotationWidgetParentEnum.h
 AnnotationWidthHeightWidget.h
-BalsaDatabaseDialog.h
 BalsaDatabaseManager.h
+BalsaDatabaseUploadSceneFileDialog.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -328,7 +328,6 @@ PaletteColorMappingEditorDialog.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
-ProgressReportingBar.h
 ProgressReportingDialog.h
 ProgressReportingFromEvent.h
 ProgressReportingWithSlots.h
@@ -414,8 +413,8 @@ AnnotationTextEditorWidget.cxx
 AnnotationTextOrientationWidget.cxx
 AnnotationWidgetParentEnum.cxx
 AnnotationWidthHeightWidget.cxx
-BalsaDatabaseDialog.cxx
 BalsaDatabaseManager.cxx
+BalsaDatabaseUploadSceneFileDialog.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
 BorderOptimizeDialog.cxx
@@ -526,7 +525,6 @@ PaletteColorMappingEditorDialog.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
 PreferencesDialog.cxx
-ProgressReportingBar.cxx
 ProgressReportingDialog.cxx
 ProgressReportingFromEvent.cxx
 ProgressReportingWithSlots.cxx

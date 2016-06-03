@@ -40,7 +40,7 @@
 #include "SceneDialog.h"
 #undef __SCENE_DIALOG_DECLARE__
 
-#include "BalsaDatabaseDialog.h"
+#include "BalsaDatabaseUploadSceneFileDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainConstants.h"
@@ -515,9 +515,9 @@ SceneDialog::uploadSceneFileButtonClicked()
         return;
     }
     
-    BalsaDatabaseDialog balsaDialog(sceneFile,
-                                    this);
-    balsaDialog.exec();
+    BalsaDatabaseUploadSceneFileDialog uploadDialog(sceneFile,
+                                                    this);
+    uploadDialog.exec();
 }
 
 /**

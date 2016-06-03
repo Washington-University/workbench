@@ -1,5 +1,5 @@
-#ifndef __PROGRESS_REPORTING_BAR_H__
-#define __PROGRESS_REPORTING_BAR_H__
+#ifndef __HTTP_COMMUNICATOR_RESULT_H__
+#define __HTTP_COMMUNICATOR_RESULT_H__
 
 /*LICENSE_START*/
 /*
@@ -21,56 +21,55 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 
-#include <QWidget>
+#include "CaretObject.h"
 
-class QLabel;
-class QProgressBar;
+
 
 namespace caret {
 
-    class ProgressReportingFromEvent;
-    
-    class ProgressReportingBar : public QWidget {
+    class HttpCommunicatorResult : public CaretObject {
         
-        Q_OBJECT
-
     public:
-        ProgressReportingBar(QWidget* parent = 0);
+        HttpCommunicatorResult();
         
-        virtual ~ProgressReportingBar();
+        HttpCommunicatorResult(const int32_t httpCode,
+                               const std::map<AString, AString>& headers,
+                               const AString& content);
         
-        void setEnabledForUpdates(const bool enabledForUpdates);
+        virtual ~HttpCommunicatorResult();
         
-        void reset();
-
-        void setRange(const int32_t minimum,
-                      const int32_t maximum);
+        bool isValid() const;
         
-        void setValue(const int32_t value);
+        int32_t getHttpCode() const;
         
-        void setMessage(const QString& text);
+        std::map<AString, AString> getHeaders() const;
+        
+        AString getContent() const;
         
         // ADD_NEW_METHODS_HERE
-
+        
     private:
-        ProgressReportingBar(const ProgressReportingBar&);
-
-        ProgressReportingBar& operator=(const ProgressReportingBar&);
+        HttpCommunicatorResult(const HttpCommunicatorResult& obj);
         
-        QProgressBar* m_progressBar;
+        HttpCommunicatorResult& operator=(const HttpCommunicatorResult& obj);
         
-        QLabel* m_messageLabel;
+        int32_t m_httpCode;
         
-        ProgressReportingFromEvent* m_progressFromEvent;
+        std::map<AString, AString> m_headers;
+        
+        AString m_content;
+        
+        const bool m_valid;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __PROGRESS_REPORTING_BAR_DECLARE__
+#ifdef __HTTP_COMMUNICATOR_RESULT_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __PROGRESS_REPORTING_BAR_DECLARE__
+#endif // __HTTP_COMMUNICATOR_RESULT_DECLARE__
 
 } // namespace
-#endif  //__PROGRESS_REPORTING_BAR_H__
+#endif  //__HTTP_COMMUNICATOR_RESULT_H__

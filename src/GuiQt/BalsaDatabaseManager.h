@@ -21,22 +21,32 @@
  */
 /*LICENSE_END*/
 
+#include <QObject>
 
 #include "CaretObject.h"
 
 #include "EventListenerInterface.h"
-
+#include "HttpCommunicatorProgress.h"
 
 namespace caret {
 
     class SceneFile;
     
-    class BalsaDatabaseManager : public CaretObject, public EventListenerInterface {
+    class BalsaDatabaseManager : public QObject, public EventListenerInterface {
+        Q_OBJECT
         
     public:
-        BalsaDatabaseManager();
+        BalsaDatabaseManager(QObject* parent);
         
         virtual ~BalsaDatabaseManager();
+        
+        bool uploadZippedSceneFile(const AString& databaseURL,
+                   const AString& username,
+                   const AString& password,
+                   const SceneFile* sceneFile,
+                   const AString& zipFileName,
+                   const AString& extractToDirectoryName,
+                   AString& errorMessageOut);
         
         bool login(const AString& loginURL,
                    const AString& username,
@@ -67,10 +77,28 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
 
+    signals:
+        void reportProgress(const HttpCommunicatorProgress& progress);
+        
+    private slots:
+        void receiveProgress(const HttpCommunicatorProgress& progress);
+        
     private:
         BalsaDatabaseManager(const BalsaDatabaseManager&);
 
         BalsaDatabaseManager& operator=(const BalsaDatabaseManager&);
+        
+        bool uploadFileWithCaretHttpManager(const AString& uploadURL,
+                        const AString& fileName,
+                        const AString& httpContentTypeName,
+                        AString& responseContentOut,
+                        AString& errorMessageOut);
+        
+        bool uploadFileWithHttpCommunicator(const AString& uploadURL,
+                                            const AString& fileName,
+                                            const AString& httpContentTypeName,
+                                            AString& responseContentOut,
+                                            AString& errorMessageOut);
         
         AString m_username;
         
