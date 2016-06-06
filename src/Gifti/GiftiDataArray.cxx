@@ -732,7 +732,7 @@ GiftiDataArray::readFromText(const AString text,
                }
                
                 std::ifstream extBinFile(externalFileNameForReading.toStdString().c_str(),
-                                         std::ifstream::in);
+                                         std::ifstream::in | std::ifstream::binary);
                 if (extBinFile.good() == false) {
                         throw GiftiException("Error opening \""
                                             + externalFileNameForReading
