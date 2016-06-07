@@ -294,36 +294,44 @@ BalsaDatabaseManager::uploadFileWithCaretHttpManager(const AString& uploadURL,
     
     CaretHttpResponse uploadResponse;
     CaretHttpManager::httpRequest(uploadRequest, uploadResponse);
-    
-    if (m_debugFlag) {
-        std::cout << "Upload response Code: " << uploadResponse.m_responseCode << std::endl;
-    }
-    
-    for (std::map<AString, AString>::iterator mapIter = uploadResponse.m_headers.begin();
-         mapIter != uploadResponse.m_headers.end();
-         mapIter++) {
-        if (m_debugFlag) {
-            std::cout << "   Response Header: " << qPrintable(mapIter->first)
-            << " -> " << qPrintable(mapIter->second) << std::endl;
-        }
-    }
-    
+
     uploadResponse.m_body.push_back('\0');
     responseContentOut.append(&uploadResponse.m_body[0]);
-    //QString bodyString(&uploadResponse.m_body[0]);
-    CaretLogInfo("Upload file to BALSA reply body: "
-                 + responseContentOut);
+
     
-    if (uploadResponse.m_responseCode == 200) {
-        return true;
-    }
+    return processUploadResponse(uploadResponse.m_headers,
+                                 responseContentOut,
+                                 uploadResponse.m_responseCode,
+                                 errorMessageOut);
+
     
-    errorMessageOut = ("Upload failed code: "
-                       + QString::number(uploadResponse.m_responseCode)
-                       + "\n"
-                       + responseContentOut);
-    
-    return false;
+//    if (m_debugFlag) {
+//        std::cout << "Upload response Code: " << uploadResponse.m_responseCode << std::endl;
+//    }
+//    
+//    for (std::map<AString, AString>::iterator mapIter = uploadResponse.m_headers.begin();
+//         mapIter != uploadResponse.m_headers.end();
+//         mapIter++) {
+//        if (m_debugFlag) {
+//            std::cout << "   Response Header: " << qPrintable(mapIter->first)
+//            << " -> " << qPrintable(mapIter->second) << std::endl;
+//        }
+//    }
+//    
+//    //QString bodyString(&uploadResponse.m_body[0]);
+//    CaretLogInfo("Upload file to BALSA reply body: "
+//                 + responseContentOut);
+//    
+//    if (uploadResponse.m_responseCode == 200) {
+//        return true;
+//    }
+//    
+//    errorMessageOut = ("Upload failed code: "
+//                       + QString::number(uploadResponse.m_responseCode)
+//                       + "\n"
+//                       + responseContentOut);
+//    
+//    return false;
 }
 
 /**
@@ -403,6 +411,77 @@ BalsaDatabaseManager::uploadFileWithHttpCommunicator(const AString& uploadURL,
     responseContentOut = result->getContent();
     
     std::map<AString, AString> responseHeaders = result->getHeaders();
+    
+    return processUploadResponse(responseHeaders,
+                                 responseContentOut,
+                                 httpCode,
+                                 errorMessageOut);
+    
+    
+    
+    
+//    if (responseHeaders.empty()) {
+//        if (m_debugFlag) std::cout << "Response headers from upload are empty." << std::endl;
+//    }
+//    
+//    bool haveContentTypeFlag = false;
+//    AString contentTypeString;
+//    for (std::map<AString, AString>::const_iterator iter = responseHeaders.begin();
+//         iter != responseHeaders.end();
+//         iter++) {
+//        if (m_debugFlag) std::cout << "Response Header: " << iter->first << " -> " << iter->second << std::endl;
+//        
+//        if (iter->first == "Content-Type") {
+//            haveContentTypeFlag = true;
+//            contentTypeString = iter->second;
+//        }
+//    }
+//    
+//    AString contentErrorMessage;
+//    bool haveJsonResponseContentFlag = false;
+//    if (haveContentTypeFlag) {
+//        if (contentTypeString.startsWith("application/json;")) {
+//            haveJsonResponseContentFlag = true;
+//        }
+//        else {
+//            contentErrorMessage = ("Content-Type received from file upload is not JSON but is "
+//                                   + contentTypeString
+//                                   + "\n");
+//        }
+//    }
+//    else {
+//        contentErrorMessage = "No Content-Type header received from file upload.\n";
+//    }
+//    
+//    CaretJsonObject json(responseContentOut);
+//    
+//    if (httpCode != 200) {
+//        AString msg = json.value("statusText");
+//        if ( ! msg.isEmpty()) {
+//            contentErrorMessage.insert(0, msg + "\n");
+//        }
+//        
+//        errorMessageOut = ("Upload failed.  Http Code="
+//                           + AString::number(httpCode)
+//                           + "\n"
+//                           "   " + contentErrorMessage);
+//        return false;
+//    }
+//    
+//    if ( ! haveJsonResponseContentFlag) {
+//        errorMessageOut = (contentErrorMessage);
+//        return false;
+//    }
+//    
+//    return true;
+}
+
+bool
+BalsaDatabaseManager::processUploadResponse(const std::map<AString, AString>& responseHeaders,
+                                            const AString& responseContent,
+                                            const int32_t responseHttpCode,
+                                            AString& errorMessageOut) const
+{
     if (responseHeaders.empty()) {
         if (m_debugFlag) std::cout << "Response headers from upload are empty." << std::endl;
     }
@@ -436,16 +515,16 @@ BalsaDatabaseManager::uploadFileWithHttpCommunicator(const AString& uploadURL,
         contentErrorMessage = "No Content-Type header received from file upload.\n";
     }
     
-    CaretJsonObject json(responseContentOut);
+    CaretJsonObject json(responseContent);
     
-    if (httpCode != 200) {
+    if (responseHttpCode != 200) {
         AString msg = json.value("statusText");
         if ( ! msg.isEmpty()) {
             contentErrorMessage.insert(0, msg + "\n");
         }
         
         errorMessageOut = ("Upload failed.  Http Code="
-                           + AString::number(httpCode)
+                           + AString::number(responseHttpCode)
                            + "\n"
                            "   " + contentErrorMessage);
         return false;
@@ -457,38 +536,6 @@ BalsaDatabaseManager::uploadFileWithHttpCommunicator(const AString& uploadURL,
     }
     
     return true;
-    
-//    if (m_debugFlag) {
-//        std::cout << "Upload response Code: " << uploadResponse.m_responseCode << std::endl;
-//    }
-//    
-//    for (std::map<AString, AString>::iterator mapIter = uploadResponse.m_headers.begin();
-//         mapIter != uploadResponse.m_headers.end();
-//         mapIter++) {
-//        if (m_debugFlag) {
-//            std::cout << "   Response Header: " << qPrintable(mapIter->first)
-//            << " -> " << qPrintable(mapIter->second) << std::endl;
-//        }
-//    }
-//    
-//    uploadResponse.m_body.push_back('\0');
-//    responseContentOut.append(&uploadResponse.m_body[0]);
-//    //QString bodyString(&uploadResponse.m_body[0]);
-//    CaretLogInfo("Upload file to BALSA reply body: "
-//                 + responseContentOut);
-//    
-//    if (uploadResponse.m_responseCode == 200) {
-//        return true;
-//    }
-//    
-//    errorMessageOut = ("Upload failed code: "
-//                       + QString::number(uploadResponse.m_responseCode)
-//                       + "\n"
-//                       + responseContentOut);
-    
-   // NEED TO CHECK FOR SUCCESS AND GET REPLY CODE AND REPLY CONTENT
-    
-//    return false;
 }
 
 /**

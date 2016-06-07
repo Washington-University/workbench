@@ -100,6 +100,11 @@ namespace caret {
                                             AString& responseContentOut,
                                             AString& errorMessageOut);
         
+        
+        bool processUploadResponse(const std::map<AString, AString>& responseHeaders,
+                                   const AString& responseContent,
+                                   const int32_t responseHttpCode,
+                                   AString& errorMessageOut) const;
         AString m_username;
         
         AString m_password;
