@@ -63,14 +63,21 @@ OperationParameters* OperationCiftiExportDenseMapping::getParameters()
     
     //-surface-all? -all?
     
-    ret->setHelpText(
+    AString helpText =
         AString("This command produces text files that describe the mapping from cifti indices to surface vertices or voxels.  ") +
         "All indices are zero-based.  " +
         "The default format for -surface is lines of the form:\n\n" +
         "<cifti-index> <vertex>\n\n" +
         "The default format for -volume and -volume-all is lines of the form:\n\n" +
-        "<cifti-index> <i> <j> <k>"
-    );
+        "<cifti-index> <i> <j> <k>\n\n" + 
+        "For each <structure> argument, use one of the following strings:\n";
+    vector<StructureEnum::Enum> myStructureEnums;
+    StructureEnum::getAllEnums(myStructureEnums);
+    for (int i = 0; i < (int)myStructureEnums.size(); ++i)
+    {
+        helpText += "\n" + StructureEnum::toName(myStructureEnums[i]);
+    }
+    ret->setHelpText(helpText);
     return ret;
 }
 
