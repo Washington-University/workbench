@@ -151,8 +151,11 @@ BalsaDatabaseManager::login(const AString& loginURL,
         return true;
     }
     
+    loginResponse.m_body.push_back('\0');
+    const AString responseContent(&loginResponse.m_body[0]);
     errorMessageOut = ("Login has failed.\n"
-                       "HTTP Code: " + AString::number(loginResponse.m_responseCode));
+                       "HTTP Code: " + AString::number(loginResponse.m_responseCode)
+                       + " Content: " + responseContent);
 
     return false;
 }
