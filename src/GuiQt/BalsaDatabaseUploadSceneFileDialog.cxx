@@ -53,6 +53,11 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param sceneFile
+ *     Scene file that will be uploaded.
+ * @param parent
+ *     Parent of this dialog.
  */
 BalsaDatabaseUploadSceneFileDialog::BalsaDatabaseUploadSceneFileDialog(const SceneFile* sceneFile,
                                                                        QWidget* parent)
@@ -60,16 +65,13 @@ BalsaDatabaseUploadSceneFileDialog::BalsaDatabaseUploadSceneFileDialog(const Sce
                  parent),
 m_sceneFile(sceneFile)
 {
-    const QString defaultUserName = "balsaTest";
-    const QString defaultPassword = "@2password";
-    
-    //    QLabel* loginLabel = new QLabel("<html>"
-    //                                     "Login for "
-    //                                     "<bold><a href=\"/\">BALSA Database</a></bold>"
-    //                                     "</html>");
-    //    QObject::connect(loginLabel, SIGNAL(linkActivated(const QString&)),
-    //                     this, SLOT(labelHtmlLinkClicked(const QString&)));
-    
+    QString defaultUserName = "balsaTest";
+    QString defaultPassword = "@2password";
+
+#ifdef NDEBUG
+    defaultUserName = "";
+    defaultPassword = "";
+#endif
     
     QLabel* databaseNameLabel = new QLabel("DataBase: ");
     m_databaseComboBox = new QComboBox();
@@ -131,8 +133,6 @@ m_sceneFile(sceneFile)
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 100);
     int row = 0;
-    //    gridLayout->addWidget(loginLabel, row, 0, 1, 2);
-    //    row++;
     gridLayout->addWidget(databaseNameLabel, row, 0);
     gridLayout->addWidget(m_databaseComboBox, row, 1);
     gridLayout->addWidget(registerLabel, row, 2);
@@ -155,17 +155,6 @@ m_sceneFile(sceneFile)
     
     setCentralWidget(dialogWidget,
                      WuQDialogModal::SCROLL_AREA_NEVER);
-    
-//    QComboBox* m_databaseComboBox;
-//    
-//    QLineEdit* m_usernameLineEdit;
-//    
-//    QLineEdit* m_passwordLineEdit;
-//    
-//    QLineEdit* m_zipFileNameLineEdit;
-//    
-//    QLineEdit* m_extractDirectoryNameLineEdit;
-    
 }
 
 /**
@@ -211,32 +200,6 @@ BalsaDatabaseUploadSceneFileDialog::labelHtmlLinkClicked(const QString& linkPath
 void
 BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
 {
-    
-    /*
-     void okButtonClicked() {
-     m_timer = new QTimer(this);
-     connect(m_timer, SIGNAL(timeout()), this, perform());
-     uploader = startAsynchronusUpload();
-     connect(uploader, SIGNAL(progress)), this, SLOT(slotUpdateProgress()))
-     m_timer->start();
-     }
-     
-     void perform() {
-       if (uploader->isFinished()) {   METHOD IS MUTEXED
-         m_timer->stop();
-         close();
-       }
-       else {
-         Progress p = uploader->getProgress();  METHOD IS MUTEXED
-         progressDialogOrBar->setProgress()
-       }
-     }
-     
-     void slotUpdateProgress() {
-     }
-     
-     
-     */
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
 
@@ -244,13 +207,14 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
                                            "",
                                            this);
     
+    progressDialog.setCancelButton((QPushButton*)0); // no cancel button
     const AString username = m_usernameLineEdit->text().trimmed();
     const AString password = m_passwordLineEdit->text().trimmed();
     const AString zipFileName = m_zipFileNameLineEdit->text().trimmed();
     const AString extractToDirectoryName = m_extractDirectoryNameLineEdit->text().trimmed();
 
     AString errorMessage;
-    CaretPointer<BalsaDatabaseManager> balsaDatabaseManager(new BalsaDatabaseManager(this));
+    CaretPointer<BalsaDatabaseManager> balsaDatabaseManager(new BalsaDatabaseManager());
     const bool successFlag = balsaDatabaseManager->uploadZippedSceneFile(getDataBaseURL(),
                                                                          username,
                                                                          password,

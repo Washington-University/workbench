@@ -21,22 +21,18 @@
  */
 /*LICENSE_END*/
 
-#include <QObject>
-
 #include "CaretObject.h"
 
 #include "EventListenerInterface.h"
-#include "HttpCommunicatorProgress.h"
 
 namespace caret {
 
     class SceneFile;
     
-    class BalsaDatabaseManager : public QObject, public EventListenerInterface {
-        Q_OBJECT
+    class BalsaDatabaseManager : public CaretObject, public EventListenerInterface {
         
     public:
-        BalsaDatabaseManager(QObject* parent);
+        BalsaDatabaseManager();
         
         virtual ~BalsaDatabaseManager();
         
@@ -77,12 +73,6 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
 
-    signals:
-        void reportProgress(const HttpCommunicatorProgress& progress);
-        
-    private slots:
-        void receiveProgress(const HttpCommunicatorProgress& progress);
-        
     private:
         BalsaDatabaseManager(const BalsaDatabaseManager&);
 

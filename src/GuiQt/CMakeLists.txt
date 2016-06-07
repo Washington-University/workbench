@@ -49,7 +49,6 @@ AnnotationTextEditorDialog.h
 AnnotationTextEditorWidget.h
 AnnotationTextOrientationWidget.h
 AnnotationWidthHeightWidget.h
-BalsaDatabaseManager.h
 BalsaDatabaseUploadSceneFileDialog.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
