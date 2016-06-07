@@ -28,6 +28,7 @@
 
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
+#include "CaretLogger.h"
 #include "HttpCommunicatorProgress.h"
 #include "HttpCommunicatorResult.h"
 
@@ -164,14 +165,22 @@ void HttpCommunicator::slotNetworkAccessManagerFinished(QNetworkReply* reply)
             }
             contentString = AString(content);
             
+            QList<QNetworkReply::RawHeaderPair> headerList = m_networkReply->rawHeaderPairs();
+            QListIterator<QNetworkReply::RawHeaderPair> headerIter(headerList);
+            while (headerIter.hasNext()) {
+                QNetworkReply::RawHeaderPair pair = headerIter.next();
+                AString name(pair.first);
+                AString value (pair.second);
+                headers.insert(std::make_pair(name, value));
+            }
             m_result.grabNew(new HttpCommunicatorResult(httpCode,
                                                         headers,
                                                         contentString));
         }
 //    }
 
-    std::cout << "Http Code: " << httpCode << std::endl;
-    std::cout << "Content: " << qPrintable(contentString) << std::endl;
+//    std::cout << "Http Code: " << httpCode << std::endl;
+//    std::cout << "Content: " << qPrintable(contentString) << std::endl;
 }
 
 void HttpCommunicator::slotNetworkAccessManagerSslErrors(QNetworkReply* reply,
@@ -180,7 +189,7 @@ void HttpCommunicator::slotNetworkAccessManagerSslErrors(QNetworkReply* reply,
     QListIterator<QSslError> listIter(errors);
     while (listIter.hasNext()) {
         const QSslError e = listIter.next();
-        std::cout << "Network Access Manager SSL ERROR: " << qPrintable(e.errorString()) << std::endl;
+        CaretLogSevere("Network Access Manager SSL ERROR: " + e.errorString());
     }
     setFinished(true);
 }
@@ -189,14 +198,14 @@ void HttpCommunicator::slotNetworkAccessManagerSslErrors(QNetworkReply* reply,
 void
 HttpCommunicator::slotNetworkReplyError(QNetworkReply::NetworkError code)
 {
-    std::cout << "Network Reply Network Error Code " << code << std::endl;
+//    std::cout << "Network Reply Network Error Code=" << code << " message: " << qPrintable(m_networkReply->errorString()) << std::endl;
     setFinished(true);
 }
 
 void
 HttpCommunicator::slotNetworkReplyFinished()
 {
-    std::cout << "Network Reply Finished" << std::endl;
+//    std::cout << "Network Reply Finished" << std::endl;
     setFinished(true);
 }
 
@@ -206,7 +215,7 @@ HttpCommunicator::slotNetworkReplySslErrors(const QList<QSslError>& errors)
     QListIterator<QSslError> listIter(errors);
     while (listIter.hasNext()) {
         const QSslError e = listIter.next();
-        std::cout << "Network Reply SSL ERROR: " << qPrintable(e.errorString()) << std::endl;
+        CaretLogSevere("Network Reply SSL ERROR: " + e.errorString());
     }
     setFinished(true);
 }
@@ -214,7 +223,7 @@ HttpCommunicator::slotNetworkReplySslErrors(const QList<QSslError>& errors)
 void
 HttpCommunicator::slotNetworkReplyUploadProgress(qint64 bytesSent, qint64 bytesTotal)
 {
-    std::cout << "Network Reply Upload progress: " << bytesSent << " of " << bytesTotal << std::endl;
+//    std::cout << "Network Reply Upload progress: " << bytesSent << " of " << bytesTotal << std::endl;
     
     HttpCommunicatorProgress progress(this,
                                       HttpCommunicatorProgress::STATUS_IN_PROGRESS,
@@ -228,7 +237,7 @@ HttpCommunicator::slotNetworkReplyUploadProgress(qint64 bytesSent, qint64 bytesT
         m_networkReply->abort();
     }
     
-    SystemUtilities::sleepSeconds(0.1);
+    //SystemUtilities::sleepSeconds(0.05);
 }
 
 /**

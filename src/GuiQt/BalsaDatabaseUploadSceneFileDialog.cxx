@@ -211,6 +211,32 @@ BalsaDatabaseUploadSceneFileDialog::labelHtmlLinkClicked(const QString& linkPath
 void
 BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
 {
+    
+    /*
+     void okButtonClicked() {
+     m_timer = new QTimer(this);
+     connect(m_timer, SIGNAL(timeout()), this, perform());
+     uploader = startAsynchronusUpload();
+     connect(uploader, SIGNAL(progress)), this, SLOT(slotUpdateProgress()))
+     m_timer->start();
+     }
+     
+     void perform() {
+       if (uploader->isFinished()) {   METHOD IS MUTEXED
+         m_timer->stop();
+         close();
+       }
+       else {
+         Progress p = uploader->getProgress();  METHOD IS MUTEXED
+         progressDialogOrBar->setProgress()
+       }
+     }
+     
+     void slotUpdateProgress() {
+     }
+     
+     
+     */
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
 
@@ -237,9 +263,15 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     
     progressDialog.setValue(progressDialog.maximum());
     
-    if ( ! successFlag) {
+    if (successFlag) {
+        WuQMessageBox::informationOk(this, "Upload was successful");
+    }
+    else {
         WuQMessageBox::errorOk(this,
                                errorMessage);
+        return;
     }
+    
+    WuQDialogModal::okButtonClicked();    
 }
 

@@ -27,6 +27,7 @@
 
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
+#include "CaretJsonObject.h"
 #include "CaretLogger.h"
 #include "CommandOperationManager.h"
 #include "EventManager.h"
@@ -376,21 +377,21 @@ BalsaDatabaseManager::uploadFileWithHttpCommunicator(const AString& uploadURL,
     const AString uploadFileName(fileInfo.getFileName());
     const AString fileSizeString(AString::number(fileSize));
     
-    std::map<AString, AString> headers;
-    headers.insert(std::make_pair("Content-Type",
+    std::map<AString, AString> requestHeaders;
+    requestHeaders.insert(std::make_pair("Content-Type",
                                                   httpContentTypeName));
-    headers.insert(std::make_pair("Cookie",
+    requestHeaders.insert(std::make_pair("Cookie",
                                                   getJSessionIdCookie()));
-    headers.insert(std::make_pair("X-File-Name",
+    requestHeaders.insert(std::make_pair("X-File-Name",
                                                   uploadFileName));
-    headers.insert(std::make_pair("X-File-Size",
+    requestHeaders.insert(std::make_pair("X-File-Size",
                                                   fileSizeString));
     
     
     HttpCommunicator* httpComm = HttpCommunicator::newInstancePostFile(NULL,
                                                                        uploadURL,
                                                                        fileName,
-                                                                       headers);
+                                                                       requestHeaders);
     QObject::connect(httpComm, SIGNAL(progressReport(const HttpCommunicatorProgress&)),
                      this, SLOT(receiveProgress(const HttpCommunicatorProgress&)));
     
@@ -401,7 +402,61 @@ BalsaDatabaseManager::uploadFileWithHttpCommunicator(const AString& uploadURL,
     const int32_t httpCode = result->getHttpCode();
     responseContentOut = result->getContent();
     
-    return (httpCode == 200);
+    std::map<AString, AString> responseHeaders = result->getHeaders();
+    if (responseHeaders.empty()) {
+        if (m_debugFlag) std::cout << "Response headers from upload are empty." << std::endl;
+    }
+    
+    bool haveContentTypeFlag = false;
+    AString contentTypeString;
+    for (std::map<AString, AString>::const_iterator iter = responseHeaders.begin();
+         iter != responseHeaders.end();
+         iter++) {
+        if (m_debugFlag) std::cout << "Response Header: " << iter->first << " -> " << iter->second << std::endl;
+        
+        if (iter->first == "Content-Type") {
+            haveContentTypeFlag = true;
+            contentTypeString = iter->second;
+        }
+    }
+    
+    AString contentErrorMessage;
+    bool haveJsonResponseContentFlag = false;
+    if (haveContentTypeFlag) {
+        if (contentTypeString.startsWith("application/json;")) {
+            haveJsonResponseContentFlag = true;
+        }
+        else {
+            contentErrorMessage = ("Content-Type received from file upload is not JSON but is "
+                                   + contentTypeString
+                                   + "\n");
+        }
+    }
+    else {
+        contentErrorMessage = "No Content-Type header received from file upload.\n";
+    }
+    
+    CaretJsonObject json(responseContentOut);
+    
+    if (httpCode != 200) {
+        AString msg = json.value("statusText");
+        if ( ! msg.isEmpty()) {
+            contentErrorMessage.insert(0, msg + "\n");
+        }
+        
+        errorMessageOut = ("Upload failed.  Http Code="
+                           + AString::number(httpCode)
+                           + "\n"
+                           "   " + contentErrorMessage);
+        return false;
+    }
+    
+    if ( ! haveJsonResponseContentFlag) {
+        errorMessageOut = (contentErrorMessage);
+        return false;
+    }
+    
+    return true;
     
 //    if (m_debugFlag) {
 //        std::cout << "Upload response Code: " << uploadResponse.m_responseCode << std::endl;
@@ -433,7 +488,7 @@ BalsaDatabaseManager::uploadFileWithHttpCommunicator(const AString& uploadURL,
     
    // NEED TO CHECK FOR SUCCESS AND GET REPLY CODE AND REPLY CONTENT
     
-    return false;
+//    return false;
 }
 
 /**
@@ -622,7 +677,7 @@ BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
     uploadResponse.m_body.push_back('\0');
     responseContentOut.append(&uploadResponse.m_body[0]);
     //QString bodyString(&uploadResponse.m_body[0]);
-    CaretLogInfo("Process Upload to BALSA reply body: "
+    CaretLogFine("Process Upload to BALSA reply body: "
                  + responseContentOut);
     
     if (uploadResponse.m_responseCode == 200) {
@@ -641,7 +696,7 @@ BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
 void
 BalsaDatabaseManager::receiveProgress(const HttpCommunicatorProgress& progress)
 {
-    std::cout << "Progress Received: " << progress.getProgressValue() << " of " << progress.getProgressMaximum() << std::endl;
+    if (m_debugFlag) std::cout << "Progress Received: " << progress.getProgressValue() << " of " << progress.getProgressMaximum() << std::endl;
     emit reportProgress(progress);
     
 //    EventProgressUpdate progressUpdate;
@@ -730,7 +785,7 @@ BalsaDatabaseManager::uploadZippedSceneFile(const AString& databaseURL,
         return false;
     }
     
-    std::cout << "Zip file has been created " << std::endl;
+    if (m_debugFlag) std::cout << "Zip file has been created " << std::endl;
     
     progressUpdate.setProgress(2, "Uploading zip file");
     EventManager::get()->sendEvent(progressUpdate.getPointer());
@@ -747,7 +802,7 @@ BalsaDatabaseManager::uploadZippedSceneFile(const AString& databaseURL,
                                               "application/zip",
                                               uploadResultText,
                                               errorMessageOut);
-    std::cout << "Output of uploading zip file: " << uploadResultText << std::endl;
+    if (m_debugFlag) std::cout << "Output of uploading zip file: " << uploadResultText << std::endl;
     
     
     if ( ! uploadSuccessFlag) {
@@ -756,25 +811,31 @@ BalsaDatabaseManager::uploadZippedSceneFile(const AString& databaseURL,
     progressUpdate.setProgress(3, "Zip files has been uploaded");
     EventManager::get()->sendEvent(progressUpdate.getPointer());
     
-    /*
-     * Process the uploaded file
-     */
-    const AString processUploadURL(databaseURL
-                            + "/study/processUpload/"
-                            + sceneFile->getBalsaStudyID());
-    AString processUploadResultText;
-    const bool processUploadSuccessFlag = processUploadedFile(processUploadURL,
-                                                                     "application/x-www-form-urlencoded",
-                                                                     processUploadResultText,
-                                                              errorMessageOut);
-    
-    std::cout << "Result of processing the uploaded ZIP file" << std::endl;
-    if ( ! processUploadSuccessFlag) {
-        return false;
+    const bool doProcessUploadFlag = true;
+    if (doProcessUploadFlag) {
+        /*
+         * Process the uploaded file
+         */
+        const AString processUploadURL(databaseURL
+                                       + "/study/processUpload/"
+                                       + sceneFile->getBalsaStudyID());
+        AString processUploadResultText;
+        const bool processUploadSuccessFlag = processUploadedFile(processUploadURL,
+                                                                  "application/x-www-form-urlencoded",
+                                                                  processUploadResultText,
+                                                                  errorMessageOut);
+        
+        if (m_debugFlag) std::cout << "Result of processing the uploaded ZIP file" << AString::fromBool(processUploadSuccessFlag) << std::endl;
+        if ( ! processUploadSuccessFlag) {
+            return false;
+        }
+        
+        progressUpdate.setProgress(4, "Zip files has been processed after uploading.");
+        EventManager::get()->sendEvent(progressUpdate.getPointer());
     }
-    
-    progressUpdate.setProgress(4, "Zip files has been processed after uploading.");
-    EventManager::get()->sendEvent(progressUpdate.getPointer());
+    else {
+        CaretLogSevere("PROCESSING OF FILE UPLOADED TO BALSA IS DISABLED");
+    }
 
     return true;
 }
