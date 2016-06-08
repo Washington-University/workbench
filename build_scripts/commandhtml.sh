@@ -43,6 +43,10 @@ echo -n '</a>' >> "$outDir/$startPage"
 echo -n '<a href="'`command_to_page_name -cifti-help`'">' >> "$outDir/$startPage"
 echo "$initialText" | grep -- -cifti-help >> "$outDir/$startPage"
 echo -n '</a>' >> "$outDir/$startPage"
+#-gifti-help
+echo -n '<a href="'`command_to_page_name -gifti-help`'">' >> "$outDir/$startPage"
+echo "$initialText" | grep -- -gifti-help >> "$outDir/$startPage"
+echo -n '</a>' >> "$outDir/$startPage"
 #-version
 echo "$initialText" | grep -- -version >> "$outDir/$startPage"
 #-list-commands
@@ -68,6 +72,8 @@ echo '</HTML>' >> "$outDir/$startPage"
 make_basic_command_page "-arguments-help"
 #-cifti-help page
 make_basic_command_page "-cifti-help"
+#-cifti-help page
+make_basic_command_page "-gifti-help"
 
 #-list-commands page, and its subpages
 outPage="$outDir/`command_to_page_name -list-commands`"

@@ -541,6 +541,8 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
         printArgumentsHelp("wb_command");
     } else if (commandSwitch == "-cifti-help") {
         printCiftiHelp("wb_command");
+    } else if (commandSwitch == "-gifti-help") {
+        printGiftiHelp("wb_command");
     } else if (commandSwitch == "-version") {
         printVersionInfo();
     } else if (commandSwitch == "-list-commands") {
@@ -768,6 +770,7 @@ void CommandOperationManager::printHelpInfo()
     cout << "   -help                       show this help info" << endl;
     cout << "   -arguments-help             explain the format of subcommand help info" << endl;
     cout << "   -cifti-help                 explain the cifti file format and related terms" << endl;
+    cout << "   -gifti-help                 explain the gifti file format (metric, surface)" << endl;
     cout << "   -version                    show extended version information" << endl;
     cout << "   -list-commands              list all processing subcommands" << endl;
     cout << "   -list-deprecated-commands   list deprecated subcommands" << endl;
@@ -879,8 +882,8 @@ void CommandOperationManager::printCiftiHelp(const AString& /*programName*/)
     cout << "   dimension means.  By putting a dense mapping along both dimensions in a 2D" << endl;
     cout << "   cifti file, you get a brainordinates by brainordinates matrix, frequently" << endl;
     cout << "   used for connectivity measures.  Notably, even if two dimensions use the" << endl;
-    cout << "   same mapping type, they can have different information in them, resulting in" << endl;
-    cout << "   a non-square connectivity matrix, for example." << endl;
+    cout << "   same mapping *type*, they can have different information in them, for" << endl;
+    cout << "   example a connectivity matrix between two different parcellations." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   The other mapping types that currently may be used in a cifti file are:" << endl;
     cout << "      Parcels: each index refers to a named subset of the brainordinates (i.e." << endl;
@@ -897,7 +900,8 @@ void CommandOperationManager::printCiftiHelp(const AString& /*programName*/)
     cout << "   dimensions, we specify them as which dimension to operate along, that is, " << endl;
     cout << "   the ROW dimension refers to the mapping along the length of a row." << endl;
     cout << "   Additionally, the ROW dimension is the *first* dimension in a cifti file," << endl;
-    cout << "   unlike 2D matrices in linear algebra." << endl;
+    cout << "   unlike 2D matrices in linear algebra.  This means that increasing the value" << endl;
+    cout << "   of the first index moves rightwards in the matrix, not downwards." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   The common types of cifti files and the mapping types they use are:" << endl;
     cout << "      dconn: ROW is dense, COLUMN is dense" << endl;
@@ -910,19 +914,34 @@ void CommandOperationManager::printCiftiHelp(const AString& /*programName*/)
     cout << "      pscalar: ROW is scalars, COLUMN is parcels" << endl;
     cout << "      ptseries: ROW is series, COLUMN is parcels" << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
-    cout << "   These are the structures that are currently supported:" << endl;
-    vector<StructureEnum::Enum> myStructureEnums;
-    StructureEnum::getAllEnums(myStructureEnums);
-    for (int i = 0; i < (int)myStructureEnums.size(); ++i)
-    {
-        cout << "      " << StructureEnum::toName(myStructureEnums[i]) << endl;
-    }
-    cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   For the full details of the CIFTI format, see" << endl;
     cout << "      http://www.nitrc.org/projects/cifti/" << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
 }
 
+void CommandOperationManager::printGiftiHelp(const AString& /*programName*/)
+{
+    //guide for wrap, assuming 80 columns:                                                  |
+    cout << "   The GIFTI format is an established data file format intended for use with" << endl;
+    cout << "   surface-based data.  It has subtypes for geometry (.surf.gii), continuous" << endl;
+    cout << "   data (.func.gii, .shape.gii), and integer label data (.label.gii).  The" << endl;
+    cout << "   files that contain data, rather than geometry, consist mainly of a 2D array," << endl;
+    cout << "   with one dimension having length equal to the number of vertices in the" << endl;
+    cout << "   surface.  Label files (.label.gii) also contain a list of integer values" << endl;
+    cout << "   that are used in the file, plus a name and a color for each one.  In" << endl;
+    cout << "   workbench, the files for continuous data are called 'metric files', and" << endl;
+    cout << "   .func.gii is usually the preferred extension, but there is no difference in" << endl;
+    cout << "   file format between .func.gii and .shape.gii.  Geometry files are simply" << endl;
+    cout << "   called 'surface files', and must contain only the coordinate and triangle" << endl;
+    cout << "   arrays.  Notably, other software may put data arrays (the equivalent of a" << endl;
+    cout << "   metric file) into the same file as the geometry information.  Workbench does" << endl;
+    cout << "   not support these formats, and you must use other tools to separate the data" << endl;
+    cout << "   array from the geometry." << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+    cout << "   For the full details of the GIFTI format, see" << endl;
+    cout << "      http://www.nitrc.org/projects/gifti/" << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+}
 
 void CommandOperationManager::printVersionInfo()
 {
