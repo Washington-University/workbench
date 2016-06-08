@@ -29,6 +29,7 @@
 #include "CiftiMappableDataFile.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
+#include "GiftiMetaData.h"
 #include "OperationFileInformation.h"
 #include "OperationException.h"
 
@@ -76,6 +77,10 @@ OperationFileInformation::getParameters()
 
     ret->createOptionalParameter(5, "-only-map-names", "suppress normal output, print the names of all maps");
     
+    OptionalParameter* metadataOpt = ret->createOptionalParameter(6, "-only-metadata", "suppress normal output, print file metadata");
+    OptionalParameter* mdKeyOpt = metadataOpt->createOptionalParameter(1, "-key", "only print the metadata for one key, with no formatting");
+    mdKeyOpt->addStringParameter(1, "key", "the metadata key");
+    
     AString helpText("List information about the content of a data file.  "
                      "Only one -only option may be specified.  "
                      "The information listed when no -only option is present is dependent upon the type of data file.");
@@ -107,6 +112,23 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     
     bool onlyMapNames = myParams->getOptionalParameter(5)->m_present;
     if (onlyMapNames) ++countOnlys;
+    
+    OptionalParameter* metadataOpt = myParams->getOptionalParameter(6);
+    bool onlyMetadata = metadataOpt->m_present;
+    AString mdKey = "";
+    if (onlyMetadata)
+    {
+        ++countOnlys;
+        OptionalParameter* mdKeyOpt = metadataOpt->getOptionalParameter(1);
+        if (mdKeyOpt->m_present)
+        {
+            mdKey = mdKeyOpt->getString(1);
+            if (mdKey == "")
+            {
+                throw OperationException("<key> must not be empty");
+            }
+        }
+    }
     
     if (countOnlys > 1) throw OperationException("only one -only-* option may be specified");
     
@@ -169,6 +191,25 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
         for (int i = 0; i < numMaps; ++i)
         {
             cout << mappableFile->getMapName(i) << endl;
+        }
+    }
+    if (onlyMetadata)
+    {
+        const GiftiMetaData* myMD = caretDataFile->getFileMetaData();
+        if (mdKey == "")
+        {
+            const map<AString, AString> mdMap = myMD->getAsMap();
+            for (map<AString, AString>::const_iterator iter = mdMap.begin(); iter != mdMap.end(); ++iter)
+            {
+                cout << "   " << iter->first << ":" << endl;
+                cout << iter->second << endl << endl;
+            }
+        } else {
+            if (!myMD->exists(mdKey))
+            {
+                throw OperationException("specified metadata key is not present in the file");
+            }
+            cout << myMD->get(mdKey) << endl;
         }
     }
     if (countOnlys == 0)
