@@ -38,6 +38,7 @@ namespace caret
         CiftiScalarsMap();
         CiftiScalarsMap(const CiftiScalarsMap& rhs);
         CiftiScalarsMap& operator=(const CiftiScalarsMap& rhs);
+        explicit CiftiScalarsMap(const int64_t& length);
         
         GiftiMetaData* getMapMetadata(const int64_t& index) const;//HACK: allow modification of palette and metadata within XML without setting the xml on a file again
         PaletteColorMapping* getMapPalette(const int64_t& index) const;

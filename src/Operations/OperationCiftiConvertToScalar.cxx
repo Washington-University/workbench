@@ -37,7 +37,7 @@ AString OperationCiftiConvertToScalar::getCommandSwitch()
 
 AString OperationCiftiConvertToScalar::getShortDescription()
 {
-    return "CHANGE A CIFTI DIMENSION TO NAMED SCALAR MAPS";
+    return "DEPRECATED: use -cifti-change-mapping";
 }
 
 OperationParameters* OperationCiftiConvertToScalar::getParameters()
@@ -53,7 +53,8 @@ OperationParameters* OperationCiftiConvertToScalar::getParameters()
     nameFileOpt->addStringParameter(1, "file", "text file containing map names, one per line");
     
     ret->setHelpText(
-        AString("Creates a new cifti file with the same data as the input, but with one of the dimensions set to contain strings identifying each map.  ") +
+        AString("DEPRECATED: this command may be removed in a future release, use -cifti-change-mapping.\n\n") +
+        "Creates a new cifti file with the same data as the input, but with one of the dimensions set to contain strings identifying each map.  " +
         "Specifying ROW will convert a dtseries file to a dscalar file."
     );
     return ret;

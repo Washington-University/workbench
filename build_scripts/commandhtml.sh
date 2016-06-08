@@ -39,6 +39,10 @@ echo -n "$initialText" | head -n $((infoLine + 1)) >> "$outDir/$startPage"
 echo -n '<a href="'`command_to_page_name -arguments-help`'">' >> "$outDir/$startPage"
 echo "$initialText" | grep -- -arguments-help >> "$outDir/$startPage"
 echo -n '</a>' >> "$outDir/$startPage"
+#-cifti-help
+echo -n '<a href="'`command_to_page_name -cifti-help`'">' >> "$outDir/$startPage"
+echo "$initialText" | grep -- -cifti-help >> "$outDir/$startPage"
+echo -n '</a>' >> "$outDir/$startPage"
 #-version
 echo "$initialText" | grep -- -version >> "$outDir/$startPage"
 #-list-commands
@@ -62,6 +66,8 @@ echo '</HTML>' >> "$outDir/$startPage"
 
 #-arguments-help page
 make_basic_command_page "-arguments-help"
+#-cifti-help page
+make_basic_command_page "-cifti-help"
 
 #-list-commands page, and its subpages
 outPage="$outDir/`command_to_page_name -list-commands`"

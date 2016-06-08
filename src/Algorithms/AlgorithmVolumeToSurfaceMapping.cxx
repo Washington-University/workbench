@@ -74,7 +74,7 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     OptionalParameter* myelinStyleOpt = ret->createOptionalParameter(9, "-myelin-style", "use the method from myelin mapping");
     myelinStyleOpt->addVolumeParameter(1, "ribbon-roi", "an roi volume of the cortical ribbon for this hemisphere");
     myelinStyleOpt->addMetricParameter(2, "thickness", "a metric file of cortical thickness");
-    myelinStyleOpt->addDoubleParameter(3, "sigma", "guassian kernel in mm for weighting voxels within range");
+    myelinStyleOpt->addDoubleParameter(3, "sigma", "gaussian kernel in mm for weighting voxels within range");
     
     OptionalParameter* subvolumeSelect = ret->createOptionalParameter(7, "-subvol-select", "select a single subvolume to map");
     subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");

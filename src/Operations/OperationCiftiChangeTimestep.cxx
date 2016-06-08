@@ -34,7 +34,7 @@ AString OperationCiftiChangeTimestep::getCommandSwitch()
 
 AString OperationCiftiChangeTimestep::getShortDescription()
 {
-    return "CHANGE THE TIMESTEP OF A CIFTI FILE";
+    return "DEPRECATED: use -cifti-change-mapping";
 }
 
 OperationParameters* OperationCiftiChangeTimestep::getParameters()
@@ -46,7 +46,8 @@ OperationParameters* OperationCiftiChangeTimestep::getParameters()
     OptionalParameter* columnTimestep = ret->createOptionalParameter(3, "-column-timestep", "set the timestep along columns");
     columnTimestep->addDoubleParameter(1, "seconds", "seconds per timestep");
     ret->setHelpText(
-        AString("Warns if a dimension specified is not timepoints, otherwise modifies the timestep, and finally writes the result to ") +
+        AString("DEPRECATED: this command may be removed in a future release, use -cifti-change-mapping.\n\n") +
+        "Warns if a dimension specified is not timepoints, otherwise modifies the timestep, and finally writes the result to " +
         "the same filename if any dimensions were modified.\nNOTE: you probably want -row-timestep, as that matches the .dtseries.nii specification.  " +
         "The other option is available just for completeness."
     );

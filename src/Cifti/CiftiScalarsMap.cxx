@@ -338,6 +338,12 @@ CiftiScalarsMap& CiftiScalarsMap::operator=(const CiftiScalarsMap& rhs)
     return *this;
 }
 
+CiftiScalarsMap::CiftiScalarsMap(const int64_t& length)
+{
+    m_namesModified = false;
+    setLength(length);
+}
+
 bool CiftiScalarsMap::mutablesModified() const
 {
     if (m_namesModified) return true;

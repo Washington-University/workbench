@@ -65,6 +65,8 @@ namespace caret {
         
         void printArgumentsHelp(const AString& programName);
         
+        void printCiftiHelp(const AString& programName);
+        
         void printVersionInfo();
         
         bool getGlobalOption(ProgramParameters& parameters, const AString& optionString, const int& numArgs, std::vector<AString>& arguments);

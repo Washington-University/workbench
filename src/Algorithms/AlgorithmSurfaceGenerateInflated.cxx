@@ -72,7 +72,7 @@ AlgorithmSurfaceGenerateInflated::getParameters()
     weightOpt->addDoubleParameter(1, "iterations-scale-value", "iterations-scale value");
     
     AString helpText = ("Generate inflated and very inflated surfaces. The output surfaces are "
-                        "\'matched\' (have same XYZ range) to the anatomcal surface. "
+                        "\'matched\' (have same XYZ range) to the anatomical surface. "
                         "In most cases, an iterations-scale of 1.0 (default) is sufficient.  However, if "
                         "the surface contains a large number of vertices (150,000), try an "
                         "iterations-scale of 2.5.");

@@ -136,7 +136,8 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
         "If you are resampling a dconn and your machine has a large amount of memory, you might consider using -cifti-resample-dconn-memory to avoid writing and rereading an intermediate file.  " +
         "If spheres are not specified for a surface structure which exists in the cifti files, its data is copied without resampling or dilation.  " +
         "Dilation is done with the 'nearest' method, and is done on <new-sphere> for surface data.  " +
-        "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.\n\n" +
+        "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.  " +
+        "If neither -affine nor -warpfield are specified, the identity transform is assumed for the volume data.\n\n" +
         "The recommended resampling methods are ADAP_BARY_AREA and CUBIC (cubic spline), except for label data which should use ADAP_BARY_AREA and ENCLOSING_VOXEL.\n\n" +
         "The <volume-method> argument must be one of the following:\n\n" +
         "CUBIC\nENCLOSING_VOXEL\nTRILINEAR\n\n" +
@@ -399,7 +400,6 @@ void AlgorithmCiftiResample::useParameters(OperationParameters* myParams, Progre
             newCerebAreas = cerebAreaMetricsOpt->getMetric(2);
         }
     }
-    //TODO: incorporate dilation options
     if (warpfieldOpt->m_present)
     {
         AlgorithmCiftiResample(myProgObj, myCiftiIn, direction, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myWarpfield.getWarpfield(),

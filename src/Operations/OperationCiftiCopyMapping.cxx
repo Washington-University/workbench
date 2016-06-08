@@ -34,7 +34,7 @@ AString OperationCiftiCopyMapping::getCommandSwitch()
 
 AString OperationCiftiCopyMapping::getShortDescription()
 {
-    return "REPLACE MAPPING ON A CIFTI FILE";
+    return "DEPRECATED: use -cifti-change-mapping";
 }
 
 OperationParameters* OperationCiftiCopyMapping::getParameters()
@@ -52,7 +52,8 @@ OperationParameters* OperationCiftiCopyMapping::getParameters()
     ret->addCiftiOutputParameter(5, "cifti-out", "the output cifti file");
     
     ret->setHelpText(
-        AString("<data-cifti> must have the same length along the replace direction as <template-cifti> has along the template direction.  ") +
+        AString("DEPRECATED: this command may be removed in a future release, use -cifti-change-mapping.\n\n") +
+        "<data-cifti> must have the same length along the replace direction as <template-cifti> has along the template direction.  " +
         CiftiXML::directionFromStringExplanation()
     );
     return ret;
