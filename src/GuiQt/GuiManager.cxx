@@ -109,6 +109,7 @@
 #include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
 #include "WuQMessageBox.h"
+//#include "WuQWebView.h"
 #include "WuQtUtilities.h"
 
 #include "CaretAssert.h"
@@ -299,7 +300,8 @@ GuiManager::~GuiManager()
     delete this->cursorManager;
     
     if (this->connectomeDatabaseWebView != NULL) {
-        delete this->connectomeDatabaseWebView;
+        CaretAssertMessage(0, "Need to uncomment out line below if webkit is renabled");
+        //delete this->connectomeDatabaseWebView;
     }
     
     FociPropertiesEditorDialog::deleteStaticMembers();
@@ -2156,12 +2158,14 @@ GuiManager::processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow)
 void 
 GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* /*browserWindow*/)
 {
-    if (this->connectomeDatabaseWebView == NULL) {
-        this->connectomeDatabaseWebView = new WuQWebView();
-        this->connectomeDatabaseWebView->load(QUrl("https://db.humanconnectome.org/"));
-        this->addNonModalDialog(this->connectomeDatabaseWebView);
-    }
-    this->connectomeDatabaseWebView->show();
+    CaretLogSevere("Webkit is disabled !!!");
+// no webkit
+//    if (this->connectomeDatabaseWebView == NULL) {
+//        this->connectomeDatabaseWebView = new WuQWebView();
+//        this->connectomeDatabaseWebView->load(QUrl("https://db.humanconnectome.org/"));
+//        this->addNonModalDialog(this->connectomeDatabaseWebView);
+//    }
+//    this->connectomeDatabaseWebView->show();
 }
 
 /**

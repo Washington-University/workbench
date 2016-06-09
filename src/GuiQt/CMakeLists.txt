@@ -9,7 +9,7 @@ PROJECT (GuiQt)
 #
 SET(QT_USE_QTNETWORK TRUE)
 SET(QT_USE_QTOPENGL TRUE)
-SET(QT_USE_QTWEBKIT TRUE)
+#SET(QT_USE_QTWEBKIT TRUE)
 
 #
 # QT include files
@@ -176,7 +176,7 @@ WuQTabWidget.h
 WuQTimedMessageDisplay.h
 WuQTreeWidget.h
 WuQTrueFalseComboBox.h
-WuQWebView.h
+#WuQWebView.h
 WuQWidget.h
 WuQWidgetObjectGroup.h
 )
@@ -382,7 +382,7 @@ WuQTabWidget.h
 WuQTimedMessageDisplay.h
 WuQTreeWidget.h
 WuQTrueFalseComboBox.h
-WuQWebView.h
+#WuQWebView.h
 WuQWidget.h
 WuQWidgetObjectGroup.h
 WuQtUtilities.h
@@ -579,7 +579,7 @@ WuQTabWidget.cxx
 WuQTimedMessageDisplay.cxx
 WuQTreeWidget.cxx
 WuQTrueFalseComboBox.cxx
-WuQWebView.cxx
+#WuQWebView.cxx
 WuQWidget.cxx
 WuQWidgetObjectGroup.cxx
 WuQtUtilities.cxx

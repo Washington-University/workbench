@@ -23,6 +23,8 @@
 #include "AnnotationMenuArrange.h"
 #undef __ANNOTATION_MENU_ARRANGE_DECLARE__
 
+#include <QPainter>
+
 #include "Annotation.h"
 #include "AnnotationArrangerInputs.h"
 #include "AnnotationManager.h"

@@ -32,13 +32,13 @@
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
-#include "WuQWebView.h"
 
 class QAction;
 class QDialog;
 class QMenu;
 class QWidget;
 class MovieDialog;
+class WuQWebView;
 
 namespace caret {    
     class Brain;
