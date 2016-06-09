@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "AString.h"
+#include "DataFileTypeEnum.h"
 
 namespace caret {
 
@@ -34,6 +35,10 @@ namespace caret {
         
         static AString createBadAllocExceptionMessage(const AString& filename);
         
+        static DataFileTypeEnum::Enum getDataFileTypeFromFileContent(const AString& filename);
+        
+        static CaretDataFile* createCaretDataFileForFileType(const DataFileTypeEnum::Enum dataFileType);
+        
     private:
         CaretDataFileHelper();
         
@@ -42,6 +47,10 @@ namespace caret {
         CaretDataFileHelper(const CaretDataFileHelper&);
 
         CaretDataFileHelper& operator=(const CaretDataFileHelper&);
+        
+        static void readCaretDataFile(CaretDataFile* caretDataFile,
+                                      const AString& filename,
+                                      const bool& preferOnDisk);
         
     public:
 

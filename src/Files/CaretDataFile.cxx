@@ -145,6 +145,20 @@ void
 CaretDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
 {
     DataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    const DataFileTypeEnum::Enum dataFileType = getDataFileType();
+    bool validExtensionFlag = false;
+    const DataFileTypeEnum::Enum extensionFileType = DataFileTypeEnum::fromFileExtension(getFileName(),
+                                                                                         &validExtensionFlag);
+    
+    if (dataFileType != extensionFileType) {
+        const AString msg("Incorrect filename extension.  It should be \""
+                          + DataFileTypeEnum::toFileExtension(dataFileType)
+                          + "\"");
+        dataFileInformation.addNameAndValue("WARNING EXTENSION",
+                                            msg);
+    }
+    
     dataFileInformation.addNameAndValue("Type",
                                         DataFileTypeEnum::toGuiName(m_dataFileType));
     
