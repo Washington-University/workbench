@@ -249,7 +249,8 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
                 {
                     postData += request.m_arguments[i].first;
                 } else {
-                    postData += request.m_arguments[i].first + "=" + request.m_arguments[i].second;
+                    //postData += request.m_arguments[i].first + "=" + request.m_arguments[i].second;
+                    postData += QUrl::toPercentEncoding(request.m_arguments[i].first) + "=" + QUrl::toPercentEncoding(request.m_arguments[i].second);
                 }
                 first = false;
             }
