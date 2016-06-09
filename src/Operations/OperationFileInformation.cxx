@@ -135,37 +135,8 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     bool preferOnDisk = (!showMapInformationFlag || countOnlys != 0);
 
     CaretPointer<CaretDataFile> caretDataFile;
-    try {
-        caretDataFile.grabNew(CaretDataFileHelper::readAnyCaretDataFile(dataFileName, preferOnDisk));
-    }
-    catch (const DataFileException& dfe) {
-//        No longer needed since CaretDataFileHelper::readAnyCaretDataFile will
-//        handle this case
-//        /*
-//         * If the name ends with ".nii" but was rejected by VolumeFile, it could be
-//         * an unsupported CIFTI file type.
-//         */
-//        if (dataFileName.endsWith(".nii")) {
-//            try {
-//                DataFileContentInformation dataFileContentInformation;
-//                CiftiMappableDataFile::getDataFileContentInformationForGenericCiftiFile(dataFileName,
-//                                                                                        dataFileContentInformation);
-//                
-//                cout << qPrintable(dataFileContentInformation.getInformationInString()) << endl;
-//            }
-//            catch (const DataFileException& dfe2) {
-//                throw DataFileException(dfe.whatString()
-//                                        + "\n"
-//                                        + "Also unsuccessful trying to read as generic CIFTI file.");
-//            }
-//            
-//            return;
-//            
-//        }
-//        else {
-            throw dfe;
-//        }
-    }
+    caretDataFile.grabNew(CaretDataFileHelper::readAnyCaretDataFile(dataFileName, preferOnDisk));
+    //readAnyCaretDataFile now handles cifti files with the wrong extension
     
     if (onlyTimestep)
     {
