@@ -57,6 +57,9 @@ m_parentBrain(parentBrain)
     m_sceneAssistant->add("m_displayAnnotations",
                           &m_displayAnnotations);
     
+    m_sceneAssistant->add("m_displayTextAnnotations",
+                          &m_displayTextAnnotations);
+    
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
     m_sceneAssistant->addArray("m_displayWindowAnnotationsInSingleTabViews",
@@ -124,6 +127,7 @@ void
 DisplayPropertiesAnnotation::resetPrivate()
 {
     m_displayAnnotations = true;
+    m_displayTextAnnotations = true;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         m_displayWindowAnnotationsInSingleTabViews[i] = true;
@@ -173,6 +177,26 @@ DisplayPropertiesAnnotation::setDisplayAnnotations(const bool status)
     m_displayAnnotations = status;
 }
 
+/**
+ * @return Status for displaying text annotations
+ */
+bool
+DisplayPropertiesAnnotation::isDisplayTextAnnotations() const
+{
+    return m_displayTextAnnotations;
+}
+
+/**
+ * Set the display status for text annotations
+ *
+ * @param status
+ *     New display status.
+ */
+void
+DisplayPropertiesAnnotation::setDisplayTextAnnotations(const bool status)
+{
+    m_displayTextAnnotations = status;
+}
 
 /**
  * Get the display group for a given browser tab.
@@ -317,6 +341,8 @@ DisplayPropertiesAnnotation::restoreFromScene(const SceneAttributes* sceneAttrib
 void
 DisplayPropertiesAnnotation::restoreVersionOne(const SceneClass* sceneClass)
 {
+    m_displayTextAnnotations = true;
+    
     /*
      * Version one did not have display groups so default the display group
      * in each to to "Tab".

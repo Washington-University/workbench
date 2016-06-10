@@ -97,6 +97,8 @@ namespace caret {
         
         QCheckBox* m_displayAnnotationsCheckBox;
         
+        QCheckBox* m_displayTextAnnotationsCheckBox;
+        
         QCheckBox* m_displayWindowAnnotationInSingleTabViewsCheckBox;
         
         static std::set<AnnotationSelectionViewController*> s_allAnnotationSelectionViewControllers;

@@ -1802,6 +1802,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
                                                             const float textHeightInPixels,
                                                             const float offsetFromTopInPixels)
 {
+    DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
+    if ( ! dpa->isDisplayTextAnnotations()) {
+        return;
+    }
+    
     const float textPercentageHeight = (textHeightInPixels / m_modelSpaceViewport[3]) * 100.0;
     
     AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
@@ -2183,6 +2188,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                     AnnotationText* text,
                                                     const Surface* surfaceDisplayed)
 {
+    DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
+    if ( ! dpa->isDisplayTextAnnotations()) {
+        return false;
+    }
+    
     CaretAssert(text);
     CaretAssert(text->getType() == AnnotationTypeEnum::TEXT);
 

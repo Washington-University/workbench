@@ -85,6 +85,11 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_displayAnnotationsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(checkBoxToggled()));
     
+    m_displayTextAnnotationsCheckBox = new QCheckBox("Display Text Annotations");
+    m_displayTextAnnotationsCheckBox->setToolTip("Disables/enables display of text annotations in all windows");
+    QObject::connect(m_displayTextAnnotationsCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(checkBoxToggled()));
+    
     m_displayWindowAnnotationInSingleTabViewsCheckBox = new QCheckBox("Show Window "
                                                                       + QString::number(m_browserWindowIndex + 1)
                                                                       + " Annotations in Single Tab View");
@@ -98,6 +103,7 @@ m_browserWindowIndex(browserWindowIndex)
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(m_displayAnnotationsCheckBox);
+    layout->addWidget(m_displayTextAnnotationsCheckBox);
     layout->addWidget(m_displayWindowAnnotationInSingleTabViewsCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupSelectionLayout);
@@ -181,6 +187,7 @@ AnnotationSelectionViewController::updateAnnotationSelections()
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     
     m_displayAnnotationsCheckBox->setChecked(dpa->isDisplayAnnotations());
+    m_displayTextAnnotationsCheckBox->setChecked(dpa->isDisplayTextAnnotations());
     m_displayWindowAnnotationInSingleTabViewsCheckBox->setChecked(dpa->isDisplayWindowAnnotationsInSingleTabViews(m_browserWindowIndex));
     
     Brain* brain = GuiManager::get()->getBrain();
@@ -233,6 +240,7 @@ AnnotationSelectionViewController::checkBoxToggled()
     }
 
     dpa->setDisplayAnnotations(m_displayAnnotationsCheckBox->isChecked());
+    dpa->setDisplayTextAnnotations(m_displayTextAnnotationsCheckBox->isChecked());
     dpa->setDisplayWindowAnnotationsInSingleTabViews(m_browserWindowIndex,
                                      m_displayWindowAnnotationInSingleTabViewsCheckBox->isChecked());
     
