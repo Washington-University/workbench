@@ -38,7 +38,7 @@ ELSEIF(WIN32)
             SET( ZLIB_INCLUDE_DIR "C:\\dev64\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
 #           SET( ZLIB_LIBRARY "C:\\dev64\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
             SET(ZLIB_LIBRARY optimized "C:\\dev64\\install\\zlib\\lib\\zlib.lib" debug "C:\\dev64\\install\\zlib\\lib\\zlibd.lib" CACHE STRING "zlib library (binary)")
-            SET( OPENSSL_ROOT_DIR "c:\\dev64\\install\\openssl" CACHE_STRING "open ssl root directory")
+            SET( OPENSSL_ROOT_DIR "c:\\dev64\\install\\openssl-1.0.1t" CACHE_STRING "open ssl root directory")
 
         ELSE()
 ## SET(CMAKE_GENERATOR_TOOLSET "v120_CTP_Nov2012" CACHE STRING "Platform Toolset" FORCE)         
