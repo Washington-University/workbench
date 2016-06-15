@@ -21,40 +21,6 @@
  */
 /*LICENSE_END*/
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings in plain text mode (not "whole word only"):
-
-OperationCiftiChangeMapping     : operation name, in CamelCase, with initial capital, same as what you saved the header file to
-OPERATION_CIFTI_CHANGE_MAPPING    : uppercase of operation name, with underscore between words, used in #ifdef guards
-
-next, make OperationCiftiChangeMapping.cxx from OperationTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiChangeMapping/g' > OperationCiftiChangeMapping.cxx
-cat Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiChangeMapping/g' > Operations/OperationCiftiChangeMapping.cxx
-cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiChangeMapping/g' > src/Operations/OperationCiftiChangeMapping.cxx
-
-or manually copy and replace
-
-next, implement its functions
-
-add these to Operations/CMakeLists.txt:
-
-OperationCiftiChangeMapping.h
-OperationCiftiChangeMapping.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "OperationCiftiChangeMapping.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiChangeMapping()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractOperation.h"
 
 namespace caret {
