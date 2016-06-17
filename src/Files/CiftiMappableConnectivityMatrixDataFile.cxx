@@ -63,8 +63,6 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
                           m_connectivityDataLoaded);
     m_sceneAssistant->add("m_dataLoadingEnabled",
                            &m_dataLoadingEnabled);
-//    m_sceneAssistant->add<ChartMatrixLoadingDimensionEnum, ChartMatrixLoadingDimensionEnum::Enum>("m_chartLoadingDimension",
-//                                                                                                  &m_chartLoadingDimension);
 }
 
 /**
@@ -191,9 +189,6 @@ void
 CiftiMappableConnectivityMatrixDataFile::getMapData(const int32_t /*mapIndex*/,
                                   std::vector<float>& dataOut) const
 {
-    //int nCols = m_ciftiInterface->getNumberOfColumns();
-    //dataOut.resize(nCols);
-    //m_ciftiInterface->getColumn(&dataOut[0],mapIndex);
     dataOut = m_loadedRowData;
 }
 
@@ -285,68 +280,6 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndexForNodeWhenLoading(con
             break;
     }
 }
-
-
-///**
-// * Get the index of a row when loading data for a surface node.
-// * @param structure
-// *    Structure of the surface.
-// * @param surfaceNumberOfNodes
-// *    Number of nodes in the surface.
-// * @param nodeIndex
-// *    Index of the node.
-// * @return
-// *    Index of row corresponding to node or -1 if no row in the
-// *    matrix corresponds to the node.
-// */
-//int64_t
-//CiftiMappableConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const StructureEnum::Enum structure,
-//                                                               const int64_t surfaceNumberOfNodes,
-//                                                               const int64_t nodeIndex) 
-//{
-//    if (m_ciftiFile == NULL) {
-//        return -1;
-//    }
-//    
-//    int64_t rowIndex = -1;
-//    
-//    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
-//    
-//    switch (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN))
-//    {
-//        case CiftiMappingType::BRAIN_MODELS:
-//            if (ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) return -1;
-//            break;
-//        case CiftiMappingType::PARCELS:
-//            if (ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN).getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) return -1;
-//            break;
-//        default:
-//            return -1;
-//    }
-//    /*
-//     * Get the mapping type
-//     */
-//    const CiftiMappingType::MappingType rowMappingType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
-//    
-//    switch (rowMappingType) {
-//        case CiftiMappingType::BRAIN_MODELS:
-//            rowIndex = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getIndexForNode(nodeIndex, structure);
-//            break;
-//        case CiftiMappingType::PARCELS:
-//            rowIndex = ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN).getIndexForNode(nodeIndex, structure);
-//            break;
-//        case CIFTI_INDEX_TYPE_SCALARS:
-//            break;
-//        case CIFTI_INDEX_TYPE_TIME_POINTS:
-//            break;
-//        default:
-//            CaretAssert(0);
-//            CaretLogSevere("Invalid row mapping type for connectivity file "
-//                        + DataFileTypeEnum::toName(getDataFileType()));
-//            break;
-//    }
-//    return rowIndex;
-//}
 
 /**
  * @return The CIFTI Direction (ALONG_COLUMN, ALONG_ROW) for loading data.
@@ -473,69 +406,6 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndexForVoxelIndexWhenLoadi
     }
 }
 
-
-///**
-// * Get the index of a row when loading data for a voxel at a coordinate.
-// * @param xyz
-// *    Coordinate of the voxel.
-// * @return
-// *    Index of row corresponding to voxel or negative if no row in the
-// *    matrix corresponds to the voxel.
-// */
-//int64_t
-//CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelAtCoordinateWhenLoading(const float xyz[3])
-//{
-//    if (m_ciftiFile == NULL) {
-//        return -1;
-//    }
-//    int64_t ijk[3];
-//    enclosingVoxel(xyz[0], xyz[1], xyz[2], ijk[0], ijk[1], ijk[2]);
-//    return getRowIndexForVoxelIndexWhenLoading(ijk);
-//}
-//
-///**
-// * Get the index of a row when loading data for a voxel index.
-// *
-// * @param ijk
-// *    Indices of the voxel.
-// * @return
-// *    Index of row corresponding to voxel or negative if no row in the
-// *    matrix corresponds to the voxel.
-// */
-//int64_t
-//CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelIndexWhenLoading(const int64_t ijk[3])
-//{  
-//    if (m_ciftiFile == NULL) {
-//        return -1;
-//    }
-//    
-//    int64_t rowIndex = -1;
-//    
-//    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
-//    const CiftiMappingType::MappingType rowMappingType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
-//    
-//    /*
-//     * Get the mapping type
-//     */
-//    if (indexValid(ijk[0], ijk[1], ijk[2])) {
-//        switch (rowMappingType) {
-//            case CIFTI_INDEX_TYPE_BRAIN_MODELS:
-//                rowIndex = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getIndexForVoxel(ijk);
-//                break;
-//            case CIFTI_INDEX_TYPE_PARCELS:
-//                rowIndex = ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN).getIndexForVoxel(ijk);
-//                break;
-//            default:
-//                CaretAssert(0);
-//                CaretLogSevere("Invalid row mapping type for connectivity file "
-//                            + DataFileTypeEnum::toName(getDataFileType()));
-//                break;
-//        }
-//    }
-//    
-//    return rowIndex;
-//}
-
 /**
  * Set the loaded row data to zeros.
  */
@@ -548,9 +418,6 @@ CiftiMappableConnectivityMatrixDataFile::setLoadedRowDataToAllZeros()
                   0.0);
     }
     updateForChangeInMapDataWithMapIndex(0);
-//    if (m_mapContent.empty() == false) {
-//        m_mapContent[0]->updateForChangeInMapData();
-//    }
     m_connectivityDataLoaded->reset();
     m_rowLoadedText.clear();
     m_rowLoadedTextForMapName.clear();
@@ -611,11 +478,6 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIn
                                                           -1);
         }
     }
-//    else {
-//        throw DataFileException("Row "
-//                                + AString::number(rowIndex)
-//                                + " is invalid or contains no data.");
-//    }
     
     updateForChangeInMapDataWithMapIndex(0);
 }
@@ -657,11 +519,6 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t co
                                                           columnIndex);
         }
     }
-//    else {
-//        throw DataFileException("Column "
-//                                + AString::number(columnIndex)
-//                                + " is invalid or contains no data.");
-//    }
     
     updateForChangeInMapDataWithMapIndex(0);
 }
@@ -807,71 +664,6 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     updateForChangeInMapDataWithMapIndex(0);
 }
 
-
-///**
-// * Load connectivity data for the given map index.
-// *
-// * @param mapIndex
-// *    Index of map.
-// * @param surfaceNumberOfNodes
-// *    Number of nodes in surface.
-// * @param structure
-// *    Surface's structure.
-// * @param nodeIndex
-// *    Index of node number.
-// * @return
-// *    Index of row that was loaded or -1 if no data was loaded.
-// * @throw
-// *    DataFileException if there is an error.
-// */
-//bool 
-//CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionIndex)
-//{
-//    if (m_ciftiFile == NULL) {
-//        return false;
-//    }
-//    
-//    /*
-//     * Loading of data disabled?
-//     */
-//    if (m_dataLoadingEnabled == false) {
-//        return false;
-//    }
-//    
-//    
-//    
-//    bool dataWasLoaded = false;
-//    
-//    if (selectionIndex >= 0) {
-//        const int64_t dataCount = m_ciftiFile->getNumberOfColumns();
-//        if (dataCount > 0) {
-//            m_rowLoadedTextForMapName = ("Row: "
-//                                        + AString::number(selectionIndex+1)                                         
-//                                        );
-//
-//            m_rowLoadedText = ("Row_"
-//                                + AString::number(selectionIndex+1)
-//                                );
-//            CaretAssert((selectionIndex >= 0) && (selectionIndex < m_ciftiFile->getNumberOfRows()));
-//            m_loadedRowData.resize(dataCount);
-//            m_ciftiFile->getRow(&m_loadedRowData[0],
-//                                        selectionIndex);
-//            
-//            CaretLogFine("Read row " + AString::number(selectionIndex+1));
-//            
-//            dataWasLoaded = true;
-//        }
-//    }
-//    
-//    if (dataWasLoaded == false) {
-//        CaretLogFine("FAILED to read row " + AString::number(selectionIndex+1));
-//    }
-//    
-//    updateForChangeInMapDataWithMapIndex(0);
-//    
-//    return true;
-//}
-
 /**
  * Load connectivity data for the surface's nodes and then average the data.
  *
@@ -983,9 +775,6 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                                                 nodeIndex,
                                                 rowIndex,
                                                 columnIndex);
-//            const int64_t rowIndex = getRowIndexForNodeWhenLoading(structure,
-//                                                                    surfaceNumberOfNodes,
-//                                                                    nodeIndex);
             
             if (rowIndex >= 0) {
                 CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiFile->getNumberOfRows()));
@@ -1492,13 +1281,6 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
     
     restoreSubClassDataFromScene(sceneAttributes,
                                  sceneClass);
-    
-//    /*
-//     * The chart loading dimension is restored by the scene assistant but
-//     * we need to call setChartMatrixLoadingDimension() so that loading
-//     * by row or column is properly setup.
-//     */
-//    setChartMatrixLoadingDimension(m_chartLoadingDimension);
     
     /*
      * Loading of data may be disabled in the scene

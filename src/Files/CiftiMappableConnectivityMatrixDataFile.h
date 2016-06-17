@@ -84,12 +84,8 @@ namespace caret {
 
         AString getRowLoadedText() const;
 
-		//int64_t getRowLoadedIndex() const;
-
         virtual void getMapData(const int32_t mapIndex, std::vector<float>& dataOut) const;
 
-//        bool loadMapData(const int32_t rowIndex);
-        
         const ConnectivityDataLoaded* getConnectivityDataLoaded() const;
         
         bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut,
@@ -128,10 +124,6 @@ namespace caret {
         
         void clearPrivate();
         
-//        int64_t getRowIndexForNodeWhenLoading(const StructureEnum::Enum structure,
-//                                              const int64_t surfaceNumberOfNodes,
-//                                              const int64_t nodeIndex);
-        
         void getRowColumnIndexForNodeWhenLoading(const StructureEnum::Enum structure,
                                                  const int64_t surfaceNumberOfNodes,
                                                  const int64_t nodeIndex,
@@ -145,10 +137,6 @@ namespace caret {
         void getRowColumnIndexForVoxelIndexWhenLoading(const int64_t ijk[3],
                                                           int64_t& rowIndexOut,
                                                           int64_t& columnIndexOut);
-        
-//        int64_t getRowIndexForVoxelAtCoordinateWhenLoading(const float xyz[3]);
-//        
-//        int64_t getRowIndexForVoxelIndexWhenLoading(const int64_t ijk[3]);
         
         int32_t getCifitDirectionForLoadingRowOrColumn();
         
