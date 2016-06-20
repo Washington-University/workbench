@@ -57,6 +57,8 @@ SceneableInterface()
     m_scaleProportionatelyEnabled = true;
     m_imageFileName          = "untitled.png";
     
+    m_cropToTabWindowLockAspectRegionEnabled = true;
+    
     m_dimensionsMode       = ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_WINDOW_SIZE;
     m_imageResolutionUnits = ImageResolutionUnitsEnum::PIXELS_PER_INCH;
     m_spatialUnits         = ImageSpatialUnitsEnum::INCHES;
@@ -88,6 +90,9 @@ SceneableInterface()
                           &m_saveToFileEnabled);
     m_sceneAssistant->add("m_scaleProportionatelyEnabled",
                           &m_scaleProportionatelyEnabled);
+    
+    m_sceneAssistant->add("m_cropToTabWindowLockAspectRegionEnabled",
+                          &m_cropToTabWindowLockAspectRegionEnabled);
     
     m_sceneAssistant->add<ImageCaptureDimensionsModeEnum, ImageCaptureDimensionsModeEnum::Enum>("m_dimensionsMode",
                                                                                                 &m_dimensionsMode);
@@ -683,6 +688,28 @@ ImageCaptureSettings::setImageCaptureDimensionsMode(const ImageCaptureDimensions
 {
     m_dimensionsMode = mode;
 }
+
+/**
+ * @param Is crop to tab/window lock aspect ratio enabled?
+ */
+bool
+ImageCaptureSettings::isCropToTabWindowLockAspectRegionEnabled() const
+{
+    return m_cropToTabWindowLockAspectRegionEnabled;
+}
+
+/**
+ * Set crop to tab/window lock aspect ratio enabled.
+ *
+ * @param enabled
+ *    New status.
+ */
+void
+ImageCaptureSettings::setCropToTabWindowLockAspectRegionEnabled(const bool enabled)
+{
+    m_cropToTabWindowLockAspectRegionEnabled = enabled;
+}
+
 
 /**
  * Save information specific to this type of model to the scene.

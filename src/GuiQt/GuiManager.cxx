@@ -2453,6 +2453,10 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         timer.reset();
     }
     
+    if (imageCaptureDialog != NULL) {
+        imageCaptureDialog->updateDialog();
+    }
+    
     progressEvent.setProgressMessage("Invalidating coloring and updating user interface");
     EventManager::get()->sendEvent(progressEvent.getPointer());
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());

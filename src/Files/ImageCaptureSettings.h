@@ -108,6 +108,10 @@ namespace caret {
         
         void setScaleProportionately(const bool enabled);
         
+        bool isCropToTabWindowLockAspectRegionEnabled() const;
+        
+        void setCropToTabWindowLockAspectRegionEnabled(const bool enabled);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -169,6 +173,8 @@ namespace caret {
         bool m_saveToFileEnabled;
         
         AString m_imageFileName;
+        
+        bool m_cropToTabWindowLockAspectRegionEnabled;
         
         ImageCaptureDimensionsModeEnum::Enum m_dimensionsMode;
         

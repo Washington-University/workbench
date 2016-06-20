@@ -180,7 +180,7 @@ ImageCaptureDialog::createImageSourceSection()
     m_windowCropToLockAspectRegionCheckBox = new QCheckBox("Crop to Tab/Window Lock Aspect Region");
     m_windowCropToLockAspectRegionCheckBox->setChecked(true);
     QObject::connect(m_windowCropToLockAspectRegionCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(updateBrowserWindowWidthAndHeightLabel()));
+                     this, SLOT(cropToTabWindowLockAspectRegionClicked(bool)));
     m_windowCropToLockAspectRegionCheckBox->setToolTip(cbTT);
 
     
@@ -443,11 +443,29 @@ ImageCaptureDialog::imageSizeUnitsEnumComboBoxItemActivated()
 }
 
 /**
+ * Gets called when Crop to Tab/Window Lock Aspect Region checkbox clicked
+ *
+ * @param checked
+ *    New checked status.
+ */
+void
+ImageCaptureDialog::cropToTabWindowLockAspectRegionClicked(bool checked)
+{
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setCropToTabWindowLockAspectRegionEnabled(checked);
+    updateBrowserWindowWidthAndHeightLabel();
+}
+
+
+/**
  * May be called to update the dialog's content.
  */
 void
 ImageCaptureDialog::updateDialog()
 {
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    m_windowCropToLockAspectRegionCheckBox->setChecked(imageCaptureSettings->isCropToTabWindowLockAspectRegionEnabled());
+    
     updateBrowserWindowWidthAndHeightLabel();
     
     updateDimensionsSection();

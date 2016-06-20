@@ -59,6 +59,8 @@ namespace caret {
     private slots:
         void selectImagePushButtonPressed();
         
+        void cropToTabWindowLockAspectRegionClicked(bool clicked);
+        
         void updateBrowserWindowWidthAndHeightLabel();
         
         void imageResolutionUnitsEnumComboBoxItemActivated();
