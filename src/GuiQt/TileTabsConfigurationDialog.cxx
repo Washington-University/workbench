@@ -546,10 +546,12 @@ TileTabsConfigurationDialog::newConfigurationButtonClicked()
                 }
                 else {
                     /*
-                     * Create a new configuration with the name
-                     * entered by the user.
+                     * New configuration is copy of selected configuration (if available)
                      */
-                    TileTabsConfiguration* configuration = new TileTabsConfiguration();
+                    const TileTabsConfiguration* selectedConfiguration = getSelectedTileTabsConfiguration();
+                    TileTabsConfiguration* configuration = ((selectedConfiguration != NULL)
+                                                            ? selectedConfiguration->newCopyWithNewUniqueIdentifier()
+                                                            : new TileTabsConfiguration());
                     configuration->setName(newTileTabsName);
                     configurationUniqueID = configuration->getUniqueIdentifier();
                     m_caretPreferences->addTileTabsConfiguration(configuration);

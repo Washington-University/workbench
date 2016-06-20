@@ -40,6 +40,8 @@ namespace caret {
 
         TileTabsConfiguration& operator=(const TileTabsConfiguration& obj);
         
+        TileTabsConfiguration* newCopyWithNewUniqueIdentifier() const;
+        
         bool getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                        const int32_t windowHeight,
                                                        const int32_t numberOfModelsToDraw,

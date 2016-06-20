@@ -59,6 +59,9 @@ TileTabsConfiguration::~TileTabsConfiguration()
 
 /**
  * Copy constructor.
+ *
+ * NOTE: Unique identifier remains the same ! See also: newCopyWithNewUniqueIdentifier()
+ *
  * @param obj
  *    Object that is copied.
  */
@@ -70,6 +73,9 @@ TileTabsConfiguration::TileTabsConfiguration(const TileTabsConfiguration& obj)
 
 /**
  * Assignment operator.
+ *
+ * NOTE: Unique identifier remains the same !  See also: newCopyWithNewUniqueIdentifier()
+ *
  * @param obj
  *    Data copied from obj to this.
  * @return 
@@ -84,6 +90,22 @@ TileTabsConfiguration::operator=(const TileTabsConfiguration& obj)
     }
     return *this;    
 }
+
+/**
+ * Copy this instance and give it a new unique identifier.
+ * Note that copy constructor does not create a new unique identifier.
+ *
+ * @return The new Copy.
+ */
+TileTabsConfiguration*
+TileTabsConfiguration::newCopyWithNewUniqueIdentifier() const
+{
+    TileTabsConfiguration* newCopy = new TileTabsConfiguration(*this);
+    CaretAssert(newCopy);
+    newCopy->m_uniqueIdentifier = SystemUtilities::createUniqueID();
+    return newCopy;
+}
+
 
 /**
  * Initialize an instance of a tile tabs configuration.
