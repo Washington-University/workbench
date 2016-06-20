@@ -2768,7 +2768,7 @@ BrainBrowserWindow::processSplitBorderFiles()
 void 
 BrainBrowserWindow::processCaptureImage()
 {
-    std::cout << "Toolbar height " << m_toolbar->height() << std::endl;
+    //std::cout << "Toolbar height " << m_toolbar->height() << std::endl;
     GuiManager::get()->processShowImageCaptureDialog(this);
 }
 
