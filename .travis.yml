@@ -15,7 +15,7 @@ addons:
             - zlib1g-dev
             - libosmesa6-dev
             - libssl-dev
-            - libqwt5-qt4-dev
+            - libqwt-dev
             - libfreetype6-dev
             - libftgl-dev
 
