@@ -22,6 +22,7 @@ addons:
 env:
     global:
         - OSMESA_DIR=/usr
+        - OMP_NUM_THREADS=4
 
 before_install:
     - mkdir ../build
