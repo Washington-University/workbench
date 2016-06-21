@@ -1,0 +1,33 @@
+language: cpp
+sudo: false
+
+notifications:
+    email: false
+
+cache:
+    - apt
+    - ccache
+
+addons:
+    apt:
+        packages:
+            - libqt4-dev
+            - zlib1g-dev
+            - libosmesa6-dev
+            - libssl-dev
+            - libqwt5-qt4-dev
+            - libfreetype6-dev
+            - libftgl-dev
+
+env:
+    global:
+        - OSMESA_DIR=/usr
+
+before_install:
+    - mkdir ../build
+    - cd ../build
+
+script:
+    - "cmake -D CMAKE_BUILD_TYPE=Debug ../workbench/src"
+    - make -j 4
+    - ctest
