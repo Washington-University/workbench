@@ -87,6 +87,10 @@ void OperationSceneFileMerge::useParameters(OperationParameters* myParams, Progr
                 {
                     throw OperationException("scene '" + upToOpt->getString(1) + "' not found in file '" + thisInput->getString(1) + "'");
                 }
+                if (lastInd < firstInd)
+                {
+                    throw OperationException("ending scene '" + upToOpt->getString(1) + "' occurs before starting scene '" + selectOpt->getString(1) + "'");
+                }
                 if (upToOpt->getOptionalParameter(2)->m_present)//reverse
                 {
                     for (int s = lastInd; s >= firstInd; --s)
