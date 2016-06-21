@@ -92,6 +92,10 @@ namespace caret {
         void setBaseDirectory(const AString& baseDirectory);
         
         void reorderScenes(std::vector<Scene*>& orderedScenes);
+        
+        int32_t getSceneIndexFromNumberOrName(const AString& numberOrName);
+        
+        Scene* releaseScene(const int32_t& index);
 
         // ADD_NEW_METHODS_HERE
 

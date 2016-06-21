@@ -291,6 +291,19 @@ SceneFile::removeSceneAtIndex(const int32_t indx)
 }
 
 /**
+ * Remove the scene at the given index, but return its pointer rather than deleting it.
+ * @param index
+ *     Index of the scene.
+ */
+Scene* SceneFile::releaseScene(const int32_t& index)
+{
+    CaretAssertVectorIndex(m_scenes, index);
+    Scene* scene = m_scenes[index];
+    m_scenes.erase(m_scenes.begin() + index);
+    return scene;
+}
+
+/**
  * Move the scene in the file by the given change in index.
  * 
  * @param scene
@@ -385,6 +398,28 @@ SceneFile::reorderScenes(std::vector<Scene*>& orderedScenes)
     setModified();
 }
 
+int32_t SceneFile::getSceneIndexFromNumberOrName(const AString& numberOrName)
+{
+    bool ok = false;
+    int32_t ret = numberOrName.toInt(&ok) - 1;//compensate for 1-indexing that command line parsing uses
+    if (ok)
+    {
+        if (ret < 0 || ret >= getNumberOfScenes())
+        {
+            return -1;
+        }
+        return ret;
+    } else {//DO NOT search by name if the string was parsed as an integer correctly, or some idiot who names their maps as integers will get confused
+            //when getting map "12" out of a file after the file expands to more than 12 elements suddenly does something different
+        const int32_t numScenes = getNumberOfScenes();
+        for (int32_t i = 0; i < numScenes; i++) {
+            if (numberOrName == getSceneAtIndex(i)->getName()) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
 
 /**
  * @return The structure for this file.

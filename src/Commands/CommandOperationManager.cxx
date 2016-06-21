@@ -187,6 +187,7 @@
 #include "OperationMetricWeightedStats.h"
 #include "OperationNiftiInformation.h"
 #include "OperationProbtrackXDotConvert.h"
+#include "OperationSceneFileMerge.h"
 #include "OperationSceneFileRelocate.h"
 #include "OperationSetMapName.h"
 #include "OperationSetMapNames.h"
@@ -432,6 +433,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricWeightedStats()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationNiftiInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationProbtrackXDotConvert()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSceneFileMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSceneFileRelocate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapNames()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));

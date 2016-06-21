@@ -72,6 +72,7 @@ OperationMetricVertexSum.h
 OperationMetricWeightedStats.h
 OperationNiftiInformation.h
 OperationProbtrackXDotConvert.h
+OperationSceneFileMerge.h
 OperationSceneFileRelocate.h
 OperationSetMapName.h
 OperationSetMapNames.h
@@ -159,6 +160,7 @@ OperationMetricVertexSum.cxx
 OperationMetricWeightedStats.cxx
 OperationNiftiInformation.cxx
 OperationProbtrackXDotConvert.cxx
+OperationSceneFileMerge.cxx
 OperationSceneFileRelocate.cxx
 OperationSetMapName.cxx
 OperationSetMapNames.cxx
