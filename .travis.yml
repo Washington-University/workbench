@@ -29,6 +29,6 @@ before_install:
     - cd ../build
 
 script:
-    - "cmake -D CMAKE_BUILD_TYPE=Debug ../workbench/src"
+    - "cmake ../workbench/src"
     - make -j 4
     - ctest
