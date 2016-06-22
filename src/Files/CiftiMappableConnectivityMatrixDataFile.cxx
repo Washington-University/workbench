@@ -763,9 +763,17 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
         case CiftiXML::ALONG_STACK:
             break;
     }
+    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+        /*
+         * Dense dynamic is special case where number of rows equals number of brainordinates.
+         * Number of columns is number of time points
+         */
+        dataCount = m_ciftiFile->getNumberOfRows();
+    }
+    
     if (dataCount > 0) {
         /*
-            * Contains the average 
+            * Contains the average
             */
         std::vector<float> dataAverageVector(dataCount, 0.0);
         float* dataAverage = &dataAverageVector[0];
@@ -1079,6 +1087,13 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
             break;
         case CiftiXML::ALONG_STACK:
             break;
+    }
+    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+        /*
+         * Dense dynamic is special case where number of rows equals number of brainordinates.
+         * Number of columns is number of time points
+         */
+        dataCount = m_ciftiFile->getNumberOfRows();
     }
     if (dataCount <= 0) {
         return false;
