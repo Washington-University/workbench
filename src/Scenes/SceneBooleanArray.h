@@ -39,6 +39,8 @@ namespace caret {
         SceneBooleanArray(const AString& name,
                           const int numberOfArrayElements);
         
+        SceneBooleanArray(const SceneBooleanArray& rhs);
+
         virtual ~SceneBooleanArray();
         
         void setValue(const int32_t arrayIndex,
@@ -55,11 +57,13 @@ namespace caret {
         virtual uint8_t unsignedByteValue(const int32_t arrayIndex) const;
         
     private:
-        SceneBooleanArray(const SceneBooleanArray&);
-
         SceneBooleanArray& operator=(const SceneBooleanArray&);
         
     public:
+        
+        virtual int32_t getNumberOfArrayElements() const { return m_values.size(); }
+
+        virtual SceneObject* clone() const { return new SceneBooleanArray(*this); }
 
         // ADD_NEW_METHODS_HERE
 

@@ -53,6 +53,16 @@ SceneString::SceneString(const AString& name,
     m_value = value;
 }
 
+SceneString::SceneString(const SceneString& rhs): ScenePrimitive(rhs.getName(), SceneObjectDataTypeEnum::SCENE_STRING)
+{
+    m_value = rhs.m_value;
+}
+
+SceneObject* SceneString::clone() const
+{
+    return new SceneString(*this);
+}
+
 /**
  * Destructor.
  */
@@ -148,4 +158,3 @@ SceneString::unsignedByteValue() const
     const uint8_t b = static_cast<uint8_t>(i);
     return b;
 }
-

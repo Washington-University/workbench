@@ -53,6 +53,16 @@ SceneUnsignedByte::SceneUnsignedByte(const AString& name,
     m_value = value;
 }
 
+SceneUnsignedByte::SceneUnsignedByte(const SceneUnsignedByte& rhs): ScenePrimitive(rhs.getName(), SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE)
+{
+    m_value = rhs.m_value;
+}
+
+SceneObject* SceneUnsignedByte::clone() const
+{
+    return new SceneUnsignedByte(*this);
+}
+
 /**
  * Destructor.
  */
@@ -119,4 +129,3 @@ SceneUnsignedByte::unsignedByteValue() const
 {
     return m_value;
 }
-

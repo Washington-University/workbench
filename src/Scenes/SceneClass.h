@@ -42,6 +42,8 @@ namespace caret {
                    const AString& className,
                    const int32_t versionNumber);
         
+        SceneClass(const SceneClass& rhs);
+        
         virtual ~SceneClass();
         
         AString getClassName() const;
@@ -295,6 +297,8 @@ namespace caret {
         
         const SceneObject* getObjectWithName(const AString& name) const;
         
+        virtual SceneObject* clone() const;
+        
         // ADD_NEW_METHODS_HERE
 
 //    private: // and are not used
@@ -311,8 +315,6 @@ namespace caret {
         
         
     private:
-        SceneClass(const SceneClass&);
-        
         SceneClass& operator=(const SceneClass&);
 
         void addEnumeratedType(const AString& name,

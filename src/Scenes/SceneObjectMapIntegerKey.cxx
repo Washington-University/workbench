@@ -34,6 +34,8 @@
 #include "SceneString.h"
 #include "SceneUnsignedByte.h"
 
+#include <utility>
+
 using namespace caret;
 
 
@@ -357,6 +359,12 @@ SceneObjectMapIntegerKey::getMap() const
     return m_dataMap;
 }
 
-
-
-
+SceneObject* SceneObjectMapIntegerKey::clone() const
+{
+    SceneObjectMapIntegerKey* ret = new SceneObjectMapIntegerKey(getName(), getDataType());
+    for (DATA_MAP_CONST_ITERATOR iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter)
+    {
+        ret->m_dataMap.insert(std::make_pair(iter->first, iter->second->clone()));
+    }
+    return ret;
+}

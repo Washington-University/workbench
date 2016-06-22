@@ -53,8 +53,7 @@ SceneEnumeratedTypeArray::SceneEnumeratedTypeArray(const AString& name,
                                                    const AString enumeratedValuesAsStrings[],
                                                    const int32_t numberOfArrayElements)
 : SceneObjectArray(name,
-                 SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE,
-                 numberOfArrayElements)
+                 SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE)
 {
     m_values.resize(numberOfArrayElements);
     for (int32_t i = 0; i < numberOfArrayElements; i++) {
@@ -73,8 +72,7 @@ SceneEnumeratedTypeArray::SceneEnumeratedTypeArray(const AString& name,
 SceneEnumeratedTypeArray::SceneEnumeratedTypeArray(const AString& name,
                                                    const std::vector<AString>& enumeratedValuesAsStrings)
 : SceneObjectArray(name,
-                      SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE,
-                      enumeratedValuesAsStrings.size())
+                      SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE)
 {
     m_values = enumeratedValuesAsStrings;
 }
@@ -90,13 +88,17 @@ SceneEnumeratedTypeArray::SceneEnumeratedTypeArray(const AString& name,
 SceneEnumeratedTypeArray::SceneEnumeratedTypeArray(const AString& name,
                                                    const int numberOfArrayElements)
 : SceneObjectArray(name,
-                      SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE,
-                      numberOfArrayElements)
+                      SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE)
 {
     m_values.resize(numberOfArrayElements);
     std::fill(m_values.begin(),
               m_values.end(),
-              false);
+              "");
+}
+
+SceneEnumeratedTypeArray::SceneEnumeratedTypeArray(const SceneEnumeratedTypeArray& rhs): SceneObjectArray(rhs.getName(), SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE)
+{
+    m_values = rhs.m_values;
 }
 
 /**
@@ -154,12 +156,12 @@ SceneEnumeratedTypeArray::stringValues(AString enumeratedValuesAsString[],
                   const AString defaultValue) const
 {
     const int32_t numElem = std::min(numberOfArrayElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     for (int32_t i = 0; i < numElem; i++) {
         enumeratedValuesAsString[i] = m_values[i];
     }
     
-    for (int32_t i = numElem; i < m_numberOfArrayElements; i++) {
+    for (int32_t i = numElem; i < numberOfArrayElements; i++) {//TSC: this used to use number of elements in internal array, not output array
         enumeratedValuesAsString[i] = defaultValue;
     }
 }

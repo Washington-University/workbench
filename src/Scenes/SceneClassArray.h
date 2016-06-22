@@ -41,6 +41,8 @@ namespace caret {
         SceneClassArray(const AString& name,
                           const int numberOfArrayElements);
         
+        SceneClassArray(const SceneClassArray& rhs);
+
         virtual ~SceneClassArray();
         
         void setClassAtIndex(const int32_t arrayIndex,
@@ -49,11 +51,13 @@ namespace caret {
         const SceneClass* getClassAtIndex(const int32_t arrayIndex) const;
         
     private:
-        SceneClassArray(const SceneClassArray&);
-
         SceneClassArray& operator=(const SceneClassArray&);
         
     public:
+        
+        virtual SceneObject* clone() const { return new SceneClassArray(*this); }
+        
+        virtual int32_t getNumberOfArrayElements() const { return m_values.size(); }
 
         // ADD_NEW_METHODS_HERE
 

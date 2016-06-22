@@ -39,6 +39,8 @@ namespace caret {
         SceneStringArray(const AString& name,
                           const int numberOfArrayElements);
         
+        SceneStringArray(const SceneStringArray& rhs);
+
         virtual ~SceneStringArray();
         
         void setValue(const int32_t arrayIndex,
@@ -55,11 +57,13 @@ namespace caret {
         virtual uint8_t unsignedByteValue(const int32_t arrayIndex) const;
         
     private:
-        SceneStringArray(const SceneStringArray&);
-
         SceneStringArray& operator=(const SceneStringArray&);
         
     public:
+        
+        virtual int32_t getNumberOfArrayElements() const { return m_values.size(); }
+        
+        virtual SceneObject* clone() const { return new SceneStringArray(*this); }
 
         // ADD_NEW_METHODS_HERE
 

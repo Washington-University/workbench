@@ -53,8 +53,7 @@ SceneBooleanArray::SceneBooleanArray(const AString& name,
                                      const bool values[],
                                      const int32_t numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                 SceneObjectDataTypeEnum::SCENE_BOOLEAN,
-                 numberOfArrayElements)
+                 SceneObjectDataTypeEnum::SCENE_BOOLEAN)
 {
     m_values.resize(numberOfArrayElements);
     for (int32_t i = 0; i < numberOfArrayElements; i++) {
@@ -73,8 +72,7 @@ SceneBooleanArray::SceneBooleanArray(const AString& name,
 SceneBooleanArray::SceneBooleanArray(const AString& name,
                                      const std::vector<bool>& values)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_BOOLEAN,
-                      values.size())
+                      SceneObjectDataTypeEnum::SCENE_BOOLEAN)
 {
     m_values = values;
 }
@@ -90,13 +88,17 @@ SceneBooleanArray::SceneBooleanArray(const AString& name,
 SceneBooleanArray::SceneBooleanArray(const AString& name,
                                      const int numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_BOOLEAN,
-                      numberOfArrayElements)
+                      SceneObjectDataTypeEnum::SCENE_BOOLEAN)
 {
     m_values.resize(numberOfArrayElements);
     std::fill(m_values.begin(),
               m_values.end(),
               false);
+}
+
+SceneBooleanArray::SceneBooleanArray(const SceneBooleanArray& rhs): ScenePrimitiveArray(rhs.getName(), SceneObjectDataTypeEnum::SCENE_BOOLEAN)
+{
+    m_values = rhs.m_values;
 }
 
 /**

@@ -238,6 +238,17 @@ Scene::Scene(const SceneTypeEnum::Enum sceneType)
     m_sceneInfo = new SceneInfo();
 }
 
+Scene::Scene(const Scene& rhs) : CaretObject()
+{
+    m_sceneAttributes = new SceneAttributes(*(rhs.m_sceneAttributes));
+    m_hasFilesWithRemotePaths = rhs.m_hasFilesWithRemotePaths;
+    m_sceneInfo = new SceneInfo(*(rhs.m_sceneInfo));
+    for (std::vector<SceneClass*>::const_iterator iter = rhs.m_sceneClasses.begin(); iter != rhs.m_sceneClasses.end(); ++iter)
+    {
+        m_sceneClasses.push_back(new SceneClass(**iter));
+    }
+}
+
 /**
  * Destructor.
  */

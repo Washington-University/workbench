@@ -51,6 +51,8 @@ namespace caret {
         
     public:
         virtual AString toString() const;
+        
+        virtual SceneObject* clone() const = 0;
 
         // ADD_NEW_METHODS_HERE
         

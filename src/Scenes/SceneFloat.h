@@ -32,6 +32,8 @@ namespace caret {
         SceneFloat(const AString& name,
                      const float value);
         
+        SceneFloat(const SceneFloat& rhs);
+
         virtual ~SceneFloat();
         
         void setValue(const float value);
@@ -47,11 +49,11 @@ namespace caret {
         virtual uint8_t unsignedByteValue() const;
         
     private:
-        SceneFloat(const SceneFloat&);
-
         SceneFloat& operator=(const SceneFloat&);
         
     public:
+        
+        virtual SceneObject* clone() const;
 
         // ADD_NEW_METHODS_HERE
 

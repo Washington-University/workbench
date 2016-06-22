@@ -53,8 +53,7 @@ SceneUnsignedByteArray::SceneUnsignedByteArray(const AString& name,
                                      const uint8_t values[],
                                      const int32_t numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                 SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE,
-                 numberOfArrayElements)
+                 SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE)
 {
     m_values.resize(numberOfArrayElements);
     for (int32_t i = 0; i < numberOfArrayElements; i++) {
@@ -73,8 +72,7 @@ SceneUnsignedByteArray::SceneUnsignedByteArray(const AString& name,
 SceneUnsignedByteArray::SceneUnsignedByteArray(const AString& name,
                                      const std::vector<uint8_t>& values)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE,
-                      values.size())
+                      SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE)
 {
     m_values = values;
 }
@@ -90,13 +88,17 @@ SceneUnsignedByteArray::SceneUnsignedByteArray(const AString& name,
 SceneUnsignedByteArray::SceneUnsignedByteArray(const AString& name,
                                      const int numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE,
-                      numberOfArrayElements)
+                      SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE)
 {
     m_values.resize(numberOfArrayElements);
     std::fill(m_values.begin(),
               m_values.end(),
-              false);
+              0);
+}
+
+SceneUnsignedByteArray::SceneUnsignedByteArray(const SceneUnsignedByteArray& rhs): ScenePrimitiveArray(rhs.getName(), SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE)
+{
+    m_values = rhs.m_values;
 }
 
 /**

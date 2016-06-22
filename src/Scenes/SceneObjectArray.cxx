@@ -45,11 +45,9 @@ using namespace caret;
  *    Number of elements in the array.
  */
 SceneObjectArray::SceneObjectArray(const QString& name,
-                                   const SceneObjectDataTypeEnum::Enum dataType,
-                                   const int32_t numberOfArrayElements)
+                                   const SceneObjectDataTypeEnum::Enum dataType)
 : SceneObject(name,
-              dataType),
-  m_numberOfArrayElements(numberOfArrayElements)
+              dataType)
 {
     
 }
@@ -61,14 +59,3 @@ SceneObjectArray::~SceneObjectArray()
 {
     
 }
-
-/**
- * @return  Number of elements in the array.
- */
-int32_t 
-SceneObjectArray::getNumberOfArrayElements() const
-{
-    return m_numberOfArrayElements;
-}
-
-

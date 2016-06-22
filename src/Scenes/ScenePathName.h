@@ -32,6 +32,8 @@ namespace caret {
         ScenePathName(const AString& name,
                       const AString& value);
         
+        ScenePathName(const ScenePathName& rhs);
+
         virtual ~ScenePathName();
         
         void setValue(const AString& value);
@@ -44,11 +46,12 @@ namespace caret {
         AString getRelativePathToSceneFile(const AString& sceneFileName) const;
         
     private:
-        ScenePathName(const ScenePathName&);
 
         ScenePathName& operator=(const ScenePathName&);
         
     public:
+        
+        virtual SceneObject* clone() const;
 
         // ADD_NEW_METHODS_HERE
 

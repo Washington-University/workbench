@@ -65,6 +65,16 @@ ScenePathName::ScenePathName(const AString& name,
     setValue(value);
 }
 
+ScenePathName::ScenePathName(const ScenePathName& rhs): SceneObject(rhs.getName(), SceneObjectDataTypeEnum::SCENE_PATH_NAME)
+{
+    m_value = rhs.m_value;
+}
+
+SceneObject* ScenePathName::clone() const
+{
+    return new ScenePathName(*this);
+}
+
 /**
  * Destructor.
  */

@@ -38,6 +38,8 @@ namespace caret {
         
         SceneAttributes(const SceneTypeEnum::Enum sceneType);
         
+        SceneAttributes(const SceneAttributes& rhs);
+
         virtual ~SceneAttributes();
         
         SceneTypeEnum::Enum getSceneType() const;
@@ -88,8 +90,6 @@ namespace caret {
         void setUseSceneForegroundAndBackgroundColors(const bool status);
         
     private:
-        SceneAttributes(const SceneAttributes&);
-
         SceneAttributes& operator=(const SceneAttributes&);
         
     public:

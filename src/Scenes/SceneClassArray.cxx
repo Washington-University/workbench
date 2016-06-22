@@ -52,8 +52,7 @@ SceneClassArray::SceneClassArray(const AString& name,
                 SceneClass* values[],
                 const int32_t numberOfArrayElements)
 : SceneObjectArray(name,
-                   SceneObjectDataTypeEnum::SCENE_CLASS,
-                   numberOfArrayElements)
+                   SceneObjectDataTypeEnum::SCENE_CLASS)
 {
     m_values.resize(numberOfArrayElements);
     for (int32_t i = 0; i < numberOfArrayElements; i++) {
@@ -72,8 +71,7 @@ SceneClassArray::SceneClassArray(const AString& name,
 SceneClassArray::SceneClassArray(const AString& name,
                 const std::vector<SceneClass*>& values)
 : SceneObjectArray(name,
-                   SceneObjectDataTypeEnum::SCENE_CLASS,
-                   values.size())
+                   SceneObjectDataTypeEnum::SCENE_CLASS)
 {
     m_values = values;
 }
@@ -89,13 +87,20 @@ SceneClassArray::SceneClassArray(const AString& name,
 SceneClassArray::SceneClassArray(const AString& name,
                 const int numberOfArrayElements)
 : SceneObjectArray(name,
-                   SceneObjectDataTypeEnum::SCENE_CLASS,
-                   numberOfArrayElements)
+                   SceneObjectDataTypeEnum::SCENE_CLASS)
 {
     m_values.resize(numberOfArrayElements);
     std::fill(m_values.begin(),
               m_values.end(),
               (SceneClass*)NULL);
+}
+
+SceneClassArray::SceneClassArray(const caret::SceneClassArray& rhs) : SceneObjectArray(rhs.getName(), SceneObjectDataTypeEnum::SCENE_CLASS)
+{
+    for (std::vector<SceneClass*>::const_iterator iter = rhs.m_values.begin(); iter != rhs.m_values.end(); ++iter)
+    {
+        m_values.push_back(new SceneClass(**iter));
+    }
 }
 
 /**
@@ -153,4 +158,3 @@ SceneClassArray::getClassAtIndex(const int32_t arrayIndex) const
     CaretAssertVectorIndex(m_values, arrayIndex);
     return m_values[arrayIndex];
 }
-

@@ -54,8 +54,7 @@ SceneFloatArray::SceneFloatArray(const AString& name,
                                      const float values[],
                                      const int32_t numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                 SceneObjectDataTypeEnum::SCENE_FLOAT,
-                 numberOfArrayElements)
+                 SceneObjectDataTypeEnum::SCENE_FLOAT)
 {
     m_values.resize(numberOfArrayElements);
     for (int32_t i = 0; i < numberOfArrayElements; i++) {
@@ -74,8 +73,7 @@ SceneFloatArray::SceneFloatArray(const AString& name,
 SceneFloatArray::SceneFloatArray(const AString& name,
                                      const std::vector<float>& values)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_FLOAT,
-                      values.size())
+                      SceneObjectDataTypeEnum::SCENE_FLOAT)
 {
     m_values = values;
 }
@@ -91,13 +89,17 @@ SceneFloatArray::SceneFloatArray(const AString& name,
 SceneFloatArray::SceneFloatArray(const AString& name,
                                      const int numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_FLOAT,
-                      numberOfArrayElements)
+                      SceneObjectDataTypeEnum::SCENE_FLOAT)
 {
     m_values.resize(numberOfArrayElements);
     std::fill(m_values.begin(),
               m_values.end(),
-              false);
+              0.0f);
+}
+
+SceneFloatArray::SceneFloatArray(const SceneFloatArray& rhs): ScenePrimitiveArray(rhs.getName(), SceneObjectDataTypeEnum::SCENE_FLOAT)
+{
+    m_values = rhs.m_values;
 }
 
 /**

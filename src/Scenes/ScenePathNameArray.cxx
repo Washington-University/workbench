@@ -53,8 +53,7 @@ ScenePathNameArray::ScenePathNameArray(const AString& name,
                 const AString pathNameValues[],
                 const int32_t numberOfArrayElements)
 : SceneObjectArray(name,
-                   SceneObjectDataTypeEnum::SCENE_PATH_NAME,
-                   numberOfArrayElements)
+                   SceneObjectDataTypeEnum::SCENE_PATH_NAME)
 {
     m_values.resize(numberOfArrayElements);
     for (int32_t i = 0; i < numberOfArrayElements; i++) {
@@ -74,8 +73,7 @@ ScenePathNameArray::ScenePathNameArray(const AString& name,
 ScenePathNameArray::ScenePathNameArray(const AString& name,
                 const std::vector<AString>& pathNameValues)
 : SceneObjectArray(name,
-                   SceneObjectDataTypeEnum::SCENE_PATH_NAME,
-                   pathNameValues.size())
+                   SceneObjectDataTypeEnum::SCENE_PATH_NAME)
 {
     const int32_t numberOfArrayElements = static_cast<int32_t>(pathNameValues.size());
     for (int32_t i = 0; i < numberOfArrayElements; i++) {
@@ -95,13 +93,20 @@ ScenePathNameArray::ScenePathNameArray(const AString& name,
 ScenePathNameArray::ScenePathNameArray(const AString& name,
                 const int numberOfArrayElements)
 : SceneObjectArray(name,
-                   SceneObjectDataTypeEnum::SCENE_PATH_NAME,
-                   numberOfArrayElements)
+                   SceneObjectDataTypeEnum::SCENE_PATH_NAME)
 {
     m_values.resize(numberOfArrayElements);
     std::fill(m_values.begin(),
               m_values.end(),
               (ScenePathName*)NULL);
+}
+
+ScenePathNameArray::ScenePathNameArray(const ScenePathNameArray& rhs): SceneObjectArray(rhs.getName(), SceneObjectDataTypeEnum::SCENE_PATH_NAME)
+{
+    for (std::vector<ScenePathName*>::const_iterator iter = rhs.m_values.begin(); iter != rhs.m_values.end(); ++iter)
+    {
+        m_values.push_back(new ScenePathName(**iter));
+    }
 }
 
 /**

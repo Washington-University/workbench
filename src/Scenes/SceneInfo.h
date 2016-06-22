@@ -34,6 +34,8 @@ namespace caret {
     public:
         SceneInfo();
         
+        SceneInfo(const SceneInfo& rhs);
+
         virtual ~SceneInfo();
         
         AString getName() const;
@@ -69,8 +71,6 @@ namespace caret {
                                  const AString& imageFormat) const;
         
     private:
-        SceneInfo(const SceneInfo&);
-
         SceneInfo& operator=(const SceneInfo&);
         
         /** name of scene*/

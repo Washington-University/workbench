@@ -39,6 +39,8 @@ namespace caret {
         SceneEnumeratedTypeArray(const AString& name,
                           const int numberOfArrayElements);
         
+        SceneEnumeratedTypeArray(const SceneEnumeratedTypeArray& rhs);
+
         virtual ~SceneEnumeratedTypeArray();
         
         void setValue(const int32_t arrayIndex,
@@ -51,11 +53,13 @@ namespace caret {
                           const AString defaultValue) const;
         
     private:
-        SceneEnumeratedTypeArray(const SceneEnumeratedTypeArray&);
-
         SceneEnumeratedTypeArray& operator=(const SceneEnumeratedTypeArray&);
         
     public:
+        
+        virtual int32_t getNumberOfArrayElements() const { return m_values.size(); }
+        
+        virtual SceneObject* clone() const { return new SceneEnumeratedTypeArray(*this); }
 
         // ADD_NEW_METHODS_HERE
 

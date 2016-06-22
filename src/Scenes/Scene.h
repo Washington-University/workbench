@@ -35,11 +35,11 @@ namespace caret {
     public:
         Scene(const SceneTypeEnum::Enum sceneType);
         
+        Scene(const Scene& rhs);
+
         virtual ~Scene();
         
     private:
-        Scene(const Scene&);
-
         Scene& operator=(const Scene&);
         
     public:

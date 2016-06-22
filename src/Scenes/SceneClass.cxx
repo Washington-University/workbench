@@ -77,6 +77,21 @@ SceneClass::SceneClass(const AString& name,
     
 }
 
+SceneClass::SceneClass(const SceneClass& rhs): SceneObject(rhs.getName(), SceneObjectDataTypeEnum::SCENE_CLASS),
+  m_className(rhs.m_className),
+  m_versionNumber(rhs.m_versionNumber)
+{
+    for (std::vector<SceneObject*>::const_iterator iter = rhs.m_childObjects.begin(); iter != rhs.m_childObjects.end(); ++iter)
+    {
+        m_childObjects.push_back((*iter)->clone());
+    }
+}
+
+SceneObject* SceneClass::clone() const
+{
+    return new SceneClass(*this);
+}
+
 /**
  * Destructor.
  */
@@ -1059,7 +1074,6 @@ SceneClass::getObjectWithName(const AString& name) const
     
     return NULL;
 }
-
 
 /**
  * Log a missing object message to the Caret Logger.

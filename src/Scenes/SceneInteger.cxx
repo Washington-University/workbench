@@ -53,6 +53,16 @@ SceneInteger::SceneInteger(const AString& name,
     m_value = value;
 }
 
+SceneInteger::SceneInteger(const SceneInteger& rhs): ScenePrimitive(rhs.getName(), SceneObjectDataTypeEnum::SCENE_INTEGER)
+{
+    m_value = rhs.m_value;
+}
+
+SceneObject* SceneInteger::clone() const
+{
+    return new SceneInteger(*this);
+}
+
 /**
  * Destructor.
  */
@@ -130,4 +140,3 @@ SceneInteger::unsignedByteValue() const
     const uint8_t b = static_cast<uint8_t>(m_value);
     return b;
 }
-

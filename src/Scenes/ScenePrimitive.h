@@ -59,6 +59,8 @@ namespace caret {
         /** @return Value as a unsigned byte data type */
         virtual uint8_t unsignedByteValue() const = 0;
         
+        virtual SceneObject* clone() const = 0;
+        
     private:
 
         // ADD_NEW_MEMBERS_HERE

@@ -41,6 +41,8 @@ namespace caret {
         ScenePathNameArray(const AString& name,
                           const int numberOfArrayElements);
         
+        ScenePathNameArray(const ScenePathNameArray& rhs);
+
         virtual ~ScenePathNameArray();
         
         void setScenePathNameAtIndex(const int32_t arrayIndex,
@@ -50,13 +52,15 @@ namespace caret {
         ScenePathName* getScenePathNameAtIndex(const int32_t arrayIndex) const;
         
     private:
-        ScenePathNameArray(const ScenePathNameArray&);
-
         ScenePathNameArray& operator=(const ScenePathNameArray&);
         
     public:
 
         // ADD_NEW_METHODS_HERE
+
+        virtual int32_t getNumberOfArrayElements() const { return m_values.size(); }
+        
+        virtual SceneObject* clone() const { return new ScenePathNameArray(*this); }
 
     private:
 

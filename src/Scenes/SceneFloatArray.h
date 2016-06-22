@@ -39,6 +39,8 @@ namespace caret {
         SceneFloatArray(const AString& name,
                           const int numberOfArrayElements);
         
+        SceneFloatArray(const SceneFloatArray& rhs);
+
         virtual ~SceneFloatArray();
         
         void setValue(const int32_t arrayIndex,
@@ -55,11 +57,13 @@ namespace caret {
         virtual uint8_t unsignedByteValue(const int32_t arrayIndex) const;
         
     private:
-        SceneFloatArray(const SceneFloatArray&);
-
         SceneFloatArray& operator=(const SceneFloatArray&);
         
     public:
+        
+        virtual int32_t getNumberOfArrayElements() const { return m_values.size(); }
+        
+        virtual SceneObject* clone() const { return new SceneFloatArray(*this); }
 
         // ADD_NEW_METHODS_HERE
 

@@ -30,8 +30,7 @@ namespace caret {
         
     public:
         SceneObjectArray(const QString& name,
-                         const SceneObjectDataTypeEnum::Enum dataType,
-                         const int32_t numberOfArrayElements);
+                         const SceneObjectDataTypeEnum::Enum dataType);
         
         virtual ~SceneObjectArray();
         
@@ -44,14 +43,14 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+        virtual SceneObject* clone() const = 0;
 
-        int32_t getNumberOfArrayElements() const;
+        virtual int32_t getNumberOfArrayElements() const = 0;
         
     protected:
 
         // ADD_NEW_MEMBERS_HERE
 
-        const int32_t m_numberOfArrayElements;
     };
     
 #ifdef __SCENE_OBJECT_ARRAY_DECLARE__

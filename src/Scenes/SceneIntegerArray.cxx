@@ -54,8 +54,7 @@ SceneIntegerArray::SceneIntegerArray(const AString& name,
                                      const int32_t values[],
                                      const int32_t numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                 SceneObjectDataTypeEnum::SCENE_INTEGER,
-                 numberOfArrayElements)
+                 SceneObjectDataTypeEnum::SCENE_INTEGER)
 {
     m_values.resize(numberOfArrayElements);
     for (int32_t i = 0; i < numberOfArrayElements; i++) {
@@ -74,8 +73,7 @@ SceneIntegerArray::SceneIntegerArray(const AString& name,
 SceneIntegerArray::SceneIntegerArray(const AString& name,
                                      const std::vector<int32_t>& values)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_INTEGER,
-                      values.size())
+                      SceneObjectDataTypeEnum::SCENE_INTEGER)
 {
     m_values = values;
 }
@@ -91,13 +89,17 @@ SceneIntegerArray::SceneIntegerArray(const AString& name,
 SceneIntegerArray::SceneIntegerArray(const AString& name,
                                      const int numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_INTEGER,
-                      numberOfArrayElements)
+                      SceneObjectDataTypeEnum::SCENE_INTEGER)
 {
     m_values.resize(numberOfArrayElements);
     std::fill(m_values.begin(),
               m_values.end(),
-              false);
+              0);
+}
+
+SceneIntegerArray::SceneIntegerArray(const SceneIntegerArray& rhs): ScenePrimitiveArray(rhs.getName(), SceneObjectDataTypeEnum::SCENE_INTEGER)
+{
+    m_values = rhs.m_values;
 }
 
 /**

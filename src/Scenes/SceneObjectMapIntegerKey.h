@@ -119,6 +119,8 @@ namespace caret {
         
         AString pathNameValue(const int32_t key) const;
         
+        virtual SceneObject* clone() const;
+        
     private:
         typedef std::map<int32_t, SceneObject*> DATA_MAP;
         

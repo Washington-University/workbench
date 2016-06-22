@@ -45,6 +45,20 @@ SceneAttributes::SceneAttributes(const SceneTypeEnum::Enum sceneType)
     m_specFileNameSavedToScene   = true;
     m_allLoadedFilesSavedToScene = true;
     m_useSceneForgroundAndBackgroundColorsFlag = true;
+    m_modifiedPaletteSettingsSavedToScene = true;//TSC: was uninitialized, bad idea
+}
+
+SceneAttributes::SceneAttributes(const SceneAttributes& rhs): CaretObject(), m_sceneType(rhs.m_sceneType)
+{
+    m_restoreWindowBehaviorInSceneDisplay = rhs.m_restoreWindowBehaviorInSceneDisplay;
+    m_specFileNameSavedToScene = rhs.m_specFileNameSavedToScene;
+    m_allLoadedFilesSavedToScene = rhs.m_allLoadedFilesSavedToScene;
+    m_useSceneForgroundAndBackgroundColorsFlag = rhs.m_useSceneForgroundAndBackgroundColorsFlag;
+    m_sceneName = rhs.m_sceneName;
+    //leaving sceneFileName empty, as that shouldn't even be stored inside the scene, and we don't know where this scene will be put
+    m_indicesOfTabsForSavingToScene = rhs.m_indicesOfTabsForSavingToScene;
+    m_indicesOfWindowsForSavingToScene = rhs.m_indicesOfWindowsForSavingToScene;
+    //leaving error message empty, seems to make the most sense
 }
 
 /**

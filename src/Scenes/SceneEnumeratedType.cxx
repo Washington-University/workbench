@@ -74,3 +74,8 @@ SceneEnumeratedType::stringValue() const
     return m_enumeratedValueAsString;
 }
 
+SceneObject* SceneEnumeratedType::clone() const
+{
+    return new SceneEnumeratedType(getName(), stringValue());
+}
+

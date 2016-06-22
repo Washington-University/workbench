@@ -46,6 +46,8 @@ namespace caret {
     public:
 
         // ADD_NEW_METHODS_HERE
+        
+        virtual SceneObject* clone() const;
 
     private:
 

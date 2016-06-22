@@ -32,6 +32,8 @@ namespace caret {
         SceneInteger(const AString& name,
                      const int32_t value);
         
+        SceneInteger(const SceneInteger& rhs);
+
         virtual ~SceneInteger();
         
         void setValue(const int32_t value);
@@ -47,11 +49,11 @@ namespace caret {
         virtual uint8_t unsignedByteValue() const;
         
     private:
-        SceneInteger(const SceneInteger&);
-
         SceneInteger& operator=(const SceneInteger&);
         
     public:
+        
+        virtual SceneObject* clone() const;
 
         // ADD_NEW_METHODS_HERE
 

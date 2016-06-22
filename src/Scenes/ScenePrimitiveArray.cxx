@@ -46,11 +46,9 @@ using namespace caret;
  *    Data type of the primitive.
  */
 ScenePrimitiveArray::ScenePrimitiveArray(const QString& name,
-                               const SceneObjectDataTypeEnum::Enum dataType,
-                                         const int32_t numberOfArrayElements)
+                               const SceneObjectDataTypeEnum::Enum dataType)
 : SceneObjectArray(name, 
-                   dataType,
-                   numberOfArrayElements)
+                   dataType)
 {
     
 }
@@ -81,7 +79,7 @@ ScenePrimitiveArray::booleanValues(bool valuesOut[],
                                    const bool defaultValue) const
 {    
     const int32_t numElem = std::min(arrayNumberOfElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     for (int32_t i = 0; i < numElem; i++) {
         valuesOut[i] = booleanValue(i);
     }
@@ -107,7 +105,7 @@ ScenePrimitiveArray::booleanValues(std::vector<bool>& valuesOut,
 {
     const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
     const int32_t numElem = std::min(valuesOutNumberOfElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     
     for (int32_t i = 0; i < numElem; i++) {
         valuesOut[i] = booleanValue(i);
@@ -135,7 +133,7 @@ ScenePrimitiveArray::floatValues(float valuesOut[],
                                    const float defaultValue) const
 {    
     const int32_t numElem = std::min(arrayNumberOfElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     for (int32_t i = 0; i < numElem; i++) {
         valuesOut[i] = floatValue(i);
     }
@@ -161,7 +159,7 @@ ScenePrimitiveArray::floatValues(std::vector<float>& valuesOut,
 {
     const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
     const int32_t numElem = std::min(valuesOutNumberOfElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     
     for (int32_t i = 0; i < numElem; i++) {
         valuesOut[i] = floatValue(i);
@@ -189,7 +187,7 @@ ScenePrimitiveArray::integerValues(int32_t valuesOut[],
                                  const int32_t defaultValue) const
 {    
     const int32_t numElem = std::min(arrayNumberOfElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     for (int32_t i = 0; i < numElem; i++) {
         valuesOut[i] = integerValue(i);
     }
@@ -215,7 +213,7 @@ ScenePrimitiveArray::integerValues(std::vector<int32_t>& valuesOut,
 {
     const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
     const int32_t numElem = std::min(valuesOutNumberOfElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     
     for (int32_t i = 0; i < numElem; i++) {
         valuesOut[i] = integerValue(i);
@@ -243,7 +241,7 @@ ScenePrimitiveArray::stringValues(AString valuesOut[],
                                    const AString& defaultValue) const
 {    
     const int32_t numElem = std::min(arrayNumberOfElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     for (int32_t i = 0; i < numElem; i++) {
         valuesOut[i] = stringValue(i);
     }
@@ -269,7 +267,7 @@ ScenePrimitiveArray::stringValues(std::vector<AString>& valuesOut,
 {
     const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
     const int32_t numElem = std::min(valuesOutNumberOfElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     
     for (int32_t i = 0; i < numElem; i++) {
         valuesOut[i] = stringValue(i);
@@ -297,7 +295,7 @@ ScenePrimitiveArray::unsignedByteValues(uint8_t valuesOut[],
                                    const uint8_t defaultValue) const
 {
     const int32_t numElem = std::min(arrayNumberOfElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     for (int32_t i = 0; i < numElem; i++) {
         valuesOut[i] = unsignedByteValue(i);
     }
@@ -323,7 +321,7 @@ ScenePrimitiveArray::unsignedByteValues(std::vector<uint8_t>& valuesOut,
 {
     const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
     const int32_t numElem = std::min(valuesOutNumberOfElements,
-                                     m_numberOfArrayElements);
+                                     getNumberOfArrayElements());
     
     for (int32_t i = 0; i < numElem; i++) {
         valuesOut[i] = unsignedByteValue(i);

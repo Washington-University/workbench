@@ -54,8 +54,7 @@ SceneStringArray::SceneStringArray(const AString& name,
                                      const AString values[],
                                      const int32_t numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                 SceneObjectDataTypeEnum::SCENE_STRING,
-                 numberOfArrayElements)
+                 SceneObjectDataTypeEnum::SCENE_STRING)
 {
     m_values.resize(numberOfArrayElements);
     for (int32_t i = 0; i < numberOfArrayElements; i++) {
@@ -74,8 +73,7 @@ SceneStringArray::SceneStringArray(const AString& name,
 SceneStringArray::SceneStringArray(const AString& name,
                                      const std::vector<AString>& values)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_STRING,
-                      values.size())
+                      SceneObjectDataTypeEnum::SCENE_STRING)
 {
     m_values = values;
 }
@@ -91,13 +89,17 @@ SceneStringArray::SceneStringArray(const AString& name,
 SceneStringArray::SceneStringArray(const AString& name,
                                      const int numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_STRING,
-                      numberOfArrayElements)
+                      SceneObjectDataTypeEnum::SCENE_STRING)
 {
     m_values.resize(numberOfArrayElements);
     std::fill(m_values.begin(),
               m_values.end(),
-              false);
+              "");
+}
+
+SceneStringArray::SceneStringArray(const SceneStringArray& rhs): ScenePrimitiveArray(rhs.getName(), SceneObjectDataTypeEnum::SCENE_STRING)
+{
+    m_values = rhs.m_values;
 }
 
 /**

@@ -32,6 +32,8 @@ namespace caret {
         SceneUnsignedByte(const AString& name,
                      const uint8_t value);
         
+        SceneUnsignedByte(const SceneUnsignedByte& rhs);
+
         virtual ~SceneUnsignedByte();
         
         void setValue(const uint8_t value);
@@ -47,11 +49,11 @@ namespace caret {
         virtual uint8_t unsignedByteValue() const;
         
     private:
-        SceneUnsignedByte(const SceneUnsignedByte&);
-
         SceneUnsignedByte& operator=(const SceneUnsignedByte&);
         
     public:
+        
+        virtual SceneObject* clone() const;
 
         // ADD_NEW_METHODS_HERE
 

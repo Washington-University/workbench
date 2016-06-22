@@ -33,8 +33,7 @@ namespace caret {
 
     protected:
         ScenePrimitiveArray(const QString& name,
-                            const SceneObjectDataTypeEnum::Enum dataType,
-                            const int32_t numberOfArrayElements);
+                            const SceneObjectDataTypeEnum::Enum dataType);
         
     private:
         ScenePrimitiveArray(const ScenePrimitiveArray&);

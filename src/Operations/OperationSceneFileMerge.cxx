@@ -45,7 +45,7 @@ OperationParameters* OperationSceneFileMerge::getParameters()
     
     ParameterComponent* sceneFileOpt = ret->createRepeatableParameter(2, "-scene-file", "specify a scene file to use scenes from");
     sceneFileOpt->addStringParameter(1, "scene-file", "the input scene file");
-    OptionalParameter* sceneOpt = sceneFileOpt->createOptionalParameter(2, "-scene", "specify a scene to use");//NOTE: can't be repeatable until Scene has a copy constructor
+    ParameterComponent* sceneOpt = sceneFileOpt->createRepeatableParameter(2, "-scene", "specify a scene to use");
     sceneOpt->addStringParameter(1, "scene", "the scene number or name");
     OptionalParameter* upToOpt = sceneOpt->createOptionalParameter(2, "-up-to", "use an inclusive range of scenes");
     upToOpt->addStringParameter(1, "last-column", "the number or name of the last scene to include");
@@ -71,46 +71,51 @@ void OperationSceneFileMerge::useParameters(OperationParameters* myParams, Progr
         ParameterComponent* thisInput = myInputs[i];
         SceneFile inputScene;
         inputScene.readFile(thisInput->getString(1));
-        OptionalParameter* selectOpt = thisInput->getOptionalParameter(2);
-        if (selectOpt->m_present)
+        const vector<ParameterComponent*>& selectOpts = *(thisInput->getRepeatableParameterInstances(2));
+        int numSelect = (int)selectOpts.size();
+        if (numSelect > 0)
         {
-            int firstInd = inputScene.getSceneIndexFromNumberOrName(selectOpt->getString(1));
-            if (firstInd < 0)
+            for (int j = 0; j < numSelect; ++j)
             {
-                throw OperationException("scene '" + selectOpt->getString(1) + "' not found in file '" + thisInput->getString(1) + "'");
-            }
-            OptionalParameter* upToOpt = selectOpt->getOptionalParameter(2);
-            if (upToOpt->m_present)
-            {
-                int lastInd = inputScene.getSceneIndexFromNumberOrName(upToOpt->getString(1));
-                if (lastInd < 0)
+                ParameterComponent* thisSelect = selectOpts[j];
+                int firstInd = inputScene.getSceneIndexFromNumberOrName(thisSelect->getString(1));
+                if (firstInd < 0)
                 {
-                    throw OperationException("scene '" + upToOpt->getString(1) + "' not found in file '" + thisInput->getString(1) + "'");
+                    throw OperationException("scene '" + thisSelect->getString(1) + "' not found in file '" + thisInput->getString(1) + "'");
                 }
-                if (lastInd < firstInd)
+                OptionalParameter* upToOpt = thisSelect->getOptionalParameter(2);
+                if (upToOpt->m_present)
                 {
-                    throw OperationException("ending scene '" + upToOpt->getString(1) + "' occurs before starting scene '" + selectOpt->getString(1) + "'");
-                }
-                if (upToOpt->getOptionalParameter(2)->m_present)//reverse
-                {
-                    for (int s = lastInd; s >= firstInd; --s)
+                    int lastInd = inputScene.getSceneIndexFromNumberOrName(upToOpt->getString(1));
+                    if (lastInd < 0)
                     {
-                        outSceneFile.addScene(inputScene.releaseScene(s));//NOTE: this only works this simply because they are removed in reverse order
+                        throw OperationException("scene '" + upToOpt->getString(1) + "' not found in file '" + thisInput->getString(1) + "'");
+                    }
+                    if (lastInd < firstInd)
+                    {
+                        throw OperationException("ending scene '" + upToOpt->getString(1) + "' occurs before starting scene '" + thisSelect->getString(1) + "'");
+                    }
+                    if (upToOpt->getOptionalParameter(2)->m_present)//reverse
+                    {
+                        for (int s = lastInd; s >= firstInd; --s)
+                        {
+                            outSceneFile.addScene(new Scene(*inputScene.getSceneAtIndex(s)));
+                        }
+                    } else {
+                        for (int s = firstInd; s <= lastInd; ++s)
+                        {
+                            outSceneFile.addScene(new Scene(*inputScene.getSceneAtIndex(s)));
+                        }
                     }
                 } else {
-                    for (int s = firstInd; s <= lastInd; ++s)
-                    {
-                        outSceneFile.addScene(inputScene.releaseScene(firstInd));//HACK: because they are removed in order, the next one will always be at the initial index
-                    }
+                    outSceneFile.addScene(new Scene(*inputScene.getSceneAtIndex(firstInd)));
                 }
-            } else {
-                outSceneFile.addScene(inputScene.releaseScene(firstInd));
             }
-        } else {
+        } else {//no select options means select all in order
             int numScenes = inputScene.getNumberOfScenes();
             for (int s = 0; s < numScenes; ++s)
             {
-                outSceneFile.addScene(inputScene.releaseScene(0));//HACK: remove all and add in order, means that the one to remove will always be at first index
+                outSceneFile.addScene(new Scene(*inputScene.getSceneAtIndex(s)));
             }
         }
     }

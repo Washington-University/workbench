@@ -53,6 +53,16 @@ SceneFloat::SceneFloat(const AString& name,
     m_value = value;
 }
 
+SceneFloat::SceneFloat(const SceneFloat& rhs): ScenePrimitive(rhs.getName(), SceneObjectDataTypeEnum::SCENE_FLOAT)
+{
+    m_value = rhs.m_value;
+}
+
+SceneObject* SceneFloat::clone() const
+{
+    return new SceneFloat(*this);
+}
+
 /**
  * Destructor.
  */

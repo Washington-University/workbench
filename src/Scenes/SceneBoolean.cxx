@@ -51,6 +51,16 @@ SceneBoolean::SceneBoolean(const AString& name,
     m_value = value;
 }
 
+SceneBoolean::SceneBoolean(const SceneBoolean& rhs): ScenePrimitive(rhs.getName(), SceneObjectDataTypeEnum::SCENE_BOOLEAN)
+{
+    m_value = rhs.m_value;
+}
+
+SceneObject* SceneBoolean::clone() const
+{
+    return new SceneBoolean(*this);
+}
+
 /**
  * Destructor.
  */
@@ -117,4 +127,3 @@ SceneBoolean::unsignedByteValue() const
 {
     return m_value;
 }
-

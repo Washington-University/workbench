@@ -47,6 +47,15 @@ SceneInfo::SceneInfo()
     
 }
 
+SceneInfo::SceneInfo(const SceneInfo& rhs) : CaretObject()
+{
+    m_sceneName = rhs.m_sceneName;
+    m_sceneDescription = rhs.m_sceneDescription;
+    m_balsaSceneID = rhs.m_balsaSceneID;
+    m_imageFormat = rhs.m_imageFormat;
+    m_imageBytes = rhs.m_imageBytes;
+}
+
 /**
  * Destructor.
  */

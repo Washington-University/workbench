@@ -32,6 +32,8 @@ namespace caret {
         SceneBoolean(const AString& name,
                      const bool value);
         
+        SceneBoolean(const SceneBoolean& rhs);
+
         void setValue(const bool value);
         
         virtual ~SceneBoolean();
@@ -47,11 +49,11 @@ namespace caret {
         virtual uint8_t unsignedByteValue() const;
         
     private:
-        SceneBoolean(const SceneBoolean&);
-
         SceneBoolean& operator=(const SceneBoolean&);
         
     public:
+        
+        virtual SceneObject* clone() const;
 
         // ADD_NEW_METHODS_HERE
 
