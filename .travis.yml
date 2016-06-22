@@ -29,6 +29,6 @@ before_install:
     - cd ../build
 
 script:
-    - "cmake ../workbench/src"
+    - cmake ../workbench/src
     - make -j 4
     - ctest

@@ -689,8 +689,8 @@ SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
         AString sceneNamesText = "Scenes:";
         for (int32_t i = 0; i < numScenes; i++) {
             const Scene* scene = getSceneAtIndex(i);
-            sceneNamesText.appendWithNewLine("    "
-                                             + scene->getName());
+            sceneNamesText.appendWithNewLine("#" + AString::number(i + 1) + "  " +
+                                             scene->getName());
             if (dataFileInformation.isOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION))
             {
                 sceneNamesText += ":";
