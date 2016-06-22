@@ -36,10 +36,14 @@
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "Scene.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneFileSaxReader.h"
 #include "SceneInfo.h"
 #include "SceneXmlElements.h"
 #include "SceneWriterXml.h"
+#include "SpecFile.h"
 #include "XmlSaxParser.h"
 #include "XmlWriter.h"
 
@@ -682,11 +686,53 @@ SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
     
     const int32_t numScenes = getNumberOfScenes();
     if (numScenes > 0) {
-        AString sceneNamesText = "SCENE NAMES";
+        AString sceneNamesText = "Scenes:";
         for (int32_t i = 0; i < numScenes; i++) {
             const Scene* scene = getSceneAtIndex(i);
             sceneNamesText.appendWithNewLine("    "
                                              + scene->getName());
+            if (dataFileInformation.isOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION))
+            {
+                sceneNamesText += ":";
+                const SceneAttributes* myAttrs = scene->getAttributes();
+                const SceneClass* guiMgrClass = scene->getClassWithName("guiManager");
+                if (guiMgrClass == NULL)
+                {
+                    sceneNamesText.appendWithNewLine("missing guiManager class");
+                    continue;
+                }
+                const SceneClass* sessMgrClass = guiMgrClass->getClass("m_sessionManager");
+                if (sessMgrClass == NULL)
+                {
+                    sceneNamesText.appendWithNewLine("missing m_sessionManager class");
+                    continue;
+                }
+                const SceneClassArray* brainArray = sessMgrClass->getClassArray("m_brains");
+                if (brainArray == NULL)
+                {
+                    sceneNamesText.appendWithNewLine("missing m_brains class array");
+                    continue;
+                }
+                const int numBrainClasses = brainArray->getNumberOfArrayElements();
+                for (int j = 0; j < numBrainClasses; ++j)
+                {
+                    const SceneClass* brainClass = brainArray->getClassAtIndex(j);
+                    const SceneClass* specClass = brainClass->getClass("specFile");
+                    if (specClass == NULL)
+                    {
+                        sceneNamesText.appendWithNewLine("missing specFile class in m_brains element " + AString::number(j));
+                        continue;
+                    }
+                    SpecFile tempSpec;
+                    tempSpec.restoreFromScene(myAttrs, specClass);
+                    std::vector<AString> tempNames = tempSpec.getAllDataFileNamesSelectedForLoading();
+                    int numNames = (int)tempNames.size();
+                    for (int k = 0; k < numNames; ++k)
+                    {
+                        sceneNamesText.appendWithNewLine("        " + tempNames[k]);
+                    }
+                }
+            }
             
         }
         
