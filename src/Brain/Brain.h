@@ -54,6 +54,7 @@ namespace caret {
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
     class CiftiConnectivityMatrixDenseFile;
+    class CiftiConnectivityMatrixDenseDynamicFile;
     class CiftiConnectivityMatrixDenseParcelFile;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiConnectivityMatrixParcelDenseFile;
@@ -207,6 +208,8 @@ namespace caret {
         const CiftiConnectivityMatrixDenseFile* getConnectivityMatrixDenseFile(int32_t indx) const;
         
         void getConnectivityMatrixDenseFiles(std::vector<CiftiConnectivityMatrixDenseFile*>& connectivityDenseFilesOut) const;
+        
+        void getConnectivityMatrixDenseDynamicFiles(std::vector<CiftiConnectivityMatrixDenseDynamicFile*>& connectivityDenseDynamicFilesOut) const;
         
         int32_t getNumberOfConnectivityDenseLabelFiles() const;
         
@@ -612,6 +615,10 @@ namespace caret {
                                                                     CaretDataFile* caretDataFile,
                                                                     const AString& filename);
         
+        CiftiConnectivityMatrixDenseDynamicFile* addReadOrReloadConnectivityDenseDynamicFile(const FileModeAddReadReload fileMode,
+                                                                               CaretDataFile* caretDataFile,
+                                                                               const AString& filename);
+        
         CiftiBrainordinateLabelFile* addReadOrReloadConnectivityDenseLabelFile(const FileModeAddReadReload fileMode,
                                                                     CaretDataFile* caretDataFile,
                                                                     const AString& filename);
@@ -712,6 +719,8 @@ namespace caret {
         
         std::vector<CiftiConnectivityMatrixDenseFile*> m_connectivityMatrixDenseFiles;
         
+        std::vector<CiftiConnectivityMatrixDenseDynamicFile*> m_connectivityMatrixDenseDynamicFiles;
+
         std::vector<CiftiBrainordinateLabelFile*> m_connectivityDenseLabelFiles;
         
         std::vector<CiftiConnectivityMatrixDenseParcelFile*> m_connectivityMatrixDenseParcelFiles;

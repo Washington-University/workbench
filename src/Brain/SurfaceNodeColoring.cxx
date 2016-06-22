@@ -354,6 +354,16 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                                     overlayRGBV);
                 }
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                {
+                    CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
+                                                                                    cmf,
+                                                                                    selectedMapIndex,
+                                                                                    numNodes,
+                                                                                    overlayRGBV);
+                }
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                     isColoringValid = this->assignCiftiDenseLabelColoring(displayPropertiesLabels,
                                                                      browserTabIndex,

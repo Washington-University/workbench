@@ -137,6 +137,13 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "dconn.nii"));
     
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_DYNAMIC,
+                                        "CONNECTIVITY_DENSE_DYNAMIC",
+                                        "Connectivity - Dense Dynamic",
+                                        "CONNECTIVITY DYNAMIC",
+                                        false,
+                                        "dynconn.nii"));
+    
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_LABEL,
                                         "CONNECTIVITY_DENSE_LABEL",
                                         "Connectivity - Dense Label",

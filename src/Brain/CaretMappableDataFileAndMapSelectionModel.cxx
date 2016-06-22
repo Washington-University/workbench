@@ -114,6 +114,9 @@ CaretMappableDataFileAndMapSelectionModel::performConstruction(Brain* brain,
             case DataFileTypeEnum::CONNECTIVITY_DENSE:
                 isMappableFile = true;
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                isMappableFile = true;
+                break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                 isMappableFile = true;
                 break;

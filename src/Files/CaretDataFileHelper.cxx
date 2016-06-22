@@ -31,6 +31,7 @@
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixDenseFile.h"
+#include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "CiftiConnectivityMatrixDenseParcelFile.h"
 #include "CiftiConnectivityMatrixParcelDenseFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
@@ -311,6 +312,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
             caretDataFile = new CiftiConnectivityMatrixDenseFile();
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            caretDataFile = new CiftiConnectivityMatrixDenseDynamicFile();
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             caretDataFile = new CiftiBrainordinateLabelFile();

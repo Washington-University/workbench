@@ -119,6 +119,10 @@ namespace caret {
         
         void setChartMatrixLoadingDimension(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType);
         
+        virtual void getDataForColumn(float* dataOut, const int64_t& index) const;
+        
+        virtual void getDataForRow(float* dataOut, const int64_t& index) const;
+        
     private:
         void setLoadedRowDataToAllZeros();
         

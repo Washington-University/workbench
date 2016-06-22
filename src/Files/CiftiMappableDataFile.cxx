@@ -115,6 +115,15 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             m_dataReadingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             m_dataMappingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
@@ -690,6 +699,10 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
             expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
             expectedAlongRowMapType = CiftiMappingType::BRAIN_MODELS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
+            expectedAlongRowMapType = CiftiMappingType::SERIES;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
@@ -3958,6 +3971,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             CaretAssert(0);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            useMapData = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
             useMapData = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:

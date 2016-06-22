@@ -41,6 +41,8 @@ public:
         BORDER,
         /** Connectivity - Dense */
         CONNECTIVITY_DENSE,
+        /** Connectivity - Dense Dynamic (correlate from time-series)*/
+        CONNECTIVITY_DENSE_DYNAMIC,
         /** Connectivity - Dense Label */
         CONNECTIVITY_DENSE_LABEL,
         /** Connectivity - Dense Parcel */

@@ -552,26 +552,26 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
     return NULL; // will never get here since exception thrown
 }
 
-/**
- * @return ALL of the connectivity file types (NEVER delete contents of returned vector.
- */
-void 
-SpecFile::getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFilesOut)
-{
-    connectivityDataFilesOut.clear();
-    
-    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
-         iter != dataFileTypeGroups.end();
-         iter++) {
-        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
-        if (DataFileTypeEnum::isConnectivityDataType(dataFileTypeGroup->getDataFileType())) {
-            const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
-            for (int32_t i = 0; i < numFiles; i++) {
-                connectivityDataFilesOut.push_back(dataFileTypeGroup->getFileInformation(i));
-            }
-        }
-    }
-}
+///**
+// * @return ALL of the connectivity file types (NEVER delete contents of returned vector.
+// */
+//void 
+//SpecFile::getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFilesOut)
+//{
+//    connectivityDataFilesOut.clear();
+//    
+//    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+//         iter != dataFileTypeGroups.end();
+//         iter++) {
+//        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+//        if (DataFileTypeEnum::isConnectivityDataType(dataFileTypeGroup->getDataFileType())) {
+//            const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+//            for (int32_t i = 0; i < numFiles; i++) {
+//                connectivityDataFilesOut.push_back(dataFileTypeGroup->getFileInformation(i));
+//            }
+//        }
+//    }
+//}
 
 /**
  * Set the selection status of a data file.

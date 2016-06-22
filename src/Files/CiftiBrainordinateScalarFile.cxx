@@ -25,6 +25,7 @@
 
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiConnectivityMatrixDenseFile.h"
+#include "CiftiConnectivityMatrixDenseDynamicFile.h"
 
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
@@ -89,8 +90,14 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
  
     const CiftiConnectivityMatrixDenseFile* denseFile =
        dynamic_cast<const CiftiConnectivityMatrixDenseFile*>(sourceCiftiMatrixFile);
-    if (denseFile == NULL) {
-        errorMessageOut = "Only Cifti Dense Matrix Files are supported for conversion to Cifti Scalar Files.";
+    const CiftiConnectivityMatrixDenseDynamicFile* dynamicDenseFile =
+       dynamic_cast<const CiftiConnectivityMatrixDenseDynamicFile*>(sourceCiftiMatrixFile);
+    if ((denseFile != NULL)
+        || (dynamicDenseFile != NULL)) {
+        /* ok, acceptable file type */
+    }
+    else {
+        errorMessageOut = "Only Cifti Dense Matrix Files and Dynamic Data from Data (time) Series Files are supported for conversion to Cifti Scalar Files.";
         return NULL;
     }
     
@@ -119,7 +126,22 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
          */
         const CiftiXML& ciftiMatrixXML = sourceCiftiFile->getCiftiXML();
         CiftiXML ciftiScalarXML = ciftiMatrixXML;
-        CiftiBrainModelsMap brainModelsMap = ciftiMatrixXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+        
+        CiftiBrainModelsMap brainModelsMap;
+        if (denseFile != NULL) {
+            brainModelsMap = ciftiMatrixXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+        }
+        else if (dynamicDenseFile != NULL) {
+            brainModelsMap = ciftiMatrixXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+        }
+        else {
+            const AString msg("Invalid file type for create of CIFTI Scalars File: "
+                              + sourceCiftiMatrixFile->getFileName());
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            delete ciftiFile;
+            return NULL;
+        }
         CiftiScalarsMap scalarsMap;
         scalarsMap.setLength(1);
         scalarsMap.setMapName(0,
@@ -141,6 +163,8 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
          */
         CiftiBrainordinateScalarFile* scalarFile = new CiftiBrainordinateScalarFile();
         scalarFile->m_ciftiFile.grabNew(ciftiFile);
+        
+        
 
         /*
          * May need to convert a remote path to a local path
@@ -164,6 +188,16 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
         scalarFile->setFileName(newFileName);
         
         scalarFile->initializeAfterReading(newFileName);
+
+        /*
+         * Need to copy color palette since it may be the default
+         */
+        PaletteColorMapping* scalarPalette = scalarFile->getMapPaletteColorMapping(0);
+        CaretAssert(scalarPalette);
+        const PaletteColorMapping* densePalette = sourceCiftiMatrixFile->getMapPaletteColorMapping(0);
+        CaretAssert(densePalette);
+        scalarPalette->copy(*densePalette);
+        
         scalarFile->setModified();
         
         return scalarFile;

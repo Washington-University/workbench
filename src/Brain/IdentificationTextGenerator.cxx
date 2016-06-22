@@ -298,6 +298,8 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
                                 break;
                             case DataFileTypeEnum::CONNECTIVITY_DENSE:
                                 break;
+                            case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                                break;
                             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                                 break;
                             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
@@ -469,11 +471,12 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
             bool limitMapIndicesFlag = false;
             switch (cmdf->getDataFileType()) {
                 case DataFileTypeEnum::ANNOTATION:
-                    CaretAssertToDoFatal();
                     break;
                 case DataFileTypeEnum::BORDER:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                     break;

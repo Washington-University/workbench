@@ -119,7 +119,7 @@ namespace caret {
         
         SpecFileDataFileTypeGroup* getDataFileTypeGroupByType(const DataFileTypeEnum::Enum dataFileType) const;
         
-        void getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFiles);
+//        void getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFiles);
         
         void setAllFilesSelectedForLoading(bool selectionStatus);
         
