@@ -24,6 +24,7 @@
 #undef __SCENE_WRITER_XML_DECLARE__
 
 #include "CaretAssert.h"
+#include "FileInformation.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -60,7 +61,7 @@ SceneWriterXml::SceneWriterXml(XmlWriter& xmlWriter,
                                const AString& sceneFileName)
 : SceneWriterInterface(),
   m_xmlWriter(xmlWriter),
-  m_sceneFileName(sceneFileName)
+  m_sceneFileName(FileInformation(sceneFileName).getAbsoluteFilePath())
 {
 }
 

@@ -200,13 +200,14 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
         window->getDescriptionOfContent(description);
         description.addLine("");
     }
+    QString descriptionString = description.getText().trimmed();
     
     switch (m_mode) {
         case MODE_ADD_NEW_SCENE:
-            m_descriptionTextEdit->setPlainText(description.getText());
+            m_descriptionTextEdit->setPlainText(descriptionString);
             break;
         case MODE_INSERT_NEW_SCENE:
-            m_descriptionTextEdit->setPlainText(description.getText());
+            m_descriptionTextEdit->setPlainText(descriptionString);
             break;
         case MODE_REPLACE_SCENE:
             m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
