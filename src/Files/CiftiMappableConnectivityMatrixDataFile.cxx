@@ -747,7 +747,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
         return;
     }
     
-    const bool isDenseMatrix = (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE);
+    const bool isDenseMatrix = ((getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE)
+                                || (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC));
     const int32_t progressUpdateInterval = 1;
     
     bool dataWasLoaded = false;

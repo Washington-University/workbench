@@ -44,10 +44,6 @@ namespace caret {
                 
         virtual void validateAfterFileReading();
         
-    public:
-
-        // ADD_NEW_METHODS_HERE
-
     private:
         class RowData {
         public:
@@ -57,27 +53,20 @@ namespace caret {
             
             std::vector<float> m_data;
             float m_mean;
-            float m_ssxx;
+            float m_sqrt_ssxx;
         };
-        
-        
-        float correlation(const float x[],
-                          const float y[],
-                          const int32_t numberOfPoints) const;
         
         float correlation(const int32_t rowIndex,
                           const int32_t otherRowIndex,
                           const int32_t numberOfPoints) const;
         
-        void computeRowMeanAndSumSquared();
+        void preComputeRowMeanAndSumSquared();
         
         int32_t m_numberOfBrainordinates;
         
         int32_t m_numberOfTimePoints;
         
         std::vector<RowData> m_rowData;
-        
-        mutable bool m_meanSumSquaredValidFlag;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -27,6 +27,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretOMP.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiFile.h"
 #include "ElapsedTimer.h"
@@ -52,8 +53,7 @@ using namespace caret;
 CiftiConnectivityMatrixDenseDynamicFile::CiftiConnectivityMatrixDenseDynamicFile()
 : CiftiMappableConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC),
 m_numberOfBrainordinates(-1),
-m_numberOfTimePoints(-1),
-m_meanSumSquaredValidFlag(false)
+m_numberOfTimePoints(-1)
 {
     
 }
@@ -82,7 +82,6 @@ CiftiConnectivityMatrixDenseDynamicFile::validateAfterFileReading()
     m_numberOfTimePoints     = ciftiXML.getSeriesMap(CiftiXML::ALONG_ROW).getLength();
     
     m_rowData.clear();
-    m_meanSumSquaredValidFlag = false;
     
     if ((m_numberOfBrainordinates > 0)
         && (m_numberOfTimePoints > 0)) {
@@ -102,6 +101,8 @@ CiftiConnectivityMatrixDenseDynamicFile::validateAfterFileReading()
             ciftiFile->getRow(&m_rowData[i].m_data[0],
                               i);
         }
+        
+        preComputeRowMeanAndSumSquared();
     }
 }
 
@@ -136,84 +137,24 @@ CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut, const int
         return;
     }
     
-    
-    if ( ! m_meanSumSquaredValidFlag) {
-        const_cast<CiftiConnectivityMatrixDenseDynamicFile*>(this)->computeRowMeanAndSumSquared();
-        m_meanSumSquaredValidFlag = true;
-    }
-    
-    CaretAssertVectorIndex(m_rowData, index);
-    const float* myData = &m_rowData[index].m_data[0];
-    
-    std::vector<float> otherData(m_numberOfTimePoints);
+#pragma omp CARET_PARFOR
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
         float coefficient = 1.0;
         
         if (iRow != index) {
-//            CaretAssertVectorIndex(m_rowData, iRow);
-//            coefficient = correlation(myData,
-//                                      &m_rowData[iRow].m_data[0],
-//                                      m_numberOfTimePoints);
-            
             coefficient = correlation(index, iRow, m_numberOfTimePoints);
         }
         
         dataOut[iRow] = coefficient;
     }
-
-//    std::cout << "Row: " << index << std::endl;
 }
 
-///**
-// * Load data for the given row.
-// *
-// * @param dataOut
-// *     Output with data.
-// * @param index of the row.
-// */
-//void
-//CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut, const int64_t& index) const
-//{
-//    if ((m_numberOfBrainordinates <= 0)
-//        || (m_numberOfTimePoints <= 0)) {
-//        return;
-//    }
-//
-//    ElapsedTimer timer;
-//    timer.start();
-//    
-//    std::vector<float> myData(m_numberOfTimePoints);
-//    getCiftiFile()->getRow(&myData[0], index);
-//    
-//    std::vector<float> otherData(m_numberOfTimePoints);
-//    for (int32_t ib = 0; ib < m_numberOfBrainordinates; ib++) {
-//        float coefficient = 1.0;
-//        
-//        if (ib != index) {
-//            coefficient = 0.0;
-//            
-//            getCiftiFile()->getRow(&otherData[0], ib);
-//            
-//            coefficient = correlation(&myData[0],
-//                                      &otherData[0],
-//                                      m_numberOfTimePoints);
-//            
-//            
-//            
-//        }
-//        
-//        dataOut[ib] = coefficient;
-//    }
-//    
-//    std::cout << "Time to correlate brainordinate: " << timer.getElapsedTimeSeconds() << std::endl;
-//}
-
 /**
- * Compute the mean and sum-squared for each row so that they 
+ * Compute the mean and sum-squared for each row so that they
  * are only calculated once.
  */
 void
-CiftiConnectivityMatrixDenseDynamicFile::computeRowMeanAndSumSquared()
+CiftiConnectivityMatrixDenseDynamicFile::preComputeRowMeanAndSumSquared()
 {
     CaretAssert(m_numberOfBrainordinates > 0);
     CaretAssert(m_numberOfTimePoints > 0);
@@ -235,16 +176,14 @@ CiftiConnectivityMatrixDenseDynamicFile::computeRowMeanAndSumSquared()
         
         const float mean       = (sum / numPointsFloat);
         m_rowData[iRow].m_mean = mean;
-        m_rowData[iRow].m_ssxx = (sumSquared - (numPointsFloat * mean * mean)); // equation (4) and (8)
+        const float ssxx = (sumSquared - (numPointsFloat * mean * mean));
+        CaretAssert(ssxx >= 0.0);
+        m_rowData[iRow].m_sqrt_ssxx = std::sqrt(ssxx);
     }
 }
 
 /**
- * Correlation
- * Citation:
- * Weisstein, Eric W. "Correlation Coefficient."
- * From MathWorld--A Wolfram Web Resource.
- * http://mathworld.wolfram.com/CorrelationCoefficient.html
+ * Correlation from https://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient
  *
  * @param rowIndex
  *     Index of a row
@@ -270,99 +209,16 @@ CiftiConnectivityMatrixDenseDynamicFile::correlation(const int32_t rowIndex,
     
     for (int i = 0; i < numberOfPoints; i++) {
         CaretAssertVectorIndex(data.m_data, i);
-        xySum += data.m_data[i] * otherData.m_data[i]; //  x[i] * y[i];
+        xySum += data.m_data[i] * otherData.m_data[i];
     }
     
-    const double ssxx = data.m_ssxx; // equation (4)
-    const double ssyy = otherData.m_ssxx; // equation (8)
-    const double ssxy = xySum - (numFloat * data.m_mean * otherData.m_mean); // equation (12)
+    const double ssxy = xySum - (numFloat * data.m_mean * otherData.m_mean);
     
     float correlationCoefficient = 0.0;
-    const double denom = ssxx * ssyy;
-    if (denom != 0.0) {
-        /*
-         * R-Squared is Coefficient of Determination
-         * https://en.wikipedia.org/wiki/Coefficient_of_determination
-         */
-        const float rSquared = static_cast<float>((ssxy * ssxy) / denom); // equation (22)
-        correlationCoefficient = std::sqrt(rSquared);
+    if ((data.m_sqrt_ssxx > 0.0)
+        && (otherData.m_sqrt_ssxx > 0.0)) {
+        correlationCoefficient = (ssxy / (data.m_sqrt_ssxx * otherData.m_sqrt_ssxx));
     }
-    
-    return correlationCoefficient;
-}
-
-
-/**
- * Correlation
- * Citation:
- * Weisstein, Eric W. "Correlation Coefficient."
- * From MathWorld--A Wolfram Web Resource.
- * http://mathworld.wolfram.com/CorrelationCoefficient.html
- *
- * @param x
- *     Array of points
- * @param y
- *     Array of points
- * @param numberOfPoints
- *     Number of points int the two arrays
- * @return
- *     The correlation coefficient computed on the two arrays.
- */
-float
-CiftiConnectivityMatrixDenseDynamicFile::correlation(const float x[],
-                                                     const float y[],
-                                                     const int32_t numberOfPoints) const
-{
-    const double numFloat = numberOfPoints;
-    double xSum  = 0.0;
-    double x2Sum = 0.0;
-    double ySum  = 0.0;
-    double y2Sum = 0.0;
-    double xySum = 0.0;
-    
-    for (int i = 0; i < numberOfPoints; i++) {
-        xSum  += x[i];
-        x2Sum += x[i] * x[i];
-        ySum  += y[i];
-        y2Sum += y[i] * y[i];
-        xySum += x[i] * y[i];
-    }
-    
-    const double xMean = xSum / numFloat;
-    const double yMean = ySum / numFloat;
-    
-    const double ssxx = x2Sum - (numFloat * xMean * xMean); // equation (4)
-    const double ssyy = y2Sum - (numFloat * yMean * yMean); // equation (8)
-    const double ssxy = xySum - (numFloat * xMean * yMean); // equation (12)
-    
-    float correlationCoefficient = 0.0;
-    const double denom = ssxx * ssyy;
-    if (denom != 0.0) {
-        /*
-         * R-Squared is Coefficient of Determination
-         * https://en.wikipedia.org/wiki/Coefficient_of_determination
-         */
-        const float rSquared = static_cast<float>((ssxy * ssxy) / denom); // equation (22)
-        correlationCoefficient = std::sqrt(rSquared);
-    }
-    
-    //            //
-    //            // T-Value calculation from:
-    //            //           Statistics for Psychology
-    //            //           Arthur Aron & Elaine Aron
-    //            //           2nd Edition, 1999
-    //            //           page 98-99
-    //            //
-    //            float tDenom = 1.0 - correlationCoefficientR2;
-    //            if (tDenom <= 1.0) {
-    //                tDegreesOfFreedom = numFloat - 2.0;
-    //                if (tDegreesOfFreedom >= 0.0) {
-    //                    const float tNum = correlationCoefficientR * std::sqrt(tDegreesOfFreedom);
-    //                    tValue = tNum / std::sqrt(tDenom);
-    //                    pValue = StatisticGeneratePValue::getOneTailTTestPValue(tDegreesOfFreedom, tValue);
-    //                }
-    //            }
-    
     return correlationCoefficient;
 }
 
