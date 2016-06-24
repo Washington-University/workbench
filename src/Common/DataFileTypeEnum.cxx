@@ -605,7 +605,8 @@ DataFileTypeEnum::getAllFileExtensions(const Enum enumValue)
 }
 
 /**
- * @return All valid file extensions for all file types except UNKNOWN.
+ * @return All valid file extensions for all file types except UNKNOWN
+ * and CONNECTIVITY_DENSE_DYNAMIC
  */
 std::vector<AString>
 DataFileTypeEnum::getFilesExtensionsForEveryFile()
@@ -615,7 +616,13 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile()
     for (std::vector<DataFileTypeEnum>::iterator enumIter = enumData.begin();
          enumIter != enumData.end();
          enumIter++) {
-        if (enumIter->enumValue != DataFileTypeEnum::UNKNOWN) {
+        if (enumIter->enumValue == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+            /* nothing */
+        }
+        else if (enumIter->enumValue == DataFileTypeEnum::UNKNOWN) {
+            /* nothing */
+        }
+        else {
             allExtensions.insert(allExtensions.end(),
                                  enumIter->fileExtensions.begin(),
                                  enumIter->fileExtensions.end());
@@ -814,6 +821,7 @@ DataFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 /**
  * Get all of the enumerated type values.  The values can be used
  * as parameters to toXXX() methods to get associated metadata.
+ * Note: CONNECTIVITY_DENSE_DYNAMIC is excluded.
  *
  * @param allEnums
  *     A vector that is OUTPUT containing all of the enumerated values.
@@ -831,6 +839,9 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
+        if (iter->enumValue == CONNECTIVITY_DENSE_DYNAMIC) {
+            continue;
+        }
         if (iter->enumValue == UNKNOWN) {
             if ( ! includeUnknown) {
                 continue;

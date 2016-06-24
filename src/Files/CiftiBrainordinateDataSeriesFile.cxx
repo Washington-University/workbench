@@ -25,6 +25,8 @@
 
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
+#include "CiftiConnectivityMatrixDenseDynamicFile.h"
+#include "DataFileException.h"
 #include "SceneClass.h"
 
 using namespace caret;
@@ -46,6 +48,8 @@ CiftiBrainordinateDataSeriesFile::CiftiBrainordinateDataSeriesFile()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
+    
+    m_matrixDenseDynamicFile = new CiftiConnectivityMatrixDenseDynamicFile(this);
 }
 
 /**
@@ -53,7 +57,46 @@ CiftiBrainordinateDataSeriesFile::CiftiBrainordinateDataSeriesFile()
  */
 CiftiBrainordinateDataSeriesFile::~CiftiBrainordinateDataSeriesFile()
 {
+    delete m_matrixDenseDynamicFile;
+    
 }
+
+/**
+ * Clear the contents of the file.
+ */
+void
+CiftiBrainordinateDataSeriesFile::clear()
+{
+    CiftiMappableDataFile::clear();
+    m_matrixDenseDynamicFile->clear();
+}
+
+/**
+ * Read the file.
+ *
+ * @param ciftiMapFileName
+ *    Name of the file to read.
+ * @throw
+ *    DataFileException if there is an error reading the file.
+ */
+void
+CiftiBrainordinateDataSeriesFile::readFile(const AString& ciftiMapFileName)
+{
+    CiftiMappableDataFile::readFile(ciftiMapFileName);
+    
+    try {
+        m_matrixDenseDynamicFile->readFile(ciftiMapFileName);
+        m_matrixDenseDynamicFile->updateAfterReading(getCiftiFile());
+        m_matrixDenseDynamicFile->clearModified();
+    }
+    catch (const DataFileException& dfe) {
+        throw DataFileException("While reading/updating "
+                                + ciftiMapFileName
+                                + " as a dense dynamic file: "
+                                + dfe.whatString());
+    }
+}
+
 
 /**
  * @return Is charting enabled for this file?
@@ -191,6 +234,9 @@ CiftiBrainordinateDataSeriesFile::saveFileDataToScene(const SceneAttributes* sce
     sceneClass->addBooleanArray("m_chartingEnabledForTab",
                                 m_chartingEnabledForTab,
                                 BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    
+    sceneClass->addClass(m_matrixDenseDynamicFile->saveToScene(sceneAttributes,
+                                                               "m_matrixDenseDynamicFile"));
 }
 
 /**
@@ -230,6 +276,57 @@ CiftiBrainordinateDataSeriesFile::restoreFileDataFromScene(const SceneAttributes
             m_chartingEnabledForTab[i] = chartingEnabled;
         }
     }
+
+    const SceneClass* dynamicFileSceneClass = sceneClass->getClass("m_matrixDenseDynamicFile");
+    if (dynamicFileSceneClass != NULL) {
+        m_matrixDenseDynamicFile->restoreFromScene(sceneAttributes,
+                                                   dynamicFileSceneClass);
+    }
 }
+
+/**
+ * @return My matrix dense dynamic file representation.
+ */
+CiftiConnectivityMatrixDenseDynamicFile*
+CiftiBrainordinateDataSeriesFile::getConnectivityMatrixDenseDynamicFile()
+{
+    return m_matrixDenseDynamicFile;
+}
+
+/**
+ * @return My matrix dense dynamic file representation (const method).
+ */
+const CiftiConnectivityMatrixDenseDynamicFile*
+CiftiBrainordinateDataSeriesFile::getConnectivityMatrixDenseDynamicFile() const
+{
+    return m_matrixDenseDynamicFile;
+}
+
+/**
+ * @return True if any of the maps in this file contain a
+ * color mapping that possesses a modified status.
+ */
+bool
+CiftiBrainordinateDataSeriesFile::isModifiedPaletteColorMapping() const
+{
+    /*
+     * This method is override because we need to know if the
+     * encapsulated dynamic dense file has a modified palette.
+     * When restoring a scene, a file with any type of modification
+     * must be reloaded to remove any modifications.  Note that
+     * when a scene is restored, files that are not modified and
+     * are in the new scene are NOT reloaded to save time.
+     */
+    if (CiftiMappableDataFile::isModifiedPaletteColorMapping()) {
+        return true;
+    }
+    
+    if (m_matrixDenseDynamicFile->isModifiedPaletteColorMapping()) {
+        return true;
+    }
+    
+    return false;
+}
+
 
 

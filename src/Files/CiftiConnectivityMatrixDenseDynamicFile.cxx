@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <cmath>
+#include <iostream>
 
 #define __CIFTI_CONNECTIVITY_MATRIX_DENSE_DYNAMIC_FILE_DECLARE__
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
@@ -31,6 +32,7 @@
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiFile.h"
 #include "ElapsedTimer.h"
+#include "FileInformation.h"
 
 using namespace caret;
 
@@ -49,13 +51,20 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param parentDataSeriesFile
+ *     Parent data series file.
  */
-CiftiConnectivityMatrixDenseDynamicFile::CiftiConnectivityMatrixDenseDynamicFile()
+CiftiConnectivityMatrixDenseDynamicFile::CiftiConnectivityMatrixDenseDynamicFile(const CiftiBrainordinateDataSeriesFile* parentDataSeriesFile)
 : CiftiMappableConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC),
+m_parentDataSeriesFile(parentDataSeriesFile),
+m_parentDataSeriesCiftiFile(NULL),
 m_numberOfBrainordinates(-1),
-m_numberOfTimePoints(-1)
+m_numberOfTimePoints(-1),
+m_enabledForUser(true),
+m_cacheDataFlag(false)
 {
-    
+    CaretAssert(m_parentDataSeriesFile);
 }
 
 /**
@@ -67,15 +76,58 @@ CiftiConnectivityMatrixDenseDynamicFile::~CiftiConnectivityMatrixDenseDynamicFil
 }
 
 /**
+ * @return True if this file type supports writing, else false.
+ *
+ * Dense files do NOT support writing.
+ */
+bool
+CiftiConnectivityMatrixDenseDynamicFile::supportsWriting() const
+{
+    return false;
+}
+
+/**
+ * Is the file enabled for the user so that file is in user-interface.
+ */
+bool
+CiftiConnectivityMatrixDenseDynamicFile::isEnabledForUser() const
+{
+    return m_enabledForUser;
+}
+
+/**
+ * Set the file enabled for the user so that file is in user-interface.
+ *
+ * @param enabled
+ *     File enabled status.
+ */
+void
+CiftiConnectivityMatrixDenseDynamicFile::setEnabledForUser(const bool enabled)
+{
+    m_enabledForUser = enabled;
+}
+
+
+/**
  * This method is intended for overriding by subclasess so that they
  * can examine and verify the data that was read.  This method is
  * called after successfully reading a file.
  */
 void
-CiftiConnectivityMatrixDenseDynamicFile::validateAfterFileReading()
+CiftiConnectivityMatrixDenseDynamicFile::updateAfterReading(const CiftiFile* ciftiFile)
 {
+    m_parentDataSeriesCiftiFile = const_cast<CiftiFile*>(ciftiFile);
+    
+    AString path, nameNoExt, ext;
+    FileInformation fileInfo(m_parentDataSeriesCiftiFile->getFileName());
+    fileInfo.getFileComponents(path, nameNoExt, ext);
+    setFileName(FileInformation::assembleFileComponents(path,
+                                                        nameNoExt,
+                                                        DataFileTypeEnum::toFileExtension(DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC)));
+    
     /*
      * Need dimensions of data
+     * Note that CIFTI XML in this file is identifical to CIFTI XML in parent data-series file
      */
     const CiftiXML& ciftiXML = getCiftiFile()->getCiftiXML();
     m_numberOfBrainordinates = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getLength();
@@ -87,19 +139,21 @@ CiftiConnectivityMatrixDenseDynamicFile::validateAfterFileReading()
         && (m_numberOfTimePoints > 0)) {
         m_rowData.resize(m_numberOfBrainordinates);
         
-        const CiftiFile* ciftiFile = getCiftiFile();
-        
-        /*
-         * Read all of the data.  Time-series type files are not
-         * too large and by caching the data, it eliminates 
-         * numerous calls to read the data when correlation
-         * is performed.
-         */
-        for (int32_t i = 0; i < m_numberOfBrainordinates; i++) {
-            CaretAssertVectorIndex(m_rowData, i);
-            m_rowData[i].m_data.resize(m_numberOfTimePoints);
-            ciftiFile->getRow(&m_rowData[i].m_data[0],
-                              i);
+        if (m_cacheDataFlag) {
+            /*
+             * Read all of the data.  Time-series type files are not
+             * too large and by caching the data, it eliminates
+             * numerous calls to read the data when correlation
+             * is performed.
+             *
+             * READ DATA FROM PARENT FILE
+             */
+            for (int32_t i = 0; i < m_numberOfBrainordinates; i++) {
+                CaretAssertVectorIndex(m_rowData, i);
+                m_rowData[i].m_data.resize(m_numberOfTimePoints);
+                m_parentDataSeriesCiftiFile->getRow(&m_rowData[i].m_data[0],
+                                                    i);
+            }
         }
         
         preComputeRowMeanAndSumSquared();
@@ -137,7 +191,10 @@ CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut, const int
         return;
     }
     
-#pragma omp CARET_PARFOR
+    ElapsedTimer timer;
+    timer.start();
+    
+// disable for timing     #pragma omp CARET_PARFOR
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
         float coefficient = 1.0;
         
@@ -147,6 +204,8 @@ CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut, const int
         
         dataOut[iRow] = coefficient;
     }
+    
+    std::cout << "Time to correlate (milliseconds): " << timer.getElapsedTimeMilliseconds() << std::endl;
 }
 
 /**
@@ -166,13 +225,25 @@ CiftiConnectivityMatrixDenseDynamicFile::preComputeRowMeanAndSumSquared()
         double sumSquared = 0.0;
 
         CaretAssertVectorIndex(m_rowData, iRow);
-        const float* data = &m_rowData[iRow].m_data[0];
-        
-        for (int32_t iPoint = 0; iPoint < m_numberOfTimePoints; iPoint++) {
-            CaretAssertVectorIndex(m_rowData[iRow].m_data, iPoint);
-            sum        += data[iPoint];
-            sumSquared += (data[iPoint] * data[iPoint]);
+        if (m_cacheDataFlag) {
+            for (int32_t iPoint = 0; iPoint < m_numberOfTimePoints; iPoint++) {
+                CaretAssertVectorIndex(m_rowData[iRow].m_data, iPoint);
+                const float d = m_rowData[iRow].m_data[iPoint];
+                sum        += d;
+                sumSquared += (d * d);
+            }
         }
+        else {
+            std::vector<float> data(m_numberOfTimePoints);
+            m_parentDataSeriesCiftiFile->getRow(&data[0], iRow);
+            for (int32_t iPoint = 0; iPoint < m_numberOfTimePoints; iPoint++) {
+                CaretAssertVectorIndex(data, iPoint);
+                const float d = data[iPoint];
+                sum        += d;
+                sumSquared += (d * d);
+            }
+        }
+        
         
         const float mean       = (sum / numPointsFloat);
         m_rowData[iRow].m_mean = mean;
@@ -207,9 +278,24 @@ CiftiConnectivityMatrixDenseDynamicFile::correlation(const int32_t rowIndex,
     const RowData& data = m_rowData[rowIndex];
     const RowData& otherData = m_rowData[otherRowIndex];
     
-    for (int i = 0; i < numberOfPoints; i++) {
-        CaretAssertVectorIndex(data.m_data, i);
-        xySum += data.m_data[i] * otherData.m_data[i];
+    if (m_cacheDataFlag) {
+        for (int i = 0; i < numberOfPoints; i++) {
+            CaretAssertVectorIndex(data.m_data, i);
+            CaretAssertVectorIndex(otherData.m_data, i);
+            xySum += data.m_data[i] * otherData.m_data[i];
+        }
+    }
+    else {
+        std::vector<float> dataVector(m_numberOfTimePoints);
+        std::vector<float> otherDataVector(m_numberOfTimePoints);
+        m_parentDataSeriesCiftiFile->getRow(&dataVector[0], rowIndex);
+        m_parentDataSeriesCiftiFile->getRow(&otherDataVector[0], otherRowIndex);
+        
+        for (int i = 0; i < numberOfPoints; i++) {
+            CaretAssertVectorIndex(dataVector, i);
+            CaretAssertVectorIndex(otherDataVector, i);
+            xySum += dataVector[i] * otherDataVector[i];
+        }
     }
     
     const double ssxy = xySum - (numFloat * data.m_mean * otherData.m_mean);

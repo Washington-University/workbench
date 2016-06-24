@@ -147,6 +147,8 @@ namespace caret {
         
         virtual void clearModified();
         
+        static bool isDataFileTypeAllowedInSpecFile(const DataFileTypeEnum::Enum dataFileType);
+        
         /** XML Tag for SpecFile element */
         static const AString XML_TAG_SPEC_FILE;
         

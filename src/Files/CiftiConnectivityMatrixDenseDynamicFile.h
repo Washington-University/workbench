@@ -25,12 +25,22 @@
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 
 namespace caret {
+    class CiftiBrainordinateDataSeriesFile;
+    
     class CiftiConnectivityMatrixDenseDynamicFile : public CiftiMappableConnectivityMatrixDataFile {
         
     public:
-        CiftiConnectivityMatrixDenseDynamicFile();
+        CiftiConnectivityMatrixDenseDynamicFile(const CiftiBrainordinateDataSeriesFile* parentDataSeriesFile);
         
         virtual ~CiftiConnectivityMatrixDenseDynamicFile();
+        
+        bool isEnabledForUser() const;
+
+        void setEnabledForUser(const bool enabled);
+        
+        virtual bool supportsWriting() const;
+        
+        void updateAfterReading(const CiftiFile* ciftiFile);
         
     private:
         CiftiConnectivityMatrixDenseDynamicFile(const CiftiConnectivityMatrixDenseDynamicFile&);
@@ -42,8 +52,6 @@ namespace caret {
         
         virtual void getDataForRow(float* dataOut, const int64_t& index) const;
                 
-        virtual void validateAfterFileReading();
-        
     private:
         class RowData {
         public:
@@ -62,11 +70,19 @@ namespace caret {
         
         void preComputeRowMeanAndSumSquared();
         
+        const CiftiBrainordinateDataSeriesFile* m_parentDataSeriesFile;
+        
+        CiftiFile* m_parentDataSeriesCiftiFile;
+        
         int32_t m_numberOfBrainordinates;
         
         int32_t m_numberOfTimePoints;
         
         std::vector<RowData> m_rowData;
+        
+        bool m_enabledForUser;
+        
+        bool m_cacheDataFlag;
         
         // ADD_NEW_MEMBERS_HERE
 

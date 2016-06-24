@@ -615,10 +615,6 @@ namespace caret {
                                                                     CaretDataFile* caretDataFile,
                                                                     const AString& filename);
         
-        CiftiConnectivityMatrixDenseDynamicFile* addReadOrReloadConnectivityDenseDynamicFile(const FileModeAddReadReload fileMode,
-                                                                               CaretDataFile* caretDataFile,
-                                                                               const AString& filename);
-        
         CiftiBrainordinateLabelFile* addReadOrReloadConnectivityDenseLabelFile(const FileModeAddReadReload fileMode,
                                                                     CaretDataFile* caretDataFile,
                                                                     const AString& filename);
@@ -719,8 +715,6 @@ namespace caret {
         
         std::vector<CiftiConnectivityMatrixDenseFile*> m_connectivityMatrixDenseFiles;
         
-        std::vector<CiftiConnectivityMatrixDenseDynamicFile*> m_connectivityMatrixDenseDynamicFiles;
-
         std::vector<CiftiBrainordinateLabelFile*> m_connectivityDenseLabelFiles;
         
         std::vector<CiftiConnectivityMatrixDenseParcelFile*> m_connectivityMatrixDenseParcelFiles;

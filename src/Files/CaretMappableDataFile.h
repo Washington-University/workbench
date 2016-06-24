@@ -428,7 +428,7 @@ namespace caret {
         virtual bool isModifiedExcludingPaletteColorMapping() const;
         
         /* documented in cxx file. */
-        bool isModifiedPaletteColorMapping() const;
+        virtual bool isModifiedPaletteColorMapping() const;
         
         /* documented in cxx file. */
         bool isModified() const;

@@ -524,14 +524,6 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityMatrixDenseFiles.clear();
     
-    for (std::vector<CiftiConnectivityMatrixDenseDynamicFile*>::iterator clfi = m_connectivityMatrixDenseDynamicFiles.begin();
-         clfi != m_connectivityMatrixDenseDynamicFiles.end();
-         clfi++) {
-        CiftiConnectivityMatrixDenseDynamicFile* clf = *clfi;
-        delete clf;
-    }
-    m_connectivityMatrixDenseDynamicFiles.clear();
-    
     for (std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator clfi = m_connectivityMatrixDenseParcelFiles.begin();
          clfi != m_connectivityMatrixDenseParcelFiles.end();
          clfi++) {
@@ -1967,88 +1959,6 @@ Brain::addReadOrReloadConnectivityDenseFile(const FileModeAddReadReload fileMode
 }
 
 /**
- * Read a connectivity matrix dense dynamic file.
- *
- * @param fileMode
- *    Mode for file adding, reading, or reloading.
- * @param caretDataFile
- *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
- *    the mode must be READING.
- * @param filename
- *    Name of the file.
- * @return
- *    File that was read.
- * @throws DataFileException
- *    If reading failed.
- */
-CiftiConnectivityMatrixDenseDynamicFile*
-Brain::addReadOrReloadConnectivityDenseDynamicFile(const FileModeAddReadReload fileMode,
-                                            CaretDataFile* caretDataFile,
-                                            const AString& filename)
-{
-    CiftiConnectivityMatrixDenseDynamicFile* cmdf = NULL;
-    if (caretDataFile != NULL) {
-        cmdf = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(caretDataFile);
-        CaretAssert(cmdf);
-    }
-    else {
-        cmdf = new CiftiConnectivityMatrixDenseDynamicFile();
-    }
-    
-    bool addFlag  = false;
-    bool readFlag = false;
-    switch (fileMode) {
-        case FILE_MODE_ADD:
-            addFlag = true;
-            break;
-        case FILE_MODE_READ:
-            addFlag = true;
-            readFlag = true;
-            break;
-        case FILE_MODE_RELOAD:
-            readFlag = true;
-            break;
-    }
-    
-    if (readFlag) {
-        try {
-            try {
-                cmdf->readFile(filename);
-            }
-            catch (const std::bad_alloc&) {
-                /*
-                 * This DataFileException will be caught
-                 * in the outer try/catch and it will
-                 * clean up to avoid memory leaks.
-                 */
-                throw DataFileException(filename,
-                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
-            }
-            
-            cmdf->clearModified();
-            validateCiftiMappableDataFile(cmdf);
-        }
-        catch (const DataFileException& dfe) {
-            if (caretDataFile != NULL) {
-                removeAndDeleteDataFile(caretDataFile);
-            }
-            else {
-                delete cmdf;
-            }
-            throw dfe;
-        }
-    }
-    
-    if (addFlag) {
-        updateDataFileNameIfDuplicate(m_connectivityMatrixDenseDynamicFiles,
-                                      cmdf);
-        m_connectivityMatrixDenseDynamicFiles.push_back(cmdf);
-    }
-    
-    return cmdf;
-}
-
-/**
  * Read a connectivity dense label file.
  *
  * @param fileMode
@@ -3346,7 +3256,17 @@ Brain::getConnectivityMatrixDenseFiles(std::vector<CiftiConnectivityMatrixDenseF
 void
 Brain::getConnectivityMatrixDenseDynamicFiles(std::vector<CiftiConnectivityMatrixDenseDynamicFile*>& connectivityDenseDynamicFilesOut) const
 {
-    connectivityDenseDynamicFilesOut = m_connectivityMatrixDenseDynamicFiles;
+    connectivityDenseDynamicFilesOut.clear();
+    
+    for (std::vector<CiftiBrainordinateDataSeriesFile*>::const_iterator iter = m_connectivityDataSeriesFiles.begin();
+         iter != m_connectivityDataSeriesFiles.end();
+         iter++) {
+        CiftiConnectivityMatrixDenseDynamicFile* denseDynFile = (*iter)->getConnectivityMatrixDenseDynamicFile();
+        CaretAssert(denseDynFile);
+        if (denseDynFile->isEnabledForUser()) {
+            connectivityDenseDynamicFilesOut.push_back(denseDynFile);
+        }
+    }
 }
 
 /**
@@ -4178,11 +4098,7 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                 }
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
-                {
-                    CiftiConnectivityMatrixDenseDynamicFile* file = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(caretDataFile);
-                    CaretAssert(file);
-                    m_connectivityMatrixDenseDynamicFiles.push_back(file);
-                }
+                    CaretAssertMessage(0, "Dense Dynamic Files should never be added to Brain.");
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                 {
@@ -5049,9 +4965,7 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                                                               dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
-                caretDataFileRead  = addReadOrReloadConnectivityDenseDynamicFile(fileMode,
-                                                                                 caretDataFile,
-                                                                                 dataFileName);
+                CaretAssertMessage(0, "Dense Dynamic files are never read by the Brain.");
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                 caretDataFileRead  = addReadOrReloadConnectivityDenseLabelFile(fileMode,
@@ -6221,9 +6135,12 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityMatrixDenseFiles.begin(),
                            m_connectivityMatrixDenseFiles.end());
     
+    std::vector<CiftiConnectivityMatrixDenseDynamicFile*> denseDynFiles;
+    getConnectivityMatrixDenseDynamicFiles(denseDynFiles);
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_connectivityMatrixDenseDynamicFiles.begin(),
-                           m_connectivityMatrixDenseDynamicFiles.end());
+                           denseDynFiles.begin(),
+                           denseDynFiles.end());
+    
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityDataSeriesFiles.begin(),
                            m_connectivityDataSeriesFiles.end());
@@ -6591,13 +6508,7 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
         return true;
     }
     
-    std::vector<CiftiConnectivityMatrixDenseDynamicFile*>::iterator connDenseDynamicIterator = std::find(m_connectivityMatrixDenseDynamicFiles.begin(),
-                                                                                           m_connectivityMatrixDenseDynamicFiles.end(),
-                                                                                           caretDataFile);
-    if (connDenseDynamicIterator != m_connectivityMatrixDenseDynamicFiles.end()) {
-        m_connectivityMatrixDenseDynamicFiles.erase(connDenseDynamicIterator);
-        return true;
-    }
+    /* Note: There is no test for dense dynamic files as they are a child of data sereies file */
     
     std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator connDenseParcelIterator = std::find(m_connectivityMatrixDenseParcelFiles.begin(),
                                                                                                        m_connectivityMatrixDenseParcelFiles.end(),
