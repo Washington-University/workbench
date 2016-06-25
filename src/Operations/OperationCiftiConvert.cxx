@@ -107,11 +107,14 @@ OperationParameters* OperationCiftiConvert::getParameters()
     fromText->createOptionalParameter(6, "-reset-scalars", "reset mapping along rows to scalars, taking length from the text file");
     
     AString myText = AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI.  ") +
-        "If you want to write an existing CIFTI file with a different CIFTI version, see -file-convert, and its -cifti-version-convert option.  " +
+        "You must specify exactly one of -to-gifti-ext, -from-gifti-ext, -to-nifti, -from-nifti, -to-text, or -from-text.\n\n" +
+        "If you want to write an existing CIFTI file with a different CIFTI version, see -file-convert, and its -cifti-version-convert option.\n\n" +
         "If you want part of the CIFTI file as a metric, label, or volume file, see -cifti-separate.  " +
-        "If you want to create a CIFTI file from metric and/or volume files, see the -cifti-create-* commands.  " +
-        "You must specify exactly one of -to-gifti-ext, -from-gifti-ext, -to-nifti, -from-nifti, -to-text, or -from-text.  " +
-        "The -transpose option to -from-gifti-ext is needed if the replacement binary file is in column-major order.  " +
+        "If you want to create a CIFTI file from metric and/or volume files, see the -cifti-create-* commands.\n\n" +
+        "If you want to import a matrix that is restricted to an ROI, first create a template CIFTI file matching that ROI using a -cifti-create-* command.  " +
+        "After importing to CIFTI, you can then expand the file into a standard brainordinates space with -cifti-create-dense-from-template.  " +
+        "If you want to export only part of a CIFTI file, first create an roi-restricted CIFTI file with -cifti-restrict-dense-mapping.\n\n" +
+        "The -transpose option to -from-gifti-ext is needed if the replacement binary file is in column-major order.\n\n" +
         "The -unit options accept these values:\n";
     vector<CiftiSeriesMap::Unit> units = CiftiSeriesMap::getAllUnits();
     for (int i = 0; i < (int)units.size(); ++i)
