@@ -6135,15 +6135,34 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityMatrixDenseFiles.begin(),
                            m_connectivityMatrixDenseFiles.end());
     
-    allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_connectivityDataSeriesFiles.begin(),
-                           m_connectivityDataSeriesFiles.end());
+//    allDataFilesOut.insert(allDataFilesOut.end(),
+//                           m_connectivityDataSeriesFiles.begin(),
+//                           m_connectivityDataSeriesFiles.end());
     
-    std::vector<CiftiConnectivityMatrixDenseDynamicFile*> denseDynFiles;
-    getConnectivityMatrixDenseDynamicFiles(denseDynFiles);
-    allDataFilesOut.insert(allDataFilesOut.end(),
-                           denseDynFiles.begin(),
-                           denseDynFiles.end());
+    /*
+     * By placing the dynamic connectivity file immediately after
+     * its parent data-series file, they will appear in this
+     * order in the overlay file selectors.
+     */
+    for (std::vector<CiftiBrainordinateDataSeriesFile*>::const_iterator dsIter = m_connectivityDataSeriesFiles.begin();
+         dsIter != m_connectivityDataSeriesFiles.end();
+         dsIter++) {
+        CiftiBrainordinateDataSeriesFile* seriesFile = *dsIter;
+        CaretAssert(seriesFile);
+        allDataFilesOut.push_back(seriesFile);
+        
+        CiftiConnectivityMatrixDenseDynamicFile* dynFile = seriesFile->getConnectivityMatrixDenseDynamicFile();
+        CaretAssert(dynFile);
+        if (dynFile->isEnabledForUser()) {
+            allDataFilesOut.push_back(dynFile);
+        }
+    }
+
+//    std::vector<CiftiConnectivityMatrixDenseDynamicFile*> denseDynFiles;
+//    getConnectivityMatrixDenseDynamicFiles(denseDynFiles);
+//    allDataFilesOut.insert(allDataFilesOut.end(),
+//                           denseDynFiles.begin(),
+//                           denseDynFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityDenseLabelFiles.begin(),
