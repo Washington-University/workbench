@@ -30,7 +30,7 @@ namespace caret {
     class CiftiConnectivityMatrixDenseDynamicFile : public CiftiMappableConnectivityMatrixDataFile {
         
     public:
-        CiftiConnectivityMatrixDenseDynamicFile(const CiftiBrainordinateDataSeriesFile* parentDataSeriesFile);
+        CiftiConnectivityMatrixDenseDynamicFile(CiftiBrainordinateDataSeriesFile* parentDataSeriesFile);
         
         virtual ~CiftiConnectivityMatrixDenseDynamicFile();
         
@@ -42,6 +42,10 @@ namespace caret {
         
         void updateAfterReading(const CiftiFile* ciftiFile);
         
+        CiftiBrainordinateDataSeriesFile* getParentBrainordinateDataSeriesFile();
+        
+        const CiftiBrainordinateDataSeriesFile* getParentBrainordinateDataSeriesFile() const;
+        
     private:
         CiftiConnectivityMatrixDenseDynamicFile(const CiftiConnectivityMatrixDenseDynamicFile&);
 
@@ -52,6 +56,12 @@ namespace caret {
         
         virtual void getDataForRow(float* dataOut, const int64_t& index) const;
                 
+        virtual void getProcessedDataForColumn(float* dataOut, const int64_t& index) const;
+        
+        virtual void getProcessedDataForRow(float* dataOut, const int64_t& index) const;
+        
+        virtual void processRowAverageData(std::vector<float>& rowAverageData);
+        
     private:
         class RowData {
         public:
@@ -68,9 +78,20 @@ namespace caret {
                           const int32_t otherRowIndex,
                           const int32_t numberOfPoints) const;
         
+        float correlation(const std::vector<float>& data,
+                          const float mean,
+                          const float sumSquared,
+                          const int32_t otherRowIndex,
+                          const int32_t numberOfPoints) const;
+        
         void preComputeRowMeanAndSumSquared();
         
-        const CiftiBrainordinateDataSeriesFile* m_parentDataSeriesFile;
+        void computeDataMeanAndSumSquared(const float* data,
+                                          const int32_t dataLength,
+                                          float& meanOut,
+                                          float& sumSquaredOut) const;
+        
+        CiftiBrainordinateDataSeriesFile* m_parentDataSeriesFile;
         
         CiftiFile* m_parentDataSeriesCiftiFile;
         

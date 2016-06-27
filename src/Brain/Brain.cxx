@@ -6431,6 +6431,14 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         return false;
     }
     
+    /*
+     * Dense dynamic files are encapsulated in a dense-series file
+     * so they do not get removed.
+     */
+    if (caretDataFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+        return false;
+    }
+    
     const bool wasRemoved = removeWithoutDeleteDataFilePrivate(caretDataFile);
     
     if (wasRemoved) {

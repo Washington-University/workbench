@@ -119,9 +119,15 @@ namespace caret {
         
         void setChartMatrixLoadingDimension(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType);
         
+        virtual void getProcessedDataForColumn(float* dataOut, const int64_t& index) const;
+        
+        virtual void getProcessedDataForRow(float* dataOut, const int64_t& index) const;
+        
         virtual void getDataForColumn(float* dataOut, const int64_t& index) const;
         
         virtual void getDataForRow(float* dataOut, const int64_t& index) const;
+        
+        virtual void processRowAverageData(std::vector<float>& rowAverageData);
         
     private:
         void setLoadedRowDataToAllZeros();
@@ -133,6 +139,22 @@ namespace caret {
                                                  const int64_t nodeIndex,
                                                  int64_t& rowIndexOut,
                                                  int64_t& columnIndexOut);
+        
+        void getRowColumnIndicesForNodesWhenLoading(const StructureEnum::Enum structure,
+                                                    const int64_t surfaceNumberOfNodes,
+                                                    const std::vector<int32_t>& nodeIndices,
+                                                    std::vector<int64_t>& rowIndicesOut,
+                                                    std::vector<int64_t>& columnIndicesOut);
+        
+        void getRowColumnAverageForIndices(const std::vector<int64_t>& rowIndices,
+                                           const std::vector<int64_t>& columnIndices,
+                                           std::vector<float>& rowAverageOut,
+                                           std::vector<float>& columnAverageOut);
+        
+        void getRowColumnIndicesForVoxelsWhenLoading(const int64_t volumeDimensionIJK[3],
+                                                     const std::vector<VoxelIJK>& voxelIndices,
+                                                     std::vector<int64_t>& rowIndicesOut,
+                                                     std::vector<int64_t>& columnIndicesOut);
         
         void getRowColumnIndexForVoxelAtCoordinateWhenLoading(const float xyz[3],
                                                                  int64_t& rowIndexOut,

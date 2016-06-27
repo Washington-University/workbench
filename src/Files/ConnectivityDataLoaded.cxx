@@ -62,6 +62,10 @@ ConnectivityDataLoaded::ConnectivityDataLoaded()
                                m_volumeDimensionsIJK,
                                3,
                                -1);
+    m_sceneAssistant->addArray("m_volumeXYZ",
+                               m_volumeXYZ,
+                               3,
+                               0.0);
     reset();
 }
 
@@ -89,6 +93,14 @@ ConnectivityDataLoaded::reset()
     m_surfaceNodeIndices.clear();
     m_surfaceNumberOfNodes = 0;
     m_surfaceStructure = StructureEnum::INVALID;
+    
+    m_volumeDimensionsIJK[0] = -1;
+    m_volumeDimensionsIJK[1] = -1;
+    m_volumeDimensionsIJK[2] = -1;
+    
+    m_volumeXYZ[0] = 0.0;
+    m_volumeXYZ[1] = 0.0;
+    m_volumeXYZ[2] = 0.0;
     
     m_voxelIndices.clear();
 }

@@ -55,7 +55,7 @@ using namespace caret;
  * @param parentDataSeriesFile
  *     Parent data series file.
  */
-CiftiConnectivityMatrixDenseDynamicFile::CiftiConnectivityMatrixDenseDynamicFile(const CiftiBrainordinateDataSeriesFile* parentDataSeriesFile)
+CiftiConnectivityMatrixDenseDynamicFile::CiftiConnectivityMatrixDenseDynamicFile(CiftiBrainordinateDataSeriesFile* parentDataSeriesFile)
 : CiftiMappableConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC),
 m_parentDataSeriesFile(parentDataSeriesFile),
 m_parentDataSeriesCiftiFile(NULL),
@@ -74,6 +74,25 @@ CiftiConnectivityMatrixDenseDynamicFile::~CiftiConnectivityMatrixDenseDynamicFil
 {
     
 }
+
+/**
+ * @return The parent brainordinate data-series file (const method)
+ */
+const CiftiBrainordinateDataSeriesFile*
+CiftiConnectivityMatrixDenseDynamicFile::getParentBrainordinateDataSeriesFile() const
+{
+    return m_parentDataSeriesFile;
+}
+
+/**
+ * @return The parent brainordinate data-series file.
+ */
+CiftiBrainordinateDataSeriesFile*
+CiftiConnectivityMatrixDenseDynamicFile::getParentBrainordinateDataSeriesFile()
+{
+    return m_parentDataSeriesFile;
+}
+
 
 /**
  * @return True if this file type supports writing, else false.
@@ -186,6 +205,41 @@ CiftiConnectivityMatrixDenseDynamicFile::getDataForColumn(float* /*dataOut*/, co
 void
 CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut, const int64_t& index) const
 {
+    m_parentDataSeriesCiftiFile->getRow(dataOut,
+                                        index);
+}
+
+/**
+ * Load PROCESSED data for the given column.
+ *
+ * Some file types may have special processing for a column.  This method can be
+ * overridden for those types of files.
+ *
+ * @param dataOut
+ *     Output with data.
+ * @param index of the column.
+ */
+void
+CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForColumn(float* /*dataOut*/, const int64_t& /*index*/) const
+{
+    const AString msg("Should never be called for Dense Dynamic File");
+    CaretAssertMessage(0, msg);
+    CaretLogSevere(msg);
+}
+
+/**
+ * Load PROCESSED data for the given row.
+ *
+ * Some file types may have special processing for a row.  This method can be
+ * overridden for those types of files.
+ *
+ * @param dataOut
+ *     Output with data.
+ * @param index of the row.
+ */
+void
+CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut, const int64_t& index) const
+{
     if ((m_numberOfBrainordinates <= 0)
         || (m_numberOfTimePoints <= 0)) {
         return;
@@ -194,7 +248,7 @@ CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut, const int
     ElapsedTimer timer;
     timer.start();
     
-// disable for timing     #pragma omp CARET_PARFOR
+    // disable for timing     #pragma omp CARET_PARFOR
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
         float coefficient = 1.0;
         
@@ -209,6 +263,62 @@ CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut, const int
 }
 
 /**
+ * Some file types may perform additional processing of row average data and
+ * can override this method.
+ *
+ * @param rowAverageData
+ *     The row average data.
+ */
+void
+CiftiConnectivityMatrixDenseDynamicFile::processRowAverageData(std::vector<float>& rowAverageDataInOut)
+{
+    if ((m_numberOfBrainordinates <= 0)
+        || (m_numberOfTimePoints <= 0)) {
+        return;
+    }
+    
+    ElapsedTimer timer;
+    timer.start();
+    
+    const int32_t dataLength = static_cast<int32_t>(rowAverageDataInOut.size());
+    if (dataLength != m_numberOfTimePoints) {
+        CaretLogWarning("Data length incorrect.  Is "
+                        + AString::number(dataLength)
+                        + " but should be "
+                        + AString::number(m_numberOfTimePoints));
+        return;
+    }
+    if (dataLength <= 0) {
+        return;
+    }
+    
+    float mean = 0.0;
+    float sumSquared = 0.0;
+    computeDataMeanAndSumSquared(&rowAverageDataInOut[0],
+                                 dataLength,
+                                 mean,
+                                 sumSquared);
+    
+    std::vector<float> processedRowAverageData(m_numberOfBrainordinates);
+    
+    // disable for timing     #pragma omp CARET_PARFOR
+    for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
+        const float coefficient = correlation(rowAverageDataInOut,
+                                              mean,
+                                              sumSquared,
+                                              iRow,
+                                              dataLength);
+        CaretAssertVectorIndex(processedRowAverageData, iRow);
+        processedRowAverageData[iRow] = coefficient;
+    }
+    
+    rowAverageDataInOut = processedRowAverageData;
+    
+    std::cout << "Time to row-average correlate (milliseconds): " << timer.getElapsedTimeMilliseconds() << std::endl;
+}
+
+
+/**
  * Compute the mean and sum-squared for each row so that they
  * are only calculated once.
  */
@@ -221,36 +331,147 @@ CiftiConnectivityMatrixDenseDynamicFile::preComputeRowMeanAndSumSquared()
     const float numPointsFloat = m_numberOfTimePoints;
     
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
-        double sum = 0.0;
-        double sumSquared = 0.0;
 
         CaretAssertVectorIndex(m_rowData, iRow);
+        
         if (m_cacheDataFlag) {
-            for (int32_t iPoint = 0; iPoint < m_numberOfTimePoints; iPoint++) {
-                CaretAssertVectorIndex(m_rowData[iRow].m_data, iPoint);
-                const float d = m_rowData[iRow].m_data[iPoint];
-                sum        += d;
-                sumSquared += (d * d);
-            }
+            CaretAssertVectorIndex(m_rowData[iRow].m_data, (m_numberOfTimePoints - 1));
+            computeDataMeanAndSumSquared(&m_rowData[iRow].m_data[0],
+                                         m_numberOfTimePoints,
+                                         m_rowData[iRow].m_mean,
+                                         m_rowData[iRow].m_sqrt_ssxx);
         }
         else {
             std::vector<float> data(m_numberOfTimePoints);
             m_parentDataSeriesCiftiFile->getRow(&data[0], iRow);
-            for (int32_t iPoint = 0; iPoint < m_numberOfTimePoints; iPoint++) {
-                CaretAssertVectorIndex(data, iPoint);
-                const float d = data[iPoint];
-                sum        += d;
-                sumSquared += (d * d);
-            }
+            computeDataMeanAndSumSquared(&data[0],
+                                         m_numberOfTimePoints,
+                                         m_rowData[iRow].m_mean,
+                                         m_rowData[iRow].m_sqrt_ssxx);
         }
         
-        
-        const float mean       = (sum / numPointsFloat);
-        m_rowData[iRow].m_mean = mean;
-        const float ssxx = (sumSquared - (numPointsFloat * mean * mean));
-        CaretAssert(ssxx >= 0.0);
-        m_rowData[iRow].m_sqrt_ssxx = std::sqrt(ssxx);
+//        double sum = 0.0;
+//        double sumSquared = 0.0;
+//        if (m_cacheDataFlag) {
+//            for (int32_t iPoint = 0; iPoint < m_numberOfTimePoints; iPoint++) {
+//                CaretAssertVectorIndex(m_rowData[iRow].m_data, iPoint);
+//                const float d = m_rowData[iRow].m_data[iPoint];
+//                sum        += d;
+//                sumSquared += (d * d);
+//            }
+//        }
+//        else {
+//            std::vector<float> data(m_numberOfTimePoints);
+//            m_parentDataSeriesCiftiFile->getRow(&data[0], iRow);
+//            for (int32_t iPoint = 0; iPoint < m_numberOfTimePoints; iPoint++) {
+//                CaretAssertVectorIndex(data, iPoint);
+//                const float d = data[iPoint];
+//                sum        += d;
+//                sumSquared += (d * d);
+//            }
+//        }
+//        
+//        const float mean       = (sum / numPointsFloat);
+//        const float ssxx = (sumSquared - (numPointsFloat * mean * mean));
+//        CaretAssert(ssxx >= 0.0);
+//        
+//        const float meanDiff = std::fabs(mean - m_rowData[iRow].m_mean);
+//        const float ssDiff   = std::fabs(std::sqrt(ssxx) - m_rowData[iRow].m_sqrt_ssxx);
+//        if ((meanDiff > 0.0001) || (ssDiff > 0.0001)) {
+//            std::cout << "Mean/SS diff" << std::endl;
+//        }
+//        
+//        m_rowData[iRow].m_mean = mean;
+//        m_rowData[iRow].m_sqrt_ssxx = std::sqrt(ssxx);
     }
+}
+
+/**
+ * Compute data's mean and sum-squared
+ */
+void
+CiftiConnectivityMatrixDenseDynamicFile::computeDataMeanAndSumSquared(const float* data,
+                                                                      const int32_t dataLength,
+                                                                      float& meanOut,
+                                                                      float& sumSquaredOut) const
+{
+    meanOut = 0.0;
+    sumSquaredOut = 0.0;
+    if (dataLength <= 0) {
+        return;
+    }
+    
+    double sum = 0.0;
+    double sumSquared = 0.0;
+    
+    for (int32_t i = 0; i < dataLength; i++) {
+        const float d = data[i];
+        sum        += d;
+        sumSquared += (d * d);
+    }
+    
+    meanOut = (sum / dataLength);
+    const float ssxx = (sumSquared - (dataLength * meanOut * meanOut));
+    CaretAssert(ssxx >= 0.0);
+    sumSquaredOut = std::sqrt(ssxx);
+}
+
+
+/**
+ * Correlation from https://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient
+ *
+ * @param data
+ *     Data for correlation
+ * @param mean
+ *     Mean of data
+ * @param sumSquared
+ *     Sum squared of data.
+ * @param otherRowIndex
+ *     Index of another row
+ * @param numberOfPoints
+ *     Number of points int the two arrays
+ * @return
+ *     The correlation coefficient computed on the two arrays.
+ */
+float
+CiftiConnectivityMatrixDenseDynamicFile::correlation(const std::vector<float>& data,
+                                                     const float mean,
+                                                     const float sumSquared,
+                                                     const int32_t otherRowIndex,
+                                                     const int32_t numberOfPoints) const
+{
+    const double numFloat = numberOfPoints;
+    double xySum = 0.0;
+    
+    CaretAssertVectorIndex(m_rowData, otherRowIndex);
+    const RowData& otherData = m_rowData[otherRowIndex];
+    
+    if (m_cacheDataFlag) {
+        for (int i = 0; i < numberOfPoints; i++) {
+            CaretAssertVectorIndex(data, i);
+            CaretAssertVectorIndex(otherData.m_data, i);
+            xySum += data[i] * otherData.m_data[i];
+        }
+    }
+    else {
+        std::vector<float> otherDataVector(m_numberOfTimePoints);
+        m_parentDataSeriesCiftiFile->getRow(&otherDataVector[0], otherRowIndex);
+        
+        for (int i = 0; i < numberOfPoints; i++) {
+            CaretAssertVectorIndex(data, i);
+            CaretAssertVectorIndex(otherDataVector, i);
+            xySum += data[i] * otherDataVector[i];
+        }
+    }
+    
+    const double ssxy = xySum - (numFloat * mean * otherData.m_mean);
+    
+    float correlationCoefficient = 0.0;
+    if ((sumSquared > 0.0)
+        && (otherData.m_sqrt_ssxx > 0.0)) {
+        correlationCoefficient = (ssxy / (sumSquared * otherData.m_sqrt_ssxx));
+    }
+    return correlationCoefficient;
 }
 
 /**
@@ -258,7 +479,7 @@ CiftiConnectivityMatrixDenseDynamicFile::preComputeRowMeanAndSumSquared()
  *
  * @param rowIndex
  *     Index of a row
- * @param y
+ * @param otherRowIndex
  *     Index of another row
  * @param numberOfPoints
  *     Number of points int the two arrays
