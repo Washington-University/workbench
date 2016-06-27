@@ -164,6 +164,8 @@ SceneFile::insertScene(Scene* newScene,
     }
     
     m_scenes = tempSceneVector;
+    
+    setModified();
 }
 
 
