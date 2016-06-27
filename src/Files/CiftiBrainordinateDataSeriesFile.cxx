@@ -26,6 +26,7 @@
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
+#include "CiftiFile.h"
 #include "DataFileException.h"
 #include "SceneClass.h"
 
@@ -87,7 +88,27 @@ CiftiBrainordinateDataSeriesFile::readFile(const AString& ciftiMapFileName)
     try {
         m_matrixDenseDynamicFile->readFile(ciftiMapFileName);
         m_matrixDenseDynamicFile->updateAfterReading(getCiftiFile());
+        
+        /*
+         * Palette for dynamic file is in my CIFTI file metadata
+         */
+        GiftiMetaData* fileMetaData = m_ciftiFile->getCiftiXML().getFileMetaData();
+        const AString encodedPaletteColorMappingString = fileMetaData->get(s_paletteColorMappingNameInMetaData);
+        if ( ! encodedPaletteColorMappingString.isEmpty()) {
+            if (m_matrixDenseDynamicFile-getNumberOfMaps() > 0) {
+                PaletteColorMapping* pcm = m_matrixDenseDynamicFile->getMapPaletteColorMapping(0);
+                CaretAssert(pcm);
+                pcm->decodeFromStringXML(encodedPaletteColorMappingString);
+            }
+        }
+        
         m_matrixDenseDynamicFile->clearModified();
+        
+//        /*
+//         * Remove palette color mapping from metadata so not seen by user
+//         */
+//        fileMetaData->remove(s_paletteColorMappingNameInMetaData);
+//        clearModified();
     }
     catch (const DataFileException& dfe) {
         throw DataFileException("While reading/updating "
@@ -97,7 +118,40 @@ CiftiBrainordinateDataSeriesFile::readFile(const AString& ciftiMapFileName)
     }
 }
 
+/**
+ * Write the file.
+ *
+ * @param ciftiMapFileName
+ *    Name of the file to write.
+ * @throw
+ *    DataFileException if there is an error writing the file.
+ */
+void
+CiftiBrainordinateDataSeriesFile::writeFile(const AString& ciftiMapFileName)
+{
+    /*
+     * Put the child dynamic data-series file's palette in the file's metadata.
+     */
+    GiftiMetaData* fileMetaData = m_ciftiFile->getCiftiXML().getFileMetaData();
+    CaretAssert(fileMetaData);
+    if (m_matrixDenseDynamicFile-getNumberOfMaps() > 0) {
+        fileMetaData->set(s_paletteColorMappingNameInMetaData,
+                          m_matrixDenseDynamicFile->getMapPaletteColorMapping(0)->encodeInXML());
+    }
+    else {
+        fileMetaData->remove(s_paletteColorMappingNameInMetaData);
+    }
+    
+    CiftiMappableDataFile::writeFile(ciftiMapFileName);
 
+//    /*
+//     * Remove palette color mapping from metadata so not seen by user
+//     */
+//    fileMetaData->remove(s_paletteColorMappingNameInMetaData);
+    
+    clearModified();
+    m_matrixDenseDynamicFile->clearModified();
+}
 /**
  * @return Is charting enabled for this file?
  */

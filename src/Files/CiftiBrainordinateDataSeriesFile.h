@@ -64,6 +64,8 @@ namespace caret {
         
         virtual void readFile(const AString& ciftiMapFileName);
         
+        virtual void writeFile(const AString& filename);
+        
         virtual bool isModifiedPaletteColorMapping() const;
         
     private:
@@ -86,9 +88,12 @@ namespace caret {
         bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         CiftiConnectivityMatrixDenseDynamicFile* m_matrixDenseDynamicFile;
+        
+        static const AString s_paletteColorMappingNameInMetaData;
     };
     
 #ifdef __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_DECLARE__
+    const AString CiftiBrainordinateDataSeriesFile::s_paletteColorMappingNameInMetaData = "__DYNAMIC_FILE_PALETTE_COLOR_MAPPING__";
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_DECLARE__
 
