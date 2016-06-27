@@ -6135,16 +6135,16 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityMatrixDenseFiles.begin(),
                            m_connectivityMatrixDenseFiles.end());
     
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityDataSeriesFiles.begin(),
+                           m_connectivityDataSeriesFiles.end());
+    
     std::vector<CiftiConnectivityMatrixDenseDynamicFile*> denseDynFiles;
     getConnectivityMatrixDenseDynamicFiles(denseDynFiles);
     allDataFilesOut.insert(allDataFilesOut.end(),
                            denseDynFiles.begin(),
                            denseDynFiles.end());
     
-    allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_connectivityDataSeriesFiles.begin(),
-                           m_connectivityDataSeriesFiles.end());
-
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityDenseLabelFiles.begin(),
                            m_connectivityDenseLabelFiles.end());

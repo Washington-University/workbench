@@ -128,9 +128,11 @@ CiftiConnectivityMatrixDenseDynamicFile::setEnabledForUser(const bool enabled)
 
 
 /**
- * This method is intended for overriding by subclasess so that they
- * can examine and verify the data that was read.  This method is
- * called after successfully reading a file.
+ * Update the content of this dense dynamic file after the parent 
+ * brainordinate data series file is successfully read.
+ *
+ * @param ciftiFile
+ *     Parent's CIFTI file..
  */
 void
 CiftiConnectivityMatrixDenseDynamicFile::updateAfterReading(const CiftiFile* ciftiFile)
@@ -185,10 +187,12 @@ CiftiConnectivityMatrixDenseDynamicFile::updateAfterReading(const CiftiFile* cif
  *
  * @param dataOut
  *     Output with data.
- * @param index of the column.
+ * @param index
+ *     Index of the column.
  */
 void
-CiftiConnectivityMatrixDenseDynamicFile::getDataForColumn(float* /*dataOut*/, const int64_t& /*index*/) const
+CiftiConnectivityMatrixDenseDynamicFile::getDataForColumn(float* /*dataOut*/,
+                                                          const int64_t& /*index*/) const
 {
     const AString msg("Should never be called for Dense Dynamic File");
     CaretAssertMessage(0, msg);
@@ -200,10 +204,12 @@ CiftiConnectivityMatrixDenseDynamicFile::getDataForColumn(float* /*dataOut*/, co
  *
  * @param dataOut
  *     Output with data.
- * @param index of the row.
+ * @param index
+ *     Index of the row.
  */
 void
-CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut, const int64_t& index) const
+CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut,
+                                                       const int64_t& index) const
 {
     m_parentDataSeriesCiftiFile->getRow(dataOut,
                                         index);
@@ -217,10 +223,12 @@ CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut, const int
  *
  * @param dataOut
  *     Output with data.
- * @param index of the column.
+ * @param index 
+ *     Index of the column.
  */
 void
-CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForColumn(float* /*dataOut*/, const int64_t& /*index*/) const
+CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForColumn(float* /*dataOut*/,
+                                                                   const int64_t& /*index*/) const
 {
     const AString msg("Should never be called for Dense Dynamic File");
     CaretAssertMessage(0, msg);
@@ -235,10 +243,12 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForColumn(float* /*data
  *
  * @param dataOut
  *     Output with data.
- * @param index of the row.
+ * @param index 
+ *     Index of the row.
  */
 void
-CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut, const int64_t& index) const
+CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut,
+                                                                const int64_t& index) const
 {
     if ((m_numberOfBrainordinates <= 0)
         || (m_numberOfTimePoints <= 0)) {
@@ -266,7 +276,7 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut, 
  * Some file types may perform additional processing of row average data and
  * can override this method.
  *
- * @param rowAverageData
+ * @param rowAverageDataInOut
  *     The row average data.
  */
 void
@@ -328,8 +338,6 @@ CiftiConnectivityMatrixDenseDynamicFile::preComputeRowMeanAndSumSquared()
     CaretAssert(m_numberOfBrainordinates > 0);
     CaretAssert(m_numberOfTimePoints > 0);
     
-    const float numPointsFloat = m_numberOfTimePoints;
-    
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
 
         CaretAssertVectorIndex(m_rowData, iRow);
@@ -388,6 +396,15 @@ CiftiConnectivityMatrixDenseDynamicFile::preComputeRowMeanAndSumSquared()
 
 /**
  * Compute data's mean and sum-squared
+ *
+ * @param data
+ *     Data on which mean and sum-squared are calculated
+ * @param dataLength
+ *     Number of items in data.
+ * @param meanOut
+ *     Output with mean of data.
+ * @param sumSquaredOut
+ *     Output with sum-squared.
  */
 void
 CiftiConnectivityMatrixDenseDynamicFile::computeDataMeanAndSumSquared(const float* data,
