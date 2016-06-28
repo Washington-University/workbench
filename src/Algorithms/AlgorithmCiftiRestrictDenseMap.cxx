@@ -124,7 +124,7 @@ AlgorithmCiftiRestrictDenseMap::AlgorithmCiftiRestrictDenseMap(ProgressObject* m
     }
     if (roiXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS)
     {
-        throw AlgorithmException("input does not have a brain models mapping along specified direction");
+        throw AlgorithmException("roi does not have a brain models mapping along column");
     }
     const CiftiBrainModelsMap& inMap = inXML.getBrainModelsMap(direction);
     if (!inMap.approximateMatch(roiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN)))
