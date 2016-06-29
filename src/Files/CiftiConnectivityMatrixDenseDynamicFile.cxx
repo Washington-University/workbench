@@ -31,7 +31,6 @@
 #include "CaretOMP.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiFile.h"
-#include "ElapsedTimer.h"
 #include "FileInformation.h"
 
 using namespace caret;
@@ -255,21 +254,21 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut,
         return;
     }
     
-    ElapsedTimer timer;
-    timer.start();
+    std::vector<float> rowData(m_numberOfTimePoints);
+    m_parentDataSeriesCiftiFile->getRow(&rowData[0], index);
+    const float mean = m_rowData[index].m_mean;
+    const float ssxx = m_rowData[index].m_sqrt_ssxx;
     
     // disable for timing     #pragma omp CARET_PARFOR
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
         float coefficient = 1.0;
         
         if (iRow != index) {
-            coefficient = correlation(index, iRow, m_numberOfTimePoints);
+            coefficient = correlation(rowData, mean, ssxx, iRow, m_numberOfTimePoints);
         }
         
         dataOut[iRow] = coefficient;
     }
-    
-    std::cout << "Time to correlate (milliseconds): " << timer.getElapsedTimeMilliseconds() << std::endl;
 }
 
 /**
@@ -286,9 +285,6 @@ CiftiConnectivityMatrixDenseDynamicFile::processRowAverageData(std::vector<float
         || (m_numberOfTimePoints <= 0)) {
         return;
     }
-    
-    ElapsedTimer timer;
-    timer.start();
     
     const int32_t dataLength = static_cast<int32_t>(rowAverageDataInOut.size());
     if (dataLength != m_numberOfTimePoints) {
@@ -323,8 +319,6 @@ CiftiConnectivityMatrixDenseDynamicFile::processRowAverageData(std::vector<float
     }
     
     rowAverageDataInOut = processedRowAverageData;
-    
-    std::cout << "Time to row-average correlate (milliseconds): " << timer.getElapsedTimeMilliseconds() << std::endl;
 }
 
 
