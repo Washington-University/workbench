@@ -2623,7 +2623,8 @@ SpecFileManagementDialog::createFilesTypesToolBar(QLabel* &labelOut)
      * All types of files
      */
     std::vector<DataFileTypeEnum::Enum> allDataFileTypes;
-    DataFileTypeEnum::getAllEnums(allDataFileTypes);
+    DataFileTypeEnum::getAllEnums(allDataFileTypes,
+                                  DataFileTypeEnum::OPTIONS_INCLUDE_UNKNOWN);
     
     /*
      * Get data types of files that are listed in the dialog

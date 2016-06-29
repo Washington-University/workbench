@@ -127,7 +127,7 @@ CaretFileRemoteDialog::createLocationWidget()
     QStringList filenameFilterList;
     std::vector<DataFileTypeEnum::Enum> dataFileTypes;
     DataFileTypeEnum::getAllEnums(dataFileTypes,
-                                  false);
+                                  DataFileTypeEnum::OPTIONS_NONE);
     
     m_locationCustomRadioButton = new QRadioButton("Custom");
     m_locationStandardRadioButton = new QRadioButton("Standard");
@@ -144,7 +144,7 @@ CaretFileRemoteDialog::createLocationWidget()
     m_customUrlLineEdit->setMinimumWidth(400);
     
     m_customUrlFileTypeComboBox = new EnumComboBoxTemplate(this);
-    m_customUrlFileTypeComboBox->setup<DataFileTypeEnum, DataFileTypeEnum::Enum>();
+    m_customUrlFileTypeComboBox->setupWithItems<DataFileTypeEnum, DataFileTypeEnum::Enum>(dataFileTypes);
     m_customUrlFileTypeComboBox->setSelectedItem<DataFileTypeEnum, DataFileTypeEnum::Enum>(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
     
     m_standardFileComboBox = new QComboBox();

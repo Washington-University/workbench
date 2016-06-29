@@ -821,29 +821,33 @@ DataFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 /**
  * Get all of the enumerated type values.  The values can be used
  * as parameters to toXXX() methods to get associated metadata.
- * Note: CONNECTIVITY_DENSE_DYNAMIC is excluded.
  *
  * @param allEnums
  *     A vector that is OUTPUT containing all of the enumerated values.
- * @param includeUNKNOWN
- *     If true, the UNKNOWN enum is included.
+ * @param options
+ *     Bitwise mask for options
  */
 void
 DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
-                              const bool includeUnknown)
+                              const uint32_t options)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
+    const bool includeDenseDynamicFlag = (options & OPTIONS_INCLUDE_CONNECTIVITY_DENSE_DYNAMIC);
+    const bool includeUnknownFlag      = (options & OPTIONS_INCLUDE_UNKNOWN);
+    
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         if (iter->enumValue == CONNECTIVITY_DENSE_DYNAMIC) {
-            continue;
+            if ( ! includeDenseDynamicFlag) {
+                continue;
+            }
         }
         if (iter->enumValue == UNKNOWN) {
-            if ( ! includeUnknown) {
+            if ( ! includeUnknownFlag) {
                 continue;
             }
         }
