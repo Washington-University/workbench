@@ -384,12 +384,13 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnAverageForIndices(const std
             }
         }
 
+        CaretAssert(dataLength > 0);
         std::vector<float> average(dataLength);
-        const float floatNumItems = dataLength;
+        const float floatNumIndices = numIndices; //dataLength;
         for (int64_t i = 0; i < dataLength; i++) {
             CaretAssertVectorIndex(average, i);
             CaretAssertVectorIndex(sum, i);
-            average[i] = sum[i] / floatNumItems;
+            average[i] = sum[i] / floatNumIndices;
         }
 
         if (doRowsFlag) {
