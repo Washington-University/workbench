@@ -789,7 +789,7 @@ void CommandOperationManager::printHelpInfo()
         cout << "            " << LogLevelEnum::toName(*iter) << endl;
     }
     cout << endl;
-    cout << "To get the help information on a processing subcommand, run it without any" << endl;
+    cout << "To get the help information of a processing subcommand, run it without any" << endl;
     cout << "   additional arguments." << endl;
     cout << endl;
     cout << "If the first argument is not recognized, all processing commands that start" << endl;
