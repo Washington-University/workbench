@@ -423,7 +423,8 @@ CiftiConnectivityMatrixDenseDynamicFile::computeDataMeanAndSumSquared(const floa
     
     meanOut = (sum / dataLength);
     const float ssxx = (sumSquared - (dataLength * meanOut * meanOut));
-    CaretAssert(ssxx >= 0.0);
+    //TSC: do not assert things that depend on input file content (a NaN in the data will trip it), you could print a warning instead
+    //CaretAssert(ssxx >= 0.0);
     sumSquaredOut = std::sqrt(ssxx);
 }
 
