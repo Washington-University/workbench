@@ -374,6 +374,11 @@ OverlayViewController::fileComboBoxSelected(int indx)
 void
 OverlayViewController::mapIndexSpinBoxValueChanged(int indx)
 {
+    if (overlay == NULL)
+    {
+        //TSC: not sure how to put the displayed integer back to 0 where it starts when opening without data files
+        return;
+    }
     /*
      * Get the file that is selected from the file combo box
      */
@@ -545,8 +550,9 @@ OverlayViewController::yokingGroupActivated()
    
     /*
      * Has yoking group changed?
+     * TSC: overlay can be null when opened without loaded files
      */
-    if (yokingGroup != overlay->getMapYokingGroup()) {
+    if (overlay != NULL && yokingGroup != overlay->getMapYokingGroup()) {
         validateYokingSelection();
     }
 }
