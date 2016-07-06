@@ -104,6 +104,10 @@ public:
     
     int32_t getHeight() const;
     
+    float getWindowZ() const;
+    
+    void setWindowZ(const float windowZ);
+    
     virtual void readFile(const AString& filename);
     
     virtual void writeFile(const AString& filename);
@@ -150,6 +154,11 @@ public:
     static void getImageFileFilters(std::vector<AString>& imageFileFilters,
                                     AString& defaultFilter);
 
+    virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                     SceneClass* sceneClass);
+    
+    virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                          const SceneClass* sceneClass);
 private:
     ImageFile(const ImageFile&);
     
@@ -166,7 +175,11 @@ private:
     
     QImage* m_image;
     
+    float m_windowZ;
+    
     CaretPointer<GiftiMetaData> m_fileMetaData;
+    
+    static const float s_defaultWindowDepthPercentage;
 };
 
 } // namespace

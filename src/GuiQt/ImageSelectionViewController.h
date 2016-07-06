@@ -32,8 +32,10 @@
 
 class QButtonGroup;
 class QCheckBox;
+class QDoubleSpinBox;
+class QGridLayout;
 class QRadioButton;
-class QVBoxLayout;
+class QSignalMapper;
 
 namespace caret {
     class DisplayGroupEnumComboBox;
@@ -68,7 +70,8 @@ namespace caret {
 
         void imageRadioButtonClicked(int);
           
-          
+        void windowZeeSpinBoxValueChanged(const int indx);
+        
 // If there will be sub-classes of this class that need to save
 // and restore data from scenes, these pure virtual methods can
 // be uncommented to force their implemetation by sub-classes.
@@ -96,11 +99,15 @@ namespace caret {
         
         QCheckBox* m_imageDisplayCheckBox;
         
+        std::vector<QDoubleSpinBox*> m_windowZeeSpinBoxes;
+        
         std::vector<QRadioButton*> m_imageRadioButtons;
         
         QButtonGroup* m_imageRadioButtonGroup;
         
-        QVBoxLayout* m_imageRadioButtonLayout;
+        QGridLayout* m_imageRadioButtonLayout;
+        
+        QSignalMapper* m_windowZeeSpinBoxSignalMapper;
         
         static std::set<ImageSelectionViewController*> s_allImageSelectionViewControllers;
         // ADD_NEW_MEMBERS_HERE

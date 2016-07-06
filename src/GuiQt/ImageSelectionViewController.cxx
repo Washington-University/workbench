@@ -21,11 +21,13 @@
 
 #include <QButtonGroup>
 #include <QCheckBox>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
 #include <QRadioButton>
 #include <QScrollArea>
+#include <QSignalMapper>
 
 #define __IMAGE_SELECTION_VIEW_CONTROLLER_DECLARE__
 #include "ImageSelectionViewController.h"
@@ -43,12 +45,16 @@
 #include "ImageFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "WuQSpinBoxGroup.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
 
+static const int COLUMN_SPIN_BOX     = 1;
+static const int COLUMN_RADIO_BUTTON = 0;
 
-    
+
+
 /**
  * \class caret::ImageSelectionViewController 
  * \brief View controller for image selection
@@ -85,9 +91,22 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_imageRadioButtonGroup, SIGNAL(buttonClicked(int)),
                      this, SLOT(imageRadioButtonClicked(int)));
     
+    m_windowZeeSpinBoxSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_windowZeeSpinBoxSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(windowZeeSpinBoxValueChanged(const int)));
+    
     QWidget* imageRadioButtonWidget = new QWidget();
     imageRadioButtonWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    m_imageRadioButtonLayout = new QVBoxLayout(imageRadioButtonWidget);
+    m_imageRadioButtonLayout = new QGridLayout(imageRadioButtonWidget);
+    m_imageRadioButtonLayout->setColumnStretch(COLUMN_SPIN_BOX,       0);
+    m_imageRadioButtonLayout->setColumnStretch(COLUMN_RADIO_BUTTON, 100);
+    const int imageLayoutRow = m_imageRadioButtonLayout->rowCount();
+    m_imageRadioButtonLayout->addWidget(new QLabel("Image"),
+                                        imageLayoutRow, COLUMN_RADIO_BUTTON,
+                                        Qt::AlignHCenter);
+    m_imageRadioButtonLayout->addWidget(new QLabel("Depth"),
+                                        imageLayoutRow, COLUMN_SPIN_BOX,
+                                        Qt::AlignLeft);
     
     QScrollArea* imageRadioButtonScrollArea = new QScrollArea();
     imageRadioButtonScrollArea->setWidget(imageRadioButtonWidget);
@@ -200,6 +219,7 @@ ImageSelectionViewController::imageDisplayGroupSelected(const DisplayGroupEnum::
      * Since display group has changed, need to update controls
      */
     updateImageViewController();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -228,7 +248,34 @@ ImageSelectionViewController::imageRadioButtonClicked(int buttonID)
                               allImageFiles[buttonID]);
 
     updateOtherImageViewControllers();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
+/**
+ * Gets called when a depth spin box has its value changed.
+ *
+ * @param spinBoxIndex
+ *     Index of spin box whose value is changed.
+ */
+void
+ImageSelectionViewController::windowZeeSpinBoxValueChanged(const int spinBoxIndex)
+{
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return;
+    }
+    Brain* brain = GuiManager::get()->getBrain();
+    std::vector<ImageFile*> allImageFiles = brain->getAllImagesFiles();
+    CaretAssertVectorIndex(allImageFiles, spinBoxIndex);
+    CaretAssertVectorIndex(m_windowZeeSpinBoxes, spinBoxIndex);
+    
+    allImageFiles[spinBoxIndex]->setWindowZ(m_windowZeeSpinBoxes[spinBoxIndex]->value());
+    
+    updateOtherImageViewControllers();
+}
+
+
 
 /**
  * Update the image selection widget.
@@ -260,12 +307,32 @@ ImageSelectionViewController::updateImageViewController()
     int32_t numRadioButtons = static_cast<int32_t>(m_imageRadioButtons.size());
 
     if (numImageFiles > numRadioButtons) {
+        const AString depthToolTip = ("Adjust 'depth' of image:\n"
+                                      "   Negative ==> Move towards viewer\n"
+                                      "   Zero     ==> Anterior Commissure\n"
+                                      "   Positive ==> Move away from viewer");
         const int32_t numToAdd = numImageFiles - numRadioButtons;
         for (int32_t i = 0; i < numToAdd; i++) {
             const int buttonID = static_cast<int>(m_imageRadioButtons.size());
             QRadioButton* rb = new QRadioButton("");
             m_imageRadioButtons.push_back(rb);
-            m_imageRadioButtonLayout->addWidget(rb);
+            
+            QDoubleSpinBox* sb = new QDoubleSpinBox();
+            sb->setRange(-1000.0, 1000.0);
+            sb->setDecimals(1);
+            sb->setSingleStep(1.0);
+            sb->setToolTip(depthToolTip);
+            m_windowZeeSpinBoxes.push_back(sb);
+            
+            QObject::connect(sb, SIGNAL(valueChanged(double)),
+                             m_windowZeeSpinBoxSignalMapper, SLOT(map()));
+            m_windowZeeSpinBoxSignalMapper->setMapping(sb, i);
+            
+            const int row = m_imageRadioButtonLayout->rowCount();
+            m_imageRadioButtonLayout->addWidget(sb,
+                                                row, COLUMN_SPIN_BOX);
+            m_imageRadioButtonLayout->addWidget(rb,
+                                                row, COLUMN_RADIO_BUTTON);
             
             m_imageRadioButtonGroup->addButton(rb,
                                                buttonID);
@@ -274,10 +341,15 @@ ImageSelectionViewController::updateImageViewController()
         numRadioButtons = static_cast<int32_t>(m_imageRadioButtons.size());
     }
     
+    m_windowZeeSpinBoxSignalMapper->blockSignals(true);
+    
     const ImageFile* selectedImageFile = dpi->getSelectedImageFile(displayGroup,
                                                                    browserTabIndex);
     for (int32_t i = 0; i < numRadioButtons; i++) {
+        CaretAssertVectorIndex(m_imageRadioButtons, i);
         QRadioButton* rb = m_imageRadioButtons[i];
+        CaretAssertVectorIndex(m_windowZeeSpinBoxes, i);
+        QDoubleSpinBox* sb = m_windowZeeSpinBoxes[i];
         
         if (i < numImageFiles) {
             rb->setText(allImageFiles[i]->getFileNameNoPath());
@@ -285,11 +357,17 @@ ImageSelectionViewController::updateImageViewController()
                 rb->setChecked(true);
             }
             rb->setVisible(true);
+            
+            sb->setValue(allImageFiles[i]->getWindowZ());
+            sb->setVisible(true);
         }
         else {
             rb->setVisible(false);
+            sb->setVisible(false);
         }
     }
+
+    m_windowZeeSpinBoxSignalMapper->blockSignals(false);
 }
 
 /**

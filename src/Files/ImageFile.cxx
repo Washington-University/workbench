@@ -33,8 +33,11 @@
 #include "GiftiMetaData.h"
 #include "ImageCaptureSettings.h"
 #include "ImageFile.h"
+#include "SceneClass.h"
 
 using namespace caret;
+
+const float ImageFile::s_defaultWindowDepthPercentage = 990;
 
 /**
  * Constructor.
@@ -44,7 +47,8 @@ ImageFile::ImageFile()
 {
     m_fileMetaData.grabNew(new GiftiMetaData());
     
-    m_image = new QImage();
+    m_image   = new QImage();
+    m_windowZ = s_defaultWindowDepthPercentage;
 }
 
 /**
@@ -58,6 +62,7 @@ ImageFile::ImageFile(const QImage& qimage)
     m_fileMetaData.grabNew(new GiftiMetaData());
     
     m_image = new QImage(qimage);
+    m_windowZ = s_defaultWindowDepthPercentage;
 }
 
 /**
@@ -84,6 +89,7 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
     m_image = new QImage(imageWidth,
                              imageHeight,
                              QImage::Format_RGB32);
+    m_windowZ = s_defaultWindowDepthPercentage;
     
     bool isOriginAtTop = false;
     switch (imageOrigin) {
@@ -1262,6 +1268,33 @@ ImageFile::getHeight() const
     return h;
 }
 
+/**
+ * @return
+ *    The Window Z for the image.
+ *
+ * Note:  1000 is at far clipping plane
+ *       -1000 is at near clipping plane
+ */
+float
+ImageFile::getWindowZ() const
+{
+    return m_windowZ;
+}
+
+/**
+ * Set the Window Z for the image.
+ *
+ * Note:  1000 is at far clipping plane
+ *       -1000 is at near clipping plane
+ *
+ * @param windowZ
+ *     New window Z for drawing image.
+ */
+void
+ImageFile::setWindowZ(const float windowZ)
+{
+    m_windowZ = windowZ;
+}
 
 /**
  * Essentially writes the image file to a byte array using the given format.
@@ -1326,6 +1359,49 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
         throw DataFileException(getFileName(),
                                 "Failed to create image from byte array.");
     }
+}
+
+/**
+ * Save file data from the scene.  For subclasses that need to
+ * save to a scene, this method should be overriden.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+ImageFile::saveFileDataToScene(const SceneAttributes* /*sceneAttributes*/,
+                                   SceneClass* sceneClass)
+{
+    sceneClass->addFloat("m_windowZ",
+                         m_windowZ);
+}
+
+/**
+ * Restore file data from the scene.  For subclasses that need to
+ * restore from a scene, this method should be overridden. The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+ImageFile::restoreFileDataFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                        const SceneClass* sceneClass)
+{
+    m_windowZ = sceneClass->getFloatValue("m_windowZ",
+                                          s_defaultWindowDepthPercentage);
 }
 
 

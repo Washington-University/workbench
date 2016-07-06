@@ -6286,8 +6286,9 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    const double nearClip = -1000.0;
-    const double farClip  =  1000.0;
+    const double maxClip  = 1000.0;
+    const double nearClip = -maxClip;
+    const double farClip  =  maxClip;
     glOrtho(0, viewportWidth,
             0, viewportHeight,
             nearClip, farClip);
@@ -6300,10 +6301,14 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
      */
     glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
     
-    //
-    // Draw image near far clipping plane
-    //
-    const float imageZ = 10.0 - farClip;
+    /* 
+     * Set the image's Z coordinate where a depth percentage of 100.0
+     * is at the far clipping plane (away from viewer) and a percentage
+     * of zero is at the near clipping plane (closest to viewer).
+     *
+     * Old way to set Z:  const float imageZ = 10.0 - farClip;
+     */
+    const float imageZ = -imageFile->getWindowZ();
     glRasterPos3f(xPos, yPos, imageZ); //-500.0); // set Z so image behind surface
     
     glDrawPixels(imageWidth, imageHeight,
