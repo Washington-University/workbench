@@ -551,8 +551,12 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
             }
         }
     }
-    
-    CaretAssert(numberOfTabs == static_cast<int32_t>(tabSizeInfoVector.size()));
+
+    /*
+     * Note: There may be more tabs than there are cells (rows * columns)
+     * so some tabs may not be displayed.
+     */
+    const int32_t numberOfDisplayedTabs = static_cast<int32_t>(tabSizeInfoVector.size());
     
     /*
      * Now that we know the height of each row, and width of each column,
@@ -580,7 +584,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         int32_t vpX = windowViewport[0] + (windowExtraWidth / 2);
         for (int32_t jCol = 0; jCol < numColumns; jCol++) {
             TileTabsViewportSizingInfo* tabSizePtr = NULL;
-            for (int32_t iTab = 0; iTab < numberOfTabs; iTab++) {
+            for (int32_t iTab = 0; iTab < numberOfDisplayedTabs; iTab++) {
                 CaretAssertVectorIndex(tabSizeInfoVector, iTab);
                 if ((tabSizeInfoVector[iTab].m_rowIndexFromTop == iRow)
                     && (tabSizeInfoVector[iTab].m_columnIndex == jCol)) {
