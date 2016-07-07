@@ -1141,9 +1141,12 @@ BrowserTabContent::receiveEvent(Event* event)
                         bool keepSliceCoordinateForSelectedAxis = false;
                         switch (m_volumeSliceSettings->getSliceProjectionType()) {
                             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                                if (getSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
+                                    keepSliceCoordinateForSelectedAxis = true;
+                                }
                                 break;
                             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                                keepSliceCoordinateForSelectedAxis = true;
+                                //keepSliceCoordinateForSelectedAxis = true;
                                 break;
                         }
                         switch (m_volumeSliceSettings->getSliceDrawingType()) {
