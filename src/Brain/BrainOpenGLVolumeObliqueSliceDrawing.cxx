@@ -115,6 +115,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                   const int32_t viewport[4])
 {
+    CaretAssert(sliceProjectionType == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
+    
     if (volumeDrawInfo.empty()) {
         return;
     }
@@ -3006,14 +3008,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjec
             glPushMatrix();
             glLoadIdentity();
             
-            double mv[16];
-            glGetDoublev(GL_MODELVIEW_MATRIX, mv);
-            Matrix4x4 mvm;
-            mvm.setMatrixFromOpenGL(mv);
+//            double mv[16];
+//            glGetDoublev(GL_MODELVIEW_MATRIX, mv);
+//            Matrix4x4 mvm;
+//            mvm.setMatrixFromOpenGL(mv);
             
-            float trans[3];
-            m_browserTabContent->getTranslation(trans);
-            glTranslatef(trans[0], trans[1], trans[2]);
+//            float trans[3];
+//            m_browserTabContent->getTranslation(trans);
+//            glTranslatef(trans[0], trans[1], trans[2]);
             drawAxesCrosshairsOrthoAndOblique(sliceProjectionType,
                                               sliceViewPlane,
                                               sliceCoordinates,
@@ -3084,6 +3086,12 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         sliceCoordinates[2]
     };
     
+    float trans[3];
+    m_browserTabContent->getTranslation(trans);
+
+    float horizTrans[3] = { trans[0], trans[1], trans[2] };
+    float vertTrans[3] = { trans[0], trans[1], trans[2] };
+    
     if (obliqueModeFlag) {
         switch (sliceViewPlane) {
             case VolumeSliceViewPlaneEnum::ALL:
@@ -3098,12 +3106,20 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
                 horizontalAxisEndXYZ[1]   = sliceCoordinates[2];
                 horizontalAxisEndXYZ[2]   = sliceCoordinates[1];
                 
+                horizTrans[0] = trans[0];
+                horizTrans[1] = trans[2];
+                horizTrans[2] = trans[1];
+                
                 verticalAxisStartXYZ[0] = sliceCoordinates[0];
                 verticalAxisStartXYZ[1] = sliceCoordinates[1];
                 verticalAxisStartXYZ[2] = sliceCoordinates[2];
                 verticalAxisEndXYZ[0]   = sliceCoordinates[0];
                 verticalAxisEndXYZ[1]   = sliceCoordinates[1];
                 verticalAxisEndXYZ[2]   = sliceCoordinates[2];
+
+                vertTrans[0]   = trans[0];
+                vertTrans[1]   = trans[1];
+                vertTrans[2]   = trans[2];
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                 horizontalAxisStartXYZ[0] = sliceCoordinates[1];
@@ -3113,12 +3129,20 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
                 horizontalAxisEndXYZ[1]   = sliceCoordinates[2];
                 horizontalAxisEndXYZ[2]   = sliceCoordinates[0];
                 
+                horizTrans[0] = trans[1];
+                horizTrans[1] = trans[2];
+                horizTrans[2] = trans[0];
+                
                 verticalAxisStartXYZ[0] = -sliceCoordinates[1];
                 verticalAxisStartXYZ[1] = sliceCoordinates[0];
                 verticalAxisStartXYZ[2] = sliceCoordinates[2];
                 verticalAxisEndXYZ[0]   = -sliceCoordinates[1];
                 verticalAxisEndXYZ[1]   = sliceCoordinates[0];
                 verticalAxisEndXYZ[2]   = sliceCoordinates[2];
+                
+                vertTrans[0]   = -trans[1];
+                vertTrans[1]   = trans[0];
+                vertTrans[2]   = trans[2];
                 break;
         }
     }
@@ -3236,19 +3260,25 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
      * Crosshairs
      */
     if (drawCrosshairsFlag) {
+        glPushMatrix();
         glLineWidth(1.0);
+        glTranslatef(horizTrans[0], horizTrans[1], horizTrans[2]);
         glColor3fv(horizontalAxisRGBA);
         glBegin(GL_LINES);
         glVertex3fv(horizontalAxisStartXYZ);
         glVertex3fv(horizontalAxisEndXYZ);
         glEnd();
+        glPopMatrix();
         
+        glPushMatrix();
         glLineWidth(1.0);
+        glTranslatef(vertTrans[0], vertTrans[1], vertTrans[2]);
         glColor3fv(verticalAxisRGBA);
         glBegin(GL_LINES);
         glVertex3fv(verticalAxisStartXYZ);
         glVertex3fv(verticalAxisEndXYZ);
         glEnd();
+        glPopMatrix();
     }
     
     if (drawCrosshairLabelsFlag) {
