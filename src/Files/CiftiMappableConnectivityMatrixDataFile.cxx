@@ -29,6 +29,7 @@
 #include "ChartableMatrixParcelInterface.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileException.h"
+#include "ElapsedTimer.h"
 #include "EventManager.h"
 #include "EventProgressUpdate.h"
 #include "SceneClass.h"
@@ -746,6 +747,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                                                                    int64_t& rowIndexOut,
                                                                    int64_t& columnIndexOut)
 {
+    ElapsedTimer timer;
+    timer.start();
+    
     rowIndexOut    = -1;
     columnIndexOut = -1;
     
@@ -865,6 +869,13 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     }
     
     updateForChangeInMapDataWithMapIndex(0);
+
+    AString msg = ("Time load data for surface node in "
+                   + getFileNameNoPath()
+                   + " was "
+                   + AString::number(timer.getElapsedTimeSeconds())
+                   + " seconds.");
+    CaretLogInfo(msg);
 }
 
 

@@ -103,7 +103,7 @@ namespace caret {
         
         bool m_enabledForUser;
         
-        bool m_cacheDataFlag;
+        const bool m_cacheDataFlag;
         
         // ADD_NEW_MEMBERS_HERE
 

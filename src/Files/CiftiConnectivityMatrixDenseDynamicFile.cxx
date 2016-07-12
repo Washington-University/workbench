@@ -35,8 +35,6 @@
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::CiftiConnectivityMatrixDenseDynamicFile 
  * \brief Connectivity Dynamic Dense x Dense File version of data-series
@@ -263,7 +261,7 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut,
      * OMP schedule is static since the processing in each
      * loop iteration should be the same
      */
-//#pragma omp CARET_PARFOR schedule(static)
+#pragma omp CARET_PARFOR schedule(static)
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
         float coefficient = 1.0;
         
@@ -315,7 +313,7 @@ CiftiConnectivityMatrixDenseDynamicFile::processRowAverageData(std::vector<float
      * OMP schedule is static since the processing in each
      * loop iteration should be the same
      */
-//#pragma omp CARET_PARFOR schedule(static)
+#pragma omp CARET_PARFOR schedule(static)
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
         const float coefficient = correlation(rowAverageDataInOut,
                                               mean,
@@ -339,7 +337,12 @@ CiftiConnectivityMatrixDenseDynamicFile::preComputeRowMeanAndSumSquared()
 {
     CaretAssert(m_numberOfBrainordinates > 0);
     CaretAssert(m_numberOfTimePoints > 0);
-    
+
+    /*
+     * OMP schedule is static since the processing in each
+     * loop iteration should be the same
+     */
+#pragma omp CARET_PARFOR schedule(static)
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
 
         CaretAssertVectorIndex(m_rowData, iRow);
