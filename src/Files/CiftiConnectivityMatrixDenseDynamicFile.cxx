@@ -259,7 +259,11 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut,
     const float mean = m_rowData[index].m_mean;
     const float ssxx = m_rowData[index].m_sqrt_ssxx;
     
-    // disable for timing     #pragma omp CARET_PARFOR
+    /*
+     * OMP schedule is static since the processing in each
+     * loop iteration should be the same
+     */
+//#pragma omp CARET_PARFOR schedule(static)
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
         float coefficient = 1.0;
         
@@ -307,7 +311,11 @@ CiftiConnectivityMatrixDenseDynamicFile::processRowAverageData(std::vector<float
     
     std::vector<float> processedRowAverageData(m_numberOfBrainordinates);
     
-    // disable for timing     #pragma omp CARET_PARFOR
+    /*
+     * OMP schedule is static since the processing in each
+     * loop iteration should be the same
+     */
+//#pragma omp CARET_PARFOR schedule(static)
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
         const float coefficient = correlation(rowAverageDataInOut,
                                               mean,
