@@ -24,6 +24,7 @@
 #include "ByteSwapping.h"
 #include "CaretAssert.h"
 #include "CaretBinaryFile.h"
+#include "CaretMutex.h"
 #include "DataFileException.h"
 #include "NiftiHeader.h"
 
@@ -42,6 +43,7 @@ namespace caret
         NiftiHeader m_header;
         std::vector<int64_t> m_dims;
         std::vector<char> m_scratch;//scratch memory for byteswapping, type conversion, etc
+        CaretMutex m_mutex;//protect multithreaded calls from each other
         int numBytesPerElem();//for resizing scratch
         template<typename TO, typename FROM>
         void convertRead(TO* out, FROM* in, const int64_t& count);//for reading from file
@@ -82,6 +84,9 @@ namespace caret
             numSkip += indexSelect[curDim - fullDims] * numDimSkip;
             numDimSkip *= m_dims[curDim];
         }
+        CaretMutexLocker locked(&m_mutex);//protect starting with resizing until we are done converting, because we use an internal variable for scratch space
+        //we can't guarantee that the output memory is enough to use as scratch space, as we might be doing a narrowing conversion
+        //we are doing FILE ACCESS, so cpu performance isn't really something to worry about
         m_scratch.resize(numElems * numBytesPerElem());
         m_file.seek(numSkip * numBytesPerElem() + m_header.getDataOffset());
         int64_t numRead = 0;
@@ -153,6 +158,8 @@ namespace caret
             numSkip += indexSelect[curDim - fullDims] * numDimSkip;
             numDimSkip *= m_dims[curDim];
         }
+        CaretMutexLocker locked(&m_mutex);//protect starting with resizing until we are done writing, because we use an internal variable for scratch space
+        //we are doing FILE ACCESS, so cpu performance isn't really something to worry about
         m_scratch.resize(numElems * numBytesPerElem());
         m_file.seek(numSkip * numBytesPerElem() + m_header.getDataOffset());
         switch (m_header.getDataType())
