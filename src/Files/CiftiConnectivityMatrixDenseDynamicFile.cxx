@@ -258,10 +258,10 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut,
     const float ssxx = m_rowData[index].m_sqrt_ssxx;
     
     /*
-     * OMP schedule is static since the processing in each
-     * loop iteration should be the same
+     * TSC: hyperthreading means some cores end up "faster" than others, so "static" scheduling is generally not as fast
+     * there is almost no overhead to dynamic scheduling
      */
-#pragma omp CARET_PARFOR schedule(static)
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
         float coefficient = 1.0;
         
@@ -310,10 +310,10 @@ CiftiConnectivityMatrixDenseDynamicFile::processRowAverageData(std::vector<float
     std::vector<float> processedRowAverageData(m_numberOfBrainordinates);
     
     /*
-     * OMP schedule is static since the processing in each
-     * loop iteration should be the same
+     * TSC: hyperthreading means some cores end up "faster" than others, so "static" scheduling is generally not as fast
+     * there is almost no overhead to dynamic scheduling
      */
-#pragma omp CARET_PARFOR schedule(static)
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
         const float coefficient = correlation(rowAverageDataInOut,
                                               mean,
@@ -339,10 +339,10 @@ CiftiConnectivityMatrixDenseDynamicFile::preComputeRowMeanAndSumSquared()
     CaretAssert(m_numberOfTimePoints > 0);
 
     /*
-     * OMP schedule is static since the processing in each
-     * loop iteration should be the same
+     * TSC: hyperthreading means some cores end up "faster" than others, so "static" scheduling is generally not as fast
+     * there is almost no overhead to dynamic scheduling
      */
-#pragma omp CARET_PARFOR schedule(static)
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int32_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
 
         CaretAssertVectorIndex(m_rowData, iRow);
@@ -356,7 +356,10 @@ CiftiConnectivityMatrixDenseDynamicFile::preComputeRowMeanAndSumSquared()
         }
         else {
             std::vector<float> data(m_numberOfTimePoints);
-            m_parentDataSeriesCiftiFile->getRow(&data[0], iRow);
+#pragma omp critical
+            {//TSC: this can do disk access, which is not currently thread-safe
+                m_parentDataSeriesCiftiFile->getRow(&data[0], iRow);
+            }
             computeDataMeanAndSumSquared(&data[0],
                                          m_numberOfTimePoints,
                                          m_rowData[iRow].m_mean,
