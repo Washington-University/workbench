@@ -5598,6 +5598,8 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
+    m_isSpecFileBeingRead = false;
+    
     if (m_paletteFile != NULL) {
         delete m_paletteFile;
     }
