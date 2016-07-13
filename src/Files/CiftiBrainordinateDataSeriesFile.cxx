@@ -87,8 +87,8 @@ CiftiBrainordinateDataSeriesFile::readFile(const AString& ciftiMapFileName)
     CiftiMappableDataFile::readFile(ciftiMapFileName);
     
     try {
-        ElapsedTimer timer;
-        timer.start();
+        //ElapsedTimer timer;
+        //timer.start();
         
         m_matrixDenseDynamicFile->readFile(ciftiMapFileName);
         m_matrixDenseDynamicFile->updateAfterReading(getCiftiFile());
@@ -114,12 +114,12 @@ CiftiBrainordinateDataSeriesFile::readFile(const AString& ciftiMapFileName)
 //        fileMetaData->remove(s_paletteColorMappingNameInMetaData);
 //        clearModified();
 
-        AString msg = ("Time to setup dense dynamic file "
+        /*AString msg = ("Time to setup dense dynamic file "
                        + m_matrixDenseDynamicFile->getFileNameNoPath()
                        + " was "
                        + AString::number(timer.getElapsedTimeSeconds())
                        + " seconds.");
-        CaretLogInfo(msg);
+        CaretLogInfo(msg);//*/
     }
     catch (const DataFileException& dfe) {
         throw DataFileException("While reading/updating "
