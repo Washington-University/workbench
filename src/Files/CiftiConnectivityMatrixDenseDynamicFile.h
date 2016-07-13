@@ -34,10 +34,8 @@ namespace caret {
         
         virtual ~CiftiConnectivityMatrixDenseDynamicFile();
         
-        bool isEnabledForUser() const;
+        bool isDataValid() const;
 
-        void setEnabledForUser(const bool enabled);
-        
         virtual bool supportsWriting() const;
         
         void updateAfterReading(const CiftiFile* ciftiFile);
@@ -101,7 +99,7 @@ namespace caret {
         
         std::vector<RowData> m_rowData;
         
-        bool m_enabledForUser;
+        bool m_validDataFlag;
         
         const bool m_cacheDataFlag;
         

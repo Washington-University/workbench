@@ -51,7 +51,7 @@ CiftiBrainordinateDataSeriesFile::CiftiBrainordinateDataSeriesFile()
         m_chartingEnabledForTab[i] = false;
     }
     
-    m_matrixDenseDynamicFile = new CiftiConnectivityMatrixDenseDynamicFile(this);
+    m_lazyInitializedDenseDynamicFile = NULL;
 }
 
 /**
@@ -59,8 +59,9 @@ CiftiBrainordinateDataSeriesFile::CiftiBrainordinateDataSeriesFile()
  */
 CiftiBrainordinateDataSeriesFile::~CiftiBrainordinateDataSeriesFile()
 {
-    delete m_matrixDenseDynamicFile;
-    
+    if (m_lazyInitializedDenseDynamicFile != NULL) {
+        delete m_lazyInitializedDenseDynamicFile;
+    }
 }
 
 /**
@@ -70,8 +71,69 @@ void
 CiftiBrainordinateDataSeriesFile::clear()
 {
     CiftiMappableDataFile::clear();
-    m_matrixDenseDynamicFile->clear();
+    if (m_lazyInitializedDenseDynamicFile != NULL) {
+        m_lazyInitializedDenseDynamicFile->clear();
+    }
 }
+
+/**
+ * Initialize the dense dynamic file.
+ */
+void
+CiftiBrainordinateDataSeriesFile::initializeDenseDynamicFile()
+{
+    if (m_lazyInitializedDenseDynamicFile != NULL) {
+        return;
+    }
+    
+    m_lazyInitializedDenseDynamicFile = new CiftiConnectivityMatrixDenseDynamicFile(this);
+
+    try {
+        //ElapsedTimer timer;
+        //timer.start();
+        
+        m_lazyInitializedDenseDynamicFile->readFile(getFileName());
+        m_lazyInitializedDenseDynamicFile->updateAfterReading(getCiftiFile());
+        
+        /*
+         * Palette for dynamic file is in my CIFTI file metadata
+         */
+        GiftiMetaData* fileMetaData = m_ciftiFile->getCiftiXML().getFileMetaData();
+        const AString encodedPaletteColorMappingString = fileMetaData->get(s_paletteColorMappingNameInMetaData);
+        if ( ! encodedPaletteColorMappingString.isEmpty()) {
+            if (m_lazyInitializedDenseDynamicFile-getNumberOfMaps() > 0) {
+                PaletteColorMapping* pcm = m_lazyInitializedDenseDynamicFile->getMapPaletteColorMapping(0);
+                CaretAssert(pcm);
+                pcm->decodeFromStringXML(encodedPaletteColorMappingString);
+            }
+        }
+        
+        m_lazyInitializedDenseDynamicFile->clearModified();
+        
+        //        /*
+        //         * Remove palette color mapping from metadata so not seen by user
+        //         */
+        //        fileMetaData->remove(s_paletteColorMappingNameInMetaData);
+        //        clearModified();
+        
+        /*AString msg = ("Time to setup dense dynamic file "
+         + m_lazyInitializedDenseDynamicFile->getFileNameNoPath()
+         + " was "
+         + AString::number(timer.getElapsedTimeSeconds())
+         + " seconds.");
+         CaretLogInfo(msg);//*/
+    }
+    catch (const DataFileException& dfe) {
+        m_lazyInitializedDenseDynamicFile->clear();
+        
+        CaretLogSevere("ERROR initializing dense dynamic file for "
+                       + getFileName()
+                       + ": "
+                       + dfe.whatString());
+    }
+//    std::cout << "Initializing dense dynamic file" << std::endl;
+}
+
 
 /**
  * Read the file.
@@ -85,48 +147,6 @@ void
 CiftiBrainordinateDataSeriesFile::readFile(const AString& ciftiMapFileName)
 {
     CiftiMappableDataFile::readFile(ciftiMapFileName);
-    
-    try {
-        //ElapsedTimer timer;
-        //timer.start();
-        
-        m_matrixDenseDynamicFile->readFile(ciftiMapFileName);
-        m_matrixDenseDynamicFile->updateAfterReading(getCiftiFile());
-        
-        /*
-         * Palette for dynamic file is in my CIFTI file metadata
-         */
-        GiftiMetaData* fileMetaData = m_ciftiFile->getCiftiXML().getFileMetaData();
-        const AString encodedPaletteColorMappingString = fileMetaData->get(s_paletteColorMappingNameInMetaData);
-        if ( ! encodedPaletteColorMappingString.isEmpty()) {
-            if (m_matrixDenseDynamicFile-getNumberOfMaps() > 0) {
-                PaletteColorMapping* pcm = m_matrixDenseDynamicFile->getMapPaletteColorMapping(0);
-                CaretAssert(pcm);
-                pcm->decodeFromStringXML(encodedPaletteColorMappingString);
-            }
-        }
-        
-        m_matrixDenseDynamicFile->clearModified();
-        
-//        /*
-//         * Remove palette color mapping from metadata so not seen by user
-//         */
-//        fileMetaData->remove(s_paletteColorMappingNameInMetaData);
-//        clearModified();
-
-        /*AString msg = ("Time to setup dense dynamic file "
-                       + m_matrixDenseDynamicFile->getFileNameNoPath()
-                       + " was "
-                       + AString::number(timer.getElapsedTimeSeconds())
-                       + " seconds.");
-        CaretLogInfo(msg);//*/
-    }
-    catch (const DataFileException& dfe) {
-        throw DataFileException("While reading/updating "
-                                + ciftiMapFileName
-                                + " as a dense dynamic file: "
-                                + dfe.whatString());
-    }
 }
 
 /**
@@ -143,25 +163,25 @@ CiftiBrainordinateDataSeriesFile::writeFile(const AString& ciftiMapFileName)
     /*
      * Put the child dynamic data-series file's palette in the file's metadata.
      */
-    GiftiMetaData* fileMetaData = m_ciftiFile->getCiftiXML().getFileMetaData();
-    CaretAssert(fileMetaData);
-    if (m_matrixDenseDynamicFile-getNumberOfMaps() > 0) {
-        fileMetaData->set(s_paletteColorMappingNameInMetaData,
-                          m_matrixDenseDynamicFile->getMapPaletteColorMapping(0)->encodeInXML());
-    }
-    else {
-        fileMetaData->remove(s_paletteColorMappingNameInMetaData);
+    if (m_lazyInitializedDenseDynamicFile != NULL) {
+        GiftiMetaData* fileMetaData = m_ciftiFile->getCiftiXML().getFileMetaData();
+        CaretAssert(fileMetaData);
+        if (m_lazyInitializedDenseDynamicFile-getNumberOfMaps() > 0) {
+            fileMetaData->set(s_paletteColorMappingNameInMetaData,
+                              m_lazyInitializedDenseDynamicFile->getMapPaletteColorMapping(0)->encodeInXML());
+        }
+        else {
+            fileMetaData->remove(s_paletteColorMappingNameInMetaData);
+        }
     }
     
     CiftiMappableDataFile::writeFile(ciftiMapFileName);
 
-//    /*
-//     * Remove palette color mapping from metadata so not seen by user
-//     */
-//    fileMetaData->remove(s_paletteColorMappingNameInMetaData);
-    
     clearModified();
-    m_matrixDenseDynamicFile->clearModified();
+    
+    if (m_lazyInitializedDenseDynamicFile != NULL) {
+        m_lazyInitializedDenseDynamicFile->clearModified();
+    }
 }
 /**
  * @return Is charting enabled for this file?
@@ -300,8 +320,10 @@ CiftiBrainordinateDataSeriesFile::saveFileDataToScene(const SceneAttributes* sce
                                 m_chartingEnabledForTab,
                                 BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
     
-    sceneClass->addClass(m_matrixDenseDynamicFile->saveToScene(sceneAttributes,
-                                                               "m_matrixDenseDynamicFile"));
+    if (m_lazyInitializedDenseDynamicFile != NULL) {
+        sceneClass->addClass(m_lazyInitializedDenseDynamicFile->saveToScene(sceneAttributes,
+                                                                   "m_lazyInitializedDenseDynamicFile"));
+    }
 }
 
 /**
@@ -342,9 +364,10 @@ CiftiBrainordinateDataSeriesFile::restoreFileDataFromScene(const SceneAttributes
         }
     }
 
-    const SceneClass* dynamicFileSceneClass = sceneClass->getClass("m_matrixDenseDynamicFile");
+    const SceneClass* dynamicFileSceneClass = sceneClass->getClass("m_lazyInitializedDenseDynamicFile");
     if (dynamicFileSceneClass != NULL) {
-        m_matrixDenseDynamicFile->restoreFromScene(sceneAttributes,
+        CiftiConnectivityMatrixDenseDynamicFile* denseDynamicFile = getConnectivityMatrixDenseDynamicFile();
+        denseDynamicFile->restoreFromScene(sceneAttributes,
                                                    dynamicFileSceneClass);
     }
 }
@@ -355,17 +378,24 @@ CiftiBrainordinateDataSeriesFile::restoreFileDataFromScene(const SceneAttributes
 CiftiConnectivityMatrixDenseDynamicFile*
 CiftiBrainordinateDataSeriesFile::getConnectivityMatrixDenseDynamicFile()
 {
-    return m_matrixDenseDynamicFile;
+    if (m_lazyInitializedDenseDynamicFile == NULL) {
+        initializeDenseDynamicFile();
+    }
+    return m_lazyInitializedDenseDynamicFile;
 }
 
-/**
- * @return My matrix dense dynamic file representation (const method).
- */
-const CiftiConnectivityMatrixDenseDynamicFile*
-CiftiBrainordinateDataSeriesFile::getConnectivityMatrixDenseDynamicFile() const
-{
-    return m_matrixDenseDynamicFile;
-}
+///**
+// * @return My matrix dense dynamic file representation (const method).
+// */
+//const CiftiConnectivityMatrixDenseDynamicFile*
+//CiftiBrainordinateDataSeriesFile::getConnectivityMatrixDenseDynamicFile() const
+//{
+//    CiftiBrainordinateDataSeriesFile* nonConstThis = const_cast<CiftiBrainordinateDataSeriesFile*>(this);
+//    if (m_lazyInitializedDenseDynamicFile == NULL) {
+//        nonConstThis->initializeDenseDynamicFile();
+//    }
+//    return m_lazyInitializedDenseDynamicFile;
+//}
 
 /**
  * @return True if any of the maps in this file contain a
@@ -386,8 +416,10 @@ CiftiBrainordinateDataSeriesFile::isModifiedPaletteColorMapping() const
         return true;
     }
     
-    if (m_matrixDenseDynamicFile->isModifiedPaletteColorMapping()) {
-        return true;
+    if (m_lazyInitializedDenseDynamicFile != NULL) {
+        if (m_lazyInitializedDenseDynamicFile->isModifiedPaletteColorMapping()) {
+            return true;
+        }
     }
     
     return false;

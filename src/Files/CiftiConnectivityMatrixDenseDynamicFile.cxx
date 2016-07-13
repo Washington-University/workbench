@@ -58,7 +58,7 @@ m_parentDataSeriesFile(parentDataSeriesFile),
 m_parentDataSeriesCiftiFile(NULL),
 m_numberOfBrainordinates(-1),
 m_numberOfTimePoints(-1),
-m_enabledForUser(true),
+m_validDataFlag(false),
 m_cacheDataFlag(false)
 {
     CaretAssert(m_parentDataSeriesFile);
@@ -103,26 +103,13 @@ CiftiConnectivityMatrixDenseDynamicFile::supportsWriting() const
 }
 
 /**
- * Is the file enabled for the user so that file is in user-interface.
+ * @return Is the data within the file valid?
  */
 bool
-CiftiConnectivityMatrixDenseDynamicFile::isEnabledForUser() const
+CiftiConnectivityMatrixDenseDynamicFile::isDataValid() const
 {
-    return m_enabledForUser;
+    return m_validDataFlag;
 }
-
-/**
- * Set the file enabled for the user so that file is in user-interface.
- *
- * @param enabled
- *     File enabled status.
- */
-void
-CiftiConnectivityMatrixDenseDynamicFile::setEnabledForUser(const bool enabled)
-{
-    m_enabledForUser = enabled;
-}
-
 
 /**
  * Update the content of this dense dynamic file after the parent 
@@ -134,6 +121,8 @@ CiftiConnectivityMatrixDenseDynamicFile::setEnabledForUser(const bool enabled)
 void
 CiftiConnectivityMatrixDenseDynamicFile::updateAfterReading(const CiftiFile* ciftiFile)
 {
+    m_validDataFlag = false;
+    
     m_parentDataSeriesCiftiFile = const_cast<CiftiFile*>(ciftiFile);
     
     AString path, nameNoExt, ext;
@@ -175,6 +164,8 @@ CiftiConnectivityMatrixDenseDynamicFile::updateAfterReading(const CiftiFile* cif
         }
         
         preComputeRowMeanAndSumSquared();
+        
+        m_validDataFlag = true;
     }
 }
 

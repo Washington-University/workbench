@@ -58,7 +58,7 @@ namespace caret {
         
         CiftiConnectivityMatrixDenseDynamicFile* getConnectivityMatrixDenseDynamicFile();
 
-        const CiftiConnectivityMatrixDenseDynamicFile* getConnectivityMatrixDenseDynamicFile() const;
+        //const CiftiConnectivityMatrixDenseDynamicFile* getConnectivityMatrixDenseDynamicFile() const;
         
         virtual void clear();
         
@@ -85,9 +85,11 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
 
+        void initializeDenseDynamicFile();
+        
         bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        CiftiConnectivityMatrixDenseDynamicFile* m_matrixDenseDynamicFile;
+        CiftiConnectivityMatrixDenseDynamicFile* m_lazyInitializedDenseDynamicFile;
         
         static const AString s_paletteColorMappingNameInMetaData;
     };

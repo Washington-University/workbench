@@ -3263,7 +3263,7 @@ Brain::getConnectivityMatrixDenseDynamicFiles(std::vector<CiftiConnectivityMatri
          iter++) {
         CiftiConnectivityMatrixDenseDynamicFile* denseDynFile = (*iter)->getConnectivityMatrixDenseDynamicFile();
         CaretAssert(denseDynFile);
-        if (denseDynFile->isEnabledForUser()) {
+        if (denseDynFile->isDataValid()) {
             connectivityDenseDynamicFilesOut.push_back(denseDynFile);
         }
     }
@@ -6153,7 +6153,7 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
         
         CiftiConnectivityMatrixDenseDynamicFile* dynFile = seriesFile->getConnectivityMatrixDenseDynamicFile();
         CaretAssert(dynFile);
-        if (dynFile->isEnabledForUser()) {
+        if (dynFile->isDataValid()) {
             allDataFilesOut.push_back(dynFile);
         }
     }
