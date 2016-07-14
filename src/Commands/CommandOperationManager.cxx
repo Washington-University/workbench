@@ -805,6 +805,7 @@ void CommandOperationManager::printArgumentsHelp(const AString& programName)
     cout << "   can have suboptions, which must occur within the scope of the option.  The" << endl;
     cout << "   easiest way to get this right is to specify options and arguments in the" << endl;
     cout << "   order they are listed.  As an example, consider this help information:" << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "$ " << programName << " -volume-math" << endl;
     cout << "EVALUATE EXPRESSION ON VOLUME FILES" << endl;
     cout << "   " << programName << " -volume-math" << endl;
