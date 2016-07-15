@@ -27,6 +27,8 @@
 #include "CaretAssert.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "EventBrowserTabGetAllViewed.h"
+#include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "SceneAttributes.h"
@@ -63,6 +65,67 @@ CiftiConnectivityMatrixDataFileManager::~CiftiConnectivityMatrixDataFileManager(
 }
 
 /**
+ * Get the connectivity files that are displayed.
+ *
+ * @param brain
+ *    Brain for which data is loaded.
+ * @param ciftiMatrixFilesOut
+ *    Output with displayed files.
+ */
+void
+CiftiConnectivityMatrixDataFileManager::getDisplayedConnectivityMatrixFiles(Brain* brain,
+                                   std::vector<CiftiMappableConnectivityMatrixDataFile*>& ciftiMatrixFilesOut) const
+{
+    ciftiMatrixFilesOut.clear();
+    
+    /*
+     * WB-633 New requirements for updating of connectivity data
+     * Implementation on hold and explained in Jira.
+     *
+     * 7/15/2016 - USE ALL FILES, DO NOT TEST FOR DISPLAYED VS NOT-DISPLAYED FILES
+     */
+    const bool allFilesFlag = true;
+    if (allFilesFlag) {
+        /*
+         * All cifti matrix files, even if not displayed?
+         */
+        brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFilesOut);
+        return;
+    }
+    
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+
+    
+    /*
+     * Get all browser tabs and only save transformations for tabs
+     * that are valid.
+     */
+    EventBrowserTabGetAllViewed getViewedTabs;
+    EventManager::get()->sendEvent(getViewedTabs.getPointer());
+    std::vector<int32_t> tabIndices = getViewedTabs.getViewdedBrowserTabIndices();
+    
+    std::vector<int32_t> windowIndices; // empty is all windows
+    EventGetDisplayedDataFiles displayedFilesEvent(windowIndices,
+                                                   tabIndices);
+    EventManager::get()->sendEvent(displayedFilesEvent.getPointer());
+    std::set<const CaretDataFile*> displayedDataFiles = displayedFilesEvent.getDisplayedDataFiles();
+    
+    /*
+     * Find CIFTI matrix files that are displayed in an overlay
+     */
+    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+         iter != ciftiMatrixFiles.end();
+         iter++) {
+        if (std::find(displayedDataFiles.begin(),
+                      displayedDataFiles.end(),
+                      *iter) != displayedDataFiles.end()) {
+            ciftiMatrixFilesOut.push_back(*iter);
+        }
+    }
+}
+
+/**
  * Load row from the given parcel file.
  *
  * @param brain
@@ -86,10 +149,6 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
                                                                       std::vector<AString>& rowColumnInformationOut)
 {
     CaretAssert(parcelFile);
-    
-//    ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(parcelFile);
-//    CaretAssert(matrixFile);
-    
     
     int32_t rowColumnIndexToLoad = -1;
     switch (parcelFile->getMatrixLoadingDimension()) {
@@ -118,7 +177,6 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
         parcelFilesToLoadFrom.push_back(parcelFile);
     }
     
-//    AString rowColumnInfo;
     PaletteFile* paletteFile = brain->getPaletteFile();
     const int32_t mapIndex = 0;
     
@@ -204,7 +262,9 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                                                std::vector<AString>& rowColumnInformationOut)
 {
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    getDisplayedConnectivityMatrixFiles(brain,
+                                        ciftiMatrixFiles);
+    
     
     PaletteFile* paletteFile = brain->getPaletteFile();
     
@@ -274,7 +334,8 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(Brain* br
                                                                        const std::vector<int32_t>& nodeIndices)
 {
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    getDisplayedConnectivityMatrixFiles(brain,
+                                        ciftiMatrixFiles);
     
     PaletteFile* paletteFile = brain->getPaletteFile();
     
@@ -321,7 +382,8 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
     PaletteFile* paletteFile = brain->getPaletteFile();
     
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    getDisplayedConnectivityMatrixFiles(brain,
+                                        ciftiMatrixFiles);
     
     bool haveData = false;
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
@@ -392,7 +454,8 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(Brain* br
     PaletteFile* paletteFile = brain->getPaletteFile();
     
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    getDisplayedConnectivityMatrixFiles(brain,
+                                        ciftiMatrixFiles);
     
     bool haveData = false;
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
@@ -430,7 +493,8 @@ bool
 CiftiConnectivityMatrixDataFileManager::hasNetworkFiles(Brain* brain) const
 {
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    getDisplayedConnectivityMatrixFiles(brain,
+                                        ciftiMatrixFiles);
     
     
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();

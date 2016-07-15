@@ -101,6 +101,7 @@ EventBrainStructureGetAll.h
 EventBrowserTabDelete.h
 EventBrowserTabGet.h
 EventBrowserTabGetAll.h
+EventBrowserTabGetAllViewed.h
 EventBrowserTabNew.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
 EventDataFileAdd.h
@@ -232,6 +233,7 @@ EventBrainStructureGetAll.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
+EventBrowserTabGetAllViewed.cxx
 EventBrowserTabNew.cxx
 EventCaretMappableDataFileMapsViewedInOverlays.cxx
 EventDataFileAdd.cxx

@@ -1636,13 +1636,13 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
             
             if (overlayDataFile != NULL) {
                 /*
-                 * Replace a dense dynamic file with it parent dense data-series
-                 * since dense dynamic is encapsulated in parent dense data-series
+                 * Dense dynamic is encapsulated within its parent data-series
+                 * file so include both files.
                  */
                 if (overlayDataFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
                     CiftiConnectivityMatrixDenseDynamicFile* dynFile = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(overlayDataFile);
                     CaretAssert(dynFile);
-                    overlayDataFile = dynFile->getParentBrainordinateDataSeriesFile();
+                    displayedDataFiles.insert(dynFile->getParentBrainordinateDataSeriesFile());
                 }
                 
                 displayedDataFiles.insert(overlayDataFile);

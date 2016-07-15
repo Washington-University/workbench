@@ -82,6 +82,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        void getDisplayedConnectivityMatrixFiles(Brain* brain,
+                                                 std::vector<CiftiMappableConnectivityMatrixDataFile*>& ciftiMatrixFilesOut) const;
 
         // ADD_NEW_MEMBERS_HERE
     };
