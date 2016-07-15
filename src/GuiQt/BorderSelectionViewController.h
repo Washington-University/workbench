@@ -107,6 +107,8 @@ namespace caret {
         
         QDoubleSpinBox* m_unstretchedLinesLengthSpinBox;
         
+        QDoubleSpinBox* m_aboveSurfaceOffsetSpinBox;
+        
         WuQTabWidget* m_tabWidget;
         
         static std::set<BorderSelectionViewController*> allBorderSelectionViewControllers;

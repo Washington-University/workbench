@@ -112,6 +112,10 @@ namespace caret {
                                         const int32_t tabIndex,
                                         const float unstretchedLinesLength);
         
+        float getAboveSurfaceOffset() const;
+        
+        void setAboveSurfaceOffset(const float Offset);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -159,6 +163,8 @@ namespace caret {
         float m_unstretchedLinesLengthInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         float m_unstretchedLinesLengthInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        float m_aboveSurfaceOffset;
     };
     
 #ifdef __DISPLAY_PROPERTIES_BORDERS_DECLARE__

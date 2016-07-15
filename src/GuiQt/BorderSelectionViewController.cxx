@@ -220,6 +220,18 @@ BorderSelectionViewController::createAttributesWidget()
     QObject::connect(m_unstretchedLinesLengthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
+    QLabel* aboveSurfaceLabel = new QLabel("Above Offset");
+    m_aboveSurfaceOffsetSpinBox =WuQFactory::newDoubleSpinBox();
+    m_aboveSurfaceOffsetSpinBox->setFixedWidth(80);
+    m_aboveSurfaceOffsetSpinBox->setRange(0.0,
+                                          100.0);
+    m_aboveSurfaceOffsetSpinBox->setSingleStep(0.1);
+    m_aboveSurfaceOffsetSpinBox->setDecimals(1);
+    m_aboveSurfaceOffsetSpinBox->setToolTip(WuQtUtilities::createWordWrappedToolTipText("Moves surface away from borders (in depth) so that borders are above surface.  "
+                                                                                        "Use with caution."));
+    QObject::connect(m_aboveSurfaceOffsetSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(processAttributesChanges()));
+    
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 8, 2);
@@ -245,6 +257,9 @@ BorderSelectionViewController::createAttributesWidget()
     row++;
     gridLayout->addWidget(m_enableUnstretchedLinesCheckBox, row, 0);
     gridLayout->addWidget(m_unstretchedLinesLengthSpinBox, row, 1);
+    row++;
+    gridLayout->addWidget(aboveSurfaceLabel, row, 0);
+    gridLayout->addWidget(m_aboveSurfaceOffsetSpinBox, row, 1);
     
     gridWidget->setSizePolicy(QSizePolicy::Fixed,
                               QSizePolicy::Fixed);
@@ -307,6 +322,7 @@ BorderSelectionViewController::processAttributesChanges()
     dpb->setUnstretchedLinesLength(displayGroup,
                                    browserTabIndex,
                                    m_unstretchedLinesLengthSpinBox->value());
+    dpb->setAboveSurfaceOffset(m_aboveSurfaceOffsetSpinBox->value());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -422,6 +438,10 @@ BorderSelectionViewController::updateBorderViewController()
     m_unstretchedLinesLengthSpinBox->setValue(dpb->getUnstretchedLinesLength(displayGroup,
                                                                              browserTabIndex));
     m_unstretchedLinesLengthSpinBox->blockSignals(false);
+    
+    m_aboveSurfaceOffsetSpinBox->blockSignals(true);
+    m_aboveSurfaceOffsetSpinBox->setValue(dpb->getAboveSurfaceOffset());
+    m_aboveSurfaceOffsetSpinBox->blockSignals(false);
 }
 
 /**

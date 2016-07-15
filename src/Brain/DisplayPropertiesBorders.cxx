@@ -51,6 +51,8 @@ using namespace caret;
 DisplayPropertiesBorders::DisplayPropertiesBorders()
 : DisplayProperties()
 {
+    m_aboveSurfaceOffset = 0.0;
+    
     const float defaultPointSize = 2.0;
     const float defaultLineSize  = 1.0;
     const BorderDrawingTypeEnum::Enum defaultDrawingType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
@@ -549,6 +551,26 @@ DisplayPropertiesBorders::setUnstretchedLinesLength(const DisplayGroupEnum::Enum
     else {
         m_unstretchedLinesLengthInDisplayGroup[displayGroup] = unstretchedLinesLength;
     }
+}
+
+/**
+ * @return Above surface offset.
+ */
+float
+DisplayPropertiesBorders::getAboveSurfaceOffset() const
+{
+    return m_aboveSurfaceOffset;
+}
+
+/**
+ * Set the above surface offset.
+ *
+ * @param offset
+ *     New value for above surface offset.
+ */
+void DisplayPropertiesBorders::setAboveSurfaceOffset(const float offset)
+{
+    m_aboveSurfaceOffset = offset;
 }
 
 

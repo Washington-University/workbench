@@ -1727,8 +1727,24 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                     glEnable(GL_BLEND);
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                     
+                    const DisplayPropertiesBorders* dpb = m_brain->getDisplayPropertiesBorders();
+                    const float borderAboveSurfaceOffset = dpb->getAboveSurfaceOffset();
+                    if (borderAboveSurfaceOffset != 0.0) {
+//                        const float factor = borderAboveSurfaceOffset * 1.0 + 1.0;
+//                        const float units  = borderAboveSurfaceOffset * 1.0 + 1.0;
+                        const float factor = borderAboveSurfaceOffset;// + 0.5;
+                        const float units  = 1.0;// + 0.5;
+                        glEnable(GL_POLYGON_OFFSET_FILL);
+                        glPolygonOffset(factor, units);
+                    }
+
                     this->drawSurfaceTrianglesWithVertexArrays(surface,
                                                                nodeColoringRGBA);
+                    
+                    if (borderAboveSurfaceOffset != 0.0) {
+                        glDisable(GL_POLYGON_OFFSET_FILL);
+                    }
+                    
                     if (blendingEnabled == false) {
                         glDisable(GL_BLEND);
                     }
