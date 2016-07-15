@@ -150,6 +150,8 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                defaultUnstretchedLinesSelection);
     
+    m_sceneAssistant->add("m_aboveSurfaceOffset",
+                          &m_aboveSurfaceOffset);
     
     m_sceneAssistant->addArray<CaretColorEnum, CaretColorEnum::Enum>("m_standardColorTypeInDisplayGroup",
                                                                      m_standardColorTypeInDisplayGroup,

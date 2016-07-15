@@ -223,7 +223,7 @@ BorderSelectionViewController::createAttributesWidget()
     QLabel* aboveSurfaceLabel = new QLabel("Above Offset");
     m_aboveSurfaceOffsetSpinBox =WuQFactory::newDoubleSpinBox();
     m_aboveSurfaceOffsetSpinBox->setFixedWidth(80);
-    m_aboveSurfaceOffsetSpinBox->setRange(-100.0,
+    m_aboveSurfaceOffsetSpinBox->setRange(   0.0,
                                            100.0);
     m_aboveSurfaceOffsetSpinBox->setSingleStep(0.1);
     m_aboveSurfaceOffsetSpinBox->setDecimals(1);
