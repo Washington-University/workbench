@@ -181,8 +181,9 @@ BorderSelectionViewController::createAttributesWidget()
                                  maxLineWidth);
     m_lineWidthSpinBox->setSingleStep(1.0);
     m_lineWidthSpinBox->setDecimals(1);
-    m_lineWidthSpinBox->setSuffix("mm");
+    m_lineWidthSpinBox->setSuffix("px");
     m_lineWidthSpinBox->setToolTip("Adjust the width of borders drawn as lines.\n"
+                                   "Units is pixels\n"
                                    "The maximum width is dependent upon the \n"
                                    "graphics system.  There is no maximum value\n"
                                    "for this control and the drawn width of the \n"
