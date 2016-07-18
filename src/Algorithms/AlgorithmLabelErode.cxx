@@ -170,9 +170,9 @@ AlgorithmLabelErode::AlgorithmLabelErode(ProgressObject* myProgObj, const LabelF
     }
     if (columnNum == -1)
     {
-        myLabelOut->setNumberOfNodesAndColumns(numNodes, 1);
-    } else {
         myLabelOut->setNumberOfNodesAndColumns(numNodes, numInColumns);
+    } else {
+        myLabelOut->setNumberOfNodesAndColumns(numNodes, 1);
     }
     myLabelOut->setStructure(mySurf->getStructure());
     const int32_t unlabeledKey = myLabel->getLabelTable()->getUnassignedLabelKey();//will have same key for both

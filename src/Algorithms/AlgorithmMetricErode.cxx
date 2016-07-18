@@ -172,9 +172,9 @@ AlgorithmMetricErode::AlgorithmMetricErode(ProgressObject* myProgObj, const Metr
     }
     if (columnNum == -1)
     {
-        myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
-    } else {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, numInColumns);
+    } else {
+        myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
     }
     myMetricOut->setStructure(mySurf->getStructure());
     const float* roiCol = NULL;
