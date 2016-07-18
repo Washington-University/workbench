@@ -46,7 +46,7 @@ ApplicationInformation::ApplicationInformation()
 : CaretObject()
 { 
     this->name    = "Connectome Workbench";
-    this->version = "1.2.1";
+    this->version = "1.2.2";
     this->commit = "Commit: @COMMIT@";
     this->commitDate = "Commit Date: @COMMIT_DATE@";
 
