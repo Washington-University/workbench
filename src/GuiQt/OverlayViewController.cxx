@@ -364,6 +364,15 @@ OverlayViewController::fileComboBoxSelected(int indx)
     updateOverlaySettingsEditor();
     updateViewController(this->overlay);
     updateGraphicsWindow();
+    
+    if (file != NULL) {
+        if (file->isVolumeMappable()) {
+            /*
+             * Need to update slice indices/coords in toolbar.
+             */
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(browserWindowIndex).addToolBar().getPointer());
+        }
+    }
 }
 
 /**
