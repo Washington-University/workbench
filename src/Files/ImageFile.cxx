@@ -33,7 +33,10 @@
 #include "GiftiMetaData.h"
 #include "ImageCaptureSettings.h"
 #include "ImageFile.h"
+#include "Matrix4x4.h"
+#include "PaletteFile.h"
 #include "SceneClass.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -1360,6 +1363,116 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
                                 "Failed to create image from byte array.");
     }
 }
+
+/**
+ * Convert this image into a Volume File.
+ *
+ * @param sformMatrix
+ *     Matrix used as NIFTI sform.
+ * @param paletteFile
+ *     Palette file used for coloring the voxels.
+ * @param errorMessageOut
+ *     Contains error message if conversion fails.
+ * @return
+ *     Pointer to volume file or NULL if there is an error.
+ *     Name of volume file is the name of the image but
+ *     the file extension is changed to a volume file extension.
+ *
+ */
+VolumeFile*
+ImageFile::convertToVolumeFile(const Matrix4x4& sformMatrix,
+                               const PaletteFile* paletteFile,
+                               AString& errorMessageOut) const
+{
+    errorMessageOut.clear();
+    
+    std::vector<uint8_t> rgbaBytes;
+    int32_t width = 0;
+    int32_t height = 0;
+    getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                   rgbaBytes,
+                                   width,
+                                   height);
+    if ((width <= 0)
+        || (height <= 0)) {
+        errorMessageOut = "Image width and/or height is invalid.";
+        return NULL;
+    }
+    
+    std::vector<int64_t> dimensions;
+    //    dimensions.push_back(3);
+    dimensions.push_back(width);  // I
+    dimensions.push_back(height); // J
+    dimensions.push_back(1); // K
+    //dimensions.push_back(1); // time components
+    //dimensions.push_back(3); // components per voxel (RGB)
+    
+    /*
+     * Convert matrix4x4 to volume file vector of vectors.
+     */
+    std::vector<float> row1;
+    std::vector<float> row2;
+    std::vector<float> row3;
+    std::vector<float> row4;
+    for (int j = 0; j < 4; j++) {
+        row1.push_back(sformMatrix.getMatrixElement(0, j));
+        row2.push_back(sformMatrix.getMatrixElement(1, j));
+        row3.push_back(sformMatrix.getMatrixElement(2, j));
+        row4.push_back(sformMatrix.getMatrixElement(3, j));
+    }
+    std::vector<std::vector<float> > indexToSpace;
+    indexToSpace.push_back(row1);
+    indexToSpace.push_back(row2);
+    indexToSpace.push_back(row3);
+    indexToSpace.push_back(row4);
+    
+    const bool rgbaAllowedFlag = false;
+    int64_t numComponents = (rgbaAllowedFlag ? 4 : 1);
+    SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::FUNCTIONAL; //  SubvolumeAttributes::RGB;
+    VolumeFile* volumeFile = new VolumeFile(dimensions,
+                                    indexToSpace,
+                                    numComponents,
+                                    whatType);
+    
+    FileInformation fileInfo(getFileName());
+    const AString volumeFileName = FileInformation::assembleFileComponents(fileInfo.getAbsolutePath(),
+                                                                           fileInfo.getFileNameNoExtension(),
+                                                                           DataFileTypeEnum::toFileExtension(DataFileTypeEnum::VOLUME));
+    volumeFile->setFileName(volumeFileName);
+    
+    int32_t rgbaIndex = 0;
+    const int64_t k = 0;
+    const int64_t mapIndex = 0;
+    for (int64_t j = 0; j < height; j++) {
+        for (int64_t i = 0; i < width; i++) {
+            if (rgbaAllowedFlag) {
+                for (int64_t m = 0; m < numComponents; m++) {
+                    CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
+                    volumeFile->setValue(rgbaBytes[rgbaIndex], i, j, k, mapIndex, m);
+                    rgbaIndex++;
+                }
+            }
+            else {
+                float intensity = ((rgbaBytes[rgbaIndex] * 0.33)
+                                   + (rgbaBytes[rgbaIndex + 1] * 0.33)
+                                   + (rgbaBytes[rgbaIndex + 2] * 0.33));
+                if (rgbaBytes[rgbaIndex + 3] <= 0.0) {
+                    intensity = 0.0;
+                }
+                volumeFile->setValue(intensity, i, j, k, mapIndex, 0);
+                
+                rgbaIndex += 4;
+            }
+        }
+    }
+    
+    volumeFile->clearVoxelColoringForMap(mapIndex);
+    volumeFile->updateScalarColoringForMap(mapIndex,
+                                           paletteFile);
+
+    return volumeFile;
+}
+
 
 /**
  * Save file data from the scene.  For subclasses that need to

@@ -55,6 +55,7 @@
 #include "CursorDisplayScoped.h"
 #include "DataFileException.h"
 #include "DeveloperFlagsEnum.h"
+#include "DisplayPropertiesImages.h"
 #include "DisplayPropertiesVolume.h"
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
@@ -74,6 +75,7 @@
 #include "FileInformation.h"
 #include "FociProjectionDialog.h"
 #include "GuiManager.h"
+#include "ImageExportToNiftiDialog.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelWholeBrain.h"
@@ -1181,6 +1183,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processExitProgram()));
+    
+    m_dataConvertImageToVolumeAction =
+    WuQtUtilities::createAction("Convert Image to Volume...",
+                                "Convert Image to Volume",
+                                this,
+                                this,
+                                SLOT(processConvertImageToVolume()));
     
     m_dataFociProjectAction =
     WuQtUtilities::createAction("Project Foci...",
@@ -2389,6 +2398,7 @@ BrainBrowserWindow::createMenuData()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processDataMenuAboutToShow()));
     
+    menu->addAction(m_dataConvertImageToVolumeAction);
     menu->addAction(m_dataFociProjectAction);
     menu->addAction(m_dataBorderFilesSplitAction);
     
@@ -2414,6 +2424,23 @@ BrainBrowserWindow::processDataMenuAboutToShow()
         }
     }
     m_dataBorderFilesSplitAction->setEnabled(haveMultiStructureBorderFiles);
+    
+    /*
+     * Find image selected and displayed in current tab
+     */
+    m_dataConvertImageToVolumeAction->setEnabled(false);
+    BrowserTabContent* btc = m_toolbar->getTabContentFromSelectedTab();
+    if (btc != NULL) {
+        DisplayPropertiesImages* dpi = brain->getDisplayPropertiesImages();
+        const int32_t tabIndex = btc->getTabNumber();
+        const DisplayGroupEnum::Enum displayGroup = dpi->getDisplayGroupForTab(tabIndex);
+        if (dpi->isDisplayed(displayGroup, tabIndex)) {
+            ImageFile* imageFile = dpi->getSelectedImageFile(displayGroup, tabIndex);
+            if (imageFile != NULL) {
+                m_dataConvertImageToVolumeAction->setEnabled(true);
+            }
+        }
+    }
 }
 
 /**
@@ -2741,6 +2768,29 @@ BrainBrowserWindow::processDevelopExportVtkFile()
     }
 }
 
+/**
+ * Convert Image to Volume
+ */
+void
+BrainBrowserWindow::processConvertImageToVolume()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    BrowserTabContent* btc = m_toolbar->getTabContentFromSelectedTab();
+    if (btc != NULL) {
+        DisplayPropertiesImages* dpi = brain->getDisplayPropertiesImages();
+        const int32_t tabIndex = btc->getTabNumber();
+        const DisplayGroupEnum::Enum displayGroup = dpi->getDisplayGroupForTab(tabIndex);
+        if (dpi->isDisplayed(displayGroup, tabIndex)) {
+            ImageFile* imageFile = dpi->getSelectedImageFile(displayGroup, tabIndex);
+            if (imageFile != NULL) {
+                ImageExportToNiftiDialog convertDialog(this,
+                                                       tabIndex,
+                                                       imageFile);
+                convertDialog.exec();
+            }
+        }
+    }
+}
 
 /**
  * Project foci.

@@ -27,6 +27,9 @@
 class QImage;
 
 namespace caret {
+    class Matrix4x4;
+    class PaletteFile;
+    class VolumeFile;
     
 /// File for images
 class ImageFile : public CaretDataFile {
@@ -153,6 +156,10 @@ public:
     
     static void getImageFileFilters(std::vector<AString>& imageFileFilters,
                                     AString& defaultFilter);
+
+    VolumeFile* convertToVolumeFile(const Matrix4x4& sformMatrix,
+                                    const PaletteFile* paletteFile,
+                                    AString& errorMessageOut) const;
 
     virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                      SceneClass* sceneClass);
