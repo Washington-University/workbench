@@ -265,6 +265,28 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
                                              + AString::number(labelIndex));
                                 }
                             }
+                            else if (volumeFile->getType() == SubvolumeAttributes::RGB) {
+                                if (volumeFile->getNumberOfComponents() == 4) {
+                                    text += ("RGBA("
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, jMap, 0))
+                                             + ","
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, jMap, 1))
+                                             + ","
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, jMap, 2))
+                                             + ","
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, jMap, 3))
+                                             + ")");
+                                }
+                                else if (volumeFile->getNumberOfComponents() == 3) {
+                                    text += ("RGB("
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, jMap, 0))
+                                             + ","
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, jMap, 1))
+                                             + ","
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, jMap, 2))
+                                             + ")");
+                                }
+                            }
                             else {
                                 text += AString::number(volumeFile->getValue(vfI, vfJ, vfK, jMap));
                             }
