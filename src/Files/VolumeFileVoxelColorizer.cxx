@@ -186,9 +186,6 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
             const int32_t numberOfComponents = m_volumeFile->getNumberOfComponents();
             if ((numberOfComponents == 3)
                 || (numberOfComponents == 4)) {
-                std::cout << "redFrame: " << m_volumeFile->getFrame(mapIndex, 0) << std::endl;
-                std::cout << "greenFrame: " << m_volumeFile->getFrame(mapIndex, 1) << std::endl;
-                std::cout << "blueFrame: " << m_volumeFile->getFrame(mapIndex, 2) << std::endl;
                 const float* alphaComponents = ((numberOfComponents == 4)
                                                 ? m_volumeFile->getFrame(mapIndex, 3)
                                                 : NULL);
