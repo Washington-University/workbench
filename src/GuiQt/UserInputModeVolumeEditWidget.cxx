@@ -182,6 +182,9 @@ UserInputModeVolumeEditWidget::updateWidget()
                 m_voxelFloatValueSpinBox->setVisible(true);
                 isValid = true;
             }
+            else if (volumeEditInfo.m_volumeFile->isMappedWithRGBA()) {
+                /* nothing */
+            }
             else {
                 CaretAssert(0);
             }

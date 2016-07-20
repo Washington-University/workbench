@@ -274,6 +274,8 @@ namespace caret {
         
         std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;
         
+        virtual bool isMappedWithRGBA() const;
+        
         AString getMapUniqueID(const int32_t mapIndex) const;
         
         void updateScalarColoringForMap(const int32_t mapIndex,

@@ -83,6 +83,16 @@ namespace caret {
              *     The index for the value.
              */
             int64_t addValue(const float value);
+
+            /**
+             * Add values for RGBA and returns its index.
+             *
+             * @param value
+             *     Value that is added.
+             * @return
+             *     The index for the value.
+             */
+            int64_t addValuesRGBA(const float values[4]);
             
             /**
              * Return RGBA colors for value using the value's index
@@ -121,9 +131,18 @@ namespace caret {
             int32_t m_mapIndex;
             
             /**
-             * The voxel values
+             * The voxel values for single scalar or red if RGBA volume
              */
             std::vector<float> m_values;
+            
+            /** Voxel values for green in RGBA */
+            std::vector<float> m_valuesGreen;
+            
+            /** Voxel values for blue in RGBA */
+            std::vector<float> m_valuesBlue;
+            
+            /** Voxel values for alpha in RGBA */
+            std::vector<float> m_valuesAlpha;
             
             /**
              * Coloring corresponding to the values (4 components per voxel)

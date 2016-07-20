@@ -998,5 +998,15 @@ CaretMappableDataFile::setPaletteNormalizationMode(const PaletteNormalizationMod
     m_paletteNormalizationMode = mode;
 }
 
+/**
+ * @return Is the data in the file mapped to colors using
+ * Red, Green, Blue, Alpha values.
+ */
+bool
+CaretMappableDataFile::isMappedWithRGBA() const
+{
+    return false;
+}
+
 
 

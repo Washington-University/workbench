@@ -1082,7 +1082,28 @@ VolumeFile::isMappedWithPalette() const
 {
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, 0);
     CaretAssert(m_caretVolExt.m_attributes[0] != NULL);
-    return (m_caretVolExt.m_attributes[0]->m_type != SubvolumeAttributes::LABEL);
+    
+    bool mapsWithPaletteFlag = true;
+    switch (m_caretVolExt.m_attributes[0]->m_type) {
+        case SubvolumeAttributes::ANATOMY:
+            break;
+        case SubvolumeAttributes::FUNCTIONAL:
+            break;
+        case SubvolumeAttributes::LABEL:
+            mapsWithPaletteFlag = false;
+            break;
+        case SubvolumeAttributes::RGB:
+            mapsWithPaletteFlag = false;
+            break;
+        case SubvolumeAttributes::SEGMENTATION:
+            break;
+        case SubvolumeAttributes::UNKNOWN:
+            break;
+        case SubvolumeAttributes::VECTOR:
+            break;
+    }
+    return mapsWithPaletteFlag;
+//    return (m_caretVolExt.m_attributes[0]->m_type != SubvolumeAttributes::LABEL);
 }
 
 /**
@@ -1185,6 +1206,34 @@ VolumeFile::getMapLabelTable(const int32_t mapIndex) const
     CaretAssert(m_caretVolExt.m_attributes[mapIndex] != NULL);
     CaretAssert(m_caretVolExt.m_attributes[mapIndex]->m_labelTable != NULL);
     return m_caretVolExt.m_attributes[mapIndex]->m_labelTable;
+}
+
+/**
+ * @return Is the data in the file mapped to colors using
+ * Red, Green, Blue, Alpha values.
+ */
+bool
+VolumeFile::isMappedWithRGBA() const
+{
+    bool mapsWithRgbaFlag = true;
+    switch (m_caretVolExt.m_attributes[0]->m_type) {
+        case SubvolumeAttributes::ANATOMY:
+            break;
+        case SubvolumeAttributes::FUNCTIONAL:
+            break;
+        case SubvolumeAttributes::LABEL:
+            break;
+        case SubvolumeAttributes::RGB:
+            mapsWithRgbaFlag = true;
+            break;
+        case SubvolumeAttributes::SEGMENTATION:
+            break;
+        case SubvolumeAttributes::UNKNOWN:
+            break;
+        case SubvolumeAttributes::VECTOR:
+            break;
+    }
+    return mapsWithRgbaFlag;
 }
 
 /**

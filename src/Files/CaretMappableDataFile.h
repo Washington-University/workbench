@@ -333,6 +333,12 @@ namespace caret {
         virtual bool isMappedWithLabelTable() const = 0;
         
         /**
+         * @return Is the data in the file mapped to colors using
+         * Red, Green, Blue, Alpha values.
+         */
+        virtual bool isMappedWithRGBA() const;
+        
+        /**
          * Get the label table for the map at the given index.
          *
          * @param mapIndex

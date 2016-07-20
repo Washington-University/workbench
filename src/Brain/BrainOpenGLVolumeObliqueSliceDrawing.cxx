@@ -1419,20 +1419,30 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                     const VolumeMappableInterface* volInter = vdi.volumeFile;
                     const VolumeFile* volumeFile = volumeSlices[iVol].m_volumeFile;
                     
-                    float value = 0;
+                    float values[4] = { 0.0, 0.0, 0.0, 0.0 };
                     bool valueValidFlag = false;
                     
                     bool isPaletteMappedVolumeFile = false;
+                    bool isRgbVolumeFile           = false;
+                    bool isRgbaVolumeFile          = false;
                     if (volumeFile != NULL) {
                         if (volumeFile->isMappedWithPalette()) {
                             isPaletteMappedVolumeFile = true;
+                        }
+                        else if (volumeFile->isMappedWithRGBA()) {
+                            if (volumeFile->getNumberOfComponents() == 4) {
+                                isRgbaVolumeFile = true;
+                            }
+                            else if (volumeFile->getNumberOfComponents() == 3) {
+                                isRgbVolumeFile = true;
+                            }
                         }
                     }
                     const CiftiMappableDataFile* ciftiMappableFile = volumeSlices[iVol].m_ciftiMappableDataFile;
                     
                     if (useInterpolatedVoxel
                         && isPaletteMappedVolumeFile) {
-                        value = volumeFile->interpolateValue(voxelCenter,
+                        values[0] = volumeFile->interpolateValue(voxelCenter,
                                                              VolumeFile::CUBIC,
                                                              &valueValidFlag,
                                                              vdi.mapIndex);
@@ -1444,14 +1454,38 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                             CaretAssertVectorIndex(m_ciftiMappableFileData, iVol);
                             const std::vector<float>& data = m_ciftiMappableFileData[iVol];
                             CaretAssertVectorIndex(data, voxelOffset);
-                            value = data[voxelOffset];
+                            values[0] = data[voxelOffset];
                             valueValidFlag = true;
                         }
                     }
+                    else if (isRgbVolumeFile
+                             || isRgbaVolumeFile) {
+                        values[0] = volInter->getVoxelValue(voxelCenter,
+                                                            &valueValidFlag,
+                                                            vdi.mapIndex,
+                                                            0);
+                        values[1] = volInter->getVoxelValue(voxelCenter,
+                                                            &valueValidFlag,
+                                                            vdi.mapIndex,
+                                                            1);
+                        values[2] = volInter->getVoxelValue(voxelCenter,
+                                                            &valueValidFlag,
+                                                            vdi.mapIndex,
+                                                            2);
+                        if (isRgbaVolumeFile) {
+                            values[3] = volInter->getVoxelValue(voxelCenter,
+                                                                &valueValidFlag,
+                                                                vdi.mapIndex,
+                                                                3);
+                        }
+                        else {
+                            values[3] = 1.0;
+                        }
+                    }
                     else {
-                        value = volInter->getVoxelValue(voxelCenter,
-                                                        &valueValidFlag,
-                                                        vdi.mapIndex);
+                        values[0] = volInter->getVoxelValue(voxelCenter,
+                                                            &valueValidFlag,
+                                                            vdi.mapIndex);
                     }
                     
                     /*
@@ -1461,7 +1495,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                         if (! valueValidFlag) {
                             if (volumeFile != NULL) {
                                 if (volumeFile == voxelEditingVolumeFile) {
-                                    value = voxelEditingValue;
+                                    values[0] = voxelEditingValue;
                                     valueValidFlag = true;
                                 }
                             }
@@ -1496,7 +1530,9 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                             voxelsToDraw.push_back(voxelDrawingInfo);
                         }
                         
-                        const int64_t offset = volumeSlices[iVol].addValue(value);
+                        const int64_t offset = ((isRgbVolumeFile|| isRgbaVolumeFile)
+                                                ? volumeSlices[iVol].addValuesRGBA(values)
+                                                : volumeSlices[iVol].addValue(values[0]));
                         voxelDrawingInfo->addVolumeValue(iVol, offset);
                     }
                 }
@@ -1529,7 +1565,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
             VolumeMappableInterface* volume = volumeSlices[i].m_volumeMappableInterface;
             CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(volume);
             VolumeFile* volumeFile = volumeSlices[i].m_volumeFile;
-            
+            const bool isRgbaFlag =  ( ! volumeSlices[i].m_valuesGreen.empty());
+        
             CaretAssert(mappableFile);
             const int32_t mapIndex = volumeSlices[i].m_mapIndex;
             const float* values = &volumeSlices[i].m_values[0];
@@ -1572,6 +1609,17 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                                                                                    displayGroup,
                                                                                    browserTabIndex,
                                                                                    rgba);
+            }
+            else if (isRgbaFlag) {
+                CaretAssert(volumeSlices[i].m_values.size() == volumeSlices[i].m_valuesGreen.size());
+                CaretAssert(volumeSlices[i].m_values.size() == volumeSlices[i].m_valuesBlue.size());
+                CaretAssert(volumeSlices[i].m_values.size() == volumeSlices[i].m_valuesAlpha.size());
+                NodeAndVoxelColoring::colorScalarsWithRGBA(&volumeSlices[i].m_values[0],
+                                                           &volumeSlices[i].m_valuesGreen[0],
+                                                           &volumeSlices[i].m_valuesBlue[0],
+                                                           &volumeSlices[i].m_valuesAlpha[0],
+                                                           numValues,
+                                                           rgba);
             }
             else {
                 CaretAssert(0);
@@ -4849,16 +4897,31 @@ BrainOpenGLVolumeObliqueSliceDrawing::getVoxelCoordinateBoundsAndSpacing(float b
     spacingOut[1] = voxelStepY;
     spacingOut[2] = voxelStepZ;
     
-    bool valid = false;
+    /*
+     * Two dimensions: single slice
+     * Three dimensions: multiple slices
+     */
+    int32_t validDimCount = 0;
+    if (maxVoxelX > minVoxelX) validDimCount++;
+    if (maxVoxelY > minVoxelY) validDimCount++;
+    if (maxVoxelZ > minVoxelZ) validDimCount++;
     
-    if ((maxVoxelX > minVoxelX)
-        && (maxVoxelY > minVoxelY)
-        && (maxVoxelZ > minVoxelZ)
+    bool valid = false;
+    if ((validDimCount >= 2)
         && (voxelStepX > 0.0)
         && (voxelStepY > 0.0)
         && (voxelStepZ > 0.0)) {
         valid = true;
     }
+    
+//    if ((maxVoxelX > minVoxelX)
+//        && (maxVoxelY > minVoxelY)
+//        && (maxVoxelZ > minVoxelZ)
+//        && (voxelStepX > 0.0)
+//        && (voxelStepY > 0.0)
+//        && (voxelStepZ > 0.0)) {
+//        valid = true;
+//    }
     
     return valid;
 }
@@ -5142,6 +5205,9 @@ BrainOpenGLVolumeObliqueSliceDrawing::VolumeSlice::VolumeSlice(VolumeMappableInt
     const int64_t sliceDim = 300;
     const int64_t numVoxels = sliceDim * sliceDim;
     m_values.reserve(numVoxels);
+    m_valuesGreen.reserve(numVoxels);
+    m_valuesBlue.reserve(numVoxels);
+    m_valuesAlpha.reserve(numVoxels);
 }
 
 /**
@@ -5157,6 +5223,25 @@ BrainOpenGLVolumeObliqueSliceDrawing::VolumeSlice::addValue(const float value)
 {
     const int64_t indx = static_cast<int64_t>(m_values.size());
     m_values.push_back(value);
+    return indx;
+}
+
+/**
+ * Add values for RGBA and returns its index.
+ *
+ * @param value
+ *     Value that is added.
+ * @return
+ *     The index for the value.
+ */
+int64_t
+BrainOpenGLVolumeObliqueSliceDrawing::VolumeSlice::addValuesRGBA(const float values[4])
+{
+    const int64_t indx = static_cast<int64_t>(m_values.size());
+    m_values.push_back(values[0]);
+    m_valuesGreen.push_back(values[1]);
+    m_valuesBlue.push_back(values[2]);
+    m_valuesAlpha.push_back(values[3]);
     return indx;
 }
 
