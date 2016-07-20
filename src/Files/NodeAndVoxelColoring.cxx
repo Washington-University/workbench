@@ -463,6 +463,115 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
 }
 
 /**
+ * Color RGBA data.
+ *
+ * @param redComponents
+ *    Values for red components.
+ * @param greenComponents
+ *    Values for green components.
+ * @param blueComponents
+ *    Values for blue components.
+ * @param alphaComponents
+ *    Values for alpha components (NULL if alpha not valid)
+ * @param colorDataType
+ *    Data type of the rgbaOut parameter
+ * @param rgbaOutPointer
+ *    RGBA Colors that are output.  The alpha
+ *    value will be negative if the scalar does
+ *    not receive any coloring.
+ *    Number of elements is 'numberOfScalars' * 4.
+ */
+void
+NodeAndVoxelColoring::colorScalarsWithRGBAPrivate(const float* redComponents,
+                                                  const float* greenComponents,
+                                                  const float* blueComponents,
+                                                  const float* alphaComponents,
+                                                  const int64_t numberOfComponents,
+                                                  const ColorDataType colorDataType,
+                                                  uint8_t* rgbaOutPointer)
+{
+    /*
+     * Cast to data type for rgba coloring
+     */
+    float* rgbaFloat = NULL;
+    uint8_t* rgbaUnsignedByte = NULL;
+    switch (colorDataType) {
+        case COLOR_TYPE_FLOAT:
+            rgbaFloat = (float*)rgbaOutPointer;
+            break;
+        case COLOR_TYPE_UNSIGNED_BTYE:
+            rgbaUnsignedByte = (uint8_t*)rgbaOutPointer;
+            break;
+    }
+    
+    for (int64_t i = 0; i < numberOfComponents; i++) {
+        float rgbaValues[4] = {
+            redComponents[i],
+            greenComponents[i],
+            blueComponents[i],
+            ((alphaComponents == NULL) ? 255.0 : alphaComponents[i])
+        };
+        
+        /*
+         * Initialize coloring for node since one of the
+         * continue statements below may cause moving
+         * on to next node
+         */
+        const int64_t i4 = i * 4;
+        switch (colorDataType) {
+            case COLOR_TYPE_FLOAT:
+                rgbaFloat[i4]   =  rgbaValues[0] / 255.0;
+                rgbaFloat[i4+1] =  rgbaValues[1] / 255.0;
+                rgbaFloat[i4+2] =  rgbaValues[2] / 255.0;
+                rgbaFloat[i4+3] =  rgbaValues[3] / 255.0;
+                break;
+            case COLOR_TYPE_UNSIGNED_BTYE:
+                rgbaUnsignedByte[i4]   =  static_cast<uint8_t>(rgbaValues[0]);
+                rgbaUnsignedByte[i4+1] =  static_cast<uint8_t>(rgbaValues[1]);
+                rgbaUnsignedByte[i4+2] =  static_cast<uint8_t>(rgbaValues[2]);
+                rgbaUnsignedByte[i4+3] =  static_cast<uint8_t>(rgbaValues[3]);
+                break;
+        }
+    }
+}
+
+/**
+ * Color RGBA data.
+ *
+ * @param redComponents
+ *    Values for red components.
+ * @param greenComponents
+ *    Values for green components.
+ * @param blueComponents
+ *    Values for blue components.
+ * @param alphaComponents
+ *    Values for alpha components (NULL if alpha not valid)
+ * @param numberOfComponents
+ *    Number of components (each color component contains this number of values).
+ * @param rgbaOut
+ *    RGBA Colors that are output.  The alpha
+ *    value will be negative if the scalar does
+ *    not receive any coloring.
+ *    Number of elements is 'numberOfComponents' * 4.
+ */
+void
+NodeAndVoxelColoring::colorScalarsWithRGBA(const float* redComponents,
+                                           const float* greenComponents,
+                                           const float* blueComponents,
+                                           const float* alphaComponents,
+                                           const int64_t numberOfComponents,
+                                           uint8_t* rgbaOut)
+{
+    colorScalarsWithRGBAPrivate(redComponents,
+                                greenComponents,
+                                blueComponents,
+                                alphaComponents,
+                                numberOfComponents,
+                                COLOR_TYPE_UNSIGNED_BTYE,
+                                rgbaOut);
+}
+
+/**
  * Assign colors to label indices using a GIFTI label table.
  *
  * @param labelTabl

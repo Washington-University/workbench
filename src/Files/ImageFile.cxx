@@ -1426,9 +1426,13 @@ ImageFile::convertToVolumeFile(const Matrix4x4& sformMatrix,
     indexToSpace.push_back(row3);
     indexToSpace.push_back(row4);
     
-    const bool rgbaAllowedFlag = false;
-    int64_t numComponents = (rgbaAllowedFlag ? 4 : 1);
-    SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::FUNCTIONAL; //  SubvolumeAttributes::RGB;
+    const bool rgbaAllowedFlag = true;
+    int64_t numComponents = 1;
+    SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::FUNCTIONAL;
+    if (rgbaAllowedFlag) {
+        numComponents = 4;
+        whatType = SubvolumeAttributes::RGB;
+    }
     VolumeFile* volumeFile = new VolumeFile(dimensions,
                                     indexToSpace,
                                     numComponents,
