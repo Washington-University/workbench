@@ -691,13 +691,16 @@ OverlayViewController::updateViewController(Overlay* overlay)
     bool haveMultipleMaps = false;
     bool dataIsMappedWithPalette = false;
     bool dataIsMappedWithLabelTable = false;
+    bool dataIsMappedWithRGBA = false;
     bool haveOpacity = false;
     if (haveFile) {
         dataIsMappedWithPalette = selectedFile->isMappedWithPalette();
         dataIsMappedWithLabelTable = selectedFile->isMappedWithLabelTable();
+        dataIsMappedWithRGBA    = selectedFile->isMappedWithRGBA();
         haveMultipleMaps = (selectedFile->getNumberOfMaps() > 1);
         haveOpacity = (dataIsMappedWithLabelTable
-                       || dataIsMappedWithPalette);
+                       || dataIsMappedWithPalette
+                       || dataIsMappedWithRGBA);
     }
     
     /**
