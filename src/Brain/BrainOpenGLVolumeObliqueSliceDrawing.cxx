@@ -1611,6 +1611,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                                                                                    rgba);
             }
             else if (isRgbaFlag) {
+                const uint8_t rgbThreshold[3] = { 5, 5, 5 };
                 CaretAssert(volumeSlices[i].m_values.size() == volumeSlices[i].m_valuesGreen.size());
                 CaretAssert(volumeSlices[i].m_values.size() == volumeSlices[i].m_valuesBlue.size());
                 CaretAssert(volumeSlices[i].m_values.size() == volumeSlices[i].m_valuesAlpha.size());
@@ -1619,6 +1620,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                                                            &volumeSlices[i].m_valuesBlue[0],
                                                            &volumeSlices[i].m_valuesAlpha[0],
                                                            numValues,
+                                                           rgbThreshold,
                                                            rgba);
             }
             else {

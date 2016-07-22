@@ -466,15 +466,18 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
  * Color RGBA data.
  *
  * @param redComponents
- *    Values for red components.
+ *    Values for red components.  Range [0, 255].
  * @param greenComponents
- *    Values for green components.
+ *    Values for green components.   Range [0, 255].
  * @param blueComponents
- *    Values for blue components.
+ *    Values for blue components.   Range [0, 255].
  * @param alphaComponents
  *    Values for alpha components (NULL if alpha not valid)
  * @param colorDataType
  *    Data type of the rgbaOut parameter
+ * @param rgbThreshold
+ *    Threshold RGB (voxel not drawn if voxel RGB components LESS THAN these values).
+ *    Range [0, 255].
  * @param rgbaOutPointer
  *    RGBA Colors that are output.  The alpha
  *    value will be negative if the scalar does
@@ -488,48 +491,63 @@ NodeAndVoxelColoring::colorScalarsWithRGBAPrivate(const float* redComponents,
                                                   const float* alphaComponents,
                                                   const int64_t numberOfComponents,
                                                   const ColorDataType colorDataType,
+                                                  const uint8_t* rgbThreshold,
                                                   uint8_t* rgbaOutPointer)
 {
     /*
      * Cast to data type for rgba coloring
      */
-    float* rgbaFloat = NULL;
+    float*   rgbaFloat = NULL;
     uint8_t* rgbaUnsignedByte = NULL;
+    float    thresholdRed   = -1.0;
+    float    thresholdGreen = -1.0;
+    float    thresholdBlue  = -1.0;
     switch (colorDataType) {
         case COLOR_TYPE_FLOAT:
+        {
             rgbaFloat = (float*)rgbaOutPointer;
+            const float* threshFloat = (float*)rgbThreshold;
+            thresholdRed   = threshFloat[0];
+            thresholdGreen = threshFloat[1];
+            thresholdBlue  = threshFloat[2];
+        }
             break;
         case COLOR_TYPE_UNSIGNED_BTYE:
+        {
             rgbaUnsignedByte = (uint8_t*)rgbaOutPointer;
+            const uint8_t* threshByte = (uint8_t*)rgbThreshold;
+            thresholdRed   = threshByte[0];
+            thresholdGreen = threshByte[1];
+            thresholdBlue  = threshByte[2];
+        }
             break;
     }
     
     for (int64_t i = 0; i < numberOfComponents; i++) {
-        float rgbaValues[4] = {
-            redComponents[i],
-            greenComponents[i],
-            blueComponents[i],
-            ((alphaComponents == NULL) ? 255.0 : alphaComponents[i])
-        };
+        const float red   = redComponents[i];
+        const float green = greenComponents[i];
+        const float blue  = blueComponents[i];
+        float alpha = 0.0;
         
-        /*
-         * Initialize coloring for node since one of the
-         * continue statements below may cause moving
-         * on to next node
-         */
+        if ((red      >= thresholdRed)
+            && (green >= thresholdGreen)
+            && (blue  >= thresholdBlue)) {
+            alpha = ((alphaComponents == NULL) ? 255.0 : alphaComponents[i]);
+        }
+        
         const int64_t i4 = i * 4;
         switch (colorDataType) {
             case COLOR_TYPE_FLOAT:
-                rgbaFloat[i4]   =  rgbaValues[0] / 255.0;
-                rgbaFloat[i4+1] =  rgbaValues[1] / 255.0;
-                rgbaFloat[i4+2] =  rgbaValues[2] / 255.0;
-                rgbaFloat[i4+3] =  rgbaValues[3] / 255.0;
+                rgbaFloat[i4]   =  red   / 255.0;
+                rgbaFloat[i4+1] =  green / 255.0;
+                rgbaFloat[i4+2] =  blue  / 255.0;
+                rgbaFloat[i4+3] =  alpha / 255.0;
                 break;
             case COLOR_TYPE_UNSIGNED_BTYE:
-                rgbaUnsignedByte[i4]   =  static_cast<uint8_t>(rgbaValues[0]);
-                rgbaUnsignedByte[i4+1] =  static_cast<uint8_t>(rgbaValues[1]);
-                rgbaUnsignedByte[i4+2] =  static_cast<uint8_t>(rgbaValues[2]);
-                rgbaUnsignedByte[i4+3] =  static_cast<uint8_t>(rgbaValues[3]);
+                rgbaUnsignedByte[i4]   =  static_cast<uint8_t>(red);
+                rgbaUnsignedByte[i4+1] =  static_cast<uint8_t>(green);
+                rgbaUnsignedByte[i4+2] =  static_cast<uint8_t>(blue);
+                rgbaUnsignedByte[i4+3] =  static_cast<uint8_t>(alpha);
                 break;
         }
     }
@@ -548,6 +566,9 @@ NodeAndVoxelColoring::colorScalarsWithRGBAPrivate(const float* redComponents,
  *    Values for alpha components (NULL if alpha not valid)
  * @param numberOfComponents
  *    Number of components (each color component contains this number of values).
+ * @param rgbThreshold
+ *    Threshold RGB (voxel not drawn if voxel RGB components LESS THAN these values).
+ *    Range is [0, 255].
  * @param rgbaOut
  *    RGBA Colors that are output.  The alpha
  *    value will be negative if the scalar does
@@ -560,6 +581,7 @@ NodeAndVoxelColoring::colorScalarsWithRGBA(const float* redComponents,
                                            const float* blueComponents,
                                            const float* alphaComponents,
                                            const int64_t numberOfComponents,
+                                           const uint8_t rgbThreshold[3],
                                            uint8_t* rgbaOut)
 {
     colorScalarsWithRGBAPrivate(redComponents,
@@ -568,6 +590,7 @@ NodeAndVoxelColoring::colorScalarsWithRGBA(const float* redComponents,
                                 alphaComponents,
                                 numberOfComponents,
                                 COLOR_TYPE_UNSIGNED_BTYE,
+                                rgbThreshold,
                                 rgbaOut);
 }
 

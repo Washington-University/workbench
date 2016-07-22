@@ -59,6 +59,7 @@ namespace caret {
                                          const float* blueComponents,
                                          const float* alphaComponents,
                                          const int64_t numberOfComponents,
+                                         const uint8_t rgbThreshold[3],
                                          uint8_t* rgbaOut);
         
         // JWH 24 April 2015  static const float SMALL_POSITIVE;
@@ -101,14 +102,14 @@ namespace caret {
         };
         
         static void colorScalarsWithPalettePrivate(const FastStatistics* statistics,
-                                            const PaletteColorMapping* paletteColorMapping,
-                                            const Palette* palette,
-                                            const float* scalars,
-                                            const float* scalarThresholds,
-                                            const int64_t numberOfScalars,
-                                            const ColorDataType colorDataType,
-                                            void* rgbaOutPointer,
-                                            const bool ignoreThresholding);
+                                                   const PaletteColorMapping* paletteColorMapping,
+                                                   const Palette* palette,
+                                                   const float* scalars,
+                                                   const float* scalarThresholds,
+                                                   const int64_t numberOfScalars,
+                                                   const ColorDataType colorDataType,
+                                                   void* rgbaOutPointer,
+                                                   const bool ignoreThresholding);
         
         static void colorIndicesWithLabelTableForDisplayGroupTabPrivate(const GiftiLabelTable* labelTable,
                                                       const float* labelIndices,
@@ -124,6 +125,7 @@ namespace caret {
                                                 const float* alphaComponents,
                                                 const int64_t numberOfComponents,
                                                 const ColorDataType colorDataType,
+                                                const uint8_t* rgbThreshold,
                                                 uint8_t* rgbaOutPointer);
         
         
