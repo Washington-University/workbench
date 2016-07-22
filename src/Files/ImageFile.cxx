@@ -1430,7 +1430,7 @@ ImageFile::convertToVolumeFile(const Matrix4x4& sformMatrix,
     int64_t numComponents = 1;
     SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::FUNCTIONAL;
     if (rgbaAllowedFlag) {
-        numComponents = 4;
+        numComponents = 3;
         whatType = SubvolumeAttributes::RGB;
     }
     VolumeFile* volumeFile = new VolumeFile(dimensions,
@@ -1450,11 +1450,26 @@ ImageFile::convertToVolumeFile(const Matrix4x4& sformMatrix,
     for (int64_t j = 0; j < height; j++) {
         for (int64_t i = 0; i < width; i++) {
             if (rgbaAllowedFlag) {
-                for (int64_t m = 0; m < numComponents; m++) {
+                CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
+                volumeFile->setValue(rgbaBytes[rgbaIndex], i, j, k, mapIndex, 0);
+                CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
+                volumeFile->setValue(rgbaBytes[rgbaIndex+1], i, j, k, mapIndex, 1);
+                CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
+                volumeFile->setValue(rgbaBytes[rgbaIndex+2], i, j, k, mapIndex, 2);
+                if (numComponents == 4) {
                     CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
-                    volumeFile->setValue(rgbaBytes[rgbaIndex], i, j, k, mapIndex, m);
-                    rgbaIndex++;
+                    volumeFile->setValue(rgbaBytes[rgbaIndex+3], i, j, k, mapIndex, 3);
                 }
+                rgbaIndex += 4;
+//                for (int64_t m = 0; m < numComponents; m++) {
+//                    CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
+//                    volumeFile->setValue(rgbaBytes[rgbaIndex], i, j, k, mapIndex, m);
+//                    rgbaIndex++;
+//                    if ((numComponents == 3) {
+//                        /* skip over alpha component from image */
+//                        rgbaIndex++;
+//                    }
+//                }
             }
             else {
                 float intensity = ((rgbaBytes[rgbaIndex] * 0.33)
