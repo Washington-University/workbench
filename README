@@ -36,7 +36,8 @@ Connectome Workbench itself is licensed under GPLv2 or later, copyright 2014-201
 Some source files are licensed under an MIT license (Expat), for easier code reuse in non-GPL projects:
 Files/SurfaceResamplingHelper.cxx
 Cifti/examples/*
-Copyright (C) 2014-2015 Washington University School of Medicine
+CommandLine/wb_shortcuts
+Copyright (C) 2014-2016 Washington University School of Medicine
 
 Some included code/files are from third party sources, with the following licenses:
 

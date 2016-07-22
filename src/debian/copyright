@@ -6,7 +6,7 @@ Files: *
 Copyright: 2014-2015 Washington University School of Medicine
 License: GPL-2+
 
-Files: src/Files/SurfaceResamplingHelper.cxx src/Cifti/examples/*
+Files: src/Files/SurfaceResamplingHelper.cxx src/Cifti/examples/* src/CommandLine/wb_shortcuts
 Copyright: 2014-2015 Washington University School of Medicine
 License: Expat
 
