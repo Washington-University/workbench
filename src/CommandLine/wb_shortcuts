@@ -1,0 +1,554 @@
+#!/bin/bash
+
+#  Copyright (C) 2016  Washington University School of Medicine
+#
+#  Permission is hereby granted, free of charge, to any person obtaining
+#  a copy of this software and associated documentation files (the
+#  "Software"), to deal in the Software without restriction, including
+#  without limitation the rights to use, copy, modify, merge, publish,
+#  distribute, sublicense, and/or sell copies of the Software, and to
+#  permit persons to whom the Software is furnished to do so, subject to
+#  the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included
+#  in all copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+set -e
+
+global_cmd_line="$0 $*"
+global_script_name="wb_shortcuts"
+
+function version ()
+{
+    echo "$global_script_name, version beta-0.2"
+}
+
+function usage ()
+{
+    version
+    echo
+    echo "Information options:"
+    echo "   -help             display this help info"
+    echo "   -version          display version info"
+    echo "   -list-functions   show available functions"
+    echo
+    #wrap guide for 80 columns                                                           |
+    echo "To get the help information of a function, run it without any additional"
+    echo "   arguments."
+    echo
+    echo "If the first argument is not recognized, all functions that start with the"
+    echo "   argument are displayed."
+    echo
+}
+
+#the main function is so that we can put the main code before other function definitions
+#simply gets called as 'main "$@"' after all functions are defined
+function main ()
+{
+    #NOTE: if we have a lot of functions, check_functions could cause a short startup delay, could make a debug setting to control it
+    check_functions
+    if (($# < 1))
+    then
+        usage
+        exit 0
+    fi
+    case "$1" in
+        (-version)
+            version
+            ;;
+        (-help)
+            usage
+            ;;
+        (-list-functions)
+            list_functions
+            ;;
+        (*)
+            #magic switch matching and function name conversion happens in here
+            do_operation "$@"
+            ;;
+    esac
+}
+
+#automagic helpers for function matching
+declare -A global_switch_to_descrip
+function create_function ()
+{
+    local function_switch="$1"
+    shift
+    if [[ "$function_switch" == *' '* ]]
+    then
+        echo "ASSERT FAILURE: switch '$function_switch' contains space(s)"
+        exit 1
+    fi
+    if [[ "$function_switch" != "-"* ]]
+    then
+        echo "ASSERT FAILURE: switch '$function_switch' has no leading dash"
+        exit 1
+    fi
+    if [[ "$*" == "" ]]
+    then
+        echo "ASSERT FAILURE: switch '$function_switch' has empty short description"
+        exit 1
+    fi
+    #use $* in case they didn't quote the short description
+    global_switch_to_descrip["$function_switch"]="$*"
+}
+
+function switch_to_func_name
+{
+    printf '%s' "$1" | sed 's/^-//' | sed 's/-/_/g'
+}
+
+#ADDING FUNCTIONS:
+#the function to call is automatically generated from the command switch (see above functions)
+#the function MUST follow the same naming convention
+#the short description (second argument to create_function) MUST NOT be empty, or it will think the operation doesn't exist, and run a partial match search
+#you can add names of temporary files before they are created by any command, to ensure that no extra files get left behind on failure
+#if the temporaries could be large, feel free to both add them to the list, and delete them manually
+
+create_function "-border-file-concatenate" "MERGE BORDER FILES"
+function border_file_concatenate ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "${global_switch_to_descrip[$function_switch]}"
+        echo "   $global_script_name $function_switch"
+        echo "      <output-border-file>"
+        echo "      <input-border-1>"
+        echo "      ..."
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      Additional input files may be specified after the mandatory input file."
+        echo
+        exit 0
+    fi
+    if (($# < 2))
+    then
+        error "function requires 2 or more arguments"
+    fi
+    declare -a merge_arg_array
+    for ((i = 2; i <= $#; ++i))
+    do
+        merge_arg_array+=("-border" "${!i}")
+    done
+    wb_command -border-merge "$1" "${merge_arg_array[@]}"
+}
+
+create_function "-cifti-concatenate" "MERGE MAPS OF CIFTI FILES"
+function cifti_concatenate ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "${global_switch_to_descrip[$function_switch]}"
+        echo "   $global_script_name $function_switch"
+        echo "      <output-cifti>"
+        echo "      <input-cifti-1>"
+        echo "      ..."
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      Additional input files may be specified after the mandatory input file."
+        echo
+        exit 0
+    fi
+    if (($# < 2))
+    then
+        error "function requires 2 or more arguments"
+    fi
+    declare -a merge_arg_array
+    for ((i = 2; i <= $#; ++i))
+    do
+        merge_arg_array+=("-cifti" "${!i}")
+    done
+    wb_command -cifti-merge "$1" "${merge_arg_array[@]}"
+}
+
+create_function "-cifti-demean" "DEMEAN/NORMALIZE AND CONCATENATE"
+function cifti_demean ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "${global_switch_to_descrip[$function_switch]}"
+        echo "   $global_script_name $function_switch"
+        echo "      [-normalize] - also normalize input files"
+        echo "      <output-cifti>"
+        echo "      <input-cifti-1>"
+        echo "      ..."
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      Demeans each input file (optionally normalizes by stdev) and then"
+        echo "      concatenates them.  Additional input files may be specified after the"
+        echo "      mandatory input file."
+        echo
+        exit 0
+    fi
+    normalize=0
+    if [[ "$1" == "-normalize" ]]
+    then
+        normalize=1
+        shift
+    fi
+    if (($# < 2))
+    then
+        error "function requires 2 or more arguments"
+    fi
+    declare -a merge_arg_array
+    for ((i = 2; i <= $#; ++i))
+    do
+        #we might not make the stdev temporary, but it isn't a problem to add it anyway
+        add_temporary_files "$1.temp${i}-mean-$$" "$1.temp${i}-normed-$$" "$1.temp${i}-stdev-$$"
+        wb_command -cifti-reduce "${!i}" MEAN "$1.temp${i}-mean-$$"
+        if [[ $normalize == 1 ]]
+        then
+            wb_command -cifti-reduce "${!i}" SAMPSTDEV "$1.temp${i}-stdev-$$"
+            wb_command -cifti-math '(x - mean) / stdev' "$1.temp${i}-normed-$$" -fixnan 0 \
+                            -var x "${!i}" \
+                            -var mean "$1.temp${i}-mean-$$" -select 1 1 -repeat \
+                            -var stdev "$1.temp${i}-stdev-$$" -select 1 1 -repeat
+            rm -f "$1.temp${i}-mean-$$" "$1.temp${i}-stdev-$$"
+        else
+            wb_command -cifti-math 'x - mean' "$1.temp${i}-normed-$$" -fixnan 0 \
+                            -var x "${!i}" \
+                            -var mean "$1.temp${i}-mean-$$" -select 1 1 -repeat
+            rm -f "$1.temp${i}-mean-$$"
+        fi
+        merge_arg_array+=("-cifti" "$1.temp${i}-normed-$$")
+    done
+    wb_command -cifti-merge "$1" "${merge_arg_array[@]}"
+    #let the exit hook clean up the normed temporaries, we're done
+}
+
+create_function "-command-help-search" "SEARCH WB_COMMAND HELP"
+function command_help_search ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "${global_switch_to_descrip[$function_switch]}"
+        echo "   $global_script_name $function_switch"
+        echo "      <search-string> - grep pattern to search for"
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      Searches for wb_command processing commands that contain the pattern."
+        echo
+        exit 0
+    fi
+    local -a switches
+    readarray -t switches < <(wb_command -list-commands | awk '{print $1}')
+    for ((i = 0; i < ${#switches[@]}; ++i))
+    do
+        #use $* in case someone didn't quote, but keep it all in the pattern argument
+        local matches=`wb_command "${switches[$i]}" | grep -i -e "$*"`
+        if [[ "$matches" != "" ]]
+        then
+            printf '%s\n' "${switches[$i]}:"
+            printf '%s\n\n' "$matches"
+        fi
+    done
+}
+
+create_function "-freesurfer-resample-prep" "CREATE MIDTHICKNESSES FROM FREESURFER"
+function freesurfer_resample_prep ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "${global_switch_to_descrip[$function_switch]}"
+        echo "   $global_script_name $function_switch"
+        echo "      <fs-white> - the freesurfer white surface"
+        echo "      <fs-pial> - the freesurfer pial surface"
+        echo "      <current-freesurfer-sphere>"
+        echo "      <new-sphere>"
+        echo "      <midthickness-current-out> - output - the midthickness on the current"
+        echo "         freesurfer mesh, in gifti format"
+        echo "      <midthickness-new-out> - output - likewise, on the new mesh"
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      NOTE: freesurfer's mris_convert must be installed and in the \$PATH in"
+        echo "      order to use this function, for converting the surfaces to GIFTI format."
+        echo
+        echo "      Generate the midthickness surfaces used for resampling individual data"
+        echo "      from FreeSurfer to fs_LR.  This generates both surfaces needed by the"
+        echo "      -area-surfs option of wb_command's -metric-resample, -label-resample, and"
+        echo "      similar commands."
+        echo
+        exit 0
+    fi
+    if (($# < 6))
+    then
+        error "function requires 6 arguments"
+    fi
+    add_temporary_files "$5.temp$$.white.surf.gii" "$5.temp$$.pial.surf.gii"
+    if [[ "$5" == */* ]]
+    then
+        #if output name includes a path (even relative), then we don't need to futz with it to prevent freesurfer from dumping the converted file in the INPUT file's directory
+        mris_convert "$1" "$5.temp$$.white.surf.gii"
+        mris_convert "$2" "$5.temp$$.pial.surf.gii"
+    else
+        #if you give freesurfer a bare filename with no path for output, it dumps it in the input directory, regardless of cwd
+        #so, put ./ on the beginning to tell it to mend its ways
+        mris_convert "$1" ./"$5.temp$$.white.surf.gii"
+        mris_convert "$2" ./"$5.temp$$.pial.surf.gii"
+    fi
+    wb_command -surface-average "$5" -surf "$5.temp$$.white.surf.gii" -surf "$5.temp$$.pial.surf.gii"
+    rm -f "$5.temp$$.white.surf.gii" "$5.temp$$.pial.surf.gii"
+    wb_command -surface-resample "$5" "$3" "$4" BARYCENTRIC "$6"
+}
+
+create_function "-import-probtrack-roi" "CONVERT ROI TRACKS TO CIFTI"
+function import_probtrack_roi ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "${global_switch_to_descrip[$function_switch]}"
+        echo "   $global_script_name $function_switch"
+        echo "      <input-text> - the text file from probtrackx2"
+        echo "      <cifti-roi> - the ROI used as the seed mask, as cifti"
+        echo "      <output-cifti> - output - the data converted to cifti dscalar"
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      The <cifti-roi> file should contain the ROI used as the mask, and should"
+        echo "      be in the desired brainordinate space."
+        echo
+        exit 0
+    fi
+    if (($# < 3))
+    then
+        error "function requires 3 arguments"
+    fi
+    #make temporaries based on the output file name
+    add_temporary_files "$3.temp1-$$" "$3.temp2-$$"
+    wb_command -cifti-restrict-dense-map "$2" COLUMN "$3.temp1-$$" -cifti-roi "$2"
+    wb_command -cifti-convert -from-text "$1" "$3.temp1-$$" "$3.temp2-$$" -reset-scalars
+    rm -f "$3.temp1-$$"
+    wb_command -cifti-create-dense-from-template "$2" "$3" -cifti "$3.temp2-$$"
+    rm -f "$3.temp2-$$"
+}
+
+create_function "-label-concatenate" "MERGE MAPS OF LABEL FILES"
+function label_concatenate ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "${global_switch_to_descrip[$function_switch]}"
+        echo "   $global_script_name $function_switch"
+        echo "      <output-label>"
+        echo "      <input-label-1>"
+        echo "      ..."
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      Additional input files may be specified after the mandatory input file."
+        echo
+        exit 0
+    fi
+    if (($# < 2))
+    then
+        error "function requires 2 or more arguments"
+    fi
+    declare -a merge_arg_array
+    for ((i = 2; i <= $#; ++i))
+    do
+        merge_arg_array+=("-label" "${!i}")
+    done
+    wb_command -label-merge "$1" "${merge_arg_array[@]}"
+}
+
+create_function "-metric-concatenate" "MERGE MAPS OF METRIC FILES"
+function metric_concatenate ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "${global_switch_to_descrip[$function_switch]}"
+        echo "   $global_script_name $function_switch"
+        echo "      <output-metric>"
+        echo "      <input-metric-1>"
+        echo "      ..."
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      Additional input files may be specified after the mandatory input file."
+        echo
+        exit 0
+    fi
+    if (($# < 2))
+    then
+        error "function requires 2 or more arguments"
+    fi
+    declare -a merge_arg_array
+    for ((i = 2; i <= $#; ++i))
+    do
+        merge_arg_array+=("-metric" "${!i}")
+    done
+    wb_command -metric-merge "$1" "${merge_arg_array[@]}"
+}
+
+create_function "-scene-file-concatenate" "MERGE SCENES OF SCENE FILES"
+function scene_file_concatenate ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "${global_switch_to_descrip[$function_switch]}"
+        echo "   $global_script_name $function_switch"
+        echo "      <output-scene-file>"
+        echo "      <input-scene-file-1>"
+        echo "      ..."
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      Additional input files may be specified after the mandatory input file."
+        echo
+        exit 0
+    fi
+    if (($# < 2))
+    then
+        error "function requires 2 or more arguments"
+    fi
+    declare -a merge_arg_array
+    for ((i = 2; i <= $#; ++i))
+    do
+        merge_arg_array+=("-scene-file" "${!i}")
+    done
+    wb_command -scene-file-merge "$1" "${merge_arg_array[@]}"
+}
+
+create_function "-volume-concatenate" "MERGE MAPS OF VOLUME FILES"
+function volume_concatenate ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "${global_switch_to_descrip[$function_switch]}"
+        echo "   $global_script_name $function_switch"
+        echo "      <output-volume>"
+        echo "      <input-volume-1>"
+        echo "      ..."
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      Additional input files may be specified after the mandatory input file."
+        echo
+        exit 0
+    fi
+    if (($# < 2))
+    then
+        error "function requires 2 or more arguments"
+    fi
+    declare -a merge_arg_array
+    for ((i = 2; i <= $#; ++i))
+    do
+        merge_arg_array+=("-volume" "${!i}")
+    done
+    wb_command -volume-merge "$1" "${merge_arg_array[@]}"
+}
+
+#additional helper functions
+function do_operation ()
+{
+    #use the existence of a short description to denote existence of the function
+    if [[ ${global_switch_to_descrip[$1]} != "" ]]
+    then
+        `switch_to_func_name "$1"` "$@"
+        exit 0
+    fi
+    local maxlength=0
+    for switch in "${!global_switch_to_descrip[@]}"
+    do
+        if [[ "$switch" == "$1"* ]]
+        then
+            local thislength=`printf '%s' "$switch" | wc -c`
+            if (( thislength > maxlength ))
+            then
+                maxlength=$thislength
+            fi
+        fi
+    done
+    if (( maxlength == 0 ))
+    then
+        error "the switch '$1' does not match any functions"
+    fi
+    for switch in "${!global_switch_to_descrip[@]}"
+    do
+        if [[ "$switch" == "$function_switch"* ]]
+        then
+            printf "%-${maxlength}s   %s\n" "$switch" "${global_switch_to_descrip[$switch]}"
+        fi
+    done | sort
+}
+
+function list_functions ()
+{
+    local maxlength=0
+    for switch in "${!global_switch_to_descrip[@]}"
+    do
+        local thislength=`printf '%s' "$switch" | wc -c`
+        if (( thislength > maxlength ))
+        then
+            maxlength=$thislength
+        fi
+    done
+    for switch in "${!global_switch_to_descrip[@]}"
+    do
+        printf "%-${maxlength}s   %s\n" "$switch" "${global_switch_to_descrip[$switch]}"
+    done | sort
+}
+
+function error ()
+{
+    echo >&2
+    echo "While running:"
+    echo "$global_cmd_line" >&2
+    echo >&2
+    echo "Error: $*" >&2
+    echo >&2
+    exit 1
+}
+
+function check_functions ()
+{
+    for switch in "${!global_switch_to_descrip[@]}"
+    do
+        local function_name=`switch_to_func_name "$switch"`
+        if [[ `type -t "$function_name"` != 'function' ]]
+        then
+            echo "ASSERT FAILURE: switch '$switch' does not have matching function '$function_name'"
+            exit 1
+        fi
+    done
+}
+
+declare -a global_temporary_files
+function add_temporary_files ()
+{
+    global_temporary_files+=("$@")
+}
+
+function cleanup ()
+{
+    rm -f "${global_temporary_files[@]}" &> /dev/null
+}
+trap cleanup EXIT
+
+#start the main code, now that all the functions are defined
+main "$@"
+
