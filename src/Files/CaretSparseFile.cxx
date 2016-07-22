@@ -18,56 +18,41 @@
  */
 /*LICENSE_END*/
 
-#ifdef CARET_OS_WINDOWS
-#define MYSEEK _fseeki64
-#define MYTELL _ftelli64
-#else
-#define MYSEEK fseek
-#define MYTELL ftell
-#endif
-
 #include "CaretSparseFile.h"
+
 #include "ByteOrderEnum.h"
 #include "ByteSwapping.h"
 #include "CaretAssert.h"
 #include "FileInformation.h"
+
 #include <QByteArray>
-#include <fstream>
 
 using namespace caret;
 using namespace std;
 
 const char magic[] = "\0\0\0\0cst\0";
 
-CaretSparseFile::CaretSparseFile()
-{
-    m_file = NULL;
-}
-
 CaretSparseFile::CaretSparseFile(const AString& fileName)
 {
-    m_file = NULL;
     readFile(fileName);
 }
 
 void CaretSparseFile::readFile(const AString& filename)
 {
-    if (m_file != NULL)
+    m_file.close();
+    if (filename.endsWith(".gz"))
     {
-        fclose(m_file);
-        m_file = NULL;
+        throw DataFileException("wbsparse files cannot be read while compressed");
     }
-    FileInformation fileInfo(filename);
-    if (!fileInfo.exists()) throw DataFileException("file doesn't exist");
-    m_file = fopen(filename.toLocal8Bit().constData(), "rb");
-    if (m_file == NULL) throw DataFileException("error opening file");
+    m_file.open(filename);
+    FileInformation fileInfo(filename);//useful later for file size, but create it now to reduce the amount of time between file open and size check
     char buf[8];
-    if (fread(buf, 1, 8, m_file) != 8) throw DataFileException("error reading from file");
+    m_file.read(buf, 8);
     for (int i = 0; i < 8; ++i)
     {
         if (buf[i] != magic[i]) throw DataFileException("file has the wrong magic string");
     }
-    if (fread(m_dims, sizeof(int64_t), 2, m_file) != 2) throw DataFileException("error reading from file");
+    m_file.read(m_dims, 2 * sizeof(int64_t));
     if (ByteOrderEnum::isSystemBigEndian())
     {
         ByteSwapping::swapBytes(m_dims, 2);
@@ -75,7 +60,7 @@ void CaretSparseFile::readFile(const AString& filename)
     if (m_dims[0] < 1 || m_dims[1] < 1) throw DataFileException("both dimensions must be positive");
     m_indexArray.resize(m_dims[1] + 1);
     vector<int64_t> lengthArray(m_dims[1]);
-    if (fread(lengthArray.data(), sizeof(int64_t), m_dims[1], m_file) != (size_t)m_dims[1]) throw DataFileException("error reading from file");
+    m_file.read(lengthArray.data(), m_dims[1] * sizeof(int64_t));
     if (ByteOrderEnum::isSystemBigEndian())
     {
         ByteSwapping::swapBytes(lengthArray.data(), m_dims[1]);
@@ -91,8 +76,8 @@ void CaretSparseFile::readFile(const AString& filename)
     if (xml_offset >= fileInfo.size()) throw DataFileException("file is truncated");
     int64_t xml_length = fileInfo.size() - xml_offset;
     if (xml_length < 1) throw DataFileException("file is truncated");
-    if (MYSEEK(m_file, xml_offset, SEEK_SET) != 0) throw DataFileException("error seeking to XML");
-    const int64_t seekResult = MYTELL(m_file);
+    m_file.seek(xml_offset);
+    const int64_t seekResult = m_file.pos();
     if (seekResult != xml_offset) {
         const AString msg = ("Tried to seek to "
                              + AString::number(xml_offset)
@@ -102,7 +87,7 @@ void CaretSparseFile::readFile(const AString& filename)
     }
     
     QByteArray myXMLBytes(xml_length, '\0');
-    if (fread(myXMLBytes.data(), 1, xml_length, m_file) != (size_t)xml_length) throw DataFileException("error reading from file");
+    m_file.read(myXMLBytes.data(), xml_length);
     m_xml.readXML(myXMLBytes);
     if (m_xml.getDimensionLength(CiftiXML::ALONG_ROW) != m_dims[0] || m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN) != m_dims[1])
     {
@@ -112,7 +97,6 @@ void CaretSparseFile::readFile(const AString& filename)
 
 CaretSparseFile::~CaretSparseFile()
 {
-    if (m_file != NULL) fclose(m_file);
 }
 
 void CaretSparseFile::getRow(const int64_t& index, int64_t* rowOut)
@@ -121,8 +105,8 @@ void CaretSparseFile::getRow(const int64_t& index, int64_t* rowOut)
     int64_t start = m_indexArray[index], end = m_indexArray[index + 1];
     int64_t numToRead = (end - start) * 2;
     m_scratchArray.resize(numToRead);
-    if (MYSEEK(m_file, m_valuesOffset + start * sizeof(int64_t) * 2, SEEK_SET) != 0) throw DataFileException("failed to seek in file");
-    if (fread(m_scratchArray.data(), sizeof(int64_t), numToRead, m_file) != (size_t)numToRead) throw DataFileException("error reading from file");
+    m_file.seek(m_valuesOffset + start * sizeof(int64_t) * 2);
+    m_file.read(m_scratchArray.data(), numToRead * sizeof(int64_t));
     if (ByteOrderEnum::isSystemBigEndian())
     {
         ByteSwapping::swapBytes(m_scratchArray.data(), numToRead);
@@ -153,8 +137,8 @@ void CaretSparseFile::getRowSparse(const int64_t& index, vector<int64_t>& indice
     int64_t start = m_indexArray[index], end = m_indexArray[index + 1];
     int64_t numToRead = (end - start) * 2, numNonzero = end - start;
     m_scratchArray.resize(numToRead);
-    if (MYSEEK(m_file, m_valuesOffset + start * sizeof(int64_t) * 2, SEEK_SET) != 0) throw DataFileException("failed to seek in file");
-    if (fread(m_scratchArray.data(), sizeof(int64_t), numToRead, m_file) != (size_t)numToRead) throw DataFileException("error reading from file");
+    m_file.seek(m_valuesOffset + start * sizeof(int64_t) * 2);
+    m_file.read(m_scratchArray.data(), numToRead * sizeof(int64_t));
     if (ByteOrderEnum::isSystemBigEndian())
     {
         ByteSwapping::swapBytes(m_scratchArray.data(), numToRead);
@@ -223,24 +207,26 @@ void FiberFractions::zero()
 
 CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const CiftiXML& xml)
 {
-    m_file = NULL;
     m_finished = false;
     int64_t dimensions[2] = { xml.getDimensionLength(CiftiXML::ALONG_ROW), xml.getDimensionLength(CiftiXML::ALONG_COLUMN) };
     if (dimensions[0] < 1 || dimensions[1] < 1) throw DataFileException("both dimensions must be positive");
     m_xml = xml;
     m_dims[0] = dimensions[0];//CiftiXML doesn't support 3 dimensions yet, so we do this
     m_dims[1] = dimensions[1];
-    m_file = fopen(fileName.toLocal8Bit().constData(), "wb");
-    if (m_file == NULL) throw DataFileException("error opening file for writing");
-    if (fwrite(magic, 1, 8, m_file) != 8) throw DataFileException("error writing to file");
+    if (fileName.endsWith(".gz"))
+    {
+        throw DataFileException("wbsparse files cannot be written compressed");
+    }//because after we finish writing the data, we have to come back and write the lengths array
+    m_file.open(fileName, CaretBinaryFile::WRITE_TRUNCATE);
+    m_file.write(magic, 8);
     int64_t tempdims[2] = { m_dims[0], m_dims[1] };
     if (ByteOrderEnum::isSystemBigEndian())
     {
         ByteSwapping::swapBytes(tempdims, 2);
     }
-    if (fwrite(tempdims, sizeof(int64_t), 2, m_file) != 2) throw DataFileException("error writing to file");
+    m_file.write(tempdims, 2 * sizeof(int64_t));
     m_lengthArray.resize(m_dims[1], 0);//initialize the memory so that valgrind won't complain
-    if (fwrite(m_lengthArray.data(), sizeof(uint64_t), m_dims[1], m_file) != (size_t)m_dims[1]) throw DataFileException("error writing to file");//write it to get the file to the correct length
+    m_file.write(m_lengthArray.data(), m_dims[1] * sizeof(uint64_t));//write it to get the file to the correct length
     m_nextRowIndex = 0;
     m_valuesOffset = 8 + 2 * sizeof(int64_t) + m_dims[1] * sizeof(int64_t);
 }
@@ -270,7 +256,7 @@ void CaretSparseFileWriter::writeRow(const int64_t& index, const int64_t* row)
     {
         ByteSwapping::swapBytes(m_scratchArray.data(), m_scratchArray.size());
     }
-    if (fwrite(m_scratchArray.data(), sizeof(int64_t), m_scratchArray.size(), m_file) != m_scratchArray.size()) throw DataFileException("error writing to file");
+    m_file.write(m_scratchArray.data(), m_scratchArray.size() * sizeof(int64_t));
     m_nextRowIndex = index + 1;
     if (m_nextRowIndex == m_dims[1]) finish();
 }
@@ -300,7 +286,7 @@ void CaretSparseFileWriter::writeRowSparse(const int64_t& index, const vector<in
     {
         ByteSwapping::swapBytes(m_scratchArray.data(), m_scratchArray.size());
     }
-    if (fwrite(m_scratchArray.data(), sizeof(int64_t), m_scratchArray.size(), m_file) != m_scratchArray.size()) throw DataFileException("error writing to file");
+    m_file.write(m_scratchArray.data(), m_scratchArray.size() * sizeof(int64_t));
     m_nextRowIndex = index + 1;
     if (m_nextRowIndex == m_dims[1]) finish();
 }
@@ -341,16 +327,14 @@ void CaretSparseFileWriter::finish()
         ++m_nextRowIndex;
     }
     QByteArray myXMLBytes = m_xml.writeXMLToQByteArray();
-    if (fwrite(myXMLBytes.constData(), 1, myXMLBytes.size(), m_file) != (size_t)myXMLBytes.size()) throw DataFileException("error writing to file");
-    if (MYSEEK(m_file, 8 + 2 * sizeof(int64_t), SEEK_SET) != 0) throw DataFileException("error seeking in file");
+    m_file.write(myXMLBytes.constData(), myXMLBytes.size());
+    m_file.seek(8 + 2 * sizeof(int64_t));
     if (ByteOrderEnum::isSystemBigEndian())
     {
         ByteSwapping::swapBytes(m_lengthArray.data(), m_lengthArray.size());
     }
-    if (fwrite(m_lengthArray.data(), sizeof(uint64_t), m_lengthArray.size(), m_file) != m_lengthArray.size()) throw DataFileException("error writing to file");
-    int ret = fclose(m_file);
-    m_file = NULL;
-    if (ret != 0) throw DataFileException("error closing file");
+    m_file.write(m_lengthArray.data(), m_lengthArray.size() * sizeof(uint64_t));
+    m_file.close();
 }
 
 CaretSparseFileWriter::~CaretSparseFileWriter()

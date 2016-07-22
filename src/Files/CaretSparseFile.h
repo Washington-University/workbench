@@ -21,13 +21,14 @@
  */
 /*LICENSE_END*/
 
-#include <cstdio>
 #include <vector>
 #include "stdint.h"
+
 #include "AString.h"
+#include "CaretBinaryFile.h"
+#include "CiftiXML.h"
 #include "DataFile.h"
 #include "DataFileException.h"
-#include "CiftiXML.h"
 
 namespace caret {
     
@@ -42,7 +43,7 @@ namespace caret {
     class CaretSparseFile /* : public DataFile */
     {
         static void decodeFibers(const uint64_t& coded, FiberFractions& decoded);//takes a uint because right shift on signed is implementation dependent
-        FILE* m_file;
+        CaretBinaryFile m_file;
         int64_t m_dims[2], m_valuesOffset;
         std::vector<uint64_t> m_indexArray, m_scratchRow;
         std::vector<int64_t> m_scratchArray, m_scratchSparseRow;
@@ -51,7 +52,7 @@ namespace caret {
     public:
         const int64_t* getDimensions() { return m_dims; }
 
-        CaretSparseFile();
+        CaretSparseFile() {};
         
         virtual void readFile(const AString& filename);
         
@@ -77,7 +78,7 @@ namespace caret {
     {
         static void encodeFibers(const FiberFractions& orig, uint64_t& coded);
         static uint32_t myclamp(const int& x);
-        FILE* m_file;
+        CaretBinaryFile m_file;
         int64_t m_dims[2], m_valuesOffset, m_nextRowIndex;
         bool m_finished;
         std::vector<uint64_t> m_lengthArray, m_scratchRow;
