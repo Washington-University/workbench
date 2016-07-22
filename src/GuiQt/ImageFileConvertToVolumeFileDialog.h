@@ -1,5 +1,5 @@
-#ifndef __IMAGE_EXPORT_TO_NIFTI_DIALOG_H__
-#define __IMAGE_EXPORT_TO_NIFTI_DIALOG_H__
+#ifndef __IMAGE_FILE_CONVERT_TO_VOLUME_FILE_DIALOG_H__
+#define __IMAGE_FILE_CONVERT_TO_VOLUME_FILE_DIALOG_H__
 
 /*LICENSE_START*/
 /*
@@ -31,16 +31,16 @@ namespace caret {
     class EnumComboBoxTemplate;
     class ImageFile;
     
-    class ImageExportToNiftiDialog : public WuQDialogModal {
+    class ImageFileConvertToVolumeFileDialog : public WuQDialogModal {
         
         Q_OBJECT
 
     public:
-        ImageExportToNiftiDialog(QWidget* parent,
+        ImageFileConvertToVolumeFileDialog(QWidget* parent,
                                  const int32_t tabIndex,
                                  ImageFile* imageFile);
         
-        virtual ~ImageExportToNiftiDialog();
+        virtual ~ImageFileConvertToVolumeFileDialog();
         
 
         // ADD_NEW_METHODS_HERE
@@ -49,9 +49,9 @@ namespace caret {
         virtual void okButtonClicked();
         
     private:
-        ImageExportToNiftiDialog(const ImageExportToNiftiDialog&);
+        ImageFileConvertToVolumeFileDialog(const ImageFileConvertToVolumeFileDialog&);
 
-        ImageExportToNiftiDialog& operator=(const ImageExportToNiftiDialog&);
+        ImageFileConvertToVolumeFileDialog& operator=(const ImageFileConvertToVolumeFileDialog&);
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -64,9 +64,9 @@ namespace caret {
         EnumComboBoxTemplate* m_sliceViewPlaneComboBox;
     };
     
-#ifdef __IMAGE_EXPORT_TO_NIFTI_DIALOG_DECLARE__
+#ifdef __IMAGE_FILE_CONVERT_TO_VOLUME_FILE_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IMAGE_EXPORT_TO_NIFTI_DIALOG_DECLARE__
+#endif // __IMAGE_FILE_CONVERT_TO_VOLUME_FILE_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__IMAGE_EXPORT_TO_NIFTI_DIALOG_H__
+#endif  //__IMAGE_FILE_CONVERT_TO_VOLUME_FILE_DIALOG_H__

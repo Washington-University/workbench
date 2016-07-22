@@ -75,7 +75,7 @@
 #include "FileInformation.h"
 #include "FociProjectionDialog.h"
 #include "GuiManager.h"
-#include "ImageExportToNiftiDialog.h"
+#include "ImageFileConvertToVolumeFileDialog.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelWholeBrain.h"
@@ -2783,7 +2783,7 @@ BrainBrowserWindow::processConvertImageToVolume()
         if (dpi->isDisplayed(displayGroup, tabIndex)) {
             ImageFile* imageFile = dpi->getSelectedImageFile(displayGroup, tabIndex);
             if (imageFile != NULL) {
-                ImageExportToNiftiDialog convertDialog(this,
+                ImageFileConvertToVolumeFileDialog convertDialog(this,
                                                        tabIndex,
                                                        imageFile);
                 convertDialog.exec();

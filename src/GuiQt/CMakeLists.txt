@@ -108,7 +108,7 @@ HelpViewerDialog.h
 HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
-ImageExportToNiftiDialog.h
+ImageFileConvertToVolumeFileDialog.h
 ImageSelectionViewController.h
 InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
@@ -302,7 +302,7 @@ HelpViewerDialog.h
 HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
-ImageExportToNiftiDialog.h
+ImageFileConvertToVolumeFileDialog.h
 ImageSelectionViewController.h
 InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
@@ -499,7 +499,7 @@ HelpViewerDialog.cxx
 HyperLinkTextBrowser.cxx
 IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx
-ImageExportToNiftiDialog.cxx
+ImageFileConvertToVolumeFileDialog.cxx
 ImageSelectionViewController.cxx
 InformationDisplayDialog.cxx
 InformationDisplayPropertiesDialog.cxx

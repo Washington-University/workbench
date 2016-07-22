@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __IMAGE_EXPORT_TO_NIFTI_DIALOG_DECLARE__
-#include "ImageExportToNiftiDialog.h"
-#undef __IMAGE_EXPORT_TO_NIFTI_DIALOG_DECLARE__
+#define __IMAGE_FILE_CONVERT_TO_VOLUME_FILE_DIALOG_DECLARE__
+#include "ImageFileConvertToVolumeFileDialog.h"
+#undef __IMAGE_FILE_CONVERT_TO_VOLUME_FILE_DIALOG_DECLARE__
 
 #include <QGridLayout>
 #include <QLabel>
@@ -45,21 +45,19 @@
 
 using namespace caret;
 
-
-    
 /**
- * \class caret::ImageExportToNiftiDialog 
- * \brief Dialog for exporting an image file to a NIFTI file.
+ * \class caret::ImageFileConvertToVolumeFileDialog 
+ * \brief Dialog for converting an image file to a volume file.
  * \ingroup GuiQt
  */
 
 /**
  * Constructor.
  */
-ImageExportToNiftiDialog::ImageExportToNiftiDialog(QWidget* parent,
+ImageFileConvertToVolumeFileDialog::ImageFileConvertToVolumeFileDialog(QWidget* parent,
                                                    const int32_t tabIndex,
                                                    ImageFile* imageFile)
-: WuQDialogModal("Export Image to NIFTI",
+: WuQDialogModal("Convert Image File to Volume File",
                  parent),
 m_tabIndex(tabIndex),
 m_imageFile(imageFile)
@@ -107,7 +105,7 @@ m_imageFile(imageFile)
 /**
  * Destructor.
  */
-ImageExportToNiftiDialog::~ImageExportToNiftiDialog()
+ImageFileConvertToVolumeFileDialog::~ImageFileConvertToVolumeFileDialog()
 {
 }
 
@@ -115,7 +113,7 @@ ImageExportToNiftiDialog::~ImageExportToNiftiDialog()
  * Gets called when the OK button is clicked.
  */
 void
-ImageExportToNiftiDialog::okButtonClicked()
+ImageFileConvertToVolumeFileDialog::okButtonClicked()
 {
     Brain* brain = GuiManager::get()->getBrain();
     
