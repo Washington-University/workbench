@@ -343,6 +343,14 @@ float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool
 
 float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
 {
+    /*
+     * If the volume is a single slice, CUBIC and TRILINEAR will fail they
+     * require and interpolate between adjacent slices.
+     */
+    if (m_singleSliceFlag) {
+        interp = ENCLOSING_VOXEL;
+    }
+    
     const int64_t* dimensions = getDimensionsPtr();
     switch (interp)
     {
@@ -638,6 +646,13 @@ void VolumeFile::validateMembers()
     }
     
     setPaletteNormalizationMode(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+    
+    m_singleSliceFlag = false;
+    if ((dimensions[0] == 1)
+        || (dimensions[1] == 1)
+        || (dimensions[2] == 1)) {
+        m_singleSliceFlag = true;
+    }
     
     /*
      * Will handle colorization of voxel data.
