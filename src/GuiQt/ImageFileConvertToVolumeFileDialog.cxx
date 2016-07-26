@@ -28,8 +28,10 @@
 #include <QLineEdit>
 
 #include "Brain.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventBrowserTabGet.h"
 #include "EventDataFileAdd.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -128,13 +130,21 @@ ImageFileConvertToVolumeFileDialog::~ImageFileConvertToVolumeFileDialog()
 void
 ImageFileConvertToVolumeFileDialog::okButtonClicked()
 {
+    Matrix4x4 sformMatrix;
+    
+    EventBrowserTabGet tabEvent(m_tabIndex);
+    EventManager::get()->sendEvent(tabEvent.getPointer());
+    BrowserTabContent* tabContent = tabEvent.getBrowserTab();
+    if (tabContent != NULL) {
+        sformMatrix = tabContent->getRotationMatrix();
+    }
+    
     Brain* brain = GuiManager::get()->getBrain();
     
     CaretAssert(m_imageFile);
    
     const int colorConversionIndex = m_colorConversionComboBox->itemData(m_colorConversionComboBox->currentIndex()).toInt();
     const ImageFile::CONVERT_TO_VOLUME_COLOR_MODE colorMode = static_cast<ImageFile::CONVERT_TO_VOLUME_COLOR_MODE>(colorConversionIndex);
-    Matrix4x4 sformMatrix;
     AString errorMessage;
     VolumeFile* volumeFile = m_imageFile->convertToVolumeFile(colorMode,
                                                               sformMatrix,
