@@ -44,6 +44,16 @@ public:
         IMAGE_DATA_ORIGIN_AT_TOP
     };
     
+    /**
+     * Convert to volume color mode
+     */
+    enum CONVERT_TO_VOLUME_COLOR_MODE {
+        /** Create single component grayscale volume */
+        CONVERT_TO_VOLUME_COLOR_GRAYSCALE,
+        /** Create three component RGB volume */
+        CONVERT_TO_VOLUME_COLOR_RGB
+    };
+    
     ImageFile();
     
     ImageFile(const unsigned char* imageDataRGBA,
@@ -157,7 +167,8 @@ public:
     static void getImageFileFilters(std::vector<AString>& imageFileFilters,
                                     AString& defaultFilter);
 
-    VolumeFile* convertToVolumeFile(const Matrix4x4& sformMatrix,
+    VolumeFile* convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
+                                    const Matrix4x4& sformMatrix,
                                     const PaletteFile* paletteFile,
                                     AString& errorMessageOut) const;
 

@@ -89,14 +89,27 @@ m_imageFile(imageFile)
                                           "Axis of slice to which image is aligned");
     
 
+    QLabel* colorConversionLabel = new QLabel("Color Conversion:");
+    m_colorConversionComboBox = new QComboBox();
+    m_colorConversionComboBox->addItem("Grayscale");
+    m_colorConversionComboBox->setItemData(0, ImageFile::CONVERT_TO_VOLUME_COLOR_GRAYSCALE);
+    m_colorConversionComboBox->addItem("RGB");
+    m_colorConversionComboBox->setItemData(1, ImageFile::CONVERT_TO_VOLUME_COLOR_RGB);
+    
     QWidget* widget = new QWidget();
     QGridLayout* layout = new QGridLayout(widget);
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 100);
+    layout->setColumnMinimumWidth(1, 250);
     int row = layout->rowCount();
     layout->addWidget(volumeFileNameLabel, row, 0);
     layout->addWidget(m_volumeFileNameLineEdit, row, 1);
     row++;
     layout->addWidget(m_sliceViewPlaneLabel, row, 0);
     layout->addWidget(m_sliceViewPlaneComboBox->getWidget(), row, 1);
+    row++;
+    layout->addWidget(colorConversionLabel, row, 0);
+    layout->addWidget(m_colorConversionComboBox, row, 1);
     row++;
     
     setCentralWidget(widget, WuQDialog::SCROLL_AREA_NEVER);
@@ -119,9 +132,12 @@ ImageFileConvertToVolumeFileDialog::okButtonClicked()
     
     CaretAssert(m_imageFile);
    
+    const int colorConversionIndex = m_colorConversionComboBox->itemData(m_colorConversionComboBox->currentIndex()).toInt();
+    const ImageFile::CONVERT_TO_VOLUME_COLOR_MODE colorMode = static_cast<ImageFile::CONVERT_TO_VOLUME_COLOR_MODE>(colorConversionIndex);
     Matrix4x4 sformMatrix;
     AString errorMessage;
-    VolumeFile* volumeFile = m_imageFile->convertToVolumeFile(sformMatrix,
+    VolumeFile* volumeFile = m_imageFile->convertToVolumeFile(colorMode,
+                                                              sformMatrix,
                                                               brain->getPaletteFile(),
                                                               errorMessage);
     

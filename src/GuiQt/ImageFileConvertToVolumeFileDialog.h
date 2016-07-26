@@ -24,6 +24,7 @@
 
 #include "WuQDialogModal.h"
 
+class QComboBox;
 class QLineEdit;
 
 namespace caret {
@@ -62,6 +63,8 @@ namespace caret {
         QLineEdit* m_volumeFileNameLineEdit;
         
         EnumComboBoxTemplate* m_sliceViewPlaneComboBox;
+        
+        QComboBox* m_colorConversionComboBox;
     };
     
 #ifdef __IMAGE_FILE_CONVERT_TO_VOLUME_FILE_DIALOG_DECLARE__

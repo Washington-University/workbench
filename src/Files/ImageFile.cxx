@@ -1367,6 +1367,8 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
 /**
  * Convert this image into a Volume File.
  *
+ * @param colorMode
+ *     Color mode for conversion.
  * @param sformMatrix
  *     Matrix used as NIFTI sform.
  * @param paletteFile
@@ -1380,7 +1382,8 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
  *
  */
 VolumeFile*
-ImageFile::convertToVolumeFile(const Matrix4x4& sformMatrix,
+ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
+                               const Matrix4x4& sformMatrix,
                                const PaletteFile* paletteFile,
                                AString& errorMessageOut) const
 {
@@ -1426,13 +1429,17 @@ ImageFile::convertToVolumeFile(const Matrix4x4& sformMatrix,
     indexToSpace.push_back(row3);
     indexToSpace.push_back(row4);
     
-    const bool rgbaAllowedFlag = true;
     int64_t numComponents = 1;
     SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::FUNCTIONAL;
-    if (rgbaAllowedFlag) {
-        numComponents = 3;
-        whatType = SubvolumeAttributes::RGB;
+    switch (colorMode) {
+        case CONVERT_TO_VOLUME_COLOR_GRAYSCALE:
+            break;
+        case CONVERT_TO_VOLUME_COLOR_RGB:
+            numComponents = 3;
+            whatType = SubvolumeAttributes::RGB;
+            break;
     }
+
     VolumeFile* volumeFile = new VolumeFile(dimensions,
                                     indexToSpace,
                                     numComponents,
@@ -1449,40 +1456,59 @@ ImageFile::convertToVolumeFile(const Matrix4x4& sformMatrix,
     const int64_t mapIndex = 0;
     for (int64_t j = 0; j < height; j++) {
         for (int64_t i = 0; i < width; i++) {
-            if (rgbaAllowedFlag) {
-                CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
-                volumeFile->setValue(rgbaBytes[rgbaIndex], i, j, k, mapIndex, 0);
-                CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
-                volumeFile->setValue(rgbaBytes[rgbaIndex+1], i, j, k, mapIndex, 1);
-                CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
-                volumeFile->setValue(rgbaBytes[rgbaIndex+2], i, j, k, mapIndex, 2);
-                if (numComponents == 4) {
+            switch (colorMode) {
+                case CONVERT_TO_VOLUME_COLOR_GRAYSCALE:
+                {
+                    /*
+                     * Luminosity conversion from GIMP
+                     * http://docs.gimp.org/2.6/en/gimp-tool-desaturate.html
+                     */
+                    float intensity = ((rgbaBytes[rgbaIndex] * 0.21)
+                                       + (rgbaBytes[rgbaIndex + 1] * 0.72)
+                                       + (rgbaBytes[rgbaIndex + 2] * 0.07));
+                    if (intensity > 255.0) intensity = 255.0;
+                    else if (intensity < 0.0) intensity = 0.0;
+                    
+                    if (rgbaBytes[rgbaIndex + 3] <= 0.0) {
+                        intensity = 0.0;
+                    }
+                    volumeFile->setValue(intensity, i, j, k, mapIndex, 0);
+                    
+                    rgbaIndex += 4;
+                }
+                    break;
+                case CONVERT_TO_VOLUME_COLOR_RGB:
+                {
                     CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
-                    volumeFile->setValue(rgbaBytes[rgbaIndex+3], i, j, k, mapIndex, 3);
+                    volumeFile->setValue(rgbaBytes[rgbaIndex], i, j, k, mapIndex, 0);
+                    CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
+                    volumeFile->setValue(rgbaBytes[rgbaIndex+1], i, j, k, mapIndex, 1);
+                    CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
+                    volumeFile->setValue(rgbaBytes[rgbaIndex+2], i, j, k, mapIndex, 2);
+                    if (numComponents == 4) {
+                        CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
+                        volumeFile->setValue(rgbaBytes[rgbaIndex+3], i, j, k, mapIndex, 3);
+                    }
+                    rgbaIndex += 4;
                 }
-                rgbaIndex += 4;
-//                for (int64_t m = 0; m < numComponents; m++) {
-//                    CaretAssertVectorIndex(rgbaBytes, rgbaIndex);
-//                    volumeFile->setValue(rgbaBytes[rgbaIndex], i, j, k, mapIndex, m);
-//                    rgbaIndex++;
-//                    if ((numComponents == 3) {
-//                        /* skip over alpha component from image */
-//                        rgbaIndex++;
-//                    }
-//                }
-            }
-            else {
-                float intensity = ((rgbaBytes[rgbaIndex] * 0.33)
-                                   + (rgbaBytes[rgbaIndex + 1] * 0.33)
-                                   + (rgbaBytes[rgbaIndex + 2] * 0.33));
-                if (rgbaBytes[rgbaIndex + 3] <= 0.0) {
-                    intensity = 0.0;
-                }
-                volumeFile->setValue(intensity, i, j, k, mapIndex, 0);
-                
-                rgbaIndex += 4;
+                    break;
             }
         }
+    }
+    
+    switch (colorMode) {
+        case CONVERT_TO_VOLUME_COLOR_GRAYSCALE:
+        {
+            PaletteColorMapping* pcm = volumeFile->getMapPaletteColorMapping(mapIndex);
+            pcm->setSelectedPaletteToGrayInterpolated();
+            pcm->setDisplayNegativeDataFlag(false);
+            pcm->setDisplayZeroDataFlag(false);
+            pcm->setDisplayPositiveDataFlag(true);
+            pcm->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE);
+        }
+            break;
+        case CONVERT_TO_VOLUME_COLOR_RGB:
+            break;
     }
     
     volumeFile->clearVoxelColoringForMap(mapIndex);
