@@ -42,8 +42,9 @@ make -j2
 #
 echo "COPYING PROGRAMS"
 DIST_DIR=/mainpool/storage/distribution/caret7_distribution/workbench/exe_rh_linux64
-scp -rv Desktop/wb_view caret@myelin1.wustl.edu:${DIST_DIR}
-scp -rv CommandLine/wb_command caret@myelin1.wustl.edu:${DIST_DIR}
+scp -v Desktop/wb_view caret@myelin1.wustl.edu:${DIST_DIR}
+scp -v CommandLine/wb_command caret@myelin1.wustl.edu:${DIST_DIR}
+scp -v ${GIT_ROOT_DIR}/src/CommandLine/wb_shortcuts caret@myelin1.wustl.edu:/mainpool/storage/distribution/caret7_distribution/workbench/bin_rh_linux64
 
 echo "SCRIPT COMPLETED SUCCESSFULLY"
 
