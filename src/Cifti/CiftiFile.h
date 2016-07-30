@@ -25,6 +25,7 @@
 #include "CiftiInterface.h"
 #include "CiftiXML.h"
 #include "CiftiXMLOld.h"
+#include "MultiDimIterator.h"
 
 #include <QString>
 
@@ -57,6 +58,10 @@ namespace caret
         bool isInMemory() const;
         void getRow(float* dataOut, const std::vector<int64_t>& indexSelect, const bool& tolerateShortRead = false) const;//tolerateShortRead is useful for on-disk writing when it is easiest to do RMW multiple times on a new file
         const std::vector<int64_t>& getDimensions() const { return m_dims; }
+        MultiDimIterator<int64_t> getIteratorOverRows() const
+        {
+            return MultiDimIterator<int64_t>(std::vector<int64_t>(m_dims.begin() + 1, m_dims.end()));
+        }
         void getColumn(float* dataOut, const int64_t& index) const;//for 2D only, will be slow if on disk!
         
         void setCiftiXML(const CiftiXML& xml, const bool useOldMetadata = true);
