@@ -136,6 +136,7 @@ void CaretBinaryFile::read(void* dataOut, const int64_t& count, int64_t* numRead
 
 void CaretBinaryFile::seek(const int64_t& position)
 {
+    CaretAssert(position >= 0);
     if (m_curMode == NONE) throw DataFileException("file is not open, can't seek");
     m_impl->seek(position);
 }
