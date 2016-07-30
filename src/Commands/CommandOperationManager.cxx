@@ -938,8 +938,8 @@ void CommandOperationManager::printGiftiHelp(const AString& /*programName*/)
     cout << "   called 'surface files', and must contain only the coordinate and triangle" << endl;
     cout << "   arrays.  Notably, other software may put data arrays (the equivalent of a" << endl;
     cout << "   metric file) into the same file as the geometry information.  Workbench does" << endl;
-    cout << "   not support these formats, and you must use other tools to separate the data" << endl;
-    cout << "   array from the geometry." << endl;
+    cout << "   not support this kind of combined format, and you must use other tools to" << endl;
+    cout << "   separate the data array from the geometry." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   For the full details of the GIFTI format, see" << endl;
     cout << "      http://www.nitrc.org/projects/gifti/" << endl;
