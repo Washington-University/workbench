@@ -25,7 +25,6 @@
 
 #include "CaretException.h"
 #include "CiftiFile.h"
-#include "MultiDimIterator.h"
 
 #include <iostream>
 #include <vector>
@@ -57,7 +56,7 @@ int main(int argc, char** argv)
         outputFile.setCiftiXML(inputFile.getCiftiXML());//the CiftiXML is how you access all the mapping information
         const vector<int64_t>& dims = inputFile.getDimensions();
         vector<float> scratchRow(dims[0]);//read/write a row at a time
-        for (MultiDimIterator<int64_t> iter(vector<int64_t>(dims.begin() + 1, dims.end())); !iter.atEnd(); ++iter)
+        for (MultiDimIterator<int64_t> iter = inputFile.getIteratorOverRows(); !iter.atEnd(); ++iter)
         {//helper class to iterate over 2D and 3D cifti with the same code - the "+ 1" is to drop the first dimension (row length)
             inputFile.getRow(scratchRow.data(), *iter);
             outputFile.setRow(scratchRow.data(), *iter);
