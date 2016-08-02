@@ -63,6 +63,8 @@ public:
         FOCUS_SURFACE,
         /** Focus on Volume */
         FOCUS_VOLUME,
+        /* Image */
+        IMAGE,
         /** Surface Node*/
         SURFACE_NODE,
         /** Surface Node Identification Symbol */

@@ -106,6 +106,7 @@
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
+#include "SelectionItemImage.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemSurfaceTriangle.h"
@@ -589,8 +590,6 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
             }
         }
 
-        drawBackgroundImage(vpContent);
-        
         this->drawModelInternal(MODE_DRAWING,
                                 vpContent);
         
@@ -856,6 +855,8 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
     Model* model = NULL;
     
     this->mode = mode;
+    
+    drawBackgroundImage(viewportContent);
     
     if (this->browserTabContent != NULL) {
         m_clippingPlaneGroup = const_cast<ClippingPlaneGroup*>(this->browserTabContent->getClippingPlaneGroup());
@@ -6205,13 +6206,10 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
     const DisplayGroupEnum::Enum displayGroup = dpi->getDisplayGroupForTab(tabIndex);
     if (dpi->isDisplayed(displayGroup,
                          tabIndex)) {
-        int modelViewport[4];
-        vpContent->getModelViewport(modelViewport);
-        
         ImageFile* imageFile = dpi->getSelectedImageFile(displayGroup,
                                                                tabIndex);
         if (imageFile != NULL) {
-            drawImage(modelViewport,
+            drawImage(vpContent,
                       imageFile);
         }
     }
@@ -6226,9 +6224,11 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
  *    The QImage that is drawn.
  */
 void
-BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
-                                    const ImageFile* imageFile)
+BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
+                                    ImageFile* imageFile)
 {
+    CaretAssert(vpContent);
+    
     const int32_t originalImageWidth  = imageFile->getWidth();
     const int32_t originalImageHeight = imageFile->getHeight();
     const int32_t imageSize = originalImageWidth * originalImageHeight;
@@ -6236,7 +6236,33 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
         return;
     }
     
+    int viewport[4];
+    vpContent->getModelViewport(viewport);
+    
+    SelectionItemImage* idImage = m_brain->getSelectionManager()->getImageIdentification();
+    
     /*
+     * Check for a 'selection' type mode
+     */
+    bool isSelect = false;
+    switch (this->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (idImage->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+   /*
      * Normalized width/height
      * 
      * > 1.0 ===> viewport dimension larger than image dimension
@@ -6338,6 +6364,35 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     
+    if (isSelect) {
+        const float mx = this->mouseX - viewport[0];
+        const float my = this->mouseY - viewport[1];
+        
+        const float imageX = mx - xPos;
+        const float imageY = my - yPos;
+        
+        const float normalizedX = imageX / static_cast<float>(imageWidth);
+        const float normalizedY = imageY / static_cast<float>(imageHeight);
+        
+        std::cout << "Tab Index=" << vpContent->getTabIndex();
+        std::cout << "  Normalized X/Y: " << normalizedX << ", " << normalizedY << std::endl;
+        const int32_t pixelX = static_cast<int32_t>(normalizedX *
+                                                    static_cast<float>(originalImageWidth));
+        const int32_t pixelY = static_cast<int32_t>(normalizedY *
+                                                    static_cast<float>(originalImageHeight));
+        
+        std::cout << "   Pixel ID: " << pixelX << ", " << pixelY;
+        if ((pixelX    >= 0)
+            && (pixelX <  originalImageWidth)
+            && (pixelY >= 0)
+            && (pixelY <  originalImageHeight)) {
+            std::cout << " INSIDE IMAGE";
+            idImage->setImageFile(imageFile);
+            idImage->setPixelI(pixelX);
+            idImage->setPixelJ(pixelY);
+        }
+        std::cout << std::endl;
+    }
 }
 
 /**

@@ -40,6 +40,7 @@
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
+#include "SelectionItemImage.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemSurfaceTriangle.h"
@@ -74,6 +75,7 @@ SelectionManager::SelectionManager()
     m_chartTimeSeriesIdentification = new SelectionItemChartTimeSeries();
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
     m_volumeFocusIdentification = new SelectionItemFocusVolume();
+    m_imageIdentification = new SelectionItemImage();
     m_surfaceNodeIdentification = new SelectionItemSurfaceNode();
     m_surfaceNodeIdentificationSymbol = new SelectionItemSurfaceNodeIdentificationSymbol();
     m_surfaceTriangleIdentification = new SelectionItemSurfaceTriangle();
@@ -92,6 +94,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentificationSymbol);
     m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
+    m_allSelectionItems.push_back(m_imageIdentification);
     m_allSelectionItems.push_back(m_voxelIdentification);
     m_allSelectionItems.push_back(m_voxelIdentificationSymbol);
     m_allSelectionItems.push_back(m_voxelEditingIdentification);
@@ -139,6 +142,8 @@ SelectionManager::~SelectionManager()
     m_ciftiConnectivityMatrixRowColumnIdentfication = NULL;
     delete m_surfaceFocusIdentification;
     m_surfaceFocusIdentification = NULL;
+    delete m_imageIdentification;
+    m_imageIdentification = NULL;
     delete m_surfaceNodeIdentification;
     m_surfaceNodeIdentification = NULL;
     delete m_surfaceNodeIdentificationSymbol;
@@ -458,6 +463,24 @@ const SelectionItemAnnotation*
 SelectionManager::getAnnotationIdentification() const
 {
     return m_annotationIdentification;
+}
+
+/**
+ * @return Identification for image.
+ */
+SelectionItemImage*
+SelectionManager::getImageIdentification()
+{
+    return m_imageIdentification;
+}
+
+/**
+ * @return Identification for image.
+ */
+const SelectionItemImage*
+SelectionManager::getImageIdentification() const
+{
+    return m_imageIdentification;
 }
 
 /**

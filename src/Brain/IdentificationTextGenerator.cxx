@@ -42,6 +42,7 @@
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
+#include "ImageFile.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
@@ -51,6 +52,7 @@
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
+#include "SelectionItemImage.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -140,6 +142,9 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
     
     this->generateCiftiConnectivityMatrixIdentificationText(idText,
                                                             idManager->getCiftiConnectivityMatrixRowColumnIdentification());
+    
+    this->generateImageIdentificationText(idText,
+                                          idManager->getImageIdentification());
     
     return idText.toString();
 }
@@ -1077,7 +1082,8 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
  *     String builder for identification text.
  * @param idVolumeFocus
  *     Information for surface focus ID.
- */void
+ */
+void
 IdentificationTextGenerator::generateVolumeFociIdentifcationText(IdentificationStringBuilder& idText,
                                                                   const SelectionItemFocusVolume* idVolumeFocus) const
 {
@@ -1152,6 +1158,31 @@ IdentificationTextGenerator::generateVolumeFociIdentifcationText(IdentificationS
         
     }
 }
+
+/**
+ * Generate identification text for image identification.
+ * @param idText
+ *     String builder for identification text.
+ * @param idImage
+ *     Information for image ID.
+ */
+void
+IdentificationTextGenerator::generateImageIdentificationText(IdentificationStringBuilder& idText,
+                                                             const SelectionItemImage* idImage) const
+{
+    if (idImage->isValid()) {
+        const AString text = ("Image "
+                              + idImage->getImageFile()->getFileNameNoPath()
+                              + " Pixel IJ ("
+                              + AString::number(idImage->getPixelI())
+                              + ","
+                              + AString::number(idImage->getPixelJ())
+                              + ")");
+        idText.addLine(false,
+                       text);
+    }
+}
+
 
 
 /**

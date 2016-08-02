@@ -111,7 +111,11 @@ SelectionItemDataTypeEnum::initialize()
                                     "FOCUS_VOLUME", 
                                     "Volume Focus"));
     
-    enumData.push_back(SelectionItemDataTypeEnum(SURFACE_NODE, 
+    enumData.push_back(SelectionItemDataTypeEnum(IMAGE,
+                                                 "IMAGE",
+                                                 "Image"));
+    
+    enumData.push_back(SelectionItemDataTypeEnum(SURFACE_NODE,
                                     "SURFACE_NODE", 
                                     "Surface Vertex"));
     

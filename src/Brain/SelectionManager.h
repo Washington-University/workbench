@@ -38,6 +38,7 @@ namespace caret {
     class SelectionItemCiftiConnectivityMatrixRowColumn;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
+    class SelectionItemImage;
     class SelectionItemSurfaceNode;
     class SelectionItemSurfaceNodeIdentificationSymbol;
     class SelectionItemSurfaceTriangle;
@@ -73,6 +74,10 @@ namespace caret {
         SelectionItemFocusVolume* getVolumeFocusIdentification();
         
         const SelectionItemFocusVolume* getVolumeFocusIdentification() const;
+        
+        SelectionItemImage* getImageIdentification();
+        
+        const SelectionItemImage* getImageIdentification() const;
         
         SelectionItemSurfaceNode* getSurfaceNodeIdentification();
         
@@ -172,6 +177,8 @@ namespace caret {
         SelectionItemFocusSurface* m_surfaceFocusIdentification;
         
         SelectionItemFocusVolume* m_volumeFocusIdentification;
+        
+        SelectionItemImage* m_imageIdentification;
         
         SelectionItemSurfaceNode* m_surfaceNodeIdentification;
         
