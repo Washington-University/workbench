@@ -46,9 +46,11 @@
 
 
 #include <cmath>
+#include <limits>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ControlPoint3D.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "NiftiEnums.h"
@@ -56,11 +58,11 @@
 
 using namespace caret;
 
-static const bool INFO = false;
+//static const bool INFO = false;
 
-static const bool DEBUG = false;
+//static const bool DEBUG = false;
 
-static const float iDF = 1.0f;
+//static const float iDF = 1.0f;
 
 static  const double SMALL_POSITIVE_NUMBER = 0.000001;
 
@@ -1917,6 +1919,525 @@ Matrix4x4::Determinant3x3(double A[3][3])
 }
 
 /**
+ * Set this matrix to a landmark transform that maps from the source
+ * to the target space as defined by the control points.
+ * Replaces the current matrix.
+ *
+ * @param controlPoints
+ *     The control points (pair of source and target coordinates).
+ * @param errorMessageOut
+ *     Contains error message.
+ * @return
+ *     True if output matrix is valid, else false.  If false, this
+ *     matrix will be the identity matrix.
+ */
+bool
+Matrix4x4::createLandmarkTransformMatrix(const std::vector<ControlPoint3D>& controlPoints,
+                                         AString& errorMessageOut)
+{
+    const bool testFlag = true;
+    
+    double leastError = std::numeric_limits<float>::max();
+    Matrix4x4 leastErrorMatrix;
+    bool leastErrorMatrixValid = false;
+    
+    if (testFlag) {
+        for (int32_t j = 0; j < 3; j++) {
+            LANDMARK_TRANSFORM_MODE mode = LANDMARK_TRANSFORM_AFFINE;
+            AString modeName;
+            
+            switch (j) {
+                case 0:
+                    mode = LANDMARK_TRANSFORM_AFFINE;
+                    modeName = "LANDMARK_TRANSFORM_AFFINE";
+                    break;
+                case 1:
+                    mode = LANDMARK_TRANSFORM_RIGIDBODY;
+                    modeName = "LANDMARK_TRANSFORM_RIGIDBODY";
+                    break;
+                case 2:
+                    mode = LANDMARK_TRANSFORM_SIMILARITY;
+                    modeName = "LANDMARK_TRANSFORM_SIMILARITY";
+                    break;
+            }
+            Matrix4x4 matrix;
+            if (matrix.createLandmarkTransformMatrixPrivate(controlPoints,
+                                                        mode,
+                                                        errorMessageOut)) {
+                
+                //    matrix.setMatrixToOpenGLRotationFromVector(coordinateNormalVector);
+                std::cout << std::endl;
+                std::cout << "Mode:   " << qPrintable(modeName) << std::endl;
+                std::cout << "Matrix: " << qPrintable(matrix.toFormattedString("   ")) << std::endl;
+                
+                const int32_t numcp = static_cast<int32_t>(controlPoints.size());
+                double sum = 0.0;
+                
+                for (int32_t i = 0; i < numcp; i++) {
+                    double source[3];
+                    controlPoints[i].getSource(source);
+                    double predicted[3] = { source[0], source[1], source[2] };
+                    matrix.multiplyPoint3(predicted);
+                    
+                    double target[3];
+                    controlPoints[i].getTarget(target);
+                    
+                    const double error = MathFunctions::distance3D(predicted, target);
+                    sum += error;
+                    
+                    std::cout << "CP("<< i << ") Source: ("
+                    << qPrintable(AString::fromNumbers(source, 3, ",")) << ")  Target: ("
+                    << qPrintable(AString::fromNumbers(target, 3, ",")) << ")  Predicted: ("
+                    << qPrintable(AString::fromNumbers(predicted, 3, ",")) << ")  Error: "
+                    << error << std::endl;
+                }
+                
+                const double error = (sum /= static_cast<double>(numcp));
+                std::cout << "Error:  " << error << std::endl;
+                
+                if (error < leastError) {
+                    leastError = error;
+                    leastErrorMatrix = matrix;
+                    leastErrorMatrixValid = true;
+                }
+            }
+        }
+    }
+
+    *this = leastErrorMatrix;
+    
+//    const bool result = createLandmarkTransformMatrixPrivate(controlPoints,
+//                                                LANDMARK_TRANSFORM_AFFINE,
+//                                                errorMessageOut);
+    std::cout << std::endl;
+    std::cout << "Transform Error:  " << measureTransformError(controlPoints,
+                                                               *this) << std::endl;
+    return leastErrorMatrixValid;
+}
+
+/**
+ * Set this matrix to a landmark transform that maps from the source
+ * to the target space as defined by the control points.
+ * Replaces the current matrix.
+ *
+ * Code Copied From vtkLandmarkTransform
+ * Program:   Visualization Toolkit
+ * Module:    vtkLandmarkTransform.cxx
+ *
+ * Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+ * All rights reserved.
+ * See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+ *
+ * This software is distributed WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the above copyright notice for more information.
+ *
+ * @param controlPoints
+ *     The control points (pair of source and target coordinates).
+ * @param mode
+ *     Mode for transformation.
+ * @param errorMessageOut
+ *     Contains error message.
+ * @return
+ *     True if output matrix is valid, else false.  If false, this
+ *     matrix will be the identity matrix.
+ */
+bool
+Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D>& controlPoints,
+                                                const LANDMARK_TRANSFORM_MODE mode,
+                                                AString& errorMessageOut) 
+{
+    identity();
+    
+    errorMessageOut.clear();
+    
+    //vtkIdType i;
+    int32_t i;
+    int32_t j;
+    
+    //if (this->SourceLandmarks == NULL || this->TargetLandmarks == NULL)
+    if (controlPoints.empty())
+    {
+        identity();
+        errorMessageOut = "Control points are empty.";
+        return false;
+    }
+    
+    // --- compute the necessary transform to match the two sets of landmarks ---
+    
+    /*
+     The solution is based on
+     Berthold K. P. Horn (1987),
+     "Closed-form solution of absolute orientation using unit quaternions,"
+     Journal of the Optical Society of America A, 4:629-642
+     */
+    
+    // Original python implementation by David G. Gobbi
+    
+    //const vtkIdType N_PTS = this->SourceLandmarks->GetNumberOfPoints();
+    const int32_t N_PTS = static_cast<int32_t>(controlPoints.size());
+    //    if(N_PTS != this->TargetLandmarks->GetNumberOfPoints())
+    //    {
+    //        vtkErrorMacro("Update: Source and Target Landmarks contain a different number of points");
+    //        return;
+    //    }
+    
+    // -- if no points, stop here
+    
+    if (N_PTS == 0)
+    {
+        identity();
+        return false;
+    }
+    
+    // -- find the centroid of each set --
+    
+    double source_centroid[3]={0,0,0};
+    double target_centroid[3]={0,0,0};
+    double p[3];
+    for(i=0;i<N_PTS;i++)
+    {
+        CaretAssertVectorIndex(controlPoints, i);
+        //this->SourceLandmarks->GetPoint(i, p);
+        controlPoints[i].getSource(p);
+        source_centroid[0] += p[0];
+        source_centroid[1] += p[1];
+        source_centroid[2] += p[2];
+        //this->TargetLandmarks->GetPoint(i, p);
+        controlPoints[i].getTarget(p);
+        target_centroid[0] += p[0];
+        target_centroid[1] += p[1];
+        target_centroid[2] += p[2];
+    }
+    source_centroid[0] /= N_PTS;
+    source_centroid[1] /= N_PTS;
+    source_centroid[2] /= N_PTS;
+    target_centroid[0] /= N_PTS;
+    target_centroid[1] /= N_PTS;
+    target_centroid[2] /= N_PTS;
+    
+    
+    double matrixArray[4][4];
+    getMatrix(matrixArray);
+    
+    // -- if only one point, stop right here
+    
+    if (N_PTS == 1)
+    {
+        //this->Matrix->Identity();
+        matrixArray[0][3] = target_centroid[0] - source_centroid[0];
+        matrixArray[1][3] = target_centroid[1] - source_centroid[1];
+        matrixArray[2][3] = target_centroid[2] - source_centroid[2];
+        return true;
+    }
+    
+    // -- build the 3x3 matrix M --
+    
+    double M[3][3];
+    double AAT[3][3];
+    for(i=0;i<3;i++)
+    {
+        AAT[i][0] = M[i][0]=0.0F; // fill M with zeros
+        AAT[i][1] = M[i][1]=0.0F;
+        AAT[i][2] = M[i][2]=0.0F;
+    }
+    //vtkIdType pt;
+    int32_t pt;
+    double a[3],b[3];
+    double sa=0.0F,sb=0.0F;
+    for(pt=0;pt<N_PTS;pt++)
+    {
+        // get the origin-centred point (a) in the source set
+        //this->SourceLandmarks->GetPoint(pt,a);
+        CaretAssertVectorIndex(controlPoints, pt);
+        controlPoints[pt].getSource(a);
+        a[0] -= source_centroid[0];
+        a[1] -= source_centroid[1];
+        a[2] -= source_centroid[2];
+        // get the origin-centred point (b) in the target set
+        //this->TargetLandmarks->GetPoint(pt,b);
+        controlPoints[pt].getTarget(b);
+        b[0] -= target_centroid[0];
+        b[1] -= target_centroid[1];
+        b[2] -= target_centroid[2];
+        // accumulate the products a*T(b) into the matrix M
+        for(i=0;i<3;i++)
+        {
+            M[i][0] += a[i]*b[0];
+            M[i][1] += a[i]*b[1];
+            M[i][2] += a[i]*b[2];
+            
+            // for the affine transform, compute ((a.a^t)^-1 . a.b^t)^t.
+            // a.b^t is already in M.  here we put a.a^t in AAT.
+            if (mode == LANDMARK_TRANSFORM_AFFINE)
+            {
+                AAT[i][0] += a[i]*a[0];
+                AAT[i][1] += a[i]*a[1];
+                AAT[i][2] += a[i]*a[2];
+            }
+        }
+        // accumulate scale factors (if desired)
+        sa += a[0]*a[0]+a[1]*a[1]+a[2]*a[2];
+        sb += b[0]*b[0]+b[1]*b[1]+b[2]*b[2];
+        
+        /*
+         * If source points all have same value for 'k',
+         * it will cause element [2][2] to be zero
+         * and the matrix cannot be inverted.
+         */
+        if (AAT[2][2] == 0.0) {
+            AAT[2][2] = 1.0;
+        }
+    }
+    
+    
+    if(mode == LANDMARK_TRANSFORM_AFFINE)
+    {
+        // AAT = (a.a^t)^-1
+        MathFunctions::vtkInvert3x3(AAT,AAT);
+        
+        // M = (a.a^t)^-1 . a.b^t
+        MathFunctions::vtkMultiply3x3(AAT,M,M);
+        
+        // this->Matrix = M^t
+        for(i=0;i<3;++i)
+        {
+            for(j=0;j<3;++j)
+            {
+                matrixArray[i][j] = M[j][i];
+            }
+        }
+    }
+    else
+    {
+        // compute required scaling factor (if desired)
+        double scale = (double)std::sqrt(sb/sa);
+        
+        // -- build the 4x4 matrix N --
+        
+        double Ndata[4][4];
+        double *N[4];
+        for(i=0;i<4;i++)
+        {
+            N[i] = Ndata[i];
+            N[i][0]=0.0F; // fill N with zeros
+            N[i][1]=0.0F;
+            N[i][2]=0.0F;
+            N[i][3]=0.0F;
+        }
+        // on-diagonal elements
+        N[0][0] = M[0][0]+M[1][1]+M[2][2];
+        N[1][1] = M[0][0]-M[1][1]-M[2][2];
+        N[2][2] = -M[0][0]+M[1][1]-M[2][2];
+        N[3][3] = -M[0][0]-M[1][1]+M[2][2];
+        // off-diagonal elements
+        N[0][1] = N[1][0] = M[1][2]-M[2][1];
+        N[0][2] = N[2][0] = M[2][0]-M[0][2];
+        N[0][3] = N[3][0] = M[0][1]-M[1][0];
+        
+        N[1][2] = N[2][1] = M[0][1]+M[1][0];
+        N[1][3] = N[3][1] = M[2][0]+M[0][2];
+        N[2][3] = N[3][2] = M[1][2]+M[2][1];
+        
+        // -- eigen-decompose N (is symmetric) --
+        
+        double eigenvectorData[4][4];
+        double *eigenvectors[4],eigenvalues[4];
+        
+        eigenvectors[0] = eigenvectorData[0];
+        eigenvectors[1] = eigenvectorData[1];
+        eigenvectors[2] = eigenvectorData[2];
+        eigenvectors[3] = eigenvectorData[3];
+        
+        MathFunctions::vtkJacobiN(N,4,eigenvalues,eigenvectors);
+        
+        // the eigenvector with the largest eigenvalue is the quaternion we want
+        // (they are sorted in decreasing order for us by JacobiN)
+        double w,x,y,z;
+        
+        // first: if points are collinear, choose the quaternion that
+        // results in the smallest rotation.
+        if (eigenvalues[0] == eigenvalues[1] || N_PTS == 2)
+        {
+            double s0[3],t0[3],s1[3],t1[3];
+            //            this->SourceLandmarks->GetPoint(0,s0);
+            //            this->TargetLandmarks->GetPoint(0,t0);
+            //            this->SourceLandmarks->GetPoint(1,s1);
+            //            this->TargetLandmarks->GetPoint(1,t1);
+            CaretAssertVectorIndex(controlPoints, 1);
+            controlPoints[0].getSource(s0);
+            controlPoints[0].getTarget(t0);
+            controlPoints[1].getSource(s1);
+            controlPoints[1].getTarget(t1);
+            
+            double ds[3],dt[3];
+            double rs = 0, rt = 0;
+            for (i = 0; i < 3; i++)
+            {
+                ds[i] = s1[i] - s0[i];      // vector between points
+                rs += ds[i]*ds[i];
+                dt[i] = t1[i] - t0[i];
+                rt += dt[i]*dt[i];
+            }
+            
+            // normalize the two vectors
+            rs = sqrt(rs);
+            ds[0] /= rs; ds[1] /= rs; ds[2] /= rs;
+            rt = sqrt(rt);
+            dt[0] /= rt; dt[1] /= rt; dt[2] /= rt;
+            
+            // take dot & cross product
+            w = ds[0]*dt[0] + ds[1]*dt[1] + ds[2]*dt[2];
+            x = ds[1]*dt[2] - ds[2]*dt[1];
+            y = ds[2]*dt[0] - ds[0]*dt[2];
+            z = ds[0]*dt[1] - ds[1]*dt[0];
+            
+            double r = sqrt(x*x + y*y + z*z);
+            double theta = atan2(r,w);
+            
+            // construct quaternion
+            w = cos(theta/2);
+            if (r != 0)
+            {
+                r = sin(theta/2)/r;
+                x = x*r;
+                y = y*r;
+                z = z*r;
+            }
+            else // rotation by 180 degrees: special case
+            {
+                // rotate around a vector perpendicular to ds
+                MathFunctions::vtkPerpendiculars(ds,dt,0,0);
+                r = sin(theta/2);
+                x = dt[0]*r;
+                y = dt[1]*r;
+                z = dt[2]*r;
+            }
+        }
+        else // points are not collinear
+        {
+            w = eigenvectors[0][0];
+            x = eigenvectors[1][0];
+            y = eigenvectors[2][0];
+            z = eigenvectors[3][0];
+        }
+        
+        // convert quaternion to a rotation matrix
+        
+        double ww = w*w;
+        double wx = w*x;
+        double wy = w*y;
+        double wz = w*z;
+        
+        double xx = x*x;
+        double yy = y*y;
+        double zz = z*z;
+        
+        double xy = x*y;
+        double xz = x*z;
+        double yz = y*z;
+        
+        matrixArray[0][0] = ww + xx - yy - zz;
+        matrixArray[1][0] = 2.0*(wz + xy);
+        matrixArray[2][0] = 2.0*(-wy + xz);
+        
+        matrixArray[0][1] = 2.0*(-wz + xy);
+        matrixArray[1][1] = ww - xx + yy - zz;
+        matrixArray[2][1] = 2.0*(wx + yz);
+        
+        matrixArray[0][2] = 2.0*(wy + xz);
+        matrixArray[1][2] = 2.0*(-wx + yz);
+        matrixArray[2][2] = ww - xx - yy + zz;
+        
+        if (mode != LANDMARK_TRANSFORM_RIGIDBODY)
+        { // add in the scale factor (if desired)
+            for(i=0;i<3;i++)
+            {
+                matrixArray[i][0] *= scale;
+                matrixArray[i][1] *= scale;
+                matrixArray[i][2] *= scale;
+            }
+        }
+    }
+    
+    // the translation is given by the difference in the transformed source
+    // centroid and the target centroid
+    double sx, sy, sz;
+    
+    sx = matrixArray[0][0] * source_centroid[0] +
+    matrixArray[0][1] * source_centroid[1] +
+    matrixArray[0][2] * source_centroid[2];
+    sy = matrixArray[1][0] * source_centroid[0] +
+    matrixArray[1][1] * source_centroid[1] +
+    matrixArray[1][2] * source_centroid[2];
+    sz = matrixArray[2][0] * source_centroid[0] +
+    matrixArray[2][1] * source_centroid[1] +
+    matrixArray[2][2] * source_centroid[2];
+    
+    matrixArray[0][3] = target_centroid[0] - sx;
+    matrixArray[1][3] = target_centroid[1] - sy;
+    matrixArray[2][3] = target_centroid[2] - sz;
+    
+    // fill the bottom row of the 4x4 matrix
+    matrixArray[3][0] = 0.0;
+    matrixArray[3][1] = 0.0;
+    matrixArray[3][2] = 0.0;
+    matrixArray[3][3] = 1.0;
+    
+    /*
+     * Can get zero for a scale factor if planes of the
+     * source and target are parallel
+     */
+    for (int32_t i = 0; i < 3; i++) {
+        if (matrixArray[i][i] == 0.0) {
+            matrixArray[i][i] = 1.0;
+        }
+    }
+    
+    setMatrix(matrixArray);
+    //this->Matrix->Modified();
+    
+    return true;
+}
+
+/**
+ * Measure the average error for control points using transform matrix.
+ * Error is straight line distance between ([source] * [matrix]) and
+ * (target).
+ *
+ * @param controlProints
+ *     The control points
+ * @param matrix
+ *     The transform matrix.
+ */
+float
+Matrix4x4::measureTransformError(const std::vector<ControlPoint3D>& controlPoints,
+                                 const Matrix4x4& matrix) const
+{
+    const int32_t numcp = static_cast<int32_t>(controlPoints.size());
+    if (numcp <= 0) {
+        return 0.0;
+    }
+    
+    double sum = 0.0;
+    
+    for (int32_t i = 0; i < numcp; i++) {
+        double pt[3];
+        controlPoints[i].getSource(pt);
+        matrix.multiplyPoint3(pt);
+        
+        double target[3];
+        controlPoints[i].getTarget(target);
+        
+        const double error = MathFunctions::distance3D(pt, target);
+        sum += error;
+    }
+    
+    const double error = (sum /= static_cast<double>(numcp));
+    return error;
+}
+
+/**
  * Write the matrix as a GIFTI matrix using the given XML tags.
  *
  * @param xmlWriter 
@@ -2004,8 +2525,17 @@ Matrix4x4::toFormattedString(const AString& indentation) const
     getRotation(rotation[0], rotation[1], rotation[2]);
     double scale[3];
     getScale(scale[0], scale[1], scale[2]);
-    
+
+    AString elements;
+    for (int32_t iRow = 0; iRow < 4; iRow++) {
+        elements.append(indentation);
+        for (int32_t iCol = 0; iCol < 4; iCol++) {
+            elements.append(AString::number(matrix[iRow][iCol]) + " ");
+        }
+        elements.append("\n");
+    }
     const AString s("Matrix4x4: \n"
+                    + elements
                     + indentation + "Translation: " + AString::fromNumbers(translation, 3, ", ") + "\n"
                     + indentation + "Rotation:    " + AString::fromNumbers(rotation, 3, ", ") + "\n"
                     + indentation + "Scale:       " + AString::fromNumbers(scale, 3, ", "));

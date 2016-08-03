@@ -29,7 +29,8 @@
 
 namespace caret {
 
-class XmlWriter;
+    class ControlPoint3D;
+    class XmlWriter;
 
 /**
  * A 4x4 homogeneous transformation matrix.
@@ -160,6 +161,9 @@ public:
 
     bool invert();
 
+    bool createLandmarkTransformMatrix(const std::vector<ControlPoint3D>& controlPoints,
+                                       AString& errorMessageOut);
+    
     AString toString() const;
 
     AString toFormattedString(const AString& indentation) const;
@@ -177,6 +181,12 @@ public:
                          const AString& xmlMatrixDataTag);
     
 private:
+    enum LANDMARK_TRANSFORM_MODE {
+        LANDMARK_TRANSFORM_AFFINE,
+        LANDMARK_TRANSFORM_RIGIDBODY,
+        LANDMARK_TRANSFORM_SIMILARITY
+    };
+    
     double fixZero(const double f);
 
     void fixNumericalError();
@@ -221,6 +231,13 @@ private:
     static void Diagonalize3x3(const double A[3][3], double w[3], double V[3][3]);
 
     static int JacobiN(double **a, int n, double *w, double **v);
+
+    bool createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D>& controlPoints,
+                                              const LANDMARK_TRANSFORM_MODE mode,
+                                              AString& errorMessageOut);
+    
+    float measureTransformError(const std::vector<ControlPoint3D>& controlPoints,
+                                const Matrix4x4& matrix) const;
 
 protected:
     /**the 4x4 matrix */

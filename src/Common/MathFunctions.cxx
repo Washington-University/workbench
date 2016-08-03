@@ -40,6 +40,7 @@
 #include "MathFunctions.h"
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 
 using namespace caret;
 using namespace std;
@@ -823,6 +824,17 @@ MathFunctions::triangleAreaSigned3D(
     return area;
 }
 
+/**
+ * this method solves Ay = x for y.
+ * From vtkMath.
+ *
+ * @param A
+ *     3x3 matrix.
+ * @param x
+ *     Input vector.
+ * @param y
+ *     Output vector.
+ */
 void
 MathFunctions::vtkLinearSolve3x3(
                    const float A[3][3],
@@ -843,6 +855,17 @@ MathFunctions::vtkLinearSolve3x3(
     vtkLUSolve3x3(B,index,y);
 }
 
+/**
+ * Backsubstitution with an LU-decomposed matrix.
+ * From vtkMath.
+ *
+ * @param A
+ *     3x3 matrix.
+ * @param index
+ *
+ * @param x
+ *     Output vector.
+ */
 void
 MathFunctions::vtkLUSolve3x3(
                    const float A[3][3],
@@ -872,6 +895,15 @@ MathFunctions::vtkLUSolve3x3(
     x[0] = (x[0] - A[0][1]*x[1] - A[0][2]*x[2])*A[0][0];
 }
 
+/**
+ * Unrolled LU factorization of a 3x3 matrix with pivoting.
+ * From vtkMath.
+ *
+ * @param A
+ *     3x3 matrix.
+ * @param index
+ * 
+ */
 void
 MathFunctions::vtkLUFactor3x3(
                    float A[3][3],
@@ -958,6 +990,390 @@ MathFunctions::vtkLUFactor3x3(
     index[2] = 2;
     A[2][2] = (1.0f)/A[2][2];
 }
+
+/**
+ * 2x2 Determinant.
+ * From vtkMath.
+ *
+ * @param a
+ *      element top left.
+ * @param b
+ *      element top right.
+ * @param c
+ *      element bottom left.
+ * @param d
+ *      element bottom right.
+ * @return
+ *      The determinant.
+ */
+double
+MathFunctions::vtkDeterminant2x2(double a, double b, double c, double d)
+{
+    return (a * d - b * c);
+}
+
+/**
+ * Invert 3x3 Matrix.
+ * From vtkMath.
+ *
+ * @param A
+ *     Input 3x3 matrix.
+ * @param AI
+ *     Output 3x3 matrix.
+ */
+void
+MathFunctions::vtkInvert3x3(const double A[3][3], double AI[3][3])
+{
+    double a1 = A[0][0]; double b1 = A[0][1]; double c1 = A[0][2];
+    double a2 = A[1][0]; double b2 = A[1][1]; double c2 = A[1][2];
+    double a3 = A[2][0]; double b3 = A[2][1]; double c3 = A[2][2];
+    
+    // Compute the adjoint
+    double d1 =   vtkDeterminant2x2( b2, b3, c2, c3);
+    double d2 = - vtkDeterminant2x2( a2, a3, c2, c3);
+    double d3 =   vtkDeterminant2x2( a2, a3, b2, b3);
+    
+    double e1 = - vtkDeterminant2x2( b1, b3, c1, c3);
+    double e2 =   vtkDeterminant2x2( a1, a3, c1, c3);
+    double e3 = - vtkDeterminant2x2( a1, a3, b1, b3);
+    
+    double f1 =   vtkDeterminant2x2( b1, b2, c1, c2);
+    double f2 = - vtkDeterminant2x2( a1, a2, c1, c2);
+    double f3 =   vtkDeterminant2x2( a1, a2, b1, b2);
+    
+    // Divide by the determinant
+    double det = a1*d1 + b1*d2 + c1*d3;
+    
+    AI[0][0]  = d1/det;
+    AI[1][0]  = d2/det;
+    AI[2][0]  = d3/det;
+    
+    AI[0][1]  = e1/det;
+    AI[1][1]  = e2/det;
+    AI[2][1]  = e3/det;
+    
+    AI[0][2]  = f1/det;
+    AI[1][2]  = f2/det;
+    AI[2][2]  = f3/det;
+}
+
+/**
+ * Multipley 3x3 matrices C = A * B.
+ * From vtkMath.
+ *
+ * @param A
+ *     3x3 matrix.
+ * @param B
+ *     3x3 matrix.
+ * @param C
+ *     Output 3x3 matrix.
+ */
+void
+MathFunctions::vtkMultiply3x3(const double A[3][3],
+                              const double B[3][3], double C[3][3])
+{
+    double D[3][3];
+    
+    for (int i = 0; i < 3; i++)
+    {
+        D[0][i] = A[0][0]*B[0][i] + A[0][1]*B[1][i] + A[0][2]*B[2][i];
+        D[1][i] = A[1][0]*B[0][i] + A[1][1]*B[1][i] + A[1][2]*B[2][i];
+        D[2][i] = A[2][0]*B[0][i] + A[2][1]*B[1][i] + A[2][2]*B[2][i];
+    }
+    
+    for (int j = 0; j < 3; j++)
+    {
+        C[j][0] = D[j][0];
+        C[j][1] = D[j][1];
+        C[j][2] = D[j][2];
+    }
+}
+
+#define VTK_ROTATE(a,i,j,k,l) g=a[i][j];h=a[k][l];a[i][j]=g-s*(h+g*tau);\
+a[k][l]=h+s*(g-h*tau)
+
+#define VTK_MAX_ROTATIONS 20
+
+//#undef VTK_MAX_ROTATIONS
+
+//#define VTK_MAX_ROTATIONS 50
+// Jacobi iteration for the solution of eigenvectors/eigenvalues of a nxn
+// real symmetric matrix. Square nxn matrix a; size of matrix in n;
+// output eigenvalues in w; and output eigenvectors in v. Resulting
+// eigenvalues/vectors are sorted in decreasing order; eigenvectors are
+// normalized.
+int MathFunctions::vtkJacobiN(double **a, int n, double *w, double **v)
+{
+    int i, j, k, iq, ip, numPos;
+    double tresh, theta, tau, t, sm, s, h, g, c, tmp;
+    double bspace[4], zspace[4];
+    double *b = bspace;
+    double *z = zspace;
+    
+    // only allocate memory if the matrix is large
+    if (n > 4)
+    {
+        b = new double[n];
+        z = new double[n];
+    }
+    
+    // initialize
+    for (ip=0; ip<n; ip++)
+    {
+        for (iq=0; iq<n; iq++)
+        {
+            v[ip][iq] = 0.0;
+        }
+        v[ip][ip] = 1.0;
+    }
+    for (ip=0; ip<n; ip++)
+    {
+        b[ip] = w[ip] = a[ip][ip];
+        z[ip] = 0.0;
+    }
+    
+    // begin rotation sequence
+    for (i=0; i<VTK_MAX_ROTATIONS; i++)
+    {
+        sm = 0.0;
+        for (ip=0; ip<n-1; ip++)
+        {
+            for (iq=ip+1; iq<n; iq++)
+            {
+                sm += fabs(a[ip][iq]);
+            }
+        }
+        if (sm == 0.0)
+        {
+            break;
+        }
+        
+        if (i < 3)                                // first 3 sweeps
+        {
+            tresh = 0.2*sm/(n*n);
+        }
+        else
+        {
+            tresh = 0.0;
+        }
+        
+        for (ip=0; ip<n-1; ip++)
+        {
+            for (iq=ip+1; iq<n; iq++)
+            {
+                g = 100.0*fabs(a[ip][iq]);
+                
+                // after 4 sweeps
+                if (i > 3 && (fabs(w[ip])+g) == fabs(w[ip])
+                    && (fabs(w[iq])+g) == fabs(w[iq]))
+                {
+                    a[ip][iq] = 0.0;
+                }
+                else if (fabs(a[ip][iq]) > tresh)
+                {
+                    h = w[iq] - w[ip];
+                    if ( (fabs(h)+g) == fabs(h))
+                    {
+                        t = (a[ip][iq]) / h;
+                    }
+                    else
+                    {
+                        theta = 0.5*h / (a[ip][iq]);
+                        t = 1.0 / (fabs(theta)+sqrt(1.0+theta*theta));
+                        if (theta < 0.0)
+                        {
+                            t = -t;
+                        }
+                    }
+                    c = 1.0 / sqrt(1+t*t);
+                    s = t*c;
+                    tau = s/(1.0+c);
+                    h = t*a[ip][iq];
+                    z[ip] -= h;
+                    z[iq] += h;
+                    w[ip] -= h;
+                    w[iq] += h;
+                    a[ip][iq]=0.0;
+                    
+                    // ip already shifted left by 1 unit
+                    for (j = 0;j <= ip-1;j++)
+                    {
+                        VTK_ROTATE(a,j,ip,j,iq);
+                    }
+                    // ip and iq already shifted left by 1 unit
+                    for (j = ip+1;j <= iq-1;j++)
+                    {
+                        VTK_ROTATE(a,ip,j,j,iq);
+                    }
+                    // iq already shifted left by 1 unit
+                    for (j=iq+1; j<n; j++)
+                    {
+                        VTK_ROTATE(a,ip,j,iq,j);
+                    }
+                    for (j=0; j<n; j++)
+                    {
+                        VTK_ROTATE(v,j,ip,j,iq);
+                    }
+                }
+            }
+        }
+        
+        for (ip=0; ip<n; ip++)
+        {
+            b[ip] += z[ip];
+            w[ip] = b[ip];
+            z[ip] = 0.0;
+        }
+    }
+    //// this is NEVER called
+    if ( i >= VTK_MAX_ROTATIONS )
+    {
+        CaretLogWarning("vtkMath::Jacobi: Error extracting eigenfunctions");
+        return 0;
+    }
+    
+    // sort eigenfunctions                 these changes do not affect accuracy
+    for (j=0; j<n-1; j++)                  // boundary incorrect
+    {
+        k = j;
+        tmp = w[k];
+        for (i=j+1; i<n; i++)                // boundary incorrect, shifted already
+        {
+            if (w[i] >= tmp)                   // why exchage if same?
+            {
+                k = i;
+                tmp = w[k];
+            }
+        }
+        if (k != j)
+        {
+            w[k] = w[j];
+            w[j] = tmp;
+            for (i=0; i<n; i++)
+            {
+                tmp = v[i][j];
+                v[i][j] = v[i][k];
+                v[i][k] = tmp;
+            }
+        }
+    }
+    // insure eigenvector consistency (i.e., Jacobi can compute vectors that
+    // are negative of one another (.707,.707,0) and (-.707,-.707,0). This can
+    // reek havoc in hyperstreamline/other stuff. We will select the most
+    // positive eigenvector.
+    int ceil_half_n = (n >> 1) + (n & 1);
+    for (j=0; j<n; j++)
+    {
+        for (numPos=0, i=0; i<n; i++)
+        {
+            if ( v[i][j] >= 0.0 )
+            {
+                numPos++;
+            }
+        }
+        //    if ( numPos < ceil(double(n)/double(2.0)) )
+        if ( numPos < ceil_half_n)
+        {
+            for(i=0; i<n; i++)
+            {
+                v[i][j] *= -1.0;
+            }
+        }
+    }
+    
+    if (n > 4)
+    {
+        delete [] b;
+        delete [] z;
+    }
+    return 1;
+}
+#undef VTK_ROTATE
+#undef VTK_MAX_ROTATIONS
+
+/**
+ * Given a unit vector 'x', find two other unit vectors 'y' and 'z' which
+ * which form an orthonormal set.
+ * From vtkMath.
+ *
+ * @param x
+ *     Unit vector.
+ * @param y
+ *     Unit vector.
+ * @param z
+ *     Unit vector.
+ * @param theta
+ *     Angle?
+ */
+void
+MathFunctions::vtkPerpendiculars(const double x[3], double y[3], double z[3],
+                             double theta)
+{
+    int dx,dy,dz;
+    
+    double x2 = x[0]*x[0];
+    double y2 = x[1]*x[1];
+    double z2 = x[2]*x[2];
+    double r = sqrt(x2 + y2 + z2);
+    
+    // transpose the vector to avoid divide-by-zero error
+    if (x2 > y2 && x2 > z2)
+    {
+        dx = 0; dy = 1; dz = 2;
+    }
+    else if (y2 > z2)
+    {
+        dx = 1; dy = 2; dz = 0;
+    }
+    else
+    {
+        dx = 2; dy = 0; dz = 1;
+    }
+    
+    double a = x[dx]/r;
+    double b = x[dy]/r;
+    double c = x[dz]/r;
+    
+    double tmp = sqrt(a*a+c*c);
+    
+    if (theta != 0)
+    {
+        double sintheta = sin(theta);
+        double costheta = cos(theta);
+        
+        if (y)
+        {
+            y[dx] = (c*costheta - a*b*sintheta)/tmp;
+            y[dy] = sintheta*tmp;
+            y[dz] = (-a*costheta - b*c*sintheta)/tmp;
+        }
+        
+        if (z)
+        {
+            z[dx] = (-c*sintheta - a*b*costheta)/tmp;
+            z[dy] = costheta*tmp;
+            z[dz] = (a*sintheta - b*c*costheta)/tmp;
+        }
+    }
+    else
+    {
+        if (y)
+        {
+            y[dx] = c/tmp;
+            y[dy] = 0;
+            y[dz] = -a/tmp;
+        }
+        
+        if (z)
+        {
+            z[dx] = -a*b/tmp;
+            z[dy] = tmp;
+            z[dz] = -b*c/tmp;
+        }
+    }
+}
+
+
 
 /**
  * Determine if 2D line segments intersect.

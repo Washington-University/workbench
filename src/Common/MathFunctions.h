@@ -212,6 +212,25 @@ public:
                     float A[3][3],
                     int32_t index[]);
 
+    static void vtkInvert3x3(const double A[3][3],
+                             double AI[3][3]);
+    
+    static void vtkMultiply3x3(const double A[3][3],
+                               const double B[3][3],
+                               double C[3][3]);
+    
+    static int vtkJacobiN(double **a,
+                       int n,
+                       double *w,
+                       double **v);
+
+    static void vtkPerpendiculars(const double x[3],
+                                  double y[3],
+                                  double z[3],
+                                  double theta);
+    
+    static double vtkDeterminant2x2(double a, double b, double c, double d);
+
     static bool lineIntersection2D(
                     const float p1[3],
                     const float p2[3],
