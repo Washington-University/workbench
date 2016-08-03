@@ -6374,24 +6374,19 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
         const float normalizedX = imageX / static_cast<float>(imageWidth);
         const float normalizedY = imageY / static_cast<float>(imageHeight);
         
-        std::cout << "Tab Index=" << vpContent->getTabIndex();
-        std::cout << "  Normalized X/Y: " << normalizedX << ", " << normalizedY << std::endl;
         const int32_t pixelX = static_cast<int32_t>(normalizedX *
                                                     static_cast<float>(originalImageWidth));
         const int32_t pixelY = static_cast<int32_t>(normalizedY *
                                                     static_cast<float>(originalImageHeight));
         
-        std::cout << "   Pixel ID: " << pixelX << ", " << pixelY;
         if ((pixelX    >= 0)
             && (pixelX <  originalImageWidth)
             && (pixelY >= 0)
             && (pixelY <  originalImageHeight)) {
-            std::cout << " INSIDE IMAGE";
             idImage->setImageFile(imageFile);
             idImage->setPixelI(pixelX);
             idImage->setPixelJ(pixelY);
         }
-        std::cout << std::endl;
     }
 }
 
