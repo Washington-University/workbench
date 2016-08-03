@@ -3588,7 +3588,6 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
     }
 }
 
-
 /**
  * Draw volumes a voxel cubes for whole brain view.
  *
@@ -3684,7 +3683,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
     if (isSelect) {
         identificationIndices.reserve(10000 * idPerVoxelCount);
     }
-
+    
     PaletteFile* paletteFile = m_brain->getPaletteFile();
     
     for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
@@ -3702,10 +3701,8 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         
         float originX, originY, originZ;
         float x1, y1, z1;
-        float lastX, lastY, lastZ;
         volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
         volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
-        volumeFile->indexToSpace(dimI - 1, dimJ - 1, dimK - 1, lastX, lastY, lastZ);
         const float dx = x1 - originX;
         const float dy = y1 - originY;
         const float dz = z1 - originZ;
@@ -3713,16 +3710,26 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         /*
          * Cube size for voxel drawing.  Some volumes may have a right to left
          * orientation in which case dx may be negative.
+         *
+         * Scale the cube slightly larger to avoid cracks, particularly if
+         * a single slice is drawn.
          */
-        const float cubeSizeDX = std::fabs(dx);
-        const float cubeSizeDY = std::fabs(dy);
-        const float cubeSizeDZ = std::fabs(dz);
+        const float cubeScale = 1.10;
+        const float cubeSizeDX = std::fabs(dx) * cubeScale;
+        const float cubeSizeDY = std::fabs(dy) * cubeScale;
+        const float cubeSizeDZ = std::fabs(dz) * cubeScale;
         
         std::vector<float> labelMapData;
         const CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<const CiftiBrainordinateLabelFile*>(volumeFile);
         if (ciftiLabelFile != NULL) {
             ciftiLabelFile->getMapData(volInfo.mapIndex,
                                        labelMapData);
+        }
+        
+        if ((dimI == 1)
+            || (dimJ == 1)
+            || (dimK == 1)) {
+            glDisable(GL_LIGHTING);
         }
         
         uint8_t rgba[4];
@@ -3767,9 +3774,8 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                 identificationIndices.push_back(kVoxel);
                             }
                             
-                            const float x = iVoxel * dx + originX;
-                            const float y = jVoxel * dy + originY;
-                            const float z = kVoxel * dz + originZ;
+                            float x = 0, y = 0.0, z = 0.0;
+                            volumeFile->indexToSpace(iVoxel, jVoxel, kVoxel, x, y, z);
                             
                             bool drawIt = true;
                             if (doClipping) {
