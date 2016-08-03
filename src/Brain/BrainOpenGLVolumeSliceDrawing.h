@@ -200,7 +200,7 @@ namespace caret {
                               Matrix4x4& transformationMatrix,
                               const Plane& plane);
         
-        void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawOrthogonalSlice_LPI_ONLY(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const float sliceCoordinates[3],
                                  const Plane& plane);
         
