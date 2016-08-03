@@ -4302,7 +4302,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrthogonalSliceVoxelsQuadIndicesAndStr
                                                                              const int32_t mapIndex,
                                                                              const uint8_t sliceOpacity)
 {
-    const bool debugFlag = false;
+    //const bool debugFlag = false;
     
     enum DrawType {
         DRAW_QUADS,
