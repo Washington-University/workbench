@@ -481,8 +481,97 @@ CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename)
     }
 }
 
+namespace
+{
+    void warnForBadExtension(const QString& filename, const CiftiXML& myXML)
+    {
+        char junk[16];
+        int32_t intent_code = myXML.getIntentInfo(CiftiVersion(), junk);//use default writing version to check file extension, older version is missing some intent codes
+        switch (intent_code)
+        {
+            case 3000://unknown
+                if (!filename.contains(QRegExp("\\.[^.]*\\.nii$")))
+                {
+                    CaretLogWarning("cifti file of nonstandard mapping combination '" + filename + "' should be saved ending in .<something>.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3001:
+                if (!filename.endsWith(".dconn.nii"))
+                {
+                    CaretLogWarning("dense by dense cifti file '" + filename + "' should be saved ending in .dconn.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3002:
+                if (!filename.endsWith(".dtseries.nii"))
+                {
+                    CaretLogWarning("series by dense cifti file '" + filename + "' should be saved ending in .dtseries.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3003:
+                if (!filename.endsWith(".pconn.nii"))
+                {
+                    CaretLogWarning("parcels by parcels cifti file '" + filename + "' should be saved ending in .pconn.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3004:
+                if (!filename.endsWith(".ptseries.nii"))
+                {
+                    CaretLogWarning("series by parcels cifti file '" + filename + "' should be saved ending in .ptseries.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3006://3005 unused in practice
+                if (!(filename.endsWith(".dscalar.nii") || filename.endsWith(".dfan.nii") || filename.endsWith(".fiberTEMP.nii")))
+                {//there are additional special extensions in the standard for this mapping combination (specializations of scalar maps)
+                    //also include our fiberTEMP special extension
+                    CaretLogWarning("scalars by dense cifti file '" + filename + "' should be saved ending in .dscalar.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3007:
+                if (!filename.endsWith(".dlabel.nii"))
+                {
+                    CaretLogWarning("labels by dense cifti file '" + filename + "' should be saved ending in .dlabel.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3008:
+                if (!filename.endsWith(".pscalar.nii"))
+                {
+                    CaretLogWarning("scalars by parcels cifti file '" + filename + "' should be saved ending in .pscalar.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3009:
+                if (!filename.endsWith(".pdconn.nii"))
+                {
+                    CaretLogWarning("dense by parcels cifti file '" + filename + "' should be saved ending in .pdconn.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3010:
+                if (!filename.endsWith(".dpconn.nii"))
+                {
+                    CaretLogWarning("parcels by dense cifti file '" + filename + "' should be saved ending in .dpconn.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3011:
+                if (!filename.endsWith(".pconnseries.nii"))
+                {
+                    CaretLogWarning("parcels by parcels by series cifti file '" + filename + "' should be saved ending in .pconnseries.nii, see wb_command -cifti-help");
+                }
+                break;
+            case 3012:
+                if (!filename.endsWith(".pconnscalar.nii"))
+                {
+                    CaretLogWarning("parcels by parcels by scalar cifti file '" + filename + "' should be saved ending in .pconnscalar.nii, see wb_command -cifti-help");
+                }
+                break;
+            default:
+                CaretAssert(0);
+                throw CaretException("internal error, tell the developers what you just tried to do");
+        }
+    }
+}
+
 CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename, const CiftiXML& xml, const CiftiVersion& version, const bool& swapEndian)
 {//starts writing new file
+    warnForBadExtension(filename, xml);
     NiftiHeader outHeader;
     outHeader.setDataType(NIFTI_TYPE_FLOAT32);//actually redundant currently, default is float32
     char intentName[16];

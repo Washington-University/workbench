@@ -294,6 +294,10 @@ void VolumeFile::readFile(const AString& filename)
 void 
 VolumeFile::writeFile(const AString& filename)
 {
+    if (!(filename.endsWith(".nii.gz") || filename.endsWith(".nii")))
+    {
+        CaretLogWarning("volume file '" + filename + "' should be saved ending in .nii.gz or .nii, other formats are not supported");
+    }
     checkFileWritability(filename);
     
     if (getNumberOfComponents() != 1)

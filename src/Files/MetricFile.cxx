@@ -85,6 +85,15 @@ MetricFile::~MetricFile()
     this->columnDataPointers.clear();
 }
 
+void MetricFile::writeFile(const AString& filename)
+{
+    if (!(filename.endsWith(".func.gii") || filename.endsWith(".shape.gii")))
+    {
+        CaretLogWarning("metric file '" + filename + "' should be saved ending in .func.gii or .shape.gii, see wb_command -gifti-help");
+    }
+    caret::GiftiTypeFile::writeFile(filename);
+}
+
 /**
  * Clear the surface file.
  */

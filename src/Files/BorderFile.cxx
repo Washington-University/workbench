@@ -1468,6 +1468,11 @@ void BorderFile::writeFile(const AString& filename, const int& version)
     }
     
     if (!canWriteAsVersion(version)) throw DataFileException(filename, "cannot write border file as version '" + AString::number(version) + "'");
+    
+    if (!(filename.endsWith(".border") || filename.endsWith(".wb_border")))
+    {
+        CaretLogWarning("border file '" + filename + "' should be saved ending in .border");
+    }
     checkFileWritability(filename);
     
     setFileName(filename);

@@ -565,6 +565,10 @@ FociFile::readFile(const AString& filename)
 void 
 FociFile::writeFile(const AString& filename)
 {
+    if (!(filename.endsWith(".foci") || filename.endsWith(".wb_foci")))
+    {
+        CaretLogWarning("foci file '" + filename + "'should be saved ending in .foci");
+    }
     checkFileWritability(filename);
     
     setFileName(filename);

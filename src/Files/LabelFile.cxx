@@ -82,6 +82,15 @@ LabelFile::~LabelFile()
     delete m_classNameHierarchy;
 }
 
+void LabelFile::writeFile(const AString& filename)
+{
+    if (!filename.endsWith(".label.gii"))
+    {
+        CaretLogWarning("label file '" + filename + "' should be saved ending in .label.gii, see wb_command -gifti-help");
+    }
+    caret::GiftiTypeFile::writeFile(filename);
+}
+
 /**
  * Clear the surface file.
  */

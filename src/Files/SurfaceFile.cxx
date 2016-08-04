@@ -28,6 +28,7 @@
 #include "DataFileTypeEnum.h"
 #include "SurfaceFile.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretOMP.h"
 #include "DataFileContentInformation.h"
 #include "DescriptiveStatistics.h"
@@ -108,6 +109,15 @@ SurfaceFile::~SurfaceFile()
     }
     
     this->invalidateNodeColoringForBrowserTabs();
+}
+
+void SurfaceFile::writeFile(const AString& filename)
+{
+    if (!filename.endsWith(".surf.gii"))
+    {
+        CaretLogWarning("surface file '" + filename + "' should be saved ending in .surf.gii, see wb_command -gifti-help");
+    }
+    caret::GiftiTypeFile::writeFile(filename);
 }
 
 /**

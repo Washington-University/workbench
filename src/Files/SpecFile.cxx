@@ -987,6 +987,10 @@ SpecFile::readFileFromString(const AString& string)
 void 
 SpecFile::writeFile(const AString& filename)
 {
+    if (!(filename.endsWith(".spec") || filename.endsWith(".wb_spec")))
+    {
+        CaretLogWarning("spec file '" + filename + "' should be saved ending in .spec");
+    }
     checkFileWritability(filename);
     
     FileInformation specInfo(filename);

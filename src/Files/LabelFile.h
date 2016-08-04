@@ -86,6 +86,9 @@ namespace caret {
         
         const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
         
+        //override writeFile in order to check filename against type of file
+        virtual void writeFile(const AString& filename);
+        
     protected:
         /**
          * Validate the contents of the file after it

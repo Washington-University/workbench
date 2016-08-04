@@ -192,6 +192,9 @@ namespace caret {
         
         virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
     
+        //override writeFile in order to check filename against type of file
+        virtual void writeFile(const AString& filename);
+
     protected:
         /**
          * Validate the contents of the file after it

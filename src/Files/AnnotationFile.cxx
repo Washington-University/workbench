@@ -1409,6 +1409,10 @@ AnnotationFile::readFile(const AString& filename)
 void
 AnnotationFile::writeFile(const AString& filename)
 {
+    if (!(filename.endsWith(".annot") || filename.endsWith(".wb_annot")))
+    {
+        CaretLogWarning("annotation file '" + filename + "' should be saved ending in .annot");
+    }
     checkFileWritability(filename);
     
     setFileName(filename);

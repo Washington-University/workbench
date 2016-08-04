@@ -23,6 +23,7 @@
 #include "ByteOrderEnum.h"
 #include "ByteSwapping.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "FileInformation.h"
 
 #include <QByteArray>
@@ -207,6 +208,10 @@ void FiberFractions::zero()
 
 CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const CiftiXML& xml)
 {
+    if (!fileName.endsWith(".trajTEMP.wbsparse"))
+    {//for now (and maybe forever), this format is single-purpose
+        CaretLogWarning("sparse trajectory file '" + fileName + "' should be saved ending in .trajTEMP.wbsparse");
+    }
     m_finished = false;
     int64_t dimensions[2] = { xml.getDimensionLength(CiftiXML::ALONG_ROW), xml.getDimensionLength(CiftiXML::ALONG_COLUMN) };
     if (dimensions[0] < 1 || dimensions[1] < 1) throw DataFileException("both dimensions must be positive");

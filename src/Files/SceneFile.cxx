@@ -579,6 +579,10 @@ SceneFile::readFile(const AString& filenameIn)
 void 
 SceneFile::writeFile(const AString& filename)
 {
+    if (!(filename.endsWith(".scene") || filename.endsWith(".wb_scene")))
+    {
+        CaretLogWarning("scene file '" + filename + "' should be saved ending in .scene");
+    }
     checkFileWritability(filename);
     
     this->setFileName(filename);
