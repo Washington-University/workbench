@@ -766,12 +766,13 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
          */
         glDisable(GL_CULL_FACE);
         
-        const bool cullingFlag = true;
+        const bool cullingSliceViewFlag = true;
+        const bool cullingWholeBrainViewFlag = false; // culling only works in a view looking along an axis (any rotation and slices disappear)
         
         switch (sliceProjectionType) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                 if (m_modelVolume != NULL) {
-                    if (cullingFlag) {
+                    if (cullingSliceViewFlag) {
                         drawOrthogonalSliceWithCulling(sliceViewPlane,
                                                        sliceCoordinates,
                                                        slicePlane);
@@ -783,7 +784,11 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
                     }
                 }
                 else if (m_modelWholeBrain != NULL) {
-                    if (cullingFlag) {
+                    /*
+                     * At this time (Aug 4, 2016) culled drawing does not
+                     * work for ALL (whole brain) view.
+                     */
+                    if (cullingWholeBrainViewFlag) {
                         drawOrthogonalSliceWithCulling(sliceViewPlane,
                                                        sliceCoordinates,
                                                        slicePlane);
