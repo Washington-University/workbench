@@ -290,6 +290,9 @@ DataFileContentCopyMoveDialog::okButtonClicked()
         if (newFileFlag) {
             CaretDataFile* destinationCaretFile = dynamic_cast<CaretDataFile*>(destinationFile);
             CaretAssert(destinationCaretFile);
+            if (destinationCaretFile->isEmpty()) {
+                throw DataFileException("There was no data to copy.  New file was not created.");
+            }
             EventDataFileAdd addFileEvent(destinationCaretFile);
             EventManager::get()->sendEvent(addFileEvent.getPointer());
             if (addFileEvent.isError()) {
