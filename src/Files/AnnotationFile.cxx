@@ -1640,7 +1640,9 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveParameter
                  iter != annotationsToCopy.end();
                  iter++) {
                 const Annotation* annToCopy = *iter;
-                group->addAnnotationPrivate(annToCopy->clone());
+                Annotation* clonedAnn = annToCopy->clone();
+                clonedAnn->setUniqueKey(generateUniqueKey());
+                group->addAnnotationPrivate(clonedAnn);
             }
         }
     }
