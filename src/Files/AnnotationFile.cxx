@@ -36,6 +36,7 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
+#include "DataFileContentCopyMoveParameters.h"
 #include "DataFileException.h"
 #include "DisplayGroupAndTabItemHelper.h"
 #include "EventAnnotationAddToRemoveFromFile.h"
@@ -1545,18 +1546,26 @@ AnnotationFile::getAsDataFile()
 /**
  * Append content from the given data file copy/move interface to this instance
  *
- * @param dataFileCopyMoveInterface
- *     From which content is copied.
+ * @param copyMoveParameters
+ *     Parameters used for copy/move.
  * @throws DataFileException
  *     If there is an error.
  */
 void
-AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveInterface* dataFileCopyMoveInterface)
+AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveParameters& copyMoveParameters)
 {
-    const AnnotationFile* copyFromFile = dynamic_cast<const AnnotationFile*>(dataFileCopyMoveInterface);
+    const AnnotationFile* copyFromFile = dynamic_cast<const AnnotationFile*>(copyMoveParameters.getDataFileCopyMoveInterfaceToCopy());
     if (copyFromFile == NULL) {
         throw DataFileException("Trying to copy content to annotation file from a file that is not an "
                                 "annotation file.");
+    }
+    
+    const bool selectedAnnotationsFlag = copyMoveParameters.isOptionSelectedItems();
+    const int32_t windowIndex = copyMoveParameters.getWindowIndex();
+    if (selectedAnnotationsFlag) {
+        if (windowIndex < 0) {
+            throw DataFileException("Requested copying of selected annotations but window index is invalid.");
+        }
     }
     
     std::vector<AnnotationGroup*> annotationGroups;
@@ -1567,9 +1576,36 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveInterface
          groupIter++) {
         const AnnotationGroup* groupToCopy = *groupIter;
         CaretAssert(groupToCopy);
+
+        /*
+         * Find that annotations that are to be copied.
+         */
+        const int32_t numAnnInGroup = groupToCopy->getNumberOfAnnotations();
+        std::vector<const Annotation*> annotationsToCopy;
+        for (int32_t ia = 0; ia < numAnnInGroup; ia++) {
+            const Annotation* annToCopy = groupToCopy->getAnnotation(ia);
+            CaretAssert(annToCopy);
+            
+            bool copyFlag = true;
+            if (selectedAnnotationsFlag) {
+                if (annToCopy->isSelectedForEditing(windowIndex)) {
+                    /* Nothing */
+                }
+                else {
+                    copyFlag = false;
+                }
+            }
+            
+            if (copyFlag) {
+                annotationsToCopy.push_back(annToCopy);
+            }
+        }
         
-        const int32_t numAnnInGroupToCopy = groupToCopy->getNumberOfAnnotations();
-        if (numAnnInGroupToCopy > 0) {
+        /*
+         * If there are are annotations to copy,
+         * clone them and add to the proper group.
+         */
+        if ( ! annotationsToCopy.empty()) {
             AnnotationGroup* group = NULL;
             switch (groupToCopy->getGroupType()) {
                 case AnnotationGroupTypeEnum::INVALID:
@@ -1600,11 +1636,11 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveInterface
             /*
              * Copy annotations and add them to the group.
              */
-            for (int32_t ia = 0; ia < numAnnInGroupToCopy; ia++) {
-                const Annotation* annToCopy = groupToCopy->getAnnotation(ia);
-                CaretAssert(annToCopy);
-                Annotation* ann = annToCopy->clone();
-                group->addAnnotationPrivate(ann);
+            for (std::vector<const Annotation*>::const_iterator iter = annotationsToCopy.begin();
+                 iter != annotationsToCopy.end();
+                 iter++) {
+                const Annotation* annToCopy = *iter;
+                group->addAnnotationPrivate(annToCopy->clone());
             }
         }
     }

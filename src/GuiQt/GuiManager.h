@@ -97,7 +97,7 @@ namespace caret {
         bool allowBrainBrowserWindowToClose(BrainBrowserWindow* bbw,
                                             const int32_t numberOfOpenTabs);
         
-        bool exitProgram(QWidget* parent);
+        bool exitProgram(BrainBrowserWindow* parent);
         
         bool processShowOpenSpecFileDialog(SpecFile* specFile,
                                            BrainBrowserWindow* browserWindow);

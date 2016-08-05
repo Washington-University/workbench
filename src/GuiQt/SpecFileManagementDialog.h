@@ -42,6 +42,7 @@ class QToolBar;
 namespace caret {
 
     class Brain;
+    class BrainBrowserWindow;
     class CaretDataFile;
     class SpecFile;
     class SpecFileDataFile;
@@ -88,13 +89,13 @@ namespace caret {
     public:
         static bool runOpenSpecFileDialog(Brain* brain,
                                           SpecFile* specFile,
-                                          QWidget* parent);
+                                          BrainBrowserWindow* parent);
         
         static void runManageFilesDialog(Brain* brain,
-                                         QWidget* parent);
+                                         BrainBrowserWindow* parent);
         
         static bool runSaveFilesDialogWhileQuittingWorkbench(Brain* brain,
-                                         QWidget* parent);
+                                         BrainBrowserWindow* parent);
         
         virtual ~SpecFileManagementDialog();
         
@@ -143,11 +144,13 @@ namespace caret {
                                  Brain* brain,
                                  SpecFile* specFile,
                                  const AString& dialogTitle,
-                                 QWidget* parent);
+                                 BrainBrowserWindow* parent);
         
         SpecFileManagementDialog(const SpecFileManagementDialog&);
 
         SpecFileManagementDialog& operator=(const SpecFileManagementDialog&);
+        
+        BrainBrowserWindow* m_parentBrainBrowserWindow;
         
         QToolBar* createFilesTypesToolBar(QLabel* &labelOut);
         

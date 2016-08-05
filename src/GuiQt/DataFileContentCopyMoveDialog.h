@@ -37,7 +37,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        DataFileContentCopyMoveDialog(DataFileContentCopyMoveInterface* sourceDataFileInterface,
+        DataFileContentCopyMoveDialog(const int32_t windowIndex,
+                                      DataFileContentCopyMoveInterface* sourceDataFileInterface,
                                       std::vector<DataFileContentCopyMoveInterface*>& dataFilesInterface,
                                       QWidget* parent);
         
@@ -58,15 +59,17 @@ namespace caret {
         
         virtual void okButtonClicked();
         
-        DataFileContentCopyMoveInterface* m_sourceDataFileInterface;
-        
-        std::vector<DataFileContentCopyMoveInterface*> m_destinationDataFileInterfaces;
-        
         QWidget* createOptionsWidget();
         
         QWidget* createSourceWidget();
         
         QWidget* createDestinationWidget();
+        
+        const int32_t m_windowIndex;
+        
+        DataFileContentCopyMoveInterface* m_sourceDataFileInterface;
+        
+        std::vector<DataFileContentCopyMoveInterface*> m_destinationDataFileInterfaces;
         
         QButtonGroup* m_destinationButtonGroup;
         
@@ -77,6 +80,8 @@ namespace caret {
         QString m_newDestinationFileName;
         
         QCheckBox* m_closeSourceFileCheckBox;
+        
+        QCheckBox* m_copySelectedAnnotationsOnlyCheckBox;
         
         // ADD_NEW_MEMBERS_HERE
 

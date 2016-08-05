@@ -115,7 +115,7 @@ namespace caret {
         
         virtual DataFile* getAsDataFile();
         
-        virtual void appendContentFromDataFile(const DataFileContentCopyMoveInterface* dataFileCopyMoveInterface);
+        virtual void appendContentFromDataFile(const DataFileContentCopyMoveParameters& copyMoveParameters);
         
         virtual DataFileContentCopyMoveInterface* newInstanceOfDataFile() const;
         

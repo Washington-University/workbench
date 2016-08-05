@@ -45,6 +45,7 @@
 #include "AnnotationFile.h"
 #include "Brain.h"
 #include "BrowserTabContent.h"
+#include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretFileDialog.h"
@@ -102,7 +103,7 @@ using namespace caret;
 bool
 SpecFileManagementDialog::runOpenSpecFileDialog(Brain* brain,
                                                 SpecFile* specFile,
-                                                QWidget* parent)
+                                                BrainBrowserWindow* parent)
 {
     CaretAssert(brain);
     CaretAssert(specFile);
@@ -132,7 +133,7 @@ SpecFileManagementDialog::runOpenSpecFileDialog(Brain* brain,
  */
 void
 SpecFileManagementDialog::runManageFilesDialog(Brain* brain,
-                                               QWidget* parent)
+                                               BrainBrowserWindow* parent)
 {
     CaretAssert(brain);
     const AString title = ("Manage Data Files");
@@ -186,7 +187,7 @@ SpecFileManagementDialog::runManageFilesDialog(Brain* brain,
  */
 bool
 SpecFileManagementDialog::runSaveFilesDialogWhileQuittingWorkbench(Brain* brain,
-                                               QWidget* parent)
+                                               BrainBrowserWindow* parent)
 {
     CaretAssert(brain);
     const AString title = ("Save Data Files");
@@ -222,13 +223,16 @@ SpecFileManagementDialog::SpecFileManagementDialog(const Mode dialogMode,
                                                    Brain* brain,
                                                    SpecFile* specFile,
                                                    const AString& dialogTitle,
-                                                   QWidget* parent)
+                                                   BrainBrowserWindow* parent)
 : WuQDialogModal(dialogTitle,
                  parent),
+m_parentBrainBrowserWindow(parent),
 m_dialogMode(dialogMode),
 m_brain(brain),
 m_specFile(specFile)
 {
+    CaretAssert(parent);
+    
     /*
      * Initialize members
      */
@@ -2407,7 +2411,8 @@ SpecFileManagementDialog::copyMoveFileContent(QWidget* parent,
         }
     }
     
-    DataFileContentCopyMoveDialog copyMoveDialog(copyMoveInterfaceFile,
+    DataFileContentCopyMoveDialog copyMoveDialog(m_parentBrainBrowserWindow->getBrowserWindowIndex(),
+                                                 copyMoveInterfaceFile,
                                                  copyMoveDestinationFiles,
                                                  parent);
     copyMoveDialog.exec();

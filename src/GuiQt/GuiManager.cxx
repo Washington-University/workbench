@@ -796,7 +796,7 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
  *    true if application should exit, else false.
  */
 bool 
-GuiManager::exitProgram(QWidget* parent)
+GuiManager::exitProgram(BrainBrowserWindow* parent)
 {
     bool okToExit = false;
     

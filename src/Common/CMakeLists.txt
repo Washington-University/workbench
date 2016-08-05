@@ -64,8 +64,9 @@ ControlPoint3D.h
 CubicSpline.h
 DataCompressZLib.h
 DataFile.h
-DataFileContentInformation.h
 DataFileContentCopyMoveInterface.h
+DataFileContentCopyMoveParameters.h
+DataFileContentInformation.h
 DataFileException.h
 DataFileInterface.h
 DataFileTypeEnum.h
@@ -164,6 +165,7 @@ ControlPoint3D.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx
 DataFile.cxx
+DataFileContentCopyMoveParameters.cxx
 DataFileContentInformation.cxx
 DataFileException.cxx
 DataFileTypeEnum.cxx

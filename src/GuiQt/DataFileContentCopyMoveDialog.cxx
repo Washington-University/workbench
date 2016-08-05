@@ -38,6 +38,7 @@
 #include "CaretFileDialog.h"
 #include "DataFile.h"
 #include "DataFileContentCopyMoveInterface.h"
+#include "DataFileContentCopyMoveParameters.h"
 #include "DataFileException.h"
 #include "EventDataFileAdd.h"
 #include "EventDataFileDelete.h"
@@ -58,6 +59,8 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param windowIndex
+ *    Index of window.
  * @param sourceDataFileInterface
  *    The source data file (copy from file)
  * @param destinationDataFileInterfaces
@@ -65,11 +68,13 @@ using namespace caret;
  * @param parent
  *    Optional parent for this dialog.
  */
-DataFileContentCopyMoveDialog::DataFileContentCopyMoveDialog(DataFileContentCopyMoveInterface* sourceDataFileInterface,
+DataFileContentCopyMoveDialog::DataFileContentCopyMoveDialog(const int32_t windowIndex,
+                                                             DataFileContentCopyMoveInterface* sourceDataFileInterface,
                                                              std::vector<DataFileContentCopyMoveInterface*>& destinationDataFileInterfaces,
                                                              QWidget* parent)
 : WuQDialogModal("Copy/Move Data File Content",
                  parent),
+m_windowIndex(windowIndex),
 m_sourceDataFileInterface(sourceDataFileInterface),
 m_newDestinatonFileButtonGroupIndex(-1)
 {
@@ -130,9 +135,13 @@ DataFileContentCopyMoveDialog::createOptionsWidget()
     QObject::connect(m_closeSourceFileCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(closeSourceFileCheckBoxToggled(bool)));
     
+    m_copySelectedAnnotationsOnlyCheckBox = new QCheckBox("Copy Only Selected Annotations");
+    m_copySelectedAnnotationsOnlyCheckBox->setChecked(false);
+    
     QGroupBox* groupBox = new QGroupBox("Options");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->addWidget(m_closeSourceFileCheckBox);
+    layout->addWidget(m_copySelectedAnnotationsOnlyCheckBox);
     
     return groupBox;
 }
@@ -272,7 +281,11 @@ DataFileContentCopyMoveDialog::okButtonClicked()
         }
         
         CaretAssert(destinationFile);
-        destinationFile->appendContentFromDataFile(m_sourceDataFileInterface);
+        DataFileContentCopyMoveParameters copyMoveParams(m_sourceDataFileInterface,
+                                                         m_windowIndex);
+        copyMoveParams.setOptionSelectedItems(m_copySelectedAnnotationsOnlyCheckBox->isChecked());
+        
+        destinationFile->appendContentFromDataFile(copyMoveParams);
         
         if (newFileFlag) {
             CaretDataFile* destinationCaretFile = dynamic_cast<CaretDataFile*>(destinationFile);

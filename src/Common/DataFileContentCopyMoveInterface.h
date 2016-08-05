@@ -34,6 +34,7 @@
 namespace caret {
 
     class DataFile;
+    class DataFileContentCopyMoveParameters;
     
     class DataFileContentCopyMoveInterface : public CaretObject {
         
@@ -50,12 +51,12 @@ namespace caret {
         /**
          * Append content from the given data file copy/move interface to this instance
          *
-         * @param dataFileCopyMoveInterface
-         *     From which content is copied.
+         * @param copyMoveParameters
+         *     Parameters used for copy/move.
          * @throws DataFileException
          *     If there is an error.
          */
-        virtual void appendContentFromDataFile(const DataFileContentCopyMoveInterface* dataFileCopyMoveInterface) = 0;
+        virtual void appendContentFromDataFile(const DataFileContentCopyMoveParameters& copyMoveParameters) = 0;
         
         /**
          * @return A new instance of the same file type.  File is empty.
