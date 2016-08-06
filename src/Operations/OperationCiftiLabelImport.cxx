@@ -254,7 +254,7 @@ void OperationCiftiLabelImport::useParameters(OperationParameters* myParams, Pro
     for (int i = 0; i < rowSize; ++i)
     {
         xmlOut.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, xmlIn.getMapName(CiftiXMLOld::ALONG_ROW, i));
-        if (discardOthers)
+        if (dropUnused)
         {
             GiftiLabelTable colTable = myTable;
             colTable.deleteUnusedLabels(usedArray[i]);
