@@ -1400,13 +1400,17 @@ CaretPreferences::readPreferences()
     }
     this->setLoggingLevel(logLevel);
     
+    ImageCaptureMethodEnum::Enum defaultCaptureType = ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP;
+#ifdef CARET_OS_LINUX
+    defaultCaptureType = ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_GRAB_FRAME_BUFFER;
+#endif // CARET_OS_LINUX
     AString imageCaptureMethodName = this->qSettings->value(NAME_IMAGE_CAPTURE_METHOD,
-                                                        ImageCaptureMethodEnum::toName(ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP)).toString();
+                                                        ImageCaptureMethodEnum::toName(defaultCaptureType)).toString();
     bool validImageCaptureMethodName = false;
     this->imageCaptureMethod = ImageCaptureMethodEnum::fromName(imageCaptureMethodName,
                                                             &validImageCaptureMethodName);
     if ( ! validImageCaptureMethodName) {
-        this->imageCaptureMethod = ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP;
+        this->imageCaptureMethod = defaultCaptureType;
     }
     
     AString openGLDrawingMethodName = this->qSettings->value(NAME_OPENGL_DRAWING_METHOD,
