@@ -1230,7 +1230,7 @@ VolumeFile::getMapLabelTable(const int32_t mapIndex) const
 bool
 VolumeFile::isMappedWithRGBA() const
 {
-    bool mapsWithRgbaFlag = true;
+    bool mapsWithRgbaFlag = false;
     switch (m_caretVolExt.m_attributes[0]->m_type) {
         case SubvolumeAttributes::ANATOMY:
             break;
