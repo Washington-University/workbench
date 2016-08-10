@@ -2665,6 +2665,44 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
 }
 
 /**
+ * Get voxel coloring for a set of voxels.
+ *
+ * @param mapIndex
+ *     Index of map.
+ * @param firstVoxelIJK
+ *    IJK Indices of first voxel
+ * @param rowStepIJK
+ *    IJK Step for moving to next row.
+ * @param columnStepIJK
+ *    IJK Step for moving to next column.
+ * @param numberOfRows
+ *    Number of rows.
+ * @param numberOfColumns
+ *    Number of columns.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbaOut
+ *    RGBA color components out.
+ * @return
+ *    Number of voxels with alpha greater than zero
+ */
+int64_t
+CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                                      const int64_t firstVoxelIJK[3],
+                                                      const int64_t rowStepIJK[3],
+                                                      const int64_t columnStepIJK[3],
+                                                      const int64_t numberOfRows,
+                                                      const int64_t numberOfColumns,
+                                                      const DisplayGroupEnum::Enum displayGroup,
+                                                      const int32_t tabIndex,
+                                                      uint8_t* rgbaOut) const
+{
+    return 0;
+}
+
+/**
  * Get the voxel colors for a sub slice in the map.
  *
  * @param paletteFile

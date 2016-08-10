@@ -1396,6 +1396,58 @@ VolumeFile::getVoxelColorsForSliceInMap(const PaletteFile* /*paletteFile*/,
 }
 
 /**
+ * Get voxel coloring for a set of voxels.
+ *
+ * @param mapIndex
+ *     Index of map.
+ * @param firstVoxelIJK
+ *    IJK Indices of first voxel
+ * @param rowStepIJK
+ *    IJK Step for moving to next row.
+ * @param columnStepIJK
+ *    IJK Step for moving to next column.
+ * @param numberOfRows
+ *    Number of rows.
+ * @param numberOfColumns
+ *    Number of columns.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbaOut
+ *    RGBA color components out.
+ * @return
+ *    Number of voxels with alpha greater than zero
+ */
+int64_t
+VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                const int64_t firstVoxelIJK[3],
+                                const int64_t rowStepIJK[3],
+                                const int64_t columnStepIJK[3],
+                                const int64_t numberOfRows,
+                                const int64_t numberOfColumns,
+                                const DisplayGroupEnum::Enum displayGroup,
+                                const int32_t tabIndex,
+                                uint8_t* rgbaOut) const
+{
+    if (s_voxelColoringEnabled == false) {
+        return 0;
+    }
+    
+    CaretAssert(m_voxelColorizer);
+    
+    return m_voxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
+                                                 firstVoxelIJK,
+                                                 rowStepIJK,
+                                                 columnStepIJK,
+                                                 numberOfRows,
+                                                 numberOfColumns,
+                                                 displayGroup,
+                                                 tabIndex,
+                                                 rgbaOut);
+}
+
+/**
   * Get the voxel colors for a sub slice in the map.
   *
   * @param paletteFile

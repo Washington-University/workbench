@@ -44,6 +44,16 @@ namespace caret {
                                      const int32_t thresholdVolumeMapIndex);
         
         int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                            const int64_t firstVoxelIJK[3],
+                                            const int64_t rowStepIJK[3],
+                                            const int64_t columnStepIJK[3],
+                                            const int64_t numberOfRows,
+                                            const int64_t numberOfColumns,
+                                            const DisplayGroupEnum::Enum displayGroup,
+                                            const int32_t tabIndex,
+                                            uint8_t* rgbaOut) const;
+        
+        int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,
                                          const DisplayGroupEnum::Enum displayGroup,
@@ -88,6 +98,15 @@ namespace caret {
                          + ((k * m_dimI * m_dimJ))));
         }
 
+        /**
+         * Get theRGBA offset for a voxel index
+         */
+        inline int64_t getRgbaOffsetForVoxelIndex(const int64_t ijk[3]) const {
+            return (4 * (ijk[0]
+                         + (ijk[1] * m_dimI)
+                         + ((ijk[2] * m_dimI * m_dimJ))));
+        }
+        
         // ADD_NEW_MEMBERS_HERE
 
         VolumeFile* m_volumeFile;

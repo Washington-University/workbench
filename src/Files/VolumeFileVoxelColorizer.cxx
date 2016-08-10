@@ -352,6 +352,109 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
 }
 
 /**
+ * Get voxel coloring for a set of voxels.
+ *
+ * @param mapIndex
+ *     Index of map.
+ * @param firstVoxelIJK
+ *    IJK Indices of first voxel
+ * @param rowStepIJK
+ *    IJK Step for moving to next row.
+ * @param columnStepIJK
+ *    IJK Step for moving to next column.
+ * @param numberOfRows
+ *    Number of rows.
+ * @param numberOfColumns
+ *    Number of columns.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbaOut
+ *    RGBA color components out.
+ * @return
+ *    Number of voxels with alpha greater than zero
+ */
+int64_t
+VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                    const int64_t firstVoxelIJK[3],
+                                    const int64_t rowStepIJK[3],
+                                    const int64_t columnStepIJK[3],
+                                    const int64_t numberOfRows,
+                                    const int64_t numberOfColumns,
+                                    const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex,
+                                    uint8_t* rgbaOut) const
+{
+    /*
+     * Pointer to maps RGBA values
+     */
+    const uint8_t* mapRGBA = m_mapRGBA[mapIndex];
+    
+    const GiftiLabelTable* labelTable = (m_volumeFile->isMappedWithLabelTable()
+                                         ? m_volumeFile->getMapLabelTable(mapIndex)
+                                         : NULL);
+    if (m_volumeFile->isMappedWithLabelTable()) {
+        CaretAssert(labelTable);
+    }
+    
+    int64_t validVoxelCount = 0;
+    int64_t rgbaOutIndex = 0;
+    
+    int64_t rowIJK[3] = { firstVoxelIJK[0], firstVoxelIJK[1], firstVoxelIJK[2] };
+    for (int64_t iRow = 0; iRow < numberOfRows; iRow++) {
+        
+        int64_t ijk[3] = { rowIJK[0], rowIJK[1], rowIJK[2] };
+        for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
+            const int64_t rgbaOffset = getRgbaOffsetForVoxelIndex(ijk);
+            
+            CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
+            rgbaOut[rgbaOutIndex]   = mapRGBA[rgbaOffset];
+            rgbaOut[rgbaOutIndex+1] = mapRGBA[rgbaOffset+1];
+            rgbaOut[rgbaOutIndex+2] = mapRGBA[rgbaOffset+2];
+            uint8_t alpha = mapRGBA[rgbaOffset+3];
+            
+            if (alpha > 0) {
+                if (labelTable != NULL) {
+                    /*
+                     * For label data, verify that the label is displayed.
+                     * If NOT displayed, zero out the alpha value to
+                     * prevent display of the data.
+                     */
+                    const int32_t dataValue = static_cast<int32_t>(m_volumeFile->getValue(ijk,
+                                                                                          mapIndex));
+                    const GiftiLabel* label = labelTable->getLabel(dataValue);
+                    if (label != NULL) {
+                        const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                        if (item != NULL) {
+                            if (item->isSelected(displayGroup, tabIndex) == false) {
+                                alpha = 0;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (alpha > 0.0) {
+                ++validVoxelCount;
+            }
+            rgbaOut[rgbaOutIndex+3] = alpha;
+            rgbaOutIndex += 4;
+            
+            ijk[0] += columnStepIJK[0];
+            ijk[1] += columnStepIJK[1];
+            ijk[2] += columnStepIJK[2];
+        }
+        
+        rowIJK[0] += rowStepIJK[0];
+        rowIJK[1] += rowStepIJK[1];
+        rowIJK[2] += rowStepIJK[2];
+    }
+    
+    return validVoxelCount;
+}
+
+/**
  * Get voxel coloring for a sub-slice in a map.  If voxel coloring is not ready
  * (it may be running in a different thread) this method will wait until the
  * coloring is valid prior to returning the slice's coloring.
