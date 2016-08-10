@@ -47,6 +47,7 @@ NiftiHeader::NiftiHeader()
     m_header.scl_inter = 0.0;
     m_header.datatype = NIFTI_TYPE_FLOAT32;
     m_header.bitpix = typeToNumBits(m_header.datatype);
+    m_header.pixdim[0] = 1.0f;//old versions of nibabel warn on pixdim[0] of 0 even when qform_code is 0
     m_version = 0;
     m_isSwapped = false;
 }
