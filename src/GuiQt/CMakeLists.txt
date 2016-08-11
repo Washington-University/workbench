@@ -180,6 +180,7 @@ WuQTrueFalseComboBox.h
 #WuQWebView.h
 WuQWidget.h
 WuQWidgetObjectGroup.h
+ZipSceneFileDialog.h
 )
 
 #
@@ -387,6 +388,7 @@ WuQTrueFalseComboBox.h
 WuQWidget.h
 WuQWidgetObjectGroup.h
 WuQtUtilities.h
+ZipSceneFileDialog.h
 
 AboutWorkbenchDialog.cxx
 AnnotationChangeCoordinateDialog.cxx
@@ -584,6 +586,7 @@ WuQTrueFalseComboBox.cxx
 WuQWidget.cxx
 WuQWidgetObjectGroup.cxx
 WuQtUtilities.cxx
+ZipSceneFileDialog.cxx
 )
 
 SET(FORMS

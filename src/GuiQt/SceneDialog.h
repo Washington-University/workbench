@@ -72,6 +72,8 @@ namespace caret {
         
         void uploadSceneFileButtonClicked();
         
+        void zipSceneFileButtonClicked();
+        
         void addNewSceneButtonClicked();
                 
         void deleteSceneButtonClicked();
@@ -142,6 +144,8 @@ namespace caret {
         QComboBox* m_sceneFileSelectionComboBox;
         
         QPushButton* m_uploadSceneFilePushButton;
+        
+        QPushButton* m_zipSceneFilePushButton;
         
         QPushButton* m_addNewScenePushButton;
         

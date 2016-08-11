@@ -62,7 +62,7 @@ namespace caret {
                                  AString& responseContentOut,
                                  AString& errorMessageOut);
         
-        bool zipSceneAndDataFiles(const SceneFile* sceneFile,
+        static bool zipSceneAndDataFiles(const SceneFile* sceneFile,
                                   const AString& extractDirectory,
                                   const AString& zipFileName,
                                   AString& errorMessageOut);

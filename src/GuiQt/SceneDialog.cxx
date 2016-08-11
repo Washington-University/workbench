@@ -80,6 +80,7 @@
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
+#include "ZipSceneFileDialog.h"
 
 using namespace caret;
 
@@ -518,6 +519,30 @@ SceneDialog::uploadSceneFileButtonClicked()
     BalsaDatabaseUploadSceneFileDialog uploadDialog(sceneFile,
                                                     this);
     uploadDialog.exec();
+}
+
+
+/**
+ * Called when zip scene file is selected.
+ */
+void
+SceneDialog::zipSceneFileButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        WuQMessageBox::errorOk(m_zipSceneFilePushButton,
+                               "No Scene File is selected.");
+        return;
+    }
+    if (sceneFile->isModified()) {
+        WuQMessageBox::errorOk(m_zipSceneFilePushButton,
+                               "Selected Scene File is modified and must be saved prior to zipping.");
+        return;
+    }
+    
+    ZipSceneFileDialog zipDialog(sceneFile,
+                                 this);
+    zipDialog.exec();
 }
 
 /**
@@ -1049,9 +1074,17 @@ SceneDialog::createSceneFileWidget()
      * Upload button
      */
     m_uploadSceneFilePushButton = new QPushButton("Upload...");
-    m_uploadSceneFilePushButton->setToolTip("Upload the selected scene to the BALSA Database");
+    m_uploadSceneFilePushButton->setToolTip("Upload the selected scene file to the BALSA Database");
     QObject::connect(m_uploadSceneFilePushButton, SIGNAL(clicked()),
                      this, SLOT(uploadSceneFileButtonClicked()));
+    
+    /*
+     * Zip button
+     */
+    m_zipSceneFilePushButton = new QPushButton("Zip...");
+    m_zipSceneFilePushButton->setToolTip("Zip the selected scene file");
+    QObject::connect(m_zipSceneFilePushButton, SIGNAL(clicked()),
+                     this, SLOT(zipSceneFileButtonClicked()));
     
     /*
      * Scene BALSA Study ID
@@ -1090,9 +1123,19 @@ SceneDialog::createSceneFileWidget()
      */
     m_sceneFileButtonsGroup = new WuQWidgetObjectGroup(this);
     m_sceneFileButtonsGroup->add(m_uploadSceneFilePushButton);
+    m_sceneFileButtonsGroup->add(m_zipSceneFilePushButton);
     m_sceneFileButtonsGroup->add(m_editBalsaStudyIDPushButton);
     m_sceneFileButtonsGroup->add(m_editBaseDirectoryPushButton);
     m_sceneFileButtonsGroup->add(m_browseBaseDirectoryPushButton);
+    
+    /*
+     * Scene file buttons layout
+     */
+    QHBoxLayout* fileButtonsLayout = new QHBoxLayout();
+    fileButtonsLayout->setContentsMargins(0, 0, 0, 0);
+    fileButtonsLayout->addWidget(newSceneFilePushButton);
+    fileButtonsLayout->addWidget(m_uploadSceneFilePushButton);
+    fileButtonsLayout->addWidget(m_zipSceneFilePushButton);
     
     /*
      * Layout widgets
@@ -1111,8 +1154,10 @@ SceneDialog::createSceneFileWidget()
     int row = 0;
     gridLayout->addWidget(sceneFileLabel, row, 0, Qt::AlignRight);
     gridLayout->addWidget(m_sceneFileSelectionComboBox, row, 1);
-    gridLayout->addWidget(newSceneFilePushButton, row, 2);
-    gridLayout->addWidget(m_uploadSceneFilePushButton, row, 3);
+    gridLayout->addLayout(fileButtonsLayout, row, 2, 1, 2);
+//    gridLayout->addWidget(newSceneFilePushButton, row, 2);
+//    gridLayout->addWidget(m_uploadSceneFilePushButton, row, 3);
+//    gridLayout->addWidget(m_zipSceneFilePushButton, row, 4);
     row++;
     gridLayout->addWidget(baseDirectoryLabel, row, 0, Qt::AlignRight);
     gridLayout->addWidget(m_fileBaseDirectoryLineEdit, row, 1);
