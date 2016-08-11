@@ -207,6 +207,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
     if (myXML.getMappingType(1 - myDir) == CiftiMappingType::LABELS) CaretLogWarning("creating a metric file from cifti label data");
     const CiftiBrainModelsMap& myBrainModelsMap = myXML.getBrainModelsMap(myDir);
+    if (!myBrainModelsMap.hasSurfaceData(myStruct)) throw AlgorithmException("specified file and direction does not contain the requested surface structure");
     vector<CiftiBrainModelsMap::SurfaceMap> myMap = myBrainModelsMap.getSurfaceMap(myStruct);
     int rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
     if (myDir == CiftiXML::ALONG_COLUMN)
@@ -298,6 +299,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     if (myXML.getMappingType(1 - myDir) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
     const CiftiBrainModelsMap& myBrainModelsMap = myXML.getBrainModelsMap(myDir);
     const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(1 - myDir);
+    if (!myBrainModelsMap.hasSurfaceData(myStruct)) throw AlgorithmException("specified file and direction does not contain the requested surface structure");
     vector<CiftiBrainModelsMap::SurfaceMap> myMap = myBrainModelsMap.getSurfaceMap(myStruct);
     int64_t rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
     if (myDir == CiftiXML::ALONG_COLUMN)
@@ -434,6 +436,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
     const int64_t* myDims = myBrainMap.getVolumeSpace().getDims();
     vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
+    if (!myBrainMap.hasVolumeData(myStruct)) throw AlgorithmException("specified file and direction does not contain the requested volume structure");
     vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getVolumeStructureMap(myStruct);
     vector<int64_t> newdims;
     int64_t numVoxels = (int64_t)myMap.size();
@@ -531,6 +534,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
     int rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
     const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
+    if (!myBrainMap.hasVolumeData()) throw AlgorithmException("specified file and direction does not contain any volume data");
     const int64_t* myDims = myBrainMap.getVolumeSpace().getDims();
     vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
     vector<int64_t> newdims;
