@@ -143,7 +143,7 @@ DisplayPropertiesFoci::copyDisplayProperties(const int32_t sourceTabIndex,
     m_drawingTypeInTab[targetTabIndex]      = m_drawingTypeInTab[sourceTabIndex];
     m_fociSizeInTab[targetTabIndex]         = m_fociSizeInTab[sourceTabIndex];
     m_pasteOntoSurfaceInTab[targetTabIndex] = m_pasteOntoSurfaceInTab[sourceTabIndex];
-    m_standardColorTypeInDisplayGroup[targetTabIndex] = m_standardColorTypeInDisplayGroup[sourceTabIndex];
+    m_standardColorTypeInTab[targetTabIndex] = m_standardColorTypeInTab[sourceTabIndex];
 }
 
 /**
