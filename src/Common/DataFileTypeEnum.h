@@ -157,7 +157,8 @@ private:
                      const bool fileIsUsedWithOneStructure,
                      const AString& fileExtensionOne,
                      const AString& fileExtensionTwo = "",
-                     const AString& fileExtensionThree = "");
+                     const AString& fileExtensionThree = "",
+                     const AString& fileExtensionFour = "");
 
     static const DataFileTypeEnum* findData(const Enum enumValue);
 

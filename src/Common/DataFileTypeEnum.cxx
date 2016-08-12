@@ -61,7 +61,8 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
                                    const bool fileIsUsedWithOneStructure,
                                    const AString& fileExtensionOne,
                                    const AString& fileExtensionTwo,
-                                   const AString& fileExtensionThree)
+                                   const AString& fileExtensionThree,
+                                   const AString& fileExtensionFour)
 {
     this->enumValue = enumValue;
     this->integerCode = DataFileTypeEnum::integerCodeGenerator++;
@@ -78,6 +79,9 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
     }
     if (fileExtensionThree.isEmpty() == false) {
         this->fileExtensions.push_back(fileExtensionThree);
+    }
+    if (fileExtensionFour.isEmpty() == false) {
+        this->fileExtensions.push_back(fileExtensionFour);
     }
 
     AString filterText = this->guiName + " Files (";
@@ -241,6 +245,8 @@ DataFileTypeEnum::initialize()
                                         "Image",
                                         "IMAGE",
                                         false,
+                                        "jpg",
+                                        "jpeg",
                                         "png",
                                         "ppm"));
     
