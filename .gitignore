@@ -5,3 +5,4 @@ release
 debug
 *.kate-swp
 .DS_Store
+*~
