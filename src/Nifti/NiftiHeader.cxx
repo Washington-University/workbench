@@ -41,13 +41,16 @@ NiftiHeader::NiftiHeader()
         throw DataFileException("internal error: nifti header structs are the wrong size");//this is not a runtime assert, because we want this checked in release builds too
     }
     memset(&m_header, 0, sizeof(m_header));
-    for (int i = 0; i < 8; ++i) m_header.dim[i] = 1;//we don't support 0-dimensional nifti, and we maintain 1s on unused dimensions to make some stupid nifti readers happy
+    for (int i = 0; i < 8; ++i)
+    {
+        m_header.dim[i] = 1;//we maintain 1s on unused dimensions to make some stupid nifti readers happy
+        m_header.pixdim[i] = 1.0f;//also set pixdims to 1 by default, to make some other nifti readers happy when reading cifti headers
+    }//note that we still warn when asking for spacing info and qform and sform codes are both 0, so this doesn't prevent us from catching non-volume files loaded as volumes
     m_header.xyzt_units = SPACE_TIME_TO_XYZT(NIFTI_UNITS_MM, NIFTI_UNITS_SEC);
     m_header.scl_slope = 1.0;//default to identity scaling
     m_header.scl_inter = 0.0;
     m_header.datatype = NIFTI_TYPE_FLOAT32;
     m_header.bitpix = typeToNumBits(m_header.datatype);
-    m_header.pixdim[0] = 1.0f;//old versions of nibabel warn on pixdim[0] of 0 even when qform_code is 0
     m_version = 0;
     m_isSwapped = false;
 }
