@@ -140,16 +140,19 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     dataLayout->addWidget(dataOptionsWidget);
     //dataLayout->addStretch();
     
-    QHBoxLayout* histoColorBarLayout = new QHBoxLayout();
-    histoColorBarLayout->addWidget(histogramControlWidget);
-    histoColorBarLayout->addStretch();
+//    QHBoxLayout* histoColorBarLayout = new QHBoxLayout();
+//    histoColorBarLayout->addWidget(histogramControlWidget);
+//    histoColorBarLayout->addStretch();
     
     QWidget* bottomRightWidget = new QWidget();
     QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
     this->setLayoutSpacingAndMargins(bottomRightLayout);
-    bottomRightLayout->addLayout(histoColorBarLayout);
+//    bottomRightLayout->addLayout(histoColorBarLayout);
+    bottomRightLayout->addWidget(histogramControlWidget);
     bottomRightLayout->addLayout(dataLayout);
-    bottomRightWidget->setFixedSize(bottomRightWidget->sizeHint());
+    bottomRightLayout->addStretch();
+    bottomRightWidget->setFixedHeight(bottomRightWidget->sizeHint().height());
+//    bottomRightWidget->setFixedSize(bottomRightWidget->sizeHint());
     
     QWidget* rightWidget = new QWidget();
     QVBoxLayout* rightLayout = new QVBoxLayout(rightWidget);
@@ -777,7 +780,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     /*
      * Statistics
      */
-    const AString blankText("                ");
+    const AString blankText(""); //"                ");
     this->statisticsMinimumValueLabel = new QLabel(blankText);
     this->statisticsMinimumValueLabel->setAlignment(Qt::AlignRight);
     this->statisticsMaximumValueLabel = new QLabel(blankText);
@@ -789,6 +792,9 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     
     QWidget* statisticsWidget = new QWidget();
     QGridLayout* statisticsLayout = new QGridLayout(statisticsWidget);
+    statisticsLayout->setColumnStretch(0, 0);
+    statisticsLayout->setColumnStretch(0, 100);
+    statisticsLayout->setColumnMinimumWidth(1, 10);
     this->setLayoutSpacingAndMargins(statisticsLayout);
     statisticsLayout->addWidget(new QLabel("Mean"), 0, 0);
     statisticsLayout->addWidget(this->statisticsMeanValueLabel, 0, 1);
@@ -798,7 +804,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     statisticsLayout->addWidget(this->statisticsMaximumValueLabel, 2, 1);
     statisticsLayout->addWidget(new QLabel("Min"), 3, 0);
     statisticsLayout->addWidget(this->statisticsMinimumValueLabel, 3, 1);
-    statisticsWidget->setFixedHeight(statisticsWidget->sizeHint().height());
+    //statisticsWidget->setFixedHeight(statisticsWidget->sizeHint().height());
     
     
     QGroupBox* groupBox = new QGroupBox("Histogram");
@@ -807,8 +813,9 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     layout->addWidget(controlWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
     layout->addWidget(statisticsWidget);
-    groupBox->setFixedHeight(groupBox->sizeHint().height());
-    
+    //groupBox->setFixedHeight(groupBox->sizeHint().height());
+    groupBox->setSizePolicy(QSizePolicy::Minimum,
+                            QSizePolicy::Fixed);
     return groupBox;
 }
 
