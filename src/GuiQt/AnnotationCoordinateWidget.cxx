@@ -30,6 +30,7 @@
 #include <QToolButton>
 #include <QToolTip>
 
+#include "AnnotationColorBar.h"
 #include "AnnotationManager.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationOneDimensionalShape.h"
@@ -40,6 +41,7 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventOverlaySettingsEditorDialogRequest.h"
 #include "GuiManager.h"
 #include "StructureEnumComboBox.h"
 #include "WuQFactory.h"
@@ -414,6 +416,19 @@ AnnotationCoordinateWidget::valueChanged()
                 std::vector<Annotation*> selectedAnnotations;
                 selectedAnnotations.push_back(m_annotation);
                 
+                bool updateUserInterfaceFlag = false;
+                for (std::vector<Annotation*>::iterator annIter = selectedAnnotations.begin();
+                     annIter != selectedAnnotations.end();
+                     annIter++) {
+                    Annotation* ann = *annIter;
+                    if (ann->getType() == AnnotationTypeEnum::COLOR_BAR) {
+                        AnnotationColorBar* colorBar = dynamic_cast<AnnotationColorBar*>(ann);
+                        CaretAssert(colorBar);
+                        colorBar->setPositionMode(AnnotationColorBarPositionModeEnum::MANUAL);
+                        updateUserInterfaceFlag = true;
+                    }
+                }
+                
                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
                 switch (m_whichCoordinate) {
                     case COORDINATE_ONE:
@@ -435,6 +450,13 @@ AnnotationCoordinateWidget::valueChanged()
                 }
                 
                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                if (updateUserInterfaceFlag) {
+                    EventManager::get()->sendEvent(EventOverlaySettingsEditorDialogRequest(EventOverlaySettingsEditorDialogRequest::MODE_UPDATE_ALL,
+                                                                                           m_browserWindowIndex,
+                                                                                           NULL,
+                                                                                           NULL,
+                                                                                           -1).getPointer());
+                }
             }
                 break;
             case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:

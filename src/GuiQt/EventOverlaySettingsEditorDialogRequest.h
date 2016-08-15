@@ -35,7 +35,8 @@ namespace caret {
     public:
         enum Mode {
             MODE_SHOW_EDITOR,
-            MODE_OVERLAY_MAP_CHANGED
+            MODE_OVERLAY_MAP_CHANGED,
+            MODE_UPDATE_ALL
         };
         EventOverlaySettingsEditorDialogRequest(const Mode mode,
                                                 const int32_t browserWindowIndex,
