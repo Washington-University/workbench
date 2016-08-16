@@ -294,6 +294,21 @@ ChartData::setSelected(const int32_t tabIndex,
 }
 
 /**
+ * Copy the selection status for all tabs from the given chart data to me.
+ *
+ * @param copyFrom
+ *     Chart data from which selection status is copied.
+ */
+void
+ChartData::copySelectionStatusForAllTabs(const ChartData* copyFrom)
+{
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_selectionStatus[i] = copyFrom->m_selectionStatus[i];
+    }
+}
+
+
+/**
  * @return The Unique Identifier (UUID).
  */
 AString

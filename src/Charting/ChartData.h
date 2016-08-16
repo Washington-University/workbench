@@ -67,6 +67,8 @@ namespace caret {
         
         void setUniqueIdentifier(const AString& uniqueIdentifier);
         
+        void copySelectionStatusForAllTabs(const ChartData* copyFrom);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         

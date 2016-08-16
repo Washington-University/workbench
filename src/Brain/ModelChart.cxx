@@ -1065,6 +1065,7 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                     ChartData* newChartData = loadCartesianChartWhenRestoringScene(chartData);
                     if (newChartData != NULL) {
                         newChartData->setUniqueIdentifier(chartData->getUniqueIdentifier());
+                        newChartData->copySelectionStatusForAllTabs(chartData);
                         delete chartData;
                         chartData = newChartData;
                     }
