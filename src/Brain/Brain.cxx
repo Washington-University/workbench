@@ -6989,8 +6989,6 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
-    std::cout << "Current spec contains " << m_specFile->getNumberOfFiles() << " files." << std::endl;
-    
     /*
      * Prior to restoring the scene, make a copy of the current spec file
      * so that the "in spec" status for data files within the spec file
