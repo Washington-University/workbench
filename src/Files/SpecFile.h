@@ -111,6 +111,8 @@ namespace caret {
         
         AString getText() const;
         
+        void transferDataFilesInSpecStatus(const SpecFile& specFile);
+        
         int32_t getNumberOfDataFileTypeGroups() const;
         
         SpecFileDataFileTypeGroup* getDataFileTypeGroupByIndex(const int32_t dataFileTypeGroupIndex);
@@ -118,6 +120,8 @@ namespace caret {
         const SpecFileDataFileTypeGroup* getDataFileTypeGroupByIndex(const int32_t dataFileTypeGroupIndex) const;
         
         SpecFileDataFileTypeGroup* getDataFileTypeGroupByType(const DataFileTypeEnum::Enum dataFileType) const;
+        
+        const SpecFileDataFile* getFileInfoFromFileName(const AString& fileName) const;
         
 //        void getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFiles);
         

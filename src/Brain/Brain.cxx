@@ -6989,6 +6989,15 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    std::cout << "Current spec contains " << m_specFile->getNumberOfFiles() << " files." << std::endl;
+    
+    /*
+     * Prior to restoring the scene, make a copy of the current spec file
+     * so that the "in spec" status for data files within the spec file
+     * can be preserved.
+     */
+    const SpecFile preSceneLoadSpecFile(*m_specFile);
+    
     bool isLoadFiles = false;
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -7008,6 +7017,11 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                            RESET_BRAIN_KEEP_SCENE_FILES_YES,
                            RESET_BRAIN_KEEP_SPEC_FILE_YES);
     }
+    
+    /*
+     * Preserve "in spec" status prior to loading of scene.
+     */
+    m_specFile->transferDataFilesInSpecStatus(preSceneLoadSpecFile);
     
     /*
      * Add all scene files to the spec file (but not a member of
