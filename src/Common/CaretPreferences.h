@@ -182,6 +182,10 @@ namespace caret {
         
         void setShowVolumeIdentificationSymbols(const bool showSymbols);
         
+        bool isDynamicConnectivityDefaultedOn() const;
+        
+        void setDynamicConnectivityDefaultedOn(const bool defaultedOn);
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -275,6 +279,8 @@ namespace caret {
         
         bool showVolumeIdentificationSymbols;
         
+        bool dynamicConnectivityDefaultedOn;
+        
         bool yokingDefaultedOn;
         
         AString remoteFileUserName;
@@ -301,6 +307,7 @@ namespace caret {
         static const AString NAME_COLOR_FOREGROUND_VOLUME;
         static const AString NAME_COLOR_CHART_MATRIX_GRID_LINES;
         static const AString NAME_DEVELOP_MENU;
+        static const AString NAME_DYNAMIC_CONNECTIVITY_ON;
         static const AString NAME_IMAGE_CAPTURE_METHOD;
         static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_MANAGE_FILES_VIEW_FILE_TYPE;
@@ -340,6 +347,7 @@ namespace caret {
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_VOLUME     = "colorForegroundVolume";
     const AString CaretPreferences::NAME_COLOR_CHART_MATRIX_GRID_LINES = "colorChartMatrixGridLines";
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
+    const AString CaretPreferences::NAME_DYNAMIC_CONNECTIVITY_ON = "dynamicConnectivityDefaultedOn";
     const AString CaretPreferences::NAME_IMAGE_CAPTURE_METHOD = "imageCaptureMethod";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_MANAGE_FILES_VIEW_FILE_TYPE     = "manageFilesViewFileType";

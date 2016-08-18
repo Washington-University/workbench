@@ -621,6 +621,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
     FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(dataFiles,
                                                                             displayNames);
     CaretAssert(dataFiles.size() == displayNames.size());
+
     /*
      * Load the file selection combo box.
      */

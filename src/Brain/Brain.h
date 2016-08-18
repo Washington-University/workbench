@@ -681,6 +681,8 @@ namespace caret {
         
         AString convertFilePathNameToAbsolutePathName(const AString& filename) const;
         
+        void initializeDenseDataSeriesFile(CiftiBrainordinateDataSeriesFile* dataSeriesFile);
+        
         void updateChartModel();
         
         void updateVolumeSliceModel();

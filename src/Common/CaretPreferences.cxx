@@ -953,6 +953,29 @@ CaretPreferences::setShowVolumeIdentificationSymbols(const bool showSymbols)
                      this->showVolumeIdentificationSymbols);
 }
 
+/**
+ * @return Is dynamic connectivity defaulted on?
+ */
+bool
+CaretPreferences::isDynamicConnectivityDefaultedOn() const
+{
+    return this->dynamicConnectivityDefaultedOn;
+}
+
+/**
+ * Set dynamic connectivity defaulted on.
+ *
+ * @param defaultedOn
+ *     New status.
+ */
+void
+CaretPreferences::setDynamicConnectivityDefaultedOn(const bool defaultedOn)
+{
+    this->dynamicConnectivityDefaultedOn = defaultedOn;
+    this->setBoolean(NAME_DYNAMIC_CONNECTIVITY_ON,
+                     defaultedOn);
+}
+
 
 /**
  * @return The image capture method.
@@ -1455,6 +1478,9 @@ CaretPreferences::readPreferences()
     
     this->volumeIdentificationDefaultedOn = this->getBoolean(CaretPreferences::NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON,
                                                              true);
+    
+    this->dynamicConnectivityDefaultedOn = this->getBoolean(CaretPreferences::NAME_DYNAMIC_CONNECTIVITY_ON,
+                                                            true);
     
     this->remoteFileUserName = this->getString(NAME_REMOTE_FILE_USER_NAME);
     this->remoteFilePassword = this->getString(NAME_REMOTE_FILE_PASSWORD);

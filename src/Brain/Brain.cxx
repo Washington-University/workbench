@@ -2996,6 +2996,20 @@ Brain::addReadOrReloadConnectivityMatrixParcelDenseFile(const FileModeAddReadRel
 }
 
 /**
+ * Initialize a data series file's dense connectivity
+ */
+void
+Brain::initializeDenseDataSeriesFile(CiftiBrainordinateDataSeriesFile* dataSeriesFile)
+{
+    /*
+     * Enable dynamic connectivity using preferences
+     */
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    CiftiConnectivityMatrixDenseDynamicFile* denseDynFile = dataSeriesFile->getConnectivityMatrixDenseDynamicFile();
+    denseDynFile->setEnabledAsLayer(prefs->isDynamicConnectivityDefaultedOn());
+}
+
+/**
  * Read a connectivity data series file.
  *
  * @param fileMode
@@ -3070,6 +3084,8 @@ Brain::addReadOrReloadConnectivityDataSeriesFile(const FileModeAddReadReload fil
                                       file);
         m_connectivityDataSeriesFiles.push_back(file);
     }
+
+    initializeDenseDataSeriesFile(file);
     
     return file;
 }
@@ -4125,6 +4141,7 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                 {
                     CiftiBrainordinateDataSeriesFile* file = dynamic_cast<CiftiBrainordinateDataSeriesFile*>(caretDataFile);
                     CaretAssert(file);
+                    initializeDenseDataSeriesFile(file);
                     m_connectivityDataSeriesFiles.push_back(file);
                 }
                     break;

@@ -322,6 +322,16 @@ QWidget*
 PreferencesDialog::createMiscellaneousWidget()
 {
     /*
+     * Dynamic connectivity defautl
+     */
+    m_dynamicConnectivityComboBox = new WuQTrueFalseComboBox("On",
+                                                             "Off",
+                                                             this);
+    QObject::connect(m_dynamicConnectivityComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(miscDynamicConnectivityComboBoxChanged(bool)));
+    m_allWidgets->add(m_dynamicConnectivityComboBox);
+    
+    /*
      * Logging Level
      */
     m_miscLoggingLevelComboBox = new QComboBox();
@@ -379,6 +389,9 @@ PreferencesDialog::createMiscellaneousWidget()
     
     QGridLayout* gridLayout = new QGridLayout();
     addWidgetToLayout(gridLayout,
+                      "Dynamic Connectivity: ",
+                      m_dynamicConnectivityComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
                       "Logging Level: ",
                       m_miscLoggingLevelComboBox);
     addWidgetToLayout(gridLayout,
@@ -410,6 +423,8 @@ PreferencesDialog::createMiscellaneousWidget()
 void
 PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
 {
+    m_dynamicConnectivityComboBox->setStatus(prefs->isDynamicConnectivityDefaultedOn());
+    
     const LogLevelEnum::Enum loggingLevel = prefs->getLoggingLevel();
     int indx = m_miscLoggingLevelComboBox->findData(LogLevelEnum::toIntegerCode(loggingLevel));
     if (indx >= 0) {
@@ -987,6 +1002,17 @@ void PreferencesDialog::miscSplashScreenShowAtStartupComboBoxChanged(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setSplashScreenEnabled(value);
+}
+
+/**
+ * Called when dynamic connectivity option changed.
+ * @param value
+ *   New value.
+ */
+void PreferencesDialog::miscDynamicConnectivityComboBoxChanged(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setDynamicConnectivityDefaultedOn(value);
 }
 
 /**

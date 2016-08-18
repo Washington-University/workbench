@@ -29,6 +29,8 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "CiftiBrainordinateDataSeriesFile.h"
+#include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "FileInformation.h"
 
 using namespace caret;
@@ -92,17 +94,26 @@ void
 FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const std::vector<CaretMappableDataFile*>& caretMappableDataFiles,
                                                                         std::vector<AString>& prefixRemovedNamesOut)
 {
-    std::vector<AString> fileNames;
+    std::vector<CaretDataFile*> caretDataFiles;
     for (std::vector<CaretMappableDataFile*>::const_iterator iter = caretMappableDataFiles.begin();
          iter != caretMappableDataFiles.end();
          iter++) {
-        const CaretDataFile* cdf = *iter;
-        CaretAssert(cdf);
-        fileNames.push_back(cdf->getFileName());
+        caretDataFiles.push_back(*iter);
     }
-    
-    removeMatchingPathPrefixFromFileNames(fileNames,
-                                          prefixRemovedNamesOut);
+    removeMatchingPathPrefixFromCaretDataFiles(caretDataFiles,
+                                               prefixRemovedNamesOut);
+
+//    std::vector<AString> fileNames;
+//    for (std::vector<CaretMappableDataFile*>::const_iterator iter = caretMappableDataFiles.begin();
+//         iter != caretMappableDataFiles.end();
+//         iter++) {
+//        const CaretDataFile* cdf = *iter;
+//        CaretAssert(cdf);
+//        fileNames.push_back(cdf->getFileName());
+//    }
+//    
+//    removeMatchingPathPrefixFromFileNames(fileNames,
+//                                          prefixRemovedNamesOut);
 }
 
 /**
@@ -127,16 +138,66 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const st
                                                                         std::vector<AString>& prefixRemovedNamesOut)
 {
     std::vector<AString> fileNames;
+    std::vector<AString> specialPrefixes;
     for (std::vector<CaretDataFile*>::const_iterator iter = caretDataFiles.begin();
          iter != caretDataFiles.end();
          iter++) {
-        const CaretDataFile* cdf = *iter;
+        CaretDataFile* cdf = *iter;
         CaretAssert(cdf);
+        
+        if (cdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+//            CiftiConnectivityMatrixDenseDynamicFile* denseDynFile = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(cdf);
+//            cdf = denseDynFile->getParentBrainordinateDataSeriesFile();
+            specialPrefixes.push_back("dynconn - ");
+        }
+        else {
+            specialPrefixes.push_back("");
+        }
+        
         fileNames.push_back(cdf->getFileName());
     }
     
     removeMatchingPathPrefixFromFileNames(fileNames,
                                           prefixRemovedNamesOut);
+    
+    const int32_t numFiles = static_cast<int32_t>(prefixRemovedNamesOut.size());
+    CaretAssert(numFiles == static_cast<int32_t>(specialPrefixes.size()));
+    for (int32_t i = 0; i < numFiles; i++) {
+        prefixRemovedNamesOut[i].insert(0, specialPrefixes[i]);
+    }
+}
+
+/**
+ * Create names that show the filename followed by the path BUT remove
+ * any matching prefix from the paths for a group of CaretDataFiles.
+ *
+ * Example Input File Name:
+ *    /mnt/myelin/data/subject2/rsfmri/activity.dscalar.nii
+ *    /mnt/myelin/data/subject1/rsfmri/activity.dscalar.nii
+ * Output:
+ *    actitivity.dscalar.nii (../subject2/rsfmri)
+ *    actitivity.dscalar.nii (../subject1/rsfmri)
+ *
+ * @param caretDataFiles
+ *     The caret data files from which names are obtained.
+ * @param prefixRemovedNamesOut
+ *     Names of files with matching prefixes removed.  Number of elements
+ *     will match the number of elements in caretDataFiles.
+ */
+void
+FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFile(const CaretDataFile* caretDataFile,
+                                                                       AString& prefixRemovedNameOut)
+{
+    std::vector<AString> nameVector;
+    nameVector.push_back(caretDataFile->getFileName());
+    
+    std::vector<AString> prefixVector;
+    removeMatchingPathPrefixFromFileNames(nameVector,
+                                          prefixVector);
+    
+    CaretAssert(nameVector.size() == prefixVector.size());
+    CaretAssert(prefixVector.size() == 1);
+    prefixRemovedNameOut = prefixVector[0];
 }
 
 /**

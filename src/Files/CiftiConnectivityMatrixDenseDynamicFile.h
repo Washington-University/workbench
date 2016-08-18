@@ -21,11 +21,12 @@
  */
 /*LICENSE_END*/
 
-
+#include "CaretPointer.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 
 namespace caret {
     class CiftiBrainordinateDataSeriesFile;
+    class SceneClassAssistant;
     
     class CiftiConnectivityMatrixDenseDynamicFile : public CiftiMappableConnectivityMatrixDataFile {
         
@@ -36,6 +37,10 @@ namespace caret {
         
         bool isDataValid() const;
 
+        bool isEnabledAsLayer() const;
+        
+        void setEnabledAsLayer(const bool enabled);
+        
         virtual bool supportsWriting() const;
         
         void updateAfterReading(const CiftiFile* ciftiFile);
@@ -59,6 +64,12 @@ namespace caret {
         virtual void getProcessedDataForRow(float* dataOut, const int64_t& index) const;
         
         virtual void processRowAverageData(std::vector<float>& rowAverageData);
+        
+        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                             SceneClass* sceneClass);
+        
+        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                  const SceneClass* sceneClass);
         
     private:
         class RowData {
@@ -101,7 +112,11 @@ namespace caret {
         
         bool m_validDataFlag;
         
+        bool m_enabledAsLayer;
+        
         const bool m_cacheDataFlag;
+        
+        CaretPointer<SceneClassAssistant> m_sceneAssistant;
         
         // ADD_NEW_MEMBERS_HERE
 

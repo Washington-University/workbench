@@ -29,6 +29,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "EventOverlayValidate.h"
@@ -380,6 +381,14 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
         if (mapFile->isVolumeMappable()) {
             if (showVolumeMapFiles) {
                 useIt = true;
+            }
+        }
+        
+        if (useIt) {
+            if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+                CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(mapFile);
+                CaretAssert(dynConnFile);
+                useIt = dynConnFile->isEnabledAsLayer();
             }
         }
         

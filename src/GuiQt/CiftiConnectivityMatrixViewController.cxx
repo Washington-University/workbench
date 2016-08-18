@@ -36,6 +36,7 @@
 
 #include "Brain.h"
 #include "CiftiBrainordinateScalarFile.h"
+#include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
@@ -46,6 +47,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FiberTrajectoryMapProperties.h"
+#include "FilePathNamePrefixCompactor.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -69,12 +71,15 @@ CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(con
     m_gridLayout = new QGridLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(m_gridLayout, 2, 2);
     m_gridLayout->setColumnStretch(COLUMN_ENABLE_CHECKBOX, 0);
+    m_gridLayout->setColumnStretch(COLUMN_LAYER_CHECKBOX, 0);
     m_gridLayout->setColumnStretch(COLUMN_COPY_BUTTON, 0);
     m_gridLayout->setColumnStretch(COLUMN_NAME_LINE_EDIT, 100);
     m_gridLayout->setColumnStretch(COLUMN_ORIENTATION_FILE_COMBO_BOX, 100);
     const int titleRow = m_gridLayout->rowCount();
-    m_gridLayout->addWidget(new QLabel("On"),
+    m_gridLayout->addWidget(new QLabel("Load"),
                             titleRow, COLUMN_ENABLE_CHECKBOX);
+    m_gridLayout->addWidget(new QLabel("Layer"),
+                            titleRow, COLUMN_LAYER_CHECKBOX);
     m_gridLayout->addWidget(new QLabel("Copy"),
                             titleRow, COLUMN_COPY_BUTTON);
     m_gridLayout->addWidget(new QLabel("Connectivity File"),
@@ -85,6 +90,10 @@ CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(con
     m_signalMapperFileEnableCheckBox = new QSignalMapper(this);
     QObject::connect(m_signalMapperFileEnableCheckBox, SIGNAL(mapped(int)),
                      this, SLOT(enabledCheckBoxClicked(int)));
+    
+    m_signalMapperLayerCheckBox = new QSignalMapper(this);
+    QObject::connect(m_signalMapperLayerCheckBox, SIGNAL(mapped(int)),
+                     this, SLOT(layerCheckBoxClicked(int)));
     
     m_signalMapperFileCopyToolButton = new QSignalMapper(this);
     QObject::connect(m_signalMapperFileCopyToolButton, SIGNAL(mapped(int)),
@@ -142,14 +151,22 @@ CiftiConnectivityMatrixViewController::updateViewController()
     
     const int32_t numFiles = static_cast<int32_t>(files.size());
 
+//    std::vector<AString> displayNames;
+//    FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(files,
+//                                                                            displayNames);
+//    
+//    CaretAssert(files.size() == displayNames.size());
+    
     for (int32_t i = 0; i < numFiles; i++) {
         QCheckBox* checkBox = NULL;
+        QCheckBox* layerCheckBox = NULL;
         QLineEdit* lineEdit = NULL;
         QToolButton* copyToolButton = NULL;
         QComboBox* comboBox = NULL;
         
         if (i < static_cast<int32_t>(m_fileEnableCheckBoxes.size())) {
             checkBox = m_fileEnableCheckBoxes[i];
+            layerCheckBox = m_layerCheckBoxes[i];
             lineEdit = m_fileNameLineEdits[i];
             copyToolButton = m_fileCopyToolButtons[i];
             comboBox = m_fiberOrientationFileComboBoxes[i];
@@ -157,6 +174,9 @@ CiftiConnectivityMatrixViewController::updateViewController()
         else {
             checkBox = new QCheckBox("");
             m_fileEnableCheckBoxes.push_back(checkBox);
+            
+            layerCheckBox = new QCheckBox("");
+            m_layerCheckBoxes.push_back(layerCheckBox);
             
             lineEdit = new QLineEdit();
             lineEdit->setReadOnly(true);
@@ -178,6 +198,10 @@ CiftiConnectivityMatrixViewController::updateViewController()
                              m_signalMapperFileEnableCheckBox, SLOT(map()));
             m_signalMapperFileEnableCheckBox->setMapping(checkBox, i);
             
+            QObject::connect(layerCheckBox, SIGNAL(clicked(bool)),
+                             m_signalMapperLayerCheckBox, SLOT(map()));
+            m_signalMapperLayerCheckBox->setMapping(layerCheckBox, i);
+            
             QObject::connect(comboBox, SIGNAL(activated(int)),
                              m_signalMapperFiberOrientationFileComboBox, SLOT(map()));
             m_signalMapperFiberOrientationFileComboBox->setMapping(comboBox, i);
@@ -185,6 +209,8 @@ CiftiConnectivityMatrixViewController::updateViewController()
             const int row = m_gridLayout->rowCount();
             m_gridLayout->addWidget(checkBox,
                                     row, COLUMN_ENABLE_CHECKBOX);
+            m_gridLayout->addWidget(layerCheckBox,
+                                    row, COLUMN_LAYER_CHECKBOX);
             m_gridLayout->addWidget(copyToolButton,
                                     row, COLUMN_COPY_BUTTON);
             m_gridLayout->addWidget(lineEdit,
@@ -210,12 +236,22 @@ CiftiConnectivityMatrixViewController::updateViewController()
         checkBox->setChecked(checkStatus);
         checkBox->setProperty(FILE_POINTER_PROPERTY_NAME,
                               qVariantFromValue((void*)files[i]));
-        lineEdit->setText(files[i]->getFileName());
+
+        const CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<const CiftiConnectivityMatrixDenseDynamicFile*>(files[i]);
+        if (dynConnFile != NULL) {
+            layerCheckBox->setChecked(dynConnFile->isEnabledAsLayer());
+        }
+        else {
+            layerCheckBox->setChecked(false);
+        }
+        
+        lineEdit->setText(files[i]->getFileName());  // displayNames[i]);
     }
 
 
     const int32_t numItems = static_cast<int32_t>(m_fileEnableCheckBoxes.size());
     for (int32_t i = 0; i < numItems; i++) {
+        bool layerCheckBoxValid = false;
         bool showRow = false;
         bool showOrientationComboBox = false;
         if (i < numFiles) {
@@ -223,9 +259,15 @@ CiftiConnectivityMatrixViewController::updateViewController()
             if (dynamic_cast<CiftiFiberTrajectoryFile*>(files[i]) != NULL) {
                 showOrientationComboBox = true;
             }
+            
+            if (dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(files[i]) != NULL) {
+                layerCheckBoxValid = true;
+            }
         }
         
         m_fileEnableCheckBoxes[i]->setVisible(showRow);
+        m_layerCheckBoxes[i]->setVisible(showRow);
+        m_layerCheckBoxes[i]->setEnabled(layerCheckBoxValid);
         m_fileCopyToolButtons[i]->setVisible(showRow);
         m_fileNameLineEdits[i]->setVisible(showRow);
         m_fiberOrientationFileComboBoxes[i]->setVisible(showOrientationComboBox);
@@ -326,6 +368,44 @@ CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
     }
     
     updateOtherCiftiConnectivityMatrixViewControllers();
+}
+
+/**
+ * Called when a layer check box changes state.
+ *
+ * @param indx
+ *    Index of checkbox that was clicked.
+ */
+void
+CiftiConnectivityMatrixViewController::layerCheckBoxClicked(int indx)
+{
+    CaretAssertVectorIndex(m_layerCheckBoxes, indx);
+    const bool newStatus = m_layerCheckBoxes[indx]->isChecked();
+    
+    CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
+    CiftiFiberTrajectoryFile* trajFile = NULL;
+    
+    getFileAtIndex(indx,
+                   matrixFile,
+                   trajFile);
+    
+    if (matrixFile != NULL) {
+        CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(matrixFile);
+        if (dynConnFile != NULL) {
+            dynConnFile->setEnabledAsLayer(newStatus);
+        }
+    }
+    else if (trajFile != NULL) {
+        CaretAssertMessage(0, "Should never get caled for fiber trajectory file");
+    }
+    else {
+        CaretAssertMessage(0, "Has a new file type been added?");
+    }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    //updateOtherCiftiConnectivityMatrixViewControllers();
 }
 
 /**

@@ -71,8 +71,13 @@ void
 CiftiBrainordinateDataSeriesFile::clear()
 {
     CiftiMappableDataFile::clear();
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = false;
+    }
     if (m_lazyInitializedDenseDynamicFile != NULL) {
-        m_lazyInitializedDenseDynamicFile->clear();
+        delete m_lazyInitializedDenseDynamicFile;
+        m_lazyInitializedDenseDynamicFile = NULL;
+        //m_lazyInitializedDenseDynamicFile->clear();
     }
 }
 

@@ -32,6 +32,7 @@
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiFile.h"
 #include "FileInformation.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -59,9 +60,14 @@ m_parentDataSeriesCiftiFile(NULL),
 m_numberOfBrainordinates(-1),
 m_numberOfTimePoints(-1),
 m_validDataFlag(false),
+m_enabledAsLayer(true),
 m_cacheDataFlag(false)
 {
     CaretAssert(m_parentDataSeriesFile);
+
+    m_sceneAssistant.grabNew(new SceneClassAssistant());
+    m_sceneAssistant->add("m_enabledAsLayer",
+                          &m_enabledAsLayer);
 }
 
 /**
@@ -69,7 +75,6 @@ m_cacheDataFlag(false)
  */
 CiftiConnectivityMatrixDenseDynamicFile::~CiftiConnectivityMatrixDenseDynamicFile()
 {
-    
 }
 
 /**
@@ -90,6 +95,25 @@ CiftiConnectivityMatrixDenseDynamicFile::getParentBrainordinateDataSeriesFile()
     return m_parentDataSeriesFile;
 }
 
+/**
+ * @return True if enabled as a layer.
+ */
+bool
+CiftiConnectivityMatrixDenseDynamicFile::isEnabledAsLayer() const
+{
+    return m_enabledAsLayer;
+}
+
+/**
+ * Set enabled as a layer.
+ *
+ * @param True if enabled as a layer.
+ */
+void
+CiftiConnectivityMatrixDenseDynamicFile::setEnabledAsLayer(const bool enabled)
+{
+    m_enabledAsLayer = enabled;
+}
 
 /**
  * @return True if this file type supports writing, else false.
@@ -545,4 +569,45 @@ CiftiConnectivityMatrixDenseDynamicFile::correlation(const int32_t rowIndex,
     }
     return correlationCoefficient;
 }
+/**
+ * Save subclass data to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.  Will always
+ *     be valid (non-NULL).
+ */
+void
+CiftiConnectivityMatrixDenseDynamicFile::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                                                 SceneClass* sceneClass)
+{
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+}
+
+/**
+ * Restore file data from the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+CiftiConnectivityMatrixDenseDynamicFile::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                                      const SceneClass* sceneClass)
+{
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+}
+
+
 

@@ -38,8 +38,8 @@ namespace caret {
         static void removeMatchingPathPrefixFromCaretDataFiles(const std::vector<CaretDataFile*>& caretDataFiles,
                                                                std::vector<AString>& prefixRemovedNamesOut);
         
-        static void removeMatchingPathPrefixFromFileNames(const std::vector<AString>& fileNames,
-                                                          std::vector<AString>& prefixRemovedNamesOut);
+        static void removeMatchingPathPrefixFromCaretDataFile(const CaretDataFile* caretDataFile,
+                                                              AString& prefixRemovedNameOut);
         
     private:
         FilePathNamePrefixCompactor();
@@ -49,6 +49,9 @@ namespace caret {
         FilePathNamePrefixCompactor(const FilePathNamePrefixCompactor&);
 
         FilePathNamePrefixCompactor& operator=(const FilePathNamePrefixCompactor&);
+        
+        static void removeMatchingPathPrefixFromFileNames(const std::vector<AString>& fileNames,
+                                                          std::vector<AString>& prefixRemovedNamesOut);
         
     };
     
