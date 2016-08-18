@@ -31,6 +31,7 @@
 #include "VolumeFile.h"
 
 #include <cmath>
+#include <fstream>
 
 using namespace caret;
 using namespace std;
@@ -70,6 +71,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     OptionalParameter* ribbonWeights = ribbonOpt->createOptionalParameter(5, "-output-weights", "write the voxel weights for a vertex to a volume file");
     ribbonWeights->addIntegerParameter(1, "vertex", "the vertex number to get the voxel weights for, 0-based");
     ribbonWeights->addVolumeOutputParameter(2, "weights-out", "volume to write the weights to");
+    OptionalParameter* ribbonWeightsText = ribbonOpt->createOptionalParameter(6, "-output-weights-text", "write the voxel weights for all vertices to a text file");
+    ribbonWeightsText->addStringParameter(1, "text-out", "output - the output text filename");//fake the output formatting
     
     OptionalParameter* myelinStyleOpt = ret->createOptionalParameter(9, "-myelin-style", "use the method from myelin mapping");
     myelinStyleOpt->addVolumeParameter(1, "ribbon-roi", "an roi volume of the cortical ribbon for this hemisphere");
@@ -202,6 +205,29 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                 weightsOut = ribbonWeights->getOutputVolume(2);
             }
             AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, myRoiVol, subdivisions, mySubVol, weightsOutVertex, weightsOut);
+            OptionalParameter* ribbonWeightsText = ribbonOpt->getOptionalParameter(6);
+            if (ribbonWeightsText->m_present)
+            {//do this after the algorithm, to let it do the error condition checking
+                ofstream outFile(ribbonWeightsText->getString(1).toLocal8Bit().constData());
+                if (!outFile) throw AlgorithmException("failed to open output textfile '" + ribbonWeightsText->getString(1) + "'");
+                vector<vector<VoxelWeight> > myWeights;
+                const float* roiFrame = NULL;
+                if (myRoiVol != NULL) roiFrame = myRoiVol->getFrame();
+                RibbonMappingHelper::computeWeightsRibbon(myWeights, myVolume->getVolumeSpace(), innerSurf, outerSurf, roiFrame, subdivisions);
+                for (int i = 0; i < (int)myWeights.size(); ++i)
+                {
+                    outFile << i << ", " << myWeights[i].size();
+                    for (int j = 0; j < (int)myWeights[i].size(); ++j)
+                    {
+                        for (int v = 0; v < 3; ++v)
+                        {
+                            outFile << ", " << myWeights[i][j].ijk[v];
+                        }
+                        outFile << ", " << myWeights[i][j].weight;
+                    }
+                    outFile << endl;
+                }
+            }
             break;
         }
         case MYELIN_STYLE:
