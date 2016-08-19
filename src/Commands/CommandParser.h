@@ -58,6 +58,7 @@ namespace caret {
         void addComponentDescriptions(AString& info, ParameterComponent* myComponent, int curIndent);
         void addOptionDescriptions(AString& info, ParameterComponent* myComponent, int curIndent);
         AString formatString(const AString& in, int curIndent, bool addIndent);
+        static AString fixUnicodeHyphens(const AString& input);
     public:
         CommandParser(AutoOperationInterface* myAutoOper);
         void disableProvenance();

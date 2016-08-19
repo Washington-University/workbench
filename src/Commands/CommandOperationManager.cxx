@@ -534,7 +534,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
     }
     
     AString commandSwitch;
-    commandSwitch = parameters.nextString("Command Name");
+    commandSwitch = fixUnicode(parameters.nextString("Command Name"));
     
     if (commandSwitch == "-help")
     {
@@ -600,9 +600,15 @@ bool CommandOperationManager::getGlobalOption(ProgramParameters& parameters, con
     parameters.setParameterIndex(0);//this ends up being slightly redundant, but whatever
     while (parameters.hasNext())//shouldn't be many global options, so do it the simple way
     {
-        AString test = parameters.nextString("global option");
+        bool hyphenReplaced = false;
+        AString testRaw = parameters.nextString("global option");
+        AString test = testRaw.fixUnicodeHyphens(&hyphenReplaced);
         if (test == optionString)
         {
+            if (hyphenReplaced)
+            {
+                CaretLogWarning("replaced non-ascii hyphen/dash characters in global option '" + testRaw + "' with ascii '-'");
+            }
             parameters.remove();
             arguments.clear();
             for (int i = 0; i < numArgs; ++i)
@@ -971,4 +977,19 @@ void CommandOperationManager::printAllCommandsHelpInfo(const AString& programNam
         cout << iter->first << endl;
         cout << iter->second->getHelpInformation(programName) << endl << endl;
     }
+}
+
+AString CommandOperationManager::fixUnicode(const AString& input)
+{
+    bool hyphenReplaced = false, otherNonAscii = false;
+    AString ret = input.fixUnicodeHyphens(&hyphenReplaced, &otherNonAscii);
+    if (otherNonAscii)
+    {
+        throw CaretException("found non-ascii character in operation switch '" + input + "', but one that is not recognized as a dash/hyphen/minus");
+    }
+    if (hyphenReplaced)
+    {
+        CaretLogWarning("replaced non-ascii hyphen/dash characters in operation switch '" + input + "' with ascii '-'");
+    }
+    return ret;
 }

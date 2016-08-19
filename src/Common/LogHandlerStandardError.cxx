@@ -86,7 +86,7 @@ void
 LogHandlerStandardError::publish(const LogRecord& logRecord)
 {
     cerr << endl;
-    cerr << LogLevelEnum::toHintedName(logRecord.getLevel()) << ": " << logRecord.getText() << endl;
+    cerr << LogLevelEnum::toHintedName(logRecord.getLevel()) << ": " << logRecord.getText().toLocal8Bit().constData() << endl;
 #ifndef NDEBUG
     if (logRecord.getMethodName().isEmpty() == false)
     {//in debug, also give method name and source location

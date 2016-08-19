@@ -20,6 +20,8 @@
 
 #include "CommandOperation.h"
 
+#include "CaretAssert.h"
+
 using namespace caret;
 
 /**
@@ -35,6 +37,10 @@ CommandOperation::CommandOperation(const AString& commandLineSwitch,
 {
     this->commandLineSwitch = commandLineSwitch;
     this->operationShortDescription = operationShortDescription;
+    for (int i = 0; i < commandLineSwitch.length(); ++i)//release build should optimize out empty loops
+    {
+        CaretAssert(commandLineSwitch[i].unicode() < 128);
+    }
 }
  
 /**

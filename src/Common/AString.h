@@ -129,6 +129,8 @@ namespace caret {
         static AString fromBool(const bool b);
         
         AString replaceHtmlSpecialCharactersWithEscapeCharacters() const;
+        
+        AString fixUnicodeHyphens(bool* hyphenReplaced = NULL, bool* hadOtherNonAscii = NULL) const;
     };
 }
 

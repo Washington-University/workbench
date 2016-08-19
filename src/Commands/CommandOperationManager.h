@@ -73,6 +73,8 @@ namespace caret {
         
         bool getGlobalOption(ProgramParameters& parameters, const AString& optionString, const int& numArgs, std::vector<AString>& arguments);
         
+        static AString fixUnicode(const AString& input);
+        
     private:
         std::vector<CommandOperation*> commandOperations, deprecatedOperations;
         

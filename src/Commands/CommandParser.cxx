@@ -104,7 +104,14 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
     uint32_t i;
     for (i = 0; i < myComponent->m_paramList.size(); ++i)
     {
-        AString nextArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
+        bool hyphenReplaced = false;
+        //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+        AString rawArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
+        AString nextArg = rawArg.fixUnicodeHyphens(&hyphenReplaced);
+        if (hyphenReplaced)
+        {
+            CaretLogWarning("replaced non-ascii hyphen/dash characters in argument '" + rawArg + "' with ascii '-'");
+        }
         if (!nextArg.isEmpty() && nextArg[0] == '-')
         {
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
@@ -378,7 +385,14 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
     }
     for (i = 0; i < myComponent->m_outputList.size(); ++i)
     {//parse the output options of this component
-        AString nextArg = parameters.nextString(myComponent->m_outputList[i]->m_shortName);
+        bool hyphenReplaced = false;
+        //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+        AString rawArg = parameters.nextString(myComponent->m_outputList[i]->m_shortName);
+        AString nextArg = rawArg.fixUnicodeHyphens(&hyphenReplaced);
+        if (hyphenReplaced)
+        {
+            CaretLogWarning("replaced non-ascii hyphen/dash characters in argument '" + rawArg + "' with ascii '-'");
+        }
         if (!nextArg.isEmpty() && nextArg[0] == '-')
         {
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
@@ -497,7 +511,14 @@ void CommandParser::parseRemainingOptions(ParameterComponent* myComponent, Progr
 {
     while (parameters.hasNext())
     {
-        AString nextArg = parameters.nextString("option");
+        bool hyphenReplaced = false;
+        //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+        AString rawArg = parameters.nextString("option");
+        AString nextArg = rawArg.fixUnicodeHyphens(&hyphenReplaced);
+        if (hyphenReplaced)
+        {
+            CaretLogWarning("replaced non-ascii hyphen/dash characters in argument '" + rawArg + "' with ascii '-'");
+        }
         if (!nextArg.isEmpty() && nextArg[0] == '-')
         {
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
@@ -897,3 +918,4 @@ bool CommandParser::takesParameters()
 {
     return m_autoOper->takesParameters();
 }
+

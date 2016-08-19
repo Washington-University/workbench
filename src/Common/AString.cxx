@@ -745,6 +745,32 @@ AString::replaceHtmlSpecialCharactersWithEscapeCharacters() const
     return htmlString;
 }
 
+AString AString::fixUnicodeHyphens(bool* hyphenReplaced, bool* hadOtherNonAscii) const
+{
+    AString ret = this->normalized(QString::NormalizationForm_C);//first, normalize multi-char forms to their combined equivalents, etc, tons of nasties
+    for (int i = 0; i < ret.length(); ++i)
+    {
+        ushort charCode = ret[i].unicode();
+        if (charCode > 127)
+        {
+            if ((charCode >= 8208 && charCode <= 8213) || //hyphens, dashes, bar
+                charCode == 8722 || //minus
+                charCode == 11834 || charCode == 11835 || //two and three em dash
+                charCode == 65123 || //small hyphen-minus
+                charCode == 65293)//
+            {
+                CaretLogFine("character code " + AString::number(charCode) + " replaced with ascii dash");
+                ret[i] = '-';
+                if (hyphenReplaced != NULL) *hyphenReplaced = true;
+            } else {//other stuff
+                CaretLogInfo("non-ascii character code " + AString::number(charCode) + " not recognized as dash/hyphen/minus");
+                if (hadOtherNonAscii != NULL) *hadOtherNonAscii = true;
+            }
+        }
+    }
+    return ret;
+}
+
 /**
  * Returns the index position of any character in
  * 'str' in this string.

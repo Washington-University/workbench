@@ -38,10 +38,10 @@ ProgramParameters::ProgramParameters(int argc, const char *const argv[])
     this->initializeMembersProgramParameters();
     
     if (argc > 0) {
-        this->programName = argv[0];
+        this->programName = AString::fromLocal8Bit(argv[0]);
     }
     for (int32_t i = 1; i < argc; i++) {
-        this->addParameter(argv[i]);
+        this->addParameter(AString::fromLocal8Bit(argv[i]));
     }
 }
 
