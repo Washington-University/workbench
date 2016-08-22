@@ -389,7 +389,7 @@ PreferencesDialog::createMiscellaneousWidget()
     
     QGridLayout* gridLayout = new QGridLayout();
     addWidgetToLayout(gridLayout,
-                      "Dynamic Connectivity: ",
+                      "Show Dynconn By Default: ",
                       m_dynamicConnectivityComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "Logging Level: ",
