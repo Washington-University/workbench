@@ -193,7 +193,12 @@ void
 CiftiMappableConnectivityMatrixDataFile::getMapData(const int32_t /*mapIndex*/,
                                   std::vector<float>& dataOut) const
 {
-    dataOut = m_loadedRowData;
+    if (!isEnabledAsLayer())
+    {//TSC: HACK to make identification show empty string instead of number when dynconn is used, then set to not load, not layer
+        dataOut.clear();
+    } else {
+        dataOut = m_loadedRowData;
+    }
 }
 
 /**
@@ -747,6 +752,11 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                                                                    int64_t& rowIndexOut,
                                                                    int64_t& columnIndexOut)
 {
+    if (!isEnabledAsLayer())
+    {
+        return;//TSC: HACK to do nothing when dynconn layer is disabled
+    }
+    
     ElapsedTimer timer;
     timer.start();
     
@@ -811,7 +821,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                 CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiFile->getNumberOfRows()));
                 m_loadedRowData.resize(dataCount);
                 getProcessedDataForRow(&m_loadedRowData[0],
-                                       rowIndex);
+                                    rowIndex);
                 
                 CaretLogFine("Read row for node " + AString::number(nodeIndex));
                 

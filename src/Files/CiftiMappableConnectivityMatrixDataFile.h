@@ -93,6 +93,9 @@ namespace caret {
         
         ChartMatrixLoadingDimensionEnum::Enum getChartMatrixLoadingDimension() const;
         
+        //TSC: HACK to expose dynconn enabled as layer status
+        virtual bool isEnabledAsLayer() const { return true; }
+        
     private:
         CiftiMappableConnectivityMatrixDataFile(const CiftiMappableConnectivityMatrixDataFile&);
 
