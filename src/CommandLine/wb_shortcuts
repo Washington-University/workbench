@@ -25,10 +25,11 @@ set -ue
 
 global_cmd_line="$0 $*"
 global_script_name="wb_shortcuts"
+global_script_version="beta-0.2"
 
 function version ()
 {
-    echo "$global_script_name, version beta-0.2"
+    echo "$global_script_name, version $global_script_version"
 }
 
 function usage ()
@@ -50,7 +51,7 @@ function usage ()
 }
 
 #the main function is so that we can put the main code before other function definitions
-#simply gets called as 'main "$@"' after all functions are defined
+#it simply gets called as 'main "$@"' after all functions are defined
 function main ()
 {
     #NOTE: if we have a lot of functions, check_functions could cause a short startup delay, could make a debug setting to control it
@@ -157,14 +158,28 @@ function cifti_concatenate ()
     then
         echo "`switch_to_descrip $function_switch`"
         echo "   $global_script_name $function_switch"
+        echo "      [-map <map-number-or-name>] - use only the specified map from each input"
+        echo "         file"
         echo "      <output-cifti>"
         echo "      <input-cifti-1>"
         echo "      ..."
         echo
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
+        echo "      The -map option takes either a 1-based index or a map name, and causes"
+        echo "      the operation to use only one map from each input file."
         echo
         exit 0
+    fi
+    local -a maparg
+    if [[ "$1" == "-map" ]]
+    then
+        if (($# < 2))
+        then
+            error "-map option requires an argument"
+        fi
+        maparg=("-column" "$2")
+        shift 2
     fi
     if (($# < 2))
     then
@@ -173,7 +188,7 @@ function cifti_concatenate ()
     local -a merge_arg_array
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-cifti" "${!i}")
+        merge_arg_array+=("-cifti" "${!i}" "${maparg[@]}")
     done
     wb_command -cifti-merge "$1" "${merge_arg_array[@]}"
 }
@@ -362,14 +377,28 @@ function label_concatenate ()
     then
         echo "`switch_to_descrip $function_switch`"
         echo "   $global_script_name $function_switch"
+        echo "      [-map <map-number-or-name>] - use only the specified map from each input"
+        echo "         file"
         echo "      <output-label>"
         echo "      <input-label-1>"
         echo "      ..."
         echo
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
+        echo "      The -map option takes either a 1-based index or a map name, and causes"
+        echo "      the operation to use only one map from each input file."
         echo
         exit 0
+    fi
+    local -a maparg
+    if [[ "$1" == "-map" ]]
+    then
+        if (($# < 2))
+        then
+            error "-map option requires an argument"
+        fi
+        maparg=("-column" "$2")
+        shift 2
     fi
     if (($# < 2))
     then
@@ -378,7 +407,7 @@ function label_concatenate ()
     local -a merge_arg_array
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-label" "${!i}")
+        merge_arg_array+=("-label" "${!i}" "${maparg[@]}")
     done
     wb_command -label-merge "$1" "${merge_arg_array[@]}"
 }
@@ -392,14 +421,28 @@ function metric_concatenate ()
     then
         echo "`switch_to_descrip $function_switch`"
         echo "   $global_script_name $function_switch"
+        echo "      [-map <map-number-or-name>] - use only the specified map from each input"
+        echo "         file"
         echo "      <output-metric>"
         echo "      <input-metric-1>"
         echo "      ..."
         echo
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
+        echo "      The -map option takes either a 1-based index or a map name, and causes"
+        echo "      the operation to use only one map from each input file."
         echo
         exit 0
+    fi
+    local -a maparg
+    if [[ "$1" == "-map" ]]
+    then
+        if (($# < 2))
+        then
+            error "-map option requires an argument"
+        fi
+        maparg=("-column" "$2")
+        shift 2
     fi
     if (($# < 2))
     then
@@ -408,7 +451,7 @@ function metric_concatenate ()
     local -a merge_arg_array
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-metric" "${!i}")
+        merge_arg_array+=("-metric" "${!i}" "${maparg[@]}")
     done
     wb_command -metric-merge "$1" "${merge_arg_array[@]}"
 }
@@ -452,14 +495,28 @@ function volume_concatenate ()
     then
         echo "`switch_to_descrip $function_switch`"
         echo "   $global_script_name $function_switch"
+        echo "      [-map <map-number-or-name>] - use only the specified map from each input"
+        echo "         file"
         echo "      <output-volume>"
         echo "      <input-volume-1>"
         echo "      ..."
         echo
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
+        echo "      The -map option takes either a 1-based index or a map name, and causes"
+        echo "      the operation to use only one map from each input file."
         echo
         exit 0
+    fi
+    local -a maparg
+    if [[ "$1" == "-map" ]]
+    then
+        if (($# < 2))
+        then
+            error "-map option requires an argument"
+        fi
+        maparg=("-subvolume" "$2")
+        shift 2
     fi
     if (($# < 2))
     then
@@ -468,7 +525,7 @@ function volume_concatenate ()
     local -a merge_arg_array
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-volume" "${!i}")
+        merge_arg_array+=("-volume" "${!i}" "${maparg[@]}")
     done
     wb_command -volume-merge "$1" "${merge_arg_array[@]}"
 }

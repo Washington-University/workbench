@@ -193,7 +193,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
     }
     if (!outputRequested)
     {
-        CaretLogWarning("no output requested from -cifti-separate, operation will do nothing");
+        CaretLogWarning("no output requested from -cifti-separate, command will do nothing");
     }
 }
 
