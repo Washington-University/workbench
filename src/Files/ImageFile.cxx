@@ -1420,7 +1420,7 @@ ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
     if ((pixelNormalVector[2] < tinyValue)
         && (pixelNormalVector[2] > -tinyValue)) {
         errorMessageOut = "Control points need to be in a triangular shape; not a line";
-        return false;
+        return NULL;
     }
     
     if (pixelNormalVector[2] < 0.0) {
