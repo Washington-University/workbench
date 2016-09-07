@@ -42,6 +42,10 @@ SelectionItemImage::SelectionItemImage()
     m_imageFile = NULL;
     m_pixelI = -1;
     m_pixelJ = -1;
+    m_pixelRGBA[0] = 0;
+    m_pixelRGBA[1] = 0;
+    m_pixelRGBA[2] = 0;
+    m_pixelRGBA[3] = 0;
 }
 
 /**
@@ -94,6 +98,37 @@ SelectionItemImage::setPixelJ(const int32_t j)
 }
 
 /**
+ * Get the pixel RGBA value.
+ *
+ * @param pixelRGBAOut
+ *     Output containing pixel RGBA.
+ */
+void
+SelectionItemImage::getPixelRGBA(uint8_t pixelRGBAOut[4]) const
+{
+    pixelRGBAOut[0] = m_pixelRGBA[0];
+    pixelRGBAOut[1] = m_pixelRGBA[1];
+    pixelRGBAOut[2] = m_pixelRGBA[2];
+    pixelRGBAOut[3] = m_pixelRGBA[3];
+}
+
+/**
+ * Set the pixel RGBA value.
+ *
+ * @param pixelRGBA
+ *     Pixel RGBA.
+ */
+void
+SelectionItemImage::setPixelRGBA(const uint8_t pixelRGBA[4])
+{
+    m_pixelRGBA[0] = pixelRGBA[0];
+    m_pixelRGBA[1] = pixelRGBA[1];
+    m_pixelRGBA[2] = pixelRGBA[2];
+    m_pixelRGBA[3] = pixelRGBA[3];
+}
+
+
+/**
  * Reset this selection item.
  */
 void
@@ -103,6 +138,10 @@ SelectionItemImage::reset()
     m_imageFile = NULL;
     m_pixelI = -1;
     m_pixelJ = -1;
+    m_pixelRGBA[0] = 0;
+    m_pixelRGBA[1] = 0;
+    m_pixelRGBA[2] = 0;
+    m_pixelRGBA[3] = 0;
 }
 
 /**

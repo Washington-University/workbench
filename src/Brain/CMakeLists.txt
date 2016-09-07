@@ -94,6 +94,9 @@ DisplayPropertiesImages.h
 DisplayPropertiesLabels.h
 DisplayPropertiesSurface.h
 DisplayPropertiesVolume.h
+DisplayPropertyDataBoolean.h
+DisplayPropertyDataEnum.h
+DisplayPropertyDataFloat.h
 DummyFontTextRenderer.h
 EventAnnotationColorBarGet.h
 EventBrainReset.h
@@ -133,6 +136,7 @@ IdentificationWithColor.h
 IdentifiedItem.h
 IdentifiedItemNode.h
 IdentifiedItemVoxel.h
+ImageDepthPositionEnum.h
 Model.h
 ModelChart.h
 ModelSurface.h
@@ -227,6 +231,8 @@ DisplayPropertiesImages.cxx
 DisplayPropertiesLabels.cxx
 DisplayPropertiesSurface.cxx
 DisplayPropertiesVolume.cxx
+DisplayPropertyDataBoolean.cxx
+DisplayPropertyDataFloat.cxx
 DummyFontTextRenderer.cxx
 EventAnnotationColorBarGet.cxx
 EventBrainReset.cxx
@@ -265,6 +271,7 @@ IdentificationWithColor.cxx
 IdentifiedItem.cxx
 IdentifiedItemNode.cxx
 IdentifiedItemVoxel.cxx
+ImageDepthPositionEnum.cxx
 Model.cxx
 ModelChart.cxx
 ModelSurface.cxx

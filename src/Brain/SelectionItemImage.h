@@ -51,6 +51,10 @@ namespace caret {
         
         void setPixelJ(const int32_t j);
         
+        void getPixelRGBA(uint8_t pixelRGBAOut[4]) const;
+        
+        void setPixelRGBA(const uint8_t pixelRGBA[4]);
+        
         virtual void reset();
         
         virtual AString toString() const;
@@ -65,6 +69,9 @@ namespace caret {
         int32_t m_pixelI;
         
         int32_t m_pixelJ;
+        
+        uint8_t m_pixelRGBA[4];
+        
     };
     
 #ifdef __SELECTION_ITEM_IMAGE_DECLARE__

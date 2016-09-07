@@ -142,13 +142,14 @@ public:
                               const int32_t resizeToHeight,
                               std::vector<uint8_t>& bytesRGBAOut) const;
     
+    bool getImagePixelRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+                           const int32_t pixelI,
+                           const int32_t pixelJ,
+                           uint8_t pixelRGBAOut[4]) const;
+    
     int32_t getWidth() const;
     
     int32_t getHeight() const;
-    
-    float getWindowZ() const;
-    
-    void setWindowZ(const float windowZ);
     
     virtual void readFile(const AString& filename);
     
@@ -221,8 +222,6 @@ private:
                             const int positionY);
     
     QImage* m_image;
-    
-    float m_windowZ;
     
     CaretPointer<GiftiMetaData> m_fileMetaData;
     

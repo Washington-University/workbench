@@ -1171,13 +1171,20 @@ IdentificationTextGenerator::generateImageIdentificationText(IdentificationStrin
                                                              const SelectionItemImage* idImage) const
 {
     if (idImage->isValid()) {
-        const AString text = ("Image "
+        AString text = ("Image "
                               + idImage->getImageFile()->getFileNameNoPath()
                               + " Pixel IJ ("
                               + AString::number(idImage->getPixelI())
                               + ","
                               + AString::number(idImage->getPixelJ())
                               + ")");
+        
+        uint8_t pixelRGBA[4] = { 0, 0, 0, 0 };
+        idImage->getPixelRGBA(pixelRGBA);
+        if (pixelRGBA[3] >= 0) {
+            text.append(" RGBA (" + AString::fromNumbers(pixelRGBA, 4, ",") + ")");
+        }
+        
         idText.addLine(false,
                        text);
     }

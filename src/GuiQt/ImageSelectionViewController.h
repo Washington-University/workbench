@@ -39,7 +39,9 @@ class QSignalMapper;
 
 namespace caret {
     class DisplayGroupEnumComboBox;
+    class EnumComboBoxTemplate;
     class SceneClassAssistant;
+    class WuQTabWidget;
 
     class ImageSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
         
@@ -64,14 +66,12 @@ namespace caret {
 
           
     private slots:
-        void processSelectionChanges();
+        void processAttributesChanges();
         
         void imageDisplayGroupSelected(const DisplayGroupEnum::Enum);
 
         void imageRadioButtonClicked(int);
           
-        void windowZeeSpinBoxValueChanged(const int indx);
-        
 // If there will be sub-classes of this class that need to save
 // and restore data from scenes, these pure virtual methods can
 // be uncommented to force their implemetation by sub-classes.
@@ -91,7 +91,13 @@ namespace caret {
         
         void updateImageViewController();
         
+        QWidget* createSelectionWidget();
+        
+        QWidget* createAttributesWidget();
+        
         const int32_t m_browserWindowIndex;
+        
+        WuQTabWidget* m_tabWidget;
         
         SceneClassAssistant* m_sceneAssistant;
 
@@ -99,15 +105,19 @@ namespace caret {
         
         QCheckBox* m_imageDisplayCheckBox;
         
-        std::vector<QDoubleSpinBox*> m_windowZeeSpinBoxes;
-        
         std::vector<QRadioButton*> m_imageRadioButtons;
         
         QButtonGroup* m_imageRadioButtonGroup;
         
         QGridLayout* m_imageRadioButtonLayout;
         
-        QSignalMapper* m_windowZeeSpinBoxSignalMapper;
+        EnumComboBoxTemplate* m_depthComboBox;
+        
+        QDoubleSpinBox* m_thresholdMinimumSpinBox;
+        
+        QDoubleSpinBox* m_thresholdMaximumSpinBox;
+        
+        QDoubleSpinBox* m_opacitySpinBox;
         
         static std::set<ImageSelectionViewController*> s_allImageSelectionViewControllers;
         // ADD_NEW_MEMBERS_HERE

@@ -53,7 +53,6 @@ ImageFile::ImageFile()
     m_fileMetaData.grabNew(new GiftiMetaData());
     
     m_image   = new QImage();
-    m_windowZ = s_defaultWindowDepthPercentage;
 }
 
 /**
@@ -67,7 +66,6 @@ ImageFile::ImageFile(const QImage& qimage)
     m_fileMetaData.grabNew(new GiftiMetaData());
     
     m_image = new QImage(qimage);
-    m_windowZ = s_defaultWindowDepthPercentage;
 }
 
 /**
@@ -94,7 +92,6 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
     m_image = new QImage(imageWidth,
                              imageHeight,
                              QImage::Format_RGB32);
-    m_windowZ = s_defaultWindowDepthPercentage;
     
     bool isOriginAtTop = false;
     switch (imageOrigin) {
@@ -1176,6 +1173,79 @@ ImageFile::getImageBytesRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
     return false;
 }
 
+/**
+ * Get the pixel RGBA at the given pixel I and J.
+ *
+ * @param imageOrigin
+ *    Location of first pixel in the image data.
+ * @param pixelI
+ *     Image I index
+ * @param pixelJ
+ *     Image J index
+ * @param pixelRGBAOut
+ *     RGBA at Pixel I, J
+ * @return
+ *     True if valid, else false.
+ */
+bool
+ImageFile::getImagePixelRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+                             const int32_t pixelI,
+                             const int32_t pixelJ,
+                             uint8_t pixelRGBAOut[4]) const
+{
+    if (m_image != NULL) {
+        const int32_t w = m_image->width();
+        const int32_t h = m_image->height();
+        
+        if ((pixelI >= 0)
+            && (pixelI < w)
+            && (pixelJ >= 0)
+            && (pixelJ < h)) {
+            
+            int32_t imageJ = pixelJ;
+            switch (imageOrigin) {
+                case IMAGE_DATA_ORIGIN_AT_BOTTOM:
+                    imageJ = h - pixelJ - 1;
+                    break;
+                case IMAGE_DATA_ORIGIN_AT_TOP:
+                    break;
+            }
+            
+            if ((imageJ >= 0)
+                && (imageJ < h)) {
+                const QRgb rgb = m_image->pixel(pixelI,
+                                                imageJ);
+                pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
+                pixelRGBAOut[1] = static_cast<uint8_t>(qGreen(rgb));
+                pixelRGBAOut[2] = static_cast<uint8_t>(qBlue(rgb));
+                pixelRGBAOut[3] = 255;
+                
+                return true;
+            }
+            else {
+                CaretLogSevere("Invalid image J");
+            }
+        }
+    }
+    
+    return false;
+}
+
+
+/**
+ * Get the RGBA bytes from the image resized into the given width and height.
+ *
+ * @param imageOrigin
+ *    Location of first pixel in the image data.
+ * @param resizeToWidth
+ *    New width for image.
+ * @param resizeToHeight
+ *    New height of the image.
+ * @param bytesRGBAOut
+ *    The RGBA bytes in the image.
+ * @return
+ *    True if the bytes, width, and height are valid, else false.
+ */
 bool
 ImageFile::getImageResizedBytes(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                                 const int32_t resizeToWidth,
@@ -1271,34 +1341,6 @@ ImageFile::getHeight() const
     }
     
     return h;
-}
-
-/**
- * @return
- *    The Window Z for the image.
- *
- * Note:  1000 is at far clipping plane
- *       -1000 is at near clipping plane
- */
-float
-ImageFile::getWindowZ() const
-{
-    return m_windowZ;
-}
-
-/**
- * Set the Window Z for the image.
- *
- * Note:  1000 is at far clipping plane
- *       -1000 is at near clipping plane
- *
- * @param windowZ
- *     New window Z for drawing image.
- */
-void
-ImageFile::setWindowZ(const float windowZ)
-{
-    m_windowZ = windowZ;
 }
 
 /**
@@ -1602,8 +1644,6 @@ void
 ImageFile::saveFileDataToScene(const SceneAttributes* /*sceneAttributes*/,
                                    SceneClass* sceneClass)
 {
-    sceneClass->addFloat("m_windowZ",
-                         m_windowZ);
 }
 
 /**
@@ -1624,8 +1664,6 @@ void
 ImageFile::restoreFileDataFromScene(const SceneAttributes* /*sceneAttributes*/,
                                         const SceneClass* sceneClass)
 {
-    m_windowZ = sceneClass->getFloatValue("m_windowZ",
-                                          s_defaultWindowDepthPercentage);
 }
 
 

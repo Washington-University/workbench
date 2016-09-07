@@ -856,7 +856,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
     
     this->mode = mode;
     
-    drawBackgroundImage(viewportContent);
+//    drawBackgroundImage(viewportContent);
     
     if (this->browserTabContent != NULL) {
         m_clippingPlaneGroup = const_cast<ClippingPlaneGroup*>(this->browserTabContent->getClippingPlaneGroup());
@@ -933,6 +933,8 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             }
         }
     }
+    
+    drawBackgroundImage(viewportContent);
     
     glFlush();
     
@@ -6215,8 +6217,27 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
         ImageFile* imageFile = dpi->getSelectedImageFile(displayGroup,
                                                                tabIndex);
         if (imageFile != NULL) {
+            float windowZ = 990.0;
+            const ImageDepthPositionEnum::Enum depthPos = dpi->getImagePosition(displayGroup,
+                                                                                tabIndex);
+            switch (depthPos) {
+                case ImageDepthPositionEnum::BACK:
+                    windowZ = -990.0;
+                    break;
+                case ImageDepthPositionEnum::FRONT:
+                    windowZ = 990.0;
+                    break;
+                case ImageDepthPositionEnum::MIDDLE:
+                    windowZ = 0.0;
+                    break;
+            }
+            
             drawImage(vpContent,
-                      imageFile);
+                      imageFile,
+                      windowZ,
+                      dpi->getThresholdMinimum(displayGroup, tabIndex),
+                      dpi->getThresholdMaximum(displayGroup, tabIndex),
+                      dpi->getOpacity(displayGroup, tabIndex));
         }
     }
 }
@@ -6228,17 +6249,29 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
  *    The viewport dimensions.
  * @param image
  *    The QImage that is drawn.
+ * @param windowZ
+ *    Z-position for image.
+ * @param minimumThreshold
+ *    Minimum threshold value.
+ * @param maximumThreshold
+ *    Maximum threshold value.
+ * @param opacity
+ *    Opacity.
  */
 void
 BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
-                                    ImageFile* imageFile)
+                                    ImageFile* imageFile,
+                                    const float windowZ,
+                                    const float minimumThreshold,
+                                    const float maximumThreshold,
+                                    const float opacity)
 {
     CaretAssert(vpContent);
     
     const int32_t originalImageWidth  = imageFile->getWidth();
     const int32_t originalImageHeight = imageFile->getHeight();
-    const int32_t imageSize = originalImageWidth * originalImageHeight;
-    if (imageSize <= 0) {
+    const int32_t originalNumberOfPixels = originalImageWidth * originalImageHeight;
+    if (originalNumberOfPixels <= 0) {
         return;
     }
     
@@ -6311,7 +6344,9 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
                                      dummyHeight);
     }
     
-    const int32_t correctNumberOfBytes = imageWidth * imageHeight * 4;
+    const int32_t numberOfPixels = imageWidth * imageHeight;
+    const int32_t bytesPerPixel  = 4;
+    const int32_t correctNumberOfBytes = numberOfPixels * bytesPerPixel;
     if (static_cast<int32_t>(imageBytesRGBA.size()) != correctNumberOfBytes) {
         CaretLogSevere("Image size is incorrect.  Number of bytes is "
                        + QString::number(imageBytesRGBA.size())
@@ -6319,6 +6354,41 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
                        + QString::number(correctNumberOfBytes));
     }
 
+    const bool testThresholdFlag = ((minimumThreshold > 0.0)
+                                    || (maximumThreshold < 255.0));
+    const bool testOpacityFlag   = (opacity < 1.0);
+    
+    bool useBlendingFlag = false;
+    
+    if (testThresholdFlag
+        || testOpacityFlag) {
+        for (int32_t i = 0; i < numberOfPixels; i++) {
+            const int32_t i4 = i * 4;
+            CaretAssertVectorIndex(imageBytesRGBA, i4 + 3);
+            uint8_t pixelAlpha = 255; //imageBytesRGBA[i4 + 3];
+            
+            if (testThresholdFlag) {
+                if ((imageBytesRGBA[i4] < minimumThreshold)
+                    || (imageBytesRGBA[i4] > maximumThreshold)
+                    || (imageBytesRGBA[i4+1] < minimumThreshold)
+                    || (imageBytesRGBA[i4+1] > maximumThreshold)
+                    || (imageBytesRGBA[i4+2] < minimumThreshold)
+                    || (imageBytesRGBA[i4+2] > maximumThreshold)) {
+                    pixelAlpha = 0;
+                }
+            }
+            if (testOpacityFlag) {
+                pixelAlpha = static_cast<uint8_t>(pixelAlpha * opacity);
+            }
+            
+            if (pixelAlpha < 255) {
+                useBlendingFlag = true;
+            }
+            
+            imageBytesRGBA[i4 + 3] = pixelAlpha;
+        }
+    }
+                
     /*
      * Center image in the window
      */
@@ -6349,19 +6419,30 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
      */
     glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
     
-    /* 
+    GLboolean blendingEnabled = GL_FALSE;
+    glGetBooleanv(GL_BLEND, &blendingEnabled);
+    
+    if (useBlendingFlag) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    
+    /*
      * Set the image's Z coordinate where a depth percentage of 100.0
      * is at the far clipping plane (away from viewer) and a percentage
      * of zero is at the near clipping plane (closest to viewer).
      *
      * Old way to set Z:  const float imageZ = 10.0 - farClip;
      */
-    const float imageZ = -imageFile->getWindowZ();
-    glRasterPos3f(xPos, yPos, imageZ); //-500.0); // set Z so image behind surface
+    glRasterPos3f(xPos, yPos, windowZ);
     
     glDrawPixels(imageWidth, imageHeight,
                  GL_RGBA, GL_UNSIGNED_BYTE,
                  (GLvoid*)&imageBytesRGBA[0]);
+    
+    if (blendingEnabled == GL_FALSE) {
+        glDisable(GL_BLEND);
+    }
     
     glPopClientAttrib();
     
@@ -6392,6 +6473,14 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
             idImage->setImageFile(imageFile);
             idImage->setPixelI(pixelX);
             idImage->setPixelJ(pixelY);
+
+            uint8_t pixelByteRGBA[4];
+            if (imageFile->getImagePixelRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                             pixelX,
+                                             pixelY,
+                                             pixelByteRGBA)) {
+                idImage->setPixelRGBA(pixelByteRGBA);
+            }
         }
     }
 }

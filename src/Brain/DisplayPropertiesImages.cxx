@@ -27,6 +27,8 @@
 
 #include "Brain.h"
 #include "CaretLogger.h"
+#include "DisplayPropertyDataBoolean.h"
+#include "DisplayPropertyDataFloat.h"
 #include "ImageFile.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -51,25 +53,33 @@ m_parentBrain(parentBrain)
 {
     CaretAssert(parentBrain);
     
+    const ImageDepthPositionEnum::Enum defaultImageDepth = ImageDepthPositionEnum::BACK;
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
-        m_displayStatusInTab[i] = false;
         m_imageFileInTab[i] = NULL;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        m_displayStatusInDisplayGroup[i] = false;
         m_imageFileInDisplayGroup[i] = NULL;
     }
     
+    m_imageDepthPosition.initialize(defaultImageDepth);
+    
+    m_displayStatus.grabNew(new DisplayPropertyDataBoolean(false));
+    m_thresholdMinimum.grabNew(new DisplayPropertyDataFloat(0));
+    m_thresholdMaximum.grabNew(new DisplayPropertyDataFloat(255));
+    m_opacity.grabNew(new DisplayPropertyDataFloat(1.0));
+    
+    m_sceneAssistant->add("m_displayStatus", "DisplayPropertyDataBoolean", m_displayStatus);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
-    m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
-                                                m_displayStatusInTab);
-    m_sceneAssistant->addArray("m_displayStatusInDisplayGroup",
-                               m_displayStatusInDisplayGroup,
-                               DisplayGroupEnum::NUMBER_OF_GROUPS,
-                               m_displayStatusInDisplayGroup[0]);
+    
+    m_sceneAssistant->add("m_imageDepthPosition", "DisplayPropertyDataEnum", &m_imageDepthPosition);
+    m_sceneAssistant->add("m_thresholdMinimum", "DisplayPropertyDataFloat", m_thresholdMinimum);
+    m_sceneAssistant->add("m_thresholdMaximum", "DisplayPropertyDataFloat", m_thresholdMaximum);
+    m_sceneAssistant->add("m_opacity", "DisplayPropertyDataFloat", m_opacity);
+    
 }
 
 /**
@@ -93,7 +103,7 @@ DisplayPropertiesImages::copyDisplayProperties(const int32_t sourceTabIndex,
     const DisplayGroupEnum::Enum displayGroup = this->getDisplayGroupForTab(sourceTabIndex);
     this->setDisplayGroupForTab(targetTabIndex, displayGroup);
     
-    m_displayStatusInTab[targetTabIndex]    = m_displayStatusInTab[sourceTabIndex];
+    m_displayStatus->copyValues(sourceTabIndex, targetTabIndex);
 }
 
 /**
@@ -121,30 +131,25 @@ DisplayPropertiesImages::update()
 }
 
 /**
- * @return  Display status of foci.
+ * @return  Display status of images.
  * @param displayGroup
  *     Display group.
+ * @param tabIndex
+ *     The tab index.
  */
 bool
 DisplayPropertiesImages::isDisplayed(const DisplayGroupEnum::Enum displayGroup,
                                    const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
-                          DisplayGroupEnum::NUMBER_OF_GROUPS,
-                          static_cast<int32_t>(displayGroup));
-    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_displayStatusInTab,
-                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);
-        return m_displayStatusInTab[tabIndex];
-    }
-    return m_displayStatusInDisplayGroup[displayGroup];
+    return m_displayStatus->getValue(displayGroup, tabIndex);
 }
 
 /**
- * Set the display status for foci.
+ * Set the display status for image.
  * @param displayGroup
  *     Display group.
+ * @param tabIndex
+ *     The tab index.
  * @param displayStatus
  *    New status.
  */
@@ -153,18 +158,7 @@ DisplayPropertiesImages::setDisplayed(const DisplayGroupEnum::Enum displayGroup,
                                     const int32_t tabIndex,
                                     const bool displayStatus)
 {
-    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
-                          DisplayGroupEnum::NUMBER_OF_GROUPS,
-                          static_cast<int32_t>(displayGroup));
-    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_displayStatusInTab,
-                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);
-        m_displayStatusInTab[tabIndex] = displayStatus;
-    }
-    else {
-        m_displayStatusInDisplayGroup[displayGroup] = displayStatus;
-    }
+    m_displayStatus->setValue(displayGroup, tabIndex, displayStatus);
 }
 
 /**
@@ -287,6 +281,146 @@ DisplayPropertiesImages::setSelectedImageFile(const DisplayGroupEnum::Enum displ
     else {
         m_imageFileInDisplayGroup[displayGroup] = imageFile;
     }
+}
+
+/**
+ * Get the minimum threshold value.
+ *
+ * @param displayGroup
+ *     Selected display group.
+ * @param tabIndex
+ *     Selected tab.
+ * @return
+ *     Threshold value for given display group and tab.
+ */
+float
+DisplayPropertiesImages::getThresholdMinimum(const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex) const
+{
+    return m_thresholdMinimum->getValue(displayGroup, tabIndex);
+}
+
+/**
+ * Set the minimum threshold value.
+ *
+ * @param displayGroup
+ *     Selected display group.
+ * @param tabIndex
+ *     Selected tab.
+ * @param value
+ *     Threshold value for given display group and tab.
+ */
+void
+DisplayPropertiesImages::setThresholdMinimum(const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex,
+                                             const float value)
+{
+    m_thresholdMinimum->setValue(displayGroup, tabIndex, value);
+}
+
+
+/**
+ * Get the maximum threshold value.
+ *
+ * @param displayGroup
+ *     Selected display group.
+ * @param tabIndex
+ *     Selected tab.
+ * @return
+ *     Threshold value for given display group and tab.
+ */
+float
+DisplayPropertiesImages::getThresholdMaximum(const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex) const
+{
+    return m_thresholdMaximum->getValue(displayGroup, tabIndex);
+}
+
+/**
+ * Set the maximum threshold value.
+ *
+ * @param displayGroup
+ *     Selected display group.
+ * @param tabIndex
+ *     Selected tab.
+ * @param value
+ *     Threshold value for given display group and tab.
+ */
+void
+DisplayPropertiesImages::setThresholdMaximum(const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex,
+                                             const float value)
+{
+    m_thresholdMaximum->setValue(displayGroup, tabIndex, value);
+}
+
+/**
+ * Get the opacity value.
+ *
+ * @param displayGroup
+ *     Selected display group.
+ * @param tabIndex
+ *     Selected tab.
+ * @return
+ *     Opacity value for given display group and tab.
+ */
+float
+DisplayPropertiesImages::getOpacity(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex) const
+{
+    return m_opacity->getValue(displayGroup, tabIndex);
+}
+
+/**
+ * Set the opacity value.
+ *
+ * @param displayGroup
+ *     Selected display group.
+ * @param tabIndex
+ *     Selected tab.
+ * @param value
+ *     Opacity value for given display group and tab.
+ */
+void
+DisplayPropertiesImages::setOpacity(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex,
+                                    const float value)
+{
+    m_opacity->setValue(displayGroup, tabIndex, value);
+}
+
+/**
+ * @return The image position type.
+ * @param displayGroup
+ *     Selected display group.
+ * @param tabIndex
+ *     Selected tab.
+ */
+ImageDepthPositionEnum::Enum
+DisplayPropertiesImages::getImagePosition(const DisplayGroupEnum::Enum displayGroup,
+                                          const int32_t tabIndex) const
+{
+    return m_imageDepthPosition.getValue(displayGroup,
+                                         tabIndex);
+}
+
+/**
+ * Set the image position type.
+ * @param displayGroup
+ *     Selected display group.
+ * @param tabIndex
+ *     Selected tab.
+ * @param positionType
+ *    New value for position type.
+ */
+void
+DisplayPropertiesImages::setImagePosition(const DisplayGroupEnum::Enum displayGroup,
+                                          const int32_t tabIndex,
+                                          const ImageDepthPositionEnum::Enum positionType)
+{
+    m_imageDepthPosition.setValue(displayGroup,
+                                  tabIndex,
+                                  positionType);
 }
 
 /**

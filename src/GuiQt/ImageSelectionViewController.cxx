@@ -38,6 +38,7 @@
 #include "CaretAssert.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesImages.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -47,13 +48,11 @@
 #include "SceneClassAssistant.h"
 #include "WuQSpinBoxGroup.h"
 #include "WuQtUtilities.h"
+#include "WuQTabWidget.h"
 
 using namespace caret;
 
-static const int COLUMN_SPIN_BOX     = 1;
 static const int COLUMN_RADIO_BUTTON = 0;
-
-
 
 /**
  * \class caret::ImageSelectionViewController 
@@ -85,41 +84,25 @@ m_browserWindowIndex(browserWindowIndex)
     
     m_imageDisplayCheckBox = new QCheckBox("Display Image");
     QObject::connect(m_imageDisplayCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(processSelectionChanges()));
+                     this, SLOT(processAttributesChanges()));
     
-    m_imageRadioButtonGroup = new QButtonGroup(this);
-    QObject::connect(m_imageRadioButtonGroup, SIGNAL(buttonClicked(int)),
-                     this, SLOT(imageRadioButtonClicked(int)));
+    QWidget* attributesWidget = this->createAttributesWidget();
+    QWidget* selectionWidget = this->createSelectionWidget();
     
-    m_windowZeeSpinBoxSignalMapper = new QSignalMapper(this);
-    QObject::connect(m_windowZeeSpinBoxSignalMapper, SIGNAL(mapped(int)),
-                     this, SLOT(windowZeeSpinBoxValueChanged(const int)));
-    
-    QWidget* imageRadioButtonWidget = new QWidget();
-    imageRadioButtonWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    m_imageRadioButtonLayout = new QGridLayout(imageRadioButtonWidget);
-    m_imageRadioButtonLayout->setColumnStretch(COLUMN_SPIN_BOX,       0);
-    m_imageRadioButtonLayout->setColumnStretch(COLUMN_RADIO_BUTTON, 100);
-    const int imageLayoutRow = m_imageRadioButtonLayout->rowCount();
-    m_imageRadioButtonLayout->addWidget(new QLabel("Image"),
-                                        imageLayoutRow, COLUMN_RADIO_BUTTON,
-                                        Qt::AlignHCenter);
-    m_imageRadioButtonLayout->addWidget(new QLabel("Depth"),
-                                        imageLayoutRow, COLUMN_SPIN_BOX,
-                                        Qt::AlignLeft);
-    
-    QScrollArea* imageRadioButtonScrollArea = new QScrollArea();
-    imageRadioButtonScrollArea->setWidget(imageRadioButtonWidget);
-    imageRadioButtonScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    imageRadioButtonScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    imageRadioButtonScrollArea->setWidgetResizable(true);
+    m_tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
+                                   this);
+    m_tabWidget->addTab(attributesWidget,
+                        "Attributes");
+    m_tabWidget->addTab(selectionWidget,
+                        "Selection");
+    m_tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
 //    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addLayout(groupLayout, 0);
     layout->addWidget(m_imageDisplayCheckBox, 0);
     layout->addSpacing(10);
-    layout->addWidget(imageRadioButtonScrollArea, 100);
+    layout->addWidget(m_tabWidget->getWidget(), 100);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -168,10 +151,126 @@ ImageSelectionViewController::receiveEvent(Event* event)
 }
 
 /**
+ * Create the image selection widget.
+ */
+QWidget*
+ImageSelectionViewController::createSelectionWidget()
+{
+    m_imageRadioButtonGroup = new QButtonGroup(this);
+    QObject::connect(m_imageRadioButtonGroup, SIGNAL(buttonClicked(int)),
+                     this, SLOT(imageRadioButtonClicked(int)));
+    
+    QWidget* imageRadioButtonWidget = new QWidget();
+    imageRadioButtonWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_imageRadioButtonLayout = new QGridLayout(imageRadioButtonWidget);
+    m_imageRadioButtonLayout->setColumnStretch(COLUMN_RADIO_BUTTON, 100);
+    const int imageLayoutRow = m_imageRadioButtonLayout->rowCount();
+    m_imageRadioButtonLayout->addWidget(new QLabel("Image"),
+                                        imageLayoutRow, COLUMN_RADIO_BUTTON,
+                                        Qt::AlignHCenter);
+    
+    QScrollArea* imageRadioButtonScrollArea = new QScrollArea();
+    imageRadioButtonScrollArea->setWidget(imageRadioButtonWidget);
+    imageRadioButtonScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    imageRadioButtonScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    imageRadioButtonScrollArea->setWidgetResizable(true);
+    
+    return imageRadioButtonScrollArea;
+}
+
+/**
+ * @return The attributes widget.
+ */
+QWidget*
+ImageSelectionViewController::createAttributesWidget()
+{
+    QLabel* depthLabel = new QLabel("Depth");
+    m_depthComboBox = new EnumComboBoxTemplate(this);
+    m_depthComboBox->setup<ImageDepthPositionEnum, ImageDepthPositionEnum::Enum>();
+    m_depthComboBox->getWidget()->setToolTip("Set the depth position of the image3");
+    QObject::connect(m_depthComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(processAttributesChanges()));
+
+    const float threshMin = -1.0;
+    const float threshMax = 100000.0;
+    
+    QLabel* thresholdMinimumLabel = new QLabel("Minimum Threshold");
+    m_thresholdMinimumSpinBox = WuQFactory::newDoubleSpinBox();
+    m_thresholdMinimumSpinBox->setFixedWidth(80);
+    m_thresholdMinimumSpinBox->setRange(threshMin,
+                                        threshMax);
+    m_thresholdMinimumSpinBox->setSingleStep(1.0);
+    m_thresholdMinimumSpinBox->setDecimals(1);
+    m_thresholdMinimumSpinBox->setToolTip("Do not display image pixels containing a color component less than this value");
+    QObject::connect(m_thresholdMinimumSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(processAttributesChanges()));
+    
+    QLabel* thresholdMaximumLabel = new QLabel("Maximum Threshold");
+    m_thresholdMaximumSpinBox = WuQFactory::newDoubleSpinBox();
+    m_thresholdMaximumSpinBox->setFixedWidth(80);
+    m_thresholdMaximumSpinBox->setRange(threshMin,
+                                        threshMax);
+    m_thresholdMaximumSpinBox->setSingleStep(1.0);
+    m_thresholdMaximumSpinBox->setDecimals(1);
+    m_thresholdMaximumSpinBox->setToolTip("Do not display image pixels containing a color component greater than this value");
+    QObject::connect(m_thresholdMaximumSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(processAttributesChanges()));
+    
+    const float minOpacity = 0.0;
+    const float maxOpacity = 1.0;
+    QLabel* opacityLabel = new QLabel("Opacity");
+    m_opacitySpinBox = WuQFactory::newDoubleSpinBox();
+    m_opacitySpinBox->setFixedWidth(80);
+    m_opacitySpinBox->setRange(minOpacity,
+                               maxOpacity);
+    m_opacitySpinBox->setSingleStep(0.01);
+    m_opacitySpinBox->setDecimals(1);
+    m_opacitySpinBox->setToolTip("Opacity for image");
+    QObject::connect(m_opacitySpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(processAttributesChanges()));
+    
+    
+    QWidget* gridWidget = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(gridWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 8, 2);
+    int row = gridLayout->rowCount();
+    gridLayout->addWidget(depthLabel, row, 0);
+    gridLayout->addWidget(m_depthComboBox->getWidget(), row, 1);
+    row++;
+    gridLayout->addWidget(thresholdMinimumLabel, row, 0);
+    gridLayout->addWidget(m_thresholdMinimumSpinBox, row, 1);
+    row++;
+    gridLayout->addWidget(thresholdMaximumLabel, row, 0);
+    gridLayout->addWidget(m_thresholdMaximumSpinBox, row, 1);
+    row++;
+    gridLayout->addWidget(opacityLabel, row, 0);
+    gridLayout->addWidget(m_opacitySpinBox, row, 1);
+    row++;
+//    gridLayout->addWidget(pointSizeLabel, row, 0);
+//    gridLayout->addWidget(m_pointSizeSpinBox, row, 1);
+//    row++;
+//    gridLayout->addWidget(m_enableUnstretchedLinesCheckBox, row, 0);
+//    gridLayout->addWidget(m_unstretchedLinesLengthSpinBox, row, 1);
+//    row++;
+//    gridLayout->addWidget(aboveSurfaceLabel, row, 0);
+//    gridLayout->addWidget(m_aboveSurfaceOffsetSpinBox, row, 1);
+//    
+//    gridWidget->setSizePolicy(QSizePolicy::Fixed,
+//                              QSizePolicy::Fixed);
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addWidget(gridWidget);
+    layout->addStretch();
+    
+    return widget;
+}
+
+/**
  * Called when a selection changes.
  */
 void
-ImageSelectionViewController::processSelectionChanges()
+ImageSelectionViewController::processAttributesChanges()
 {
     DisplayPropertiesImages* dpi = GuiManager::get()->getBrain()->getDisplayPropertiesImages();
     
@@ -185,6 +284,22 @@ ImageSelectionViewController::processSelectionChanges()
     dpi->setDisplayed(displayGroup,
                       browserTabIndex,
                       m_imageDisplayCheckBox->isChecked());
+    
+    dpi->setImagePosition(displayGroup,
+                          browserTabIndex,
+                          m_depthComboBox->getSelectedItem<ImageDepthPositionEnum, ImageDepthPositionEnum::Enum>());
+    
+    dpi->setThresholdMinimum(displayGroup,
+                             browserTabIndex,
+                             m_thresholdMinimumSpinBox->value());
+    
+    dpi->setThresholdMaximum(displayGroup,
+                             browserTabIndex,
+                             m_thresholdMaximumSpinBox->value());
+    
+    dpi->setOpacity(displayGroup,
+                             browserTabIndex,
+                             m_opacitySpinBox->value());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -252,32 +367,6 @@ ImageSelectionViewController::imageRadioButtonClicked(int buttonID)
 }
 
 /**
- * Gets called when a depth spin box has its value changed.
- *
- * @param spinBoxIndex
- *     Index of spin box whose value is changed.
- */
-void
-ImageSelectionViewController::windowZeeSpinBoxValueChanged(const int spinBoxIndex)
-{
-    BrowserTabContent* browserTabContent =
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-    if (browserTabContent == NULL) {
-        return;
-    }
-    Brain* brain = GuiManager::get()->getBrain();
-    std::vector<ImageFile*> allImageFiles = brain->getAllImagesFiles();
-    CaretAssertVectorIndex(allImageFiles, spinBoxIndex);
-    CaretAssertVectorIndex(m_windowZeeSpinBoxes, spinBoxIndex);
-    
-    allImageFiles[spinBoxIndex]->setWindowZ(m_windowZeeSpinBoxes[spinBoxIndex]->value());
-    
-    updateOtherImageViewControllers();
-}
-
-
-
-/**
  * Update the image selection widget.
  */
 void
@@ -307,30 +396,13 @@ ImageSelectionViewController::updateImageViewController()
     int32_t numRadioButtons = static_cast<int32_t>(m_imageRadioButtons.size());
 
     if (numImageFiles > numRadioButtons) {
-        const AString depthToolTip = ("Adjust 'depth' of image:\n"
-                                      "   Negative ==> Move towards viewer\n"
-                                      "   Zero     ==> Anterior Commissure\n"
-                                      "   Positive ==> Move away from viewer");
         const int32_t numToAdd = numImageFiles - numRadioButtons;
         for (int32_t i = 0; i < numToAdd; i++) {
             const int buttonID = static_cast<int>(m_imageRadioButtons.size());
             QRadioButton* rb = new QRadioButton("");
             m_imageRadioButtons.push_back(rb);
             
-            QDoubleSpinBox* sb = new QDoubleSpinBox();
-            sb->setRange(-1000.0, 1000.0);
-            sb->setDecimals(1);
-            sb->setSingleStep(1.0);
-            sb->setToolTip(depthToolTip);
-            m_windowZeeSpinBoxes.push_back(sb);
-            
-            QObject::connect(sb, SIGNAL(valueChanged(double)),
-                             m_windowZeeSpinBoxSignalMapper, SLOT(map()));
-            m_windowZeeSpinBoxSignalMapper->setMapping(sb, i);
-            
             const int row = m_imageRadioButtonLayout->rowCount();
-            m_imageRadioButtonLayout->addWidget(sb,
-                                                row, COLUMN_SPIN_BOX);
             m_imageRadioButtonLayout->addWidget(rb,
                                                 row, COLUMN_RADIO_BUTTON);
             
@@ -341,15 +413,11 @@ ImageSelectionViewController::updateImageViewController()
         numRadioButtons = static_cast<int32_t>(m_imageRadioButtons.size());
     }
     
-    m_windowZeeSpinBoxSignalMapper->blockSignals(true);
-    
     const ImageFile* selectedImageFile = dpi->getSelectedImageFile(displayGroup,
                                                                    browserTabIndex);
     for (int32_t i = 0; i < numRadioButtons; i++) {
         CaretAssertVectorIndex(m_imageRadioButtons, i);
         QRadioButton* rb = m_imageRadioButtons[i];
-        CaretAssertVectorIndex(m_windowZeeSpinBoxes, i);
-        QDoubleSpinBox* sb = m_windowZeeSpinBoxes[i];
         
         if (i < numImageFiles) {
             rb->setText(allImageFiles[i]->getFileNameNoPath());
@@ -357,17 +425,23 @@ ImageSelectionViewController::updateImageViewController()
                 rb->setChecked(true);
             }
             rb->setVisible(true);
-            
-            sb->setValue(allImageFiles[i]->getWindowZ());
-            sb->setVisible(true);
         }
         else {
             rb->setVisible(false);
-            sb->setVisible(false);
         }
     }
-
-    m_windowZeeSpinBoxSignalMapper->blockSignals(false);
+    
+    m_depthComboBox->setSelectedItem<ImageDepthPositionEnum, ImageDepthPositionEnum::Enum>(dpi->getImagePosition(displayGroup,
+                                                                                                                 browserTabIndex));
+    m_thresholdMinimumSpinBox->blockSignals(true);
+    m_thresholdMinimumSpinBox->setValue(dpi->getThresholdMinimum(displayGroup, browserTabIndex));
+    m_thresholdMinimumSpinBox->blockSignals(false);
+    m_thresholdMaximumSpinBox->blockSignals(true);
+    m_thresholdMaximumSpinBox->setValue(dpi->getThresholdMaximum(displayGroup, browserTabIndex));
+    m_thresholdMaximumSpinBox->blockSignals(false);
+    m_opacitySpinBox->blockSignals(true);
+    m_opacitySpinBox->setValue(dpi->getOpacity(displayGroup, browserTabIndex));
+    m_opacitySpinBox->blockSignals(false);
 }
 
 /**
