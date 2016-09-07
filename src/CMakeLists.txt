@@ -214,11 +214,11 @@ ELSE (QT4_FOUND)
     #it would be nice if there documentation actually listed the module names as specified to find_package...
     FIND_PACKAGE(Qt5Core REQUIRED)
     FIND_PACKAGE(Qt5Network REQUIRED)
-    FIND_PACKAGE(Qt5GUI REQUIRED)
+    FIND_PACKAGE(Qt5Gui REQUIRED)
     FIND_PACKAGE(Qt5Widgets REQUIRED)
-    FIND_PACKAGE(Qt5XML REQUIRED)
-    INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS} ${Qt5GUI_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5XML_INCLUDE_DIRS})
-    SET(LIBS ${LIBS} Qt5::Core Qt5::Network Qt5::GUI Qt5::Widgets Qt5::XML)
+    FIND_PACKAGE(Qt5Xml REQUIRED)
+    INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Xml_INCLUDE_DIRS})
+    SET(LIBS ${LIBS} Qt5::Core Qt5::Network Qt5::Gui Qt5::Widgets Qt5::Xml)
     #whatever that means
 ENDIF (QT4_FOUND)
 
