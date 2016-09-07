@@ -14,6 +14,7 @@ SET(QT_USE_QTNETWORK TRUE)
 # Add QT for includes
 #
 INCLUDE (${QT_USE_FILE})
+SET(LIBS ${LIBS} ${QT_LIBRARIES})
 
 #
 #The individual tests
@@ -97,9 +98,8 @@ Palette
 Scenes
 Xml
 Common
-${QT_LIBRARIES}
+${LIBS}
 ${ZLIB_LIBRARIES}
-#${LIBS}
 )
 
 IF(WIN32)

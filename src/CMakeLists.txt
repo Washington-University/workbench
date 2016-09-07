@@ -202,16 +202,25 @@ ENDIF(OPENSSL_FOUND)
 #
 # Must have QT 4.8 or later
 #
-FIND_PACKAGE(Qt4 4.8 REQUIRED)
-IF(QT4_FOUND)
-ELSE(QT4_FOUND)
-    MESSAGE(FATAL_ERROR "QT4 not found")
-ENDIF(QT4_FOUND)
-
-#
-# QT include files
-#
-INCLUDE(${QT_USE_FILE})
+FIND_PACKAGE(Qt4 4.8 QUIET)
+IF (QT4_FOUND)
+    SET(QT_USE_QTXML TRUE)
+    SET(QT_USE_QTOPENGL TRUE)
+    SET(QT_USE_QTNETWORK TRUE)
+    INCLUDE (${QT_USE_FILE})
+    SET(LIBS ${LIBS} ${QT_LIBRARIES})
+ELSE (QT4_FOUND)
+    MESSAGE(STATUS "didn't find QT4 4.8, looking for QT5 instead...")
+    #it would be nice if there documentation actually listed the module names as specified to find_package...
+    FIND_PACKAGE(Qt5Core REQUIRED)
+    FIND_PACKAGE(Qt5Network REQUIRED)
+    FIND_PACKAGE(Qt5GUI REQUIRED)
+    FIND_PACKAGE(Qt5Widgets REQUIRED)
+    FIND_PACKAGE(Qt5XML REQUIRED)
+    INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS} ${Qt5GUI_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5XML_INCLUDE_DIRS})
+    SET(LIBS ${LIBS} Qt5::Core Qt5::Network Qt5::GUI Qt5::Widgets Qt5::XML)
+    #whatever that means
+ENDIF (QT4_FOUND)
 
 #
 # Try to find Qwt, utherwise use bundle
@@ -294,7 +303,7 @@ MESSAGE("\nC++ flags ${CMAKE_CXX_FLAGS}\n")
 #
 # MUST have ZLIB
 #
-FIND_PACKAGE(ZLIB)
+FIND_PACKAGE(ZLIB REQUIRED)
 IF ( ZLIB_FOUND )
     INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 ELSE (ZLIB_FOUND)
@@ -459,9 +468,9 @@ IF (NOT Qwt_FOUND)
 ENDIF (NOT Qwt_FOUND)
 ADD_SUBDIRECTORY ( GuiQt )
 ADD_SUBDIRECTORY ( Commands )
+ADD_SUBDIRECTORY ( Tests )
 ADD_SUBDIRECTORY ( Desktop )
 ADD_SUBDIRECTORY ( CommandLine )
-ADD_SUBDIRECTORY ( Tests )
 
 #
 #CTest tests
