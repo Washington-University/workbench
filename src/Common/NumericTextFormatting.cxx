@@ -104,13 +104,16 @@ NumericTextFormatting::cleanZerosInValueText(const AString& textValueIn)
  * If there is a leading zero in the exponent, remove it
  * to save space (-2.1e+03 => -2.1e+3)
  *
+ * @param numericFormat
+ *    How to format the numbers when converted to text.
  * @param textValueIn
  *     Text representation of the value.
  * @reutrn
  *     Value after cleanup of zeros.
  */
 AString
-NumericTextFormatting::removeLeadingZeroFromExponent(const AString& textValueIn)
+NumericTextFormatting::removeLeadingZeroFromExponent(const NumericFormatModeEnum::Enum numericFormat,
+                                                     const AString& textValueIn)
 {
     AString textValue = textValueIn;
 
@@ -134,10 +137,18 @@ NumericTextFormatting::removeLeadingZeroFromExponent(const AString& textValueIn)
             AString mantissaText = textValue.left(eIndex);
             AString exponentText = textValue.mid(eIndex + 2);
             
-            /*
-             * Remove trailing zeros from mantissa
-             */
-            mantissaText = cleanZerosInValueText(mantissaText);
+            switch (numericFormat) {
+                case NumericFormatModeEnum::AUTO:
+                    /*
+                     * Remove trailing zeros from mantissa
+                     */
+                    mantissaText = cleanZerosInValueText(mantissaText);
+                    break;
+                case NumericFormatModeEnum::DECIMAL:
+                    break;
+                case NumericFormatModeEnum::SCIENTIFIC:
+                    break;
+            }
             
             /*
              * Remove leading zeros from exponent and
@@ -173,6 +184,8 @@ NumericTextFormatting::removeLeadingZeroFromExponent(const AString& textValueIn)
 /**
  * Format a number for display.
  *
+ * @param numericFormat
+ *    How to format the numbers when converted to text.
  * @param value
  *     The value for formatting.
  * @param format
@@ -185,7 +198,8 @@ NumericTextFormatting::removeLeadingZeroFromExponent(const AString& textValueIn)
  *     Text representation of number with formatting applied.
  */
 AString
-NumericTextFormatting::formatNumberForDisplay(const double value,
+NumericTextFormatting::formatNumberForDisplay(const NumericFormatModeEnum::Enum numericFormat,
+                                              const double value,
                                               const char format,
                                               const int fieldWidth,
                                               const int precision)
@@ -211,7 +225,8 @@ NumericTextFormatting::formatNumberForDisplay(const double value,
                                             format,
                                             precision);
     
-    numberValue = removeLeadingZeroFromExponent(numberValue);
+    numberValue = removeLeadingZeroFromExponent(numericFormat,
+                                                numberValue);
     
     AString textValue;
     if (value < 0.0) {
@@ -220,7 +235,15 @@ NumericTextFormatting::formatNumberForDisplay(const double value,
     textValue += numberValue;
     
     if ( ! textValue.contains('e')) {
-        textValue = cleanZerosInValueText(textValue);
+        switch (numericFormat) {
+            case NumericFormatModeEnum::AUTO:
+                textValue = cleanZerosInValueText(textValue);
+                break;
+            case NumericFormatModeEnum::DECIMAL:
+                break;
+            case NumericFormatModeEnum::SCIENTIFIC:
+                break;
+        }
     }
     
     return textValue;
@@ -339,7 +362,8 @@ NumericTextFormatting::formatValueRange(const NumericFormatModeEnum::Enum numeri
     for (int32_t i = 0; i < numberOfValues; i++) {
         const double value = valuesIn[i];
         
-        AString textValue = formatNumberForDisplay(value,
+        AString textValue = formatNumberForDisplay(numericFormat,
+                                                   value,
                                                    format,
                                                    FIELD_WIDTH,
                                                    precision);
@@ -418,7 +442,8 @@ NumericTextFormatting::formatValue(const float value)
     
     const int FIELD_WIDTH = 0;
     
-    AString textValue = formatNumberForDisplay(value,
+    AString textValue = formatNumberForDisplay(NumericFormatModeEnum::AUTO,
+                                               value,
                                                format,
                                                FIELD_WIDTH,
                                                precision);

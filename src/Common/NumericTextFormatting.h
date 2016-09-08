@@ -62,9 +62,11 @@ namespace caret {
         
         static AString cleanZerosInValueText(const AString& textValueIn);
         
-        static AString removeLeadingZeroFromExponent(const AString& textValueIn);
+        static AString removeLeadingZeroFromExponent(const NumericFormatModeEnum::Enum numericFormat,
+                                                     const AString& textValueIn);
         
-        static AString formatNumberForDisplay(const double value,
+        static AString formatNumberForDisplay(const NumericFormatModeEnum::Enum numericFormat,
+                                              const double value,
                                               const char format,
                                               const int fieldWidth,
                                               const int precision);
