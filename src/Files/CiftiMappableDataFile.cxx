@@ -3719,6 +3719,7 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
 {
     numericalValuesOut.clear();
     numericalValuesOutValid.clear();
+    textValueOut.clear();
     
     CaretAssert(m_ciftiFile);
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
@@ -3753,19 +3754,18 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                                 const int32_t labelKey = static_cast<int32_t>(value);
                                 const GiftiLabel* gl = glt->getLabel(labelKey);
                                 if (gl != NULL) {
-                                    textValueOut += gl->getName();
+                                    textValueOut += (" " + gl->getName());
                                 }
                                 else {
-                                    textValueOut += ("InvalidLabelKey="
+                                    textValueOut += (" InvalidLabelKey="
                                                      + AString::number(labelKey));
                                 }
                             }
                             else {
-                                textValueOut = AString::number(value, 'f');
+                                textValueOut += (" " + AString::number(value, 'f'));
                             }
                         }
                     }
-                    return true;
                 }
             }
         }
@@ -3847,7 +3847,6 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                 }
             }
         }
-            return true;
             break;
         case CiftiMappingType::SCALARS:
             CaretAssertMessage(0, "Mapping type should never be SCALARS");
@@ -3856,8 +3855,15 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
             CaretAssertMessage(0, "Mapping type should never be SERIES");
             break;
     }
+
+    if (textValueOut.isEmpty()) {
+        return false;
+    }
     
-    return false;
+    /*
+     * Output text is valid
+     */
+    return true;
 }
 
 /**
