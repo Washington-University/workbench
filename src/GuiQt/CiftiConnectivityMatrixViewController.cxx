@@ -173,9 +173,13 @@ CiftiConnectivityMatrixViewController::updateViewController()
         }
         else {
             checkBox = new QCheckBox("");
+            checkBox->setToolTip("When selected, load data during\n"
+                                 "an identification operation");
             m_fileEnableCheckBoxes.push_back(checkBox);
             
             layerCheckBox = new QCheckBox("");
+            layerCheckBox->setToolTip("When selected, allow selection of this\n"
+                                      "file as an overlay in the Layers tab");
             m_layerCheckBoxes.push_back(layerCheckBox);
             
             lineEdit = new QLineEdit();
