@@ -214,35 +214,43 @@ AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, co
             }
             case CIFTI_MODEL_TYPE_VOXELS:
             {
-                vector<CiftiVolumeMap> inMap, outMap;
-                const CiftiXMLOld& otherXML = ciftiList[sourceCifti[i]]->getCiftiXMLOld();
-                outXML.getVolumeStructureMap(myDir, outMap, myInfo.m_structure);
-                otherXML.getVolumeStructureMap(myDir, inMap, myInfo.m_structure);
-                CaretAssert(inMap.size() == outMap.size());
-                vector<float> rowscratch(outXML.getNumberOfColumns()), otherscratch(otherXML.getNumberOfColumns());
-                if (myDir == CiftiXMLOld::ALONG_ROW)
-                {
-                    for (int j = 0; j < outXML.getNumberOfRows(); ++j)
+                if (isLabel)
+                {//cropped volume should be okay on memory for label files - let replace structure handle the label table
+                    VolumeFile tempFile;
+                    int64_t junk[3];
+                    AlgorithmCiftiSeparate(NULL, ciftiList[sourceCifti[i]], myDir, myInfo.m_structure, &tempFile, junk, NULL, true);
+                    AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, myInfo.m_structure, &tempFile, true);
+                } else {
+                    vector<CiftiVolumeMap> inMap, outMap;
+                    const CiftiXMLOld& otherXML = ciftiList[sourceCifti[i]]->getCiftiXMLOld();
+                    outXML.getVolumeStructureMap(myDir, outMap, myInfo.m_structure);
+                    otherXML.getVolumeStructureMap(myDir, inMap, myInfo.m_structure);
+                    CaretAssert(inMap.size() == outMap.size());
+                    vector<float> rowscratch(outXML.getNumberOfColumns()), otherscratch(otherXML.getNumberOfColumns());
+                    if (myDir == CiftiXMLOld::ALONG_ROW)
                     {
-                        myCiftiOut->getRow(rowscratch.data(), j, true);
-                        ciftiList[sourceCifti[i]]->getRow(otherscratch.data(), j);
+                        for (int j = 0; j < outXML.getNumberOfRows(); ++j)
+                        {
+                            myCiftiOut->getRow(rowscratch.data(), j, true);
+                            ciftiList[sourceCifti[i]]->getRow(otherscratch.data(), j);
+                            for (int k = 0; k < (int)inMap.size(); ++k)
+                            {
+                                CaretAssert(inMap[k].m_ijk[0] == outMap[k].m_ijk[0]);
+                                CaretAssert(inMap[k].m_ijk[1] == outMap[k].m_ijk[1]);
+                                CaretAssert(inMap[k].m_ijk[2] == outMap[k].m_ijk[2]);
+                                rowscratch[outMap[k].m_ciftiIndex] = otherscratch[inMap[k].m_ciftiIndex];
+                            }
+                            myCiftiOut->setRow(rowscratch.data(), j);
+                        }
+                    } else {
                         for (int k = 0; k < (int)inMap.size(); ++k)
                         {
                             CaretAssert(inMap[k].m_ijk[0] == outMap[k].m_ijk[0]);
                             CaretAssert(inMap[k].m_ijk[1] == outMap[k].m_ijk[1]);
                             CaretAssert(inMap[k].m_ijk[2] == outMap[k].m_ijk[2]);
-                            rowscratch[outMap[k].m_ciftiIndex] = otherscratch[inMap[k].m_ciftiIndex];
+                            ciftiList[sourceCifti[i]]->getRow(otherscratch.data(), inMap[k].m_ciftiIndex);
+                            myCiftiOut->setRow(otherscratch.data(), outMap[k].m_ciftiIndex);
                         }
-                        myCiftiOut->setRow(rowscratch.data(), j);
-                    }
-                } else {
-                    for (int k = 0; k < (int)inMap.size(); ++k)
-                    {
-                        CaretAssert(inMap[k].m_ijk[0] == outMap[k].m_ijk[0]);
-                        CaretAssert(inMap[k].m_ijk[1] == outMap[k].m_ijk[1]);
-                        CaretAssert(inMap[k].m_ijk[2] == outMap[k].m_ijk[2]);
-                        ciftiList[sourceCifti[i]]->getRow(otherscratch.data(), inMap[k].m_ciftiIndex);
-                        myCiftiOut->setRow(otherscratch.data(), outMap[k].m_ciftiIndex);
                     }
                 }
                 break;
