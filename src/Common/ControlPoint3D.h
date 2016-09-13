@@ -22,13 +22,13 @@
 /*LICENSE_END*/
 
 
-#include "CaretObject.h"
+#include "CaretObjectTracksModification.h"
 
 
 
 namespace caret {
 
-    class ControlPoint3D : public CaretObject {
+    class ControlPoint3D : public CaretObjectTracksModification {
         
     public:
         ControlPoint3D(const float sourceXYZ[3],
@@ -47,13 +47,13 @@ namespace caret {
 
         ControlPoint3D& operator=(const ControlPoint3D& obj);
         
-        void getSource(double pt[3]) const;
+        void getSourceXYZ(double pt[3]) const;
         
-        void getTarget(double pt[3]) const;
+        void getTargetXYZ(double pt[3]) const;
         
-        void getSource(float pt[3]) const;
+        void getSourceXYZ(float pt[3]) const;
         
-        void getTarget(float pt[3]) const;
+        void getTargetXYZ(float pt[3]) const;
 
         float getSourceX() const;
         

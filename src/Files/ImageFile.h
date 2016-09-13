@@ -27,6 +27,7 @@
 class QImage;
 
 namespace caret {
+    class ControlPointFile;
     class ControlPoint3D;
     class Matrix4x4;
     class PaletteFile;
@@ -202,6 +203,10 @@ public:
                                     const PaletteFile* paletteFile,
                                     AString& errorMessageOut) const;
 
+    ControlPointFile* getControlPointFile();
+    
+    const ControlPointFile* getControlPointFile() const;
+    
     virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                      SceneClass* sceneClass);
     
@@ -224,6 +229,8 @@ private:
     QImage* m_image;
     
     CaretPointer<GiftiMetaData> m_fileMetaData;
+    
+    CaretPointer<ControlPointFile> m_controlPointFile;
     
     static const float s_defaultWindowDepthPercentage;
 };

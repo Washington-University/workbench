@@ -1975,12 +1975,12 @@ Matrix4x4::createLandmarkTransformMatrix(const std::vector<ControlPoint3D>& cont
                 
                 for (int32_t i = 0; i < numcp; i++) {
                     double source[3];
-                    controlPoints[i].getSource(source);
+                    controlPoints[i].getSourceXYZ(source);
                     double predicted[3] = { source[0], source[1], source[2] };
                     matrix.multiplyPoint3(predicted);
                     
                     double target[3];
-                    controlPoints[i].getTarget(target);
+                    controlPoints[i].getTargetXYZ(target);
                     
                     const double error = MathFunctions::distance3D(predicted, target);
                     sum += error;
@@ -2099,12 +2099,12 @@ Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D
     {
         CaretAssertVectorIndex(controlPoints, i);
         //this->SourceLandmarks->GetPoint(i, p);
-        controlPoints[i].getSource(p);
+        controlPoints[i].getSourceXYZ(p);
         source_centroid[0] += p[0];
         source_centroid[1] += p[1];
         source_centroid[2] += p[2];
         //this->TargetLandmarks->GetPoint(i, p);
-        controlPoints[i].getTarget(p);
+        controlPoints[i].getTargetXYZ(p);
         target_centroid[0] += p[0];
         target_centroid[1] += p[1];
         target_centroid[2] += p[2];
@@ -2150,13 +2150,13 @@ Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D
         // get the origin-centred point (a) in the source set
         //this->SourceLandmarks->GetPoint(pt,a);
         CaretAssertVectorIndex(controlPoints, pt);
-        controlPoints[pt].getSource(a);
+        controlPoints[pt].getSourceXYZ(a);
         a[0] -= source_centroid[0];
         a[1] -= source_centroid[1];
         a[2] -= source_centroid[2];
         // get the origin-centred point (b) in the target set
         //this->TargetLandmarks->GetPoint(pt,b);
-        controlPoints[pt].getTarget(b);
+        controlPoints[pt].getTargetXYZ(b);
         b[0] -= target_centroid[0];
         b[1] -= target_centroid[1];
         b[2] -= target_centroid[2];
@@ -2265,10 +2265,10 @@ Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D
             //            this->SourceLandmarks->GetPoint(1,s1);
             //            this->TargetLandmarks->GetPoint(1,t1);
             CaretAssertVectorIndex(controlPoints, 1);
-            controlPoints[0].getSource(s0);
-            controlPoints[0].getTarget(t0);
-            controlPoints[1].getSource(s1);
-            controlPoints[1].getTarget(t1);
+            controlPoints[0].getSourceXYZ(s0);
+            controlPoints[0].getTargetXYZ(t0);
+            controlPoints[1].getSourceXYZ(s1);
+            controlPoints[1].getTargetXYZ(t1);
             
             double ds[3],dt[3];
             double rs = 0, rt = 0;
@@ -2423,11 +2423,11 @@ Matrix4x4::measureTransformError(const std::vector<ControlPoint3D>& controlPoint
     
     for (int32_t i = 0; i < numcp; i++) {
         double pt[3];
-        controlPoints[i].getSource(pt);
+        controlPoints[i].getSourceXYZ(pt);
         matrix.multiplyPoint3(pt);
         
         double target[3];
-        controlPoints[i].getTarget(target);
+        controlPoints[i].getTargetXYZ(target);
         
         const double error = MathFunctions::distance3D(pt, target);
         sum += error;

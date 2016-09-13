@@ -368,6 +368,7 @@ namespace caret {
         QAction* modeInputModeAnnotationsAction;
         QAction* modeInputModeBordersAction;
         QAction* modeInputModeFociAction;
+        QAction* modeInputModeImageAction;
         QAction* modeInputModeViewAction;
         QAction* modeInputVolumeEditAction;
         

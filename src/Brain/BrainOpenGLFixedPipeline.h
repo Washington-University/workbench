@@ -469,6 +469,7 @@ namespace caret {
         void drawImage(BrainOpenGLViewportContent* vpContent,
                        ImageFile* imageFile,
                        const float windowZ,
+                       const float frontZ,
                        const float minimumThreshold,
                        const float maximumThreshold,
                        const float opacity);

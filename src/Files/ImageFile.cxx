@@ -28,6 +28,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ControlPointFile.h"
 #include "ControlPoint3D.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
@@ -50,6 +51,8 @@ const float ImageFile::s_defaultWindowDepthPercentage = 990;
 ImageFile::ImageFile()
 : CaretDataFile(DataFileTypeEnum::IMAGE)
 {
+    m_controlPointFile.grabNew(new ControlPointFile());
+    
     m_fileMetaData.grabNew(new GiftiMetaData());
     
     m_image   = new QImage();
@@ -63,6 +66,8 @@ ImageFile::ImageFile()
 ImageFile::ImageFile(const QImage& qimage)
 : CaretDataFile(DataFileTypeEnum::IMAGE)
 {
+    m_controlPointFile.grabNew(new ControlPointFile());
+    
     m_fileMetaData.grabNew(new GiftiMetaData());
     
     m_image = new QImage(qimage);
@@ -87,6 +92,8 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
                      const IMAGE_DATA_ORIGIN_LOCATION imageOrigin)
 : CaretDataFile(DataFileTypeEnum::IMAGE)
 {
+    m_controlPointFile.grabNew(new ControlPointFile());
+    
     m_fileMetaData.grabNew(new GiftiMetaData());
     
     m_image = new QImage(imageWidth,
@@ -1625,7 +1632,23 @@ ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
     return volumeFile;
 }
 
+/**
+ * @return The control point file.
+ */
+ControlPointFile*
+ImageFile::getControlPointFile()
+{
+    return m_controlPointFile;
+}
 
+/**
+ * @return The control point file.
+ */
+const ControlPointFile*
+ImageFile::getControlPointFile() const
+{
+    return m_controlPointFile;
+}
 
 /**
  * Save file data from the scene.  For subclasses that need to

@@ -161,6 +161,7 @@ SelectionItemCiftiConnectivityMatrixRowColumn.h
 SelectionItemFocusSurface.h
 SelectionItemFocusVolume.h
 SelectionItemImage.h
+SelectionItemImageControlPoint.h
 SelectionItemSurfaceNode.h
 SelectionItemSurfaceNodeIdentificationSymbol.h
 SelectionItemSurfaceTriangle.h
@@ -296,6 +297,7 @@ SelectionItemCiftiConnectivityMatrixRowColumn.cxx
 SelectionItemFocusSurface.cxx
 SelectionItemFocusVolume.cxx
 SelectionItemImage.cxx
+SelectionItemImageControlPoint.cxx
 SelectionItemSurfaceNode.cxx
 SelectionItemSurfaceNodeIdentificationSymbol.cxx
 SelectionItemSurfaceTriangle.cxx

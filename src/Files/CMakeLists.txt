@@ -61,6 +61,7 @@ CiftiParcelSeriesFile.h
 CiftiParcelScalarFile.h
 CiftiScalarDataSeriesFile.h
 ConnectivityDataLoaded.h
+ControlPointFile.h
 EventCaretMappableDataFilesGet.h
 EventChartMatrixParcelYokingValidation.h
 EventGetDisplayedDataFiles.h
@@ -177,6 +178,7 @@ CiftiParcelSeriesFile.cxx
 CiftiParcelScalarFile.cxx
 CiftiScalarDataSeriesFile.cxx
 ConnectivityDataLoaded.cxx
+ControlPointFile.cxx
 EventCaretMappableDataFilesGet.cxx
 EventChartMatrixParcelYokingValidation.cxx
 EventGetDisplayedDataFiles.cxx

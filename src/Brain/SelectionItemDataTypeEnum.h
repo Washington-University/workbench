@@ -65,6 +65,8 @@ public:
         FOCUS_VOLUME,
         /* Image */
         IMAGE,
+        /* Image Control Point */
+        IMAGE_CONTROL_POINT,
         /** Surface Node*/
         SURFACE_NODE,
         /** Surface Node Identification Symbol */

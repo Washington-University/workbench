@@ -115,6 +115,10 @@ SelectionItemDataTypeEnum::initialize()
                                                  "IMAGE",
                                                  "Image"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(IMAGE_CONTROL_POINT,
+                                                 "IMAGE_CONTROL_POINT",
+                                                 "Image Control Point"));
+    
     enumData.push_back(SelectionItemDataTypeEnum(SURFACE_NODE,
                                     "SURFACE_NODE", 
                                     "Surface Vertex"));

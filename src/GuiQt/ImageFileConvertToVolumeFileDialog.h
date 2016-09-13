@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "CaretPointer.h"
 #include "WuQDialogModal.h"
 
 class QComboBox;
@@ -67,7 +67,7 @@ namespace caret {
         void loadAllControlPoints();
         
         void loadControlPoint(const int32_t index,
-                              const ControlPoint3D& cp);
+                              const ControlPoint3D* cp);
         
         // ADD_NEW_MEMBERS_HERE
 

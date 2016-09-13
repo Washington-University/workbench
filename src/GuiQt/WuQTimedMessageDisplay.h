@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
 
 #include <QDialog>
 
@@ -37,6 +38,12 @@ namespace caret {
         
     public:
         static void show(QWidget* parent,
+                         const float displayForSeconds,
+                         const QString& message);
+        
+        static void show(QWidget* parent,
+                         const int32_t x,
+                         const int32_t y,
                          const float displayForSeconds,
                          const QString& message);
         

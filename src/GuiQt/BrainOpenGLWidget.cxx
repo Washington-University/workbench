@@ -76,6 +76,7 @@
 #include "UserInputModeAnnotations.h"
 #include "UserInputModeBorders.h"
 #include "UserInputModeFoci.h"
+#include "UserInputModeImage.h"
 #include "UserInputModeView.h"
 #include "UserInputModeVolumeEdit.h"
 
@@ -118,6 +119,7 @@ m_textRenderer(NULL)
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
                                                                    windowIndex);
     this->userInputFociModeProcessor = new UserInputModeFoci(windowIndex);
+    this->userInputImageModeProcessor = new UserInputModeImage(windowIndex);
     this->userInputVolumeEditModeProcessor = new UserInputModeVolumeEdit(windowIndex);
     this->userInputViewModeProcessor = new UserInputModeView();
     this->selectedUserInputProcessor = this->userInputViewModeProcessor;
@@ -166,6 +168,7 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
     delete this->userInputAnnotationsModeProcessor;
     delete this->userInputBordersModeProcessor;
     delete this->userInputFociModeProcessor;
+    delete this->userInputImageModeProcessor;
     delete this->userInputVolumeEditModeProcessor;
     this->selectedUserInputProcessor = NULL; // DO NOT DELETE since it does not own the object to which it points
     
@@ -1348,6 +1351,9 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                         break;
                     case UserInputModeAbstract::FOCI:
                         newUserInputProcessor = this->userInputFociModeProcessor;
+                        break;
+                    case UserInputModeAbstract::IMAGE:
+                        newUserInputProcessor = this->userInputImageModeProcessor;
                         break;
                     case UserInputModeAbstract::VOLUME_EDIT:
                         newUserInputProcessor = this->userInputVolumeEditModeProcessor;

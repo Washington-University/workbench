@@ -41,6 +41,7 @@
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemImage.h"
+#include "SelectionItemImageControlPoint.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemSurfaceTriangle.h"
@@ -76,6 +77,7 @@ SelectionManager::SelectionManager()
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
     m_volumeFocusIdentification = new SelectionItemFocusVolume();
     m_imageIdentification = new SelectionItemImage();
+    m_imageControlPointIdentification = new SelectionItemImageControlPoint();
     m_surfaceNodeIdentification = new SelectionItemSurfaceNode();
     m_surfaceNodeIdentificationSymbol = new SelectionItemSurfaceNodeIdentificationSymbol();
     m_surfaceTriangleIdentification = new SelectionItemSurfaceTriangle();
@@ -95,6 +97,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_surfaceNodeIdentificationSymbol);
     m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
     m_allSelectionItems.push_back(m_imageIdentification);
+    m_allSelectionItems.push_back(m_imageControlPointIdentification);
     m_allSelectionItems.push_back(m_voxelIdentification);
     m_allSelectionItems.push_back(m_voxelIdentificationSymbol);
     m_allSelectionItems.push_back(m_voxelEditingIdentification);
@@ -144,6 +147,8 @@ SelectionManager::~SelectionManager()
     m_surfaceFocusIdentification = NULL;
     delete m_imageIdentification;
     m_imageIdentification = NULL;
+    delete m_imageControlPointIdentification;
+    m_imageControlPointIdentification = NULL;
     delete m_surfaceNodeIdentification;
     m_surfaceNodeIdentification = NULL;
     delete m_surfaceNodeIdentificationSymbol;
@@ -481,6 +486,24 @@ const SelectionItemImage*
 SelectionManager::getImageIdentification() const
 {
     return m_imageIdentification;
+}
+
+/**
+ * @return Identification for image control point.
+ */
+SelectionItemImageControlPoint*
+SelectionManager::getImageControlPointIdentification()
+{
+    return m_imageControlPointIdentification;
+}
+
+/**
+ * @return Identification for image control point.
+ */
+const SelectionItemImageControlPoint*
+SelectionManager::getImageControlPointIdentification() const
+{
+    return m_imageControlPointIdentification;
 }
 
 /**

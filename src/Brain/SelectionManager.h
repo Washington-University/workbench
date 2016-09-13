@@ -39,6 +39,7 @@ namespace caret {
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
     class SelectionItemImage;
+    class SelectionItemImageControlPoint;
     class SelectionItemSurfaceNode;
     class SelectionItemSurfaceNodeIdentificationSymbol;
     class SelectionItemSurfaceTriangle;
@@ -78,6 +79,10 @@ namespace caret {
         SelectionItemImage* getImageIdentification();
         
         const SelectionItemImage* getImageIdentification() const;
+        
+        SelectionItemImageControlPoint* getImageControlPointIdentification();
+        
+        const SelectionItemImageControlPoint* getImageControlPointIdentification() const;
         
         SelectionItemSurfaceNode* getSurfaceNodeIdentification();
         
@@ -179,6 +184,8 @@ namespace caret {
         SelectionItemFocusVolume* m_volumeFocusIdentification;
         
         SelectionItemImage* m_imageIdentification;
+        
+        SelectionItemImageControlPoint* m_imageControlPointIdentification;
         
         SelectionItemSurfaceNode* m_surfaceNodeIdentification;
         

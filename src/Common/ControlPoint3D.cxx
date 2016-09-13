@@ -47,7 +47,7 @@ using namespace caret;
  */
 ControlPoint3D::ControlPoint3D(const float sourceXYZ[3],
                                const float targetXYZ[3])
-: CaretObject(),
+: CaretObjectTracksModification(),
 m_sourceX(sourceXYZ[0]),
 m_sourceY(sourceXYZ[1]),
 m_sourceZ(sourceXYZ[2]),
@@ -55,7 +55,7 @@ m_targetX(targetXYZ[0]),
 m_targetY(targetXYZ[1]),
 m_targetZ(targetXYZ[2])
 {
-    
+    setModified();
 }
 
 /**
@@ -80,7 +80,7 @@ ControlPoint3D::ControlPoint3D(const float sourceX,
                                const float targetX,
                                const float targetY,
                                const float targetZ)
-: CaretObject(),
+: CaretObjectTracksModification(),
 m_sourceX(sourceX),
 m_sourceY(sourceY),
 m_sourceZ(sourceZ),
@@ -88,7 +88,7 @@ m_targetX(targetX),
 m_targetY(targetY),
 m_targetZ(targetZ)
 {
-    
+    setModified();
 }
 
 
@@ -105,7 +105,7 @@ ControlPoint3D::~ControlPoint3D()
  *    Object that is copied.
  */
 ControlPoint3D::ControlPoint3D(const ControlPoint3D& obj)
-: CaretObject(obj)
+: CaretObjectTracksModification(obj)
 {
     this->copyHelperControlPoint3D(obj);
 }
@@ -142,6 +142,8 @@ ControlPoint3D::copyHelperControlPoint3D(const ControlPoint3D& obj)
     m_targetX = obj.m_targetX;
     m_targetY = obj.m_targetY;
     m_targetZ = obj.m_targetZ;
+
+    setModified();
 }
 
 /**
@@ -151,7 +153,7 @@ ControlPoint3D::copyHelperControlPoint3D(const ControlPoint3D& obj)
  *     Output with source coordinate.
  */
 void
-ControlPoint3D::getSource(double pt[3]) const
+ControlPoint3D::getSourceXYZ(double pt[3]) const
 {
     pt[0] = m_sourceX;
     pt[1] = m_sourceY;
@@ -165,7 +167,7 @@ ControlPoint3D::getSource(double pt[3]) const
  *     Output with target coordinate.
  */
 void
-ControlPoint3D::getTarget(double pt[3]) const
+ControlPoint3D::getTargetXYZ(double pt[3]) const
 {
     pt[0] = m_targetX;
     pt[1] = m_targetY;
@@ -179,7 +181,7 @@ ControlPoint3D::getTarget(double pt[3]) const
  *     Output with source coordinate.
  */
 void
-ControlPoint3D::getSource(float pt[3]) const
+ControlPoint3D::getSourceXYZ(float pt[3]) const
 {
     pt[0] = m_sourceX;
     pt[1] = m_sourceY;
@@ -193,7 +195,7 @@ ControlPoint3D::getSource(float pt[3]) const
  *     Output with target coordinate.
  */
 void
-ControlPoint3D::getTarget(float pt[3]) const
+ControlPoint3D::getTargetXYZ(float pt[3]) const
 {
     pt[0] = m_targetX;
     pt[1] = m_targetY;
@@ -267,7 +269,6 @@ ControlPoint3D::toString() const
     return s;
 }
 
-
 /**
  * Get the normal vector for the source coordinates of the first three
  * control points.  If there are less than three control points,
@@ -292,11 +293,11 @@ ControlPoint3D::getSourceNormalVector(const std::vector<ControlPoint3D>& control
     CaretAssertVectorIndex(controlPoints, 2);
     
     float s1[3];
-    controlPoints[0].getSource(s1);
+    controlPoints[0].getSourceXYZ(s1);
     float s2[3];
-    controlPoints[1].getSource(s2);
+    controlPoints[1].getSourceXYZ(s2);
     float s3[3];
-    controlPoints[2].getSource(s3);
+    controlPoints[2].getSourceXYZ(s3);
     MathFunctions::normalVector(s1, s2, s3, sourceNormalVectorOut);
 }
 

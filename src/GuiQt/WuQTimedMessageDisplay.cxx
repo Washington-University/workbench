@@ -83,6 +83,7 @@ WuQTimedMessageDisplay::WuQTimedMessageDisplay(QWidget* parent,
     label->setFrameStyle(QFrame::Panel
                          | QFrame::Plain);
     label->setLineWidth(2);
+    label->setWordWrap(true);
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(3, 3, 3, 3);
     layout->addWidget(label);
@@ -123,6 +124,38 @@ WuQTimedMessageDisplay::show(QWidget* parent,
     WuQTimedMessageDisplay* md = new WuQTimedMessageDisplay(parent,
                                                             displayForSeconds,
                                                             message);
+    md->exec();
+}
+
+/**
+ * Display a message containing the given message for the given amount
+ * of time.  This method will not return until the message window closes.
+ *
+ * @param parent
+ *    Parent on which message is displayed.
+ * @param x
+ *    X-coordinate of parent for display of message.
+ * @param y
+ *    Y-coordinate of parent for display of message (origin at bottom).
+ * @param displayForSeconds
+ *    Message is displayed for this amount of time, in milliseconds.
+ * @param message
+ *    Message that is displayed.
+ */
+void
+WuQTimedMessageDisplay::show(QWidget* parent,
+                             const int32_t x,
+                             const int32_t y,
+                             const float displayForSeconds,
+                             const QString& message)
+{
+    WuQTimedMessageDisplay* md = new WuQTimedMessageDisplay(parent,
+                                                            displayForSeconds,
+                                                            message);
+    const int32_t originAtTopWindowY = parent->height() - y;
+    QPoint globalXY = parent->mapToGlobal(QPoint(x,
+                                                 originAtTopWindowY));
+    md->move(globalXY);
     md->exec();
 }
 

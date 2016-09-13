@@ -81,6 +81,11 @@ namespace caret {
         
         int32_t getPressedY() const;
         
+        void getGlobalXY(const int32_t x,
+                         const int32_t y,
+                         int32_t& outGlobalX,
+                         int32_t& outGlobalY) const;
+        
         int32_t getWheelRotation() const;
         
         bool isFirstDragging() const;

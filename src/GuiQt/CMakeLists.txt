@@ -150,6 +150,7 @@ UserInputModeAnnotationsContextMenu.h
 UserInputModeAnnotationsWidget.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
+UserInputModeImageWidget.h
 UserInputModeViewContextMenu.h
 UserInputModeVolumeEditWidget.h
 UsernamePasswordWidget.h
@@ -353,6 +354,8 @@ UserInputModeBorders.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
 UserInputModeFoci.h
+UserInputModeImageWidget.h
+UserInputModeImage.h
 UserInputModeView.h
 UserInputModeViewContextMenu.h
 UserInputModeVolumeEdit.h
@@ -551,6 +554,8 @@ UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx
 UserInputModeFoci.cxx
 UserInputModeFociWidget.cxx
+UserInputModeImage.cxx
+UserInputModeImageWidget.cxx
 UserInputModeView.cxx
 UserInputModeViewContextMenu.cxx
 UserInputModeVolumeEdit.cxx

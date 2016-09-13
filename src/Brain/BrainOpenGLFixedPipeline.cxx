@@ -72,6 +72,8 @@
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "ClippingPlaneGroup.h"
+#include "ControlPointFile.h"
+#include "ControlPoint3D.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayPropertiesAnnotation.h"
@@ -107,6 +109,7 @@
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemImage.h"
+#include "SelectionItemImageControlPoint.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemSurfaceTriangle.h"
@@ -6209,6 +6212,10 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
         return;
     }
     
+    const float backZ   = -990.0;
+    const float middleZ =    0.0;
+    const float frontZ  =  990.0;
+    
     DisplayPropertiesImages* dpi = m_brain->getDisplayPropertiesImages();
     const int32_t tabIndex = btc->getTabNumber();
     const DisplayGroupEnum::Enum displayGroup = dpi->getDisplayGroupForTab(tabIndex);
@@ -6222,19 +6229,20 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
                                                                                 tabIndex);
             switch (depthPos) {
                 case ImageDepthPositionEnum::BACK:
-                    windowZ = -990.0;
+                    windowZ = backZ;
                     break;
                 case ImageDepthPositionEnum::FRONT:
-                    windowZ = 990.0;
+                    windowZ = frontZ;
                     break;
                 case ImageDepthPositionEnum::MIDDLE:
-                    windowZ = 0.0;
+                    windowZ = middleZ;
                     break;
             }
             
             drawImage(vpContent,
                       imageFile,
                       windowZ,
+                      frontZ,
                       dpi->getThresholdMinimum(displayGroup, tabIndex),
                       dpi->getThresholdMaximum(displayGroup, tabIndex),
                       dpi->getOpacity(displayGroup, tabIndex));
@@ -6251,6 +6259,8 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
  *    The QImage that is drawn.
  * @param windowZ
  *    Z-position for image.
+ * @param frontZ
+ *    Z-position for front (used for control points)
  * @param minimumThreshold
  *    Minimum threshold value.
  * @param maximumThreshold
@@ -6262,6 +6272,7 @@ void
 BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
                                     ImageFile* imageFile,
                                     const float windowZ,
+                                    const float frontZ,
                                     const float minimumThreshold,
                                     const float maximumThreshold,
                                     const float opacity)
@@ -6279,17 +6290,25 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
     vpContent->getModelViewport(viewport);
     
     SelectionItemImage* idImage = m_brain->getSelectionManager()->getImageIdentification();
+    SelectionItemImageControlPoint* idControlPoint = m_brain->getSelectionManager()->getImageControlPointIdentification();
     
     /*
      * Check for a 'selection' type mode
      */
-    bool isSelect = false;
+    bool isSelectImage = false;
+    bool isSelectImageControlPoint = false;
     switch (this->mode) {
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
             if (idImage->isEnabledForSelection()) {
-                isSelect = true;
+                isSelectImage = true;
+            }
+            if (idControlPoint->isEnabledForSelection()) {
+                isSelectImageControlPoint = true;
+            }
+            if (isSelectImage
+                || isSelectImageControlPoint) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
             else {
@@ -6388,7 +6407,12 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
             imageBytesRGBA[i4 + 3] = pixelAlpha;
         }
     }
-                
+    
+    if (isSelectImage
+        || isSelectImageControlPoint) {
+        useBlendingFlag = false;
+    }
+    
     /*
      * Center image in the window
      */
@@ -6446,12 +6470,43 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
     
     glPopClientAttrib();
     
+    ControlPointFile* controlPointFile = imageFile->getControlPointFile();
+    const int32_t numControlPoints = controlPointFile->getNumberOfControlPoints();
+    if (numControlPoints > 0) {
+        const uint8_t red[4] = { 255, 0, 0, 255 };
+        for (int32_t icp = 0; icp < numControlPoints; icp++) {
+            const ControlPoint3D* cp = controlPointFile->getControlPointAtIndex(icp);
+            const float pixelX = cp->getSourceX();
+            const float pixelY = cp->getSourceY();
+            
+            const float percentX = pixelX / originalImageWidth;
+            const float percentY = pixelY / originalImageHeight;
+            
+            const float x = xPos + (percentX * imageWidth);
+            const float y = yPos + (percentY * imageHeight);
+            
+            glPushMatrix();
+            glTranslatef(x, y, frontZ);
+            
+            uint8_t rgba[4] = { red[0], red[1], red[2], red[3] };
+            if (isSelectImageControlPoint) {
+                this->colorIdentification->addItem(rgba,
+                                                   SelectionItemDataTypeEnum::IMAGE_CONTROL_POINT,
+                                                   0,    // file index
+                                                   icp); // index in file
+                rgba[3] = 255;
+            }
+            drawSphereWithDiameter(rgba, 10);
+            glPopMatrix();
+        }
+    }
+    
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     
-    if (isSelect) {
+    if (isSelectImage) {
         const float mx = this->mouseX - viewport[0];
         const float my = this->mouseY - viewport[1];
         
@@ -6480,6 +6535,30 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
                                              pixelY,
                                              pixelByteRGBA)) {
                 idImage->setPixelRGBA(pixelByteRGBA);
+            }
+        }
+    }
+    
+    if (isSelectImageControlPoint) {
+        int32_t fileIndex = -1;
+        int32_t controlPointIndex = -1;
+        float depth = -1.0;
+        this->getIndexFromColorSelection(SelectionItemDataTypeEnum::IMAGE_CONTROL_POINT,
+                                         this->mouseX,
+                                         this->mouseY,
+                                         fileIndex,
+                                         controlPointIndex,
+                                         depth);
+        if ((fileIndex >= 0)
+            && (controlPointIndex >= 0)) {
+            if (idControlPoint->isOtherScreenDepthCloserToViewer(depth)) {
+                ControlPoint3D* controlPoint = controlPointFile->getControlPointAtIndex(controlPointIndex);
+                idControlPoint->setBrain(m_brain);
+                idControlPoint->setImageFile(imageFile);
+                idControlPoint->setControlPointFile(controlPointFile);
+                idControlPoint->setControlPoint(controlPoint);
+                idControlPoint->setControlPointIndexInFile(controlPointIndex);
+                idControlPoint->setScreenDepth(depth);
             }
         }
     }

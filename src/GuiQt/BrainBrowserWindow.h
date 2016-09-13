@@ -221,7 +221,6 @@ namespace caret {
         void developerMenuAboutToShow();
         void developerMenuFlagTriggered(QAction*);
         
-        void processConvertImageToVolume();
         void processProjectFoci();
         void processSplitBorderFiles();
         void processTabAspectRatioLockedToggled(bool checked);
@@ -384,7 +383,6 @@ namespace caret {
         
         QAction* m_featuresToolBoxAction;
         
-        QAction* m_dataConvertImageToVolumeAction;
         QAction* m_dataFociProjectAction;
         QAction* m_dataBorderFilesSplitAction;
         

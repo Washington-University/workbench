@@ -33,6 +33,7 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "ControlPointFile.h"
 #include "ControlPoint3D.h"
 #include "DisplayPropertiesImages.h"
 #include "EnumComboBoxTemplate.h"
@@ -79,9 +80,9 @@ m_imageFile(imageFile)
     layout->addWidget(volumeWidget);
     layout->addWidget(controlPointWidget);
     
-    setCentralWidget(widget, WuQDialog::SCROLL_AREA_NEVER);
-    
     loadAllControlPoints();
+    
+    setCentralWidget(widget, WuQDialog::SCROLL_AREA_NEVER);
 }
 
 /**
@@ -165,78 +166,37 @@ ImageFileConvertToVolumeFileDialog::createControlPointWidget()
     gridLayout->addWidget(new QLabel("Z"), row, 4, Qt::AlignHCenter);
     row++;
     
-    const int32_t numberOfControlPoints = 3;
+    const ControlPointFile* controlPointFile = m_imageFile->getControlPointFile();
+    const int32_t numberOfControlPoints = controlPointFile->getNumberOfControlPoints();
     
     for (int32_t icp = 0; icp < numberOfControlPoints; icp++) {
-        QSpinBox* isb = new QSpinBox();
-        isb->setRange(0, m_imageFile->getWidth() - 1);
-        QSpinBox* jsb = new QSpinBox();
-        jsb->setRange(0, m_imageFile->getHeight() - 1);
+        QSpinBox* spinBoxSourceX = new QSpinBox();
+        spinBoxSourceX->setRange(0, m_imageFile->getWidth() - 1);
+        QSpinBox* spinBoxSourceY = new QSpinBox();
+        spinBoxSourceY->setRange(0, m_imageFile->getHeight() - 1);
         
         const double maxValue = 9999999.0;
-        QDoubleSpinBox* xsb = new QDoubleSpinBox();
-        xsb->setRange(-maxValue, maxValue);
-        xsb->setDecimals(3);
-        QDoubleSpinBox* ysb = new QDoubleSpinBox();
-        ysb->setRange(-maxValue, maxValue);
-        ysb->setDecimals(3);
-        QDoubleSpinBox* zsb = new QDoubleSpinBox();
-        zsb->setRange(-maxValue, maxValue);
-        zsb->setDecimals(3);
+        QDoubleSpinBox* spinBoxTargetX = new QDoubleSpinBox();
+        spinBoxTargetX->setRange(-maxValue, maxValue);
+        spinBoxTargetX->setDecimals(3);
+        QDoubleSpinBox* spinBoxTargetY = new QDoubleSpinBox();
+        spinBoxTargetY->setRange(-maxValue, maxValue);
+        spinBoxTargetY->setDecimals(3);
+        QDoubleSpinBox* spinBoxTargetZ = new QDoubleSpinBox();
+        spinBoxTargetZ->setRange(-maxValue, maxValue);
+        spinBoxTargetZ->setDecimals(3);
 
-//        switch (icp) {
-//            case 0:
-//                isb->setValue(45);
-//                jsb->setValue(37);
-//                xsb->setValue(-58);
-//                ysb->setValue(-72);
-//                zsb->setValue(6);
-//
-//                isb->setValue(72);
-//                jsb->setValue(32);
-//                xsb->setValue(-42);
-//                ysb->setValue(-92);
-//                zsb->setValue(6);
-//                break;
-//            case 1:
-//                isb->setValue(122);
-//                jsb->setValue(40);
-//                xsb->setValue(-10);
-//                ysb->setValue(-71);
-//                zsb->setValue(6);
-//                
-//                isb->setValue(130);
-//                jsb->setValue(33);
-//                xsb->setValue(1);
-//                ysb->setValue(-94);
-//                zsb->setValue(6);
-//                break;
-//            case 2:
-//                isb->setValue(113);
-//                jsb->setValue(155);
-//                xsb->setValue(-16);
-//                ysb->setValue(2);
-//                zsb->setValue(6);
-//                
-//                isb->setValue(104);
-//                jsb->setValue(106);
-//                xsb->setValue(-44);
-//                ysb->setValue(-33);
-//                zsb->setValue(6);
-//                break;
-//        }
+        m_sourceXSpinBox.push_back(spinBoxSourceX);
+        m_sourceYSpinBox.push_back(spinBoxSourceY);
+        m_targetXSpinBox.push_back(spinBoxTargetX);
+        m_targetYSpinBox.push_back(spinBoxTargetY);
+        m_targetZSpinBox.push_back(spinBoxTargetZ);
         
-        m_sourceXSpinBox.push_back(isb);
-        m_sourceYSpinBox.push_back(jsb);
-        m_targetXSpinBox.push_back(xsb);
-        m_targetYSpinBox.push_back(ysb);
-        m_targetZSpinBox.push_back(zsb);
-        
-        gridLayout->addWidget(isb, row, 0);
-        gridLayout->addWidget(jsb, row, 1);
-        gridLayout->addWidget(xsb, row, 2);
-        gridLayout->addWidget(ysb, row, 3);
-        gridLayout->addWidget(zsb, row, 4);
+        gridLayout->addWidget(spinBoxSourceX, row, 0);
+        gridLayout->addWidget(spinBoxSourceY, row, 1);
+        gridLayout->addWidget(spinBoxTargetX, row, 2);
+        gridLayout->addWidget(spinBoxTargetY, row, 3);
+        gridLayout->addWidget(spinBoxTargetZ, row, 4);
         row++;
     }
     
@@ -338,9 +298,12 @@ ImageFileConvertToVolumeFileDialog::loadAllControlPoints()
 //    ControlPoint3D cp2(98, 35, 0, -13, -80, 6);
 //    ControlPoint3D cp3(97, 151, 0, -14, 4, 6);
 
-    loadControlPoint(0, cp1);
-    loadControlPoint(1, cp2);
-    loadControlPoint(2, cp3);
+    const ControlPointFile* controlPointFile = m_imageFile->getControlPointFile();
+    const int32_t numCP = controlPointFile->getNumberOfControlPoints();
+    for (int32_t i = 0; i < numCP; i++) {
+        loadControlPoint(i,
+                         controlPointFile->getControlPointAtIndex(i));
+    }
 }
 
 /**
@@ -353,7 +316,7 @@ ImageFileConvertToVolumeFileDialog::loadAllControlPoints()
  */
 void
 ImageFileConvertToVolumeFileDialog::loadControlPoint(const int32_t index,
-                                                     const ControlPoint3D& cp)
+                                                     const ControlPoint3D* cp)
 {
     CaretAssertVectorIndex(m_sourceXSpinBox, index);
     CaretAssertVectorIndex(m_sourceYSpinBox, index);
@@ -361,10 +324,10 @@ ImageFileConvertToVolumeFileDialog::loadControlPoint(const int32_t index,
     CaretAssertVectorIndex(m_targetYSpinBox, index);
     CaretAssertVectorIndex(m_targetZSpinBox, index);
     
-    m_sourceXSpinBox[index]->setValue(cp.getSourceX());
-    m_sourceYSpinBox[index]->setValue(cp.getSourceY());
-    m_targetXSpinBox[index]->setValue(cp.getTargetX());
-    m_targetYSpinBox[index]->setValue(cp.getTargetY());
-    m_targetZSpinBox[index]->setValue(cp.getTargetZ());
+    m_sourceXSpinBox[index]->setValue(cp->getSourceX());
+    m_sourceYSpinBox[index]->setValue(cp->getSourceY());
+    m_targetXSpinBox[index]->setValue(cp->getTargetX());
+    m_targetYSpinBox[index]->setValue(cp->getTargetY());
+    m_targetZSpinBox[index]->setValue(cp->getTargetZ());
     
 }

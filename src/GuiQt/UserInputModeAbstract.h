@@ -49,6 +49,8 @@ namespace caret {
             BORDERS,
             /** Foci Operations */
             FOCI,
+            /** Image Operations */
+            IMAGE,
             /** Viewing Operations */
             VIEW,
             /** Volume Edit Operations */
