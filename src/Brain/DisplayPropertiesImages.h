@@ -57,6 +57,13 @@ namespace caret {
                           const int32_t tabIndex,
                           const bool displayStatus);
         
+        bool isControlPointsDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                         const int32_t tabIndex) const;
+        
+        void setControlPointsDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                          const int32_t tabIndex,
+                          const bool displayStatus);
+        
         DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
         
         void setDisplayGroupForTab(const int32_t browserTabIndex,
@@ -118,6 +125,8 @@ namespace caret {
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         CaretPointer<DisplayPropertyDataBoolean> m_displayStatus;
+        
+        CaretPointer<DisplayPropertyDataBoolean> m_controlPointDisplayStatus;
         
         mutable ImageFile* m_imageFileInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         

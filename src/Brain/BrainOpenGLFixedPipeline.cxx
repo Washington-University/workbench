@@ -6245,7 +6245,8 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
                       frontZ,
                       dpi->getThresholdMinimum(displayGroup, tabIndex),
                       dpi->getThresholdMaximum(displayGroup, tabIndex),
-                      dpi->getOpacity(displayGroup, tabIndex));
+                      dpi->getOpacity(displayGroup, tabIndex),
+                      dpi->isControlPointsDisplayed(displayGroup, tabIndex));
         }
     }
 }
@@ -6275,7 +6276,8 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
                                     const float frontZ,
                                     const float minimumThreshold,
                                     const float maximumThreshold,
-                                    const float opacity)
+                                    const float opacity,
+                                    const bool drawControlPointsFlag)
 {
     CaretAssert(vpContent);
     
@@ -6471,33 +6473,35 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
     glPopClientAttrib();
     
     ControlPointFile* controlPointFile = imageFile->getControlPointFile();
-    const int32_t numControlPoints = controlPointFile->getNumberOfControlPoints();
-    if (numControlPoints > 0) {
-        const uint8_t red[4] = { 255, 0, 0, 255 };
-        for (int32_t icp = 0; icp < numControlPoints; icp++) {
-            const ControlPoint3D* cp = controlPointFile->getControlPointAtIndex(icp);
-            const float pixelX = cp->getSourceX();
-            const float pixelY = cp->getSourceY();
-            
-            const float percentX = pixelX / originalImageWidth;
-            const float percentY = pixelY / originalImageHeight;
-            
-            const float x = xPos + (percentX * imageWidth);
-            const float y = yPos + (percentY * imageHeight);
-            
-            glPushMatrix();
-            glTranslatef(x, y, frontZ);
-            
-            uint8_t rgba[4] = { red[0], red[1], red[2], red[3] };
-            if (isSelectImageControlPoint) {
-                this->colorIdentification->addItem(rgba,
-                                                   SelectionItemDataTypeEnum::IMAGE_CONTROL_POINT,
-                                                   0,    // file index
-                                                   icp); // index in file
-                rgba[3] = 255;
+    if (drawControlPointsFlag) {
+        const int32_t numControlPoints = controlPointFile->getNumberOfControlPoints();
+        if (numControlPoints > 0) {
+            const uint8_t red[4] = { 255, 0, 0, 255 };
+            for (int32_t icp = 0; icp < numControlPoints; icp++) {
+                const ControlPoint3D* cp = controlPointFile->getControlPointAtIndex(icp);
+                const float pixelX = cp->getSourceX();
+                const float pixelY = cp->getSourceY();
+                
+                const float percentX = pixelX / originalImageWidth;
+                const float percentY = pixelY / originalImageHeight;
+                
+                const float x = xPos + (percentX * imageWidth);
+                const float y = yPos + (percentY * imageHeight);
+                
+                glPushMatrix();
+                glTranslatef(x, y, frontZ);
+                
+                uint8_t rgba[4] = { red[0], red[1], red[2], red[3] };
+                if (isSelectImageControlPoint) {
+                    this->colorIdentification->addItem(rgba,
+                                                       SelectionItemDataTypeEnum::IMAGE_CONTROL_POINT,
+                                                       0,    // file index
+                                                       icp); // index in file
+                    rgba[3] = 255;
+                }
+                drawSphereWithDiameter(rgba, 10);
+                glPopMatrix();
             }
-            drawSphereWithDiameter(rgba, 10);
-            glPopMatrix();
         }
     }
     

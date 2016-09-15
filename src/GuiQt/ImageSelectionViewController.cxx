@@ -86,6 +86,10 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_imageDisplayCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
     
+    m_controlPointsDisplayCheckBox = new QCheckBox("Display Control Points");
+    QObject::connect(m_controlPointsDisplayCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processAttributesChanges()));
+    
     QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* selectionWidget = this->createSelectionWidget();
     
@@ -101,6 +105,7 @@ m_browserWindowIndex(browserWindowIndex)
 //    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addLayout(groupLayout, 0);
     layout->addWidget(m_imageDisplayCheckBox, 0);
+    layout->addWidget(m_controlPointsDisplayCheckBox, 0);
     layout->addSpacing(10);
     layout->addWidget(m_tabWidget->getWidget(), 100);
     layout->addStretch();
@@ -284,7 +289,9 @@ ImageSelectionViewController::processAttributesChanges()
     dpi->setDisplayed(displayGroup,
                       browserTabIndex,
                       m_imageDisplayCheckBox->isChecked());
-    
+    dpi->setControlPointsDisplayed(displayGroup,
+                      browserTabIndex,
+                      m_controlPointsDisplayCheckBox->isChecked());
     dpi->setImagePosition(displayGroup,
                           browserTabIndex,
                           m_depthComboBox->getSelectedItem<ImageDepthPositionEnum, ImageDepthPositionEnum::Enum>());
@@ -390,6 +397,8 @@ ImageSelectionViewController::updateImageViewController()
     
     m_imageDisplayCheckBox->setChecked(dpi->isDisplayed(displayGroup,
                                                           browserTabIndex));
+    m_controlPointsDisplayCheckBox->setChecked(dpi->isControlPointsDisplayed(displayGroup,
+                                                                             browserTabIndex));
     
     
     const int32_t numImageFiles = static_cast<int32_t>(allImageFiles.size());

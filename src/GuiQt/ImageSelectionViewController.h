@@ -105,6 +105,8 @@ namespace caret {
         
         QCheckBox* m_imageDisplayCheckBox;
         
+        QCheckBox* m_controlPointsDisplayCheckBox;
+        
         std::vector<QRadioButton*> m_imageRadioButtons;
         
         QButtonGroup* m_imageRadioButtonGroup;

@@ -472,7 +472,8 @@ namespace caret {
                        const float frontZ,
                        const float minimumThreshold,
                        const float maximumThreshold,
-                       const float opacity);
+                       const float opacity,
+                       const bool drawControlPointsFlag);
         
         void setProjectionModeData(const float screenDepth,
                                           const float xyz[3],

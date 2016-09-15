@@ -67,11 +67,13 @@ m_parentBrain(parentBrain)
     m_imageDepthPosition.initialize(defaultImageDepth);
     
     m_displayStatus.grabNew(new DisplayPropertyDataBoolean(false));
+    m_controlPointDisplayStatus.grabNew(new DisplayPropertyDataBoolean(true));
     m_thresholdMinimum.grabNew(new DisplayPropertyDataFloat(0));
     m_thresholdMaximum.grabNew(new DisplayPropertyDataFloat(255));
     m_opacity.grabNew(new DisplayPropertyDataFloat(1.0));
     
     m_sceneAssistant->add("m_displayStatus", "DisplayPropertyDataBoolean", m_displayStatus);
+    m_sceneAssistant->add("m_controlPointDisplayStatus", "DisplayPropertyDataBoolean", m_controlPointDisplayStatus);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
     
@@ -159,6 +161,37 @@ DisplayPropertiesImages::setDisplayed(const DisplayGroupEnum::Enum displayGroup,
                                     const bool displayStatus)
 {
     m_displayStatus->setValue(displayGroup, tabIndex, displayStatus);
+}
+
+/**
+ * @return  Display status of image control points.
+ * @param displayGroup
+ *     Display group.
+ * @param tabIndex
+ *     The tab index.
+ */
+bool
+DisplayPropertiesImages::isControlPointsDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t tabIndex) const
+{
+    return m_controlPointDisplayStatus->getValue(displayGroup, tabIndex);
+}
+
+/**
+ * Set the display status for image control points.
+ * @param displayGroup
+ *     Display group.
+ * @param tabIndex
+ *     The tab index.
+ * @param displayStatus
+ *    New status.
+ */
+void
+DisplayPropertiesImages::setControlPointsDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                                      const int32_t tabIndex,
+                                      const bool displayStatus)
+{
+    m_controlPointDisplayStatus->setValue(displayGroup, tabIndex, displayStatus);
 }
 
 /**
