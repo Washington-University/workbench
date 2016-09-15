@@ -1865,7 +1865,7 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
              * Decimal mode integers for percentile
              */
             numericFormatModeForTextFormatting = NumericFormatModeEnum::DECIMAL;
-            precisionDigitsForTextFormatting = 0;
+            //precisionDigitsForTextFormatting = 0;
             break;
         case PaletteColorBarValuesModeEnum::SIGN_ONLY:
             CaretAssertMessage(0, "Should never get here.  Sign only handled above");
