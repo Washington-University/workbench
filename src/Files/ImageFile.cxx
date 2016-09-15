@@ -1416,12 +1416,12 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
 }
 
 /**
- * Convert this image into a Volume File.
+ * Convert this image into a Volume File using the 
+ * encapsulated Control Point File whose matrix 
+ * must have been updated.
  *
  * @param colorMode
  *     Color mode for conversion.
- * @param sformMatrix
- *     Matrix used as NIFTI sform.
  * @param paletteFile
  *     Palette file used for coloring the voxels.
  * @param errorMessageOut
@@ -1434,7 +1434,6 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
  */
 VolumeFile*
 ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
-                               const std::vector<ControlPoint3D>& controlPointsIn,
                                const PaletteFile* paletteFile,
                                AString& errorMessageOut) const
 {
@@ -1444,75 +1443,44 @@ ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
     int32_t width = 0;
     int32_t height = 0;
     getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                   rgbaBytes,
-                                   width,
-                                   height);
+                      rgbaBytes,
+                      width,
+                      height);
     if ((width <= 0)
         || (height <= 0)) {
         errorMessageOut = "Image width and/or height is invalid.";
         return NULL;
     }
     
-    std::vector<ControlPoint3D> controlPoints = controlPointsIn;
-    const int32_t numControlPoints = static_cast<int32_t>(controlPoints.size());
-    if (numControlPoints < 3) {
-        errorMessageOut = "There must be at least three control points.";
-        return NULL;
-    }
-    
-    float pixelNormalVector[3];
-    ControlPoint3D::getSourceNormalVector(controlPoints, pixelNormalVector);
-    
-    std::cout << "Pixel Normal Vector: " << qPrintable(AString::fromNumbers(pixelNormalVector, 3, ",")) << std::endl;
-    
-    const float tinyValue = 0.00001;
-    if ((pixelNormalVector[2] < tinyValue)
-        && (pixelNormalVector[2] > -tinyValue)) {
-        errorMessageOut = "Control points need to be in a triangular shape; not a line";
-        return NULL;
-    }
-    
-    if (pixelNormalVector[2] < 0.0) {
-        std::cout << "Swapping coordinates so image normal vector is counter clockwise" << std::endl;
-        std::swap(controlPoints[0], controlPoints[2]);
-        ControlPoint3D::getSourceNormalVector(controlPoints, pixelNormalVector);
-        std::cout << "After Swapping Pixel Normal Vector: " << qPrintable(AString::fromNumbers(pixelNormalVector, 3, ",")) << std::endl;
-    }
-    
-    Matrix4x4 matrix;
-    if ( ! matrix.createLandmarkTransformMatrix(controlPoints,
-                                                errorMessageOut)) {
-        return NULL;
-    }
+    const Matrix4x4* transformationMatrix = m_controlPointFile->getLandmarkTransformationMatrix();
     
     float firstPixel[3] = { 0, 0, 0 };
-    matrix.multiplyPoint3(firstPixel);
+    transformationMatrix->multiplyPoint3(firstPixel);
     std::cout << "First pixel coord: " << AString::fromNumbers(firstPixel, 3, ",") << std::endl;
     
     float lastPixel[3] = { width - 1, height - 1, 0 };
-    matrix.multiplyPoint3(lastPixel);
+    transformationMatrix->multiplyPoint3(lastPixel);
     std::cout << "Last pixel coord: " << AString::fromNumbers(lastPixel, 3, ",") << std::endl;
     
     {
         float bl[3] = { 0.0, 0.0, 0.0 };
-        matrix.multiplyPoint3(bl);
+        transformationMatrix->multiplyPoint3(bl);
         ControlPoint3D bottomLeft(0, 0, 0, bl[0], bl[1], bl[2]);
         
         float br[3] = { width - 1.0, 0.0, 0.0 };
-        matrix.multiplyPoint3(br);
+        transformationMatrix->multiplyPoint3(br);
         ControlPoint3D bottomRight(width - 1.0, 0.0, 0.0, br[0], br[1], br[2]);
         
         float tr[3] = { width - 1.0, height - 1.0, 0.0 };
-        matrix.multiplyPoint3(tr);
+        transformationMatrix->multiplyPoint3(tr);
         ControlPoint3D topRight(width - 1.0, height - 1.0, 0.0, tr[0], tr[1], tr[2]);
         
-        std::vector<ControlPoint3D> volumeControlPoints;
-        volumeControlPoints.push_back(bottomLeft);
-        volumeControlPoints.push_back(bottomRight);
-        volumeControlPoints.push_back(topRight);
+        ControlPointFile volumeControlPointFile;
+        volumeControlPointFile.addControlPoint(bottomLeft);
+        volumeControlPointFile.addControlPoint(bottomRight);
+        volumeControlPointFile.addControlPoint(topRight);
         
-        Matrix4x4 volumeMatrix;
-        if ( ! volumeMatrix.createLandmarkTransformMatrix(volumeControlPoints, errorMessageOut)) {
+        if ( ! volumeControlPointFile.updateLandmarkTransformationMatrix(errorMessageOut)) {
             errorMessageOut.insert(0, "Volume Matrix: ");
             return NULL;
         }
@@ -1530,12 +1498,12 @@ ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
     std::vector<float> row2;
     std::vector<float> row3;
     std::vector<float> row4;
-
+    
     for (int j = 0; j < 4; j++) {
-        row1.push_back(matrix.getMatrixElement(0, j));
-        row2.push_back(matrix.getMatrixElement(1, j));
-        row3.push_back(matrix.getMatrixElement(2, j));
-        row4.push_back(matrix.getMatrixElement(3, j));
+        row1.push_back(transformationMatrix->getMatrixElement(0, j));
+        row2.push_back(transformationMatrix->getMatrixElement(1, j));
+        row3.push_back(transformationMatrix->getMatrixElement(2, j));
+        row4.push_back(transformationMatrix->getMatrixElement(3, j));
     }
     std::vector<std::vector<float> > indexToSpace;
     indexToSpace.push_back(row1);
@@ -1553,11 +1521,10 @@ ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
             whatType = SubvolumeAttributes::RGB;
             break;
     }
-
     VolumeFile* volumeFile = new VolumeFile(dimensions,
-                                    indexToSpace,
-                                    numComponents,
-                                    whatType);
+                                            indexToSpace,
+                                            numComponents,
+                                            whatType);
     
     FileInformation fileInfo(getFileName());
     const AString volumeFileName = FileInformation::assembleFileComponents(fileInfo.getAbsolutePath(),
@@ -1628,7 +1595,7 @@ ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
     volumeFile->clearVoxelColoringForMap(mapIndex);
     volumeFile->updateScalarColoringForMap(mapIndex,
                                            paletteFile);
-
+    
     return volumeFile;
 }
 
@@ -1664,9 +1631,13 @@ ImageFile::getControlPointFile() const
  *     sceneClass to which data members should be added.
  */
 void
-ImageFile::saveFileDataToScene(const SceneAttributes* /*sceneAttributes*/,
+ImageFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                    SceneClass* sceneClass)
 {
+    if (m_controlPointFile != NULL) {
+        sceneClass->addClass(m_controlPointFile->saveToScene(sceneAttributes,
+                                                             "m_controlPointFile"));
+    }
 }
 
 /**
@@ -1684,9 +1655,11 @@ ImageFile::saveFileDataToScene(const SceneAttributes* /*sceneAttributes*/,
  *     this interface.  Will NEVER be NULL.
  */
 void
-ImageFile::restoreFileDataFromScene(const SceneAttributes* /*sceneAttributes*/,
+ImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                         const SceneClass* sceneClass)
 {
+    m_controlPointFile->restoreFromScene(sceneAttributes,
+                                         sceneClass->getClass("m_controlPointFile"));
 }
 
 

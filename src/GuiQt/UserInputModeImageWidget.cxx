@@ -35,6 +35,7 @@
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "ControlPointFile.h"
 #include "DisplayPropertiesFoci.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -43,7 +44,9 @@
 #include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
 #include "GuiManager.h"
+#include "ImageFile.h"
 #include "ImageFileConvertToVolumeFileDialog.h"
+#include "Matrix4x4.h"
 #include "SelectionManager.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
@@ -200,8 +203,8 @@ UserInputModeImageWidget::createEditOperationWidget()
                                                            this,
                                                            SLOT(convertActionTriggered()));
     convertAction->setCheckable(false);
-    QToolButton* convertToolButton = new QToolButton();
-    convertToolButton->setDefaultAction(convertAction);
+    m_convertToolButton = new QToolButton();
+    m_convertToolButton->setDefaultAction(convertAction);
     
     /*
      * Delete all button
@@ -226,7 +229,7 @@ UserInputModeImageWidget::createEditOperationWidget()
     layout->addSpacing(15);
     layout->addWidget(m_deleteAllToolButton);
     layout->addSpacing(35);
-    layout->addWidget(convertToolButton);
+    layout->addWidget(m_convertToolButton);
     layout->addStretch();
     
 //    widget->setFixedWidth(widget->sizeHint().width());
@@ -243,6 +246,14 @@ UserInputModeImageWidget::convertActionTriggered()
     const int32_t tabIndex = m_inputModeImage->getTabIndex();
     if ((imageFile != NULL)
         && (tabIndex >= 0)) {
+        ControlPointFile* controlPointFile = imageFile->getControlPointFile();
+        AString errorMessage;
+        if ( ! controlPointFile->updateLandmarkTransformationMatrix(errorMessage)) {
+            WuQMessageBox::errorOk(m_convertToolButton,
+                                   errorMessage);
+            return;
+        }
+        
         ImageFileConvertToVolumeFileDialog convertDialog(this,
                                                          tabIndex,
                                                          imageFile);

@@ -75,6 +75,8 @@ namespace caret {
         
         QToolButton* m_deleteAllToolButton;
         
+        QToolButton* m_convertToolButton;
+        
         QWidget* m_editOperationWidget;
         
         QString m_transformToolTipText;

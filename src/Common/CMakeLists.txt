@@ -60,7 +60,6 @@ CaretPreferences.h
 CaretTemporaryFile.h
 CaretUndoCommand.h
 CaretUndoStack.h
-ControlPoint3D.h
 CubicSpline.h
 DataCompressZLib.h
 DataFile.h
@@ -161,7 +160,6 @@ CaretPreferences.cxx
 CaretTemporaryFile.cxx
 CaretUndoCommand.cxx
 CaretUndoStack.cxx
-ControlPoint3D.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx
 DataFile.cxx

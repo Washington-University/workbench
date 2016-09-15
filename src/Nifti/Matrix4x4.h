@@ -161,7 +161,7 @@ public:
 
     bool invert();
 
-    bool createLandmarkTransformMatrix(const std::vector<ControlPoint3D>& controlPoints,
+    bool createLandmarkTransformMatrix(const std::vector<ControlPoint3D*>& controlPoints,
                                        AString& errorMessageOut);
     
     AString toString() const;
@@ -232,11 +232,11 @@ private:
 
     static int JacobiN(double **a, int n, double *w, double **v);
 
-    bool createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D>& controlPoints,
+    bool createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D*>& controlPoints,
                                               const LANDMARK_TRANSFORM_MODE mode,
                                               AString& errorMessageOut);
     
-    float measureTransformError(const std::vector<ControlPoint3D>& controlPoints,
+    float measureTransformError(const std::vector<ControlPoint3D*>& controlPoints,
                                 const Matrix4x4& matrix) const;
 
 protected:

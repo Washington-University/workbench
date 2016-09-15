@@ -29,7 +29,6 @@ class QImage;
 namespace caret {
     class ControlPointFile;
     class ControlPoint3D;
-    class Matrix4x4;
     class PaletteFile;
     class VolumeFile;
     
@@ -199,7 +198,6 @@ public:
                                     AString& defaultFilter);
 
     VolumeFile* convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
-                                    const std::vector<ControlPoint3D>& controlPoints,
                                     const PaletteFile* paletteFile,
                                     AString& errorMessageOut) const;
 

@@ -27,7 +27,9 @@
 #include "ControlPoint3D.h"
 #include "DataFileException.h"
 #include "GiftiMetaData.h"
+#include "Matrix4x4.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
 
 using namespace caret;
@@ -48,10 +50,11 @@ ControlPointFile::ControlPointFile()
 {
     m_metadata.grabNew(new GiftiMetaData());
     m_sceneAssistant.grabNew(new SceneClassAssistant());
+    m_landmarkTransformationMatrix.grabNew(new Matrix4x4());
 
-    addControlPoint(ControlPoint3D(151, 147, 0, -42, -81, 6));
-    addControlPoint(ControlPoint3D(263, 126, 0, -10, -87, 6));
-    addControlPoint(ControlPoint3D(250, 491, 0, -13, 20, 6));
+//    addControlPoint(ControlPoint3D(151, 147, 0, -42, -81, 6));
+//    addControlPoint(ControlPoint3D(263, 126, 0, -10, -87, 6));
+//    addControlPoint(ControlPoint3D(250, 491, 0, -13, 20, 6));
 
 //    addControlPoint(ControlPoint3D(48, 105, 0, -58, -13, 11));
 //    addControlPoint(ControlPoint3D(140, 106, 0, -12, -13, 13));
@@ -136,6 +139,8 @@ ControlPointFile::clearPrivate()
     m_metadata->clear();
 
     removeAllControlPoints();
+    
+    m_landmarkTransformationMatrix->identity();
 }
 
 
@@ -191,6 +196,8 @@ ControlPointFile::clearModified()
          iter++) {
         (*iter)->clearModified();
     }
+    
+    m_landmarkTransformationMatrix->clearModified();
 }
 
 /**
@@ -271,6 +278,59 @@ ControlPointFile::removeControlPointAtIndex(const int32_t index)
 }
 
 /**
+ * Update the landmark transformation matrix from the control points.
+ * The transformed position will be set in the control points if the
+ * matrix is successfully created.
+ *
+ * @param errorMessageOutk
+ *     Contains error information upon exit.
+ * @return True if landmark transformation matrix was successfully update,
+ *     else false.
+ */
+bool
+ControlPointFile::updateLandmarkTransformationMatrix(AString& errorMessageOut)
+{
+    m_landmarkTransformationMatrix->identity();
+    errorMessageOut.clear();
+    
+    bool successFlag = m_landmarkTransformationMatrix->createLandmarkTransformMatrix(m_controlPoints,
+                                                                                     errorMessageOut);
+    
+    const int32_t numCP = getNumberOfControlPoints();
+    for (int32_t icp = 0; icp < numCP; icp++) {
+        float transformedXYZ[3] = { 0.0, 0.0, 0.0 };
+        
+        CaretAssertVectorIndex(m_controlPoints, icp);
+        ControlPoint3D* cp = m_controlPoints[icp];
+        if (successFlag) {
+            cp->getSourceXYZ(transformedXYZ);
+            m_landmarkTransformationMatrix->multiplyPoint3(transformedXYZ);
+        }
+        cp->setTransformedXYZ(transformedXYZ);
+    }
+    
+    return successFlag;
+}
+
+/**
+ * @return The landmark transformation matrix.
+ */
+Matrix4x4*
+ControlPointFile::getLandmarkTransformationMatrix()
+{
+    return m_landmarkTransformationMatrix;
+}
+
+/**
+ * @return The landmark transformation matrix (const method).
+ */
+const Matrix4x4*
+ControlPointFile::getLandmarkTransformationMatrix() const
+{
+    return m_landmarkTransformationMatrix;
+}
+
+/**
  * Read the data file.
  *
  * @param filename
@@ -345,6 +405,18 @@ ControlPointFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
 {
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
+    
+    std::vector<SceneClass*> controlPointsVector;
+    
+    const int32_t numCP = getNumberOfControlPoints();
+    for (int32_t icp = 0; icp < numCP; icp++) {
+        const QString name("ControlPoint" + QString::number(icp));
+        controlPointsVector.push_back(m_controlPoints[icp]->saveToScene(sceneAttributes,
+                                                                        name));
+    }
+    SceneClassArray* classArray = new SceneClassArray("controlPointsArray",
+                                                      controlPointsVector);
+    sceneClass->addChild(classArray);
 }
 
 /**
@@ -363,7 +435,23 @@ void
 ControlPointFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
+    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    const SceneClassArray* controlPointsArray = sceneClass->getClassArray("controlPointsArray");
+    if (controlPointsArray != NULL) {
+        const int32_t numElements = controlPointsArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numElements; i++) {
+            const SceneClass* controlPointClass = controlPointsArray->getClassAtIndex(i);
+            ControlPoint3D controlPoint(0, 0, 0, 0, 0, 0);
+            controlPoint.restoreFromScene(sceneAttributes,
+                                          controlPointClass);
+            addControlPoint(controlPoint);
+        }
+    }
 }
 

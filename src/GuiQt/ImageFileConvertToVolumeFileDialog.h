@@ -25,18 +25,12 @@
 #include "WuQDialogModal.h"
 
 class QComboBox;
-class QDoubleSpinBox;
 class QLineEdit;
-class QSpinBox;
+class QTableWidget;
 
 namespace caret {
 
-    class Brain;
-    class BrowserTabContent;
-    class ControlPoint3D;
-    class EnumComboBoxTemplate;
     class ImageFile;
-    class Matrix4x4;
     
     class ImageFileConvertToVolumeFileDialog : public WuQDialogModal {
         
@@ -64,11 +58,6 @@ namespace caret {
         
         QWidget* createControlPointWidget();
         
-        void loadAllControlPoints();
-        
-        void loadControlPoint(const int32_t index,
-                              const ControlPoint3D* cp);
-        
         // ADD_NEW_MEMBERS_HERE
 
         const int32_t m_tabIndex;
@@ -77,21 +66,9 @@ namespace caret {
         
         QLineEdit* m_volumeFileNameLineEdit;
         
-        EnumComboBoxTemplate* m_sliceViewPlaneComboBox;
-        
         QComboBox* m_colorConversionComboBox;
         
-        std::vector<QSpinBox*> m_sourceXSpinBox;
-        
-        std::vector<QSpinBox*> m_sourceYSpinBox;
-        
-        std::vector<QDoubleSpinBox*> m_targetXSpinBox;
-        
-        std::vector<QDoubleSpinBox*> m_targetYSpinBox;
-        
-        std::vector<QDoubleSpinBox*> m_targetZSpinBox;
-        
-        
+        QTableWidget* m_tableWidget;
     };
     
 #ifdef __IMAGE_FILE_CONVERT_TO_VOLUME_FILE_DIALOG_DECLARE__

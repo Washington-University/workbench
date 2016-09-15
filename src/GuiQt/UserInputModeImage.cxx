@@ -259,8 +259,6 @@ UserInputModeImage::addControlPoint(SelectionItemImage* imageSelection,
     
     controlPointFile->addControlPoint(ControlPoint3D(pixelX, pixelY, pixelZ,
                                                      voxelXYZ[0], voxelXYZ[1], voxelXYZ[2]));
-    
-    std::cout << "XYZ: " << AString::fromNumbers(voxelXYZ, 3, ",") << std::endl;
 }
 
 /**

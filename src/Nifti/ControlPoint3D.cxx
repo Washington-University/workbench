@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #define __CONTROL_POINT3_D_DECLARE__
 #include "ControlPoint3D.h"
 #undef __CONTROL_POINT3_D_DECLARE__
@@ -26,6 +28,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "MathFunctions.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -48,13 +52,19 @@ using namespace caret;
 ControlPoint3D::ControlPoint3D(const float sourceXYZ[3],
                                const float targetXYZ[3])
 : CaretObjectTracksModification(),
+SceneableInterface(),
 m_sourceX(sourceXYZ[0]),
 m_sourceY(sourceXYZ[1]),
 m_sourceZ(sourceXYZ[2]),
 m_targetX(targetXYZ[0]),
 m_targetY(targetXYZ[1]),
-m_targetZ(targetXYZ[2])
+m_targetZ(targetXYZ[2]),
+m_transformedX(0.0),
+m_transformedY(0.0),
+m_transformedZ(0.0)
 {
+    initializeInstance();
+    
     setModified();
 }
 
@@ -81,13 +91,19 @@ ControlPoint3D::ControlPoint3D(const float sourceX,
                                const float targetY,
                                const float targetZ)
 : CaretObjectTracksModification(),
+SceneableInterface(),
 m_sourceX(sourceX),
 m_sourceY(sourceY),
 m_sourceZ(sourceZ),
 m_targetX(targetX),
 m_targetY(targetY),
-m_targetZ(targetZ)
+m_targetZ(targetZ),
+m_transformedX(0.0),
+m_transformedY(0.0),
+m_transformedZ(0.0)
 {
+    initializeInstance();
+    
     setModified();
 }
 
@@ -97,6 +113,7 @@ m_targetZ(targetZ)
  */
 ControlPoint3D::~ControlPoint3D()
 {
+    delete m_sceneAssistant;
 }
 
 /**
@@ -105,8 +122,11 @@ ControlPoint3D::~ControlPoint3D()
  *    Object that is copied.
  */
 ControlPoint3D::ControlPoint3D(const ControlPoint3D& obj)
-: CaretObjectTracksModification(obj)
+: CaretObjectTracksModification(obj),
+SceneableInterface(obj)
 {
+    initializeInstance();
+    
     this->copyHelperControlPoint3D(obj);
 }
 
@@ -143,8 +163,32 @@ ControlPoint3D::copyHelperControlPoint3D(const ControlPoint3D& obj)
     m_targetY = obj.m_targetY;
     m_targetZ = obj.m_targetZ;
 
+    m_transformedX = obj.m_transformedX;
+    m_transformedY = obj.m_transformedY;
+    m_transformedZ = obj.m_transformedZ;
+    
     setModified();
 }
+
+/**
+ * Initialize an instance of a control point
+ */
+void
+ControlPoint3D::initializeInstance()
+{
+    m_sceneAssistant = new SceneClassAssistant();
+    
+    m_sceneAssistant->add("m_sourceX", &m_sourceX);
+    m_sceneAssistant->add("m_sourceY", &m_sourceY);
+    m_sceneAssistant->add("m_sourceZ", &m_sourceZ);
+    m_sceneAssistant->add("m_targetX", &m_targetX);
+    m_sceneAssistant->add("m_targetY", &m_targetY);
+    m_sceneAssistant->add("m_targetZ", &m_targetZ);
+    m_sceneAssistant->add("m_transformedX", &m_transformedX);
+    m_sceneAssistant->add("m_transformedY", &m_transformedY);
+    m_sceneAssistant->add("m_transformedZ", &m_transformedZ);
+}
+
 
 /**
  * Get the source coordinate.
@@ -172,6 +216,78 @@ ControlPoint3D::getTargetXYZ(double pt[3]) const
     pt[0] = m_targetX;
     pt[1] = m_targetY;
     pt[2] = m_targetZ;
+}
+
+/**
+ * Get the transformed coordinate that is
+ * source coordinate multiplied by
+ * the landmard transformation matrix.
+ * Can be compared with target coordinate
+ * for error measurement.
+ *
+ * @param pt
+ *     Output with transformed coordinate.
+ */
+void
+ControlPoint3D::getTransformedXYZ(double pt[3]) const
+{
+    pt[0] = m_transformedX;
+    pt[1] = m_transformedY;
+    pt[2] = m_transformedZ;
+}
+
+/**
+ * Set the transformed coordinate that is
+ * source coordinate multiplied by
+ * the landmard transformation matrix.
+ * Can be compared with target coordinate
+ * for error measurement.
+ *
+ * @param pt
+ *     Output with transformed coordinate.
+ */
+void
+ControlPoint3D::setTransformedXYZ(const double pt[3])
+{
+    m_transformedX = pt[0];
+    m_transformedY = pt[1];
+    m_transformedZ = pt[2];
+}
+
+/**
+ * Get the transformed coordinate that is
+ * source coordinate multiplied by
+ * the landmard transformation matrix.
+ * Can be compared with target coordinate
+ * for error measurement.
+ *
+ * @param pt
+ *     Output with transformed coordinate.
+ */
+void
+ControlPoint3D::getTransformedXYZ(float pt[3]) const
+{
+    pt[0] = m_transformedX;
+    pt[1] = m_transformedY;
+    pt[2] = m_transformedZ;
+}
+
+/**
+ * Set the transformed coordinate that is
+ * source coordinate multiplied by
+ * the landmard transformation matrix.
+ * Can be compared with target coordinate
+ * for error measurement.
+ *
+ * @param pt
+ *     Output with transformed coordinate.
+ */
+void
+ControlPoint3D::setTransformedXYZ(const float pt[3])
+{
+    m_transformedX = pt[0];
+    m_transformedY = pt[1];
+    m_transformedZ = pt[2];
 }
 
 /**
@@ -214,7 +330,8 @@ ControlPoint3D::getSourceX() const
 /**
  * @return The source Y-coordinate
  */
-float ControlPoint3D::getSourceY() const
+float
+ControlPoint3D::getSourceY() const
 {
     return m_sourceY;
 }
@@ -222,7 +339,8 @@ float ControlPoint3D::getSourceY() const
 /** 
  * @return The source Z-coordinate 
  */
-float ControlPoint3D::getSourceZ() const
+float
+ControlPoint3D::getSourceZ() const
 {
     return m_sourceZ;
 }
@@ -230,7 +348,8 @@ float ControlPoint3D::getSourceZ() const
 /** 
  * @return The target X-coordinate 
  */
-float ControlPoint3D::getTargetX() const
+float
+ControlPoint3D::getTargetX() const
 {
     return m_targetX;
 }
@@ -238,7 +357,8 @@ float ControlPoint3D::getTargetX() const
 /**
  * @return The target Y-coordinate
  */
-float ControlPoint3D::getTargetY() const
+float
+ControlPoint3D::getTargetY() const
 {
     return m_targetY;
 }
@@ -246,10 +366,30 @@ float ControlPoint3D::getTargetY() const
 /** @return 
  * The target Z-coordinate
  */
-float ControlPoint3D::getTargetZ() const
+float
+ControlPoint3D::getTargetZ() const
 {
     return m_targetZ;
 }
+
+/**
+ * Get the error measurements.  Error is difference
+ * between target and transformed coordinates.
+ *
+ * @param xyzTotalErrorOut
+ *     4 elements error in x, y, z, and total error.
+ */
+void
+ControlPoint3D::getErrorMeasurements(float xyzTotalErrorOut[4]) const
+{
+    xyzTotalErrorOut[0] = std::fabs(m_targetX - m_transformedX);
+    xyzTotalErrorOut[1] = std::fabs(m_targetY - m_transformedY);
+    xyzTotalErrorOut[2] = std::fabs(m_targetZ - m_transformedZ);
+    xyzTotalErrorOut[3] = std::sqrt((xyzTotalErrorOut[0] * xyzTotalErrorOut[0])
+                                    + (xyzTotalErrorOut[1] * xyzTotalErrorOut[1])
+                                    + (xyzTotalErrorOut[2] * xyzTotalErrorOut[2]));
+}
+
 
 /**
  * @return String containing control point coordinates.
@@ -265,6 +405,10 @@ ControlPoint3D::toString() const
                     + AString::number(m_targetX)
                     + ", " + AString::number(m_targetY)
                     + ", " + AString::number(m_targetZ)
+                    + ")  Transformed: ("
+                    + AString::number(m_transformedX)
+                    + ", " + AString::number(m_transformedY)
+                    + ", " + AString::number(m_transformedZ)
                     + ")");
     return s;
 }
@@ -299,6 +443,53 @@ ControlPoint3D::getSourceNormalVector(const std::vector<ControlPoint3D>& control
     float s3[3];
     controlPoints[2].getSourceXYZ(s3);
     MathFunctions::normalVector(s1, s2, s3, sourceNormalVectorOut);
+}
+
+/**
+ * Save information specific to this type of model to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of instance in the scene.
+ */
+SceneClass*
+ControlPoint3D::saveToScene(const SceneAttributes* sceneAttributes,
+                           const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ControlPoint",
+                                            1);
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore information specific to the type of model from the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass from which model specific information is obtained.
+ */
+void
+ControlPoint3D::restoreFromScene(const SceneAttributes* sceneAttributes,
+                             const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
 }
 
 

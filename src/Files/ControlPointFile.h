@@ -28,6 +28,7 @@
 
 namespace caret {
     class ControlPoint3D;
+    class Matrix4x4;
     class SceneClassAssistant;
     
     class ControlPointFile : public CaretDataFile {
@@ -71,6 +72,12 @@ namespace caret {
         
         void removeControlPointAtIndex(const int32_t index);
         
+        bool updateLandmarkTransformationMatrix(AString& errorMessageOut);
+        
+        Matrix4x4* getLandmarkTransformationMatrix();
+        
+        const Matrix4x4* getLandmarkTransformationMatrix() const;
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -97,6 +104,8 @@ namespace caret {
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
         std::vector<ControlPoint3D*> m_controlPoints;
+        
+        CaretPointer<Matrix4x4> m_landmarkTransformationMatrix;
         
         // ADD_NEW_MEMBERS_HERE
 

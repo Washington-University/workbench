@@ -46,6 +46,7 @@
 
 
 #include <cmath>
+#include <iostream>
 #include <limits>
 
 #include "CaretAssert.h"
@@ -1032,6 +1033,15 @@ Matrix4x4::getRotation(double& rotationOutX,
     double alpha = std::atan2(sinAlpha, cosAlpha);
     rotationOutZ = MathFunctions::toDegrees(alpha);
     
+    if (MathFunctions::isNaN(rotationOutX)) {
+        rotationOutX = 0.0;
+    }
+    if (MathFunctions::isNaN(rotationOutY)) {
+        rotationOutY = 0.0;
+    }
+    if (MathFunctions::isNaN(rotationOutZ)) {
+        rotationOutZ = 0.0;
+    }
 }
 
 void
@@ -1932,16 +1942,46 @@ Matrix4x4::Determinant3x3(double A[3][3])
  *     matrix will be the identity matrix.
  */
 bool
-Matrix4x4::createLandmarkTransformMatrix(const std::vector<ControlPoint3D>& controlPoints,
+Matrix4x4::createLandmarkTransformMatrix(const std::vector<ControlPoint3D*>& controlPoints,
                                          AString& errorMessageOut)
 {
-    const bool testFlag = true;
+    const bool debugFlag = false;
+    identity();
+    errorMessageOut.clear();
+    
+    if (controlPoints.size() < 3) {
+        errorMessageOut = "There must be at least three control points.";
+        return false;
+    }
+    
+    float s1[3];
+    controlPoints[0]->getSourceXYZ(s1);
+    float s2[3];
+    controlPoints[1]->getSourceXYZ(s2);
+    float s3[3];
+    controlPoints[2]->getSourceXYZ(s3);
+    float sourceNormalVector[3] = { 0.0, 0.0, 0.0 };
+    MathFunctions::normalVector(s1, s2, s3, sourceNormalVector);
+
+    const float tinyValue = 0.00001;
+    if ((sourceNormalVector[2] < tinyValue)
+        && (sourceNormalVector[2] > -tinyValue)) {
+        errorMessageOut = ("First three control points are along a line.  Edit control points to that "
+                           "the first three control points form a triangular shape.");
+        return false;
+    }
+    
+//    if (sourceNormalVector[2] < 0.0) {
+//        CaretLogWarning("Control points are orientated clockwise; unknown if this causes a problem.");
+//    }
+
     
     double leastError = std::numeric_limits<float>::max();
     Matrix4x4 leastErrorMatrix;
     bool leastErrorMatrixValid = false;
     
-    if (testFlag) {
+    const bool testAllTransformTypesFlag = true;
+    if (testAllTransformTypesFlag) {
         for (int32_t j = 0; j < 3; j++) {
             LANDMARK_TRANSFORM_MODE mode = LANDMARK_TRANSFORM_AFFINE;
             AString modeName;
@@ -1965,35 +2005,39 @@ Matrix4x4::createLandmarkTransformMatrix(const std::vector<ControlPoint3D>& cont
                                                         mode,
                                                         errorMessageOut)) {
                 
-                //    matrix.setMatrixToOpenGLRotationFromVector(coordinateNormalVector);
-                std::cout << std::endl;
-                std::cout << "Mode:   " << qPrintable(modeName) << std::endl;
-                std::cout << "Matrix: " << qPrintable(matrix.toFormattedString("   ")) << std::endl;
+                if (debugFlag) {
+                    std::cout << std::endl;
+                    std::cout << "Mode:   " << qPrintable(modeName) << std::endl;
+                    std::cout << "Matrix: " << qPrintable(matrix.toFormattedString("   ")) << std::endl;
+                }
                 
                 const int32_t numcp = static_cast<int32_t>(controlPoints.size());
                 double sum = 0.0;
-                
                 for (int32_t i = 0; i < numcp; i++) {
                     double source[3];
-                    controlPoints[i].getSourceXYZ(source);
+                    controlPoints[i]->getSourceXYZ(source);
                     double predicted[3] = { source[0], source[1], source[2] };
                     matrix.multiplyPoint3(predicted);
                     
                     double target[3];
-                    controlPoints[i].getTargetXYZ(target);
+                    controlPoints[i]->getTargetXYZ(target);
                     
                     const double error = MathFunctions::distance3D(predicted, target);
                     sum += error;
                     
-                    std::cout << "CP("<< i << ") Source: ("
-                    << qPrintable(AString::fromNumbers(source, 3, ",")) << ")  Target: ("
-                    << qPrintable(AString::fromNumbers(target, 3, ",")) << ")  Predicted: ("
-                    << qPrintable(AString::fromNumbers(predicted, 3, ",")) << ")  Error: "
-                    << error << std::endl;
+                    if (debugFlag) {
+                        std::cout << "CP("<< i << ") Source: ("
+                        << qPrintable(AString::fromNumbers(source, 3, ",")) << ")  Target: ("
+                        << qPrintable(AString::fromNumbers(target, 3, ",")) << ")  Predicted: ("
+                        << qPrintable(AString::fromNumbers(predicted, 3, ",")) << ")  Error: "
+                        << error << std::endl;
+                    }
                 }
                 
                 const double error = (sum /= static_cast<double>(numcp));
-                std::cout << "Error:  " << error << std::endl;
+                if (debugFlag) {
+                    std::cout << "   Average error per control point:  " << error << std::endl;
+                }
                 
                 if (error < leastError) {
                     leastError = error;
@@ -2006,12 +2050,16 @@ Matrix4x4::createLandmarkTransformMatrix(const std::vector<ControlPoint3D>& cont
 
     *this = leastErrorMatrix;
     
+    const float averageError = measureTransformError(controlPoints,
+                                                     *this);
 //    const bool result = createLandmarkTransformMatrixPrivate(controlPoints,
 //                                                LANDMARK_TRANSFORM_AFFINE,
 //                                                errorMessageOut);
-    std::cout << std::endl;
-    std::cout << "Transform Error:  " << measureTransformError(controlPoints,
-                                                               *this) << std::endl;
+    if (debugFlag) {
+        std::cout << std::endl;
+        std::cout << "Transform Error:  " << averageError  << std::endl;
+    }
+    
     return leastErrorMatrixValid;
 }
 
@@ -2043,7 +2091,7 @@ Matrix4x4::createLandmarkTransformMatrix(const std::vector<ControlPoint3D>& cont
  *     matrix will be the identity matrix.
  */
 bool
-Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D>& controlPoints,
+Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D*>& controlPoints,
                                                 const LANDMARK_TRANSFORM_MODE mode,
                                                 AString& errorMessageOut) 
 {
@@ -2075,7 +2123,12 @@ Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D
     // Original python implementation by David G. Gobbi
     
     //const vtkIdType N_PTS = this->SourceLandmarks->GetNumberOfPoints();
-    const int32_t N_PTS = static_cast<int32_t>(controlPoints.size());
+    int32_t N_PTS = static_cast<int32_t>(controlPoints.size());
+    if (mode == LANDMARK_TRANSFORM_AFFINE) {
+        if (N_PTS > 3) {
+            N_PTS = 3;
+        }
+    }
     //    if(N_PTS != this->TargetLandmarks->GetNumberOfPoints())
     //    {
     //        vtkErrorMacro("Update: Source and Target Landmarks contain a different number of points");
@@ -2099,12 +2152,12 @@ Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D
     {
         CaretAssertVectorIndex(controlPoints, i);
         //this->SourceLandmarks->GetPoint(i, p);
-        controlPoints[i].getSourceXYZ(p);
+        controlPoints[i]->getSourceXYZ(p);
         source_centroid[0] += p[0];
         source_centroid[1] += p[1];
         source_centroid[2] += p[2];
         //this->TargetLandmarks->GetPoint(i, p);
-        controlPoints[i].getTargetXYZ(p);
+        controlPoints[i]->getTargetXYZ(p);
         target_centroid[0] += p[0];
         target_centroid[1] += p[1];
         target_centroid[2] += p[2];
@@ -2150,13 +2203,13 @@ Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D
         // get the origin-centred point (a) in the source set
         //this->SourceLandmarks->GetPoint(pt,a);
         CaretAssertVectorIndex(controlPoints, pt);
-        controlPoints[pt].getSourceXYZ(a);
+        controlPoints[pt]->getSourceXYZ(a);
         a[0] -= source_centroid[0];
         a[1] -= source_centroid[1];
         a[2] -= source_centroid[2];
         // get the origin-centred point (b) in the target set
         //this->TargetLandmarks->GetPoint(pt,b);
-        controlPoints[pt].getTargetXYZ(b);
+        controlPoints[pt]->getTargetXYZ(b);
         b[0] -= target_centroid[0];
         b[1] -= target_centroid[1];
         b[2] -= target_centroid[2];
@@ -2265,10 +2318,10 @@ Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D
             //            this->SourceLandmarks->GetPoint(1,s1);
             //            this->TargetLandmarks->GetPoint(1,t1);
             CaretAssertVectorIndex(controlPoints, 1);
-            controlPoints[0].getSourceXYZ(s0);
-            controlPoints[0].getTargetXYZ(t0);
-            controlPoints[1].getSourceXYZ(s1);
-            controlPoints[1].getTargetXYZ(t1);
+            controlPoints[0]->getSourceXYZ(s0);
+            controlPoints[0]->getTargetXYZ(t0);
+            controlPoints[1]->getSourceXYZ(s1);
+            controlPoints[1]->getTargetXYZ(t1);
             
             double ds[3],dt[3];
             double rs = 0, rt = 0;
@@ -2411,7 +2464,7 @@ Matrix4x4::createLandmarkTransformMatrixPrivate(const std::vector<ControlPoint3D
  *     The transform matrix.
  */
 float
-Matrix4x4::measureTransformError(const std::vector<ControlPoint3D>& controlPoints,
+Matrix4x4::measureTransformError(const std::vector<ControlPoint3D*>& controlPoints,
                                  const Matrix4x4& matrix) const
 {
     const int32_t numcp = static_cast<int32_t>(controlPoints.size());
@@ -2422,15 +2475,19 @@ Matrix4x4::measureTransformError(const std::vector<ControlPoint3D>& controlPoint
     double sum = 0.0;
     
     for (int32_t i = 0; i < numcp; i++) {
+        ControlPoint3D* cp = controlPoints[i];
+        
         double pt[3];
-        controlPoints[i].getSourceXYZ(pt);
+        cp->getSourceXYZ(pt);
         matrix.multiplyPoint3(pt);
         
-        double target[3];
-        controlPoints[i].getTargetXYZ(target);
+        cp->setTransformedXYZ(pt);
         
-        const double error = MathFunctions::distance3D(pt, target);
-        sum += error;
+        double target[3];
+        controlPoints[i]->getTargetXYZ(target);
+        
+        const double totalError = MathFunctions::distance3D(pt, target);
+        sum += totalError;
     }
     
     const double error = (sum /= static_cast<double>(numcp));
