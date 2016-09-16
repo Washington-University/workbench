@@ -394,14 +394,14 @@ IF (EXISTS $ENV{OSMESA_DIR})
     IF (EXISTS $ENV{OSMESA_DIR}/include/GL/osmesa.h)
         MESSAGE("Have Mesa Include Directory")
         FIND_LIBRARY(OSMESA_LIBRARY_FOUND
-                     NAMES libOSMesa.a libOSMesa.so OSMesa.lib OSMesa.dll
-                     PATHS $ENV{OSMESA_DIR}/lib)
+                     NAMES OSMesa
+                     HINTS $ENV{OSMESA_DIR}/lib)
         FIND_LIBRARY(OSMESA_GL_LIBRARY_FOUND
-                     NAMES libGL.a libGL.so
-                     PATHS $ENV{OSMESA_DIR}/lib)
+                     NAMES GL
+                     HINTS $ENV{OSMESA_DIR}/lib)
         FIND_LIBRARY(OSMESA_GLU_LIBRARY_FOUND
-                     NAMES libGLU.a libGLU.so
-                     PATHS $ENV{OSMESA_DIR}/lib)
+                     NAMES GLU
+                     HINTS $ENV{OSMESA_DIR}/lib)
         MESSAGE("OSMesa lib: " ${OSMESA_LIBRARY})
         IF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
             SET(OSMESA_DEFINITION -DHAVE_OSMESA)
