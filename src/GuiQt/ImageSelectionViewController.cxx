@@ -228,7 +228,7 @@ ImageSelectionViewController::createAttributesWidget()
     m_opacitySpinBox->setFixedWidth(80);
     m_opacitySpinBox->setRange(minOpacity,
                                maxOpacity);
-    m_opacitySpinBox->setSingleStep(0.01);
+    m_opacitySpinBox->setSingleStep(0.1);
     m_opacitySpinBox->setDecimals(1);
     m_opacitySpinBox->setToolTip("Opacity for image");
     QObject::connect(m_opacitySpinBox, SIGNAL(valueChanged(double)),

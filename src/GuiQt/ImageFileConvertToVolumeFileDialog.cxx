@@ -292,12 +292,15 @@ ImageFileConvertToVolumeFileDialog::okButtonClicked()
     EventManager::get()->sendEvent(tabEvent.getPointer());
     BrowserTabContent* tabContent = tabEvent.getBrowserTab();
     ModelWholeBrain* wholeBrainModel = NULL;
+    ModelVolume* volumeModel = NULL;
     if (tabContent != NULL) {
+        volumeModel     = tabContent->getDisplayedVolumeModel();
         wholeBrainModel = tabContent->getDisplayedWholeBrainModel();
     }
-    if (wholeBrainModel == NULL) {
+    if ((volumeModel == NULL)
+        && (wholeBrainModel == NULL)) {
         WuQMessageBox::errorOk(this,
-                               "Conversion must be performed in ALL view.");
+                               "Conversion must be performed in ALL or VOLUME view.");
         return;
     }
     
