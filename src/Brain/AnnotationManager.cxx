@@ -916,7 +916,7 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
     
     const std::vector<int32_t> tabIndices = displayedFilesEvent->getTabIndices();
     
-    const DisplayPropertiesAnnotation* annProps = m_brain->getDisplayPropertiesAnnotation();
+//    const DisplayPropertiesAnnotation* annProps = m_brain->getDisplayPropertiesAnnotation();
     std::vector<AnnotationFile*> annotationFiles;
     m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
     

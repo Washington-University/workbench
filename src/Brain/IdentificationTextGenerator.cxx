@@ -1181,9 +1181,7 @@ IdentificationTextGenerator::generateImageIdentificationText(IdentificationStrin
         
         uint8_t pixelRGBA[4] = { 0, 0, 0, 0 };
         idImage->getPixelRGBA(pixelRGBA);
-        if (pixelRGBA[3] >= 0) {
-            text.append(" RGBA (" + AString::fromNumbers(pixelRGBA, 4, ",") + ")");
-        }
+        text.append(" RGBA (" + AString::fromNumbers(pixelRGBA, 4, ",") + ")");
         
         idText.addLine(false,
                        text);

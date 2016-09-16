@@ -1023,7 +1023,7 @@ AnnotationGroup::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGrou
  *     Selection status.
  */
 bool
-AnnotationGroup::isItemSelectedForEditingInWindow(const int32_t windowIndex)
+AnnotationGroup::isItemSelectedForEditingInWindow(const int32_t /*windowIndex*/)
 {
     return false;
 }

@@ -178,7 +178,7 @@ UserInputModeImage::mouseLeftClick(const MouseEvent& mouseEvent)
     }
     
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    //BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
     SelectionManager* idManager =
     openGLWidget->performIdentification(mouseEvent.getX(),
                                         mouseEvent.getY(),
@@ -325,7 +325,7 @@ UserInputModeImage::getTabIndex() const
     EventBrowserWindowContentGet windowGet(m_windowIndex);
     EventManager::get()->sendEvent(windowGet.getPointer());
     
-    DisplayPropertiesImages* dpi = GuiManager::get()->getBrain()->getDisplayPropertiesImages();
+    //DisplayPropertiesImages* dpi = GuiManager::get()->getBrain()->getDisplayPropertiesImages();
     BrowserTabContent* tabContent = windowGet.getSelectedBrowserTabContent();
     if (tabContent != NULL) {
         tabIndex = tabContent->getTabNumber();

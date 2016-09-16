@@ -235,7 +235,11 @@ QPen QwtPlotTradingCurve::symbolPen() const
 void QwtPlotTradingCurve::setSymbolBrush(
     Direction direction, const QBrush &brush )
 {
-    if ( direction < 0 || direction >= 2 )
+
+// eliminate compile time warning - JWH 9/16/2016
+//    if ( direction < 0 || direction >= 2 )
+    const int directionAsInt = static_cast<int>(direction);
+    if ( directionAsInt < 0 || directionAsInt >= 2 )
         return;
 
     if ( brush != d_data->symbolBrush[ direction ] )
@@ -256,7 +260,10 @@ void QwtPlotTradingCurve::setSymbolBrush(
 */
 QBrush QwtPlotTradingCurve::symbolBrush( Direction direction ) const
 {
-    if ( direction < 0 || direction >= 2 )
+// eliminate compile time warning - JWH 9/16/2016
+//    if ( direction < 0 || direction >= 2 )
+    const int directionAsInt = static_cast<int>(direction);
+    if ( directionAsInt < 0 || directionAsInt >= 2 )
         return QBrush();
 
     return d_data->symbolBrush[ direction ];

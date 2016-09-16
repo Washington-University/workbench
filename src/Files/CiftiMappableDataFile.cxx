@@ -2689,15 +2689,15 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
  *    Number of voxels with alpha greater than zero
  */
 int64_t
-CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
-                                                      const int64_t firstVoxelIJK[3],
-                                                      const int64_t rowStepIJK[3],
-                                                      const int64_t columnStepIJK[3],
-                                                      const int64_t numberOfRows,
-                                                      const int64_t numberOfColumns,
-                                                      const DisplayGroupEnum::Enum displayGroup,
-                                                      const int32_t tabIndex,
-                                                      uint8_t* rgbaOut) const
+CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t /*mapIndex*/,
+                                                      const int64_t[] /*firstVoxelIJK[3]*/,
+                                                      const int64_t[] /*rowStepIJK[3]*/,
+                                                      const int64_t[] /*columnStepIJK[3]*/,
+                                                      const int64_t /*numberOfRows*/,
+                                                      const int64_t /*numberOfColumns*/,
+                                                      const DisplayGroupEnum::Enum /*displayGroup*/,
+                                                      const int32_t /*tabIndex*/,
+                                                      uint8_t* /*rgbaOut*/) const
 {
     return 0;
 }
