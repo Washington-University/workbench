@@ -10,11 +10,7 @@ SET(QT_DONT_USE_QTGUI TRUE)
 
 INCLUDE(${QT_USE_FILE})
 
-SET(MOC_INPUT_HEADER_FILES
-quazipfile.h
-)
-
-QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+SET(CMAKE_AUTOMOC ON)
 
 #
 # Prevents dll linkage errors on windows
@@ -49,8 +45,6 @@ quazipfileinfo.h
 quazipnewinfo.h
 unzip.h
 zip.h
-
-${MOC_SOURCE_FILES}
 
 JlCompress.cpp
 qioapi.cpp

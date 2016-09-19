@@ -17,180 +17,14 @@ SET(QT_USE_QTOPENGL TRUE)
 INCLUDE(${QT_USE_FILE})
 
 #
-# Headers that must be processed with QT's "moc"
-# Any class that derives from a QT class and contains
-# the "Q_OBJECT" macro must be listed here.
+# Let CMake find files for moc and uic.
 #
-# Also LIST each of these headers in the 
-# source files section so that they show
-# up in development tools such as XCode.
-#
-SET(MOC_INPUT_HEADER_FILES
-AboutWorkbenchDialog.h
-AnnotationChangeCoordinateDialog.h
-AnnotationColorWidget.h
-AnnotationCoordinateSelectionWidget.h
-AnnotationCoordinateSpaceWidget.h
-AnnotationCoordinateWidget.h
-AnnotationCreateDialog.h
-AnnotationDeleteWidget.h
-AnnotationFontWidget.h
-AnnotationFormatWidget.h
-AnnotationInsertNewWidget.h
-AnnotationLineArrowTipsWidget.h
-AnnotationMenuArrange.h
-AnnotationMenuFileSelection.h
-AnnotationRedoUndoWidget.h
-AnnotationRotationWidget.h
-AnnotationSelectionViewController.h
-AnnotationPasteDialog.h
-AnnotationTextAlignmentWidget.h
-AnnotationTextEditorDialog.h
-AnnotationTextEditorWidget.h
-AnnotationTextOrientationWidget.h
-AnnotationWidthHeightWidget.h
-BalsaDatabaseUploadSceneFileDialog.h
-BorderEditingSelectionDialog.h
-BorderFileSplitDialog.h
-BorderOptimizeDialog.h
-BorderPropertiesEditorDialog.h
-BorderSelectionViewController.h
-BrainBrowserWindow.h
-BrainBrowserWindowComboBox.h
-BrainBrowserWindowOrientedToolBox.h
-BrainBrowserWindowToolBar.h
-BrainBrowserWindowToolBarChartAttributes.h
-BrainBrowserWindowToolBarChartAxes.h
-BrainBrowserWindowToolBarChartType.h
-BrainBrowserWindowToolBarClipping.h
-BrainBrowserWindowToolBarComponent.h
-BrainBrowserWindowToolBarSlicePlane.h
-BrainBrowserWindowToolBarSliceSelection.h
-BrainBrowserWindowToolBarSurfaceMontage.h
-BrainBrowserWindowToolBarTab.h
-BrainBrowserWindowToolBarVolumeMontage.h
-BrainOpenGLWidget.h
-BugReportDialog.h
-CaretColorEnumComboBox.h
-CaretColorEnumMenu.h
-CaretDataFileSelectionComboBox.h
-CaretFileDialog.h
-CaretFileDialogExtendable.h
-CaretFileRemoteDialog.h
-CaretMappableDataFileAndMapSelector.h
-CaretMappableDataFileAndMapSelectorObject.h
-ChartHistoryViewController.h
-ChartLinesSelectionViewController.h
-ChartMatrixParcelSelectionViewController.h
-ChartMatrixSeriesSelectionViewController.h
-ChartSelectionViewController.h
-ChartToolBoxViewController.h
-CiftiConnectivityMatrixViewController.h
-CiftiParcelSelectionComboBox.h
-ClippingPlanesDialog.h
-ColorEditorWidget.h
-CustomViewDialog.h
-DataFileContentCopyMoveDialog.h
-DisplayGroupAndTabItemViewController.h
-DisplayGroupEnumComboBox.h
-EnumComboBoxTemplate.h
-FiberOrientationSelectionViewController.h
-FiberSamplesOpenGLWidget.h
-FociProjectionDialog.h
-FociPropertiesEditorDialog.h
-FociSelectionViewController.h
-GapsAndMarginsDialog.h
-GiftiLabelTableEditor.h
-GiftiLabelTableSelectionComboBox.h
-GroupAndNameHierarchyViewController.h
-GuiManager.h
-HelpViewerDialog.h
-HyperLinkTextBrowser.h
-IdentifyBrainordinateDialog.h
-ImageCaptureDialog.h
-ImageFileConvertToVolumeFileDialog.h
-ImageSelectionViewController.h
-InformationDisplayDialog.h
-InformationDisplayPropertiesDialog.h
-LabelSelectionViewController.h
-MacApplication.h
-MacDockMenu.h
-MapSettingsColorBarWidget.h
-MapSettingsFiberTrajectoryWidget.h
-MapSettingsLabelsWidget.h
-MapSettingsLayerWidget.h
-MapSettingsPaletteColorMappingWidget.h
-MapSettingsParcelsWidget.h
-MapYokingGroupComboBox.h
-MetaDataEditorDialog.h
-MetaDataEditorWidget.h
-MovieDialog.h
-OverlaySetViewController.h
-OverlaySettingsEditorDialog.h
-OverlayViewController.h
-PaletteColorMappingEditorDialog.h
-PlotMagnifier.h
-PlotPanner.h
-PreferencesDialog.h
-ProgressReportingDialog.h
-ProgressReportingFromEvent.h
-ProgressReportingWithSlots.h
-RegionOfInterestCreateFromBorderDialog.h
-SceneCreateReplaceDialog.h
-SceneDialog.h
-ScenePreviewDialog.h
-SpecFileManagementDialog.h
-SplashScreen.h
-StructureEnumComboBox.h
-StructureSurfaceSelectionControl.h
-SurfacePropertiesEditorDialog.h
-SurfaceSelectionViewController.h
-TileTabsConfigurationDialog.h
-UserInputModeAnnotationsContextMenu.h
-UserInputModeAnnotationsWidget.h
-UserInputModeBordersWidget.h
-UserInputModeFociWidget.h
-UserInputModeImageWidget.h
-UserInputModeViewContextMenu.h
-UserInputModeVolumeEditWidget.h
-UsernamePasswordWidget.h
-VolumeFileCreateDialog.h
-VolumeSurfaceOutlineColorOrTabViewController.h
-VolumeSurfaceOutlineSetViewController.h
-VolumeSurfaceOutlineViewController.h
-WuQCollapsibleWidget.h
-WuQDataEntryDialog.h
-WuQDialog.h
-WuQDialogModal.h
-WuQDialogNonModal.h
-WuQDoubleSlider.h
-WuQEventBlockingFilter.h
-WuQGridLayoutGroup.h
-WuQGroupBoxExclusiveWidget.h
-WuQImageLabel.h
-WuQListWidget.h
-WuQMessageBox.h
-WuQwtPlot.h
-WuQSpecialIncrementDoubleSpinBox.h
-WuQSpinBoxGroup.h
-WuQSpinBoxOddValue.h
-WuQTabWidget.h
-WuQTimedMessageDisplay.h
-WuQTreeWidget.h
-WuQTrueFalseComboBox.h
-#WuQWebView.h
-WuQWidget.h
-WuQWidgetObjectGroup.h
-ZipSceneFileDialog.h
-)
+SET(CMAKE_AUTOMOC ON)
+SET(CMAKE_AUTOUIC ON)
 
 #
 # Header files
 # 
-# If the header file is qt 'moc' file
-# also list it in the section above
-# named MOC_INPUT_HEADER_FILES
-#
 SET(SOURCE_FILES
 AboutWorkbenchDialog.h
 AnnotationChangeCoordinateDialog.h
@@ -594,26 +428,17 @@ WuQtUtilities.cxx
 ZipSceneFileDialog.cxx
 )
 
-SET(FORMS
-    MovieDialog.ui)
-
-
 #
 # Process the header files with moc producing moc_*.cpp files
 #
-
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}
                     ${CMAKE_SOURCE_DIR}/GuiQt)
-QT4_WRAP_UI(FORMS_HEADERS ${FORMS})
-QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
 
 #
 # Create the GUI library
 #
 ADD_LIBRARY(GuiQt
 ${SOURCE_FILES}
-${MOC_SOURCE_FILES}
-${FORMS_HEADERS}
 )
 
 INCLUDE_DIRECTORIES(

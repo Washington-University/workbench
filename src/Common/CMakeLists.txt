@@ -15,11 +15,7 @@ SET(QT_USE_QTNETWORK TRUE)
 INCLUDE(${QT_USE_FILE})
 #message("QT VERSION: " ${QT_VERSION_MAJOR} ${QT_VERSION_MINOR} ${QT_VERSION_PATCH})
 
-SET(MOC_INPUT_HEADER_FILES
-CaretHttpManager.h
-)
-
-QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+SET (CMAKE_AUTOMOC ON)
 
 #
 # Create a library
@@ -132,7 +128,6 @@ VectorOperation.h
 VoxelIJK.h
 YokingGroupEnum.h
 
-${MOC_SOURCE_FILES}
 ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
 ApplicationTypeEnum.cxx
 AString.cxx
