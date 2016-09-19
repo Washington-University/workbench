@@ -44,6 +44,8 @@ namespace caret {
         
         void runCommand(ProgramParameters& parameters);
         
+        AString doCompletion(ProgramParameters& parameters, const bool& useExtGlob);
+        
         std::vector<CommandOperation*> getCommandOperations();
         
     private:
@@ -73,7 +75,17 @@ namespace caret {
         
         bool getGlobalOption(ProgramParameters& parameters, const AString& optionString, const int& numArgs, std::vector<AString>& arguments);
         
-        static AString fixUnicode(const AString& input);
+        struct OptionInfo
+        {
+            bool specified;
+            bool complete;
+            int index;//only valid when complete is false, might not be needed
+            OptionInfo() { specified = false; complete = false; index = -1; }
+        };
+        
+        OptionInfo parseGlobalOption(ProgramParameters& parameters, const AString& optionString, const int& numArgs, std::vector<AString>& arguments, const bool& quiet);
+        
+        static AString fixUnicode(const AString& input, const bool& quiet);
         
     private:
         std::vector<CommandOperation*> commandOperations, deprecatedOperations;

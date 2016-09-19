@@ -62,7 +62,6 @@ void CommandParser::disableProvenance()
     m_doProvenance = false;
 }
 
-
 void CommandParser::executeOperation(ProgramParameters& parameters)
 {
     CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
@@ -100,9 +99,8 @@ void CommandParser::showParsedOperation(ProgramParameters& parameters)
 }
 
 void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation, bool debug)
-{
-    uint32_t i;
-    for (i = 0; i < myComponent->m_paramList.size(); ++i)
+{//IMPORTANT: update completionComponent() and friends with any change to parsing logic
+    for (int i = 0; i < (int)myComponent->m_paramList.size(); ++i)
     {
         bool hyphenReplaced = false;
         //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
@@ -383,7 +381,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             }
         }
     }
-    for (i = 0; i < myComponent->m_outputList.size(); ++i)
+    for (int i = 0; i < (int)myComponent->m_outputList.size(); ++i)
     {//parse the output options of this component
         bool hyphenReplaced = false;
         //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
@@ -532,6 +530,279 @@ void CommandParser::parseRemainingOptions(ParameterComponent* myComponent, Progr
             return;
         }
     }
+}
+
+AString CommandParser::doCompletion(ProgramParameters& parameters, const bool& useExtGlob)
+{
+    CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
+    CompletionInfo ret = completionComponent(myAlgParams.getPointer(), parameters, useExtGlob);
+    if (parameters.hasNext()) return "";//you're off the edge of the map, find the monsters yourself
+    return ret.completionHints;
+}
+
+CommandParser::CompletionInfo CommandParser::completionComponent(ParameterComponent* myComponent, ProgramParameters& parameters, const bool& useExtGlob)
+{
+    CompletionInfo ret;//initializes complete to false
+    for (int i = 0; i < (int)myComponent->m_paramList.size(); ++i)
+    {
+        //a bit complicated...
+        //if there is no next parameter, obviously we should do completion based on current mandatory parameter
+        //if the next parameter starts with -, it must either be an option, numeric, or string
+        // if the option hasn't been completed, return its completion info
+        // *if the option is completed, but no parameters remain, need to add the mandatory argument completion to the returned completion info
+        // if parameters remain after the option is completed, restart the iteration in order to be able take another option immediately
+        if (parameters.hasNext())
+        {
+            //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+            AString rawArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
+            AString nextArg = rawArg.fixUnicodeHyphens();
+            if (!nextArg.isEmpty() && nextArg[0] == '-')
+            {
+                CompletionInfo optionInfo = completionOption(nextArg, myComponent, parameters, useExtGlob);
+                if (!optionInfo.found)
+                {
+                    switch (myComponent->m_paramList[i]->getType())
+                    {
+                    case OperationParametersEnum::STRING:
+                    case OperationParametersEnum::INT:
+                    case OperationParametersEnum::DOUBLE:
+                        break;//it is probably a negative number, so let it parse as one
+                    default:
+                        //NOTE: we know the command will fail to parse, now what?
+                        break;//pretend it will parse as a filename, and continue?
+                    };
+                    continue;//assume the parameter works in the given position and move on
+                } else {//specified option switch did match an option
+                    if (!optionInfo.complete)
+                    {//if the option's mandatory parameters weren't completed, don't add any completion from the current context, just pass the result through
+                        return optionInfo;
+                    }
+                    if (!parameters.hasNext())
+                    {//save these hints, then let it proceed to the completion section
+                        ret.completionHints = optionInfo.completionHints;
+                    } else {
+                        --i;
+                        continue;//so skip trying to parse it as a required argument, and restart the loop on the same iteration
+                    }
+                }
+            } else {
+                continue;//parameter is empty or doesn't start with -, assume it works fine
+            }
+        }//the above conditional does a continue unless we need to do completion now
+        switch (myComponent->m_paramList[i]->getType())
+        {
+            case OperationParametersEnum::BOOL:
+                if (ret.completionHints != "") ret.completionHints += " ";
+                ret.completionHints += "wordlist true\\ TRUE\\ false\\ FALSE";
+                break;
+            case OperationParametersEnum::BORDER:
+                if (ret.completionHints != "") ret.completionHints += " ";
+                if (useExtGlob)
+                {
+                    ret.completionHints += "fileglob *.?(wb_)border";
+                } else {
+                    ret.completionHints += "fileglob *.border fileglob *.wb_border";
+                }
+                break;
+            case OperationParametersEnum::CIFTI:
+                if (ret.completionHints != "") ret.completionHints += " ";
+                ret.completionHints += "fileglob *.*.nii";//cifti standard allows arbitrary secondary extensions, and volume files are nearly always .nii.gz anyway
+                break;//could restrict it if someone complains (maybe a preference)
+            case OperationParametersEnum::FOCI:
+                if (ret.completionHints != "") ret.completionHints += " ";
+                if (useExtGlob)
+                {
+                    ret.completionHints += "fileglob *.?(wb_)foci";
+                } else {
+                    ret.completionHints += "fileglob *.foci fileglob *.wb_foci";
+                }
+                break;
+            case OperationParametersEnum::LABEL://is there a caret5 extension for this gifti file type?
+                if (ret.completionHints != "") ret.completionHints += " ";
+                ret.completionHints += "fileglob *.label.gii";
+                break;
+            case OperationParametersEnum::METRIC://include the caret5 extension that is often the same format
+                if (ret.completionHints != "") ret.completionHints += " ";
+                if (useExtGlob)//also allow label files for now, see if anyone complains (maybe a preference)
+                {
+                    ret.completionHints += "fileglob *.@(@(func|shape|label).gii|metric)";
+                } else {
+                    ret.completionHints += "fileglob *.func.gii fileglob *.shape.gii fileglob *.metric fileglob *.label.gii";
+                }
+                break;
+            case OperationParametersEnum::SURFACE:
+                if (ret.completionHints != "") ret.completionHints += " ";
+                ret.completionHints += "fileglob *.surf.gii";
+                break;
+            case OperationParametersEnum::VOLUME:
+                if (ret.completionHints != "") ret.completionHints += " ";
+                if (useExtGlob)
+                {//special functionality - when we have extglob, we can exclude common cifti extensions
+                    ret.completionHints += "fileglob !(*.dconn|*.dtseries|*.pconn|*.ptseries|*.dscalar|*.dlabel|*.pscalar|*.pdconn|*.dpconn|*.pconnseries|*.pconnscalar|*.plabel).nii?(.gz)";
+                } else {//when we don't...sorry - maybe have a preference to exclude uncompressed nifti in this condition (not great either)
+                    //if it is really a problem, we could introduce a "fileregexp" response type and do it manually with sed or grep
+                    ret.completionHints += "fileglob *.nii.gz fileglob *.nii";
+                }
+                break;
+            case OperationParametersEnum::STRING://for strings, since we use them for filenames sometimes, glob to filenames, I guess
+                if (ret.completionHints != "") ret.completionHints += " ";
+                ret.completionHints += "fileglob *";
+                break;
+            case OperationParametersEnum::DOUBLE:
+            case OperationParametersEnum::INT:
+                //numeric types don't get any completion hints
+                break;
+        }
+        AString optionHints = completionOptionHints(myComponent, useExtGlob);
+        if (optionHints != "")
+        {
+            if (ret.completionHints != "") ret.completionHints += " ";
+            ret.completionHints += optionHints;
+        }
+        return ret;
+    }
+    for (int i = 0; i < (int)myComponent->m_outputList.size(); ++i)
+    {//parse the output options of this component
+        if (parameters.hasNext())
+        {
+            //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+            AString rawArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
+            AString nextArg = rawArg.fixUnicodeHyphens();
+            if (!nextArg.isEmpty() && nextArg[0] == '-')
+            {
+                CompletionInfo optionInfo = completionOption(nextArg, myComponent, parameters, useExtGlob);
+                if (!optionInfo.found)
+                {
+                    //NOTE: we know the command will fail to parse, now what?
+                    continue;//pretend the parameter works in the given position and move on?
+                } else {//specified option switch did match an option
+                    if (!optionInfo.complete)
+                    {//if the option's mandatory parameters weren't completed, don't add any completion from the current context, just pass the result through
+                        return optionInfo;
+                    }
+                    if (!parameters.hasNext())
+                    {//save these hints, then let it proceed to the completion section
+                        ret.completionHints = optionInfo.completionHints;
+                    } else {
+                        --i;
+                        continue;//so skip trying to parse it as a required argument, and restart the loop on the same iteration
+                    }
+                }
+            } else {
+                continue;//parameter is empty or doesn't start with -, assume it works fine
+            }
+        }//the above conditional does a continue unless we need to do completion now
+        if (ret.completionHints != "") ret.completionHints += " ";
+        ret.completionHints += "fileglob *";//we are specifying an output file, so glob to everything so they can easily reuse names from other format files
+        AString optionHints = completionOptionHints(myComponent, useExtGlob);
+        if (optionHints != "")
+        {
+            ret.completionHints += " " + optionHints;
+        }
+        return ret;
+    }
+    CompletionInfo remainInfo = completionRemainingOptions(myComponent, parameters, useExtGlob);//returns last option parsed (so, the one to do completion on, if applicable)
+    if (remainInfo.found)
+    {
+        if (!remainInfo.complete) return remainInfo;
+        if (!parameters.hasNext())
+        {
+            AString localOpts = completionOptionHints(myComponent, useExtGlob);
+            if (remainInfo.completionHints != "") remainInfo.completionHints += " ";
+            remainInfo.completionHints += localOpts;
+            return remainInfo;
+        }
+    }
+    ret.complete = true;
+    if (!parameters.hasNext())//no remaining options matched, but we are out of parameters, so fill in any options that could come next
+    {
+        ret.completionHints = completionOptionHints(myComponent, useExtGlob);
+    }
+    return ret;
+}
+
+CommandParser::CompletionInfo CommandParser::completionOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, const bool& useExtGlob)
+{
+    for (uint32_t i = 0; i < myComponent->m_optionList.size(); ++i)
+    {
+        if (mySwitch == myComponent->m_optionList[i]->m_optionSwitch)
+        {
+            if (myComponent->m_optionList[i]->m_present)
+            {
+                //NOTE: we know the parsing will fail here, now what?
+                //pretend it is repeatable and move on, I guess
+            }
+            myComponent->m_optionList[i]->m_present = true;
+            CompletionInfo optionInfo = completionComponent(myComponent->m_optionList[i], parameters, useExtGlob);
+            optionInfo.found = true;
+            return optionInfo;
+        }
+    }
+    for (uint32_t i = 0; i < myComponent->m_repeatableOptions.size(); ++i)
+    {
+        if (mySwitch == myComponent->m_repeatableOptions[i]->m_optionSwitch)
+        {
+            myComponent->m_repeatableOptions[i]->m_instances.push_back(new ParameterComponent(myComponent->m_repeatableOptions[i]->m_template));
+            CompletionInfo optionInfo = completionComponent(myComponent->m_repeatableOptions[i]->m_instances.back(), parameters, useExtGlob);
+            optionInfo.found = true;
+            return optionInfo;
+        }
+    }
+    return CompletionInfo();//found initializes to false
+}
+
+AString CommandParser::completionOptionHints(ParameterComponent* myComponent, const bool& /*useExtGlob*/)
+{
+    AString ret;
+    for (uint32_t i = 0; i < myComponent->m_optionList.size(); ++i)
+    {
+        if (!myComponent->m_optionList[i]->m_present)
+        {//don't suggest non-repeatable options we already have
+            if (ret == "")
+            {
+                ret = "wordlist ";
+            } else {
+                ret += "\\ ";
+            }
+            ret += myComponent->m_optionList[i]->m_optionSwitch;
+        }
+    }
+    for (uint32_t i = 0; i < myComponent->m_repeatableOptions.size(); ++i)
+    {//include all repeatable options
+        if (ret == "")
+        {
+            ret = "wordlist ";
+        } else {
+            ret += "\\ ";
+        }
+        ret += myComponent->m_repeatableOptions[i]->m_optionSwitch;
+    }
+    return ret;
+}
+
+CommandParser::CompletionInfo CommandParser::completionRemainingOptions(ParameterComponent* myComponent, ProgramParameters& parameters, const bool& useExtGlob)
+{//NOTE: completionComponent will complete the local options if needed when found is false
+    CompletionInfo prev;
+    while (parameters.hasNext())
+    {
+        //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+        AString rawArg = parameters.nextString("option");
+        AString nextArg = rawArg.fixUnicodeHyphens();
+        if (!nextArg.isEmpty() && nextArg[0] == '-')
+        {
+            CompletionInfo temp = completionOption(nextArg, myComponent, parameters, useExtGlob);
+            if (!temp.found)
+            {
+                parameters.backup();
+                return prev;//more things to parse, could return default constructed instead
+            }
+            prev = temp;//it was found, so update what we found
+        } else {//more things to parse, but they don't go here
+            parameters.backup();
+            return CompletionInfo();//found initializes to false
+        }
+    }
+    return prev;//no parameters remain, return whatever was found
 }
 
 void CommandParser::provenanceBeforeOperation(const vector<OutputAssoc>& outAssociation)

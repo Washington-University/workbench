@@ -73,6 +73,11 @@ void CommandOperation::disableProvenance()
 {
 }
 
+AString CommandOperation::doCompletion(ProgramParameters&, const bool&)
+{
+    return "";
+}
+
 bool CommandOperation::takesParameters()
 {
     return true;

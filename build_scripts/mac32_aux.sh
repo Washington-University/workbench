@@ -73,6 +73,7 @@ DIST_DIR=/mainpool/storage/distribution/caret7_distribution/workbench/macosx32_a
 scp -rv Desktop/wb_view.app caret@myelin1:${DIST_DIR}
 scp -v CommandLine/wb_command caret@myelin1:${DIST_DIR}
 scp -v ${SRC_DIR}/CommandLine/wb_shortcuts caret@myelin1:${DIST_DIR}
+scp -v ${SRC_DIR}/CommandLine/bashcomplete_wb_command caret@myelin1:${DIST_DIR}
 
 echo "SCRIPT COMPLETED SUCCESSFULLY"
 

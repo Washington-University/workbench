@@ -534,7 +534,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
     }
     
     AString commandSwitch;
-    commandSwitch = fixUnicode(parameters.nextString("Command Name"));
+    commandSwitch = fixUnicode(parameters.nextString("Command Name"), false);
     
     if (commandSwitch == "-help")
     {
@@ -595,37 +595,125 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
     }
 }
 
+AString CommandOperationManager::doCompletion(ProgramParameters& parameters, const bool& useExtGlob)
+{
+    AString ret;
+    vector<AString> globalOptionArgs;
+    /*OptionInfo provInfo = */parseGlobalOption(parameters, "-disable-provenance", 0, globalOptionArgs, true);//we need to at least strip out the global options for other parsing to work
+    OptionInfo loggingInfo = parseGlobalOption(parameters, "-logging", 1, globalOptionArgs, true);//the previous option doesn't take arguments, doesn't need completion testing
+    if (loggingInfo.specified && !loggingInfo.complete)
+    {//user is tab completing the logging option, and as it only takes one argument, we know what the completions are
+        vector<LogLevelEnum::Enum> logLevels;
+        LogLevelEnum::getAllEnums(logLevels);
+        ret = "wordlist ";
+        for (int i = 0; i < (int)logLevels.size(); ++i)
+        {
+            if (i != 0) ret += "\\ ";//backslash-escaped space to leave the list of levels as one word
+            ret += LogLevelEnum::toName(logLevels[i]);
+        }
+        return ret;
+    }
+    ret = "wordlist -disable-provenance\\ -logging";//we could prevent suggesting an already-provided global option, but that would be a bit surprising
+    const uint64_t numberOfCommands = this->commandOperations.size();
+    const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
+    if (!parameters.hasNext())
+    {//suggest all commands, including deprecated and informational (order doesn't matter, bash sorts them before displaying)
+        ret += "\\ -help\\ -arguments-help\\ -cifti-help\\ -gifti-help\\ -version\\ -list-commands\\ -list-deprecated-commands\\ -all-commands-help";
+        for (uint64_t i = 0; i < numberOfCommands; i++)
+        {
+            ret += "\\ " + commandOperations[i]->getCommandLineSwitch();
+        }
+        for (uint64_t i = 0; i < numberOfDeprecated; i++)
+        {
+            ret += "\\ " + deprecatedOperations[i]->getCommandLineSwitch();
+        }
+        return ret;
+    }
+    //only processing commands take additional arguments, so we can now ignore -help and similar
+    AString commandSwitch;
+    commandSwitch = fixUnicode(parameters.nextString("Command Name"), true);
+    for (uint64_t i = 0; i < numberOfCommands; i++)
+    {
+        if (commandOperations[i]->getCommandLineSwitch() == commandSwitch)
+        {
+            AString commandCompletion = commandOperations[i]->doCompletion(parameters, useExtGlob);
+            if (commandCompletion != "")
+            {
+                if (ret != "") ret += " ";
+                ret += commandCompletion;
+            }
+            return ret;
+        }
+    }
+    for (uint64_t i = 0; i < numberOfDeprecated; i++)
+    {
+        if (deprecatedOperations[i]->getCommandLineSwitch() == commandSwitch)
+        {
+            AString commandCompletion = deprecatedOperations[i]->doCompletion(parameters, useExtGlob);
+            if (commandCompletion != "")
+            {
+                if (ret != "") ret += " ";
+                ret += commandCompletion;
+            }
+            return ret;
+        }
+    }
+    //if we get here, then the operation switch is wrong, or goes to an informational option
+    return ret;
+}
+
 bool CommandOperationManager::getGlobalOption(ProgramParameters& parameters, const AString& optionString, const int& numArgs, vector<AString>& arguments)
 {
-    parameters.setParameterIndex(0);//this ends up being slightly redundant, but whatever
-    while (parameters.hasNext())//shouldn't be many global options, so do it the simple way
+    OptionInfo retval = parseGlobalOption(parameters, optionString, numArgs, arguments, false);
+    if (retval.specified && !retval.complete)
+    {
+        throw CommandException("missing argument #" + AString::number(arguments.size() + 1) + " to global option ");
+    }
+    return retval.specified;
+}
+
+CommandOperationManager::OptionInfo CommandOperationManager::parseGlobalOption(ProgramParameters& parameters, const AString& optionString, const int& numArgs, vector<AString>& arguments, const bool& quiet)
+{
+    OptionInfo ret;//initializes to false, false, -1
+    int32_t initialIndex = parameters.getParameterIndex();//before returning, restore initial index - also, only search from current index onwards
+    while (parameters.hasNext())
     {
         bool hyphenReplaced = false;
         AString testRaw = parameters.nextString("global option");
-        AString test = testRaw.fixUnicodeHyphens(&hyphenReplaced);
+        AString test = testRaw.fixUnicodeHyphens(&hyphenReplaced, NULL, quiet);
         if (test == optionString)
         {
-            if (hyphenReplaced)
+            if (!quiet && hyphenReplaced)
             {
                 CaretLogWarning("replaced non-ascii hyphen/dash characters in global option '" + testRaw + "' with ascii '-'");
+            }//delay parameter removal until we know we have all arguments
+            if (!quiet && ret.specified)
+            {
+                CaretLogInfo("global option '" + optionString + "' specified multiple times");
             }
-            parameters.remove();
             arguments.clear();
+            OptionInfo temp;//initializes to false, false, -1
+            temp.specified = true;
+            temp.index = parameters.getParameterIndex() - 1;//the function actually reports the index of the next parameter
             for (int i = 0; i < numArgs; ++i)
             {
                 if (!parameters.hasNext())
                 {
-                    throw CommandException("missing argument #" + AString::number(i + 1) + " to global option '" + optionString + "'");
+                    return temp;//complete is still false - since this is a fatal parsing error, don't reset the parameter index
                 }
                 arguments.push_back(parameters.nextString("global option argument"));
-                parameters.remove();
             }
-            parameters.setParameterIndex(0);
-            return true;
+            for (int i = 0; i < numArgs; ++i)
+            {
+                parameters.remove();//remove arguments
+            }
+            parameters.remove();//remove option switch
+            temp.complete = true;
+            ret = temp;
         }
     }
-    parameters.setParameterIndex(0);
-    return false;
+    parameters.setParameterIndex(initialIndex);
+    return ret;
 }
 
 /**
@@ -979,15 +1067,15 @@ void CommandOperationManager::printAllCommandsHelpInfo(const AString& programNam
     }
 }
 
-AString CommandOperationManager::fixUnicode(const AString& input)
+AString CommandOperationManager::fixUnicode(const AString& input, const bool& quiet)
 {
     bool hyphenReplaced = false, otherNonAscii = false;
-    AString ret = input.fixUnicodeHyphens(&hyphenReplaced, &otherNonAscii);
+    AString ret = input.fixUnicodeHyphens(&hyphenReplaced, &otherNonAscii, quiet);
     if (otherNonAscii)
     {
         throw CaretException("found non-ascii character in operation switch '" + input + "', but one that is not recognized as a dash/hyphen/minus");
     }
-    if (hyphenReplaced)
+    if (!quiet && hyphenReplaced)
     {
         CaretLogWarning("replaced non-ascii hyphen/dash characters in operation switch '" + input + "' with ascii '-'");
     }

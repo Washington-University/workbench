@@ -25,7 +25,7 @@ set -ue
 
 global_cmd_line="$0 $*"
 global_script_name="wb_shortcuts"
-global_script_version="beta-0.2"
+global_script_version="beta-0.3"
 
 function version ()
 {
@@ -37,9 +37,10 @@ function usage ()
     version
     echo
     echo "Information options:"
-    echo "   -help             display this help info"
-    echo "   -version          display version info"
-    echo "   -list-functions   show available functions"
+    echo "   -help                display this help info"
+    echo "   -version             display version info"
+    echo "   -list-functions      show available functions"
+    echo "   -all-functions-help  show all functions and their help info - VERY LONG"
     echo
     #wrap guide for 80 columns                                                           |
     echo "To get the help information of a function, run it without any additional"
@@ -70,6 +71,9 @@ function main ()
             ;;
         (-list-functions)
             list_functions
+            ;;
+        (-all-functions-help)
+            all_functions_help
             ;;
         (*)
             #magic switch matching and function name conversion happens in here
@@ -135,7 +139,7 @@ function border_file_concatenate ()
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
         echo
-        exit 0
+        return 0
     fi
     if (($# < 2))
     then
@@ -169,7 +173,7 @@ function cifti_concatenate ()
         echo "      The -map option takes either a 1-based index or a map name, and causes"
         echo "      the operation to use only one map from each input file."
         echo
-        exit 0
+        return 0
     fi
     local -a maparg
     if [[ "$1" == "-map" ]]
@@ -212,7 +216,7 @@ function cifti_demean ()
         echo "      concatenates them.  Additional input files may be specified after the"
         echo "      mandatory input file."
         echo
-        exit 0
+        return 0
     fi
     local normalize=0
     if [[ "$1" == "-normalize" ]]
@@ -264,7 +268,7 @@ function command_help_search ()
         #wrap guide for 80 columns                                                           |
         echo "      Searches for wb_command processing commands that contain the pattern."
         echo
-        exit 0
+        return 0
     fi
     local -a switches
     readarray -t switches < <(wb_command -list-commands | awk '{print $1}')
@@ -308,7 +312,7 @@ function freesurfer_resample_prep ()
         echo "      both midthickness surfaces needed by the -area-surfs option of wb_command"
         echo "      -metric-resample, -label-resample, and similar commands."
         echo
-        exit 0
+        return 0
     fi
     if (($# < 7))
     then
@@ -353,7 +357,7 @@ function import_probtrack_roi ()
         echo "      The <cifti-roi> file should contain the ROI used as the mask, and should"
         echo "      be in the desired brainordinate space."
         echo
-        exit 0
+        return 0
     fi
     if (($# < 3))
     then
@@ -388,7 +392,7 @@ function label_concatenate ()
         echo "      The -map option takes either a 1-based index or a map name, and causes"
         echo "      the operation to use only one map from each input file."
         echo
-        exit 0
+        return 0
     fi
     local -a maparg
     if [[ "$1" == "-map" ]]
@@ -432,7 +436,7 @@ function metric_concatenate ()
         echo "      The -map option takes either a 1-based index or a map name, and causes"
         echo "      the operation to use only one map from each input file."
         echo
-        exit 0
+        return 0
     fi
     local -a maparg
     if [[ "$1" == "-map" ]]
@@ -472,7 +476,7 @@ function scene_file_concatenate ()
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
         echo
-        exit 0
+        return 0
     fi
     if (($# < 2))
     then
@@ -506,7 +510,7 @@ function volume_concatenate ()
         echo "      The -map option takes either a 1-based index or a map name, and causes"
         echo "      the operation to use only one map from each input file."
         echo
-        exit 0
+        return 0
     fi
     local -a maparg
     if [[ "$1" == "-map" ]]
@@ -539,7 +543,7 @@ function do_operation ()
         if [[ "${global_switch[$i]}" == "$1" ]]
         then
             `switch_to_func_name "$1"` "$@"
-            exit 0
+            return $?
         fi
     done
     local maxlength=0
@@ -598,6 +602,15 @@ function list_functions ()
     done | sort
 }
 
+function all_functions_help ()
+{
+    #assume that the commands all print their help info when given no additional arguments besides the command switch itself
+    for ((i = 0; i < ${#global_switch[@]}; ++i))
+    do
+        `switch_to_func_name "${global_switch[$i]}"` "${global_switch[$i]}"
+    done
+}
+
 function error ()
 {
     echo >&2
@@ -622,7 +635,7 @@ function check_functions ()
     done
 }
 
-declare -a global_temporary_files
+global_temporary_files=()
 function add_temporary_files ()
 {
     global_temporary_files+=("$@")

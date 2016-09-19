@@ -44,6 +44,12 @@ namespace caret {
             AString m_fileName;
             AbstractParameter* m_param;
         };
+        struct CompletionInfo
+        {
+            bool complete, found;//found is only used for options
+            AString completionHints;//only valid when hasNext returns false during the component
+            CompletionInfo() { complete = false; found = false; }
+        };
         void parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug = false);
         bool parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
         void parseRemainingOptions(ParameterComponent* myAlgParams, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
@@ -58,12 +64,16 @@ namespace caret {
         void addComponentDescriptions(AString& info, ParameterComponent* myComponent, int curIndent);
         void addOptionDescriptions(AString& info, ParameterComponent* myComponent, int curIndent);
         AString formatString(const AString& in, int curIndent, bool addIndent);
-        static AString fixUnicodeHyphens(const AString& input);
+        CompletionInfo completionComponent(ParameterComponent* myComponent, ProgramParameters& parameters, const bool& useExtGlob);
+        CompletionInfo completionOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, const bool& useExtGlob);
+        AString completionOptionHints(ParameterComponent* myComponent, const bool& useExtGlob);
+        CompletionInfo completionRemainingOptions(ParameterComponent* myComponent, ProgramParameters& parameters, const bool& useExtGlob);
     public:
         CommandParser(AutoOperationInterface* myAutoOper);
         void disableProvenance();
         void executeOperation(ProgramParameters& parameters);
         void showParsedOperation(ProgramParameters& parameters);
+        AString doCompletion(ProgramParameters& parameters, const bool& useExtGlob);
         AString getHelpInformation(const AString& programName);
         bool takesParameters();
     };

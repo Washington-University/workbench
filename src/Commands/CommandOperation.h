@@ -39,6 +39,8 @@ namespace caret {
         
         void execute(ProgramParameters& parameters, const bool& preventProvenance);
         
+        virtual AString doCompletion(ProgramParameters& parameters, const bool& useExtGlob);
+        
     protected:
         /**
          * Execute the operation.

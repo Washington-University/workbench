@@ -81,6 +81,7 @@ ${LIBS})
 
 INSTALL(TARGETS ${EXE_NAME} DESTINATION bin)
 INSTALL(PROGRAMS wb_shortcuts DESTINATION bin)
+INSTALL(PROGRAMS bashcomplete_wb_command DESTINATION /etc/bash_completion.d RENAME wb_command)
 
 #
 # Find Headers

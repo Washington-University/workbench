@@ -745,7 +745,7 @@ AString::replaceHtmlSpecialCharactersWithEscapeCharacters() const
     return htmlString;
 }
 
-AString AString::fixUnicodeHyphens(bool* hyphenReplaced, bool* hadOtherNonAscii) const
+AString AString::fixUnicodeHyphens(bool* hyphenReplaced, bool* hadOtherNonAscii, const bool& quiet) const
 {
     AString ret = this->normalized(QString::NormalizationForm_C);//first, normalize multi-char forms to their combined equivalents, etc, tons of nasties
     for (int i = 0; i < ret.length(); ++i)
@@ -759,11 +759,11 @@ AString AString::fixUnicodeHyphens(bool* hyphenReplaced, bool* hadOtherNonAscii)
                 charCode == 65123 || //small hyphen-minus
                 charCode == 65293)//
             {
-                CaretLogFine("character code " + AString::number(charCode) + " replaced with ascii dash");
+                if (!quiet) CaretLogFine("character code " + AString::number(charCode) + " replaced with ascii dash");
                 ret[i] = '-';
                 if (hyphenReplaced != NULL) *hyphenReplaced = true;
             } else {//other stuff
-                CaretLogInfo("non-ascii character code " + AString::number(charCode) + " not recognized as dash/hyphen/minus");
+                if (!quiet) CaretLogInfo("non-ascii character code " + AString::number(charCode) + " not recognized as dash/hyphen/minus");
                 if (hadOtherNonAscii != NULL) *hadOtherNonAscii = true;
             }
         }

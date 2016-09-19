@@ -87,8 +87,42 @@ static int runCommand(int argc, char* argv[]) {
     return ret;
 }
 
+static int doCompletion(int argc, char* argv[])
+{
+    //we don't handle any interactive arguments in this file (only completion related arguments, which should never be used interactively)
+    //so, just call completion on next level
+    ProgramParameters parameters(argc, argv);
+    caret_global_commandLine_init(parameters);
+    try {
+        parameters.nextString("-completion");//drop the completion switch
+        bool useExtGlob = true;//bash-completion turns on extglob by default, so it is usually safe
+        if (parameters.hasNext())
+        {
+            if (parameters.nextString("test for option") == "-noextglob")
+            {
+                useExtGlob = false;
+            } else {
+                parameters.backup();
+            }
+        }
+        CommandOperationManager* commandManager = CommandOperationManager::getCommandOperationManager();
+        AString compHints = commandManager->doCompletion(parameters, useExtGlob);
+        cout << compHints.toLocal8Bit().constData() << endl;
+    } catch (...) {
+        return 1;
+    }
+    
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
     srand(time(NULL));
+    //short-circuit to avoid things like palette initialization so that command line completion can be more responsive
+    //also should be easier to avoid various logging statements, which we don't want (stderr would destroy the current prompt, and stdout would interfere with the completion output)
+    if (argc > 1 && AString::fromLocal8Bit(argv[1]) == "-completion")
+    {
+        return doCompletion(argc, argv);
+    }
     int result = 0;
     {
         /*

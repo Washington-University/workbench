@@ -37,6 +37,7 @@ Some source files are licensed under an MIT license (Expat), for easier code reu
 Files/SurfaceResamplingHelper.cxx
 Cifti/examples/*
 CommandLine/wb_shortcuts
+CommandLine/wb_command_completion
 Copyright (C) 2014-2016 Washington University School of Medicine
 
 Some included code/files are from third party sources, with the following licenses:
