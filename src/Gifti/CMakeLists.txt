@@ -12,7 +12,9 @@ SET(QT_DONT_USE_QTGUI)
 #
 # Add QT for includes
 #
-INCLUDE (${QT_USE_FILE})
+IF (QT4_FOUND)
+    INCLUDE(${QT_USE_FILE})
+ENDIF ()
 
 #
 # Create GIFTI Library

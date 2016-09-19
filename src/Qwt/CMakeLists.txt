@@ -15,7 +15,9 @@ PROJECT (Qwt)
 #
 # QT include files
 #
-INCLUDE(${QT_USE_FILE})
+IF (QT4_FOUND)
+    INCLUDE(${QT_USE_FILE})
+ENDIF ()
 
 add_definitions(-DQWT_NO_SVG -DQWT_NO_OPENGL)
 

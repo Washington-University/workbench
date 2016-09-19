@@ -13,7 +13,9 @@ SET(QT_USE_QTNETWORK TRUE)
 #
 # Add QT for includes
 #
-INCLUDE (${QT_USE_FILE})
+IF (QT4_FOUND)
+    INCLUDE(${QT_USE_FILE})
+ENDIF ()
 
 #
 #The individual tests

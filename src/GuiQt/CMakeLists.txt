@@ -14,7 +14,9 @@ SET(QT_USE_QTOPENGL TRUE)
 #
 # QT include files
 #
-INCLUDE(${QT_USE_FILE})
+IF (QT4_FOUND)
+    INCLUDE(${QT_USE_FILE})
+ENDIF ()
 
 #
 # Let CMake find files for moc and uic.

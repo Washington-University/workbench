@@ -7,7 +7,9 @@ PROJECT(OSMesaDummy)
 #
 # Need Qt for reading from resource file.
 #
-INCLUDE(${QT_USE_FILE})
+IF (QT4_FOUND)
+    INCLUDE(${QT_USE_FILE})
+ENDIF ()
 
 #
 # Create a library

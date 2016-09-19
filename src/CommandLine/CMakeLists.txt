@@ -16,7 +16,9 @@ SET(QT_USE_QTNETWORK TRUE)
 #
 # Add QT for includes
 #
-INCLUDE (${QT_USE_FILE})
+IF (QT4_FOUND)
+    INCLUDE(${QT_USE_FILE})
+ENDIF ()
 
 #
 # Name of executable
@@ -26,7 +28,13 @@ set (EXE_NAME wb_command)
 #
 # Resources
 #
-QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ../Resources/General/general_resources.qrc)
+=======
+SET (RESOURCES_QRC_FILE ../Resources/General/general_resources.qrc)
+IF (Qt5_FOUND)
+    QT5_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
+ELSE (Qt5_FOUND)
+    QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
+ENDIF (Qt5_FOUND)
 
 #
 # Create the executable

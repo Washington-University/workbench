@@ -227,18 +227,55 @@ ELSE (OPENSSL_FOUND)
 ENDIF(OPENSSL_FOUND)
 
 #
-# Must have QT 4.8 or later
+# Must have QT 4.8 or QT 5.6 or later
+# https://cmake.org/cmake/help/v3.5/manual/cmake-packages.7.html#manual:cmake-packages(7)
+# Modules List: http://doc.qt.io/qt-5/qtmodules.html
 #
-FIND_PACKAGE(Qt4 4.8 REQUIRED)
-IF(QT4_FOUND)
-ELSE(QT4_FOUND)
-    MESSAGE(FATAL_ERROR "QT4 not found")
-ENDIF(QT4_FOUND)
+###FIND_PACKAGE(Qt5 5.6.0 CONFIG Gui Network Test Widgets Xml)
+FIND_PACKAGE(Qt5 5.6.0 COMPONENTS Core Gui Network Test Widgets Xml)
+IF (Qt5_FOUND)
+    MESSAGE("Found Qt 5")
+    ##SET(moduleError "")
+    IF (NOT Qt5Gui_FOUND)
+        STRING(APPEND moduleError "Qt5 Gui module not found\n")
+    ENDIF()
+    IF (NOT Qt5Network_FOUND)
+        STRING(APPEND moduleError "Qt5 Network module not found\n")
+    ENDIF()
+    IF (NOT Qt5Test_FOUND)
+        STRING(APPEND moduleError "Qt5 Test module not found\n")
+    ENDIF()
+    IF (NOT Qt5Widgets_FOUND)
+        STRING(APPEND moduleError "Qt5 Widgets module not found\n")
+    ENDIF()
+    IF (NOT Qt5Xml_FOUND)
+        STRING(APPEND moduleError "Qt5 XML module not found\n")
+    ENDIF()
+    IF (NOT Qt5Core_FOUND)
+        STRING(APPEND moduleError "Qt5 Core module not found\n")
+    ENDIF()
+#    IF (NOT Qt5Crap_FOUND)
+#        STRING(APPEND moduleError "Qt5 Crap module not found\n")
+#    ENDIF()
+    IF (moduleError)
+        MESSAGE(FATAL_ERROR "Missing Modules\n" ${moduleError})
+    ENDIF()
+    MESSAGE("QT_USE_FILE: ${QT_USE_FILE}")
+ELSE (Qt5_FOUND)
+    MESSAGE("Qt5 not found, looking for Qt4...")
+    FIND_PACKAGE(Qt4 4.8 REQUIRED)
+    IF(QT4_FOUND)
+    ELSE(QT4_FOUND)
+        MESSAGE(FATAL_ERROR "QT4 not found")
+    ENDIF(QT4_FOUND)
+ENDIF (Qt5_FOUND)
 
 #
 # QT include files
 #
-INCLUDE(${QT_USE_FILE})
+IF (QT4_FOUND)
+    INCLUDE(${QT_USE_FILE})
+ENDIF ()
 
 #
 # Try to find Qwt, utherwise use bundle

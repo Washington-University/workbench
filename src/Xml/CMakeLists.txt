@@ -13,7 +13,9 @@ SET(QT_USE_QTNETWORK TRUE)
 #
 # QT include files
 #
-INCLUDE(${QT_USE_FILE})
+IF (QT4_FOUND)
+    INCLUDE(${QT_USE_FILE})
+ENDIF ()
 
 #
 # Create a Library
