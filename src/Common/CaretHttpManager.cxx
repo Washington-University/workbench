@@ -258,7 +258,7 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
             for (std::map<AString,AString>::const_iterator headerIter = request.m_headers.begin();
                  headerIter != request.m_headers.end();
                  headerIter++) {
-                myRequest.setRawHeader(headerIter->first.toAscii(), headerIter->second.toAscii());
+                myRequest.setRawHeader(headerIter->first.toLatin1(), headerIter->second.toLatin1());
             }
             myRequest.setUrl(myUrl);
             myReply = myQNetMgr->post(myRequest, postData);
@@ -273,7 +273,7 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
                 for (std::map<AString,AString>::const_iterator headerIter = request.m_headers.begin();
                      headerIter != request.m_headers.end();
                      headerIter++) {
-                    myRequest.setRawHeader(headerIter->first.toAscii(), headerIter->second.toAscii());
+                    myRequest.setRawHeader(headerIter->first.toLatin1(), headerIter->second.toLatin1());
 //                    std::cout << "POST FILE header: " << qPrintable(headerIter->first)
 //                    << ": " << qPrintable(headerIter->second) << std::endl;
                 }

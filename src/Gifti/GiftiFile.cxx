@@ -994,7 +994,7 @@ GiftiFile::writeFile(const AString& filename)
    std::ofstream* externalBinaryOutputStream = NULL;
    if (encoding == GiftiDataArray::ENCODING_EXTERNAL_FILE_BINARY) {
        externalBinaryFileName = getFileNameNoPath() + ".data";
-       externalBinaryOutputStream = new std::ofstream(externalBinaryFileName.toAscii().constData(),
+       externalBinaryOutputStream = new std::ofstream(externalBinaryFileName.toLatin1().constData(),
                                                       std::ofstream::binary);
        if (externalBinaryOutputStream == NULL) {
           throw GiftiException("Unable to open " + externalBinaryFileName + " for output.");

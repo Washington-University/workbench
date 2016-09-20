@@ -181,7 +181,7 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
         }
         myXML.copyMapping(CiftiXMLOld::ALONG_COLUMN, colCiftiOpt->getCifti(1)->getCiftiXMLOld(), myDir);
     }
-    fstream dotFile(dotFileName.toAscii().constData(), fstream::in);
+    fstream dotFile(dotFileName.toLatin1().constData(), fstream::in);
     if (!dotFile.good())
     {
         throw OperationException("error opening text file '" + dotFileName + "'");
@@ -410,7 +410,7 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
     voxelLists.resize(count);
     inputIndices.resize(count);
     voxelIndexType vi, vj, vk;
-    fstream myTextFile(textFileName.toAscii().constData(), fstream::in);
+    fstream myTextFile(textFileName.toLatin1().constData(), fstream::in);
     if (!myTextFile.good())
     {
         throw OperationException("error opening text file '" + textFileName + "'");

@@ -252,7 +252,7 @@ void MovieDialog::on_recordButton_toggled(bool checked)
                                                + fileName);
             CaretLogFine("running " + command);
 
-            system(command.toAscii().data());
+            system(command.toLatin1().data());
             CaretLogFine("Finished rendering " + fileName);
 
         }

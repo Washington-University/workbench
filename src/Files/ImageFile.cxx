@@ -879,7 +879,7 @@ ImageFile::writeFile(const AString& filename)
         format = "JPEG";
     }
     
-    QImageWriter writer(filename, format.toAscii());
+    QImageWriter writer(filename, format.toLatin1());
     if (writer.supportsOption(QImageIOHandler::Quality)) {
         if (format.compare("png", Qt::CaseInsensitive) == 0) {
             const int quality = 1;
@@ -1377,7 +1377,7 @@ ImageFile::getImageInByteArray(QByteArray& byteArrayOut,
         }
         else {
             successFlag = m_image->save(&buffer,
-                                        format.toAscii().data());
+                                        format.toLatin1().data());
         }
         
         if ( ! successFlag) {
@@ -1406,7 +1406,7 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
     }
     else {
         successFlag = m_image->loadFromData(byteArray,
-                                            format.toAscii().data());
+                                            format.toLatin1().data());
     }
     
     if ( ! successFlag) {

@@ -381,7 +381,7 @@ AnnotationCoordinateSelectionWidget::createRadioButtonForSpace(const AnnotationC
     const QString spaceGuiName = AnnotationCoordinateSpaceEnum::toGuiName(space);
     const QString spaceEnumName = AnnotationCoordinateSpaceEnum::toName(space);
     QRadioButton* rb = new QRadioButton(spaceGuiName);
-    rb->setProperty(s_SPACE_PROPERTY_NAME.toAscii().constData(),
+    rb->setProperty(s_SPACE_PROPERTY_NAME.toLatin1().constData(),
                     spaceEnumName);
     
     return rb;

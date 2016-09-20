@@ -56,7 +56,7 @@ namespace caret {
         operator std::string () {return this->toStdString(); }
         
         //char * compatibility
-        operator const char* () {return this->toAscii(); }
+        operator const char* () {return this->toLatin1(); }
         
         //double compatiblity
         operator double () {return this->toDouble(); }

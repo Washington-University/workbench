@@ -325,7 +325,7 @@ StudyMetaDataLink::setLinkFromCodedText(const AString& txt)
          }
          else {
             std::cout << "Unrecognized StudyMetaDataLink key: " 
-                      << key.toAscii().constData() << std::endl;
+                      << key.toLatin1().constData() << std::endl;
          }
       }
    }

@@ -63,7 +63,7 @@ void OperationVolumeReorient::useParameters(OperationParameters* myParams, Progr
     VolumeSpace::OrientTypes orient[3];
     for (int i = 0; i < 3; ++i)
     {
-        char id = orientString[i].toAscii();
+        char id = orientString[i].toLatin1();
         switch (id)
         {
             case 'L':

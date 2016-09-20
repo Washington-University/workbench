@@ -270,7 +270,7 @@ SceneInfo::setImageFromText(const AString& text,
     
     if ( ! text.isEmpty()) {
         if (encoding == SceneXmlElements::SCENE_INFO_ENCODING_BASE64_NAME) {
-            m_imageBytes = QByteArray::fromBase64(text.toAscii());
+            m_imageBytes = QByteArray::fromBase64(text.toLatin1());
             m_imageFormat = imageFormat;
         }
         else {

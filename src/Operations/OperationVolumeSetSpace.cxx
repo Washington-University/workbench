@@ -91,7 +91,7 @@ void OperationVolumeSetSpace::useParameters(OperationParameters* myParams, Progr
         for (int i = 0; i < 3; ++i)
         {
             int dir = -1;
-            switch (orient[i].toAscii())
+            switch (orient[i].toLatin1())
             {
                 case 'X':
                 case 'x':

@@ -681,7 +681,7 @@ GiftiDataArray::readFromText(const AString text,
                // Decode the Base64 data using VTK's algorithm
                //
                unsigned char* dataBuffer = new unsigned char[data.size()];
-               //const char* textChars = text.toAscii().constData();
+               //const char* textChars = text.toLatin1().constData();
                const uint64_t numDecoded =
                      Base64::decode((unsigned char*)text.toStdString().c_str(),
                                                 data.size(),

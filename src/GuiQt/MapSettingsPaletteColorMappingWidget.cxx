@@ -2391,7 +2391,7 @@ MapSettingsPaletteColorMappingWidget::applyToMultipleFilesPushbuttonClicked()
         CaretMappableDataFile* cmdf = *iter;
         if (cmdf->isMappedWithPalette()) {
             QCheckBox* cb = ded.addCheckBox(cmdf->getFileNameNoPath());
-            cb->setProperty(filePointerPropertyName.toAscii().constData(),
+            cb->setProperty(filePointerPropertyName.toLatin1().constData(),
                             qVariantFromValue((void*)cmdf));
             mapFileCheckBoxes.push_back(cb);
             
@@ -2411,7 +2411,7 @@ MapSettingsPaletteColorMappingWidget::applyToMultipleFilesPushbuttonClicked()
              iter++) {
             QCheckBox* cb = *iter;
             if (cb->isChecked()) {
-                void* pointer = cb->property(filePointerPropertyName.toAscii().constData()).value<void*>();
+                void* pointer = cb->property(filePointerPropertyName.toLatin1().constData()).value<void*>();
                 CaretMappableDataFile* cmdf = (CaretMappableDataFile*)pointer;
                 
                 const int32_t numMaps = cmdf->getNumberOfMaps();

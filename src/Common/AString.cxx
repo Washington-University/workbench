@@ -714,7 +714,7 @@ AString::replaceHtmlSpecialCharactersWithEscapeCharacters() const
     const int64_t length = this->count();
     for (int64_t i = 0; i < length; i++) {
         const QChar ch = this->at(i);
-        switch (ch.toAscii()) {
+        switch (ch.toLatin1()) {
             case '&':
                 htmlString.append("&amp;");
                 break;

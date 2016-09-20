@@ -836,7 +836,7 @@ AnnotationFileXmlReader::readImageDataElement(AnnotationImage* imageAnnotation)
                                                + m_stream->errorString());
     }
     
-    QByteArray imageBytes = QByteArray::fromBase64(imageChars.toAscii());
+    QByteArray imageBytes = QByteArray::fromBase64(imageChars.toLatin1());
     if (imageBytes.size() == numberOfBytes) {
         const uint8_t* imageBytesPointer = (const uint8_t*)(imageBytes.data());
         imageAnnotation->setImageBytesRGBA(imageBytesPointer,
