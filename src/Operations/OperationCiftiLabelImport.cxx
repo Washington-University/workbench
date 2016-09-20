@@ -68,15 +68,17 @@ OperationParameters* OperationCiftiLabelImport::getParameters()
     ret->setHelpText(
         AString("Creates a cifti label file from a cifti file with label-like values.  ") +
         "You may specify the empty string ('' will work on linux/mac) for <label-list-file>, which will be treated as if it is an empty file.  " +
-        "The label list file must have lines of the following format:\n\n" +
-        "<labelname>\n<value> <red> <green> <blue> <alpha>\n\n" +
-        "Do not specify the \"unlabeled\" key in the file, it is assumed that 0 means not labeled unless -unlabeled-value is specified.  " +
-        "Label names must be on a separate line, but may contain spaces or other unusual characters (but not newline).  " +
+        "It is assumed that a value of 0 in the input file means \"unlabeled\", unless -unlabeled-value is specified.  " +
+        "Do not specify the \"unlabeled\" label in the text file.\n\n" +
+        "The label list file must have the following format (2 lines per label):\n\n" +
+        "<labelname>\n<key> <red> <green> <blue> <alpha>\n...\n\n" +
+        "Label names are specified on a separate line from their value and color, in order to let label names contain spaces.  " +
         "Whitespace is trimmed from both ends of the label name, but is kept if it is in the middle of a label.  " +
-        "The values of red, green, blue and alpha must be integers from 0 to 255, and will specify the color the label is drawn as " +
-        "(alpha of 255 means opaque, which is probably what you want).  " +
-        "By default, it will set new label names with names of LABEL_# for any values encountered that are not mentioned in the " +
-        "list file, specify -discard-others to instead set these to the \"unlabeled\" key."
+        "The value of <key> specifies what value in the imported file should be used as this label.  " +
+        "The values of <red>, <green>, <blue> and <alpha> must be integers from 0 to 255, and will specify the color the label is drawn as " +
+        "(alpha of 255 means fully opaque, which is probably what you want).\n\n" +
+        "By default, it will create new label names with names like LABEL_5 for any values encountered that are not mentioned in the " +
+        "list file, specify -discard-others to instead set these values to the \"unlabeled\" key."
     );
     return ret;
 }
