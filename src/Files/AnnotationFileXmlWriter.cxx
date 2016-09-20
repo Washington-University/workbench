@@ -317,8 +317,8 @@ AnnotationFileXmlWriter::writeImage(const AnnotationImage* image)
     QByteArray byteArray((const char*)imageBytesRGBA,
                          numberOfBytes);
     QByteArray byteArrayBase64(byteArray.toBase64());
-    const QString stringBase64(QString::fromAscii(byteArrayBase64.constData(),
-                                                  byteArrayBase64.size()));
+    const QString stringBase64(QString::fromLatin1(byteArrayBase64.constData(),
+                                                   byteArrayBase64.size()));
 
     QXmlStreamAttributes attributes;
     getTwoDimAnnotationPropertiesAsAttributes(image,

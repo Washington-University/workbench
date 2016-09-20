@@ -233,7 +233,7 @@ SceneInfo::writeSceneInfoImage(XmlWriter& xmlWriter,
     if (imageBytes.length() > 0) {
         //QString base64String(imageBytes.toBase64());
         const QByteArray base64ByteArray(imageBytes.toBase64());
-        QString base64String = QString::fromAscii(base64ByteArray.constData(),
+        QString base64String = QString::fromLatin1(base64ByteArray.constData(),
                                                   base64ByteArray.size());
         XmlAttributes attributes;
         attributes.addAttribute(SceneXmlElements::SCENE_INFO_IMAGE_ENCODING_ATTRIBUTE,

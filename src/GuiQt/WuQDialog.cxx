@@ -322,7 +322,7 @@ WuQDialog::keyPressEvent(QKeyEvent* e)
     //   Calls reject() if Escape is pressed. Simulates a button
     //   click for the default button if Enter is pressed. Move focus
     //   for the arrow keys. Ignore the rest.
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     if(e->modifiers() == Qt::ControlModifier && e->key() == Qt::Key_Period) {
     } else 
 #endif

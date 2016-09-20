@@ -11,6 +11,12 @@ SET(QT_DONT_USE_QTGUI TRUE)
 #
 # QT include files
 #
+if(Qt5_FOUND)
+    include_directories(${Qt5Core_INCLUDE_DIRS})
+    #include_directories(${Qt5Network_INCLUDE_DIRS})
+    include_directories(${Qt5Xml_INCLUDE_DIRS})
+endif()
+
 ###INCLUDE(${QT_USE_FILE})
 
 #

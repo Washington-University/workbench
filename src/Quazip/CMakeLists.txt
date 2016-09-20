@@ -8,6 +8,9 @@ PROJECT(Quazip)
 #
 SET(QT_DONT_USE_QTGUI TRUE)
 
+IF(Qt5_FOUND)
+    include_directories(${Qt5Core_INCLUDE_DIRS})
+ENDIF()
 IF (QT4_FOUND)
     INCLUDE(${QT_USE_FILE})
 ENDIF ()

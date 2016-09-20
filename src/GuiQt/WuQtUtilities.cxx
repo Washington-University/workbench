@@ -35,7 +35,7 @@
 #include <QLabel>
 #include <QPainter>
 #include <QPushButton>
-#include <QSound>
+//#include <QSound>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QTextDocument>
@@ -1024,33 +1024,33 @@ WuQtUtilities::getLayoutContentDescription(QLayout* layout)
     return s;
 }
 
-/**
- * Play a sound file.  The sound file MUST be in the distribution's
- * "resources/sounds" directory.
- *
- * Note that sound files, as of Qt 4.8, do not support Qt's resource
- * system.
- *
- * @param soundFileName
- *    Name of sound file (with no path, just the filename).
- */
-void
-WuQtUtilities::playSound(const QString& soundFileName)
-{
-    const QString workbenchDir = SystemUtilities::getWorkbenchHome();
-    const QString soundFilePath = (workbenchDir
-                                   + "/../resources/sounds/"
-                                   + soundFileName);
-    
-    if (QFile::exists(soundFilePath)) {
-        QSound::play(soundFilePath);
-    }
-    else {
-        CaretLogSevere("Sound file \""
-                       + soundFilePath
-                       + "\" does not exist.");
-    }
-}
+///**
+// * Play a sound file.  The sound file MUST be in the distribution's
+// * "resources/sounds" directory.
+// *
+// * Note that sound files, as of Qt 4.8, do not support Qt's resource
+// * system.
+// *
+// * @param soundFileName
+// *    Name of sound file (with no path, just the filename).
+// */
+//void
+//WuQtUtilities::playSound(const QString& soundFileName)
+//{
+//    const QString workbenchDir = SystemUtilities::getWorkbenchHome();
+//    const QString soundFilePath = (workbenchDir
+//                                   + "/../resources/sounds/"
+//                                   + soundFileName);
+//    
+//    if (QFile::exists(soundFilePath)) {
+//        QSound::play(soundFilePath);
+//    }
+//    else {
+//        CaretLogSevere("Sound file \""
+//                       + soundFilePath
+//                       + "\" does not exist.");
+//    }
+//}
 
 /**
  * Create the text for a tooltip so that long lines are

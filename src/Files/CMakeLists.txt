@@ -12,6 +12,11 @@ SET(QT_USE_QTNETWORK TRUE)
 #
 # Add QT for includes
 #
+if(Qt5_FOUND)
+    include_directories(${Qt5Core_INCLUDE_DIRS})
+    include_directories(${Qt5Gui_INCLUDE_DIRS})
+    include_directories(${Qt5Network_INCLUDE_DIRS})
+endif()
 IF (QT4_FOUND)
     INCLUDE(${QT_USE_FILE})
 ENDIF ()

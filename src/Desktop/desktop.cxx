@@ -57,11 +57,119 @@ static bool caretLoggerIsValid = false;
 using namespace caret;
 using namespace std;
 
+#if QT_VERSION >= 0x050000
 /**
- * Handles message produced by Qt.
+ * Handles message produced by Qt 5
  */
 static void
-messageHandlerForQt(QtMsgType type, const char* msg)
+messageHandlerForQt5(QtMsgType type, const QMessageLogContext& context, const QString& msg)
+{
+    const AString backtrace = SystemUtilities::getBackTrace();
+    
+    const AString contextInfo = ("   Context Info File ("
+                                 + QString(context.file)
+                                 + ") Function (" + QString(context.function)
+                                 + ") Line (" + QString::number(context.line)
+                                 + ") Version (" + QString::number(context.version)
+                                 + ") Category (" + QString(context.category)
+                                 + ")");
+    const AString message = (AString(msg) + "\n"
+                             + contextInfo + "\n"
+                             + backtrace);
+    
+    if (caretLoggerIsValid) {
+        bool abortFlag = false;
+        bool displayedFlag = false;
+        switch (type) {
+            case QtDebugMsg:
+                CaretLogInfo(message);
+                displayedFlag = CaretLogger::getLogger()->isInfo();
+                break;
+            case QtWarningMsg:
+                CaretLogWarning(message);
+                displayedFlag = CaretLogger::getLogger()->isWarning();
+                break;
+            case QtCriticalMsg:
+                CaretLogSevere(message);
+                displayedFlag = CaretLogger::getLogger()->isSevere();
+                break;
+            case QtFatalMsg:
+                cerr << "Qt Fatal: " << message << endl;
+                abortFlag = true;//fatal will cause an abort, so always display it, bypassing logger entirely
+                displayedFlag = true;
+                break;
+            case QtInfoMsg:
+                CaretLogInfo(message);
+                displayedFlag = CaretLogger::getLogger()->isInfo();
+                break;
+        }
+        
+        /*
+         * Beep to alert user about an error!!!
+         */
+        if (displayedFlag && (type != QtDebugMsg))//don't beep for debug
+        {
+            GuiManager::beep();
+        }
+#ifndef NDEBUG
+        if (!displayedFlag)
+        {
+            cerr << "DEBUG: Qt ";
+            switch (type)
+            {
+                case QtDebugMsg:
+                    cerr << "Debug ";
+                    break;
+                case QtWarningMsg:
+                    cerr << "Warning ";
+                    break;
+                case QtCriticalMsg:
+                    cerr << "Critical ";
+                    break;
+                case QtFatalMsg:
+                    cerr << "FATAL (?!?) ";//should never happen
+                    break;
+                case QtInfoMsg:
+                    std::cerr << "Info ";
+                    break;
+            }
+            cerr << "message hidden" << endl;
+        }
+#endif
+        
+        if (abortFlag) {
+            std::abort();
+        }
+    }
+    else {
+        switch (type) {
+            case QtDebugMsg:
+                std::cerr << "Qt Debug: " << message << std::endl;
+                break;
+            case QtWarningMsg:
+                std::cerr << "Qt Warning: " << message << std::endl;
+                break;
+            case QtCriticalMsg:
+                std::cerr << "Qt Critical: " << message << std::endl;
+                break;
+            case QtFatalMsg:
+                std::cerr << "Qt Fatal: " << message << std::endl;
+                std::abort();
+                break;
+            case QtInfoMsg:
+                std::cerr << "Qt Info: " << message << std::endl;
+                break;
+        }
+    }
+}
+
+#else // QT_VERSION
+
+/**
+ * Handles message produced by Qt 4.
+ */
+static void
+messageHandlerForQt4(QtMsgType type, const char* msg)
 {
     const AString backtrace = SystemUtilities::getBackTrace();
     
@@ -142,6 +250,8 @@ messageHandlerForQt(QtMsgType type, const char* msg)
         }
     }
 }
+
+#endif // QT_VERSION
 
 //struct for communicating stuff back to main from parseCommandLine
 struct ProgramState
@@ -284,7 +394,7 @@ main(int argc, char* argv[])
         
         //change the default graphics system on mac to avoid rendering performance issues with qwtplotter
 #ifdef CARET_OS_MACOSX
-        QApplication::setGraphicsSystem("raster");
+        // Qt-Deprecated: QApplication::setGraphicsSystem("raster");
         MacApplication app(argc, argv);
 #else //CARET_OS_MACOSX        
         QApplication app(argc, argv);
@@ -325,7 +435,11 @@ main(int argc, char* argv[])
         */
         BrainOpenGLWidget::initializeDefaultGLFormat();
         
-        qInstallMsgHandler(messageHandlerForQt);//this handler uses CaretLogger and GuiManager, so we must install it after the logger is available and the application is created
+#if QT_VERSION >= 0x050000
+        qInstallMessageHandler(messageHandlerForQt5);//this handler uses CaretLogger and GuiManager, so we must install it after the logger is available and the application is created
+#else // QT_VERSION
+        qInstallMsgHandler(messageHandlerForQt4);//this handler uses CaretLogger and GuiManager, so we must install it after the logger is available and the application is created
+#endif // QT_VERSION
         /*
          * Log debug status
          */

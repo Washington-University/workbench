@@ -18,7 +18,7 @@
  */
 /*LICENSE_END*/
 
-#include <QApplication>
+//#include <QApplication>
 
 #include <cstdlib>
 #include <ctime>

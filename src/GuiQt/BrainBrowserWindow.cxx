@@ -2709,7 +2709,7 @@ BrainBrowserWindow::processDevelopExportVtkFile()
                                 "Export to VTK File",
                                 GuiManager::get()->getBrain()->getCurrentDirectory(),
                                 vtkSurfaceFileFilter);
-            cfd.selectFilter(vtkSurfaceFileFilter);
+            cfd.selectNameFilter(vtkSurfaceFileFilter);
             cfd.setAcceptMode(QFileDialog::AcceptSave);
             cfd.setFileMode(CaretFileDialog::AnyFile);
             if (previousVtkFileName.isEmpty() == false) {

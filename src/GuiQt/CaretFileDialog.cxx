@@ -179,7 +179,7 @@ void
 CaretFileDialog::setVisible(bool visible)
 {
     if (visible) {
-        fileFilterWasChanged(selectedFilter());
+        fileFilterWasChanged(selectedNameFilter());
     }
     
     QFileDialog::setVisible(visible);
@@ -239,7 +239,7 @@ CaretFileDialog::getOpenFileNameDialog(QWidget *parent,
                         dir,
                         filter);
     if (selectedFilter != 0) {
-        cfd.selectFilter(*selectedFilter);
+        cfd.selectNameFilter(*selectedFilter);
     }
     cfd.setOptions(options);
     cfd.setAcceptMode(CaretFileDialog::AcceptOpen);
@@ -288,7 +288,7 @@ CaretFileDialog::getSaveFileNameDialog(QWidget *parent,
                         dir,
                         filter);
     if (selectedFilter != 0) {
-        cfd.selectFilter(*selectedFilter);
+        cfd.selectNameFilter(*selectedFilter);
     }
     cfd.setOptions(options);
     cfd.setAcceptMode(QFileDialog::AcceptSave);
@@ -338,7 +338,7 @@ CaretFileDialog::getSaveFileNameDialog(const DataFileTypeEnum::Enum dataFileType
                         caption,
                         dir,
                         DataFileTypeEnum::toQFileDialogFilter(dataFileType));
-    cfd.selectFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+    cfd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
     cfd.setOptions(options);
     cfd.setAcceptMode(QFileDialog::AcceptSave);
     cfd.setFileMode(CaretFileDialog::AnyFile);
@@ -387,8 +387,8 @@ CaretFileDialog::getChooseFileNameDialog(const DataFileTypeEnum::Enum dataFileTy
                                          QWidget *parent)
 {
     CaretFileDialog fd(parent);
-    fd.setFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
-    fd.selectFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+    //fd.setFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+    fd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
     fd.setAcceptMode(CaretFileDialog::AcceptSave);
     fd.setFileMode(CaretFileDialog::AnyFile);
     fd.setViewMode(CaretFileDialog::List);
@@ -497,7 +497,7 @@ CaretFileDialog::getOpenFileNamesDialog(QWidget *parent,
                         dir,
                         filter);
     if (selectedFilter != 0) {
-        cfd.selectFilter(*selectedFilter);
+        cfd.selectNameFilter(*selectedFilter);
     }
     cfd.setOptions(options);
     cfd.setAcceptMode(CaretFileDialog::AcceptOpen);
@@ -559,12 +559,12 @@ CaretFileDialog::restoreDialogSettings(const AString& settingsName)
             setDirectory(previousSettings.m_directoryName);
         }
         
-        QStringList dialogFilters = filters();
+        QStringList dialogFilters = nameFilters();
         QStringListIterator filterIter(dialogFilters);
         while (filterIter.hasNext()) {
             const AString filterName = filterIter.next();
             if (filterName == previousSettings.m_fileFilterName) {
-                selectFilter(previousSettings.m_fileFilterName);
+                selectNameFilter(previousSettings.m_fileFilterName);
                 break;
             }
         }

@@ -20,7 +20,7 @@
 
 //program for running tests
 
-#include <QApplication>
+//#include <QApplication>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>

@@ -5,6 +5,13 @@
 PROJECT(Charting)
 
 #
+# Qt include files
+#
+if(Qt5_FOUND)
+    include_directories(${Qt5Core_INCLUDE_DIRS})
+endif()
+
+#
 # Create a library
 #
 ADD_LIBRARY(Charting

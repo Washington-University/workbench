@@ -15,6 +15,11 @@ PROJECT (Qwt)
 #
 # QT include files
 #
+if(Qt5_FOUND)
+    include_directories(${Qt5Concurrent_INCLUDE_DIRS})
+    include_directories(${Qt5Core_INCLUDE_DIRS})
+    include_directories(${Qt5Widgets_INCLUDE_DIRS})
+endif()
 IF (QT4_FOUND)
     INCLUDE(${QT_USE_FILE})
 ENDIF ()

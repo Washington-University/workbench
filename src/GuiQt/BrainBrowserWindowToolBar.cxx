@@ -28,7 +28,10 @@
 #include <QBoxLayout>
 #include <QButtonGroup>
 #include <QCheckBox>
+#if QT_VERSION >= 0x050000
+#else // QT_VERSION
 #include <QCleanlooksStyle>
+#endif // QT_VERSION
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFrame>
@@ -40,6 +43,7 @@
 #include <QMenu>
 #include <QRadioButton>
 #include <QSpinBox>
+#include <QStyleFactory>
 #include <QTabBar>
 #include <QTextEdit>
 #include <QTimer>
@@ -196,9 +200,17 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      * The style must remain valid until the destruction
      * of this instance.  It cannot be declared statically.
      */
+#if QT_VERSION >= 0x050000
+    QStyle* cleanLooksStyle = QStyleFactory::create("Cleanlooks");
+    if (cleanLooksStyle != NULL) {
+        cleanLooksStyle->setParent(this);
+        this->tabBar->setStyle(cleanLooksStyle);
+    }
+#else // QT_VERSION
     QCleanlooksStyle* cleanLooksStyle = new QCleanlooksStyle();
     cleanLooksStyle->setParent(this);
     this->tabBar->setStyle(cleanLooksStyle);
+#endif // QT_VERSION
 #endif // Q_OS_MACX
     QObject::connect(this->tabBar, SIGNAL(currentChanged(int)),
                      this, SLOT(selectedTabChanged(int)));

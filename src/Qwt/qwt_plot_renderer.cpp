@@ -20,8 +20,13 @@
 #include <qpainter.h>
 #include <qpaintengine.h>
 #include <qtransform.h>
+#if QT_VERSION >= 0x050000
+#include <QtPrintSupport/QPrinter>
+#include <QtPrintSupport/QPrintDialog>
+#else // QT_VERSION
 #include <qprinter.h>
 #include <qprintdialog.h>
+#endif // QT_VERSION
 #include <qfiledialog.h>
 #include <qfileinfo.h>
 #include <qstyle.h>

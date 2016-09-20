@@ -78,7 +78,7 @@ namespace caret {
         
         QFileDialog::FileMode fileMode() const { return m_caretFileDialog->fileMode(); }
         
-        QStringList filters() const { return m_caretFileDialog->filters(); }
+        QStringList filters() const { return m_caretFileDialog->nameFilters(); }
         
         QStringList history() const { return m_caretFileDialog->history(); }
         
@@ -92,7 +92,7 @@ namespace caret {
         
         QStringList nameFilters() const { return m_caretFileDialog->nameFilters(); }
 
-        void open(QObject* receiver, const char* member) { m_caretFileDialog->open(receiver, member); }
+        //void open(QObject* receiver, const char* member) { m_caretFileDialog->open(receiver, member); }
         
         QFileDialog::Options options() const { return m_caretFileDialog->options(); }
         
@@ -124,7 +124,7 @@ namespace caret {
         
         void setFileMode(const QFileDialog::FileMode mode) { m_caretFileDialog->setFileMode(mode); }
         
-        void setFilter(const QString& filter) { m_caretFileDialog->setFilter(filter); }
+//        void setFilter(const QString& filter) { m_caretFileDialog->setNameFilter(filter); }
         
         void setHistory(const QStringList& paths) { m_caretFileDialog->setHistory(paths); }
         

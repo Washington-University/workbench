@@ -181,7 +181,7 @@ namespace caret {
         
         static QString getLayoutContentDescription(QLayout* layout);
         
-        static void playSound(const QString& soundFileName);
+        //static void playSound(const QString& soundFileName);
         
         static QString createWordWrappedToolTipText(const QString& tooltipText);
         

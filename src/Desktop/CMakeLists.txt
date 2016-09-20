@@ -19,6 +19,12 @@ SET(QT_USE_QTNETWORK TRUE)
 #
 # QT Include directories
 #
+if(Qt5_FOUND)
+    include_directories(${Qt5Core_INCLUDE_DIRS})
+    include_directories(${Qt5Network_INCLUDE_DIRS})
+    include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+    include_directories(${Qt5Widgets_INCLUDE_DIRS})
+endif()
 IF (QT4_FOUND)
     INCLUDE(${QT_USE_FILE})
 ENDIF ()
@@ -92,6 +98,19 @@ IF (NOT APPLE)
     ENDIF (UNIX)
 ENDIF (NOT APPLE)
 
+if(Qt5_FOUND)
+    set(QT5_LINK_LIBS
+        Qt5::Concurrent
+        Qt5::Core
+        Qt5::Gui
+        Qt5::Network
+        Qt5::OpenGL
+        Qt5::PrintSupport
+        Qt5::Test
+        Qt5::Widgets
+        Qt5::Xml)
+endif()
+
 #
 # Libraries that are linked
 #
@@ -119,6 +138,7 @@ Common
 ${QUAZIP_LIBRARIES}
 ${FREETYPE_LIBRARIES}
 ${QT_LIBRARIES}
+${QT5_LINK_LIBS}
 ${ZLIB_LIBRARIES}
 #${LIBS}
 )
