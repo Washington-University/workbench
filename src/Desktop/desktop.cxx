@@ -392,6 +392,16 @@ main(int argc, char* argv[])
         */
         CaretLogFine("Running: " + caret_global_commandLine);
         
+        /*
+         * Setup OpenGL if using Qt 5's QOpenGLWidget.
+         * QOpenGLWidget's documentation indicates that
+         * default format must be initizlied before
+         * QApplication is created.
+         */
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+        BrainOpenGLWidget::initializeDefaultGLFormat();
+#endif
+        
         //change the default graphics system on mac to avoid rendering performance issues with qwtplotter
 #ifdef CARET_OS_MACOSX
         // Qt-Deprecated: QApplication::setGraphicsSystem("raster");
@@ -431,9 +441,11 @@ main(int argc, char* argv[])
         }
             
         /*
-        * Setup OpenGL
+        * Setup OpenGL if NOT using Qt 5's QOpenGLWidget
         */
+#ifndef WORKBENCH_USE_QT5_QOPENGL_WIDGET
         BrainOpenGLWidget::initializeDefaultGLFormat();
+#endif
         
 #if QT_VERSION >= 0x050000
         qInstallMessageHandler(messageHandlerForQt5);//this handler uses CaretLogger and GuiManager, so we must install it after the logger is available and the application is created

@@ -208,6 +208,7 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
                                            this);
     
     progressDialog.setCancelButton((QPushButton*)0); // no cancel button
+    
     const AString username = m_usernameLineEdit->text().trimmed();
     const AString password = m_passwordLineEdit->text().trimmed();
     const AString zipFileName = m_zipFileNameLineEdit->text().trimmed();

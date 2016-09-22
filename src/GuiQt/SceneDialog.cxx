@@ -1347,6 +1347,7 @@ SceneDialog::showSceneButtonClicked()
                 return;
             }
         }
+        
         ProgressReportingDialog progressDialog(("Restoring Scene " + scene->getName()),
                                                "",
                                                this);

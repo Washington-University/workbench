@@ -1,6 +1,12 @@
 #ifndef __QGLWIDGET_TEXT_RENDERER_H__
 #define __QGLWIDGET_TEXT_RENDERER_H__
 
+/*
+ * QOpenGLWidget does not have renderText() methods.
+ * renderText() methods are in deprecated QGLWidget.
+ */
+#ifndef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+
 /*LICENSE_START*/
 /*
  *  Copyright (C) 2015 Washington University School of Medicine
@@ -170,4 +176,7 @@ namespace caret {
 #endif // __QT_OPEN_G_L_TEXT_RENDERER_DECLARE__
 
 } // namespace
+
+#endif // not - WORKBENCH_USE_QT5_QOPENGL_WIDGET
+
 #endif  //__QT_OPEN_G_L_TEXT_RENDERER_H__

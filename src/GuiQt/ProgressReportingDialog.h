@@ -39,7 +39,7 @@ namespace caret {
                                 const AString& initialMessage,
                                 QWidget* parent,
                                 Qt::WindowFlags f = 0);
-        
+
         static void runEvent(Event* event,
                              QWidget* parent,
                              const AString& title);

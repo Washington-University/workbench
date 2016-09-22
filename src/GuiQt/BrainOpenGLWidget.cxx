@@ -24,6 +24,9 @@
 #include <QContextMenuEvent>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+#include <QOpenGLContext>
+#endif
 #include <QToolTip>
 #include <QWheelEvent>
 
@@ -96,10 +99,22 @@ using namespace caret;
  */
 BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
                                      const int32_t windowIndex)
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+: QOpenGLWidget(parent),
+#else
 : QGLWidget(parent),
+#endif
 windowIndex(windowIndex),
 m_textRenderer(NULL)
 {
+#if QT_VERSION >= 0x050000
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    CaretLogWarning("wb_view built with Qt5 using QOpenGLWidget for graphics.");
+#else
+    CaretLogWarning("wb_view built with Qt5 using deprecated QGLWidget for graphics.");
+#endif
+#endif
+    
     this->openGL = NULL;
     this->borderBeingDrawn = new Border();
     
@@ -146,6 +161,13 @@ m_textRenderer(NULL)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IDENTIFICATION_REQUEST);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /*
+     * Default format is set by desktop.cxx call to initializeDefaultGLFormat().
+     */
+    setFormat(QSurfaceFormat::defaultFormat());
+#endif
 }
 
 /**
@@ -226,6 +248,60 @@ BrainOpenGLWidget::getOpenGLInformation()
 {
     AString info;
     
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    QSurfaceFormat format = this->format();
+    AString swapInfo("Swap Behavior: ");
+    switch (format.swapBehavior()) {
+        case QSurfaceFormat::DefaultSwapBehavior:
+            swapInfo += ("DefaultSwapBehavior");
+            break;
+        case QSurfaceFormat::SingleBuffer:
+            swapInfo += ("SingleBuffer");
+            break;
+        case QSurfaceFormat::DoubleBuffer:
+            swapInfo += ("DoubleBuffer");
+            break;
+        case QSurfaceFormat::TripleBuffer:
+            swapInfo += ("TripleBuffer");
+            break;
+    }
+
+    info += ("OpenGL Context:"
+//             "\n   Accum: " + AString::fromBool(format.accum())
+//             + "\n   Accum size: " + AString::number(format.accumBufferSize())
+             "\n   Alpha: " + AString::fromBool(format.hasAlpha())
+             + "\n   Alpha size: " + AString::number(format.alphaBufferSize())
+//             + "\n   Depth: " + AString::fromBool(format.depth())
+             + "\n   Depth size: " + AString::number(format.depthBufferSize())
+//             + "\n   Direct Rendering: " + AString::fromBool(format.directRendering())
+             + "\n   Red size: " + AString::number(format.redBufferSize())
+             + "\n   Green size: " + AString::number(format.greenBufferSize())
+             + "\n   Blue size: " + AString::number(format.blueBufferSize())
+//             + "\n   Double Buffer: " + AString::fromBool(format.doubleBuffer())
+//             + "\n   RGBA: " + AString::fromBool(format.rgba())
+//             + "\n   Samples: " + AString::fromBool(format.sampleBuffers())
+             + "\n   Samples size: " + AString::number(format.samples())
+//             + "\n   Stencil: " + AString::fromBool(format.stencil())
+             + "\n   Stencil size: " + AString::number(format.stencilBufferSize())
+             + "\n   " + swapInfo
+             + "\n   Swap Interval: " + AString::number(format.swapInterval())
+             + "\n   Stereo: " + AString::fromBool(format.stereo())
+             + "\n   Major Version: " + AString::number(format.majorVersion())
+             + "\n   Minor Version: " + AString::number(format.minorVersion()));
+    
+    switch (format.profile()) {
+        case QSurfaceFormat::NoProfile:
+            info += ("\nOpenGL NoProfile - OpenGL version is lower than 3.2. For 3.2 and newer this is same as CoreProfile.");
+            break;
+        case QSurfaceFormat::CoreProfile:
+            info += ("\nOpenGL CoreProfile - Functionality deprecated in OpenGL version 3.0 is not available.");
+            break;
+        case QSurfaceFormat::CompatibilityProfile:
+            info += ("\nOpenGL CompatibilityProfile - Functionality from earlier OpenGL versions is available.");
+            break;
+    }
+    
+#else
     QGLFormat format = this->format();
     info += ("OpenGL Context:"
              "\n   Accum: " + AString::fromBool(format.accum())
@@ -248,6 +324,7 @@ BrainOpenGLWidget::getOpenGLInformation()
              + "\n   Stereo: " + AString::fromBool(format.stereo())
              + "\n   Major Version: " + AString::number(format.majorVersion())
              + "\n   Minor Version: " + AString::number(format.minorVersion()));
+#endif
     
     info += ("\n\n" + this->openGL->getOpenGLInformation());
     
@@ -298,6 +375,8 @@ BrainOpenGLWidget::createTextRenderer()
         }
     }
     
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+#else
     /*
      * Create a Qt text renderer
      */
@@ -309,6 +388,7 @@ BrainOpenGLWidget::createTextRenderer()
             textRendererOut = NULL;
         }
     }
+#endif
     
     if (textRendererOut == NULL) {
         CaretLogSevere("Unable to create a text renderer for OpenGL.  "
@@ -476,6 +556,12 @@ BrainOpenGLWidget::paintGL()
     if (bbw != NULL) {
         EventManager::get()->sendEvent(EventBrowserWindowGraphicsRedrawn(bbw).getPointer());
     }
+    
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+//    swapBuffers();
+//    CaretAssert(context());
+//    context()->swapBuffers(this);
+#endif
 }
 
 /**
@@ -516,7 +602,11 @@ BrainOpenGLWidget::event(QEvent* event)
         }
     }
     
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    return QOpenGLWidget::event(event);
+#else
     return QGLWidget::event(event);
+#endif
 }
 
 
@@ -1298,7 +1388,11 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             this->repaint();
         }
         else {
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+            this->update();
+#else
             this->updateGL();
+#endif
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW) {
@@ -1309,7 +1403,11 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         if (updateOneEvent->getWindowIndex() == this->windowIndex) {
             updateOneEvent->setEventProcessed();
             
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+            this->update();
+#else
             this->updateGL();
+#endif
         }
         else {
             /*
@@ -1324,7 +1422,11 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             
             bool needUpdate = false;
             if (needUpdate) {
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+                this->update();
+#else
                 this->updateGL();
+#endif
             }
         }
     }
@@ -1451,7 +1553,11 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
              * update() is a scheduled update).
              */
             repaint();
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+            image = grabFramebuffer();
+#else
             image = grabFrameBuffer();
+#endif
             
             if ((captureOffsetX > 0)
                 || (captureOffsetY > 0)) {
@@ -1486,6 +1592,9 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
             break;
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP:
         {
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+            CaretAssertToDoFatal();
+#else
             /*
              * Note 1: QGLWidget::renderPixmap() creates a new OpenGL
              * Context which destroys any textures in the existing
@@ -1510,6 +1619,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
             image = pixmap.toImage();
             textureManager->deleteAllTexturesForWindow(this->windowIndex);
             this->openGL->setTextRenderer(createTextRenderer());
+#endif
         }
             break;
     }
@@ -1540,6 +1650,31 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
 void
 BrainOpenGLWidget::initializeDefaultGLFormat()
 {
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    QSurfaceFormat glfmt;
+    //glfmt.setAccum(false);
+    //glfmt.setAlpha(true);
+    glfmt.setAlphaBufferSize(8);
+    glfmt.setBlueBufferSize(8);
+    //glfmt.setDepth(true);
+    glfmt.setDepthBufferSize(24);
+    //glfmt.setDirectRendering(true);
+    //glfmt.setDoubleBuffer(true);
+    glfmt.setGreenBufferSize(8);
+    //glfmt.setOverlay(false);
+    glfmt.setProfile(QSurfaceFormat::CompatibilityProfile);
+    glfmt.setRedBufferSize(8);
+    glfmt.setRenderableType(QSurfaceFormat::OpenGL);
+    //glfmt.setSampleBuffers(false);
+    //glfmt.setStencil(false);
+    glfmt.setStereo(false);
+    glfmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+    //glfmt.setRgba(true);
+    
+    glfmt.setMajorVersion(2);
+    glfmt.setMinorVersion(1);
+    QSurfaceFormat::setDefaultFormat(glfmt);
+#else
     QGLFormat glfmt;
     glfmt.setAccum(false);
     glfmt.setAlpha(true);
@@ -1558,6 +1693,7 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
     glfmt.setGreenBufferSize(8);
     glfmt.setBlueBufferSize(8);
     QGLFormat::setDefaultFormat(glfmt);
+#endif
     
     s_defaultGLFormatInitialized = true;
 }

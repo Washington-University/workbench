@@ -813,7 +813,7 @@ UserInputModeViewContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
                                                "",
                                                this);
         progressDialog.setValue(0);
-        
+
         switch (pc->parcelType) {
             case ParcelConnectivity::PARCEL_TYPE_INVALID:
                 break;
@@ -956,6 +956,7 @@ UserInputModeViewContextMenu::borderCiftiConnectivitySelected()
                                                    "",
                                                    this);
             progressDialog.setValue(0);
+
             CiftiConnectivityMatrixDataFileManager* ciftiConnMann = SessionManager::get()->getCiftiConnectivityMatrixDataFileManager();
             ciftiConnMann->loadAverageDataForSurfaceNodes(borderID->getBrain(),
                                                           surface,

@@ -44,7 +44,10 @@ ProgressReportingWithSlots::ProgressReportingWithSlots(QObject* parent)
 : QObject(parent),
 ProgressReportingInterface()
 {
+#if QT_VERSION >= 0x050000
+#else
     m_synchronizeMutex.unlock();
+#endif
     m_cancelled = false;
 }
 

@@ -21,7 +21,11 @@
  */
 /*LICENSE_END*/
 
+#if WORKBENCH_USE_QT5_QOPENGL_WIDGET
+#include <QOpenGLWidget>
+#else
 #include <QGLWidget>
+#endif
 
 #include "Matrix4x4.h"
 
@@ -33,7 +37,11 @@ namespace caret {
     class BrainOpenGLShapeRing;
     class BrainOpenGLShapeSphere;
     
+#if WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    class FiberSamplesOpenGLWidget : public QOpenGLWidget {
+#else
     class FiberSamplesOpenGLWidget : public QGLWidget {
+#endif
         Q_OBJECT
         
     public:

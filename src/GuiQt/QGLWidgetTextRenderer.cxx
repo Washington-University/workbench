@@ -19,6 +19,12 @@
  */
 /*LICENSE_END*/
 
+/*
+ * QOpenGLWidget does not have renderText() methods.
+ * renderText() methods are in deprecated QGLWidget.
+ */
+#ifndef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+
 #define __QT_OPEN_G_L_TEXT_RENDERER_DECLARE__
 #include "QGLWidgetTextRenderer.h"
 #undef __QT_OPEN_G_L_TEXT_RENDERER_DECLARE__
@@ -1123,4 +1129,6 @@ QGLWidgetTextRenderer::FontData::~FontData()
         m_font = NULL;
     }
 }
+
+#endif // not - WORKBENCH_USE_QT5_QOPENGL_WIDGET
 

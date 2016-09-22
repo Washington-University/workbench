@@ -144,7 +144,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                                      QAction* windowAspectRatioLockedAction,
                                                      QAction* tabAspectRatioLockedAction,
                                                      BrainBrowserWindow* parentBrainBrowserWindow)
-: QToolBar(parentBrainBrowserWindow)
+: QToolBar(0) //parentBrainBrowserWindow)
 {
     this->browserWindowIndex = browserWindowIndex;
     this->updateCounter = 0;

@@ -274,6 +274,18 @@ ELSE (Qt5_FOUND)
     ENDIF(QT4_FOUND)
 ENDIF (Qt5_FOUND)
 
+if(Qt5_FOUND)
+   #
+   # QGLWidget is deprecated in Qt 5 and is replaced with QOpenGLWidget
+   #
+   # If WORKBENCH_USE_QT5_QOPENGL_WIDGET is defined, QOpenGLWidget is used
+   # for OpenGL.  Otherwise, QGLWidget is used.
+   #
+###   add_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
+endif()
+
+
+#
 #
 # QT include files
 #

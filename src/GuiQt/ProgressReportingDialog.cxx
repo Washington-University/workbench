@@ -27,6 +27,7 @@
 #include <QMutexLocker>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventManager.h"
 #include "EventProgressUpdate.h"
 #include "ProgressReportingFromEvent.h"

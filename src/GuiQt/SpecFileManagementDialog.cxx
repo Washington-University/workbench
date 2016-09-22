@@ -1845,7 +1845,6 @@ SpecFileManagementDialog::okButtonClickedOpenSpecFile()
     ProgressReportingDialog::runEvent(&readSpecFileEvent,
                                       this,
                                       m_specFile->getFileNameNoPath());
-    
     errorMessages.appendWithNewLine(readSpecFileEvent.getErrorMessage());
     
     updateGraphicWindowsAndUserInterface();
