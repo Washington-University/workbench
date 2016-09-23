@@ -462,7 +462,10 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
                              sceneClass->getClass("geometry"));
     }
     else {
+#if QT_VERSION < 0x050000
         /*
+         * Do this for Qt4 only.  Qt5 restores size in BrainBrowserWindow.
+         *
          * From http://stackoverflow.com/questions/2722939/c-resize-a-docked-qt-qdockwidget-programmatically
          *
          * Set the minimum and maximum sizes and restore them later.
@@ -487,6 +490,7 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
                                this,
                                SLOT(restoreMinimumAndMaximumSizesAfterSceneRestored()));
         }
+#endif
     }
 }
 

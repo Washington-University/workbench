@@ -4323,6 +4323,28 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
             m_featuresToolBoxAction->trigger();
             m_featuresToolBox->restoreFromScene(sceneAttributes,
                                                 sceneClass->getClass("m_featuresToolBox"));
+            
+#if QT_VERSION >= 0x050000
+            /*
+             * Toolboxes were not restoring to correct size in Qt5.
+             * Qt5 adds a new method, QMainWindow::resizeDocks() that 
+             * resizes a QDockWidget in one dimension.  Use it to resize
+             * the toolbox.
+             */
+            const SceneClass* featureToolBoxClass = sceneClass->getClass("m_featuresToolBox");
+            if (featureToolBoxClass != NULL) {
+                const int w = featureToolBoxClass->getIntegerValue("toolboxWidth", -1);
+                const int h = featureToolBoxClass->getIntegerValue("toolboxHeight", -1);
+                if ((w > 0)
+                    && (h > 0)) {
+                    QList<QDockWidget*> dockList;
+                    dockList.append(m_featuresToolBox);
+                    QList<int> sizeList;
+                    sizeList.append(w);
+                    resizeDocks(dockList, sizeList, Qt::Horizontal);
+                }
+            }
+#endif
         }
         
         /*
@@ -4348,6 +4370,36 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
             processShowOverlayToolBox(toolBoxVisible);
             m_overlayActiveToolBox->restoreFromScene(sceneAttributes,
                                                      sceneClass->getClass("m_overlayActiveToolBox"));
+            
+
+#if QT_VERSION >= 0x050000
+            /*
+             * Toolboxes were not restoring to correct size in Qt5.
+             * Qt5 adds a new method, QMainWindow::resizeDocks() that
+             * resizes a QDockWidget in one dimension.  Use it to resize
+             * the toolbox.
+             */
+            const SceneClass* activeToolBoxClass = sceneClass->getClass("m_overlayActiveToolBox");
+            if (activeToolBoxClass != NULL) {
+                const int w = activeToolBoxClass->getIntegerValue("toolboxWidth", -1);
+                const int h = activeToolBoxClass->getIntegerValue("toolboxHeight", -1);
+                if ((w > 0)
+                    && (h > 0)) {
+                    QList<QDockWidget*> dockList;
+                    dockList.append(m_overlayActiveToolBox);
+                    if (orientationName == "horizontal") {
+                        QList<int> sizeList;
+                        sizeList.append(h);
+                        resizeDocks(dockList, sizeList, Qt::Vertical);
+                    }
+                    else {
+                        QList<int> sizeList;
+                        sizeList.append(w);
+                        resizeDocks(dockList, sizeList, Qt::Horizontal);
+                    }
+                }
+            }
+#endif
         }
     }
     
