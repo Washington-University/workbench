@@ -389,7 +389,18 @@ WuQtUtilities::moveAndSizeWindow(QWidget* window,
      */
     QPoint pXY(x,
                y);
+#if QT_VERSION >= 0x050000
+    const QRect availableRect = dw->availableGeometry();
+#else
+    /*
+     * Note 23 September 2016:
+     *    Calling geometry is likely the WRONG method to call
+     *    but since it is not causing a problem in in Qt 4.x
+     *    we will continuing using to avoid the risk of 
+     *    breaking scenes.
+     */
     const QRect availableRect = dw->screen()->geometry();
+#endif
     const int32_t screenSizeX = availableRect.width();
     const int32_t screenSizeY = availableRect.height();
     
