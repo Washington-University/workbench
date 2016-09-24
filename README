@@ -8,14 +8,10 @@ It is compiled using cmake, on linux do:
 
 mkdir build
 cd build
-cmake ../src
-#OR
-cmake-gui ../src
-make [-j cores]
+cmake ../workbench/src -D CMAKE_BUILD_TYPE=Release
+make
 
 For other OSes, see http://www.cmake.org/cmake/help/runningcmake.html
-
-You may want to set CMAKE_BUILD_TYPE to Release or Debug before building, as the default build behavior may be non-optimized and without debug symbols.
 
 This produces 3 executables, 2 of which are useful to the end user (Desktop/wb_view, CommandLine/wb_command), and one for running internal tests (Tests/test_driver).
 
@@ -25,13 +21,13 @@ ctest
 #OR
 make test
 
-To install wb_view and wb_command with the prefix configured in CMAKE_INSTALL_PREFIX:
+To install wb_view, wb_command, wb_shortcuts, and the bash completion script to the default locations:
 
 make install
 
 It should be noted that wb_import, provided in the HCP binary releases of Connectome Workbench, is actually part of caret5 (http://brainvis.wustl.edu/wiki/index.php/Caret:Download).
 
-Connectome Workbench itself is licensed under GPLv2 or later, copyright 2014-2015 Washington University School of Medicine, see LICENSE file
+Connectome Workbench itself is licensed under GPLv2 or later, copyright 2014-2016 Washington University School of Medicine, see LICENSE file
 
 Some source files are licensed under an MIT license (Expat), for easier code reuse in non-GPL projects:
 Files/SurfaceResamplingHelper.cxx
