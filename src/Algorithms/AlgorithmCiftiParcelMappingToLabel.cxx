@@ -52,7 +52,7 @@ OperationParameters* AlgorithmCiftiParcelMappingToLabel::getParameters()
     
     ret->setHelpText(
         AString("This command will output a dlabel file, useful for doing the same parcellation to another dense file.\n\n") +
-        "For ptseries, pscalar, plabel, pconn, and pdconn, using ROW for <direction> will work."
+        "For ptseries, pscalar, plabel, pconn, and pdconn, using COLUMN for <direction> will work."
     );
     return ret;
 }
