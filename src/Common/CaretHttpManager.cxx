@@ -235,15 +235,15 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
 /*
  * QUrl::addQueryItem() deprecated in Qt5: http://wiki.qt.io/Transition_from_Qt_4.x_to_Qt5
  */
+    QUrl myUrl = QUrl::fromUserInput(request.m_url);
 #if QT_VERSION >= 0x050000
-    QUrl myUrl;
     QUrlQuery myUrlQuery(QUrl::fromUserInput(request.m_url));
     for (int32_t i = 0; i < (int32_t)request.m_queries.size(); ++i)
     {
         myUrlQuery.addQueryItem(request.m_queries[i].first, request.m_queries[i].second);
     }
+    myUrl.setQuery(myUrlQuery);
 #else // QT_VERSION
-    QUrl myUrl = QUrl::fromUserInput(request.m_url);
     for (int32_t i = 0; i < (int32_t)request.m_queries.size(); ++i)
     {
         myUrl.addQueryItem(request.m_queries[i].first, request.m_queries[i].second);
@@ -276,7 +276,7 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
                 myRequest.setRawHeader(headerIter->first.toLatin1(), headerIter->second.toLatin1());
             }
 #if QT_VERSION >= 0x050000
-            myUrl.setQuery(myUrlQuery);
+            //myUrl.setQuery(myUrlQuery);
 #endif // QT_VERSION
             myRequest.setUrl(myUrl);
             myReply = myQNetMgr->post(myRequest, postData);
