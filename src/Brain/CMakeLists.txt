@@ -9,16 +9,6 @@ PROJECT (Brain)
 SET(QT_DONT_USE_QTGUI)
 
 #
-# Use OpenGL from QT
-#
-#SET(QT_USE_QTOPENGL TRUE)
-
-#
-# Need network
-#
-SET(QT_USE_QTNETWORK TRUE)
-
-#
 # Add QT for includes
 #
 if(Qt5_FOUND)
@@ -27,6 +17,7 @@ if(Qt5_FOUND)
     include_directories(${Qt5Gui_INCLUDE_DIRS})
 endif()
 IF (QT4_FOUND)
+    SET(QT_USE_QTNETWORK TRUE)
     INCLUDE(${QT_USE_FILE})
 ENDIF ()
 

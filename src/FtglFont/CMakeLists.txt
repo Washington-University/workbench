@@ -4,19 +4,10 @@
 PROJECT (Ftgl)
 
 #
-# Need XML from Qt
-#
-SET(QT_DONT_USE_QTGUI)
-
-#
-# Use OpenGL from QT
-#
-#SET(QT_USE_QTOPENGL TRUE)
-
-#
 # Add QT for includes
 #
 IF (QT4_FOUND)
+    SET(QT_DONT_USE_QTGUI)
     INCLUDE(${QT_USE_FILE})
 ENDIF ()
 

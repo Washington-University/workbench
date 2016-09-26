@@ -9,14 +9,6 @@ PROJECT(Desktop)
 set (EXE_NAME wb_view)
 
 #
-#  QT Libraries
-#
-SET(QT_USE_QTXML TRUE)
-SET(QT_USE_QTOPENGL TRUE)
-SET(QT_USE_QTNETWORK TRUE)
-#SET(QT_USE_QTWEBKIT TRUE)
-
-#
 # QT Include directories
 #
 if(Qt5_FOUND)
@@ -26,6 +18,9 @@ if(Qt5_FOUND)
     include_directories(${Qt5Widgets_INCLUDE_DIRS})
 endif()
 IF (QT4_FOUND)
+    SET(QT_USE_QTXML TRUE)
+    SET(QT_USE_QTOPENGL TRUE)
+    SET(QT_USE_QTNETWORK TRUE)
     INCLUDE(${QT_USE_FILE})
 ENDIF ()
 

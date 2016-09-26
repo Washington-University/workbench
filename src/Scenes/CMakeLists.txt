@@ -15,11 +15,6 @@ PROJECT (Scenes)
 #ADD_DEFINITIONS(-DCARET_SCENE_DEBUG)
 
 #
-# Use XML from Qt but not GUI.
-#
-SET(QT_DONT_USE_QTGUI TRUE)
-
-#
 # QT include files
 #
 if(Qt5_FOUND)
@@ -28,6 +23,7 @@ if(Qt5_FOUND)
     include_directories(${Qt5Xml_INCLUDE_DIRS})
 endif()
 IF (QT4_FOUND)
+    SET(QT_DONT_USE_QTGUI TRUE)
     INCLUDE(${QT_USE_FILE})
 ENDIF ()
 
