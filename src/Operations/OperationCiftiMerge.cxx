@@ -49,9 +49,9 @@ OperationParameters* OperationCiftiMerge::getParameters()
     ParameterComponent* ciftiOpt = ret->createRepeatableParameter(2, "-cifti", "specify an input cifti file");
     ciftiOpt->addCiftiParameter(1, "cifti-in", "a cifti file to use columns from");
     ParameterComponent* columnOpt = ciftiOpt->createRepeatableParameter(2, "-column", "select a single column to use");
-    columnOpt->addIntegerParameter(1, "column", "the column index (starting from 1)");
+    columnOpt->addStringParameter(1, "column", "the column number (starting from 1) or name");
     OptionalParameter* upToOpt = columnOpt->createOptionalParameter(2, "-up-to", "use an inclusive range of columns");
-    upToOpt->addIntegerParameter(1, "last-column", "the index of the last column to include");
+    upToOpt->addStringParameter(1, "last-column", "the number or name of the last column to include");
     upToOpt->createOptionalParameter(2, "-reverse", "use the range in reverse order");
     
     ret->setHelpText(
@@ -100,12 +100,12 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
         {
             for (int j = 0; j < numColumnOpts; ++j)
             {
-                int64_t initialColumn = columnOpts[j]->getInteger(1) - 1;//1-based indexing convention
+                int64_t initialColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpts[j]->getString(1));//this function has the 1-indexing convention built in
                 if (initialColumn < 0 || initialColumn >= thisDims[0]) throw OperationException("column '" + AString::number(initialColumn + 1) + "' not valid in file '" + ciftiIn->getFileName() + "'");
                 OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
                 if (upToOpt->m_present)
                 {
-                    int finalColumn = upToOpt->getInteger(1) - 1;//ditto
+                    int finalColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(upToOpt->getString(1));//ditto
                     if (finalColumn < 0 || finalColumn >= thisDims[0]) throw OperationException("ending column '" + AString::number(finalColumn + 1) + "' not valid in file '" + ciftiIn->getFileName() + "'");
                     if (finalColumn < initialColumn) throw OperationException("ending column occurs before starting column in file '" + ciftiIn->getFileName() + "'");
                     numOutColumns += finalColumn - initialColumn + 1;//inclusive - we don't need to worry about reversing for counting, though
@@ -155,11 +155,11 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
             {
                 for (int j = 0; j < numColumnOpts; ++j)
                 {
-                    int64_t initialColumn = columnOpts[j]->getInteger(1) - 1;//1-based indexing convention
+                    int64_t initialColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpts[j]->getString(1));//this function has the 1-indexing convention built in
                     OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
                     if (upToOpt->m_present)
                     {
-                        int finalColumn = upToOpt->getInteger(1) - 1;//ditto
+                        int finalColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(upToOpt->getString(1));//ditto
                         bool reverse = upToOpt->getOptionalParameter(2)->m_present;
                         if (reverse)
                         {
@@ -264,6 +264,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
         {
             const CiftiFile* ciftiIn = myInputs[i]->getCifti(1);
             vector<int64_t> thisDims = ciftiIn->getDimensions();
+            const CiftiXML& thisXML = ciftiIn->getCiftiXML();
             const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
             int numColumnOpts = (int)columnOpts.size();
             if (numColumnOpts > 0)
@@ -271,11 +272,11 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
                 ciftiIn->getRow(scratchRow.data(), row);
                 for (int j = 0; j < numColumnOpts; ++j)
                 {
-                    int64_t initialColumn = columnOpts[j]->getInteger(1) - 1;//1-based indexing convention
+                    int64_t initialColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpts[j]->getString(1));//this function has the 1-indexing convention built in
                     OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
                     if (upToOpt->m_present)
                     {
-                        int finalColumn = upToOpt->getInteger(1) - 1;//ditto
+                        int finalColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(upToOpt->getString(1));//ditto
                         bool reverse = upToOpt->getOptionalParameter(2)->m_present;
                         if (reverse)
                         {
