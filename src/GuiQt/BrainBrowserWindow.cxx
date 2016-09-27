@@ -246,6 +246,25 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_VIEWPORT_SIZE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
+
+#if QT_VERSION >= 0x050000
+    if (m_overlayHorizontalToolBox == m_overlayActiveToolBox) {
+        /*
+         * With Qt5, default height of overlay toolbox at bottom is
+         * way too tall. Qt 5.6 added a 'resizeDocks' method and
+         * it is used to initialize the height of the overlay toolbox.
+         */
+        const int toolboxHeight = 150;
+        QList<QDockWidget*> docks;
+        docks.push_back(m_overlayHorizontalToolBox);
+        QList<int> dockSizes;
+        dockSizes.push_back(toolboxHeight);
+        
+        resizeDocks(docks,
+                    dockSizes,
+                    Qt::Vertical);
+    }
+#endif
 }
 
 /**
