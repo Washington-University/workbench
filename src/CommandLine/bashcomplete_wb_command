@@ -78,3 +78,23 @@ function _wb_command()
 
 complete -o bashdefault -o default -F _wb_command wb_command
 
+#completion for wb_shortcuts - could be a separate file, but this is simpler
+
+function _wb_shortcuts ()
+{
+    COMPREPLY=()
+    #use bash-completion's hacks to deal with the word splitting we don't want
+    #we can only complete the first word, so only get cur and cword
+    local cur cword
+    #use only space for splitting
+    _get_comp_words_by_ref -n "'"'"><=;|&(:' cur cword
+    if ((cword != 1))
+    then
+        return 0
+    fi
+    local -a switches
+    readarray -t switches < <(wb_shortcuts -list-functions | awk '{print $1}')
+    COMPREPLY=(`compgen -W "${switches[*]}" -- "$cur"`)
+}
+
+complete -o bashdefault -o default -F _wb_shortcuts wb_shortcuts
