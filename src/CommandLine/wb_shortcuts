@@ -753,7 +753,7 @@ function cleanup ()
     #so first test if the array is empty
     if ((${#global_temporary_files[@]} > 0))
     then
-        rm -f "${global_temporary_files[@]}" &> /dev/null
+        rm -f -- "${global_temporary_files[@]}" &> /dev/null
     fi
 }
 trap cleanup EXIT
