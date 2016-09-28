@@ -281,7 +281,7 @@ if(Qt5_FOUND)
    # If WORKBENCH_USE_QT5_QOPENGL_WIDGET is defined, QOpenGLWidget is used
    # for OpenGL.  Otherwise, QGLWidget is used.
    #
-###   add_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
+   add_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
 endif()
 
 

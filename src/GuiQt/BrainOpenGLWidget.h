@@ -24,7 +24,7 @@
 
 #include "CaretOpenGLInclude.h"
 
-#if WORKBENCH_USE_QT5_QOPENGL_WIDGET
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 #include <QOpenGLWidget>
 #else
 #include <QGLWidget>
@@ -61,7 +61,7 @@ namespace caret {
     class UserInputModeAbstract;
     class VolumeFile;
     
-#if WORKBENCH_USE_QT5_QOPENGL_WIDGET
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     class BrainOpenGLWidget : public QOpenGLWidget, public EventListenerInterface {
 #else
     class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface {

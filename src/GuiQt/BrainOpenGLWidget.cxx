@@ -266,7 +266,7 @@ BrainOpenGLWidget::getOpenGLInformation()
             break;
     }
 
-    info += ("OpenGL Context:"
+    info += ("QOpenGLWidget Context:"
 //             "\n   Accum: " + AString::fromBool(format.accum())
 //             + "\n   Accum size: " + AString::number(format.accumBufferSize())
              "\n   Alpha: " + AString::fromBool(format.hasAlpha())
@@ -303,7 +303,7 @@ BrainOpenGLWidget::getOpenGLInformation()
     
 #else
     QGLFormat format = this->format();
-    info += ("OpenGL Context:"
+    info += ("QGLWidget Context:"
              "\n   Accum: " + AString::fromBool(format.accum())
              + "\n   Accum size: " + AString::number(format.accumBufferSize())
              + "\n   Alpha: " + AString::fromBool(format.alpha())
@@ -376,6 +376,7 @@ BrainOpenGLWidget::createTextRenderer()
     }
     
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /* No Qt Text Renderer in QOpenGLWidget */
 #else
     /*
      * Create a Qt text renderer
@@ -556,12 +557,6 @@ BrainOpenGLWidget::paintGL()
     if (bbw != NULL) {
         EventManager::get()->sendEvent(EventBrowserWindowGraphicsRedrawn(bbw).getPointer());
     }
-    
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-//    swapBuffers();
-//    CaretAssert(context());
-//    context()->swapBuffers(this);
-#endif
 }
 
 /**

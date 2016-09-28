@@ -5654,9 +5654,19 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::
      */
     glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
     
-    // Figure out item was picked using color in color buffer
-    //
+    /*
+     * Determine item picked by examination of color in back buffer
+     *
+     * QOpenGLWidget Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation).  This is
+     * probably why calls to glReadBuffer() always cause an
+     * OpenGL error.
+     */
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /* do not call glReadBuffer() */
+#else
     glReadBuffer(GL_BACK);
+#endif
     glPixelStorei(GL_PACK_SKIP_ROWS, 0);
     glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -5725,9 +5735,19 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::
      */
     glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
     
-    // Figure out item was picked using color in color buffer
-    //
+    /*
+     * Determine item picked by examination of color in back buffer
+     *
+     * QOpenGLWidget Note: The QOpenGLWidget always renders in a 
+     * frame buffer object (see its documentation).  This is 
+     * probably why calls to glReadBuffer() always cause an
+     * OpenGL error.
+     */
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /* do not call glReadBuffer() */
+#else
     glReadBuffer(GL_BACK);
+#endif
     glPixelStorei(GL_PACK_SKIP_ROWS, 0);
     glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -5800,9 +5820,19 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::
      */
     glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
     
-    // Figure out item was picked using color in color buffer
-    //
+    /*
+     * Determine item picked by examination of color in back buffer
+     *
+     * QOpenGLWidget Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation).  This is
+     * probably why calls to glReadBuffer() always cause an
+     * OpenGL error.
+     */
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /* do not call glReadBuffer() */
+#else
     glReadBuffer(GL_BACK);
+#endif
     glPixelStorei(GL_PACK_SKIP_ROWS, 0);
     glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -7531,6 +7561,7 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
     s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_COLOR_MATERIAL", GL_COLOR_MATERIAL));
     s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_CULL_FACE", GL_CULL_FACE));
     s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_DEPTH_TEST", GL_DEPTH_TEST));
+    s.appendWithNewLine("   " + getOpenGLBooleanAsText("GL_DOUBLEBUFFER", GL_DOUBLEBUFFER));
     s.appendWithNewLine("   " + getOpenGLBooleanAsText("GL_LIGHT_MODEL_LOCAL_VIEWER", GL_LIGHT_MODEL_LOCAL_VIEWER));
     s.appendWithNewLine("   " + getOpenGLBooleanAsText("GL_LIGHT_MODEL_TWO_SIDE", GL_LIGHT_MODEL_TWO_SIDE));
     s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_LIGHTING", GL_LIGHTING));
