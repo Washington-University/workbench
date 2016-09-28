@@ -201,10 +201,16 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      * of this instance.  It cannot be declared statically.
      */
 #if QT_VERSION >= 0x050000
-    QStyle* cleanLooksStyle = QStyleFactory::create("Cleanlooks");
-    if (cleanLooksStyle != NULL) {
-        cleanLooksStyle->setParent(this);
-        this->tabBar->setStyle(cleanLooksStyle);
+    /*
+     * "Cleanlooks Style" removed in Qt5.  Fusion style
+     * seems to have same effect on toolbar so that 
+     * tabs do not get shrunk too small and so the
+     * scroll tabs arrows are available.
+     */
+    QStyle* fusionStyle = QStyleFactory::create("Fusion");
+    if (fusionStyle != NULL) {
+        fusionStyle->setParent(this);
+        this->tabBar->setStyle(fusionStyle);
     }
 #else // QT_VERSION
     QCleanlooksStyle* cleanLooksStyle = new QCleanlooksStyle();
@@ -1727,30 +1733,39 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     
     this->orientationLeftOrLateralToolButton = new QToolButton();
     this->orientationLeftOrLateralToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationLeftOrLateralToolButton);
     
     this->orientationRightOrMedialToolButton = new QToolButton();
     this->orientationRightOrMedialToolButton->setDefaultAction(this->orientationRightOrMedialToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationRightOrMedialToolButton);
     
     this->orientationAnteriorToolButton = new QToolButton();
     this->orientationAnteriorToolButton->setDefaultAction(this->orientationAnteriorToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationAnteriorToolButton);
     
     this->orientationPosteriorToolButton = new QToolButton();
     this->orientationPosteriorToolButton->setDefaultAction(this->orientationPosteriorToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationPosteriorToolButton);
     
     this->orientationDorsalToolButton = new QToolButton();
     this->orientationDorsalToolButton->setDefaultAction(this->orientationDorsalToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationDorsalToolButton);
     
     this->orientationVentralToolButton = new QToolButton();
     this->orientationVentralToolButton->setDefaultAction(this->orientationVentralToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationVentralToolButton);
     
     this->orientationLateralMedialToolButton = new QToolButton();
     this->orientationLateralMedialToolButton->setDefaultAction(this->orientationLateralMedialToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationLateralMedialToolButton);
     
     this->orientationDorsalVentralToolButton = new QToolButton();
     this->orientationDorsalVentralToolButton->setDefaultAction(this->orientationDorsalVentralToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationDorsalVentralToolButton);
     
     this->orientationAnteriorPosteriorToolButton = new QToolButton();
     this->orientationAnteriorPosteriorToolButton->setDefaultAction(this->orientationAnteriorPosteriorToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationAnteriorPosteriorToolButton);
     
     WuQtUtilities::matchWidgetWidths(this->orientationLateralMedialToolButton,
                                      this->orientationDorsalVentralToolButton,
@@ -1758,11 +1773,13 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     
     QToolButton* orientationResetToolButton = new QToolButton();
     orientationResetToolButton->setDefaultAction(this->orientationResetToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(orientationResetToolButton);
 
     this->orientationCustomViewSelectToolButton = new QToolButton();
     this->orientationCustomViewSelectToolButton->setDefaultAction(this->customViewAction);
     this->orientationCustomViewSelectToolButton->setSizePolicy(QSizePolicy::Minimum,
                                                                QSizePolicy::Fixed);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationCustomViewSelectToolButton);
     
     QGridLayout* buttonGridLayout = new QGridLayout();
     buttonGridLayout->setColumnStretch(3, 100);
@@ -1995,6 +2012,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                                                              this, 
                                                              SLOT(wholeBrainSurfaceLeftToolButtonTriggered(bool)));
     QToolButton* wholeBrainLeftSurfaceToolButton = new QToolButton();
+    WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainLeftSurfaceToolButton);
     wholeBrainLeftSurfaceToolButton->setDefaultAction(leftSurfaceAction);
     
     /*
@@ -2012,6 +2030,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                                                              this, 
                                                              SLOT(wholeBrainSurfaceRightToolButtonTriggered(bool)));
     QToolButton* wholeBrainRightSurfaceToolButton = new QToolButton();
+    WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainRightSurfaceToolButton);
     wholeBrainRightSurfaceToolButton->setDefaultAction(rightSurfaceAction);
     
     /*
@@ -2029,6 +2048,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                                                               this, 
                                                               SLOT(wholeBrainSurfaceCerebellumToolButtonTriggered(bool)));
     QToolButton* wholeBrainCerebellumSurfaceToolButton = new QToolButton();
+    WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainCerebellumSurfaceToolButton);
     wholeBrainCerebellumSurfaceToolButton->setDefaultAction(cerebellumSurfaceAction);
 
     /*
@@ -2227,6 +2247,32 @@ BrainBrowserWindowToolBar::createModeWidget()
     QToolButton* inputModeAnnotationsToolButton = new QToolButton();
     inputModeAnnotationsToolButton->setDefaultAction(this->modeInputModeAnnotationsAction);
     
+    inputModeAnnotationsToolButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    inputModeAnnotationsToolButton->setAutoRaise(true);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeAnnotationsToolButton);
+    
+//    const QPalette palette = inputModeAnnotationsToolButton->palette();
+//    const QPalette::ColorRole backgroundRole = inputModeAnnotationsToolButton->backgroundRole();
+//    const QBrush backgroundBrush = palette.brush(backgroundRole);
+//    const QColor backgroundColor = backgroundBrush.color();
+//    const QColor darkerColor = backgroundColor.darker(125);
+//    
+//    const QString toolButtonStyleSheet(" QToolButton { "
+//                                       "   border-style: solid; "
+//                                       "   border-width: 1px; "
+//                                       "   border-color: " + darkerColor.name() + "; "
+//                                       "   padding-top:    1px; "
+//                                       "   padding-bottom: 1px; "
+//                                       "   padding-right:  3px; "
+//                                       "   padding-left:   3px; "
+//                                       " }");
+//    std::cout << "****** style sheet: " << toolButtonStyleSheet << std::endl;
+//    inputModeAnnotationsToolButton->setStyleSheet(toolButtonStyleSheet);
+////    const int red   = backgroundColor.red();
+////    const int green = backgroundColor.green();
+////    const int blue  = backgroundColor.blue();
+////    std::cout << "******** Annotate Background Color: " << red << ", " << green << ", " << blue << std::endl;
+    
     /*
      * Borders 
      */ 
@@ -2236,6 +2282,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeBordersAction->setCheckable(true);
     QToolButton* inputModeBordersToolButton = new QToolButton();
     inputModeBordersToolButton->setDefaultAction(this->modeInputModeBordersAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeBordersToolButton);
     
     /*
      * Foci
@@ -2246,6 +2293,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeFociAction->setCheckable(true);
     QToolButton* inputModeFociToolButton = new QToolButton();
     inputModeFociToolButton->setDefaultAction(this->modeInputModeFociAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeFociToolButton);
     
     /*
      * Image
@@ -2256,6 +2304,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeImageAction->setCheckable(true);
     QToolButton* inputModeImageToolButton = new QToolButton();
     inputModeImageToolButton->setDefaultAction(this->modeInputModeImageAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeImageToolButton);
     
     /*
      * Volume Edit
@@ -2266,6 +2315,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputVolumeEditAction->setCheckable(true);
     QToolButton* inputModeVolumeEditButton = new QToolButton();
     inputModeVolumeEditButton->setDefaultAction(this->modeInputVolumeEditAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeVolumeEditButton);
     
     /*
      * View Mode
@@ -2290,6 +2340,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeViewAction->setCheckable(true);
     QToolButton* inputModeViewToolButton = new QToolButton();
     inputModeViewToolButton->setDefaultAction(this->modeInputModeViewAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeViewToolButton);
     
     WuQtUtilities::matchWidgetWidths(inputModeAnnotationsToolButton,
                                      inputModeBordersToolButton,

@@ -117,18 +117,23 @@ m_parentToolBar(parentToolBar)
     
     QToolButton* volumePlaneParasagittalToolButton = new QToolButton();
     volumePlaneParasagittalToolButton->setDefaultAction(m_volumePlaneParasagittalToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneParasagittalToolButton);
     
     QToolButton* volumePlaneCoronalToolButton = new QToolButton();
     volumePlaneCoronalToolButton->setDefaultAction(m_volumePlaneCoronalToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneCoronalToolButton);
     
     QToolButton* volumePlaneAxialToolButton = new QToolButton();
     volumePlaneAxialToolButton->setDefaultAction(m_volumePlaneAxialToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneAxialToolButton);
     
     QToolButton* volumePlaneAllToolButton = new QToolButton();
     volumePlaneAllToolButton->setDefaultAction(m_volumePlaneAllToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneAllToolButton);
     
     QToolButton* volumePlaneResetToolButton = new QToolButton();
     volumePlaneResetToolButton->setDefaultAction(m_volumePlaneResetToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneResetToolButton);
     
     WuQtUtilities::matchWidgetHeights(volumePlaneParasagittalToolButton,
                                       volumePlaneCoronalToolButton,
@@ -143,6 +148,7 @@ m_parentToolBar(parentToolBar)
     slicePlaneCustomToolButton->setDefaultAction(m_parentToolBar->customViewAction);
     slicePlaneCustomToolButton->setSizePolicy(QSizePolicy::Minimum,
                                               QSizePolicy::Fixed);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(slicePlaneCustomToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);

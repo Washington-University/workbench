@@ -83,9 +83,11 @@ m_tabAspectRatioLockedAction(tabAspectRatioLockedAction)
     
     QToolButton* windowAspectRatioLockedToolButton = new QToolButton();
     windowAspectRatioLockedToolButton->setDefaultAction(windowAspectRatioLockedAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(windowAspectRatioLockedToolButton);
     
     QToolButton* tabAspectRatioLockedToolButton = new QToolButton();
     tabAspectRatioLockedToolButton->setDefaultAction(tabAspectRatioLockedAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(tabAspectRatioLockedToolButton);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);

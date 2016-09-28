@@ -82,7 +82,7 @@
 #include "UserInputModeImage.h"
 #include "UserInputModeView.h"
 #include "UserInputModeVolumeEdit.h"
-
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
@@ -1593,7 +1593,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP:
         {
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-            CaretAssertToDoFatal();
+            WuQMessageBox::errorOk(this, "Render PixMap not implemented with Qt5");
 #else
             /*
              * Note 1: QGLWidget::renderPixmap() creates a new OpenGL

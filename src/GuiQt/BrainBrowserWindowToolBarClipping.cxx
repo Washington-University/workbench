@@ -82,6 +82,7 @@ m_parentToolBar(parentToolBar)
     setupToolButton->setText("Setup");
     QObject::connect(setupToolButton, SIGNAL(clicked()),
                      this, SLOT(setupClippingPushButtonClicked()));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(setupToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
     gridLayout->setHorizontalSpacing(6);

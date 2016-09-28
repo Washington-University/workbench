@@ -73,6 +73,7 @@ m_parentToolBar(parentToolBar)
                                                                                SLOT(volumeIndicesOriginActionTriggered()));
     QToolButton* volumeIndicesOriginToolButton = new QToolButton;
     volumeIndicesOriginToolButton->setDefaultAction(volumeIndicesOriginToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(volumeIndicesOriginToolButton);
     
     QLabel* parasagittalLabel = new QLabel("P:");
     QLabel* coronalLabel = new QLabel("C:");

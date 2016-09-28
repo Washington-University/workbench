@@ -41,6 +41,7 @@ class QPixmap;
 class QPushButton;
 class QString;
 class QTableWidget;
+class QToolButton;
 class QWidget;
 
 namespace caret {
@@ -191,6 +192,8 @@ namespace caret {
         static bool checkStateToBool(const Qt::CheckState checkState);
         
         static Qt::CheckState boolToCheckState(const bool value);
+        
+        static void setToolButtonStyleForQt5Mac(QToolButton* toolButton);
         
     private:
         WuQtUtilities();

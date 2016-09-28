@@ -39,6 +39,7 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QTextDocument>
+#include <QToolButton>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -1388,6 +1389,45 @@ WuQtUtilities::createPixmapWidgetPainter(const QWidget* widget,
     painter->setPen(foregroundColor);
     
     return painter;
+}
+
+/**
+ * With Qt5, a toolbutton placed into a toolbar uses the 
+ * background of the toolbar with no morder and appears 
+ * similar to a label.  Use a stylesheet so that
+ * the button appears similar to Qt4.
+ */
+void
+WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
+{
+#ifdef CARET_OS_MACOSX
+#if QT_VERSION >= 0x050000
+    const QPalette palette = toolButton->palette();
+    const QPalette::ColorRole backgroundRole = toolButton->backgroundRole();
+    const QBrush backgroundBrush = palette.brush(backgroundRole);
+    const QColor backgroundColor = backgroundBrush.color();
+    const QColor lighterColor    = backgroundColor.lighter(100);
+    const QColor darkerColor = backgroundColor.darker(125);
+    
+    /*
+     * Use a stylesheet to:
+     * (1) Make the background of the button lighter
+     * (2) Add a border around the button that is slightly
+     *     darker than the background.
+     */
+    const QString toolButtonStyleSheet(" QToolButton { "
+                                       "   background: " + lighterColor.name() + "; "
+                                       "   border-style: solid; "
+                                       "   border-width: 1px; "
+                                       "   border-color: " + darkerColor.name() + "; "
+                                       "   padding-top:    1px; "
+                                       "   padding-bottom: 1px; "
+                                       "   padding-right:  3px; "
+                                       "   padding-left:   3px; "
+                                       " }");
+    toolButton->setStyleSheet(toolButtonStyleSheet);
+#endif
+#endif
 }
 
 
