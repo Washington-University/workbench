@@ -40,10 +40,6 @@
 #include "VolumeSliceViewPlaneEnum.h"
 #include "WholeBrainVoxelDrawingMode.h"
 
-
-class QGLWidget;
-class QImage;
-
 namespace caret {
     
     class AnnotationText;

@@ -22,7 +22,9 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QLabel>
+#ifndef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 #include <QGLPixelBuffer>
+#endif
 #include <QSplashScreen>
 #include <QStyleFactory>
 #include <QThread>
@@ -428,6 +430,7 @@ main(int argc, char* argv[])
         /*
         * Make sure OpenGL is available.
         */
+#ifndef WORKBENCH_USE_QT5_QOPENGL_WIDGET
         if (QGLFormat::hasOpenGL() == false) {
             QString msg = "This computer does not support OpenGL (3D graphics system).\n"
             "You will need to install OpenGL to run Workbench.\n"
@@ -439,6 +442,7 @@ main(int argc, char* argv[])
             
             return -1;
         }
+#endif
             
         /*
         * Setup OpenGL if NOT using Qt 5's QOpenGLWidget
@@ -642,13 +646,15 @@ main(int argc, char* argv[])
                                                myState.sceneNameOrNumber);
         }
         
+#ifndef WORKBENCH_USE_QT5_QOPENGL_WIDGET
         if (QGLPixelBuffer::hasOpenGLPbuffers()) {
             CaretLogConfig("OpenGL PBuffers are supported");
         }
         else {
             CaretLogConfig("OpenGL PBuffers are NOT supported");
         }
-        
+#endif
+    
         /*
          * Log local (language, country)
          */

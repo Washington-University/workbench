@@ -14,7 +14,9 @@ set (EXE_NAME wb_view)
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
     include_directories(${Qt5Network_INCLUDE_DIRS})
-    include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+    if(Qt5OpenGL_FOUND)
+        include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+    endif()
     include_directories(${Qt5Widgets_INCLUDE_DIRS})
 endif()
 IF (QT4_FOUND)
@@ -93,18 +95,22 @@ IF (NOT APPLE)
     ENDIF (UNIX)
 ENDIF (NOT APPLE)
 
+if(Qt5OpenGL_FOUND)
+    set(QT5_OPENGL_LIB_NAME Qt5::OpenGL)
+endif()
 if(Qt5_FOUND)
     set(QT5_LINK_LIBS
         Qt5::Concurrent
         Qt5::Core
         Qt5::Gui
         Qt5::Network
-        Qt5::OpenGL
+        ${QT5_OPENGL_LIB_NAME}
         Qt5::PrintSupport
         Qt5::Test
         Qt5::Widgets
         Qt5::Xml)
 endif()
+message("*** QT5_LINK_LIBS: ${QT5_LINK_LIBS}")
 
 #
 # Libraries that are linked

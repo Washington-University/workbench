@@ -38,6 +38,7 @@
 #include "EventListenerInterface.h"
 
 class QMouseEvent;
+class QWidget;
 
 namespace caret {
 

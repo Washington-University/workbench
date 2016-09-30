@@ -234,7 +234,7 @@ BrainOpenGLWidget::initializeGL()
     CaretLogConfig(getOpenGLInformation());
     
     if (s_defaultGLFormatInitialized == false) {
-        CaretLogSevere("PROGRAM ERROR: The default QGLFormat has not been set.\n"
+        CaretLogSevere("PROGRAM ERROR: The default OpenGL has not been set.\n"
                        "Need to call BrainOpenGLWidget::initializeDefaultGLFormat() prior to "
                        "instantiating an instance of this class.");
     }

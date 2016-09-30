@@ -12,6 +12,9 @@ MESSAGE("\nCMake Version: ${CMAKE_VERSION}\n")
 
 #TSC: use "CACHE <type> <docstring>" syntax in SET commands so they can be overridden by cmake options
 
+set (WORKBENCH_USE_QT5 FALSE CACHE BOOL "Enable search for Qt 5.x libraries")
+set (WORKBENCH_USE_QT5_QOPENGL_WIDGET FALSE CACHE BOOL "If Qt 5.x is used, use QOpenGLWidget instead of deprecated QGLWidget")
+
 #
 # Setting the compiler MUST be done before the PROJECT
 # statement or else an infinite loop will occur indicating
@@ -85,6 +88,7 @@ SET(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "cause all build commands to be displ
 
 #
 # Allow support for C11X compiler
+# May not need these, use CMAKE_CXX_STANDARD:UNINITIALIZED=11
 #
 SET (WORKBENCH_C11X FALSE)
 ##SET (WORKBENCH_C11X TRUE)
@@ -231,66 +235,83 @@ ENDIF(OPENSSL_FOUND)
 # https://cmake.org/cmake/help/v3.5/manual/cmake-packages.7.html#manual:cmake-packages(7)
 # Modules List: http://doc.qt.io/qt-5/qtmodules.html
 #
-FIND_PACKAGE(Qt5 5.6.0 COMPONENTS Concurrent Core Gui Network OpenGL PrintSupport Test Widgets Xml)
-IF (Qt5_FOUND)
-    MESSAGE("Found Qt 5")
-    IF (NOT Qt5Concurrent_FOUND)
-        STRING(APPEND moduleError "Qt5 Concurrentmodule not found\n")
-    ENDIF()
-    IF (NOT Qt5Core_FOUND)
-        STRING(APPEND moduleError "Qt5 Core module not found\n")
-    ENDIF()
-    IF (NOT Qt5Gui_FOUND)
-        STRING(APPEND moduleError "Qt5 Gui module not found\n")
-    ENDIF()
-    IF (NOT Qt5Network_FOUND)
-        STRING(APPEND moduleError "Qt5 Network module not found\n")
-    ENDIF()
-    IF (NOT Qt5OpenGL_FOUND)
-        STRING(APPEND moduleError "Qt5 OpenGL module not found\n")
-    ENDIF()
-    IF (NOT Qt5PrintSupport_FOUND)
-        STRING(APPEND moduleError "Qt5 Print Support module not found\n")
-    ENDIF()
-    IF (NOT Qt5Test_FOUND)
-        STRING(APPEND moduleError "Qt5 Test module not found\n")
-    ENDIF()
-    IF (NOT Qt5Widgets_FOUND)
-        STRING(APPEND moduleError "Qt5 Widgets module not found\n")
-    ENDIF()
-    IF (NOT Qt5Xml_FOUND)
-        STRING(APPEND moduleError "Qt5 XML module not found\n")
-    ENDIF()
-    IF (moduleError)
-        MESSAGE(FATAL_ERROR "Missing Modules\n" ${moduleError})
-    ENDIF()
-    MESSAGE("QT_USE_FILE: ${QT_USE_FILE}")
-ELSE (Qt5_FOUND)
-    MESSAGE("Qt5 not found, looking for Qt4...")
+IF (WORKBENCH_USE_QT5) 
+    message("WORKBENCH_USE_QT5 defined")
+ELSE ()
+    message("WORKBENCH_USE_QT5 NOT defined")
+ENDIF ()
+
+IF (WORKBENCH_USE_QT5) 
+    
+    #
+    # The OpenGL module is deprecated in Qt5 and 
+    # is needed only if QGLWidget is used for
+    # the OpenGL graphics.
+    #
+    IF (NOT WORKBENCH_USE_QT5_QOPENGL_WIDGET)
+        SET(WB_QT_OPENGL_MODULE "OpenGL")
+    ENDIF ()
+
+    #FIND_PACKAGE(Qt5 5.6.0 COMPONENTS Concurrent Core Gui Network OpenGL PrintSupport Test Widgets Xml)
+    FIND_PACKAGE(Qt5 5.6.0 COMPONENTS Concurrent Core Gui Network ${WB_QT_OPENGL_MODULE} PrintSupport Test Widgets Xml)
+    IF (Qt5_FOUND)
+        MESSAGE("Found Qt 5")
+        IF (NOT Qt5Concurrent_FOUND)
+            STRING(APPEND moduleError "Qt5 Concurrentmodule not found\n")
+        ENDIF()
+        IF (NOT Qt5Core_FOUND)
+            STRING(APPEND moduleError "Qt5 Core module not found\n")
+        ENDIF()
+        IF (NOT Qt5Gui_FOUND)
+            STRING(APPEND moduleError "Qt5 Gui module not found\n")
+        ENDIF()
+        IF (NOT Qt5Network_FOUND)
+            STRING(APPEND moduleError "Qt5 Network module not found\n")
+        ENDIF()
+        IF (NOT WORKBENCH_USE_QT5_QOPENGL_WIDGET)
+            IF (NOT Qt5OpenGL_FOUND)
+                STRING(APPEND moduleError "Qt5 OpenGL module not found\n")
+            ENDIF()
+        ENDIF ()
+        IF (NOT Qt5PrintSupport_FOUND)
+            STRING(APPEND moduleError "Qt5 Print Support module not found\n")
+        ENDIF()
+        IF (NOT Qt5Test_FOUND)
+            STRING(APPEND moduleError "Qt5 Test module not found\n")
+        ENDIF()
+        IF (NOT Qt5Widgets_FOUND)
+            STRING(APPEND moduleError "Qt5 Widgets module not found\n")
+        ENDIF()
+        IF (NOT Qt5Xml_FOUND)
+            STRING(APPEND moduleError "Qt5 XML module not found\n")
+        ENDIF()
+        IF (moduleError)
+            MESSAGE(FATAL_ERROR "Missing Modules\n" ${moduleError})
+        ENDIF()
+
+        IF (WORKBENCH_USE_QT5_QOPENGL_WIDGET)
+            #
+            # QGLWidget is deprecated in Qt 5 and is replaced with QOpenGLWidget
+            #
+            # If WORKBENCH_USE_QT5_QOPENGL_WIDGET is defined, QOpenGLWidget is used
+            # for OpenGL.  Otherwise, QGLWidget is used.
+            #
+            MESSAGE("Configuring to use QOpenGLWidget instead of deprecated QGLWidget")
+            add_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
+        ELSE ()
+            MESSAGE("Configuring to use deprecated QGLWidget instead of new QOpenGLWidget")
+        ENDIF ()
+    ELSE ()
+        MESSAGE(FATAL_ERROR "Qt5 was required but not found")
+    ENDIF ()
+ELSE ()
     FIND_PACKAGE(Qt4 4.8 REQUIRED)
     IF(QT4_FOUND)
+        INCLUDE(${QT_USE_FILE})
     ELSE(QT4_FOUND)
         MESSAGE(FATAL_ERROR "QT4 not found")
     ENDIF(QT4_FOUND)
-ENDIF (Qt5_FOUND)
-
-if(Qt5_FOUND)
-   #
-   # QGLWidget is deprecated in Qt 5 and is replaced with QOpenGLWidget
-   #
-   # If WORKBENCH_USE_QT5_QOPENGL_WIDGET is defined, QOpenGLWidget is used
-   # for OpenGL.  Otherwise, QGLWidget is used.
-   #
-   add_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
-endif()
-
-
-#
-#
-# QT include files
-#
-IF (QT4_FOUND)
-    INCLUDE(${QT_USE_FILE})
+    MESSAGE("QT_USE_FILE: ${QT_USE_FILE}")
 ENDIF ()
 
 #
