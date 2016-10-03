@@ -169,6 +169,7 @@ UserInputModeImageWidget::createEditOperationWidget()
     addAction->setData(static_cast<int>(UserInputModeImage::EDIT_OPERATION_ADD));
     QToolButton* addToolButton = new QToolButton();
     addToolButton->setDefaultAction(addAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(addToolButton);
     
     /*
      * Delete button
@@ -182,6 +183,7 @@ UserInputModeImageWidget::createEditOperationWidget()
     deleteAction->setData(static_cast<int>(UserInputModeImage::EDIT_OPERATION_DELETE));
     QToolButton* deleteToolButton = new QToolButton();
     deleteToolButton->setDefaultAction(deleteAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(deleteToolButton);
     
     /*
      * Action group to make add/delete actions mutually exclusive
@@ -205,6 +207,7 @@ UserInputModeImageWidget::createEditOperationWidget()
     convertAction->setCheckable(false);
     m_convertToolButton = new QToolButton();
     m_convertToolButton->setDefaultAction(convertAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_convertToolButton);
     
     /*
      * Delete all button
@@ -218,7 +221,7 @@ UserInputModeImageWidget::createEditOperationWidget()
     deleteAllAction->setCheckable(false);
     m_deleteAllToolButton = new QToolButton();
     m_deleteAllToolButton->setDefaultAction(deleteAllAction);
-
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_deleteAllToolButton);
     
     
     QWidget* widget = new QWidget();

@@ -68,6 +68,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_endArrowToolButton->setFixedSize(toolButtonSize);
     QObject::connect(m_endArrowToolButton, SIGNAL(clicked(bool)),
                      this, SLOT(endArrowTipActionToggled()));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_endArrowToolButton);
     
     m_startArrowToolButton = new QToolButton();
     m_startArrowToolButton->setArrowType(Qt::UpArrow);
@@ -76,6 +77,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_startArrowToolButton->setFixedSize(toolButtonSize);
     QObject::connect(m_startArrowToolButton, SIGNAL(clicked(bool)),
                      this, SLOT(startArrowTipActionToggled()));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_startArrowToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);

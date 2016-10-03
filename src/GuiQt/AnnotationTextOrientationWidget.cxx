@@ -228,6 +228,7 @@ AnnotationTextOrientationWidget::createOrientationToolButton(const AnnotationTex
     action->setIcon(QIcon(pixmap));
     toolButton->setDefaultAction(action);
     toolButton->setIconSize(pixmap.size());
+    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }

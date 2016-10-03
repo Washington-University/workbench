@@ -233,6 +233,7 @@ UserInputModeFociWidget::createCreateOperationWidget()
                                                           SLOT(createNewFocusActionTriggered()));
     QToolButton* newFocusToolButton = new QToolButton();
     newFocusToolButton->setDefaultAction(newFocusAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(newFocusToolButton);
     
     const AString lastIDToolTipText = ("Press this button to display a dialog for creating a new focus "
                                        "with the focus' coordinates set to the stereotaxic location of the "
@@ -246,6 +247,7 @@ UserInputModeFociWidget::createCreateOperationWidget()
                                                           SLOT(createLastIdentificationFocusActionTriggered()));
     QToolButton* lastIdFocusToolButton = new QToolButton();
     lastIdFocusToolButton->setDefaultAction(lastIdFocusAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(lastIdFocusToolButton);
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
@@ -391,6 +393,7 @@ UserInputModeFociWidget::createEditOperationWidget()
     deleteAction->setData(static_cast<int>(UserInputModeFoci::EDIT_OPERATION_DELETE));
     QToolButton* deleteToolButton = new QToolButton();
     deleteToolButton->setDefaultAction(deleteAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(deleteToolButton);
     
     const AString propertiesToolTipText = ("Click the mouse over a focus to display a dialog "
                                            "for editing the focus' properties."
@@ -402,6 +405,7 @@ UserInputModeFociWidget::createEditOperationWidget()
     propertiesAction->setData(static_cast<int>(UserInputModeFoci::EDIT_OPERATION_PROPERTIES));
     QToolButton* propertiesToolButton = new QToolButton();
     propertiesToolButton->setDefaultAction(propertiesAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(propertiesToolButton);
     
     m_editOperationActionGroup = new QActionGroup(this);
     m_editOperationActionGroup->addAction(deleteAction);

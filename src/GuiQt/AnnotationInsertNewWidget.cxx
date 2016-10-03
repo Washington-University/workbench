@@ -72,16 +72,37 @@ AnnotationInsertNewWidget::AnnotationInsertNewWidget(const int32_t browserWindow
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    QToolButton* shapeBoxToolButton   = createShapeToolButton(AnnotationTypeEnum::BOX);
-    QToolButton* shapeImageToolButton = createShapeToolButton(AnnotationTypeEnum::IMAGE);
-    QToolButton* shapeLineToolButton  = createShapeToolButton(AnnotationTypeEnum::LINE);
-    QToolButton* shapeOvalToolButton  = createShapeToolButton(AnnotationTypeEnum::OVAL);
-    QToolButton* shapeTextToolButton  = createShapeToolButton(AnnotationTypeEnum::TEXT);
+    /*
+     * Shape buttons
+     */
+    m_shapeActionGroup = new QActionGroup(this);
+    QToolButton* shapeBoxToolButton   = createShapeToolButton(AnnotationTypeEnum::BOX,
+                                                              m_shapeActionGroup);
+    QToolButton* shapeImageToolButton = createShapeToolButton(AnnotationTypeEnum::IMAGE,
+                                                              m_shapeActionGroup);
+    QToolButton* shapeLineToolButton  = createShapeToolButton(AnnotationTypeEnum::LINE,
+                                                              m_shapeActionGroup);
+    QToolButton* shapeOvalToolButton  = createShapeToolButton(AnnotationTypeEnum::OVAL,
+                                                              m_shapeActionGroup);
+    QToolButton* shapeTextToolButton  = createShapeToolButton(AnnotationTypeEnum::TEXT,
+                                                              m_shapeActionGroup);
+    QObject::connect(m_shapeActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(spaceOrShapeActionTriggered()));
     
-    QToolButton* tabSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::TAB);
-    QToolButton* stereotaxicSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
-    QToolButton* surfaceSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::SURFACE);
-    QToolButton* windowSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::WINDOW);
+    /*
+     * Space buttons
+     */
+    m_spaceActionGroup = new QActionGroup(this);
+    QToolButton* tabSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::TAB,
+                                                            m_spaceActionGroup);
+    QToolButton* stereotaxicSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
+                                                                    m_spaceActionGroup);
+    QToolButton* surfaceSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::SURFACE,
+                                                                m_spaceActionGroup);
+    QToolButton* windowSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::WINDOW,
+                                                               m_spaceActionGroup);
+    QObject::connect(m_spaceActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(spaceOrShapeActionTriggered()));
     
     const bool smallButtonsFlag = false;
     if (smallButtonsFlag) {
@@ -100,25 +121,7 @@ m_browserWindowIndex(browserWindowIndex)
         windowSpaceToolButton->setMaximumSize(mw, mh);
     }
     
-    m_spaceActionGroup = new QActionGroup(this);
-    m_spaceActionGroup->addAction(tabSpaceToolButton->defaultAction());
-    m_spaceActionGroup->addAction(stereotaxicSpaceToolButton->defaultAction());
-    m_spaceActionGroup->addAction(surfaceSpaceToolButton->defaultAction());
-    m_spaceActionGroup->addAction(windowSpaceToolButton->defaultAction());
-    QObject::connect(m_spaceActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(spaceOrShapeActionTriggered()));
-    
-    m_shapeActionGroup = new QActionGroup(this);
-    m_shapeActionGroup->addAction(shapeBoxToolButton->defaultAction());
-    m_shapeActionGroup->addAction(shapeImageToolButton->defaultAction());
-    m_shapeActionGroup->addAction(shapeLineToolButton->defaultAction());
-    m_shapeActionGroup->addAction(shapeOvalToolButton->defaultAction());
-    m_shapeActionGroup->addAction(shapeTextToolButton->defaultAction());
-    QObject::connect(m_shapeActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(spaceOrShapeActionTriggered()));
-    
     QToolButton* fileSelectionToolButton = createFileSelectionToolButton();
-    
     
     QLabel* fileLabel  = new QLabel("File");
     QLabel* spaceLabel = new QLabel("Space");
@@ -286,6 +289,7 @@ AnnotationInsertNewWidget::createFileSelectionToolButton()
     QToolButton* fileSelectionToolButton = new QToolButton();
     fileSelectionToolButton->setDefaultAction(m_fileSelectionToolButtonAction);
     fileSelectionToolButton->setFixedWidth(fileSelectionToolButton->sizeHint().width());
+    WuQtUtilities::setToolButtonStyleForQt5Mac(fileSelectionToolButton);
     
     return fileSelectionToolButton;
 }
@@ -295,9 +299,12 @@ AnnotationInsertNewWidget::createFileSelectionToolButton()
  * 
  * @param annotationType
  *     The annotation type.
+ * @param actionGroup
+ *     Action group to which button is added to make button exclusive.
  */
 QToolButton*
-AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum annotationType)
+AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum annotationType,
+                                                 QActionGroup* actionGroup)
 {
     const QString typeGuiName = AnnotationTypeEnum::toGuiName(annotationType);
     QToolButton* toolButton = new QToolButton();
@@ -316,6 +323,13 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
     action->setChecked(false);
     
     toolButton->setDefaultAction(action);
+    
+    /*
+     * Must set style AFTER button is added to action group
+     * so that checked property is enabled for button
+     */
+    actionGroup->addAction(action);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }
@@ -470,9 +484,12 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
  *
  * @param annotationSpace
  *     The annotation space
+ * @param actionGroup
+ *     Action group to which button is added to make button exclusive.
  */
 QToolButton*
-AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpaceEnum::Enum annotationSpace)
+AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                 QActionGroup* actionGroup)
 {
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -504,10 +521,17 @@ AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpace
 
     action->setData((int)AnnotationCoordinateSpaceEnum::toIntegerCode(annotationSpace));
     action->setToolTip(AnnotationCoordinateSpaceEnum::toToolTip(annotationSpace));
-    toolButton->setDefaultAction(action);
-    
     action->setCheckable(true);
     action->setChecked(false);
+    
+    toolButton->setDefaultAction(action);
+    
+    /*
+     * Must set style AFTER button is added to action group
+     * so that checked property is enabled for button
+     */
+    actionGroup->addAction(action);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }

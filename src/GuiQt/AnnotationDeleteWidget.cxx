@@ -136,6 +136,7 @@ AnnotationDeleteWidget::createDeleteToolButton()
     
     toolButton->setIconSize(pixmap.size());
     toolButton->setDefaultAction(m_deleteToolButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }

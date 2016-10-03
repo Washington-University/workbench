@@ -144,7 +144,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                                      QAction* windowAspectRatioLockedAction,
                                                      QAction* tabAspectRatioLockedAction,
                                                      BrainBrowserWindow* parentBrainBrowserWindow)
-: QToolBar(0) //parentBrainBrowserWindow)
+: QToolBar(parentBrainBrowserWindow)
 {
     this->browserWindowIndex = browserWindowIndex;
     this->updateCounter = 0;
@@ -298,6 +298,14 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                       toolBarToolButton,
                                       overlayToolBoxToolButton,
                                       layersToolBoxToolButton);
+    
+    WuQtUtilities::setToolButtonStyleForQt5Mac(helpDialogToolButton);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(informationDialogToolButton);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(identifyDialogToolButton);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(sceneDialogToolButton);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(toolBarToolButton);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(overlayToolBoxToolButton);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(layersToolBoxToolButton);
     
     /*
      * Tab bar and controls at far right side of toolbar

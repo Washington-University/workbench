@@ -284,6 +284,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     drawAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_CREATE));
     QToolButton* drawToolButton = new QToolButton();
     drawToolButton->setDefaultAction(drawAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(drawToolButton);
     
     /*
      * Erase
@@ -301,6 +302,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     eraseAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_ERASE));
     QToolButton* eraseToolButton = new QToolButton();
     eraseToolButton->setDefaultAction(eraseAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(eraseToolButton);
     
     /*
      * Extend
@@ -322,6 +324,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     extendAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_EXTEND));
     QToolButton* extendToolButton = new QToolButton();
     extendToolButton->setDefaultAction(extendAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(extendToolButton);
     
     /*
      * Replace
@@ -343,6 +346,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     replaceAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_REPLACE));
     QToolButton* replaceToolButton = new QToolButton();
     replaceToolButton->setDefaultAction(replaceAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(replaceToolButton);
     
     /*
      * Optimize
@@ -357,6 +361,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     optimizeAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_OPTIMIZE));
     QToolButton* optimizeToolButton = new QToolButton();
     optimizeToolButton->setDefaultAction(optimizeAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(optimizeToolButton);
     
     /*
      * Finish
@@ -371,6 +376,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                         SLOT(drawFinishButtonClicked()));
     QToolButton* finishToolButton = new QToolButton();
     finishToolButton->setDefaultAction(finishAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(finishToolButton);
     
     /*
      * Undo
@@ -388,6 +394,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     undoToolButton->setAutoRepeat(true);
     undoToolButton->setAutoRepeatDelay(500);  // 500ms = 1/2 second
     undoToolButton->setAutoRepeatInterval(100);  // 100ms = 1/10 second
+    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
     
     
     QAction* undoFinishAction = WuQtUtilities::createAction("Undo Finish",
@@ -398,6 +405,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                       SLOT(drawUndoLastEditButtonClicked()));
     m_undoFinishToolButton = new QToolButton();
     m_undoFinishToolButton->setDefaultAction(undoFinishAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_undoFinishToolButton);
     
     /*
      * Reset
@@ -409,6 +417,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                        SLOT(drawResetButtonClicked()));
     QToolButton* resetToolButton = new QToolButton();
     resetToolButton->setDefaultAction(resetAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
     
     this->drawOperationActionGroup = new QActionGroup(this);
     this->drawOperationActionGroup->addAction(drawAction);
@@ -988,6 +997,7 @@ UserInputModeBordersWidget::createEditOperationWidget()
     deleteAction->setData(static_cast<int>(UserInputModeBorders::EDIT_OPERATION_DELETE));
     QToolButton* deleteToolButton = new QToolButton();
     deleteToolButton->setDefaultAction(deleteAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(deleteToolButton);
     
     const AString propertiesToolTipText = ("A dialog for editing a border's properties is displayed by "
                                            "clicking any point in a border."
@@ -999,6 +1009,7 @@ UserInputModeBordersWidget::createEditOperationWidget()
     propertiesAction->setData(static_cast<int>(UserInputModeBorders::EDIT_OPERATION_PROPERTIES));
     QToolButton* propertiesToolButton = new QToolButton();
     propertiesToolButton->setDefaultAction(propertiesAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(propertiesToolButton);
     
     this->editOperationActionGroup = new QActionGroup(this);
     this->editOperationActionGroup->addAction(deleteAction);

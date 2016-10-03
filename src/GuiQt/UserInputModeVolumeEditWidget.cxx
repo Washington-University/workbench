@@ -236,6 +236,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                     "Create a new volume file that will become the top-most overlay",
                                                                     this,
                                                                     this, SLOT(newFileActionTriggered())));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_newFileToolButton);
     
     m_addMapsToolButton = new QToolButton();
     m_addMapsToolButton->setDefaultAction(WuQtUtilities::createAction("Add",
@@ -243,6 +244,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                        "First new map will become the top-most overlay."),
                                                                       this,
                                                                       this, SLOT(addMapsActionTriggered())));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_addMapsToolButton);
     
     m_lockAction = WuQtUtilities::createAction("Lock",
                                                "Lock/unlock volume file to disallow/allow editing",
@@ -251,6 +253,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     m_lockAction->setCheckable(true);
     QToolButton* lockFileToolButton = new QToolButton();
     lockFileToolButton->setDefaultAction(m_lockAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(lockFileToolButton);
     
     
     QLabel* editLabel = new QLabel("Edit:");
@@ -260,6 +263,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                     "Undo the last volume edit",
                                                                     this,
                                                                     this, SLOT(undoActionTriggered())));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
     
     
     QToolButton* redoToolButton = new QToolButton();
@@ -267,6 +271,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                     "Redo (or is it undo) the last undo",
                                                                     this,
                                                                     this, SLOT(redoActionTriggered())));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
     
     
     QToolButton* resetToolButton = new QToolButton();
@@ -274,6 +279,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                     "Reset all edting of the volume",
                                                                     this,
                                                                     this, SLOT(resetActionTriggered())));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
 
     QLabel* brushSizeLabel = new QLabel("Brush Size:");
     const int MIN_BRUSH_SIZE = 1;
@@ -313,6 +319,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                           this, SLOT(labelValueActionTriggered()));
     m_voxelLabelValueToolButton = new QToolButton();
     m_voxelLabelValueToolButton->setDefaultAction(m_voxelLabelValueAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_voxelLabelValueToolButton);
     
     const int SPACE = 10;
     QWidget* widget = new QWidget();
@@ -386,6 +393,7 @@ UserInputModeVolumeEditWidget::createModeToolBar()
         
         QToolButton* toolButton = new QToolButton();
         toolButton->setDefaultAction(action);
+        WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
 
         layout->addWidget(toolButton);
     }

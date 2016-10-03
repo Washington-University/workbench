@@ -107,6 +107,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_backgroundToolButton = new QToolButton();
     m_backgroundToolButton->setDefaultAction(m_backgroundColorAction);
     m_backgroundToolButton->setIconSize(toolButtonSize);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_backgroundToolButton);
     
     /*
      * Widget/object group for background widgets
@@ -134,6 +135,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_lineToolButton = new QToolButton();
     m_lineToolButton->setDefaultAction(m_lineColorAction);
     m_lineToolButton->setIconSize(toolButtonSize);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_lineToolButton);
     
     /*
      * Line thickness

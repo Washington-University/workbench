@@ -65,6 +65,7 @@ m_browserWindowIndex(browserWindowIndex)
                                                SLOT(redoActionTriggered()));
     QToolButton* redoToolButton = new QToolButton();
     redoToolButton->setDefaultAction(m_redoAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
     
     m_undoAction = WuQtUtilities::createAction("Undo",
                                                "Undo ToolTip",
@@ -73,6 +74,7 @@ m_browserWindowIndex(browserWindowIndex)
                                                SLOT(undoActionTriggered()));
     QToolButton* undoToolButton = new QToolButton();
     undoToolButton->setDefaultAction(m_undoAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);

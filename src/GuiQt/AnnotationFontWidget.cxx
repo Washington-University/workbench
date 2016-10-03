@@ -136,6 +136,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_textColorToolButton = new QToolButton();
     m_textColorToolButton->setDefaultAction(m_textColorAction);
     m_textColorToolButton->setIconSize(toolButtonSize);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_textColorToolButton);
     
     QToolButton* boldFontToolButton      = NULL;
     QToolButton* italicFontToolButton    = NULL;
@@ -155,6 +156,7 @@ m_browserWindowIndex(browserWindowIndex)
             m_boldFontAction->setCheckable(true);
             boldFontToolButton = new QToolButton();
             boldFontToolButton->setDefaultAction(m_boldFontAction);
+            WuQtUtilities::setToolButtonStyleForQt5Mac(boldFontToolButton);
             
             /*
              * Change the bold toolbutton's font to bold.
@@ -171,6 +173,7 @@ m_browserWindowIndex(browserWindowIndex)
             m_italicFontAction->setCheckable(true);
             italicFontToolButton = new QToolButton();
             italicFontToolButton->setDefaultAction(m_italicFontAction);
+            WuQtUtilities::setToolButtonStyleForQt5Mac(italicFontToolButton);
             
             /*
              * Change the italic toolbutton's font to italic.
@@ -187,6 +190,7 @@ m_browserWindowIndex(browserWindowIndex)
             m_underlineFontAction->setCheckable(true);
             underlineFontToolButton = new QToolButton();
             underlineFontToolButton->setDefaultAction(m_underlineFontAction);
+            WuQtUtilities::setToolButtonStyleForQt5Mac(underlineFontToolButton);
             
             /*
              * Change the underline toolbutton's font to underline.

@@ -1402,12 +1402,25 @@ WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
 {
 #ifdef CARET_OS_MACOSX
 #if QT_VERSION >= 0x050000
+    bool hasMenuFlag = false;
+    bool hasCheckableFlag = false;
+    QAction* action = toolButton->defaultAction();
+    if (action != NULL) {
+        if (action->menu() != NULL) {
+            hasMenuFlag = true;
+        }
+        if (action->isCheckable()) {
+            hasCheckableFlag = true;
+        }
+    }
+    
     const QPalette palette = toolButton->palette();
     const QPalette::ColorRole backgroundRole = toolButton->backgroundRole();
     const QBrush backgroundBrush = palette.brush(backgroundRole);
     const QColor backgroundColor = backgroundBrush.color();
     const QColor lighterColor    = backgroundColor.lighter(100);
     const QColor darkerColor = backgroundColor.darker(125);
+    const QColor slightlyDarkerColor = backgroundColor.darker(115);
     
     /*
      * Use a stylesheet to:
@@ -1415,17 +1428,48 @@ WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
      * (2) Add a border around the button that is slightly
      *     darker than the background.
      */
-    const QString toolButtonStyleSheet(" QToolButton { "
-                                       "   background: " + lighterColor.name() + "; "
-                                       "   border-style: solid; "
-                                       "   border-width: 1px; "
-                                       "   border-color: " + darkerColor.name() + "; "
-                                       "   padding-top:    1px; "
-                                       "   padding-bottom: 1px; "
-                                       "   padding-right:  3px; "
-                                       "   padding-left:   3px; "
-                                       " }");
+    QString toolButtonStyleSheet(" QToolButton { "
+                                 "   background: " + lighterColor.name() + "; ");
+    if (hasMenuFlag) {
+//        toolButtonStyleSheet.append("   border-style: solid; "
+//                                    "   border-width: 1px; "
+//                                    "   border-color: " + darkerColor.name() + "; "
+//                                    "   padding-top:    6px; "
+//                                    "   padding-bottom: 6px; "
+//                                    "   padding-right:  4px; "
+//                                    "   padding-left:   3px; ");
+    }
+    else {
+        toolButtonStyleSheet.append("   border-style: solid; "
+                                    "   border-width: 1px; "
+                                    "   border-color: " + darkerColor.name() + "; "
+                                    "   padding-top:    2px; "
+                                    "   padding-bottom: 2px; "
+                                    "   padding-right:  3px; "
+                                    "   padding-left:   3px; ");
+    }
+    toolButtonStyleSheet.append(" } ");
+    
+    if (hasCheckableFlag) {
+        /*
+         * Background color when button is "checked"
+         */
+        toolButtonStyleSheet.append(" QToolButton:checked { "
+                                    "   background-color: " + slightlyDarkerColor.name() + "; "
+                                    " } ");
+    }
+    else {
+        /*
+         * Background color when button is "pressed"
+         */
+        toolButtonStyleSheet.append(" QToolButton:pressed { "
+                                    "   background-color: " + slightlyDarkerColor.name() + "; "
+                                    " } ");
+    }
+    
     toolButton->setStyleSheet(toolButtonStyleSheet);
+    
+    //std::cout << qPrintable(toolButton->text() + "   " + toolButtonStyleSheet + "\n\n");
 #endif
 #endif
 }

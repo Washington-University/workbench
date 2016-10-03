@@ -379,6 +379,7 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentToolButton(const Annotat
     action->setIcon(QIcon(pixmap));
     toolButton->setDefaultAction(action);
     toolButton->setIconSize(pixmap.size());
+    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }
@@ -418,6 +419,7 @@ AnnotationTextAlignmentWidget::createVerticalAlignmentToolButton(const Annotatio
     action->setIcon(QIcon(pixmap));
     toolButton->setDefaultAction(action);
     toolButton->setIconSize(pixmap.size());
+    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }

@@ -58,9 +58,11 @@ namespace caret {
 
         AnnotationInsertNewWidget& operator=(const AnnotationInsertNewWidget&);
         
-        QToolButton* createShapeToolButton(const AnnotationTypeEnum::Enum annotationType);
+        QToolButton* createShapeToolButton(const AnnotationTypeEnum::Enum annotationType,
+                                           QActionGroup* actionGroup);
         
-        QToolButton* createSpaceToolButton(const AnnotationCoordinateSpaceEnum::Enum annotationSpace);
+        QToolButton* createSpaceToolButton(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                           QActionGroup* actionGroup);
         
         QPixmap createShapePixmap(const QWidget* widget,
                                   const AnnotationTypeEnum::Enum annotationType);

@@ -175,6 +175,7 @@ m_browserWindowIndex(browserWindowIndex)
                                                                    this,
                                                                    SLOT(setCoordinateActionTriggered()));
         setCoordinateToolButton->setDefaultAction(setCoordinateAction);
+        WuQtUtilities::setToolButtonStyleForQt5Mac(setCoordinateToolButton);
     }
     
     m_surfaceWidget = new QWidget();
