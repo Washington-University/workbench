@@ -1083,6 +1083,21 @@ BrainOpenGLWidget::performIdentification(const int x,
                                   y,
                                   applySelectionBackgroundFiltering);
     }
+    
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /*
+     * Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation) so 
+     * there is no "back" or "front buffer".  Since
+     * identification is encoded in the framebuffer,
+     * it is necessary to repaint (udpates graphics
+     * immediately) to redraw the models.  Otherwise,
+     * the graphics flash with strange looking drawing.
+     */
+    this->repaint();
+    this->doneCurrent();
+#endif
+    
     return idManager;
 }
 
@@ -1128,6 +1143,20 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
                                   y,
                                   true);
     }
+
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /*
+     * Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation) so
+     * there is no "back" or "front buffer".  Since
+     * identification is encoded in the framebuffer,
+     * it is necessary to repaint (udpates graphics
+     * immediately) to redraw the models.  Otherwise,
+     * the graphics flash with strange looking drawing.
+     */
+    this->repaint();
+    this->doneCurrent();
+#endif
     
     return annotationID;
 }
@@ -1176,6 +1205,21 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
                                   y,
                                   true);
     }
+    
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /*
+     * Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation) so
+     * there is no "back" or "front buffer".  Since
+     * identification is encoded in the framebuffer,
+     * it is necessary to repaint (udpates graphics
+     * immediately) to redraw the models.  Otherwise,
+     * the graphics flash with strange looking drawing.
+     */
+    this->repaint();
+    this->doneCurrent();
+#endif
+    
     return idManager;
 }
 
@@ -1214,6 +1258,20 @@ BrainOpenGLWidget::performProjection(const int x,
                                      y,
                                      projectionOut);
     }
+    
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /*
+     * Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation) so
+     * there is no "back" or "front buffer".  Since
+     * identification is encoded in the framebuffer,
+     * it is necessary to repaint (udpates graphics
+     * immediately) to redraw the models.  Otherwise,
+     * the graphics flash with strange looking drawing.
+     */
+    this->repaint();
+    this->doneCurrent();
+#endif
 }
 
 /**
