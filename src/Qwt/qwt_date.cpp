@@ -614,7 +614,11 @@ int QwtDate::utcOffset( const QDateTime &dateTime )
         }
         case Qt::OffsetFromUTC:
         {
+#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
+            seconds = dateTime.offsetFromUtc();
+#else
             seconds = dateTime.utcOffset();
+#endif
         }
         default:
         {

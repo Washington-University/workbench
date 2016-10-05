@@ -7,6 +7,7 @@
  * modify it under the terms of the Qwt License, Version 1.0
  *****************************************************************************/
 
+#include <algorithm>
 #include "qwt_clipper.h"
 #include "qwt_point_polar.h"
 #include <qrect.h>
@@ -351,7 +352,11 @@ QVector<QwtInterval> QwtCircleClipper::clipCircle(
         QList<double> angles;
         for ( int i = 0; i < points.size(); i++ )
             angles += toAngle( pos, points[i] );
+#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
+        std::sort(angles.begin(), angles.end());
+#else
         qSort( angles );
+#endif
 
         const int in = d_rect.contains( qwtPolar2Pos( pos, radius,
             angles[0] + ( angles[1] - angles[0] ) / 2 ) );

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "quazipdir.h"
 
 #include <QSet>
@@ -356,7 +357,11 @@ bool QuaZipDirPrivate::entryInfoList(QStringList nameFilters,
                 == Qt::CaseInsensitive)
             srt |= QDir::IgnoreCase;
         QuaZipDirComparator lessThan(srt);
+#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
+        std::sort(list.begin(), list.end(), lessThan);
+#else
         qSort(list.begin(), list.end(), lessThan);
+#endif
     }
     QuaZipDir_convertInfoList(list, result);
     return true;

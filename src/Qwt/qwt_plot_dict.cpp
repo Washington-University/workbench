@@ -7,6 +7,7 @@
  * modify it under the terms of the Qwt License, Version 1.0
  *****************************************************************************/
 
+#include <algorithm>
 #include "qwt_plot_dict.h"
 
 class QwtPlotDict::PrivateData
@@ -22,7 +23,11 @@ public:
                 return;
 
             QList<QwtPlotItem *>::iterator it =
-                qUpperBound( begin(), end(), item, LessZThan() );
+#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
+            std::upper_bound( begin(), end(), item, LessZThan() );
+#else
+            qUpperBound( begin(), end(), item, LessZThan() );
+#endif
             insert( it, item );
         }
 
@@ -32,7 +37,11 @@ public:
                 return;
 
             QList<QwtPlotItem *>::iterator it =
-                qLowerBound( begin(), end(), item, LessZThan() );
+#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
+            std::lower_bound( begin(), end(), item, LessZThan() );
+#else
+            qLowerBound( begin(), end(), item, LessZThan() );
+#endif
 
             for ( ; it != end(); ++it )
             {

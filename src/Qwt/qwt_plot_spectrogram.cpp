@@ -7,6 +7,8 @@
  * modify it under the terms of the Qwt License, Version 1.0
  *****************************************************************************/
 
+#include <algorithm>
+
 #include "qwt_plot_spectrogram.h"
 #include "qwt_painter.h"
 #include "qwt_interval.h"
@@ -286,8 +288,12 @@ bool QwtPlotSpectrogram::testConrecFlag(
 void QwtPlotSpectrogram::setContourLevels( const QList<double> &levels )
 {
     d_data->contourLevels = levels;
+#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
+    std::sort(d_data->contourLevels.begin(), d_data->contourLevels.end());
+#else
     qSort( d_data->contourLevels );
-
+#endif
+    
     legendChanged();
     itemChanged();
 }

@@ -1117,7 +1117,12 @@ QDateTime QwtDateScaleEngine::alignDate(
 
     if ( dateTime.timeSpec() == Qt::OffsetFromUTC )
     {
+        dt = dt.addSecs( d_data->utcOffset );
+#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
+        dt.setOffsetFromUtc( 0 );
+#else
         dt.setUtcOffset( 0 );
+#endif
     }
 
     switch( intervalType )
@@ -1275,7 +1280,12 @@ QDateTime QwtDateScaleEngine::alignDate(
 
     if ( dateTime.timeSpec() == Qt::OffsetFromUTC )
     {
+        dt = dt.addSecs( d_data->utcOffset );
+#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
+        dt.setOffsetFromUtc( dateTime.offsetFromUtc() );
+#else
         dt.setUtcOffset( dateTime.utcOffset() );
+#endif
     }
 
     return dt;
@@ -1303,7 +1313,12 @@ QDateTime QwtDateScaleEngine::toDateTime( double value ) const
     if ( d_data->timeSpec == Qt::OffsetFromUTC )
     {
         dt = dt.addSecs( d_data->utcOffset );
+        dt = dt.addSecs( d_data->utcOffset );
+#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
+        dt.setOffsetFromUtc( d_data->utcOffset );
+#else
         dt.setUtcOffset( d_data->utcOffset );
+#endif
     }
 
     return dt;
