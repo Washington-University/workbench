@@ -101,12 +101,12 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
             for (int j = 0; j < numColumnOpts; ++j)
             {
                 int64_t initialColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpts[j]->getString(1));//this function has the 1-indexing convention built in
-                if (initialColumn < 0 || initialColumn >= thisDims[0]) throw OperationException("column '" + AString::number(initialColumn + 1) + "' not valid in file '" + ciftiIn->getFileName() + "'");
+                if (initialColumn < 0 || initialColumn >= thisDims[0]) throw OperationException("column '" + columnOpts[j]->getString(1) + "' not valid in file '" + ciftiIn->getFileName() + "'");
                 OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
                 if (upToOpt->m_present)
                 {
                     int finalColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(upToOpt->getString(1));//ditto
-                    if (finalColumn < 0 || finalColumn >= thisDims[0]) throw OperationException("ending column '" + AString::number(finalColumn + 1) + "' not valid in file '" + ciftiIn->getFileName() + "'");
+                    if (finalColumn < 0 || finalColumn >= thisDims[0]) throw OperationException("ending column '" + columnOpts[j]->getString(1) + "' not valid in file '" + ciftiIn->getFileName() + "'");
                     if (finalColumn < initialColumn) throw OperationException("ending column occurs before starting column in file '" + ciftiIn->getFileName() + "'");
                     numOutColumns += finalColumn - initialColumn + 1;//inclusive - we don't need to worry about reversing for counting, though
                 } else {
@@ -156,7 +156,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
                 for (int j = 0; j < numColumnOpts; ++j)
                 {
                     int64_t initialColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpts[j]->getString(1));//this function has the 1-indexing convention built in
-                    OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
+                    OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);//we already checked that these strings give a valid column
                     if (upToOpt->m_present)
                     {
                         int finalColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(upToOpt->getString(1));//ditto
@@ -273,7 +273,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
                 for (int j = 0; j < numColumnOpts; ++j)
                 {
                     int64_t initialColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpts[j]->getString(1));//this function has the 1-indexing convention built in
-                    OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
+                    OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);//we already checked that these strings give a valid column
                     if (upToOpt->m_present)
                     {
                         int finalColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(upToOpt->getString(1));//ditto
