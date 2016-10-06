@@ -76,7 +76,7 @@ function _wb_command()
     return 0
 }
 
-complete -o bashdefault -o default -F _wb_command wb_command
+complete -o filenames -o bashdefault -o default -F _wb_command wb_command
 
 #completion for wb_shortcuts - could be a separate file, but this is simpler
 
