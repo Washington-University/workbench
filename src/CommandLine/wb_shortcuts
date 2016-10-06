@@ -192,7 +192,7 @@ function cifti_concatenate ()
     local -a merge_arg_array
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-cifti" "${!i}" "${maparg[@]}")
+        merge_arg_array+=("-cifti" "${!i}" ${maparg[@]+"${maparg[@]}"})
     done
     wb_command -cifti-merge "$1" "${merge_arg_array[@]}"
 }
@@ -503,7 +503,7 @@ function label_concatenate ()
     local i
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-label" "${!i}" "${maparg[@]}")
+        merge_arg_array+=("-label" "${!i}" ${maparg[@]+"${maparg[@]}"})
     done
     wb_command -label-merge "$1" "${merge_arg_array[@]}"
 }
@@ -548,7 +548,7 @@ function metric_concatenate ()
     local i
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-metric" "${!i}" "${maparg[@]}")
+        merge_arg_array+=("-metric" "${!i}" ${maparg[@]+"${maparg[@]}"})
     done
     wb_command -metric-merge "$1" "${merge_arg_array[@]}"
 }
@@ -622,9 +622,13 @@ function volume_concatenate ()
     fi
     local -a merge_arg_array
     local i
+    #we INTENTIONALLY expand an empty array to 0 elements, but set -u doesn't like this, and there is no simple syntax to tell it to allow it
+    #so, use complicated syntax to tell it to allow it
+    #this syntax is apparently UNDOCUMENTED, but it came from stackoverflow, and it works, so it must be right
+    #http://stackoverflow.com/questions/7577052/bash-empty-array-expansion-with-set-u
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-volume" "${!i}" "${maparg[@]}")
+        merge_arg_array+=("-volume" "${!i}" ${maparg[@]+"${maparg[@]}"})
     done
     wb_command -volume-merge "$1" "${merge_arg_array[@]}"
 }
