@@ -61,7 +61,7 @@ OperationParameters* AlgorithmCiftiCrossCorrelation::getParameters()
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
     ret->setHelpText(
-        AString("Correlates every rown in <cifti-a> with every row in <cifti-b>.  ") +
+        AString("Correlates every row in <cifti-a> with every row in <cifti-b>.  ") +
         "The mapping along columns in <cifti-b> becomes the mapping along rows in the output.\n\n" +
         "When using the -fisher-z option, the output is NOT a Z-score, it is artanh(r), to do further math on this output, consider using -cifti-math.\n\n" +
         "Restricting the memory usage will make it calculate the output in chunks, by reading through <cifti-b> multiple times."
