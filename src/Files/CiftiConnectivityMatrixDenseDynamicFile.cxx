@@ -33,6 +33,7 @@
 #include "CiftiFile.h"
 #include "FileInformation.h"
 #include "SceneClassAssistant.h"
+#include "dot_wrapper.h"
 
 using namespace caret;
 
@@ -488,21 +489,12 @@ CiftiConnectivityMatrixDenseDynamicFile::correlation(const std::vector<float>& d
     const RowData& otherData = m_rowData[otherRowIndex];
     
     if (m_cacheDataFlag) {
-        for (int i = 0; i < numberOfPoints; i++) {
-            CaretAssertVectorIndex(data, i);
-            CaretAssertVectorIndex(otherData.m_data, i);
-            xySum += data[i] * otherData.m_data[i];
-        }
+        xySum = sddot(&data[0], &otherData.m_data[0], numberOfPoints);
     }
     else {
         std::vector<float> otherDataVector(m_numberOfTimePoints);
         m_parentDataSeriesCiftiFile->getRow(&otherDataVector[0], otherRowIndex);
-        
-        for (int i = 0; i < numberOfPoints; i++) {
-            CaretAssertVectorIndex(data, i);
-            CaretAssertVectorIndex(otherDataVector, i);
-            xySum += data[i] * otherDataVector[i];
-        }
+        xySum = sddot(&data[0], &otherDataVector[0], numberOfPoints);
     }
     
     const double ssxy = xySum - (numFloat * mean * otherData.m_mean);

@@ -30,6 +30,7 @@
 #include "CaretOMP.h"
 #include "FileInformation.h"
 #include "CaretPointer.h"
+#include "dot_wrapper.h"
 #include <fstream>
 #include <utility>
 #include <algorithm>
@@ -525,12 +526,8 @@ float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1,
     } else {
         if (m_weightedMode)
         {
-            int numWeights = (int)m_weightIndexes.size();
-            double accum = 0.0;
-            for (int i = 0; i < numWeights; ++i)//because we compacted the data in the row to not include any zero weights
-            {
-                accum += row1[i] * row2[i];//these have already had the weighted row means subtracted out, and weights applied
-            }
+            int numWeights = (int)m_weightIndexes.size();//because we compacted the data in the row to not include any zero weights
+            double accum = sddot(row1, row2, numWeights);//these have already had the weighted row means subtracted out, and weights applied
             if (m_covariance)
             {
                 if (m_binaryWeights)
@@ -543,11 +540,7 @@ float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1,
                 r = accum / (rrs1 * rrs2);//as do these
             }
         } else {
-            double accum = 0.0;
-            for (int i = 0; i < m_numCols; ++i)
-            {
-                accum += row1[i] * row2[i];//these have already had the row means subtracted out
-            }
+            double accum = sddot(row1, row2, m_numCols);//these have already had the row means subtracted out
             if (m_covariance)
             {
                 r = accum / m_numCols;
