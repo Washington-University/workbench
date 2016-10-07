@@ -31,6 +31,7 @@
 #include "SurfaceFile.h"
 #include "Vector3D.h"
 #include "VolumeFile.h"
+#include "dot_wrapper.h"
 #include <cmath>
 
 using namespace caret;
@@ -894,11 +895,7 @@ float AlgorithmCiftiCorrelationGradient::correlate(const float* row1, const floa
     {
         r = 1.0;//short circuit for same row
     } else {
-        double accum = 0.0;
-        for (int i = 0; i < m_numCols; ++i)
-        {
-            accum += row1[i] * row2[i];//these have already had the row means subtracted out
-        }
+        double accum = sddot(row1, row2, m_numCols);//these have already had the row means subtracted out
         if (m_covariance)
         {
             r = accum / m_numCols;

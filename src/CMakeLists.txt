@@ -184,6 +184,33 @@ endif()
 ENDIF (NOT MSVC)
 
 #
+# If GNU compiler, use SIMD-based dot computation, if possible
+#
+if (CMAKE_COMPILER_IS_GNUCC)
+
+    #
+    # Define flag to avoid trying to compile SIMD stuff (coded for x86 only)
+    #
+    SET(WORKBENCH_USE_SIMD TRUE CACHE BOOL "try to compile with SIMD support")
+
+    #
+    # If we should try to use SIMD, check whether cpuinfo compiles
+    #
+    IF (WORKBENCH_USE_SIMD)
+        TRY_COMPILE(CPUINFO_COMPILES ${CMAKE_CURRENT_BINARY_DIR}/cpuinfo_compile_test ${CMAKE_CURRENT_SOURCE_DIR}/kloewe/cpuinfo cpuinfo)
+        MESSAGE("CPUINFO_COMPILES: ${CPUINFO_COMPILES}")
+    ENDIF (WORKBENCH_USE_SIMD)
+
+    #
+    # Add the necessary definition and include directory to enable the SIMD-based dot product implementations
+    #
+    if (WORKBENCH_USE_SIMD AND CPUINFO_COMPILES)
+        ADD_DEFINITIONS(-DCARET_DOTFCN)
+        INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/kloewe/dot/src)
+    endif()
+endif()
+
+#
 # will set name of XCode project:  
 # disabled at this time
 #
@@ -462,6 +489,10 @@ ADD_SUBDIRECTORY ( Commands )
 ADD_SUBDIRECTORY ( Desktop )
 ADD_SUBDIRECTORY ( CommandLine )
 ADD_SUBDIRECTORY ( Tests )
+if (WORKBENCH_USE_SIMD AND CPUINFO_COMPILES)
+    ADD_SUBDIRECTORY ( kloewe/cpuinfo )
+    ADD_SUBDIRECTORY ( kloewe/dot )
+ENDIF()
 
 #
 #CTest tests
