@@ -13,7 +13,7 @@ MESSAGE("\nCMake Version: ${CMAKE_VERSION}\n")
 #TSC: use "CACHE <type> <docstring>" syntax in SET commands so they can be overridden by cmake options
 
 set (WORKBENCH_QT5_DEPRECATED_FATAL_ERROR FALSE CACHE BOOL "If TRUE, produce fatal compiler error for Qt 5 deprecated functionality")
-set (WORKBENCH_USE_QT5 FALSE CACHE BOOL "Enable search for Qt 5.x libraries")
+set (WORKBENCH_USE_QT5 FALSE CACHE BOOL "Enable search for Qt 5.x libraries.  Must be passed as an argument to CMake:  cmake -DWORKBENCH_USE_QT5=TRUE <path-to-source>")
 set (WORKBENCH_USE_QT5_QOPENGL_WIDGET FALSE CACHE BOOL "If Qt 5.x is used, use QOpenGLWidget instead of deprecated QGLWidget")
 
 #
