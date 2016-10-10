@@ -38,6 +38,10 @@ Copyright (C) 2014-2016 Washington University School of Medicine
 
 Some included code/files are from third party sources, with the following licenses:
 
+kloewe/*:
+Copyright (c) 2012-2016 Kristian Loewe, Christian Borgelt
+licensed under MIT (Expat), see kloewe/dot/LICENSE and kloewe/cpuinfo/LICENSE
+
 Quazip/*:
 QuaZIP 0.6, http://quazip.sourceforge.net/
 Copyright (C) 2005-2012 Sergey A. Tachenov
