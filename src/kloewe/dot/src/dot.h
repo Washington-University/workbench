@@ -14,13 +14,13 @@ extern "C"
 /*----------------------------------------------------------------------------
   Enum to encode the sets of dot implementations
 ----------------------------------------------------------------------------*/
-enum flags {
+typedef enum {
     DOT_NAIVE  = 1,   // plain C
     DOT_SSE2   = 2,   // SSE2
     DOT_AVX    = 3,   // AVX
     DOT_AVXFMA = 4,   // AVX+FMA3
     DOT_AUTO   = 100  // automatic choice
-};
+} dot_flags;
 // Using dot_set_impl(), these values are used to specify the set of
 // implementations to be used. The values/sets are ordered chronologically wrt
 // the advent of the prerequisite instruction set extensions, with DOT_NAIVE
@@ -67,7 +67,7 @@ inline double sddot        (const float  *a, const float  *b, int n);
  * returns
  * the enum value corresponding to the selected set of implementations
  */
-extern int    dot_set_impl (int   impl);
+extern dot_flags    dot_set_impl (dot_flags   impl);
 
 
 extern float  sdot_select  (const float  *a, const float  *b, int n);

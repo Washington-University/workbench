@@ -39,7 +39,7 @@ double sddot_select (const float *a, const float *b, int n) {
   return (*sddot_ptr)(a,b,n);
 }
 
-int    dot_set_impl (int impl) {
+dot_flags    dot_set_impl (dot_flags impl) {
   #ifndef DOT_NOFMA
   // the AVX-FMA implementations are currently slower than the AVX
   // implementations and are thus only used if explicitly requested
