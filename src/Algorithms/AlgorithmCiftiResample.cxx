@@ -60,11 +60,11 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     
     ret->addCiftiParameter(1, "cifti-in", "the cifti file to resample");
     
-    ret->addStringParameter(2, "direction", "the direction of the input that should be resampled");
+    ret->addStringParameter(2, "direction", "the direction of the input that should be resampled, ROW or COLUMN");
     
     ret->addCiftiParameter(3, "cifti-template", "a cifti file containing the cifti space to resample to");
     
-    ret->addStringParameter(4, "template-direction", "the direction of the template to use as the resampling space");
+    ret->addStringParameter(4, "template-direction", "the direction of the template to use as the resampling space, ROW or COLUMN");
     
     ret->addStringParameter(5, "surface-method", "specify a surface resampling method");
     
@@ -134,7 +134,7 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
         AString("Resample cifti data to a different brainordinate space.  Use COLUMN for the direction to resample dscalar, dlabel, or dtseries.  ") +
         "Resampling both dimensions of a dconn requires running this command twice, once with COLUMN and once with ROW.  " +
         "If you are resampling a dconn and your machine has a large amount of memory, you might consider using -cifti-resample-dconn-memory to avoid writing and rereading an intermediate file.  " +
-        "The <template-direction> argument should usually be COLUMN, but may be ROW if the template is an asymmetric dconn, or an unusual type of cifti file.  " +
+        "The <template-direction> argument should usually be COLUMN.  " +
         "If spheres are not specified for a surface structure which exists in the cifti files, its data is copied without resampling or dilation.  " +
         "Dilation is done with the 'nearest' method, and is done on <new-sphere> for surface data.  " +
         "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.  " +
