@@ -1742,6 +1742,8 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
     glfmt.setDirectRendering(true);
     glfmt.setDoubleBuffer(true);
     glfmt.setOverlay(false);
+    glfmt.setProfile(QGLFormat::CompatibilityProfile);
+    glfmt.setVersion(2, 1);
     glfmt.setSampleBuffers(false);
     glfmt.setStencil(false);
     glfmt.setStereo(false);
