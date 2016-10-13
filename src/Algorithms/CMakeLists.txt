@@ -37,6 +37,7 @@ AlgorithmCiftiFalseCorrelation.h
 AlgorithmCiftiFindClusters.h
 AlgorithmCiftiGradient.h
 AlgorithmCiftiLabelAdjacency.h
+AlgorithmCiftiLabelToBorder.h
 AlgorithmCiftiLabelToROI.h
 AlgorithmCiftiMergeDense.h
 AlgorithmCiftiMergeParcels.h
@@ -114,6 +115,7 @@ AlgorithmVolumeExtrema.h
 AlgorithmVolumeFillHoles.h
 AlgorithmVolumeFindClusters.h
 AlgorithmVolumeGradient.h
+AlgorithmVolumeLabelProbability.h
 AlgorithmVolumeLabelToROI.h
 AlgorithmVolumeLabelToSurfaceMapping.h
 AlgorithmVolumeParcelResampling.h
@@ -149,6 +151,7 @@ AlgorithmCiftiFalseCorrelation.cxx
 AlgorithmCiftiFindClusters.cxx
 AlgorithmCiftiGradient.cxx
 AlgorithmCiftiLabelAdjacency.cxx
+AlgorithmCiftiLabelToBorder.cxx
 AlgorithmCiftiLabelToROI.cxx
 AlgorithmCiftiMergeDense.cxx
 AlgorithmCiftiMergeParcels.cxx
@@ -226,6 +229,7 @@ AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeFillHoles.cxx
 AlgorithmVolumeFindClusters.cxx
 AlgorithmVolumeGradient.cxx
+AlgorithmVolumeLabelProbability.cxx
 AlgorithmVolumeLabelToROI.cxx
 AlgorithmVolumeLabelToSurfaceMapping.cxx
 AlgorithmVolumeParcelResampling.cxx

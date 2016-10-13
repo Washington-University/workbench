@@ -43,6 +43,7 @@
 #include "AlgorithmCiftiFindClusters.h"
 #include "AlgorithmCiftiGradient.h"
 #include "AlgorithmCiftiLabelAdjacency.h"
+#include "AlgorithmCiftiLabelToBorder.h"
 #include "AlgorithmCiftiLabelToROI.h"
 #include "AlgorithmCiftiMergeDense.h"
 #include "AlgorithmCiftiMergeParcels.h"
@@ -118,6 +119,7 @@
 #include "AlgorithmVolumeFillHoles.h"
 #include "AlgorithmVolumeFindClusters.h"
 #include "AlgorithmVolumeGradient.h"
+#include "AlgorithmVolumeLabelProbability.h"
 #include "AlgorithmVolumeLabelToROI.h"
 #include "AlgorithmVolumeLabelToSurfaceMapping.h"
 #include "AlgorithmVolumeParcelResampling.h"
@@ -235,6 +237,7 @@
 #include "ProgramParameters.h"
 
 #include "CaretLogger.h"
+#include "dot_wrapper.h"
 #include "StructureEnum.h"
 
 #include <iostream>
@@ -294,6 +297,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiFindClusters()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelAdjacency()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelToBorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMergeDense()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMergeParcels()));
@@ -370,6 +374,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFillHoles()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFindClusters()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelProbability()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToSurfaceMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
@@ -524,6 +529,17 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
         if (!valid) throw CommandException("unrecognized logging level: '" + globalOptionArgs[0] + "'");
         CaretLogger::getLogger()->setLevel(level);
     }
+    if (getGlobalOption(parameters, "-simd", 1, globalOptionArgs))
+    {
+        bool valid = false;
+        const DotSIMDEnum::Enum impl = DotSIMDEnum::fromName(globalOptionArgs[0], &valid);
+        if (!valid) throw CommandException("unrecognized SIMD type: '" + globalOptionArgs[0] + "'");
+        DotSIMDEnum::Enum retval = dot_set_impl(impl);
+        if (impl != DOT_AUTO && retval != impl)
+        {
+            CaretLogWarning("SIMD type '" + DotSIMDEnum::toName(impl) + "' not supported (could be cpu, compiler, or build options), using '" + DotSIMDEnum::toName(retval) + "'");
+        }
+    }
 
     const uint64_t numberOfCommands = this->commandOperations.size();
     const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
@@ -613,7 +629,19 @@ AString CommandOperationManager::doCompletion(ProgramParameters& parameters, con
         }
         return ret;
     }
-    ret = "wordlist -disable-provenance\\ -logging";//we could prevent suggesting an already-provided global option, but that would be a bit surprising
+    OptionInfo simdInfo = parseGlobalOption(parameters, "-simd", 1, globalOptionArgs, true);//the previous option doesn't take arguments, doesn't need completion testing
+    if (simdInfo.specified && !simdInfo.complete)
+    {//user is tab completing the logging option, and as it only takes one argument, we know what the completions are
+        vector<DotSIMDEnum::Enum> simdTypes = DotSIMDEnum::getAllEnums();
+        ret = "wordlist ";
+        for (int i = 0; i < (int)simdTypes.size(); ++i)
+        {
+            if (i != 0) ret += "\\ ";//backslash-escaped space to leave the list of levels as one word
+            ret += DotSIMDEnum::toName(simdTypes[i]);
+        }
+        return ret;
+    }
+    ret = "wordlist -disable-provenance\\ -logging\\ -simd";//we could prevent suggesting an already-provided global option, but that would be a bit surprising
     const uint64_t numberOfCommands = this->commandOperations.size();
     const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
     if (!parameters.hasNext())
@@ -881,6 +909,17 @@ void CommandOperationManager::printHelpInfo()
          iter != logLevels.end();
          iter++) {
         cout << "            " << LogLevelEnum::toName(*iter) << endl;
+    }
+    cout << endl;//add a line after the logging types for readability
+    //guide for wrap, assuming 80 columns:                                                  |
+    cout << "   -simd <type>                set the SIMD implementation to use (currently" << endl;
+    cout << "                                  used only for correlation, default AUTO which" << endl;
+    cout << "                                  selects fastest supported), valid values are:" << endl;
+    vector<DotSIMDEnum::Enum> simdTypes = DotSIMDEnum::getAllEnums();
+    for (vector<DotSIMDEnum::Enum>::iterator iter = simdTypes.begin();
+         iter != simdTypes.end();
+         iter++) {
+        cout << "         " << DotSIMDEnum::toName(*iter) << endl;
     }
     cout << endl;
     cout << "To get the help information of a processing subcommand, run it without any" << endl;
