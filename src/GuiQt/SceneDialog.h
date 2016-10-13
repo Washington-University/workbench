@@ -104,6 +104,8 @@ namespace caret {
         
         void browseBaseDirectoryPushButtonClicked();
         
+        void testScenesPushButtonClicked();
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -129,15 +131,23 @@ namespace caret {
         
         QWidget* createSceneFileWidget();
         
-        bool displayScenePrivate(SceneFile* sceneFile,
-                                 Scene* scene,
-                                 const bool showWaitCursor);
+        bool displayScenePrivateWithErrorMessageDialog(SceneFile* sceneFile,
+                                                       Scene* scene,
+                                                       const bool showWaitCursor);
+        
+        bool displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
+                                                 Scene* scene,
+                                                 const bool showWaitCursor,
+                                                 AString& errorMessageOut);
         
         bool checkForModifiedFiles(const bool creatingSceneFlag);
         
         void enableSceneMoveUpAndDownButtons();
         
         void loadSceneFileMetaDataWidgets();
+        
+        
+        QImage* getQImageFromSceneInfo(const SceneInfo* sceneInfo) const;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -152,6 +162,8 @@ namespace caret {
         QPushButton* m_insertNewScenePushButton;
         
         QPushButton* m_deleteScenePushButton;
+        
+        QPushButton* m_testScenesPushButton;
         
         QPushButton* m_moveSceneUpPushButton;
         
@@ -186,6 +198,8 @@ namespace caret {
         QLineEdit* m_fileBaseDirectoryLineEdit;
         
         WuQWidgetObjectGroup* m_sceneFileButtonsGroup;
+        
+        AString m_testAllScenesDescription;
         
         static const AString PREFERRED_IMAGE_FORMAT;
         

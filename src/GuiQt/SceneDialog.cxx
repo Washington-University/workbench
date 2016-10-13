@@ -104,6 +104,17 @@ SceneDialog::SceneDialog(QWidget* parent)
 {
     m_selectedSceneClassInfoIndex = -1;
     
+    m_testAllScenesDescription = ("This operation may be slow as it requires displaying all scenes. "
+                                  "\n"
+                                  "Each scene is displayed and an image of the graphic(s) regions is generated "
+                                  "from the scene.  After all scenes have been loaded, a dialog is "
+                                  "displayed that shows a scene's preview image on the left and "
+                                  "on the right, the image created by loading the scene.  If the "
+                                  "two images do not match, it indicates a problem with the scene.  "
+                                  "Possible problems include data files missing, data files that "
+                                  "have changed, or a change to the software.");
+    m_testAllScenesDescription = WuQtUtilities::createWordWrappedToolTipText(m_testAllScenesDescription);
+    
     /*
      * No apply buton
      */
@@ -362,18 +373,21 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
     const bool validFile = (getSelectedSceneFile() != NULL);
     
     
-    bool validScene   = false;
+    bool validScene = false;
+    bool haveScenes = false;
     if (validFile) {
         const Scene* scene = getSelectedScene();
         if (scene != NULL) {
             validScene = true;
         }
+        haveScenes = (sceneFile->getNumberOfScenes() > 0);
     }
     
     enableSceneMoveUpAndDownButtons();
     
     m_addNewScenePushButton->setEnabled(validFile);
     m_deleteScenePushButton->setEnabled(validScene);
+    m_testScenesPushButton->setEnabled(haveScenes);
     m_insertNewScenePushButton->setEnabled(validScene);
     m_replaceScenePushButton->setEnabled(validScene);
     m_showScenePushButton->setEnabled(validScene);
@@ -692,6 +706,248 @@ SceneDialog::insertSceneButtonClicked()
 }
 
 /**
+ * Get the image from the scene info.
+ *
+ * @param sceneInfo
+ *     The scene info.
+ * @return
+ *     Point to image that caller must delete.  Will be NULL
+ *     if image is not valid.
+ */
+QImage*
+SceneDialog::getQImageFromSceneInfo(const SceneInfo* sceneInfo) const
+{
+    QImage* imageOut = NULL;
+    
+    QByteArray imageByteArray;
+    AString imageBytesFormat;
+    sceneInfo->getImageBytes(imageByteArray,
+                             imageBytesFormat);
+    
+    ImageFile imageFile;
+    imageFile.setImageFromByteArray(imageByteArray,
+                                    imageBytesFormat);
+    const QImage* image = imageFile.getAsQImage();
+    if (image != NULL) {
+        if (image->isNull()) {
+            CaretLogSevere("Preview image is invalid (isNull)");
+        }
+        else {
+            imageOut = new QImage(*image);
+        }
+    }
+
+    return imageOut;
+}
+
+/**
+ * Test all scenes by loading them and then
+ * displaying images that are stored with the
+ * scene and new image of the displayed scene.
+ */
+void
+SceneDialog::testScenesPushButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        WuQMessageBox::errorOk(m_testScenesPushButton, "No scene file is loaded.");
+        return;
+    }
+    
+    std::vector<AString> sceneNames;
+    std::vector<AString> sceneErrors;
+    std::vector<QImage> sceneImages;
+    std::vector<QImage> newImages;
+    
+    const int32_t numScenes = sceneFile->getNumberOfScenes();
+    if (numScenes == 0) {
+        WuQMessageBox::errorOk(m_testScenesPushButton, "Selected scene file contains no scenes.");
+        return;
+    }
+    
+    if ( ! WuQMessageBox::warningOkCancel(m_testScenesPushButton,
+                                       "Test All Scenes",
+                                       m_testAllScenesDescription)) {
+        return;
+    }
+    
+    AString username;
+    AString password;
+    
+    /*
+     * Check to see if any scenes need a login/password.
+     * Same login/password is used for all scenes.
+     */
+    for (int32_t i = 0; i < numScenes; i++) {
+        const Scene* scene = sceneFile->getSceneAtIndex(i);
+        if (scene != NULL) {
+            if (scene->hasFilesWithRemotePaths()) {
+                const QString msg("This scene contains files that are on the network.  "
+                                  "If accessing the files requires a username and "
+                                  "password, enter it here.  Otherwise, remove any "
+                                  "text from the username and password fields.");
+                
+                
+                if (UsernamePasswordWidget::getUserNameAndPasswordInDialog(this,
+                                                                           "Username and Password",
+                                                                           msg,
+                                                                           username,
+                                                                           password)) {
+                    CaretDataFile::setFileReadingUsernameAndPassword(username,
+                                                                     password);
+                    break;
+                }
+            }
+        }
+    }
+    
+    showWaitCursor();
+    
+    const int IMAGE_DISPLAY_WIDTH = 500;
+    for (int32_t i = 0; i < numScenes; i++) {
+        Scene* origScene = sceneFile->getSceneAtIndex(i);
+        if (origScene != NULL) {
+            if (origScene->hasFilesWithRemotePaths()) {
+                CaretDataFile::setFileReadingUsernameAndPassword(username,
+                                                                 password);
+            }
+            
+            AString errorMessage;
+            const bool successFlag = displayScenePrivateWithErrorMessage(sceneFile,
+                                                                         origScene,
+                                                                         false,
+                                                                         errorMessage);
+            if (successFlag) {
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                
+                QImage image;
+                AString imageErrorMessage;
+                const bool validImage = SceneCreateReplaceDialog::createSceneImage(image,
+                                                                                   imageErrorMessage);
+                if (validImage) {
+                    newImages.push_back(image.scaledToWidth(IMAGE_DISPLAY_WIDTH));
+                }
+                else {
+                    newImages.push_back(QImage());
+                }
+            }
+            else {
+                newImages.push_back(QImage());
+            }
+            
+
+            
+            sceneNames.push_back(origScene->getName());
+            const QImage* imageFromScene = getQImageFromSceneInfo(origScene->getSceneInfo());
+            if (imageFromScene != NULL) {
+                sceneImages.push_back(imageFromScene->scaledToWidth(IMAGE_DISPLAY_WIDTH));
+                delete imageFromScene;
+            }
+            else {
+                sceneImages.push_back(QImage());
+            }
+            
+            sceneErrors.push_back(errorMessage);
+            
+        }
+    }
+    
+    CaretAssert(sceneNames.size() == sceneErrors.size());
+    CaretAssert(sceneNames.size() == sceneImages.size());
+    CaretAssert(sceneNames.size() == sceneErrors.size());
+    CaretAssert(sceneNames.size() == newImages.size());
+    
+    showNormalCursor();
+    
+    const int32_t numValidScenes = static_cast<int32_t>(sceneNames.size());
+    if (numValidScenes <= 0) {
+        WuQMessageBox::errorOk(m_testScenesPushButton,
+                               "No scenes were loaded.");
+        return;
+    }
+    
+    QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 0);
+    gridLayout->setColumnStretch(2, 100);
+    
+    for (int32_t i = 0; i < numValidScenes; i++) {
+        int row = gridLayout->rowCount();
+        if (i > 0) {
+            gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
+                                  row, 0, 1, 4);
+            row = gridLayout->rowCount();
+        }
+        
+        gridLayout->addWidget(new QLabel("Scene Name: " + sceneNames[i]),
+                              row, 0, 1, 2, Qt::AlignLeft);
+        
+        row = gridLayout->rowCount();
+        
+        if ( ! sceneErrors[i].isEmpty()) {
+            QLabel* errorLabel = new QLabel("Scene Errors: " + sceneErrors[i]);
+            errorLabel->setWordWrap(true);
+            gridLayout->addWidget(errorLabel,
+                                  row, 0, 1, 2, Qt::AlignLeft);
+            
+            row = gridLayout->rowCount();
+        }
+        
+        const QSizePolicy::Policy imageSizePolicy = QSizePolicy::Preferred;
+        
+        QLabel* sceneImageLabel = new QLabel("Image Invalid");
+        if ( ! sceneImages[i].isNull()) {
+            sceneImageLabel->clear();
+            sceneImageLabel->setPixmap(QPixmap::fromImage(sceneImages[i]));
+            sceneImageLabel->setSizePolicy(imageSizePolicy,
+                                           imageSizePolicy);
+        }
+        gridLayout->addWidget(sceneImageLabel,
+                              row, 0);
+        
+        QLabel* newImageLabel = new QLabel("Image Invalid");
+        if ( ! newImages[i].isNull()) {
+            newImageLabel->clear();
+            newImageLabel->setPixmap(QPixmap::fromImage(newImages[i]));
+            newImageLabel->setSizePolicy(imageSizePolicy,
+                                         imageSizePolicy);
+        }
+        gridLayout->addWidget(newImageLabel,
+                              row, 1);
+    }
+    
+    const int numRows = gridLayout->rowCount();
+    for (int32_t i = 0; i < numRows; i++) {
+        gridLayout->setRowStretch(i, 0);
+    }
+    
+    QWidget* dialogWidget = new QWidget();
+    QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
+    dialogLayout->addLayout(gridLayout);
+    dialogLayout->addStretch();
+
+    WuQDialogNonModal* dialog = new WuQDialogNonModal("Scene Comparisons",
+                                                      m_testScenesPushButton);
+    dialog->setDeleteWhenClosed(true);
+    dialog->setApplyButtonText("");
+    dialog->setCentralWidget(dialogWidget,
+                             WuQDialogNonModal::SCROLL_AREA_ALWAYS);
+    dialog->show();
+    WuQtUtilities::limitWindowSizePercentageOfMaximum(dialog,
+                                                      100.0,
+                                                      100.0);
+    
+    const int dialogWidth  = (IMAGE_DISPLAY_WIDTH * 2) + 50;
+    const int dialogHeight = (IMAGE_DISPLAY_WIDTH * 2.5);
+    WuQtUtilities::resizeWindow(dialog,
+                                dialogWidth,
+                                dialogHeight);
+    
+    dialog->show();
+}
+
+
+/**
  * Move the selected scene up.
  */
 void
@@ -749,88 +1005,88 @@ SceneDialog::replaceSceneButtonClicked()
     }
 }
 
-/**
- * Add an image to the scene.
- * 
- * @param scene
- *    Scene to which image is added.
- */
-void
-SceneDialog::addImageToScene(Scene* scene)
-{
-    AString errorMessage;
-    
-    CaretAssert(scene);
-    
-    uint8_t backgroundColor[3] = { 0, 0, 0 };
-    bool backgroundColorValid = false;
-    
-    /*
-     * Capture an image of each window
-     */
-    std::vector<ImageFile*> imageFiles;
-    std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
-    for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
-         iter != windows.end();
-         iter++) {
-        BrainBrowserWindow* bbw = *iter;
-        const int32_t browserWindowIndex = bbw->getBrowserWindowIndex();
-        
-        EventImageCapture imageCaptureEvent(browserWindowIndex);
-        EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
-        
-        if (imageCaptureEvent.getEventProcessCount() > 0) {
-            if (imageCaptureEvent.isError()) {
-                errorMessage.appendWithNewLine(imageCaptureEvent.getErrorMessage());
-            }
-            else {
-                imageFiles.push_back(new ImageFile(imageCaptureEvent.getImage()));
-                if ( ! backgroundColorValid) {
-                    imageCaptureEvent.getBackgroundColor(backgroundColor);
-                    backgroundColorValid = true;
-                }
-            }
-        }
-    }
-    
-    /*
-     * Assemble images of each window into a single image
-     * and add it to the scene.  Use one image per row
-     * since the images are limited in horizontal space
-     * when shown in the listing of scenes.
-     */
-    if ( ! imageFiles.empty()) {
-        try {
-            const int32_t numImagesPerRow = 1;
-            ImageFile compositeImageFile;
-            compositeImageFile.combinePreservingAspectAndFillIfNeeded(imageFiles,
-                                                                      numImagesPerRow,
-                                                                      backgroundColor);
-            
-            compositeImageFile.resizeToMaximumWidth(512);
-            
-            QByteArray byteArray;
-            compositeImageFile.getImageInByteArray(byteArray,
-                                                   SceneDialog::PREFERRED_IMAGE_FORMAT);
-            
-            scene->getSceneInfo()->setImageBytes(byteArray,
-                                                          SceneDialog::PREFERRED_IMAGE_FORMAT);
-        }
-        catch (const DataFileException& dfe) {
-            WuQMessageBox::errorOk(m_addNewScenePushButton,
-                                   dfe.whatString());
-        }
-    }
-    
-    /*
-     * Free memory from the image files.
-     */
-    for (std::vector<ImageFile*>::iterator iter = imageFiles.begin();
-         iter != imageFiles.end();
-         iter++) {
-        delete *iter;
-    }
-}
+///**
+// * Add an image to the scene.
+// * 
+// * @param scene
+// *    Scene to which image is added.
+// */
+//void
+//SceneDialog::addImageToScene(Scene* scene)
+//{
+//    AString errorMessage;
+//    
+//    CaretAssert(scene);
+//    
+//    uint8_t backgroundColor[3] = { 0, 0, 0 };
+//    bool backgroundColorValid = false;
+//    
+//    /*
+//     * Capture an image of each window
+//     */
+//    std::vector<ImageFile*> imageFiles;
+//    std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
+//    for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
+//         iter != windows.end();
+//         iter++) {
+//        BrainBrowserWindow* bbw = *iter;
+//        const int32_t browserWindowIndex = bbw->getBrowserWindowIndex();
+//        
+//        EventImageCapture imageCaptureEvent(browserWindowIndex);
+//        EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
+//        
+//        if (imageCaptureEvent.getEventProcessCount() > 0) {
+//            if (imageCaptureEvent.isError()) {
+//                errorMessage.appendWithNewLine(imageCaptureEvent.getErrorMessage());
+//            }
+//            else {
+//                imageFiles.push_back(new ImageFile(imageCaptureEvent.getImage()));
+//                if ( ! backgroundColorValid) {
+//                    imageCaptureEvent.getBackgroundColor(backgroundColor);
+//                    backgroundColorValid = true;
+//                }
+//            }
+//        }
+//    }
+//    
+//    /*
+//     * Assemble images of each window into a single image
+//     * and add it to the scene.  Use one image per row
+//     * since the images are limited in horizontal space
+//     * when shown in the listing of scenes.
+//     */
+//    if ( ! imageFiles.empty()) {
+//        try {
+//            const int32_t numImagesPerRow = 1;
+//            ImageFile compositeImageFile;
+//            compositeImageFile.combinePreservingAspectAndFillIfNeeded(imageFiles,
+//                                                                      numImagesPerRow,
+//                                                                      backgroundColor);
+//            
+//            compositeImageFile.resizeToMaximumWidth(512);
+//            
+//            QByteArray byteArray;
+//            compositeImageFile.getImageInByteArray(byteArray,
+//                                                   SceneDialog::PREFERRED_IMAGE_FORMAT);
+//            
+//            scene->getSceneInfo()->setImageBytes(byteArray,
+//                                                          SceneDialog::PREFERRED_IMAGE_FORMAT);
+//        }
+//        catch (const DataFileException& dfe) {
+//            WuQMessageBox::errorOk(m_addNewScenePushButton,
+//                                   dfe.whatString());
+//        }
+//    }
+//    
+//    /*
+//     * Free memory from the image files.
+//     */
+//    for (std::vector<ImageFile*>::iterator iter = imageFiles.begin();
+//         iter != imageFiles.end();
+//         iter++) {
+//        delete *iter;
+//    }
+//}
 
 /**
  * Check to see if there are modified files.  If there are
@@ -929,6 +1185,14 @@ SceneDialog::createMainPage()
                      this, SLOT(deleteSceneButtonClicked()));
     
     /*
+     * Test all scenes
+     */
+    m_testScenesPushButton = new QPushButton("Test All...");
+    m_testScenesPushButton->setToolTip(m_testAllScenesDescription);
+    QObject::connect(m_testScenesPushButton, SIGNAL(clicked()),
+                     this, SLOT(testScenesPushButtonClicked()));
+    
+    /*
      * Move scene up button
      */
     m_moveSceneUpPushButton = new QPushButton("Move Up");
@@ -988,6 +1252,8 @@ SceneDialog::createMainPage()
     sceneButtonLayout->addWidget(m_insertNewScenePushButton);
     sceneButtonLayout->addWidget(m_replaceScenePushButton);
     sceneButtonLayout->addStretch();
+    sceneButtonLayout->addWidget(m_testScenesPushButton);
+    sceneButtonLayout->addSpacing(20);
     sceneButtonLayout->addWidget(m_moveSceneUpPushButton);
     sceneButtonLayout->addWidget(m_moveSceneDownPushButton);
     sceneButtonLayout->addSpacing(20);
@@ -1353,7 +1619,7 @@ SceneDialog::showSceneButtonClicked()
                                                this);
         progressDialog.setValue(0);
         
-        displayScenePrivate(sceneFile,
+        displayScenePrivateWithErrorMessageDialog(sceneFile,
                             scene,
                             false);
     }
@@ -1471,7 +1737,7 @@ bool
 SceneDialog::displayScene(SceneFile* sceneFile,
                           Scene* scene)
 {
-    const bool isSuccessful = displayScenePrivate(sceneFile,
+    const bool isSuccessful = displayScenePrivateWithErrorMessageDialog(sceneFile,
                         scene,
                         true);
     loadSceneFileComboBox(sceneFile);
@@ -1482,27 +1748,67 @@ SceneDialog::displayScene(SceneFile* sceneFile,
 
 /**
  * Display the given scene from the given scene file.
+ * If the scene fails to load, an error message is displayed
+ * in a dialog.
+ *
  * @param sceneFile
  *     Scene file.
  * @param scene
  *     Scene that is displayed.
+ * param showWaitCursor
+ *     Show a wait cursor while loading scene
  * @return
  *     true if scene was displayed without error, else false.
  */
 bool
-SceneDialog::displayScenePrivate(SceneFile* sceneFile,
-                                 Scene* scene,
-                                 const bool showWaitCursor)
+SceneDialog::displayScenePrivateWithErrorMessageDialog(SceneFile* sceneFile,
+                                                       Scene* scene,
+                                                       const bool showWaitCursor)
+{
+    AString errorMessage;
+    
+    const bool successFlag = displayScenePrivateWithErrorMessage(sceneFile,
+                                                 scene,
+                                                 showWaitCursor,
+                                                 errorMessage);
+    if ( ! successFlag) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+    
+    return successFlag;
+}
+
+/**
+ * Display the given scene from the given scene file.
+ * @param sceneFile
+ *     Scene file.
+ * @param scene
+ *     Scene that is displayed.
+ * param showWaitCursor
+ *     Show a wait cursor while loading scene
+ * @param errorMessageOut
+ *     Contains error information if scene fails to load.
+ * @return
+ *     true if scene was displayed without error, else false.
+ */
+bool
+SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
+                                                 Scene* scene,
+                                                 const bool showWaitCursor,
+                                                 AString& errorMessageOut)
 {
     CaretAssert(sceneFile);
     CaretAssert(scene);
+    
+    errorMessageOut.clear();
     
     const AString sceneFileName = sceneFile->getFileName();
     
     const SceneClass* guiManagerClass = scene->getClassWithName("guiManager");
     if (guiManagerClass->getName() != "guiManager") {
-        WuQMessageBox::errorOk(this,"Top level scene class should be guiManager but it is: "
-                               + guiManagerClass->getName());
+        errorMessageOut = ("Top level scene class should be guiManager but it is: "
+                           + guiManagerClass->getName());
         return false;
     }
     
@@ -1546,8 +1852,7 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
         }
     }
     else {
-        WuQMessageBox::errorOk(this,
-                               sceneErrorMessage);
+        errorMessageOut = sceneErrorMessage;
         return false;
     }
     

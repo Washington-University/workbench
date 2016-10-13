@@ -528,6 +528,57 @@ WuQtUtilities::resizeWindow(QWidget* window,
 }
 
 /**
+ * Limit a window's size to a percentage of the maximum size.
+ *
+ * @param window
+ *     Window that is resized.
+ * @param widthMaximumPercentage
+ *     Maximum width percentage [0, 100]
+ * @param heightMaximumPercentage
+ *     Maximum height percentage [0, 100]
+ */
+void
+WuQtUtilities::limitWindowSizePercentageOfMaximum(QWidget* window,
+                                                  const float widthMaximumPercentage,
+                                                  const float heightMaximumPercentage)
+{
+    AString message;
+    if ((widthMaximumPercentage < 0.0)
+        || (widthMaximumPercentage > 100.0)) {
+        message.appendWithNewLine("Percentage width must range [0, 100]: value -> "
+                                  + AString::number(widthMaximumPercentage));
+    }
+    if ((heightMaximumPercentage < 0.0)
+        || (heightMaximumPercentage > 100.0)) {
+        message.appendWithNewLine("Percentage height must range [0, 100]: value -> "
+                                  + AString::number(heightMaximumPercentage));
+    }
+    
+    if ( ! message.isEmpty()) {
+        CaretLogSevere(message);
+        return;
+    }
+    
+    QDesktopWidget* dw = QApplication::desktop();
+    QPoint pXY(window->x(),
+               window->y());
+    const int32_t nearestScreen = dw->screenNumber(pXY);
+    if (nearestScreen >= 0) {
+        const QRect screenRect = dw->availableGeometry(nearestScreen);
+        const int32_t screenWidth  = screenRect.width();
+        const int32_t screenHeight = screenRect.height();
+    
+        const float maxWidth = ((widthMaximumPercentage   / 100.0) * screenWidth);
+        const float maxHeight = ((heightMaximumPercentage / 100.0) * screenHeight);
+        
+        window->setMaximumSize(maxWidth,
+                               maxHeight);
+        window->adjustSize();
+    }
+}
+
+
+/**
  * Table widget has a default size of 640 x 480.
  * Estimate the size of the dialog with the table fully expanded.
  *

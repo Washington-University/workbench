@@ -134,6 +134,10 @@ namespace caret {
                                  const int32_t width,
                                  const int32_t height);
         
+        static void limitWindowSizePercentageOfMaximum(QWidget* window,
+                                                       const float widthMaximumPercentage,
+                                                       const float heightMaximumPercentage);
+        
         static int getMaximumWidgetHeight(QWidget* w1,
                                           QWidget* w2,
                                           QWidget* w3 = 0,

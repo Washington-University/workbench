@@ -50,6 +50,9 @@ namespace caret {
                                     SceneFile* sceneFile,
                                     Scene* sceneToReplace);
         
+        static bool createSceneImage(QImage& imageOut,
+                                     AString& errorMessageOut);
+        
         virtual ~SceneCreateReplaceDialog();
         
     private:

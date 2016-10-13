@@ -79,6 +79,19 @@ WuQDialogNonModal::~WuQDialogNonModal()
     
 }
 
+/** 
+ * May be called requesting the dialog to update its content 
+ * Subclasses should override.
+ */
+void
+WuQDialogNonModal::updateDialog()
+{
+#ifdef DEBUG
+    QString text(getObjectName() + " should override updateDialog");
+    CaretLogWarning(text);
+#endif
+}
+
 /**
  * Gets called when the dialog is closing.
  * Overriden so that position of dialog 

@@ -39,8 +39,8 @@ namespace caret {
         
         void setCloseButtonText(const AString& text);
         
-        /** May be called requesting the dialog to update its content */
-        virtual void updateDialog() = 0;
+        virtual void updateDialog();
+        //virtual void updateDialog() = 0;
         
         void setSaveWindowPositionForNextTime(const bool saveIt);
         

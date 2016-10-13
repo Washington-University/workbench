@@ -425,6 +425,104 @@ SceneCreateReplaceDialog::addImageToScene(Scene* scene)
 }
 
 /**
+ * Create an image for the loaded scene.
+ *
+ * @param imageOut
+ *     Output image of the scene.
+ * @param errorMessageOut
+ *     Contains error information if image was not created.
+ * @return
+ *     True if output image is valid, else false.
+ */
+bool
+SceneCreateReplaceDialog::createSceneImage(QImage& imageOut,
+                                           AString& errorMessageOut)
+{
+    bool validImageFlag = false;
+    imageOut = QImage();
+    errorMessageOut.clear();
+    
+    uint8_t backgroundColor[3] = { 0, 0, 0 };
+    bool backgroundColorValid = false;
+    
+    /*
+     * Capture an image of each window
+     */
+    std::vector<ImageFile*> imageFiles;
+    std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
+    for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
+         iter != windows.end();
+         iter++) {
+        BrainBrowserWindow* bbw = *iter;
+        const int32_t browserWindowIndex = bbw->getBrowserWindowIndex();
+        
+        EventImageCapture imageCaptureEvent(browserWindowIndex);
+        EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
+        
+        if (imageCaptureEvent.getEventProcessCount() > 0) {
+            if (imageCaptureEvent.isError()) {
+                errorMessageOut.appendWithNewLine(imageCaptureEvent.getErrorMessage());
+            }
+            else {
+                imageFiles.push_back(new ImageFile(imageCaptureEvent.getImage()));
+                if ( ! backgroundColorValid) {
+                    imageCaptureEvent.getBackgroundColor(backgroundColor);
+                    backgroundColorValid = true;
+                }
+            }
+        }
+    }
+    
+    /*
+     * Assemble images of each window into a single image
+     * and add it to the scene.  Use one image per row
+     * since the images are limited in horizontal space
+     * when shown in the listing of scenes.
+     */
+    if ( ! imageFiles.empty()) {
+        try {
+            const int32_t numImagesPerRow = 1;
+            ImageFile compositeImageFile;
+            compositeImageFile.combinePreservingAspectAndFillIfNeeded(imageFiles,
+                                                                      numImagesPerRow,
+                                                                      backgroundColor);
+            
+            if (backgroundColorValid) {
+                const int marginSize = 5;
+                compositeImageFile.cropImageRemoveBackground(marginSize,
+                                                             backgroundColor);
+            }
+            
+            const int MAXIMUM_IMAGE_WIDTH = 1024;
+            compositeImageFile.resizeToMaximumWidth(MAXIMUM_IMAGE_WIDTH);
+            
+            const AString PREFERRED_IMAGE_FORMAT = "png";
+            
+            QByteArray byteArray;
+            compositeImageFile.getImageInByteArray(byteArray,
+                                                   PREFERRED_IMAGE_FORMAT);
+            
+            imageOut = *compositeImageFile.getAsQImage();
+            validImageFlag = true;
+        }
+        catch (const DataFileException& dfe) {
+            errorMessageOut.appendWithNewLine("Even though image failed, scene was created.");
+        }
+    }
+    
+    /*
+     * Free memory from the image files.
+     */
+    for (std::vector<ImageFile*>::iterator iter = imageFiles.begin();
+         iter != imageFiles.end();
+         iter++) {
+        delete *iter;
+    }
+    
+    return validImageFlag;
+}
+
+/**
  * @return Widget containing the scene options widgets.
  */
 QWidget*
