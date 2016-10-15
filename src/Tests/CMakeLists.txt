@@ -20,6 +20,7 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Tests
 CiftiFileTest.h
+DotTest.h
 GeodesicHelperTest.h
 HttpTest.h
 HeapTest.h
@@ -38,6 +39,7 @@ VolumeFileTest.h
 XnatTest.h
 
 CiftiFileTest.cxx
+DotTest.cxx
 GeodesicHelperTest.cxx
 HttpTest.cxx
 HeapTest.cxx
@@ -150,3 +152,18 @@ ${CMAKE_SOURCE_DIR}/Scenes
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
 )
+
+ENABLE_TESTING()
+
+ADD_TEST(timer test_driver timer)
+ADD_TEST(progress test_driver progress)
+ADD_TEST(volumefile test_driver volumefile)
+#debian build machines don't have internet access
+#ADD_TEST(http test_driver http)
+ADD_TEST(heap test_driver heap)
+ADD_TEST(pointer test_driver pointer)
+ADD_TEST(statistics test_driver statistics)
+ADD_TEST(quaternion test_driver quaternion)
+ADD_TEST(mathexpression test_driver mathexpression)
+ADD_TEST(lookup test_driver lookup)
+ADD_TEST(dotsimd test_driver dotsimd)

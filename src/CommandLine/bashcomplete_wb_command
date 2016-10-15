@@ -97,4 +97,4 @@ function _wb_shortcuts ()
     COMPREPLY=(`compgen -W "${switches[*]}" -- "$cur"`)
 }
 
-complete -o bashdefault -o default -F _wb_shortcuts wb_shortcuts
+complete -o filenames -o bashdefault -o default -F _wb_shortcuts wb_shortcuts

@@ -34,6 +34,7 @@
 
 //tests
 #include "CiftiFileTest.h"
+#include "DotTest.h"
 #include "GeodesicHelperTest.h"
 #include "HttpTest.h"
 #include "HeapTest.h"
@@ -69,6 +70,7 @@ int main(int argc, char** argv)
         SessionManager::createSessionManager(ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE);
         vector<TestInterface*> mytests;
         mytests.push_back(new CiftiFileTest("ciftifile"));
+        mytests.push_back(new DotTest("dotsimd"));
         mytests.push_back(new GeodesicHelperTest("geohelp"));
         mytests.push_back(new HeapTest("heap"));
         mytests.push_back(new HttpTest("http"));

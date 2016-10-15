@@ -498,15 +498,3 @@ ENDIF()
 #CTest tests
 #
 ENABLE_TESTING()
-
-ADD_TEST(timer ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver timer)
-ADD_TEST(progress ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver progress)
-ADD_TEST(volumefile ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver volumefile)
-#debian build machines don't have internet access
-#ADD_TEST(http ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver http)
-ADD_TEST(heap ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver heap)
-ADD_TEST(pointer ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver pointer)
-ADD_TEST(statistics ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver statistics)
-ADD_TEST(quaternion ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver quaternion)
-ADD_TEST(mathexpression ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver mathexpression)
-ADD_TEST(lookup ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver lookup)
