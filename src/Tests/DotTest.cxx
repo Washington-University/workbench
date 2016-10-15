@@ -110,8 +110,8 @@ void DotTest::checkVal(const float& correct, const float& test, const AString& d
 {
     const float TOLER_RATIO = 0.00001f;//6 digits, seems to work, probably due to accumulation in double before cast to float
     const float TOLER_ABS = 0.0000001f;//for near-zero results, need some wiggle room, which a ratio won't work for
-    if (abs(test - correct) > TOLER_ABS + TOLER_RATIO * abs(correct)) setFailed(descrip + " got " + AString::number(test) + ", expected " + AString::number(correct));
-}
+    if (!(abs(test - correct) < TOLER_ABS + TOLER_RATIO * abs(correct))) setFailed(descrip + " got " + AString::number(test) + ", expected " + AString::number(correct));
+}//use "not less than" in order to catch NaNs
 
 void DotTest::execute()
 {
