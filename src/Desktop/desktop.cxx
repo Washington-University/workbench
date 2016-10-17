@@ -430,14 +430,21 @@ main(int argc, char* argv[])
         /*
         * Make sure OpenGL is available.
         */
+        const QString noOpenGLMessage("OpenGL (3D Graphics System) is not available.  "
+                                      "This may be caused by missing or outdated OpenGL libraries."
+        
+#ifdef CARET_OS_LINUX
+                                      "On Linux, this may be caused by a missing plugin "
+                                      "library <plugins-path>/xcbglintegrations/libqxcb-glx-integration.so."
+#endif
+                                      );
+        
+                                      
 #ifndef WORKBENCH_USE_QT5_QOPENGL_WIDGET
         if (QGLFormat::hasOpenGL() == false) {
-            QString msg = "This computer does not support OpenGL (3D graphics system).\n"
-            "You will need to install OpenGL to run Workbench.\n"
-            "Please see your system administrator.";
             app.processEvents();
             WuQMessageBox::errorOk(NULL,
-                                   msg);
+                                   noOpenGLMessage);
             app.processEvents();
             
             return -1;
@@ -594,8 +601,16 @@ main(int argc, char* argv[])
         EventManager::get()->sendEvent(newBrowserWindow.getPointer());
         splashScreen.close();
 
-        BrainBrowserWindow* myWindow = GuiManager::get()->getBrowserWindowByWindowIndex(0);
         
+        BrainBrowserWindow* myWindow = GuiManager::get()->getBrowserWindowByWindowIndex(0);
+        if ( ! myWindow->hasValidOpenGL()) {
+            app.processEvents();
+            WuQMessageBox::errorOk(NULL,
+                                   noOpenGLMessage);
+            app.processEvents();
+            
+            return -1;
+        }
         
         if ((myState.windowSizeXY[0] > 0) && (myState.windowSizeXY[1] > 0))
         {

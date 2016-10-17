@@ -146,6 +146,8 @@ namespace caret {
         
         void setAspectRatio(const float aspectRatio);
         
+        bool hasValidOpenGL();
+        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);

@@ -4505,6 +4505,13 @@ BrainBrowserWindow::getDescriptionOfContent(PlainTextStringBuilder& descriptionO
     descriptionOut.popIndentation();
 }
 
-
+/**
+ * @return Has valid OpenGL.
+ */
+bool
+BrainBrowserWindow::hasValidOpenGL()
+{
+    return m_openGLWidget->isValid();
+}
 
 
