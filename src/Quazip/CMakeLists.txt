@@ -11,7 +11,25 @@ IF (QT4_FOUND)
     INCLUDE(${QT_USE_FILE})
 ENDIF ()
 
-SET(CMAKE_AUTOMOC ON)
+#
+# With AUTOMOC, do not need to specify files
+# that contain Q_OBJECT macro for Qt to process with 'moc'
+# (meta-object compiler).
+#
+IF(WORKBENCH_USE_CMAKE_AUTOMOC)
+    SET(CMAKE_AUTOMOC ON)
+ELSE()
+    SET(MOC_INPUT_HEADER_FILES
+        quazipfile.h
+    )
+
+    IF(Qt5_FOUND)
+        QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF()
+    IF (QT4_FOUND)
+        QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF ()
+ENDIF()
 
 #
 # Prevents dll linkage errors on windows
@@ -46,6 +64,8 @@ quazipfileinfo.h
 quazipnewinfo.h
 unzip.h
 zip.h
+
+${MOC_SOURCE_FILES}
 
 JlCompress.cpp
 qioapi.cpp

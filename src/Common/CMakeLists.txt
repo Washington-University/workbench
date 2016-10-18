@@ -22,7 +22,25 @@ IF (QT4_FOUND)
 ENDIF ()
 #message("QT VERSION: " ${QT_VERSION_MAJOR} ${QT_VERSION_MINOR} ${QT_VERSION_PATCH})
 
-SET (CMAKE_AUTOMOC ON)
+#
+# With AUTOMOC, do not need to specify files
+# that contain Q_OBJECT macro for Qt to process with 'moc'
+# (meta-object compiler).
+#
+IF(WORKBENCH_USE_CMAKE_AUTOMOC)
+    SET(CMAKE_AUTOMOC ON)
+ELSE()
+    SET(MOC_INPUT_HEADER_FILES
+        CaretHttpManager.h
+    )
+
+    IF(Qt5_FOUND)
+        QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF()
+    IF (QT4_FOUND)
+        QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF ()
+ENDIF()
 
 #
 # Create a library
@@ -134,6 +152,8 @@ Vector3D.h
 VectorOperation.h
 VoxelIJK.h
 YokingGroupEnum.h
+
+${MOC_SOURCE_FILES}
 
 ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
 ApplicationTypeEnum.cxx

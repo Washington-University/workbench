@@ -27,6 +27,43 @@ ENDIF ()
 add_definitions(-DQWT_NO_SVG -DQWT_NO_OPENGL)
 
 #
+# With AUTOMOC, do not need to specify files
+# that contain Q_OBJECT macro for Qt to process with 'moc'
+# (meta-object compiler).
+#
+IF(WORKBENCH_USE_CMAKE_AUTOMOC)
+    SET(CMAKE_AUTOMOC ON)
+ELSE()
+    SET(MOC_INPUT_HEADER_FILES
+        qwt_abstract_legend.h
+        qwt_dyngrid_layout.h
+        qwt_legend.h
+        qwt_legend_label.h
+        qwt_magnifier.h
+        qwt_panner.h
+        qwt_picker.h
+        qwt_plot_canvas.h
+        qwt_plot.h
+        qwt_plot_magnifier.h
+        qwt_plot_panner.h
+        qwt_plot_picker.h
+        qwt_plot_renderer.h
+        qwt_plot_zoomer.h
+        qwt_sampling_thread.h
+        qwt_scale_widget.h
+        qwt_text_label.h
+    )
+
+    IF(Qt5_FOUND)
+        QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF()
+    IF (QT4_FOUND)
+        QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF ()
+ENDIF()
+
+
+#
 # Header files
 #
 SET(SOURCE_FILES
@@ -200,13 +237,13 @@ qwt_widget_overlay.cpp
 # Process the header files with moc producing moc_*.cpp files
 #
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-SET(CMAKE_AUTOMOC ON)
 
 #
 # Create the GUI library
 #
 ADD_LIBRARY(Qwt
-${SOURCE_FILES}
+    ${SOURCE_FILES}
+    ${MOC_SOURCE_FILES}
 )
 
 SET(Qwt_LIBRARIES Qwt PARENT_SCOPE)
