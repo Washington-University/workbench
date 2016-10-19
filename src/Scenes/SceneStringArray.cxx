@@ -204,11 +204,13 @@ SceneStringArray::unsignedByteValue(const int32_t arrayIndex) const
         return 0;
     }
     
+    /*
+     * Note since "i" is unsigned there is no need
+     * to compare with std::numeric_limits<uint8_t>::min()
+     * since it is zero.
+     */
     if (i > std::numeric_limits<uint8_t>::max()) {
         return std::numeric_limits<uint8_t>::max();
-    }
-    else if (i < std::numeric_limits<uint8_t>::min()) {
-        return std::numeric_limits<uint8_t>::min();
     }
     
     const uint8_t b = static_cast<uint8_t>(i);

@@ -2107,7 +2107,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                              * Determine position in triangle using barycentric coordinates
                              */
                             double displayXYZ[3] = { 
-                                this->mouseX, 
+                                this->mouseX,
                                 this->mouseY, 
                                 0.0 
                             };
