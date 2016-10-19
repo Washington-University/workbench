@@ -6,7 +6,7 @@ cp -r /mnt/myelin/shared/WB_Tutorial/WB_1.2_Help ./HelpFiles
 
 rm -rf OLD_HelpFiles
 
-rcc -project -o resources.qrc
+rcc -project -o gui_resources.qrc
 
 echo ""
 echo "You now need to:"
