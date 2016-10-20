@@ -1,6 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-<file>./gui_resources.qrc</file>
+<file>./help_resources.qrc</file>
 <file>./HelpFiles/Annotations/Annotations.fld/image001.png</file>
 <file>./HelpFiles/Annotations/Annotations.fld/image002.png</file>
 <file>./HelpFiles/Annotations/Annotations.fld/image003.png</file>
@@ -245,5 +245,6 @@
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Toolbar_icon.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Window_Elements_Hide-Show_Buttons.html</file>
 <file>./HelpFiles/Workbench_Window/Workbench_Window.html</file>
+<file>./update_resources.sh</file>
 </qresource>
 </RCC>

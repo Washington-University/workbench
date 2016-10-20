@@ -33,7 +33,7 @@ ENDIF (UNIX)
 #
 # Resources
 #
-QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ../Resources/GeneralResources/general_resources.qrc ../Resources/GuiResources/gui_resources.qrc)
+QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ../Resources/General/general_resources.qrc ../Resources/Gui/gui_resources.qrc ../Resources/Help/help_resources.qrc)
 
 #
 # Create the executable

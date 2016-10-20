@@ -26,7 +26,7 @@ set (EXE_NAME wb_command)
 #
 # Resources
 #
-QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ../Resources/GeneralResources/general_resources.qrc)
+QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ../Resources/General/general_resources.qrc)
 
 #
 # Create the executable
