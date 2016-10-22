@@ -42,11 +42,11 @@ make -j2
 #
 echo "COPYING PROGRAMS"
 DIST_DIR=/mainpool/storage/distribution/caret7_distribution/workbench/exe_rh_linux64
-scp -v Desktop/wb_view caret@myelin1.wustl.edu:${DIST_DIR}
-scp -v CommandLine/wb_command caret@myelin1.wustl.edu:${DIST_DIR}
-scp -v ${GIT_ROOT_DIR}/src/CommandLine/wb_shortcuts caret@myelin1.wustl.edu:/mainpool/storage/distribution/caret7_distribution/workbench/bin_rh_linux64
+scp Desktop/wb_view caret@myelin1.wustl.edu:${DIST_DIR}
+scp CommandLine/wb_command caret@myelin1.wustl.edu:${DIST_DIR}
+scp ${GIT_ROOT_DIR}/src/CommandLine/wb_shortcuts caret@myelin1.wustl.edu:/mainpool/storage/distribution/caret7_distribution/workbench/bin_rh_linux64
 #put the completion into the exe directory, because it isn't useful to run it directly (and would make wb_comm<tab> behave worse)
-scp -v ${GIT_ROOT_DIR}/src/CommandLine/bashcomplete_wb_command caret@myelin1.wustl.edu:${DIST_DIR}
+scp ${GIT_ROOT_DIR}/src/CommandLine/bashcomplete_wb_command caret@myelin1.wustl.edu:${DIST_DIR}
 
 echo "SCRIPT COMPLETED SUCCESSFULLY"
 
