@@ -28,7 +28,6 @@ set (EXE_NAME wb_command)
 #
 # Resources
 #
-=======
 SET (RESOURCES_QRC_FILE ../Resources/General/general_resources.qrc)
 IF (Qt5_FOUND)
     QT5_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})

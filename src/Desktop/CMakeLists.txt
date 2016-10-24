@@ -109,8 +109,9 @@ if(Qt5_FOUND)
         Qt5::Test
         Qt5::Widgets
         Qt5::Xml)
+
+    message("*** QT5_LINK_LIBS: ${QT5_LINK_LIBS}")
 endif()
-message("*** QT5_LINK_LIBS: ${QT5_LINK_LIBS}")
 
 #
 # Libraries that are linked
