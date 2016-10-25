@@ -2689,17 +2689,134 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
  *    Number of voxels with alpha greater than zero
  */
 int64_t
-CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t /*mapIndex*/,
-                                                      const int64_t[] /*firstVoxelIJK[3]*/,
-                                                      const int64_t[] /*rowStepIJK[3]*/,
-                                                      const int64_t[] /*columnStepIJK[3]*/,
-                                                      const int64_t /*numberOfRows*/,
-                                                      const int64_t /*numberOfColumns*/,
-                                                      const DisplayGroupEnum::Enum /*displayGroup*/,
-                                                      const int32_t /*tabIndex*/,
-                                                      uint8_t* /*rgbaOut*/) const
+CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                                      const int64_t firstVoxelIJK[3],
+                                                      const int64_t rowStepIJK[3],
+                                                      const int64_t columnStepIJK[3],
+                                                      const int64_t numberOfRows,
+                                                      const int64_t numberOfColumns,
+                                                      const DisplayGroupEnum::Enum displayGroup,
+                                                      const int32_t tabIndex,
+                                                      uint8_t* rgbaOut) const
 {
-    return 0;
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    
+    if (isMapColoringValid(mapIndex) == false) {
+        CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
+        nonConstThis->updateScalarColoringForMap(mapIndex,
+                                                 NULL);
+    }
+    
+    const int64_t mapRgbaCount = m_mapContent[mapIndex]->m_rgba.size();
+    
+    
+    /*
+     * RGBA size will be zero if no data has been loaded for a CIFTI
+     * matrix type file (user clicking brainordinate).
+     */
+    if (mapRgbaCount <= 0) {
+        return 0;
+    }
+    
+    const uint8_t* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
+    
+    CaretAssert(m_voxelIndicesToOffset);
+    
+    /*
+     * Data values are only needed when a label volume
+     * is being drawn so that we can determine if the
+     * label is displayed.
+     */
+    std::vector<float> dataValues;
+    const GiftiLabelTable* labelTable = (isMappedWithLabelTable()
+                                         ? getMapLabelTable(mapIndex)
+                                         : NULL);
+    if (isMappedWithLabelTable()) {
+        CaretAssert(labelTable);
+        getMapData(mapIndex,
+                   dataValues);
+    }
+    
+    int64_t rowIJK[3] = { firstVoxelIJK[0], firstVoxelIJK[1], firstVoxelIJK[2] };
+    uint8_t rgba[4] = { 0, 0, 0, 0 };
+    int64_t rgbaOutIndex4 = 0;
+    
+    int64_t validVoxelCount = 0;
+    
+    for (int32_t iRow = 0; iRow < numberOfRows; iRow++) {
+        int64_t ijk[3] = { rowIJK[0], rowIJK[1], rowIJK[2] };
+        
+        for (int32_t iCol = 0; iCol < numberOfColumns; iCol++) {
+            rgba[3] = 0;
+            
+            const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(ijk[0], ijk[1], ijk[2]);
+            if (dataOffset >= 0) {
+                const int64_t dataOffset4 = dataOffset * 4;
+                CaretAssert(dataOffset4 < mapRgbaCount);
+                
+                rgba[0] = mapRGBA[dataOffset4];
+                rgba[1] = mapRGBA[dataOffset4+1];
+                rgba[2] = mapRGBA[dataOffset4+2];
+                
+                /*
+                 * A negative value for alpha indicates "do not draw".
+                 * Since unsigned bytes do not have negative values,
+                 * change the value to zero (which indicates "transparent").
+                 */
+                float alpha = mapRGBA[dataOffset4+3];
+                if (alpha < 0.0) {
+                    alpha = 0.0;
+                }
+                
+                if (alpha > 0.0) {
+                    if (labelTable != NULL) {
+                        /*
+                         * For label data, verify that the label is displayed.
+                         * If NOT displayed, zero out the alpha value to
+                         * prevent display of the data.
+                         */
+                        CaretAssertVectorIndex(dataValues, dataOffset);
+                        const int32_t dataValue = dataValues[dataOffset];
+                        const GiftiLabel* label = labelTable->getLabel(dataValue);
+                        if (label != NULL) {
+                            const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                            CaretAssert(item);
+                            if (item->isSelected(displayGroup, tabIndex) == false) {
+                                alpha = 0.0;
+                            }
+                        }
+                    }
+                    
+                }
+                
+                if (alpha > 0.0) {
+                    ++validVoxelCount;
+                }
+                rgba[3] = (alpha * 255.0);
+            }
+            
+            rgbaOut[rgbaOutIndex4]   = rgba[0];
+            rgbaOut[rgbaOutIndex4+1] = rgba[1];
+            rgbaOut[rgbaOutIndex4+2] = rgba[2];
+            rgbaOut[rgbaOutIndex4+3] = rgba[3];
+            rgbaOutIndex4 += 4;
+            
+            if (rgba[3] > 0) {
+                validVoxelCount++;
+            }
+            
+            ijk[0] += columnStepIJK[0];
+            ijk[1] += columnStepIJK[1];
+            ijk[2] += columnStepIJK[2];
+        }
+        
+        rowIJK[0] += rowStepIJK[0];
+        rowIJK[1] += rowStepIJK[1];
+        rowIJK[2] += rowStepIJK[2];
+    }
+    
+    return validVoxelCount;
 }
 
 /**
@@ -6683,7 +6800,8 @@ CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const std::vecto
  * @param data
  *    Data contained in the map.
  * @param paletteFile
- *    File containing the palettes.
+ *    File containing the palettes.  If NULL, the find palette
+ *    event is used to find the palette.
  * @param fastStatistics
  *    Fast statistics used for palette coloring.  While map content contains
  *    a fast statistics member, it is calculated on the data within the map.
@@ -6722,10 +6840,45 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
                                                          data.size(),
                                                          &m_rgba[0]);
     }
-    else if (paletteFile != NULL) {
+    else {
         CaretAssert(m_paletteColorMapping);
         const AString paletteName = m_paletteColorMapping->getSelectedPaletteName();
-        const Palette* palette = paletteFile->getPaletteByName(paletteName);
+
+        /*
+         * First, look for palette in palette file but only
+         * if the palette file is valid
+         */
+        Palette* paletteFromFile = NULL;
+        if (paletteFile != NULL) {
+            paletteFromFile = paletteFile->getPaletteByName(paletteName);
+            if (paletteFromFile == NULL) {
+                CaretLogSevere("No palette named "
+                               + paletteName
+                               + " found in "
+                               + paletteFile->getFileNameNoPath()
+                               + ".");
+            }
+        }
+
+        /*
+         * If palette was not found in palette file, 
+         * find palette using event.
+         */
+        Palette* paletteFromEvent = NULL;
+        if (paletteFromFile == NULL) {
+            EventPaletteGetByName eventPaletteGetName(paletteName);
+            EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
+            paletteFromEvent = eventPaletteGetName.getPalette();
+            if (paletteFromEvent == NULL) {
+                CaretLogSevere("No palette named "
+                               + paletteName
+                               + " found using EventPaletteGetByName.");
+            }
+        }
+        
+        Palette* palette = ((paletteFromFile != NULL)
+                                  ? paletteFromFile
+                                  : paletteFromEvent);
         if ((palette != NULL)
             && (fastStatistics != NULL)) {
             NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
@@ -6742,11 +6895,11 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
                       0);
         }
     }
-    else {
-        const AString msg("NULL palette for coloring scalar data.");
-        CaretAssertMessage(0, msg);
-        CaretLogSevere(msg);
-    }
+//    else {
+//        const AString msg("NULL palette for coloring scalar data.");
+//        CaretAssertMessage(0, msg);
+//        CaretLogSevere(msg);
+//    }
     
     m_rgbaValid = true;
 }

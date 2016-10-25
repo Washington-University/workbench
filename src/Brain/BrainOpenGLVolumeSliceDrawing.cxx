@@ -4737,6 +4737,10 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
                                                          const int32_t mapIndex,
                                                          const uint8_t sliceOpacity)
 {
+    if (validVoxelCount <= 0) {
+        return;
+    }
+    
     /*
      * There are two ways to draw the voxels.
      *
@@ -4773,9 +4777,10 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
     const int64_t totalVertexBytes = ((numberOfColumns + 1)
                                       * (numberOfRows + 1)
                                       * bytesPerVertex);
-    const int64_t singleQuadBytes = (validVoxelCount * bytesPerVertex * 4);
+    const int64_t numberOfVoxels = numberOfColumns * numberOfRows;
+    const int64_t singleQuadBytes = (numberOfVoxels * bytesPerVertex * 4);
     const int64_t indexQuadBytes = (totalVertexBytes
-                                    + (16 * validVoxelCount));
+                                    + (16 * numberOfVoxels));
     
     bool drawWithQuadIndicesFlag = false;
     if (indexQuadBytes < singleQuadBytes) {
