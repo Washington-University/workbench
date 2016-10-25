@@ -80,7 +80,7 @@ ${LIBS})
 
 INSTALL(TARGETS ${EXE_NAME} DESTINATION bin)
 INSTALL(PROGRAMS wb_shortcuts DESTINATION bin)
-INSTALL(PROGRAMS bashcomplete_wb_command DESTINATION /usr/share/bash-completion/completions RENAME wb_command)
+INSTALL(FILES bashcomplete_wb_command DESTINATION /usr/share/bash-completion/completions RENAME wb_command)
 
 #
 # Find Headers
