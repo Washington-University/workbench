@@ -226,9 +226,14 @@ void CiftiFile::getColumn(float* dataOut, const int64_t& index) const
 
 void CiftiFile::setCiftiXML(const CiftiXML& xml, const bool useOldMetadata)
 {
+    if (xml.getNumberOfDimensions() == 0) throw DataFileException("setCiftiXML called with 0-dimensional CiftiXML");
+    vector<int64_t> xmlDims = xml.getDimensions();
+    for (size_t i = 0; i < xmlDims.size(); ++i)
+    {
+        if (xmlDims[i] < 1) throw DataFileException("cifti xml dimensions must be greater than zero");
+    }
     m_readingImpl.grabNew(NULL);//drop old implementation, as it is now invalid due to XML (and therefore matrix size) change
     m_writingImpl.grabNew(NULL);
-    if (xml.getNumberOfDimensions() == 0) throw DataFileException("setCiftiXML called with 0-dimensional CiftiXML");
     if (useOldMetadata)
     {
         const GiftiMetaData* oldmd = m_xml.getFileMetaData();
@@ -248,11 +253,7 @@ void CiftiFile::setCiftiXML(const CiftiXML& xml, const bool useOldMetadata)
     } else {
         m_xml = xml;
     }
-    m_dims = m_xml.getDimensions();
-    for (size_t i = 0; i < m_dims.size(); ++i)
-    {
-        if (m_dims[i] < 1) throw DataFileException("cifti xml dimensions must be greater than zero");
-    }
+    m_dims = xmlDims;
 }
 
 void CiftiFile::setCiftiXML(const CiftiXMLOld& xml, const bool useOldMetadata)
@@ -261,12 +262,12 @@ void CiftiFile::setCiftiXML(const CiftiXMLOld& xml, const bool useOldMetadata)
     xml.writeXML(xmlText);
     CiftiXML tempXML;//so that we can use the same code path
     tempXML.readXML(xmlText);
-    if (tempXML.getDimensionLength(CiftiXML::ALONG_ROW) < 1)
+    if (tempXML.getDimensionLength(CiftiXML::ALONG_ROW) < 0)
     {
         CiftiSeriesMap& tempMap = tempXML.getSeriesMap(CiftiXML::ALONG_ROW);
         tempMap.setLength(xml.getDimensionLength(CiftiXMLOld::ALONG_ROW));
     }
-    if (tempXML.getDimensionLength(CiftiXML::ALONG_COLUMN) < 1)
+    if (tempXML.getDimensionLength(CiftiXML::ALONG_COLUMN) < 0)
     {
         CiftiSeriesMap& tempMap = tempXML.getSeriesMap(CiftiXML::ALONG_COLUMN);
         tempMap.setLength(xml.getDimensionLength(CiftiXMLOld::ALONG_COLUMN));
@@ -469,7 +470,7 @@ CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename)
     if (m_xml.getNumberOfDimensions() + 4 != (int)dimCheck.size()) throw DataFileException("XML does not match number of nifti dimensions in file " + filename + "'");
     for (int i = 4; i < (int)dimCheck.size(); ++i)
     {
-        if (m_xml.getDimensionLength(i - 4) < 1)//CiftiXML will only let this happen with cifti-1
+        if (m_xml.getDimensionLength(i - 4) < 0)//CiftiXML will only let this happen with cifti-1
         {
             m_xml.getSeriesMap(i - 4).setLength(dimCheck[i]);//and only in a series map
         } else {

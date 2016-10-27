@@ -245,6 +245,10 @@ AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, 
                 }
             }
         }
+        if (count == 0)
+        {
+            throw AlgorithmException("volume label file does not contain any structure names");
+        }
         voxelLists.resize(count);
         vector<int64_t> mydims;
         myVolLabel->getDimensions(mydims);
@@ -273,7 +277,14 @@ AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, 
         myXML.setVolumeDimsAndSForm(ciftiVolDims, myVol->getSform());
         for (map<StructureEnum::Enum, int>::iterator myiter = componentMap.begin(); myiter != componentMap.end(); ++myiter)
         {
-            myXML.addVolumeModelToColumns(voxelLists[myiter->second], myiter->first);
+            if (!voxelLists[myiter->second].empty())
+            {
+                myXML.addVolumeModelToColumns(voxelLists[myiter->second], myiter->first);
+            }
+        }
+        if (myXML.getNumberOfRows() == 0)
+        {
+            throw AlgorithmException("volume label file does not label any voxels as any structure");
         }
     }
     if (numMaps == -1)
