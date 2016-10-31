@@ -81,7 +81,7 @@ export OPENMP_LIB_DIR
 echo "BUILDING SOURCE"
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
-/usr/local/cmake-3.3.1/bin/cmake \
+/usr/local/cmake-3.6.2/bin/cmake \
    -DCMAKE_BUILD_TYPE=Release \
    -DCMAKE_C_COMPILER=${CC_COMPILER} \
    -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
