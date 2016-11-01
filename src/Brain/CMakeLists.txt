@@ -327,6 +327,8 @@ WholeBrainSurfaceSettings.cxx
 WholeBrainVoxelDrawingMode.cxx
 ) 
 
+TARGET_LINK_LIBRARIES(Brain ${CARET_QT5_LINK})
+
 #
 # Find Headers
 #

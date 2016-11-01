@@ -19,6 +19,8 @@ OSMesaDummy.h
 OSMesaDummy.c
 )
 
+TARGET_LINK_LIBRARIES(OSMesaDummy ${CARET_QT5_LINK})
+
 #
 # Include directories
 #

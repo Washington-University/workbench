@@ -40,6 +40,8 @@ GiftiLabelTableSaxReader.cxx
 GiftiMetaDataSaxReader.cxx
 )
 
+TARGET_LINK_LIBRARIES(Gifti ${CARET_QT5_LINK})
+
 #
 # Find Headers
 #

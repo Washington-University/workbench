@@ -247,7 +247,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
 
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050600
     if (m_overlayHorizontalToolBox == m_overlayActiveToolBox) {
         /*
          * With Qt5, default height of overlay toolbox at bottom is
@@ -4343,10 +4343,10 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
             m_featuresToolBox->restoreFromScene(sceneAttributes,
                                                 sceneClass->getClass("m_featuresToolBox"));
             
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050600
             /*
              * Toolboxes were not restoring to correct size in Qt5.
-             * Qt5 adds a new method, QMainWindow::resizeDocks() that 
+             * Qt5.6 adds a new method, QMainWindow::resizeDocks() that 
              * resizes a QDockWidget in one dimension.  Use it to resize
              * the toolbox.
              */
@@ -4391,7 +4391,7 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                      sceneClass->getClass("m_overlayActiveToolBox"));
             
 
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050600
             /*
              * Toolboxes were not restoring to correct size in Qt5.
              * Qt5 adds a new method, QMainWindow::resizeDocks() that

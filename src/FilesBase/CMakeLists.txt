@@ -49,6 +49,8 @@ VolumeSliceViewPlaneEnum.cxx
 VolumeSpace.cxx
 )
 
+TARGET_LINK_LIBRARIES(FilesBase ${CARET_QT5_LINK})
+
 #
 # Find Headers
 #

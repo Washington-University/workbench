@@ -12,3 +12,6 @@ add_compile_options(-std=c99 -Wall -Wextra -Wno-unused-parameter -Wconversion -W
 add_definitions(-DNDEBUG)
 
 add_library(cpuinfo src/cpuinfo.c)
+
+TARGET_LINK_LIBRARIES(cpuinfo ${CARET_QT5_LINK})
+

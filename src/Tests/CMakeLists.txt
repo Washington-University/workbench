@@ -59,6 +59,7 @@ VolumeFileTest.cxx
 XnatTest.cxx
 )
 
+TARGET_LINK_LIBRARIES(Tests ${CARET_QT5_LINK})
 
 #
 # Create the test1 executable

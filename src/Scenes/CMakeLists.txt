@@ -17,10 +17,12 @@ PROJECT (Scenes)
 #
 # QT include files
 #
+SET(CARET_QT_LINK_MODULES "")
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
     #include_directories(${Qt5Network_INCLUDE_DIRS})
     include_directories(${Qt5Xml_INCLUDE_DIRS})
+    SET(CARET_QT_LINK_MODULES "Qt5::Core")
 endif()
 IF (QT4_FOUND)
     SET(QT_DONT_USE_QTGUI TRUE)
@@ -100,6 +102,8 @@ SceneUnsignedByte.cxx
 SceneUnsignedByteArray.cxx
 SceneWriterXml.cxx
 )
+
+TARGET_LINK_LIBRARIES(Scenes ${CARET_QT5_LINK})
 
 #
 # Find headers

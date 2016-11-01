@@ -50,6 +50,8 @@ CommandParser.cxx
 CommandUnitTest.cxx
 )
 
+TARGET_LINK_LIBRARIES(Commands ${CARET_QT5_LINK})
+
 #
 # Find Headers
 #

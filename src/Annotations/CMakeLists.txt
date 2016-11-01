@@ -107,6 +107,8 @@ EventAnnotationGroupGetWithKey.cxx
 EventAnnotationGrouping.cxx
 )
 
+TARGET_LINK_LIBRARIES(Annotations ${CARET_QT5_LINK})
+
 #
 # Find headers
 #

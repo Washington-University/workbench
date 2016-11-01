@@ -251,6 +251,8 @@ AlgorithmVolumeWarpfieldResample.cxx
 OverlapLogicEnum.cxx
 )
 
+TARGET_LINK_LIBRARIES(Algorithms ${CARET_QT5_LINK})
+
 #
 # Find Headers
 #

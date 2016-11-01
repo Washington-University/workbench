@@ -196,6 +196,8 @@ OperationZipSceneFile.cxx
 OperationZipSpecFile.cxx
 )
 
+TARGET_LINK_LIBRARIES(Operations ${CARET_QT5_LINK})
+
 #
 # Find Headers
 #

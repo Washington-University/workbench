@@ -60,6 +60,8 @@ ChartScaleAutoRanging.cxx
 ChartSelectionModeEnum.cxx
 )
 
+TARGET_LINK_LIBRARIES(Charting ${CARET_QT5_LINK})
+
 #
 # Include directories
 #

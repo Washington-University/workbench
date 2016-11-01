@@ -1,7 +1,7 @@
 #
 # Minimum required version of CMAKE
 #
-CMAKE_MINIMUM_REQUIRED (VERSION 3.5)
+CMAKE_MINIMUM_REQUIRED (VERSION 2.8.12)
 
 MESSAGE("\nCMake Version: ${CMAKE_VERSION}\n")
 
@@ -242,6 +242,7 @@ ELSE ()
     message("WORKBENCH_USE_QT5 NOT defined")
 ENDIF ()
 
+SET(CARET_QT5_LINK "")
 IF (WORKBENCH_USE_QT5) 
     
     #
@@ -254,7 +255,7 @@ IF (WORKBENCH_USE_QT5)
     ENDIF ()
 
     #FIND_PACKAGE(Qt5 5.6.0 COMPONENTS Concurrent Core Gui Network OpenGL PrintSupport Test Widgets Xml)
-    FIND_PACKAGE(Qt5 5.6.0 COMPONENTS Concurrent Core Gui Network ${WB_QT_OPENGL_MODULE} PrintSupport Test Widgets Xml)
+    FIND_PACKAGE(Qt5 COMPONENTS Concurrent Core Gui Network ${WB_QT_OPENGL_MODULE} PrintSupport Test Widgets Xml)
     IF (Qt5_FOUND)
         MESSAGE("Found Qt 5")
         IF (NOT Qt5Concurrent_FOUND)
@@ -309,6 +310,9 @@ IF (WORKBENCH_USE_QT5)
             # Enable usage of replacements for Qt deprecated functionality in Workbench source code
             add_definitions(-DWORKBENCH_REPLACE_QT_DEPRECATED)
         ENDIF ()
+
+        #small hack to get the qt5 compile flag requirements into libraries
+        SET(CARET_QT5_LINK "Qt5::Core")
 
     ELSE ()
         MESSAGE(FATAL_ERROR "Qt5 was required but not found")

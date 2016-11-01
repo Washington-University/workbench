@@ -34,6 +34,8 @@ NiftiHeader.cxx
 NiftiIO.cxx
 )
 
+TARGET_LINK_LIBRARIES(Nifti ${CARET_QT5_LINK})
+
 #
 # Find Headers
 #

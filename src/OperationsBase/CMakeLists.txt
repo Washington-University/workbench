@@ -28,6 +28,8 @@ OperationParameters.cxx
 OperationParametersEnum.cxx
 )
 
+TARGET_LINK_LIBRARIES(OperationsBase ${CARET_QT5_LINK})
+
 #
 # Find Headers
 #

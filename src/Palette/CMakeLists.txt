@@ -39,6 +39,8 @@ PaletteScalarAndColor.cxx
 PaletteThresholdRangeModeEnum.cxx
 )
 
+TARGET_LINK_LIBRARIES(Palette ${CARET_QT5_LINK})
+
 #
 # Find Headers
 #

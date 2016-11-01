@@ -261,6 +261,7 @@ XmlStreamReaderHelper.cxx
 XmlStreamWriterHelper.cxx
 )
 
+TARGET_LINK_LIBRARIES(Files ${CARET_QT5_LINK})
 
 #
 # Find Headers

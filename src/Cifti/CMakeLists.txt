@@ -54,6 +54,8 @@ CiftiSeriesMap.cxx
 CiftiVersion.cxx
 )
 
+TARGET_LINK_LIBRARIES(Cifti ${CARET_QT5_LINK})
+
 #
 # Find Headers
 #

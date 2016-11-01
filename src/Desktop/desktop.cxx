@@ -100,10 +100,12 @@ messageHandlerForQt5(QtMsgType type, const QMessageLogContext& context, const QS
                 abortFlag = true;//fatal will cause an abort, so always display it, bypassing logger entirely
                 displayedFlag = true;
                 break;
+#if QT_VERSION >= 0x050500
             case QtInfoMsg:
                 CaretLogInfo(message);
                 displayedFlag = CaretLogger::getLogger()->isInfo();
                 break;
+#endif
         }
         
         /*
@@ -131,9 +133,11 @@ messageHandlerForQt5(QtMsgType type, const QMessageLogContext& context, const QS
                 case QtFatalMsg:
                     cerr << "FATAL (?!?) ";//should never happen
                     break;
+#if QT_VERSION >= 0x050500
                 case QtInfoMsg:
                     std::cerr << "Info ";
                     break;
+#endif
             }
             cerr << "message hidden" << endl;
         }
@@ -158,9 +162,11 @@ messageHandlerForQt5(QtMsgType type, const QMessageLogContext& context, const QS
                 std::cerr << "Qt Fatal: " << message << std::endl;
                 std::abort();
                 break;
+#if QT_VERSION >= 0x050500
             case QtInfoMsg:
                 std::cerr << "Qt Info: " << message << std::endl;
                 break;
+#endif
         }
     }
 }
