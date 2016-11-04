@@ -1,8 +1,8 @@
-Connectome Workbench requires QT4 to compile.  Recommended is the latest 4.8.x release.  The following configure options were used on linux for our builds:
+Connectome Workbench requires QT4 or QT5 to compile.  Recommended is the latest 4.8.x release, or 5.6 or later.  For QT4, try the following configure options:
 
--system-zlib -webkit -qt-libmng -qt-libpng -qt-libtiff -qt-libjpeg -nomake demos -nomake examples -no-qt3support -no-dbus -opensource -exceptions -stl -no-multimedia -no-phonon -no-audio-backend -openssl
+-system-zlib -no-webkit -qt-libmng -qt-libpng -qt-libtiff -qt-libjpeg -nomake demos -nomake examples -no-qt3support -no-dbus -opensource -exceptions -stl -no-multimedia -no-phonon -no-audio-backend -openssl
 
-Optionally, it can use OSMesa, which allows the -show-scene command to work.  Use it by setting OSMESA_DIR as an environment variable, such that $OSMESA_DIR/include/GL/osmesa.h exists, before running cmake.
+It is highly recommended to compile with OSMesa, which allow the -show-scene command and the "render pixmap" image capture method to work.  Use it by setting OSMESA_DIR as an environment variable, such that $OSMESA_DIR/include/GL/osmesa.h exists, before running cmake.
 
 It is compiled using cmake, on linux do:
 

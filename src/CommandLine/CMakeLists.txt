@@ -99,9 +99,11 @@ ${OSMESA_GLU_LIBRARY}
 ${ZLIB_LIBRARIES}
 ${LIBS})
 
-INSTALL(TARGETS ${EXE_NAME} DESTINATION bin)
-INSTALL(PROGRAMS wb_shortcuts DESTINATION bin)
-INSTALL(FILES bashcomplete_wb_command DESTINATION /usr/share/bash-completion/completions RENAME wb_command)
+INCLUDE(GNUInstallDirs)
+
+INSTALL(TARGETS ${EXE_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(PROGRAMS wb_shortcuts DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES bashcomplete_wb_command DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/bash-completion/completions RENAME wb_command)
 
 #
 # Find Headers
