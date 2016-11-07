@@ -95,6 +95,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         minComboBoxWidth = 50;
         maxComboBoxWidth = 100000;
     }
+    const QComboBox::SizeAdjustPolicy comboSizePolicy = QComboBox::AdjustToContents;
 
     /*
      * Enabled Check Box
@@ -114,6 +115,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     QObject::connect(this->fileComboBox, SIGNAL(activated(int)),
                      this, SLOT(fileComboBoxSelected(int)));
     this->fileComboBox->setToolTip("Selects file for this overlay");
+    this->fileComboBox->setSizeAdjustPolicy(comboSizePolicy);
     
     /*
      * Map Index Spin Box
@@ -132,6 +134,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     QObject::connect(this->mapNameComboBox, SIGNAL(activated(int)),
                      this, SLOT(mapNameComboBoxSelected(int)));
     this->mapNameComboBox->setToolTip("Select map by its name");
+    this->mapNameComboBox->setSizeAdjustPolicy(comboSizePolicy);
     
     /*
      * Opacity double spin box
