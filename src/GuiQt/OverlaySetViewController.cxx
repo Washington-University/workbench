@@ -81,6 +81,7 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         gridLayout->setColumnStretch(4, 0);
         gridLayout->setColumnStretch(5, 100);
         gridLayout->setColumnStretch(6, 0);
+        gridLayout->setColumnStretch(7, 0);
         gridLayout->setColumnStretch(8, 100);
         
         QLabel* onLabel       = new QLabel("On");
