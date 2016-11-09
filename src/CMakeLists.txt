@@ -32,6 +32,11 @@ ELSEIF(UNIX)
     ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ELSEIF(WIN32)
     ADD_DEFINITIONS(-DCARET_OS_WINDOWS)
+    # Policy CMP0020 is related to Qt
+    # https://cmake.org/cmake/help/v3.5/policy/CMP0020.html
+    if(POLICY CMP0020) 
+        cmake_policy(SET CMP0020 NEW)
+    endif()
     IF(MSVC)
         ADD_DEFINITIONS(-DCARET_OS_WINDOWS_MSVC)
         IF(CMAKE_CL_64)
@@ -39,9 +44,9 @@ ELSEIF(WIN32)
             ADD_DEFINITIONS(-D_USE_MATH_DEFINES -DNOMINMAX)
             SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -wd4290 -wd4244 -wd4267 -wd4305 -wd4100 -wd4005" )
             ##SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -we4061")
-            SET( ZLIB_INCLUDE_DIR "C:\\dev64\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
+#JWH            SET( ZLIB_INCLUDE_DIR "C:\\dev64\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
 #           SET( ZLIB_LIBRARY "C:\\dev64\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
-            SET(ZLIB_LIBRARY optimized "C:\\dev64\\install\\zlib\\lib\\zlib.lib" debug "C:\\dev64\\install\\zlib\\lib\\zlibd.lib" CACHE STRING "zlib library (binary)")
+#JWH            SET(ZLIB_LIBRARY optimized "C:\\dev64\\install\\zlib\\lib\\zlib.lib" debug "C:\\dev64\\install\\zlib\\lib\\zlibd.lib" CACHE STRING "zlib library (binary)")
             SET( OPENSSL_ROOT_DIR "c:\\dev64\\install\\openssl-1.0.1t" CACHE_STRING "open ssl root directory")
 
         ELSE()
@@ -412,7 +417,12 @@ FIND_PACKAGE(ZLIB)
 IF ( ZLIB_FOUND )
     INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 ELSE (ZLIB_FOUND)
-    MESSAGE(FATAL_ERROR "ZLIB was not found")
+    MESSAGE(FATAL_ERROR "ZLIB was not found.  It may be necessary to define "
+                  "the variable ZLIB_ROOT when running cmake so that "
+                  "the FindZLIB module is able to find ZLIB.\n"
+                  "   cmake -DZLIB_ROOT=<path> \n"
+                  "See HINTS at "
+                  "https://cmake.org/cmake/help/v3.5/module/FindZLIB.html")
 ENDIF (ZLIB_FOUND)
 
 #
@@ -440,6 +450,10 @@ ENDIF (QUAZIP_FOUND)
 #
 SET(FTGL_FONT_MODULE_FOR_LINKING "")
 
+IF (DEFINED WORKBENCH_FREETYPE_DIR)
+   # FindFreeType looks for environment variable FREETYPE_DIR as a hint
+   SET(ENV{FREETYPE_DIR} ${WORKBENCH_FREETYPE_DIR})
+ENDIF ()
 FIND_PACKAGE(Freetype)
 IF (FREETYPE_FOUND)
     MESSAGE("FreeType library found")
