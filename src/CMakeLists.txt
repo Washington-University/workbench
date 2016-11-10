@@ -15,7 +15,7 @@ MESSAGE("\nCMake Version: ${CMAKE_VERSION}\n")
 set (WORKBENCH_QT5_DEPRECATED_FATAL_ERROR FALSE CACHE BOOL "If TRUE, produce fatal compiler error for Qt 5 deprecated functionality")
 set (WORKBENCH_USE_QT5 FALSE CACHE BOOL "Enable search for Qt 5.x libraries.  Must be passed as an argument to CMake:  cmake -DWORKBENCH_USE_QT5=TRUE <path-to-source>")
 set (WORKBENCH_USE_QT5_QOPENGL_WIDGET FALSE CACHE BOOL "If Qt 5.x is used, use QOpenGLWidget instead of deprecated QGLWidget")
-
+set (WORKBENCH_MESA_DIR "" CACHE PATH "Path to the Mesa root directory that contains the 'include' and 'lib' directories.  Mesa is optional and used by wb_command's -show-scene operation.")
 #
 # Setting the compiler MUST be done before the PROJECT
 # statement or else an infinite loop will occur indicating
@@ -517,26 +517,26 @@ SET(OSMESA_GL_LIBRARY "")
 SET(OSMESA_GLU_LIBRARY "")
 SET(OSMESA_INCLUDE_DIRECTORY "")
 
-MESSAGE("OSMESA_DIR: $ENV{OSMESA_DIR}")
-IF (EXISTS $ENV{OSMESA_DIR})
-    IF (EXISTS $ENV{OSMESA_DIR}/include/GL/osmesa.h)
+MESSAGE("OSMESA_DIR: ${WORKBENCH_MESA_DIR}")
+IF (EXISTS ${WORKBENCH_MESA_DIR})
+    IF (EXISTS ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h)
         MESSAGE("Have Mesa Include Directory")
         FIND_LIBRARY(OSMESA_LIBRARY_FOUND
                      NAMES OSMesa
-                     HINTS $ENV{OSMESA_DIR}/lib)
+                     HINTS ${WORKBENCH_MESA_DIR}/lib)
         FIND_LIBRARY(OSMESA_GL_LIBRARY_FOUND
                      NAMES GL
-                     HINTS $ENV{OSMESA_DIR}/lib)
+                     HINTS ${WORKBENCH_MESA_DIR}/lib)
         FIND_LIBRARY(OSMESA_GLU_LIBRARY_FOUND
                      NAMES GLU
-                     HINTS $ENV{OSMESA_DIR}/lib)
+                     HINTS ${WORKBENCH_MESA_DIR}/lib)
         MESSAGE("OSMesa lib: " ${OSMESA_LIBRARY})
         IF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
             SET(OSMESA_DEFINITION -DHAVE_OSMESA)
             SET(OSMESA_OFFSCREEN_LIBRARY ${OSMESA_LIBRARY_FOUND})
             SET(OSMESA_GL_LIBRARY ${OSMESA_GL_LIBRARY_FOUND})
             SET(OSMESA_GLU_LIBRARY ${OSMESA_GLU_LIBRARY_FOUND})
-            SET(OSMESA_INCLUDE_DIRECTORY $ENV{OSMESA_DIR}/include)
+            SET(OSMESA_INCLUDE_DIRECTORY ${WORKBENCH_MESA_DIR}/include)
             SET(OSMESA_FOUND TRUE)
 
             MESSAGE("Offscreen Mesa Library was found")
@@ -546,8 +546,8 @@ IF (EXISTS $ENV{OSMESA_DIR})
             MESSAGE("   Libraries:  ${OSMESA_GL_LIBRARY}")
             MESSAGE("   Libraries:  ${OSMESA_GLU_LIBRARY}")
         ENDIF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
-    ENDIF (EXISTS $ENV{OSMESA_DIR}/include/GL/osmesa.h)
-ENDIF (EXISTS $ENV{OSMESA_DIR})
+    ENDIF (EXISTS ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h)
+ENDIF (EXISTS ${WORKBENCH_MESA_DIR})
 
 #=============================================================================
 MESSAGE("")
