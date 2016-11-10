@@ -42,38 +42,15 @@ ELSEIF(WIN32)
         IF(CMAKE_CL_64)
             ADD_DEFINITIONS(-D_USE_MATH_DEFINES -DNOMINMAX)
             SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -wd4290 -wd4244 -wd4267 -wd4305 -wd4100 -wd4005" )
-#JWH            SET( OPENSSL_ROOT_DIR "c:\\dev64\\install\\openssl-1.0.1t" CACHE_STRING "open ssl root directory")
         ELSE()
             ADD_DEFINITIONS(-D_USE_MATH_DEFINES -DNOMINMAX)
             SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -wd4290 -wd4244 -wd4267 -wd4305 -wd4100 -wd4005" )
-#JWH            SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
-#JWH            SET(ZLIB_LIBRARY optimized "C:\\dev32\\install\\zlib\\lib\\zlib.lib" debug "C:\\dev32\\install\\zlib\\lib\\zlibd.lib" CACHE STRING "zlib library (binary)")             
-#JWH            SET( OPENSSL_ROOT_DIR "c:\\dev32\\install\\openssl" CACHE_STRING "open ssl root directory")
         ENDIF(CMAKE_CL_64)
     ELSE(MSVC)
-#JWH        SET( OPENSSL_ROOT_DIR "c:\\dev32\\install\\openssl" CACHE_STRING "open ssl root directory")
-#JWH        FIND_PATH(ZLIB_INCLUDE_DIR zlib.h
-#JWH            C:\\dev32\\install\\zlib\\include
-#JWH            C:\\zlib_software\\zlib-1.2.5-install\\include
-#JWH            $ENV{ZLIB_INC_DIR})
-#JWH        FIND_PATH(ZLIB_LIBRARY libzlib.a
-#JWH            C:\\zlib_software\\zlib-1.2.5-install\\lib)
-#JWH        IF (NOT ZLIB_FOUND)
-#JWH            FIND_PATH(ZLIB_LIBRARY zlib.lib
-#JWH            C:\\dev32\\install\\zlib\\lib)
-#JWH        ENDIF(NOT ZLIB_FOUND)
-#JWH        IF (NOT ZLIB_FOUND)
-#JWH            FIND_PATH(ZLIB_LIBRARY libz.a
-#JWH                $ENV{ZLIB_LIB_DIR})
-#JWH        ENDIF(NOT ZLIB_FOUND)
     ENDIF(MSVC)
 ELSE(APPLE)
     MESSAGE(FATAL_ERROR "Unrecognized operating system " ${CMAKE_SYSTEM_NAME})
 ENDIF(APPLE)
-
-
-
-#cmake_policy(SET CMP0015 OLD)
 
 #
 # Shows compilation command when true
@@ -81,39 +58,10 @@ ENDIF(APPLE)
 SET(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "cause all build commands to be displayed")
 
 #
-# Allow support for C11X compiler
-# May not need these, use CMAKE_CXX_STANDARD:UNINITIALIZED=11
-#
-SET (WORKBENCH_C11X FALSE)
-##SET (WORKBENCH_C11X TRUE)
-IF ("$ENV{WORKBENCH_CONFIGURE_C11X}" STREQUAL "YES")
-   SET (WORKBENCH_C11X TRUE)
-   MESSAGE("Configuring Workbench build with C11X enabled.")
-ENDIF ("$ENV{WORKBENCH_CONFIGURE_C11X}" STREQUAL "YES")
-
-
-#
-# Set flags for C11 compiler
-# Only set for C++ compiler
-# C11x options are not recognized by C compiler
-#
-SET (CLANG_11X_FLAGS "")
-SET (GNU_11X_FLAGS "")
-SET (INTEL_11X_FLAGS "")
-IF (WORKBENCH_C11X)
-    ADD_DEFINITIONS("-DWORKBENCH_HAVE_C11X")
-    SET (CLANG_11X_FLAGS "-std=c++11 -stdlib=libstdc++ -Wno-error=c++11-narrowing")
-    ####SET (CLANG_11X_FLAGS "-std=c++11 -stdlib=libc++ -Wno-error=c++11-narrowing")
-    SET (GNU_11X_FLAGS "-std=c++11 -Wno-error=c++11-narrowing")
-    SET (INTEL_11X_FLAGS "-std=c++11 -Wno-error=c++11-narrowing")
-ENDIF (WORKBENCH_C11X)
-
-#
 # Intel compiler
 #
 IF (${CMAKE_CXX_COMPILER} MATCHES "^.*icpc$")
     ADD_DEFINITIONS("-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${INTEL_11X_FLAGS}")
 ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*icpc$")
 
 #
@@ -129,13 +77,6 @@ ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang2\\+\\+.*")
 IF (CLANG_FLAG)
     MESSAGE("USING CLANG COMPILER ${CMAKE_CXX_COMPILER}")
     ADD_DEFINITIONS("-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter -Wno-deprecated-declarations")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS}")
-    ##SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS} -W -Wall -Werror=return-type -Werror=switch -Wunused-parameter")
-    ##SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS} -W -Wall -Werror=return-type -Werror=switch -Wunused-parameter" CACHE STRING "C++ compiler options" FORCE)
-
-    IF (WORKBENCH_C11X)
-        ####set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -std=c++11 -stdlib=libc++")
-    ENDIF (WORKBENCH_C11X)
 ENDIF (CLANG_FLAG)
 
 
@@ -153,12 +94,9 @@ IF (NOT MSVC)
         list(GET GCC_VERSION_COMPONENTS 1 GCC_MINOR)
         message("gcc major minor version numbers are: " ${GCC_MAJOR},${GCC_MINOR})
         if(${GCC_VERSION} VERSION_LESS "4.2")
-            #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall" CACHE STRING "c++ compiler specific options")
             ADD_DEFINITIONS(-W -Wall)
         else()
-            #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Werror=return-type -Werror=switch" CACHE STRING "c++ compiler specific options")
             ADD_DEFINITIONS(-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter)
-            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GNU_11X_FLAGS}")
         endif()
 
         if (${GCC_VERSION} VERSION_LESS "4.9")
@@ -284,6 +222,7 @@ IF (WORKBENCH_USE_QT5)
             add_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
         ELSE ()
             MESSAGE("Configuring to use deprecated QGLWidget instead of new QOpenGLWidget")
+            remove_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
         ENDIF ()
 
         IF (WORKBENCH_QT5_DEPRECATED_FATAL_ERROR)
@@ -372,6 +311,8 @@ IF (OPENMP_FOUND)
         SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-intel")
         ADD_DEFINITIONS("-static-intel")
     ENDIF()
+    MESSAGE("OpenMP was Found")
+    MESSAGE("    OpenMP_CXX_FLAGS: ${OpenMP_CXX_FLAGS}")
 ELSE (OPENMP_FOUND)
     MESSAGE(WARNING "OpenMP was not found")
 
@@ -565,3 +506,16 @@ ENDIF()
 #CTest tests
 #
 ENABLE_TESTING()
+
+
+
+#
+# Print values of Workbench Variables
+#
+get_cmake_property( allVars VARIABLES )      
+foreach( var in ${allVars} ) 
+    string(FIND ${var} "WORKBENCH" workbenchOffset)
+    if(${workbenchOffset} EQUAL 0)
+        message(STATUS "   ${var}=${${var}}" )
+    endif()
+endforeach()
