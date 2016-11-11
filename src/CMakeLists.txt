@@ -5,11 +5,6 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 
 MESSAGE("\nCMake Version: ${CMAKE_VERSION}\n")
 
-#
-#
-#
-#message(INFORMATION "\nTo get the correct version of QT, qmake must be in the PATH\n")
-
 #TSC: use "CACHE <type> <docstring>" syntax in SET commands so they can be overridden by cmake options
 
 set (WORKBENCH_QT5_DEPRECATED_FATAL_ERROR FALSE CACHE BOOL "If TRUE, produce fatal compiler error for Qt 5 deprecated functionality")
@@ -134,18 +129,14 @@ if (CMAKE_COMPILER_IS_GNUCC)
     endif()
 endif()
 
-#
-# will set name of XCode project:  
-# disabled at this time
-#
-##PROJECT(BorderOptProject C CXX)
-
+SET(OPENSSL_RESULT "Not Found")
 FIND_PACKAGE(OpenSSL)
 IF(OPENSSL_FOUND)
     INCLUDE_DIRECTORIES(${OPENSSL_INCLUDE_DIR})
     MESSAGE("OpenSSL version=${OPENSSL_VERSION}")
     MESSAGE("OpenSSL include=${OPENSSL_INCLUDE_DIR}")
     MESSAGE("OpenSSL libraries=${OPENSSL_LIBRARIES}")
+    SET(OPENSSL_RESULT "${OPENSSL_VERSION}   ${OPENSSL_LIBRARIES}")
 ELSE (OPENSSL_FOUND)
     MESSAGE("OpenSSL NOT FOUND.  You may need to define OPENSSL_ROOT_DIR when running CMake.")
     MESSAGE("   cmake -DOPENSSL_ROOT_DIR=<path> \n")
@@ -157,15 +148,9 @@ ENDIF(OPENSSL_FOUND)
 # https://cmake.org/cmake/help/v3.5/manual/cmake-packages.7.html#manual:cmake-packages(7)
 # Modules List: http://doc.qt.io/qt-5/qtmodules.html
 #
-IF (WORKBENCH_USE_QT5) 
-    message("WORKBENCH_USE_QT5 defined")
-ELSE ()
-    message("WORKBENCH_USE_QT5 NOT defined")
-ENDIF ()
-
+SET(QT_RESULT "Not Found")
 SET(CARET_QT5_LINK "")
 IF (WORKBENCH_USE_QT5) 
-    
     #
     # The OpenGL module is deprecated in Qt5 and 
     # is needed only if QGLWidget is used for
@@ -218,10 +203,8 @@ IF (WORKBENCH_USE_QT5)
             # If WORKBENCH_USE_QT5_QOPENGL_WIDGET is defined, QOpenGLWidget is used
             # for OpenGL.  Otherwise, QGLWidget is used.
             #
-            MESSAGE("Configuring to use QOpenGLWidget instead of deprecated QGLWidget")
             add_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
         ELSE ()
-            MESSAGE("Configuring to use deprecated QGLWidget instead of new QOpenGLWidget")
             remove_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
         ENDIF ()
 
@@ -235,6 +218,7 @@ IF (WORKBENCH_USE_QT5)
         #small hack to get the qt5 compile flag requirements into libraries
         SET(CARET_QT5_LINK "Qt5::Core")
 
+        SET(QT_RESULT "${Qt5_VERSION}")
     ELSE ()
         MESSAGE(FATAL_ERROR "Qt5 was required but not found")
     ENDIF ()
@@ -242,15 +226,17 @@ ELSE ()
     FIND_PACKAGE(Qt4 4.8 REQUIRED)
     IF(QT4_FOUND)
         INCLUDE(${QT_USE_FILE})
+        MESSAGE("QT_USE_FILE: ${QT_USE_FILE}")
+        SET(QT_RESULT "${QTVERSION}")
     ELSE(QT4_FOUND)
         MESSAGE(FATAL_ERROR "QT4 not found")
     ENDIF(QT4_FOUND)
-    MESSAGE("QT_USE_FILE: ${QT_USE_FILE}")
 ENDIF ()
 
 #
 # Try to find Qwt, utherwise use bundle
 #
+SET(QWT_RESULT "Not Found")
 IF (NOT WIN32)
     PKG_CHECK_MODULES(Qwt qwt)
 ENDIF (NOT WIN32)
@@ -258,8 +244,10 @@ IF (Qwt_FOUND)
     MESSAGE("Qwt library found")
     MESSAGE("   INCLUDES ${Qwt_INCLUDE_DIRS}")
     MESSAGE("   LIBS ${Qwt_LIBRARIES}")
+    SET(QWT_RESULT "Using Qwt Library ${Qwt_LIBRARIES}")
 ELSE (Qwt_FOUND)
     MESSAGE("Qwt library not found, using bundled")
+    SET(QWT_RESULT "In Workbench Source Code")
 ENDIF (Qwt_FOUND)
 
 #
@@ -298,6 +286,7 @@ ENDIF (NOT OPENMP_FOUND)
 #
 # If OpenMP is found, may need to set compiler and linker flags
 #
+SET(OPENMP_RESULT "Not Found")
 IF (OPENMP_FOUND)
     # add definitions will add the flag to the linker and resource compilers, which don't understand the openmp option
     SET(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
@@ -313,6 +302,7 @@ IF (OPENMP_FOUND)
     ENDIF()
     MESSAGE("OpenMP was Found")
     MESSAGE("    OpenMP_CXX_FLAGS: ${OpenMP_CXX_FLAGS}")
+    SET(OPENMP_RESULT "Yes")
 ELSE (OPENMP_FOUND)
     MESSAGE(WARNING "OpenMP was not found")
 
@@ -331,9 +321,11 @@ MESSAGE("\nC++ flags ${CMAKE_CXX_FLAGS}\n")
 #
 # MUST have ZLIB
 #
+SET(ZLIB_RESULT "Not Found")
 FIND_PACKAGE(ZLIB)
 IF ( ZLIB_FOUND )
     INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
+    SET(ZLIB_RESULT ${ZLIB_VERSION_STRING})
 ELSE (ZLIB_FOUND)
     MESSAGE(FATAL_ERROR "ZLIB was not found.  It may be necessary to define "
                   "the variable ZLIB_ROOT when running cmake so that "
@@ -346,11 +338,13 @@ ENDIF (ZLIB_FOUND)
 #
 # Try to find QuaZip, otherwise use bundled
 #
-FIND_PACKAGE(QuaZip)
+SET(QUAZIP_RESULT "Not Found")
+FIND_PACKAGE(QuaZip  QUIET)
 IF (QUAZIP_FOUND)
   MESSAGE("QuaZip library found")
   MESSAGE("   INCLUDES ${QUAZIP_INCLUDE_DIRS}")
   MESSAGE("   LIBS ${QUAZIP_LIBRARIES}")
+  SET(QUAZIP_RESULT "Using QuaZip Library ${QUAZIP_LIBRARIES}")
 ELSE (QUAZIP_FOUND)
     MESSAGE("QuaZip library not found, using bundled")
     #
@@ -360,14 +354,16 @@ ELSE (QUAZIP_FOUND)
         IF(MSVC)
             ADD_DEFINITIONS(-DQUAZIP_STATIC)
         ENDIF(MSVC)
-     ENDIF(WIN32)
+    ENDIF(WIN32)
+    SET(QUAZIP_RESULT "In Workbench Source Code")
 ENDIF (QUAZIP_FOUND)
 
 #
 # Find FreeType
 #
+SET(FREETYPE_RESULT "Not Found")
+SET(FTGL_RESULT "Must have FreeType to use FTGL")
 SET(FTGL_FONT_MODULE_FOR_LINKING "")
-
 IF (DEFINED WORKBENCH_FREETYPE_DIR)
    # FindFreeType looks for environment variable FREETYPE_DIR as a hint
    SET(ENV{FREETYPE_DIR} ${WORKBENCH_FREETYPE_DIR})
@@ -387,11 +383,14 @@ IF (FREETYPE_FOUND)
         MESSAGE("FTGL library found")
         MESSAGE("   INCLUDES ${FTGL_INCLUDE_DIRS}")
         MESSAGE("   LIBS ${FTGL_LIBRARIES}")
+        SET(FTGL_RESULT "Using FTGL Library ${FTGL_LIBRARIES}")
     ELSE (FTGL_FOUND)
         MESSAGE("FTGL library not found, using bundled")
+        SET(FTGL_RESULT "In Workbench Source Code")
     ENDIF (FTGL_FOUND)
 
     ADD_DEFINITIONS(-DHAVE_FREETYPE)
+    SET(FREETYPE_RESULT "${FREETYPE_VERSION_STRING} ${FREETYPE_LIBRARIES}")
 ELSE (FREETYPE_FOUND)
     SET (FREETYPE_LIBRARY "")
     SET (FREETYPE_LIBRARIES "")
@@ -424,6 +423,7 @@ SET(OSMESA_GL_LIBRARY "")
 SET(OSMESA_GLU_LIBRARY "")
 SET(OSMESA_INCLUDE_DIRECTORY "")
 
+SET(OSMESA_RESULT "Not found")
 MESSAGE("OSMESA_DIR: ${WORKBENCH_MESA_DIR}")
 IF (EXISTS ${WORKBENCH_MESA_DIR})
     IF (EXISTS ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h)
@@ -452,6 +452,8 @@ IF (EXISTS ${WORKBENCH_MESA_DIR})
             MESSAGE("   Libraries:  ${OSMESA_OFFSCREEN_LIBRARY}")
             MESSAGE("   Libraries:  ${OSMESA_GL_LIBRARY}")
             MESSAGE("   Libraries:  ${OSMESA_GLU_LIBRARY}")
+            
+            SET(OSMESA_RESULT ${OSMESA_OFFSCREEN_LIBRARY})
         ENDIF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
     ENDIF (EXISTS ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h)
 ENDIF (EXISTS ${WORKBENCH_MESA_DIR})
@@ -507,15 +509,57 @@ ENDIF()
 #
 ENABLE_TESTING()
 
-
+#
+# This is for help with finding variables created 
+# by "Find" type commands
+# To use, set DEBUG_VARIABLE_PREFIX to the prefix
+# of variables that are sought.  For example,
+# set to "Q" to find all variables beginning
+# with "Q".  Or, set to "OSMESA" to find print
+# all OSMESA variables.
+SET(DEBUG_VARIABLE_PREFIX "")
+IF(NOT (DEBUG_VARIABLE_PREFIX STREQUAL ""))
+    get_cmake_property( debugAllVars VARIABLES )      
+    foreach( debugVar in ${debugAllVars} ) 
+        string(FIND ${debugVar} ${DEBUG_VARIABLE_PREFIX} debugOffset)
+        if(${debugOffset} EQUAL 0)
+            message(${MSG_TYPE} ${MSG_INDENT} "${debugVar}=${${debugVar}}" )
+        endif()
+    endforeach()
+ENDIF()
 
 #
-# Print values of Workbench Variables
+# Print Summary
 #
+SET(MSG_TYPE "")
+SET(MSG_INDENT "    ")
+MESSAGE(${MSG_TYPE} "************* SUMMARY FROM RUNNING CMake ********************")
+FIND_PROGRAM(QMAKE_PROGRAM "qmake" NAMES "qmake.exe")
+MESSAGE(${MSG_TYPE} "TOOLS:")
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "CMake Version:        ${CMAKE_VERSION}")
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "CXX Compiler          ${CMAKE_CXX_COMPILER_ID}")
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "CXX Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "CXX Compiler Flags:   ${CMAKE_CXX_FLAGS}")
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "CXX Compiler Path:    ${CMAKE_CXX_COMPILER}")
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "QMake Program:        ${QMAKE_PROGRAM}")
+MESSAGE(${MSG_TYPE} "WORKBENCH VARIABLES:")
 get_cmake_property( allVars VARIABLES )      
 foreach( var in ${allVars} ) 
     string(FIND ${var} "WORKBENCH" workbenchOffset)
     if(${workbenchOffset} EQUAL 0)
-        message(STATUS "   ${var}=${${var}}" )
+        message(${MSG_TYPE} ${MSG_INDENT} "${var}=${${var}}" )
     endif()
 endforeach()
+
+MESSAGE(${MSG_TYPE} "PACKAGES:")
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "FTGL:     " ${FTGL_RESULT})
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "FreeType: " ${FREETYPE_RESULT})
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "OpenMP:   " ${OPENMP_RESULT})
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "OpenSSL:  " ${OPENSSL_RESULT})
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "OSMESA:   " ${OSMESA_RESULT})
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "Qt:       " ${QT_RESULT})
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "QuaZip:   " ${QUAZIP_RESULT})
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "Qwt:      " ${QWT_RESULT})
+MESSAGE(${MSG_TYPE} ${MSG_INDENT} "ZLIB:     " ${ZLIB_RESULT})
+
+MESSAGE(${MSG_TYPE} "************* END SUMMARY FROM RUNNING CMake *****************")
