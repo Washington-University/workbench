@@ -6,7 +6,7 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 #
 # Set to true for verbose output when debugging this file
 #
-SET(WB_CMAKE_VERBOSE_OUTPUT_FLAG FALSE)
+SET(WB_CMAKE_VERBOSE_OUTPUT_FLAG TRUE)
 
 ##########################################################################################
 #
@@ -35,12 +35,6 @@ set (WORKBENCH_USE_QT5_QOPENGL_WIDGET FALSE CACHE BOOL
      "With Qt5, QOpenGLWidget instead of deprecated QGLWidget")
 set (WORKBENCH_MESA_DIR "" CACHE PATH 
      "Directory containing Mesa's 'include' and 'lib' <NEWLINE>directories.  Mesa is optional and used by <NEWLINE>wb_command's -show-scene operation.")
-
-#
-# Shows compilation command when true
-# Should we be setting this (JWH 14 Nov 2016) ????
-#
-SET(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "cause all build commands to be displayed")
 
 ##########################################################################################
 #
@@ -140,9 +134,6 @@ if (CMAKE_COMPILER_IS_GNUCC
     #
     IF (WORKBENCH_USE_SIMD)
         TRY_COMPILE(CPUINFO_COMPILES ${CMAKE_CURRENT_BINARY_DIR}/cpuinfo_compile_test ${CMAKE_CURRENT_SOURCE_DIR}/kloewe/cpuinfo cpuinfo)
-        IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-            MESSAGE("SIMD CPUINFO_COMPILES: ${CPUINFO_COMPILES}")
-        ENDIF()
         
         #
         # Add the necessary definition and include directory to enable the 
@@ -168,11 +159,6 @@ SET(OPENSSL_RESULT "Not Found")
 FIND_PACKAGE(OpenSSL)
 IF(OPENSSL_FOUND)
     INCLUDE_DIRECTORIES(${OPENSSL_INCLUDE_DIR})
-    IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-        MESSAGE("OpenSSL version=${OPENSSL_VERSION}")
-        MESSAGE("OpenSSL include=${OPENSSL_INCLUDE_DIR}")
-        MESSAGE("OpenSSL libraries=${OPENSSL_LIBRARIES}")
-    ENDIF()
     SET(OPENSSL_RESULT "${OPENSSL_VERSION}   ${OPENSSL_LIBRARIES}")
 ELSE (OPENSSL_FOUND)
     MESSAGE("OpenSSL NOT FOUND.  May need to define OPENSSL_ROOT_DIR when running CMake.")
@@ -182,7 +168,7 @@ ENDIF(OPENSSL_FOUND)
 
 ##########################################################################################
 #
-# Must have QT 4.8 or QT 5.6 or later
+# Must have QT 4.8 or QT 5, recommended 5.6 or later
 # https://cmake.org/cmake/help/v3.5/manual/cmake-packages.7.html#manual:cmake-packages(7)
 # Modules List: http://doc.qt.io/qt-5/qtmodules.html
 #
@@ -198,67 +184,30 @@ IF (WORKBENCH_USE_QT5)
         SET(WB_QT_OPENGL_MODULE "OpenGL")
     ENDIF ()
 
-    FIND_PACKAGE(Qt5 COMPONENTS Concurrent Core Gui Network ${WB_QT_OPENGL_MODULE} PrintSupport Test Widgets Xml)
-    IF (Qt5_FOUND)
-        IF (NOT Qt5Concurrent_FOUND)
-            STRING(APPEND moduleError "Qt5 Concurrentmodule not found\n")
-        ENDIF()
-        IF (NOT Qt5Core_FOUND)
-            STRING(APPEND moduleError "Qt5 Core module not found\n")
-        ENDIF()
-        IF (NOT Qt5Gui_FOUND)
-            STRING(APPEND moduleError "Qt5 Gui module not found\n")
-        ENDIF()
-        IF (NOT Qt5Network_FOUND)
-            STRING(APPEND moduleError "Qt5 Network module not found\n")
-        ENDIF()
-        IF (NOT WORKBENCH_USE_QT5_QOPENGL_WIDGET)
-            IF (NOT Qt5OpenGL_FOUND)
-                STRING(APPEND moduleError "Qt5 OpenGL module not found\n")
-            ENDIF()
-        ENDIF ()
-        IF (NOT Qt5PrintSupport_FOUND)
-            STRING(APPEND moduleError "Qt5 Print Support module not found\n")
-        ENDIF()
-        IF (NOT Qt5Test_FOUND)
-            STRING(APPEND moduleError "Qt5 Test module not found\n")
-        ENDIF()
-        IF (NOT Qt5Widgets_FOUND)
-            STRING(APPEND moduleError "Qt5 Widgets module not found\n")
-        ENDIF()
-        IF (NOT Qt5Xml_FOUND)
-            STRING(APPEND moduleError "Qt5 XML module not found\n")
-        ENDIF()
-        IF (moduleError)
-            MESSAGE(SEND_ERROR "Missing Qt5 Modules\n" ${moduleError})
-        ENDIF()
+    FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Concurrent Core Gui Network ${WB_QT_OPENGL_MODULE} PrintSupport Test Widgets Xml)
+    IF (WORKBENCH_USE_QT5_QOPENGL_WIDGET)
+        #
+        # QGLWidget is deprecated in Qt 5 and is replaced with QOpenGLWidget
+        #
+        # If WORKBENCH_USE_QT5_QOPENGL_WIDGET is defined, QOpenGLWidget is used
+        # for OpenGL.  Otherwise, QGLWidget is used.
+        #
+        add_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
+    ELSE (WORKBENCH_USE_QT5_QOPENGL_WIDGET)
+        remove_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
+    ENDIF (WORKBENCH_USE_QT5_QOPENGL_WIDGET)
 
-        IF (WORKBENCH_USE_QT5_QOPENGL_WIDGET)
-            #
-            # QGLWidget is deprecated in Qt 5 and is replaced with QOpenGLWidget
-            #
-            # If WORKBENCH_USE_QT5_QOPENGL_WIDGET is defined, QOpenGLWidget is used
-            # for OpenGL.  Otherwise, QGLWidget is used.
-            #
-            add_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
-        ELSE ()
-            remove_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
-        ENDIF ()
+    IF (WORKBENCH_QT5_DISABLE_DEPRECATED)
+        # Causes Qt to remove declarations for deprecated functionality
+        add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050700) 
+        # Enable usage of replacements for Qt deprecated functionality in Workbench source code
+        add_definitions(-DWORKBENCH_REPLACE_QT_DEPRECATED)
+    ENDIF (WORKBENCH_QT5_DISABLE_DEPRECATED)
 
-        IF (WORKBENCH_QT5_DISABLE_DEPRECATED)
-            # Causes Qt to remove declarations for deprecated functionality
-            add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050700) 
-            # Enable usage of replacements for Qt deprecated functionality in Workbench source code
-            add_definitions(-DWORKBENCH_REPLACE_QT_DEPRECATED)
-        ENDIF ()
+    #small hack to get the qt5 compile flag requirements into libraries
+    SET(CARET_QT5_LINK "Qt5::Core")
 
-        #small hack to get the qt5 compile flag requirements into libraries
-        SET(CARET_QT5_LINK "Qt5::Core")
-
-        SET(QT_RESULT "${Qt5_VERSION}")
-    ELSE ()
-        MESSAGE(SEND_ERROR "Qt5 was required but not found")
-    ENDIF ()
+    SET(QT_RESULT "${Qt5_VERSION}")
 ELSE ()
     FIND_PACKAGE(Qt4 4.8 REQUIRED)
     IF(QT4_FOUND)
@@ -278,16 +227,8 @@ IF (NOT WIN32)
     PKG_CHECK_MODULES(Qwt qwt)
 ENDIF (NOT WIN32)
 IF (Qwt_FOUND)
-    IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-        MESSAGE("Qwt library found")
-        MESSAGE("   INCLUDES ${Qwt_INCLUDE_DIRS}")
-        MESSAGE("   LIBS ${Qwt_LIBRARIES}")
-    ENDIF()
     SET(QWT_RESULT "Using Qwt Library ${Qwt_LIBRARIES}")
 ELSE (Qwt_FOUND)
-    IF (WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-        MESSAGE("Qwt library not found, using bundled")
-    ENDIF()
     SET(QWT_RESULT "In Workbench Source Code")
 ENDIF (Qwt_FOUND)
 
@@ -342,10 +283,6 @@ IF (OPENMP_FOUND)
         SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-intel")
         ADD_DEFINITIONS("-static-intel")
     ENDIF()
-    IF (WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-        MESSAGE("OpenMP was Found")
-        MESSAGE("    OpenMP_CXX_FLAGS: ${OpenMP_CXX_FLAGS}")
-    ENDIF()
     SET(OPENMP_RESULT "Yes")
 ELSE (OPENMP_FOUND)
     MESSAGE(WARNING "OpenMP was not found")
@@ -385,16 +322,8 @@ ENDIF (ZLIB_FOUND)
 SET(QUAZIP_RESULT "Not Found")
 FIND_PACKAGE(QuaZip  QUIET)
 IF (QUAZIP_FOUND)
-    IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-        MESSAGE("QuaZip library found")
-        MESSAGE("   INCLUDES ${QUAZIP_INCLUDE_DIRS}")
-        MESSAGE("   LIBS ${QUAZIP_LIBRARIES}")
-    ENDIF()
   SET(QUAZIP_RESULT "Using QuaZip Library ${QUAZIP_LIBRARIES}")
 ELSE (QUAZIP_FOUND)
-    IF (WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-        MESSAGE("QuaZip library not found, using bundled")
-    ENDIF()
     #
     # Quazip needs this defined here for static linking on windows
     #
@@ -419,28 +348,12 @@ IF (DEFINED WORKBENCH_FREETYPE_DIR)
 ENDIF ()
 FIND_PACKAGE(Freetype)
 IF (FREETYPE_FOUND)
-    IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-        MESSAGE("FreeType library found")
-        MESSAGE("   INCLUDES ${FREETYPE_INCLUDE_DIRS}")
-        MESSAGE("   INCLUDES_FT2_BUILD ${FREETYPE_INCLUDE_DIR_ft2build}")
-        MESSAGE("   INCLUDES_FT2 ${FREETYPE_INCLUDE_DIR_freetype2}")
-        MESSAGE("   LIBS ${FREETYPE_LIBRARIES}")
-    ENDIF()
-    
     IF (NOT WIN32)
         PKG_CHECK_MODULES(FTGL ftgl)
     ENDIF (NOT WIN32)
     IF (FTGL_FOUND)
-        IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-            MESSAGE("FTGL library found")
-            MESSAGE("   INCLUDES ${FTGL_INCLUDE_DIRS}")
-            MESSAGE("   LIBS ${FTGL_LIBRARIES}")
-        ENDIF()
         SET(FTGL_RESULT "Using FTGL Library ${FTGL_LIBRARIES}")
     ELSE (FTGL_FOUND)
-        IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-            MESSAGE("FTGL library not found, using bundled")
-        ENDIF()
         SET(FTGL_RESULT "In Workbench Source Code")
     ENDIF (FTGL_FOUND)
 
@@ -483,9 +396,6 @@ SET(OSMESA_INCLUDE_DIRECTORY "")
 SET(OSMESA_RESULT "Not found")
 IF (EXISTS ${WORKBENCH_MESA_DIR})
     IF (EXISTS ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h)
-        IF (WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-            MESSAGE("Have Mesa Include Directory")
-        ENDIF()
         FIND_LIBRARY(OSMESA_LIBRARY_FOUND
                      NAMES OSMesa
                      HINTS ${WORKBENCH_MESA_DIR}/lib)
@@ -495,9 +405,6 @@ IF (EXISTS ${WORKBENCH_MESA_DIR})
         FIND_LIBRARY(OSMESA_GLU_LIBRARY_FOUND
                      NAMES GLU
                      HINTS ${WORKBENCH_MESA_DIR}/lib)
-        IF (WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-            MESSAGE("OSMesa lib: " ${OSMESA_LIBRARY_FOUND})
-        ENDIF()
         IF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
             SET(OSMESA_DEFINITION -DHAVE_OSMESA)
             SET(OSMESA_OFFSCREEN_LIBRARY ${OSMESA_LIBRARY_FOUND})
@@ -506,15 +413,6 @@ IF (EXISTS ${WORKBENCH_MESA_DIR})
             SET(OSMESA_INCLUDE_DIRECTORY ${WORKBENCH_MESA_DIR}/include)
             SET(OSMESA_FOUND TRUE)
 
-            IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
-                MESSAGE("Offscreen Mesa Library was found")
-                MESSAGE("   Definition: ${OSMESA_DEFINITION}")
-                MESSAGE("   Include:    ${OSMESA_INCLUDE_DIRECTORY}")
-                MESSAGE("   Libraries:  ${OSMESA_OFFSCREEN_LIBRARY}")
-                MESSAGE("   Libraries:  ${OSMESA_GL_LIBRARY}")
-                MESSAGE("   Libraries:  ${OSMESA_GLU_LIBRARY}")
-            ENDIF()
-            
             SET(OSMESA_RESULT ${OSMESA_OFFSCREEN_LIBRARY})
         ENDIF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
     ENDIF (EXISTS ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h)
@@ -588,41 +486,42 @@ ENDIF()
 #
 # Print Summary
 #
-SET(MSG_MODE "")  #Optional 
-SET(MSG_INDENT "    ")
-MESSAGE(${MSG_MODE} "************* SUMMARY FROM RUNNING CMake ********************")
-FIND_PROGRAM(QMAKE_PROGRAM "qmake" NAMES "qmake.exe")
+IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
+    SET(MSG_MODE "")  #Optional 
+    SET(MSG_INDENT "    ")
+    MESSAGE(${MSG_MODE} "************* SUMMARY FROM RUNNING CMake ********************")
+    FIND_PROGRAM(QMAKE_PROGRAM "qmake" NAMES "qmake.exe")
 
-MESSAGE(${MSG_MODE} "TOOLS:")
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "CMake Build Type:     ${CMAKE_BUILD_TYPE}")
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "CMake Version:        ${CMAKE_VERSION}")
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "CXX Compiler          ${CMAKE_CXX_COMPILER_ID}")
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "CXX Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "CXX Compiler Flags:   ${CMAKE_CXX_FLAGS}")
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "CXX Compiler Path:    ${CMAKE_CXX_COMPILER}")
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "QMake Program:        ${QMAKE_PROGRAM}")
+    MESSAGE(${MSG_MODE} "TOOLS:")
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "CMake Build Type:     ${CMAKE_BUILD_TYPE}")
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "CMake Version:        ${CMAKE_VERSION}")
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "CXX Compiler          ${CMAKE_CXX_COMPILER_ID}")
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "CXX Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "CXX Compiler Flags:   ${CMAKE_CXX_FLAGS}")
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "CXX Compiler Path:    ${CMAKE_CXX_COMPILER}")
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "QMake Program:        ${QMAKE_PROGRAM}")
 
-MESSAGE(${MSG_MODE} "WORKBENCH VARIABLES:")
-getListOfVarsStartingWith("WORKBENCH" allVars)
-foreach( var IN LISTS allVars ) 
-        get_property(docString CACHE ${var} PROPERTY HELPSTRING)
-        message(${MSG_MODE} ${MSG_INDENT} "${var}=${${var}}" )
-        
-        STRING(REPLACE "<NEWLINE>" "\n${MSG_INDENT}${MSG_INDENT}" docPrint ${docString})
-        message(${MSG_MODE} ${MSG_INDENT} ${MSG_INDENT} ${docPrint})
-endforeach()
+    MESSAGE(${MSG_MODE} "WORKBENCH VARIABLES:")
+    getListOfVarsStartingWith("WORKBENCH" allVars)
+    foreach( var IN LISTS allVars ) 
+            get_property(docString CACHE ${var} PROPERTY HELPSTRING)
+            message(${MSG_MODE} ${MSG_INDENT} "${var}=${${var}}" )
+            
+            STRING(REPLACE "<NEWLINE>" "\n${MSG_INDENT}${MSG_INDENT}" docPrint ${docString})
+            message(${MSG_MODE} ${MSG_INDENT} ${MSG_INDENT} ${docPrint})
+    endforeach()
 
-MESSAGE(${MSG_MODE} "PACKAGES:")
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "FTGL:     " ${FTGL_RESULT})
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "FreeType: " ${FREETYPE_RESULT})
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "OpenMP:   " ${OPENMP_RESULT})
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "OpenSSL:  " ${OPENSSL_RESULT})
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "OSMESA:   " ${OSMESA_RESULT})
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "Qt:       " ${QT_RESULT})
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "QuaZip:   " ${QUAZIP_RESULT})
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "Qwt:      " ${QWT_RESULT})
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "SIMD:     " ${SIMD_RESULT})
-MESSAGE(${MSG_MODE} ${MSG_INDENT} "ZLIB:     " ${ZLIB_RESULT})
+    MESSAGE(${MSG_MODE} "PACKAGES:")
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "FTGL:     " ${FTGL_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "FreeType: " ${FREETYPE_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "OpenMP:   " ${OPENMP_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "OpenSSL:  " ${OPENSSL_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "OSMESA:   " ${OSMESA_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "Qt:       " ${QT_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "QuaZip:   " ${QUAZIP_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "Qwt:      " ${QWT_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "SIMD:     " ${SIMD_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "ZLIB:     " ${ZLIB_RESULT})
 
-MESSAGE(${MSG_MODE} "************* END SUMMARY FROM RUNNING CMake *****************")
-
+    MESSAGE(${MSG_MODE} "************* END SUMMARY FROM RUNNING CMake *****************")
+ENDIF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
