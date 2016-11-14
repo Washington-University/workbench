@@ -46,7 +46,9 @@ SET (RESOURCES_QRC_FILE
 IF (Qt5_FOUND)
     QT5_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
 ELSE (Qt5_FOUND)
-    QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
+    IF (QT4_FOUND)
+        QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
+    ENDIF()
 ENDIF (Qt5_FOUND)
 
 #
@@ -109,8 +111,6 @@ if(Qt5_FOUND)
         Qt5::Test
         Qt5::Widgets
         Qt5::Xml)
-
-    message("*** QT5_LINK_LIBS: ${QT5_LINK_LIBS}")
 endif()
 
 #
@@ -215,7 +215,6 @@ ${CMAKE_SOURCE_DIR}/Common
 # Apple needs framework
 #
 IF (APPLE)
-    MESSAGE("EXE: " ${CMAKE_BUILD_DIR} " " ${EXE_NAME})
         ADD_CUSTOM_COMMAND(
             TARGET ${EXE_NAME}
             POST_BUILD

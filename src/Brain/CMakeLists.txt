@@ -43,7 +43,7 @@ IF (OPENGL_FOUND)
    #
    INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 ELSE (OPENGL_FOUND)
-   MESSAGE(FATAL_ERROR "OpenGL Libraries were not found")
+   MESSAGE(SEND_ERROR "OpenGL Libraries were not found")
 ENDIF (OPENGL_FOUND)
 
 #
