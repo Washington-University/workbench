@@ -26,7 +26,7 @@ endfunction()
 # TSC: use "CACHE <type> <docstring>" syntax in SET commands so they can be overridden by cmake options
 #
 set (WORKBENCH_QT5_DISABLE_DEPRECATED FALSE CACHE BOOL 
-     "If TRUE, use of Qt 5 deprecated functionality will cause compiler error")
+     "If TRUE, use of Qt 5 deprecated functionality will cause compiler to fail")
 set (WORKBENCH_USE_CMAKE_AUTOMOC FALSE CACHE BOOL 
      "If TRUE, use CMAKE_AUTOMOC command for generating 'moc' files")
 set (WORKBENCH_USE_QT5 FALSE CACHE BOOL 
