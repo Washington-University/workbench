@@ -666,7 +666,7 @@ CommandParser::CompletionInfo CommandParser::completionComponent(ParameterCompon
         if (parameters.hasNext())
         {
             //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
-            AString rawArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
+            AString rawArg = parameters.nextString(myComponent->m_outputList[i]->m_shortName);
             AString nextArg = rawArg.fixUnicodeHyphens();
             if (!nextArg.isEmpty() && nextArg[0] == '-')
             {
