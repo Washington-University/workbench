@@ -20,7 +20,11 @@
 
 #include <QDir>
 #include <QFileDialog>
+#ifdef CARET_OS_WINDOWS
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 #include "MovieDialog.h"
 #include "ui_MovieDialog.h"

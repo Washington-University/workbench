@@ -21,7 +21,11 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#ifdef CARET_OS_WINDOWS
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 #include <QDateTime>
 #include <QDir>
