@@ -339,22 +339,25 @@ BrainOpenGLWidget::getOpenGLInformation()
              + AString::number(numDisplayLists)
              + " display lists are allocated in first OpenGL context.");
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
-#ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    int32_t numVertexBuffers = 0;
-#ifdef GL_VERSION_2_0
-    /*
-     * Note: glIsBuffer() was added to OpenGL 2.0
-     */
-    for (GLuint iBuff = 1; iBuff < 1000; iBuff++) {
-        if (glIsBuffer(iBuff)) {
-            numVertexBuffers++;
-        }
-    }
-#endif // GL_VERSION_2_0
-    info += ("\nAt least "
-             + AString::number(numVertexBuffers)
-             + " vertex buffers are allocated");
-#endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    
+// Disable check of vertex buffers until OpenGL
+// version is fixed on windows (finds 1.1)
+//#ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+//    int32_t numVertexBuffers = 0;
+//#ifdef GL_VERSION_2_0
+//    /*
+//     * Note: glIsBuffer() was added to OpenGL 2.0
+//     */
+//    for (GLuint iBuff = 1; iBuff < 1000; iBuff++) {
+//        if (glIsBuffer(iBuff)) {
+//            numVertexBuffers++;
+//        }
+//    }
+//#endif // GL_VERSION_2_0
+//    info += ("\nAt least "
+//             + AString::number(numVertexBuffers)
+//             + " vertex buffers are allocated");
+//#endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     info += "\n";
     
     return info;
