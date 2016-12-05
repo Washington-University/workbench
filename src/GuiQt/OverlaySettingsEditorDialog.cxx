@@ -201,8 +201,16 @@ OverlaySettingsEditorDialog::createMapFileAndNameSection()
  *     The focus event.
  */
 void
-OverlaySettingsEditorDialog::focusInEvent(QFocusEvent* /*event*/)
+OverlaySettingsEditorDialog::focusInEvent(QFocusEvent* event)
 {
+    if (event->reason() == Qt::PopupFocusReason) {
+        /*
+         * This occurs when a combo box is popped up Mac,
+         * causes a problem, and can be ignored.
+         */
+        return;
+    }
+    
     updateDialog();
 }
 

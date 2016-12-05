@@ -19,6 +19,7 @@
  */
 /*LICENSE_END*/
 
+#include <QFocusEvent>
 #include <QGridLayout>
 #include <QLabel>
 #include <QTabWidget>
@@ -133,8 +134,16 @@ PaletteColorMappingEditorDialog::receiveEvent(Event* event)
  *     The focus event.
  */
 void
-PaletteColorMappingEditorDialog::focusInEvent(QFocusEvent* /*event*/)
+PaletteColorMappingEditorDialog::focusInEvent(QFocusEvent* event)
 {
+    if (event->reason() == Qt::PopupFocusReason) {
+        /*
+         * This occurs when a combo box is popped up Mac,
+         * causes a problem, and can be ignored.
+         */
+        return;
+    }
+    
     updateDialog();
 }
 

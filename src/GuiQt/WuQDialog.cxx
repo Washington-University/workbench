@@ -549,8 +549,16 @@ WuQDialog::helpButtonClicked()
  *     The focus event.
  */
 void
-WuQDialog::focusInEvent(QFocusEvent* /*event*/)
+WuQDialog::focusInEvent(QFocusEvent* event)
 {
+    if (event->reason() == Qt::PopupFocusReason) {
+        /*
+         * This occurs when a combo box is popped up Mac,
+         * causes a problem, and can be ignored.
+         */
+        return;
+    }
+    
     focusGained();
 }
 
