@@ -21,7 +21,7 @@
 #  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#put this file in (or link to it from) /etc/bash_completion.d or copy contents to ~/.bash_completion
+#put this file in (or link to it from) /etc/bash_completion.d or /usr/share/bash-completion/completions or copy contents to ~/.bash_completion
 
 function _wb_command()
 {

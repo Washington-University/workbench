@@ -298,7 +298,12 @@ void QFileImpl::open(const QString& filename, const CaretBinaryFile::OpenMode& o
             case QFile::ResourceError://on linux at least, it never gives another code besides the unhelpful OpenError
                 throw DataFileException("failed to open file '" + filename + "', too many open files");
             default:
-                throw DataFileException("failed to open file '" + filename + "'");
+                if (opmode & CaretBinaryFile::WRITE)
+                {
+                    throw DataFileException("failed to open file '" + filename + "' for writing");
+                } else {
+                    throw DataFileException("failed to open file '" + filename + "'");
+                }
         }
     }
 }
