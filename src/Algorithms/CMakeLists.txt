@@ -42,6 +42,7 @@ AlgorithmCiftiFalseCorrelation.h
 AlgorithmCiftiFindClusters.h
 AlgorithmCiftiGradient.h
 AlgorithmCiftiLabelAdjacency.h
+AlgorithmCiftiLabelProbability.h
 AlgorithmCiftiLabelToBorder.h
 AlgorithmCiftiLabelToROI.h
 AlgorithmCiftiMergeDense.h
@@ -69,6 +70,7 @@ AlgorithmGiftiLabelToROI.h
 AlgorithmLabelDilate.h
 AlgorithmLabelErode.h
 AlgorithmLabelModifyKeys.h
+AlgorithmLabelProbability.h
 AlgorithmLabelResample.h
 AlgorithmLabelToBorder.h
 AlgorithmLabelToVolumeMapping.h
@@ -156,6 +158,7 @@ AlgorithmCiftiFalseCorrelation.cxx
 AlgorithmCiftiFindClusters.cxx
 AlgorithmCiftiGradient.cxx
 AlgorithmCiftiLabelAdjacency.cxx
+AlgorithmCiftiLabelProbability.cxx
 AlgorithmCiftiLabelToBorder.cxx
 AlgorithmCiftiLabelToROI.cxx
 AlgorithmCiftiMergeDense.cxx
@@ -183,6 +186,7 @@ AlgorithmGiftiLabelToROI.cxx
 AlgorithmLabelDilate.cxx
 AlgorithmLabelErode.cxx
 AlgorithmLabelModifyKeys.cxx
+AlgorithmLabelProbability.cxx
 AlgorithmLabelResample.cxx
 AlgorithmLabelToBorder.cxx
 AlgorithmLabelToVolumeMapping.cxx

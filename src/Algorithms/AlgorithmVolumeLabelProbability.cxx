@@ -38,7 +38,7 @@ AString AlgorithmVolumeLabelProbability::getCommandSwitch()
 
 AString AlgorithmVolumeLabelProbability::getShortDescription()
 {
-    return "FIND FREQUENCY OF LABELS";
+    return "FIND FREQUENCY OF VOLUME LABELS";
 }
 
 OperationParameters* AlgorithmVolumeLabelProbability::getParameters()

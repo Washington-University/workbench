@@ -43,6 +43,7 @@
 #include "AlgorithmCiftiFindClusters.h"
 #include "AlgorithmCiftiGradient.h"
 #include "AlgorithmCiftiLabelAdjacency.h"
+#include "AlgorithmCiftiLabelProbability.h"
 #include "AlgorithmCiftiLabelToBorder.h"
 #include "AlgorithmCiftiLabelToROI.h"
 #include "AlgorithmCiftiMergeDense.h"
@@ -68,6 +69,7 @@
 #include "AlgorithmLabelDilate.h"
 #include "AlgorithmLabelErode.h"
 #include "AlgorithmLabelModifyKeys.h"
+#include "AlgorithmLabelProbability.h"
 #include "AlgorithmLabelResample.h"
 #include "AlgorithmLabelToBorder.h"
 #include "AlgorithmLabelToVolumeMapping.h"
@@ -297,6 +299,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiFindClusters()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelAdjacency()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelProbability()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelToBorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMergeDense()));
@@ -323,6 +326,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelErode()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelModifyKeys()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelProbability()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelToBorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelToVolumeMapping()));
