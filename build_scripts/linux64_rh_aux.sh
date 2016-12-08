@@ -38,6 +38,16 @@ cd ${BUILD_DIR}
 make -j2
 
 #
+# Exit with result of running 'make'
+# Cannot scp does not work when run on cluster system to outside cluster
+#
+exit $?
+
+
+
+
+
+#
 # Copy to distribution directory
 #
 echo "COPYING PROGRAMS"

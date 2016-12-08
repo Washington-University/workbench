@@ -24,4 +24,7 @@ set noon
 #
 echo "Starting linux64 Redhat aux script"
 ${BUILD_ROOT_DIR}/caret7_source/build_scripts/linux64_rh_aux.sh
+resultFlag=$?
 echo "Finished linux64 Redhat script"
+
+exit $resultFlag
