@@ -33,6 +33,6 @@ else
     echo "Build failed"
 fi
 
-#cat $PWD/remote_launch_${BUILD}.txt | mailx -s 'Caret7 Linux 64 RedHat Build Result' john@brainvis.wustl.edu tsc5yc@mst.edu
+cat $PWD/remote_launch_${BUILD}.txt | mailx -s 'Caret7 Linux 64 RedHat Build Result' john@brainvis.wustl.edu tsc5yc@mst.edu
 
 
