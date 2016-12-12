@@ -351,6 +351,7 @@ EventListenerInterface()
                                                              SLOT(resetButtonClicked()));
     QToolButton* resetToolButton = new QToolButton();
     resetToolButton->setDefaultAction(resetButtonAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
     
     WuQtUtilities::matchWidgetWidths(m_cellHeightSpinBox,
                                      m_cellWidthSpinBox);
