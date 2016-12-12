@@ -100,7 +100,7 @@ MapSettingsFiberTrajectoryWidget::createAttributesWidget()
     m_colorSelectionComboBox = WuQFactory::newComboBoxSignalInt(this,
                                                                 SLOT(processAttributesChanges()));
     
-    QGroupBox* attributesGroupBox = new QGroupBox("Attribues");
+    QGroupBox* attributesGroupBox = new QGroupBox("Attributes");
     QGridLayout* attributesGridLayout = new QGridLayout(attributesGroupBox);
     int row = 0;
     attributesGridLayout->addWidget(colorLabel, row, 0);
