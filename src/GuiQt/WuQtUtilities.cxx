@@ -1443,15 +1443,15 @@ WuQtUtilities::createPixmapWidgetPainter(const QWidget* widget,
 }
 
 /**
- * With Qt5, a toolbutton placed into a toolbar uses the 
- * background of the toolbar with no morder and appears 
- * similar to a label.  Use a stylesheet so that
- * the button appears similar to Qt4.
+ * With Qt5, an occasional toolbutton is missing its border.
+ * Use a stylesheet to add a border to the toolbutton.
+ *
+ * @param toolButton
+ *     toolButton ToolButton that needs style updated.
  */
 void
-WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
+WuQtUtilities::addBorderToToolButtonForQt5(QToolButton* toolButton)
 {
-#ifdef CARET_OS_MACOSX
 #if QT_VERSION >= 0x050000
     bool hasMenuFlag = false;
     bool hasCheckableFlag = false;
@@ -1482,13 +1482,13 @@ WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
     QString toolButtonStyleSheet(" QToolButton { "
                                  "   background: " + lighterColor.name() + "; ");
     if (hasMenuFlag) {
-//        toolButtonStyleSheet.append("   border-style: solid; "
-//                                    "   border-width: 1px; "
-//                                    "   border-color: " + darkerColor.name() + "; "
-//                                    "   padding-top:    6px; "
-//                                    "   padding-bottom: 6px; "
-//                                    "   padding-right:  4px; "
-//                                    "   padding-left:   3px; ");
+        //        toolButtonStyleSheet.append("   border-style: solid; "
+        //                                    "   border-width: 1px; "
+        //                                    "   border-color: " + darkerColor.name() + "; "
+        //                                    "   padding-top:    6px; "
+        //                                    "   padding-bottom: 6px; "
+        //                                    "   padding-right:  4px; "
+        //                                    "   padding-left:   3px; ");
     }
     else {
         toolButtonStyleSheet.append("   border-style: solid; "
@@ -1522,6 +1522,23 @@ WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
     
     //std::cout << qPrintable(toolButton->text() + "   " + toolButtonStyleSheet + "\n\n");
 #endif
+}
+
+
+/**
+ * With Qt5, a toolbutton placed into a toolbar uses the
+ * background of the toolbar with no border and appears 
+ * similar to a label.  Use a stylesheet so that
+ * the button appears similar to Qt4.
+ *
+ * @param toolButton
+ *     toolButton ToolButton that needs style updated.
+ */
+void
+WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
+{
+#ifdef CARET_OS_MACOSX
+    addBorderToToolButtonForQt5(toolButton);
 #endif
 }
 

@@ -2257,7 +2257,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     
     inputModeAnnotationsToolButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
     inputModeAnnotationsToolButton->setAutoRaise(true);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeAnnotationsToolButton);
+    WuQtUtilities::addBorderToToolButtonForQt5(inputModeAnnotationsToolButton);
+    //WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeAnnotationsToolButton);
     
 //    const QPalette palette = inputModeAnnotationsToolButton->palette();
 //    const QPalette::ColorRole backgroundRole = inputModeAnnotationsToolButton->backgroundRole();

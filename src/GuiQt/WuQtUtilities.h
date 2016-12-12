@@ -197,6 +197,8 @@ namespace caret {
         
         static Qt::CheckState boolToCheckState(const bool value);
         
+        static void addBorderToToolButtonForQt5(QToolButton* toolButton);
+        
         static void setToolButtonStyleForQt5Mac(QToolButton* toolButton);
         
     private:
