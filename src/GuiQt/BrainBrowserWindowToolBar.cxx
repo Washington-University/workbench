@@ -2254,33 +2254,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeAnnotationsAction->setCheckable(true);
     QToolButton* inputModeAnnotationsToolButton = new QToolButton();
     inputModeAnnotationsToolButton->setDefaultAction(this->modeInputModeAnnotationsAction);
-    
-    inputModeAnnotationsToolButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
-    inputModeAnnotationsToolButton->setAutoRaise(true);
-    WuQtUtilities::addBorderToToolButtonForQt5(inputModeAnnotationsToolButton);
-    //WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeAnnotationsToolButton);
-    
-//    const QPalette palette = inputModeAnnotationsToolButton->palette();
-//    const QPalette::ColorRole backgroundRole = inputModeAnnotationsToolButton->backgroundRole();
-//    const QBrush backgroundBrush = palette.brush(backgroundRole);
-//    const QColor backgroundColor = backgroundBrush.color();
-//    const QColor darkerColor = backgroundColor.darker(125);
-//    
-//    const QString toolButtonStyleSheet(" QToolButton { "
-//                                       "   border-style: solid; "
-//                                       "   border-width: 1px; "
-//                                       "   border-color: " + darkerColor.name() + "; "
-//                                       "   padding-top:    1px; "
-//                                       "   padding-bottom: 1px; "
-//                                       "   padding-right:  3px; "
-//                                       "   padding-left:   3px; "
-//                                       " }");
-//    std::cout << "****** style sheet: " << toolButtonStyleSheet << std::endl;
-//    inputModeAnnotationsToolButton->setStyleSheet(toolButtonStyleSheet);
-////    const int red   = backgroundColor.red();
-////    const int green = backgroundColor.green();
-////    const int blue  = backgroundColor.blue();
-////    std::cout << "******** Annotate Background Color: " << red << ", " << green << ", " << blue << std::endl;
+    WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeAnnotationsToolButton);
     
     /*
      * Borders 
@@ -2429,7 +2403,7 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
     UserInputModeAbstract::UserInputMode inputMode = UserInputModeAbstract::INVALID;
     
     if (action == this->modeInputModeAnnotationsAction) {
-        inputMode = UserInputModeAbstract::ANNOTATIONS;
+        inputMode = UserInputModeAbstract::ANNOTATIONS;        
     }
     else if (action == this->modeInputModeBordersAction) {
         inputMode = UserInputModeAbstract::BORDERS;

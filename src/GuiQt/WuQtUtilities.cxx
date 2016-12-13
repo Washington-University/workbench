@@ -1443,16 +1443,21 @@ WuQtUtilities::createPixmapWidgetPainter(const QWidget* widget,
 }
 
 /**
- * With Qt5, an occasional toolbutton is missing its border.
- * Use a stylesheet to add a border to the toolbutton.
+ * With Qt5, a toolbutton placed into a toolbar uses the
+ * background of the toolbar with no border and appears 
+ * similar to a label.  Use a stylesheet so that
+ * the button appears similar to Qt4.
  *
  * @param toolButton
  *     toolButton ToolButton that needs style updated.
  */
 void
-WuQtUtilities::addBorderToToolButtonForQt5(QToolButton* toolButton)
+WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
 {
+#ifdef CARET_OS_MACOSX
 #if QT_VERSION >= 0x050000
+    CaretAssert(toolButton);
+    
     bool hasMenuFlag = false;
     bool hasCheckableFlag = false;
     QAction* action = toolButton->defaultAction();
@@ -1522,23 +1527,6 @@ WuQtUtilities::addBorderToToolButtonForQt5(QToolButton* toolButton)
     
     //std::cout << qPrintable(toolButton->text() + "   " + toolButtonStyleSheet + "\n\n");
 #endif
-}
-
-
-/**
- * With Qt5, a toolbutton placed into a toolbar uses the
- * background of the toolbar with no border and appears 
- * similar to a label.  Use a stylesheet so that
- * the button appears similar to Qt4.
- *
- * @param toolButton
- *     toolButton ToolButton that needs style updated.
- */
-void
-WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
-{
-#ifdef CARET_OS_MACOSX
-    addBorderToToolButtonForQt5(toolButton);
 #endif
 }
 
