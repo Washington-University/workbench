@@ -255,7 +255,7 @@ AnnotationTextOrientationWidget::createHorizontalAlignmentPixmap(const QWidget* 
      * the foreground color around the pixmap's perimeter.
      */
     float width  = 24.0;
-    float height = 24.0;
+    float height = 30.0;
     QPixmap pixmap(static_cast<int>(width),
                    static_cast<int>(height));
     QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
@@ -270,7 +270,7 @@ AnnotationTextOrientationWidget::createHorizontalAlignmentPixmap(const QWidget* 
             break;
         case AnnotationTextOrientationEnum::STACKED:
             painter->drawText(pixmap.rect(),
-                             (Qt::AlignHCenter | Qt::AlignTop),
+                             (Qt::AlignCenter),
                              "a\nb");
             break;
     }
