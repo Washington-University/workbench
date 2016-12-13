@@ -152,8 +152,6 @@ GuiManager::GuiManager(QObject* parent)
 void
 GuiManager::initializeGuiManager()
 {
-    this->nameOfApplication = "Connectome Workbench";
-    //this->brainOpenGL = NULL;
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
     m_bugReportDialog = NULL;
@@ -1118,15 +1116,6 @@ void GuiManager::processTileWindows()
     }
 
     CaretLogFine(windowInfo);
-}
-
-/**
- * @return Name of the application.
- */
-QString 
-GuiManager::applicationName() const
-{
-    return this->nameOfApplication;
 }
 
 /**

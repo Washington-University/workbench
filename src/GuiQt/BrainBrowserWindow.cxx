@@ -140,13 +140,11 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     m_defaultTileTabsConfiguration->setName("All Tabs (Default)");
     m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
     
-    GuiManager* guiManager = GuiManager::get();
-    
     setAttribute(Qt::WA_DeleteOnClose);
     
     m_browserWindowIndex = browserWindowIndex;
     
-    setWindowTitle(guiManager->applicationName() 
+    setWindowTitle(ApplicationInformation().getName()
                          + " "
                          + AString::number(m_browserWindowIndex + 1));
     setObjectName(windowTitle());

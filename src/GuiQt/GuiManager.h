@@ -104,9 +104,6 @@ namespace caret {
         
         void processShowSaveManageFilesDialog(BrainBrowserWindow* browserWindow);
         
-        QString applicationName() const;
-        
-        //BrainOpenGL* getBrainOpenGL();
         
         BrowserTabContent* getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex,
                                                                 const bool allowInvalidBrowserWindowIndex);
@@ -225,10 +222,6 @@ namespace caret {
         void showHideHelpDialog(const bool status,
                                 BrainBrowserWindow* parentBrainBrowserWindow);
         
-//        void processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
-//                                         const AString& helpPageName);
-        
-        
         void addNonModalDialog(QWidget* dialog);
         
         void addParentLessNonModalDialog(QWidget* dialog);
@@ -243,14 +236,8 @@ namespace caret {
          */
         std::vector<BrainBrowserWindow*> m_brainBrowserWindows;
         
-        /** Name of application */
-        QString nameOfApplication;
-        
         /** Skips confirmation of browser window closing when all tabs are moved to one window */
         bool allowBrowserWindowsToCloseWithoutConfirmation;
-        
-        /* Performs OpenGL drawing commands */
-        //BrainOpenGL* brainOpenGL;
         
         /* Editor for overlay settings. */
         std::set<OverlaySettingsEditorDialog*> m_overlaySettingsEditors;
