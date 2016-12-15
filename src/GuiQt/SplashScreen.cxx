@@ -82,14 +82,15 @@ SplashScreen::SplashScreen(QWidget* parent)
                                 " font: 20px bold "
                                 "}");
     
-    QLabel* workbenchLabel  = new QLabel("<html>"
-                                         "Connectome<br>"
-                                         "Workbench"
-                                         "</html>");
+    ApplicationInformation appInfo;
+    QLabel* workbenchLabel = new QLabel(appInfo.getNameForGuiLabel());
+//    QLabel* workbenchLabel  = new QLabel("<html>"
+//                                         "Connectome<br>"
+//                                         "Workbench"
+//                                         "</html>");
     workbenchLabel->setStyleSheet(labelStyle);
     workbenchLabel->setAlignment(Qt::AlignCenter);
 
-    ApplicationInformation appInfo;
     QLabel* versionLabel = new QLabel("Version: "
                                       + appInfo.getVersion());
     versionLabel->setAlignment(Qt::AlignCenter);

@@ -142,10 +142,11 @@ namespace caret {
         
         bool checkForModifiedFiles(const bool creatingSceneFlag);
         
+        bool displayNewSceneWarning();
+        
         void enableSceneMoveUpAndDownButtons();
         
         void loadSceneFileMetaDataWidgets();
-        
         
         QImage* getQImageFromSceneInfo(const SceneInfo* sceneInfo) const;
         
@@ -204,6 +205,8 @@ namespace caret {
         static const AString PREFERRED_IMAGE_FORMAT;
         
         static bool s_informUserAboutScenesOnExitFlag;
+        
+        static bool s_warnUserWhenCreatingSceneFlag;
     };
     
     class SceneClassInfoWidget : public QGroupBox {
@@ -277,6 +280,7 @@ namespace caret {
 #ifdef __SCENE_DIALOG_DECLARE__
     const AString SceneDialog::PREFERRED_IMAGE_FORMAT = "jpg";
     bool SceneDialog::s_informUserAboutScenesOnExitFlag = true;
+    bool SceneDialog::s_warnUserWhenCreatingSceneFlag = true;
 #endif // __SCENE_DIALOG_DECLARE__
 
 } // namespace

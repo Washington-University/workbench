@@ -23,6 +23,7 @@
 
 #include "ApplicationTypeEnum.h"
 #include "CaretObject.h"
+#include "WorkbenchSpecialVersionEnum.h"
 
 namespace caret {
 
@@ -34,6 +35,8 @@ namespace caret {
         virtual ~ApplicationInformation();
         
         AString getName() const;
+        
+        AString getNameForGuiLabel() const;
         
         AString getVersion() const;
         
@@ -47,6 +50,8 @@ namespace caret {
         
         AString getCompiledWithDebugStatus() const;
         
+        WorkbenchSpecialVersionEnum::Enum getWorkbenchSpecialVersion() const;
+        
         static ApplicationTypeEnum::Enum getApplicationType();
         
         static void setApplicationType(const ApplicationTypeEnum::Enum applicationType);
@@ -57,6 +62,8 @@ namespace caret {
         ApplicationInformation& operator=(const ApplicationInformation&);
         
         AString name;
+        
+        AString nameForGuiLabel;
         
         AString version;
         
@@ -69,6 +76,8 @@ namespace caret {
         AString operatingSystemName;
         
         AString compiledWithOpenMP;
+        
+        WorkbenchSpecialVersionEnum::Enum workbenchSpecialVersion;
         
         static ApplicationTypeEnum::Enum s_applicationType;
     };

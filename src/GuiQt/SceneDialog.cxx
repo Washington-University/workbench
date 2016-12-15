@@ -40,6 +40,7 @@
 #include "SceneDialog.h"
 #undef __SCENE_DIALOG_DECLARE__
 
+#include "ApplicationInformation.h"
 #include "BalsaDatabaseUploadSceneFileDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -479,6 +480,10 @@ SceneDialog::highlightScene(const Scene* scene)
 void 
 SceneDialog::newSceneFileButtonClicked()
 {
+    if ( ! displayNewSceneWarning()) {
+        return;
+    }
+    
     /*
      * Let user choose a different path/name
      */
@@ -663,6 +668,10 @@ SceneDialog::browseBaseDirectoryPushButtonClicked()
 void
 SceneDialog::addNewSceneButtonClicked()
 {
+    if ( ! displayNewSceneWarning()) {
+        return;
+    }
+    
     if ( ! checkForModifiedFiles(true)) {
         return;
     }
@@ -685,6 +694,10 @@ SceneDialog::addNewSceneButtonClicked()
 void
 SceneDialog::insertSceneButtonClicked()
 {
+    if ( ! displayNewSceneWarning()) {
+        return;
+    }
+    
     if ( ! checkForModifiedFiles(true)) {
         return;
     }
@@ -985,6 +998,10 @@ SceneDialog::moveSceneDownButtonClicked()
 void
 SceneDialog::replaceSceneButtonClicked()
 {
+    if ( ! displayNewSceneWarning()) {
+        return;
+    }
+    
     if ( ! checkForModifiedFiles(true)) {
         return;
     }
@@ -1931,6 +1948,48 @@ bool
 SceneDialog::isInformUserAboutScenesOnExit()
 {
     return s_informUserAboutScenesOnExitFlag;
+}
+
+/**
+ * Under some circumstances, the user may be warned
+ * when creating a new scene or scene file.
+ *
+ * @return
+ *     True if scene or scene file should be created, else false.
+ */
+bool
+SceneDialog::displayNewSceneWarning()
+{
+    if (s_warnUserWhenCreatingSceneFlag) {
+        s_warnUserWhenCreatingSceneFlag = false;
+        
+        ApplicationInformation appInfo;
+        switch (appInfo.getWorkbenchSpecialVersion()) {
+            case WorkbenchSpecialVersionEnum::WORKBENCH_SPECIAL_VERSION_NO:
+                break;
+            case WorkbenchSpecialVersionEnum::WORKBENCH_SPECIAL_VERSION_FIRST_CHARTING:
+            {
+                const QString text("This is a special version of Workbench that correctly "
+                                   "displays scene files containing the first implementation "
+                                   "of matrix and line charting.  Charting is undergoing a "
+                                   "redesign and any scenes created with this special version "
+                                   "of Workbench will not display correctly in newer, official "
+                                   "releases of Workbench.");
+                
+                if (WuQMessageBox::warningOkCancel(this,
+                                                   "Do you want to continue?",
+                                                   text)) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+                break;
+        }
+    }
+    
+    return true;
 }
 
 

@@ -70,7 +70,7 @@ AboutWorkbenchDialog::AboutWorkbenchDialog(BrainOpenGLWidget* openGLParentWidget
         imageLabel->setAlignment(Qt::AlignCenter);
     }
     
-    QLabel* workbenchLabel = new QLabel(appInfo.getName());
+    QLabel* workbenchLabel = new QLabel(appInfo.getNameForGuiLabel());
     QFont workbenchFont = workbenchLabel->font();
     workbenchFont.setBold(true);
     workbenchFont.setPointSize(32);

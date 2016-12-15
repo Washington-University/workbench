@@ -45,7 +45,23 @@ using namespace caret;
 ApplicationInformation::ApplicationInformation()
 : CaretObject()
 { 
-    this->name    = "Connectome Workbench";
+    this->workbenchSpecialVersion = WorkbenchSpecialVersionEnum::WORKBENCH_SPECIAL_VERSION_NO;
+    //this->workbenchSpecialVersion = WorkbenchSpecialVersionEnum::WORKBENCH_SPECIAL_VERSION_FIRST_CHARTING;
+
+    this->name = "Connectome Workbench";
+    this->nameForGuiLabel = this->name;
+    switch (this->workbenchSpecialVersion) {
+        case WorkbenchSpecialVersionEnum::WORKBENCH_SPECIAL_VERSION_NO:
+            /* use default naming */
+            break;
+        case WorkbenchSpecialVersionEnum::WORKBENCH_SPECIAL_VERSION_FIRST_CHARTING:
+            this->name = "Connectome Workbench (First Charting Version)";
+            this->nameForGuiLabel = ("<html>"
+                                     "Connectome Workbench<br>"
+                                     "(First Charting Version)"
+                                     "</html>");
+            break;
+    }
     this->version = "1.2.3";
     this->commit = "Commit: @COMMIT@";
     this->commitDate = "Commit Date: @COMMIT_DATE@";
@@ -92,6 +108,16 @@ AString
 ApplicationInformation::getName() const
 {
     return this->name;
+}
+
+/**
+ * @return Name of the application formatted
+ *         specifically for use in a GUI QLabel.
+ */
+AString 
+ApplicationInformation::getNameForGuiLabel() const
+{
+    return this->nameForGuiLabel;
 }
 
 /**
@@ -193,6 +219,18 @@ ApplicationInformation::getSummaryInformationInString(const AString& separator) 
     infoOut += commitDate + separator;
     infoOut += operatingSystemName + separator;
     return infoOut;
+}
+
+/**
+ * @return The Workbench Special Version
+ *
+ * Used for versions of Workbench that may or may 
+ * not be released and contains special functionality.
+ */
+WorkbenchSpecialVersionEnum::Enum 
+ApplicationInformation::getWorkbenchSpecialVersion() const
+{
+    return this->workbenchSpecialVersion;
 }
 
 /**

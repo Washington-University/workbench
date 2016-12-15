@@ -151,6 +151,7 @@ TriStateSelectionStatusEnum.h
 Vector3D.h
 VectorOperation.h
 VoxelIJK.h
+WorkbenchSpecialVersionEnum.h
 YokingGroupEnum.h
 
 ${MOC_SOURCE_FILES}
@@ -241,6 +242,7 @@ TileTabsConfiguration.cxx
 TriStateSelectionStatusEnum.cxx
 Vector3D.cxx
 VectorOperation.cxx
+WorkbenchSpecialVersionEnum.cxx
 YokingGroupEnum.cxx
 )
 
