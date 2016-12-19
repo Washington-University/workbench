@@ -219,7 +219,7 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
                                        Qt::AlignHCenter);
     row++;
     
-    const float stretchMinimumValue = 1.0;
+    const float stretchMinimumValue = 0.1;
     const float stretchMaximumValue = 10000000.0;
     const float stretchStep = 0.1;
     const float stretchDigitsRightOfDecimal = 2;
