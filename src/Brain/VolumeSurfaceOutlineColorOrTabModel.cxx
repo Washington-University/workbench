@@ -527,9 +527,6 @@ VolumeSurfaceOutlineColorOrTabModel::Item::saveToScene(const SceneAttributes* /*
             break;
     }    
     
-    sceneClass->addInteger("m_browserTabIndex", 
-                           m_browserTabIndex);
-
     return sceneClass;
 }
 
