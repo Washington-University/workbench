@@ -145,10 +145,10 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation()
                                m_fanMultiplierInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                m_fanMultiplierInDisplayGroup[0]);
-    m_sceneAssistant->addArray("m_displaySphereOrientationsInTab",
-                               m_displaySphereOrientationsInTab,
+    m_sceneAssistant->addArray("m_displaySphereOrientationsInDisplayGroup",
+                               m_displaySphereOrientationsInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
-                               m_displaySphereOrientationsInTab[0]);
+                               m_displaySphereOrientationsInDisplayGroup[0]);
     
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>("m_fiberColoringTypeInTab",
                                                                                                            m_fiberColoringTypeInTab);
