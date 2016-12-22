@@ -40,6 +40,21 @@ namespace caret {
         
         SceneObjectDataTypeEnum::Enum getDataType() const;
         
+        bool isRestored() const;
+        
+        void setRestored(const bool restoredFlag) const;
+        
+        void setDescendantsRestored(const bool restoredFlag) const;
+        
+        static void setRestoredStatus(std::vector<SceneObject*> sceneObjects,
+                                      const bool restoredStatus);
+        
+        static void logObjectsFailedRestore(const AString& sceneName,
+                                            const std::vector<SceneObject*> sceneObjects);
+        
+        /// Should be overridden by any sub-classes that have children
+        virtual std::vector<SceneObject*> getDescendants() const;
+        
     protected:
         SceneObject(const QString& name,
                     const SceneObjectDataTypeEnum::Enum dataType);
@@ -65,6 +80,16 @@ namespace caret {
         
         /** Type of object */
         const SceneObjectDataTypeEnum::Enum m_dataType;
+        
+    protected:
+        mutable bool m_restoredFlag;
+        
+    private:
+        friend class SceneClass;
+        friend class SceneClassArray;
+        friend class SceneObjectMapIntegerKey;
+        friend class ScenePathName;
+        friend class ScenePathNameArray;
         
     };
     

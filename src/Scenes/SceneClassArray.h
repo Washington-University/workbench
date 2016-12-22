@@ -50,6 +50,8 @@ namespace caret {
         
         const SceneClass* getClassAtIndex(const int32_t arrayIndex) const;
         
+        virtual std::vector<SceneObject*> getDescendants() const;
+        
     private:
         SceneClassArray& operator=(const SceneClassArray&);
         

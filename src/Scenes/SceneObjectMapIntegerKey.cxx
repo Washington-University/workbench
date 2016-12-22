@@ -79,6 +79,29 @@ SceneObjectMapIntegerKey::~SceneObjectMapIntegerKey()
 }
 
 /**
+ * @return All descendant SceneClasses (children, grandchildren, etc.) of this instance.
+ */
+std::vector<SceneObject*>
+SceneObjectMapIntegerKey::getDescendants() const
+{
+    std::vector<SceneObject*> descendants;
+    
+    for (DATA_MAP_CONST_ITERATOR iter = m_dataMap.begin();
+         iter != m_dataMap.end();
+         iter++) {
+        SceneObject* sceneObject = iter->second;
+        descendants.push_back(sceneObject);
+        
+        std::vector<SceneObject*> objectDescendants = sceneObject->getDescendants();
+        descendants.insert(descendants.end(),
+                           objectDescendants.begin(),
+                           objectDescendants.end());
+    }
+    
+    return descendants;
+}
+
+/**
  * Add the given boolean value to the map using the given key.
  * @param key
  *    The key.
@@ -223,6 +246,7 @@ SceneObjectMapIntegerKey::getObject(const int32_t key) const
     CaretAssert(iter != m_dataMap.end());
     const SceneObject* object = iter->second;
     CaretAssert(object);
+    object->m_restoredFlag = true;
     return object;
 }
 

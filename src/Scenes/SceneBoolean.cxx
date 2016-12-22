@@ -86,6 +86,7 @@ SceneBoolean::setValue(const bool value)
 bool 
 SceneBoolean::booleanValue() const
 {
+    m_restoredFlag = true;
     return m_value;
 }
 
@@ -95,6 +96,7 @@ SceneBoolean::booleanValue() const
 float
 SceneBoolean::floatValue() const
 {
+    m_restoredFlag = true;
     const float f = (m_value ? 1.0 : 0.0);
     return f;
 }
@@ -105,6 +107,7 @@ SceneBoolean::floatValue() const
 int32_t 
 SceneBoolean::integerValue() const
 {
+    m_restoredFlag = true;
     const int32_t i = (m_value ? 1 : 0);
     return i;
 }
@@ -115,6 +118,7 @@ SceneBoolean::integerValue() const
 AString 
 SceneBoolean::stringValue() const
 {
+    m_restoredFlag = true;
     const AString s = (m_value ? "true" : "false");
     return s;
 }
@@ -125,5 +129,6 @@ SceneBoolean::stringValue() const
 uint8_t
 SceneBoolean::unsignedByteValue() const
 {
+    m_restoredFlag = true;
     return m_value;
 }

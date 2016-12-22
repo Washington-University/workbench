@@ -51,6 +51,8 @@ namespace caret {
         
         ScenePathName* getScenePathNameAtIndex(const int32_t arrayIndex) const;
         
+        virtual std::vector<SceneObject*> getDescendants() const;
+        
     private:
         ScenePathNameArray& operator=(const ScenePathNameArray&);
         

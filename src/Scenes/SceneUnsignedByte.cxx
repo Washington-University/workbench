@@ -88,6 +88,7 @@ SceneUnsignedByte::setValue(const uint8_t value)
 bool 
 SceneUnsignedByte::booleanValue() const
 {
+    m_restoredFlag = true;
     const bool b = ((m_value != 0) ? true : false);
     return b;
 }
@@ -98,6 +99,7 @@ SceneUnsignedByte::booleanValue() const
 float
 SceneUnsignedByte::floatValue() const
 {
+    m_restoredFlag = true;
     const float f = static_cast<float>(m_value);
     return f;
 }
@@ -108,6 +110,7 @@ SceneUnsignedByte::floatValue() const
 int32_t 
 SceneUnsignedByte::integerValue() const
 {
+    m_restoredFlag = true;
     return m_value;
 }
 
@@ -117,6 +120,7 @@ SceneUnsignedByte::integerValue() const
 AString 
 SceneUnsignedByte::stringValue() const
 {
+    m_restoredFlag = true;
     const AString s = AString::number(m_value);
     return s;
 }
@@ -127,5 +131,6 @@ SceneUnsignedByte::stringValue() const
 uint8_t
 SceneUnsignedByte::unsignedByteValue() const
 {
+    m_restoredFlag = true;
     return m_value;
 }

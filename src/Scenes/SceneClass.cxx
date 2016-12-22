@@ -74,7 +74,7 @@ SceneClass::SceneClass(const AString& name,
   m_className(className),
   m_versionNumber(versionNumber)
 {
-    
+      
 }
 
 SceneClass::SceneClass(const SceneClass& rhs): SceneObject(rhs.getName(), SceneObjectDataTypeEnum::SCENE_CLASS),
@@ -123,6 +123,30 @@ SceneClass::getVersionNumber() const
 {
     return m_versionNumber;
 }
+
+/**
+ * @return All descendant SceneClasses (children, grandchildren, etc.) of this instance.
+ */
+std::vector<SceneObject*>
+SceneClass::getDescendants() const
+{
+    std::vector<SceneObject*> descendants;
+    
+    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
+         iter++) {
+        SceneObject* so = *iter;
+        descendants.push_back(so);
+        
+        std::vector<SceneObject*> childDescendants = so->getDescendants();
+        descendants.insert(descendants.end(),
+                           childDescendants.begin(),
+                           childDescendants.end());
+    }
+    
+    return descendants;
+}
+
 
 /**
  * Add a child to this class.
@@ -486,10 +510,20 @@ AString
 SceneClass::getEnumeratedTypeValueAsString(const AString& name,
                                            const AString& defaultValue) const
 {
-    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-         iter != m_childObjects.end();
-         iter++) {
-        const SceneObject* so = *iter;
+//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+//         iter != m_childObjects.end();
+//         iter++) {
+//        const SceneObject* so = *iter;
+//        const SceneEnumeratedType* st = dynamic_cast<const SceneEnumeratedType*>(so);
+//        if (st != NULL) {
+//            if (st->getName() == name) {
+//                return st->stringValue();
+//            }
+//        }
+//    }
+    
+    const SceneObject* so = getObjectWithName(name);
+    if (so != NULL) {
         const SceneEnumeratedType* st = dynamic_cast<const SceneEnumeratedType*>(so);
         if (st != NULL) {
             if (st->getName() == name) {
@@ -522,18 +556,29 @@ SceneClass::getEnumeratedTypeArrayValue(const AString& name,
                                         const int32_t arrayNumberOfElements,
                                         const AString& defaultValue) const
 {
-    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-         iter != m_childObjects.end();
-         iter++) {
-        const SceneObject* so = *iter;
+//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+//         iter != m_childObjects.end();
+//         iter++) {
+//        const SceneObject* so = *iter;
+//        const SceneEnumeratedTypeArray* enumArray = dynamic_cast<const SceneEnumeratedTypeArray*>(so);
+//        if (enumArray != NULL) {
+//            if (enumArray->getName() == name) {
+//                enumArray->stringValues(values,
+//                                        arrayNumberOfElements,
+//                                        defaultValue);
+//                return enumArray->getNumberOfArrayElements();
+//            }
+//        }
+//    }
+    
+    const SceneObject* so = getObjectWithName(name);
+    if (so != NULL) {
         const SceneEnumeratedTypeArray* enumArray = dynamic_cast<const SceneEnumeratedTypeArray*>(so);
         if (enumArray != NULL) {
-            if (enumArray->getName() == name) {
-                enumArray->stringValues(values,
-                                        arrayNumberOfElements,
-                                        defaultValue);
-                return enumArray->getNumberOfArrayElements();
-            }
+            enumArray->stringValues(values,
+                                    arrayNumberOfElements,
+                                    defaultValue);
+            return enumArray->getNumberOfArrayElements();
         }
     }
     
@@ -789,15 +834,23 @@ SceneClass::getStringArrayValue(const AString& name,
 const ScenePrimitive* 
 SceneClass::getPrimitive(const AString& name) const
 {
-    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-         iter != m_childObjects.end();
-         iter++) {
-        const SceneObject* so = *iter;
+//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+//         iter != m_childObjects.end();
+//         iter++) {
+//        const SceneObject* so = *iter;
+//        const ScenePrimitive* sp = dynamic_cast<const ScenePrimitive*>(so);
+//        if (sp != NULL) {
+//            if (sp->getName() == name) {
+//                return sp;
+//            }
+//        }
+//    }
+
+    const SceneObject* so = getObjectWithName(name);
+    if (so != NULL) {
         const ScenePrimitive* sp = dynamic_cast<const ScenePrimitive*>(so);
         if (sp != NULL) {
-            if (sp->getName() == name) {
-                return sp;
-            }
+            return sp;
         }
     }
     
@@ -822,9 +875,7 @@ SceneClass::getPathName(const AString& name) const
     if (so != NULL) {
         const ScenePathName* sp = dynamic_cast<const ScenePathName*>(so);
         if (sp != NULL) {
-            if (sp->getName() == name) {
-                return sp;
-            }
+            return sp;
         }
     }
     
@@ -845,15 +896,23 @@ SceneClass::getPathName(const AString& name) const
 const ScenePrimitiveArray* 
 SceneClass::getPrimitiveArray(const AString& name) const
 {
-    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-         iter != m_childObjects.end();
-         iter++) {
-        const SceneObject* so = *iter;
+//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+//         iter != m_childObjects.end();
+//         iter++) {
+//        const SceneObject* so = *iter;
+//        const ScenePrimitiveArray* spa = dynamic_cast<const ScenePrimitiveArray*>(so);
+//        if (spa != NULL) {
+//            if (spa->getName() == name) {
+//                return spa;
+//            }
+//        }
+//    }
+    
+    const SceneObject* so = getObjectWithName(name);
+    if (so != NULL) {
         const ScenePrimitiveArray* spa = dynamic_cast<const ScenePrimitiveArray*>(so);
         if (spa != NULL) {
-            if (spa->getName() == name) {
-                return spa;
-            }
+            return spa;
         }
     }
     
@@ -873,15 +932,23 @@ SceneClass::getPrimitiveArray(const AString& name) const
 const ScenePathNameArray*
 SceneClass::getPathNameArray(const AString& name) const
 {
-    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-         iter != m_childObjects.end();
-         iter++) {
-        const SceneObject* so = *iter;
-        if (so->getName() == name) {
-            const ScenePathNameArray* spa = dynamic_cast<const ScenePathNameArray*>(so);
-            if (spa != NULL) {
-                return spa;
-            }
+//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+//         iter != m_childObjects.end();
+//         iter++) {
+//        const SceneObject* so = *iter;
+//        if (so->getName() == name) {
+//            const ScenePathNameArray* spa = dynamic_cast<const ScenePathNameArray*>(so);
+//            if (spa != NULL) {
+//                return spa;
+//            }
+//        }
+//    }
+    
+    const SceneObject* so = getObjectWithName(name);
+    if (so != NULL) {
+        const ScenePathNameArray* spa = dynamic_cast<const ScenePathNameArray*>(so);
+        if (spa != NULL) {
+            return spa;
         }
     }
     
@@ -902,15 +969,23 @@ SceneClass::getPathNameArray(const AString& name) const
 const SceneClass* 
 SceneClass::getClass(const AString& name) const
 {
-    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-         iter != m_childObjects.end();
-         iter++) {
-        const SceneObject* so = *iter;
+//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+//         iter != m_childObjects.end();
+//         iter++) {
+//        const SceneObject* so = *iter;
+//        const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
+//        if (sc != NULL) {
+//            if (sc->getName() == name) {
+//                return sc;
+//            }
+//        }
+//    }
+    
+    const SceneObject* so = getObjectWithName(name);
+    if (so != NULL) {
         const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
         if (sc != NULL) {
-            if (sc->getName() == name) {
-                return sc;
-            }
+            return sc;
         }
     }
     
@@ -931,15 +1006,24 @@ SceneClass::getClass(const AString& name) const
 SceneClass* 
 SceneClass::getClass(const AString& name)
 {
-    for (std::vector<SceneObject*>::iterator iter = m_childObjects.begin();
-         iter != m_childObjects.end();
-         iter++) {
-        SceneObject* so = *iter;
+//    for (std::vector<SceneObject*>::iterator iter = m_childObjects.begin();
+//         iter != m_childObjects.end();
+//         iter++) {
+//        SceneObject* so = *iter;
+//        SceneClass* sc = dynamic_cast<SceneClass*>(so);
+//        if (sc != NULL) {
+//            if (sc->getName() == name) {
+//                return sc;
+//            }
+//        }
+//    }
+    
+    const SceneObject* soConst = getObjectWithName(name);
+    if (soConst != NULL) {
+        SceneObject* so = const_cast<SceneObject*>(soConst);
         SceneClass* sc = dynamic_cast<SceneClass*>(so);
         if (sc != NULL) {
-            if (sc->getName() == name) {
-                return sc;
-            }
+            return sc;
         }
     }
     
@@ -987,15 +1071,24 @@ SceneClass::getMapIntegerKey(const AString& name) const
 SceneClassArray* 
 SceneClass::getClassArray(const AString& name)
 {
-    for (std::vector<SceneObject*>::iterator iter = m_childObjects.begin();
-         iter != m_childObjects.end();
-         iter++) {
-        SceneObject* so = *iter;
+//    for (std::vector<SceneObject*>::iterator iter = m_childObjects.begin();
+//         iter != m_childObjects.end();
+//         iter++) {
+//        SceneObject* so = *iter;
+//        SceneClassArray* sca = dynamic_cast<SceneClassArray*>(so);
+//        if (sca != NULL) {
+//            if (sca->getName() == name) {
+//                return sca;
+//            }
+//        }
+//    }
+
+    const SceneObject* soConst = getObjectWithName(name);
+    if (soConst != NULL) {
+        SceneObject* so = const_cast<SceneObject*>(soConst);
         SceneClassArray* sca = dynamic_cast<SceneClassArray*>(so);
         if (sca != NULL) {
-            if (sca->getName() == name) {
-                return sca;
-            }
+            return sca;
         }
     }
     
@@ -1016,15 +1109,24 @@ SceneClass::getClassArray(const AString& name)
 const SceneClassArray* 
 SceneClass::getClassArray(const AString& name) const
 {
-    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-         iter != m_childObjects.end();
-         iter++) {
-        const SceneObject* so = *iter;
+//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+//         iter != m_childObjects.end();
+//         iter++) {
+//        const SceneObject* so = *iter;
+//        const SceneClassArray* sca = dynamic_cast<const SceneClassArray*>(so);
+//        if (sca != NULL) {
+//            if (sca->getName() == name) {
+//                return sca;
+//            }
+//        }
+//    }
+    
+    const SceneObject* soConst = getObjectWithName(name);
+    if (soConst != NULL) {
+        SceneObject* so = const_cast<SceneObject*>(soConst);
         const SceneClassArray* sca = dynamic_cast<const SceneClassArray*>(so);
         if (sca != NULL) {
-            if (sca->getName() == name) {
-                return sca;
-            }
+            return sca;
         }
     }
     
@@ -1051,6 +1153,7 @@ const SceneObject*
 SceneClass::getObjectAtIndex(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_childObjects, indx);
+    m_childObjects[indx]->m_restoredFlag = true;
     return m_childObjects[indx];
 }
 
@@ -1063,16 +1166,52 @@ SceneClass::getObjectAtIndex(const int32_t indx) const
 const SceneObject* 
 SceneClass::getObjectWithName(const AString& name) const
 {
+    SceneObject* sceneObject = NULL;
+    bool wasLoggedFlag = false;
+    
     for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
          iter != m_childObjects.end();
          iter++) {
-        const SceneObject* so = *iter;
+        SceneObject* so = *iter;
         if (so->getName() == name) {
-            return so;
+            so->m_restoredFlag = true;
+            
+            if (s_debugLoggingEnabledFlag) {
+                if (sceneObject != NULL) {
+                    if ( ! wasLoggedFlag) {
+                        CaretLogWarning("Scene class named \""
+                                        + getName()
+                                        + "\" contains more than one child named \""
+                                        + name
+                                        + "\".  If replacing the scene does not eliminate this message "
+                                        "there is an error in the source code");
+                        wasLoggedFlag = true;
+                    }
+                }
+            }
+            else {
+                return so;
+            }
+            
+            sceneObject = so;
         }
     }
     
-    return NULL;
+    return sceneObject;
+}
+
+/**
+ * Set debug logging enabled.
+ * If enabled, message are logged at the warning level
+ * for duplicated objects and missing objects.
+ * 
+ * @param status
+ *     New status.
+ */
+void
+SceneClass::setDebugLoggingEnabled(const bool status)
+{
+    s_debugLoggingEnabledFlag = status;
 }
 
 /**
@@ -1085,7 +1224,13 @@ SceneClass::getObjectWithName(const AString& name) const
 void 
 SceneClass::logMissing(const AString& missingInfo) const
 {
-    CaretLogFine(missingInfo);
+    if (missingInfo.isEmpty()) {
+        return;
+    }
+    
+    if (s_debugLoggingEnabledFlag) {
+        CaretLogFine(missingInfo);
+    }
 }
 
 

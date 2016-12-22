@@ -50,6 +50,9 @@ namespace caret {
                                     SceneFile* sceneFile,
                                     Scene* sceneToReplace);
         
+        static void addImageToScene(Scene* scene,
+                                    AString& errorMessageOut);
+        
         static bool createSceneImage(QImage& imageOut,
                                      AString& errorMessageOut);
         
@@ -82,8 +85,6 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
 
-        void addImageToScene(Scene* scene);
-        
         SceneFile* m_sceneFile;
         
         Mode m_mode;

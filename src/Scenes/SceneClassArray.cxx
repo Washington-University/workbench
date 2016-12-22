@@ -117,6 +117,29 @@ SceneClassArray::~SceneClassArray()
 }
 
 /**
+ * @return All descendant SceneClasses (children, grandchildren, etc.) of this instance.
+ */
+std::vector<SceneObject*>
+SceneClassArray::getDescendants() const
+{
+    std::vector<SceneObject*> descendants;
+    
+    for (std::vector<SceneClass*>::const_iterator iter = m_values.begin();
+         iter != m_values.end();
+         iter++) {
+        SceneClass* sceneClass = *iter;
+        descendants.push_back(sceneClass);
+        
+        std::vector<SceneObject*> classDescendants = sceneClass->getDescendants();
+        descendants.insert(descendants.end(),
+                           classDescendants.begin(),
+                           classDescendants.end());
+    }
+    
+    return descendants;
+}
+
+/**
  * Set the class for an array index.
  * @param arrayIndex
  *     Index of element.
@@ -156,5 +179,9 @@ const SceneClass*
 SceneClassArray::getClassAtIndex(const int32_t arrayIndex) const
 {
     CaretAssertVectorIndex(m_values, arrayIndex);
-    return m_values[arrayIndex];
+    const SceneClass* sc = m_values[arrayIndex];
+    if (sc != NULL) {
+        sc->m_restoredFlag = true;
+    }
+    return sc;
 }

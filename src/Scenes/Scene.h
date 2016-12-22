@@ -29,6 +29,7 @@ namespace caret {
     class SceneAttributes;
     class SceneClass;
     class SceneInfo;
+    class SceneObject;
     
     class Scene : public CaretObject {
         
@@ -48,6 +49,8 @@ namespace caret {
 
         SceneAttributes* getAttributes();
 
+        std::vector<SceneObject*> getDescendants() const;
+        
         void addClass(SceneClass* sceneClass);
         
         int32_t getNumberOfClasses() const;

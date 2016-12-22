@@ -135,6 +135,7 @@ SceneStringArray::setValue(const int32_t arrayIndex,
 bool 
 SceneStringArray::booleanValue(const int32_t arrayIndex) const
 {    
+    m_restoredFlag = true;
     CaretAssertVectorIndex(m_values, arrayIndex);
     const bool b = m_values[arrayIndex].toBool();
     return b;
@@ -149,6 +150,7 @@ SceneStringArray::booleanValue(const int32_t arrayIndex) const
 float 
 SceneStringArray::floatValue(const int32_t arrayIndex) const
 {    
+    m_restoredFlag = true;
     CaretAssertVectorIndex(m_values, arrayIndex);
     bool isValid = false;
     float f = m_values[arrayIndex].toFloat(&isValid);
@@ -167,6 +169,7 @@ SceneStringArray::floatValue(const int32_t arrayIndex) const
 int32_t 
 SceneStringArray::integerValue(const int32_t arrayIndex) const
 {    
+    m_restoredFlag = true;
     CaretAssertVectorIndex(m_values, arrayIndex);
     bool isValid = false;
     int32_t i = m_values[arrayIndex].toInt(&isValid);
@@ -185,6 +188,7 @@ SceneStringArray::integerValue(const int32_t arrayIndex) const
 AString 
 SceneStringArray::stringValue(const int32_t arrayIndex) const
 {    
+    m_restoredFlag = true;
     CaretAssertVectorIndex(m_values, arrayIndex);
     return m_values[arrayIndex];
 }
@@ -198,6 +202,7 @@ SceneStringArray::stringValue(const int32_t arrayIndex) const
 uint8_t
 SceneStringArray::unsignedByteValue(const int32_t arrayIndex) const
 {
+    m_restoredFlag = true;
     bool isValid = false;
     const uint32_t i = m_values[arrayIndex].toUInt(&isValid);
     if ( ! isValid) {

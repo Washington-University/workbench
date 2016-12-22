@@ -40,6 +40,8 @@ namespace caret {
 
         ScenePrimitive& operator=(const ScenePrimitive&);
         
+        virtual AString toString() const;
+        
     public:
 
         // ADD_NEW_METHODS_HERE

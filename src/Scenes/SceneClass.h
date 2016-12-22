@@ -50,6 +50,8 @@ namespace caret {
         
         int32_t getVersionNumber() const;
         
+        virtual std::vector<SceneObject*> getDescendants() const;
+        
         void addBoolean(const AString& name,
                         const bool value);
         
@@ -299,6 +301,8 @@ namespace caret {
         
         virtual SceneObject* clone() const;
         
+        static void setDebugLoggingEnabled(const bool status);
+        
         // ADD_NEW_METHODS_HERE
 
 //    private: // and are not used
@@ -336,12 +340,14 @@ namespace caret {
         
         std::vector<SceneObject*> m_childObjects;
         
+        static bool s_debugLoggingEnabledFlag;
+        
         // ADD_NEW_MEMBERS_HERE
         
     };
     
 #ifdef __SCENE_CLASS_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    bool SceneClass::s_debugLoggingEnabledFlag = false;
 #endif // __SCENE_CLASS_DECLARE__
 
 } // namespace

@@ -345,9 +345,10 @@ SceneCreateReplaceDialog::replaceExistingScene(QWidget* parent,
  *    Scene to which image is added.
  */
 void
-SceneCreateReplaceDialog::addImageToScene(Scene* scene)
+SceneCreateReplaceDialog::addImageToScene(Scene* scene,
+                                          AString& errorMessageOut)
 {
-    AString errorMessage;
+    errorMessageOut.clear();
     
     CaretAssert(scene);
 
@@ -370,7 +371,7 @@ SceneCreateReplaceDialog::addImageToScene(Scene* scene)
         
         if (imageCaptureEvent.getEventProcessCount() > 0) {
             if (imageCaptureEvent.isError()) {
-                errorMessage.appendWithNewLine(imageCaptureEvent.getErrorMessage());
+                errorMessageOut.appendWithNewLine(imageCaptureEvent.getErrorMessage());
             }
             else {
                 imageFiles.push_back(new ImageFile(imageCaptureEvent.getImage()));
@@ -415,9 +416,8 @@ SceneCreateReplaceDialog::addImageToScene(Scene* scene)
                                                  PREFERRED_IMAGE_FORMAT);
         }
         catch (const DataFileException& dfe) {
-            WuQMessageBox::errorOk(this,
-                                   (dfe.whatString()
-                                    + "\n\nEven though image failed, scene was created."));
+            errorMessageOut.appendWithNewLine((dfe.whatString()
+                                               + "\n\nEven though image failed, scene was created."));
         }
     }
     
@@ -670,7 +670,13 @@ SceneCreateReplaceDialog::okButtonClicked()
     newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
                                                       "guiManager"));
     
-    addImageToScene(newScene);
+    AString imageErrorMessage;
+    addImageToScene(newScene,
+                    imageErrorMessage);
+    if ( ! imageErrorMessage.isEmpty()) {
+        WuQMessageBox::errorOk(this,
+                               imageErrorMessage);
+    }
     
     switch (m_mode) {
         case MODE_ADD_NEW_SCENE:

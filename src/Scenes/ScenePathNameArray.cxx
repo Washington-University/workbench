@@ -123,6 +123,22 @@ ScenePathNameArray::~ScenePathNameArray()
 }
 
 /**
+ * @return All descendant SceneClasses (children, grandchildren, etc.) of this instance.
+ */
+std::vector<SceneObject*>
+ScenePathNameArray::getDescendants() const
+{
+    std::vector<SceneObject*> descendants;
+    
+    for (std::vector<ScenePathName*>::const_iterator iter = m_values.begin();
+         iter != m_values.end();
+         iter++) {
+        descendants.push_back(*iter);
+    }
+    
+    return descendants;
+}
+/**
  * Set the class for an array index.
  * @param arrayIndex
  *     Index of element.
@@ -172,6 +188,10 @@ ScenePathName*
 ScenePathNameArray::getScenePathNameAtIndex(const int32_t arrayIndex) const
 {
     CaretAssertVectorIndex(m_values, arrayIndex);
-    return m_values[arrayIndex];
+    ScenePathName* spm = m_values[arrayIndex];
+    if (spm != NULL) {
+        spm->m_restoredFlag = true;
+    }
+    return spm;
 }
 

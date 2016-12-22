@@ -104,6 +104,7 @@ ScenePathName::setValue(const AString& value)
 AString 
 ScenePathName::stringValue() const
 {
+    m_restoredFlag = true;
     return m_value;
 }
 

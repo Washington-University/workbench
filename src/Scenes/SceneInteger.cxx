@@ -88,6 +88,7 @@ SceneInteger::setValue(const int32_t value)
 bool 
 SceneInteger::booleanValue() const
 {
+    m_restoredFlag = true;
     const bool b = ((m_value != 0.0) ? true : false);
     return b;
 }
@@ -98,6 +99,7 @@ SceneInteger::booleanValue() const
 float
 SceneInteger::floatValue() const
 {
+    m_restoredFlag = true;
     const float f = static_cast<float>(m_value);
     return f;
 }
@@ -108,6 +110,7 @@ SceneInteger::floatValue() const
 int32_t 
 SceneInteger::integerValue() const
 {
+    m_restoredFlag = true;
     return m_value;
 }
 
@@ -117,6 +120,7 @@ SceneInteger::integerValue() const
 AString 
 SceneInteger::stringValue() const
 {
+    m_restoredFlag = true;
     const AString s = AString::number(m_value);
     return s;
 }
@@ -130,6 +134,7 @@ SceneInteger::stringValue() const
 uint8_t
 SceneInteger::unsignedByteValue() const
 {
+    m_restoredFlag = true;
     if (m_value > std::numeric_limits<uint8_t>::max()) {
         return std::numeric_limits<uint8_t>::max();
     }

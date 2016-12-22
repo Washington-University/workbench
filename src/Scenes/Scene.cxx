@@ -266,6 +266,28 @@ Scene::~Scene()
 }
 
 /**
+ * @return All descendant SceneClasses (children, grandchildren, etc.) of this instance.
+ */
+std::vector<SceneObject*>
+Scene::getDescendants() const
+{
+    std::vector<SceneObject*> descendants;
+    
+    const int32_t numberOfSceneClasses = this->getNumberOfClasses();
+    for (int32_t i = 0; i < numberOfSceneClasses; i++) {
+        SceneObject* object = m_sceneClasses[i];
+        descendants.push_back(object);
+        
+        std::vector<SceneObject*> objectDescendants = object->getDescendants();
+        descendants.insert(descendants.end(),
+                           objectDescendants.begin(),
+                           objectDescendants.end());
+    }
+    
+    return descendants;
+}
+
+/**
  * @return Attributes of the scene
  */
 const SceneAttributes*
@@ -311,6 +333,7 @@ const SceneClass*
 Scene::getClassAtIndex(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_sceneClasses, indx);
+    m_sceneClasses[indx]->setRestored(true);
     return m_sceneClasses[indx];
 }
 
@@ -326,6 +349,7 @@ Scene::getClassWithName(const AString& sceneClassName) const
     const int32_t numberOfSceneClasses = this->getNumberOfClasses();
     for (int32_t i = 0; i < numberOfSceneClasses; i++) {
         if (m_sceneClasses[i]->getName() == sceneClassName) {
+            m_sceneClasses[i]->setRestored(true);
             return m_sceneClasses[i];
         }
     }

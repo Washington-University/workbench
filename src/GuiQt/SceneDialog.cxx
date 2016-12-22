@@ -109,6 +109,7 @@ SceneDialog::SceneDialog(QWidget* parent)
 {
     m_selectedSceneClassInfoIndex = -1;
     
+    m_replaceAllScenesDescription = ("This operation may be slow as it loads and replaces all scenes.");
     m_testAllScenesDescription = ("This operation may be slow as it requires displaying all scenes. "
                                   "\n"
                                   "Each scene is displayed and an image of the graphic(s) regions is generated "
@@ -496,6 +497,9 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
     
     m_addNewScenePushButton->setEnabled(validFile);
     m_deleteScenePushButton->setEnabled(validScene);
+    if (m_replaceAllScenesPushButton != NULL) {
+        m_replaceAllScenesPushButton->setEnabled(haveScenes);
+    }
     m_testScenesPushButton->setEnabled(haveScenes);
     m_insertNewScenePushButton->setEnabled(validScene);
     m_replaceScenePushButton->setEnabled(validScene);
@@ -1141,6 +1145,243 @@ SceneDialog::getQImageFromSceneInfo(const SceneInfo* sceneInfo) const
 }
 
 /**
+ * Replace all scenes.
+ */
+void
+SceneDialog::replaceAllScenesPushButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        WuQMessageBox::errorOk(m_testScenesPushButton, "No scene file is loaded.");
+        return;
+    }
+    
+    const int32_t numScenes = sceneFile->getNumberOfScenes();
+    if (numScenes == 0) {
+        WuQMessageBox::errorOk(m_replaceAllScenesPushButton, "Selected scene file contains no scenes.");
+        return;
+    }
+    
+    if ( ! WuQMessageBox::warningOkCancel(m_replaceAllScenesPushButton,
+                                          "Replace All Scenes",
+                                          m_replaceAllScenesDescription)) {
+        return;
+    }
+    
+    AString username;
+    AString password;
+    
+    /*
+     * Check to see if any scenes need a login/password.
+     * Same login/password is used for all scenes.
+     */
+    for (int32_t i = 0; i < numScenes; i++) {
+        const Scene* scene = sceneFile->getSceneAtIndex(i);
+        if (scene != NULL) {
+            if (scene->hasFilesWithRemotePaths()) {
+                const QString msg("This scene contains files that are on the network.  "
+                                  "If accessing the files requires a username and "
+                                  "password, enter it here.  Otherwise, remove any "
+                                  "text from the username and password fields.");
+                
+                
+                if (UsernamePasswordWidget::getUserNameAndPasswordInDialog(m_replaceAllScenesPushButton,
+                                                                           "Username and Password",
+                                                                           msg,
+                                                                           username,
+                                                                           password)) {
+                    CaretDataFile::setFileReadingUsernameAndPassword(username,
+                                                                     password);
+                    break;
+                }
+            }
+        }
+    }
+    
+    showWaitCursor();
+    
+    const int IMAGE_DISPLAY_WIDTH = 400;
+    std::vector<AString> sceneNames;
+    std::vector<AString> sceneErrors;
+    std::vector<QImage> oldImages;
+    std::vector<QImage> newImages;
+    
+    for (int32_t i = 0; i < numScenes; i++) {
+        Scene* origScene = sceneFile->getSceneAtIndex(i);
+        if (origScene != NULL) {
+            if (origScene->hasFilesWithRemotePaths()) {
+                CaretDataFile::setFileReadingUsernameAndPassword(username,
+                                                                 password);
+            }
+            
+            const QImage* imageFromScene = getQImageFromSceneInfo(origScene->getSceneInfo());
+            if (imageFromScene != NULL) {
+                oldImages.push_back(imageFromScene->scaledToWidth(IMAGE_DISPLAY_WIDTH));
+            }
+            else {
+                oldImages.push_back(QImage());
+            }
+
+            /*
+             * Display the scene
+             */
+            AString errorMessage;
+            const bool successFlag = displayScenePrivateWithErrorMessage(sceneFile,
+                                                                         origScene,
+                                                                         false,
+                                                                         errorMessage);
+            sceneNames.push_back(origScene->getName());
+            
+            /* 
+             * Assume scene loads correctly 
+             */
+            Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
+            Scene::setSceneBeingCreated(newScene);
+            newScene->setName(origScene->getName());
+            newScene->setDescription(origScene->getDescription());
+            newScene->setBalsaSceneID(origScene->getBalsaSceneID());
+            
+            const std::vector<int32_t> windowIndices = GuiManager::get()->getAllOpenBrainBrowserWindowIndices();
+            
+            /*
+             * Get all browser tabs and only save transformations for tabs
+             * that are valid.
+             */
+            std::vector<int32_t> tabIndices;
+            EventBrowserTabGetAll getAllTabs;
+            EventManager::get()->sendEvent(getAllTabs.getPointer());
+            tabIndices = getAllTabs.getBrowserTabIndices();
+            std::sort(tabIndices.begin(),
+                      tabIndices.end());
+            
+            SceneAttributes* sceneAttributes = newScene->getAttributes();
+            sceneAttributes->setSceneFileName(getSelectedSceneFile()->getFileName());
+            sceneAttributes->setSceneName(origScene->getName());
+            sceneAttributes->setIndicesOfTabsAndWindowsForSavingToScene(tabIndices,
+                                                                        windowIndices);
+            sceneAttributes->setSpecFileNameSavedToScene(true);
+            sceneAttributes->setAllLoadedFilesSavedToScene(true);
+            sceneAttributes->setModifiedPaletteSettingsSavedToScene(true);
+            
+            newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
+                                                              "guiManager"));
+            
+            AString imageErrorMessage;
+            SceneCreateReplaceDialog::addImageToScene(newScene,
+                                                      imageErrorMessage);
+            if ( ! imageErrorMessage.isEmpty()) {
+                errorMessage.appendWithNewLine(imageErrorMessage);
+            }
+            
+            getSelectedSceneFile()->replaceScene(newScene,
+                                                 origScene);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            
+            loadScenesIntoDialog(newScene);
+            const QImage* newImage = getQImageFromSceneInfo(newScene->getSceneInfo());
+            if (newImage != NULL) {
+                newImages.push_back(newImage->scaledToWidth(IMAGE_DISPLAY_WIDTH));
+            }
+            else {
+                newImages.push_back(QImage());
+            }
+            sceneErrors.push_back(errorMessage);
+        }
+    }
+    
+    CaretAssert(sceneNames.size() == sceneErrors.size());
+    CaretAssert(sceneNames.size() == oldImages.size());
+    CaretAssert(sceneNames.size() == newImages.size());
+    
+    showNormalCursor();
+    
+    const int32_t numValidScenes = static_cast<int32_t>(sceneNames.size());
+    if (numValidScenes <= 0) {
+        WuQMessageBox::errorOk(m_replaceAllScenesPushButton,
+                               "No scenes were loaded.");
+        return;
+    }
+    
+    QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 0);
+    gridLayout->setColumnStretch(2, 0);
+    gridLayout->setColumnStretch(3, 0);
+    
+    for (int32_t i = 0; i < numValidScenes; i++) {
+        int row = gridLayout->rowCount();
+        if (i > 0) {
+            gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
+                                  row, 0, 1, 4);
+            row++;
+        }
+        
+        gridLayout->addWidget(new QLabel("Scene Name: " + sceneNames[i]),
+                              row, 0, Qt::AlignLeft);
+        
+        if ( ! sceneErrors[i].isEmpty()) {
+            QLabel* errorLabel = new QLabel("Scene Errors: " + sceneErrors[i]);
+            errorLabel->setWordWrap(true);
+            gridLayout->addWidget(errorLabel,
+                                  row, 1, Qt::AlignLeft);
+        }
+        
+        row++;
+        
+        const QSizePolicy::Policy imageSizePolicy = QSizePolicy::Preferred;
+        
+        QLabel* sceneImageLabel = new QLabel("Image Invalid");
+        if ( ! oldImages[i].isNull()) {
+            sceneImageLabel->clear();
+            sceneImageLabel->setPixmap(QPixmap::fromImage(oldImages[i]));
+            sceneImageLabel->setSizePolicy(imageSizePolicy,
+                                           imageSizePolicy);
+        }
+        gridLayout->addWidget(sceneImageLabel,
+                              row, 0);
+        
+        QLabel* newImageLabel = new QLabel("Image Invalid");
+        if ( ! newImages[i].isNull()) {
+            newImageLabel->clear();
+            newImageLabel->setPixmap(QPixmap::fromImage(newImages[i]));
+            newImageLabel->setSizePolicy(imageSizePolicy,
+                                           imageSizePolicy);
+        }
+        gridLayout->addWidget(newImageLabel,
+                              row, 1);
+    }
+    
+    const int numRows = gridLayout->rowCount();
+    for (int32_t i = 0; i < numRows; i++) {
+        gridLayout->setRowStretch(i, 0);
+    }
+    
+    QWidget* dialogWidget = new QWidget();
+    QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
+    dialogLayout->addLayout(gridLayout);
+    
+    WuQDialogNonModal* dialog = new WuQDialogNonModal("Scene Results",
+                                                      m_replaceAllScenesPushButton);
+    dialog->setDeleteWhenClosed(true);
+    dialog->setApplyButtonText("");
+    dialog->setCentralWidget(dialogWidget,
+                             WuQDialogNonModal::SCROLL_AREA_ALWAYS);
+    dialog->show();
+    
+    WuQtUtilities::limitWindowSizePercentageOfMaximum(dialog,
+                                                      100.0,
+                                                      100.0);
+    
+    const int dialogWidth  = (IMAGE_DISPLAY_WIDTH * 2) + 50;
+    const int dialogHeight = (IMAGE_DISPLAY_WIDTH * 2.5);
+    WuQtUtilities::resizeWindow(dialog,
+                                dialogWidth,
+                                dialogHeight);
+    
+    dialog->show();
+}
+
+/**
  * Test all scenes by loading them and then
  * displaying images that are stored with the
  * scene and new image of the displayed scene.
@@ -1632,6 +1873,14 @@ SceneDialog::createScenesWidget()
     m_deleteScenePushButton->setToolTip("Delete the selected scene");
     QObject::connect(m_deleteScenePushButton, SIGNAL(clicked()),
                      this, SLOT(deleteSceneButtonClicked()));
+    
+    /*
+     * Replace all scenes
+     */
+    m_replaceAllScenesPushButton = new QPushButton("Replace All...");
+    m_replaceAllScenesPushButton->setToolTip(m_replaceAllScenesDescription);
+    QObject::connect(m_replaceAllScenesPushButton, SIGNAL(clicked()),
+                     this, SLOT(replaceAllScenesPushButtonClicked()));
     
     /*
      * Test all scenes
@@ -2315,6 +2564,13 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
         return false;
     }
     
+    std::vector<SceneObject*> allSceneObjects;
+    if (m_checkForUnrestoredItemsCheckBox->isChecked()) {
+        allSceneObjects = scene->getDescendants();
+    }
+    
+    SceneClass::setDebugLoggingEnabled(m_checkForUnrestoredItemsCheckBox->isChecked());
+    
     /*
      * Show the wait cursor
      */
@@ -2333,8 +2589,21 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
     sceneAttributes->setWindowRestoreBehaviorInSceneDisplay(SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES);
     sceneAttributes->setUseSceneForegroundAndBackgroundColors(s_useSceneForegroundBackgroundColorsFlag);
     
+    if ( ! allSceneObjects.empty()) {
+        SceneObject::setRestoredStatus(allSceneObjects,
+                                       false);
+    }
+    
     GuiManager::get()->restoreFromScene(sceneAttributes,
                                         guiManagerClass);
+    guiManagerClass->setRestored(true);
+    
+    if ( ! allSceneObjects.empty()) {
+        SceneObject::logObjectsFailedRestore(scene->getName(),
+                                             allSceneObjects);
+    }
+    
+    SceneClass::setDebugLoggingEnabled(false);
     
     cursor.restoreCursor();
     

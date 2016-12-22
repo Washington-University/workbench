@@ -118,6 +118,8 @@ namespace caret {
         
         void testScenesPushButtonClicked();
         
+        void replaceAllScenesPushButtonClicked();
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -204,6 +206,8 @@ namespace caret {
         
         QPushButton* m_deleteScenePushButton;
         
+        QPushButton* m_replaceAllScenesPushButton;
+        
         QPushButton* m_testScenesPushButton;
         
         QPushButton* m_moveSceneUpPushButton;
@@ -220,6 +224,8 @@ namespace caret {
         
         QPushButton* m_createSceneOptionsPushButton;
         
+        QCheckBox* m_checkForUnrestoredItemsCheckBox;
+        
         QScrollArea* m_sceneSelectionScrollArea;
         
         QWidget* m_sceneSelectionWidget;
@@ -231,6 +237,8 @@ namespace caret {
         int32_t m_selectedSceneClassInfoIndex;
         
         WuQWidgetObjectGroup* m_sceneFileButtonsGroup;
+        
+        AString m_replaceAllScenesDescription;
         
         AString m_testAllScenesDescription;
         

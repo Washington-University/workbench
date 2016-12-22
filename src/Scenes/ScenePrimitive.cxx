@@ -60,3 +60,17 @@ ScenePrimitive::~ScenePrimitive()
     
 }
 
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString
+ScenePrimitive::toString() const
+{
+    QString objectInfo(SceneObject::toString()
+                       + " value="
+                       + stringValue());
+    return objectInfo;
+}
+
+
