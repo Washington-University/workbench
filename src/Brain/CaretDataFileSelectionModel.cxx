@@ -534,17 +534,17 @@ CaretDataFileSelectionModel::restoreFromScene(const SceneAttributes* sceneAttrib
         }
     }
     
+    const AString selectedFileNameNoPath = sceneClass->getStringValue("selectedFileNameNoPath",
+                                                                      "");
     if ( ! foundFileFlag) {
-        const AString selectedFileName = sceneClass->getStringValue("selectedFileNameNoPath",
-                                                                    "");
-        if ( ! selectedFileName.isEmpty()) {
+        if ( ! selectedFileNameNoPath.isEmpty()) {
             std::vector<CaretDataFile*> caretDataFiles = getAvailableFiles();
             
             for (std::vector<CaretDataFile*>::iterator iter = caretDataFiles.begin();
                  iter != caretDataFiles.end();
                  iter++) {
                 CaretDataFile* cdf = *iter;
-                if (cdf->getFileNameNoPath() == selectedFileName) {
+                if (cdf->getFileNameNoPath() == selectedFileNameNoPath) {
                     setSelectedFile(cdf);
                     break;
                 }

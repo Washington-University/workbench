@@ -928,6 +928,7 @@ GroupAndNameHierarchyItem::restoreFromScene(const SceneAttributes* sceneAttribut
         return;
     }
     
+    sceneClass->getStringValue("m_name"); // prevents "failed to restore"
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     

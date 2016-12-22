@@ -635,6 +635,7 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
                  iter++) {
                 const int32_t key = iter->first;
                 const SceneClass* cerebellarSceneClass = dynamic_cast<const SceneClass*>(iter->second);
+                cerebellarSceneClass->setRestored(true); // prevents "failed to restore"
                 
                 CaretAssertArrayIndex(m_cerebellarConfiguration,
                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
@@ -656,7 +657,7 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
                  iter++) {
                 const int32_t key = iter->first;
                 const SceneClass* cerebralSceneClass = dynamic_cast<const SceneClass*>(iter->second);
-                
+                cerebralSceneClass->setRestored(true);// prevents "failed to restore"
                 CaretAssertArrayIndex(m_cerebralConfiguration,
                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                                       key);
@@ -677,6 +678,7 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
                  iter++) {
                 const int32_t key = iter->first;
                 const SceneClass* flatClass = dynamic_cast<const SceneClass*>(iter->second);
+                flatClass->setRestored(true); // prevents "failed to restore"
                 
                 CaretAssertArrayIndex(m_flatMapsConfiguration,
                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
