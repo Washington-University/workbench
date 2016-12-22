@@ -462,6 +462,11 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
                              sceneClass->getClass("geometry"));
     }
     else {
+        const SceneClass* geometryClass = sceneClass->getClass("geometry");
+        if (geometryClass != NULL) {
+            /* is restored only when floating and visible. */
+            geometryClass->setDescendantsRestored(true);
+        }
 #if QT_VERSION < 0x050000
         /*
          * Do this for Qt4 only.  Qt5 restores size in BrainBrowserWindow.

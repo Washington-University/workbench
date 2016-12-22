@@ -4090,6 +4090,7 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
 
+    /* m_browserWindowIndex used with wb_command -show-scene */
     sceneClass->addInteger("m_browserWindowIndex",
                            m_browserWindowIndex);
     sceneClass->addBoolean("m_windowAspectRatioLockedAction",
@@ -4187,7 +4188,7 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
                            m_viewTileTabsSelected);
     
     /*
-     * Graphics position and size
+     * Graphics position and size, used with wb_command -show-scene
      */
     SceneWindowGeometry openGLGeometry(m_openGLWidget);
     sceneClass->addClass(openGLGeometry.saveToScene(sceneAttributes,
@@ -4431,6 +4432,13 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                        false);
     if (maximizedWindow) {
         showMaximized();
+    }
+    
+    /* prevent "failed to restore" messages */
+    sceneClass->getIntegerValue("m_browserWindowIndex");
+    const SceneClass* openglGeomClass = sceneClass->getClass("openGLWidgetGeometry");
+    if (openglGeomClass != NULL) {
+        openglGeomClass->setDescendantsRestored(true);
     }
 }
 

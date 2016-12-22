@@ -170,6 +170,10 @@ SceneWindowGeometry::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                            -1);
     const int32_t sceneHeight = sceneClass->getIntegerValue("geometryHeight",
                                                             -1);
+    const int32_t offsetX = sceneClass->getIntegerValue("geometryOffsetX", 100);
+    const int32_t offsetY = sceneClass->getIntegerValue("geometryOffsetY", 100);
+    const bool windowVisible = sceneClass->getBooleanValue("visibility",
+                                                           true);
 
     const bool isDialog = (qobject_cast<QDialog*>(m_window) != NULL);
     QDockWidget* dockWidget = qobject_cast<QDockWidget*>(m_window);
@@ -216,8 +220,6 @@ SceneWindowGeometry::restoreFromScene(const SceneAttributes* sceneAttributes,
         /*
          * Get offset from parent
          */
-        const int32_t offsetX = sceneClass->getIntegerValue("geometryOffsetX", 100);
-        const int32_t offsetY = sceneClass->getIntegerValue("geometryOffsetY", 100);
         const int32_t windowX = m_parentWindow->x() + offsetX;
         const int32_t windowY = m_parentWindow->y() + offsetY;
         
@@ -238,8 +240,6 @@ SceneWindowGeometry::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Visibility
      */
-    const bool windowVisible = sceneClass->getBooleanValue("visibility",
-                                                           true);
     m_window->setVisible(windowVisible);
     
     /*
