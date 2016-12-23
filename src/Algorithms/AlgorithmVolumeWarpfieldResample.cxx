@@ -93,7 +93,9 @@ void AlgorithmVolumeWarpfieldResample::useParameters(OperationParameters* myPara
     }
     NiftiIO refSpaceIO;
     refSpaceIO.openRead(refSpaceName);
-    AlgorithmVolumeWarpfieldResample(myProgObj, inVol, myWarpfield.getWarpfield(), refSpaceIO.getDimensions().data(), refSpaceIO.getHeader().getSForm(), myMethod, outVol);
+    vector<int64_t> refDims = refSpaceIO.getDimensions();
+    if (refDims.size() < 3) refDims.resize(3, 1);
+    AlgorithmVolumeWarpfieldResample(myProgObj, inVol, myWarpfield.getWarpfield(), refDims.data(), refSpaceIO.getHeader().getSForm(), myMethod, outVol);
 }
 
 AlgorithmVolumeWarpfieldResample::AlgorithmVolumeWarpfieldResample(ProgressObject* myProgObj, const VolumeFile* inVol, const VolumeFile* warpfield,
