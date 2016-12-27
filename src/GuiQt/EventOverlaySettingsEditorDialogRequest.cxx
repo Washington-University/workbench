@@ -30,6 +30,9 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param mode
+ *    The mode.
  * @param browserWindowIndex
  *    Index of browser window.
  * @param overlay
@@ -49,6 +52,36 @@ m_mode(mode)
 {
     m_browserWindowIndex = browserWindowIndex;
     m_overlay = overlay;
+    m_chartOverlay = NULL;
+    m_mapFile = mapFile;
+    m_mapIndex = mapIndex;
+}
+
+/**
+ * Constructor.
+ *
+ * @param mode
+ *    The mode.
+ * @param browserWindowIndex
+ *    Index of browser window.
+ * @param overlay
+ *    Overlay for map editor.
+ * @param mapFile
+ *    Caret Mappable Data File.
+ * @param mapIndex
+ *    Map index in mapFile.
+ */
+EventOverlaySettingsEditorDialogRequest::EventOverlaySettingsEditorDialogRequest(const Mode mode,
+                                                                                 const int32_t browserWindowIndex,
+                                                                                 ChartOverlay* chartOverlay,
+                                                                                 CaretMappableDataFile* mapFile,
+                                                                                 const int32_t mapIndex)
+: Event(EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW),
+m_mode(mode)
+{
+    m_browserWindowIndex = browserWindowIndex;
+    m_overlay = NULL;
+    m_chartOverlay = chartOverlay;
     m_mapFile = mapFile;
     m_mapIndex = mapIndex;
 }

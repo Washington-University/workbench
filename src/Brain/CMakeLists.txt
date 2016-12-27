@@ -79,6 +79,9 @@ BrowserTabContent.h
 CaretDataFileSelectionModel.h
 CaretMappableDataFileAndMapSelectionModel.h
 CaretOpenGLInclude.h
+ChartOverlay.h
+ChartOverlaySet.h
+ChartOverlaySetArray.h
 ChartingDataManager.h
 CiftiConnectivityMatrixDataFileManager.h
 CiftiFiberTrajectoryManager.h
@@ -135,6 +138,7 @@ IdentifiedItem.h
 IdentifiedItemNode.h
 IdentifiedItemVoxel.h
 ImageDepthPositionEnum.h
+MatrixViewingTypeEnum.h
 Model.h
 ModelChart.h
 ModelSurface.h
@@ -218,6 +222,9 @@ BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
 CaretDataFileSelectionModel.cxx
 CaretMappableDataFileAndMapSelectionModel.cxx
+ChartOverlay.cxx
+ChartOverlaySet.cxx
+ChartOverlaySetArray.cxx
 ChartingDataManager.cxx
 CiftiConnectivityMatrixDataFileManager.cxx
 CiftiFiberTrajectoryManager.cxx
@@ -272,6 +279,7 @@ IdentifiedItem.cxx
 IdentifiedItemNode.cxx
 IdentifiedItemVoxel.cxx
 ImageDepthPositionEnum.cxx
+MatrixViewingTypeEnum.cxx
 Model.cxx
 ModelChart.cxx
 ModelSurface.cxx

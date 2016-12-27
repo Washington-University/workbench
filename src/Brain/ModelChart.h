@@ -48,6 +48,7 @@ namespace caret {
     class ChartModelDataSeries;
     class ChartModelFrequencySeries;
     class ChartModelTimeSeries;
+    class ChartOverlaySetArray;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiMappableDataFile;
     class OverlaySetArray;
@@ -86,6 +87,10 @@ namespace caret {
         OverlaySet* getOverlaySet(const int tabIndex);
         
         const OverlaySet* getOverlaySet(const int tabIndex) const;
+        
+        virtual ChartOverlaySet* getChartOverlaySet(const int tabIndex);
+        
+        virtual const ChartOverlaySet* getChartOverlaySet(const int tabIndex) const;
         
         virtual void receiveEvent(Event* event);
         
@@ -163,6 +168,8 @@ namespace caret {
 
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;
+        
+        ChartOverlaySetArray* m_chartOverlaySetArray;
         
         mutable ChartDataTypeEnum::Enum m_selectedChartDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

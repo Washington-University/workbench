@@ -43,6 +43,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class CaretDataFile;
     class CaretMappableDataFile;
+    class ChartOverlaySet;
     class ClippingPlaneGroup;
     class Matrix4x4;
     class ModelChart;
@@ -92,6 +93,10 @@ namespace caret {
         OverlaySet* getOverlaySet();
         
         const OverlaySet* getOverlaySet() const;
+        
+        ChartOverlaySet* getChartOverlaySet();
+        
+        const ChartOverlaySet* getChartOverlaySet() const;
         
         int32_t getTabNumber() const;
         

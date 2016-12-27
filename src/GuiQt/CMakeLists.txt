@@ -95,6 +95,8 @@ ELSE()
         ChartLinesSelectionViewController.h
         ChartMatrixParcelSelectionViewController.h
         ChartMatrixSeriesSelectionViewController.h
+        ChartOverlaySetViewController.h
+        ChartOverlayViewController.h
         ChartSelectionViewController.h
         ChartToolBoxViewController.h
         CiftiConnectivityMatrixViewController.h
@@ -276,6 +278,8 @@ ChartHistoryViewController.h
 ChartLinesSelectionViewController.h
 ChartMatrixParcelSelectionViewController.h
 ChartMatrixSeriesSelectionViewController.h
+ChartOverlaySetViewController.h
+ChartOverlayViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
 CiftiConnectivityMatrixViewController.h
@@ -481,6 +485,8 @@ ChartHistoryViewController.cxx
 ChartLinesSelectionViewController.cxx
 ChartMatrixParcelSelectionViewController.cxx
 ChartMatrixSeriesSelectionViewController.cxx
+ChartOverlaySetViewController.cxx
+ChartOverlayViewController.cxx
 ChartSelectionViewController.cxx
 ChartToolBoxViewController.cxx
 CiftiConnectivityMatrixViewController.cxx

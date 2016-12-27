@@ -40,6 +40,7 @@
 #include "ChartModelFrequencySeries.h"
 #include "ChartModelTimeSeries.h"
 #include "CiftiMappableDataFile.h"
+#include "ChartOverlaySetArray.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
@@ -68,6 +69,8 @@ ModelChart::ModelChart(Brain* brain)
     m_overlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
                                             Overlay::INCLUDE_VOLUME_FILES_YES,
                                             "Chart View");
+    
+    m_chartOverlaySetArray = new ChartOverlaySetArray("Chart View");
 
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartableMatrixFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface(m_brain);
@@ -86,6 +89,7 @@ ModelChart::ModelChart(Brain* brain)
  */
 ModelChart::~ModelChart()
 {
+    delete m_chartOverlaySetArray;
     delete m_overlaySetArray;
     EventManager::get()->removeAllEventsFromListener(this);
     
@@ -1873,3 +1877,56 @@ ModelChart::getChartableMatrixSeriesFileSelectionModel(const int32_t tabIndex)
     
     return m_chartableMatrixSeriesFileSelectionModel[tabIndex];
 }
+
+/**
+ * Get the chart overlay set for this model.
+ *
+ * @param tabIndex
+ *     Index for the chart overlay set.
+ * @return
+ *     Chart overlay set or NULL if not valid for this model.
+ */
+ChartOverlaySet*
+ModelChart::getChartOverlaySet(const int tabIndex)
+{
+    ChartOverlaySet* chartOverlaySet = NULL;
+    
+    switch (getSelectedChartDataType(tabIndex)) {
+        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+            break;
+    }
+    
+    chartOverlaySet = m_chartOverlaySetArray->getChartOverlaySet(tabIndex);
+                                                      
+    return chartOverlaySet;
+}
+
+/**
+ * Get the chart overlay set for this model.
+ *
+ * @param tabIndex
+ *     Index for the chart overlay set.
+ * @return
+ *     Chart overlay set or NULL if not valid for this model.
+ */
+const ChartOverlaySet*
+ModelChart::getChartOverlaySet(const int tabIndex) const
+{
+    ModelChart* nonConstModelChart = const_cast<ModelChart*>(this);
+    CaretAssert(nonConstModelChart);
+    const ChartOverlaySet* chartOverlaySet = nonConstModelChart->getChartOverlaySet(tabIndex);
+    
+    return chartOverlaySet;
+}
+
+

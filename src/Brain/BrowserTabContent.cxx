@@ -40,6 +40,7 @@
 #include "CaretPreferences.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
+#include "ChartOverlaySet.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "ClippingPlaneGroup.h"
@@ -843,6 +844,32 @@ BrowserTabContent::getOverlaySet() const
     const Model* model = getModelForDisplay();
     if (model != NULL) {
         return model->getOverlaySet(m_tabNumber);
+    }
+    return NULL;
+}
+
+/**
+ * @return Overlay set for this tab.
+ */
+ChartOverlaySet*
+BrowserTabContent::getChartOverlaySet()
+{
+    Model* model = getModelForDisplay();
+    if (model != NULL) {
+        return model->getChartOverlaySet(m_tabNumber);
+    }
+    return NULL;
+}
+
+/**
+ * @return Overlay set for this tab.
+ */
+const ChartOverlaySet*
+BrowserTabContent::getChartOverlaySet() const
+{
+    const Model* model = getModelForDisplay();
+    if (model != NULL) {
+        return model->getChartOverlaySet(m_tabNumber);
     }
     return NULL;
 }

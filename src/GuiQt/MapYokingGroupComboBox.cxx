@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "ChartOverlay.h"
 #include "ChartableMatrixSeriesInterface.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "EnumComboBoxTemplate.h"
@@ -192,6 +193,47 @@ MapYokingGroupComboBox::validateYokingChange(Overlay* overlay)
         }
 
         setMapYokingGroup(overlay->getMapYokingGroup());
+    }
+}
+
+/**
+ * Validate a change in yoking for a chart overlay.
+ *
+ * @param chartOverlay
+ *    Chart overlay whose yoking changes.
+ */
+void
+MapYokingGroupComboBox::validateYokingChange(ChartOverlay* chartOverlay)
+{
+    const MapYokingGroupEnum::Enum previousMapYokingGroup = chartOverlay->getMapYokingGroup();
+    const MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
+    CaretMappableDataFile* mapFile = NULL;
+    int32_t mapIndex = -1;
+    chartOverlay->getSelectionData(mapFile, mapIndex);
+    bool selectionStatus = chartOverlay->isEnabled();
+    
+    if ((mapFile != NULL)
+        && (mapIndex >= 0)) {
+        const YokeValidationResult result = validateYoking(mapFile,
+                                                           mapIndex,
+                                                           selectionStatus);
+        
+        switch (result) {
+            case YOKE_VALIDATE_RESULT_ACCEPT:
+                chartOverlay->setEnabled(selectionStatus);
+                chartOverlay->setSelectionData(mapFile,
+                                          mapIndex);
+                chartOverlay->setMapYokingGroup(newYokingGroup);
+                break;
+            case YOKE_VALIDATE_RESULT_OFF:
+                chartOverlay->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
+                break;
+            case YOKE_VALIDATE_RESULT_PREVIOUS:
+                chartOverlay->setMapYokingGroup(previousMapYokingGroup);
+                break;
+        }
+        
+        setMapYokingGroup(chartOverlay->getMapYokingGroup());
     }
 }
 

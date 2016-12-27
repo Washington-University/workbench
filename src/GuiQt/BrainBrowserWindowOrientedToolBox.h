@@ -33,6 +33,7 @@ class QTabWidget;
 namespace caret {
     class AnnotationSelectionViewController;
     class BorderSelectionViewController;
+    class ChartOverlaySetViewController;
     class ChartToolBoxViewController;
     class CiftiConnectivityMatrixViewController;
     class FiberOrientationSelectionViewController;
@@ -85,6 +86,8 @@ namespace caret {
         
         BorderSelectionViewController* m_borderSelectionViewController;
 
+        ChartOverlaySetViewController* m_chartOverlaySetViewController;
+
         CiftiConnectivityMatrixViewController* m_connectivityMatrixViewController;
         
         ChartToolBoxViewController* m_chartToolBoxViewController;
@@ -104,7 +107,9 @@ namespace caret {
         QString m_toolBoxTitle;
         
         int32_t m_browserWindowIndex;
-                
+        
+        int32_t m_chartOverlayTabIndex;
+        
         int32_t m_overlayTabIndex;
         
         int32_t m_annotationTabIndex;

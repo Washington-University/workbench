@@ -117,6 +117,34 @@ Model::initializeSelectedSurfaces()
 }
 
 /**
+ * Get the chart overlay set for this model.
+ * 
+ * @param tabIndex
+ *     Index for the chart overlay set.
+ * @return
+ *     Chart overlay set or NULL if not valid for this model.
+ */
+ChartOverlaySet*
+Model::getChartOverlaySet(const int /*tabIndex*/)
+{
+    return NULL;
+}
+
+/**
+ * Get the chart overlay set for this model.
+ *
+ * @param tabIndex
+ *     Index for the chart overlay set.
+ * @return
+ *     Chart overlay set or NULL if not valid for this model.
+ */
+const ChartOverlaySet*
+Model::getChartOverlaySet(const int /*tabIndex*/) const
+{
+    return NULL;
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes

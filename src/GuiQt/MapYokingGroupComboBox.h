@@ -27,6 +27,7 @@
 namespace caret {
 
     class CaretMappableDataFile;
+    class ChartOverlay;
     class ChartableMatrixSeriesInterface;
     class EnumComboBoxTemplate;
     class Overlay;
@@ -49,6 +50,8 @@ namespace caret {
                                   const int32_t tabIndex);
         
         void validateYokingChange(Overlay* overlay);
+        
+        void validateYokingChange(ChartOverlay* chartOverlay);
         
         // ADD_NEW_METHODS_HERE
 
