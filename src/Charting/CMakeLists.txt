@@ -36,6 +36,7 @@ ChartModelTimeSeries.h
 ChartPoint.h
 ChartScaleAutoRanging.h
 ChartSelectionModeEnum.h
+ChartingVersionEnum.h
 
 ChartAxis.cxx
 ChartAxisCartesian.cxx
@@ -58,6 +59,7 @@ ChartModelTimeSeries.cxx
 ChartPoint.cxx
 ChartScaleAutoRanging.cxx
 ChartSelectionModeEnum.cxx
+ChartingVersionEnum.cxx
 )
 
 TARGET_LINK_LIBRARIES(Charting ${CARET_QT5_LINK})

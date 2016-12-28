@@ -155,9 +155,12 @@ namespace caret {
                                     const std::vector<int32_t>& tabIndices,
                                     std::set<AString>& validChartDataIDsOut);
         
-        void restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
-                                         const SceneClass* sceneClass);
+        void restoreVersionOneChartModelsFromScene(const SceneAttributes* sceneAttributes,
+                                                   const SceneClass* sceneClass);
 
+        void restoreVersionTwoChartModelsFromScene(const SceneAttributes* sceneAttributes,
+                                                   const SceneClass* sceneClass);
+        
         void getTabsAndBrainordinateChartFilesForLineChartLoading(std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >& chartBrainordinateFileEnabledTabsOut) const;
 
         void getTabsAndRowColumnChartFilesForLineChartLoading(std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> >& chartRowColumnFilesEnabledTabsOut) const;
@@ -166,6 +169,12 @@ namespace caret {
         
         ChartData* loadCartesianChartWhenRestoringScene(const ChartData* chartData);
 
+        void restoreVersionOneModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
+                                                              const SceneClass* sceneClass);
+        
+        void restoreVersionTwoModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
+                                                                        const SceneClass* sceneClass);
+        
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;
         
