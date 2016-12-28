@@ -28,7 +28,7 @@
 #include <set>
 #include <map>
 
-#include "ChartDataTypeEnum.h"
+#include "ChartVersionOneDataTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "MapYokingGroupEnum.h"
 #include "Model.h"
@@ -94,12 +94,12 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
         
-        void getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validChartDataTypesOut) const;
+        void getValidChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& validChartDataTypesOut) const;
         
-        ChartDataTypeEnum::Enum getSelectedChartDataType(const int32_t tabIndex) const;
+        ChartVersionOneDataTypeEnum::Enum getSelectedChartDataType(const int32_t tabIndex) const;
         
         void setSelectedChartDataType(const int32_t tabIndex,
-                                      const ChartDataTypeEnum::Enum dataType);
+                                      const ChartVersionOneDataTypeEnum::Enum dataType);
         
         ChartModelDataSeries* getSelectedDataSeriesChartModel(const int32_t tabIndex);
         
@@ -180,7 +180,7 @@ namespace caret {
         
         ChartOverlaySetArray* m_chartOverlaySetArray;
         
-        mutable ChartDataTypeEnum::Enum m_selectedChartDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        mutable ChartVersionOneDataTypeEnum::Enum m_selectedChartDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Chart model for data-series data */
         ChartModelDataSeries* m_chartModelDataSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];

@@ -26,7 +26,7 @@ class QButtonGroup;
 class QRadioButton;
 
 #include "BrainBrowserWindowToolBarComponent.h"
-#include "ChartDataTypeEnum.h"
+#include "ChartVersionOneDataTypeEnum.h"
 
 namespace caret {
 
@@ -59,7 +59,7 @@ namespace caret {
 
         BrainBrowserWindowToolBar* m_parentToolBar;
         
-        std::vector<std::pair<ChartDataTypeEnum::Enum, QRadioButton*> > m_chartTypeRadioButtons;
+        std::vector<std::pair<ChartVersionOneDataTypeEnum::Enum, QRadioButton*> > m_chartTypeRadioButtons;
         
         QButtonGroup* m_chartTypeButtonGroup;
         

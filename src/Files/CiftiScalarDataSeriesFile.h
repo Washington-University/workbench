@@ -75,7 +75,7 @@ namespace caret {
         virtual void setMatrixChartingEnabled(const int32_t tabIndex,
                                               const bool enabled);
         
-        virtual void getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        virtual void getSupportedMatrixChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
         const ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) const;
         
@@ -92,7 +92,7 @@ namespace caret {
         
         virtual ChartDataCartesian* loadLineSeriesChartDataForRow(const int32_t rowIndex);
 
-        virtual void getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        virtual void getSupportedLineSeriesChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
         // ADD_NEW_METHODS_HERE
 

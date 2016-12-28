@@ -22,7 +22,7 @@
 /*LICENSE_END*/
 
 #include "CaretColorEnum.h"
-#include "ChartDataTypeEnum.h"
+#include "ChartVersionOneDataTypeEnum.h"
 #include "ChartMatrixLoadingDimensionEnum.h"
 #include "CiftiParcelColoringModeEnum.h"
 #include "YokingGroupEnum.h"
@@ -155,9 +155,9 @@ namespace caret {
          * @param chartDataTypesOut
          *    Chart types supported by this file.
          */
-        virtual void getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
+        virtual void getSupportedMatrixChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
         
-        bool isMatrixChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const;
+        bool isMatrixChartDataTypeSupported(const ChartVersionOneDataTypeEnum::Enum chartDataType) const;
         
         // ADD_NEW_METHODS_HERE
         

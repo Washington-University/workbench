@@ -325,10 +325,10 @@ CiftiConnectivityMatrixParcelFile::setMatrixChartingEnabled(const int32_t tabInd
  *    Chart types supported by this file.
  */
 void
-CiftiConnectivityMatrixParcelFile::getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+CiftiConnectivityMatrixParcelFile::getSupportedMatrixChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     chartDataTypesOut.clear();
-    chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER);
+    chartDataTypesOut.push_back(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER);
 }
 
 /**

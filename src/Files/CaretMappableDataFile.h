@@ -23,7 +23,7 @@
 
 
 #include "CaretDataFile.h"
-#include "ChartDataTypeEnum.h"
+#include "ChartVersionOneDataTypeEnum.h"
 #include "CaretPointer.h"
 #include "NiftiEnums.h"
 #include "PaletteNormalizationModeEnum.h"
@@ -462,7 +462,7 @@ namespace caret {
         
         ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data);
         
-        void helpGetSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        void helpGetSupportedLineSeriesChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);

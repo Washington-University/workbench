@@ -124,7 +124,7 @@ CiftiParcelScalarFile::isLineSeriesChartingSupported() const
  *    Chart types supported by this file.
  */
 void
-CiftiParcelScalarFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+CiftiParcelScalarFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     helpGetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
 }
@@ -174,7 +174,7 @@ CiftiParcelScalarFile::loadLineSeriesChartDataForSurfaceNode(const StructureEnum
 //                                        data)) {
 //            const int64_t numData = static_cast<int64_t>(data.size());
 //            
-//            chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
+//            chartData = new ChartDataCartesian(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
 //                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
 //                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
 //            for (int64_t i = 0; i < numData; i++) {
@@ -393,10 +393,10 @@ CiftiParcelScalarFile::setMatrixChartingEnabled(const int32_t tabIndex,
  *    Chart types supported by this file.
  */
 void
-CiftiParcelScalarFile::getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+CiftiParcelScalarFile::getSupportedMatrixChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     chartDataTypesOut.clear();
-    chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER);
+    chartDataTypesOut.push_back(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER);
 }
 
 /**

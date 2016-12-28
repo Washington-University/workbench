@@ -109,7 +109,7 @@ void
 ModelChart::initializeCharts()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_selectedChartDataType[i] = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+        m_selectedChartDataType[i] = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID;
         
         m_chartModelDataSeries[i] = new ChartModelDataSeries();
         m_chartModelDataSeries[i]->getLeftAxis()->setText("Value");
@@ -363,13 +363,13 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
 {
     CaretAssert(chartData);
     
-    const ChartDataTypeEnum::Enum chartDataDataType = chartData->getChartDataType();
+    const ChartVersionOneDataTypeEnum::Enum chartDataDataType = chartData->getChartDataType();
     
     switch (chartDataDataType) {
-        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
             CaretAssert(0);
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
         {
             ChartDataCartesian* cdc = dynamic_cast<ChartDataCartesian*>(chartData);
             CaretAssert(cdc);
@@ -384,7 +384,7 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
             m_dataSeriesChartData.push_front(cdcPtr.toWeakRef());
         }
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
         {
             ChartDataCartesian* cdc = dynamic_cast<ChartDataCartesian*>(chartData);
             CaretAssert(cdc);
@@ -399,7 +399,7 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
             m_frequencySeriesChartData.push_front(cdcPtr.toWeakRef());
         }
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
         {
             ChartDataCartesian* cdc = dynamic_cast<ChartDataCartesian*>(chartData);
             CaretAssert(cdc);
@@ -414,10 +414,10 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
             m_timeSeriesChartData.push_front(cdcPtr.toWeakRef());
         }
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
             CaretAssert(0);
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
             break;
     }
 }
@@ -763,7 +763,7 @@ ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttr
                            tabIndices,
                            validChartDataIDs);
     
-    sceneClass->addEnumeratedTypeArrayForTabIndices<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("m_selectedChartDataType",
+    sceneClass->addEnumeratedTypeArrayForTabIndices<ChartVersionOneDataTypeEnum, ChartVersionOneDataTypeEnum::Enum>("m_selectedChartDataType",
                                                                                                 m_selectedChartDataType,
                                                                                                 tabIndices);
 
@@ -856,7 +856,7 @@ ModelChart::restoreVersionOneModelSpecificInformationFromScene(const SceneAttrib
     restoreVersionOneChartModelsFromScene(sceneAttributes,
                                           sceneClass);
     
-    sceneClass->getEnumerateTypeArrayForTabIndices<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("m_selectedChartDataType",
+    sceneClass->getEnumerateTypeArrayForTabIndices<ChartVersionOneDataTypeEnum, ChartVersionOneDataTypeEnum::Enum>("m_selectedChartDataType",
                                                                                                m_selectedChartDataType);
 
     /*
@@ -913,7 +913,7 @@ ModelChart::restoreVersionTwoModelSpecificInformationFromScene(const SceneAttrib
     restoreVersionTwoChartModelsFromScene(sceneAttributes,
                                           sceneClass);
     
-    sceneClass->getEnumerateTypeArrayForTabIndices<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("m_selectedChartDataType",
+    sceneClass->getEnumerateTypeArrayForTabIndices<ChartVersionOneDataTypeEnum, ChartVersionOneDataTypeEnum::Enum>("m_selectedChartDataType",
                                                                                                m_selectedChartDataType);
     
     /*
@@ -981,19 +981,19 @@ ModelChart::saveChartModelsToScene(const SceneAttributes* sceneAttributes,
         
         ChartModel* chartModel = NULL;
         switch (getSelectedChartDataType(tabIndex)) {
-            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                 chartModel = getSelectedFrequencySeriesChartModel(tabIndex);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                 chartModel = getSelectedDataSeriesChartModel(tabIndex);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                 chartModel = getSelectedTimeSeriesChartModel(tabIndex);
                 break;
         }
@@ -1009,7 +1009,7 @@ ModelChart::saveChartModelsToScene(const SceneAttributes* sceneAttributes,
                                                              "ChartClassContainer",
                                                              1);
             chartClassContainer->addInteger("tabIndex", tabIndex);
-            chartClassContainer->addEnumeratedType<ChartDataTypeEnum,ChartDataTypeEnum::Enum>("chartDataType",
+            chartClassContainer->addEnumeratedType<ChartVersionOneDataTypeEnum,ChartVersionOneDataTypeEnum::Enum>("chartDataType",
                                                                                               chartModel->getChartDataType());
             chartClassContainer->addClass(chartModelClass);
             
@@ -1043,7 +1043,7 @@ ModelChart::saveChartModelsToScene(const SceneAttributes* sceneAttributes,
             SceneClass* chartDataContainer = new SceneClass("chartDataContainer",
                                                             "ChartDataContainer",
                                                             1);
-            chartDataContainer->addEnumeratedType<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("chartDataType",
+            chartDataContainer->addEnumeratedType<ChartVersionOneDataTypeEnum, ChartVersionOneDataTypeEnum::Enum>("chartDataType",
                                                                                               chartData->getChartDataType());
             chartDataContainer->addClass(chartDataClass);
             
@@ -1083,34 +1083,34 @@ ModelChart::restoreVersionOneChartModelsFromScene(const SceneAttributes* sceneAt
             const SceneClass* chartClassContainer = chartModelArray->getClassAtIndex(i);
             if (chartClassContainer != NULL) {
                 const int32_t tabIndex = chartClassContainer->getIntegerValue("tabIndex", -1);
-                const ChartDataTypeEnum::Enum chartDataType =  chartClassContainer->getEnumeratedTypeValue<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("chartDataType",
-                                                                                                        ChartDataTypeEnum::CHART_DATA_TYPE_INVALID);
+                const ChartVersionOneDataTypeEnum::Enum chartDataType =  chartClassContainer->getEnumeratedTypeValue<ChartVersionOneDataTypeEnum, ChartVersionOneDataTypeEnum::Enum>("chartDataType",
+                                                                                                        ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID);
                 const SceneClass* chartModelClass = chartClassContainer->getClass("chartModel");
                 
                 if ((tabIndex >= 0)
-                    && (chartDataType != ChartDataTypeEnum::CHART_DATA_TYPE_INVALID)
+                    && (chartDataType != ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID)
                     && (chartModelClass != NULL)) {
                     CaretAssertArrayIndex(m_chartModelDataSeries,
                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                                           tabIndex);
                     
                     switch (chartDataType) {
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                             CaretAssert(0);
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                             m_chartModelDataSeries[tabIndex]->restoreFromScene(sceneAttributes,
                                                                                chartModelClass);
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                             m_chartModelFrequencySeries[tabIndex]->restoreFromScene(sceneAttributes,
                                                                                     chartModelClass);
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                             m_chartModelTimeSeries[tabIndex]->restoreFromScene(sceneAttributes,
                                                                                chartModelClass);
                             break;
@@ -1130,10 +1130,10 @@ ModelChart::restoreVersionOneChartModelsFromScene(const SceneAttributes* sceneAt
         for (int32_t i = 0; i < numElements; i++) {
             const SceneClass* chartDataContainer = chartDataArray->getClassAtIndex(i);
             if (chartDataContainer != NULL) {
-                const ChartDataTypeEnum::Enum chartDataType = chartDataContainer->getEnumeratedTypeValue<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("chartDataType",
-                                                                                                                                                       ChartDataTypeEnum::CHART_DATA_TYPE_INVALID);
+                const ChartVersionOneDataTypeEnum::Enum chartDataType = chartDataContainer->getEnumeratedTypeValue<ChartVersionOneDataTypeEnum, ChartVersionOneDataTypeEnum::Enum>("chartDataType",
+                                                                                                                                                       ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID);
                 const SceneClass* chartDataClass = chartDataContainer->getClass("chartData");
-                if ((chartDataType != ChartDataTypeEnum::CHART_DATA_TYPE_INVALID)
+                if ((chartDataType != ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID)
                     && (chartDataClass != NULL)) {
                     ChartData* chartData = ChartData::newChartDataForChartDataType(chartDataType);
                     CaretAssert(chartData);
@@ -1210,30 +1210,30 @@ ModelChart::restoreVersionOneChartModelsFromScene(const SceneAttributes* sceneAt
         QSharedPointer<ChartData> chartPointer = *rcdIter;
         
         switch (chartPointer->getChartDataType()) {
-            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 CaretAssert(0);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 CaretAssert(0);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                 CaretAssert(0);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
             {
                 QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
                 CaretAssert( ! cartChartPointer.isNull());
                 m_dataSeriesChartData.push_back(cartChartPointer);
             }
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
             {
                 QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
                 CaretAssert( ! cartChartPointer.isNull());
                 m_frequencySeriesChartData.push_back(cartChartPointer);
             }
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
             {
                 QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
                 CaretAssert( ! cartChartPointer.isNull());
@@ -1269,34 +1269,34 @@ ModelChart::restoreVersionTwoChartModelsFromScene(const SceneAttributes* sceneAt
             const SceneClass* chartClassContainer = chartModelArray->getClassAtIndex(i);
             if (chartClassContainer != NULL) {
                 const int32_t tabIndex = chartClassContainer->getIntegerValue("tabIndex", -1);
-                const ChartDataTypeEnum::Enum chartDataType =  chartClassContainer->getEnumeratedTypeValue<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("chartDataType",
-                                                                                                                                                       ChartDataTypeEnum::CHART_DATA_TYPE_INVALID);
+                const ChartVersionOneDataTypeEnum::Enum chartDataType =  chartClassContainer->getEnumeratedTypeValue<ChartVersionOneDataTypeEnum, ChartVersionOneDataTypeEnum::Enum>("chartDataType",
+                                                                                                                                                       ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID);
                 const SceneClass* chartModelClass = chartClassContainer->getClass("chartModel");
                 
                 if ((tabIndex >= 0)
-                    && (chartDataType != ChartDataTypeEnum::CHART_DATA_TYPE_INVALID)
+                    && (chartDataType != ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID)
                     && (chartModelClass != NULL)) {
                     CaretAssertArrayIndex(m_chartModelDataSeries,
                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                                           tabIndex);
                     
                     switch (chartDataType) {
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                             CaretAssert(0);
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                             m_chartModelDataSeries[tabIndex]->restoreFromScene(sceneAttributes,
                                                                                chartModelClass);
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                             m_chartModelFrequencySeries[tabIndex]->restoreFromScene(sceneAttributes,
                                                                                     chartModelClass);
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                             m_chartModelTimeSeries[tabIndex]->restoreFromScene(sceneAttributes,
                                                                                chartModelClass);
                             break;
@@ -1316,10 +1316,10 @@ ModelChart::restoreVersionTwoChartModelsFromScene(const SceneAttributes* sceneAt
         for (int32_t i = 0; i < numElements; i++) {
             const SceneClass* chartDataContainer = chartDataArray->getClassAtIndex(i);
             if (chartDataContainer != NULL) {
-                const ChartDataTypeEnum::Enum chartDataType = chartDataContainer->getEnumeratedTypeValue<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("chartDataType",
-                                                                                                                                                     ChartDataTypeEnum::CHART_DATA_TYPE_INVALID);
+                const ChartVersionOneDataTypeEnum::Enum chartDataType = chartDataContainer->getEnumeratedTypeValue<ChartVersionOneDataTypeEnum, ChartVersionOneDataTypeEnum::Enum>("chartDataType",
+                                                                                                                                                     ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID);
                 const SceneClass* chartDataClass = chartDataContainer->getClass("chartData");
-                if ((chartDataType != ChartDataTypeEnum::CHART_DATA_TYPE_INVALID)
+                if ((chartDataType != ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID)
                     && (chartDataClass != NULL)) {
                     ChartData* chartData = ChartData::newChartDataForChartDataType(chartDataType);
                     CaretAssert(chartData);
@@ -1396,30 +1396,30 @@ ModelChart::restoreVersionTwoChartModelsFromScene(const SceneAttributes* sceneAt
         QSharedPointer<ChartData> chartPointer = *rcdIter;
         
         switch (chartPointer->getChartDataType()) {
-            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 CaretAssert(0);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 CaretAssert(0);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                 CaretAssert(0);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
             {
                 QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
                 CaretAssert( ! cartChartPointer.isNull());
                 m_dataSeriesChartData.push_back(cartChartPointer);
             }
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
             {
                 QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
                 CaretAssert( ! cartChartPointer.isNull());
                 m_frequencySeriesChartData.push_back(cartChartPointer);
             }
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
             {
                 QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
                 CaretAssert( ! cartChartPointer.isNull());
@@ -1448,7 +1448,7 @@ ModelChart::loadCartesianChartWhenRestoringScene(const ChartData* chartData)
     
     const ChartDataCartesian* cartesianChart = dynamic_cast<const ChartDataCartesian*>(chartData);
     if (cartesianChart != NULL) {
-        const ChartDataTypeEnum::Enum chartDataType = cartesianChart->getChartDataType();
+        const ChartVersionOneDataTypeEnum::Enum chartDataType = cartesianChart->getChartDataType();
 
         std::vector<ChartableLineSeriesInterface*> chartableDataFiles;
         m_brain->getAllChartableLineSeriesDataFiles(chartableDataFiles);
@@ -1608,9 +1608,9 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
 {
     ChartModel* chartModel = NULL;
     switch (getSelectedChartDataType(tabIndex)) {
-        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
         {
             CaretDataFileSelectionModel* sm = m_chartableMatrixFileSelectionModel[tabIndex];
             const CaretDataFile* caretFile = sm->getSelectedFile();
@@ -1621,7 +1621,7 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
             }
         }
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
         {
             CaretDataFileSelectionModel* sm = m_chartableMatrixSeriesFileSelectionModel[tabIndex];
             const CaretDataFile* caretFile = sm->getSelectedFile();
@@ -1632,13 +1632,13 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
             }
         }
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
             chartModel = const_cast<ChartModelDataSeries*>(getSelectedDataSeriesChartModel(tabIndex));
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
             chartModel = const_cast<ChartModelFrequencySeries*>(getSelectedFrequencySeriesChartModel(tabIndex));
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
             chartModel = const_cast<ChartModelTimeSeries*>(getSelectedTimeSeriesChartModel(tabIndex));
             break;
     }
@@ -1647,7 +1647,7 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
     
     if (chartModel != NULL) {
         descriptionOut.addLine("Chart Type: "
-                               + ChartDataTypeEnum::toGuiName(chartModel->getChartDataType()));
+                               + ChartVersionOneDataTypeEnum::toGuiName(chartModel->getChartDataType()));
 
         descriptionOut.pushIndentation();
         
@@ -1711,7 +1711,7 @@ ModelChart::copyTabContent(const int32_t sourceTabIndex,
  */
 void
 ModelChart::setSelectedChartDataType(const int32_t tabIndex,
-                              const ChartDataTypeEnum::Enum dataType)
+                              const ChartVersionOneDataTypeEnum::Enum dataType)
 {
     CaretAssertArrayIndex(m_selectedChartDataType,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
@@ -1726,7 +1726,7 @@ ModelChart::setSelectedChartDataType(const int32_t tabIndex,
  *    Output containing valid chart data types.
  */
 void
-ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validChartDataTypesOut) const
+ModelChart::getValidChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& validChartDataTypesOut) const
 {
     validChartDataTypesOut.clear();
     
@@ -1744,27 +1744,27 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
          fileIter++) {
         ChartableLineSeriesInterface* chartFile = *fileIter;
         
-        std::vector<ChartDataTypeEnum::Enum> chartDataTypes;
+        std::vector<ChartVersionOneDataTypeEnum::Enum> chartDataTypes;
         chartFile->getSupportedLineSeriesChartDataTypes(chartDataTypes);
         
-        for (std::vector<ChartDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
+        for (std::vector<ChartVersionOneDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
              typeIter != chartDataTypes.end();
              typeIter++) {
-            const ChartDataTypeEnum::Enum cdt = *typeIter;
+            const ChartVersionOneDataTypeEnum::Enum cdt = *typeIter;
             switch (cdt) {
-                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                     haveDataSeries = true;
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                     haveFrequencySeries = true;
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     haveTimeSeries = true;
                     break;
             }
@@ -1780,27 +1780,27 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
 //         fileIter++) {
 //        ChartableLineSeriesBrainordinateInterface* chartFile = *fileIter;
 //        
-//        std::vector<ChartDataTypeEnum::Enum> chartDataTypes;
+//        std::vector<ChartVersionOneDataTypeEnum::Enum> chartDataTypes;
 //        chartFile->getSupportedLineSeriesChartDataTypes(chartDataTypes);
 //        
-//        for (std::vector<ChartDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
+//        for (std::vector<ChartVersionOneDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
 //             typeIter != chartDataTypes.end();
 //             typeIter++) {
-//            const ChartDataTypeEnum::Enum cdt = *typeIter;
+//            const ChartVersionOneDataTypeEnum::Enum cdt = *typeIter;
 //            switch (cdt) {
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
 //                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
 //                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
 //                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
 //                    haveDataSeries = true;
 //                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
 //                    haveFrequencySeries = true;
 //                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
 //                    haveTimeSeries = true;
 //                    break;
 //            }
@@ -1815,46 +1815,46 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
          fileIter++) {
         ChartableMatrixInterface* chartFile = *fileIter;
         
-        std::vector<ChartDataTypeEnum::Enum> chartDataTypes;
+        std::vector<ChartVersionOneDataTypeEnum::Enum> chartDataTypes;
         chartFile->getSupportedMatrixChartDataTypes(chartDataTypes);
         
-        for (std::vector<ChartDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
+        for (std::vector<ChartVersionOneDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
              typeIter != chartDataTypes.end();
              typeIter++) {
-            const ChartDataTypeEnum::Enum cdt = *typeIter;
+            const ChartVersionOneDataTypeEnum::Enum cdt = *typeIter;
             switch (cdt) {
-                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     haveMatrixLayers = true;
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                     haveMatrixSeries = true;
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     break;
             }
         }
     }
     
     if (haveDataSeries) {
-        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES);
+        validChartDataTypesOut.push_back(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES);
     }
     if (haveFrequencySeries) {
-        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES);
+        validChartDataTypesOut.push_back(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES);
     }
     if (haveMatrixLayers) {
-        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER);
+        validChartDataTypesOut.push_back(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER);
     }
     if (haveMatrixSeries) {
-        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES);
+        validChartDataTypesOut.push_back(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES);
     }
     if (haveTimeSeries) {
-        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES);
+        validChartDataTypesOut.push_back(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES);
     }
 }
 
@@ -1867,85 +1867,85 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
  * @return
  *    Chart type in the given tab.
  */
-ChartDataTypeEnum::Enum
+ChartVersionOneDataTypeEnum::Enum
 ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_selectedChartDataType,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           tabIndex);
-    ChartDataTypeEnum::Enum chartDataType = m_selectedChartDataType[tabIndex];
+    ChartVersionOneDataTypeEnum::Enum chartDataType = m_selectedChartDataType[tabIndex];
     
     /*
      * Verify that the selected chart data type is valid.
      */
-    std::vector<ChartDataTypeEnum::Enum> validChartDataTypes;
+    std::vector<ChartVersionOneDataTypeEnum::Enum> validChartDataTypes;
     getValidChartDataTypes(validChartDataTypes);
     if (std::find(validChartDataTypes.begin(),
                   validChartDataTypes.end(),
                   chartDataType) == validChartDataTypes.end()) {
-        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+        chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID;
     }
     
     /*
      * If selected chart data type is invalid, find a valid chart type,
      * preferably one that contains data.
      */
-    if (chartDataType == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+    if (chartDataType == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
         if ( ! validChartDataTypes.empty()) {
             /*
              * Will become the the first valid chart data type that contains
              * data (if there is one)
              */
-            ChartDataTypeEnum::Enum chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+            ChartVersionOneDataTypeEnum::Enum chartDataTypeWithValidData = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID;
             
             /*
              * Loop through all chart types (some or all valid charts 
              * types may not contain data until the user commands loading of data)
              */
-            std::vector<ChartDataTypeEnum::Enum> allChartDataTypes;
-            ChartDataTypeEnum::getAllEnums(allChartDataTypes);
-            for (std::vector<ChartDataTypeEnum::Enum>::iterator iter = allChartDataTypes.begin();
+            std::vector<ChartVersionOneDataTypeEnum::Enum> allChartDataTypes;
+            ChartVersionOneDataTypeEnum::getAllEnums(allChartDataTypes);
+            for (std::vector<ChartVersionOneDataTypeEnum::Enum>::iterator iter = allChartDataTypes.begin();
                  iter != allChartDataTypes.end();
                  iter++) {
-                const ChartDataTypeEnum::Enum cdt = *iter;
+                const ChartVersionOneDataTypeEnum::Enum cdt = *iter;
                 if (std::find(validChartDataTypes.begin(),
                               validChartDataTypes.end(),
                               cdt) != validChartDataTypes.end()) {
-                    if (chartDataType == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                    if (chartDataType == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
                         chartDataType = cdt;
                     }
                     
                     switch (cdt) {
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                            if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
-                                chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER;
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                            if (chartDataTypeWithValidData == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                                chartDataTypeWithValidData = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER;
                             }
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-                            if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
-                                chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES;
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                            if (chartDataTypeWithValidData == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                                chartDataTypeWithValidData = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES;
                             }
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                             if (m_chartModelDataSeries[tabIndex]->getNumberOfChartData() > 0) {
-                                if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
-                                    chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES;
+                                if (chartDataTypeWithValidData == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                                    chartDataTypeWithValidData = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES;
                                 }
                             }
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                             if (m_chartModelFrequencySeries[tabIndex]->getNumberOfChartData() > 0) {
-                                if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
-                                    chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES;
+                                if (chartDataTypeWithValidData == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                                    chartDataTypeWithValidData = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES;
                                 }
                             }
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                             if (m_chartModelTimeSeries[tabIndex]->getNumberOfChartData() > 0) {
-                                if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
-                                    chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES;
+                                if (chartDataTypeWithValidData == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                                    chartDataTypeWithValidData = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES;
                                 }
                             }
                             break;
@@ -1953,10 +1953,10 @@ ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
                 }
             }
             
-            if (chartDataTypeWithValidData != ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+            if (chartDataTypeWithValidData != ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
                 chartDataType = chartDataTypeWithValidData;
             }
-            else if (chartDataType == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+            else if (chartDataType == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
                 chartDataType = validChartDataTypes[0];
             }
         }
@@ -2170,17 +2170,17 @@ ModelChart::getChartOverlaySet(const int tabIndex)
     ChartOverlaySet* chartOverlaySet = NULL;
     
     switch (getSelectedChartDataType(tabIndex)) {
-        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
             break;
     }
     

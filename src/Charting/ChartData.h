@@ -23,7 +23,7 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
-#include "ChartDataTypeEnum.h"
+#include "ChartVersionOneDataTypeEnum.h"
 #include "SceneableInterface.h"
 
 
@@ -35,7 +35,7 @@ namespace caret {
     class ChartData : public CaretObject, public SceneableInterface {
         
     public:
-        static ChartData* newChartDataForChartDataType(const ChartDataTypeEnum::Enum chartDataType);
+        static ChartData* newChartDataForChartDataType(const ChartVersionOneDataTypeEnum::Enum chartDataType);
         
         virtual ~ChartData();
         
@@ -50,7 +50,7 @@ namespace caret {
          */
         virtual ChartData* clone() const = 0;
         
-        ChartDataTypeEnum::Enum getChartDataType() const;
+        ChartVersionOneDataTypeEnum::Enum getChartDataType() const;
         
         const ChartDataSource* getChartDataSource() const;
         
@@ -80,7 +80,7 @@ namespace caret {
         virtual AString toString() const;
         
     protected:
-        ChartData(const ChartDataTypeEnum::Enum chartDataType);
+        ChartData(const ChartVersionOneDataTypeEnum::Enum chartDataType);
         
         ChartData(const ChartData& obj);
         
@@ -124,7 +124,7 @@ namespace caret {
 
         SceneClassAssistant* m_sceneAssistant;
 
-        ChartDataTypeEnum::Enum m_chartDataType;
+        ChartVersionOneDataTypeEnum::Enum m_chartDataType;
         
         ChartDataSource* m_chartDataSource;
         

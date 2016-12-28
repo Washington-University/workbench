@@ -23,7 +23,7 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
-#include "ChartDataTypeEnum.h"
+#include "ChartVersionOneDataTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
@@ -36,7 +36,7 @@ namespace caret {
     class ChartOverlaySet : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        ChartOverlaySet(const ChartDataTypeEnum::Enum chartDataType,
+        ChartOverlaySet(const ChartVersionOneDataTypeEnum::Enum chartDataType,
                         const AString& name,
                         const int32_t tabIndex);
         
@@ -110,7 +110,7 @@ namespace caret {
 
         ChartOverlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
         
-        const ChartDataTypeEnum::Enum m_chartDataType;
+        const ChartVersionOneDataTypeEnum::Enum m_chartDataType;
         
         const AString m_name;
         

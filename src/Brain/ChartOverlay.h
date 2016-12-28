@@ -24,7 +24,7 @@
 
 #include "CaretObject.h"
 
-#include "ChartDataTypeEnum.h"
+#include "ChartVersionOneDataTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "MapYokingGroupEnum.h"
 #include "MatrixViewingTypeEnum.h"
@@ -40,7 +40,7 @@ namespace caret {
     class ChartOverlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        ChartOverlay(const ChartDataTypeEnum::Enum chartDataType);
+        ChartOverlay(const ChartVersionOneDataTypeEnum::Enum chartDataType);
         
         virtual ~ChartOverlay();
         
@@ -113,7 +113,7 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
 
-        const ChartDataTypeEnum::Enum m_chartDataType;
+        const ChartVersionOneDataTypeEnum::Enum m_chartDataType;
         
         /** Name of overlay (DO NOT COPY)*/
         AString m_name;

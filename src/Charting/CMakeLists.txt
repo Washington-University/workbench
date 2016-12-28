@@ -24,7 +24,6 @@ ChartData.h
 ChartDataCartesian.h
 ChartDataSource.h
 ChartDataSourceModeEnum.h
-ChartDataTypeEnum.h
 ChartMatrixDisplayProperties.h
 ChartMatrixLoadingDimensionEnum.h
 ChartMatrixScaleModeEnum.h
@@ -36,6 +35,7 @@ ChartModelTimeSeries.h
 ChartPoint.h
 ChartScaleAutoRanging.h
 ChartSelectionModeEnum.h
+ChartVersionOneDataTypeEnum.h
 ChartingVersionEnum.h
 
 ChartAxis.cxx
@@ -47,7 +47,6 @@ ChartData.cxx
 ChartDataCartesian.cxx
 ChartDataSource.cxx
 ChartDataSourceModeEnum.cxx
-ChartDataTypeEnum.cxx
 ChartMatrixDisplayProperties.cxx
 ChartMatrixLoadingDimensionEnum.cxx
 ChartMatrixScaleModeEnum.cxx
@@ -59,6 +58,7 @@ ChartModelTimeSeries.cxx
 ChartPoint.cxx
 ChartScaleAutoRanging.cxx
 ChartSelectionModeEnum.cxx
+ChartVersionOneDataTypeEnum.cxx
 ChartingVersionEnum.cxx
 )
 

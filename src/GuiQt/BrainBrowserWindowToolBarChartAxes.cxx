@@ -277,22 +277,22 @@ BrainBrowserWindowToolBarChartAxes::getCartesianChart()
         
         if (modelChart != NULL) {
             const int32_t tabIndex = browserTabContent->getTabNumber();
-            const ChartDataTypeEnum::Enum chartType = modelChart->getSelectedChartDataType(tabIndex);
+            const ChartVersionOneDataTypeEnum::Enum chartType = modelChart->getSelectedChartDataType(tabIndex);
             
             switch (chartType) {
-                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                     cartesianChart = modelChart->getSelectedDataSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                     cartesianChart = modelChart->getSelectedFrequencySeriesChartModel(tabIndex);
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     cartesianChart = modelChart->getSelectedTimeSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
                     break;
             }

@@ -107,7 +107,7 @@ CiftiParcelSeriesFile::setLineSeriesChartingEnabled(const int32_t tabIndex,
  *    Chart types supported by this file.
  */
 void
-CiftiParcelSeriesFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+CiftiParcelSeriesFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     helpGetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
 }
@@ -167,12 +167,12 @@ CiftiParcelSeriesFile::loadLineSeriesChartDataForSurfaceNode(const StructureEnum
 //            }
 //            
 //            if (dataSeriesFlag) {
-//                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
+//                chartData = new ChartDataCartesian(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
 //                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
 //                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
 //            }
 //            else if (timeSeriesFlag) {
-//                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES,
+//                chartData = new ChartDataCartesian(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES,
 //                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
 //                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
 //            }

@@ -52,7 +52,7 @@ using namespace caret;
  * @param dataAxisUnitsY
  *   Data units for Y-axis.
  */
-ChartDataCartesian::ChartDataCartesian(const ChartDataTypeEnum::Enum chartDataType,
+ChartDataCartesian::ChartDataCartesian(const ChartVersionOneDataTypeEnum::Enum chartDataType,
                                                  const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
                                                  const ChartAxisUnitsEnum::Enum dataAxisUnitsY)
 : ChartData(chartDataType),

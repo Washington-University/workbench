@@ -44,7 +44,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-ChartOverlaySet::ChartOverlaySet(const ChartDataTypeEnum::Enum chartDataType,
+ChartOverlaySet::ChartOverlaySet(const ChartVersionOneDataTypeEnum::Enum chartDataType,
                                  const AString& name,
                                  const int32_t tabIndex)
 : CaretObject(),

@@ -49,7 +49,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-ChartOverlay::ChartOverlay(const ChartDataTypeEnum::Enum chartDataType)
+ChartOverlay::ChartOverlay(const ChartVersionOneDataTypeEnum::Enum chartDataType)
 : CaretObject(),
 m_chartDataType(chartDataType)
 {

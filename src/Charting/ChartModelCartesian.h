@@ -32,7 +32,7 @@ namespace caret {
     class ChartModelCartesian : public ChartModel {
         
     public:
-        ChartModelCartesian(const ChartDataTypeEnum::Enum chartDataType,
+        ChartModelCartesian(const ChartVersionOneDataTypeEnum::Enum chartDataType,
                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsY);
         

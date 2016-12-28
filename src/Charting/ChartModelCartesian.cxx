@@ -54,7 +54,7 @@ using namespace caret;
  * @param dataAxisUnitsY
  *    Units for the Y-axis.
  */
-ChartModelCartesian::ChartModelCartesian(const ChartDataTypeEnum::Enum chartDataType,
+ChartModelCartesian::ChartModelCartesian(const ChartVersionOneDataTypeEnum::Enum chartDataType,
                                                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
                                                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsY)
 : ChartModel(chartDataType,
@@ -170,7 +170,7 @@ ChartModelCartesian::getAverageChartDataForDisplay(const int32_t tabIndex) const
         std::vector<float> xValue;
         std::vector<double> ySum;
         int64_t averageCounter = 0;
-        ChartDataTypeEnum::Enum firstChartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+        ChartVersionOneDataTypeEnum::Enum firstChartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID;
         
         bool firstFlag = true;
         for (std::vector<const ChartData*>::const_iterator iter = allData.begin();

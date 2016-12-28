@@ -54,7 +54,7 @@ namespace caret {
         virtual ChartDataCartesian* loadLineSeriesChartDataForVoxelAtCoordinate(const float xyz[3]);
         
         
-        virtual void getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        virtual void getSupportedLineSeriesChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
         CiftiConnectivityMatrixDenseDynamicFile* getConnectivityMatrixDenseDynamicFile();
 

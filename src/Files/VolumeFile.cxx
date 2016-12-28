@@ -2081,7 +2081,7 @@ VolumeFile::setLineSeriesChartingEnabled(const int32_t tabIndex,
  *    Chart types supported by this file.
  */
 void
-VolumeFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+VolumeFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     helpGetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
 }

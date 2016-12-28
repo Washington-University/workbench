@@ -43,9 +43,9 @@ using namespace caret;
  *    True if chart data type is supported by the file, else false.
  */
 bool
-ChartableMatrixInterface::isMatrixChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const
+ChartableMatrixInterface::isMatrixChartDataTypeSupported(const ChartVersionOneDataTypeEnum::Enum chartDataType) const
 {
-    std::vector<ChartDataTypeEnum::Enum> validTypes;
+    std::vector<ChartVersionOneDataTypeEnum::Enum> validTypes;
     getSupportedMatrixChartDataTypes(validTypes);
     
     if (std::find(validTypes.begin(),

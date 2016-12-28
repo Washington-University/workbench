@@ -59,18 +59,18 @@ m_parentToolBar(parentToolBar)
     
     QVBoxLayout* radioButtonLayout = new QVBoxLayout(this);
     
-    std::vector<ChartDataTypeEnum::Enum> allChartTypes;
-    ChartDataTypeEnum::getAllEnums(allChartTypes);
+    std::vector<ChartVersionOneDataTypeEnum::Enum> allChartTypes;
+    ChartVersionOneDataTypeEnum::getAllEnums(allChartTypes);
     
-    for (std::vector<ChartDataTypeEnum::Enum>::iterator chartIter = allChartTypes.begin();
+    for (std::vector<ChartVersionOneDataTypeEnum::Enum>::iterator chartIter = allChartTypes.begin();
          chartIter != allChartTypes.end();
          chartIter++) {
-        const ChartDataTypeEnum::Enum ct = *chartIter;
-        if (ct == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+        const ChartVersionOneDataTypeEnum::Enum ct = *chartIter;
+        if (ct == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
             continue;
         }
         
-        QRadioButton* rb = new QRadioButton(ChartDataTypeEnum::toGuiName(ct));
+        QRadioButton* rb = new QRadioButton(ChartVersionOneDataTypeEnum::toGuiName(ct));
         m_chartTypeButtonGroup->addButton(rb,
                                           m_chartTypeRadioButtons.size());
         
@@ -82,13 +82,13 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setLayoutSpacingAndMargins(radioButtonLayout, 4, 5);
     radioButtonLayout->addStretch();
 
-//    m_chartMatrixLayerTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER));
+//    m_chartMatrixLayerTypeRadioButton = new QRadioButton(ChartVersionOneDataTypeEnum::toGuiName(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER));
 //    
-//    m_chartMatrixSeriesTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES));
+//    m_chartMatrixSeriesTypeRadioButton = new QRadioButton(ChartVersionOneDataTypeEnum::toGuiName(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES));
 //    
-//    m_chartDataSeriesTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES));
+//    m_chartDataSeriesTypeRadioButton = new QRadioButton(ChartVersionOneDataTypeEnum::toGuiName(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES));
 //
-//    m_chartTimeSeriesTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES));
+//    m_chartTimeSeriesTypeRadioButton = new QRadioButton(ChartVersionOneDataTypeEnum::toGuiName(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES));
 
 
     QObject::connect(m_chartTypeButtonGroup, SIGNAL(buttonClicked(int)),
@@ -124,21 +124,21 @@ BrainBrowserWindowToolBarChartType::chartTypeRadioButtonClicked(int buttonIndex)
 {
     CaretAssertVectorIndex(m_chartTypeRadioButtons, buttonIndex);
     
-    ChartDataTypeEnum::Enum chartDataType = m_chartTypeRadioButtons[buttonIndex].first;
+    ChartVersionOneDataTypeEnum::Enum chartDataType = m_chartTypeRadioButtons[buttonIndex].first;
     
-//    ChartDataTypeEnum::Enum chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+//    ChartVersionOneDataTypeEnum::Enum chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID;
 //    
 //    if (m_chartDataSeriesTypeRadioButton->isChecked()) {
-//        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES;
+//        chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES;
 //    }
 //    else if (m_chartMatrixLayerTypeRadioButton->isChecked()) {
-//        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER;
+//        chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER;
 //    }
 //    else if (m_chartTimeSeriesTypeRadioButton->isChecked()) {
-//        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES;
+//        chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES;
 //    }
 //    else if (m_chartMatrixSeriesTypeRadioButton->isChecked()) {
-//        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES;
+//        chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES;
 //    }
 //    else {
 //        CaretAssertMessage(0, "Has a new chart radio button been added?");
@@ -172,15 +172,15 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
     const ModelChart* chartModel = browserTabContent->getDisplayedChartModel();
     if (chartModel != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
-        const ChartDataTypeEnum::Enum selectedChartType = chartModel->getSelectedChartDataType(tabIndex);
+        const ChartVersionOneDataTypeEnum::Enum selectedChartType = chartModel->getSelectedChartDataType(tabIndex);
 
-        std::vector<ChartDataTypeEnum::Enum> validChartDataTypes;
+        std::vector<ChartVersionOneDataTypeEnum::Enum> validChartDataTypes;
         chartModel->getValidChartDataTypes(validChartDataTypes);
 
-        for (std::vector<std::pair<ChartDataTypeEnum::Enum, QRadioButton*> >::iterator buttIter = m_chartTypeRadioButtons.begin();
+        for (std::vector<std::pair<ChartVersionOneDataTypeEnum::Enum, QRadioButton*> >::iterator buttIter = m_chartTypeRadioButtons.begin();
              buttIter != m_chartTypeRadioButtons.end();
              buttIter++) {
-            ChartDataTypeEnum::Enum chartType = buttIter->first;
+            ChartVersionOneDataTypeEnum::Enum chartType = buttIter->first;
             QRadioButton* radioButton         = buttIter->second;
             
             const bool validTypeFlag =  (std::find(validChartDataTypes.begin(),
@@ -197,25 +197,25 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
 //        bool matrixLayerValidFlag  = false;
 //        bool matrixSeriesValidFlag = false;
 //        bool timeSeriesValidFlag   = false;
-//        for (std::vector<ChartDataTypeEnum::Enum>::iterator iter = validChartDataTypes.begin();
+//        for (std::vector<ChartVersionOneDataTypeEnum::Enum>::iterator iter = validChartDataTypes.begin();
 //             iter != validChartDataTypes.end();
 //             iter++) {
 //            switch (*iter) {
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
 //                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
 //                    matrixLayerValidFlag = true;
 //                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
 //                    matrixSeriesValidFlag = true;
 //                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
 //                    dataSeriesValidFlag = true;
 //                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
 //                    CaretAssertToDoFatal();
 //                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+//                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
 //                    timeSeriesValidFlag = true;
 //                    break;
 //            }
@@ -226,21 +226,21 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
 //        m_chartTimeSeriesTypeRadioButton->setEnabled(timeSeriesValidFlag);
 //        
 //        switch (chartType) {
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+//            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
 //                break;
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+//            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
 //                m_chartMatrixLayerTypeRadioButton->setChecked(true);
 //                break;
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+//            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
 //                m_chartMatrixSeriesTypeRadioButton->setChecked(true);
 //                break;
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+//            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
 //                m_chartDataSeriesTypeRadioButton->setChecked(true);
 //                break;
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+//            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
 //                CaretAssertToDoFatal();
 //                break;
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+//            case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
 //                m_chartTimeSeriesTypeRadioButton->setChecked(true);
 //                break;
 //        }

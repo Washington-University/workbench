@@ -46,7 +46,7 @@ using namespace caret;
  * @param chartDataType
  *   Type of chart model.
  */
-ChartData::ChartData(const ChartDataTypeEnum::Enum chartDataType)
+ChartData::ChartData(const ChartVersionOneDataTypeEnum::Enum chartDataType)
 : CaretObject(),
 SceneableInterface(),
 m_chartDataType(chartDataType)
@@ -143,30 +143,30 @@ ChartData::copyHelperChartData(const ChartData& obj)
  *    Pointer to new instance.
  */
 ChartData*
-ChartData::newChartDataForChartDataType(const ChartDataTypeEnum::Enum chartDataType)
+ChartData::newChartDataForChartDataType(const ChartVersionOneDataTypeEnum::Enum chartDataType)
 {
     ChartData* chartData = NULL;
     
     switch (chartDataType) {
-        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
             CaretAssert(0);
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
             CaretAssert(0);
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
             chartData = new ChartDataCartesian(chartDataType,
                                                ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
                                                ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
             chartData = new ChartDataCartesian(chartDataType,
                                                ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
                                                ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS);
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
             chartData = new ChartDataCartesian(chartDataType,
                                                ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
                                                ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS);
@@ -233,7 +233,7 @@ ChartData::restoreFromScene(const SceneAttributes* sceneAttributes,
 /**
  * @return The chart data model type.
  */
-ChartDataTypeEnum::Enum
+ChartVersionOneDataTypeEnum::Enum
 ChartData::getChartDataType() const
 {
     return m_chartDataType;

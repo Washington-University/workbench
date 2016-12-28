@@ -52,7 +52,7 @@ m_name(name)
 {
    m_chartOverlaySets.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartOverlaySets[i] = new ChartOverlaySet(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
+        m_chartOverlaySets[i] = new ChartOverlaySet(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
                                                     name,
                                                     i);
     }

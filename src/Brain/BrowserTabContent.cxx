@@ -1304,21 +1304,21 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
             CaretDataFileSelectionModel* fileModel = NULL;
             
             switch (modelChart->getSelectedChartDataType(m_tabNumber)) {
-                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
                         fileModel = modelChart->getChartableMatrixParcelFileSelectionModel(m_tabNumber);
                     }
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
                         fileModel = modelChart->getChartableMatrixSeriesFileSelectionModel(m_tabNumber);
                     }
             }
@@ -1453,21 +1453,21 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
             CaretDataFileSelectionModel* fileModel = NULL;
             
             switch (modelChart->getSelectedChartDataType(m_tabNumber)) {
-                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
                         fileModel = modelChart->getChartableMatrixParcelFileSelectionModel(m_tabNumber);
                     }
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
+                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
                         fileModel = modelChart->getChartableMatrixSeriesFileSelectionModel(m_tabNumber);
                     }
             }
@@ -2390,11 +2390,11 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
         CaretAssert(modelChart);
         
         CaretDataFileSelectionModel* matrixSelectionModel = NULL;
-        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
+        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
             matrixSelectionModel = modelChart->getChartableMatrixParcelFileSelectionModel(m_tabNumber);
         }
         
-        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
+        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
             matrixSelectionModel = modelChart->getChartableMatrixSeriesFileSelectionModel(m_tabNumber);
         }
             if (matrixSelectionModel != NULL) {
@@ -2506,11 +2506,11 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         CaretAssert(modelChart);
         
         CaretDataFileSelectionModel* matrixSelectionModel = NULL;
-        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
+        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
             matrixSelectionModel = modelChart->getChartableMatrixParcelFileSelectionModel(m_tabNumber);
         }
         
-        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
+        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
             matrixSelectionModel = modelChart->getChartableMatrixSeriesFileSelectionModel(m_tabNumber);
         }
         if (matrixSelectionModel != NULL) {
