@@ -296,7 +296,7 @@ void QFileImpl::open(const QString& filename, const CaretBinaryFile::OpenMode& o
         switch (m_file.error())
         {
             case QFile::ResourceError://on linux at least, it never gives another code besides the unhelpful OpenError
-                throw DataFileException("failed to open file '" + filename + "', too many open files");
+                throw DataFileException("failed to open file '" + filename + "', too many open files, try 'ulimit -n 4096'");
             default:
                 if (opmode & CaretBinaryFile::WRITE)
                 {
