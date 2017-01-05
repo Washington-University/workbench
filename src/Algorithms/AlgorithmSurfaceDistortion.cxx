@@ -22,6 +22,7 @@
 #include "AlgorithmException.h"
 
 #include "AlgorithmMetricSmoothing.h"
+#include "FloatMatrix.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
@@ -60,6 +61,8 @@ OperationParameters* AlgorithmSurfaceDistortion::getParameters()
     
     ret->createOptionalParameter(6, "-edge-method", "calculate distortion of edge lengths rather than areas");
     
+    ret->createOptionalParameter(7, "-strain-method", "calculate distortion by the local affines between triangles");
+    
     ret->setHelpText(
         AString("This command, when not using -caret5-method or -edge-method, is equivalent to using -surface-vertex-areas on each surface, ") +
         "smoothing both output metrics with the GEO_GAUSS_EQUAL method on the surface they came from if -smooth is specified, and then using the formula " +
@@ -67,7 +70,9 @@ OperationParameters* AlgorithmSurfaceDistortion::getParameters()
         "When using -caret5-method, it uses the surface distortion method from caret5, which takes the base 2 log of the ratio of tile areas, " +
         "then averages those results at each vertex, and then smooths the result on the reference surface.\n\n" +
         "When using -edge-method, the -smooth option is ignored, and the output at each vertex is the average of 'abs(ln(refEdge/distortEdge)/ln(2))' over all edges " +
-        "connected to the vertex."
+        "connected to the vertex.\n\n" +
+        "When using -strain-method, the -smooth option is ignored.  The output is two columns, the first is the area distortion ratio, and the second is anisotropic strain.  " +
+        "These are calculated by an affine transform between matching triangles, and then averaged across the triangles of a vertex."
     );
     return ret;
 }
@@ -84,20 +89,29 @@ void AlgorithmSurfaceDistortion::useParameters(OperationParameters* myParams, Pr
         smooth = (float)smoothOpt->getDouble(1);
         if (smooth <= 0.0f) throw AlgorithmException("smoothing kernel must be positive if specified");
     }
+    int methodCount = 0;
     bool caret5method = myParams->getOptionalParameter(5)->m_present;
+    if (caret5method) ++methodCount;
     bool edgeMethod = myParams->getOptionalParameter(6)->m_present;
-    if (caret5method && edgeMethod) throw AlgorithmException("you may not specify both -caret5-method and -edge-method");
-    AlgorithmSurfaceDistortion(myProgObj, referenceSurf, distortedSurf, myMetricOut, smooth, caret5method, edgeMethod);
+    if (edgeMethod) ++methodCount;
+    bool strainMethod = myParams->getOptionalParameter(7)->m_present;
+    if (strainMethod) ++methodCount;
+    if (methodCount > 1) throw AlgorithmException("you may not specify more than one of -caret5-method, -edge-method, or -strain-method");
+    AlgorithmSurfaceDistortion(myProgObj, referenceSurf, distortedSurf, myMetricOut, smooth, caret5method, edgeMethod, strainMethod);
 }
 
 AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj, const SurfaceFile* referenceSurf, const SurfaceFile* distortedSurf,
-                                                       MetricFile* myMetricOut, const float& smooth, const bool& caret5method, const bool& edgeMethod) : AbstractAlgorithm(myProgObj)
+                                                       MetricFile* myMetricOut, const float& smooth, const bool& caret5method, const bool& edgeMethod, const bool& strainMethod) : AbstractAlgorithm(myProgObj)
 {
-    if (caret5method && edgeMethod) throw AlgorithmException("you may not use both caret5 and edge method flags");
-    ProgressObject* smoothRef = NULL, *smoothDistort = NULL, *caret5Smooth = NULL;//uncomment these if you use another algorithm inside here
+    int methodCount = 0;
+    if (caret5method) ++methodCount;
+    if (edgeMethod) ++methodCount;
+    if (strainMethod) ++methodCount;
+    if (methodCount > 1) throw AlgorithmException("you may not use multiple method flags");
+    ProgressObject* smoothRef = NULL, *smoothDistort = NULL, *caret5Smooth = NULL;
     if (myProgObj != NULL)
     {
-        if (smooth > 0.0f && !edgeMethod)
+        if (smooth > 0.0f && !edgeMethod && !strainMethod)
         {
             if (caret5method)
             {
@@ -111,7 +125,9 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
     LevelProgress myProgress(myProgObj);
     if (!referenceSurf->hasNodeCorrespondence(*distortedSurf)) throw AlgorithmException("input surfaces must have node correspondence");
     int numNodes = referenceSurf->getNumberOfNodes();
-    myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+    int numOutCols = 1;
+    if (strainMethod) numOutCols = 2;
+    myMetricOut->setNumberOfNodesAndColumns(numNodes, numOutCols);
     myMetricOut->setStructure(referenceSurf->getStructure());
     if (caret5method)
     {
@@ -197,6 +213,73 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
                 accum += log(ratio) / log(2.0f);
             }
             myMetricOut->setValue(i, 0, accum / numNeigh);
+        }
+    } else if (strainMethod) {
+        myMetricOut->setColumnName(0, "area ratio (J)");
+        myMetricOut->setColumnName(1, "elongation ratio (R)");
+        int numTris = referenceSurf->getNumberOfTriangles();
+        vector<FloatMatrix> affines(numTris);
+        for (int i = 0; i < numTris; ++i)
+        {
+            const int32_t* thisTri = referenceSurf->getTriangle(i);
+            Vector3D allCoords[2][3];
+            for (int j = 0; j < 3; ++j)
+            {
+                allCoords[0][j] = referenceSurf->getCoordinate(thisTri[j]);
+                allCoords[1][j] = distortedSurf->getCoordinate(thisTri[j]);
+            }
+            float allCoords2D[2][3][2];//ref/dist, vert, x/y
+            for (int k = 0; k < 2; ++k)
+            {
+                Vector3D iHat = (allCoords[k][1] - allCoords[k][0]).normal();//we don't need the triangle normal, so make the 2D basis without cross products
+                Vector3D jHat = allCoords[k][2] - allCoords[k][0];
+                jHat = (jHat - iHat * iHat.dot(jHat)).normal();
+                for (int j = 0; j < 3; ++j)
+                {
+                    Vector3D tempCoord = allCoords[k][j] - allCoords[k][0];//use a triangle vertex as the origin to make the numbers smaller, less rounding error
+                    allCoords2D[k][j][0] = iHat.dot(tempCoord);
+                    allCoords2D[k][j][1] = jHat.dot(tempCoord);
+                }
+            }
+            affines[i].resize(2, 2, true);
+            FloatMatrix solver(3, 4);//3 equations, 3 unknowns
+            for (int k = 0; k < 2; ++k)
+            {
+                for (int j = 0; j < 3; ++j)
+                {
+                    solver[j][0] = allCoords2D[0][j][0];//x
+                    solver[j][1] = allCoords2D[0][j][1];//y
+                    solver[j][2] = 1;
+                    solver[j][3] = allCoords2D[1][j][k];//x' or y'
+                }
+                FloatMatrix solved = solver.reducedRowEchelon();
+                affines[i][k][0] = solved[0][3];//x coef
+                affines[i][k][1] = solved[1][3];//y coef
+            }
+        }
+        int numNodes = referenceSurf->getNumberOfNodes();
+        CaretPointer<TopologyHelper> myTopoHelp = referenceSurf->getTopologyHelper();
+        for (int i = 0; i < numNodes; ++i)
+        {
+            const vector<int32_t>& myTiles = myTopoHelp->getNodeTiles(i);
+            double accumJ = 0.0, accumR = 0.0;
+            for (int j = 0; j < (int)myTiles.size(); ++j)
+            {
+                FloatMatrix tempMat = affines[myTiles[j]] * affines[myTiles[j]].transpose();
+                float thisJ = sqrt(tempMat[0][0] * tempMat[1][1] - tempMat[0][1] * tempMat[1][0]);//written-out determinant for 2x2, because FloatMatrix doesn't currently have a generic determinant function
+                float I1_st = (tempMat[0][0] + tempMat[1][1]) / thisJ;//2D formula
+                float thisR;
+                if (I1_st <= 2)
+                {
+                    thisR = 1.0;
+                } else {
+                    thisR = 0.5 * (I1_st + sqrt(I1_st * I1_st - 4));//convert I1* to (major strain) / (minor strain)
+                }
+                accumJ += thisJ;//not sure which areas to weight by, so for now do a straight average, relying on smoothness inherent in the measures
+                accumR += thisR;//could maybe do some fancy interpolation of the affines in 3D sphere space
+            }
+            myMetricOut->setValue(i, 0, accumJ / myTiles.size());
+            myMetricOut->setValue(i, 1, accumR / myTiles.size());
         }
     } else {
         myMetricOut->setColumnName(0, "area distortion");
