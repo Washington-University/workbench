@@ -203,6 +203,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
                                                          SLOT(newFociFileButtonClicked()));
     QToolButton* newFileToolButton = new QToolButton();
     newFileToolButton->setDefaultAction(newFileAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(newFileToolButton);
     
     /*
      * Completer for name
@@ -223,6 +224,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
                                                                         SLOT(displayNameEditor()));
     QToolButton* displayNameColorEditorToolButton = new QToolButton();
     displayNameColorEditorToolButton->setDefaultAction(displayNameColorEditorAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(displayNameColorEditorToolButton);
 
     /*
      * Class
@@ -240,6 +242,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
                                                                     SLOT(displayClassEditor()));
     QToolButton* displayClassEditorToolButton = new QToolButton();
     displayClassEditorToolButton->setDefaultAction(displayClassEditorAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(displayClassEditorToolButton);
     
     /*
      * Coordinates

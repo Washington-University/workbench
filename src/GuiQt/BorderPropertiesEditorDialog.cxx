@@ -172,6 +172,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
                                                          SLOT(newBorderFileButtonClicked()));
     QToolButton* newFileToolButton = new QToolButton();
     newFileToolButton->setDefaultAction(newFileAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(newFileToolButton);
     
     /*
      * Completer for name
@@ -192,6 +193,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
                                                                     SLOT(displayNameEditor()));
     QToolButton* displayNameColorEditorToolButton = new QToolButton();
     displayNameColorEditorToolButton->setDefaultAction(displayNameColorEditorAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(displayNameColorEditorToolButton);
     
     /*
      * Class
@@ -209,6 +211,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
                                                                     SLOT(displayClassEditor()));
     QToolButton* displayClassEditorToolButton = new QToolButton();
     displayClassEditorToolButton->setDefaultAction(displayClassEditorAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(displayClassEditorToolButton);
     
     /*
      * Closed
