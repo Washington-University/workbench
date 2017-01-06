@@ -689,7 +689,7 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
     
     
     float outlineRGBA[4];
-    CaretColorEnum::toRGBFloat(outlineColor, outlineRGBA);
+    CaretColorEnum::toRGBAFloat(outlineColor, outlineRGBA);
     outlineRGBA[3] = 1.0;
     
     /*

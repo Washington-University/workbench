@@ -1261,7 +1261,7 @@ WuQtUtilities::createCaretColorEnumPixmap(const QWidget* widget,
         case CaretColorEnum::TEAL:
         case CaretColorEnum::WHITE:
         case CaretColorEnum::YELLOW:
-            CaretColorEnum::toRGBFloat(caretColor,
+            CaretColorEnum::toRGBAFloat(caretColor,
                                        colorRGBA);
             colorRGBA[3] = 1.0;
             validColorFlag = true;

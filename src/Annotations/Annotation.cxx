@@ -808,7 +808,7 @@ Annotation::getLineColorRGBA(float rgbaOut[4]) const
         case CaretColorEnum::TEAL:
         case CaretColorEnum::WHITE:
         case CaretColorEnum::YELLOW:
-            CaretColorEnum::toRGBFloat(m_colorLine,
+            CaretColorEnum::toRGBAFloat(m_colorLine,
                                        rgbaOut);
             rgbaOut[3] = 1.0;
             break;
@@ -894,7 +894,7 @@ Annotation::getBackgroundColorRGBA(float rgbaOut[4]) const
         case CaretColorEnum::TEAL:
         case CaretColorEnum::WHITE:
         case CaretColorEnum::YELLOW:
-            CaretColorEnum::toRGBFloat(m_colorBackground,
+            CaretColorEnum::toRGBAFloat(m_colorBackground,
                                        rgbaOut);
             rgbaOut[3] = 1.0;
             break;

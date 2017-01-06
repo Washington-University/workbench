@@ -2858,7 +2858,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
     const CaretColorEnum::Enum caretColor = fociDisplayProperties->getStandardColorType(displayGroup,
                                                                                         m_fixedPipelineDrawing->windowTabIndex);
     float caretColorRGBA[4];
-    CaretColorEnum::toRGBFloat(caretColor, caretColorRGBA);
+    CaretColorEnum::toRGBAFloat(caretColor, caretColorRGBA);
     
     bool drawAsSpheres = false;
     switch (fociDisplayProperties->getDrawingType(displayGroup,

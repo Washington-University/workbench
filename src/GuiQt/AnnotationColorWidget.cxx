@@ -311,7 +311,7 @@ AnnotationColorWidget::updateBackgroundColorButton()
 {
     CaretColorEnum::Enum colorEnum = CaretColorEnum::NONE;
     float rgba[4];
-    CaretColorEnum::toRGBFloat(colorEnum, rgba);
+    CaretColorEnum::toRGBAFloat(colorEnum, rgba);
     rgba[3] = 1.0;
     
     const int32_t numAnnotations = static_cast<int32_t>(m_annotations.size());
@@ -390,7 +390,7 @@ AnnotationColorWidget::updateLineColorButton()
 {
     CaretColorEnum::Enum colorEnum = CaretColorEnum::NONE;
     float rgba[4];
-    CaretColorEnum::toRGBFloat(colorEnum, rgba);
+    CaretColorEnum::toRGBAFloat(colorEnum, rgba);
     rgba[3] = 1.0;
     
     const int32_t numAnnotations = static_cast<int32_t>(m_annotations.size());

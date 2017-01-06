@@ -3040,7 +3040,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     const CaretColorEnum::Enum caretColor = fociDisplayProperties->getStandardColorType(displayGroup,
                                                                                            this->windowTabIndex);
     float caretColorRGBA[4];
-    CaretColorEnum::toRGBFloat(caretColor, caretColorRGBA);
+    CaretColorEnum::toRGBAFloat(caretColor, caretColorRGBA);
     
     const bool isPasteOntoSurface = fociDisplayProperties->isPasteOntoSurface(displayGroup,
                                                                               this->windowTabIndex);
@@ -3266,7 +3266,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     const CaretColorEnum::Enum caretColor = borderDisplayProperties->getStandardColorType(displayGroup,
                                                                                        this->windowTabIndex);
     float caretColorRGBA[4];
-    CaretColorEnum::toRGBFloat(caretColor, caretColorRGBA);
+    CaretColorEnum::toRGBAFloat(caretColor, caretColorRGBA);
     const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed(displayGroup,
                                                                                           this->windowTabIndex);
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();

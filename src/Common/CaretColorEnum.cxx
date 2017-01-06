@@ -321,41 +321,43 @@ CaretColorEnum::toRGB(Enum enumValue)
 }
 
 /**
- * Get the RGB components (ranging zero to one) of the enumerated type.
+ * Get the RGBA components (ranging zero to one) of the enumerated type.
  * @param enumValue
  *     Enumerated value.
- * @param rgbOut
- *     Output with RGB components [0.0, 1.0]
+ * @param rgbaOut
+ *     Output with RGB components [0.0, 1.0] and Alpha=1.0
  */
 void
-CaretColorEnum::toRGBFloat(Enum enumValue,
-                           float rgbOut[3])
+CaretColorEnum::toRGBAFloat(Enum enumValue,
+                           float rgbaOut[4])
 {
     if (initializedFlag == false) initialize();
     
     const CaretColorEnum* enumInstance = findData(enumValue);
-    rgbOut[0] = enumInstance->rgb[0];
-    rgbOut[1] = enumInstance->rgb[1];
-    rgbOut[2] = enumInstance->rgb[2];
+    rgbaOut[0] = enumInstance->rgb[0];
+    rgbaOut[1] = enumInstance->rgb[1];
+    rgbaOut[2] = enumInstance->rgb[2];
+    rgbaOut[3] = 1.0;
 }
 
 /**
- * Get the RGB components (ranging zero to one) of the enumerated type.
+ * Get the RGBA components (ranging zero to one) of the enumerated type.
  * @param enumValue
  *     Enumerated value.
- * @param rgbOut
- *     Output with RGB components [0.0, 1.0]
+ * @param rgbaOut
+ *     Output with RGB components [0, 255] and Alpha=255
  */
 void
-CaretColorEnum::toRGBByte(Enum enumValue,
-                          uint8_t rgbOut[3])
+CaretColorEnum::toRGBAByte(Enum enumValue,
+                           uint8_t rgbaOut[4])
 {
-    float rgbFloat[3];
-    toRGBFloat(enumValue, rgbFloat);
+    float rgbaFloat[3];
+    toRGBAFloat(enumValue, rgbaFloat);
 
-    rgbOut[0] = static_cast<uint8_t>(rgbFloat[0] * 255.0);
-    rgbOut[1] = static_cast<uint8_t>(rgbFloat[1] * 255.0);
-    rgbOut[2] = static_cast<uint8_t>(rgbFloat[2] * 255.0);
+    rgbaOut[0] = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
+    rgbaOut[3] = 255;
 }
 
 

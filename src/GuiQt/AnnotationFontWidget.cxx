@@ -484,7 +484,7 @@ AnnotationFontWidget::updateTextColorButton()
 {
     CaretColorEnum::Enum colorEnum = CaretColorEnum::NONE;
     float rgba[4];
-    CaretColorEnum::toRGBFloat(colorEnum, rgba);
+    CaretColorEnum::toRGBAFloat(colorEnum, rgba);
     rgba[3] = 1.0;
     
     bool colorButtonValidFlag = false;

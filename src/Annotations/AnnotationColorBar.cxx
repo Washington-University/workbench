@@ -295,7 +295,7 @@ AnnotationColorBar::getTextColorRGBA(float rgbaOut[4]) const
         case CaretColorEnum::TEAL:
         case CaretColorEnum::WHITE:
         case CaretColorEnum::YELLOW:
-            CaretColorEnum::toRGBFloat(m_colorText,
+            CaretColorEnum::toRGBAFloat(m_colorText,
                                        rgbaOut);
             rgbaOut[3] = 1.0;
             break;

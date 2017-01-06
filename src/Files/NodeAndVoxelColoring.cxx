@@ -874,8 +874,8 @@ NodeAndVoxelColoring::convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
     }
     
     uint8_t outlineRGBA[4];
-    CaretColorEnum::toRGBByte(labelOutlineColor,
-                              outlineRGBA);
+    CaretColorEnum::toRGBAByte(labelOutlineColor,
+                               outlineRGBA);
     outlineRGBA[3] = 255;
     
     /*

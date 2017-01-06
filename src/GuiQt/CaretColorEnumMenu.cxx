@@ -88,7 +88,7 @@ CaretColorEnumMenu::initializeCaretColorEnumMenu(const int64_t caretColorOptions
          * Create an icon with the color.
          */
         float rgba[4];
-        CaretColorEnum::toRGBFloat(colorEnum, rgba);
+        CaretColorEnum::toRGBAFloat(colorEnum, rgba);
         if (colorEnum == CaretColorEnum::NONE) {
             rgba[3] = 0.0;
         }
