@@ -91,10 +91,11 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     }
     int numInputs = myVarOpts.size();
     int numVars = myVarNames.size();
-    vector<MetricFile*> varMetrics(numVars, (MetricFile*)NULL);
+    vector<MetricFile*> varMetrics(numVars, NULL);
     vector<int> metricColumns(numVars, -1);
     if (numInputs == 0 && numVars == 0) throw OperationException("you must specify at least one input metric (-var), even if the expression doesn't use a variable");
-    int numNodes;
+    const MetricFile* namefile = NULL;
+    int numNodes = -1;
     StructureEnum::Enum myStructure;
     int numColumns = -1;
     for (int i = 0; i < numInputs; ++i)
@@ -137,6 +138,10 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
             if (numColumns == -1)//then this is the first one that doesn't use -repeat
             {
                 numColumns = thisColumns;
+                if (useColumn == -1)
+                {
+                    namefile = thisMetric;//if it also doesn't use -column, take map names from it
+                }
             } else {
                 if (numColumns != thisColumns)
                 {
@@ -182,6 +187,7 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     myMetricOut->setStructure(myStructure);
     for (int j = 0; j < numColumns; ++j)
     {
+        if (namefile != NULL) myMetricOut->setMapName(j, namefile->getMapName(j));
         for (int v = 0; v < numVars; ++v)
         {
             if (metricColumns[v] == -1)

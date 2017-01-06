@@ -91,10 +91,10 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     }
     int numInputs = myVarOpts.size();
     int numVars = myVarNames.size();
-    vector<VolumeFile*> varVolumes(numVars, (VolumeFile*)NULL);
+    vector<VolumeFile*> varVolumes(numVars, NULL);
     vector<int> varSubvolumes(numVars, -1);
     if (numInputs == 0 && numVars == 0) throw OperationException("you must specify at least one input volume (-var), even if the expression doesn't use a variable");
-    VolumeFile* first;
+    VolumeFile* first = NULL, *namefile = NULL;
     VolumeSpace mySpace;
     vector<int64_t> outDims;
     int numSubvols = -1;
@@ -143,8 +143,10 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
             {
                 numSubvols = thisSubvols;
                 outDims = thisVolume->getOriginalDimensions();
-                if (useSubvolume != -1)
+                if (useSubvolume == -1)
                 {
+                    namefile = thisVolume;//if it also doesn't use -subvolume, take map names from it
+                } else {
                     outDims.resize(3);//change to output only one subvolume in the simplest way
                 }
             } else {
@@ -192,6 +194,7 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     myVolOut->reinitialize(outDims, first->getSform());//DO NOT take volume type from first volume, because we don't check for or copy label tables, nor do we want to
     for (int s = 0; s < numSubvols; ++s)
     {
+        if (namefile != NULL) myVolOut->setMapName(s, namefile->getMapName(s));
         for (int v = 0; v < numVars; ++v)
         {
             if (varSubvolumes[v] == -1)
