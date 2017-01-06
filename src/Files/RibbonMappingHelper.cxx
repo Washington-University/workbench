@@ -84,18 +84,43 @@ namespace
     {
         std::vector<TriInfo> m_tris;
         std::vector<QuadInfo> m_quads;
-        PolyInfo(const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int32_t node);//surfaces MUST be in node correspondence, otherwise SEVERE strangeness, possible crashes
+        PolyInfo(const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int32_t node, const bool& thinColumn = false);//surfaces MUST be in node correspondence, otherwise SEVERE strangeness, possible crashes
         PolyInfo() {};
         int isInside(const float* xyz);//0 for no, 2 for yes, 1 for if only half the triangulations (between the two triangulations of one of the quad faces)
     private:
-        void addTri(const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int32_t root, const int32_t node2, const int32_t node3);//adds the tri for each surface, plus the quad
+        void addTri(const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int32_t* myTri, const int rootIndex, const bool& thinColumn);//adds the tri for each surface, plus the quad
     };
     
-    void PolyInfo::addTri(const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int32_t root, const int32_t node2, const int32_t node3)
-    {
-        m_tris.push_back(TriInfo(innerSurf->getCoordinate(root), innerSurf->getCoordinate(node2), innerSurf->getCoordinate(node3)));
-        m_tris.push_back(TriInfo(outerSurf->getCoordinate(root), outerSurf->getCoordinate(node2), outerSurf->getCoordinate(node3)));
-        m_quads.push_back(QuadInfo(innerSurf->getCoordinate(node2), innerSurf->getCoordinate(node3), outerSurf->getCoordinate(node3), outerSurf->getCoordinate(node2)));
+    void PolyInfo::addTri(const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int32_t* myTri, const int rootIndex, const bool& thinColumn)
+    {//tries to orient normals consistently with respect to inside/outside, but it doesn't currently matter
+        int root = myTri[rootIndex], node2 = myTri[(rootIndex + 1) % 3], node3 = myTri[(rootIndex + 2) % 3];
+        if (thinColumn)
+        {
+            Vector3D innerRoot = innerSurf->getCoordinate(root), inner2 = innerSurf->getCoordinate(node2), inner3 = innerSurf->getCoordinate(node3);
+            Vector3D outerRoot = outerSurf->getCoordinate(root), outer2 = outerSurf->getCoordinate(node2), outer3 = outerSurf->getCoordinate(node3);
+            //use an ordering trick of the 3 vertices so that the summing order is always 01, 12, or 20 - doesn't actually matter (at least on x86), but hey
+            Vector3D innerEdge2 = (innerRoot + inner2) / 2, innerEdge3 = (inner3 + innerRoot) / 2;
+            Vector3D outerEdge2 = (outerRoot + outer2) / 2, outerEdge3 = (outer3 + outerRoot) / 2;
+            //for consistency in floating point rounding, we need to generate the sum of the 3 coordinates in the same order regardless of rootIndex
+            //so, use the original triangle definition and 0, 1, 2 order
+            //this doesn't matter for edges because there only 2 coordinates are added together
+            Vector3D innerCenter = (Vector3D(innerSurf->getCoordinate(myTri[0])) + 
+                                    Vector3D(innerSurf->getCoordinate(myTri[1])) +
+                                    Vector3D(innerSurf->getCoordinate(myTri[2]))) / 3;
+            Vector3D outerCenter = (Vector3D(outerSurf->getCoordinate(myTri[0])) + 
+                                    Vector3D(outerSurf->getCoordinate(myTri[1])) +
+                                    Vector3D(outerSurf->getCoordinate(myTri[2]))) / 3;
+            m_tris.push_back(TriInfo(innerRoot, innerEdge3, innerCenter));
+            m_tris.push_back(TriInfo(innerRoot, innerCenter, innerEdge2));
+            m_tris.push_back(TriInfo(outerRoot, outerEdge2, outerCenter));
+            m_tris.push_back(TriInfo(outerRoot, outerCenter, outerEdge3));
+            m_quads.push_back(QuadInfo(innerEdge2, innerCenter, outerCenter, outerEdge2));
+            m_quads.push_back(QuadInfo(innerCenter, innerEdge3, outerEdge3, outerCenter));
+        } else {
+            m_tris.push_back(TriInfo(innerSurf->getCoordinate(root), innerSurf->getCoordinate(node3), innerSurf->getCoordinate(node2)));
+            m_tris.push_back(TriInfo(outerSurf->getCoordinate(root), outerSurf->getCoordinate(node2), outerSurf->getCoordinate(node3)));
+            m_quads.push_back(QuadInfo(innerSurf->getCoordinate(node2), innerSurf->getCoordinate(node3), outerSurf->getCoordinate(node3), outerSurf->getCoordinate(node2)));
+        }
     }
 
     int PolyInfo::isInside(const float* xyz)
@@ -117,7 +142,7 @@ namespace
         return 0;
     }
 
-    PolyInfo::PolyInfo(const caret::SurfaceFile* innerSurf, const caret::SurfaceFile* outerSurf, const int32_t node)
+    PolyInfo::PolyInfo(const caret::SurfaceFile* innerSurf, const caret::SurfaceFile* outerSurf, const int32_t node, const bool& thinColumn)
     {
         CaretPointer<TopologyHelper> myTopoHelp = innerSurf->getTopologyHelper();
         int numTiles;
@@ -127,13 +152,13 @@ namespace
             const int32_t* myTri = innerSurf->getTriangle(myTiles[i]);
             if (myTri[0] == node)
             {
-                addTri(innerSurf, outerSurf, myTri[0], myTri[1], myTri[2]);
+                addTri(innerSurf, outerSurf, myTri, 0, thinColumn);
             } else {
                 if (myTri[1] == node)
                 {
-                    addTri(innerSurf, outerSurf, myTri[1], myTri[2], myTri[0]);
+                    addTri(innerSurf, outerSurf, myTri, 1, thinColumn);
                 } else {
-                    addTri(innerSurf, outerSurf, myTri[2], myTri[0], myTri[1]);
+                    addTri(innerSurf, outerSurf, myTri, 2, thinColumn);
                 }
             }
         }
@@ -213,7 +238,7 @@ namespace
     }
     
     float computeVoxelFraction(const VolumeSpace& myVolSpace, const int64_t* ijk, PolyInfo& myPoly, const int divisions,
-                                                                const Vector3D& ivec, const Vector3D& jvec, const Vector3D& kvec)
+                               const Vector3D& ivec, const Vector3D& jvec, const Vector3D& kvec)
     {
         Vector3D myLowCorner;
         myVolSpace.indexToSpace(ijk[0] - 0.5f, ijk[1] - 0.5f, ijk[2] - 0.5f, myLowCorner);
@@ -241,7 +266,7 @@ namespace
 }
 
 void RibbonMappingHelper::computeWeightsRibbon(vector<vector<VoxelWeight> >& myWeightsOut, const VolumeSpace& myVolSpace, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
-                                               const float* roiFrame, const int& numDivisions)
+                                               const float* roiFrame, const int& numDivisions, const bool& thinColumn)
 {
     if (!innerSurf->hasNodeCorrespondence(*outerSurf))
     {
@@ -269,7 +294,7 @@ void RibbonMappingHelper::computeWeightsRibbon(vector<vector<VoxelWeight> >& myW
             myWeightsOut[node].reserve(maxVoxelCount);
             float tempf;
             int64_t node3 = node * 3;
-            PolyInfo myPoly(innerSurf, outerSurf, node);//build the polygon
+            PolyInfo myPoly(innerSurf, outerSurf, node, thinColumn);//build the polygon
             Vector3D minIndex, maxIndex, tempvec;
             myVolSpace.spaceToIndex(innerCoords + node3, minIndex);//find the bounding box in VOLUME INDEX SPACE, starting with the center nodes
             maxIndex = minIndex;

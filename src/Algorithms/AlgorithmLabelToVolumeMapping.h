@@ -37,7 +37,8 @@ namespace caret {
         AlgorithmLabelToVolumeMapping(ProgressObject* myProgObj, const LabelFile* myLabel, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
                                       VolumeFile* myVolOut, const float& nearDist);
         AlgorithmLabelToVolumeMapping(ProgressObject* myProgObj, const LabelFile* myLabel, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
-                                      VolumeFile* myVolOut, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int& subDivs = 3);
+                                      VolumeFile* myVolOut, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
+                                      const int& subDivs = 3, const bool& greedy = false, const bool& thick = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

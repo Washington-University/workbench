@@ -65,12 +65,15 @@ OperationParameters* AlgorithmMetricToVolumeMapping::getParameters()
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
     OptionalParameter* ribbonSubdivOpt = ribbonOpt->createOptionalParameter(3, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
     ribbonSubdivOpt->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
+    ribbonOpt->createOptionalParameter(4, "-greedy", "instead of antialiasing partial-volumed voxels, put full metric values (legacy behavior)");
+    ribbonOpt->createOptionalParameter(5, "-thick-columns", "use overlapping columns (legacy method)");
     
     ret->setHelpText(
         AString("Maps values from a metric file into a volume file.  ") +
         "You must specify exactly one mapping method option.  " +
         "The -nearest-vertex method uses the value from the vertex closest to the voxel center (useful for integer values).  " +
-        "The -ribbon-constrained method uses the same method as in -volume-to-surface-mapping, then uses the weights in reverse.  "
+        "The -ribbon-constrained method uses the same method as in -volume-to-surface-mapping, then uses the weights in reverse.  " +
+        "Mapping to lower resolutions than the mesh may require a larger -voxel-subdiv value in order to have all of the surface data participate."
     );
     return ret;
 }
@@ -103,6 +106,7 @@ void AlgorithmMetricToVolumeMapping::useParameters(OperationParameters* myParams
     }
     SurfaceFile* innerSurf = NULL, *outerSurf = NULL;
     int subDivs = 3;
+    bool greedy = false, thick = false;
     OptionalParameter* ribbonOpt = myParams->getOptionalParameter(6);
     if (ribbonOpt->m_present)
     {
@@ -123,6 +127,8 @@ void AlgorithmMetricToVolumeMapping::useParameters(OperationParameters* myParams
                 throw AlgorithmException("invalid number of subdivisions specified");
             }
         }
+        greedy = ribbonOpt->getOptionalParameter(4)->m_present;
+        thick = ribbonOpt->getOptionalParameter(5)->m_present;
     }
     if (!haveMethod)
     {
@@ -134,7 +140,7 @@ void AlgorithmMetricToVolumeMapping::useParameters(OperationParameters* myParams
             AlgorithmMetricToVolumeMapping(myProgObj, myMetric, mySurf, myTemplateVol->getVolumeSpace(), myVolOut, nearDist);
             break;
         case RIBBON:
-            AlgorithmMetricToVolumeMapping(myProgObj, myMetric, mySurf, myTemplateVol->getVolumeSpace(), myVolOut, innerSurf, outerSurf, subDivs);
+            AlgorithmMetricToVolumeMapping(myProgObj, myMetric, mySurf, myTemplateVol->getVolumeSpace(), myVolOut, innerSurf, outerSurf, subDivs, greedy, thick);
             break;
         case INVALID:
             CaretAssert(0);
@@ -191,7 +197,8 @@ AlgorithmMetricToVolumeMapping::AlgorithmMetricToVolumeMapping(ProgressObject* m
 }
 
 AlgorithmMetricToVolumeMapping::AlgorithmMetricToVolumeMapping(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
-                                                                 VolumeFile* myVolOut, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int& subDivs) : AbstractAlgorithm(myProgObj)
+                                                               VolumeFile* myVolOut, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int& subDivs,
+                                                               const bool& greedy, const bool& thickColumn) : AbstractAlgorithm(myProgObj)
 {
     int numNodes = mySurf->getNumberOfNodes();
     if (myMetric->getNumberOfNodes() != numNodes)
@@ -212,7 +219,7 @@ AlgorithmMetricToVolumeMapping::AlgorithmMetricToVolumeMapping(ProgressObject* m
     int numCols = myMetric->getNumberOfColumns();
     myVolOut->reinitialize(myVolSpace, numCols);
     vector<vector<VoxelWeight> > forwardWeights;
-    RibbonMappingHelper::computeWeightsRibbon(forwardWeights, myVolSpace, innerSurf, outerSurf, NULL, subDivs);
+    RibbonMappingHelper::computeWeightsRibbon(forwardWeights, myVolSpace, innerSurf, outerSurf, NULL, subDivs, !thickColumn);
     map<VoxelIJK, vector<pair<int, float> > > reverseWeights;
     for (int i = 0; i < numNodes; ++i)
     {
@@ -236,7 +243,18 @@ AlgorithmMetricToVolumeMapping::AlgorithmMetricToVolumeMapping(ProgressObject* m
                 accum += colData[iter->second[i].first] * iter->second[i].second;
             }
             CaretAssert(totalWeight > 0.0);//ribbon mapping should never add weights of 0 to lists
-            scratchFrame[myVolSpace.getIndex(iter->first.m_ijk)] = accum / totalWeight;
+            if (greedy)
+            {
+                scratchFrame[myVolSpace.getIndex(iter->first.m_ijk)] = accum / totalWeight;
+            } else {
+                float denom = 1.0f;//thin weights are intended to be space filling without overlapping
+                if (thickColumn) denom = 3.0f;//a bit of a hack - ideally, in thick mode every fully covered voxel should have weights sum to 3
+                if (totalWeight > denom)
+                {
+                    denom = totalWeight;//however, the surface contours occasionally occasionally turn the polyhedrons partly inside out, so voxels can sum to more than they theoretically should
+                }
+                scratchFrame[myVolSpace.getIndex(iter->first.m_ijk)] = accum / denom;
+            }
         }
         myVolOut->setFrame(scratchFrame.data(), m);
         myVolOut->setMapName(m, myMetric->getMapName(m));

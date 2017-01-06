@@ -59,12 +59,21 @@ OperationParameters* AlgorithmVolumeLabelToSurfaceMapping::getParameters()
     roiVol->addVolumeParameter(1, "roi-volume", "the volume file");
     OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(4, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
     ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
+    ribbonOpt->createOptionalParameter(5, "-thin-columns", "use non-overlapping polyhedra");
     
     OptionalParameter* subvolumeSelect = ret->createOptionalParameter(5, "-subvol-select", "select a single subvolume to map");
     subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
-        AString("Map label volume data to a surface.  If -ribbon-constrained is not specified, uses the enclosing voxel method.")
+        AString("Map label volume data to a surface.  If -ribbon-constrained is not specified, uses the enclosing voxel method.") +
+        "The ribbon mapping method constructs a polyhedron from the vertex's neighbors on each " +
+        "surface, and estimates the amount of this polyhedron's volume that falls inside any nearby voxels, to use as the weights for a popularity comparison.  " +
+        "If -thin-columns is specified, the polyhedron uses the edge midpoints and triangle centroids, so that neighboring vertices do not have overlapping polyhedra.  " +
+        "This may require increasing -voxel-subdiv to get enough samples in each voxel to reliably land inside these smaller polyhedra.  "
+        "The volume ROI is useful to exclude partial volume effects of voxels the surfaces pass through, and will cause the mapping to ignore " +
+        "voxels that don't have a positive value in the mask.  The subdivision number specifies how it approximates the amount of the volume the polyhedron " +
+        "intersects, by splitting each voxel into NxNxN pieces, and checking whether the center of each piece is inside the polyhedron.  If you have very large " +
+        "voxels, consider increasing this if you get unexpected unlabeled vertices in your output."
     );
     return ret;
 }
@@ -105,7 +114,8 @@ void AlgorithmVolumeLabelToSurfaceMapping::useParameters(OperationParameters* my
                 throw AlgorithmException("invalid number of subdivisions specified");
             }
         }
-        AlgorithmVolumeLabelToSurfaceMapping(myProgObj, myVolume, mySurface, myLabelOut, innerSurf, outerSurf, myRoiVol, subdivisions, mySubVol);
+        bool thinColumns = ribbonOpt->getOptionalParameter(5)->m_present;
+        AlgorithmVolumeLabelToSurfaceMapping(myProgObj, myVolume, mySurface, myLabelOut, innerSurf, outerSurf, myRoiVol, subdivisions, thinColumns, mySubVol);
     } else {
         AlgorithmVolumeLabelToSurfaceMapping(myProgObj, myVolume, mySurface, myLabelOut, mySubVol);
     }
@@ -119,6 +129,7 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
     {
         throw AlgorithmException("input volume must be a label volume");
     }
+    if (myVolume->getNumberOfComponents() != 1) throw AlgorithmException("label volumes must not have multiple components per map");
     vector<int64_t> myVolDims;
     myVolume->getDimensions(myVolDims);
     if (mySubVol >= myVolDims[3] || mySubVol < -1)
@@ -128,9 +139,9 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
     int64_t numColumns;
     if (mySubVol == -1)
     {
-        numColumns = myVolDims[3] * myVolDims[4];
+        numColumns = myVolDims[3];
     } else {
-        numColumns = myVolDims[4];
+        numColumns = 1;
     }
     int64_t numNodes = mySurface->getNumberOfNodes();
     myLabelOut->setNumberOfNodesAndColumns(numNodes, numColumns);
@@ -141,7 +152,7 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
         GiftiLabelTable cumulativeTable = *(myVolume->getMapLabelTable(0));//so we don't run into append issues with the "???" label that gets made by GiftiLabelTable's constructor
         for (int64_t i = 0; i < myVolDims[3]; ++i)
         {
-            map<int32_t,int32_t> frameRemap;
+            map<int32_t, int32_t> frameRemap;
             if (i > 0)
             {
                 const GiftiLabelTable* tempTable = myVolume->getMapLabelTable(i);
@@ -151,29 +162,21 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
                 }
                 frameRemap = cumulativeTable.append(*tempTable);
             }
-            for (int64_t j = 0; j < myVolDims[4]; ++j)
-            {
-                AString mapName = myVolume->getMapName(i);
-                if (myVolDims[4] != 1)
-                {
-                    mapName += " component " + AString::number(j);
-                }
-                int64_t thisCol = i * myVolDims[4] + j;
-                myLabelOut->setColumnName(thisCol, mapName);
+            AString mapName = myVolume->getMapName(i);
+            myLabelOut->setColumnName(i, mapName);
 #pragma omp CARET_PARFOR
-                for (int64_t node = 0; node < numNodes; ++node)
+            for (int64_t node = 0; node < numNodes; ++node)
+            {
+                int32_t tempKey = (int32_t)floor(myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::ENCLOSING_VOXEL, NULL, i) + 0.5f);
+                map<int32_t, int32_t>::iterator iter = frameRemap.find(tempKey);
+                if (iter != frameRemap.end())
                 {
-                    int32_t tempKey = (int32_t)floor(myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::ENCLOSING_VOXEL, NULL, i, j) + 0.5f);
-                    map<int32_t, int32_t>::iterator iter = frameRemap.find(tempKey);
-                    if (iter != frameRemap.end())
-                    {
-                        myArray[node] = iter->second;
-                    } else {
-                        myArray[node] = tempKey;//for simplicity, assume all values in the volume file are in the label table
-                    }
+                    myArray[node] = iter->second;
+                } else {
+                    myArray[node] = tempKey;//for simplicity, assume all values in the volume file are in the label table
                 }
-                myLabelOut->setLabelKeysForColumn(thisCol, myArray.data());
             }
+            myLabelOut->setLabelKeysForColumn(i, myArray.data());
         }
         *(myLabelOut->getLabelTable()) = cumulativeTable;
     } else {
@@ -183,27 +186,19 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
             throw AlgorithmException("specified subvolume is missing a label table");
         }
         *(myLabelOut->getLabelTable()) = *tempTable;
-        for (int64_t j = 0; j < myVolDims[4]; ++j)
-        {
-            AString mapName = myVolume->getMapName(mySubVol);
-            if (myVolDims[4] != 1)
-            {
-                mapName += " component " + AString::number(j);
-            }
-            int64_t thisCol = j;
-            myLabelOut->setColumnName(thisCol, mapName);
+        myLabelOut->setColumnName(0, myVolume->getMapName(mySubVol));
 #pragma omp CARET_PARFOR
-            for (int64_t node = 0; node < numNodes; ++node)
-            {//for simplicity, assume all values in the volume file are in the label table
-                myArray[node] = (int32_t)floor(myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::ENCLOSING_VOXEL, NULL, mySubVol, j) + 0.5f);
-            }
-            myLabelOut->setLabelKeysForColumn(thisCol, myArray.data());
+        for (int64_t node = 0; node < numNodes; ++node)
+        {//for simplicity, assume all values in the volume file are in the label table
+            myArray[node] = (int32_t)floor(myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::ENCLOSING_VOXEL, NULL, mySubVol) + 0.5f);
         }
+        myLabelOut->setLabelKeysForColumn(0, myArray.data());
     }
 }
 
 AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, LabelFile* myLabelOut,
-                                                                           const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* myRoiVol, const int32_t& subdivisions,
+                                                                           const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
+                                                                           const VolumeFile* myRoiVol, const int32_t& subdivisions, const bool& thinColumns,
                                                                            const int64_t& mySubVol): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -211,6 +206,7 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
     {
         throw AlgorithmException("input volume must be a label volume");
     }
+    if (myVolume->getNumberOfComponents() != 1) throw AlgorithmException("label volumes must not have multiple components per map");
     vector<int64_t> myVolDims;
     myVolume->getDimensions(myVolDims);
     if (mySubVol >= myVolDims[3] || mySubVol < -1)
@@ -220,9 +216,9 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
     int64_t numColumns;
     if (mySubVol == -1)
     {
-        numColumns = myVolDims[3] * myVolDims[4];
+        numColumns = myVolDims[3];
     } else {
-        numColumns = myVolDims[4];
+        numColumns = 1;
     }
     int64_t numNodes = mySurface->getNumberOfNodes();
     myLabelOut->setNumberOfNodesAndColumns(numNodes, numColumns);
@@ -231,14 +227,14 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
     vector<vector<VoxelWeight> > myWeights;
     const float* roiFrame = NULL;
     if (myRoiVol != NULL) roiFrame = myRoiVol->getFrame();
-    RibbonMappingHelper::computeWeightsRibbon(myWeights, myVolume->getVolumeSpace(), innerSurf, outerSurf, roiFrame, subdivisions);
+    RibbonMappingHelper::computeWeightsRibbon(myWeights, myVolume->getVolumeSpace(), innerSurf, outerSurf, roiFrame, subdivisions, thinColumns);
     if (mySubVol == -1)
     {
         GiftiLabelTable cumulativeTable = *(myVolume->getMapLabelTable(0));//so we don't run into append issues with the "???" label that gets made by GiftiLabelTable's constructor
         int32_t unlabeledKey = cumulativeTable.getUnassignedLabelKey();//but, assume the first table has one, because we may need it
         for (int64_t i = 0; i < myVolDims[3]; ++i)
         {
-            map<int32_t,int32_t> frameRemap;
+            map<int32_t, int32_t> frameRemap;
             if (i > 0)
             {
                 const GiftiLabelTable* tempTable = myVolume->getMapLabelTable(i);
@@ -248,76 +244,82 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
                 }
                 frameRemap = cumulativeTable.append(*tempTable);
             }
-            for (int64_t j = 0; j < myVolDims[4]; ++j)
-            {
-                AString mapName = myVolume->getMapName(i);
-                if (myVolDims[4] != 1)
-                {
-                    mapName += " component " + AString::number(j);
-                }
-                int64_t thisCol = i * myVolDims[4] + j;
-                myLabelOut->setColumnName(thisCol, mapName);
+            myLabelOut->setColumnName(i, myVolume->getMapName(i));
 #pragma omp CARET_PARFOR
-                for (int64_t node = 0; node < numNodes; ++node)
+            for (int64_t node = 0; node < numNodes; ++node)
+            {
+                const vector<VoxelWeight>& weightRef = myWeights[node];
+                map<int32_t, float> totals;
+                for (int v = 0; v < (int)weightRef.size(); ++v)
                 {
-                    const vector<VoxelWeight>& weightRef = myWeights[node];
-                    map<int32_t, float> totals;
-                    for (int v = 0; v < (int)weightRef.size(); ++v)
-                    {
-                        int32_t voxKey = (int32_t)floor(myVolume->getValue(weightRef[v].ijk, i, j) + 0.5f);
-                        map<int32_t, float>::iterator iter = totals.find(voxKey);
-                        if (iter == totals.end())
-                        {//floats don't initialize to 0
-                            totals[voxKey] = weightRef[v].weight;
-                        } else {
-                            totals[voxKey] += weightRef[v].weight;
-                        }
-                    }
-                    int32_t tempKey = unlabeledKey;
-                    float bestSum = -1.0f;
-                    for (map<int32_t, float>::iterator iter = totals.begin(); iter != totals.end(); ++iter)
-                    {
-                        if (iter->second > bestSum)
-                        {
-                            tempKey = iter->first;
-                            bestSum = iter->second;
-                        }
-                    }
-                    map<int32_t, int32_t>::iterator iter = frameRemap.find(tempKey);
-                    if (iter != frameRemap.end())
-                    {
-                        myArray[node] = iter->second;
+                    int32_t voxKey = (int32_t)floor(myVolume->getValue(weightRef[v].ijk, i) + 0.5f);
+                    map<int32_t, float>::iterator iter = totals.find(voxKey);
+                    if (iter == totals.end())
+                    {//floats don't initialize to 0
+                        totals[voxKey] = weightRef[v].weight;
                     } else {
-                        myArray[node] = tempKey;//for simplicity, assume all values in the frame are in the label table
+                        totals[voxKey] += weightRef[v].weight;
                     }
                 }
-                myLabelOut->setLabelKeysForColumn(thisCol, myArray.data());
+                int32_t tempKey = unlabeledKey;
+                float bestSum = -1.0f;
+                for (map<int32_t, float>::iterator iter = totals.begin(); iter != totals.end(); ++iter)
+                {
+                    if (iter->second > bestSum)
+                    {
+                        tempKey = iter->first;
+                        bestSum = iter->second;
+                    }
+                }
+                map<int32_t, int32_t>::iterator iter = frameRemap.find(tempKey);
+                if (iter != frameRemap.end())
+                {
+                    myArray[node] = iter->second;
+                } else {
+                    myArray[node] = tempKey;//for simplicity, assume all values in the frame are in the label table
+                }
             }
+            myLabelOut->setLabelKeysForColumn(i, myArray.data());
         }
         *(myLabelOut->getLabelTable()) = cumulativeTable;
     } else {
         const GiftiLabelTable* tempTable = myVolume->getMapLabelTable(mySubVol);
+        int unlabeledKey = tempTable->getUnassignedLabelKey();
         if (tempTable == NULL)
         {
             throw AlgorithmException("specified subvolume is missing a label table");
         }
         *(myLabelOut->getLabelTable()) = *tempTable;
-        for (int64_t j = 0; j < myVolDims[4]; ++j)
-        {
-            AString mapName = myVolume->getMapName(mySubVol);
-            if (myVolDims[4] != 1)
-            {
-                mapName += " component " + AString::number(j);
-            }
-            int64_t thisCol = j;
-            myLabelOut->setColumnName(thisCol, mapName);
+        myLabelOut->setColumnName(0, myVolume->getMapName(mySubVol));
 #pragma omp CARET_PARFOR
-            for (int64_t node = 0; node < numNodes; ++node)
-            {//for simplicity, assume all values in the volume file are in the label table
-                myArray[node] = 0;//TODO
+        for (int64_t node = 0; node < numNodes; ++node)
+        {//for simplicity, assume all values in the volume file are in the label table
+            const vector<VoxelWeight>& weightRef = myWeights[node];
+            map<int32_t, float> totals;
+            for (int v = 0; v < (int)weightRef.size(); ++v)
+            {
+                int32_t voxKey = (int32_t)floor(myVolume->getValue(weightRef[v].ijk, mySubVol) + 0.5f);
+                map<int32_t, float>::iterator iter = totals.find(voxKey);
+                if (iter == totals.end())
+                {//floats don't initialize to 0
+                    totals[voxKey] = weightRef[v].weight;
+                } else {
+                    totals[voxKey] += weightRef[v].weight;
+                }
             }
-            myLabelOut->setLabelKeysForColumn(thisCol, myArray.data());
+            int32_t tempKey = unlabeledKey;
+            float bestSum = -1.0f;
+            for (map<int32_t, float>::iterator iter = totals.begin(); iter != totals.end(); ++iter)
+            {
+                if (iter->second > bestSum)
+                {
+                    tempKey = iter->first;
+                    bestSum = iter->second;
+                }
+            }
+            myArray[node] = tempKey;//for simplicity, assume all values in the frame are in the label table
         }
+        myLabelOut->setLabelKeysForColumn(0, myArray.data());
     }
 }
 

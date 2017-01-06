@@ -63,12 +63,14 @@ OperationParameters* AlgorithmLabelToVolumeMapping::getParameters()
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
     OptionalParameter* ribbonSubdivOpt = ribbonOpt->createOptionalParameter(3, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
     ribbonSubdivOpt->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
+    ribbonOpt->createOptionalParameter(4, "-greedy", "also put labels in voxels with less than 50% partial volume (legacy behavior)");
+    ribbonOpt->createOptionalParameter(5, "-thick-columns", "use overlapping columns (legacy method)");
     
     ret->setHelpText(
         AString("Maps labels from a gifti label file into a volume file.  ") +
         "You must specify exactly one mapping method option.  " +
         "The -nearest-vertex method uses the label from the vertex closest to the voxel center.  " +
-        "The -ribbon-constrained method uses the same method as in -volume-to-surface-mapping, then uses the weights in reverse, with popularity logic to decide on a label to use.  "
+        "The -ribbon-constrained method uses the same method as in -volume-to-surface-mapping, then uses the weights in reverse, with popularity logic to decide on a label to use."
     );
     return ret;
 }
@@ -101,6 +103,7 @@ void AlgorithmLabelToVolumeMapping::useParameters(OperationParameters* myParams,
     }
     SurfaceFile* innerSurf = NULL, *outerSurf = NULL;
     int subDivs = 3;
+    bool greedy = false, thick = false;
     OptionalParameter* ribbonOpt = myParams->getOptionalParameter(6);
     if (ribbonOpt->m_present)
     {
@@ -121,6 +124,8 @@ void AlgorithmLabelToVolumeMapping::useParameters(OperationParameters* myParams,
                 throw AlgorithmException("invalid number of subdivisions specified");
             }
         }
+        greedy = ribbonOpt->getOptionalParameter(4)->m_present;
+        thick = ribbonOpt->getOptionalParameter(5)->m_present;
     }
     if (!haveMethod)
     {
@@ -132,7 +137,7 @@ void AlgorithmLabelToVolumeMapping::useParameters(OperationParameters* myParams,
             AlgorithmLabelToVolumeMapping(myProgObj, myLabel, mySurf, myTemplateVol->getVolumeSpace(), myVolOut, nearDist);
             break;
         case RIBBON:
-            AlgorithmLabelToVolumeMapping(myProgObj, myLabel, mySurf, myTemplateVol->getVolumeSpace(), myVolOut, innerSurf, outerSurf, subDivs);
+            AlgorithmLabelToVolumeMapping(myProgObj, myLabel, mySurf, myTemplateVol->getVolumeSpace(), myVolOut, innerSurf, outerSurf, subDivs, greedy, thick);
             break;
         case INVALID:
             CaretAssert(0);
@@ -190,7 +195,8 @@ AlgorithmLabelToVolumeMapping::AlgorithmLabelToVolumeMapping(ProgressObject* myP
 }
 
 AlgorithmLabelToVolumeMapping::AlgorithmLabelToVolumeMapping(ProgressObject* myProgObj, const LabelFile* myLabel, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
-                                                                 VolumeFile* myVolOut, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int& subDivs) : AbstractAlgorithm(myProgObj)
+                                                                 VolumeFile* myVolOut, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int& subDivs,
+                                                                 const bool& greedy, const bool& thickColumn) : AbstractAlgorithm(myProgObj)
 {
     int numNodes = mySurf->getNumberOfNodes();
     if (myLabel->getNumberOfNodes() != numNodes)
@@ -229,10 +235,12 @@ AlgorithmLabelToVolumeMapping::AlgorithmLabelToVolumeMapping(ProgressObject* myP
         const int32_t* colData = myLabel->getLabelKeyPointerForColumn(m);
         for (map<VoxelIJK, vector<pair<int, float> > >::const_iterator iter = reverseWeights.begin(); iter != reverseWeights.end(); ++iter)
         {
+            double totalWeight = 0.0;
             map<int32_t, float> totals;
             const vector<pair<int, float> >& vertWeightsRef = iter->second;
             for (int i = 0; i < (int)vertWeightsRef.size(); ++i)
             {
+                totalWeight += vertWeightsRef[i].second;
                 map<int32_t, float>::iterator iter2 = totals.find(colData[vertWeightsRef[i].first]);
                 if (iter2 == totals.end())
                 {//because floats don't initialize to 0
@@ -243,12 +251,25 @@ AlgorithmLabelToVolumeMapping::AlgorithmLabelToVolumeMapping(ProgressObject* myP
             }
             float bestWeight = -1.0f;
             int32_t bestLabel = unlabeledVal;
-            for (map<int32_t, float>::iterator iter2 = totals.begin(); iter2 != totals.end(); ++iter2)
+            bool skipLoop = false;
+            if (!greedy)
             {
-                if (iter2->second > bestWeight)
+                if (thickColumn)
                 {
-                    bestWeight = iter2->second;
-                    bestLabel = iter2->first;
+                    skipLoop = (totalWeight < 1.5);//slight hack: the thick column method basically counts every triangle three times
+                } else {
+                    skipLoop = (totalWeight < 0.5);
+                }
+            }
+            if (!skipLoop)
+            {
+                for (map<int32_t, float>::iterator iter2 = totals.begin(); iter2 != totals.end(); ++iter2)
+                {
+                    if (iter2->second > bestWeight)
+                    {
+                        bestWeight = iter2->second;
+                        bestLabel = iter2->first;
+                    }
                 }
             }
             scratchFrame[myVolSpace.getIndex(iter->first.m_ijk)] = bestLabel;

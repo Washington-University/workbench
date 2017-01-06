@@ -39,7 +39,8 @@ namespace caret {
                                        VolumeFile* myVolOut, const float& nearDist);
         ///ribbon constrained
         AlgorithmMetricToVolumeMapping(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
-                                       VolumeFile* myVolOut, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int& subDivs = 3);
+                                       VolumeFile* myVolOut, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
+                                       const int& subDivs = 3, const bool& greedy = false, const bool& thick = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

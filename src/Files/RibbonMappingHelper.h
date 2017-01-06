@@ -50,7 +50,8 @@ namespace caret
     public:
         ///compute per-vertex ribbon mapping weights - surfaces must have vertex correspondence, or an exception is thrown
         static void computeWeightsRibbon(std::vector<std::vector<VoxelWeight> >& myWeightsOut, const VolumeSpace& myVolSpace,
-                                         const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const float* roiFrame = NULL, const int& numDivisions = 3);
+                                         const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
+                                         const float* roiFrame = NULL, const int& numDivisions = 3, const bool& thinColumn = false);
     };
 
 }
