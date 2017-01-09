@@ -21,9 +21,11 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 
 #include "CaretDataFile.h"
 #include "ChartVersionOneDataTypeEnum.h"
+#include "ChartableTwoInterface.h"
 #include "CaretPointer.h"
 #include "NiftiEnums.h"
 #include "PaletteNormalizationModeEnum.h"
@@ -32,6 +34,7 @@ namespace caret {
 
     class ChartDataCartesian;
     class CiftiXML;
+    class ChartTwoDataCartesianHistory;
     class FastStatistics;
     class GiftiMetaData;
     class GiftiLabelTable;
@@ -55,7 +58,7 @@ namespace caret {
      * Note that Caret5 used the term 'column'.
      */
     
-    class CaretMappableDataFile : public CaretDataFile {
+    class CaretMappableDataFile : public CaretDataFile, public ChartableTwoInterface {
         
     public:
         CaretMappableDataFile(const DataFileTypeEnum::Enum dataFileType);
@@ -451,10 +454,28 @@ namespace caret {
         /* documented in cxx file. */
         bool isModified() const;
         
+        void initializeCaretMappableDataFileInstance();
+        
         LabelDrawingProperties* getLabelDrawingProperties();
         
         const LabelDrawingProperties* getLabelDrawingProperties() const;
         
+        virtual CaretMappableDataFile* getAsCaretMappableDataFile() override;
+        
+        virtual const CaretMappableDataFile* getAsCaretMappableDataFile() const override;
+        
+        virtual bool isChartingSupported() const override;
+        
+        virtual bool isChartingSupportedForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType) const override;
+        
+        virtual bool isChartingSupportedForChartCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType) const  override;
+        
+        virtual void getSupportedChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& chartDataTypesOut) const override;
+        
+        virtual void getSupportedChartCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const override;
+        
+        virtual ChartTwoDataCartesianHistory* getLineSeriesChartingHistory() override;
+
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);
 
@@ -474,8 +495,9 @@ namespace caret {
         
         void copyCaretMappableDataFile(const CaretMappableDataFile&);
         
-        CaretPointer<LabelDrawingProperties> m_labelDrawingProperties;
+        std::unique_ptr<LabelDrawingProperties> m_labelDrawingProperties;
 
+        std::unique_ptr<ChartTwoDataCartesianHistory> m_lineChartHistory;
     };
 
 #ifdef __CARET_MAPPABLE_DATA_FILE_DECLARE__

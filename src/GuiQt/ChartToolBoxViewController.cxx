@@ -170,7 +170,7 @@ ChartToolBoxViewController::getSelectedChartModel()
     ModelChart* modelChart = brain->getChartModel();
     if (modelChart != NULL) {
         const int32_t browserTabIndex = browserTabContent->getTabNumber();
-        switch (modelChart->getSelectedChartDataType(browserTabIndex)) {
+        switch (modelChart->getSelectedChartOneDataType(browserTabIndex)) {
             case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
             case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:

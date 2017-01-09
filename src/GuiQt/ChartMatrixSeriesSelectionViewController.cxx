@@ -245,7 +245,7 @@ ChartMatrixSeriesSelectionViewController::updateSelectionViewController()
     ChartVersionOneDataTypeEnum::Enum chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID;
     ModelChart* modelChart = brain->getChartModel();
     if (modelChart != NULL) {
-        chartDataType = modelChart->getSelectedChartDataType(browserTabIndex);
+        chartDataType = modelChart->getSelectedChartOneDataType(browserTabIndex);
     }
     
     if (chartDataType == ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
@@ -353,7 +353,7 @@ ChartMatrixSeriesSelectionViewController::getChartMatrixAndProperties(CaretMappa
     
     ModelChart* modelChart = brain->getChartModel();
     if (modelChart != NULL) {
-        switch (modelChart->getSelectedChartDataType(browserTabIndexOut)) {
+        switch (modelChart->getSelectedChartOneDataType(browserTabIndexOut)) {
             case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
             case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:

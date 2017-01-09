@@ -438,7 +438,7 @@ ChartHistoryViewController::getSelectedChartModelAndTab(ChartModel* &chartModelO
     
     ModelChart* modelChart = brain->getChartModel();
     if (modelChart != NULL) {
-        switch (modelChart->getSelectedChartDataType(tabIndexOut)) {
+        switch (modelChart->getSelectedChartOneDataType(tabIndexOut)) {
             case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
             case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:

@@ -24,10 +24,9 @@
 
 #include "CaretObject.h"
 
-#include "ChartVersionOneDataTypeEnum.h"
+#include "ChartTwoCompoundDataType.h"
 #include "EventListenerInterface.h"
 #include "MapYokingGroupEnum.h"
-#include "MatrixViewingTypeEnum.h"
 #include "SceneableInterface.h"
 
 
@@ -40,13 +39,14 @@ namespace caret {
     class ChartOverlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        ChartOverlay(const ChartVersionOneDataTypeEnum::Enum chartDataType);
+        ChartOverlay(const ChartTwoDataTypeEnum::Enum chartDataType,
+                     const int32_t overlayIndex);
         
         virtual ~ChartOverlay();
         
-        AString getName() const;
+        void setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType);
         
-        void setOverlayNumber(const int32_t overlayIndex);
+        AString getName() const;
         
         virtual AString toString() const;
         
@@ -67,10 +67,6 @@ namespace caret {
         AnnotationColorBar* getColorBar();
         
         const AnnotationColorBar* getColorBar() const;
-        
-        MatrixViewingTypeEnum::Enum getMatrixViewingType() const;
-        
-        void setMatrixViewingType(const MatrixViewingTypeEnum::Enum matrixViewingType);
         
         void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,
@@ -111,34 +107,36 @@ namespace caret {
 
         ChartOverlay& operator=(const ChartOverlay&);
         
-        SceneClassAssistant* m_sceneAssistant;
+        /** Enumerated Type of charts allowed in this overlay */
+        const ChartTwoDataTypeEnum::Enum m_chartDataType;
+        
+        /** Index of this overlay (DO NOT COPY)*/
+        const int32_t m_overlayIndex;
+        
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        const ChartVersionOneDataTypeEnum::Enum m_chartDataType;
+        /** Current 'compound chart type' of charts allowed in this overlay */
+        ChartTwoCompoundDataType m_chartCompoundDataType;
         
         /** Name of overlay (DO NOT COPY)*/
         AString m_name;
         
-        /** Index of this overlay (DO NOT COPY)*/
-        int32_t m_overlayIndex;
-        
         /** enabled status */
-        mutable bool m_enabled;
+        mutable bool m_enabled = true;
         
         /** map yoking group */
         MapYokingGroupEnum::Enum m_mapYokingGroup;
 
-        MatrixViewingTypeEnum::Enum m_matrixViewingType;
-        
         /** The color bar displayed in the graphics window */
-        AnnotationColorBar* m_colorBar;
+        std::unique_ptr<AnnotationColorBar> m_colorBar;
         
         /** selected mappable file */
-        CaretMappableDataFile* m_selectedMapFile;
+        CaretMappableDataFile* m_selectedMapFile = NULL;
         
         /** selected map index */
-        int32_t m_selectedMapIndex;
+        int32_t m_selectedMapIndex = -1;
         
-        bool m_allMapsSelectedFlag;
+        bool m_allMapsSelectedFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

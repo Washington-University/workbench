@@ -26,10 +26,6 @@
 #include "AnnotationColorBar.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
-#include "ChartableLineSeriesBrainordinateInterface.h"
-#include "ChartableLineSeriesRowColumnInterface.h"
-#include "ChartableMatrixParcelInterface.h"
-#include "ChartableMatrixSeriesInterface.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "PlainTextStringBuilder.h"
@@ -48,30 +44,35 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param chartDataType
+ *     Type of charts allowed in this overlay
+ * @param overlayIndex
+ *     Index of this overlay.
  */
-ChartOverlay::ChartOverlay(const ChartVersionOneDataTypeEnum::Enum chartDataType)
+ChartOverlay::ChartOverlay(const ChartTwoDataTypeEnum::Enum chartDataType,
+                           const int32_t overlayIndex)
 : CaretObject(),
-m_chartDataType(chartDataType)
+m_chartDataType(chartDataType),
+m_overlayIndex(overlayIndex)
 {
-    m_name = "Overlay ";
+   // m_chartCompoundDataType
+    m_name = "Overlay " + AString::number(overlayIndex + 1);
     m_enabled = true;
     m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
-    m_matrixViewingType = MatrixViewingTypeEnum::MATRIX_VIEW_FULL;
     
-    m_colorBar = new AnnotationColorBar(AnnotationAttributesDefaultTypeEnum::NORMAL);
+    m_colorBar = std::unique_ptr<AnnotationColorBar>(new AnnotationColorBar(AnnotationAttributesDefaultTypeEnum::NORMAL));
     m_colorBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
     
     m_selectedMapFile  = NULL;
     m_selectedMapIndex = -1;
     m_allMapsSelectedFlag = false;
 
-    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_enabled", &m_enabled);
     m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
                                                                         &m_mapYokingGroup);
-    m_sceneAssistant->add<MatrixViewingTypeEnum, MatrixViewingTypeEnum::Enum>("m_matrixViewingType",
-                                                                              &m_matrixViewingType);
-    m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar);
+    m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar.get());
     m_sceneAssistant->add("m_allMapsSelectedFlag", &m_allMapsSelectedFlag);
     
 //    EventManager::get()->addEventListener(this,
@@ -83,9 +84,7 @@ m_chartDataType(chartDataType)
  */
 ChartOverlay::~ChartOverlay()
 {
-    delete m_colorBar;
     EventManager::get()->removeAllEventsFromListener(this);
-    delete m_sceneAssistant;
 }
 
 
@@ -104,18 +103,6 @@ ChartOverlay::receiveEvent(Event* event)
 //
 //        event->setEventProcessed();
 //    }
-}
-
-/**
- * Set the number of this overlay.
- *
- * @param overlayIndex
- *    Index for this overlay.
- */
-void
-ChartOverlay::setOverlayNumber(const int32_t overlayIndex)
-{
-    m_name = "Overlay " + AString::number(overlayIndex + 1);
 }
 
 /**
@@ -164,6 +151,24 @@ ChartOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) co
 }
 
 /**
+ * Set the compound chart type for charts displayed in this overlay.
+ * MUST match data type for this chart unless invalid.
+ * Note that overlay index zero, allows any chart type.
+ *
+ * @param chartCompoundDataType
+ *     Type of charts for display in this overlay.
+ */
+void
+ChartOverlay::setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType)
+{
+    if (chartCompoundDataType.getChartDataType() != ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+        CaretAssert(m_chartDataType == chartCompoundDataType.getChartDataType());
+    }
+    m_chartCompoundDataType = chartCompoundDataType;
+}
+
+
+/**
  * @return Enabled status for this surface overlay.
  */
 bool
@@ -203,7 +208,6 @@ ChartOverlay::copyData(const ChartOverlay* overlay)
     m_enabled = overlay->m_enabled;
     
     m_mapYokingGroup = overlay->m_mapYokingGroup;
-    m_matrixViewingType = overlay->m_matrixViewingType;
     
     *m_colorBar = *overlay->m_colorBar;
     
@@ -212,21 +216,19 @@ ChartOverlay::copyData(const ChartOverlay* overlay)
 }
 
 /**
- * Swap the data from the given overlay to this overlay.
+ * Swap my data with data from the given overlay.
  * @param overlay
- *    Overlay from which data is transferred.
+ *    Overlay from which data is swapped.
  */
 void
 ChartOverlay::swapData(ChartOverlay* overlay)
 {
-    ChartOverlay* swapOverlay = new ChartOverlay(m_chartDataType);
-    
+    std::unique_ptr<ChartOverlay> swapOverlay = std::unique_ptr<ChartOverlay>(new ChartOverlay(overlay->m_chartDataType,
+                                                                                               overlay->m_overlayIndex));
     swapOverlay->copyData(overlay);
     
     overlay->copyData(this);
-    copyData(swapOverlay);
-    
-    delete swapOverlay;
+    copyData(swapOverlay.get());
 }
 
 /**
@@ -256,7 +258,7 @@ ChartOverlay::setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup)
 AnnotationColorBar*
 ChartOverlay::getColorBar()
 {
-    return m_colorBar;
+    return m_colorBar.get();
 }
 
 /**
@@ -265,28 +267,7 @@ ChartOverlay::getColorBar()
 const AnnotationColorBar*
 ChartOverlay::getColorBar() const
 {
-    return m_colorBar;
-}
-
-/**
- * @return The matrix viewing type.
- */
-MatrixViewingTypeEnum::Enum
-ChartOverlay::getMatrixViewingType() const
-{
-    return m_matrixViewingType;
-}
-
-/**
- * Set the matrix viewing type.
- *
- * @param matrixViewingType
- *     new value.
- */
-void
-ChartOverlay::setMatrixViewingType(const MatrixViewingTypeEnum::Enum matrixViewingType)
-{
-    m_matrixViewingType = matrixViewingType;
+    return m_colorBar.get();
 }
 
 /**
@@ -342,24 +323,34 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
     /*
      * Use only those data files that meet criteria.
      */
-    for (std::vector<CaretMappableDataFile*>::iterator iter = allDataFiles.begin();
-         iter != allDataFiles.end();
-         iter++) {
-        CaretMappableDataFile* mapFile = *iter;
+    for (auto mapFile : allDataFiles) {
+//    for (std::vector<CaretMappableDataFile*>::iterator iter = allDataFiles.begin();
+//         iter != allDataFiles.end();
+//         iter++) {
+//        CaretMappableDataFile* mapFile = *iter;
         bool useIt = false;
+
+        std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
+        mapFile->getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
         
-        ChartableLineSeriesInterface* lineChartFile     = dynamic_cast<ChartableLineSeriesInterface*>(mapFile);
-        ChartableMatrixSeriesInterface* matrixChartFile = dynamic_cast<ChartableMatrixSeriesInterface*>(mapFile);
-        if (m_overlayIndex > 0) {
-            if ((lineChartFile != NULL)
-                || (matrixChartFile != NULL)) {
-                useIt = true;
-            }
-        }
-        else {
-            if ((lineChartFile != NULL)
-                || (matrixChartFile != NULL)) {
-                useIt = true;
+        for (auto& compoundType : chartCompoundDataTypes) {
+            if (m_chartDataType == compoundType.getChartDataType()) {
+                if (m_overlayIndex == 0) {
+                    /*
+                     * The first overlay displays all files that match the
+                     * enumerated chart type
+                     */
+                    useIt = true;
+                }
+                else {
+                    if (m_chartCompoundDataType == compoundType) {
+                        /*
+                         * If not the first overlay, the enumerated type
+                         * and dimensions must also match
+                         */
+                        useIt = true;
+                    }
+                }
             }
         }
         

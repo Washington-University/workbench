@@ -28,6 +28,7 @@
 #include <set>
 #include <map>
 
+#include "ChartTwoDataTypeEnum.h"
 #include "ChartVersionOneDataTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "MapYokingGroupEnum.h"
@@ -94,12 +95,19 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
         
-        void getValidChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& validChartDataTypesOut) const;
+        void getValidChartOneDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& validChartDataTypesOut) const;
         
-        ChartVersionOneDataTypeEnum::Enum getSelectedChartDataType(const int32_t tabIndex) const;
+        ChartVersionOneDataTypeEnum::Enum getSelectedChartOneDataType(const int32_t tabIndex) const;
+        
+        void setSelectedChartOneDataType(const int32_t tabIndex,
+                                      const ChartVersionOneDataTypeEnum::Enum dataType);
+        
+        void getValidChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& validChartDataTypesOut) const;
+        
+        ChartTwoDataTypeEnum::Enum getSelectedChartDataType(const int32_t tabIndex) const;
         
         void setSelectedChartDataType(const int32_t tabIndex,
-                                      const ChartVersionOneDataTypeEnum::Enum dataType);
+                                         const ChartTwoDataTypeEnum::Enum dataType);
         
         ChartModelDataSeries* getSelectedDataSeriesChartModel(const int32_t tabIndex);
         
@@ -178,9 +186,18 @@ namespace caret {
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;
         
-        ChartOverlaySetArray* m_chartOverlaySetArray;
+        /** Chart Overlay sets for XX data type */
+        std::unique_ptr<ChartOverlaySetArray> m_histogramChartOverlaySetArray;
         
-        mutable ChartVersionOneDataTypeEnum::Enum m_selectedChartDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        /** Chart Overlay sets for XX data type */
+        std::unique_ptr<ChartOverlaySetArray> m_lineSeriesChartOverlaySetArray;
+        
+        /** Chart Overlay sets for XX data type */
+        std::unique_ptr<ChartOverlaySetArray> m_matrixChartOverlaySetArray;
+        
+        mutable ChartTwoDataTypeEnum::Enum m_selectedChartTwoDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        mutable ChartVersionOneDataTypeEnum::Enum m_selectedChartOneDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Chart model for data-series data */
         ChartModelDataSeries* m_chartModelDataSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
@@ -206,7 +223,7 @@ namespace caret {
         
         CaretDataFileSelectionModel* m_chartableMatrixSeriesFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        SceneClassAssistant* m_sceneAssistant;
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
     };
 
 } // namespace

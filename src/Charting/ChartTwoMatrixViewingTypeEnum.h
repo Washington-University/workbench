@@ -1,5 +1,5 @@
-#ifndef __MATRIX_VIEWING_TYPE_ENUM_H__
-#define __MATRIX_VIEWING_TYPE_ENUM_H__
+#ifndef __CHART_TWO_MATRIX_VIEWING_TYPE_ENUM_H__
+#define __CHART_TWO_MATRIX_VIEWING_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class MatrixViewingTypeEnum {
+class ChartTwoMatrixViewingTypeEnum {
 
 public:
     /**
@@ -45,7 +45,7 @@ public:
         MATRIX_VIEW_UPPER_NO_DIAGONAL
     };
 
-    ~MatrixViewingTypeEnum();
+    ~ChartTwoMatrixViewingTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -66,14 +66,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    MatrixViewingTypeEnum(const Enum enumValue, 
+    ChartTwoMatrixViewingTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const MatrixViewingTypeEnum* findData(const Enum enumValue);
+    static const ChartTwoMatrixViewingTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<MatrixViewingTypeEnum> enumData;
+    static std::vector<ChartTwoMatrixViewingTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -97,11 +97,11 @@ private:
     AString guiName;
 };
 
-#ifdef __MATRIX_VIEWING_TYPE_ENUM_DECLARE__
-std::vector<MatrixViewingTypeEnum> MatrixViewingTypeEnum::enumData;
-bool MatrixViewingTypeEnum::initializedFlag = false;
-int32_t MatrixViewingTypeEnum::integerCodeCounter = 0; 
-#endif // __MATRIX_VIEWING_TYPE_ENUM_DECLARE__
+#ifdef __CHART_TWO_MATRIX_VIEWING_TYPE_ENUM_DECLARE__
+std::vector<ChartTwoMatrixViewingTypeEnum> ChartTwoMatrixViewingTypeEnum::enumData;
+bool ChartTwoMatrixViewingTypeEnum::initializedFlag = false;
+int32_t ChartTwoMatrixViewingTypeEnum::integerCodeCounter = 0; 
+#endif // __CHART_TWO_MATRIX_VIEWING_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__MATRIX_VIEWING_TYPE_ENUM_H__
+#endif  //__CHART_TWO_MATRIX_VIEWING_TYPE_ENUM_H__

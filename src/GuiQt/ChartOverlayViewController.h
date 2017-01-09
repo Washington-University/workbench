@@ -23,7 +23,7 @@
 
 
 #include <QObject>
-
+#include <QPixmap>
 
 class QAction;
 class QCheckBox;

@@ -38,6 +38,13 @@ ChartSelectionModeEnum.h
 ChartVersionOneDataTypeEnum.h
 ChartingVersionEnum.h
 
+ChartTwoCompoundDataType.h
+ChartTwoData.h
+ChartTwoDataCartesian.h
+ChartTwoDataCartesianHistory.h
+ChartTwoDataTypeEnum.h
+ChartTwoMatrixViewingTypeEnum.h
+
 ChartAxis.cxx
 ChartAxisCartesian.cxx
 ChartAxisLocationEnum.cxx
@@ -60,6 +67,13 @@ ChartScaleAutoRanging.cxx
 ChartSelectionModeEnum.cxx
 ChartVersionOneDataTypeEnum.cxx
 ChartingVersionEnum.cxx
+
+ChartTwoCompoundDataType.cxx
+ChartTwoData.cxx
+ChartTwoDataCartesian.cxx
+ChartTwoDataCartesianHistory.cxx
+ChartTwoDataTypeEnum.cxx
+ChartTwoMatrixViewingTypeEnum.cxx
 )
 
 TARGET_LINK_LIBRARIES(Charting ${CARET_QT5_LINK})

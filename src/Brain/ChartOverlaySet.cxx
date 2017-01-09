@@ -43,8 +43,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param chartDataType
+ *     Type of charts allowed in this overlay
+ * @param name
+ *     Name of the overlay set.
+ * @param tabIndex
+ *     Index of tab in which this overlay set is used.
  */
-ChartOverlaySet::ChartOverlaySet(const ChartVersionOneDataTypeEnum::Enum chartDataType,
+ChartOverlaySet::ChartOverlaySet(const ChartTwoDataTypeEnum::Enum chartDataType,
                                  const AString& name,
                                  const int32_t tabIndex)
 : CaretObject(),
@@ -59,7 +66,8 @@ m_tabIndex(tabIndex)
                           &m_numberOfDisplayedOverlays);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        m_overlays[i] = new ChartOverlay(m_chartDataType);
+        m_overlays[i] = new ChartOverlay(m_chartDataType,
+                                         i);
     }
 //    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
 //    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);

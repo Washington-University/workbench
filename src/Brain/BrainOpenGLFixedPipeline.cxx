@@ -5283,7 +5283,7 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
     const int32_t tabIndex = browserTabContent->getTabNumber();
     ChartModelCartesian* cartesianChart = NULL;
     ChartableMatrixInterface* matrixChartFile = NULL;
-    const ChartVersionOneDataTypeEnum::Enum chartDataType = chartModel->getSelectedChartDataType(tabIndex);
+    const ChartVersionOneDataTypeEnum::Enum chartDataType = chartModel->getSelectedChartOneDataType(tabIndex);
 
     SelectionItemDataTypeEnum::Enum selectionItemDataType = SelectionItemDataTypeEnum::INVALID;
     int32_t scalarDataSeriesMapIndex = -1;

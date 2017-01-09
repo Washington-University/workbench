@@ -111,7 +111,7 @@ ChartSelectionViewController::updateSelectionViewController()
     ChartVersionOneDataTypeEnum::Enum chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID;
     ModelChart* modelChart = brain->getChartModel();
     if (modelChart != NULL) {
-        chartDataType = modelChart->getSelectedChartDataType(browserTabIndex);
+        chartDataType = modelChart->getSelectedChartOneDataType(browserTabIndex);
     }
     
     switch (chartDataType) {

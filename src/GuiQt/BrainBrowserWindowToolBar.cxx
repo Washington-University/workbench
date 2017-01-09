@@ -1404,7 +1404,7 @@ BrainBrowserWindowToolBar::updateToolBar()
             
             ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
             if (modelChart != NULL) {
-                switch (modelChart->getSelectedChartDataType(browserTabContent->getTabNumber())) {
+                switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
                     case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                         break;
                     case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:

@@ -139,7 +139,7 @@ ChartLinesSelectionViewController::updateSelectionViewController()
     ChartVersionOneDataTypeEnum::Enum chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID;
     ModelChart* modelChart = brain->getChartModel();
     if (modelChart != NULL) {
-        chartDataType = modelChart->getSelectedChartDataType(browserTabIndex);
+        chartDataType = modelChart->getSelectedChartOneDataType(browserTabIndex);
     }
     
     bool validFlag = false;
@@ -164,7 +164,7 @@ ChartLinesSelectionViewController::updateSelectionViewController()
     if (validFlag) {
         std::vector<ChartableLineSeriesInterface*> chartableLineSeriesFilesVector;
         
-        const ChartVersionOneDataTypeEnum::Enum chartDataType = modelChart->getSelectedChartDataType(browserTabIndex);
+        const ChartVersionOneDataTypeEnum::Enum chartDataType = modelChart->getSelectedChartOneDataType(browserTabIndex);
         
         brain->getAllChartableLineSeriesDataFilesForChartDataType(chartDataType,
                                                                   chartableLineSeriesFilesVector);

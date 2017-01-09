@@ -44,6 +44,7 @@ ChartableLineSeriesRowColumnInterface.h
 ChartableMatrixInterface.h
 ChartableMatrixParcelInterface.h
 ChartableMatrixSeriesInterface.h
+ChartableTwoInterface.h
 CiftiBrainordinateDataSeriesFile.h
 CiftiBrainordinateLabelFile.h
 CiftiBrainordinateScalarFile.h
@@ -161,6 +162,7 @@ CaretSparseFile.cxx
 CaretVolumeExtension.cxx
 ChartableLineSeriesInterface.cxx
 ChartableMatrixInterface.cxx
+ChartableTwoInterface.cxx
 CiftiBrainordinateDataSeriesFile.cxx
 CiftiBrainordinateLabelFile.cxx
 CiftiBrainordinateScalarFile.cxx

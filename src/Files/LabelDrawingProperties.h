@@ -39,6 +39,10 @@ namespace caret {
         
         virtual ~LabelDrawingProperties();
         
+        LabelDrawingProperties(const LabelDrawingProperties&);
+        
+        LabelDrawingProperties& operator=(const LabelDrawingProperties&);
+
         LabelDrawingTypeEnum::Enum getDrawingType() const;
         
         void setDrawingType(const LabelDrawingTypeEnum::Enum drawingType);
@@ -75,9 +79,10 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        LabelDrawingProperties(const LabelDrawingProperties&);
-
-        LabelDrawingProperties& operator=(const LabelDrawingProperties&);
+        
+        void initializeInstance();
+        
+        void copyHelper(const LabelDrawingProperties& obj);
         
         SceneClassAssistant* m_sceneAssistant;
 

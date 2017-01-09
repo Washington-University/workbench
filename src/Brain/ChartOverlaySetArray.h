@@ -23,17 +23,18 @@
 
 
 #include "CaretObject.h"
-
+#include "ChartTwoDataTypeEnum.h"
 #include "EventListenerInterface.h"
-#include "Overlay.h"
+#include "SceneableInterface.h"
 
 namespace caret {
     class ChartOverlaySet;
     
-    class ChartOverlaySetArray : public CaretObject, public EventListenerInterface {
+    class ChartOverlaySetArray : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        ChartOverlaySetArray(const AString& name);
+        ChartOverlaySetArray(const ChartTwoDataTypeEnum::Enum chartDataType,
+                             const AString& name);
         
         virtual ~ChartOverlaySetArray();
         
@@ -45,6 +46,12 @@ namespace caret {
         
         void copyChartOverlaySet(const int32_t sourceTabIndex,
                             const int32_t destinationTabIndex);
+
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         ChartOverlaySetArray(const ChartOverlaySetArray&);
 

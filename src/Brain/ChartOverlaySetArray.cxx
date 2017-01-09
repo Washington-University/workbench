@@ -25,10 +25,11 @@
 
 #include "BrainConstants.h"
 #include "CaretAssert.h"
+#include "ChartOverlaySet.h"
 #include "EventBrowserTabDelete.h"
 #include "EventManager.h"
-#include "ChartOverlaySet.h"
-
+#include "SceneClass.h"
+#include "SceneClassArray.h"
 using namespace caret;
 
 
@@ -42,19 +43,24 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param chartDataType
+ *     Type of charts allowed in this overlay
  * @param name
  *    Name of model using this chart overlay set.  This name is displayed
  *    if there is an attempt to yoke models with incompatible chart overlays.
  */
-ChartOverlaySetArray::ChartOverlaySetArray(const AString& name)
+ChartOverlaySetArray::ChartOverlaySetArray(const ChartTwoDataTypeEnum::Enum chartDataType,
+                                           const AString& name)
 : CaretObject(),
+EventListenerInterface(),
+SceneableInterface(),
 m_name(name)
 {
-   m_chartOverlaySets.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartOverlaySets[i] = new ChartOverlaySet(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
-                                                    name,
-                                                    i);
+    m_chartOverlaySets.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    for (int32_t tabIndex = 0; tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; tabIndex++) {
+        m_chartOverlaySets[tabIndex] = new ChartOverlaySet(chartDataType,
+                                                           name,
+                                                           tabIndex);
     }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
@@ -97,17 +103,17 @@ ChartOverlaySetArray::getNumberOfChartOverlaySets()
 /**
  * Get the chart overlay set at the given index.
  *
- * @param indx
- *    Index of chart overlay set.
+ * @param tabIndex
+ *    Index of chart overlay tab.
  * @return
  *    Overlay set at given index.
  */
 ChartOverlaySet*
-ChartOverlaySetArray::getChartOverlaySet(const int32_t indx)
+ChartOverlaySetArray::getChartOverlaySet(const int32_t tabIndex)
 {
-    CaretAssertVectorIndex(m_chartOverlaySets, indx);
+    CaretAssertVectorIndex(m_chartOverlaySets, tabIndex);
     
-    return m_chartOverlaySets[indx];
+    return m_chartOverlaySets[tabIndex];
 }
 
 /**
@@ -168,5 +174,78 @@ ChartOverlaySetArray::copyChartOverlaySet(const int32_t sourceTabIndex,
     const ChartOverlaySet* sourceChartOverlaySet =m_chartOverlaySets[sourceTabIndex];
     ChartOverlaySet* destinationChartOverlaySet =m_chartOverlaySets[destinationTabIndex];
     destinationChartOverlaySet->copyOverlaySet(sourceChartOverlaySet);
+}
+
+/**
+ * Save information specific to this type of model to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of instance in the scene.
+ */
+SceneClass*
+ChartOverlaySetArray::saveToScene(const SceneAttributes* sceneAttributes,
+                             const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ChartOverlaySetArray",
+                                            1);
+    
+    const int32_t numOverlaySetsToSave = getNumberOfChartOverlaySets();
+    
+    std::vector<SceneClass*> overlaySetVector;
+    for (int i = 0; i < numOverlaySetsToSave; i++) {
+        overlaySetVector.push_back(m_chartOverlaySets[i]->saveToScene(sceneAttributes,
+                                                                      "m_chartOverlaySet"));
+    }
+    
+    SceneClassArray* overlaySetArray = new SceneClassArray("m_chartOverlaySets",
+                                                             overlaySetVector);
+    sceneClass->addChild(overlaySetArray);
+    
+    // Uncomment if sub-classes must save to scene
+    //saveSubClassDataToScene(sceneAttributes,
+    //                        sceneClass);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore information specific to the type of model from the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass from which model specific information is obtained.
+ */
+void
+ChartOverlaySetArray::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                  const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    
+    const SceneClassArray* overlaySetArray = sceneClass->getClassArray("m_chartOverlaySets");
+    if (overlaySetArray != NULL) {
+        const int32_t numOverlaySets = std::min(overlaySetArray->getNumberOfArrayElements(),
+                                             (int32_t)BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
+        for (int32_t i = 0; i < numOverlaySets; i++) {
+            m_chartOverlaySets[i]->restoreFromScene(sceneAttributes,
+                                                    overlaySetArray->getClassAtIndex(i));
+        }
+    }
+    //Uncomment if sub-classes must restore from scene
+    //restoreSubClassDataFromScene(sceneAttributes,
+    //                             sceneClass);
+    
 }
 

@@ -277,7 +277,7 @@ BrainBrowserWindowToolBarChartAxes::getCartesianChart()
         
         if (modelChart != NULL) {
             const int32_t tabIndex = browserTabContent->getTabNumber();
-            const ChartVersionOneDataTypeEnum::Enum chartType = modelChart->getSelectedChartDataType(tabIndex);
+            const ChartVersionOneDataTypeEnum::Enum chartType = modelChart->getSelectedChartOneDataType(tabIndex);
             
             switch (chartType) {
                 case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:

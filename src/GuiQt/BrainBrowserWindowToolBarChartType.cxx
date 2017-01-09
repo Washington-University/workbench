@@ -148,7 +148,7 @@ BrainBrowserWindowToolBarChartType::chartTypeRadioButtonClicked(int buttonIndex)
     BrowserTabContent* btc = m_parentToolBar->getTabContentFromSelectedTab();
     ModelChart* chartModel = btc->getDisplayedChartModel();
     const int32_t tabIndex = btc->getTabNumber();
-    chartModel->setSelectedChartDataType(tabIndex,
+    chartModel->setSelectedChartOneDataType(tabIndex,
                                          chartDataType);
     
     //updateContent(btc);
@@ -172,10 +172,10 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
     const ModelChart* chartModel = browserTabContent->getDisplayedChartModel();
     if (chartModel != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
-        const ChartVersionOneDataTypeEnum::Enum selectedChartType = chartModel->getSelectedChartDataType(tabIndex);
+        const ChartVersionOneDataTypeEnum::Enum selectedChartType = chartModel->getSelectedChartOneDataType(tabIndex);
 
         std::vector<ChartVersionOneDataTypeEnum::Enum> validChartDataTypes;
-        chartModel->getValidChartDataTypes(validChartDataTypes);
+        chartModel->getValidChartOneDataTypes(validChartDataTypes);
 
         for (std::vector<std::pair<ChartVersionOneDataTypeEnum::Enum, QRadioButton*> >::iterator buttIter = m_chartTypeRadioButtons.begin();
              buttIter != m_chartTypeRadioButtons.end();

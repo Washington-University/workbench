@@ -43,17 +43,7 @@ using namespace caret;
 LabelDrawingProperties::LabelDrawingProperties()
 : CaretObject()
 {
-    m_drawingType          = LabelDrawingTypeEnum::DRAW_FILLED;
-    m_outlineColor         = CaretColorEnum::BLACK;
-    m_drawMedialWallFilled = true;
-
-    m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>("m_drawingType",
-                                                                            &m_drawingType);
-    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_outlineColor",
-                                                                &m_outlineColor);
-    m_sceneAssistant->add("m_drawMedialWallFilled",
-                          &m_drawMedialWallFilled);
+    initializeInstance();
 }
 
 /**
@@ -64,6 +54,67 @@ LabelDrawingProperties::~LabelDrawingProperties()
     delete m_sceneAssistant;
 }
 
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+LabelDrawingProperties::LabelDrawingProperties(const LabelDrawingProperties& obj)
+: CaretObject(obj)
+{
+    initializeInstance();
+    copyHelper(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+LabelDrawingProperties&
+LabelDrawingProperties::operator=(const LabelDrawingProperties& obj)
+{
+    if (this != &obj) {
+        CaretObject::operator=(obj);
+        this->copyHelper(obj);
+    }
+    return *this;
+}
+
+/**
+ * Initialize an instance of this class.
+ */
+void
+LabelDrawingProperties::initializeInstance()
+{
+    m_drawingType          = LabelDrawingTypeEnum::DRAW_FILLED;
+    m_outlineColor         = CaretColorEnum::BLACK;
+    m_drawMedialWallFilled = true;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>("m_drawingType",
+                                                                            &m_drawingType);
+    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_outlineColor",
+                                                                &m_outlineColor);
+    m_sceneAssistant->add("m_drawMedialWallFilled",
+                          &m_drawMedialWallFilled);
+}
+
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+LabelDrawingProperties::copyHelper(const LabelDrawingProperties& obj)
+{
+    m_drawingType          = obj.m_drawingType;
+    m_outlineColor         = obj.m_outlineColor;
+    m_drawMedialWallFilled = obj.m_drawMedialWallFilled;
+}
 
 /**
  * @return The drawing type.

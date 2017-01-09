@@ -27,6 +27,7 @@
 
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
+#include "ChartTwoDataCartesianHistory.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
@@ -53,7 +54,7 @@ using namespace caret;
 CaretMappableDataFile::CaretMappableDataFile(const DataFileTypeEnum::Enum dataFileType)
 : CaretDataFile(dataFileType)
 {
-    m_labelDrawingProperties.grabNew(new LabelDrawingProperties());
+    initializeCaretMappableDataFileInstance();
 }
 
 /**
@@ -72,11 +73,13 @@ CaretMappableDataFile::~CaretMappableDataFile()
 CaretMappableDataFile::CaretMappableDataFile(const CaretMappableDataFile& cmdf)
 : CaretDataFile(cmdf)
 {
+    initializeCaretMappableDataFileInstance();
+    
     this->copyCaretMappableDataFile(cmdf);
 }
 
 /**
- * Constructor.
+ * Assignment operator.
  * @param cmdf
  *   Instance that is assigned to this.
  * @return
@@ -93,11 +96,25 @@ CaretMappableDataFile::operator=(const CaretMappableDataFile& cmdf)
 }
 
 /**
+ * Initialize a new instance.
+ */
+void
+CaretMappableDataFile::initializeCaretMappableDataFileInstance()
+{
+    m_labelDrawingProperties = std::unique_ptr<LabelDrawingProperties>(new LabelDrawingProperties());
+    
+    m_lineChartHistory = std::unique_ptr<ChartTwoDataCartesianHistory>(new ChartTwoDataCartesianHistory());
+}
+
+
+/**
  * Assists with copying instances of this class.
  */
 void 
-CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile& /*cmdf*/)
+CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile& cmdf)
 {
+    setPaletteNormalizationMode(cmdf.getPaletteNormalizationMode());
+    *m_labelDrawingProperties = *cmdf.m_labelDrawingProperties;
 }
 
 // note: method is documented in header file
@@ -297,6 +314,8 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
                                                sceneClass);
     
 
+    sceneClass->addClass(m_lineChartHistory->saveToScene(sceneAttributes,
+                                                         "m_lineChartHistory"));
     sceneClass->addClass(m_labelDrawingProperties->saveToScene(sceneAttributes,
                                                                "m_labelDrawingProperties"));
     
@@ -384,6 +403,9 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     
     m_labelDrawingProperties->restoreFromScene(sceneAttributes,
                                                sceneClass->getClass("m_labelDrawingProperties"));
+    
+    m_lineChartHistory->restoreFromScene(sceneAttributes,
+                                         sceneClass->getClass("m_lineChartHistory"));
     
     if (isMappedWithPalette()) {
         /*
@@ -996,7 +1018,7 @@ CaretMappableDataFile::isMedialWallLabelInMapLabelTable(const int32_t mapIndex) 
 LabelDrawingProperties*
 CaretMappableDataFile::getLabelDrawingProperties()
 {
-    return m_labelDrawingProperties;
+    return m_labelDrawingProperties.get();
 }
 
 /**
@@ -1006,7 +1028,7 @@ CaretMappableDataFile::getLabelDrawingProperties()
 const LabelDrawingProperties*
 CaretMappableDataFile::getLabelDrawingProperties() const
 {
-    return m_labelDrawingProperties;
+    return m_labelDrawingProperties.get();
 }
 
 /**
@@ -1070,4 +1092,291 @@ const CiftiXML CaretMappableDataFile::getCiftiXML() const
 {
     return CiftiXML();
 }
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ */
+CaretMappableDataFile*
+CaretMappableDataFile::getAsCaretMappableDataFile()
+{
+    return this;
+}
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ */
+const CaretMappableDataFile*
+CaretMappableDataFile::getAsCaretMappableDataFile() const
+{
+    return this;
+}
+
+
+/**
+ * Does this file support any type of charting?
+ */
+bool
+CaretMappableDataFile::isChartingSupported() const
+{
+    std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
+    getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
+    
+    return ( ! chartCompoundDataTypes.empty());
+}
+
+/**
+ * Test for support of the given chart data type.
+ *
+ * @param chartDataType
+ *     Type of chart data.
+ * @return
+ *     True if the chart data type is supported, else false.
+ */
+bool
+CaretMappableDataFile::isChartingSupportedForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType) const
+{
+    std::vector<ChartTwoDataTypeEnum::Enum> chartDataTypes;
+    getSupportedChartDataTypes(chartDataTypes);
+    
+    if (std::find(chartDataTypes.begin(),
+                  chartDataTypes.end(),
+                  chartDataType) != chartDataTypes.end()) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Test for support of the given chart compound data type.
+ *
+ * @param chartCompoundDataType
+ *     Type of chart compound data.
+ * @return
+ *     True if the chart compound data type is supported, else false.
+ */
+bool
+CaretMappableDataFile::isChartingSupportedForChartCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType) const
+{
+    std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
+    getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
+    
+    for (auto& ccdt : chartCompoundDataTypes) {
+        if (ccdt == chartCompoundDataType) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Get chart data types supported by this file.
+ *
+ * @param chartDataTypesOut
+ *     Output containing all chart data types supported by this data file.
+ */
+void
+CaretMappableDataFile::getSupportedChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& chartDataTypesOut) const
+{
+    chartDataTypesOut.clear();
+
+    std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
+    getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
+    
+    for (auto& ccdt : chartCompoundDataTypes) {
+        chartDataTypesOut.push_back(ccdt.getChartDataType());
+    }
+}
+
+/**
+ * Get chart data types supported by this file.
+ *
+ * @param chartDataTypesOut
+ *     Output containing all chart data types supported by this data file.
+ */
+void
+CaretMappableDataFile::getSupportedChartCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const
+{
+    chartCompoundDataTypesOut.clear();
+
+    bool hasHistogramFlag  = false;
+    bool hasBrainordinateLineSeriesFlag = false;
+    bool hasNoMapsLineSeriesFlag = false;
+    bool hasMatrixFlag     = false;
+    
+    switch (getDataFileType()) {
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            hasHistogramFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            hasHistogramFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            hasHistogramFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            hasHistogramFlag = true;
+            hasBrainordinateLineSeriesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            hasHistogramFlag  = true;
+            hasBrainordinateLineSeriesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            hasHistogramFlag = true;
+            hasMatrixFlag    = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            hasHistogramFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            hasMatrixFlag    = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            hasHistogramFlag  = true;
+            hasBrainordinateLineSeriesFlag = true;
+            hasMatrixFlag     = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            hasHistogramFlag  = true;
+            hasBrainordinateLineSeriesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            hasHistogramFlag  = true;
+            hasNoMapsLineSeriesFlag = true;
+            hasMatrixFlag     = true;
+            break;
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::METRIC:
+            hasHistogramFlag  = true;
+            hasBrainordinateLineSeriesFlag = true;
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            hasHistogramFlag  = true;
+            hasBrainordinateLineSeriesFlag = true;
+            break;
+    }
+    
+    if (hasHistogramFlag) {
+        if (getNumberOfMaps() > 0) {
+            chartCompoundDataTypesOut.push_back(ChartTwoCompoundDataType::newInstanceForHistogram());
+        }
+    }
+    
+    if (hasBrainordinateLineSeriesFlag) {
+        if (getNumberOfMaps() > 1) {
+            const NiftiTimeUnitsEnum::Enum mapUnits = getMapIntervalUnits();
+            ChartAxisUnitsEnum::Enum xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
+            switch (mapUnits) {
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+                    xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_FREQUENCY_HERTZ;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+                    xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+                    CaretAssert(0);
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+                    xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+                    xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+                    break;
+            }
+            const int32_t numMaps = getNumberOfMaps();
+            chartCompoundDataTypesOut.push_back(ChartTwoCompoundDataType::newInstanceForLineSeries(xAxisUnits,
+                                                                                                   numMaps));
+        }
+    }
+    
+    if (hasNoMapsLineSeriesFlag) {
+        const CiftiMappableDataFile* ciftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(this);
+        CaretAssert(ciftiMapFile);
+        std::vector<int64_t> dims;
+        ciftiMapFile->getMapDimensions(dims);
+        CaretAssertVectorIndex(dims, 1);
+        const int32_t numCols = dims[0];
+        //const int32_t numRows = dims[1];
+        
+        if (numCols > 1) {
+            const NiftiTimeUnitsEnum::Enum mapUnits = getMapIntervalUnits();
+            ChartAxisUnitsEnum::Enum xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
+            switch (mapUnits) {
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+                    xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_FREQUENCY_HERTZ;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+                    xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+                    CaretAssert(0);
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+                    xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+                    xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+                    break;
+            }
+            chartCompoundDataTypesOut.push_back(ChartTwoCompoundDataType::newInstanceForLineSeries(xAxisUnits,
+                                                                                                   numCols));
+        }
+    }
+    
+    if (hasMatrixFlag) {
+        const CiftiMappableDataFile* ciftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(this);
+        CaretAssert(ciftiMapFile);
+        std::vector<int64_t> dims;
+        ciftiMapFile->getMapDimensions(dims);
+        CaretAssertVectorIndex(dims, 1);
+        const int32_t numCols = dims[0];
+        const int32_t numRows = dims[1];
+        
+        chartCompoundDataTypesOut.push_back(ChartTwoCompoundDataType::newInstanceForMatrix(numRows,
+                                                                                           numCols));
+    }
+}
+
+/**
+ * @return Charting history if this file charts to lines.
+ */
+ChartTwoDataCartesianHistory*
+CaretMappableDataFile::getLineSeriesChartingHistory()
+{
+    return m_lineChartHistory.get();
+}
+
 

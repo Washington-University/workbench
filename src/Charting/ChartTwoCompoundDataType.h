@@ -1,5 +1,5 @@
-#ifndef __CHART_OVERLAY_SET_H__
-#define __CHART_OVERLAY_SET_H__
+#ifndef __CHART_TWO_COMPOUND_DATA_TYPE_H__
+#define __CHART_TWO_COMPOUND_DATA_TYPE_H__
 
 /*LICENSE_START*/
 /*
@@ -21,65 +21,58 @@
  */
 /*LICENSE_END*/
 
-#include "BrainConstants.h"
+
 #include "CaretObject.h"
+#include "ChartAxisUnitsEnum.h"
 #include "ChartTwoDataTypeEnum.h"
-#include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
-    class ChartOverlay;
-    class PlainTextStringBuilder;
     class SceneClassAssistant;
 
-    class ChartOverlaySet : public CaretObject, public EventListenerInterface, public SceneableInterface {
+    class ChartTwoCompoundDataType : public CaretObject, public SceneableInterface {
         
     public:
-        ChartOverlaySet(const ChartTwoDataTypeEnum::Enum chartDataType,
-                        const AString& name,
-                        const int32_t tabIndex);
+        ChartTwoCompoundDataType();
         
-        virtual ~ChartOverlaySet();
+        ChartTwoCompoundDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
+                              const ChartAxisUnitsEnum::Enum lineChartUnitsAxisX,
+                              const int32_t lineChartNumberOfElementsAxisX,
+                              const int32_t matrixNumberOfRows,
+                              const int32_t matrixNumberOfColumns);
         
-        void copyOverlaySet(const ChartOverlaySet* overlaySet);
+        static ChartTwoCompoundDataType newInstanceForHistogram();
         
-        ChartOverlay* getPrimaryOverlay();
+        static ChartTwoCompoundDataType newInstanceForLineSeries(const ChartAxisUnitsEnum::Enum lineChartUnitsAxisX,
+                                                              const int32_t lineChartNumberOfElementsAxisX);
         
-        ChartOverlay* getUnderlay();
+        static ChartTwoCompoundDataType newInstanceForMatrix(const int32_t matrixNumberOfRows,
+                                                          const int32_t matrixNumberOfColumns);
         
-        ChartOverlay* getOverlay(const int32_t overlayNumber);
+
+        virtual ~ChartTwoCompoundDataType();
         
-        const ChartOverlay* getOverlay(const int32_t overlayNumber) const;
+        ChartTwoCompoundDataType(const ChartTwoCompoundDataType& obj);
+
+        ChartTwoCompoundDataType& operator=(const ChartTwoCompoundDataType& obj);
         
-        void addDisplayedOverlay();
+        bool operator==(const ChartTwoCompoundDataType& obj) const;
         
-        void setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays);
+        ChartTwoDataTypeEnum::Enum getChartDataType() const;
         
-        int32_t getNumberOfDisplayedOverlays() const;
+        ChartAxisUnitsEnum::Enum getLineChartUnitsAxisX() const;
         
-        void insertOverlayAbove(const int32_t overlayIndex);
+        int32_t getLineChartNumberOfElementsAxisX() const;
         
-        void insertOverlayBelow(const int32_t overlayIndex);
+        int32_t getMatrixNumberOfRows() const;
         
-        void removeDisplayedOverlay(const int32_t overlayIndex);
-        
-        void moveDisplayedOverlayUp(const int32_t overlayIndex);
-        
-        void moveDisplayedOverlayDown(const int32_t overlayIndex);
-        
-        void initializeOverlays();
-        
-        void resetOverlayYokingToOff();
+        int32_t getMatrixNumberOfColumns() const;
 
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
         
-        virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
-        
-        virtual void receiveEvent(Event* event);
-
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
 
@@ -102,29 +95,29 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        ChartOverlaySet(const ChartOverlaySet&);
+        void copyHelperChartTwoCompoundDataType(const ChartTwoCompoundDataType& obj);
 
-        ChartOverlaySet& operator=(const ChartOverlaySet&);
+        void initializeChartTwoCompoundDataType();
         
         SceneClassAssistant* m_sceneAssistant;
 
-        ChartOverlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
+        ChartTwoDataTypeEnum::Enum m_chartDataType;
         
-        const ChartTwoDataTypeEnum::Enum m_chartDataType;
+        ChartAxisUnitsEnum::Enum m_lineChartUnitsAxisX;
         
-        const AString m_name;
+        int32_t m_lineChartNumberOfElementsAxisX;
         
-        const int32_t m_tabIndex;
+        int32_t m_matrixNumberOfRows;
         
-        int32_t m_numberOfDisplayedOverlays;
+        int32_t m_matrixNumberOfColumns;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHART_OVERLAY_SET_DECLARE__
+#ifdef __CHART_TWO_COMPOUND_DATA_TYPE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_OVERLAY_SET_DECLARE__
+#endif // __CHART_TWO_COMPOUND_DATA_TYPE_DECLARE__
 
 } // namespace
-#endif  //__CHART_OVERLAY_SET_H__
+#endif  //__CHART_TWO_COMPOUND_DATA_TYPE_H__

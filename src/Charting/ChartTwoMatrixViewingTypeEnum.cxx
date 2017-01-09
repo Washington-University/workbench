@@ -20,9 +20,10 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __MATRIX_VIEWING_TYPE_ENUM_DECLARE__
-#include "MatrixViewingTypeEnum.h"
-#undef __MATRIX_VIEWING_TYPE_ENUM_DECLARE__
+
+#define __CHART_TWO_MATRIX_VIEWING_TYPE_ENUM_DECLARE__
+#include "ChartTwoMatrixViewingTypeEnum.h"
+#undef __CHART_TWO_MATRIX_VIEWING_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,10 +31,8 @@ using namespace caret;
 
     
 /**
- * \class caret::MatrixViewingTypeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \class caret::ChartTwoMatrixViewingTypeEnum 
+ * \brief Types of viewing for matrix.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -51,21 +50,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "MatrixViewingTypeEnum.h"
+ *         #include "ChartTwoMatrixViewingTypeEnum.h"
  * 
  *     Instatiate:
  *         m_matrixViewingTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_matrixViewingTypeEnumComboBox->setup<MatrixViewingTypeEnum,MatrixViewingTypeEnum::Enum>();
+ *         m_matrixViewingTypeEnumComboBox->setup<ChartTwoMatrixViewingTypeEnum,ChartTwoMatrixViewingTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_matrixViewingTypeEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(matrixViewingTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_matrixViewingTypeEnumComboBox->setSelectedItem<MatrixViewingTypeEnum,MatrixViewingTypeEnum::Enum>(NEW_VALUE);
+ *         m_matrixViewingTypeEnumComboBox->setSelectedItem<ChartTwoMatrixViewingTypeEnum,ChartTwoMatrixViewingTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const MatrixViewingTypeEnum::Enum VARIABLE = m_matrixViewingTypeEnumComboBox->getSelectedItem<MatrixViewingTypeEnum,MatrixViewingTypeEnum::Enum>();
+ *         const ChartTwoMatrixViewingTypeEnum::Enum VARIABLE = m_matrixViewingTypeEnumComboBox->getSelectedItem<ChartTwoMatrixViewingTypeEnum,ChartTwoMatrixViewingTypeEnum::Enum>();
  * 
  */
 
@@ -80,7 +79,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-MatrixViewingTypeEnum::MatrixViewingTypeEnum(const Enum enumValue,
+ChartTwoMatrixViewingTypeEnum::ChartTwoMatrixViewingTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -93,7 +92,7 @@ MatrixViewingTypeEnum::MatrixViewingTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-MatrixViewingTypeEnum::~MatrixViewingTypeEnum()
+ChartTwoMatrixViewingTypeEnum::~ChartTwoMatrixViewingTypeEnum()
 {
 }
 
@@ -101,26 +100,26 @@ MatrixViewingTypeEnum::~MatrixViewingTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-MatrixViewingTypeEnum::initialize()
+ChartTwoMatrixViewingTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(MatrixViewingTypeEnum(MATRIX_VIEW_FULL, 
+    enumData.push_back(ChartTwoMatrixViewingTypeEnum(MATRIX_VIEW_FULL, 
                                     "MATRIX_VIEW_FULL", 
                                     "Matrix View Full"));
     
-    enumData.push_back(MatrixViewingTypeEnum(MATRIX_VIEW_FULL_NO_DIAGONAL, 
+    enumData.push_back(ChartTwoMatrixViewingTypeEnum(MATRIX_VIEW_FULL_NO_DIAGONAL, 
                                     "MATRIX_VIEW_FULL_NO_DIAGONAL", 
                                     "Matrix View Full No Diagonal"));
     
-    enumData.push_back(MatrixViewingTypeEnum(MATRIX_VIEW_LOWER_NO_DIAGONAL, 
+    enumData.push_back(ChartTwoMatrixViewingTypeEnum(MATRIX_VIEW_LOWER_NO_DIAGONAL, 
                                     "MATRIX_VIEW_LOWER_NO_DIAGONAL", 
                                     "Matrix View Lower No Diagonal"));
     
-    enumData.push_back(MatrixViewingTypeEnum(MATRIX_VIEW_UPPER_NO_DIAGONAL, 
+    enumData.push_back(ChartTwoMatrixViewingTypeEnum(MATRIX_VIEW_UPPER_NO_DIAGONAL, 
                                     "MATRIX_VIEW_UPPER_NO_DIAGONAL", 
                                     "Matrix View Upper No Diagonal"));
 }
@@ -132,14 +131,14 @@ MatrixViewingTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const MatrixViewingTypeEnum*
-MatrixViewingTypeEnum::findData(const Enum enumValue)
+const ChartTwoMatrixViewingTypeEnum*
+ChartTwoMatrixViewingTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const MatrixViewingTypeEnum* d = &enumData[i];
+        const ChartTwoMatrixViewingTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -156,10 +155,10 @@ MatrixViewingTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-MatrixViewingTypeEnum::toName(Enum enumValue) {
+ChartTwoMatrixViewingTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const MatrixViewingTypeEnum* enumInstance = findData(enumValue);
+    const ChartTwoMatrixViewingTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -173,18 +172,18 @@ MatrixViewingTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-MatrixViewingTypeEnum::Enum 
-MatrixViewingTypeEnum::fromName(const AString& name, bool* isValidOut)
+ChartTwoMatrixViewingTypeEnum::Enum 
+ChartTwoMatrixViewingTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = MatrixViewingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoMatrixViewingTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<MatrixViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixViewingTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const MatrixViewingTypeEnum& d = *iter;
+        const ChartTwoMatrixViewingTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -196,7 +195,7 @@ MatrixViewingTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type MatrixViewingTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartTwoMatrixViewingTypeEnum"));
     }
     return enumValue;
 }
@@ -209,10 +208,10 @@ MatrixViewingTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-MatrixViewingTypeEnum::toGuiName(Enum enumValue) {
+ChartTwoMatrixViewingTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const MatrixViewingTypeEnum* enumInstance = findData(enumValue);
+    const ChartTwoMatrixViewingTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -226,18 +225,18 @@ MatrixViewingTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-MatrixViewingTypeEnum::Enum 
-MatrixViewingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ChartTwoMatrixViewingTypeEnum::Enum 
+ChartTwoMatrixViewingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = MatrixViewingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoMatrixViewingTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<MatrixViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixViewingTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const MatrixViewingTypeEnum& d = *iter;
+        const ChartTwoMatrixViewingTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -249,7 +248,7 @@ MatrixViewingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type MatrixViewingTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartTwoMatrixViewingTypeEnum"));
     }
     return enumValue;
 }
@@ -261,10 +260,10 @@ MatrixViewingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-MatrixViewingTypeEnum::toIntegerCode(Enum enumValue)
+ChartTwoMatrixViewingTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const MatrixViewingTypeEnum* enumInstance = findData(enumValue);
+    const ChartTwoMatrixViewingTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -279,18 +278,18 @@ MatrixViewingTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-MatrixViewingTypeEnum::Enum
-MatrixViewingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ChartTwoMatrixViewingTypeEnum::Enum
+ChartTwoMatrixViewingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = MatrixViewingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoMatrixViewingTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<MatrixViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixViewingTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const MatrixViewingTypeEnum& enumInstance = *iter;
+        const ChartTwoMatrixViewingTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -302,7 +301,7 @@ MatrixViewingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidO
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type MatrixViewingTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartTwoMatrixViewingTypeEnum"));
     }
     return enumValue;
 }
@@ -315,13 +314,13 @@ MatrixViewingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidO
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-MatrixViewingTypeEnum::getAllEnums(std::vector<MatrixViewingTypeEnum::Enum>& allEnums)
+ChartTwoMatrixViewingTypeEnum::getAllEnums(std::vector<ChartTwoMatrixViewingTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<MatrixViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixViewingTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -337,16 +336,16 @@ MatrixViewingTypeEnum::getAllEnums(std::vector<MatrixViewingTypeEnum::Enum>& all
  *     If true, the names are sorted in alphabetical order.
  */
 void
-MatrixViewingTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ChartTwoMatrixViewingTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<MatrixViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixViewingTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(MatrixViewingTypeEnum::toName(iter->enumValue));
+        allNames.push_back(ChartTwoMatrixViewingTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -363,16 +362,16 @@ MatrixViewingTypeEnum::getAllNames(std::vector<AString>& allNames, const bool is
  *     If true, the names are sorted in alphabetical order.
  */
 void
-MatrixViewingTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ChartTwoMatrixViewingTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<MatrixViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixViewingTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(MatrixViewingTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ChartTwoMatrixViewingTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

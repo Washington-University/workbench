@@ -138,7 +138,6 @@ IdentifiedItem.h
 IdentifiedItemNode.h
 IdentifiedItemVoxel.h
 ImageDepthPositionEnum.h
-MatrixViewingTypeEnum.h
 Model.h
 ModelChart.h
 ModelSurface.h
@@ -279,7 +278,6 @@ IdentifiedItem.cxx
 IdentifiedItemNode.cxx
 IdentifiedItemVoxel.cxx
 ImageDepthPositionEnum.cxx
-MatrixViewingTypeEnum.cxx
 Model.cxx
 ModelChart.cxx
 ModelSurface.cxx
