@@ -24,7 +24,7 @@
 #include <memory>
 
 #include "CaretDataFile.h"
-#include "ChartVersionOneDataTypeEnum.h"
+#include "ChartOneDataTypeEnum.h"
 #include "ChartableTwoInterface.h"
 #include "CaretPointer.h"
 #include "NiftiEnums.h"
@@ -483,7 +483,7 @@ namespace caret {
         
         ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data);
         
-        void helpGetSupportedLineSeriesChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const;
+        void helpGetSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);

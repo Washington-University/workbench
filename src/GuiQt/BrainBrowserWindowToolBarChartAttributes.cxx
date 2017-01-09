@@ -133,22 +133,22 @@ BrainBrowserWindowToolBarChartAttributes::getCartesianChart()
         
         if (modelChart != NULL) {
             const int32_t tabIndex = browserTabContent->getTabNumber();
-            const ChartVersionOneDataTypeEnum::Enum chartType = modelChart->getSelectedChartOneDataType(tabIndex);
+            const ChartOneDataTypeEnum::Enum chartType = modelChart->getSelectedChartOneDataType(tabIndex);
             
             switch (chartType) {
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     break;
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                     break;
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                     cartesianChart = modelChart->getSelectedDataSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
                     break;
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                     cartesianChart = modelChart->getSelectedFrequencySeriesChartModel(tabIndex);
                     break;
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     cartesianChart = modelChart->getSelectedTimeSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
                     break;
             }
@@ -173,12 +173,12 @@ BrainBrowserWindowToolBarChartAttributes::getChartableMatrixDisplayProperties()
         
         if (modelChart != NULL) {
             const int32_t tabIndex = browserTabContent->getTabNumber();
-            const ChartVersionOneDataTypeEnum::Enum chartType = modelChart->getSelectedChartOneDataType(tabIndex);
+            const ChartOneDataTypeEnum::Enum chartType = modelChart->getSelectedChartOneDataType(tabIndex);
             
             switch (chartType) {
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 {
                     ChartableMatrixInterface* matrixInterface = modelChart->getChartableMatrixParcelFileSelectionModel(tabIndex)->getSelectedFileOfType<ChartableMatrixInterface>();
                     if (matrixInterface != NULL) {
@@ -186,7 +186,7 @@ BrainBrowserWindowToolBarChartAttributes::getChartableMatrixDisplayProperties()
                     }
                 }
                     break;
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                 {
                     CaretDataFileSelectionModel* fileModel = modelChart->getChartableMatrixSeriesFileSelectionModel(tabIndex);
                     CaretDataFile* caretFile = fileModel->getSelectedFile();
@@ -198,11 +198,11 @@ BrainBrowserWindowToolBarChartAttributes::getChartableMatrixDisplayProperties()
                     }
                 }
                     break;
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                     break;
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                     break;
-                case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     break;
             }
         }

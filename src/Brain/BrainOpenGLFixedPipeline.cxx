@@ -5283,34 +5283,34 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
     const int32_t tabIndex = browserTabContent->getTabNumber();
     ChartModelCartesian* cartesianChart = NULL;
     ChartableMatrixInterface* matrixChartFile = NULL;
-    const ChartVersionOneDataTypeEnum::Enum chartDataType = chartModel->getSelectedChartOneDataType(tabIndex);
+    const ChartOneDataTypeEnum::Enum chartDataType = chartModel->getSelectedChartOneDataType(tabIndex);
 
     SelectionItemDataTypeEnum::Enum selectionItemDataType = SelectionItemDataTypeEnum::INVALID;
     int32_t scalarDataSeriesMapIndex = -1;
     
     switch (chartDataType) {
-        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
-        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
             cartesianChart = chartModel->getSelectedDataSeriesChartModel(tabIndex);
             selectionItemDataType = SelectionItemDataTypeEnum::CHART_DATA_SERIES;
             break;
-        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
             cartesianChart = chartModel->getSelectedFrequencySeriesChartModel(tabIndex);
             selectionItemDataType = SelectionItemDataTypeEnum::CHART_FREQUENCY_SERIES;
             break;
-        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
             cartesianChart = chartModel->getSelectedTimeSeriesChartModel(tabIndex);
             selectionItemDataType = SelectionItemDataTypeEnum::CHART_TIME_SERIES;
             break;
-        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
         {
             CaretDataFileSelectionModel* matrixFileSelector = chartModel->getChartableMatrixParcelFileSelectionModel(tabIndex);
             matrixChartFile = matrixFileSelector->getSelectedFileOfType<ChartableMatrixInterface>();
             selectionItemDataType = SelectionItemDataTypeEnum::CHART_MATRIX;
         }
             break;
-        case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
         {
             CaretDataFileSelectionModel* fileModel = chartModel->getChartableMatrixSeriesFileSelectionModel(tabIndex);
             CaretDataFile* caretFile = fileModel->getSelectedFile();

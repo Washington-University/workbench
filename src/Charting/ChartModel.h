@@ -26,7 +26,7 @@
 #include <deque>
 
 #include "CaretObject.h"
-#include "ChartVersionOneDataTypeEnum.h"
+#include "ChartOneDataTypeEnum.h"
 #include "ChartSelectionModeEnum.h"
 #include "SceneableInterface.h"
 
@@ -40,7 +40,7 @@ namespace caret {
     class ChartModel : public CaretObject, public SceneableInterface {
         
     public:
-        ChartModel(const ChartVersionOneDataTypeEnum::Enum chartDataType,
+        ChartModel(const ChartOneDataTypeEnum::Enum chartDataType,
                    const ChartSelectionModeEnum::Enum chartSelectionMode);
         
         ChartModel(const ChartModel&);
@@ -51,7 +51,7 @@ namespace caret {
         
         void removeChartData();
         
-        ChartVersionOneDataTypeEnum::Enum getChartDataType() const;
+        ChartOneDataTypeEnum::Enum getChartDataType() const;
         
         ChartSelectionModeEnum::Enum getChartSelectionMode() const;
         
@@ -160,7 +160,7 @@ namespace caret {
         
         void updateUsingMaximumNumberOfChartDatasToDisplay();
         
-        ChartVersionOneDataTypeEnum::Enum m_chartDataType;
+        ChartOneDataTypeEnum::Enum m_chartDataType;
         
         ChartSelectionModeEnum::Enum m_chartSelectionMode;
         

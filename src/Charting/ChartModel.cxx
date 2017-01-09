@@ -55,7 +55,7 @@ using namespace caret;
  * @param chartSelectionMode
  *    The selection mode.
  */
-ChartModel::ChartModel(const ChartVersionOneDataTypeEnum::Enum chartDataType,
+ChartModel::ChartModel(const ChartOneDataTypeEnum::Enum chartDataType,
                        const ChartSelectionModeEnum::Enum chartSelectionMode)
 : CaretObject(),
 SceneableInterface(),
@@ -244,7 +244,7 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
 /**
  * @return The chart data type.
  */
-ChartVersionOneDataTypeEnum::Enum
+ChartOneDataTypeEnum::Enum
 ChartModel::getChartDataType() const
 {
     return m_chartDataType;

@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class ChartVersionOneDataTypeEnum {
+class ChartOneDataTypeEnum {
 
 public:
     /**
@@ -50,7 +50,7 @@ public:
     };
 
 
-    ~ChartVersionOneDataTypeEnum();
+    ~ChartOneDataTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -71,14 +71,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    ChartVersionOneDataTypeEnum(const Enum enumValue, 
+    ChartOneDataTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const ChartVersionOneDataTypeEnum* findData(const Enum enumValue);
+    static const ChartOneDataTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<ChartVersionOneDataTypeEnum> enumData;
+    static std::vector<ChartOneDataTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -103,9 +103,9 @@ private:
 };
 
 #ifdef __CHART_VERSION_ONE_DATA_TYPE_ENUM_DECLARE__
-std::vector<ChartVersionOneDataTypeEnum> ChartVersionOneDataTypeEnum::enumData;
-bool ChartVersionOneDataTypeEnum::initializedFlag = false;
-int32_t ChartVersionOneDataTypeEnum::integerCodeCounter = 0; 
+std::vector<ChartOneDataTypeEnum> ChartOneDataTypeEnum::enumData;
+bool ChartOneDataTypeEnum::initializedFlag = false;
+int32_t ChartOneDataTypeEnum::integerCodeCounter = 0; 
 #endif // __CHART_VERSION_ONE_DATA_TYPE_ENUM_DECLARE__
 
 } // namespace

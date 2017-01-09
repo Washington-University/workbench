@@ -25,7 +25,7 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
-#include "ChartVersionOneDataTypeEnum.h"
+#include "ChartOneDataTypeEnum.h"
 #include "DataFileTypeEnum.h"
 #include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
@@ -321,14 +321,14 @@ namespace caret {
         
         void getAllChartableLineSeriesDataFiles(std::vector<ChartableLineSeriesInterface*>& chartableDataFilesOut) const;
         
-        void getAllChartableLineSeriesDataFilesForChartDataType(const ChartVersionOneDataTypeEnum::Enum chartDataType,
+        void getAllChartableLineSeriesDataFilesForChartDataType(const ChartOneDataTypeEnum::Enum chartDataType,
                                                       std::vector<ChartableLineSeriesInterface*>& chartableDataFilesOut) const;
         
         void getAllChartableBrainordinateDataFilesWithChartingEnabled(std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const;
         
         void getAllChartableMatrixDataFiles(std::vector<ChartableMatrixInterface*>& chartableDataFilesOut) const;
         
-        void getAllChartableMatrixDataFilesForChartDataType(const ChartVersionOneDataTypeEnum::Enum chartDataType,
+        void getAllChartableMatrixDataFilesForChartDataType(const ChartOneDataTypeEnum::Enum chartDataType,
                                                                    std::vector<ChartableMatrixInterface*>& chartableDataFilesOut) const;
         
         AString getCurrentDirectory() const;

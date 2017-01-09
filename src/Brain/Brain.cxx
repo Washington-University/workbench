@@ -3445,7 +3445,7 @@ Brain::getAllChartableLineSeriesDataFiles(std::vector<ChartableLineSeriesInterfa
  *    Contains all chartable data files upon exit.
  */
 void
-Brain::getAllChartableLineSeriesDataFilesForChartDataType(const ChartVersionOneDataTypeEnum::Enum chartDataType,
+Brain::getAllChartableLineSeriesDataFilesForChartDataType(const ChartOneDataTypeEnum::Enum chartDataType,
                                                 std::vector<ChartableLineSeriesInterface*>& chartableDataFilesOut) const
 {
     chartableDataFilesOut.clear();
@@ -3542,7 +3542,7 @@ Brain::getAllChartableMatrixDataFiles(std::vector<ChartableMatrixInterface*>& ch
  *    Contains all chartable data files upon exit.
  */
 void
-Brain::getAllChartableMatrixDataFilesForChartDataType(const ChartVersionOneDataTypeEnum::Enum chartDataType,
+Brain::getAllChartableMatrixDataFilesForChartDataType(const ChartOneDataTypeEnum::Enum chartDataType,
                                                       std::vector<ChartableMatrixInterface*>& chartableDataFilesOut) const
 {
     chartableDataFilesOut.clear();

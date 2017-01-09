@@ -35,7 +35,7 @@ ChartModelTimeSeries.h
 ChartPoint.h
 ChartScaleAutoRanging.h
 ChartSelectionModeEnum.h
-ChartVersionOneDataTypeEnum.h
+ChartOneDataTypeEnum.h
 ChartingVersionEnum.h
 
 ChartTwoCompoundDataType.h
@@ -65,7 +65,7 @@ ChartModelTimeSeries.cxx
 ChartPoint.cxx
 ChartScaleAutoRanging.cxx
 ChartSelectionModeEnum.cxx
-ChartVersionOneDataTypeEnum.cxx
+ChartOneDataTypeEnum.cxx
 ChartingVersionEnum.cxx
 
 ChartTwoCompoundDataType.cxx

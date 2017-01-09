@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #define __CHART_VERSION_ONE_DATA_TYPE_ENUM_DECLARE__
-#include "ChartVersionOneDataTypeEnum.h"
+#include "ChartOneDataTypeEnum.h"
 #undef __CHART_VERSION_ONE_DATA_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartVersionOneDataTypeEnum 
+ * \class caret::ChartOneDataTypeEnum 
  * \brief Enumerated type for type of VERSION ONE chart data.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
@@ -49,21 +49,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "ChartVersionOneDataTypeEnum.h"
+ *         #include "ChartOneDataTypeEnum.h"
  * 
  *     Instatiate:
  *         m_chartDataTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_chartDataTypeEnumComboBox->setup<ChartVersionOneDataTypeEnum,ChartVersionOneDataTypeEnum::Enum>();
+ *         m_chartDataTypeEnumComboBox->setup<ChartOneDataTypeEnum,ChartOneDataTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_chartDataTypeEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(chartDataTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_chartDataTypeEnumComboBox->setSelectedItem<ChartVersionOneDataTypeEnum,ChartVersionOneDataTypeEnum::Enum>(NEW_VALUE);
+ *         m_chartDataTypeEnumComboBox->setSelectedItem<ChartOneDataTypeEnum,ChartOneDataTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const ChartVersionOneDataTypeEnum::Enum VARIABLE = m_chartDataTypeEnumComboBox->getSelectedItem<ChartVersionOneDataTypeEnum,ChartVersionOneDataTypeEnum::Enum>();
+ *         const ChartOneDataTypeEnum::Enum VARIABLE = m_chartDataTypeEnumComboBox->getSelectedItem<ChartOneDataTypeEnum,ChartOneDataTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-ChartVersionOneDataTypeEnum::ChartVersionOneDataTypeEnum(const Enum enumValue,
+ChartOneDataTypeEnum::ChartOneDataTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ ChartVersionOneDataTypeEnum::ChartVersionOneDataTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-ChartVersionOneDataTypeEnum::~ChartVersionOneDataTypeEnum()
+ChartOneDataTypeEnum::~ChartOneDataTypeEnum()
 {
 }
 
@@ -99,34 +99,34 @@ ChartVersionOneDataTypeEnum::~ChartVersionOneDataTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-ChartVersionOneDataTypeEnum::initialize()
+ChartOneDataTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(ChartVersionOneDataTypeEnum(CHART_DATA_TYPE_INVALID,
+    enumData.push_back(ChartOneDataTypeEnum(CHART_DATA_TYPE_INVALID,
                                          "CHART_DATA_TYPE_INVALID",
                                          "Invalid"));
     
-    enumData.push_back(ChartVersionOneDataTypeEnum(CHART_DATA_TYPE_LINE_DATA_SERIES,
+    enumData.push_back(ChartOneDataTypeEnum(CHART_DATA_TYPE_LINE_DATA_SERIES,
                                          "CHART_DATA_TYPE_LINE_DATA_SERIES",
                                          "Data Series"));
     
-    enumData.push_back(ChartVersionOneDataTypeEnum(CHART_DATA_TYPE_LINE_FREQUENCY_SERIES,
+    enumData.push_back(ChartOneDataTypeEnum(CHART_DATA_TYPE_LINE_FREQUENCY_SERIES,
                                          "CHART_DATA_TYPE_LINE_FREQUENCY_SERIES",
                                          "Frequency Series"));
     
-    enumData.push_back(ChartVersionOneDataTypeEnum(CHART_DATA_TYPE_LINE_TIME_SERIES,
+    enumData.push_back(ChartOneDataTypeEnum(CHART_DATA_TYPE_LINE_TIME_SERIES,
                                          "CHART_DATA_TYPE_LINE_TIME_SERIES",
                                          "Time Series"));
     
-    enumData.push_back(ChartVersionOneDataTypeEnum(CHART_DATA_TYPE_MATRIX_LAYER,
+    enumData.push_back(ChartOneDataTypeEnum(CHART_DATA_TYPE_MATRIX_LAYER,
                                          "CHART_DATA_TYPE_MATRIX_LAYER",
                                          "Matrix - Layer"));
     
-    enumData.push_back(ChartVersionOneDataTypeEnum(CHART_DATA_TYPE_MATRIX_SERIES,
+    enumData.push_back(ChartOneDataTypeEnum(CHART_DATA_TYPE_MATRIX_SERIES,
                                          "CHART_DATA_TYPE_MATRIX_SERIES",
                                          "Matrix - Series"));
 }
@@ -138,14 +138,14 @@ ChartVersionOneDataTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const ChartVersionOneDataTypeEnum*
-ChartVersionOneDataTypeEnum::findData(const Enum enumValue)
+const ChartOneDataTypeEnum*
+ChartOneDataTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const ChartVersionOneDataTypeEnum* d = &enumData[i];
+        const ChartOneDataTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -162,10 +162,10 @@ ChartVersionOneDataTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-ChartVersionOneDataTypeEnum::toName(Enum enumValue) {
+ChartOneDataTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ChartVersionOneDataTypeEnum* enumInstance = findData(enumValue);
+    const ChartOneDataTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -179,8 +179,8 @@ ChartVersionOneDataTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ChartVersionOneDataTypeEnum::Enum 
-ChartVersionOneDataTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
+ChartOneDataTypeEnum::Enum 
+ChartOneDataTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
  
@@ -199,12 +199,12 @@ ChartVersionOneDataTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
     }
     
     bool validFlag = false;
-    Enum enumValue = ChartVersionOneDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartOneDataTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartVersionOneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartOneDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartVersionOneDataTypeEnum& d = *iter;
+        const ChartOneDataTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -216,7 +216,7 @@ ChartVersionOneDataTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartVersionOneDataTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartOneDataTypeEnum"));
     }
     return enumValue;
 }
@@ -229,10 +229,10 @@ ChartVersionOneDataTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-ChartVersionOneDataTypeEnum::toGuiName(Enum enumValue) {
+ChartOneDataTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ChartVersionOneDataTypeEnum* enumInstance = findData(enumValue);
+    const ChartOneDataTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -246,8 +246,8 @@ ChartVersionOneDataTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ChartVersionOneDataTypeEnum::Enum 
-ChartVersionOneDataTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValidOut)
+ChartOneDataTypeEnum::Enum 
+ChartOneDataTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
@@ -257,12 +257,12 @@ ChartVersionOneDataTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValid
     }
     
     bool validFlag = false;
-    Enum enumValue = ChartVersionOneDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartOneDataTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartVersionOneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartOneDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartVersionOneDataTypeEnum& d = *iter;
+        const ChartOneDataTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -274,7 +274,7 @@ ChartVersionOneDataTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValid
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartVersionOneDataTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartOneDataTypeEnum"));
     }
     return enumValue;
 }
@@ -286,10 +286,10 @@ ChartVersionOneDataTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValid
  *    Integer code for data type.
  */
 int32_t
-ChartVersionOneDataTypeEnum::toIntegerCode(Enum enumValue)
+ChartOneDataTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const ChartVersionOneDataTypeEnum* enumInstance = findData(enumValue);
+    const ChartOneDataTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -304,18 +304,18 @@ ChartVersionOneDataTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-ChartVersionOneDataTypeEnum::Enum
-ChartVersionOneDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ChartOneDataTypeEnum::Enum
+ChartOneDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ChartVersionOneDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartOneDataTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartVersionOneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartOneDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartVersionOneDataTypeEnum& enumInstance = *iter;
+        const ChartOneDataTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -327,7 +327,7 @@ ChartVersionOneDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* is
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartVersionOneDataTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartOneDataTypeEnum"));
     }
     return enumValue;
 }
@@ -340,13 +340,13 @@ ChartVersionOneDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* is
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-ChartVersionOneDataTypeEnum::getAllEnums(std::vector<ChartVersionOneDataTypeEnum::Enum>& allEnums)
+ChartOneDataTypeEnum::getAllEnums(std::vector<ChartOneDataTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<ChartVersionOneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartOneDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -362,16 +362,16 @@ ChartVersionOneDataTypeEnum::getAllEnums(std::vector<ChartVersionOneDataTypeEnum
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ChartVersionOneDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ChartOneDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<ChartVersionOneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartOneDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(ChartVersionOneDataTypeEnum::toName(iter->enumValue));
+        allNames.push_back(ChartOneDataTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -388,16 +388,16 @@ ChartVersionOneDataTypeEnum::getAllNames(std::vector<AString>& allNames, const b
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ChartVersionOneDataTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ChartOneDataTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<ChartVersionOneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartOneDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(ChartVersionOneDataTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ChartOneDataTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

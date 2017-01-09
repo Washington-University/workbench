@@ -372,10 +372,10 @@ CiftiScalarDataSeriesFile::setMatrixChartingEnabled(const int32_t tabIndex,
  *    Chart types supported by this file.
  */
 void
-CiftiScalarDataSeriesFile::getSupportedMatrixChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const
+CiftiScalarDataSeriesFile::getSupportedMatrixChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     chartDataTypesOut.clear();
-    chartDataTypesOut.push_back(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES);
+    chartDataTypesOut.push_back(ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES);
 }
 
 /**
@@ -442,11 +442,11 @@ CiftiScalarDataSeriesFile::loadLineSeriesChartDataForRow(const int32_t rowIndex)
                 const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
                 const CiftiSeriesMap& seriesMap = ciftiXML.getSeriesMap(CiftiXML::ALONG_ROW);
                 
-                ChartVersionOneDataTypeEnum::Enum chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID;
+                ChartOneDataTypeEnum::Enum chartDataType = ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID;
                 AString timeUnitsString;
                 switch (seriesMap.getUnit()) {
                     case CiftiSeriesMap::HERTZ:
-                        chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES;
+                        chartDataType = ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES;
                         break;
                     case CiftiSeriesMap::METER:
                         CaretLogWarning("CIFTI Units METER not implemented");
@@ -455,11 +455,11 @@ CiftiScalarDataSeriesFile::loadLineSeriesChartDataForRow(const int32_t rowIndex)
                         CaretLogWarning("CIFTI Units RADIAN not implemented");
                         break;
                     case CiftiSeriesMap::SECOND:
-                        chartDataType = ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES;
+                        chartDataType = ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES;
                         break;
                 }
                 
-                if (chartDataType != ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                if (chartDataType != ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID) {
                     chartData = new ChartDataCartesian(chartDataType,
                                                        ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
                                                        ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
@@ -528,7 +528,7 @@ CiftiScalarDataSeriesFile::isLineSeriesChartingSupported() const
  *    Chart types supported by this file.
  */
 void
-CiftiScalarDataSeriesFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartVersionOneDataTypeEnum::Enum>& chartDataTypesOut) const
+CiftiScalarDataSeriesFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     chartDataTypesOut.clear();
     
@@ -541,7 +541,7 @@ CiftiScalarDataSeriesFile::getSupportedLineSeriesChartDataTypes(std::vector<Char
         const CiftiSeriesMap& seriesMap = ciftiXML.getSeriesMap(CiftiXML::ALONG_ROW);
         switch (seriesMap.getUnit()) {
             case CiftiSeriesMap::HERTZ:
-                chartDataTypesOut.push_back(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES);
+                chartDataTypesOut.push_back(ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES);
                 break;
             case CiftiSeriesMap::METER:
                 CaretLogWarning("CIFTI Units METER not implemented");
@@ -550,7 +550,7 @@ CiftiScalarDataSeriesFile::getSupportedLineSeriesChartDataTypes(std::vector<Char
                 CaretLogWarning("CIFTI Units RADIAN not implemented");
                 break;
             case CiftiSeriesMap::SECOND:
-                chartDataTypesOut.push_back(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES);
+                chartDataTypesOut.push_back(ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES);
                 break;
         }
     }

@@ -1405,23 +1405,23 @@ BrainBrowserWindowToolBar::updateToolBar()
             ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
             if (modelChart != NULL) {
                 switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
-                    case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                         break;
-                    case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                         showChartAttributesWidget = true;
                         break;
-                    case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                         showChartAttributesWidget = true;
                         break;
-                    case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                         showChartAxesWidget = true;
                         showChartAttributesWidget = true;
                         break;
-                    case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
                         showChartAxesWidget = true;
                         showChartAttributesWidget = true;
                         break;
-                    case ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                         showChartAxesWidget = true;
                         showChartAttributesWidget = true;
                         break;

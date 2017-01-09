@@ -38,7 +38,7 @@ using namespace caret;
  * Constructor.
  */
 ChartModelFrequencySeries::ChartModelFrequencySeries()
-: ChartModelCartesian(ChartVersionOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES,
+: ChartModelCartesian(ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES,
                       ChartAxisUnitsEnum::CHART_AXIS_UNITS_FREQUENCY_HERTZ,
                       ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE)
 {

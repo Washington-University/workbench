@@ -42,9 +42,9 @@ using namespace caret;
  *    True if chart data type is supported by the file, else false.
  */
 bool
-ChartableLineSeriesInterface::isLineSeriesChartDataTypeSupported(const ChartVersionOneDataTypeEnum::Enum chartDataType) const
+ChartableLineSeriesInterface::isLineSeriesChartDataTypeSupported(const ChartOneDataTypeEnum::Enum chartDataType) const
 {
-    std::vector<ChartVersionOneDataTypeEnum::Enum> validTypes;
+    std::vector<ChartOneDataTypeEnum::Enum> validTypes;
     getSupportedLineSeriesChartDataTypes(validTypes);
     
     if (std::find(validTypes.begin(),
