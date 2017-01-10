@@ -158,6 +158,8 @@ namespace caret {
         
         const ChartModelTimeSeries* getSelectedTimeSeriesChartModelHelper(const int32_t tabIndex) const;
         
+        void updateChartOverlaySets(const int32_t tabIndex);
+        
         void saveChartModelsToScene(const SceneAttributes* sceneAttributes,
                                     SceneClass* sceneClass,
                                     const std::vector<int32_t>& tabIndices,

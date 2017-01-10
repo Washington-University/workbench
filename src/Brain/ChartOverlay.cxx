@@ -26,6 +26,7 @@
 #include "AnnotationColorBar.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "ChartOverlaySet.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "PlainTextStringBuilder.h"
@@ -50,15 +51,24 @@ using namespace caret;
  * @param overlayIndex
  *     Index of this overlay.
  */
-ChartOverlay::ChartOverlay(const ChartTwoDataTypeEnum::Enum chartDataType,
+ChartOverlay::ChartOverlay(ChartOverlaySet* parentChartOverlaySet,
+                           const ChartTwoDataTypeEnum::Enum chartDataType,
                            const int32_t overlayIndex)
 : CaretObject(),
+m_parentChartOverlaySet(parentChartOverlaySet),
 m_chartDataType(chartDataType),
 m_overlayIndex(overlayIndex)
 {
+    if (overlayIndex > 0) {
+        CaretAssert(m_parentChartOverlaySet == NULL);
+    }
+    else {
+        CaretAssert(m_parentChartOverlaySet);
+    }
+    
    // m_chartCompoundDataType
     m_name = "Overlay " + AString::number(overlayIndex + 1);
-    m_enabled = true;
+    m_enabled = (m_overlayIndex == 0);
     m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     
     m_colorBar = std::unique_ptr<AnnotationColorBar>(new AnnotationColorBar(AnnotationAttributesDefaultTypeEnum::NORMAL));
@@ -151,8 +161,17 @@ ChartOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) co
 }
 
 /**
+ * Get the chart compound data type
+ */
+ChartTwoCompoundDataType
+ChartOverlay::getChartTwoCompoundDataType() const
+{
+    return m_chartCompoundDataType;
+}
+
+/**
  * Set the compound chart type for charts displayed in this overlay.
- * MUST match data type for this chart unless invalid.
+ * MUST match simplae data type for this chart unless invalid.
  * Note that overlay index zero, allows any chart type.
  *
  * @param chartCompoundDataType
@@ -161,12 +180,18 @@ ChartOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) co
 void
 ChartOverlay::setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType)
 {
+    if (m_overlayIndex == 0) {
+        CaretAssertMessage(0, "ChartOverlay::setChartTwoCompoundDataType() should not be called "
+                           " for first overlay");
+        return;
+    }
+//    do for overlay zero ??
+        
     if (chartCompoundDataType.getChartDataType() != ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID) {
         CaretAssert(m_chartDataType == chartCompoundDataType.getChartDataType());
     }
     m_chartCompoundDataType = chartCompoundDataType;
 }
-
 
 /**
  * @return Enabled status for this surface overlay.
@@ -201,8 +226,9 @@ ChartOverlay::copyData(const ChartOverlay* overlay)
     /*
      * These members are not copied since they
      * identify the overlay:
-     *    name
-     *    overlayIndex
+     *    m_parentChartOverlaySet
+     *    m_name
+     *    m_overlayIndex
      *
      */
     m_enabled = overlay->m_enabled;
@@ -223,7 +249,8 @@ ChartOverlay::copyData(const ChartOverlay* overlay)
 void
 ChartOverlay::swapData(ChartOverlay* overlay)
 {
-    std::unique_ptr<ChartOverlay> swapOverlay = std::unique_ptr<ChartOverlay>(new ChartOverlay(overlay->m_chartDataType,
+    std::unique_ptr<ChartOverlay> swapOverlay = std::unique_ptr<ChartOverlay>(new ChartOverlay(m_parentChartOverlaySet,
+                                                                                               overlay->m_chartDataType,
                                                                                                overlay->m_overlayIndex));
     swapOverlay->copyData(overlay);
     
@@ -337,7 +364,7 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
             if (m_chartDataType == compoundType.getChartDataType()) {
                 if (m_overlayIndex == 0) {
                     /*
-                     * The first overlay displays all files that match the
+                     * The first overlay displays ALL files that match the
                      * enumerated chart type
                      */
                     useIt = true;
@@ -422,6 +449,20 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
         //
         selectedMapIndexOut = m_selectedMapIndex;  //m_selectedMapFile->getMapIndexFromUniqueID(selectedMapUniqueIDOut);
     }
+    
+    /*
+     * Update the compound data type if this is the FIRST OVERLAY
+     */
+    if (m_overlayIndex == 0) {
+        if (m_selectedMapFile != NULL) {
+            m_selectedMapFile->getChartCompoundDataTypeForChartDataType(m_chartDataType,
+                                                                        m_chartCompoundDataType);
+        }
+        CaretAssert(m_parentChartOverlaySet);
+        m_parentChartOverlaySet->firstOverlaySelectionChanged();
+    }
+    //If selected type changes, need to update other overlays in the overlay set with
+    //the selected data type}
 }
 
 /**
@@ -450,6 +491,14 @@ ChartOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
         //            m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
         //        }
     }
+    
+    /*
+     * By calling getSelectionData(), it will validate the
+     * selected file
+     */
+    CaretMappableDataFile* filePointer = NULL;
+    int32_t mapIndex = -1;
+    getSelectionData(filePointer, mapIndex);
 }
 
 /**

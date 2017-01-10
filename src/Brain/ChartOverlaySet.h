@@ -106,6 +106,8 @@ namespace caret {
 
         ChartOverlaySet& operator=(const ChartOverlaySet&);
         
+        void firstOverlaySelectionChanged();
+        
         SceneClassAssistant* m_sceneAssistant;
 
         ChartOverlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
@@ -119,6 +121,8 @@ namespace caret {
         int32_t m_numberOfDisplayedOverlays;
         
         // ADD_NEW_MEMBERS_HERE
+        
+        friend class ChartOverlay;
 
     };
     

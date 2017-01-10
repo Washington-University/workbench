@@ -33,16 +33,20 @@
 namespace caret {
     class AnnotationColorBar;
     class CaretMappableDataFile;
+    class ChartOverlaySet;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
 
     class ChartOverlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        ChartOverlay(const ChartTwoDataTypeEnum::Enum chartDataType,
+        ChartOverlay(ChartOverlaySet* parentChartOverlaySet,
+                     const ChartTwoDataTypeEnum::Enum chartDataType,
                      const int32_t overlayIndex);
         
         virtual ~ChartOverlay();
+        
+        ChartTwoCompoundDataType getChartTwoCompoundDataType() const;
         
         void setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType);
         
@@ -106,6 +110,9 @@ namespace caret {
         ChartOverlay(const ChartOverlay&);
 
         ChartOverlay& operator=(const ChartOverlay&);
+        
+        /** Parent chart overlay set (only used by first overlay in the set */
+        ChartOverlaySet* m_parentChartOverlaySet;
         
         /** Enumerated Type of charts allowed in this overlay */
         const ChartTwoDataTypeEnum::Enum m_chartDataType;

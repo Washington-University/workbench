@@ -88,6 +88,21 @@ namespace caret {
          */
         virtual void getSupportedChartCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const = 0;
         
+        /**
+         * Get the chart compound data type supported by this file that uses the given
+         * chart data type.
+         *
+         * @param chartDataType
+         *     The chart data type.
+         * @param chartCompoundDataTypeOut
+         *     Output with the chart compound data type.
+         * @return
+         *     True if there is output chart compound data type is valid.
+         *     False if output chart compound data type is invalid OR if chartDataType is invalid.
+         */
+        virtual bool getChartCompoundDataTypeForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
+                                                              ChartTwoCompoundDataType& chartCompoundDataTypeOut) const = 0;
+        
 //        /**
 //         * @return Is line series charting enabled for this file in the given tab?
 //         */

@@ -299,7 +299,34 @@ ChartTwoCompoundDataType::getMatrixNumberOfColumns() const
 AString 
 ChartTwoCompoundDataType::toString() const
 {
-    return "ChartTwoCompoundDataType";
+    const AString indent = "    ";
+    AString text = ("type="
+                    + ChartTwoDataTypeEnum::toName(m_chartDataType));
+    
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            text.appendWithNewLine(indent
+                                   + "x=units="
+                                   + ChartAxisUnitsEnum::toName(m_lineChartUnitsAxisX));
+            text.appendWithNewLine(indent
+                                   + "x-elements="
+                                   + AString::number(m_lineChartNumberOfElementsAxisX));
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            text.appendWithNewLine(indent
+                                   + "rows="
+                                   + AString::number(m_matrixNumberOfRows));
+            text.appendWithNewLine(indent
+                                   + "columns="
+                                   + AString::number(m_matrixNumberOfColumns));
+            break;
+    }
+    
+    return text;
 }
 
 /**

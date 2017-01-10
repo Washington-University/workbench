@@ -66,7 +66,10 @@ m_tabIndex(tabIndex)
                           &m_numberOfDisplayedOverlays);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        m_overlays[i] = new ChartOverlay(m_chartDataType,
+        /* use "this" as parent only for first chart overlay */
+        ChartOverlaySet* me = ((i > 0) ? NULL : this);
+        m_overlays[i] = new ChartOverlay(me,
+                                         m_chartDataType,
                                          i);
     }
 //    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
@@ -94,6 +97,7 @@ void
 ChartOverlaySet::copyOverlaySet(const ChartOverlaySet* overlaySet)
 {
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
         m_overlays[i]->copyData(overlaySet->getOverlay(i));
     }
     m_numberOfDisplayedOverlays = overlaySet->m_numberOfDisplayedOverlays;
@@ -285,6 +289,7 @@ ChartOverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
     if (m_numberOfDisplayedOverlays > BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
         m_numberOfDisplayedOverlays--;
         for (int32_t i = overlayIndex; i < m_numberOfDisplayedOverlays; i++) {
+            CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i+1);
             m_overlays[i]->copyData(m_overlays[i+1]);
         }
     }
@@ -302,6 +307,7 @@ void
 ChartOverlaySet::moveDisplayedOverlayUp(const int32_t overlayIndex)
 {
     if (overlayIndex > 0) {
+        CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex);
         m_overlays[overlayIndex]->swapData(m_overlays[overlayIndex - 1]);
     }
 }
@@ -319,6 +325,7 @@ ChartOverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
 {
     const int32_t nextOverlayIndex = overlayIndex + 1;
     if (nextOverlayIndex < m_numberOfDisplayedOverlays) {
+        CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, nextOverlayIndex);
         m_overlays[overlayIndex]->swapData(m_overlays[nextOverlayIndex]);
     }
 }
@@ -467,12 +474,35 @@ ChartOverlaySet::initializeOverlays()
 }
 
 /**
+ * Called by first overlay when the first overlay's selection changes.
+ * All other overlays are set to use the same chart compound data type
+ * so that the charts in the tab are compatible
+ */
+void
+ChartOverlaySet::firstOverlaySelectionChanged()
+{
+    ChartTwoCompoundDataType cdt = m_overlays[0]->getChartTwoCompoundDataType();
+
+    std::cout << qPrintable("Chart Overlay in tab "
+                            + AString::number(m_tabIndex + 1)
+                            + ":\n"
+                            +  cdt.toString()) << std::endl;
+    
+    for (int32_t i = 1; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
+        m_overlays[i]->setChartTwoCompoundDataType(cdt);
+    }
+}
+
+
+/**
  * Reset the yoking status of all overlays to off.
  */
 void
 ChartOverlaySet::resetOverlayYokingToOff()
 {
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
         m_overlays[i]->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
     }
 }
@@ -570,6 +600,7 @@ ChartOverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
         const int32_t numOverlays = std::min(overlayClassArray->getNumberOfArrayElements(),
                                              (int32_t)BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
         for (int32_t i = 0; i < numOverlays; i++) {
+            CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
             m_overlays[i]->restoreFromScene(sceneAttributes,
                                             overlayClassArray->getClassAtIndex(i));
         }

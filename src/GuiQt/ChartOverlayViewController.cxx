@@ -288,15 +288,16 @@ ChartOverlayViewController::fileComboBoxSelected(int indx)
     updateOverlaySettingsEditor();
     updateViewController(m_chartOverlay);
     updateGraphicsWindow();
+    updateUserInterface();
     
-    if (file != NULL) {
-        if (file->isVolumeMappable()) {
-            /*
-             * Need to update slice indices/coords in toolbar.
-             */
-            EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBar().getPointer());
-        }
-    }
+//    if (file != NULL) {
+//        if (file->isVolumeMappable()) {
+//            /*
+//             * Need to update slice indices/coords in toolbar.
+//             */
+//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBar().getPointer());
+//        }
+//    }
 }
 
 /**

@@ -1981,6 +1981,8 @@ ModelChart::getSelectedChartOneDataType(const int32_t tabIndex) const
     return chartDataType;
 }
 
+
+
 /**
  * Set the type of chart selected in the given tab.
  *
@@ -2167,6 +2169,28 @@ ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
 //    m_selectedChartDataType[tabIndex] = chartDataType;
 //
 //    return chartDataType;
+}
+
+/**
+ * Update the chart overlay sets.
+ * 
+ * @param tabIndex
+ *     Index of the tab.
+ */
+void
+ModelChart::updateChartOverlaySets(const int32_t tabIndex)
+{
+    CaretAssertArrayIndex(m_selectedChartTwoDataType, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    switch (m_selectedChartTwoDataType[tabIndex]) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
 }
 
 /**

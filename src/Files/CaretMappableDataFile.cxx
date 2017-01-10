@@ -1233,7 +1233,7 @@ CaretMappableDataFile::getSupportedChartCompoundDataTypes(std::vector<ChartTwoCo
             hasHistogramFlag = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
-            hasMatrixFlag    = true;
+            //hasMatrixFlag    = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
             hasHistogramFlag  = true;
@@ -1368,6 +1368,36 @@ CaretMappableDataFile::getSupportedChartCompoundDataTypes(std::vector<ChartTwoCo
         chartCompoundDataTypesOut.push_back(ChartTwoCompoundDataType::newInstanceForMatrix(numRows,
                                                                                            numCols));
     }
+}
+
+/**
+ * Get the chart compound data type supported by this file that uses the given
+ * chart data type.
+ *
+ * @param chartDataType
+ *     The chart data type.
+ * @param chartCompoundDataTypeOut
+ *     Output with the chart compound data type.
+ * @return
+ *     True if there is output chart compound data type is valid.
+ *     False if output chart compound data type is invalid OR if chartDataType is invalid.
+ */
+bool
+CaretMappableDataFile::getChartCompoundDataTypeForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
+                                                                ChartTwoCompoundDataType& chartCompoundDataTypeOut) const
+{
+    std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
+    getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
+    for (auto& cdt : chartCompoundDataTypes) {
+        if (cdt.getChartDataType() == chartDataType) {
+            chartCompoundDataTypeOut = cdt;
+            return true;
+        }
+    }
+
+    /* default constructor is invalid data type */
+    chartCompoundDataTypeOut = ChartTwoCompoundDataType();
+    return false;
 }
 
 /**

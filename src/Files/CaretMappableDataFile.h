@@ -474,6 +474,9 @@ namespace caret {
         
         virtual void getSupportedChartCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const override;
         
+        virtual bool getChartCompoundDataTypeForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
+                                                              ChartTwoCompoundDataType& chartCompoundDataTypeOut) const;
+        
         virtual ChartTwoDataCartesianHistory* getLineSeriesChartingHistory() override;
 
     protected:
