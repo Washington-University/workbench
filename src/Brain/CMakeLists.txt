@@ -59,6 +59,8 @@ BrainOpenGL.h
 BrainOpenGLAnnotationDrawingFixedPipeline.h
 BrainOpenGLChartDrawingInterface.h
 BrainOpenGLChartDrawingFixedPipeline.h
+BrainOpenGLChartTwoDrawingFixedPipeline.h
+BrainOpenGLChartTwoDrawingInterface.h
 BrainOpenGLFixedPipeline.h
 BrainOpenGLPrimitiveDrawing.h
 BrainOpenGLShape.h
@@ -202,6 +204,7 @@ Brain.cxx
 BrainOpenGL.cxx
 BrainOpenGLAnnotationDrawingFixedPipeline.cxx
 BrainOpenGLChartDrawingFixedPipeline.cxx
+BrainOpenGLChartTwoDrawingFixedPipeline.cxx
 BrainOpenGLFixedPipeline.cxx
 BrainOpenGLPrimitiveDrawing.cxx
 BrainOpenGLShape.cxx

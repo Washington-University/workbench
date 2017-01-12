@@ -623,6 +623,7 @@ namespace caret {
         
         friend class BrainOpenGLAnnotationDrawingFixedPipeline;
         friend class BrainOpenGLChartDrawingFixedPipeline;
+        friend class BrainOpenGLChartTwoDrawingFixedPipeline;
         friend class BrainOpenGLVolumeObliqueSliceDrawing;
         friend class BrainOpenGLVolumeSliceDrawing;
         friend class OldBrainOpenGLVolumeSliceDrawing;

@@ -1,7 +1,7 @@
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014 Washington University School of Medicine
+ *  Copyright (C) 2017 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __DEVELOPER_FLAGS_ENUM_DECLARE__
-#include "DeveloperFlagsEnum.h"
-#undef __DEVELOPER_FLAGS_ENUM_DECLARE__
+#define __CHART_TWO_HISTOGRAM_CONTENT_TYPE_ENUM_DECLARE__
+#include "ChartTwoHistogramContentTypeEnum.h"
+#undef __CHART_TWO_HISTOGRAM_CONTENT_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::DeveloperFlagsEnum 
- * \brief Flags used during development.
+ * \class caret::ChartTwoHistogramContentTypeEnum 
+ * \brief Type of content for histograms.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_developerFlagsEnumComboBox;
+ *         EnumComboBoxTemplate* m_chartTwoHistogramContentTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void developerFlagsEnumComboBoxItemActivated();
+ *             void chartTwoHistogramContentTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "DeveloperFlagsEnum.h"
+ *         #include "ChartTwoHistogramContentTypeEnum.h"
  * 
  *     Instatiate:
- *         m_developerFlagsEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_developerFlagsEnumComboBox->setup<DeveloperFlagsEnum,DeveloperFlagsEnum::Enum>();
+ *         m_chartTwoHistogramContentTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_chartTwoHistogramContentTypeEnumComboBox->setup<ChartTwoHistogramContentTypeEnum,ChartTwoHistogramContentTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_developerFlagsEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(developerFlagsEnumComboBoxItemActivated()));
+ *         QObject::connect(m_chartTwoHistogramContentTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(chartTwoHistogramContentTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_developerFlagsEnumComboBox->setSelectedItem<DeveloperFlagsEnum,DeveloperFlagsEnum::Enum>(NEW_VALUE);
+ *         m_chartTwoHistogramContentTypeEnumComboBox->setSelectedItem<ChartTwoHistogramContentTypeEnum,ChartTwoHistogramContentTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const DeveloperFlagsEnum::Enum VARIABLE = m_developerFlagsEnumComboBox->getSelectedItem<DeveloperFlagsEnum,DeveloperFlagsEnum::Enum>();
+ *         const ChartTwoHistogramContentTypeEnum::Enum VARIABLE = m_chartTwoHistogramContentTypeEnumComboBox->getSelectedItem<ChartTwoHistogramContentTypeEnum,ChartTwoHistogramContentTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
+ChartTwoHistogramContentTypeEnum::ChartTwoHistogramContentTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -86,25 +86,12 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
-    this->flagStatus = false;
-    
-    /*
-     * Initialization (true/false) of enums as desired
-     */
-    switch (this->enumValue) {
-        case DEVELOPER_FLAG_UNUSED:
-            this->flagStatus = false;
-            break;
-        case DEVELOPER_FLAG_NEW_CHARTING:
-            this->flagStatus = false;
-            break;
-    }
 }
 
 /**
  * Destructor.
  */
-DeveloperFlagsEnum::~DeveloperFlagsEnum()
+ChartTwoHistogramContentTypeEnum::~ChartTwoHistogramContentTypeEnum()
 {
 }
 
@@ -112,21 +99,21 @@ DeveloperFlagsEnum::~DeveloperFlagsEnum()
  * Initialize the enumerated metadata.
  */
 void
-DeveloperFlagsEnum::initialize()
+ChartTwoHistogramContentTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_UNUSED,
-                                          "DEVELOPER_FLAG_UNUSED",
-                                          "Developer flag unused"));
+    enumData.push_back(ChartTwoHistogramContentTypeEnum(HISTOGRAM_CONTENT_TYPE_UNSUPPORTED,
+                                    "HISTOGRAM_CONTENT_TYPE_UNSUPPORTED",
+                                    "Unsupported"));
     
+    enumData.push_back(ChartTwoHistogramContentTypeEnum(HISTOGRAM_CONTENT_TYPE_MAP_DATA, 
+                                    "HISTOGRAM_CONTENT_TYPE_MAP_DATA", 
+                                    "Map Data"));
     
-    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_NEW_CHARTING,
-                                          "DEVELOPER_FLAG_NEW_CHARTING",
-                                          "Developer flag New Charting"));
 }
 
 /**
@@ -136,14 +123,14 @@ DeveloperFlagsEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-DeveloperFlagsEnum*
-DeveloperFlagsEnum::findData(const Enum enumValue)
+const ChartTwoHistogramContentTypeEnum*
+ChartTwoHistogramContentTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        DeveloperFlagsEnum* d = &enumData[i];
+        const ChartTwoHistogramContentTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -160,10 +147,10 @@ DeveloperFlagsEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-DeveloperFlagsEnum::toName(Enum enumValue) {
+ChartTwoHistogramContentTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const DeveloperFlagsEnum* enumInstance = findData(enumValue);
+    const ChartTwoHistogramContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -177,18 +164,18 @@ DeveloperFlagsEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-DeveloperFlagsEnum::Enum 
-DeveloperFlagsEnum::fromName(const AString& name, bool* isValidOut)
+ChartTwoHistogramContentTypeEnum::Enum 
+ChartTwoHistogramContentTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = DeveloperFlagsEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoHistogramContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoHistogramContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const DeveloperFlagsEnum& d = *iter;
+        const ChartTwoHistogramContentTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -200,7 +187,7 @@ DeveloperFlagsEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type DeveloperFlagsEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartTwoHistogramContentTypeEnum"));
     }
     return enumValue;
 }
@@ -213,10 +200,10 @@ DeveloperFlagsEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-DeveloperFlagsEnum::toGuiName(Enum enumValue) {
+ChartTwoHistogramContentTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const DeveloperFlagsEnum* enumInstance = findData(enumValue);
+    const ChartTwoHistogramContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -230,18 +217,18 @@ DeveloperFlagsEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-DeveloperFlagsEnum::Enum 
-DeveloperFlagsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ChartTwoHistogramContentTypeEnum::Enum 
+ChartTwoHistogramContentTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = DeveloperFlagsEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoHistogramContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoHistogramContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const DeveloperFlagsEnum& d = *iter;
+        const ChartTwoHistogramContentTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -253,7 +240,7 @@ DeveloperFlagsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type DeveloperFlagsEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartTwoHistogramContentTypeEnum"));
     }
     return enumValue;
 }
@@ -265,10 +252,10 @@ DeveloperFlagsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-DeveloperFlagsEnum::toIntegerCode(Enum enumValue)
+ChartTwoHistogramContentTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const DeveloperFlagsEnum* enumInstance = findData(enumValue);
+    const ChartTwoHistogramContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -283,18 +270,18 @@ DeveloperFlagsEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-DeveloperFlagsEnum::Enum
-DeveloperFlagsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ChartTwoHistogramContentTypeEnum::Enum
+ChartTwoHistogramContentTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = DeveloperFlagsEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoHistogramContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoHistogramContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const DeveloperFlagsEnum& enumInstance = *iter;
+        const ChartTwoHistogramContentTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -306,7 +293,7 @@ DeveloperFlagsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type DeveloperFlagsEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartTwoHistogramContentTypeEnum"));
     }
     return enumValue;
 }
@@ -319,13 +306,13 @@ DeveloperFlagsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-DeveloperFlagsEnum::getAllEnums(std::vector<DeveloperFlagsEnum::Enum>& allEnums)
+ChartTwoHistogramContentTypeEnum::getAllEnums(std::vector<ChartTwoHistogramContentTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoHistogramContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -341,16 +328,16 @@ DeveloperFlagsEnum::getAllEnums(std::vector<DeveloperFlagsEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-DeveloperFlagsEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ChartTwoHistogramContentTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoHistogramContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(DeveloperFlagsEnum::toName(iter->enumValue));
+        allNames.push_back(ChartTwoHistogramContentTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -367,54 +354,20 @@ DeveloperFlagsEnum::getAllNames(std::vector<AString>& allNames, const bool isSor
  *     If true, the names are sorted in alphabetical order.
  */
 void
-DeveloperFlagsEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ChartTwoHistogramContentTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoHistogramContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(DeveloperFlagsEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ChartTwoHistogramContentTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {
         std::sort(allGuiNames.begin(), allGuiNames.end());
     }
 }
-
-/**
- * Is the developer flag set?
- *
- * @param enumValue
- *     Enum value for flag
- * @return
- *     True/False status for flag.
- */
-bool
-DeveloperFlagsEnum::isFlag(const Enum enumValue)
-{
-    if (initializedFlag == false) initialize();
-    const DeveloperFlagsEnum* enumInstance = findData(enumValue);
-    return enumInstance->flagStatus;
-}
-
-/**
- * Set the developer flag.
- *
- * @param enumValue
- *     Enum value for flag
- * @param flagStatus
- *     True/False status for flag.
- */
-void
-DeveloperFlagsEnum::setFlag(const Enum enumValue,
-                            const bool flagStatus)
-{
-    if (initializedFlag == false) initialize();
-    DeveloperFlagsEnum* enumInstance = findData(enumValue);
-    enumInstance->flagStatus = flagStatus;
-}
-
 

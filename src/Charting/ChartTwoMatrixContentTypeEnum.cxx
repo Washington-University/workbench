@@ -1,7 +1,7 @@
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014 Washington University School of Medicine
+ *  Copyright (C) 2017 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __DEVELOPER_FLAGS_ENUM_DECLARE__
-#include "DeveloperFlagsEnum.h"
-#undef __DEVELOPER_FLAGS_ENUM_DECLARE__
+#define __CHART_TWO_MATRIX_CONTENT_TYPE_ENUM_DECLARE__
+#include "ChartTwoMatrixContentTypeEnum.h"
+#undef __CHART_TWO_MATRIX_CONTENT_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::DeveloperFlagsEnum 
- * \brief Flags used during development.
+ * \class caret::ChartTwoMatrixContentTypeEnum 
+ * \brief Type of content for matrix charting.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_developerFlagsEnumComboBox;
+ *         EnumComboBoxTemplate* m_chartTwoMatrixDataTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void developerFlagsEnumComboBoxItemActivated();
+ *             void chartTwoMatrixDataTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "DeveloperFlagsEnum.h"
+ *         #include "ChartTwoMatrixContentTypeEnum.h"
  * 
  *     Instatiate:
- *         m_developerFlagsEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_developerFlagsEnumComboBox->setup<DeveloperFlagsEnum,DeveloperFlagsEnum::Enum>();
+ *         m_chartTwoMatrixDataTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_chartTwoMatrixDataTypeEnumComboBox->setup<ChartTwoMatrixContentTypeEnum,ChartTwoMatrixContentTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_developerFlagsEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(developerFlagsEnumComboBoxItemActivated()));
+ *         QObject::connect(m_chartTwoMatrixDataTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(chartTwoMatrixDataTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_developerFlagsEnumComboBox->setSelectedItem<DeveloperFlagsEnum,DeveloperFlagsEnum::Enum>(NEW_VALUE);
+ *         m_chartTwoMatrixDataTypeEnumComboBox->setSelectedItem<ChartTwoMatrixContentTypeEnum,ChartTwoMatrixContentTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const DeveloperFlagsEnum::Enum VARIABLE = m_developerFlagsEnumComboBox->getSelectedItem<DeveloperFlagsEnum,DeveloperFlagsEnum::Enum>();
+ *         const ChartTwoMatrixContentTypeEnum::Enum VARIABLE = m_chartTwoMatrixDataTypeEnumComboBox->getSelectedItem<ChartTwoMatrixContentTypeEnum,ChartTwoMatrixContentTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
+ChartTwoMatrixContentTypeEnum::ChartTwoMatrixContentTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -86,25 +86,12 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
-    this->flagStatus = false;
-    
-    /*
-     * Initialization (true/false) of enums as desired
-     */
-    switch (this->enumValue) {
-        case DEVELOPER_FLAG_UNUSED:
-            this->flagStatus = false;
-            break;
-        case DEVELOPER_FLAG_NEW_CHARTING:
-            this->flagStatus = false;
-            break;
-    }
 }
 
 /**
  * Destructor.
  */
-DeveloperFlagsEnum::~DeveloperFlagsEnum()
+ChartTwoMatrixContentTypeEnum::~ChartTwoMatrixContentTypeEnum()
 {
 }
 
@@ -112,21 +99,24 @@ DeveloperFlagsEnum::~DeveloperFlagsEnum()
  * Initialize the enumerated metadata.
  */
 void
-DeveloperFlagsEnum::initialize()
+ChartTwoMatrixContentTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_UNUSED,
-                                          "DEVELOPER_FLAG_UNUSED",
-                                          "Developer flag unused"));
+    enumData.push_back(ChartTwoMatrixContentTypeEnum(MATRIX_CONTENT_UNSUPPORTED,
+                                                  "MATRIX_CONTENT_UNSUPPORTED",
+                                                  "Unsupported"));
     
+    enumData.push_back(ChartTwoMatrixContentTypeEnum(MATRIX_CONTENT_BRAINORDINATE_MAPPABLE,
+                                                  "MATRIX_CONTENT_BRAINORDINATE_MAPPABLE",
+                                                  "Brainordinate Mappable"));
     
-    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_NEW_CHARTING,
-                                          "DEVELOPER_FLAG_NEW_CHARTING",
-                                          "Developer flag New Charting"));
+    enumData.push_back(ChartTwoMatrixContentTypeEnum(MATRIX_CONTENT_SERIES,
+                                                  "MATRIX_CONTENT_SERIES",
+                                                  "Series"));    
 }
 
 /**
@@ -136,14 +126,14 @@ DeveloperFlagsEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-DeveloperFlagsEnum*
-DeveloperFlagsEnum::findData(const Enum enumValue)
+const ChartTwoMatrixContentTypeEnum*
+ChartTwoMatrixContentTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        DeveloperFlagsEnum* d = &enumData[i];
+        const ChartTwoMatrixContentTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -160,10 +150,10 @@ DeveloperFlagsEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-DeveloperFlagsEnum::toName(Enum enumValue) {
+ChartTwoMatrixContentTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const DeveloperFlagsEnum* enumInstance = findData(enumValue);
+    const ChartTwoMatrixContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -177,18 +167,18 @@ DeveloperFlagsEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-DeveloperFlagsEnum::Enum 
-DeveloperFlagsEnum::fromName(const AString& name, bool* isValidOut)
+ChartTwoMatrixContentTypeEnum::Enum 
+ChartTwoMatrixContentTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = DeveloperFlagsEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoMatrixContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const DeveloperFlagsEnum& d = *iter;
+        const ChartTwoMatrixContentTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -200,7 +190,7 @@ DeveloperFlagsEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type DeveloperFlagsEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartTwoMatrixContentTypeEnum"));
     }
     return enumValue;
 }
@@ -213,10 +203,10 @@ DeveloperFlagsEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-DeveloperFlagsEnum::toGuiName(Enum enumValue) {
+ChartTwoMatrixContentTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const DeveloperFlagsEnum* enumInstance = findData(enumValue);
+    const ChartTwoMatrixContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -230,18 +220,18 @@ DeveloperFlagsEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-DeveloperFlagsEnum::Enum 
-DeveloperFlagsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ChartTwoMatrixContentTypeEnum::Enum 
+ChartTwoMatrixContentTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = DeveloperFlagsEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoMatrixContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const DeveloperFlagsEnum& d = *iter;
+        const ChartTwoMatrixContentTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -253,7 +243,7 @@ DeveloperFlagsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type DeveloperFlagsEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartTwoMatrixContentTypeEnum"));
     }
     return enumValue;
 }
@@ -265,10 +255,10 @@ DeveloperFlagsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-DeveloperFlagsEnum::toIntegerCode(Enum enumValue)
+ChartTwoMatrixContentTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const DeveloperFlagsEnum* enumInstance = findData(enumValue);
+    const ChartTwoMatrixContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -283,18 +273,18 @@ DeveloperFlagsEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-DeveloperFlagsEnum::Enum
-DeveloperFlagsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ChartTwoMatrixContentTypeEnum::Enum
+ChartTwoMatrixContentTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = DeveloperFlagsEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoMatrixContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const DeveloperFlagsEnum& enumInstance = *iter;
+        const ChartTwoMatrixContentTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -306,7 +296,7 @@ DeveloperFlagsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type DeveloperFlagsEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartTwoMatrixContentTypeEnum"));
     }
     return enumValue;
 }
@@ -319,13 +309,13 @@ DeveloperFlagsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-DeveloperFlagsEnum::getAllEnums(std::vector<DeveloperFlagsEnum::Enum>& allEnums)
+ChartTwoMatrixContentTypeEnum::getAllEnums(std::vector<ChartTwoMatrixContentTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -341,16 +331,16 @@ DeveloperFlagsEnum::getAllEnums(std::vector<DeveloperFlagsEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-DeveloperFlagsEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ChartTwoMatrixContentTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(DeveloperFlagsEnum::toName(iter->enumValue));
+        allNames.push_back(ChartTwoMatrixContentTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -367,54 +357,20 @@ DeveloperFlagsEnum::getAllNames(std::vector<AString>& allNames, const bool isSor
  *     If true, the names are sorted in alphabetical order.
  */
 void
-DeveloperFlagsEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ChartTwoMatrixContentTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<DeveloperFlagsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoMatrixContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(DeveloperFlagsEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ChartTwoMatrixContentTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {
         std::sort(allGuiNames.begin(), allGuiNames.end());
     }
 }
-
-/**
- * Is the developer flag set?
- *
- * @param enumValue
- *     Enum value for flag
- * @return
- *     True/False status for flag.
- */
-bool
-DeveloperFlagsEnum::isFlag(const Enum enumValue)
-{
-    if (initializedFlag == false) initialize();
-    const DeveloperFlagsEnum* enumInstance = findData(enumValue);
-    return enumInstance->flagStatus;
-}
-
-/**
- * Set the developer flag.
- *
- * @param enumValue
- *     Enum value for flag
- * @param flagStatus
- *     True/False status for flag.
- */
-void
-DeveloperFlagsEnum::setFlag(const Enum enumValue,
-                            const bool flagStatus)
-{
-    if (initializedFlag == false) initialize();
-    DeveloperFlagsEnum* enumInstance = findData(enumValue);
-    enumInstance->flagStatus = flagStatus;
-}
-
 

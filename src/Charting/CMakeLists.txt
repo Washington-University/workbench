@@ -43,6 +43,9 @@ ChartTwoData.h
 ChartTwoDataCartesian.h
 ChartTwoDataCartesianHistory.h
 ChartTwoDataTypeEnum.h
+ChartTwoHistogramContentTypeEnum.h
+ChartTwoLineSeriesContentTypeEnum.h
+ChartTwoMatrixContentTypeEnum.h
 ChartTwoMatrixViewingTypeEnum.h
 
 ChartAxis.cxx
@@ -73,6 +76,9 @@ ChartTwoData.cxx
 ChartTwoDataCartesian.cxx
 ChartTwoDataCartesianHistory.cxx
 ChartTwoDataTypeEnum.cxx
+ChartTwoHistogramContentTypeEnum.cxx
+ChartTwoLineSeriesContentTypeEnum.cxx
+ChartTwoMatrixContentTypeEnum.cxx
 ChartTwoMatrixViewingTypeEnum.cxx
 )
 

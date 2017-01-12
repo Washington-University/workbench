@@ -24,11 +24,17 @@
 
 #include "ChartTwoCompoundDataType.h"
 #include "ChartTwoDataTypeEnum.h"
+#include "ChartableTwoFileDelegateHistogramChart.h"
+#include "ChartableTwoFileDelegateLineSeriesChart.h"
+#include "ChartableTwoFileDelegateMatrixChart.h"
+#include "ChartTwoLineSeriesContentTypeEnum.h"
+#include "ChartTwoMatrixContentTypeEnum.h"
 
 namespace caret {
 
     class CaretMappableDataFile;
     class ChartTwoDataCartesianHistory;
+    class CiftiMappableDataFile;
     
     class ChartableTwoInterface {
         
@@ -37,71 +43,57 @@ namespace caret {
         
         virtual ~ChartableTwoInterface();
         
-        /**
-         * @return The CaretMappableDataFile that implements this interface.
-         */
         virtual CaretMappableDataFile* getAsCaretMappableDataFile() = 0;
         
-        /**
-         * @return The CaretMappableDataFile that implements this interface.
-         */
         virtual const CaretMappableDataFile* getAsCaretMappableDataFile() const = 0;
         
-        /**
-         * Does this file support any type of charting?
-         */
-        virtual bool isChartingSupported() const = 0;
+        virtual ChartableTwoFileDelegateHistogramChart* getHistogramChartDelegate() = 0;
         
-        /**
-         * Test for support of the given chart data type.
-         * 
-         * @param chartDataType
-         *     Type of chart data.
-         * @return
-         *     True if the chart data type is supported, else false.
-         */
-        virtual bool isChartingSupportedForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType) const = 0;
+        virtual const ChartableTwoFileDelegateHistogramChart* getHistogramChartDelegate() const = 0;
         
-        /**
-         * Test for support of the given chart compound data type.
-         *
-         * @param chartCompoundDataType
-         *     Type of chart compound data.
-         * @return
-         *     True if the chart compound data type is supported, else false.
-         */
-        virtual bool isChartingSupportedForChartCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType) const = 0;
+        virtual ChartableTwoFileDelegateLineSeriesChart* getLineSeriesChartDelegate() = 0;
         
-        /**
-         * Get chart data types supported by this file.
-         *
-         * @param chartDataTypesOut
-         *     Output containing all chart data types supported by this data file.
-         */
-        virtual void getSupportedChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
+        virtual const ChartableTwoFileDelegateLineSeriesChart* getLineSeriesChartDelegate() const = 0;
         
-        /**
-         * Get chart data types supported by this file.
-         *
-         * @param chartDataTypesOut
-         *     Output containing all chart data types supported by this data file.
-         */
-        virtual void getSupportedChartCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const = 0;
+        virtual ChartableTwoFileDelegateMatrixChart* getMatrixChartDelegate() = 0;
         
-        /**
-         * Get the chart compound data type supported by this file that uses the given
-         * chart data type.
-         *
-         * @param chartDataType
-         *     The chart data type.
-         * @param chartCompoundDataTypeOut
-         *     Output with the chart compound data type.
-         * @return
-         *     True if there is output chart compound data type is valid.
-         *     False if output chart compound data type is invalid OR if chartDataType is invalid.
-         */
-        virtual bool getChartCompoundDataTypeForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
-                                                              ChartTwoCompoundDataType& chartCompoundDataTypeOut) const = 0;
+        virtual const ChartableTwoFileDelegateMatrixChart* getMatrixChartDelegate() const = 0;
+        
+        bool isChartingSupported() const;
+        
+        bool isChartingSupportedForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType) const;
+        
+        bool isChartingSupportedForChartCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType) const;
+        
+        void getSupportedChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& chartDataTypesOut) const;
+        
+        void getSupportedChartCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const;
+        
+        bool getChartCompoundDataTypeForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
+                                                      ChartTwoCompoundDataType& chartCompoundDataTypeOut) const;
+        
+        
+        /* IMPLEMENT ABOVE NON-VIRTUAL METHODS USING THE VIRTUAL METHODS */
+        
+        /* METHODS NO LONGER NEEDED ??? */
+        
+//        CiftiMappableDataFile* getAsCiftiMappableDataFile();
+//        
+//        const CiftiMappableDataFile* getAsCiftiMappableDataFile() const;
+//        
+//        
+//        ChartTwoHistogramContentTypeEnum::Enum getHistogramContentType() const;
+//        
+//        ChartTwoLineSeriesContentTypeEnum::Enum getLineSeriesContentType() const;
+//        
+//        ChartTwoMatrixContentTypeEnum::Enum getMatrixContentType() const;
+//        
+//        void getTwoMatrixDimensions(int32_t& numberOfRowsOut,
+//                                    int32_t& numberOfColumnsOut) const;
+//        
+//        bool getTwoMatrixDataRGBA(int32_t& numberOfRowsOut,
+//                                  int32_t& numberOfColumnsOut,
+//                                  std::vector<float>& rgbaOut) const;
         
 //        /**
 //         * @return Is line series charting enabled for this file in the given tab?
@@ -120,7 +112,7 @@ namespace caret {
         /**
          * @return Charting history if this file charts to lines.
          */
-        virtual ChartTwoDataCartesianHistory* getLineSeriesChartingHistory() = 0;
+        //virtual ChartTwoDataCartesianHistory* getLineSeriesChartingHistory() = 0;
         
         // ADD_NEW_METHODS_HERE
 
@@ -129,6 +121,11 @@ namespace caret {
 
         ChartableTwoInterface& operator=(const ChartableTwoInterface&);
         
+//        const ChartTwoHistogramContentTypeEnum::Enum m_histogramContentType;
+//        
+//        const ChartTwoLineSeriesContentTypeEnum::Enum m_lineSeriesContentType;
+//
+//        const ChartTwoMatrixContentTypeEnum::Enum m_matrixContentType;
         // ADD_NEW_MEMBERS_HERE
 
     };

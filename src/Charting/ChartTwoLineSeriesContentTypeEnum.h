@@ -1,9 +1,9 @@
-#ifndef __DEVELOPER_FLAGS_ENUM_H__
-#define __DEVELOPER_FLAGS_ENUM_H__
+#ifndef __CHART_TWO_LINE_SERIES_CONTENT_TYPE_ENUM_H__
+#define __CHART_TWO_LINE_SERIES_CONTENT_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014 Washington University School of Medicine
+ *  Copyright (C) 2017 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,18 +28,23 @@
 
 namespace caret {
 
-class DeveloperFlagsEnum {
+class ChartTwoLineSeriesContentTypeEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        DEVELOPER_FLAG_UNUSED,
-        DEVELOPER_FLAG_NEW_CHARTING
+        /** Unsupported */
+        LINE_SERIES_CONTENT_UNSUPPORTED,
+        /** Brainordinate Data Content */
+        LINE_SERIES_CONTENT_BRAINORDINATE_DATA,
+        /** Row Scalars Content */
+        LINE_SERIES_CONTENT_ROW_SCALAR_DATA
     };
 
-    ~DeveloperFlagsEnum();
+
+    ~ChartTwoLineSeriesContentTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -59,20 +64,15 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
-    static bool isFlag(const Enum enumValue);
-    
-    static void setFlag(const Enum enumValue,
-                        const bool flagStatus);
-    
 private:
-    DeveloperFlagsEnum(const Enum enumValue, 
+    ChartTwoLineSeriesContentTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static DeveloperFlagsEnum* findData(const Enum enumValue);
+    static const ChartTwoLineSeriesContentTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<DeveloperFlagsEnum> enumData;
+    static std::vector<ChartTwoLineSeriesContentTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -94,16 +94,13 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
-    
-    /** Flag status */
-    bool flagStatus;
 };
 
-#ifdef __DEVELOPER_FLAGS_ENUM_DECLARE__
-std::vector<DeveloperFlagsEnum> DeveloperFlagsEnum::enumData;
-bool DeveloperFlagsEnum::initializedFlag = false;
-int32_t DeveloperFlagsEnum::integerCodeCounter = 0; 
-#endif // __DEVELOPER_FLAGS_ENUM_DECLARE__
+#ifdef __CHART_TWO_LINE_SERIES_CONTENT_TYPE_ENUM_DECLARE__
+std::vector<ChartTwoLineSeriesContentTypeEnum> ChartTwoLineSeriesContentTypeEnum::enumData;
+bool ChartTwoLineSeriesContentTypeEnum::initializedFlag = false;
+int32_t ChartTwoLineSeriesContentTypeEnum::integerCodeCounter = 0; 
+#endif // __CHART_TWO_LINE_SERIES_CONTENT_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__DEVELOPER_FLAGS_ENUM_H__
+#endif  //__CHART_TWO_LINE_SERIES_CONTENT_TYPE_ENUM_H__

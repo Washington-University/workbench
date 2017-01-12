@@ -25,7 +25,9 @@
 
 #include "AnnotationColorBar.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "ChartableTwoInterface.h"
 #include "ChartOverlaySet.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
@@ -161,6 +163,15 @@ ChartOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) co
 }
 
 /**
+ * @return The chart data type for this chart overlay.
+ */
+ChartTwoDataTypeEnum::Enum
+ChartOverlay::getChartDataType() const
+{
+    return m_chartDataType;
+}
+
+/**
  * Get the chart compound data type
  */
 ChartTwoCompoundDataType
@@ -199,6 +210,13 @@ ChartOverlay::setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartC
 bool
 ChartOverlay::isEnabled() const
 {
+    /*
+     * First overlay is ALWAYS enabled
+     */
+    if (m_overlayIndex == 0) {
+        return true;
+    }
+    
     return m_enabled;
 }
 
@@ -210,6 +228,13 @@ ChartOverlay::isEnabled() const
 void
 ChartOverlay::setEnabled(const bool enabled)
 {
+    if (m_overlayIndex == 0) {
+        if ( ! enabled) {
+            CaretAssertMessage(0, "Request to disable first overlay should NEVER happen");
+            CaretLogSevere("Request to disable first overlay should NEVER happen");
+            return;
+        }
+    }
     m_enabled = enabled;
 }
 
@@ -231,7 +256,13 @@ ChartOverlay::copyData(const ChartOverlay* overlay)
      *    m_overlayIndex
      *
      */
-    m_enabled = overlay->m_enabled;
+    
+    /*
+     * NEVER disable the first overlay
+     */
+    if (m_overlayIndex > 0) {
+        m_enabled = overlay->m_enabled;
+    }
     
     m_mapYokingGroup = overlay->m_mapYokingGroup;
     
@@ -351,38 +382,38 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
      * Use only those data files that meet criteria.
      */
     for (auto mapFile : allDataFiles) {
-//    for (std::vector<CaretMappableDataFile*>::iterator iter = allDataFiles.begin();
-//         iter != allDataFiles.end();
-//         iter++) {
-//        CaretMappableDataFile* mapFile = *iter;
-        bool useIt = false;
-
-        std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
-        mapFile->getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
-        
-        for (auto& compoundType : chartCompoundDataTypes) {
-            if (m_chartDataType == compoundType.getChartDataType()) {
-                if (m_overlayIndex == 0) {
-                    /*
-                     * The first overlay displays ALL files that match the
-                     * enumerated chart type
-                     */
-                    useIt = true;
-                }
-                else {
-                    if (m_chartCompoundDataType == compoundType) {
+        CaretAssert(mapFile);
+        ChartableTwoInterface* chartingFile = dynamic_cast<ChartableTwoInterface*>(mapFile);
+        if (chartingFile != NULL) {
+            bool useIt = false;
+            
+            std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
+            chartingFile->getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
+            
+            for (auto& compoundType : chartCompoundDataTypes) {
+                if (m_chartDataType == compoundType.getChartDataType()) {
+                    if (m_overlayIndex == 0) {
                         /*
-                         * If not the first overlay, the enumerated type
-                         * and dimensions must also match
+                         * The first overlay displays ALL files that match the
+                         * enumerated chart type
                          */
                         useIt = true;
                     }
+                    else {
+                        if (m_chartCompoundDataType == compoundType) {
+                            /*
+                             * If not the first overlay, the enumerated type
+                             * and dimensions must also match
+                             */
+                            useIt = true;
+                        }
+                    }
                 }
             }
-        }
-        
-        if (useIt) {
-            mapFilesOut.push_back(mapFile);
+            
+            if (useIt) {
+                mapFilesOut.push_back(mapFile);
+            }
         }
     }
     
@@ -455,7 +486,9 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
      */
     if (m_overlayIndex == 0) {
         if (m_selectedMapFile != NULL) {
-            m_selectedMapFile->getChartCompoundDataTypeForChartDataType(m_chartDataType,
+            ChartableTwoInterface* chartFile = dynamic_cast<ChartableTwoInterface*>(m_selectedMapFile);
+            CaretAssert(chartFile);
+            chartFile->getChartCompoundDataTypeForChartDataType(m_chartDataType,
                                                                         m_chartCompoundDataType);
         }
         CaretAssert(m_parentChartOverlaySet);

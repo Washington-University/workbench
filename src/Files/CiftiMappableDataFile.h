@@ -757,6 +757,8 @@ namespace caret {
         static const int32_t CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI = 1;
         
     private:
+        friend class ChartableTwoFileDelegate;
+        friend class ChartableTwoFileDelegateMatrixChart;
         
 //        std::vector<int64_t> m_ciftiDimensions;
         

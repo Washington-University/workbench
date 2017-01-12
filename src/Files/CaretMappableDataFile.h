@@ -25,7 +25,6 @@
 
 #include "CaretDataFile.h"
 #include "ChartOneDataTypeEnum.h"
-#include "ChartableTwoInterface.h"
 #include "CaretPointer.h"
 #include "NiftiEnums.h"
 #include "PaletteNormalizationModeEnum.h"
@@ -58,7 +57,7 @@ namespace caret {
      * Note that Caret5 used the term 'column'.
      */
     
-    class CaretMappableDataFile : public CaretDataFile, public ChartableTwoInterface {
+    class CaretMappableDataFile : public CaretDataFile {
         
     public:
         CaretMappableDataFile(const DataFileTypeEnum::Enum dataFileType);
@@ -460,25 +459,6 @@ namespace caret {
         
         const LabelDrawingProperties* getLabelDrawingProperties() const;
         
-        virtual CaretMappableDataFile* getAsCaretMappableDataFile() override;
-        
-        virtual const CaretMappableDataFile* getAsCaretMappableDataFile() const override;
-        
-        virtual bool isChartingSupported() const override;
-        
-        virtual bool isChartingSupportedForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType) const override;
-        
-        virtual bool isChartingSupportedForChartCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType) const  override;
-        
-        virtual void getSupportedChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& chartDataTypesOut) const override;
-        
-        virtual void getSupportedChartCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const override;
-        
-        virtual bool getChartCompoundDataTypeForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
-                                                              ChartTwoCompoundDataType& chartCompoundDataTypeOut) const;
-        
-        virtual ChartTwoDataCartesianHistory* getLineSeriesChartingHistory() override;
-
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);
 

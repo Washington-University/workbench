@@ -46,6 +46,8 @@ namespace caret {
         
         virtual ~ChartOverlay();
         
+        ChartTwoDataTypeEnum::Enum getChartDataType() const;
+        
         ChartTwoCompoundDataType getChartTwoCompoundDataType() const;
         
         void setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType);

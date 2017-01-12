@@ -33,6 +33,7 @@
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartableLineSeriesRowColumnInterface.h"
 #include "ChartableMatrixInterface.h"
+#include "ChartableTwoInterface.h"
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
@@ -2023,8 +2024,9 @@ ModelChart::getValidChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& vali
     std::set<ChartTwoDataTypeEnum::Enum> chartTypeSet;
     
     for (auto mapFile : allDataFiles) {
+        ChartableTwoInterface* chartFile = dynamic_cast<ChartableTwoInterface*>(mapFile);
         std::vector<ChartTwoDataTypeEnum::Enum> fileChartTypes;
-        mapFile->getSupportedChartDataTypes(fileChartTypes);
+        chartFile->getSupportedChartDataTypes(fileChartTypes);
         
         chartTypeSet.insert(fileChartTypes.begin(),
                             fileChartTypes.end());

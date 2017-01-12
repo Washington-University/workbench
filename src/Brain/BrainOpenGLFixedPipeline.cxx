@@ -43,6 +43,7 @@
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
+#include "BrainOpenGLChartTwoDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLTextureManager.h"
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
@@ -68,6 +69,7 @@
 #include "ChartModelDataSeries.h"
 #include "ChartModelFrequencySeries.h"
 #include "ChartModelTimeSeries.h"
+#include "ChartOverlaySet.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
@@ -5277,10 +5279,25 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
                     ModelChart* chartModel,
                     const int32_t viewport[4])
 {
+    
     CaretAssert(browserTabContent);
     CaretAssert(chartModel);
     
     const int32_t tabIndex = browserTabContent->getTabNumber();
+    
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING)) {
+        BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
+        
+        chartDrawing.drawChartOverlaySet(m_brain,
+                                         this,
+                                         getTextRenderer(),
+                                         chartModel->getChartOverlaySet(tabIndex),
+                                         SelectionItemDataTypeEnum::CHART_DATA_SERIES,
+                                         viewport,
+                                         tabIndex);
+        return;
+    }
+    
     ChartModelCartesian* cartesianChart = NULL;
     ChartableMatrixInterface* matrixChartFile = NULL;
     const ChartOneDataTypeEnum::Enum chartDataType = chartModel->getSelectedChartOneDataType(tabIndex);
