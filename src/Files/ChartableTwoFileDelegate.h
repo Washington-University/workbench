@@ -1,5 +1,5 @@
-#ifndef __CHARTABLE_TWO_INTERFACE_H__
-#define __CHARTABLE_TWO_INTERFACE_H__
+#ifndef __CHARTABLE_TWO_FILE_DELEGATE_H__
+#define __CHARTABLE_TWO_FILE_DELEGATE_H__
 
 /*LICENSE_START*/
 /*
@@ -21,43 +21,52 @@
  */
 /*LICENSE_END*/
 
-
+#include "CaretObjectTracksModification.h"
 #include "ChartTwoCompoundDataType.h"
 #include "ChartTwoDataTypeEnum.h"
-#include "ChartableTwoFileHistogramChart.h"
-#include "ChartableTwoFileLineSeriesChart.h"
-#include "ChartableTwoFileMatrixChart.h"
-#include "ChartTwoLineSeriesContentTypeEnum.h"
-#include "ChartTwoMatrixContentTypeEnum.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
     class CaretMappableDataFile;
-    class ChartTwoDataCartesianHistory;
+    //class ChartTwoDataCartesianHistory;
+    class ChartableTwoFileHistogramChart;
+    class ChartableTwoFileLineSeriesChart;
+    class ChartableTwoFileMatrixChart;
     class CiftiMappableDataFile;
     
-    class ChartableTwoInterface {
+    class ChartableTwoFileDelegate : public CaretObjectTracksModification, public SceneableInterface {
+        
+    private:
+        ChartableTwoFileDelegate(CaretMappableDataFile* caretMappableDataFile);
         
     public:
-        ChartableTwoInterface();
+        virtual ~ChartableTwoFileDelegate();
         
-        virtual ~ChartableTwoInterface();
+        void updateAfterFileChanged();
         
-        virtual CaretMappableDataFile* getAsCaretMappableDataFile() = 0;
+        // do not make this virtual since called from constructor
+        void clear();
         
-        virtual const CaretMappableDataFile* getAsCaretMappableDataFile() const = 0;
+        virtual void clearModified() override;
         
-        virtual ChartableTwoFileHistogramChart* getHistogramChartDelegate() = 0;
+        virtual bool isModified() const override;
         
-        virtual const ChartableTwoFileHistogramChart* getHistogramChartDelegate() const = 0;
+        CaretMappableDataFile* getCaretMappableDataFile();
         
-        virtual ChartableTwoFileLineSeriesChart* getLineSeriesChartDelegate() = 0;
+        const CaretMappableDataFile* getCaretMappableDataFile() const;
         
-        virtual const ChartableTwoFileLineSeriesChart* getLineSeriesChartDelegate() const = 0;
+        ChartableTwoFileHistogramChart* getHistogramCharting();
         
-        virtual ChartableTwoFileMatrixChart* getMatrixChartDelegate() = 0;
+        const ChartableTwoFileHistogramChart* getHistogramCharting() const;
         
-        virtual const ChartableTwoFileMatrixChart* getMatrixChartDelegate() const = 0;
+        ChartableTwoFileLineSeriesChart* getLineSeriesCharting();
+        
+        const ChartableTwoFileLineSeriesChart* getLineSeriesCharting() const;
+        
+        ChartableTwoFileMatrixChart* getMatrixCharting();
+        
+        const ChartableTwoFileMatrixChart* getMatrixCharting() const;
         
         bool isChartingSupported() const;
         
@@ -72,6 +81,12 @@ namespace caret {
         bool getChartCompoundDataTypeForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
                                                       ChartTwoCompoundDataType& chartCompoundDataTypeOut) const;
         
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName) override;
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass) override;
         
         /* IMPLEMENT ABOVE NON-VIRTUAL METHODS USING THE VIRTUAL METHODS */
         
@@ -117,9 +132,20 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        ChartableTwoInterface(const ChartableTwoInterface&);
+        ChartableTwoFileDelegate(const ChartableTwoFileDelegate&);
 
-        ChartableTwoInterface& operator=(const ChartableTwoInterface&);
+        ChartableTwoFileDelegate& operator=(const ChartableTwoFileDelegate&);
+        
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
+        
+        /** points to parent caret mappable data file */
+        CaretMappableDataFile* m_caretMappableDataFile = NULL;
+        
+        std::unique_ptr<ChartableTwoFileHistogramChart> m_histogramCharting;
+        
+        std::unique_ptr<ChartableTwoFileLineSeriesChart> m_lineSeriesCharting;
+        
+        std::unique_ptr<ChartableTwoFileMatrixChart> m_matrixCharting;
         
 //        const ChartTwoHistogramContentTypeEnum::Enum m_histogramContentType;
 //        
@@ -130,9 +156,9 @@ namespace caret {
 
     };
     
-#ifdef __CHARTABLE_TWO_INTERFACE_DECLARE__
+#ifdef __CHARTABLE_TWO_FILE_DELEGATE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHARTABLE_TWO_INTERFACE_DECLARE__
+#endif // __CHARTABLE_TWO_FILE_DELEGATE_DECLARE__
 
 } // namespace
-#endif  //__CHARTABLE_TWO_INTERFACE_H__
+#endif  //__CHARTABLE_TWO_FILE_DELEGATE_H__

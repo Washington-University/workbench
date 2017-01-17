@@ -1,5 +1,5 @@
-#ifndef __CHARTABLE_TWO_FILE_DELEGATE_LINE_SERIES_CHART_H__
-#define __CHARTABLE_TWO_FILE_DELEGATE_LINE_SERIES_CHART_H__
+#ifndef __CHARTABLE_TWO_FILE_LINE_SERIES_CHART_H__
+#define __CHARTABLE_TWO_FILE_LINE_SERIES_CHART_H__
 
 /*LICENSE_START*/
 /*
@@ -22,21 +22,25 @@
 /*LICENSE_END*/
 
 
-#include "ChartableTwoFileDelegateBaseChart.h"
+#include "ChartableTwoFileBaseChart.h"
 #include "ChartTwoLineSeriesContentTypeEnum.h"
 
 
 namespace caret {
 
-    class ChartableTwoFileDelegateLineSeriesChart : public ChartableTwoFileDelegateBaseChart {
+    class ChartableTwoFileLineSeriesChart : public ChartableTwoFileBaseChart {
         
     public:
-        ChartableTwoFileDelegateLineSeriesChart(const ChartTwoLineSeriesContentTypeEnum::Enum lineSeriesContentType,
+        ChartableTwoFileLineSeriesChart(const ChartTwoLineSeriesContentTypeEnum::Enum lineSeriesContentType,
                                                 CaretMappableDataFile* parentCaretMappableDataFile);
         
-        virtual ~ChartableTwoFileDelegateLineSeriesChart();
+        virtual ~ChartableTwoFileLineSeriesChart();
         
         ChartTwoLineSeriesContentTypeEnum::Enum getLineSeriesContentType() const;
+        
+        virtual bool isValid() const override;
+        
+        virtual bool isEmpty() const override;
         
 
         // ADD_NEW_METHODS_HERE
@@ -48,15 +52,15 @@ namespace caret {
           
     protected: 
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-                                             SceneClass* sceneClass);
+                                             SceneClass* sceneClass) override;
 
         virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-                                                  const SceneClass* sceneClass);
+                                                  const SceneClass* sceneClass) override;
 
     private:
-        ChartableTwoFileDelegateLineSeriesChart(const ChartableTwoFileDelegateLineSeriesChart&);
+        ChartableTwoFileLineSeriesChart(const ChartableTwoFileLineSeriesChart&);
 
-        ChartableTwoFileDelegateLineSeriesChart& operator=(const ChartableTwoFileDelegateLineSeriesChart&);
+        ChartableTwoFileLineSeriesChart& operator=(const ChartableTwoFileLineSeriesChart&);
         
         SceneClassAssistant* m_sceneAssistant;
 
@@ -66,9 +70,9 @@ namespace caret {
 
     };
     
-#ifdef __CHARTABLE_TWO_FILE_DELEGATE_LINE_SERIES_CHART_DECLARE__
+#ifdef __CHARTABLE_TWO_FILE_LINE_SERIES_CHART_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHARTABLE_TWO_FILE_DELEGATE_LINE_SERIES_CHART_DECLARE__
+#endif // __CHARTABLE_TWO_FILE_LINE_SERIES_CHART_DECLARE__
 
 } // namespace
-#endif  //__CHARTABLE_TWO_FILE_DELEGATE_LINE_SERIES_CHART_H__
+#endif  //__CHARTABLE_TWO_FILE_LINE_SERIES_CHART_H__

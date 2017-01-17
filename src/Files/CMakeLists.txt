@@ -47,10 +47,11 @@ ChartableMatrixSeriesInterface.h
 
 ChartableTwoInterface.h
 
-ChartableTwoFileDelegateBaseChart.h
-ChartableTwoFileDelegateHistogramChart.h
-ChartableTwoFileDelegateLineSeriesChart.h
-ChartableTwoFileDelegateMatrixChart.h
+ChartableTwoFileDelegate.h
+ChartableTwoFileBaseChart.h
+ChartableTwoFileHistogramChart.h
+ChartableTwoFileLineSeriesChart.h
+ChartableTwoFileMatrixChart.h
 
 CiftiBrainordinateDataSeriesFile.h
 CiftiBrainordinateLabelFile.h
@@ -171,10 +172,11 @@ ChartableLineSeriesInterface.cxx
 ChartableMatrixInterface.cxx
 ChartableTwoInterface.cxx
 
-ChartableTwoFileDelegateBaseChart.cxx
-ChartableTwoFileDelegateHistogramChart.cxx
-ChartableTwoFileDelegateLineSeriesChart.cxx
-ChartableTwoFileDelegateMatrixChart.cxx
+ChartableTwoFileDelegate.cxx
+ChartableTwoFileBaseChart.cxx
+ChartableTwoFileHistogramChart.cxx
+ChartableTwoFileLineSeriesChart.cxx
+ChartableTwoFileMatrixChart.cxx
 
 CiftiBrainordinateDataSeriesFile.cxx
 CiftiBrainordinateLabelFile.cxx

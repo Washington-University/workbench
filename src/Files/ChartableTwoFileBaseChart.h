@@ -1,5 +1,5 @@
-#ifndef __CHARTABLE_TWO_FILE_DELEGATE_BASE_CHART_H__
-#define __CHARTABLE_TWO_FILE_DELEGATE_BASE_CHART_H__
+#ifndef __CHARTABLE_TWO_FILE_BASE_CHART_H__
+#define __CHARTABLE_TWO_FILE_BASE_CHART_H__
 
 /*LICENSE_START*/
 /*
@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-#include "CaretObject.h"
+#include "CaretObjectTracksModification.h"
 #include "ChartTwoCompoundDataType.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
@@ -32,14 +32,24 @@ namespace caret {
     class CiftiMappableDataFile;
     class SceneClassAssistant;
 
-    class ChartableTwoFileDelegateBaseChart : public CaretObject, public EventListenerInterface, public SceneableInterface {
+    class ChartableTwoFileBaseChart : public CaretObjectTracksModification, public EventListenerInterface, public SceneableInterface {
         
     protected:
-        ChartableTwoFileDelegateBaseChart(const ChartTwoDataTypeEnum::Enum chartType,
+        ChartableTwoFileBaseChart(const ChartTwoDataTypeEnum::Enum chartType,
                                           CaretMappableDataFile* parentCaretMappableDataFile);
         
     public:
-        virtual ~ChartableTwoFileDelegateBaseChart();
+        virtual ~ChartableTwoFileBaseChart();
+        
+        /**
+         * @return Is this charting valid ?
+         */
+        virtual bool isValid() const = 0;
+        
+        /**
+         * @return Is this charting empty (no data at this time)
+         */
+        virtual bool isEmpty() const = 0;
         
         CaretMappableDataFile* getCaretMappableDataFile();
         
@@ -80,11 +90,11 @@ namespace caret {
                                                   const SceneClass* sceneClass) = 0;
 
     private:
-        ChartableTwoFileDelegateBaseChart() = delete;
+        ChartableTwoFileBaseChart() = delete;
         
-        ChartableTwoFileDelegateBaseChart(const ChartableTwoFileDelegateBaseChart&);
+        ChartableTwoFileBaseChart(const ChartableTwoFileBaseChart&);
 
-        ChartableTwoFileDelegateBaseChart& operator=(const ChartableTwoFileDelegateBaseChart&);
+        ChartableTwoFileBaseChart& operator=(const ChartableTwoFileBaseChart&);
         
         const ChartTwoDataTypeEnum::Enum m_chartType;
         
@@ -100,9 +110,9 @@ namespace caret {
 
     };
     
-#ifdef __CHARTABLE_TWO_FILE_DELEGATE_BASE_CHART_DECLARE__
+#ifdef __CHARTABLE_TWO_FILE_BASE_CHART_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHARTABLE_TWO_FILE_DELEGATE_BASE_CHART_DECLARE__
+#endif // __CHARTABLE_TWO_FILE_BASE_CHART_DECLARE__
 
 } // namespace
-#endif  //__CHARTABLE_TWO_FILE_DELEGATE_BASE_CHART_H__
+#endif  //__CHARTABLE_TWO_FILE_BASE_CHART_H__

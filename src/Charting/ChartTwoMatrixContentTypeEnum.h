@@ -39,8 +39,8 @@ public:
         MATRIX_CONTENT_UNSUPPORTED,
         /** Brainordinate mappable content */
         MATRIX_CONTENT_BRAINORDINATE_MAPPABLE,
-        /** Series content */
-        MATRIX_CONTENT_SERIES
+        /** Scalar content */
+        MATRIX_CONTENT_SCALARS
     };
 
 

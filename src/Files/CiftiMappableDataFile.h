@@ -476,6 +476,10 @@ namespace caret {
         
         virtual void getMatrixRGBA(std::vector<float>& rgba, PaletteFile *paletteFile);
     
+        bool getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
+                                      int32_t& numberOfColumnsOut,
+                                      std::vector<float>& rgbaOut) const;
+        
         virtual void getFileData(std::vector<float>& data) const;
         
         const CiftiFile* getCiftiFile() const { return m_ciftiFile; }
@@ -758,7 +762,7 @@ namespace caret {
         
     private:
         friend class ChartableTwoFileDelegate;
-        friend class ChartableTwoFileDelegateMatrixChart;
+        friend class ChartableTwoFileMatrixChart;
         
 //        std::vector<int64_t> m_ciftiDimensions;
         

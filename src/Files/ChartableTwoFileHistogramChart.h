@@ -1,5 +1,5 @@
-#ifndef __CHARTABLE_TWO_FILE_DELEGATE_HISTOGRAM_CHART_H__
-#define __CHARTABLE_TWO_FILE_DELEGATE_HISTOGRAM_CHART_H__
+#ifndef __CHARTABLE_TWO_FILE_HISTOGRAM_CHART_H__
+#define __CHARTABLE_TWO_FILE_HISTOGRAM_CHART_H__
 
 /*LICENSE_START*/
 /*
@@ -22,21 +22,25 @@
 /*LICENSE_END*/
 
 
-#include "ChartableTwoFileDelegateBaseChart.h"
+#include "ChartableTwoFileBaseChart.h"
 #include "ChartTwoHistogramContentTypeEnum.h"
 
 
 namespace caret {
 
-    class ChartableTwoFileDelegateHistogramChart : public ChartableTwoFileDelegateBaseChart {
+    class ChartableTwoFileHistogramChart : public ChartableTwoFileBaseChart {
         
     public:
-        ChartableTwoFileDelegateHistogramChart(const ChartTwoHistogramContentTypeEnum::Enum histogramContentType,
+        ChartableTwoFileHistogramChart(const ChartTwoHistogramContentTypeEnum::Enum histogramContentType,
                                                CaretMappableDataFile* parentCaretMappableDataFile);
         
-        virtual ~ChartableTwoFileDelegateHistogramChart();
+        virtual ~ChartableTwoFileHistogramChart();
         
         ChartTwoHistogramContentTypeEnum::Enum getHistogramContentType() const;
+        
+        virtual bool isValid() const override;
+        
+        virtual bool isEmpty() const override;
         
         // ADD_NEW_METHODS_HERE
 
@@ -47,15 +51,15 @@ namespace caret {
           
     protected: 
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-                                             SceneClass* sceneClass);
+                                             SceneClass* sceneClass) override;
 
         virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-                                                  const SceneClass* sceneClass);
+                                                  const SceneClass* sceneClass) override;
 
     private:
-        ChartableTwoFileDelegateHistogramChart(const ChartableTwoFileDelegateHistogramChart&);
+        ChartableTwoFileHistogramChart(const ChartableTwoFileHistogramChart&);
 
-        ChartableTwoFileDelegateHistogramChart& operator=(const ChartableTwoFileDelegateHistogramChart&);
+        ChartableTwoFileHistogramChart& operator=(const ChartableTwoFileHistogramChart&);
         
         SceneClassAssistant* m_sceneAssistant;
 
@@ -65,9 +69,9 @@ namespace caret {
 
     };
     
-#ifdef __CHARTABLE_TWO_FILE_DELEGATE_HISTOGRAM_CHART_DECLARE__
+#ifdef __CHARTABLE_TWO_FILE_HISTOGRAM_CHART_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHARTABLE_TWO_FILE_DELEGATE_HISTOGRAM_CHART_DECLARE__
+#endif // __CHARTABLE_TWO_FILE_HISTOGRAM_CHART_DECLARE__
 
 } // namespace
-#endif  //__CHARTABLE_TWO_FILE_DELEGATE_HISTOGRAM_CHART_H__
+#endif  //__CHARTABLE_TWO_FILE_HISTOGRAM_CHART_H__

@@ -1,5 +1,5 @@
-#ifndef __CHARTABLE_TWO_FILE_DELEGATE_MATRIX_CHART_H__
-#define __CHARTABLE_TWO_FILE_DELEGATE_MATRIX_CHART_H__
+#ifndef __CHARTABLE_TWO_FILE_MATRIX_CHART_H__
+#define __CHARTABLE_TWO_FILE_MATRIX_CHART_H__
 
 /*LICENSE_START*/
 /*
@@ -22,19 +22,23 @@
 /*LICENSE_END*/
 
 #include "ChartTwoMatrixContentTypeEnum.h"
-#include "ChartableTwoFileDelegateBaseChart.h"
+#include "ChartableTwoFileBaseChart.h"
 
 namespace caret {
 
-    class ChartableTwoFileDelegateMatrixChart : public ChartableTwoFileDelegateBaseChart {
+    class ChartableTwoFileMatrixChart : public ChartableTwoFileBaseChart {
         
     public:
-        ChartableTwoFileDelegateMatrixChart(const ChartTwoMatrixContentTypeEnum::Enum matrixContentType,
+        ChartableTwoFileMatrixChart(const ChartTwoMatrixContentTypeEnum::Enum matrixContentType,
                                             CaretMappableDataFile* parentCaretMappableDataFile);
         
-        virtual ~ChartableTwoFileDelegateMatrixChart();
+        virtual ~ChartableTwoFileMatrixChart();
         
         ChartTwoMatrixContentTypeEnum::Enum getMatrixContentType() const;
+        
+        virtual bool isValid() const override;
+        
+        virtual bool isEmpty() const override;
         
         void getMatrixDimensions(int32_t& numberOfRowsOut,
                                  int32_t& numberOfColumnsOut) const;
@@ -51,15 +55,15 @@ namespace caret {
           
     protected: 
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-                                             SceneClass* sceneClass);
+                                             SceneClass* sceneClass) override;
 
         virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-                                                  const SceneClass* sceneClass);
+                                                  const SceneClass* sceneClass) override;
 
     private:
-        ChartableTwoFileDelegateMatrixChart(const ChartableTwoFileDelegateMatrixChart&);
+        ChartableTwoFileMatrixChart(const ChartableTwoFileMatrixChart&);
 
-        ChartableTwoFileDelegateMatrixChart& operator=(const ChartableTwoFileDelegateMatrixChart&);
+        ChartableTwoFileMatrixChart& operator=(const ChartableTwoFileMatrixChart&);
         
         SceneClassAssistant* m_sceneAssistant;
 
@@ -68,9 +72,9 @@ namespace caret {
 
     };
     
-#ifdef __CHARTABLE_TWO_FILE_DELEGATE_MATRIX_CHART_DECLARE__
+#ifdef __CHARTABLE_TWO_FILE_MATRIX_CHART_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHARTABLE_TWO_FILE_DELEGATE_MATRIX_CHART_DECLARE__
+#endif // __CHARTABLE_TWO_FILE_MATRIX_CHART_DECLARE__
 
 } // namespace
-#endif  //__CHARTABLE_TWO_FILE_DELEGATE_MATRIX_CHART_H__
+#endif  //__CHARTABLE_TWO_FILE_MATRIX_CHART_H__

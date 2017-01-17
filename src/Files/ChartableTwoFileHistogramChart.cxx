@@ -19,11 +19,12 @@
  */
 /*LICENSE_END*/
 
-#define __CHARTABLE_TWO_FILE_DELEGATE_LINE_SERIES_CHART_DECLARE__
-#include "ChartableTwoFileDelegateLineSeriesChart.h"
-#undef __CHARTABLE_TWO_FILE_DELEGATE_LINE_SERIES_CHART_DECLARE__
+#define __CHARTABLE_TWO_FILE_HISTOGRAM_CHART_DECLARE__
+#include "ChartableTwoFileHistogramChart.h"
+#undef __CHARTABLE_TWO_FILE_HISTOGRAM_CHART_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretMappableDataFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -32,46 +33,72 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartableTwoFileDelegateLineSeriesChart 
- * \brief Implementation of base chart delegate for line series charts.
+ * \class caret::ChartableTwoFileHistogramChart 
+ * \brief Implementation of base chart delegate for histogram charts.
  * \ingroup Files
  */
 
 /**
  * Constructor.
  *
- * @param lineSeriesContentType
- *     Content type of the line series data.
+ * @param histogramContentType
+ *     Content of histogram.
  * @param parentCaretMappableDataFile
  *     Parent caret mappable data file that this delegate supports.
  */
-ChartableTwoFileDelegateLineSeriesChart::ChartableTwoFileDelegateLineSeriesChart(const ChartTwoLineSeriesContentTypeEnum::Enum lineSeriesContentType,
-                                                                                 CaretMappableDataFile* parentCaretMappableDataFile)
-: ChartableTwoFileDelegateBaseChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
+ChartableTwoFileHistogramChart::ChartableTwoFileHistogramChart(const ChartTwoHistogramContentTypeEnum::Enum histogramContentType,
+                                                                               CaretMappableDataFile* parentCaretMappableDataFile)
+: ChartableTwoFileBaseChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM,
                                     parentCaretMappableDataFile),
-m_lineSeriesContentType(lineSeriesContentType)
+m_histogramContentType(histogramContentType)
 {
-    CaretAssert(m_lineSeriesContentType != ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED);
     m_sceneAssistant = new SceneClassAssistant();
     
+    switch (m_histogramContentType) {
+        case ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_UNSUPPORTED:
+            break;
+        case ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA:
+            updateChartCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForHistogram());
+            break;
+    }
 }
 
 /**
  * Destructor.
  */
-ChartableTwoFileDelegateLineSeriesChart::~ChartableTwoFileDelegateLineSeriesChart()
+ChartableTwoFileHistogramChart::~ChartableTwoFileHistogramChart()
 {
     delete m_sceneAssistant;
 }
 
 /**
- * @return Content type of the line series data.
+ * @return Content type of histogram.
  */
-ChartTwoLineSeriesContentTypeEnum::Enum
-ChartableTwoFileDelegateLineSeriesChart::getLineSeriesContentType() const
+ChartTwoHistogramContentTypeEnum::Enum
+ChartableTwoFileHistogramChart::getHistogramContentType() const
 {
-    return m_lineSeriesContentType;
+    return m_histogramContentType;
 }
+
+/**
+ * @return Is this charting valid ?
+ */
+bool
+ChartableTwoFileHistogramChart::isValid() const
+{
+    return (m_histogramContentType != ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_UNSUPPORTED);
+}
+
+/**
+ * @retrurn Is this charting empty (no data at this time)
+ */
+bool
+ChartableTwoFileHistogramChart::isEmpty() const
+{
+    CaretAssertToDoWarning();
+    return false;
+}
+
 
 /**
  * Save subclass data to the scene.
@@ -86,7 +113,7 @@ ChartableTwoFileDelegateLineSeriesChart::getLineSeriesContentType() const
  *     be valid (non-NULL).
  */
 void
-ChartableTwoFileDelegateLineSeriesChart::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+ChartableTwoFileHistogramChart::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
     m_sceneAssistant->saveMembers(sceneAttributes,
@@ -106,7 +133,7 @@ ChartableTwoFileDelegateLineSeriesChart::saveSubClassDataToScene(const SceneAttr
  *     this interface.  Will NEVER be NULL.
  */
 void
-ChartableTwoFileDelegateLineSeriesChart::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+ChartableTwoFileHistogramChart::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
     m_sceneAssistant->restoreMembers(sceneAttributes,

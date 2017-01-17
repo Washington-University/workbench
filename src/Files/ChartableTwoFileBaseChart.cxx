@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __CHARTABLE_TWO_FILE_DELEGATE_BASE_CHART_DECLARE__
-#include "ChartableTwoFileDelegateBaseChart.h"
-#undef __CHARTABLE_TWO_FILE_DELEGATE_BASE_CHART_DECLARE__
+#define __CHARTABLE_TWO_FILE_BASE_CHART_DECLARE__
+#include "ChartableTwoFileBaseChart.h"
+#undef __CHARTABLE_TWO_FILE_BASE_CHART_DECLARE__
 
 #include "CaretAssert.h"
 #include "EventManager.h"
@@ -33,7 +33,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartableTwoFileDelegateBaseChart 
+ * \class caret::ChartableTwoFileBaseChart 
  * \brief Base class for File Charting Delegates.
  * \ingroup Files
  *
@@ -60,9 +60,9 @@ using namespace caret;
  * @param parentCaretMappableDataFile
  *     Parent caret mappable data file that this delegate supports.
  */
-ChartableTwoFileDelegateBaseChart::ChartableTwoFileDelegateBaseChart(const ChartTwoDataTypeEnum::Enum chartType,
+ChartableTwoFileBaseChart::ChartableTwoFileBaseChart(const ChartTwoDataTypeEnum::Enum chartType,
                                                                      CaretMappableDataFile* parentCaretMappableDataFile)
-: CaretObject(),
+: CaretObjectTracksModification(),
 m_chartType(chartType),
 m_parentCaretMappableDataFile(parentCaretMappableDataFile)
 {
@@ -77,7 +77,7 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
-//ChartableTwoFileDelegateBaseChart::ChartableTwoFileDelegateBaseChart()
+//ChartableTwoFileBaseChart::ChartableTwoFileBaseChart()
 //{
 //    
 //}
@@ -85,7 +85,7 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
 /**
  * Destructor.
  */
-ChartableTwoFileDelegateBaseChart::~ChartableTwoFileDelegateBaseChart()
+ChartableTwoFileBaseChart::~ChartableTwoFileBaseChart()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     delete m_sceneAssistant;
@@ -96,9 +96,9 @@ ChartableTwoFileDelegateBaseChart::~ChartableTwoFileDelegateBaseChart()
  * @return String describing this object's content.
  */
 AString 
-ChartableTwoFileDelegateBaseChart::toString() const
+ChartableTwoFileBaseChart::toString() const
 {
-    return "ChartableTwoFileDelegateBaseChart";
+    return "ChartableTwoFileBaseChart";
 }
 
 /**
@@ -108,7 +108,7 @@ ChartableTwoFileDelegateBaseChart::toString() const
  *    An event for which this instance is listening.
  */
 void
-ChartableTwoFileDelegateBaseChart::receiveEvent(Event* event)
+ChartableTwoFileBaseChart::receiveEvent(Event* event)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -122,7 +122,7 @@ ChartableTwoFileDelegateBaseChart::receiveEvent(Event* event)
  * @return The CaretMappableDataFile that provided this delegate.
  */
 CaretMappableDataFile*
-ChartableTwoFileDelegateBaseChart::getCaretMappableDataFile()
+ChartableTwoFileBaseChart::getCaretMappableDataFile()
 {
     return m_parentCaretMappableDataFile;
 }
@@ -131,7 +131,7 @@ ChartableTwoFileDelegateBaseChart::getCaretMappableDataFile()
  * @return The CaretMappableDataFile that provided this delegate.
  */
 const CaretMappableDataFile*
-ChartableTwoFileDelegateBaseChart::getCaretMappableDataFile() const
+ChartableTwoFileBaseChart::getCaretMappableDataFile() const
 {
     return m_parentCaretMappableDataFile;
 }
@@ -141,7 +141,7 @@ ChartableTwoFileDelegateBaseChart::getCaretMappableDataFile() const
  *         NULL is returned if not a CiftiMappableDataFile.
  */
 CiftiMappableDataFile*
-ChartableTwoFileDelegateBaseChart::getCiftiMappableDataFile()
+ChartableTwoFileBaseChart::getCiftiMappableDataFile()
 {
     return m_parentCiftiMappableDataFile;
 }
@@ -151,13 +151,13 @@ ChartableTwoFileDelegateBaseChart::getCiftiMappableDataFile()
  *         NULL is returned if not a CiftiMappableDataFile.
  */
 const CiftiMappableDataFile*
-ChartableTwoFileDelegateBaseChart::getCiftiMappableDataFile() const
+ChartableTwoFileBaseChart::getCiftiMappableDataFile() const
 {
     return m_parentCiftiMappableDataFile;
 }
 
 ChartTwoDataTypeEnum::Enum
-ChartableTwoFileDelegateBaseChart::getChartDataType() const
+ChartableTwoFileBaseChart::getChartDataType() const
 {
     return m_chartType;
 }
@@ -166,7 +166,7 @@ ChartableTwoFileDelegateBaseChart::getChartDataType() const
  * @return Chart compound data type supported by subclass.
  */
 ChartTwoCompoundDataType
-ChartableTwoFileDelegateBaseChart::getChartCompoundDataType() const
+ChartableTwoFileBaseChart::getChartCompoundDataType() const
 {
     CaretAssertMessage((m_compoundChartDataType.getChartDataType() != ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID),
                        "Data type is invalid, was updateChartCompoundDataTypeAfterFileChanges() called by "
@@ -183,7 +183,7 @@ ChartableTwoFileDelegateBaseChart::getChartCompoundDataType() const
  *     match the data type passed to the constructor.
  */
 void
-ChartableTwoFileDelegateBaseChart::updateChartCompoundDataTypeAfterFileChanges(const ChartTwoCompoundDataType compoundChartDataType)
+ChartableTwoFileBaseChart::updateChartCompoundDataTypeAfterFileChanges(const ChartTwoCompoundDataType compoundChartDataType)
 {
     CaretAssert(m_chartType == compoundChartDataType.getChartDataType());
     
@@ -203,11 +203,11 @@ ChartableTwoFileDelegateBaseChart::updateChartCompoundDataTypeAfterFileChanges(c
  *    Name of instance in the scene.
  */
 SceneClass*
-ChartableTwoFileDelegateBaseChart::saveToScene(const SceneAttributes* sceneAttributes,
+ChartableTwoFileBaseChart::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "ChartableTwoFileDelegateBaseChart",
+                                            "ChartableTwoFileBaseChart",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -230,7 +230,7 @@ ChartableTwoFileDelegateBaseChart::saveToScene(const SceneAttributes* sceneAttri
  *     sceneClass from which model specific information is obtained.
  */
 void
-ChartableTwoFileDelegateBaseChart::restoreFromScene(const SceneAttributes* sceneAttributes,
+ChartableTwoFileBaseChart::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {

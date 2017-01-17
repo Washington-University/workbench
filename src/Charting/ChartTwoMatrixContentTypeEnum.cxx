@@ -114,9 +114,9 @@ ChartTwoMatrixContentTypeEnum::initialize()
                                                   "MATRIX_CONTENT_BRAINORDINATE_MAPPABLE",
                                                   "Brainordinate Mappable"));
     
-    enumData.push_back(ChartTwoMatrixContentTypeEnum(MATRIX_CONTENT_SERIES,
-                                                  "MATRIX_CONTENT_SERIES",
-                                                  "Series"));    
+    enumData.push_back(ChartTwoMatrixContentTypeEnum(MATRIX_CONTENT_SCALARS,
+                                                  "MATRIX_CONTENT_SCALARS",
+                                                  "Scalars"));    
 }
 
 /**
