@@ -45,6 +45,8 @@ using namespace caret;
  *
  * @param chartDataType
  *    Chart data type.
+ * @param histogramNumberOfBuckets
+ *     Number of bins in the histogram.
  * @param lineChartUnitsAxisX
  *    Line chart x-axis units.
  * @param lineChartNumberOfElementsAxisX
@@ -55,15 +57,17 @@ using namespace caret;
  *    Matrix number of columns.
  */
 ChartTwoCompoundDataType::ChartTwoCompoundDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
-                                             const ChartAxisUnitsEnum::Enum lineChartUnitsAxisX,
-                                             const int32_t lineChartNumberOfElementsAxisX,
-                                             const int32_t matrixNumberOfRows,
-                                             const int32_t matrixNumberOfColumns)
+                                                   const int32_t histogramNumberOfBuckets,
+                                                   const ChartAxisUnitsEnum::Enum lineChartUnitsAxisX,
+                                                   const int32_t lineChartNumberOfElementsAxisX,
+                                                   const int32_t matrixNumberOfRows,
+                                                   const int32_t matrixNumberOfColumns)
 : CaretObject()
 {
     initializeChartTwoCompoundDataType();
     
     m_chartDataType                  = chartDataType;
+    m_histogramNumberOfBuckets       = histogramNumberOfBuckets;
     m_lineChartUnitsAxisX            = lineChartUnitsAxisX;
     m_lineChartNumberOfElementsAxisX = lineChartNumberOfElementsAxisX;
     m_matrixNumberOfRows             = matrixNumberOfRows;
@@ -88,43 +92,59 @@ ChartTwoCompoundDataType::~ChartTwoCompoundDataType()
 
 /**
  * @return A new instance for a histogram chart.
+ *
+ * @param histogramNumberOfBins
+ *     Number of bins in the histogram.
  */
 ChartTwoCompoundDataType
-ChartTwoCompoundDataType::newInstanceForHistogram()
+ChartTwoCompoundDataType::newInstanceForHistogram(const int32_t histogramNumberOfBins)
 {
     return ChartTwoCompoundDataType(ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                 0,
-                                 0,
-                                 0);
+                                    histogramNumberOfBins,
+                                    ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                    0,
+                                    0,
+                                    0);
 }
 
 /**
  * @return A new instance for a line-series chart.
+ *
+ * @param lineChartUnitsAxisX
+ *    Line chart x-axis units.
+ * @param lineChartNumberOfElementsAxisX
+ *    Line chart x-axis number of elements.
  */
 ChartTwoCompoundDataType
 ChartTwoCompoundDataType::newInstanceForLineSeries(const ChartAxisUnitsEnum::Enum lineChartUnitsAxisX,
                                                 const int32_t lineChartNumberOfElementsAxisX)
 {
     return ChartTwoCompoundDataType(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
-                                 lineChartUnitsAxisX,
-                                 lineChartNumberOfElementsAxisX,
-                                 0,
-                                 0);
+                                    0,
+                                    lineChartUnitsAxisX,
+                                    lineChartNumberOfElementsAxisX,
+                                    0,
+                                    0);
 }
 
 /**
  * @return A new instance for a matrix chart.
+ *
+ * @param matrixNumberOfRows
+ *    Matrix number of rows.
+ * @param matrixNumberOfColumns
+ *    Matrix number of columns.
  */
 ChartTwoCompoundDataType
 ChartTwoCompoundDataType::newInstanceForMatrix(const int32_t matrixNumberOfRows,
                                             const int32_t matrixNumberOfColumns)
 {
     return ChartTwoCompoundDataType(ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                 0,
-                                 matrixNumberOfRows,
-                                 matrixNumberOfColumns);
+                                    0,
+                                    ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                    0,
+                                    matrixNumberOfRows,
+                                    matrixNumberOfColumns);
 }
 
 
@@ -257,6 +277,15 @@ ChartTwoCompoundDataType::getChartDataType() const
 }
 
 /**
+ * @return Histogram number of buckets.
+ */
+int32_t
+ChartTwoCompoundDataType::getHistogramNumberOfBuckets() const
+{
+    return m_histogramNumberOfBuckets;
+}
+
+/**
  * @return Line chart X-axis units.
  */
 ChartAxisUnitsEnum::Enum
@@ -307,6 +336,9 @@ ChartTwoCompoundDataType::toString() const
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            text.appendWithNewLine(indent
+                                   + "buckets="
+                                   + QString::number(m_histogramNumberOfBuckets));
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             text.appendWithNewLine(indent

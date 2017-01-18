@@ -37,12 +37,13 @@ namespace caret {
         ChartTwoCompoundDataType();
         
         ChartTwoCompoundDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
-                              const ChartAxisUnitsEnum::Enum lineChartUnitsAxisX,
-                              const int32_t lineChartNumberOfElementsAxisX,
-                              const int32_t matrixNumberOfRows,
-                              const int32_t matrixNumberOfColumns);
+                                 const int32_t histogramNumberOfBuckets,
+                                 const ChartAxisUnitsEnum::Enum lineChartUnitsAxisX,
+                                 const int32_t lineChartNumberOfElementsAxisX,
+                                 const int32_t matrixNumberOfRows,
+                                 const int32_t matrixNumberOfColumns);
         
-        static ChartTwoCompoundDataType newInstanceForHistogram();
+        static ChartTwoCompoundDataType newInstanceForHistogram(const int32_t histogramNumberOfBuckets);
         
         static ChartTwoCompoundDataType newInstanceForLineSeries(const ChartAxisUnitsEnum::Enum lineChartUnitsAxisX,
                                                               const int32_t lineChartNumberOfElementsAxisX);
@@ -60,6 +61,8 @@ namespace caret {
         bool operator==(const ChartTwoCompoundDataType& obj) const;
         
         ChartTwoDataTypeEnum::Enum getChartDataType() const;
+        
+        int32_t getHistogramNumberOfBuckets() const;
         
         ChartAxisUnitsEnum::Enum getLineChartUnitsAxisX() const;
         
@@ -102,6 +105,8 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
 
         ChartTwoDataTypeEnum::Enum m_chartDataType;
+        
+        int32_t m_histogramNumberOfBuckets;
         
         ChartAxisUnitsEnum::Enum m_lineChartUnitsAxisX;
         

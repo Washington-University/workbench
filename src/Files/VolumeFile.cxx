@@ -288,6 +288,7 @@ void VolumeFile::readFile(const AString& filename)
     }
     
     m_volumeFileEditorDelegate->updateIfVolumeFileChangedNumberOfMaps();
+    updateChartingDelegate();
     
     /*
      * This will update the map name/label hierarchy

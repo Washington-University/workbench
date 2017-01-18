@@ -67,7 +67,8 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
 
-        const ChartTwoMatrixContentTypeEnum::Enum m_matrixContentType;
+        ChartTwoMatrixContentTypeEnum::Enum m_matrixContentType;
+       
         // ADD_NEW_MEMBERS_HERE
 
     };

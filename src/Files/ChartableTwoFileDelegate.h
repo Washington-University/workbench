@@ -37,10 +37,9 @@ namespace caret {
     
     class ChartableTwoFileDelegate : public CaretObjectTracksModification, public SceneableInterface {
         
-    private:
+    public:
         ChartableTwoFileDelegate(CaretMappableDataFile* caretMappableDataFile);
         
-    public:
         virtual ~ChartableTwoFileDelegate();
         
         void updateAfterFileChanged();

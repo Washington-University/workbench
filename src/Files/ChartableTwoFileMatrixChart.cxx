@@ -65,12 +65,19 @@ m_matrixContentType(matrixContentType)
         CaretAssert(ciftiMapFile);
         ciftiMapFile->helpMapFileGetMatrixDimensions(numRows,
                                                      numCols);
-        if ((numRows > 0)
-            || (numCols > 0)) {
-            updateChartCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForMatrix(numRows,
-                                                                                                       numCols));
-        }
     }
+    
+    if ((numRows > 0)
+        && (numCols > 0)) {
+        /* OK */
+    }
+    else {
+        m_matrixContentType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED;
+    }
+    
+    
+    updateChartCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForMatrix(numRows,
+                                                                                               numCols));
 }
 
 /**

@@ -164,8 +164,10 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
         case DataFileTypeEnum::UNKNOWN:
             break;
         case DataFileTypeEnum::VOLUME:
-            histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
-            lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
+            if ( ! m_caretMappableDataFile->isMappedWithLabelTable()) {
+                histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+                lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
+            }
             break;
             
     }
@@ -178,6 +180,8 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
     
     m_matrixCharting = std::unique_ptr<ChartableTwoFileMatrixChart>(new ChartableTwoFileMatrixChart(matrixType,
                                                                                   m_caretMappableDataFile));
+    
+    clearModified();
 }
 
 /**
@@ -374,9 +378,6 @@ ChartableTwoFileDelegate::getSupportedChartDataTypes(std::vector<ChartTwoDataTyp
     if (m_matrixCharting != NULL) {
         chartDataTypesOut.push_back(m_matrixCharting->getChartDataType());
     }
-    
-    CaretAssertMessage((! chartDataTypesOut.empty()),
-                       "Why is this delegate used if parent file does not support charts?");
 }
 
 /**
@@ -390,19 +391,15 @@ ChartableTwoFileDelegate::getSupportedChartCompoundDataTypes(std::vector<ChartTw
 {
     chartCompoundDataTypesOut.clear();
     
-    
-    if (m_histogramCharting != NULL) {
+    if (m_histogramCharting->getHistogramContentType() != ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_UNSUPPORTED) {
         chartCompoundDataTypesOut.push_back(m_histogramCharting->getChartCompoundDataType());
     }
-    if (m_lineSeriesCharting != NULL) {
+    if (m_lineSeriesCharting->getLineSeriesContentType() != ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED) {
         chartCompoundDataTypesOut.push_back(m_lineSeriesCharting->getChartCompoundDataType());
     }
-    if (m_matrixCharting != NULL) {
+    if (m_matrixCharting->getMatrixContentType() != ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED) {
         chartCompoundDataTypesOut.push_back(m_matrixCharting->getChartCompoundDataType());
     }
-    
-    CaretAssertMessage((! chartCompoundDataTypesOut.empty()),
-                       "Why is this delegate used if parent file does not support charts?");
     
 //    const CaretMappableDataFile* cmdf = getAsCaretMappableDataFile();
 //    if (cmdf == NULL) {

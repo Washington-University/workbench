@@ -27,7 +27,10 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
-#include "ChartableTwoInterface.h"
+#include "ChartableTwoFileDelegate.h"
+#include "ChartableTwoFileHistogramChart.h"
+#include "ChartableTwoFileLineSeriesChart.h"
+#include "ChartableTwoFileMatrixChart.h"
 #include "ChartOverlaySet.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
@@ -146,6 +149,7 @@ ChartOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) co
             me->getSelectionData(mapFile,
                                  mapIndex);
             if (mapFile != NULL) {
+                descriptionOut.addLine("Overlay Index: " + AString::number(m_overlayIndex));
                 descriptionOut.addLine("File: "+
                                        mapFile->getFileNameNoPath());
                 if (mapFile->hasMapAttributes()) {
@@ -157,6 +161,12 @@ ChartOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) co
                                                + mapFile->getMapName(mapIndex));
                     }
                 }
+                
+                const ChartableTwoFileDelegate* chartDelegate = mapFile->getChartingDelegate();
+                ChartTwoCompoundDataType cdt;
+                chartDelegate->getChartCompoundDataTypeForChartDataType(getChartDataType(),
+                                                                        cdt);
+                descriptionOut.addLine(cdt.toString());
             }
         }
     }
@@ -383,8 +393,8 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
      */
     for (auto mapFile : allDataFiles) {
         CaretAssert(mapFile);
-        ChartableTwoInterface* chartingFile = dynamic_cast<ChartableTwoInterface*>(mapFile);
-        if (chartingFile != NULL) {
+        ChartableTwoFileDelegate* chartingFile = mapFile->getChartingDelegate();
+        if (chartingFile->isChartingSupported()) {
             bool useIt = false;
             
             std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
@@ -456,6 +466,7 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                     if (mapTypeFile->getNumberOfMaps() > 0) {
                         m_selectedMapFile = mapTypeFile;
                         m_selectedMapIndex = 0;
+                        break;
                     }
                 }
             }
@@ -486,7 +497,7 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
      */
     if (m_overlayIndex == 0) {
         if (m_selectedMapFile != NULL) {
-            ChartableTwoInterface* chartFile = dynamic_cast<ChartableTwoInterface*>(m_selectedMapFile);
+            ChartableTwoFileDelegate* chartFile = m_selectedMapFile->getChartingDelegate();
             CaretAssert(chartFile);
             chartFile->getChartCompoundDataTypeForChartDataType(m_chartDataType,
                                                                         m_chartCompoundDataType);

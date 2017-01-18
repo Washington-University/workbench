@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "Histogram.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -58,9 +59,18 @@ m_histogramContentType(histogramContentType)
         case ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_UNSUPPORTED:
             break;
         case ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA:
-            updateChartCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForHistogram());
             break;
     }
+
+    int32_t histogramNumberOfBuckets = 0;
+    CaretMappableDataFile* cmdf = getCaretMappableDataFile();
+    if (cmdf->getNumberOfMaps() > 0) {
+        const Histogram* histogram = cmdf->getMapHistogram(0);
+        if (histogram != NULL) {
+            histogramNumberOfBuckets = histogram->getNumberOfBuckets();
+        }
+    }
+    updateChartCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForHistogram(histogramNumberOfBuckets));
 }
 
 /**

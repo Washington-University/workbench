@@ -120,6 +120,8 @@ namespace caret {
         
         int32_t m_numberOfDisplayedOverlays;
         
+        bool m_inFirstOverlayChangedMethodFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
         
         friend class ChartOverlay;

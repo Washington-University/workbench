@@ -26,14 +26,14 @@
 #include "CaretDataFile.h"
 #include "ChartOneDataTypeEnum.h"
 #include "CaretPointer.h"
+#include "CiftiXML.h"
 #include "NiftiEnums.h"
 #include "PaletteNormalizationModeEnum.h"
 
 namespace caret {
 
     class ChartDataCartesian;
-    class CiftiXML;
-    class ChartTwoDataCartesianHistory;
+    class ChartableTwoFileDelegate;
     class FastStatistics;
     class GiftiMetaData;
     class GiftiLabelTable;
@@ -451,13 +451,19 @@ namespace caret {
         virtual const CiftiXML getCiftiXML() const;
         
         /* documented in cxx file. */
-        bool isModified() const;
+        virtual bool isModified() const override;
+        
+        virtual void clearModified() override;
         
         void initializeCaretMappableDataFileInstance();
         
         LabelDrawingProperties* getLabelDrawingProperties();
         
         const LabelDrawingProperties* getLabelDrawingProperties() const;
+        
+        ChartableTwoFileDelegate* getChartingDelegate();
+        
+        const ChartableTwoFileDelegate* getChartingDelegate() const;
         
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);
@@ -467,6 +473,8 @@ namespace caret {
         ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data);
         
         void helpGetSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const;
+        
+        void updateChartingDelegate();
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);
@@ -480,7 +488,7 @@ namespace caret {
         
         std::unique_ptr<LabelDrawingProperties> m_labelDrawingProperties;
 
-        std::unique_ptr<ChartTwoDataCartesianHistory> m_lineChartHistory;
+        mutable std::unique_ptr<ChartableTwoFileDelegate> m_chartingDelegate;
     };
 
 #ifdef __CARET_MAPPABLE_DATA_FILE_DECLARE__

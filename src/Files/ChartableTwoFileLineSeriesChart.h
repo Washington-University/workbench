@@ -21,13 +21,14 @@
  */
 /*LICENSE_END*/
 
-
 #include "ChartableTwoFileBaseChart.h"
 #include "ChartTwoLineSeriesContentTypeEnum.h"
 
 
 namespace caret {
 
+    class ChartTwoDataCartesianHistory;
+    
     class ChartableTwoFileLineSeriesChart : public ChartableTwoFileBaseChart {
         
     public:
@@ -37,6 +38,10 @@ namespace caret {
         virtual ~ChartableTwoFileLineSeriesChart();
         
         ChartTwoLineSeriesContentTypeEnum::Enum getLineSeriesContentType() const;
+        
+        ChartTwoDataCartesianHistory* getHistory();
+        
+        const ChartTwoDataCartesianHistory* getHistory() const;
         
         virtual bool isValid() const override;
         
@@ -62,9 +67,11 @@ namespace caret {
 
         ChartableTwoFileLineSeriesChart& operator=(const ChartableTwoFileLineSeriesChart&);
         
-        SceneClassAssistant* m_sceneAssistant;
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        const ChartTwoLineSeriesContentTypeEnum::Enum m_lineSeriesContentType;
+        ChartTwoLineSeriesContentTypeEnum::Enum m_lineSeriesContentType;
+        
+        std::unique_ptr<ChartTwoDataCartesianHistory> m_lineChartHistory;
         
         // ADD_NEW_MEMBERS_HERE
 

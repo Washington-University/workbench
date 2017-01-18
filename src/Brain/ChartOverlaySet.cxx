@@ -168,9 +168,9 @@ ChartOverlaySet::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut)
         if (getOverlay(i)->isEnabled()) {
             descriptionOut.pushIndentation();
             
-            descriptionOut.addLine("Overlay "
-                                   + AString::number(i + 1)
-                                   + ": ");
+//            descriptionOut.addLine("Overlay "
+//                                   + AString::number(i + 1)
+//                                   + ": ");
             
             descriptionOut.pushIndentation();
             getOverlay(i)->getDescriptionOfContent(descriptionOut);
@@ -481,17 +481,35 @@ ChartOverlaySet::initializeOverlays()
 void
 ChartOverlaySet::firstOverlaySelectionChanged()
 {
+    if (m_inFirstOverlayChangedMethodFlag) {
+        return;
+    }
+    
+    m_inFirstOverlayChangedMethodFlag = true;
+    
     ChartTwoCompoundDataType cdt = m_overlays[0]->getChartTwoCompoundDataType();
 
-    std::cout << qPrintable("Chart Overlay in tab "
-                            + AString::number(m_tabIndex + 1)
-                            + ":\n"
-                            +  cdt.toString()) << std::endl;
+    
+    
+    
+//    std::cout << qPrintable("First Chart Overlay in tab "
+//                            + AString::number(m_tabIndex + 1)
+//                            + ":\n"
+//                            +  cdt.toString()) << std::endl;
     
     for (int32_t i = 1; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
         m_overlays[i]->setChartTwoCompoundDataType(cdt);
+//        if (m_overlays[i]->isEnabled()) {
+//            std::cout << "   Overlay " << i << qPrintable(m_overlays[i]->toString()) << std::endl;
+//        }
     }
+    
+    PlainTextStringBuilder description;
+    getDescriptionOfContent(description);
+    std::cout << "First Overlay Changed: " << qPrintable(description.getText()) << std::endl;
+    
+    m_inFirstOverlayChangedMethodFlag = false;
 }
 
 

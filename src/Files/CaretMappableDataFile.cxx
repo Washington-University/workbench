@@ -102,8 +102,6 @@ void
 CaretMappableDataFile::initializeCaretMappableDataFileInstance()
 {
     m_labelDrawingProperties = std::unique_ptr<LabelDrawingProperties>(new LabelDrawingProperties());
-    
-    m_lineChartHistory = std::unique_ptr<ChartTwoDataCartesianHistory>(new ChartTwoDataCartesianHistory());
 }
 
 
@@ -314,8 +312,6 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
                                                sceneClass);
     
 
-    sceneClass->addClass(m_lineChartHistory->saveToScene(sceneAttributes,
-                                                         "m_lineChartHistory"));
     sceneClass->addClass(m_labelDrawingProperties->saveToScene(sceneAttributes,
                                                                "m_labelDrawingProperties"));
     
@@ -403,9 +399,6 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     
     m_labelDrawingProperties->restoreFromScene(sceneAttributes,
                                                sceneClass->getClass("m_labelDrawingProperties"));
-    
-    m_lineChartHistory->restoreFromScene(sceneAttributes,
-                                         sceneClass->getClass("m_lineChartHistory"));
     
     if (isMappedWithPalette()) {
         /*
@@ -1083,16 +1076,16 @@ CaretMappableDataFile::isMappedWithRGBA() const
     return false;
 }
 
-//bool CaretMappableDataFile::hasCiftiXML() const
-//{
-//    return false;
-//}
-//
-//const CiftiXML CaretMappableDataFile::getCiftiXML() const
-//{
-//    return CiftiXML();
-//}
-//
+bool CaretMappableDataFile::hasCiftiXML() const
+{
+    return false;
+}
+
+const CiftiXML CaretMappableDataFile::getCiftiXML() const
+{
+    return CiftiXML();
+}
+
 ///**
 // * @return The CaretMappableDataFile that implements this interface.
 // */

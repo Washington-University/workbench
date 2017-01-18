@@ -151,6 +151,7 @@ GiftiTypeFile::readFile(const AString& filename)
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
     this->clearModified();
+    updateChartingDelegate();
 }
 
 /**

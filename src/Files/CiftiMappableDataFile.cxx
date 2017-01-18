@@ -960,6 +960,31 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
             }
             break;
     }
+    
+    /*
+     * Special case for scalar data series that does NOT map to brainordinates
+     */
+    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
+        const CiftiSeriesMap& map = ciftiXML.getSeriesMap(CiftiXML::ALONG_ROW);
+        CiftiSeriesMap::Unit units = map.getUnit();
+        switch (units) {
+            case CiftiSeriesMap::HERTZ:
+                m_mappingTimeUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_HZ;
+                break;
+            case CiftiSeriesMap::METER:
+                CaretLogWarning("CIFTI Units METER not implemented");
+                break;
+            case CiftiSeriesMap::RADIAN:
+                CaretLogWarning("CIFTI Units RADIAN not implemented");
+                break;
+            case CiftiSeriesMap::SECOND:
+                m_mappingTimeUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_SEC;
+                break;
+        }
+        m_mappingTimeStart = map.getStart();
+        m_mappingTimeStep  = map.getStep();
+    }
+
     /*
      * May not have mappings to voxels
      */
@@ -1020,6 +1045,8 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
     validateKeysAndLabels();
     
     validateAfterFileReading();
+    
+    updateChartingDelegate();
 }
 
 /**

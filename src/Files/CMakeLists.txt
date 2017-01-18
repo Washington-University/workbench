@@ -45,8 +45,6 @@ ChartableMatrixInterface.h
 ChartableMatrixParcelInterface.h
 ChartableMatrixSeriesInterface.h
 
-ChartableTwoInterface.h
-
 ChartableTwoFileDelegate.h
 ChartableTwoFileBaseChart.h
 ChartableTwoFileHistogramChart.h
@@ -170,7 +168,6 @@ CaretSparseFile.cxx
 CaretVolumeExtension.cxx
 ChartableLineSeriesInterface.cxx
 ChartableMatrixInterface.cxx
-ChartableTwoInterface.cxx
 
 ChartableTwoFileDelegate.cxx
 ChartableTwoFileBaseChart.cxx

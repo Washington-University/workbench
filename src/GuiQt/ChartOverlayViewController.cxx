@@ -562,11 +562,27 @@ ChartOverlayViewController::updateViewController(ChartOverlay* chartOverlay)
     CaretMappableDataFile* selectedFile = NULL;
     //AString selectedMapUniqueID = "";
     int32_t selectedMapIndex = -1;
+    bool enableMapSelectionControlsFlag = false;
+    
     if (m_chartOverlay != NULL) {
         m_chartOverlay->getSelectionData(dataFiles,
                                         selectedFile,
                                         //selectedMapUniqueID,
                                         selectedMapIndex);
+        
+        const ChartTwoDataTypeEnum::Enum chartDataType = m_chartOverlay->getChartDataType();
+        switch (chartDataType) {
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                enableMapSelectionControlsFlag = true;
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                break;
+        }
+        
     }
     
     std::vector<AString> displayNames;
@@ -600,12 +616,14 @@ ChartOverlayViewController::updateViewController(ChartOverlay* chartOverlay)
     int32_t numberOfMaps = 0;
     m_mapNameComboBox->blockSignals(true);
     m_mapNameComboBox->clear();
-    if (selectedFile != NULL) {
-        numberOfMaps = selectedFile->getNumberOfMaps();
-        for (int32_t i = 0; i < numberOfMaps; i++) {
-            m_mapNameComboBox->addItem(selectedFile->getMapName(i));
+    if (enableMapSelectionControlsFlag) {
+        if (selectedFile != NULL) {
+            numberOfMaps = selectedFile->getNumberOfMaps();
+            for (int32_t i = 0; i < numberOfMaps; i++) {
+                m_mapNameComboBox->addItem(selectedFile->getMapName(i));
+            }
+            m_mapNameComboBox->setCurrentIndex(selectedMapIndex);
         }
-        m_mapNameComboBox->setCurrentIndex(selectedMapIndex);
     }
     m_mapNameComboBox->blockSignals(false);
     
@@ -613,26 +631,36 @@ ChartOverlayViewController::updateViewController(ChartOverlay* chartOverlay)
      * Load the map index spin box that ranges [1, N].
      */
     m_mapIndexSpinBox->blockSignals(true);
-    m_mapIndexSpinBox->setRange(1, numberOfMaps);
-    if (selectedFile != NULL) {
-        m_mapIndexSpinBox->setValue(selectedMapIndex + 1);
+    if (enableMapSelectionControlsFlag) {
+        m_mapIndexSpinBox->setRange(1, numberOfMaps);
+        if (selectedFile != NULL) {
+            m_mapIndexSpinBox->setValue(selectedMapIndex + 1);
+        }
+    }
+    else {
+        m_mapIndexSpinBox->setRange(0, 0);
+        m_mapIndexSpinBox->setValue(0);
     }
     m_mapIndexSpinBox->blockSignals(false);
     
     /*
      * Update enable check box
      */
-    Qt::CheckState checkState = Qt::Unchecked;
+    Qt::CheckState enabledCheckState = Qt::Unchecked;
+    bool allMapsCheckedFlag = false;
+    MapYokingGroupEnum::Enum mapYoking = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     if (m_chartOverlay != NULL) {
         if (m_chartOverlay->isEnabled()) {
-            checkState = Qt::Checked;
+            enabledCheckState = Qt::Checked;
         }
+        allMapsCheckedFlag = m_chartOverlay->isAllMapsSelected();
+        mapYoking = m_chartOverlay->getMapYokingGroup();
     }
-    m_enabledCheckBox->setCheckState(checkState);
+    m_enabledCheckBox->setCheckState(enabledCheckState);
     
-    m_mapYokingGroupComboBox->setMapYokingGroup(m_chartOverlay->getMapYokingGroup());
+    m_mapYokingGroupComboBox->setMapYokingGroup(mapYoking);
     
-    m_allMapsCheckBox->setChecked(m_chartOverlay->isAllMapsSelected());
+    m_allMapsCheckBox->setChecked(allMapsCheckedFlag);
     
     
     m_colorBarAction->blockSignals(true);
@@ -694,17 +722,23 @@ ChartOverlayViewController::updateViewController(ChartOverlay* chartOverlay)
     
     /*
      * Make sure items are enabled at the appropriate time
+     * Note: First overlay is ALWAYS on enabled checkbox is not selectable by user
      */
-    m_enabledCheckBox->setEnabled(haveFile);
+    m_enabledCheckBox->setEnabled(haveFile
+                                  && (m_chartOverlayIndex > 0));
+    m_enabledCheckBox->setVisible(m_chartOverlayIndex > 0);
     m_settingsAction->setEnabled(true);
     m_colorBarAction->setEnabled(dataIsMappedWithPalette);
     m_constructionAction->setEnabled(true);
     m_historyAction->setEnabled(haveMultipleMaps);
     m_mapFileComboBox->setEnabled(haveFile);
     m_mapYokingGroupComboBox->getWidget()->setEnabled(haveYoking);
-    m_allMapsCheckBox->setEnabled(haveMultipleMaps);
-    m_mapIndexSpinBox->setEnabled(haveMultipleMaps);
-    m_mapNameComboBox->setEnabled(haveFile);
+    m_allMapsCheckBox->setEnabled(haveMultipleMaps
+                                  && enableMapSelectionControlsFlag);
+    m_mapIndexSpinBox->setEnabled(haveMultipleMaps
+                                  && enableMapSelectionControlsFlag);
+    m_mapNameComboBox->setEnabled(haveFile
+                                  && enableMapSelectionControlsFlag);
 }
 
 /**
