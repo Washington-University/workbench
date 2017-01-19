@@ -183,7 +183,7 @@ CiftiScalarDataSeriesFile::setMatrixRowColumnMapYokingGroup(const int32_t tabInd
  *     Selected map index in the given tab.
  */
 int32_t 
-CiftiScalarDataSeriesFile::getSelectedMapIndex(const int32_t tabIndex)
+CiftiScalarDataSeriesFile::getSelectedMapIndex(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_selectedMapIndices, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_selectedMapIndices[tabIndex];

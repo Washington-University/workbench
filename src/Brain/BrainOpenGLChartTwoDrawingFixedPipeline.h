@@ -21,13 +21,15 @@
  */
 /*LICENSE_END*/
 
-
+#include <set>
 #include "BrainOpenGLChartTwoDrawingInterface.h"
-
-
+#include "ChartTwoMatrixViewingTypeEnum.h"
 
 namespace caret {
 
+    class CaretPreferences;
+    class ChartableTwoFileMatrixChart;
+    
     class BrainOpenGLChartTwoDrawingFixedPipeline : public BrainOpenGLChartTwoDrawingInterface {
         
     public:
@@ -38,6 +40,8 @@ namespace caret {
         virtual void drawChartOverlaySet(Brain* brain,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          BrainOpenGLTextRenderInterface* textRenderer,
+                                         const float translation[3],
+                                         const float zooming,
                                          ChartOverlaySet* chartOverlaySet,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                          const int32_t viewport[4],
@@ -73,7 +77,20 @@ namespace caret {
         
         void processIdentification();
         
+        void addToChartMatrixIdentification(const int32_t matrixRowIndex,
+                                            const int32_t matrixColumnIndex,
+                                            uint8_t rgbaForColorIdentification[4]);
         void drawMatrixChart();
+        
+        void drawMatrixChartGrid(const ChartableTwoFileMatrixChart* matrixChart,
+                                 const ChartTwoMatrixViewingTypeEnum::Enum chartViewingType,
+                                 const float cellWidth,
+                                 const float cellHeight,
+                                 const float zooming);
+
+        void getMatrixHighlighting(const ChartableTwoFileMatrixChart* matrixChart,
+                                   std::set<int32_t>& rowIndicesOut,
+                                   std::set<int32_t>& columnIndicesOut) const;
         
         Brain* m_brain;
         
@@ -89,9 +106,18 @@ namespace caret {
         
         int32_t m_tabIndex;
         
+        float m_translation[3];
+        
+        float m_zooming;
+        
         std::vector<int32_t> m_identificationIndices;
         
+        CaretPreferences* m_preferences;
+        
         bool m_identificationModeFlag;
+        
+        static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;
+        static const int32_t IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT = 2;
         
         // ADD_NEW_MEMBERS_HERE
 

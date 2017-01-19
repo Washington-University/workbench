@@ -48,7 +48,7 @@ namespace caret {
         virtual void setMatrixRowColumnMapYokingGroup(const int32_t tabIndex,
                                     const MapYokingGroupEnum::Enum yokingType);
         
-        virtual int32_t getSelectedMapIndex(const int32_t tabIndex);
+        virtual int32_t getSelectedMapIndex(const int32_t tabIndex) const override;
         
         virtual void setSelectedMapIndex(const int32_t tabIndex,
                                          const int32_t mapIndex);

@@ -488,6 +488,9 @@ namespace caret {
         /** Transformation for volume slices viewing */
         ViewingTransformationsVolume* m_volumeSliceViewingTransformation;
 
+        /** Transformation for matrix chart viewing */
+        ViewingTransformations* m_chartMatrixViewingTranformation;
+        
         /** Volume slice settings for volume slices */
         VolumeSliceSettings* m_volumeSliceSettings;
         

@@ -5285,17 +5285,24 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
     
     const int32_t tabIndex = browserTabContent->getTabNumber();
     
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING)) {
-        BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
-        
-        chartDrawing.drawChartOverlaySet(m_brain,
-                                         this,
-                                         getTextRenderer(),
-                                         chartModel->getChartOverlaySet(tabIndex),
-                                         SelectionItemDataTypeEnum::CHART_DATA_SERIES,
-                                         viewport,
-                                         tabIndex);
-        return;
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1)) {
+        if (m_windowIndex == 0) {
+            float translation[3];
+            browserTabContent->getTranslation(translation);
+            BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
+            const float zooming = browserTabContent->getScaling();
+            
+            chartDrawing.drawChartOverlaySet(m_brain,
+                                             this,
+                                             getTextRenderer(),
+                                             translation,
+                                             zooming,
+                                             chartModel->getChartOverlaySet(tabIndex),
+                                             SelectionItemDataTypeEnum::CHART_DATA_SERIES,
+                                             viewport,
+                                             tabIndex);
+            return;
+        }
     }
     
     ChartModelCartesian* cartesianChart = NULL;

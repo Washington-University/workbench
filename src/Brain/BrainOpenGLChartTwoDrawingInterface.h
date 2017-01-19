@@ -47,20 +47,26 @@ namespace caret {
          *     Brain.
          * @param fixedPipelineDrawing
          *     The fixed pipeline OpenGL drawing.
-         * @param viewport
-         *     Viewport for the chart.
          * @param textRenderer
          *     Text rendering.
+         * @param translation
+         *     The chart's translation.
+         * @param zooming
+         *     The chart's zooming.
          * @param chartOverlaySet
          *     Chart overlay set that is drawn.
          * @param selectionItemDataType
          *     Selected data type.
+         * @param viewport
+         *     Viewport for the chart.
          * @param tabIndex
          *     Index of the tab.
          */
         virtual void drawChartOverlaySet(Brain* brain,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          BrainOpenGLTextRenderInterface* textRenderer,
+                                         const float translation[3],
+                                         const float zooming,
                                          ChartOverlaySet* chartOverlaySet,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                          const int32_t viewport[4],

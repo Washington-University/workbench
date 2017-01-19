@@ -125,6 +125,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_flatSurfaceViewingTransformation = new ViewingTransformations();
     m_viewingTransformation            = new ViewingTransformations();
     m_volumeSliceViewingTransformation = new ViewingTransformationsVolume();
+    m_chartMatrixViewingTranformation  = new ViewingTransformations();
     
     m_wholeBrainSurfaceSettings        = new WholeBrainSurfaceSettings();
     
@@ -168,6 +169,10 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_volumeSliceViewingTransformation",
                                "ViewingTransformations",
                                m_volumeSliceViewingTransformation);
+    
+    m_sceneClassAssistant->add("m_chartMatrixViewingTranformation",
+                               "ViewingTransformations",
+                               m_chartMatrixViewingTranformation);
     
     m_sceneClassAssistant->add("m_volumeSliceSettings",
                                "VolumeSliceSettings",
@@ -219,6 +224,7 @@ BrowserTabContent::~BrowserTabContent()
     delete m_cerebellumViewingTransformation;
     delete m_viewingTransformation;
     delete m_volumeSliceViewingTransformation;
+    delete m_chartMatrixViewingTranformation;
     delete m_obliqueVolumeRotationMatrix;
     
     delete m_surfaceModelSelector;
@@ -273,6 +279,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_flatSurfaceViewingTransformation = *tabToClone->m_flatSurfaceViewingTransformation;
     *m_viewingTransformation = *tabToClone->m_viewingTransformation;
     *m_volumeSliceViewingTransformation = *tabToClone->m_volumeSliceViewingTransformation;
+    *m_chartMatrixViewingTranformation = *tabToClone->m_chartMatrixViewingTranformation;
     *m_volumeSliceSettings = *tabToClone->m_volumeSliceSettings;
     *m_wholeBrainSurfaceSettings = *tabToClone->m_wholeBrainSurfaceSettings;
     
@@ -1744,6 +1751,9 @@ BrowserTabContent::getViewingTransformation()
     else if (isCerebellumDisplayed()) {
         return m_cerebellumViewingTransformation;
     }
+    else if (isChartDisplayed()) {
+        return m_chartMatrixViewingTranformation;
+    }
     return m_viewingTransformation;
 }
 
@@ -1758,6 +1768,9 @@ BrowserTabContent::getViewingTransformation() const
     }
     else if (isCerebellumDisplayed()) {
         return m_cerebellumViewingTransformation;
+    }
+    else if (isChartDisplayed()) {
+        return m_chartMatrixViewingTranformation;
     }
     return m_viewingTransformation;
 }
@@ -2412,6 +2425,15 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
                     matrixProperties->setViewZooming(scaling);
                 }
             }
+ 
+        float scaling = getViewingTransformation()->getScaling();
+        if (mouseDY != 0.0) {
+            scaling *= (1.0f + (mouseDY * 0.01));
+        }
+        if (scaling < 0.01) {
+            scaling = 0.01;
+        }
+        getViewingTransformation()->setScaling(scaling);
     }
     else {
         float scaling = getViewingTransformation()->getScaling();
@@ -2524,6 +2546,16 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                 translation[1] += mouseDY;
                 matrixProperties->setViewPanning(translation);
             }
+        }
+        
+        /** Charting "two" */
+        {
+            float translation[3];
+            m_chartMatrixViewingTranformation->getTranslation(translation);
+            translation[0] += mouseDX;
+            translation[1] += mouseDY;
+            translation[2] = 0; // NO Z-translation
+            m_chartMatrixViewingTranformation->setTranslation(translation);
         }
     }
     else if (isCerebellumDisplayed()) {
@@ -2730,6 +2762,15 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
         
         scalingOut = m_volumeSliceViewingTransformation->getScaling();
         
+        return;
+    }
+    
+    if (isChartDisplayed()) {
+        m_chartMatrixViewingTranformation->getTranslation(translationOut);
+        Matrix4x4 matrix;
+        matrix.identity();
+        matrix.getMatrixForOpenGL(rotationMatrixOut);
+        scalingOut = m_chartMatrixViewingTranformation->getScaling();
         return;
     }
     
@@ -3957,6 +3998,7 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
                 *m_flatSurfaceViewingTransformation = *btc->m_flatSurfaceViewingTransformation;
                 *m_cerebellumViewingTransformation = *btc->m_cerebellumViewingTransformation;
                 *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
+                *m_chartMatrixViewingTranformation = *btc->m_chartMatrixViewingTranformation;
                 *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
                 *m_obliqueVolumeRotationMatrix = *btc->m_obliqueVolumeRotationMatrix;
                 *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
@@ -4007,6 +4049,7 @@ BrowserTabContent::updateYokedBrowserTabs()
                 *btc->m_flatSurfaceViewingTransformation = *m_flatSurfaceViewingTransformation;
                 *btc->m_cerebellumViewingTransformation = *m_cerebellumViewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
+                *btc->m_chartMatrixViewingTranformation = *m_chartMatrixViewingTranformation;
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;
