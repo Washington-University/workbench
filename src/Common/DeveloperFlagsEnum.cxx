@@ -96,7 +96,7 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
             this->flagStatus = false;
             break;
         case DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1:
-            this->flagStatus = false;
+            this->flagStatus = true;
             break;
     }
 }

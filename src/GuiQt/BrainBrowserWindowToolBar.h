@@ -52,6 +52,7 @@ namespace caret {
     
     class BrainBrowserWindowToolBarChartAxes;
     class BrainBrowserWindowToolBarChartAttributes;
+    class BrainBrowserWindowToolBarChartOrientation;
     class BrainBrowserWindowToolBarChartTwoType;
     class BrainBrowserWindowToolBarChartType;
     class BrainBrowserWindowToolBarClipping;
@@ -142,6 +143,7 @@ namespace caret {
                                         QAction* tabAspectRatioLockedAction);
         QWidget* createChartAxesWidget();
         QWidget* createChartAttributesWidget();
+        QWidget* createChartOrientationWidget();
         QWidget* createChartTypeWidget();
         QWidget* createChartTypeTwoWidget();
         QWidget* createSingleSurfaceOptionsWidget();
@@ -160,7 +162,9 @@ namespace caret {
         void updateSurfaceMontageOptionsWidget(BrowserTabContent* browserTabContent);
         void updateChartAxesWidget(BrowserTabContent* browserTabContent);
         void updateChartAttributesWidget(BrowserTabContent* browserTabContent);
+        void updateChartOrientationWidget(BrowserTabContent* browserTabContent);
         void updateChartTypeWidget(BrowserTabContent* browserTabContent);
+        void updateChartTypeTwoWidget(BrowserTabContent* browserTabContent);
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
         void updateClippingOptionsWidget(BrowserTabContent* browserTabContent);
@@ -183,9 +187,10 @@ namespace caret {
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
         QWidget* chartTypeWidget;
-        QWidget* chartTwoTypeWidget;
+        QWidget* chartTypeTwoWidget;
         QWidget* chartAxesWidget;
         QWidget* chartAttributesWidget;
+        QWidget* chartOrientationWidget;
         
         WuQWidgetObjectGroup* viewWidgetGroup;
         WuQWidgetObjectGroup* orientationWidgetGroup;
@@ -356,6 +361,7 @@ namespace caret {
         BrainBrowserWindowToolBarChartTwoType* m_chartTwoTypeToolBarComponent;
         BrainBrowserWindowToolBarChartType* m_chartTypeToolBarComponent;
         BrainBrowserWindowToolBarChartAttributes* m_chartAttributesToolBarComponent;
+        BrainBrowserWindowToolBarChartOrientation* m_chartOrientationToolBarComponent;
         BrainBrowserWindowToolBarSurfaceMontage* m_surfaceMontageToolBarComponent;
         
         BrainBrowserWindowToolBarClipping* m_clippingToolBarComponent;
@@ -389,6 +395,7 @@ namespace caret {
     private:
         friend class BrainBrowserWindow;
         friend class BrainBrowserWindowToolBarChartAxes;
+        friend class BrainBrowserWindowToolBarChartOrientation;
         friend class BrainBrowserWindowToolBarChartTwoType;
         friend class BrainBrowserWindowToolBarChartType;
         friend class BrainBrowserWindowToolBarClipping;

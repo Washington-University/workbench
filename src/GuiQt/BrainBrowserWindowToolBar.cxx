@@ -55,6 +55,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowToolBarChartAttributes.h"
 #include "BrainBrowserWindowToolBarChartAxes.h"
+#include "BrainBrowserWindowToolBarChartOrientation.h"
 #include "BrainBrowserWindowToolBarChartTwoType.h"
 #include "BrainBrowserWindowToolBarChartType.h"
 #include "BrainBrowserWindowToolBarClipping.h"
@@ -70,6 +71,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
+#include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesBorders.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
@@ -330,8 +332,9 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->orientationWidget = this->createOrientationWidget();
     this->chartAxesWidget = createChartAxesWidget();
     this->chartAttributesWidget = createChartAttributesWidget();
+    this->chartOrientationWidget = createChartOrientationWidget();
     this->chartTypeWidget = createChartTypeWidget();
-    this->chartTwoTypeWidget = createChartTypeTwoWidget();
+    this->chartTypeTwoWidget = createChartTypeTwoWidget();
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->modeWidget = this->createModeWidget();
@@ -368,9 +371,11 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->toolbarWidgetLayout->addWidget(this->chartTypeWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->chartTwoTypeWidget, 0, Qt::AlignLeft);
+    this->toolbarWidgetLayout->addWidget(this->chartTypeTwoWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->chartAxesWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->chartOrientationWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->chartAttributesWidget, 0, Qt::AlignLeft);
     
@@ -1376,6 +1381,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showChartAxesWidget = false;
     bool showChartTypeWidget = false;
     bool showChartAttributesWidget = false;
+    bool showChartOrientationWidget = false;
     
     bool showModeWidget = true;
     bool showWindowWidget = true;
@@ -1408,6 +1414,7 @@ BrainBrowserWindowToolBar::updateToolBar()
             
             ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
             if (modelChart != NULL) {
+                showChartOrientationWidget = true;
                 switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
                     case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                         break;
@@ -1446,9 +1453,10 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->singleSurfaceSelectionWidget->setVisible(false);
     this->surfaceMontageSelectionWidget->setVisible(false);
     this->chartTypeWidget->setVisible(false);
-    this->chartTwoTypeWidget->setVisible(false);
+    this->chartTypeTwoWidget->setVisible(false);
     this->chartAxesWidget->setVisible(false);
     this->chartAttributesWidget->setVisible(false);
+    this->chartOrientationWidget->setVisible(false);
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
     this->volumeMontageWidget->setVisible(false);
@@ -1461,9 +1469,10 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
     this->surfaceMontageSelectionWidget->setVisible(showSurfaceMontageOptionsWidget);
     this->chartTypeWidget->setVisible(showChartTypeWidget);
-    this->chartTwoTypeWidget->setVisible(showChartTypeWidget);
+    this->chartTypeTwoWidget->setVisible(showChartTypeWidget);
     this->chartAxesWidget->setVisible(showChartAxesWidget);
     this->chartAttributesWidget->setVisible(showChartAttributesWidget);
+    this->chartOrientationWidget->setVisible(showChartOrientationWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
@@ -1522,8 +1531,10 @@ BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTab
         this->updateSingleSurfaceOptionsWidget(browserTabContent);
         this->updateSurfaceMontageOptionsWidget(browserTabContent);
         this->updateChartTypeWidget(browserTabContent);
+        this->updateChartTypeTwoWidget(browserTabContent);
         this->updateChartAxesWidget(browserTabContent);
         this->updateChartAttributesWidget(browserTabContent);
+        this->updateChartOrientationWidget(browserTabContent);
         this->updateVolumeMontageWidget(browserTabContent);
         this->updateVolumePlaneWidget(browserTabContent);
         this->updateModeWidget(browserTabContent);
@@ -2644,6 +2655,32 @@ BrainBrowserWindowToolBar::createChartTypeWidget()
 }
 
 /**
+ * Update the chart type widget.
+ *
+ * @param browserTabContent
+ *   The active model display (may be NULL).
+ */
+void
+BrainBrowserWindowToolBar::updateChartTypeWidget(BrowserTabContent* browserTabContent)
+{
+    if (this->chartTypeWidget->isHidden()) {
+        return;
+    }
+    
+    m_chartTypeToolBarComponent->updateContent(browserTabContent);
+    
+    if (this->browserWindowIndex == 0) {
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1)) {
+            this->chartTypeWidget->setEnabled(false);
+        }
+        else {
+            this->chartTypeWidget->setEnabled(true);
+        }
+    }
+}
+
+
+/**
  * Create the chart type two widget.
  *
  * @return
@@ -2669,14 +2706,22 @@ BrainBrowserWindowToolBar::createChartTypeTwoWidget()
  *   The active model display (may be NULL).
  */
 void
-BrainBrowserWindowToolBar::updateChartTypeWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateChartTypeTwoWidget(BrowserTabContent* browserTabContent)
 {
-    if (this->chartTypeWidget->isHidden()) {
+    if (this->chartTypeTwoWidget->isHidden()) {
         return;
     }
     
-    m_chartTypeToolBarComponent->updateContent(browserTabContent);
     m_chartTwoTypeToolBarComponent->updateContent(browserTabContent);
+    
+    if (this->browserWindowIndex == 0) {
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1)) {
+            this->chartTypeTwoWidget->setEnabled(true);
+        }
+        else {
+            this->chartTypeTwoWidget->setEnabled(false);
+        }
+    }
 }
 
 /**
@@ -2747,6 +2792,41 @@ BrainBrowserWindowToolBar::updateChartAttributesWidget(BrowserTabContent* browse
     }
     m_chartAttributesToolBarComponent->updateContent(browserTabContent);
 }
+
+/**
+ * Create the chart orientation widget.
+ *
+ * @return
+ *    Widget containing the chart orientation.
+ */
+QWidget*
+BrainBrowserWindowToolBar::createChartOrientationWidget()
+{
+    m_chartOrientationToolBarComponent = new BrainBrowserWindowToolBarChartOrientation(this);
+    QWidget* w = this->createToolWidget("Orientation",
+                                        m_chartOrientationToolBarComponent,
+                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_TOP,
+                                        100);
+    w->setVisible(false);
+    return w;
+}
+
+/**
+ * Update the chart orientation widget.
+ *
+ * @param browserTabContent
+ *   The active model display (may be NULL).
+ */
+void
+BrainBrowserWindowToolBar::updateChartOrientationWidget(BrowserTabContent* browserTabContent)
+{
+    if (this->chartOrientationWidget->isHidden()) {
+        return;
+    }
+    m_chartOrientationToolBarComponent->updateContent(browserTabContent);
+}
+
 
 /**
  * Create the single surface options widget.
