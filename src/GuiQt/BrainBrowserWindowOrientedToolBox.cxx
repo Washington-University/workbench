@@ -42,6 +42,7 @@
 #include "ChartableMatrixInterface.h"
 #include "ChartToolBoxViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"
+#include "DeveloperFlagsEnum.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -649,7 +650,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         int defaultTabIndex = -1;
         bool enableLayers = true;
         bool enableVolumeSurfaceOutline = false;
-        bool enableCharts = false;
+        bool enableOldCharts = false;
+        bool enableNewCharts = false;
         EventBrowserWindowContentGet browserContentEvent(m_browserWindowIndex);
         EventManager::get()->sendEvent(browserContentEvent.getPointer());
         BrowserTabContent* windowContent = browserContentEvent.getSelectedBrowserTabContent();
@@ -674,14 +676,26 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                                                       & haveVolumes);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART:
-                        defaultTabIndex = m_chartTabIndex;
+                        if (m_browserWindowIndex == 0) {
+                            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1)) {
+                                defaultTabIndex = m_chartOverlayTabIndex;
+                                enableNewCharts = true;
+                            }
+                            else {
+                                defaultTabIndex = m_chartTabIndex;
+                                enableOldCharts = true;
+                            }
+                        }
+                        else {
+                            defaultTabIndex = m_chartTabIndex;
+                            enableOldCharts = true;
+                        }
                         enableLayers = false;
                         enableVolumeSurfaceOutline = false;
                         haveBorders = false;
                         haveFibers  = false;
                         haveFoci    = false;
                         haveLabels  = false;
-                        enableCharts = true;
                         break;
                 }
             }
@@ -699,7 +713,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * NOTE: Order is important so that overlay tab is 
          * automatically selected.
          */
-        if (m_chartTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartTabIndex, enableCharts);
+        if (m_chartTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartTabIndex, enableOldCharts);
+        if (m_chartOverlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartOverlayTabIndex, enableNewCharts);
         if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveConnFiles);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         

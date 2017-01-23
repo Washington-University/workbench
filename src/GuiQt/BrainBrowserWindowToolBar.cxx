@@ -155,6 +155,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->isContructorFinished = false;
     this->isDestructionInProgress = false;
+    m_chartingTwoFlag = false;
 
     this->viewOrientationLeftIcon = NULL;
     this->viewOrientationRightIcon = NULL;
@@ -1365,6 +1366,16 @@ BrainBrowserWindowToolBar::updateToolBar()
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
+    /*
+     * Use new charting in 1st window and old charting in other windows?
+     */
+    m_chartingTwoFlag = false;
+    if (this->browserWindowIndex == 0) {
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1)) {
+            m_chartingTwoFlag = true;
+        }
+    }
+    
     BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
     
     const ModelTypeEnum::Enum viewModel = this->updateViewWidget(browserTabContent);
@@ -1378,10 +1389,11 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showVolumePlaneWidget = false;
     bool showVolumeMontageWidget = false;
     
-    bool showChartAxesWidget = false;
-    bool showChartTypeWidget = false;
-    bool showChartAttributesWidget = false;
-    bool showChartOrientationWidget = false;
+    bool showChartOneAxesWidget = false;
+    bool showChartOneTypeWidget = false;
+    bool showChartTwoTypeWidget = false;
+    bool showChartOneAttributesWidget = false;
+    bool showChartTwoOrientationWidget = false;
     
     bool showModeWidget = true;
     bool showWindowWidget = true;
@@ -1409,33 +1421,43 @@ BrainBrowserWindowToolBar::updateToolBar()
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
         {
-            showChartTypeWidget = true;
+            if (m_chartingTwoFlag) {
+                showChartTwoTypeWidget = true;
+            }
+            else {
+                showChartOneTypeWidget = true;
+            }
+            
             showClippingOptionsWidget = false;
             
             ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
             if (modelChart != NULL) {
-                showChartOrientationWidget = true;
-                switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                        break;
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                        showChartAttributesWidget = true;
-                        break;
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-                        showChartAttributesWidget = true;
-                        break;
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-                        showChartAxesWidget = true;
-                        showChartAttributesWidget = true;
-                        break;
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
-                        showChartAxesWidget = true;
-                        showChartAttributesWidget = true;
-                        break;
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
-                        showChartAxesWidget = true;
-                        showChartAttributesWidget = true;
-                        break;
+                if (m_chartingTwoFlag) {
+                    showChartTwoOrientationWidget = true;
+                }
+                else {
+                    switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                            break;
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                            showChartOneAttributesWidget = true;
+                            break;
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                            showChartOneAttributesWidget = true;
+                            break;
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                            showChartOneAxesWidget = true;
+                            showChartOneAttributesWidget = true;
+                            break;
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                            showChartOneAxesWidget = true;
+                            showChartOneAttributesWidget = true;
+                            break;
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                            showChartOneAxesWidget = true;
+                            showChartOneAttributesWidget = true;
+                            break;
+                    }
                 }
             }
         }
@@ -1468,11 +1490,11 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
     this->surfaceMontageSelectionWidget->setVisible(showSurfaceMontageOptionsWidget);
-    this->chartTypeWidget->setVisible(showChartTypeWidget);
-    this->chartTypeTwoWidget->setVisible(showChartTypeWidget);
-    this->chartAxesWidget->setVisible(showChartAxesWidget);
-    this->chartAttributesWidget->setVisible(showChartAttributesWidget);
-    this->chartOrientationWidget->setVisible(showChartOrientationWidget);
+    this->chartTypeWidget->setVisible(showChartOneTypeWidget);
+    this->chartTypeTwoWidget->setVisible(showChartTwoTypeWidget);
+    this->chartAxesWidget->setVisible(showChartOneAxesWidget);
+    this->chartAttributesWidget->setVisible(showChartOneAttributesWidget);
+    this->chartOrientationWidget->setVisible(showChartTwoOrientationWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
@@ -2668,15 +2690,6 @@ BrainBrowserWindowToolBar::updateChartTypeWidget(BrowserTabContent* browserTabCo
     }
     
     m_chartTypeToolBarComponent->updateContent(browserTabContent);
-    
-    if (this->browserWindowIndex == 0) {
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1)) {
-            this->chartTypeWidget->setEnabled(false);
-        }
-        else {
-            this->chartTypeWidget->setEnabled(true);
-        }
-    }
 }
 
 
@@ -2713,15 +2726,6 @@ BrainBrowserWindowToolBar::updateChartTypeTwoWidget(BrowserTabContent* browserTa
     }
     
     m_chartTwoTypeToolBarComponent->updateContent(browserTabContent);
-    
-    if (this->browserWindowIndex == 0) {
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1)) {
-            this->chartTypeTwoWidget->setEnabled(true);
-        }
-        else {
-            this->chartTypeTwoWidget->setEnabled(false);
-        }
-    }
 }
 
 /**
@@ -2803,7 +2807,7 @@ QWidget*
 BrainBrowserWindowToolBar::createChartOrientationWidget()
 {
     m_chartOrientationToolBarComponent = new BrainBrowserWindowToolBarChartOrientation(this);
-    QWidget* w = this->createToolWidget("Orientation",
+    QWidget* w = this->createToolWidget("Chart<BR>Orientation",
                                         m_chartOrientationToolBarComponent,
                                         WIDGET_PLACEMENT_LEFT,
                                         WIDGET_PLACEMENT_TOP,
@@ -3035,7 +3039,8 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* browserTab
  * a descriptive label added.
  *
  * @param name
- *    Name for the descriptive labe.
+ *    Name for the descriptive label.  For a multi-line label, 
+ *    separate the lines with an HTML "<BR>" tag.
  * @param childWidget
  *    Child widget that is in the tool widget.
  * @param verticalBarPlacement
@@ -3052,7 +3057,8 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
                                             const WidgetPlacement contentPlacement,
                                             const int /*horizontalStretching*/)
 {
-    QLabel* nameLabel = new QLabel("<html>" + name + "</html>");
+    QLabel* nameLabel = new QLabel("<html><center>" + name + "</center></html>");
+    nameLabel->setFixedHeight(nameLabel->sizeHint().height());
     
     QWidget* w = new QWidget();
     QGridLayout* layout = new QGridLayout(w);
