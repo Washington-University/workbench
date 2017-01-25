@@ -66,6 +66,10 @@ namespace caret {
         
         void swapData(ChartOverlay* overlay);
         
+        bool isHistorySupported() const;
+        
+        bool isMapYokingSupported() const;
+        
         MapYokingGroupEnum::Enum getMapYokingGroup() const;
         
         void setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup);
@@ -76,13 +80,20 @@ namespace caret {
         
         void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,
-                              int32_t& selectedMapIndexOut);
+                              std::vector<AString>& selectedFileMapNamesOut,
+                              int32_t& selectedMapIndexOut) const;
+        
+        void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
+                              CaretMappableDataFile* &selectedMapFileOut,
+                              int32_t& selectedMapIndexOut) const;
         
         void getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
-                              int32_t& selectedMapIndexOut);
+                              int32_t& selectedMapIndexOut) const;
         
         void setSelectionData(CaretMappableDataFile* selectedMapFile,
                               const int32_t selectedMapIndex);
+        
+        bool isAllMapsSupported() const;
         
         bool isAllMapsSelected() const;
         
@@ -113,6 +124,11 @@ namespace caret {
 
         ChartOverlay& operator=(const ChartOverlay&);
         
+        void getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& mapFilesOut,
+                                     CaretMappableDataFile* &selectedMapFileOut,
+                                     std::vector<AString>* selectedFileMapNamesOut,
+                                     int32_t& selectedMapIndexOut) const;
+        
         /** Parent chart overlay set (only used by first overlay in the set */
         ChartOverlaySet* m_parentChartOverlaySet;
         
@@ -125,7 +141,7 @@ namespace caret {
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         /** Current 'compound chart type' of charts allowed in this overlay */
-        ChartTwoCompoundDataType m_chartCompoundDataType;
+        mutable ChartTwoCompoundDataType m_chartCompoundDataType;
         
         /** Name of overlay (DO NOT COPY)*/
         AString m_name;
@@ -134,18 +150,18 @@ namespace caret {
         mutable bool m_enabled = true;
         
         /** map yoking group */
-        MapYokingGroupEnum::Enum m_mapYokingGroup;
+        mutable MapYokingGroupEnum::Enum m_mapYokingGroup;
 
         /** The color bar displayed in the graphics window */
         std::unique_ptr<AnnotationColorBar> m_colorBar;
         
         /** selected mappable file */
-        CaretMappableDataFile* m_selectedMapFile = NULL;
+        mutable CaretMappableDataFile* m_selectedMapFile = NULL;
         
-        /** selected map index */
-        int32_t m_selectedMapIndex = -1;
+        /** histogram selected map index */
+        mutable int32_t m_selectedHistogramMapIndex = -1;
         
-        bool m_allMapsSelectedFlag = false;
+        bool m_allHistogramMapsSelectedFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -109,7 +109,6 @@ EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabGetAllViewed.h
 EventBrowserTabNew.h
-EventCaretMappableDataFileMapsViewedInOverlays.h
 EventDataFileAdd.h
 EventDataFileDelete.h
 EventDataFileRead.h
@@ -251,7 +250,6 @@ EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabGetAllViewed.cxx
 EventBrowserTabNew.cxx
-EventCaretMappableDataFileMapsViewedInOverlays.cxx
 EventDataFileAdd.cxx
 EventDataFileDelete.cxx
 EventDataFileRead.cxx

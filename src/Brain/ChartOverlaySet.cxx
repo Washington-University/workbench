@@ -66,9 +66,7 @@ m_tabIndex(tabIndex)
                           &m_numberOfDisplayedOverlays);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        /* use "this" as parent only for first chart overlay */
-        ChartOverlaySet* me = ((i > 0) ? NULL : this);
-        m_overlays[i] = new ChartOverlay(me,
+        m_overlays[i] = new ChartOverlay(this,
                                          m_chartDataType,
                                          i);
     }

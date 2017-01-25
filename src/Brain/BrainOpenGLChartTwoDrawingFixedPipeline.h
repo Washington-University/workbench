@@ -82,15 +82,15 @@ namespace caret {
                                             uint8_t rgbaForColorIdentification[4]);
         void drawMatrixChart();
         
-        void drawMatrixChartGrid(const ChartableTwoFileMatrixChart* matrixChart,
+        void drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
                                  const ChartTwoMatrixViewingTypeEnum::Enum chartViewingType,
                                  const float cellWidth,
                                  const float cellHeight,
                                  const float zooming);
 
-        void getMatrixHighlighting(const ChartableTwoFileMatrixChart* matrixChart,
-                                   std::set<int32_t>& rowIndicesOut,
-                                   std::set<int32_t>& columnIndicesOut) const;
+//        void getMatrixHighlighting(const ChartableTwoFileMatrixChart* matrixChart,
+//                                   std::set<int32_t>& rowIndicesOut,
+//                                   std::set<int32_t>& columnIndicesOut) const;
         
         Brain* m_brain;
         

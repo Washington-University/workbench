@@ -40,6 +40,10 @@ using namespace caret;
 #include "AnnotationColorBar.h"
 #include "CaretMappableDataFile.h"
 #include "ChartOverlay.h"
+#include "ChartableTwoFileDelegate.h"
+#include "ChartableTwoFileHistogramChart.h"
+#include "ChartableTwoFileLineSeriesChart.h"
+#include "ChartableTwoFileMatrixChart.h"
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -136,7 +140,7 @@ m_chartOverlay(NULL)
     m_colorBarToolButton = new QToolButton();
     m_colorBarToolButton->setDefaultAction(m_colorBarAction);
     
-     /*
+    /*
      * Construction Tool Button
      */
     QIcon constructionIcon;
@@ -189,13 +193,13 @@ m_chartOverlay(NULL)
                                  "\n"
                                  "If the SAME FILE is in yoked in multiple overlays,\n"
                                  "the overlay enabled statuses are synchronized.\n");
-    m_mapYokingGroupComboBox = new MapYokingGroupComboBox(this);
-    m_mapYokingGroupComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
-    m_mapYokingGroupComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
+    m_mapRowOrColumnYokingGroupComboBox = new MapYokingGroupComboBox(this);
+    m_mapRowOrColumnYokingGroupComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
+    m_mapRowOrColumnYokingGroupComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
 #ifdef CARET_OS_MACOSX
-    m_mapYokingGroupComboBox->getWidget()->setFixedWidth(m_mapYokingGroupComboBox->getWidget()->sizeHint().width() - 20);
+    m_mapRowOrColumnYokingGroupComboBox->getWidget()->setFixedWidth(m_mapRowOrColumnYokingGroupComboBox->getWidget()->sizeHint().width() - 20);
 #endif // CARET_OS_MACOSX
-    QObject::connect(m_mapYokingGroupComboBox, SIGNAL(itemActivated()),
+    QObject::connect(m_mapRowOrColumnYokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokingGroupActivated()));
     
     /*
@@ -210,23 +214,28 @@ m_chartOverlay(NULL)
                      this, SLOT(allMapsCheckBoxClicked(bool)));
     
     /*
-     * Map Index Spin Box
+     * Map/Row/Column Index Spin Box
      */
-    m_mapIndexSpinBox = WuQFactory::newSpinBox();
-    QObject::connect(m_mapIndexSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(mapIndexSpinBoxValueChanged(int)));
-    m_mapIndexSpinBox->setToolTip("Select map by its index");
+    m_mapRowOrColumnIndexSpinBox = WuQFactory::newSpinBox();
+    QObject::connect(m_mapRowOrColumnIndexSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(mapRowOrColumnIndexSpinBoxValueChanged(int)));
+    m_mapRowOrColumnIndexSpinBox->setToolTip("Select map/row/column by its index");
+    m_mapRowOrColumnIndexSpinBox->setRange(0, 9999); // fix size for 4 digits
+    m_mapRowOrColumnIndexSpinBox->setFixedSize(m_mapRowOrColumnIndexSpinBox->sizeHint());
+//    m_mapRowOrColumnIndexSpinBox->setSizePolicy(QSizePolicy::Fixed,
+//                                                QSizePolicy::Fixed);
+    m_mapRowOrColumnIndexSpinBox->setRange(0, 0);
     
     /*
-     * Map Name Combo Box
+     * Map/Row/Column Name Combo Box
      */
-    m_mapNameComboBox = WuQFactory::newComboBox();
-    m_mapNameComboBox->setMinimumWidth(minComboBoxWidth);
-    m_mapNameComboBox->setMaximumWidth(maxComboBoxWidth);
-    QObject::connect(m_mapNameComboBox, SIGNAL(activated(int)),
-                     this, SLOT(mapNameComboBoxSelected(int)));
-    m_mapNameComboBox->setToolTip("Select map by its name");
-    m_mapNameComboBox->setSizeAdjustPolicy(comboSizePolicy);
+    m_mapRowOrColumnNameComboBox = WuQFactory::newComboBox();
+    m_mapRowOrColumnNameComboBox->setMinimumWidth(minComboBoxWidth);
+    m_mapRowOrColumnNameComboBox->setMaximumWidth(maxComboBoxWidth);
+    QObject::connect(m_mapRowOrColumnNameComboBox, SIGNAL(activated(int)),
+                     this, SLOT(mapRowOrColumnNameComboBoxSelected(int)));
+    m_mapRowOrColumnNameComboBox->setToolTip("Select map/row/column by its name");
+    m_mapRowOrColumnNameComboBox->setSizeAdjustPolicy(comboSizePolicy);
 }
 
 /**
@@ -276,19 +285,20 @@ ChartOverlayViewController::fileComboBoxSelected(int indx)
     
     void* pointer = m_mapFileComboBox->itemData(indx).value<void*>();
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
-    m_chartOverlay->setSelectionData(file, 0);
+    m_chartOverlay->setSelectionData(file, -1);
     
-    validateYokingSelection();
+    // DO NOT DO HERE validateYokingSelection();
     
     //validateYokingSelection(overlay->getYokingGroup());
     // not needed with call to validateYokingSelection: this->updateViewController(this->overlay);
     
     // called inside validateYokingSelection();  this->updateUserInterfaceAndGraphicsWindow();
     
-    updateOverlaySettingsEditor();
     updateViewController(m_chartOverlay);
+    m_mapRowOrColumnYokingGroupComboBox->validateYokingChange(m_chartOverlay);
     updateGraphicsWindow();
     updateUserInterface();
+    updateOverlaySettingsEditor();
     
 //    if (file != NULL) {
 //        if (file->isVolumeMappable()) {
@@ -306,7 +316,7 @@ ChartOverlayViewController::fileComboBoxSelected(int indx)
  *    Index of selection.
  */
 void
-ChartOverlayViewController::mapIndexSpinBoxValueChanged(int indx)
+ChartOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indx)
 {
     if (m_chartOverlay == NULL)
     {
@@ -339,12 +349,12 @@ ChartOverlayViewController::mapIndexSpinBoxValueChanged(int indx)
     /*
      * Need to update map name combo box.
      */
-    m_mapNameComboBox->blockSignals(true);
+    m_mapRowOrColumnNameComboBox->blockSignals(true);
     if ((overlayIndex >= 0)
-        && (overlayIndex < m_mapNameComboBox->count())) {
-        m_mapNameComboBox->setCurrentIndex(overlayIndex);
+        && (overlayIndex < m_mapRowOrColumnNameComboBox->count())) {
+        m_mapRowOrColumnNameComboBox->setCurrentIndex(overlayIndex);
     }
-    m_mapNameComboBox->blockSignals(false);
+    m_mapRowOrColumnNameComboBox->blockSignals(false);
     
     this->updateUserInterface();
     this->updateGraphicsWindow();
@@ -358,7 +368,7 @@ ChartOverlayViewController::mapIndexSpinBoxValueChanged(int indx)
  *    Index of selection.
  */
 void
-ChartOverlayViewController::mapNameComboBoxSelected(int indx)
+ChartOverlayViewController::mapRowOrColumnNameComboBoxSelected(int indx)
 {
     if (m_chartOverlay == NULL) {
         return;
@@ -386,9 +396,9 @@ ChartOverlayViewController::mapNameComboBoxSelected(int indx)
      * Need to update map index spin box.
      * Note that the map index spin box ranges [1, N].
      */
-    m_mapIndexSpinBox->blockSignals(true);
-    m_mapIndexSpinBox->setValue(indx + 1);
-    m_mapIndexSpinBox->blockSignals(false);
+    m_mapRowOrColumnIndexSpinBox->blockSignals(true);
+    m_mapRowOrColumnIndexSpinBox->setValue(indx);
+    m_mapRowOrColumnIndexSpinBox->blockSignals(false);
     
     this->updateUserInterface();
     this->updateGraphicsWindow();
@@ -468,7 +478,7 @@ ChartOverlayViewController::allMapsCheckBoxClicked(bool status)
 void
 ChartOverlayViewController::validateYokingSelection()
 {
-    m_mapYokingGroupComboBox->validateYokingChange(m_chartOverlay);
+    m_mapRowOrColumnYokingGroupComboBox->validateYokingChange(m_chartOverlay);
     updateViewController(m_chartOverlay);
     updateGraphicsWindow();
     //EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -480,7 +490,7 @@ ChartOverlayViewController::validateYokingSelection()
 void
 ChartOverlayViewController::yokingGroupActivated()
 {
-    MapYokingGroupEnum::Enum yokingGroup = m_mapYokingGroupComboBox->getMapYokingGroup();
+    MapYokingGroupEnum::Enum yokingGroup = m_mapRowOrColumnYokingGroupComboBox->getMapYokingGroup();
     
     /*
      * Has yoking group changed?
@@ -531,6 +541,9 @@ ChartOverlayViewController::historyActionTriggered(bool)
     m_chartOverlay->getSelectionData(mapFile,
                                      mapIndex);
     
+    std::cout << "History button clicked.  Enabled="
+    << qPrintable(AString::fromBool(m_chartOverlay->isHistorySupported())) << std::endl;
+    
     CaretAssertToDoWarning();
 //    if (mapFile != NULL) {
 //        EventOverlaySettingsEditorDialogRequest pcme(EventOverlaySettingsEditorDialogRequest::MODE_SHOW_EDITOR,
@@ -553,46 +566,54 @@ ChartOverlayViewController::updateViewController(ChartOverlay* chartOverlay)
 {
     m_chartOverlay = chartOverlay;
     
-    m_mapFileComboBox->clear();
     
     /*
      * Get the selection information for the overlay.
      */
     std::vector<CaretMappableDataFile*> dataFiles;
     CaretMappableDataFile* selectedFile = NULL;
-    //AString selectedMapUniqueID = "";
+    std::vector<AString> selectedFileMapNames;
     int32_t selectedMapIndex = -1;
-    bool enableMapSelectionControlsFlag = false;
-    
     if (m_chartOverlay != NULL) {
         m_chartOverlay->getSelectionData(dataFiles,
-                                        selectedFile,
-                                        //selectedMapUniqueID,
-                                        selectedMapIndex);
-        
-        const ChartTwoDataTypeEnum::Enum chartDataType = m_chartOverlay->getChartDataType();
-        switch (chartDataType) {
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-                enableMapSelectionControlsFlag = true;
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                break;
-        }
-        
+                                         selectedFile,
+                                         selectedFileMapNames,
+                                         selectedMapIndex);
     }
     
+    /*
+     * Setup names of file for display in combo box
+     */
     std::vector<AString> displayNames;
     FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(dataFiles,
                                                                             displayNames);
     CaretAssert(dataFiles.size() == displayNames.size());
     
     /*
+     * Update tooltips with full path to file and name of map
+     * as names may be too long to fit into combo boxes
+     */
+    AString fileComboBoxToolTip("Select file for this overlay");
+    AString nameComboBoxToolTip("Select map by its name");
+    if (selectedFile != NULL) {
+        FileInformation fileInfo(selectedFile->getFileName());
+        fileComboBoxToolTip.append(":\n"
+                                   + fileInfo.getFileName()
+                                   + "\n"
+                                   + fileInfo.getPathName()
+                                   + "\n\n"
+                                   + "Copy File Name/Path to Clipboard with Construction Menu");
+        
+        nameComboBoxToolTip.append(":\n"
+                                   + m_mapRowOrColumnNameComboBox->currentText());
+    }
+    m_mapFileComboBox->setToolTip(fileComboBoxToolTip);
+    m_mapRowOrColumnNameComboBox->setToolTip(nameComboBoxToolTip);
+    
+    /*
      * Load the file selection combo box.
      */
+    m_mapFileComboBox->clear();
     int32_t selectedFileIndex = -1;
     const int32_t numFiles = static_cast<int32_t>(dataFiles.size());
     for (int32_t i = 0; i < numFiles; i++) {
@@ -611,134 +632,108 @@ ChartOverlayViewController::updateViewController(ChartOverlay* chartOverlay)
     }
     
     /*
-     * Load the map selection combo box
+     * Load the map name selection combo box and map index spin box
      */
-    int32_t numberOfMaps = 0;
-    m_mapNameComboBox->blockSignals(true);
-    m_mapNameComboBox->clear();
-    if (enableMapSelectionControlsFlag) {
-        if (selectedFile != NULL) {
-            numberOfMaps = selectedFile->getNumberOfMaps();
-            for (int32_t i = 0; i < numberOfMaps; i++) {
-                m_mapNameComboBox->addItem(selectedFile->getMapName(i));
-            }
-            m_mapNameComboBox->setCurrentIndex(selectedMapIndex);
+    m_mapRowOrColumnNameComboBox->setEnabled(false);
+    m_mapRowOrColumnNameComboBox->blockSignals(true);
+    m_mapRowOrColumnNameComboBox->clear();
+    m_mapRowOrColumnIndexSpinBox->setEnabled(false);
+    m_mapRowOrColumnIndexSpinBox->blockSignals(true);
+    m_mapRowOrColumnIndexSpinBox->setRange(0, 0);
+    m_mapRowOrColumnIndexSpinBox->setValue(0);
+    const int32_t numberOfMaps = static_cast<int32_t>(selectedFileMapNames.size());
+    if (numberOfMaps > 0) {
+        m_mapRowOrColumnNameComboBox->setEnabled(true);
+        m_mapRowOrColumnIndexSpinBox->setEnabled(true);
+
+        for (int32_t i = 0; i < numberOfMaps; i++) {
+            CaretAssertVectorIndex(selectedFileMapNames, i);
+            m_mapRowOrColumnNameComboBox->addItem(selectedFileMapNames[i]);
         }
+        m_mapRowOrColumnNameComboBox->setCurrentIndex(selectedMapIndex);
+        m_mapRowOrColumnIndexSpinBox->setRange(0, numberOfMaps - 1);
+        m_mapRowOrColumnIndexSpinBox->setValue(selectedMapIndex);
     }
-    m_mapNameComboBox->blockSignals(false);
+    m_mapRowOrColumnNameComboBox->blockSignals(false);
+    m_mapRowOrColumnIndexSpinBox->blockSignals(false);
+    
+    const bool validOverlayAndFileFlag = ((m_chartOverlay != NULL)
+                                          && (selectedFile != NULL));
     
     /*
-     * Load the map index spin box that ranges [1, N].
+     * Update enabled checkbox
      */
-    m_mapIndexSpinBox->blockSignals(true);
-    if (enableMapSelectionControlsFlag) {
-        m_mapIndexSpinBox->setRange(1, numberOfMaps);
-        if (selectedFile != NULL) {
-            m_mapIndexSpinBox->setValue(selectedMapIndex + 1);
+    m_enabledCheckBox->setEnabled(false);
+    m_enabledCheckBox->setChecked(false);
+    if (validOverlayAndFileFlag) {
+        /*
+         * First overlay is ALWAYS ENABLED and HIDDEN
+         */
+        if (m_chartOverlayIndex == 0) {
+            m_enabledCheckBox->setVisible(false);
+        }
+        else {
+            m_enabledCheckBox->setEnabled(true);
+            m_enabledCheckBox->setChecked(m_chartOverlay->isEnabled());
         }
     }
-    else {
-        m_mapIndexSpinBox->setRange(0, 0);
-        m_mapIndexSpinBox->setValue(0);
-    }
-    m_mapIndexSpinBox->blockSignals(false);
+    
     
     /*
-     * Update enable check box
+     * Update yoking
      */
-    Qt::CheckState enabledCheckState = Qt::Unchecked;
-    bool allMapsCheckedFlag = false;
-    MapYokingGroupEnum::Enum mapYoking = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
-    if (m_chartOverlay != NULL) {
-        if (m_chartOverlay->isEnabled()) {
-            enabledCheckState = Qt::Checked;
+    m_mapRowOrColumnYokingGroupComboBox->getWidget()->setEnabled(false);
+    m_mapRowOrColumnYokingGroupComboBox->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
+    if (validOverlayAndFileFlag) {
+        m_mapRowOrColumnYokingGroupComboBox->getWidget()->setEnabled(true);
+        if (m_chartOverlay->isMapYokingSupported()) {
+            m_mapRowOrColumnYokingGroupComboBox->setMapYokingGroup(m_chartOverlay->getMapYokingGroup());
         }
-        allMapsCheckedFlag = m_chartOverlay->isAllMapsSelected();
-        mapYoking = m_chartOverlay->getMapYokingGroup();
     }
-    m_enabledCheckBox->setCheckState(enabledCheckState);
     
-    m_mapYokingGroupComboBox->setMapYokingGroup(mapYoking);
+    /*
+     * Update all maps
+     */
+    m_allMapsCheckBox->setEnabled(false);
+    m_allMapsCheckBox->setChecked(false);
+    if (validOverlayAndFileFlag) {
+        m_allMapsCheckBox->setEnabled(m_chartOverlay->isAllMapsSupported());
+        if (m_chartOverlay->isAllMapsSupported()) {
+            m_allMapsCheckBox->setChecked(m_chartOverlay->isAllMapsSelected());
+        }
+    }
     
-    m_allMapsCheckBox->setChecked(allMapsCheckedFlag);
+    /*
+     * Update settings (wrench) button
+     */
+    m_settingsAction->setEnabled(validOverlayAndFileFlag);
     
-    
+    /*
+     * Update color bar button
+     */
     m_colorBarAction->blockSignals(true);
-    m_colorBarAction->setChecked(m_chartOverlay->getColorBar()->isDisplayed());
+    m_colorBarAction->setEnabled(false);
+    m_colorBarAction->setChecked(false);
+    if (validOverlayAndFileFlag) {
+        if (selectedFile->isMappedWithPalette()) {
+            m_colorBarAction->setEnabled(true);
+            m_colorBarAction->setChecked(m_chartOverlay->getColorBar()->isDisplayed());
+        }
+    }
     m_colorBarAction->blockSignals(false);
     
-    const bool haveFile = (selectedFile != NULL);
-    bool haveMultipleMaps = false;
-    bool dataIsMappedWithPalette = false;
-    bool dataIsMappedWithLabelTable = false;
-    bool dataIsMappedWithRGBA = false;
-    bool haveOpacity = false;
-    if (haveFile) {
-        dataIsMappedWithPalette = selectedFile->isMappedWithPalette();
-        dataIsMappedWithLabelTable = selectedFile->isMappedWithLabelTable();
-        dataIsMappedWithRGBA    = selectedFile->isMappedWithRGBA();
-        haveMultipleMaps = (selectedFile->getNumberOfMaps() > 1);
-        haveOpacity = (dataIsMappedWithLabelTable
-                       || dataIsMappedWithPalette
-                       || dataIsMappedWithRGBA);
-    }
-    
-    /**
-     * Yoking is enabled when either:
-     * (1) The file maps to both surface and volumes
-     * (2) The file has multiple maps.
-     */
-    bool haveYoking = false;
-    if (haveFile) {
-        if (selectedFile->isSurfaceMappable()
-            && selectedFile->isVolumeMappable()) {
-            haveYoking = true;
-        }
-        if (haveMultipleMaps) {
-            haveYoking = true;
-        }
-    }
-    
     /*
-     * Update tooltips with full path to file and name of map
-     * as names may be too long to fit into combo boxes
+     * Update construction button
      */
-    AString fileComboBoxToolTip("Select file for this overlay");
-    AString nameComboBoxToolTip("Select map by its name");
-    if (selectedFile != NULL) {
-        FileInformation fileInfo(selectedFile->getFileName());
-        fileComboBoxToolTip.append(":\n"
-                                   + fileInfo.getFileName()
-                                   + "\n"
-                                   + fileInfo.getPathName()
-                                   + "\n\n"
-                                   + "Copy File Name/Path to Clipboard with Construction Menu");
-        
-        nameComboBoxToolTip.append(":\n"
-                                   + m_mapNameComboBox->currentText());
-    }
-    m_mapFileComboBox->setToolTip(fileComboBoxToolTip);
-    m_mapNameComboBox->setToolTip(nameComboBoxToolTip);
-    
-    /*
-     * Make sure items are enabled at the appropriate time
-     * Note: First overlay is ALWAYS on enabled checkbox is not selectable by user
-     */
-    m_enabledCheckBox->setEnabled(haveFile
-                                  && (m_chartOverlayIndex > 0));
-    m_enabledCheckBox->setVisible(m_chartOverlayIndex > 0);
-    m_settingsAction->setEnabled(true);
-    m_colorBarAction->setEnabled(dataIsMappedWithPalette);
     m_constructionAction->setEnabled(true);
-    m_historyAction->setEnabled(haveMultipleMaps);
-    m_mapFileComboBox->setEnabled(haveFile);
-    m_mapYokingGroupComboBox->getWidget()->setEnabled(haveYoking);
-    m_allMapsCheckBox->setEnabled(haveMultipleMaps
-                                  && enableMapSelectionControlsFlag);
-    m_mapIndexSpinBox->setEnabled(haveMultipleMaps
-                                  && enableMapSelectionControlsFlag);
-    m_mapNameComboBox->setEnabled(haveFile
-                                  && enableMapSelectionControlsFlag);
+    
+    /*
+     * Update history button
+     */
+    m_historyAction->setEnabled(false);
+    if (validOverlayAndFileFlag) {
+        m_historyAction->setEnabled(m_chartOverlay->isHistorySupported());
+    }
 }
 
 /**
@@ -757,12 +752,12 @@ ChartOverlayViewController::updateUserInterfaceAndGraphicsWindow()
 void
 ChartOverlayViewController::updateUserInterface()
 {
-    if (m_chartOverlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+//    if (m_chartOverlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    }
-    else {
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).getPointer());
-    }
+//    }
+//    else {
+//        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).getPointer());
+//    }
 }
 
 /**
@@ -771,12 +766,12 @@ ChartOverlayViewController::updateUserInterface()
 void
 ChartOverlayViewController::updateGraphicsWindow()
 {
-    if (m_chartOverlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+//    if (m_chartOverlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
-    else {
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
-    }
+//    }
+//    else {
+//        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+//    }
 }
 
 /**
@@ -1046,13 +1041,7 @@ ChartOverlayViewController::createHistoryPixmap(QWidget* widget)
     painter->drawLine(QPointF(centerX, centerY),
                       QPointF(centerY, twelveOClockY));
     
-//        painter->drawLine(QLineF(xStart,
-//                                 y,
-//                                 xEnd,
-//                                 y));
-    
     return pixmap;
-    
 }
 
 

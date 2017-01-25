@@ -37,12 +37,12 @@
 #include "ChartableTwoFileMatrixChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
-#include "CiftiParcelLabelFile.h"
-#include "CiftiParcelScalarFile.h"
-#include "CiftiScalarDataSeriesFile.h"
-#include "ConnectivityDataLoaded.h"
-#include "EventCaretMappableDataFileMapsViewedInOverlays.h"
-#include "EventManager.h"
+//#include "CiftiParcelLabelFile.h"
+//#include "CiftiParcelScalarFile.h"
+//#include "CiftiScalarDataSeriesFile.h"
+//#include "ConnectivityDataLoaded.h"
+//#include "EventCaretMappableDataFileMapsViewedInOverlays.h"
+//#include "EventManager.h"
 
 #include "IdentificationWithColor.h"
 #include "SessionManager.h"
@@ -338,7 +338,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
          */
         if ((overlayRows == numberOfRows)
             && (overlayColumns == numberOfCols)) {
-            drawMatrixChartGrid(matrixChart,
+            drawMatrixChartContent(matrixChart,
                                 ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_FULL,
                                 //ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL,
                                 //ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL,
@@ -350,61 +350,61 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
     }
 }
 
-/**
- * Get highlighting of rows or columns for a matrix.
- *
- * @param matrixChart
- *     Matrix chart that is drawn.
- * @param rowIndicesOut
- *     Output with row indices for highlighting.
- * @param columnIndicesOut
- *     Output with column indices for highlighting.
- */
-void
-BrainOpenGLChartTwoDrawingFixedPipeline::getMatrixHighlighting(const ChartableTwoFileMatrixChart* matrixChart,
-                                                               std::set<int32_t>& rowIndicesOut,
-                                                               std::set<int32_t>& columnIndicesOut) const
-{
-    const CiftiMappableDataFile* ciftiMapFile = matrixChart->getCiftiMappableDataFile();
-    const CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(ciftiMapFile);
-    if (connMapFile != NULL) {
-        const ConnectivityDataLoaded* connDataLoaded = connMapFile->getConnectivityDataLoaded();
-        if (connDataLoaded != NULL) {
-            int64_t loadedRowIndex = -1;
-            int64_t loadedColumnIndex = -1;
-            connDataLoaded->getRowColumnLoading(loadedRowIndex,
-                                                loadedColumnIndex);
-            if (loadedRowIndex >= 0) {
-                rowIndicesOut.insert(loadedRowIndex);
-            }
-            else if (loadedColumnIndex >= 0) {
-                columnIndicesOut.insert(loadedColumnIndex);
-            }
-        }
-    }
-    
-    const CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<const CiftiParcelScalarFile*>(ciftiMapFile);
-    if (parcelScalarFile != NULL) {
-        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelScalarFile);
-        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-        columnIndicesOut = mapOverlayEvent.getSelectedMapIndices();
-    }
-    
-    const CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<const CiftiParcelLabelFile*>(ciftiMapFile);
-    if (parcelLabelFile != NULL) {
-        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelLabelFile);
-        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-        columnIndicesOut = mapOverlayEvent.getSelectedMapIndices();
-    }
-    
-    const CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<const CiftiScalarDataSeriesFile*>(ciftiMapFile);
-    if (scalarDataSeriesFile != NULL) {
-        const int32_t scalarDataSeriesMapIndex = scalarDataSeriesFile->getSelectedMapIndex(m_tabIndex);
-        if (scalarDataSeriesMapIndex >= 0) {
-            rowIndicesOut.insert(scalarDataSeriesMapIndex);
-        }
-    }
-}
+///**
+// * Get highlighting of rows or columns for a matrix.
+// *
+// * @param matrixChart
+// *     Matrix chart that is drawn.
+// * @param rowIndicesOut
+// *     Output with row indices for highlighting.
+// * @param columnIndicesOut
+// *     Output with column indices for highlighting.
+// */
+//void
+//BrainOpenGLChartTwoDrawingFixedPipeline::getMatrixHighlighting(const ChartableTwoFileMatrixChart* matrixChart,
+//                                                               std::set<int32_t>& rowIndicesOut,
+//                                                               std::set<int32_t>& columnIndicesOut) const
+//{
+//    const CiftiMappableDataFile* ciftiMapFile = matrixChart->getCiftiMappableDataFile();
+//    const CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(ciftiMapFile);
+//    if (connMapFile != NULL) {
+//        const ConnectivityDataLoaded* connDataLoaded = connMapFile->getConnectivityDataLoaded();
+//        if (connDataLoaded != NULL) {
+//            int64_t loadedRowIndex = -1;
+//            int64_t loadedColumnIndex = -1;
+//            connDataLoaded->getRowColumnLoading(loadedRowIndex,
+//                                                loadedColumnIndex);
+//            if (loadedRowIndex >= 0) {
+//                rowIndicesOut.insert(loadedRowIndex);
+//            }
+//            else if (loadedColumnIndex >= 0) {
+//                columnIndicesOut.insert(loadedColumnIndex);
+//            }
+//        }
+//    }
+//    
+//    const CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<const CiftiParcelScalarFile*>(ciftiMapFile);
+//    if (parcelScalarFile != NULL) {
+//        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelScalarFile);
+//        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+//        columnIndicesOut = mapOverlayEvent.getSelectedMapIndices();
+//    }
+//    
+//    const CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<const CiftiParcelLabelFile*>(ciftiMapFile);
+//    if (parcelLabelFile != NULL) {
+//        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelLabelFile);
+//        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+//        columnIndicesOut = mapOverlayEvent.getSelectedMapIndices();
+//    }
+//    
+//    const CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<const CiftiScalarDataSeriesFile*>(ciftiMapFile);
+//    if (scalarDataSeriesFile != NULL) {
+//        const int32_t scalarDataSeriesMapIndex = scalarDataSeriesFile->getSelectedMapIndex(m_tabIndex);
+//        if (scalarDataSeriesMapIndex >= 0) {
+//            rowIndicesOut.insert(scalarDataSeriesMapIndex);
+//        }
+//    }
+//}
 
 /*
  * Draw a matrix chart.
@@ -421,7 +421,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::getMatrixHighlighting(const ChartableTw
  *     Current zooming.
  */
 void
-BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartGrid(const ChartableTwoFileMatrixChart* matrixChart,
+BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
                                                              const ChartTwoMatrixViewingTypeEnum::Enum chartViewingType,
                                                              const float cellWidth,
                                                              const float cellHeight,
@@ -438,15 +438,20 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartGrid(const ChartableTwoF
     }
     
     CaretAssertToDoWarning(); // need to set these
-    bool displayGridLinesFlag = true;
-    bool highlightSelectedRowColumnFlag = true;
+    bool displayGridLinesFlag = false;
+    const bool highlightSelectedRowColumnFlag = true;
     
     
-    std::set<int32_t> selectedColumnIndices;
-    std::set<int32_t> selectedRowIndices;
-    getMatrixHighlighting(matrixChart,
-                          selectedRowIndices,
-                          selectedColumnIndices);
+    std::vector<int32_t> selectedColumnIndices;
+    std::vector<int32_t> selectedRowIndices;
+    ChartTwoMatrixLoadingDimensionEnum::Enum selectedRowColumnDimension;
+    matrixChart->getSelectedRowColumnIndices(m_tabIndex,
+                                             selectedRowColumnDimension,
+                                             selectedRowIndices,
+                                             selectedColumnIndices);
+//    getMatrixHighlighting(matrixChart
+//                          selectedRowIndices,
+//                          selectedColumnIndices);
     
     uint8_t highlightRGBByte[3];
     m_preferences->getBackgroundAndForegroundColors()->getColorForegroundChartView(highlightRGBByte);
@@ -663,10 +668,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartGrid(const ChartableTwoF
             std::vector<float> rowXYZ;
             std::vector<float> rowRGBA;
             
-            for (std::set<int32_t>::iterator rowIter = selectedRowIndices.begin();
-                 rowIter != selectedRowIndices.end();
-                 rowIter ++) {
-                const float rowIndex = * rowIter;
+            for (auto rowIndex : selectedRowIndices) {
                 const float rowY = (numberOfRows - rowIndex - 1) * cellHeight;
                 
                 
@@ -737,10 +739,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartGrid(const ChartableTwoF
             std::vector<float> columnXYZ;
             std::vector<float> columnRGBA;
             
-            for (std::set<int32_t>::iterator colIter = selectedColumnIndices.begin();
-                 colIter != selectedColumnIndices.end();
-                 colIter++) {
-                const float columnIndex = *colIter;
+            for (auto columnIndex : selectedColumnIndices) {
                 const float colX = columnIndex * cellWidth;
                 
                 columnXYZ.push_back(colX);

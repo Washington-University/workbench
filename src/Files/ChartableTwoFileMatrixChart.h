@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "ChartTwoMatrixContentTypeEnum.h"
+#include "ChartTwoMatrixLoadingDimensionEnum.h"
 #include "ChartableTwoFileBaseChart.h"
 
 namespace caret {
@@ -30,7 +31,8 @@ namespace caret {
         
     public:
         ChartableTwoFileMatrixChart(const ChartTwoMatrixContentTypeEnum::Enum matrixContentType,
-                                            CaretMappableDataFile* parentCaretMappableDataFile);
+                                    CaretMappableDataFile* parentCaretMappableDataFile,
+                                    std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum>& validRowColumnSelectionDimensions);
         
         virtual ~ChartableTwoFileMatrixChart();
         
@@ -46,14 +48,24 @@ namespace caret {
         bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                int32_t& numberOfColumnsOut,
                                std::vector<float>& rgbaOut) const;
+        
         // ADD_NEW_METHODS_HERE
 
-          
-          
-          
-          
-          
-    protected: 
+        ChartTwoMatrixLoadingDimensionEnum::Enum getSelectedRowColumnDimension() const;
+        
+        void setSelectedRowColumnDimension(const ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension);
+        
+        void getValidRowColumnSelectionDimensions(std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum>& validRowColumnSelectionDimensionOut) const;
+
+        void getSelectedRowColumnIndices(const int32_t tabIndex,
+                                         ChartTwoMatrixLoadingDimensionEnum::Enum& rowColumnDimensionOut,
+                                         std::vector<int32_t>& rowIndicesOut,
+                                         std::vector<int32_t>& columnIndicesOut) const;
+        
+        void setSelectedRowColumnIndex(const int32_t tabIndex,
+                                       const int32_t rowColumnIndex);
+        
+    protected:
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass) override;
 
@@ -69,6 +81,10 @@ namespace caret {
 
         ChartTwoMatrixContentTypeEnum::Enum m_matrixContentType;
        
+        const std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum> m_validRowColumnSelectionDimensions;
+        
+        ChartTwoMatrixLoadingDimensionEnum::Enum m_rowColumnDimension;
+
         // ADD_NEW_MEMBERS_HERE
 
     };

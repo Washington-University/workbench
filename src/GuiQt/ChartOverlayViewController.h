@@ -67,9 +67,9 @@ namespace caret {
     private slots:
         void fileComboBoxSelected(int);
         
-        void mapNameComboBoxSelected(int);
+        void mapRowOrColumnNameComboBoxSelected(int);
         
-        void mapIndexSpinBoxValueChanged(int);
+        void mapRowOrColumnIndexSpinBoxValueChanged(int);
         
         void enabledCheckBoxClicked(bool);
         
@@ -144,13 +144,13 @@ namespace caret {
         
         QComboBox* m_mapFileComboBox;
         
-        MapYokingGroupComboBox* m_mapYokingGroupComboBox;
+        MapYokingGroupComboBox* m_mapRowOrColumnYokingGroupComboBox;
 
         QCheckBox* m_allMapsCheckBox;
         
-        QSpinBox* m_mapIndexSpinBox;
+        QSpinBox* m_mapRowOrColumnIndexSpinBox;
         
-        QComboBox* m_mapNameComboBox;
+        QComboBox* m_mapRowOrColumnNameComboBox;
         
         QToolButton* m_constructionToolButton;
         

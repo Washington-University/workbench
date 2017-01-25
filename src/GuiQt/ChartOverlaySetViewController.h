@@ -26,6 +26,7 @@
 
 #include "EventListenerInterface.h"
 
+class QLabel;
 class QScrollArea;
 
 namespace caret {
@@ -79,6 +80,10 @@ namespace caret {
 
         QScrollArea* m_scrollArea;
         
+        QLabel* m_mapRowOrColumnIndexLabel = NULL;
+        
+        QLabel* m_mapRowOrColumnNameLabel = NULL;
+
         // ADD_NEW_MEMBERS_HERE
 
     };

@@ -28,6 +28,10 @@
 #include "CiftiParcelLabelFile.h"
 #include "CiftiParcelReordering.h"
 #include "CiftiParcelScalarFile.h"
+#include "CiftiScalarDataSeriesFile.h"
+#include "ConnectivityDataLoaded.h"
+#include "EventCaretMappableDataFileMapsViewedInOverlays.h"
+#include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -48,12 +52,16 @@ using namespace caret;
  *     Content type of the matrix.
  * @param parentCaretMappableDataFile
  *     Parent caret mappable data file that this delegate supports.
+ * @param validRowColumnSelectionDimensions
+ *      Valid row/column selection dimensions for loading and selection.
  */
 ChartableTwoFileMatrixChart::ChartableTwoFileMatrixChart(const ChartTwoMatrixContentTypeEnum::Enum matrixContentType,
-                                                                         CaretMappableDataFile* parentCaretMappableDataFile)
+                                                         CaretMappableDataFile* parentCaretMappableDataFile,
+                                                         std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum>& validRowColumnSelectionDimensions)
 : ChartableTwoFileBaseChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX,
                                     parentCaretMappableDataFile),
-m_matrixContentType(matrixContentType)
+m_matrixContentType(matrixContentType),
+m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
 {
     m_sceneAssistant = new SceneClassAssistant();
     
@@ -78,6 +86,15 @@ m_matrixContentType(matrixContentType)
     
     updateChartCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForMatrix(numRows,
                                                                                                numCols));
+    
+    m_rowColumnDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
+    if ( ! m_validRowColumnSelectionDimensions.empty()) {
+        CaretAssertVectorIndex(m_validRowColumnSelectionDimensions, 0);
+        m_rowColumnDimension = m_validRowColumnSelectionDimensions[0];
+    }
+    
+    m_sceneAssistant->add<ChartTwoMatrixLoadingDimensionEnum, ChartTwoMatrixLoadingDimensionEnum::Enum>("m_rowColumnDimension",
+                                                                                                        &m_rowColumnDimension);
 }
 
 /**
@@ -342,6 +359,202 @@ ChartableTwoFileMatrixChart::getMatrixDataRGBA(int32_t& numberOfRowsOut,
 //    }
 //    
 //    return validDataFlag;
+}
+
+/**
+ * @return The selected row/column dimension.
+ */
+ChartTwoMatrixLoadingDimensionEnum::Enum
+ChartableTwoFileMatrixChart::getSelectedRowColumnDimension() const
+{
+    return m_rowColumnDimension;
+}
+
+/**
+ * Set the selected row/column dimension.
+ *
+ * @param rowColumnDimension
+ *     New value for row/column dimension
+ */
+void
+ChartableTwoFileMatrixChart::setSelectedRowColumnDimension(const ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension)
+{
+    if (m_rowColumnDimension != rowColumnDimension) {
+        m_rowColumnDimension = rowColumnDimension;
+        setModified();
+    }
+}
+
+/**
+ * Get the valid row/column dimensions.
+ *
+ * @param validRowColumnSelectionDimensionsOut
+ *    Output with valid row/column dimensions for selection.
+ */
+void
+ChartableTwoFileMatrixChart::getValidRowColumnSelectionDimensions(std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum>& validRowColumnSelectionDimensionsOut) const
+{
+    validRowColumnSelectionDimensionsOut = m_validRowColumnSelectionDimensions;
+}
+
+/**
+ * @param tabIndex
+ *     Index of the tab.
+ * @param rowColumnDimensionOut
+ *     Indices if indices are for rows or columns.
+ * @param rowIndicesOut
+ *     Output with row indices selected.
+ * @param columnIndicesOut
+ *     Output with column indices selected.
+ */
+void
+ChartableTwoFileMatrixChart::getSelectedRowColumnIndices(const int32_t tabIndex,
+                                                         ChartTwoMatrixLoadingDimensionEnum::Enum& rowColumnDimensionOut,
+                                                         std::vector<int32_t>& rowIndicesOut,
+                                                         std::vector<int32_t>& columnIndicesOut) const
+{
+    rowColumnDimensionOut = m_rowColumnDimension;
+    rowIndicesOut.clear();
+    columnIndicesOut.clear();
+    
+    std::set<int32_t> rowIndicesSet;
+    std::set<int32_t> columnIndicesSet;
+    
+    const CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
+    const CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(ciftiMapFile);
+    if (connMapFile != NULL) {
+        const ConnectivityDataLoaded* connDataLoaded = connMapFile->getConnectivityDataLoaded();
+        if (connDataLoaded != NULL) {
+            int64_t loadedRowIndex = -1;
+            int64_t loadedColumnIndex = -1;
+            connDataLoaded->getRowColumnLoading(loadedRowIndex,
+                                                loadedColumnIndex);
+            switch (m_rowColumnDimension) {
+                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                    if (loadedColumnIndex >= 0) {
+                        columnIndicesSet.insert(loadedColumnIndex);
+                    }
+                    break;
+                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                    if (loadedRowIndex >= 0) {
+                        rowIndicesSet.insert(loadedRowIndex);
+                    }
+                    break;
+            }
+        }
+    }
+    
+    const CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<const CiftiParcelScalarFile*>(ciftiMapFile);
+    if (parcelScalarFile != NULL) {
+        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelScalarFile);
+        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
+            columnIndicesSet.insert(indx);
+        }
+    }
+    
+    const CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<const CiftiParcelLabelFile*>(ciftiMapFile);
+    if (parcelLabelFile != NULL) {
+        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelLabelFile);
+        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
+            columnIndicesSet.insert(indx);
+        }
+    }
+    
+    const CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<const CiftiScalarDataSeriesFile*>(ciftiMapFile);
+    if (scalarDataSeriesFile != NULL) {
+        const int32_t scalarDataSeriesMapIndex = scalarDataSeriesFile->getSelectedMapIndex(tabIndex);
+        if (scalarDataSeriesMapIndex >= 0) {
+            rowIndicesSet.insert(scalarDataSeriesMapIndex);
+        }
+    }
+    
+    rowIndicesOut.insert(rowIndicesOut.end(),
+                         rowIndicesSet.begin(),
+                         rowIndicesSet.end());
+    columnIndicesOut.insert(columnIndicesOut.end(),
+                         columnIndicesSet.begin(),
+                         columnIndicesSet.end());
+}
+
+/**
+ * Set the row or column index using the currently selected row/column dimension.
+ *
+ * @param tabIndex
+ *     Index of tab.
+ * @param rowColumnIndex
+ *     New row/column index.
+ */
+void
+ChartableTwoFileMatrixChart::setSelectedRowColumnIndex(const int32_t tabIndex,
+                                                       const int32_t rowColumnIndex)
+{
+    /*
+     * Ignore an invalid row/column index.  It may occur when the chart overlay
+     * is changed.
+     */
+    if (rowColumnIndex < 0) {
+        return;
+    }
+    
+    CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
+    CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(ciftiMapFile);
+    if (connMapFile != NULL) {
+        /*
+         * Load data for the row/column.
+         * Invalidating coloring results in the necessary update of brainordinate coloring.
+         */
+        int32_t numRows = -1;
+        int32_t numCols = -1;
+        getMatrixDimensions(numRows, numCols);
+        switch (m_rowColumnDimension) {
+            case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                if ((rowColumnIndex >= 0)
+                    && (rowColumnIndex < numCols)) {
+                    connMapFile->loadDataForColumnIndex(rowColumnIndex);
+                    connMapFile->invalidateColoringInAllMaps();
+                }
+                break;
+            case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                if ((rowColumnIndex >= 0)
+                    && (rowColumnIndex < numRows)) {
+                    connMapFile->loadDataForRowIndex(rowColumnIndex);
+                    connMapFile->invalidateColoringInAllMaps();
+                }
+                break;
+        }
+    }
+    
+    CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<CiftiParcelScalarFile*>(ciftiMapFile);
+    if (parcelScalarFile != NULL) {
+        CaretAssertToDoWarning();
+//        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelScalarFile);
+//        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+//        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
+//            columnIndicesSet.insert(indx);
+//        }
+    }
+    
+    const CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<const CiftiParcelLabelFile*>(ciftiMapFile);
+    if (parcelLabelFile != NULL) {
+//        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelLabelFile);
+//        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+//        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
+//            columnIndicesSet.insert(indx);
+//        }
+    }
+    
+    CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(ciftiMapFile);
+    if (scalarDataSeriesFile != NULL) {
+        CaretAssertToDoWarning();
+        scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
+                                                  rowColumnIndex);
+//        const int32_t scalarDataSeriesMapIndex = scalarDataSeriesFile->getSelectedMapIndex(tabIndex);
+//        if (scalarDataSeriesMapIndex >= 0) {
+//            rowIndicesSet.insert(scalarDataSeriesMapIndex);
+//        }
+    }
 }
 
 /**

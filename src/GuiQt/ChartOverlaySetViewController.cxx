@@ -36,6 +36,7 @@
 #include "BrainConstants.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "ChartOverlay.h"
 #include "ChartOverlaySet.h"
 #include "ChartOverlayViewController.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -96,7 +97,6 @@ m_browserWindowIndex(browserWindowIndex)
                          this, SLOT(processMoveOverlayDown(const int32_t)));
     }
     
-    
     if (orientation == Qt::Horizontal) {
         static const int COLUMN_ON = 0;
         static const int COLUMN_SETTINGS_EDIT = 1;
@@ -126,8 +126,8 @@ m_browserWindowIndex(browserWindowIndex)
         QLabel* fileLabel     = new QLabel("File");
         QLabel* yokeLabel     = new QLabel("Yoke");
         QLabel* allMapsLabel  = new QLabel("All");
-        QLabel* mapIndexLabel = new QLabel("Map Index");
-        QLabel* mapNameLabel  = new QLabel("Map Name");
+        m_mapRowOrColumnIndexLabel = new QLabel("Map Index");
+        m_mapRowOrColumnNameLabel  = new QLabel("Map Name");
         
         int row = gridLayout->rowCount();
         gridLayout->addWidget(onLabel, row, COLUMN_ON, Qt::AlignHCenter);
@@ -136,8 +136,8 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->addWidget(fileLabel, row, COLUMN_FILE, Qt::AlignHCenter);
         gridLayout->addWidget(yokeLabel, row, COLUMN_YOKE, Qt::AlignHCenter);
         gridLayout->addWidget(allMapsLabel, row, COLUMN_ALL_MAPS, Qt::AlignHCenter);
-        gridLayout->addWidget(mapIndexLabel, row, COLUMN_MAP_INDEX, Qt::AlignHCenter);
-        gridLayout->addWidget(mapNameLabel, row, COLUMN_MAP_NAME, Qt::AlignHCenter);
+        gridLayout->addWidget(m_mapRowOrColumnIndexLabel, row, COLUMN_MAP_INDEX, Qt::AlignHCenter);
+        gridLayout->addWidget(m_mapRowOrColumnNameLabel, row, COLUMN_MAP_NAME, Qt::AlignHCenter);
         
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
             row = gridLayout->rowCount();
@@ -150,10 +150,10 @@ m_browserWindowIndex(browserWindowIndex)
             glg->addWidget(covc->m_constructionToolButton, row, COLUMN_SETTINGS_CONSTRUCTION, Qt::AlignHCenter);
             glg->addWidget(covc->m_historyToolButton, row, COLUMN_HISTORY, Qt::AlignHCenter);
             glg->addWidget(covc->m_mapFileComboBox, row, COLUMN_FILE);
-            glg->addWidget(covc->m_mapYokingGroupComboBox->getWidget(), row, COLUMN_YOKE, Qt::AlignHCenter);
+            glg->addWidget(covc->m_mapRowOrColumnYokingGroupComboBox->getWidget(), row, COLUMN_YOKE, Qt::AlignHCenter);
             glg->addWidget(covc->m_allMapsCheckBox, row, COLUMN_ALL_MAPS, Qt::AlignHCenter);
-            glg->addWidget(covc->m_mapIndexSpinBox, row, COLUMN_MAP_INDEX, Qt::AlignHCenter);
-            glg->addWidget(covc->m_mapNameComboBox, row, COLUMN_MAP_NAME);
+            glg->addWidget(covc->m_mapRowOrColumnIndexSpinBox, row, COLUMN_MAP_INDEX, Qt::AlignHCenter);
+            glg->addWidget(covc->m_mapRowOrColumnNameComboBox, row, COLUMN_MAP_NAME);
         }
     }
     else {
@@ -204,11 +204,11 @@ m_browserWindowIndex(browserWindowIndex)
             glg->addWidget(covc->m_mapFileComboBox, row, ROW_ONE_COLUMN_FILE_COMBO_BOX, 1, 3);
             row++;
             
-            glg->addWidget(covc->m_mapYokingGroupComboBox->getWidget(), row, ROW_TWO_COLUMN_YOKE, 1, 2, Qt::AlignHCenter);
+            glg->addWidget(covc->m_mapRowOrColumnYokingGroupComboBox->getWidget(), row, ROW_TWO_COLUMN_YOKE, 1, 2, Qt::AlignHCenter);
 //            glg->addWidget(covc->m_historyToolButton, row, ROW_TWO_COLUMN_HISTORY, 1, 2, Qt::AlignHCenter);
             glg->addWidget(covc->m_allMapsCheckBox, row, ROW_TWO_COLUMN_ALL_MAPS, 1, 3, Qt::AlignRight);
-            glg->addWidget(covc->m_mapIndexSpinBox, row, ROW_TWO_COLUMN_MAP_INDEX, Qt::AlignHCenter);
-            glg->addWidget(covc->m_mapNameComboBox, row, ROW_TWO_COLUMN_MAP_NAME);
+            glg->addWidget(covc->m_mapRowOrColumnIndexSpinBox, row, ROW_TWO_COLUMN_MAP_INDEX, Qt::AlignHCenter);
+            glg->addWidget(covc->m_mapRowOrColumnNameComboBox, row, ROW_TWO_COLUMN_MAP_NAME);
         }
     }
     
@@ -289,6 +289,29 @@ ChartOverlaySetViewController::updateViewController()
         }
         CaretAssertVectorIndex(m_chartOverlayGridLayoutGroups, i);
         m_chartOverlayGridLayoutGroups[i]->setVisible(displayOverlay);
+    }
+    
+    const ChartOverlay* primaryOverlay = chartOverlaySet->getPrimaryOverlay();
+    if (primaryOverlay != NULL) {
+        AString mapRowOrColumnName = "Map";
+        switch (primaryOverlay->getChartDataType()) {
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                mapRowOrColumnName = "Row";
+                break;
+        }
+        
+        if (m_mapRowOrColumnIndexLabel != NULL) {
+            m_mapRowOrColumnIndexLabel->setText(mapRowOrColumnName+ " Index");
+        }
+        if (m_mapRowOrColumnNameLabel != NULL) {
+            m_mapRowOrColumnNameLabel->setText(mapRowOrColumnName + " Name");
+        }
     }
 }
 

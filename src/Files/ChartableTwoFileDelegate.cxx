@@ -90,6 +90,8 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
     ChartTwoLineSeriesContentTypeEnum::Enum lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED;
     ChartTwoMatrixContentTypeEnum::Enum matrixType         = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED;
     
+    std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum> validMatrixRowColumnSelectionDimensions;
+    
     switch (m_caretMappableDataFile->getDataFileType()) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
@@ -113,17 +115,21 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE;
+            validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW);
+            validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN);
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE;
+            validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN);
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE;
+            validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN);
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
@@ -132,6 +138,7 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_ROW_SCALAR_DATA;
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_SCALARS;
+            validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW);
             break;
         case DataFileTypeEnum::ANNOTATION:
             break;
@@ -179,7 +186,8 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
                                                                                               m_caretMappableDataFile));
     
     m_matrixCharting = std::unique_ptr<ChartableTwoFileMatrixChart>(new ChartableTwoFileMatrixChart(matrixType,
-                                                                                  m_caretMappableDataFile));
+                                                                                                    m_caretMappableDataFile,
+                                                                                                    validMatrixRowColumnSelectionDimensions));
     
     clearModified();
 }
@@ -196,8 +204,10 @@ ChartableTwoFileDelegate::clear()
     m_lineSeriesCharting = std::unique_ptr<ChartableTwoFileLineSeriesChart>(new ChartableTwoFileLineSeriesChart(ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED,
                                                                                                                 m_caretMappableDataFile));
     
+    std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum> validMatrixRowColumnSelectionDimensions;
     m_matrixCharting = std::unique_ptr<ChartableTwoFileMatrixChart>(new ChartableTwoFileMatrixChart(ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED,
-                                                                                                    m_caretMappableDataFile));
+                                                                                                    m_caretMappableDataFile,
+                                                                                                    validMatrixRowColumnSelectionDimensions));
 }
 
 /**

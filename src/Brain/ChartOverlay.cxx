@@ -51,6 +51,8 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param parentChartOverlaySet
+ *     Parent of this chart overlay set.
  * @param chartDataType
  *     Type of charts allowed in this overlay
  * @param overlayIndex
@@ -64,12 +66,7 @@ m_parentChartOverlaySet(parentChartOverlaySet),
 m_chartDataType(chartDataType),
 m_overlayIndex(overlayIndex)
 {
-    if (overlayIndex > 0) {
-        CaretAssert(m_parentChartOverlaySet == NULL);
-    }
-    else {
-        CaretAssert(m_parentChartOverlaySet);
-    }
+    CaretAssert(m_parentChartOverlaySet);
     
    // m_chartCompoundDataType
     m_name = "Overlay " + AString::number(overlayIndex + 1);
@@ -80,15 +77,15 @@ m_overlayIndex(overlayIndex)
     m_colorBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
     
     m_selectedMapFile  = NULL;
-    m_selectedMapIndex = -1;
-    m_allMapsSelectedFlag = false;
+    m_selectedHistogramMapIndex = -1;
+    m_allHistogramMapsSelectedFlag = false;
 
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_enabled", &m_enabled);
     m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
                                                                         &m_mapYokingGroup);
     m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar.get());
-    m_sceneAssistant->add("m_allMapsSelectedFlag", &m_allMapsSelectedFlag);
+    m_sceneAssistant->add("m_allHistogramMapsSelectedFlag", &m_allHistogramMapsSelectedFlag);
     
 //    EventManager::get()->addEventListener(this,
 //                                          EventTypeEnum::EVENT_OVERLAY_VALIDATE);
@@ -279,7 +276,8 @@ ChartOverlay::copyData(const ChartOverlay* overlay)
     *m_colorBar = *overlay->m_colorBar;
     
     m_selectedMapFile = overlay->m_selectedMapFile;
-    m_selectedMapIndex = overlay->m_selectedMapIndex;
+    m_selectedHistogramMapIndex = overlay->m_selectedHistogramMapIndex;
+    m_allHistogramMapsSelectedFlag = overlay->m_allHistogramMapsSelectedFlag;
 }
 
 /**
@@ -297,6 +295,51 @@ ChartOverlay::swapData(ChartOverlay* overlay)
     
     overlay->copyData(this);
     copyData(swapOverlay.get());
+}
+
+/**
+ * Is history supported ?
+ */
+bool
+ChartOverlay::isHistorySupported() const
+{
+    bool supportedFlag = false;
+    
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            supportedFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
+    return supportedFlag;
+}
+
+/**
+ * Is map yoking supported ?
+ */
+bool
+ChartOverlay::isMapYokingSupported() const
+{
+    bool supportedFlag = false;
+    
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            supportedFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            supportedFlag = true;
+            break;
+    }
+    return true;
 }
 
 /**
@@ -349,10 +392,9 @@ ChartOverlay::getColorBar() const
  */
 void
 ChartOverlay::getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
-                          int32_t& selectedMapIndexOut)
+                          int32_t& selectedMapIndexOut) const
 {
     std::vector<CaretMappableDataFile*> mapFiles;
-    
     getSelectionData(mapFiles,
                      selectedMapFileOut,
                      selectedMapIndexOut);
@@ -366,19 +408,258 @@ ChartOverlay::getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
  *    Contains all map files that can be selected.
  * @param selectedMapFileOut
  *    The selected map file.  May be NULL.
- * @param selectedMapUniqueIDOut
- *    UniqueID of selected map.
+ * @param selectedFileMapNamesOut
+ *    Map names from selected file.
  * @param selectedMapIndexOut
  *    Index of selected map in the selected file.
  */
 void
 ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
-                          CaretMappableDataFile* &selectedMapFileOut,
-                          int32_t& selectedMapIndexOut)
+                               CaretMappableDataFile* &selectedMapFileOut,
+                               std::vector<AString>& selectedFileMapNamesOut,
+                               int32_t& selectedMapIndexOut) const
+{
+    getSelectionDataPrivate(mapFilesOut,
+                            selectedMapFileOut,
+                            &selectedFileMapNamesOut,
+                            selectedMapIndexOut);
+    
+//    CaretAssertToDoFatal();
+//    selectedFileMapNamesOut.clear();
+//
+//    getSelectionData(mapFilesOut,
+//                     selectedMapFileOut,
+//                     selectedMapIndexOut);
+//    
+//    if (selectedMapFileOut == NULL) {
+//        return;
+//    }
+//    
+//    switch (m_chartDataType) {
+//        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+//            break;
+//        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+//        {
+//            const int32_t numMaps = selectedMapFileOut->getNumberOfMaps();
+//            for (int32_t i = 0; i < numMaps; i++) {
+//                selectedFileMapNamesOut.push_back(selectedMapFileOut->getMapName(i));
+//            }
+//        }
+//            break;
+//        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+//            break;
+//        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+//        {
+//            ChartableTwoFileDelegate* chartDelegate        = selectedMapFileOut->getChartingDelegate();
+//            const ChartableTwoFileMatrixChart* matrixChart = chartDelegate->getMatrixCharting();
+//            CaretAssert(matrixChart);
+//            int32_t numRows = 0;
+//            int32_t numCols = 0;
+//            matrixChart->getMatrixDimensions(numRows, numCols);
+//            for (int32_t i = 0; i < numRows; i++) {
+//                selectedFileMapNamesOut.push_back("Row " + QString::number(i + 1));
+//            }
+//        }
+//            break;
+//    }
+}
+
+/**
+ * Return the selection information.  This method is typically
+ * called to update the user-interface.
+ *
+ * @param mapFilesOut
+ *    Contains all map files that can be selected.
+ * @param selectedMapFileOut
+ *    The selected map file.  May be NULL.
+ * @param selectedMapIndexOut
+ *    Index of selected map in the selected file.
+ */
+void
+ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
+                               CaretMappableDataFile* &selectedMapFileOut,
+                               int32_t& selectedMapIndexOut) const
+{
+    getSelectionDataPrivate(mapFilesOut,
+                            selectedMapFileOut,
+                            NULL,
+                            selectedMapIndexOut);
+}
+
+///**
+// * Return the selection information.  This method is typically
+// * called to update the user-interface.
+// *
+// * @param mapFilesOut
+// *    Contains all map files that can be selected.
+// * @param selectedMapFileOut
+// *    The selected map file.  May be NULL.
+// * @param selectedMapIndexOut
+// *    Index of selected map in the selected file.
+// */
+//void
+//ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
+//                               CaretMappableDataFile* &selectedMapFileOut,
+//                               int32_t& selectedMapIndexOut)
+//{
+//    mapFilesOut.clear();
+//    selectedMapFileOut = NULL;
+//    selectedMapIndexOut = -1;
+//    
+//    /**
+//     * Get the data files.
+//     */
+//    std::vector<CaretMappableDataFile*> allDataFiles;
+//    EventCaretMappableDataFilesGet eventGetMapDataFiles;
+//    EventManager::get()->sendEvent(eventGetMapDataFiles.getPointer());
+//    eventGetMapDataFiles.getAllFiles(allDataFiles);
+//    
+//    /*
+//     * Use only those data files that meet criteria.
+//     */
+//    for (auto mapFile : allDataFiles) {
+//        CaretAssert(mapFile);
+//        ChartableTwoFileDelegate* chartingFile = mapFile->getChartingDelegate();
+//        if (chartingFile->isChartingSupported()) {
+//            bool useIt = false;
+//            
+//            std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
+//            chartingFile->getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
+//            
+//            for (auto& compoundType : chartCompoundDataTypes) {
+//                if (m_chartDataType == compoundType.getChartDataType()) {
+//                    if (m_overlayIndex == 0) {
+//                        /*
+//                         * The first overlay displays ALL files that match the
+//                         * enumerated chart type
+//                         */
+//                        useIt = true;
+//                    }
+//                    else {
+//                        if (m_chartCompoundDataType == compoundType) {
+//                            /*
+//                             * If not the first overlay, the enumerated type
+//                             * and dimensions must also match
+//                             */
+//                            useIt = true;
+//                        }
+//                    }
+//                }
+//            }
+//            
+//            if (useIt) {
+//                mapFilesOut.push_back(mapFile);
+//            }
+//        }
+//    }
+//    
+//    /*
+//     * Does selected data file still no longer exist?
+//     */
+//    if (std::find(mapFilesOut.begin(),
+//                  mapFilesOut.end(),
+//                  m_selectedMapFile) == mapFilesOut.end()) {
+//        /*
+//         * Invalidate seleted file and disable yoking since
+//         * the selected file will change.
+//         */
+//        m_selectedMapFile = NULL;
+//        m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+//    }
+//    
+//    /*
+//     * If selected data file is valid, see if selected
+//     * map is still valid.  If not, use first map.
+//     */
+//    if (m_selectedMapFile != NULL) {
+//        if (m_selectedMapIndex >= m_selectedMapFile->getNumberOfMaps()) {
+//            m_selectedMapIndex = m_selectedMapFile->getNumberOfMaps() - 1;
+//        }
+//        if (m_selectedMapIndex < 0) {
+//            m_selectedMapIndex = 0;
+//        }
+//    }
+//    else {
+//        /*
+//         * Use first map in first file that has one or more maps.
+//         */
+//        if (m_selectedMapFile == NULL) {
+//            if (mapFilesOut.empty() == false) {
+//                for (std::vector<CaretMappableDataFile*>::iterator iter = mapFilesOut.begin();
+//                     iter != mapFilesOut.end();
+//                     iter++) {
+//                    CaretMappableDataFile* mapTypeFile = *iter;
+//                    if (mapTypeFile->getNumberOfMaps() > 0) {
+//                        m_selectedMapFile = mapTypeFile;
+//                        m_selectedMapIndex = 0;
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    
+//    selectedMapFileOut = m_selectedMapFile;
+//    if (selectedMapFileOut != NULL) {
+//        //        /*
+//        //         * Update for overlay yoking
+//        //         */
+//        //        if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+//        //            const int32_t yokeMapIndex = MapYokingGroupEnum::getSelectedMapIndex(m_mapYokingGroup);
+//        //            if ((yokeMapIndex >= 0)
+//        //                && (yokeMapIndex < selectedMapFileOut->getNumberOfMaps())) {
+//        //                m_selectedMapIndex = yokeMapIndex;
+//        //            }
+//        //            else if (yokeMapIndex >= selectedMapFileOut->getNumberOfMaps()) {
+//        //                m_selectedMapIndex = selectedMapFileOut->getNumberOfMaps() - 1;
+//        //            }
+//        //        }
+//        //
+//        selectedMapIndexOut = m_selectedMapIndex;  //m_selectedMapFile->getMapIndexFromUniqueID(selectedMapUniqueIDOut);
+//    }
+//    
+//    /*
+//     * Update the compound data type if this is the FIRST OVERLAY
+//     */
+//    if (m_overlayIndex == 0) {
+//        if (m_selectedMapFile != NULL) {
+//            ChartableTwoFileDelegate* chartFile = m_selectedMapFile->getChartingDelegate();
+//            CaretAssert(chartFile);
+//            chartFile->getChartCompoundDataTypeForChartDataType(m_chartDataType,
+//                                                                        m_chartCompoundDataType);
+//        }
+//        CaretAssert(m_parentChartOverlaySet);
+//        m_parentChartOverlaySet->firstOverlaySelectionChanged();
+//    }
+//    //If selected type changes, need to update other overlays in the overlay set with
+//    //the selected data type}
+//}
+
+/**
+ * Return the selection information.  This method is typically
+ * called to update the user-interface.
+ *
+ * @param mapFilesOut
+ *    Contains all map files that can be selected.
+ * @param selectedMapFileOut
+ *    The selected map file.  May be NULL.
+ * @param selectedFileMapNamesOut
+ *    Optional output, if not NULL, with map names
+ * @param selectedMapIndexOut
+ *    Index of selected map in the selected file.
+ */
+void
+ChartOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& mapFilesOut,
+                                      CaretMappableDataFile* &selectedMapFileOut,
+                                      std::vector<AString>* selectedFileMapNamesOut,
+                                      int32_t& selectedMapIndexOut) const
 {
     mapFilesOut.clear();
     selectedMapFileOut = NULL;
     selectedMapIndexOut = -1;
+    if (selectedFileMapNamesOut != NULL) {
+        selectedFileMapNamesOut->clear();
+    }
     
     /**
      * Get the data files.
@@ -441,66 +722,177 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
         m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     }
     
+//    /*
+//     * If selected data file is valid, see if selected
+//     * map is still valid.  If not, use first map.
+//     */
+//    if (m_selectedMapFile != NULL) {
+//        if (m_selectedMapIndex >= m_selectedMapFile->getNumberOfMaps()) {
+//            m_selectedMapIndex = m_selectedMapFile->getNumberOfMaps() - 1;
+//        }
+//        if (m_selectedMapIndex < 0) {
+//            m_selectedMapIndex = 0;
+//        }
+//    }
+//    else {
+//        /*
+//         * Use first map in first file that has one or more maps.
+//         */
+//        if (m_selectedMapFile == NULL) {
+//            if (mapFilesOut.empty() == false) {
+//                for (std::vector<CaretMappableDataFile*>::iterator iter = mapFilesOut.begin();
+//                     iter != mapFilesOut.end();
+//                     iter++) {
+//                    CaretMappableDataFile* mapTypeFile = *iter;
+//                    if (mapTypeFile->getNumberOfMaps() > 0) {
+//                        m_selectedMapFile = mapTypeFile;
+//                        m_selectedMapIndex = 0;
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//    }
+
     /*
-     * If selected data file is valid, see if selected
-     * map is still valid.  If not, use first map.
+     * If no file selected, select the first valid file
      */
-    if (m_selectedMapFile != NULL) {
-        if (m_selectedMapIndex >= m_selectedMapFile->getNumberOfMaps()) {
-            m_selectedMapIndex = m_selectedMapFile->getNumberOfMaps() - 1;
-        }
-        if (m_selectedMapIndex < 0) {
-            m_selectedMapIndex = 0;
-        }
-    }
-    else {
-        /*
-         * Use first map in first file that has one or more maps.
-         */
-        if (m_selectedMapFile == NULL) {
-            if (mapFilesOut.empty() == false) {
-                for (std::vector<CaretMappableDataFile*>::iterator iter = mapFilesOut.begin();
-                     iter != mapFilesOut.end();
-                     iter++) {
-                    CaretMappableDataFile* mapTypeFile = *iter;
-                    if (mapTypeFile->getNumberOfMaps() > 0) {
-                        m_selectedMapFile = mapTypeFile;
-                        m_selectedMapIndex = 0;
+    if (m_selectedMapFile == NULL) {
+        if ( ! mapFilesOut.empty()) {
+            for (std::vector<CaretMappableDataFile*>::iterator iter = mapFilesOut.begin();
+                 iter != mapFilesOut.end();
+                 iter++) {
+                CaretMappableDataFile* mapTypeFile = *iter;
+                m_selectedMapFile = mapTypeFile;
+                switch (m_chartDataType) {
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                         break;
-                    }
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                        m_selectedHistogramMapIndex = 0;
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                        break;
                 }
+                break;
             }
         }
     }
     
-    selectedMapFileOut = m_selectedMapFile;
-    if (selectedMapFileOut != NULL) {
-        //        /*
-        //         * Update for overlay yoking
-        //         */
-        //        if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-        //            const int32_t yokeMapIndex = MapYokingGroupEnum::getSelectedMapIndex(m_mapYokingGroup);
-        //            if ((yokeMapIndex >= 0)
-        //                && (yokeMapIndex < selectedMapFileOut->getNumberOfMaps())) {
-        //                m_selectedMapIndex = yokeMapIndex;
-        //            }
-        //            else if (yokeMapIndex >= selectedMapFileOut->getNumberOfMaps()) {
-        //                m_selectedMapIndex = selectedMapFileOut->getNumberOfMaps() - 1;
-        //            }
-        //        }
-        //
-        selectedMapIndexOut = m_selectedMapIndex;  //m_selectedMapFile->getMapIndexFromUniqueID(selectedMapUniqueIDOut);
+    if (m_selectedMapFile != NULL) {
+        int32_t numMaps = 0;
+        
+        switch (m_chartDataType) {
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            {
+                numMaps = m_selectedMapFile->getNumberOfMaps();
+                if (selectedFileMapNamesOut != NULL) {
+                    for (int32_t i = 0; i < numMaps; i++) {
+                        selectedFileMapNamesOut->push_back(m_selectedMapFile->getMapName(i));
+                    }
+                }
+                if (m_selectedHistogramMapIndex >= numMaps) {
+                    m_selectedHistogramMapIndex = numMaps - 1;
+                }
+                if (m_selectedHistogramMapIndex < 0) {
+                    m_selectedHistogramMapIndex = 0;
+                }
+                selectedMapIndexOut = m_selectedHistogramMapIndex;
+            }
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            {
+                ChartableTwoFileDelegate* chartDelegate        = m_selectedMapFile->getChartingDelegate();
+                const ChartableTwoFileMatrixChart* matrixChart = chartDelegate->getMatrixCharting();
+                CaretAssert(matrixChart);
+                int32_t numRows = 0;
+                int32_t numCols = 0;
+                matrixChart->getMatrixDimensions(numRows, numCols);
+                
+                ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension;
+                std::vector<int32_t> columnIndices;
+                std::vector<int32_t> rowIndices;
+                matrixChart->getSelectedRowColumnIndices(m_parentChartOverlaySet->m_tabIndex,
+                                                         rowColumnDimension,
+                                                         rowIndices,
+                                                         columnIndices);
+                
+                AString namePrefix;
+                switch (rowColumnDimension) {
+                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                        numMaps = numCols;
+                        namePrefix = "Column ";
+                        if ( ! columnIndices.empty()) {
+                            selectedMapIndexOut = columnIndices[0];
+                        }
+                        break;
+                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                        numMaps = numRows;
+                        namePrefix = "Row ";
+                        if ( ! rowIndices.empty()) {
+                            selectedMapIndexOut = rowIndices[0];
+                        }
+                        break;
+                }
+                
+                if (selectedFileMapNamesOut != NULL) {
+                    for (int32_t i = 0; i < numMaps; i++) {
+                        selectedFileMapNamesOut->push_back(namePrefix + QString::number(i));
+                    }
+                }
+                
+                
+            }
+                break;
+        }
+        
+//        /*
+//         * If selected data file is valid, see if selected
+//         * map is still valid.  If not, use first map.
+//         */
+//        if (m_selectedMapFile != NULL) {
+//            if (m_selectedHistogramMapIndex >= numMaps) {
+//                m_selectedHistogramMapIndex = numMaps - 1;
+//            }
+//            if (m_selectedHistogramMapIndex < 0) {
+//                m_selectedHistogramMapIndex = 0;
+//            }
+//        }
     }
+
+    selectedMapFileOut = m_selectedMapFile;
+//    if (selectedMapFileOut != NULL) {
+//        //        /*
+//        //         * Update for overlay yoking
+//        //         */
+//        //        if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+//        //            const int32_t yokeMapIndex = MapYokingGroupEnum::getSelectedMapIndex(m_mapYokingGroup);
+//        //            if ((yokeMapIndex >= 0)
+//        //                && (yokeMapIndex < numMaps)) {
+//        //                m_selectedMapIndex = yokeMapIndex;
+//        //            }
+//        //            else if (yokeMapIndex >= numMaps) {
+//        //                m_selectedMapIndex = numMaps - 1;
+//        //            }
+//        //        }
+//        //
+//        selectedMapIndexOut = m_selectedHistogramMapIndex;  //m_selectedMapFile->getMapIndexFromUniqueID(selectedMapUniqueIDOut);
+//    }
     
     /*
      * Update the compound data type if this is the FIRST OVERLAY
      */
     if (m_overlayIndex == 0) {
         if (m_selectedMapFile != NULL) {
-            ChartableTwoFileDelegate* chartFile = m_selectedMapFile->getChartingDelegate();
+            const ChartableTwoFileDelegate* chartFile = m_selectedMapFile->getChartingDelegate();
             CaretAssert(chartFile);
             chartFile->getChartCompoundDataTypeForChartDataType(m_chartDataType,
-                                                                        m_chartCompoundDataType);
+                                                                m_chartCompoundDataType);
         }
         CaretAssert(m_parentChartOverlaySet);
         m_parentChartOverlaySet->firstOverlaySelectionChanged();
@@ -513,36 +905,108 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
  * Set the selected map file and map.
  * @param selectedMapFile
  *    File that is selected.
- * @param selectedMapName
- *    Map name that is selected.
+ * @param selectedMapIndex
+ *    Index of map for selection.  If invalid, try the current map
+ *    index if it is valid.  Otherwise, use the first map index.
  */
 void
 ChartOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
                                const int32_t selectedMapIndex)
 {
     m_selectedMapFile = selectedMapFile;
-    m_selectedMapIndex = selectedMapIndex;
-    
-    if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-        if (m_selectedMapFile == NULL) {
-            m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+    if (m_selectedMapFile != NULL) {
+        switch (m_chartDataType) {
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                if (selectedMapIndex >= 0) {
+                    m_selectedHistogramMapIndex = selectedMapIndex;
+                }
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            {
+                ChartableTwoFileDelegate* chartDelegate = m_selectedMapFile->getChartingDelegate();
+                CaretAssert(chartDelegate);
+                ChartableTwoFileMatrixChart* matrixChart   = chartDelegate->getMatrixCharting();
+                CaretAssert(matrixChart);
+                matrixChart->setSelectedRowColumnIndex(m_parentChartOverlaySet->m_tabIndex,
+                                                       selectedMapIndex);
+            }
+                break;
         }
-        //        if (selectedMapFile != NULL) {
-        //            MapYokingGroupEnum::setSelectedMapIndex(m_mapYokingGroup,
-        //                                                        selectedMapIndex);
-        //        }
-        //        else {
-        //            m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
-        //        }
+        
+        if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            if (m_selectedMapFile == NULL) {
+                m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+            }
+            //        if (selectedMapFile != NULL) {
+            //            MapYokingGroupEnum::setSelectedMapIndex(m_mapYokingGroup,
+            //                                                        selectedMapIndex);
+            //        }
+            //        else {
+            //            m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+            //        }
+        }
     }
+    
     
     /*
      * By calling getSelectionData(), it will validate the
-     * selected file
+     * selected file and map index and update if needed 
+     * (such as a valid map index).
      */
     CaretMappableDataFile* filePointer = NULL;
     int32_t mapIndex = -1;
     getSelectionData(filePointer, mapIndex);
+}
+
+/*
+ switch (m_chartDataType) {
+ case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+ break;
+ case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+ break;
+ case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+ break;
+ case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+ break;
+ }
+ */
+/**
+ * @return Is the all maps  supported?
+ */
+bool
+ChartOverlay::isAllMapsSupported() const
+{
+    bool supportedFlag = false;
+    
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+        {
+            CaretMappableDataFile* cmdf = NULL;
+            int32_t mapIndex = 0;
+            
+            getSelectionData(cmdf,
+                             mapIndex);
+            
+            if (cmdf != NULL) {
+                if (cmdf->getNumberOfMaps() > 1) {
+                    supportedFlag = true;
+                }
+            }
+        }
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
+    
+    return supportedFlag;
 }
 
 /**
@@ -551,7 +1015,7 @@ ChartOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
 bool
 ChartOverlay::isAllMapsSelected() const
 {
-    return m_allMapsSelectedFlag;
+    return m_allHistogramMapsSelectedFlag;
 }
 
 /**
@@ -563,7 +1027,7 @@ ChartOverlay::isAllMapsSelected() const
 void
 ChartOverlay::setAllMapsSelected(const bool status)
 {
-    m_allMapsSelectedFlag = status;
+    m_allHistogramMapsSelectedFlag = status;
 }
 
 
