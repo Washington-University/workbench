@@ -115,6 +115,25 @@ WuQDoubleSlider::setRange(double minValue, double maxValue)
 }
 
 /**
+ * @return  The minimum value of the slider.
+ */
+double
+WuQDoubleSlider::minimumValue() const
+{
+    return this->minimum;;
+}
+
+/**
+ * @return  The maximum value of the slider.
+ */
+double
+WuQDoubleSlider::maximumValue() const
+{
+    return this->maximum;;
+}
+
+
+/**
  * @return  The value of the slider.
  */
 double 
@@ -158,7 +177,7 @@ WuQDoubleSlider::updateSlider()
     const double parametricValue = (this->sliderValue - this->minimum) / dRange;
     
     const int dSlider = this->slider->maximum() - this->slider->minimum();
-    const int qSliderValue = static_cast<int>(dSlider * parametricValue) + this->minimum;
+    const int qSliderValue = static_cast<int>(dSlider * parametricValue);;// + this->minimum;
     this->slider->blockSignals(true);
     this->slider->setValue(qSliderValue);
     this->slider->blockSignals(false);    

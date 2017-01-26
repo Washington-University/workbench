@@ -703,8 +703,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdLinkCheckBox);
     this->thresholdAdjustmentWidgetGroup->add(thresholdLowLabel);
     this->thresholdAdjustmentWidgetGroup->add(thresholdHighLabel);
-    this->thresholdAdjustmentWidgetGroup->add(this->thresholdLowSlider);
-    this->thresholdAdjustmentWidgetGroup->add(this->thresholdHighSlider);
+    this->thresholdAdjustmentWidgetGroup->add(this->thresholdLowSlider->getWidget());
+    this->thresholdAdjustmentWidgetGroup->add(this->thresholdHighSlider->getWidget());
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdLowSpinBox);
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdHighSpinBox);
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdShowInsideRadioButton);

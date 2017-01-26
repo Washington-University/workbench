@@ -289,7 +289,16 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                this->paletteColorMapping->setThresholdNegMinPosMaxLinked(toBool(this->elementText));
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING) {
-               /* Top level tag, nothing to do */
+               /* WB-  
+                * We want to default the range mode to 'FILE'.  While we do that in the constructor
+                * for PaletteColorMapping, most files contain PaletteColorMapping in the XML for 
+                * each map and when the file is read, the default values are replaced.  So,
+                * to avoid breaking older scenes, only change the range mode from 'MAP' to 'FILE'
+                * if thresholding is off when reading palette color mapping from XML.
+                */
+               if (this->paletteColorMapping->getThresholdType()  == PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+                   this->paletteColorMapping->setThresholdRangeMode(PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE);
+               }
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_NUMERIC_FORMAT_MODE) {
                bool isValid = false;

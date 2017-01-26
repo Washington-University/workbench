@@ -41,6 +41,10 @@ namespace caret {
         
         void setRange(double minValue, double maxValue);
         
+        double minimumValue() const;
+        
+        double maximumValue() const;
+        
         double value() const;
         
     signals:

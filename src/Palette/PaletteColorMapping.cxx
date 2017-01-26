@@ -222,7 +222,8 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdMappedAverageAreaMaximum =  1.0f;
     this->thresholdDataName = "";
     this->thresholdShowFailureInGreen = false;
-    this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP;
+    //this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP;
+    this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE;
     this->thresholdNegMinPosMaxLinked = false;
     this->numericFormatMode = NumericFormatModeEnum::AUTO;
     this->precisionDigits = 2;
