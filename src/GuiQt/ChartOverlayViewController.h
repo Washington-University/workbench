@@ -25,6 +25,8 @@
 #include <QObject>
 #include <QPixmap>
 
+#include "ChartTwoMatrixTriangularViewingModeEnum.h"
+
 class QAction;
 class QCheckBox;
 class QComboBox;
@@ -101,6 +103,8 @@ namespace caret {
         
         void menuConstructionAboutToShow();
 
+        void menuMatrixTriangularViewModeTriggered(QAction* action);
+        
     private:
         ChartOverlayViewController(const ChartOverlayViewController&);
 
@@ -114,11 +118,18 @@ namespace caret {
         
         QMenu* createConstructionMenu(QWidget* parent);
         
+        QMenu* createMatrixTriangularViewModeMenu(QWidget* widget);
+        
         void validateYokingSelection();
         
         void updateOverlaySettingsEditor();
         
         QPixmap createHistoryPixmap(QWidget* widget);
+        
+        QPixmap createMatrixTriangularViewModePixmap(QWidget* widget,
+                                                     const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode);
+
+        void updateMatrixTriangularViewModeAction(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode);
         
         const int32_t m_browserWindowIndex;
         
@@ -142,6 +153,12 @@ namespace caret {
         
         QAction* m_historyAction;
         
+        QToolButton* m_matrixTriangularViewModeToolButton;
+        
+        QAction* m_matrixTriangularViewModeAction;
+        
+        std::vector<std::tuple<ChartTwoMatrixTriangularViewingModeEnum::Enum, QAction*,QPixmap>> m_matrixViewMenuData;
+
         QComboBox* m_mapFileComboBox;
         
         MapYokingGroupComboBox* m_mapRowOrColumnYokingGroupComboBox;

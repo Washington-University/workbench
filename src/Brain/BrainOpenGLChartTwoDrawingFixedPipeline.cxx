@@ -37,13 +37,6 @@
 #include "ChartableTwoFileMatrixChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
-//#include "CiftiParcelLabelFile.h"
-//#include "CiftiParcelScalarFile.h"
-//#include "CiftiScalarDataSeriesFile.h"
-//#include "ConnectivityDataLoaded.h"
-//#include "EventCaretMappableDataFileMapsViewedInOverlays.h"
-//#include "EventManager.h"
-
 #include "IdentificationWithColor.h"
 #include "SessionManager.h"
 
@@ -164,6 +157,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                        drawHistogramChart();
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                         break;
@@ -184,6 +178,233 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     
     restoreStateOfOpenGL();
 }
+
+/**
+ * Draw histogram charts.
+ */
+void
+BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
+{
+    /*
+     * Check for a 'selection' type mode
+     */
+    m_identificationModeFlag = false;
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+//            if (chartDataSeriesID->isEnabledForSelection()
+//                || chartFrequencySeriesID->isEnabledForSelection()
+//                || chartTimeSeriesID->isEnabledForSelection()) {
+//                m_identificationModeFlag = true;
+//                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//            }
+//            else {
+            CaretAssertToDoWarning();
+                return;
+//            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    saveStateOfOpenGL();
+    
+    resetIdentification();
+    
+    const int32_t vpX      = m_viewport[0];
+    const int32_t vpY      = m_viewport[1];
+    const int32_t vpWidth  = m_viewport[2];
+    const int32_t vpHeight = m_viewport[3];
+    
+    int32_t chartGraphicsDrawingViewport[4] = {
+        vpX,
+        vpY,
+        vpWidth,
+        vpHeight
+    };
+    
+    
+//    /*
+//     * Margin is region around the chart in which
+//     * the axes legends, values, and ticks are drawn.
+//     */
+    const double marginSize = 30;
+    Margins margins(marginSize);
+//    
+//    double width, height;
+//    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getLeftAxis(), width, height);
+//    margins.m_left = std::max(margins.m_left, width);
+//    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getRightAxis(), width, height);
+//    margins.m_right = std::max(margins.m_right, width);
+//    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getTopAxis(), width, height);
+//    margins.m_top = std::max(margins.m_top, height);
+//    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getBottomAxis(), width, height);
+//    margins.m_bottom = std::max(margins.m_bottom, height);
+//    
+//    if (margins.m_left > marginSize) margins.m_left += 10;
+//    if (margins.m_right > marginSize) margins.m_right += 10;
+//    
+//    /*
+//     * Ensure that there is sufficient space for the axes data display.
+//     */
+//    if ((vpWidth > (marginSize * 3))
+//        && (vpHeight > (marginSize * 3))) {
+//        
+//        /* Draw legends and grids */
+//        drawChartAxis(vpX,
+//                      vpY,
+//                      vpWidth,
+//                      vpHeight,
+//                      margins,
+//                      textRenderer,
+//                      cartesianChart->getLeftAxis());
+//        
+//        drawChartAxis(vpX,
+//                      vpY,
+//                      vpWidth,
+//                      vpHeight,
+//                      margins,
+//                      textRenderer,
+//                      cartesianChart->getRightAxis());
+//        
+//        drawChartAxis(vpX,
+//                      vpY,
+//                      vpWidth,
+//                      vpHeight,
+//                      margins,
+//                      textRenderer,
+//                      cartesianChart->getBottomAxis());
+//        
+//        drawChartAxis(vpX,
+//                      vpY,
+//                      vpWidth,
+//                      vpHeight,
+//                      margins,
+//                      textRenderer,
+//                      cartesianChart->getTopAxis());
+//    
+//        
+//        drawChartGraphicsBoxAndSetViewport(vpX,
+//                                           vpY,
+//                                           vpWidth,
+//                                           vpHeight,
+//                                           margins,
+//                                           chartGraphicsDrawingViewport);
+//    }
+    
+    glViewport(chartGraphicsDrawingViewport[0],
+               chartGraphicsDrawingViewport[1],
+               chartGraphicsDrawingViewport[2],
+               chartGraphicsDrawingViewport[3]);
+    
+    
+    const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
+    CaretAssert(numberOfOverlays > 0);
+    const ChartOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
+    const ChartTwoCompoundDataType cdt = topOverlay->getChartTwoCompoundDataType();
+    CaretAssert(cdt.getChartDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
+    
+    /*
+     * Get extent of histogram data
+     */
+    CaretAssertToDoWarning(); // extent of all displayed histograms
+    float xMin =   0.0;
+    float xMax = 100.0;
+    float yMin =   0.0;
+    float yMax = 100.0;
+    for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
+        ChartOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
+        if ( ! chartOverlay->isEnabled()) {
+            continue;
+        }
+        
+        CaretMappableDataFile* mapFile = NULL;
+        int32_t mapIndex = 1;
+        chartOverlay->getSelectionData(mapFile,
+                                       mapIndex);
+        if (mapFile == NULL) {
+            continue;
+        }
+        
+        const ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
+        const ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
+        if (histogramChart->isValid()) {
+        }
+    }
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(xMin, xMax,
+            yMin, yMax,
+            -1.0, 1.0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    bool applyTransformationsFlag = true;
+    if (applyTransformationsFlag) {
+        glTranslatef(m_translation[0],
+                     m_translation[1],
+                     0.0);
+        
+        const float chartWidth  = chartGraphicsDrawingViewport[2];
+        const float chartHeight = chartGraphicsDrawingViewport[3];
+        const float halfWidth   = chartWidth  / 2.0;
+        const float halfHeight  = chartHeight / 2.0;
+        glTranslatef(halfWidth,
+                     halfHeight,
+                     0.0);
+        glScalef(m_zooming,
+                 m_zooming,
+                 1.0);
+        glTranslatef(-halfWidth,
+                     -halfHeight,
+                     0.0);
+    }
+    
+    for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
+        ChartOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
+        if ( ! chartOverlay->isEnabled()) {
+            continue;
+        }
+        
+        CaretMappableDataFile* mapFile = NULL;
+        int32_t mapIndex = 1;
+        chartOverlay->getSelectionData(mapFile,
+                                       mapIndex);
+        if (mapFile == NULL) {
+            continue;
+        }
+        
+        const ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
+        const ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
+        if (histogramChart->isValid()) {
+            drawHistogramChartContent(histogramChart);
+        }
+    }
+    
+    /*
+     * Process selection
+     */
+    if (m_identificationModeFlag) {
+        processIdentification();
+    }
+    
+    restoreStateOfOpenGL();
+    
+}
+
+/*
+ * Draw the given histogram chart.
+ */
+void
+BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart)
+{
+    std::cout << "DRAW HISTOGRAM" << std::endl;
+}
+
 
 /**
  * Draw a matrix chart.
@@ -304,15 +525,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
                      0.0);
     }
 
-    /*
-     * For testing
-     */
-    glColor3f(1.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(xMin, yMin);
-    glVertex2f(xMax, yMax);
-    glEnd();
-    
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
         ChartOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
         if ( ! chartOverlay->isEnabled()) {
@@ -339,10 +551,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
         if ((overlayRows == numberOfRows)
             && (overlayColumns == numberOfCols)) {
             drawMatrixChartContent(matrixChart,
-                                ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_FULL,
-                                //ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL,
-                                //ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL,
-                                //ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL,
+                                   chartOverlay->getMatrixTriangularViewingMode(),
+                                //ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL,
+                                //ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL,
+                                //ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL,
+                                //ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL,
                                 cellWidth,
                                 cellHeight,
                                 m_zooming);
@@ -422,7 +635,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
-                                                             const ChartTwoMatrixViewingTypeEnum::Enum chartViewingType,
+                                                             const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
                                                              const float cellWidth,
                                                              const float cellHeight,
                                                              const float zooming)
@@ -434,6 +647,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                        numberOfColumns,
                                     matrixRGBA)) {
         CaretLogWarning("Matrix RGBA invalid");
+        return;
+    }
+    if ((numberOfRows <= 0)
+        || (numberOfColumns <= 0)) {
         return;
     }
     
@@ -478,23 +695,23 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             rgbaOffset += 4;
             
             bool drawCellFlag = true;
-            if (chartViewingType != ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_FULL) {
+            if (chartViewingType != ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL) {
                 if (numberOfRows == numberOfColumns) {
                     drawCellFlag = false;
                     switch (chartViewingType) {
-                        case ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_FULL:
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
                             break;
-                        case ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
                             if (rowIndex != columnIndex) {
                                 drawCellFlag = true;
                             }
                             break;
-                        case ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
                             if (rowIndex > columnIndex) {
                                 drawCellFlag = true;
                             }
                             break;
-                        case ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
                             if (rowIndex < columnIndex) {
                                 drawCellFlag = true;
                             }
@@ -502,15 +719,28 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                     }
                 }
                 else {
-                    drawCellFlag = true;
+                    drawCellFlag = false;
+                    const float slope = static_cast<float>(numberOfRows) / static_cast<float>(numberOfColumns);
+                    const int32_t diagonalRow = static_cast<int32_t>(slope * columnIndex);
+                    
                     switch (chartViewingType) {
-                        case ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_FULL:
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+                            drawCellFlag = true;
                             break;
-                        case ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                            if (rowIndex != diagonalRow) {
+                                drawCellFlag = true;
+                            }
                             break;
-                        case ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                            if (rowIndex > diagonalRow) {
+                                drawCellFlag = true;
+                            }
                             break;
-                        case ChartTwoMatrixViewingTypeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                            if (rowIndex < diagonalRow) {
+                                drawCellFlag = true;
+                            }
                             break;
                     }
                 }

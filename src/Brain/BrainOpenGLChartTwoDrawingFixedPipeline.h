@@ -23,11 +23,13 @@
 
 #include <set>
 #include "BrainOpenGLChartTwoDrawingInterface.h"
-#include "ChartTwoMatrixViewingTypeEnum.h"
+#include "ChartTwoMatrixTriangularViewingModeEnum.h"
 
 namespace caret {
 
     class CaretPreferences;
+    class ChartableTwoFileHistogramChart;
+    class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
     
     class BrainOpenGLChartTwoDrawingFixedPipeline : public BrainOpenGLChartTwoDrawingInterface {
@@ -50,20 +52,20 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-//        class Margins {
-//        public:
-//            Margins(const double defaultSize) {
-//                m_bottom = defaultSize;
-//                m_left   = defaultSize;
-//                m_right  = defaultSize;
-//                m_top    = defaultSize;
-//            }
-//            
-//            double m_bottom;
-//            double m_left;
-//            double m_right;
-//            double m_top;
-//        };
+        class Margins {
+        public:
+            Margins(const double defaultSize) {
+                m_bottom = defaultSize;
+                m_left   = defaultSize;
+                m_right  = defaultSize;
+                m_top    = defaultSize;
+            }
+            
+            double m_bottom;
+            double m_left;
+            double m_right;
+            double m_top;
+        };
 
         BrainOpenGLChartTwoDrawingFixedPipeline(const BrainOpenGLChartTwoDrawingFixedPipeline&);
 
@@ -83,10 +85,14 @@ namespace caret {
         void drawMatrixChart();
         
         void drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
-                                 const ChartTwoMatrixViewingTypeEnum::Enum chartViewingType,
+                                 const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
                                  const float cellWidth,
                                  const float cellHeight,
                                  const float zooming);
+        
+        void drawHistogramChart();
+        
+        void drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart);
 
 //        void getMatrixHighlighting(const ChartableTwoFileMatrixChart* matrixChart,
 //                                   std::set<int32_t>& rowIndicesOut,

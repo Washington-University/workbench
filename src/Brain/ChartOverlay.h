@@ -25,6 +25,7 @@
 #include "CaretObject.h"
 
 #include "ChartTwoCompoundDataType.h"
+#include "ChartTwoMatrixTriangularViewingModeEnum.h"
 #include "EventListenerInterface.h"
 #include "MapYokingGroupEnum.h"
 #include "SceneableInterface.h"
@@ -77,6 +78,12 @@ namespace caret {
         AnnotationColorBar* getColorBar();
         
         const AnnotationColorBar* getColorBar() const;
+        
+        ChartTwoMatrixTriangularViewingModeEnum::Enum getMatrixTriangularViewingMode() const;
+        
+        void setMatrixTriangularViewingMode(const ChartTwoMatrixTriangularViewingModeEnum::Enum mode);
+        
+        bool isMatrixTriangularViewingModeSupported() const;
         
         void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,
@@ -163,6 +170,7 @@ namespace caret {
         
         bool m_allHistogramMapsSelectedFlag = false;
         
+        ChartTwoMatrixTriangularViewingModeEnum::Enum m_matrixTriangularViewingMode;
         // ADD_NEW_MEMBERS_HERE
 
     };

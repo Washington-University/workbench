@@ -47,7 +47,7 @@ ChartTwoHistogramContentTypeEnum.h
 ChartTwoLineSeriesContentTypeEnum.h
 ChartTwoMatrixContentTypeEnum.h
 ChartTwoMatrixLoadingDimensionEnum.h
-ChartTwoMatrixViewingTypeEnum.h
+ChartTwoMatrixTriangularViewingModeEnum.h
 
 ChartAxis.cxx
 ChartAxisCartesian.cxx
@@ -81,7 +81,7 @@ ChartTwoHistogramContentTypeEnum.cxx
 ChartTwoLineSeriesContentTypeEnum.cxx
 ChartTwoMatrixContentTypeEnum.cxx
 ChartTwoMatrixLoadingDimensionEnum.cxx
-ChartTwoMatrixViewingTypeEnum.cxx
+ChartTwoMatrixTriangularViewingModeEnum.cxx
 )
 
 TARGET_LINK_LIBRARIES(Charting ${CARET_QT5_LINK})

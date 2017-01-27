@@ -76,6 +76,8 @@ m_overlayIndex(overlayIndex)
     m_colorBar = std::unique_ptr<AnnotationColorBar>(new AnnotationColorBar(AnnotationAttributesDefaultTypeEnum::NORMAL));
     m_colorBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
     
+    m_matrixTriangularViewingMode = ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL;
+    
     m_selectedMapFile  = NULL;
     m_selectedHistogramMapIndex = -1;
     m_allHistogramMapsSelectedFlag = false;
@@ -85,6 +87,9 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
                                                                         &m_mapYokingGroup);
     m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar.get());
+    m_sceneAssistant->add<ChartTwoMatrixTriangularViewingModeEnum, ChartTwoMatrixTriangularViewingModeEnum::Enum>("m_matrixTriangularViewingMode",
+                                                                        &m_matrixTriangularViewingMode);
+    m_sceneAssistant->add("m_selectedHistogramMapIndex", &m_selectedHistogramMapIndex);
     m_sceneAssistant->add("m_allHistogramMapsSelectedFlag", &m_allHistogramMapsSelectedFlag);
     
 //    EventManager::get()->addEventListener(this,
@@ -274,6 +279,7 @@ ChartOverlay::copyData(const ChartOverlay* overlay)
     m_mapYokingGroup = overlay->m_mapYokingGroup;
     
     *m_colorBar = *overlay->m_colorBar;
+    m_matrixTriangularViewingMode = overlay->m_matrixTriangularViewingMode;
     
     m_selectedMapFile = overlay->m_selectedMapFile;
     m_selectedHistogramMapIndex = overlay->m_selectedHistogramMapIndex;
@@ -1030,6 +1036,47 @@ ChartOverlay::setAllMapsSelected(const bool status)
     m_allHistogramMapsSelectedFlag = status;
 }
 
+/**
+ * @return The matrix triangular viewing mode.
+ */
+ChartTwoMatrixTriangularViewingModeEnum::Enum
+ChartOverlay::getMatrixTriangularViewingMode() const
+{
+    return m_matrixTriangularViewingMode;
+}
+
+/**
+ * Set the matrix triangular viewing mode.
+ * 
+ * @param mode
+ *     New triangular viewing mode.
+ */
+void
+ChartOverlay::setMatrixTriangularViewingMode(const ChartTwoMatrixTriangularViewingModeEnum::Enum mode)
+{
+    m_matrixTriangularViewingMode = mode;
+}
+
+/**
+ * @return Is the matrix triangular view mode supported?
+ */
+bool
+ChartOverlay::isMatrixTriangularViewingModeSupported() const
+{
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            return true;
+            break;
+    }
+    
+    return false;
+}
 
 /**
  * Save information specific to this type of model to the scene.

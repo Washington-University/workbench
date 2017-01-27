@@ -146,7 +146,7 @@ m_chartOverlay(NULL)
     QIcon constructionIcon;
     const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
                                                                constructionIcon);
-    m_constructionAction = WuQtUtilities::createAction("M",
+    m_constructionAction = WuQtUtilities::createAction("C",
                                                            "Add/Move/Remove Layers",
                                                            this);
     if (constructionIconValid) {
@@ -162,7 +162,7 @@ m_chartOverlay(NULL)
      * History button
      */
     m_historyToolButton = new QToolButton();
-    m_historyAction = WuQtUtilities::createAction("",
+    m_historyAction = WuQtUtilities::createAction("H",
                                                   "Show history for line chart file",
                                                   this,
                                                   this,
@@ -172,6 +172,19 @@ m_chartOverlay(NULL)
     m_historyToolButton->setDefaultAction(m_historyAction);
     //m_historyToolButton->setIconSize(historyPixmap.size());
     
+    /*
+     * Matrix triangular view mode button
+     */
+    m_matrixTriangularViewModeAction = WuQtUtilities::createAction("M",
+                                                       "Matrix triangular view",
+                                                       this);
+    m_matrixTriangularViewModeToolButton = new QToolButton();
+    QMenu* matrixTriangularViewModeMenu = createMatrixTriangularViewModeMenu(m_matrixTriangularViewModeToolButton);
+    m_matrixTriangularViewModeAction->setMenu(matrixTriangularViewModeMenu);
+    m_matrixTriangularViewModeToolButton->setDefaultAction(m_matrixTriangularViewModeAction);
+    m_matrixTriangularViewModeToolButton->setPopupMode(QToolButton::InstantPopup);
+    
+
     /*
      * Map file Selection Check Box
      */
@@ -734,7 +747,54 @@ ChartOverlayViewController::updateViewController(ChartOverlay* chartOverlay)
     if (validOverlayAndFileFlag) {
         m_historyAction->setEnabled(m_chartOverlay->isHistorySupported());
     }
+    
+    /*
+     * Update matrix triangular view mode
+     */
+    m_matrixTriangularViewModeAction->setEnabled(false);
+    if (validOverlayAndFileFlag) {
+        if (m_chartOverlay->isMatrixTriangularViewingModeSupported()) {
+            m_matrixTriangularViewModeAction->setEnabled(true);
+            const ChartTwoMatrixTriangularViewingModeEnum::Enum viewMode = m_chartOverlay->getMatrixTriangularViewingMode();
+            
+            for (auto& mvmd : m_matrixViewMenuData) {
+                if (std::get<0>(mvmd) == viewMode) {
+                    std::get<1>(mvmd)->setChecked(true);
+                    updateMatrixTriangularViewModeAction(viewMode);
+                    break;
+                }
+            }
+        }
+    }
 }
+
+/**
+ * Update the matrix triangular view mode button.
+ *
+ * @param matrixViewMode
+ *     Matrix triangular view mode.
+ */
+void
+ChartOverlayViewController::updateMatrixTriangularViewModeAction(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode)
+{
+    CaretAssert(m_matrixTriangularViewModeAction);
+    m_matrixTriangularViewModeAction->blockSignals(true);
+    for (auto& mvmd : m_matrixViewMenuData) {
+        if (std::get<0>(mvmd) == matrixViewMode) {
+            QPixmap pixmap = std::get<2>(mvmd);
+            if ( ! pixmap.isNull()) {
+                m_matrixTriangularViewModeAction->setIcon(pixmap);
+                m_matrixTriangularViewModeAction->setText("");
+            }
+            else {
+                m_matrixTriangularViewModeAction->setText("M");
+            }
+            break;
+        }
+    }
+    m_matrixTriangularViewModeAction->blockSignals(false);
+}
+
 
 /**
  * Update graphics and GUI after selections made
@@ -773,6 +833,62 @@ ChartOverlayViewController::updateGraphicsWindow()
 //        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 //    }
 }
+
+/**
+ * Create the matrix triangular view mode menu.
+ * @param parent
+ *    Parent widget.
+ */
+QMenu*
+ChartOverlayViewController::createMatrixTriangularViewModeMenu(QWidget* parent)
+{
+    std::vector<ChartTwoMatrixTriangularViewingModeEnum::Enum> allViewModes;
+    ChartTwoMatrixTriangularViewingModeEnum::getAllEnums(allViewModes);
+    
+    QMenu* menu = new QMenu(parent);
+    QObject::connect(menu, &QMenu::triggered,
+                     this, &ChartOverlayViewController::menuMatrixTriangularViewModeTriggered);
+//    QObject::connect(menu, SIGNAL(triggered(QAction*)),
+//                     this, SLOT(menuMatrixTriangularViewModeTriggered(QAction* action)));
+
+    QActionGroup* actionGroup = new QActionGroup(this);
+    actionGroup->setExclusive(true);
+    
+    for (auto viewMode: allViewModes) {
+        QAction* action = menu->addAction(ChartTwoMatrixTriangularViewingModeEnum::toGuiName(viewMode));
+        action->setCheckable(true);
+        action->setData((int)ChartTwoMatrixTriangularViewingModeEnum::toIntegerCode(viewMode));
+        QPixmap pixmap = createMatrixTriangularViewModePixmap(menu, viewMode);
+        action->setIcon(pixmap);
+        actionGroup->addAction(action);
+        
+        m_matrixViewMenuData.push_back(std::make_tuple(viewMode, action, pixmap));
+    }
+    
+    return menu;
+}
+
+/**
+ * Called when an item is selected on matrix triangular view mode menu.
+ *
+ * @action
+ *     Action of menu item selected.
+ */
+void
+ChartOverlayViewController::menuMatrixTriangularViewModeTriggered(QAction* action)
+{
+    const QVariant itemData = action->data();
+    CaretAssert(itemData.isValid());
+    bool valid = false;
+    ChartTwoMatrixTriangularViewingModeEnum::Enum viewMode = ChartTwoMatrixTriangularViewingModeEnum::fromIntegerCode(itemData.toInt(), &valid);
+    
+    if (valid) {
+        m_chartOverlay->setMatrixTriangularViewingMode(viewMode);
+        updateMatrixTriangularViewModeAction(viewMode);
+        this->updateGraphicsWindow();
+    }
+}
+
 
 /**
  * Create the construction menu.
@@ -996,6 +1112,87 @@ ChartOverlayViewController::menuReloadFileTriggered()
         }
     }
 }
+
+/**
+ * Create a matrix view mode pixmap.
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @param matrixViewMode
+ *    Matrix view mode represented by the icon.
+ * @return
+ *    Pixmap for matrix view mode.
+ */
+QPixmap
+ChartOverlayViewController::createMatrixTriangularViewModePixmap(QWidget* widget,
+                                                                 const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode)
+{
+    CaretAssert(widget);
+    
+    /*
+     * Create a small, square pixmap that will contain
+     * the foreground color around the pixmap's perimeter.
+     */
+    const qreal iconSize = 24.0;
+    const qreal minValue = 2.0;
+    const qreal maxValue = iconSize - minValue;
+    const QPointF bottomLeft(minValue, minValue);
+    const QPointF bottomRight(maxValue, minValue);
+    const QPointF topRight(maxValue, maxValue);
+    const QPointF topLeft(minValue, maxValue);
+    
+    QPixmap pixmap(static_cast<int>(iconSize),
+                   static_cast<int>(iconSize));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(widget,
+                                                                                                pixmap);
+
+    QPen pen = painter->pen();
+    pen.setWidthF(2.0);
+    painter->setPen(pen);
+
+    QPolygonF polygon;
+    switch (matrixViewMode) {
+        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+        {
+            polygon.push_back(bottomLeft);
+            polygon.push_back(bottomRight);
+            polygon.push_back(topRight);
+            polygon.push_back(topLeft);
+        }
+            break;
+        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+        {
+            polygon.push_back(bottomLeft);
+            polygon.push_back(bottomRight);
+            polygon.push_back(topRight);
+            polygon.push_back(topLeft);
+            
+            painter->drawLine(topLeft, bottomRight);
+        }
+            break;
+        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+        {
+            polygon.push_back(bottomLeft);
+            polygon.push_back(bottomRight);
+            polygon.push_back(topLeft);
+        }
+            break;
+        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+        {
+            polygon.push_back(bottomRight);
+            polygon.push_back(topRight);
+            polygon.push_back(topLeft);
+        }
+            break;
+    }
+    
+
+    painter->drawPolygon(polygon);
+    
+    return pixmap;
+}
+
 
 /**
  * Create a history pixmap.
