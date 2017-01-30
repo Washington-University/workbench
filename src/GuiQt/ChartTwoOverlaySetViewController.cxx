@@ -20,7 +20,7 @@
 /*LICENSE_END*/
 
 #define __CHART_OVERLAY_SET_VIEW_CONTROLLER_DECLARE__
-#include "ChartOverlaySetViewController.h"
+#include "ChartTwoOverlaySetViewController.h"
 #undef __CHART_OVERLAY_SET_VIEW_CONTROLLER_DECLARE__
 
 #include <QCheckBox>
@@ -36,9 +36,9 @@
 #include "BrainConstants.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "ChartOverlay.h"
-#include "ChartOverlaySet.h"
-#include "ChartOverlayViewController.h"
+#include "ChartTwoOverlay.h"
+#include "ChartTwoOverlaySet.h"
+#include "ChartTwoOverlayViewController.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -52,7 +52,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartOverlaySetViewController 
+ * \class caret::ChartTwoOverlaySetViewController 
  * \brief View controller for a chart overlay set
  * \ingroup GuiQt
  */
@@ -66,7 +66,7 @@ using namespace caret;
  * @param parent
  *    Parent widget.
  */
-ChartOverlaySetViewController::ChartOverlaySetViewController(const Qt::Orientation orientation,
+ChartTwoOverlaySetViewController::ChartTwoOverlaySetViewController(const Qt::Orientation orientation,
                                                              const int32_t browserWindowIndex,
                                                              QWidget* parent)
 : QWidget(parent),
@@ -77,7 +77,7 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 2);
     
    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        ChartOverlayViewController* ovc = new ChartOverlayViewController(orientation,
+        ChartTwoOverlayViewController* ovc = new ChartTwoOverlayViewController(orientation,
                                                                          m_browserWindowIndex,
                                                                          i,
                                                                          this);
@@ -143,7 +143,7 @@ m_browserWindowIndex(browserWindowIndex)
         
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
             row = gridLayout->rowCount();
-            ChartOverlayViewController* covc = m_chartOverlayViewControllers[i];
+            ChartTwoOverlayViewController* covc = m_chartOverlayViewControllers[i];
             WuQGridLayoutGroup* glg = m_chartOverlayGridLayoutGroups[i];
             
             glg->addWidget(covc->m_enabledCheckBox, row, COLUMN_ON, Qt::AlignHCenter);
@@ -197,7 +197,7 @@ m_browserWindowIndex(browserWindowIndex)
                 row++;
             }
 
-            ChartOverlayViewController* covc = m_chartOverlayViewControllers[i];
+            ChartTwoOverlayViewController* covc = m_chartOverlayViewControllers[i];
 
             QLabel* fileLabel = new QLabel("File");
             glg->addWidget(covc->m_enabledCheckBox, row, ROW_ONE_COLUMN_ON, Qt::AlignHCenter);
@@ -240,7 +240,7 @@ m_browserWindowIndex(browserWindowIndex)
 /**
  * Destructor.
  */
-ChartOverlaySetViewController::~ChartOverlaySetViewController()
+ChartTwoOverlaySetViewController::~ChartTwoOverlaySetViewController()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -252,7 +252,7 @@ ChartOverlaySetViewController::~ChartOverlaySetViewController()
  *    An event for which this instance is listening.
  */
 void
-ChartOverlaySetViewController::receiveEvent(Event* event)
+ChartTwoOverlaySetViewController::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* uiEvent =
@@ -272,9 +272,9 @@ ChartOverlaySetViewController::receiveEvent(Event* event)
  * Update this overlay set view controller using the given overlay set.
  */
 void
-ChartOverlaySetViewController::updateViewController()
+ChartTwoOverlaySetViewController::updateViewController()
 {
-    ChartOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
     if (chartOverlaySet == NULL) {
         return;
     }
@@ -283,7 +283,7 @@ ChartOverlaySetViewController::updateViewController()
     const int32_t numberOfDisplayedOverlays = chartOverlaySet->getNumberOfDisplayedOverlays();
     
     for (int32_t i = 0; i < numberOfOverlays; i++) {
-        ChartOverlay* chartOverlay = NULL;
+        ChartTwoOverlay* chartOverlay = NULL;
         if (chartOverlaySet != NULL) {
             chartOverlay = chartOverlaySet->getOverlay(i);
         }
@@ -297,7 +297,7 @@ ChartOverlaySetViewController::updateViewController()
         m_chartOverlayGridLayoutGroups[i]->setVisible(displayOverlay);
     }
     
-    const ChartOverlay* primaryOverlay = chartOverlaySet->getPrimaryOverlay();
+    const ChartTwoOverlay* primaryOverlay = chartOverlaySet->getPrimaryOverlay();
     if (primaryOverlay != NULL) {
         AString mapRowOrColumnName = "Map";
         switch (primaryOverlay->getChartDataType()) {
@@ -324,10 +324,10 @@ ChartOverlaySetViewController::updateViewController()
 /**
  * @return The overlay set in this view controller.
  */
-ChartOverlaySet*
-ChartOverlaySetViewController::getChartOverlaySet()
+ChartTwoOverlaySet*
+ChartTwoOverlaySetViewController::getChartOverlaySet()
 {
-    ChartOverlaySet* chartOverlaySet = NULL;
+    ChartTwoOverlaySet* chartOverlaySet = NULL;
     BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
     if (browserTabContent != NULL) {
@@ -343,9 +343,9 @@ ChartOverlaySetViewController::getChartOverlaySet()
  *    Index of overlay that will have an overlay added above it.
  */
 void
-ChartOverlaySetViewController::processAddOverlayAbove(const int32_t overlayIndex)
+ChartTwoOverlaySetViewController::processAddOverlayAbove(const int32_t overlayIndex)
 {
-    ChartOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
     if (chartOverlaySet != NULL) {
         chartOverlaySet->insertOverlayAbove(overlayIndex);
         this->updateColoringAndGraphics();
@@ -358,9 +358,9 @@ ChartOverlaySetViewController::processAddOverlayAbove(const int32_t overlayIndex
  *    Index of overlay that will have an overlay added below it.
  */
 void
-ChartOverlaySetViewController::processAddOverlayBelow(const int32_t overlayIndex)
+ChartTwoOverlaySetViewController::processAddOverlayBelow(const int32_t overlayIndex)
 {
-    ChartOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
     if (chartOverlaySet != NULL) {
         chartOverlaySet->insertOverlayBelow(overlayIndex);
         this->updateColoringAndGraphics();
@@ -373,9 +373,9 @@ ChartOverlaySetViewController::processAddOverlayBelow(const int32_t overlayIndex
  *    Index of overlay that will be removed
  */
 void
-ChartOverlaySetViewController::processRemoveOverlay(const int32_t overlayIndex)
+ChartTwoOverlaySetViewController::processRemoveOverlay(const int32_t overlayIndex)
 {
-    ChartOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
     if (chartOverlaySet != NULL) {
         chartOverlaySet->removeDisplayedOverlay(overlayIndex);
         this->updateColoringAndGraphics();
@@ -388,9 +388,9 @@ ChartOverlaySetViewController::processRemoveOverlay(const int32_t overlayIndex)
  *    Index of overlay that will be removed
  */
 void
-ChartOverlaySetViewController::processMoveOverlayDown(const int32_t overlayIndex)
+ChartTwoOverlaySetViewController::processMoveOverlayDown(const int32_t overlayIndex)
 {
-    ChartOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
     if (chartOverlaySet != NULL) {
         chartOverlaySet->moveDisplayedOverlayDown(overlayIndex);
         this->updateColoringAndGraphics();
@@ -403,9 +403,9 @@ ChartOverlaySetViewController::processMoveOverlayDown(const int32_t overlayIndex
  *    Index of overlay that will be removed
  */
 void
-ChartOverlaySetViewController::processMoveOverlayUp(const int32_t overlayIndex)
+ChartTwoOverlaySetViewController::processMoveOverlayUp(const int32_t overlayIndex)
 {
-    ChartOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
     if (chartOverlaySet != NULL) {
         chartOverlaySet->moveDisplayedOverlayUp(overlayIndex);
         this->updateColoringAndGraphics();
@@ -416,7 +416,7 @@ ChartOverlaySetViewController::processMoveOverlayUp(const int32_t overlayIndex)
  * Update surface coloring and graphics after overlay changes.
  */
 void
-ChartOverlaySetViewController::updateColoringAndGraphics()
+ChartTwoOverlaySetViewController::updateColoringAndGraphics()
 {
     this->updateViewController();
     

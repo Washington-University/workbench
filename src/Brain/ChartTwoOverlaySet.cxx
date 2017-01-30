@@ -19,12 +19,12 @@
  */
 /*LICENSE_END*/
 
-#define __CHART_OVERLAY_SET_DECLARE__
-#include "ChartOverlaySet.h"
-#undef __CHART_OVERLAY_SET_DECLARE__
+#define __CHART_TWO_OVERLAY_SET_DECLARE__
+#include "ChartTwoOverlaySet.h"
+#undef __CHART_TWO_OVERLAY_SET_DECLARE__
 
 #include "CaretAssert.h"
-#include "ChartOverlay.h"
+#include "ChartTwoOverlay.h"
 #include "EventManager.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
@@ -36,7 +36,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartOverlaySet 
+ * \class caret::ChartTwoOverlaySet 
  * \brief A set of chart overlays.
  * \ingroup Brain
  */
@@ -51,7 +51,7 @@ using namespace caret;
  * @param tabIndex
  *     Index of tab in which this overlay set is used.
  */
-ChartOverlaySet::ChartOverlaySet(const ChartTwoDataTypeEnum::Enum chartDataType,
+ChartTwoOverlaySet::ChartTwoOverlaySet(const ChartTwoDataTypeEnum::Enum chartDataType,
                                  const AString& name,
                                  const int32_t tabIndex)
 : CaretObject(),
@@ -66,7 +66,7 @@ m_tabIndex(tabIndex)
                           &m_numberOfDisplayedOverlays);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        m_overlays[i] = new ChartOverlay(this,
+        m_overlays[i] = new ChartTwoOverlay(this,
                                          m_chartDataType,
                                          i);
     }
@@ -77,7 +77,7 @@ m_tabIndex(tabIndex)
 /**
  * Destructor.
  */
-ChartOverlaySet::~ChartOverlaySet()
+ChartTwoOverlaySet::~ChartTwoOverlaySet()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
@@ -92,7 +92,7 @@ ChartOverlaySet::~ChartOverlaySet()
  *    Overlay set that is copied.
  */
 void
-ChartOverlaySet::copyOverlaySet(const ChartOverlaySet* overlaySet)
+ChartTwoOverlaySet::copyOverlaySet(const ChartTwoOverlaySet* overlaySet)
 {
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
@@ -104,8 +104,8 @@ ChartOverlaySet::copyOverlaySet(const ChartOverlaySet* overlaySet)
 /**
  * @return Returns the top-most overlay regardless of its enabled status.
  */
-ChartOverlay*
-ChartOverlaySet::getPrimaryOverlay()
+ChartTwoOverlay*
+ChartTwoOverlaySet::getPrimaryOverlay()
 {
     return m_overlays[0];
 }
@@ -114,8 +114,8 @@ ChartOverlaySet::getPrimaryOverlay()
  * @return Returns the underlay which is the lowest
  * displayed overlay.
  */
-ChartOverlay*
-ChartOverlaySet::getUnderlay()
+ChartTwoOverlay*
+ChartTwoOverlaySet::getUnderlay()
 {
     return m_overlays[getNumberOfDisplayedOverlays() - 1];
 }
@@ -126,8 +126,8 @@ ChartOverlaySet::getUnderlay()
  *   Index of the overlay.
  * @return Overlay at the given index.
  */
-const ChartOverlay*
-ChartOverlaySet::getOverlay(const int32_t overlayNumber) const
+const ChartTwoOverlay*
+ChartTwoOverlaySet::getOverlay(const int32_t overlayNumber) const
 {
     CaretAssertArrayIndex(m_overlays,
                           BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS,
@@ -141,8 +141,8 @@ ChartOverlaySet::getOverlay(const int32_t overlayNumber) const
  *   Index of the overlay.
  * @return Overlay at the given index.
  */
-ChartOverlay*
-ChartOverlaySet::getOverlay(const int32_t overlayNumber)
+ChartTwoOverlay*
+ChartTwoOverlaySet::getOverlay(const int32_t overlayNumber)
 {
     CaretAssertArrayIndex(m_overlays,
                           BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS,
@@ -157,7 +157,7 @@ ChartOverlaySet::getOverlay(const int32_t overlayNumber)
  *    Description of the window's content.
  */
 void
-ChartOverlaySet::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
+ChartTwoOverlaySet::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
 {
     descriptionOut.addLine("Overlay Set");
     
@@ -186,7 +186,7 @@ ChartOverlaySet::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut)
  * this method has no effect.
  */
 void
-ChartOverlaySet::addDisplayedOverlay()
+ChartTwoOverlaySet::addDisplayedOverlay()
 {
     m_numberOfDisplayedOverlays++;
     if (m_numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
@@ -198,7 +198,7 @@ ChartOverlaySet::addDisplayedOverlay()
  * @return Returns the number of displayed overlays.
  */
 int32_t
-ChartOverlaySet::getNumberOfDisplayedOverlays() const
+ChartTwoOverlaySet::getNumberOfDisplayedOverlays() const
 {
     return m_numberOfDisplayedOverlays;
 }
@@ -209,7 +209,7 @@ ChartOverlaySet::getNumberOfDisplayedOverlays() const
  *   Number of overlays for display.
  */
 void
-ChartOverlaySet::setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays)
+ChartTwoOverlaySet::setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays)
 {
     const int32_t oldNumberOfDisplayedOverlays = m_numberOfDisplayedOverlays;
     m_numberOfDisplayedOverlays = numberOfDisplayedOverlays;
@@ -239,7 +239,7 @@ ChartOverlaySet::setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOve
  *     Index of overlay for which an overlay is added below
  */
 void
-ChartOverlaySet::insertOverlayAbove(const int32_t overlayIndex)
+ChartTwoOverlaySet::insertOverlayAbove(const int32_t overlayIndex)
 {
     if (m_numberOfDisplayedOverlays < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
         m_numberOfDisplayedOverlays++;
@@ -256,7 +256,7 @@ ChartOverlaySet::insertOverlayAbove(const int32_t overlayIndex)
  *     Index of overlay for which an overlay is added above
  */
 void
-ChartOverlaySet::insertOverlayBelow(const int32_t overlayIndex)
+ChartTwoOverlaySet::insertOverlayBelow(const int32_t overlayIndex)
 {
     if (m_numberOfDisplayedOverlays < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
         m_numberOfDisplayedOverlays++;
@@ -277,7 +277,7 @@ ChartOverlaySet::insertOverlayBelow(const int32_t overlayIndex)
  *    Index of overlay for removal from display.
  */
 void
-ChartOverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
+ChartTwoOverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
 {
     CaretAssertArrayIndex(m_overlays,
                           BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS,
@@ -302,7 +302,7 @@ ChartOverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
  *    Index of overlay that is to be moved up.
  */
 void
-ChartOverlaySet::moveDisplayedOverlayUp(const int32_t overlayIndex)
+ChartTwoOverlaySet::moveDisplayedOverlayUp(const int32_t overlayIndex)
 {
     if (overlayIndex > 0) {
         CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex);
@@ -319,7 +319,7 @@ ChartOverlaySet::moveDisplayedOverlayUp(const int32_t overlayIndex)
  *    Index of overlay that is to be moved down.
  */
 void
-ChartOverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
+ChartTwoOverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
 {
     const int32_t nextOverlayIndex = overlayIndex + 1;
     if (nextOverlayIndex < m_numberOfDisplayedOverlays) {
@@ -332,7 +332,7 @@ ChartOverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
  * Initialize the overlays.
  */
 void
-ChartOverlaySet::initializeOverlays()
+ChartTwoOverlaySet::initializeOverlays()
 {
 //    bool isMatchToVolumeUnderlay = false;
 //    bool isMatchToVolumeOverlays = false;
@@ -477,7 +477,7 @@ ChartOverlaySet::initializeOverlays()
  * so that the charts in the tab are compatible
  */
 void
-ChartOverlaySet::firstOverlaySelectionChanged()
+ChartTwoOverlaySet::firstOverlaySelectionChanged()
 {
     if (m_inFirstOverlayChangedMethodFlag) {
         return;
@@ -515,7 +515,7 @@ ChartOverlaySet::firstOverlaySelectionChanged()
  * Reset the yoking status of all overlays to off.
  */
 void
-ChartOverlaySet::resetOverlayYokingToOff()
+ChartTwoOverlaySet::resetOverlayYokingToOff()
 {
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
@@ -528,9 +528,9 @@ ChartOverlaySet::resetOverlayYokingToOff()
  * @return String describing this object's content.
  */
 AString 
-ChartOverlaySet::toString() const
+ChartTwoOverlaySet::toString() const
 {
-    return "ChartOverlaySet";
+    return "ChartTwoOverlaySet";
 }
 
 /**
@@ -540,7 +540,7 @@ ChartOverlaySet::toString() const
  *    An event for which this instance is listening.
  */
 void
-ChartOverlaySet::receiveEvent(Event* event)
+ChartTwoOverlaySet::receiveEvent(Event* event)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -562,11 +562,11 @@ ChartOverlaySet::receiveEvent(Event* event)
  *    Name of instance in the scene.
  */
 SceneClass*
-ChartOverlaySet::saveToScene(const SceneAttributes* sceneAttributes,
+ChartTwoOverlaySet::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "ChartOverlaySet",
+                                            "ChartTwoOverlaySet",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -601,7 +601,7 @@ ChartOverlaySet::saveToScene(const SceneAttributes* sceneAttributes,
  *     sceneClass from which model specific information is obtained.
  */
 void
-ChartOverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
+ChartTwoOverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {

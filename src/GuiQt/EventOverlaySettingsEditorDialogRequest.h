@@ -27,7 +27,7 @@
 namespace caret {
 
     class CaretMappableDataFile;
-    class ChartOverlay;
+    class ChartTwoOverlay;
     class Overlay;
     
     /// Event for showing edit map scalar color mapping editor
@@ -47,7 +47,7 @@ namespace caret {
         
         EventOverlaySettingsEditorDialogRequest(const Mode mode,
                                                 const int32_t browserWindowIndex,
-                                                ChartOverlay* chartOverlay,
+                                                ChartTwoOverlay* chartOverlay,
                                                 CaretMappableDataFile* mapFile,
                                                 const int32_t mapIndex);
         
@@ -86,12 +86,12 @@ namespace caret {
         /**
          * @return The chart overlay for the editor.
          */
-        ChartOverlay* getChartOverlay() { return m_chartOverlay; }
+        ChartTwoOverlay* getChartOverlay() { return m_chartOverlay; }
         
         /**
          * @return The overlay for the editor.
          */
-        const ChartOverlay* getChartOverlay() const { return m_chartOverlay; }
+        const ChartTwoOverlay* getChartOverlay() const { return m_chartOverlay; }
         
     private:
         EventOverlaySettingsEditorDialogRequest(const EventOverlaySettingsEditorDialogRequest&);
@@ -108,7 +108,7 @@ namespace caret {
         Overlay* m_overlay;
 
         /** Chart Overlay for editor. */
-        ChartOverlay* m_chartOverlay;
+        ChartTwoOverlay* m_chartOverlay;
         
         /** Map file containing map whose color palette is edited */
         CaretMappableDataFile* m_mapFile;

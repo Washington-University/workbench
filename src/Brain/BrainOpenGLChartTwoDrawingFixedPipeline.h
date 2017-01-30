@@ -31,6 +31,7 @@ namespace caret {
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
+    class ModelChart;
     
     class BrainOpenGLChartTwoDrawingFixedPipeline : public BrainOpenGLChartTwoDrawingInterface {
         
@@ -40,11 +41,12 @@ namespace caret {
         virtual ~BrainOpenGLChartTwoDrawingFixedPipeline();
         
         virtual void drawChartOverlaySet(Brain* brain,
+                                         ModelChart* chartModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          BrainOpenGLTextRenderInterface* textRenderer,
                                          const float translation[3],
                                          const float zooming,
-                                         ChartOverlaySet* chartOverlaySet,
+                                         ChartTwoOverlaySet* chartOverlaySet,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                          const int32_t viewport[4],
                                          const int32_t tabIndex) override;
@@ -65,6 +67,14 @@ namespace caret {
             double m_left;
             double m_right;
             double m_top;
+        };
+        
+        class RowColumnMinMax {
+        public:
+            RowColumnMinMax() { }
+
+            int32_t m_min =  9999999;
+            int32_t m_max = -9999999;
         };
 
         BrainOpenGLChartTwoDrawingFixedPipeline(const BrainOpenGLChartTwoDrawingFixedPipeline&);
@@ -100,11 +110,13 @@ namespace caret {
         
         Brain* m_brain;
         
+        ModelChart* m_chartModel;
+        
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing;
         
         BrainOpenGLTextRenderInterface* m_textRenderer;
         
-        ChartOverlaySet* m_chartOverlaySet;
+        ChartTwoOverlaySet* m_chartOverlaySet;
         
         SelectionItemDataTypeEnum::Enum m_selectionItemDataType;
         

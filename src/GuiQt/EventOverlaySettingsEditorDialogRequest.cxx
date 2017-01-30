@@ -73,7 +73,7 @@ m_mode(mode)
  */
 EventOverlaySettingsEditorDialogRequest::EventOverlaySettingsEditorDialogRequest(const Mode mode,
                                                                                  const int32_t browserWindowIndex,
-                                                                                 ChartOverlay* chartOverlay,
+                                                                                 ChartTwoOverlay* chartOverlay,
                                                                                  CaretMappableDataFile* mapFile,
                                                                                  const int32_t mapIndex)
 : Event(EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW),

@@ -1,5 +1,5 @@
-#ifndef __CHART_OVERLAY_SET_VIEW_CONTROLLER_H__
-#define __CHART_OVERLAY_SET_VIEW_CONTROLLER_H__
+#ifndef __CHART_TWO_OVERLAY_SET_VIEW_CONTROLLER_H__
+#define __CHART_TWO_OVERLAY_SET_VIEW_CONTROLLER_H__
 
 /*LICENSE_START*/
 /*
@@ -30,20 +30,20 @@ class QLabel;
 class QScrollArea;
 
 namespace caret {
-    class ChartOverlaySet;
-    class ChartOverlayViewController;
+    class ChartTwoOverlaySet;
+    class ChartTwoOverlayViewController;
     class WuQGridLayoutGroup;
     
-    class ChartOverlaySetViewController : public QWidget, public EventListenerInterface {
+    class ChartTwoOverlaySetViewController : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        ChartOverlaySetViewController(const Qt::Orientation orientation,
+        ChartTwoOverlaySetViewController(const Qt::Orientation orientation,
                                       const int32_t browserWindowIndex,
                                       QWidget* parent = 0);
         
-        virtual ~ChartOverlaySetViewController();
+        virtual ~ChartTwoOverlaySetViewController();
         
 
         // ADD_NEW_METHODS_HERE
@@ -62,11 +62,11 @@ namespace caret {
         void processMoveOverlayUp(const int32_t overlayIndex);
         
     private:
-        ChartOverlaySetViewController(const ChartOverlaySetViewController&);
+        ChartTwoOverlaySetViewController(const ChartTwoOverlaySetViewController&);
 
-        ChartOverlaySetViewController& operator=(const ChartOverlaySetViewController&);
+        ChartTwoOverlaySetViewController& operator=(const ChartTwoOverlaySetViewController&);
         
-        ChartOverlaySet* getChartOverlaySet();
+        ChartTwoOverlaySet* getChartOverlaySet();
         
         void updateViewController();
         
@@ -74,7 +74,7 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        std::vector<ChartOverlayViewController*> m_chartOverlayViewControllers;
+        std::vector<ChartTwoOverlayViewController*> m_chartOverlayViewControllers;
 
         std::vector<WuQGridLayoutGroup*> m_chartOverlayGridLayoutGroups;
 
@@ -88,9 +88,9 @@ namespace caret {
 
     };
     
-#ifdef __CHART_OVERLAY_SET_VIEW_CONTROLLER_DECLARE__
+#ifdef __CHART_TWO_OVERLAY_SET_VIEW_CONTROLLER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __CHART_OVERLAY_SET_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__CHART_OVERLAY_SET_VIEW_CONTROLLER_H__
+#endif  //__CHART_TWO_OVERLAY_SET_VIEW_CONTROLLER_H__

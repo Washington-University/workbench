@@ -28,7 +28,7 @@
 
 namespace caret {
     class Brain;
-    class ChartOverlaySet;
+    class ChartTwoOverlaySet;
     class OverlaySet;
     class PlainTextStringBuilder;
     
@@ -67,9 +67,9 @@ namespace caret {
         
         virtual const OverlaySet* getOverlaySet(const int tabIndex) const = 0;
         
-        virtual ChartOverlaySet* getChartOverlaySet(const int tabIndex);
+        virtual ChartTwoOverlaySet* getChartOverlaySet(const int tabIndex);
         
-        virtual const ChartOverlaySet* getChartOverlaySet(const int tabIndex) const;
+        virtual const ChartTwoOverlaySet* getChartOverlaySet(const int tabIndex) const;
         
         virtual void initializeSelectedSurfaces();
 

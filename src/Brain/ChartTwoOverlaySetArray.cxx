@@ -19,13 +19,13 @@
  */
 /*LICENSE_END*/
 
-#define __OVERLAY_SET_ARRAY_DECLARE__
-#include "ChartOverlaySetArray.h"
-#undef __OVERLAY_SET_ARRAY_DECLARE__
+#define __CHART_TWO_OVERLAY_SET_ARRAY_DECLARE__
+#include "ChartTwoOverlaySetArray.h"
+#undef __CHART_TWO_OVERLAY_SET_ARRAY_DECLARE__
 
 #include "BrainConstants.h"
 #include "CaretAssert.h"
-#include "ChartOverlaySet.h"
+#include "ChartTwoOverlaySet.h"
 #include "EventBrowserTabDelete.h"
 #include "EventManager.h"
 #include "SceneClass.h"
@@ -35,7 +35,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartOverlaySetArray 
+ * \class caret::ChartTwoOverlaySetArray 
  * \brief Maintains an array of chart overlay sets for use with a model
  * \ingroup Brain
  */
@@ -49,7 +49,7 @@ using namespace caret;
  *    Name of model using this chart overlay set.  This name is displayed
  *    if there is an attempt to yoke models with incompatible chart overlays.
  */
-ChartOverlaySetArray::ChartOverlaySetArray(const ChartTwoDataTypeEnum::Enum chartDataType,
+ChartTwoOverlaySetArray::ChartTwoOverlaySetArray(const ChartTwoDataTypeEnum::Enum chartDataType,
                                            const AString& name)
 : CaretObject(),
 EventListenerInterface(),
@@ -58,7 +58,7 @@ m_name(name)
 {
     m_chartOverlaySets.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
     for (int32_t tabIndex = 0; tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; tabIndex++) {
-        m_chartOverlaySets[tabIndex] = new ChartOverlaySet(chartDataType,
+        m_chartOverlaySets[tabIndex] = new ChartTwoOverlaySet(chartDataType,
                                                            name,
                                                            tabIndex);
     }
@@ -69,11 +69,11 @@ m_name(name)
 /**
  * Destructor.
  */
-ChartOverlaySetArray::~ChartOverlaySetArray()
+ChartTwoOverlaySetArray::~ChartTwoOverlaySetArray()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    for (std::vector<ChartOverlaySet*>::iterator iter =m_chartOverlaySets.begin();
+    for (std::vector<ChartTwoOverlaySet*>::iterator iter =m_chartOverlaySets.begin();
          iter !=m_chartOverlaySets.end();
          iter++) {
         delete *iter;
@@ -86,16 +86,16 @@ ChartOverlaySetArray::~ChartOverlaySetArray()
  * @return String describing this object's content.
  */
 AString 
-ChartOverlaySetArray::toString() const
+ChartTwoOverlaySetArray::toString() const
 {
-    return "ChartOverlaySetArray";
+    return "ChartTwoOverlaySetArray";
 }
 
 /**
  * @return The number of chart overlay sets.
  */
 int32_t
-ChartOverlaySetArray::getNumberOfChartOverlaySets()
+ChartTwoOverlaySetArray::getNumberOfChartOverlaySets()
 {
     return m_chartOverlaySets.size();
 }
@@ -108,8 +108,8 @@ ChartOverlaySetArray::getNumberOfChartOverlaySets()
  * @return
  *    Overlay set at given index.
  */
-ChartOverlaySet*
-ChartOverlaySetArray::getChartOverlaySet(const int32_t tabIndex)
+ChartTwoOverlaySet*
+ChartTwoOverlaySetArray::getChartOverlaySet(const int32_t tabIndex)
 {
     CaretAssertVectorIndex(m_chartOverlaySets, tabIndex);
     
@@ -120,7 +120,7 @@ ChartOverlaySetArray::getChartOverlaySet(const int32_t tabIndex)
  * Initialize the chart overlay selections.
  */
 void
-ChartOverlaySetArray::initializeOverlaySelections()
+ChartTwoOverlaySetArray::initializeOverlaySelections()
 {
     for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
         CaretAssertVectorIndex(m_chartOverlaySets, iTab);
@@ -136,7 +136,7 @@ ChartOverlaySetArray::initializeOverlaySelections()
  *    An event for which this instance is listening.
  */
 void
-ChartOverlaySetArray::receiveEvent(Event* event)
+ChartTwoOverlaySetArray::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE) {
         EventBrowserTabDelete* deleteTabEvent = dynamic_cast<EventBrowserTabDelete*>(event);
@@ -165,14 +165,14 @@ ChartOverlaySetArray::receiveEvent(Event* event)
  *    Destination to which tab content is copied.
  */
 void
-ChartOverlaySetArray::copyChartOverlaySet(const int32_t sourceTabIndex,
+ChartTwoOverlaySetArray::copyChartOverlaySet(const int32_t sourceTabIndex,
                     const int32_t destinationTabIndex)
 {
     CaretAssertVectorIndex(m_chartOverlaySets, sourceTabIndex);
     CaretAssertVectorIndex(m_chartOverlaySets, destinationTabIndex);
     
-    const ChartOverlaySet* sourceChartOverlaySet =m_chartOverlaySets[sourceTabIndex];
-    ChartOverlaySet* destinationChartOverlaySet =m_chartOverlaySets[destinationTabIndex];
+    const ChartTwoOverlaySet* sourceChartOverlaySet =m_chartOverlaySets[sourceTabIndex];
+    ChartTwoOverlaySet* destinationChartOverlaySet =m_chartOverlaySets[destinationTabIndex];
     destinationChartOverlaySet->copyOverlaySet(sourceChartOverlaySet);
 }
 
@@ -188,11 +188,11 @@ ChartOverlaySetArray::copyChartOverlaySet(const int32_t sourceTabIndex,
  *    Name of instance in the scene.
  */
 SceneClass*
-ChartOverlaySetArray::saveToScene(const SceneAttributes* sceneAttributes,
+ChartTwoOverlaySetArray::saveToScene(const SceneAttributes* sceneAttributes,
                              const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "ChartOverlaySetArray",
+                                            "ChartTwoOverlaySetArray",
                                             1);
     
     const int32_t numOverlaySetsToSave = getNumberOfChartOverlaySets();
@@ -226,7 +226,7 @@ ChartOverlaySetArray::saveToScene(const SceneAttributes* sceneAttributes,
  *     sceneClass from which model specific information is obtained.
  */
 void
-ChartOverlaySetArray::restoreFromScene(const SceneAttributes* sceneAttributes,
+ChartTwoOverlaySetArray::restoreFromScene(const SceneAttributes* sceneAttributes,
                                   const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {

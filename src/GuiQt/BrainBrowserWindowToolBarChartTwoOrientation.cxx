@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ORIENTATION_DECLARE__
-#include "BrainBrowserWindowToolBarChartOrientation.h"
-#undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ORIENTATION_DECLARE__
+#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_ORIENTATION_DECLARE__
+#include "BrainBrowserWindowToolBarChartTwoOrientation.h"
+#undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_ORIENTATION_DECLARE__
 
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -40,7 +40,7 @@ using namespace caret;
 
     
 /**
- * \class caret::BrainBrowserWindowToolBarChartOrientation 
+ * \class caret::BrainBrowserWindowToolBarChartTwoOrientation 
  * \brief Toolbar component for chart orientation.
  * \ingroup GuiQt
  */
@@ -48,7 +48,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-BrainBrowserWindowToolBarChartOrientation::BrainBrowserWindowToolBarChartOrientation(BrainBrowserWindowToolBar* parentToolBar)
+BrainBrowserWindowToolBarChartTwoOrientation::BrainBrowserWindowToolBarChartTwoOrientation(BrainBrowserWindowToolBar* parentToolBar)
 : BrainBrowserWindowToolBarComponent(parentToolBar)
 {
     m_orientationResetToolButtonAction = WuQtUtilities::createAction("Reset",
@@ -89,7 +89,7 @@ BrainBrowserWindowToolBarChartOrientation::BrainBrowserWindowToolBarChartOrienta
 /**
  * Destructor.
  */
-BrainBrowserWindowToolBarChartOrientation::~BrainBrowserWindowToolBarChartOrientation()
+BrainBrowserWindowToolBarChartTwoOrientation::~BrainBrowserWindowToolBarChartTwoOrientation()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -101,7 +101,7 @@ BrainBrowserWindowToolBarChartOrientation::~BrainBrowserWindowToolBarChartOrient
  *     Content of the browser tab.
  */
 void
-BrainBrowserWindowToolBarChartOrientation::updateContent(BrowserTabContent* /*browserTabContent*/)
+BrainBrowserWindowToolBarChartTwoOrientation::updateContent(BrowserTabContent* /*browserTabContent*/)
 {
 }
 
@@ -109,7 +109,7 @@ BrainBrowserWindowToolBarChartOrientation::updateContent(BrowserTabContent* /*br
  * Called when orientation reset button is pressed.
  */
 void
-BrainBrowserWindowToolBarChartOrientation::orientationResetToolButtonTriggered(bool /*checked*/)
+BrainBrowserWindowToolBarChartTwoOrientation::orientationResetToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->resetView();
@@ -121,7 +121,7 @@ BrainBrowserWindowToolBarChartOrientation::orientationResetToolButtonTriggered(b
  * Called when custom view is triggered and displays Custom View Menu.
  */
 void
-BrainBrowserWindowToolBarChartOrientation::customViewActionTriggered()
+BrainBrowserWindowToolBarChartTwoOrientation::customViewActionTriggered()
 {
     m_parentToolBar->customViewActionTriggered();
 //    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();

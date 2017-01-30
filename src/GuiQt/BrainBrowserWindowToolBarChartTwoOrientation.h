@@ -1,5 +1,5 @@
-#ifndef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ORIENTATION_H__
-#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ORIENTATION_H__
+#ifndef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_ORIENTATION_H__
+#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_ORIENTATION_H__
 
 /*LICENSE_START*/
 /*
@@ -28,13 +28,13 @@ class QToolButton;
 
 namespace caret {
 
-    class BrainBrowserWindowToolBarChartOrientation : public BrainBrowserWindowToolBarComponent {
+    class BrainBrowserWindowToolBarChartTwoOrientation : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBarChartOrientation(BrainBrowserWindowToolBar* parentToolBar);
+        BrainBrowserWindowToolBarChartTwoOrientation(BrainBrowserWindowToolBar* parentToolBar);
         
-        virtual ~BrainBrowserWindowToolBarChartOrientation();
+        virtual ~BrainBrowserWindowToolBarChartTwoOrientation();
         
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
@@ -46,9 +46,9 @@ namespace caret {
         void orientationResetToolButtonTriggered(bool /*checked*/);
     
     private:
-        BrainBrowserWindowToolBarChartOrientation(const BrainBrowserWindowToolBarChartOrientation&);
+        BrainBrowserWindowToolBarChartTwoOrientation(const BrainBrowserWindowToolBarChartTwoOrientation&);
 
-        BrainBrowserWindowToolBarChartOrientation& operator=(const BrainBrowserWindowToolBarChartOrientation&);
+        BrainBrowserWindowToolBarChartTwoOrientation& operator=(const BrainBrowserWindowToolBarChartTwoOrientation&);
         
         QAction* m_orientationResetToolButtonAction;
         
@@ -60,9 +60,9 @@ namespace caret {
 
     };
     
-#ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ORIENTATION_DECLARE__
+#ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_ORIENTATION_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ORIENTATION_DECLARE__
+#endif // __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_ORIENTATION_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ORIENTATION_H__
+#endif  //__BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_ORIENTATION_H__

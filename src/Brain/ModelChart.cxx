@@ -40,9 +40,10 @@
 #include "ChartModelDataSeries.h"
 #include "ChartModelFrequencySeries.h"
 #include "ChartModelTimeSeries.h"
-#include "ChartOverlay.h"
-#include "ChartOverlaySet.h"
-#include "ChartOverlaySetArray.h"
+#include "ChartTwoMatrixDisplayProperties.h"
+#include "ChartTwoOverlay.h"
+#include "ChartTwoOverlaySet.h"
+#include "ChartTwoOverlaySetArray.h"
 #include "ChartingVersionEnum.h"
 #include "CiftiMappableDataFile.h"
 #include "CiftiScalarDataSeriesFile.h"
@@ -75,21 +76,22 @@ ModelChart::ModelChart(Brain* brain)
                                             Overlay::INCLUDE_VOLUME_FILES_YES,
                                             "Chart View");
     
-    m_histogramChartOverlaySetArray = std::unique_ptr<ChartOverlaySetArray>(new ChartOverlaySetArray(ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM,
+    m_histogramChartOverlaySetArray = std::unique_ptr<ChartTwoOverlaySetArray>(new ChartTwoOverlaySetArray(ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM,
                                                                                                      "Histogram Chart Overlays"));
-    m_matrixChartOverlaySetArray = std::unique_ptr<ChartOverlaySetArray>(new ChartOverlaySetArray(ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX,
+    m_matrixChartOverlaySetArray = std::unique_ptr<ChartTwoOverlaySetArray>(new ChartTwoOverlaySetArray(ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX,
                                                                                                      "Matrix Chart Overlays"));
-    m_lineSeriesChartOverlaySetArray = std::unique_ptr<ChartOverlaySetArray>(new ChartOverlaySetArray(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
+    m_lineSeriesChartOverlaySetArray = std::unique_ptr<ChartTwoOverlaySetArray>(new ChartTwoOverlaySetArray(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                                                      "Line Series Chart Overlays"));
 
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartableMatrixFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface(m_brain);
         m_chartableMatrixSeriesFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(m_brain,
                                                                                        DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES);
+        m_chartTwoMatrixDisplayProperties[i] = new ChartTwoMatrixDisplayProperties();
     }
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->add("m_histogramChartOverlaySetArray", "ChartOverlaySetArray", m_histogramChartOverlaySetArray.get());
+    m_sceneAssistant->add("m_histogramChartOverlaySetArray", "ChartTwoOverlaySetArray", m_histogramChartOverlaySetArray.get());
     initializeCharts();
     
     
@@ -113,6 +115,9 @@ ModelChart::~ModelChart()
         
         delete m_chartableMatrixSeriesFileSelectionModel[i];
         m_chartableMatrixSeriesFileSelectionModel[i] = NULL;
+        
+        delete m_chartTwoMatrixDisplayProperties[i];
+        m_chartTwoMatrixDisplayProperties[i] = NULL;
     }
 }
 
@@ -750,7 +755,7 @@ ModelChart::initializeOverlays()
 }
 
 /**
- * Save information specific to this type of model to the scene.
+ * Save version one charting information specific to this type of model to the scene.
  *
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
@@ -760,13 +765,10 @@ ModelChart::initializeOverlays()
  * @param sceneClass
  *    SceneClass to which model specific information is added.
  */
-void 
-ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
-                                                      SceneClass* sceneClass)
+void
+ModelChart::saveVersionOneModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
+                                                           SceneClass* sceneClass)
 {
-    sceneClass->addEnumeratedType<ChartingVersionEnum, ChartingVersionEnum::Enum>("chartingVersion",
-                                                                                  ChartingVersionEnum::CHARTING_VERSION_TWO);
-    
     std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
     
     std::set<AString> validChartDataIDs;
@@ -776,9 +778,9 @@ ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttr
                            validChartDataIDs);
     
     sceneClass->addEnumeratedTypeArrayForTabIndices<ChartOneDataTypeEnum, ChartOneDataTypeEnum::Enum>("m_selectedChartDataType",
-                                                                                                m_selectedChartOneDataType,
-                                                                                                tabIndices);
-
+                                                                                                      m_selectedChartOneDataType,
+                                                                                                      tabIndices);
+    
     /*
      * Save matrix chart models to scene.
      */
@@ -800,7 +802,7 @@ ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttr
      * Save matrix series chart models to scene.
      */
     SceneObjectMapIntegerKey* matrixSeriesSceneMap = new SceneObjectMapIntegerKey("chartableMatrixSeriesFileSelectionModelMap",
-                                                                            SceneObjectDataTypeEnum::SCENE_CLASS);
+                                                                                  SceneObjectDataTypeEnum::SCENE_CLASS);
     
     std::vector<SceneClass*> matrixSeriesSelectionVector;
     for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
@@ -809,9 +811,59 @@ ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttr
         const int32_t tabIndex = *tabIter;
         
         matrixSeriesSceneMap->addClass(tabIndex, m_chartableMatrixSeriesFileSelectionModel[tabIndex]->saveToScene(sceneAttributes,
-                                                                                                      "m_chartableMatrixSeriesFileSelectionModel"));
+                                                                                                                  "m_chartableMatrixSeriesFileSelectionModel"));
     }
     sceneClass->addChild(matrixSeriesSceneMap);
+}
+
+/**
+ * Save version two charting information specific to this type of model to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param sceneClass
+ *    SceneClass to which model specific information is added.
+ */
+void
+ModelChart::saveVersionTwoModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
+                                                           SceneClass* sceneClass)
+{
+    CaretAssertToDoFatal();
+}
+
+
+/**
+ * Save information specific to this type of model to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param sceneClass
+ *    SceneClass to which model specific information is added.
+ */
+void 
+ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
+                                                      SceneClass* sceneClass)
+{
+    const ChartingVersionEnum::Enum chartingVersion = ChartingVersionEnum::CHARTING_VERSION_TWO;
+    sceneClass->addEnumeratedType<ChartingVersionEnum, ChartingVersionEnum::Enum>("chartingVersion",
+                                                                                  chartingVersion);
+    
+    switch (chartingVersion) {
+        case ChartingVersionEnum::CHARTING_VERSION_ONE:
+            saveVersionOneModelSpecificInformationToScene(sceneAttributes,
+                                                          sceneClass);
+            break;
+        case ChartingVersionEnum::CHARTING_VERSION_TWO:
+            saveVersionTwoModelSpecificInformationToScene(sceneAttributes,
+                                                          sceneClass);
+            break;
+    }
 }
 
 /**
@@ -924,41 +976,7 @@ ModelChart::restoreVersionTwoModelSpecificInformationFromScene(const SceneAttrib
      */
     restoreVersionTwoChartModelsFromScene(sceneAttributes,
                                           sceneClass);
-    
-    sceneClass->getEnumerateTypeArrayForTabIndices<ChartOneDataTypeEnum, ChartOneDataTypeEnum::Enum>("m_selectedChartDataType",
-                                                                                               m_selectedChartOneDataType);
-    
-    /*
-     * Restore matrix chart models from scene.
-     */
-    const SceneObjectMapIntegerKey* matrixSceneMap = sceneClass->getMapIntegerKey("chartableMatrixFileSelectionModelMap");
-    if (matrixSceneMap != NULL) {
-        const std::vector<int32_t> tabIndices = matrixSceneMap->getKeys();
-        for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
-             tabIter != tabIndices.end();
-             tabIter++) {
-            const int32_t tabIndex = *tabIter;
-            const SceneClass* sceneClass = matrixSceneMap->classValue(tabIndex);
-            m_chartableMatrixFileSelectionModel[tabIndex]->restoreFromScene(sceneAttributes,
-                                                                            sceneClass);
-        }
-    }
-    
-    /*
-     * Restore matrix chart series models from scene.
-     */
-    const SceneObjectMapIntegerKey* matrixSeriesSceneMap = sceneClass->getMapIntegerKey("chartableMatrixSeriesFileSelectionModelMap");
-    if (matrixSeriesSceneMap != NULL) {
-        const std::vector<int32_t> tabIndices = matrixSeriesSceneMap->getKeys();
-        for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
-             tabIter != tabIndices.end();
-             tabIter++) {
-            const int32_t tabIndex = *tabIter;
-            const SceneClass* sceneClass = matrixSeriesSceneMap->classValue(tabIndex);
-            m_chartableMatrixSeriesFileSelectionModel[tabIndex]->restoreFromScene(sceneAttributes,
-                                                                                  sceneClass);
-        }
-    }
+    CaretAssertToDoFatal();
 }
 
 /**
@@ -1993,7 +2011,7 @@ ModelChart::getSelectedChartOneDataType(const int32_t tabIndex) const
  *    Type of data for chart.
  */
 void
-ModelChart::setSelectedChartDataType(const int32_t tabIndex,
+ModelChart::setSelectedChartTwoDataType(const int32_t tabIndex,
                                         const ChartTwoDataTypeEnum::Enum dataType)
 {
     CaretAssertArrayIndex(m_selectedChartTwoDataType,
@@ -2009,7 +2027,7 @@ ModelChart::setSelectedChartDataType(const int32_t tabIndex,
  *    Output containing valid chart data types.
  */
 void
-ModelChart::getValidChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& validChartDataTypesOut) const
+ModelChart::getValidChartTwoDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& validChartDataTypesOut) const
 {
     validChartDataTypesOut.clear();
     
@@ -2046,7 +2064,7 @@ ModelChart::getValidChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& vali
  *    Chart type in the given tab.
  */
 ChartTwoDataTypeEnum::Enum
-ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
+ModelChart::getSelectedChartTwoDataType(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_selectedChartDataType,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
@@ -2054,7 +2072,7 @@ ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
     ChartTwoDataTypeEnum::Enum chartDataType = m_selectedChartTwoDataType[tabIndex];
     
     std::vector<ChartTwoDataTypeEnum::Enum> validChartDataTypes;
-    getValidChartDataTypes(validChartDataTypes);
+    getValidChartTwoDataTypes(validChartDataTypes);
     
     /*
      * Test if selected chart type is still valid
@@ -2382,6 +2400,36 @@ ModelChart::getChartableMatrixSeriesFileSelectionModel(const int32_t tabIndex)
 }
 
 /**
+ * @return The chart matrix display properties for the given tab.
+ *
+ * @param tabIndex
+ *     The tab index.
+ */
+ChartTwoMatrixDisplayProperties*
+ModelChart::getChartTwoMatrixDisplayProperties(const int32_t tabIndex)
+{
+    CaretAssertArrayIndex(m_chartTwoMatrixDisplayProperties,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_chartTwoMatrixDisplayProperties[tabIndex];
+}
+
+/**
+ * @return The chart matrix display properties for the given tab.
+ *
+ * @param tabIndex
+ *     The tab index.
+ */
+const ChartTwoMatrixDisplayProperties*
+ModelChart::getChartTwoMatrixDisplayProperties(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_chartTwoMatrixDisplayProperties,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_chartTwoMatrixDisplayProperties[tabIndex];
+}
+
+/**
  * Get the chart overlay set for this model.
  *
  * @param tabIndex
@@ -2389,12 +2437,12 @@ ModelChart::getChartableMatrixSeriesFileSelectionModel(const int32_t tabIndex)
  * @return
  *     Chart overlay set or NULL if not valid for this model.
  */
-ChartOverlaySet*
+ChartTwoOverlaySet*
 ModelChart::getChartOverlaySet(const int tabIndex)
 {
-    ChartOverlaySet* chartOverlaySet = NULL;
+    ChartTwoOverlaySet* chartOverlaySet = NULL;
     
-    switch (getSelectedChartDataType(tabIndex)) {
+    switch (getSelectedChartTwoDataType(tabIndex)) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
@@ -2419,12 +2467,12 @@ ModelChart::getChartOverlaySet(const int tabIndex)
  * @return
  *     Chart overlay set or NULL if not valid for this model.
  */
-const ChartOverlaySet*
+const ChartTwoOverlaySet*
 ModelChart::getChartOverlaySet(const int tabIndex) const
 {
     ModelChart* nonConstModelChart = const_cast<ModelChart*>(this);
     CaretAssert(nonConstModelChart);
-    const ChartOverlaySet* chartOverlaySet = nonConstModelChart->getChartOverlaySet(tabIndex);
+    const ChartTwoOverlaySet* chartOverlaySet = nonConstModelChart->getChartOverlaySet(tabIndex);
     
     return chartOverlaySet;
 }

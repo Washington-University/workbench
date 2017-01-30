@@ -81,9 +81,9 @@ BrowserTabContent.h
 CaretDataFileSelectionModel.h
 CaretMappableDataFileAndMapSelectionModel.h
 CaretOpenGLInclude.h
-ChartOverlay.h
-ChartOverlaySet.h
-ChartOverlaySetArray.h
+ChartTwoOverlay.h
+ChartTwoOverlaySet.h
+ChartTwoOverlaySetArray.h
 ChartingDataManager.h
 CiftiConnectivityMatrixDataFileManager.h
 CiftiFiberTrajectoryManager.h
@@ -223,9 +223,9 @@ BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
 CaretDataFileSelectionModel.cxx
 CaretMappableDataFileAndMapSelectionModel.cxx
-ChartOverlay.cxx
-ChartOverlaySet.cxx
-ChartOverlaySetArray.cxx
+ChartTwoOverlay.cxx
+ChartTwoOverlaySet.cxx
+ChartTwoOverlaySetArray.cxx
 ChartingDataManager.cxx
 CiftiConnectivityMatrixDataFileManager.cxx
 CiftiFiberTrajectoryManager.cxx

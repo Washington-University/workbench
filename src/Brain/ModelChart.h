@@ -49,7 +49,8 @@ namespace caret {
     class ChartModelDataSeries;
     class ChartModelFrequencySeries;
     class ChartModelTimeSeries;
-    class ChartOverlaySetArray;
+    class ChartTwoMatrixDisplayProperties;
+    class ChartTwoOverlaySetArray;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiMappableDataFile;
     class OverlaySetArray;
@@ -89,9 +90,13 @@ namespace caret {
         
         const OverlaySet* getOverlaySet(const int tabIndex) const;
         
-        virtual ChartOverlaySet* getChartOverlaySet(const int tabIndex);
+        ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties(const int32_t tabIndex);
         
-        virtual const ChartOverlaySet* getChartOverlaySet(const int tabIndex) const;
+        const ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties(const int32_t tabIndex) const;
+        
+        virtual ChartTwoOverlaySet* getChartOverlaySet(const int tabIndex);
+        
+        virtual const ChartTwoOverlaySet* getChartOverlaySet(const int tabIndex) const;
         
         virtual void receiveEvent(Event* event);
         
@@ -102,11 +107,11 @@ namespace caret {
         void setSelectedChartOneDataType(const int32_t tabIndex,
                                       const ChartOneDataTypeEnum::Enum dataType);
         
-        void getValidChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& validChartDataTypesOut) const;
+        void getValidChartTwoDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& validChartDataTypesOut) const;
         
-        ChartTwoDataTypeEnum::Enum getSelectedChartDataType(const int32_t tabIndex) const;
+        ChartTwoDataTypeEnum::Enum getSelectedChartTwoDataType(const int32_t tabIndex) const;
         
-        void setSelectedChartDataType(const int32_t tabIndex,
+        void setSelectedChartTwoDataType(const int32_t tabIndex,
                                          const ChartTwoDataTypeEnum::Enum dataType);
         
         ChartModelDataSeries* getSelectedDataSeriesChartModel(const int32_t tabIndex);
@@ -179,6 +184,12 @@ namespace caret {
         
         ChartData* loadCartesianChartWhenRestoringScene(const ChartData* chartData);
 
+        virtual void saveVersionOneModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
+                                                                   SceneClass* sceneClass);
+        
+        virtual void saveVersionTwoModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
+                                                                   SceneClass* sceneClass);
+        
         void restoreVersionOneModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                               const SceneClass* sceneClass);
         
@@ -189,14 +200,16 @@ namespace caret {
         OverlaySetArray* m_overlaySetArray;
         
         /** Chart Overlay sets for XX data type */
-        std::unique_ptr<ChartOverlaySetArray> m_histogramChartOverlaySetArray;
+        std::unique_ptr<ChartTwoOverlaySetArray> m_histogramChartOverlaySetArray;
         
         /** Chart Overlay sets for XX data type */
-        std::unique_ptr<ChartOverlaySetArray> m_lineSeriesChartOverlaySetArray;
+        std::unique_ptr<ChartTwoOverlaySetArray> m_lineSeriesChartOverlaySetArray;
         
         /** Chart Overlay sets for XX data type */
-        std::unique_ptr<ChartOverlaySetArray> m_matrixChartOverlaySetArray;
+        std::unique_ptr<ChartTwoOverlaySetArray> m_matrixChartOverlaySetArray;
         
+        ChartTwoMatrixDisplayProperties* m_chartTwoMatrixDisplayProperties[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+
         mutable ChartTwoDataTypeEnum::Enum m_selectedChartTwoDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         mutable ChartOneDataTypeEnum::Enum m_selectedChartOneDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];

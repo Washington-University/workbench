@@ -69,7 +69,7 @@
 #include "ChartModelDataSeries.h"
 #include "ChartModelFrequencySeries.h"
 #include "ChartModelTimeSeries.h"
-#include "ChartOverlaySet.h"
+#include "ChartTwoOverlaySet.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
@@ -5293,6 +5293,7 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
             const float zooming = browserTabContent->getScaling();
             
             chartDrawing.drawChartOverlaySet(m_brain,
+                                             chartModel,
                                              this,
                                              getTextRenderer(),
                                              translation,

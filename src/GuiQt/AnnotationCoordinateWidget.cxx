@@ -454,7 +454,7 @@ AnnotationCoordinateWidget::valueChanged()
                 if (updateUserInterfaceFlag) {
                     EventManager::get()->sendEvent(EventOverlaySettingsEditorDialogRequest(EventOverlaySettingsEditorDialogRequest::MODE_UPDATE_ALL,
                                                                                            m_browserWindowIndex,
-                                                                                           (ChartOverlay*)NULL,
+                                                                                           (ChartTwoOverlay*)NULL,
                                                                                            NULL,
                                                                                            -1).getPointer());
                 }

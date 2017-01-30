@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __CHART_OVERLAY_VIEW_CONTROLLER_DECLARE__
-#include "ChartOverlayViewController.h"
-#undef __CHART_OVERLAY_VIEW_CONTROLLER_DECLARE__
+#define __CHART_TWO_OVERLAY_VIEW_CONTROLLER_DECLARE__
+#include "ChartTwoOverlayViewController.h"
+#undef __CHART_TWO_OVERLAY_VIEW_CONTROLLER_DECLARE__
 
 #include <QAction>
 #include <QApplication>
@@ -39,7 +39,7 @@ using namespace caret;
 
 #include "AnnotationColorBar.h"
 #include "CaretMappableDataFile.h"
-#include "ChartOverlay.h"
+#include "ChartTwoOverlay.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
@@ -61,7 +61,7 @@ using namespace caret;
 #include "WuQtUtilities.h"
 
 /**
- * \class caret::ChartOverlayViewController 
+ * \class caret::ChartTwoOverlayViewController 
  * \brief View controller for a chart overlay
  * \ingroup GuiQt
  */
@@ -78,7 +78,7 @@ using namespace caret;
  * @param parent
  *    The parent widget.
  */
-ChartOverlayViewController::ChartOverlayViewController(const Qt::Orientation orientation,
+ChartTwoOverlayViewController::ChartTwoOverlayViewController(const Qt::Orientation orientation,
                                                        const int32_t browserWindowIndex,
                                                        const int32_t chartOverlayIndex,
                                                        QObject* parent)
@@ -254,7 +254,7 @@ m_chartOverlay(NULL)
 /**
  * Destructor.
  */
-ChartOverlayViewController::~ChartOverlayViewController()
+ChartTwoOverlayViewController::~ChartTwoOverlayViewController()
 {
 }
 
@@ -262,7 +262,7 @@ ChartOverlayViewController::~ChartOverlayViewController()
  * If this overlay ins an overlay settings editor, update its content
  */
 void
-ChartOverlayViewController::updateOverlaySettingsEditor()
+ChartTwoOverlayViewController::updateOverlaySettingsEditor()
 {
     if (m_chartOverlay == NULL) {
         return;
@@ -290,7 +290,7 @@ ChartOverlayViewController::updateOverlaySettingsEditor()
  *    Index of selection.
  */
 void
-ChartOverlayViewController::fileComboBoxSelected(int indx)
+ChartTwoOverlayViewController::fileComboBoxSelected(int indx)
 {
     if (m_chartOverlay == NULL) {
         return;
@@ -329,7 +329,7 @@ ChartOverlayViewController::fileComboBoxSelected(int indx)
  *    Index of selection.
  */
 void
-ChartOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indx)
+ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indx)
 {
     if (m_chartOverlay == NULL)
     {
@@ -381,7 +381,7 @@ ChartOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indx)
  *    Index of selection.
  */
 void
-ChartOverlayViewController::mapRowOrColumnNameComboBoxSelected(int indx)
+ChartTwoOverlayViewController::mapRowOrColumnNameComboBoxSelected(int indx)
 {
     if (m_chartOverlay == NULL) {
         return;
@@ -425,7 +425,7 @@ ChartOverlayViewController::mapRowOrColumnNameComboBoxSelected(int indx)
  *    Checked status
  */
 void
-ChartOverlayViewController::enabledCheckBoxClicked(bool checked)
+ChartTwoOverlayViewController::enabledCheckBoxClicked(bool checked)
 {
     if (m_chartOverlay == NULL) {
         return;
@@ -457,7 +457,7 @@ ChartOverlayViewController::enabledCheckBoxClicked(bool checked)
  *    New status.
  */
 void
-ChartOverlayViewController::colorBarActionTriggered(bool status)
+ChartTwoOverlayViewController::colorBarActionTriggered(bool status)
 {
     if (m_chartOverlay == NULL) {
         return;
@@ -474,7 +474,7 @@ ChartOverlayViewController::colorBarActionTriggered(bool status)
  *    New status.
  */
 void
-ChartOverlayViewController::allMapsCheckBoxClicked(bool status)
+ChartTwoOverlayViewController::allMapsCheckBoxClicked(bool status)
 {
     if (m_chartOverlay == NULL) {
         return;
@@ -489,7 +489,7 @@ ChartOverlayViewController::allMapsCheckBoxClicked(bool status)
  * Validate yoking when there are changes made to the overlay.
  */
 void
-ChartOverlayViewController::validateYokingSelection()
+ChartTwoOverlayViewController::validateYokingSelection()
 {
     m_mapRowOrColumnYokingGroupComboBox->validateYokingChange(m_chartOverlay);
     updateViewController(m_chartOverlay);
@@ -501,7 +501,7 @@ ChartOverlayViewController::validateYokingSelection()
  * Called when the yoking group is changed.
  */
 void
-ChartOverlayViewController::yokingGroupActivated()
+ChartTwoOverlayViewController::yokingGroupActivated()
 {
     MapYokingGroupEnum::Enum yokingGroup = m_mapRowOrColumnYokingGroupComboBox->getMapYokingGroup();
     
@@ -519,7 +519,7 @@ ChartOverlayViewController::yokingGroupActivated()
  * Called when the settings action is selected.
  */
 void
-ChartOverlayViewController::settingsActionTriggered()
+ChartTwoOverlayViewController::settingsActionTriggered()
 {
     if (m_chartOverlay == NULL) {
         return;
@@ -543,7 +543,7 @@ ChartOverlayViewController::settingsActionTriggered()
  * Called when the history action is selected.
  */
 void
-ChartOverlayViewController::historyActionTriggered(bool)
+ChartTwoOverlayViewController::historyActionTriggered(bool)
 {
     if (m_chartOverlay == NULL) {
         return;
@@ -575,7 +575,7 @@ ChartOverlayViewController::historyActionTriggered(bool)
  *   Overlay that is used in this view controller.
  */
 void
-ChartOverlayViewController::updateViewController(ChartOverlay* chartOverlay)
+ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverlay)
 {
     m_chartOverlay = chartOverlay;
     
@@ -775,7 +775,7 @@ ChartOverlayViewController::updateViewController(ChartOverlay* chartOverlay)
  *     Matrix triangular view mode.
  */
 void
-ChartOverlayViewController::updateMatrixTriangularViewModeAction(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode)
+ChartTwoOverlayViewController::updateMatrixTriangularViewModeAction(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode)
 {
     CaretAssert(m_matrixTriangularViewModeAction);
     m_matrixTriangularViewModeAction->blockSignals(true);
@@ -800,7 +800,7 @@ ChartOverlayViewController::updateMatrixTriangularViewModeAction(const ChartTwoM
  * Update graphics and GUI after selections made
  */
 void
-ChartOverlayViewController::updateUserInterfaceAndGraphicsWindow()
+ChartTwoOverlayViewController::updateUserInterfaceAndGraphicsWindow()
 {
     updateUserInterface();
     updateGraphicsWindow();
@@ -810,7 +810,7 @@ ChartOverlayViewController::updateUserInterfaceAndGraphicsWindow()
  * Update graphics and GUI after selections made
  */
 void
-ChartOverlayViewController::updateUserInterface()
+ChartTwoOverlayViewController::updateUserInterface()
 {
 //    if (m_chartOverlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -824,7 +824,7 @@ ChartOverlayViewController::updateUserInterface()
  * Update graphics after selections made
  */
 void
-ChartOverlayViewController::updateGraphicsWindow()
+ChartTwoOverlayViewController::updateGraphicsWindow()
 {
 //    if (m_chartOverlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -840,14 +840,14 @@ ChartOverlayViewController::updateGraphicsWindow()
  *    Parent widget.
  */
 QMenu*
-ChartOverlayViewController::createMatrixTriangularViewModeMenu(QWidget* parent)
+ChartTwoOverlayViewController::createMatrixTriangularViewModeMenu(QWidget* parent)
 {
     std::vector<ChartTwoMatrixTriangularViewingModeEnum::Enum> allViewModes;
     ChartTwoMatrixTriangularViewingModeEnum::getAllEnums(allViewModes);
     
     QMenu* menu = new QMenu(parent);
     QObject::connect(menu, &QMenu::triggered,
-                     this, &ChartOverlayViewController::menuMatrixTriangularViewModeTriggered);
+                     this, &ChartTwoOverlayViewController::menuMatrixTriangularViewModeTriggered);
 //    QObject::connect(menu, SIGNAL(triggered(QAction*)),
 //                     this, SLOT(menuMatrixTriangularViewModeTriggered(QAction* action)));
 
@@ -875,7 +875,7 @@ ChartOverlayViewController::createMatrixTriangularViewModeMenu(QWidget* parent)
  *     Action of menu item selected.
  */
 void
-ChartOverlayViewController::menuMatrixTriangularViewModeTriggered(QAction* action)
+ChartTwoOverlayViewController::menuMatrixTriangularViewModeTriggered(QAction* action)
 {
     const QVariant itemData = action->data();
     CaretAssert(itemData.isValid());
@@ -896,7 +896,7 @@ ChartOverlayViewController::menuMatrixTriangularViewModeTriggered(QAction* actio
  *    Parent widget.
  */
 QMenu*
-ChartOverlayViewController::createConstructionMenu(QWidget* parent)
+ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent)
 {
     QMenu* menu = new QMenu(parent);
     QObject::connect(menu, SIGNAL(aboutToShow()),
@@ -950,7 +950,7 @@ ChartOverlayViewController::createConstructionMenu(QWidget* parent)
  * Called when construction menu is about to be displayed.
  */
 void
-ChartOverlayViewController::menuConstructionAboutToShow()
+ChartTwoOverlayViewController::menuConstructionAboutToShow()
 {
     if (m_chartOverlay != NULL) {
         CaretMappableDataFile* caretDataFile = NULL;
@@ -978,7 +978,7 @@ ChartOverlayViewController::menuConstructionAboutToShow()
  * Add an overlay above this overlay.
  */
 void
-ChartOverlayViewController::menuAddOverlayAboveTriggered()
+ChartTwoOverlayViewController::menuAddOverlayAboveTriggered()
 {
     emit requestAddOverlayAbove(m_chartOverlayIndex);
 }
@@ -987,7 +987,7 @@ ChartOverlayViewController::menuAddOverlayAboveTriggered()
  * Add an overlay below this overlay.
  */
 void
-ChartOverlayViewController::menuAddOverlayBelowTriggered()
+ChartTwoOverlayViewController::menuAddOverlayBelowTriggered()
 {
     emit requestAddOverlayBelow(m_chartOverlayIndex);
 }
@@ -996,7 +996,7 @@ ChartOverlayViewController::menuAddOverlayBelowTriggered()
  * Remove this overlay.
  */
 void
-ChartOverlayViewController::menuRemoveOverlayTriggered()
+ChartTwoOverlayViewController::menuRemoveOverlayTriggered()
 {
     emit requestRemoveOverlay(m_chartOverlayIndex);
 }
@@ -1005,7 +1005,7 @@ ChartOverlayViewController::menuRemoveOverlayTriggered()
  * Move this overlay down.
  */
 void
-ChartOverlayViewController::menuMoveOverlayDownTriggered()
+ChartTwoOverlayViewController::menuMoveOverlayDownTriggered()
 {
     emit requestMoveOverlayDown(m_chartOverlayIndex);
 }
@@ -1014,7 +1014,7 @@ ChartOverlayViewController::menuMoveOverlayDownTriggered()
  * Move this overlay down.
  */
 void
-ChartOverlayViewController::menuMoveOverlayUpTriggered()
+ChartTwoOverlayViewController::menuMoveOverlayUpTriggered()
 {
     emit requestMoveOverlayUp(m_chartOverlayIndex);
 }
@@ -1023,7 +1023,7 @@ ChartOverlayViewController::menuMoveOverlayUpTriggered()
  * Copy the file name to the clip board.
  */
 void
-ChartOverlayViewController::menuCopyFileNameToClipBoard()
+ChartTwoOverlayViewController::menuCopyFileNameToClipBoard()
 {
     if (m_chartOverlay != NULL) {
         CaretMappableDataFile* caretDataFile = NULL;
@@ -1042,7 +1042,7 @@ ChartOverlayViewController::menuCopyFileNameToClipBoard()
  * Copy the map name to the clip board.
  */
 void
-ChartOverlayViewController::menuCopyMapNameToClipBoard()
+ChartTwoOverlayViewController::menuCopyMapNameToClipBoard()
 {
     if (m_chartOverlay != NULL) {
         CaretMappableDataFile* caretDataFile = NULL;
@@ -1064,7 +1064,7 @@ ChartOverlayViewController::menuCopyMapNameToClipBoard()
  * Reload the file in the overlay.
  */
 void
-ChartOverlayViewController::menuReloadFileTriggered()
+ChartTwoOverlayViewController::menuReloadFileTriggered()
 {
     if (m_chartOverlay != NULL) {
         CaretMappableDataFile* caretDataFile = NULL;
@@ -1125,7 +1125,7 @@ ChartOverlayViewController::menuReloadFileTriggered()
  *    Pixmap for matrix view mode.
  */
 QPixmap
-ChartOverlayViewController::createMatrixTriangularViewModePixmap(QWidget* widget,
+ChartTwoOverlayViewController::createMatrixTriangularViewModePixmap(QWidget* widget,
                                                                  const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode)
 {
     CaretAssert(widget);
@@ -1204,7 +1204,7 @@ ChartOverlayViewController::createMatrixTriangularViewModePixmap(QWidget* widget
  *    Pixmap for history.
  */
 QPixmap
-ChartOverlayViewController::createHistoryPixmap(QWidget* widget)
+ChartTwoOverlayViewController::createHistoryPixmap(QWidget* widget)
 {
     CaretAssert(widget);
     

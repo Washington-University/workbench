@@ -1,9 +1,9 @@
-#ifndef __CHART_OVERLAY_SET_H__
-#define __CHART_OVERLAY_SET_H__
+#ifndef __CHART_TWO_MATRIX_DISPLAY_PROPERTIES_H__
+#define __CHART_TWO_MATRIX_DISPLAY_PROPERTIES_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2016 Washington University School of Medicine
+ *  Copyright (C) 2017 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,62 +21,48 @@
  */
 /*LICENSE_END*/
 
-#include "BrainConstants.h"
+
 #include "CaretObject.h"
-#include "ChartTwoDataTypeEnum.h"
+
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
-    class ChartOverlay;
-    class PlainTextStringBuilder;
     class SceneClassAssistant;
 
-    class ChartOverlaySet : public CaretObject, public EventListenerInterface, public SceneableInterface {
+    class ChartTwoMatrixDisplayProperties : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        ChartOverlaySet(const ChartTwoDataTypeEnum::Enum chartDataType,
-                        const AString& name,
-                        const int32_t tabIndex);
+        ChartTwoMatrixDisplayProperties();
         
-        virtual ~ChartOverlaySet();
+        virtual ~ChartTwoMatrixDisplayProperties();
         
-        void copyOverlaySet(const ChartOverlaySet* overlaySet);
-        
-        ChartOverlay* getPrimaryOverlay();
-        
-        ChartOverlay* getUnderlay();
-        
-        ChartOverlay* getOverlay(const int32_t overlayNumber);
-        
-        const ChartOverlay* getOverlay(const int32_t overlayNumber) const;
-        
-        void addDisplayedOverlay();
-        
-        void setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays);
-        
-        int32_t getNumberOfDisplayedOverlays() const;
-        
-        void insertOverlayAbove(const int32_t overlayIndex);
-        
-        void insertOverlayBelow(const int32_t overlayIndex);
-        
-        void removeDisplayedOverlay(const int32_t overlayIndex);
-        
-        void moveDisplayedOverlayUp(const int32_t overlayIndex);
-        
-        void moveDisplayedOverlayDown(const int32_t overlayIndex);
-        
-        void initializeOverlays();
-        
-        void resetOverlayYokingToOff();
+        ChartTwoMatrixDisplayProperties(const ChartTwoMatrixDisplayProperties& obj);
 
+        ChartTwoMatrixDisplayProperties& operator=(const ChartTwoMatrixDisplayProperties& obj);
+        
+        bool isGridLinesDisplayed() const;
+        
+        void setGridLinesDisplayed(const bool displayGridLines);
+        
+        void resetPropertiesToDefault();
+        
+        bool isSelectedRowColumnHighlighted() const;
+        
+        void setSelectedRowColumnHighlighted(const bool highlightStatus);
+
+        float getCellPercentageZoomWidth() const;
+        
+        void setCellPercentageZoomWidth(const float cellPercentageZoomWidth);
+        
+        float getCellPercentageZoomHeight() const;
+        
+        void setCellPercentageZoomHeight(const float cellPercentageZoomHeight);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
-        
-        virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
         
         virtual void receiveEvent(Event* event);
 
@@ -102,35 +88,27 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        ChartOverlaySet(const ChartOverlaySet&);
+        void copyHelperChartTwoMatrixDisplayProperties(const ChartTwoMatrixDisplayProperties& obj);
 
-        ChartOverlaySet& operator=(const ChartOverlaySet&);
-        
-        void firstOverlaySelectionChanged();
+        void initializeInstance();
         
         SceneClassAssistant* m_sceneAssistant;
 
-        ChartOverlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
+        float m_cellPercentageZoomHeight;
         
-        const ChartTwoDataTypeEnum::Enum m_chartDataType;
+        float m_cellPercentageZoomWidth;
         
-        const AString m_name;
+        bool m_highlightSelectedRowColumnFlag;
         
-        const int32_t m_tabIndex;
-        
-        int32_t m_numberOfDisplayedOverlays;
-        
-        bool m_inFirstOverlayChangedMethodFlag = false;
+        bool m_displayGridLinesFlag;
         
         // ADD_NEW_MEMBERS_HERE
-        
-        friend class ChartOverlay;
 
     };
     
-#ifdef __CHART_OVERLAY_SET_DECLARE__
+#ifdef __CHART_TWO_MATRIX_DISPLAY_PROPERTIES_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_OVERLAY_SET_DECLARE__
+#endif // __CHART_TWO_MATRIX_DISPLAY_PROPERTIES_DECLARE__
 
 } // namespace
-#endif  //__CHART_OVERLAY_SET_H__
+#endif  //__CHART_TWO_MATRIX_DISPLAY_PROPERTIES_H__

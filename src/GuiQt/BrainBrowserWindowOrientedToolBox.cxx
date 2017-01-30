@@ -38,7 +38,7 @@
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
 #include "ChartableLineSeriesBrainordinateInterface.h"
-#include "ChartOverlaySetViewController.h"
+#include "ChartTwoOverlaySetViewController.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartToolBoxViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"
@@ -150,7 +150,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                        "Layers");
     }
     if (isOverlayToolBox) {
-        m_chartOverlaySetViewController = new ChartOverlaySetViewController(orientation,
+        m_chartOverlaySetViewController = new ChartTwoOverlaySetViewController(orientation,
                                                                          browserWindowIndex,
                                                                          this);
         m_chartOverlayTabIndex = addToTabWidget(m_chartOverlaySetViewController,

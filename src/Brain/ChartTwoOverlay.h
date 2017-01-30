@@ -1,5 +1,5 @@
-#ifndef __CHART_OVERLAY_H__
-#define __CHART_OVERLAY_H__
+#ifndef __CHART_TWO_OVERLAY_H__
+#define __CHART_TWO_OVERLAY_H__
 
 /*LICENSE_START*/
 /*
@@ -34,18 +34,18 @@
 namespace caret {
     class AnnotationColorBar;
     class CaretMappableDataFile;
-    class ChartOverlaySet;
+    class ChartTwoOverlaySet;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
 
-    class ChartOverlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
+    class ChartTwoOverlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        ChartOverlay(ChartOverlaySet* parentChartOverlaySet,
+        ChartTwoOverlay(ChartTwoOverlaySet* parentChartTwoOverlaySet,
                      const ChartTwoDataTypeEnum::Enum chartDataType,
                      const int32_t overlayIndex);
         
-        virtual ~ChartOverlay();
+        virtual ~ChartTwoOverlay();
         
         ChartTwoDataTypeEnum::Enum getChartDataType() const;
         
@@ -63,9 +63,9 @@ namespace caret {
         
         void setEnabled(const bool enabled);
         
-        void copyData(const ChartOverlay* overlay);
+        void copyData(const ChartTwoOverlay* overlay);
         
-        void swapData(ChartOverlay* overlay);
+        void swapData(ChartTwoOverlay* overlay);
         
         bool isHistorySupported() const;
         
@@ -127,9 +127,9 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        ChartOverlay(const ChartOverlay&);
+        ChartTwoOverlay(const ChartTwoOverlay&);
 
-        ChartOverlay& operator=(const ChartOverlay&);
+        ChartTwoOverlay& operator=(const ChartTwoOverlay&);
         
         void getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& mapFilesOut,
                                      CaretMappableDataFile* &selectedMapFileOut,
@@ -137,7 +137,7 @@ namespace caret {
                                      int32_t& selectedMapIndexOut) const;
         
         /** Parent chart overlay set (only used by first overlay in the set */
-        ChartOverlaySet* m_parentChartOverlaySet;
+        ChartTwoOverlaySet* m_parentChartTwoOverlaySet;
         
         /** Enumerated Type of charts allowed in this overlay */
         const ChartTwoDataTypeEnum::Enum m_chartDataType;
@@ -175,9 +175,9 @@ namespace caret {
 
     };
     
-#ifdef __CHART_OVERLAY_DECLARE__
+#ifdef __CHART_TWO_OVERLAY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_OVERLAY_DECLARE__
+#endif // __CHART_TWO_OVERLAY_DECLARE__
 
 } // namespace
-#endif  //__CHART_OVERLAY_H__
+#endif  //__CHART_TWO_OVERLAY_H__

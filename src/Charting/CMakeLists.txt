@@ -46,6 +46,7 @@ ChartTwoDataTypeEnum.h
 ChartTwoHistogramContentTypeEnum.h
 ChartTwoLineSeriesContentTypeEnum.h
 ChartTwoMatrixContentTypeEnum.h
+ChartTwoMatrixDisplayProperties.h
 ChartTwoMatrixLoadingDimensionEnum.h
 ChartTwoMatrixTriangularViewingModeEnum.h
 
@@ -80,6 +81,7 @@ ChartTwoDataTypeEnum.cxx
 ChartTwoHistogramContentTypeEnum.cxx
 ChartTwoLineSeriesContentTypeEnum.cxx
 ChartTwoMatrixContentTypeEnum.cxx
+ChartTwoMatrixDisplayProperties.cxx
 ChartTwoMatrixLoadingDimensionEnum.cxx
 ChartTwoMatrixTriangularViewingModeEnum.cxx
 )

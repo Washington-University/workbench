@@ -33,7 +33,7 @@ class QTabWidget;
 namespace caret {
     class AnnotationSelectionViewController;
     class BorderSelectionViewController;
-    class ChartOverlaySetViewController;
+    class ChartTwoOverlaySetViewController;
     class ChartToolBoxViewController;
     class CiftiConnectivityMatrixViewController;
     class FiberOrientationSelectionViewController;
@@ -86,7 +86,7 @@ namespace caret {
         
         BorderSelectionViewController* m_borderSelectionViewController;
 
-        ChartOverlaySetViewController* m_chartOverlaySetViewController;
+        ChartTwoOverlaySetViewController* m_chartOverlaySetViewController;
 
         CiftiConnectivityMatrixViewController* m_connectivityMatrixViewController;
         

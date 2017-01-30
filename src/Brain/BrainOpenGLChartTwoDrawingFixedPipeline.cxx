@@ -30,14 +30,16 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "ChartMatrixScaleModeEnum.h"
-#include "ChartOverlay.h"
-#include "ChartOverlaySet.h"
+#include "ChartTwoMatrixDisplayProperties.h"
+#include "ChartTwoOverlay.h"
+#include "ChartTwoOverlaySet.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "IdentificationWithColor.h"
+#include "ModelChart.h"
 #include "SessionManager.h"
 
 using namespace caret;
@@ -71,6 +73,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  *
  * @param brain
  *     Brain.
+ * @parm chartModel
+ *     The chart model in the window.
  * @param fixedPipelineDrawing
  *     The fixed pipeline OpenGL drawing.
  * @param textRenderer
@@ -90,16 +94,18 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
+                                                             ModelChart* chartModel,
                                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                              BrainOpenGLTextRenderInterface* textRenderer,
                                                              const float translation[3],
                                                              const float zooming,
-                                                             ChartOverlaySet* chartOverlaySet,
+                                                             ChartTwoOverlaySet* chartOverlaySet,
                                                              const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                                              const int32_t viewport[4],
                                                              const int32_t tabIndex)
 {
     m_brain = brain;
+    m_chartModel = chartModel;
     m_fixedPipelineDrawing = fixedPipelineDrawing;
     m_textRenderer = textRenderer;
     m_translation[0] = translation[0];
@@ -146,7 +152,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     
     const int32_t numberOfOverlays = chartOverlaySet->getNumberOfDisplayedOverlays();
     if (numberOfOverlays > 0) {
-        ChartOverlay* topOverlay = chartOverlaySet->getOverlay(0);
+        ChartTwoOverlay* topOverlay = chartOverlaySet->getOverlay(0);
         if (topOverlay->isEnabled()) {
             CaretMappableDataFile* cmdf = NULL;
             int32_t mapIndex = -1;
@@ -302,7 +308,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
     
     const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
     CaretAssert(numberOfOverlays > 0);
-    const ChartOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
+    const ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
     const ChartTwoCompoundDataType cdt = topOverlay->getChartTwoCompoundDataType();
     CaretAssert(cdt.getChartDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
     
@@ -315,7 +321,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
     float yMin =   0.0;
     float yMax = 100.0;
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
-        ChartOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
+        ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
         if ( ! chartOverlay->isEnabled()) {
             continue;
         }
@@ -365,7 +371,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
     }
     
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
-        ChartOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
+        ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
         if ( ! chartOverlay->isEnabled()) {
             continue;
         }
@@ -441,7 +447,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
      */
     const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
     CaretAssert(numberOfOverlays > 0);
-    const ChartOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
+    const ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
     const ChartTwoCompoundDataType cdt = topOverlay->getChartTwoCompoundDataType();
     CaretAssert(cdt.getChartDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX);
     const int32_t numberOfRows = cdt.getMatrixNumberOfRows();
@@ -458,6 +464,17 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
     /*
      * Set the width and neight of each matrix cell.
      */
+    const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
+    CaretAssert(matrixProperties);
+    const float cellWidthZoom  = matrixProperties->getCellPercentageZoomWidth()  / 100.0;
+    const float cellHeightZoom = matrixProperties->getCellPercentageZoomHeight() / 100.0;
+    if ((cellWidthZoom > 0.0)
+        && (cellHeightZoom > 0.0)) {
+        cellWidth  *= cellWidthZoom;
+        cellHeight *= cellHeightZoom;
+    }
+    
+
     //ChartMatrixDisplayProperties* matrixProperties = chartMatrixInterface->getChartMatrixDisplayProperties(m_tabIndex);
     //CaretAssert(matrixProperties);
     const ChartMatrixScaleModeEnum::Enum scaleMode = ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO; // matrixProperties->getScaleMode();
@@ -526,7 +543,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
     }
 
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
-        ChartOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
+        ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
         if ( ! chartOverlay->isEnabled()) {
             continue;
         }
@@ -654,9 +671,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         return;
     }
     
-    CaretAssertToDoWarning(); // need to set these
-    bool displayGridLinesFlag = false;
-    const bool highlightSelectedRowColumnFlag = true;
+    const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
+    CaretAssert(matrixProperties);
+    
+    bool displayGridLinesFlag = matrixProperties->isGridLinesDisplayed();
+    const bool highlightSelectedRowColumnFlag = matrixProperties->isSelectedRowColumnHighlighted();
     
     
     std::vector<int32_t> selectedColumnIndices;
@@ -666,6 +685,18 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                              selectedRowColumnDimension,
                                              selectedRowIndices,
                                              selectedColumnIndices);
+    std::map<int32_t, RowColumnMinMax> columnRangesForRow;
+    for (int32_t rowIndex : selectedRowIndices) {
+        columnRangesForRow[rowIndex] = RowColumnMinMax();
+    }
+    const bool haveSelectedRowsFlag = ( ! columnRangesForRow.empty());
+    
+    std::map<int32_t, RowColumnMinMax> rowRangesForColumn;
+    for (int32_t columnIndex : selectedColumnIndices) {
+        rowRangesForColumn[columnIndex] = RowColumnMinMax();
+    }
+    const bool haveSelectedColumnsFlag = ( ! rowRangesForColumn.empty());
+    
 //    getMatrixHighlighting(matrixChart
 //                          selectedRowIndices,
 //                          selectedColumnIndices);
@@ -747,6 +778,30 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             }
             
             if (drawCellFlag) {
+                if (haveSelectedRowsFlag) {
+                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = columnRangesForRow.find(rowIndex);
+                    if (minMaxIter != columnRangesForRow.end()) {
+                        if (columnIndex < minMaxIter->second.m_min) {
+                            minMaxIter->second.m_min = columnIndex;
+                        }
+                        if (columnIndex > minMaxIter->second.m_max) {
+                            minMaxIter->second.m_max = columnIndex;
+                        }
+                    }
+                }
+                
+                if (haveSelectedColumnsFlag) {
+                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = rowRangesForColumn.find(columnIndex);
+                    if (minMaxIter != rowRangesForColumn.end()) {
+                        if (rowIndex < minMaxIter->second.m_min) {
+                            minMaxIter->second.m_min = rowIndex;
+                        }
+                        if (rowIndex > minMaxIter->second.m_max) {
+                            minMaxIter->second.m_max = rowIndex;
+                        }
+                    }
+                }
+                
                 uint8_t idRGBA[4];
                 if (m_identificationModeFlag) {
                     addToChartMatrixIdentification(rowIndex,
@@ -901,8 +956,24 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             for (auto rowIndex : selectedRowIndices) {
                 const float rowY = (numberOfRows - rowIndex - 1) * cellHeight;
                 
+                int32_t minColumn = 0;
+                int32_t maxColumn = numberOfColumns;
+                if (haveSelectedRowsFlag) {
+                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = columnRangesForRow.find(rowIndex);
+                    if (minMaxIter != columnRangesForRow.end()) {
+                        const int32_t minValue = minMaxIter->second.m_min;
+                        const int32_t rowMaxColumn = minMaxIter->second.m_max;
+                        if (minValue < rowMaxColumn) {
+                            minColumn = minValue;
+                            maxColumn = rowMaxColumn + 1;
+                        }
+                    }
+                }
                 
-                rowXYZ.push_back(0.0);
+                const float minX = minColumn * cellWidth;
+                const float maxX = maxColumn * cellWidth;
+                
+                rowXYZ.push_back(minX);
                 rowXYZ.push_back(rowY);
                 rowXYZ.push_back(0.0);
                 rowRGBA.push_back(highlightRGB[0]);
@@ -910,7 +981,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 rowRGBA.push_back(highlightRGB[2]);
                 rowRGBA.push_back(1.0);
                 
-                rowXYZ.push_back(0.0);
+                rowXYZ.push_back(minX);
                 rowXYZ.push_back(rowY + cellHeight);
                 rowXYZ.push_back(0.0);
                 rowRGBA.push_back(highlightRGB[0]);
@@ -918,7 +989,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 rowRGBA.push_back(highlightRGB[2]);
                 rowRGBA.push_back(1.0);
                 
-                rowXYZ.push_back(numberOfColumns * cellWidth);
+                rowXYZ.push_back(maxX);
                 rowXYZ.push_back(rowY + cellHeight);
                 rowXYZ.push_back(0.0);
                 rowRGBA.push_back(highlightRGB[0]);
@@ -927,7 +998,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 rowRGBA.push_back(1.0);
                 
                 
-                rowXYZ.push_back(numberOfColumns * cellWidth);
+                rowXYZ.push_back(maxX);
                 rowXYZ.push_back(rowY);
                 rowXYZ.push_back(0.0);
                 rowRGBA.push_back(highlightRGB[0]);
@@ -972,8 +1043,26 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             for (auto columnIndex : selectedColumnIndices) {
                 const float colX = columnIndex * cellWidth;
                 
+                int32_t minRow = 0;
+                int32_t maxRow = numberOfRows;
+                if (haveSelectedColumnsFlag) {
+                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = rowRangesForColumn.find(columnIndex);
+                    if (minMaxIter != rowRangesForColumn.end()) {
+                        const int32_t minValue = minMaxIter->second.m_min;
+                        const int32_t maxValue = minMaxIter->second.m_max;
+                        if (minValue < maxValue) {
+                            minRow = minValue;
+                            maxRow = maxValue + 1;
+                        }
+                    }
+                }
+
+                const float minY = minRow * cellHeight;
+                const float maxY = maxRow * cellHeight;
+                
+                
                 columnXYZ.push_back(colX);
-                columnXYZ.push_back(0.0);
+                columnXYZ.push_back(minY);
                 columnXYZ.push_back(0.0);
                 columnRGBA.push_back(highlightRGB[0]);
                 columnRGBA.push_back(highlightRGB[1]);
@@ -981,7 +1070,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 columnRGBA.push_back(1.0);
                 
                 columnXYZ.push_back(colX + cellWidth);
-                columnXYZ.push_back(0.0);
+                columnXYZ.push_back(minY);
                 columnXYZ.push_back(0.0);
                 columnRGBA.push_back(highlightRGB[0]);
                 columnRGBA.push_back(highlightRGB[1]);
@@ -989,7 +1078,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 columnRGBA.push_back(1.0);
                 
                 columnXYZ.push_back(colX + cellWidth);
-                columnXYZ.push_back(numberOfRows * cellHeight);
+                columnXYZ.push_back(maxY);
                 columnXYZ.push_back(0.0);
                 columnRGBA.push_back(highlightRGB[0]);
                 columnRGBA.push_back(highlightRGB[1]);
@@ -998,7 +1087,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 
                 
                 columnXYZ.push_back(colX);
-                columnXYZ.push_back(numberOfRows * cellHeight);
+                columnXYZ.push_back(maxY);
                 columnXYZ.push_back(0.0);
                 columnRGBA.push_back(highlightRGB[0]);
                 columnRGBA.push_back(highlightRGB[1]);

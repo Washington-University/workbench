@@ -1,5 +1,5 @@
-#ifndef __CHART_OVERLAY_SET_ARRAY_H__
-#define __CHART_OVERLAY_SET_ARRAY_H__
+#ifndef __CHART_TWO_OVERLAY_SET_ARRAY_H__
+#define __CHART_TWO_OVERLAY_SET_ARRAY_H__
 
 /*LICENSE_START*/
 /*
@@ -28,19 +28,19 @@
 #include "SceneableInterface.h"
 
 namespace caret {
-    class ChartOverlaySet;
+    class ChartTwoOverlaySet;
     
-    class ChartOverlaySetArray : public CaretObject, public EventListenerInterface, public SceneableInterface {
+    class ChartTwoOverlaySetArray : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        ChartOverlaySetArray(const ChartTwoDataTypeEnum::Enum chartDataType,
+        ChartTwoOverlaySetArray(const ChartTwoDataTypeEnum::Enum chartDataType,
                              const AString& name);
         
-        virtual ~ChartOverlaySetArray();
+        virtual ~ChartTwoOverlaySetArray();
         
         int32_t getNumberOfChartOverlaySets();
         
-        ChartOverlaySet* getChartOverlaySet(const int32_t indx);
+        ChartTwoOverlaySet* getChartOverlaySet(const int32_t indx);
         
         void initializeOverlaySelections();
         
@@ -53,9 +53,9 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
     private:
-        ChartOverlaySetArray(const ChartOverlaySetArray&);
+        ChartTwoOverlaySetArray(const ChartTwoOverlaySetArray&);
 
-        ChartOverlaySetArray& operator=(const ChartOverlaySetArray&);
+        ChartTwoOverlaySetArray& operator=(const ChartTwoOverlaySetArray&);
         
     public:
 
@@ -74,12 +74,12 @@ namespace caret {
         AString m_name;
         
         /** The chart overlay sets */
-        std::vector<ChartOverlaySet*>m_chartOverlaySets;
+        std::vector<ChartTwoOverlaySet*>m_chartOverlaySets;
     };
     
-#ifdef __OVERLAY_SET_ARRAY_DECLARE__
+#ifdef __CHART_TWO_OVERLAY_SET_ARRAY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __OVERLAY_SET_ARRAY_DECLARE__
+#endif // __CHART_TWO_OVERLAY_SET_ARRAY_DECLARE__
 
 } // namespace
-#endif  //__CHART_OVERLAY_SET_ARRAY_H__
+#endif  //__CHART_TWO_OVERLAY_SET_ARRAY_H__

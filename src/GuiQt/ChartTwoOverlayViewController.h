@@ -1,5 +1,5 @@
-#ifndef __CHART_OVERLAY_VIEW_CONTROLLER_H__
-#define __CHART_OVERLAY_VIEW_CONTROLLER_H__
+#ifndef __CHART_TWO_OVERLAY_VIEW_CONTROLLER_H__
+#define __CHART_TWO_OVERLAY_VIEW_CONTROLLER_H__
 
 /*LICENSE_START*/
 /*
@@ -36,23 +36,23 @@ class QSpinBox;
 class QToolButton;
 
 namespace caret {
-    class ChartOverlay;
+    class ChartTwoOverlay;
     class MapYokingGroupComboBox;
     class WuQGridLayoutGroup;
 
-    class ChartOverlayViewController : public QObject {
+    class ChartTwoOverlayViewController : public QObject {
         
         Q_OBJECT
 
     public:
-        ChartOverlayViewController(const Qt::Orientation orientation,
+        ChartTwoOverlayViewController(const Qt::Orientation orientation,
                                    const int32_t browserWindowIndex,
                                    const int32_t chartOverlayIndex,
                                    QObject* parent);
         
-        virtual ~ChartOverlayViewController();
+        virtual ~ChartTwoOverlayViewController();
 
-        void updateViewController(ChartOverlay* overlay);
+        void updateViewController(ChartTwoOverlay* overlay);
         
         // ADD_NEW_METHODS_HERE
     signals:
@@ -106,9 +106,9 @@ namespace caret {
         void menuMatrixTriangularViewModeTriggered(QAction* action);
         
     private:
-        ChartOverlayViewController(const ChartOverlayViewController&);
+        ChartTwoOverlayViewController(const ChartTwoOverlayViewController&);
 
-        ChartOverlayViewController& operator=(const ChartOverlayViewController&);
+        ChartTwoOverlayViewController& operator=(const ChartTwoOverlayViewController&);
         
         void updateUserInterfaceAndGraphicsWindow();
         
@@ -135,7 +135,7 @@ namespace caret {
         
         const int32_t m_chartOverlayIndex;
         
-        ChartOverlay* m_chartOverlay;
+        ChartTwoOverlay* m_chartOverlay;
         
         QCheckBox* m_enabledCheckBox;
         
@@ -177,12 +177,12 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
-        friend class ChartOverlaySetViewController;
+        friend class ChartTwoOverlaySetViewController;
     };
     
-#ifdef __CHART_OVERLAY_VIEW_CONTROLLER_DECLARE__
+#ifdef __CHART_TWO_OVERLAY_VIEW_CONTROLLER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_OVERLAY_VIEW_CONTROLLER_DECLARE__
+#endif // __CHART_TWO_OVERLAY_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__CHART_OVERLAY_VIEW_CONTROLLER_H__
+#endif  //__CHART_TWO_OVERLAY_VIEW_CONTROLLER_H__

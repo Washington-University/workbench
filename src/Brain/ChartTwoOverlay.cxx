@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __CHART_OVERLAY_DECLARE__
-#include "ChartOverlay.h"
-#undef __CHART_OVERLAY_DECLARE__
+#define __CHART_TWO_OVERLAY_DECLARE__
+#include "ChartTwoOverlay.h"
+#undef __CHART_TWO_OVERLAY_DECLARE__
 
 #include "AnnotationColorBar.h"
 #include "CaretAssert.h"
@@ -31,7 +31,7 @@
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
-#include "ChartOverlaySet.h"
+#include "ChartTwoOverlaySet.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "PlainTextStringBuilder.h"
@@ -43,7 +43,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartOverlay 
+ * \class caret::ChartTwoOverlay 
  * \brief Overlay for charts.
  * \ingroup Brain
  */
@@ -51,22 +51,22 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param parentChartOverlaySet
+ * @param parentChartTwoOverlaySet
  *     Parent of this chart overlay set.
  * @param chartDataType
  *     Type of charts allowed in this overlay
  * @param overlayIndex
  *     Index of this overlay.
  */
-ChartOverlay::ChartOverlay(ChartOverlaySet* parentChartOverlaySet,
+ChartTwoOverlay::ChartTwoOverlay(ChartTwoOverlaySet* parentChartTwoOverlaySet,
                            const ChartTwoDataTypeEnum::Enum chartDataType,
                            const int32_t overlayIndex)
 : CaretObject(),
-m_parentChartOverlaySet(parentChartOverlaySet),
+m_parentChartTwoOverlaySet(parentChartTwoOverlaySet),
 m_chartDataType(chartDataType),
 m_overlayIndex(overlayIndex)
 {
-    CaretAssert(m_parentChartOverlaySet);
+    CaretAssert(m_parentChartTwoOverlaySet);
     
    // m_chartCompoundDataType
     m_name = "Overlay " + AString::number(overlayIndex + 1);
@@ -99,7 +99,7 @@ m_overlayIndex(overlayIndex)
 /**
  * Destructor.
  */
-ChartOverlay::~ChartOverlay()
+ChartTwoOverlay::~ChartTwoOverlay()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -112,7 +112,7 @@ ChartOverlay::~ChartOverlay()
  *    An event for which this instance is listening.
  */
 void
-ChartOverlay::receiveEvent(Event* event)
+ChartTwoOverlay::receiveEvent(Event* event)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -127,7 +127,7 @@ ChartOverlay::receiveEvent(Event* event)
  * @return String describing this object's content.
  */
 AString
-ChartOverlay::toString() const
+ChartTwoOverlay::toString() const
 {
     PlainTextStringBuilder tb;
     getDescriptionOfContent(tb);
@@ -141,9 +141,9 @@ ChartOverlay::toString() const
  *    Description of the window's content.
  */
 void
-ChartOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
+ChartTwoOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
 {
-    ChartOverlay* me = const_cast<ChartOverlay*>(this);
+    ChartTwoOverlay* me = const_cast<ChartTwoOverlay*>(this);
     if (me != NULL) {
         if (me->isEnabled()) {
             CaretMappableDataFile* mapFile = NULL;
@@ -178,7 +178,7 @@ ChartOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) co
  * @return The chart data type for this chart overlay.
  */
 ChartTwoDataTypeEnum::Enum
-ChartOverlay::getChartDataType() const
+ChartTwoOverlay::getChartDataType() const
 {
     return m_chartDataType;
 }
@@ -187,7 +187,7 @@ ChartOverlay::getChartDataType() const
  * Get the chart compound data type
  */
 ChartTwoCompoundDataType
-ChartOverlay::getChartTwoCompoundDataType() const
+ChartTwoOverlay::getChartTwoCompoundDataType() const
 {
     return m_chartCompoundDataType;
 }
@@ -201,10 +201,10 @@ ChartOverlay::getChartTwoCompoundDataType() const
  *     Type of charts for display in this overlay.
  */
 void
-ChartOverlay::setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType)
+ChartTwoOverlay::setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType)
 {
     if (m_overlayIndex == 0) {
-        CaretAssertMessage(0, "ChartOverlay::setChartTwoCompoundDataType() should not be called "
+        CaretAssertMessage(0, "ChartTwoOverlay::setChartTwoCompoundDataType() should not be called "
                            " for first overlay");
         return;
     }
@@ -220,7 +220,7 @@ ChartOverlay::setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartC
  * @return Enabled status for this surface overlay.
  */
 bool
-ChartOverlay::isEnabled() const
+ChartTwoOverlay::isEnabled() const
 {
     /*
      * First overlay is ALWAYS enabled
@@ -238,7 +238,7 @@ ChartOverlay::isEnabled() const
  *    New status.
  */
 void
-ChartOverlay::setEnabled(const bool enabled)
+ChartTwoOverlay::setEnabled(const bool enabled)
 {
     if (m_overlayIndex == 0) {
         if ( ! enabled) {
@@ -256,14 +256,14 @@ ChartOverlay::setEnabled(const bool enabled)
  *    Overlay from which data is transferred.
  */
 void
-ChartOverlay::copyData(const ChartOverlay* overlay)
+ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
 {
     CaretAssert(overlay);
     
     /*
      * These members are not copied since they
      * identify the overlay:
-     *    m_parentChartOverlaySet
+     *    m_parentChartTwoOverlaySet
      *    m_name
      *    m_overlayIndex
      *
@@ -292,9 +292,9 @@ ChartOverlay::copyData(const ChartOverlay* overlay)
  *    Overlay from which data is swapped.
  */
 void
-ChartOverlay::swapData(ChartOverlay* overlay)
+ChartTwoOverlay::swapData(ChartTwoOverlay* overlay)
 {
-    std::unique_ptr<ChartOverlay> swapOverlay = std::unique_ptr<ChartOverlay>(new ChartOverlay(m_parentChartOverlaySet,
+    std::unique_ptr<ChartTwoOverlay> swapOverlay = std::unique_ptr<ChartTwoOverlay>(new ChartTwoOverlay(m_parentChartTwoOverlaySet,
                                                                                                overlay->m_chartDataType,
                                                                                                overlay->m_overlayIndex));
     swapOverlay->copyData(overlay);
@@ -307,7 +307,7 @@ ChartOverlay::swapData(ChartOverlay* overlay)
  * Is history supported ?
  */
 bool
-ChartOverlay::isHistorySupported() const
+ChartTwoOverlay::isHistorySupported() const
 {
     bool supportedFlag = false;
     
@@ -329,7 +329,7 @@ ChartOverlay::isHistorySupported() const
  * Is map yoking supported ?
  */
 bool
-ChartOverlay::isMapYokingSupported() const
+ChartTwoOverlay::isMapYokingSupported() const
 {
     bool supportedFlag = false;
     
@@ -352,7 +352,7 @@ ChartOverlay::isMapYokingSupported() const
  * @return Selected map yoking group.
  */
 MapYokingGroupEnum::Enum
-ChartOverlay::getMapYokingGroup() const
+ChartTwoOverlay::getMapYokingGroup() const
 {
     return m_mapYokingGroup;
 }
@@ -364,7 +364,7 @@ ChartOverlay::getMapYokingGroup() const
  *    New value for map yoking group.
  */
 void
-ChartOverlay::setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup)
+ChartTwoOverlay::setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup)
 {
     m_mapYokingGroup = mapYokingGroup;
 }
@@ -373,7 +373,7 @@ ChartOverlay::setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup)
  * @return The color bar displayed in graphics window.
  */
 AnnotationColorBar*
-ChartOverlay::getColorBar()
+ChartTwoOverlay::getColorBar()
 {
     return m_colorBar.get();
 }
@@ -382,7 +382,7 @@ ChartOverlay::getColorBar()
  * @return The color bar displayed in graphics window (const method).
  */
 const AnnotationColorBar*
-ChartOverlay::getColorBar() const
+ChartTwoOverlay::getColorBar() const
 {
     return m_colorBar.get();
 }
@@ -397,7 +397,7 @@ ChartOverlay::getColorBar() const
  *    Index of selected map in the selected file.
  */
 void
-ChartOverlay::getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
+ChartTwoOverlay::getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
                           int32_t& selectedMapIndexOut) const
 {
     std::vector<CaretMappableDataFile*> mapFiles;
@@ -420,7 +420,7 @@ ChartOverlay::getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
  *    Index of selected map in the selected file.
  */
 void
-ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
+ChartTwoOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                                CaretMappableDataFile* &selectedMapFileOut,
                                std::vector<AString>& selectedFileMapNamesOut,
                                int32_t& selectedMapIndexOut) const
@@ -482,7 +482,7 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
  *    Index of selected map in the selected file.
  */
 void
-ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
+ChartTwoOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                                CaretMappableDataFile* &selectedMapFileOut,
                                int32_t& selectedMapIndexOut) const
 {
@@ -504,7 +504,7 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
 // *    Index of selected map in the selected file.
 // */
 //void
-//ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
+//ChartTwoOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
 //                               CaretMappableDataFile* &selectedMapFileOut,
 //                               int32_t& selectedMapIndexOut)
 //{
@@ -634,8 +634,8 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
 //            chartFile->getChartCompoundDataTypeForChartDataType(m_chartDataType,
 //                                                                        m_chartCompoundDataType);
 //        }
-//        CaretAssert(m_parentChartOverlaySet);
-//        m_parentChartOverlaySet->firstOverlaySelectionChanged();
+//        CaretAssert(m_parentChartTwoOverlaySet);
+//        m_parentChartTwoOverlaySet->firstOverlaySelectionChanged();
 //    }
 //    //If selected type changes, need to update other overlays in the overlay set with
 //    //the selected data type}
@@ -655,7 +655,7 @@ ChartOverlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
  *    Index of selected map in the selected file.
  */
 void
-ChartOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& mapFilesOut,
+ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& mapFilesOut,
                                       CaretMappableDataFile* &selectedMapFileOut,
                                       std::vector<AString>* selectedFileMapNamesOut,
                                       int32_t& selectedMapIndexOut) const
@@ -823,7 +823,7 @@ ChartOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& mapFi
                 ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension;
                 std::vector<int32_t> columnIndices;
                 std::vector<int32_t> rowIndices;
-                matrixChart->getSelectedRowColumnIndices(m_parentChartOverlaySet->m_tabIndex,
+                matrixChart->getSelectedRowColumnIndices(m_parentChartTwoOverlaySet->m_tabIndex,
                                                          rowColumnDimension,
                                                          rowIndices,
                                                          columnIndices);
@@ -900,8 +900,8 @@ ChartOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& mapFi
             chartFile->getChartCompoundDataTypeForChartDataType(m_chartDataType,
                                                                 m_chartCompoundDataType);
         }
-        CaretAssert(m_parentChartOverlaySet);
-        m_parentChartOverlaySet->firstOverlaySelectionChanged();
+        CaretAssert(m_parentChartTwoOverlaySet);
+        m_parentChartTwoOverlaySet->firstOverlaySelectionChanged();
     }
     //If selected type changes, need to update other overlays in the overlay set with
     //the selected data type}
@@ -916,7 +916,7 @@ ChartOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& mapFi
  *    index if it is valid.  Otherwise, use the first map index.
  */
 void
-ChartOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
+ChartTwoOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
                                const int32_t selectedMapIndex)
 {
     m_selectedMapFile = selectedMapFile;
@@ -937,7 +937,7 @@ ChartOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
                 CaretAssert(chartDelegate);
                 ChartableTwoFileMatrixChart* matrixChart   = chartDelegate->getMatrixCharting();
                 CaretAssert(matrixChart);
-                matrixChart->setSelectedRowColumnIndex(m_parentChartOverlaySet->m_tabIndex,
+                matrixChart->setSelectedRowColumnIndex(m_parentChartTwoOverlaySet->m_tabIndex,
                                                        selectedMapIndex);
             }
                 break;
@@ -984,7 +984,7 @@ ChartOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
  * @return Is the all maps  supported?
  */
 bool
-ChartOverlay::isAllMapsSupported() const
+ChartTwoOverlay::isAllMapsSupported() const
 {
     bool supportedFlag = false;
     
@@ -1019,7 +1019,7 @@ ChartOverlay::isAllMapsSupported() const
  * @return All maps selected.
  */
 bool
-ChartOverlay::isAllMapsSelected() const
+ChartTwoOverlay::isAllMapsSelected() const
 {
     return m_allHistogramMapsSelectedFlag;
 }
@@ -1031,7 +1031,7 @@ ChartOverlay::isAllMapsSelected() const
  *     New status.
  */
 void
-ChartOverlay::setAllMapsSelected(const bool status)
+ChartTwoOverlay::setAllMapsSelected(const bool status)
 {
     m_allHistogramMapsSelectedFlag = status;
 }
@@ -1040,7 +1040,7 @@ ChartOverlay::setAllMapsSelected(const bool status)
  * @return The matrix triangular viewing mode.
  */
 ChartTwoMatrixTriangularViewingModeEnum::Enum
-ChartOverlay::getMatrixTriangularViewingMode() const
+ChartTwoOverlay::getMatrixTriangularViewingMode() const
 {
     return m_matrixTriangularViewingMode;
 }
@@ -1052,7 +1052,7 @@ ChartOverlay::getMatrixTriangularViewingMode() const
  *     New triangular viewing mode.
  */
 void
-ChartOverlay::setMatrixTriangularViewingMode(const ChartTwoMatrixTriangularViewingModeEnum::Enum mode)
+ChartTwoOverlay::setMatrixTriangularViewingMode(const ChartTwoMatrixTriangularViewingModeEnum::Enum mode)
 {
     m_matrixTriangularViewingMode = mode;
 }
@@ -1061,7 +1061,7 @@ ChartOverlay::setMatrixTriangularViewingMode(const ChartTwoMatrixTriangularViewi
  * @return Is the matrix triangular view mode supported?
  */
 bool
-ChartOverlay::isMatrixTriangularViewingModeSupported() const
+ChartTwoOverlay::isMatrixTriangularViewingModeSupported() const
 {
     switch (m_chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
@@ -1090,11 +1090,11 @@ ChartOverlay::isMatrixTriangularViewingModeSupported() const
  *    Name of instance in the scene.
  */
 SceneClass*
-ChartOverlay::saveToScene(const SceneAttributes* sceneAttributes,
+ChartTwoOverlay::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "ChartOverlay",
+                                            "ChartTwoOverlay",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -1118,7 +1118,7 @@ ChartOverlay::saveToScene(const SceneAttributes* sceneAttributes,
  *     sceneClass from which model specific information is obtained.
  */
 void
-ChartOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
+ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {

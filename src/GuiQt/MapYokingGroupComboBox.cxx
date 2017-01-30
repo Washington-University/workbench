@@ -25,7 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
-#include "ChartOverlay.h"
+#include "ChartTwoOverlay.h"
 #include "ChartableMatrixSeriesInterface.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "EnumComboBoxTemplate.h"
@@ -203,7 +203,7 @@ MapYokingGroupComboBox::validateYokingChange(Overlay* overlay)
  *    Chart overlay whose yoking changes.
  */
 void
-MapYokingGroupComboBox::validateYokingChange(ChartOverlay* chartOverlay)
+MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
 {
     const MapYokingGroupEnum::Enum previousMapYokingGroup = chartOverlay->getMapYokingGroup();
     const MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
