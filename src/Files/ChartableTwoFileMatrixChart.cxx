@@ -547,13 +547,8 @@ ChartableTwoFileMatrixChart::setSelectedRowColumnIndex(const int32_t tabIndex,
     
     CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(ciftiMapFile);
     if (scalarDataSeriesFile != NULL) {
-        CaretAssertToDoWarning();
         scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
                                                   rowColumnIndex);
-//        const int32_t scalarDataSeriesMapIndex = scalarDataSeriesFile->getSelectedMapIndex(tabIndex);
-//        if (scalarDataSeriesMapIndex >= 0) {
-//            rowIndicesSet.insert(scalarDataSeriesMapIndex);
-//        }
     }
 }
 

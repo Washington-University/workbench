@@ -505,7 +505,7 @@ ChartTwoOverlaySet::firstOverlaySelectionChanged()
     
     PlainTextStringBuilder description;
     getDescriptionOfContent(description);
-    std::cout << "First Overlay Changed: " << qPrintable(description.getText()) << std::endl;
+    //std::cout << "First Overlay Changed: " << qPrintable(description.getText()) << std::endl;
     
     m_inFirstOverlayChangedMethodFlag = false;
 }

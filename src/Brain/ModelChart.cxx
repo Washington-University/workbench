@@ -90,10 +90,20 @@ ModelChart::ModelChart(Brain* brain)
         m_chartTwoMatrixDisplayProperties[i] = new ChartTwoMatrixDisplayProperties();
     }
     
-    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->add("m_histogramChartOverlaySetArray", "ChartTwoOverlaySetArray", m_histogramChartOverlaySetArray.get());
     initializeCharts();
     
+    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<ChartTwoDataTypeEnum, ChartTwoDataTypeEnum::Enum>("m_selectedChartTwoDataType",
+                                                                                                         m_selectedChartTwoDataType);
+    m_sceneAssistant->add("m_histogramChartOverlaySetArray",
+                          "ChartTwoOverlaySetArray",
+                          m_histogramChartOverlaySetArray.get());
+    m_sceneAssistant->add("m_matrixChartOverlaySetArray",
+                          "ChartTwoOverlaySetArray",
+                          m_matrixChartOverlaySetArray.get());
+    m_sceneAssistant->add("m_lineSeriesChartOverlaySetArray",
+                          "ChartTwoOverlaySetArray",
+                          m_lineSeriesChartOverlaySetArray.get());
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS);
@@ -831,7 +841,19 @@ void
 ModelChart::saveVersionTwoModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                            SceneClass* sceneClass)
 {
-    CaretAssertToDoFatal();
+    std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+   
+    /*
+     * Save matrix properties.
+     */
+    SceneObjectMapIntegerKey* matrixPropsMap = new SceneObjectMapIntegerKey("m_chartTwoMatrixDisplayPropertiesMAP",
+                                                                            SceneObjectDataTypeEnum::SCENE_CLASS);
+    
+    for (int32_t tabIndex : tabIndices) {
+        matrixPropsMap->addClass(tabIndex, m_chartTwoMatrixDisplayProperties[tabIndex]->saveToScene(sceneAttributes,
+                                                                                                      "m_chartTwoMatrixDisplayProperties"));
+    }
+    sceneClass->addChild(matrixPropsMap);
 }
 
 
@@ -850,6 +872,9 @@ void
 ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                       SceneClass* sceneClass)
 {
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
     const ChartingVersionEnum::Enum chartingVersion = ChartingVersionEnum::CHARTING_VERSION_TWO;
     sceneClass->addEnumeratedType<ChartingVersionEnum, ChartingVersionEnum::Enum>("chartingVersion",
                                                                                   chartingVersion);
@@ -882,6 +907,9 @@ ModelChart::restoreModelSpecificInformationFromScene(const SceneAttributes* scen
                                                      const SceneClass* sceneClass)
 {
     reset();
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
     
     const ChartingVersionEnum::Enum chartingVersion =
     sceneClass->getEnumeratedTypeValue<ChartingVersionEnum, ChartingVersionEnum::Enum>("chartingVersion",
@@ -970,13 +998,24 @@ ModelChart::restoreVersionOneModelSpecificInformationFromScene(const SceneAttrib
 void
 ModelChart::restoreVersionTwoModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                                const SceneClass* sceneClass)
-{
+{    /*
+      * Restore matrix chart series models from scene.
+      */
+    const SceneObjectMapIntegerKey* matrixPropsMap = sceneClass->getMapIntegerKey("m_chartTwoMatrixDisplayPropertiesMAP");
+    if (matrixPropsMap != NULL) {
+        const std::vector<int32_t> tabIndices = matrixPropsMap->getKeys();
+        for (const int32_t tabIndex : tabIndices) {
+            const SceneClass* sceneClass = matrixPropsMap->classValue(tabIndex);
+            m_chartableMatrixSeriesFileSelectionModel[tabIndex]->restoreFromScene(sceneAttributes,
+                                                                                  sceneClass);
+        }
+    }
+
     /*
      * Restore the chart models
      */
     restoreVersionTwoChartModelsFromScene(sceneAttributes,
                                           sceneClass);
-    CaretAssertToDoFatal();
 }
 
 /**
@@ -1289,175 +1328,7 @@ void
 ModelChart::restoreVersionTwoChartModelsFromScene(const SceneAttributes* sceneAttributes,
                                                   const SceneClass* sceneClass)
 {
-    /*
-     * Restore the chart models
-     */
-    const SceneClassArray* chartModelArray = sceneClass->getClassArray("chartModelArray");
-    if (chartModelArray != NULL) {
-        const int numElements = chartModelArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numElements; i++) {
-            const SceneClass* chartClassContainer = chartModelArray->getClassAtIndex(i);
-            if (chartClassContainer != NULL) {
-                const int32_t tabIndex = chartClassContainer->getIntegerValue("tabIndex", -1);
-                const ChartOneDataTypeEnum::Enum chartDataType =  chartClassContainer->getEnumeratedTypeValue<ChartOneDataTypeEnum, ChartOneDataTypeEnum::Enum>("chartDataType",
-                                                                                                                                                       ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID);
-                const SceneClass* chartModelClass = chartClassContainer->getClass("chartModel");
-                
-                if ((tabIndex >= 0)
-                    && (chartDataType != ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID)
-                    && (chartModelClass != NULL)) {
-                    CaretAssertArrayIndex(m_chartModelDataSeries,
-                                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                                          tabIndex);
-                    
-                    switch (chartDataType) {
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                            break;
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                            CaretAssert(0);
-                            break;
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-                            break;
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
-                            m_chartModelDataSeries[tabIndex]->restoreFromScene(sceneAttributes,
-                                                                               chartModelClass);
-                            break;
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
-                            m_chartModelFrequencySeries[tabIndex]->restoreFromScene(sceneAttributes,
-                                                                                    chartModelClass);
-                            break;
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-                            m_chartModelTimeSeries[tabIndex]->restoreFromScene(sceneAttributes,
-                                                                               chartModelClass);
-                            break;
-                    }
-                }
-            }
-        }
-    }
-    
-    /*
-     * Restore the chart data.
-     */
-    std::vector<QSharedPointer<ChartData> > restoredChartData;
-    const SceneClassArray* chartDataArray = sceneClass->getClassArray("chartDataArray");
-    if (chartDataArray != NULL) {
-        const int numElements = chartDataArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numElements; i++) {
-            const SceneClass* chartDataContainer = chartDataArray->getClassAtIndex(i);
-            if (chartDataContainer != NULL) {
-                const ChartOneDataTypeEnum::Enum chartDataType = chartDataContainer->getEnumeratedTypeValue<ChartOneDataTypeEnum, ChartOneDataTypeEnum::Enum>("chartDataType",
-                                                                                                                                                     ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID);
-                const SceneClass* chartDataClass = chartDataContainer->getClass("chartData");
-                if ((chartDataType != ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID)
-                    && (chartDataClass != NULL)) {
-                    ChartData* chartData = ChartData::newChartDataForChartDataType(chartDataType);
-                    CaretAssert(chartData);
-                    
-                    /*
-                     * The chart's points are saved in the scene and this
-                     * function call restores the points.  This is part of
-                     * the original implementation.  However, it was decided
-                     * that the when the scene is restored, the data should
-                     * be loaded from the file to reflect any changes made
-                     * to the data file.  But, we still load the chart points
-                     * saved to the scene in case the file is missing.
-                     */
-                    chartData->restoreFromScene(sceneAttributes, chartDataClass);
-                    
-                    /*
-                     * Now load the chart data from the file using the
-                     * information in the chart's data source.  If this is
-                     * successful, then overwrite the chart data points
-                     * that were loaded from the scene file.
-                     *
-                     * Also need to copy the unique identifier so that
-                     * the chart data goes to the correct model.
-                     */
-                    ChartData* newChartData = loadCartesianChartWhenRestoringScene(chartData);
-                    if (newChartData != NULL) {
-                        newChartData->setUniqueIdentifier(chartData->getUniqueIdentifier());
-                        newChartData->copySelectionStatusForAllTabs(chartData);
-                        delete chartData;
-                        chartData = newChartData;
-                    }
-                    else {
-                        const AString msg("FAILED to load line chart data from file for "
-                                          + chartData->getChartDataSource()->getDescription()
-                                          + " so chart points from scene will be used.  If content of the file "
-                                          " has changed since the scene was created, the chart may not be accurate.");
-                        sceneAttributes->addToErrorMessage(msg);
-                        CaretLogWarning(msg);
-                    }
-                    
-                    restoredChartData.push_back(QSharedPointer<ChartData>(chartData));
-                }
-            }
-        }
-    }
-    
-    /*
-     * Have chart models restore pointers to chart data
-     * The chart models use shared pointers are used since the chart
-     * data may be in multiple tabs.  User may remove the charts
-     * from some tabs but not others and shared pointers make management
-     * easier.
-     */
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartModelDataSeries[i]->restoreChartDataFromScene(sceneAttributes,
-                                                             restoredChartData);
-    }
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartModelFrequencySeries[i]->restoreChartDataFromScene(sceneAttributes,
-                                                                  restoredChartData);
-    }
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartModelTimeSeries[i]->restoreChartDataFromScene(sceneAttributes,
-                                                             restoredChartData);
-    }
-    
-    /*
-     * The chart data are also saved here as weak pointers so
-     * that they can be saved to a scene only one time.  If
-     */
-    for (std::vector<QSharedPointer<ChartData> >::iterator rcdIter = restoredChartData.begin();
-         rcdIter != restoredChartData.end();
-         rcdIter++) {
-        QSharedPointer<ChartData> chartPointer = *rcdIter;
-        
-        switch (chartPointer->getChartDataType()) {
-            case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                CaretAssert(0);
-                break;
-            case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                CaretAssert(0);
-                break;
-            case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-                CaretAssert(0);
-                break;
-            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
-            {
-                QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
-                CaretAssert( ! cartChartPointer.isNull());
-                m_dataSeriesChartData.push_back(cartChartPointer);
-            }
-                break;
-            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
-            {
-                QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
-                CaretAssert( ! cartChartPointer.isNull());
-                m_frequencySeriesChartData.push_back(cartChartPointer);
-            }
-                break;
-            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-            {
-                QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
-                CaretAssert( ! cartChartPointer.isNull());
-                m_timeSeriesChartData.push_back(cartChartPointer);
-            }
-                break;
-        }
-    }
+    /* Probably nothing to do here */
 }
 
 /**
