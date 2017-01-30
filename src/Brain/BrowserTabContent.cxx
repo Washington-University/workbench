@@ -859,11 +859,11 @@ BrowserTabContent::getOverlaySet() const
  * @return Overlay set for this tab.
  */
 ChartTwoOverlaySet*
-BrowserTabContent::getChartOverlaySet()
+BrowserTabContent::getChartTwoOverlaySet()
 {
     Model* model = getModelForDisplay();
     if (model != NULL) {
-        return model->getChartOverlaySet(m_tabNumber);
+        return model->getChartTwoOverlaySet(m_tabNumber);
     }
     return NULL;
 }
@@ -872,11 +872,11 @@ BrowserTabContent::getChartOverlaySet()
  * @return Overlay set for this tab.
  */
 const ChartTwoOverlaySet*
-BrowserTabContent::getChartOverlaySet() const
+BrowserTabContent::getChartTwoOverlaySet() const
 {
     const Model* model = getModelForDisplay();
     if (model != NULL) {
-        return model->getChartOverlaySet(m_tabNumber);
+        return model->getChartTwoOverlaySet(m_tabNumber);
     }
     return NULL;
 }

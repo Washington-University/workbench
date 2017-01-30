@@ -84,7 +84,7 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
     }
     
     
-    updateChartCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForMatrix(numRows,
+    updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForMatrix(numRows,
                                                                                                numCols));
     
     m_rowColumnDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;

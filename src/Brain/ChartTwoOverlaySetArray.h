@@ -40,7 +40,7 @@ namespace caret {
         
         int32_t getNumberOfChartOverlaySets();
         
-        ChartTwoOverlaySet* getChartOverlaySet(const int32_t indx);
+        ChartTwoOverlaySet* getChartTwoOverlaySet(const int32_t indx);
         
         void initializeOverlaySelections();
         

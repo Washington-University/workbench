@@ -156,8 +156,11 @@ ChartableTwoFileBaseChart::getCiftiMappableDataFile() const
     return m_parentCiftiMappableDataFile;
 }
 
+/**
+ * @return Chart version two data type
+ */
 ChartTwoDataTypeEnum::Enum
-ChartableTwoFileBaseChart::getChartDataType() const
+ChartableTwoFileBaseChart::getChartTwoDataType() const
 {
     return m_chartType;
 }
@@ -166,9 +169,9 @@ ChartableTwoFileBaseChart::getChartDataType() const
  * @return Chart compound data type supported by subclass.
  */
 ChartTwoCompoundDataType
-ChartableTwoFileBaseChart::getChartCompoundDataType() const
+ChartableTwoFileBaseChart::getChartTwoCompoundDataType() const
 {
-    CaretAssertMessage((m_compoundChartDataType.getChartDataType() != ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID),
+    CaretAssertMessage((m_compoundChartDataType.getChartTwoDataType() != ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID),
                        "Data type is invalid, was updateChartCompoundDataTypeAfterFileChanges() called by "
                        "implementing class.");
     return m_compoundChartDataType;
@@ -183,9 +186,9 @@ ChartableTwoFileBaseChart::getChartCompoundDataType() const
  *     match the data type passed to the constructor.
  */
 void
-ChartableTwoFileBaseChart::updateChartCompoundDataTypeAfterFileChanges(const ChartTwoCompoundDataType compoundChartDataType)
+ChartableTwoFileBaseChart::updateChartTwoCompoundDataTypeAfterFileChanges(const ChartTwoCompoundDataType compoundChartDataType)
 {
-    CaretAssert(m_chartType == compoundChartDataType.getChartDataType());
+    CaretAssert(m_chartType == compoundChartDataType.getChartTwoDataType());
     
     m_compoundChartDataType = compoundChartDataType;
 }

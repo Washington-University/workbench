@@ -166,7 +166,7 @@ ChartTwoOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut)
                 
                 const ChartableTwoFileDelegate* chartDelegate = mapFile->getChartingDelegate();
                 ChartTwoCompoundDataType cdt;
-                chartDelegate->getChartCompoundDataTypeForChartDataType(getChartDataType(),
+                chartDelegate->getChartTwoCompoundDataTypeForChartTwoDataType(getChartTwoDataType(),
                                                                         cdt);
                 descriptionOut.addLine(cdt.toString());
             }
@@ -178,7 +178,7 @@ ChartTwoOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut)
  * @return The chart data type for this chart overlay.
  */
 ChartTwoDataTypeEnum::Enum
-ChartTwoOverlay::getChartDataType() const
+ChartTwoOverlay::getChartTwoDataType() const
 {
     return m_chartDataType;
 }
@@ -210,8 +210,8 @@ ChartTwoOverlay::setChartTwoCompoundDataType(const ChartTwoCompoundDataType& cha
     }
 //    do for overlay zero ??
         
-    if (chartCompoundDataType.getChartDataType() != ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID) {
-        CaretAssert(m_chartDataType == chartCompoundDataType.getChartDataType());
+    if (chartCompoundDataType.getChartTwoDataType() != ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+        CaretAssert(m_chartDataType == chartCompoundDataType.getChartTwoDataType());
     }
     m_chartCompoundDataType = chartCompoundDataType;
 }
@@ -681,14 +681,14 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
     for (auto mapFile : allDataFiles) {
         CaretAssert(mapFile);
         ChartableTwoFileDelegate* chartingFile = mapFile->getChartingDelegate();
-        if (chartingFile->isChartingSupported()) {
+        if (chartingFile->isChartingTwoSupported()) {
             bool useIt = false;
             
             std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
-            chartingFile->getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
+            chartingFile->getSupportedChartTwoCompoundDataTypes(chartCompoundDataTypes);
             
             for (auto& compoundType : chartCompoundDataTypes) {
-                if (m_chartDataType == compoundType.getChartDataType()) {
+                if (m_chartDataType == compoundType.getChartTwoDataType()) {
                     if (m_overlayIndex == 0) {
                         /*
                          * The first overlay displays ALL files that match the
@@ -897,7 +897,7 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
         if (m_selectedMapFile != NULL) {
             const ChartableTwoFileDelegate* chartFile = m_selectedMapFile->getChartingDelegate();
             CaretAssert(chartFile);
-            chartFile->getChartCompoundDataTypeForChartDataType(m_chartDataType,
+            chartFile->getChartTwoCompoundDataTypeForChartTwoDataType(m_chartDataType,
                                                                 m_chartCompoundDataType);
         }
         CaretAssert(m_parentChartTwoOverlaySet);

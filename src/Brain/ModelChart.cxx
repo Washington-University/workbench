@@ -2044,7 +2044,7 @@ ModelChart::getValidChartTwoDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& v
     for (auto mapFile : allDataFiles) {
         ChartableTwoFileDelegate* chartFile = mapFile->getChartingDelegate();
         std::vector<ChartTwoDataTypeEnum::Enum> fileChartTypes;
-        chartFile->getSupportedChartDataTypes(fileChartTypes);
+        chartFile->getSupportedChartTwoDataTypes(fileChartTypes);
         
         chartTypeSet.insert(fileChartTypes.begin(),
                             fileChartTypes.end());
@@ -2438,7 +2438,7 @@ ModelChart::getChartTwoMatrixDisplayProperties(const int32_t tabIndex) const
  *     Chart overlay set or NULL if not valid for this model.
  */
 ChartTwoOverlaySet*
-ModelChart::getChartOverlaySet(const int tabIndex)
+ModelChart::getChartTwoOverlaySet(const int tabIndex)
 {
     ChartTwoOverlaySet* chartOverlaySet = NULL;
     
@@ -2446,13 +2446,13 @@ ModelChart::getChartOverlaySet(const int tabIndex)
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-            chartOverlaySet = m_histogramChartOverlaySetArray->getChartOverlaySet(tabIndex);
+            chartOverlaySet = m_histogramChartOverlaySetArray->getChartTwoOverlaySet(tabIndex);
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-            chartOverlaySet = m_lineSeriesChartOverlaySetArray->getChartOverlaySet(tabIndex);
+            chartOverlaySet = m_lineSeriesChartOverlaySetArray->getChartTwoOverlaySet(tabIndex);
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-            chartOverlaySet = m_matrixChartOverlaySetArray->getChartOverlaySet(tabIndex);
+            chartOverlaySet = m_matrixChartOverlaySetArray->getChartTwoOverlaySet(tabIndex);
             break;
     }
 
@@ -2468,11 +2468,11 @@ ModelChart::getChartOverlaySet(const int tabIndex)
  *     Chart overlay set or NULL if not valid for this model.
  */
 const ChartTwoOverlaySet*
-ModelChart::getChartOverlaySet(const int tabIndex) const
+ModelChart::getChartTwoOverlaySet(const int tabIndex) const
 {
     ModelChart* nonConstModelChart = const_cast<ModelChart*>(this);
     CaretAssert(nonConstModelChart);
-    const ChartTwoOverlaySet* chartOverlaySet = nonConstModelChart->getChartOverlaySet(tabIndex);
+    const ChartTwoOverlaySet* chartOverlaySet = nonConstModelChart->getChartTwoOverlaySet(tabIndex);
     
     return chartOverlaySet;
 }

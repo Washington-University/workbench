@@ -60,7 +60,7 @@ namespace caret {
         
         bool operator==(const ChartTwoCompoundDataType& obj) const;
         
-        ChartTwoDataTypeEnum::Enum getChartDataType() const;
+        ChartTwoDataTypeEnum::Enum getChartTwoDataType() const;
         
         int32_t getHistogramNumberOfBuckets() const;
         

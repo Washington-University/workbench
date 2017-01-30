@@ -94,9 +94,9 @@ namespace caret {
         
         const OverlaySet* getOverlaySet() const;
         
-        ChartTwoOverlaySet* getChartOverlaySet();
+        ChartTwoOverlaySet* getChartTwoOverlaySet();
         
-        const ChartTwoOverlaySet* getChartOverlaySet() const;
+        const ChartTwoOverlaySet* getChartTwoOverlaySet() const;
         
         int32_t getTabNumber() const;
         

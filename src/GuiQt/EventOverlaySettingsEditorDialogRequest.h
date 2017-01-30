@@ -86,12 +86,12 @@ namespace caret {
         /**
          * @return The chart overlay for the editor.
          */
-        ChartTwoOverlay* getChartOverlay() { return m_chartOverlay; }
+        ChartTwoOverlay* getChartTwoOverlay() { return m_chartOverlay; }
         
         /**
          * @return The overlay for the editor.
          */
-        const ChartTwoOverlay* getChartOverlay() const { return m_chartOverlay; }
+        const ChartTwoOverlay* getChartTwoOverlay() const { return m_chartOverlay; }
         
     private:
         EventOverlaySettingsEditorDialogRequest(const EventOverlaySettingsEditorDialogRequest&);

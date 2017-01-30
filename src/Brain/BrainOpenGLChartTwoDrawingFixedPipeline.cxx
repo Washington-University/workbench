@@ -158,7 +158,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
             int32_t mapIndex = -1;
             topOverlay->getSelectionData(cmdf, mapIndex);
             if (cmdf != NULL) {
-                const ChartTwoDataTypeEnum::Enum chartDataType = topOverlay->getChartDataType();
+                const ChartTwoDataTypeEnum::Enum chartDataType = topOverlay->getChartTwoDataType();
                 switch (chartDataType) {
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                         break;
@@ -310,7 +310,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
     CaretAssert(numberOfOverlays > 0);
     const ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
     const ChartTwoCompoundDataType cdt = topOverlay->getChartTwoCompoundDataType();
-    CaretAssert(cdt.getChartDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
+    CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
     
     /*
      * Get extent of histogram data
@@ -449,7 +449,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
     CaretAssert(numberOfOverlays > 0);
     const ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
     const ChartTwoCompoundDataType cdt = topOverlay->getChartTwoCompoundDataType();
-    CaretAssert(cdt.getChartDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+    CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX);
     const int32_t numberOfRows = cdt.getMatrixNumberOfRows();
     const int32_t numberOfCols = cdt.getMatrixNumberOfColumns();
     if ((numberOfRows > 0)

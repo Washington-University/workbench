@@ -274,7 +274,7 @@ ChartTwoOverlaySetViewController::receiveEvent(Event* event)
 void
 ChartTwoOverlaySetViewController::updateViewController()
 {
-    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartTwoOverlaySet();
     if (chartOverlaySet == NULL) {
         return;
     }
@@ -300,7 +300,7 @@ ChartTwoOverlaySetViewController::updateViewController()
     const ChartTwoOverlay* primaryOverlay = chartOverlaySet->getPrimaryOverlay();
     if (primaryOverlay != NULL) {
         AString mapRowOrColumnName = "Map";
-        switch (primaryOverlay->getChartDataType()) {
+        switch (primaryOverlay->getChartTwoDataType()) {
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
@@ -325,13 +325,13 @@ ChartTwoOverlaySetViewController::updateViewController()
  * @return The overlay set in this view controller.
  */
 ChartTwoOverlaySet*
-ChartTwoOverlaySetViewController::getChartOverlaySet()
+ChartTwoOverlaySetViewController::getChartTwoOverlaySet()
 {
     ChartTwoOverlaySet* chartOverlaySet = NULL;
     BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
     if (browserTabContent != NULL) {
-        chartOverlaySet = browserTabContent->getChartOverlaySet();
+        chartOverlaySet = browserTabContent->getChartTwoOverlaySet();
     }
     
     return chartOverlaySet;
@@ -345,7 +345,7 @@ ChartTwoOverlaySetViewController::getChartOverlaySet()
 void
 ChartTwoOverlaySetViewController::processAddOverlayAbove(const int32_t overlayIndex)
 {
-    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartTwoOverlaySet();
     if (chartOverlaySet != NULL) {
         chartOverlaySet->insertOverlayAbove(overlayIndex);
         this->updateColoringAndGraphics();
@@ -360,7 +360,7 @@ ChartTwoOverlaySetViewController::processAddOverlayAbove(const int32_t overlayIn
 void
 ChartTwoOverlaySetViewController::processAddOverlayBelow(const int32_t overlayIndex)
 {
-    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartTwoOverlaySet();
     if (chartOverlaySet != NULL) {
         chartOverlaySet->insertOverlayBelow(overlayIndex);
         this->updateColoringAndGraphics();
@@ -375,7 +375,7 @@ ChartTwoOverlaySetViewController::processAddOverlayBelow(const int32_t overlayIn
 void
 ChartTwoOverlaySetViewController::processRemoveOverlay(const int32_t overlayIndex)
 {
-    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartTwoOverlaySet();
     if (chartOverlaySet != NULL) {
         chartOverlaySet->removeDisplayedOverlay(overlayIndex);
         this->updateColoringAndGraphics();
@@ -390,7 +390,7 @@ ChartTwoOverlaySetViewController::processRemoveOverlay(const int32_t overlayInde
 void
 ChartTwoOverlaySetViewController::processMoveOverlayDown(const int32_t overlayIndex)
 {
-    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartTwoOverlaySet();
     if (chartOverlaySet != NULL) {
         chartOverlaySet->moveDisplayedOverlayDown(overlayIndex);
         this->updateColoringAndGraphics();
@@ -405,7 +405,7 @@ ChartTwoOverlaySetViewController::processMoveOverlayDown(const int32_t overlayIn
 void
 ChartTwoOverlaySetViewController::processMoveOverlayUp(const int32_t overlayIndex)
 {
-    ChartTwoOverlaySet* chartOverlaySet = getChartOverlaySet();
+    ChartTwoOverlaySet* chartOverlaySet = getChartTwoOverlaySet();
     if (chartOverlaySet != NULL) {
         chartOverlaySet->moveDisplayedOverlayUp(overlayIndex);
         this->updateColoringAndGraphics();

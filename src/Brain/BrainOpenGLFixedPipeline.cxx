@@ -5298,7 +5298,7 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
                                              getTextRenderer(),
                                              translation,
                                              zooming,
-                                             chartModel->getChartOverlaySet(tabIndex),
+                                             chartModel->getChartTwoOverlaySet(tabIndex),
                                              SelectionItemDataTypeEnum::CHART_DATA_SERIES,
                                              viewport,
                                              tabIndex);

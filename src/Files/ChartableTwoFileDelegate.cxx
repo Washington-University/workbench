@@ -260,32 +260,56 @@ ChartableTwoFileDelegate::getCaretMappableDataFile() const
     return m_caretMappableDataFile;
 }
 
-ChartableTwoFileHistogramChart* ChartableTwoFileDelegate::getHistogramCharting()
+/**
+ * @return Histogram charting.
+ */
+ChartableTwoFileHistogramChart*
+ChartableTwoFileDelegate::getHistogramCharting()
 {
     return m_histogramCharting.get();
 }
 
-const ChartableTwoFileHistogramChart* ChartableTwoFileDelegate::getHistogramCharting() const
+/**
+ * @return Histogram charting.
+ */
+const ChartableTwoFileHistogramChart*
+ChartableTwoFileDelegate::getHistogramCharting() const
 {
     return m_histogramCharting.get();
 }
 
-ChartableTwoFileLineSeriesChart* ChartableTwoFileDelegate::getLineSeriesCharting()
+/**
+ * @return Line series charting.
+ */
+ChartableTwoFileLineSeriesChart*
+ChartableTwoFileDelegate::getLineSeriesCharting()
 {
     return m_lineSeriesCharting.get();
 }
 
-const ChartableTwoFileLineSeriesChart* ChartableTwoFileDelegate::getLineSeriesCharting() const
+/**
+ * @return Line series charting.
+ */
+const ChartableTwoFileLineSeriesChart*
+ChartableTwoFileDelegate::getLineSeriesCharting() const
 {
     return m_lineSeriesCharting.get();
 }
 
-ChartableTwoFileMatrixChart* ChartableTwoFileDelegate::getMatrixCharting()
+/**
+ * @return Matrix charting.
+ */
+ChartableTwoFileMatrixChart*
+ChartableTwoFileDelegate::getMatrixCharting()
 {
     return m_matrixCharting.get();
 }
 
-const ChartableTwoFileMatrixChart* ChartableTwoFileDelegate::getMatrixCharting() const
+/**
+ * @return Matrix charting.
+ */
+const ChartableTwoFileMatrixChart*
+ChartableTwoFileDelegate::getMatrixCharting() const
 {
     return m_matrixCharting.get();
 }
@@ -314,10 +338,10 @@ const ChartableTwoFileMatrixChart* ChartableTwoFileDelegate::getMatrixCharting()
  * Does this file support any type of charting?
  */
 bool
-ChartableTwoFileDelegate::isChartingSupported() const
+ChartableTwoFileDelegate::isChartingTwoSupported() const
 {
     std::vector<ChartTwoDataTypeEnum::Enum> chartDataTypes;
-    getSupportedChartDataTypes(chartDataTypes);
+    getSupportedChartTwoDataTypes(chartDataTypes);
     
     return ( ! chartDataTypes.empty());
 }
@@ -331,10 +355,10 @@ ChartableTwoFileDelegate::isChartingSupported() const
  *     True if the chart data type is supported, else false.
  */
 bool
-ChartableTwoFileDelegate::isChartingSupportedForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType) const
+ChartableTwoFileDelegate::isChartingSupportedForChartTwoDataType(const ChartTwoDataTypeEnum::Enum chartDataType) const
 {
     std::vector<ChartTwoDataTypeEnum::Enum> chartDataTypes;
-    getSupportedChartDataTypes(chartDataTypes);
+    getSupportedChartTwoDataTypes(chartDataTypes);
     
     if (std::find(chartDataTypes.begin(),
                   chartDataTypes.end(),
@@ -354,10 +378,10 @@ ChartableTwoFileDelegate::isChartingSupportedForChartDataType(const ChartTwoData
  *     True if the chart compound data type is supported, else false.
  */
 bool
-ChartableTwoFileDelegate::isChartingSupportedForChartCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType) const
+ChartableTwoFileDelegate::isChartingSupportedForChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType) const
 {
     std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
-    getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
+    getSupportedChartTwoCompoundDataTypes(chartCompoundDataTypes);
     
     for (auto& ccdt : chartCompoundDataTypes) {
         if (ccdt == chartCompoundDataType) {
@@ -375,18 +399,18 @@ ChartableTwoFileDelegate::isChartingSupportedForChartCompoundDataType(const Char
  *     Output containing all chart data types supported by this data file.
  */
 void
-ChartableTwoFileDelegate::getSupportedChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& chartDataTypesOut) const
+ChartableTwoFileDelegate::getSupportedChartTwoDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     chartDataTypesOut.clear();
     
     if (m_histogramCharting != NULL) {
-        chartDataTypesOut.push_back(m_histogramCharting->getChartDataType());
+        chartDataTypesOut.push_back(m_histogramCharting->getChartTwoDataType());
     }
     if (m_lineSeriesCharting!= NULL) {
-        chartDataTypesOut.push_back(m_lineSeriesCharting->getChartDataType());
+        chartDataTypesOut.push_back(m_lineSeriesCharting->getChartTwoDataType());
     }
     if (m_matrixCharting != NULL) {
-        chartDataTypesOut.push_back(m_matrixCharting->getChartDataType());
+        chartDataTypesOut.push_back(m_matrixCharting->getChartTwoDataType());
     }
 }
 
@@ -397,18 +421,18 @@ ChartableTwoFileDelegate::getSupportedChartDataTypes(std::vector<ChartTwoDataTyp
  *     Output containing all chart data types supported by this data file.
  */
 void
-ChartableTwoFileDelegate::getSupportedChartCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const
+ChartableTwoFileDelegate::getSupportedChartTwoCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const
 {
     chartCompoundDataTypesOut.clear();
     
     if (m_histogramCharting->getHistogramContentType() != ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_UNSUPPORTED) {
-        chartCompoundDataTypesOut.push_back(m_histogramCharting->getChartCompoundDataType());
+        chartCompoundDataTypesOut.push_back(m_histogramCharting->getChartTwoCompoundDataType());
     }
     if (m_lineSeriesCharting->getLineSeriesContentType() != ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED) {
-        chartCompoundDataTypesOut.push_back(m_lineSeriesCharting->getChartCompoundDataType());
+        chartCompoundDataTypesOut.push_back(m_lineSeriesCharting->getChartTwoCompoundDataType());
     }
     if (m_matrixCharting->getMatrixContentType() != ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED) {
-        chartCompoundDataTypesOut.push_back(m_matrixCharting->getChartCompoundDataType());
+        chartCompoundDataTypesOut.push_back(m_matrixCharting->getChartTwoCompoundDataType());
     }
     
 //    const CaretMappableDataFile* cmdf = getAsCaretMappableDataFile();
@@ -529,13 +553,13 @@ ChartableTwoFileDelegate::getSupportedChartCompoundDataTypes(std::vector<ChartTw
  *     False if output chart compound data type is invalid OR if chartDataType is invalid.
  */
 bool
-ChartableTwoFileDelegate::getChartCompoundDataTypeForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
+ChartableTwoFileDelegate::getChartTwoCompoundDataTypeForChartTwoDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
                                                                 ChartTwoCompoundDataType& chartCompoundDataTypeOut) const
 {
     std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
-    getSupportedChartCompoundDataTypes(chartCompoundDataTypes);
+    getSupportedChartTwoCompoundDataTypes(chartCompoundDataTypes);
     for (auto& cdt : chartCompoundDataTypes) {
-        if (cdt.getChartDataType() == chartDataType) {
+        if (cdt.getChartTwoDataType() == chartDataType) {
             chartCompoundDataTypeOut = cdt;
             return true;
         }

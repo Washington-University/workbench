@@ -66,7 +66,7 @@ namespace caret {
 
         ChartTwoOverlaySetViewController& operator=(const ChartTwoOverlaySetViewController&);
         
-        ChartTwoOverlaySet* getChartOverlaySet();
+        ChartTwoOverlaySet* getChartTwoOverlaySet();
         
         void updateViewController();
         

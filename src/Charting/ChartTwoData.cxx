@@ -225,7 +225,7 @@ ChartTwoData::restoreFromScene(const SceneAttributes* sceneAttributes,
  * @return The chart data type.
  */
 ChartTwoDataTypeEnum::Enum
-ChartTwoData::getChartDataType() const
+ChartTwoData::getChartTwoDataType() const
 {
     return m_chartDataType;
 }

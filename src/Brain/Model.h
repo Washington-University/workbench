@@ -67,9 +67,9 @@ namespace caret {
         
         virtual const OverlaySet* getOverlaySet(const int tabIndex) const = 0;
         
-        virtual ChartTwoOverlaySet* getChartOverlaySet(const int tabIndex);
+        virtual ChartTwoOverlaySet* getChartTwoOverlaySet(const int tabIndex);
         
-        virtual const ChartTwoOverlaySet* getChartOverlaySet(const int tabIndex) const;
+        virtual const ChartTwoOverlaySet* getChartTwoOverlaySet(const int tabIndex) const;
         
         virtual void initializeSelectedSurfaces();
 

@@ -271,7 +271,7 @@ ChartTwoCompoundDataType::operator==(const ChartTwoCompoundDataType& obj) const
  * @return Type of chart data.
  */
 ChartTwoDataTypeEnum::Enum
-ChartTwoCompoundDataType::getChartDataType() const
+ChartTwoCompoundDataType::getChartTwoDataType() const
 {
     return m_chartDataType;
 }

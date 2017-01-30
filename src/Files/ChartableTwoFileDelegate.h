@@ -67,17 +67,17 @@ namespace caret {
         
         const ChartableTwoFileMatrixChart* getMatrixCharting() const;
         
-        bool isChartingSupported() const;
+        bool isChartingTwoSupported() const;
         
-        bool isChartingSupportedForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType) const;
+        bool isChartingSupportedForChartTwoDataType(const ChartTwoDataTypeEnum::Enum chartDataType) const;
         
-        bool isChartingSupportedForChartCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType) const;
+        bool isChartingSupportedForChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType) const;
         
-        void getSupportedChartDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& chartDataTypesOut) const;
+        void getSupportedChartTwoDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& chartDataTypesOut) const;
         
-        void getSupportedChartCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const;
+        void getSupportedChartTwoCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const;
         
-        bool getChartCompoundDataTypeForChartDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
+        bool getChartTwoCompoundDataTypeForChartTwoDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
                                                       ChartTwoCompoundDataType& chartCompoundDataTypeOut) const;
         
         

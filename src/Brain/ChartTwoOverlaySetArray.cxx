@@ -109,7 +109,7 @@ ChartTwoOverlaySetArray::getNumberOfChartOverlaySets()
  *    Overlay set at given index.
  */
 ChartTwoOverlaySet*
-ChartTwoOverlaySetArray::getChartOverlaySet(const int32_t tabIndex)
+ChartTwoOverlaySetArray::getChartTwoOverlaySet(const int32_t tabIndex)
 {
     CaretAssertVectorIndex(m_chartOverlaySets, tabIndex);
     

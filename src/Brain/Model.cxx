@@ -125,7 +125,7 @@ Model::initializeSelectedSurfaces()
  *     Chart overlay set or NULL if not valid for this model.
  */
 ChartTwoOverlaySet*
-Model::getChartOverlaySet(const int /*tabIndex*/)
+Model::getChartTwoOverlaySet(const int /*tabIndex*/)
 {
     return NULL;
 }
@@ -139,7 +139,7 @@ Model::getChartOverlaySet(const int /*tabIndex*/)
  *     Chart overlay set or NULL if not valid for this model.
  */
 const ChartTwoOverlaySet*
-Model::getChartOverlaySet(const int /*tabIndex*/) const
+Model::getChartTwoOverlaySet(const int /*tabIndex*/) const
 {
     return NULL;
 }

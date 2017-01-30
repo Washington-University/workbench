@@ -70,7 +70,7 @@ m_histogramContentType(histogramContentType)
             histogramNumberOfBuckets = histogram->getNumberOfBuckets();
         }
     }
-    updateChartCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForHistogram(histogramNumberOfBuckets));
+    updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForHistogram(histogramNumberOfBuckets));
 }
 
 /**

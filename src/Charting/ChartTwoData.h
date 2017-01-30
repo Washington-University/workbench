@@ -50,7 +50,7 @@ namespace caret {
          */
         virtual ChartTwoData* clone() const = 0;
         
-        ChartTwoDataTypeEnum::Enum getChartDataType() const;
+        ChartTwoDataTypeEnum::Enum getChartTwoDataType() const;
         
         const ChartDataSource* getChartDataSource() const;
         

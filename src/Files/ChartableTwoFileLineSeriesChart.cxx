@@ -138,7 +138,7 @@ m_lineSeriesContentType(lineSeriesContentType)
         m_lineSeriesContentType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED;
     }
     
-    updateChartCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForLineSeries(xAxisUnits,
+    updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForLineSeries(xAxisUnits,
                                                                                                    xAxisNumberOfElements));
 }
 

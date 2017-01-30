@@ -94,9 +94,9 @@ namespace caret {
         
         const ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties(const int32_t tabIndex) const;
         
-        virtual ChartTwoOverlaySet* getChartOverlaySet(const int tabIndex);
+        virtual ChartTwoOverlaySet* getChartTwoOverlaySet(const int tabIndex);
         
-        virtual const ChartTwoOverlaySet* getChartOverlaySet(const int tabIndex) const;
+        virtual const ChartTwoOverlaySet* getChartTwoOverlaySet(const int tabIndex) const;
         
         virtual void receiveEvent(Event* event);
         

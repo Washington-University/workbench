@@ -59,9 +59,9 @@ namespace caret {
         
         const CiftiMappableDataFile* getCiftiMappableDataFile() const;
 
-        ChartTwoDataTypeEnum::Enum getChartDataType() const;
+        ChartTwoDataTypeEnum::Enum getChartTwoDataType() const;
         
-        ChartTwoCompoundDataType getChartCompoundDataType() const;
+        ChartTwoCompoundDataType getChartTwoCompoundDataType() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -81,7 +81,7 @@ namespace caret {
           
           
     protected:
-        void updateChartCompoundDataTypeAfterFileChanges(const ChartTwoCompoundDataType compoundChartDataType);
+        void updateChartTwoCompoundDataTypeAfterFileChanges(const ChartTwoCompoundDataType compoundChartDataType);
         
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass) = 0;
