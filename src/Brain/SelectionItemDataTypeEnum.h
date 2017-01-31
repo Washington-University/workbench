@@ -57,6 +57,12 @@ public:
         CHART_MATRIX,
         /** Time-Series Chart */
         CHART_TIME_SERIES,
+        /** Version Two Chart Histogram */
+        CHART_TWO_HISTOGRAM,
+        /** Version Two Chart Line-Series */
+        CHART_TWO_LINE_SERIES,
+        /** Version Two Chart Matrix */
+        CHART_TWO_MATRIX,
         /** CIFTI Connectivity Matrix Row or Column */
         CIFTI_CONNECTIVITY_MATRIX_ROW_COLUMN,
         /** Focus on Surface */

@@ -99,6 +99,18 @@ SelectionItemDataTypeEnum::initialize()
                                                  "CHART_TIME_SERIES",
                                                  "Time-Series Chart"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(CHART_TWO_HISTOGRAM,
+                                                 "CHART_TWO_HISTOGRAM",
+                                                 "Histogram Chart Two"));
+    
+    enumData.push_back(SelectionItemDataTypeEnum(CHART_TWO_LINE_SERIES,
+                                                 "CHART_TWO_LINE_SERIES",
+                                                 "Line-Series Chart Two"));
+    
+    enumData.push_back(SelectionItemDataTypeEnum(CHART_TWO_MATRIX,
+                                                 "CHART_TWO_MATRIX",
+                                                 "Matrix Chart Two"));
+
     enumData.push_back(SelectionItemDataTypeEnum(CIFTI_CONNECTIVITY_MATRIX_ROW_COLUMN,
                                                  "CIFTI_CONNECTIVITY_MATRIX_ROW_COLUMN",
                                                  "CIFTI Connectivity Row or Column"));

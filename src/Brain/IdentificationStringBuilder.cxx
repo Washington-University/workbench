@@ -18,7 +18,6 @@
  */
 /*LICENSE_END*/
 
-
 #include "IdentificationStringBuilder.h"
 
 using namespace caret;

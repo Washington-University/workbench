@@ -41,6 +41,10 @@
 #include "IdentificationWithColor.h"
 #include "ModelChart.h"
 #include "SessionManager.h"
+#include "SelectionItemChartTwoHistogram.h"
+#include "SelectionItemChartTwoLineSeries.h"
+#include "SelectionItemChartTwoMatrix.h"
+#include "SelectionManager.h"
 
 using namespace caret;
 
@@ -120,6 +124,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     m_viewport[3] = viewport[3];
     m_tabIndex = tabIndex;
 
+    m_selectionItemHistogram  = m_brain->getSelectionManager()->getChartTwoHistogramIdentification();
+    m_selectionItemLineSeries = m_brain->getSelectionManager()->getChartTwoLineSeriesIdentification();
+    m_selectionItemMatrix     = m_brain->getSelectionManager()->getChartTwoMatrixIdentification();
 
     /*
      * Check for a 'selection' type mode
@@ -129,17 +136,15 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            CaretAssertToDoWarning();
-            return;
-//            if (chartDataSeriesID->isEnabledForSelection()
-//                || chartFrequencySeriesID->isEnabledForSelection()
-//                || chartTimeSeriesID->isEnabledForSelection()) {
-//                m_identificationModeFlag = true;
-//                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//            }
-//            else {
-//                return;
-//            }
+            if (m_selectionItemHistogram->isEnabledForSelection()
+                || m_selectionItemLineSeries->isEnabledForSelection()
+                || m_selectionItemMatrix->isEnabledForSelection()) {
+                m_identificationModeFlag = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
             break;
         case BrainOpenGLFixedPipeline::MODE_PROJECTION:
             return;
@@ -178,10 +183,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
         }
     }
     
-    if (m_identificationModeFlag) {
-        processIdentification();
-    }
-    
     restoreStateOfOpenGL();
 }
 
@@ -191,34 +192,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
 {
-    /*
-     * Check for a 'selection' type mode
-     */
-    m_identificationModeFlag = false;
-    switch (m_fixedPipelineDrawing->mode) {
-        case BrainOpenGLFixedPipeline::MODE_DRAWING:
-            break;
-        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-//            if (chartDataSeriesID->isEnabledForSelection()
-//                || chartFrequencySeriesID->isEnabledForSelection()
-//                || chartTimeSeriesID->isEnabledForSelection()) {
-//                m_identificationModeFlag = true;
-//                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//            }
-//            else {
-            CaretAssertToDoWarning();
-                return;
-//            }
-            break;
-        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
-            return;
-            break;
-    }
-    
-    saveStateOfOpenGL();
-    
-    resetIdentification();
-    
     const int32_t vpX      = m_viewport[0];
     const int32_t vpY      = m_viewport[1];
     const int32_t vpWidth  = m_viewport[2];
@@ -390,16 +363,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
             drawHistogramChartContent(histogramChart);
         }
     }
-    
-    /*
-     * Process selection
-     */
-    if (m_identificationModeFlag) {
-        processIdentification();
-    }
-    
-    restoreStateOfOpenGL();
-    
 }
 
 /*
@@ -424,8 +387,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
                m_viewport[3]);
     
     bool applyTransformationsFlag = true;
-//    float panningXY[2] = { 0.0, 0.0 };
-//    float zooming = 1.0;
     float cellWidth = 1.0;
     float cellHeight = 1.0;
     
@@ -474,37 +435,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
         cellHeight *= cellHeightZoom;
     }
     
-
-    //ChartMatrixDisplayProperties* matrixProperties = chartMatrixInterface->getChartMatrixDisplayProperties(m_tabIndex);
-    //CaretAssert(matrixProperties);
-    const ChartMatrixScaleModeEnum::Enum scaleMode = ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO; // matrixProperties->getScaleMode();
-    switch (scaleMode) {
-        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO:
-            /*
-             * Auto scale 'fills' the matrix region
-             * and updates the width and height in the
-             * matrix properties for use in manual mode.
-             * There is NO zooming or panning for Auto scale.
-             */
-            //cellWidth  = graphicsWidth  / numberOfCols;
-            //cellHeight = graphicsHeight / numberOfRows;
-            
-            //matrixProperties->setCellWidth(cellWidth);
-            //matrixProperties->setCellHeight(cellHeight);
-            break;
-        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL:
-            /*
-             * Use the cell width and height for manual mode
-             * and allow both panning and zooming.
-             */
-            //cellWidth = matrixProperties->getCellWidth();
-            //cellHeight = matrixProperties->getCellHeight();
-            
-            //matrixProperties->getViewPanning(panningXY);
-            //zooming = matrixProperties->getViewZooming();
-            //applyTransformationsFlag = true;
-            break;
-    }
     /*
      * Set the coordinates for the area in which the matrix is drawn.
      */
@@ -569,10 +499,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
             && (overlayColumns == numberOfCols)) {
             drawMatrixChartContent(matrixChart,
                                    chartOverlay->getMatrixTriangularViewingMode(),
-                                //ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL,
-                                //ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL,
-                                //ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL,
-                                //ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL,
                                 cellWidth,
                                 cellHeight,
                                 m_zooming);
@@ -657,6 +583,24 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                              const float cellHeight,
                                                              const float zooming)
 {
+    m_identificationModeFlag = false;
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (m_selectionItemMatrix->isEnabledForSelection()) {
+                m_identificationModeFlag = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
     int32_t numberOfRows = 0;
     int32_t numberOfColumns = 0;
     std::vector<float> matrixRGBA;
@@ -696,10 +640,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         rowRangesForColumn[columnIndex] = RowColumnMinMax();
     }
     const bool haveSelectedColumnsFlag = ( ! rowRangesForColumn.empty());
-    
-//    getMatrixHighlighting(matrixChart
-//                          selectedRowIndices,
-//                          selectedColumnIndices);
     
     uint8_t highlightRGBByte[3];
     m_preferences->getBackgroundAndForegroundColors()->getColorForegroundChartView(highlightRGBByte);
@@ -1125,6 +1065,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         
         glPolygonMode(GL_FRONT, GL_FILL);
     }
+    
+    if (m_identificationModeFlag) {
+        processMatrixIdentification(matrixChart);
+    }
 }
 
 /**
@@ -1214,129 +1158,157 @@ BrainOpenGLChartTwoDrawingFixedPipeline::resetIdentification()
 }
 
 /**
- * Process identification.
+ * Process identification for histogram.
+ *
+ * @param histogramChart
+ *     The histogram chart.
  */
 void
-BrainOpenGLChartTwoDrawingFixedPipeline::processIdentification()
+BrainOpenGLChartTwoDrawingFixedPipeline::processHistogramIdentification(const ChartableTwoFileHistogramChart* histogramChart)
 {
-    CaretAssertToDoWarning();
     
-//    int32_t identifiedItemIndex;
-//    float depth = -1.0;
-//    
-//    if (m_chartModelDataSeriesBeingDrawnForIdentification != NULL) {
-//        m_fixedPipelineDrawing->getIndexFromColorSelection(m_chartCartesianSelectionTypeForIdentification,
-//                                                           m_fixedPipelineDrawing->mouseX,
-//                                                           m_fixedPipelineDrawing->mouseY,
-//                                                           identifiedItemIndex,
-//                                                           depth);
-//        if (identifiedItemIndex >= 0) {
-//            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
-//            const int32_t chartDataIndex = m_identificationIndices[idIndex];
-//            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
-//            
-//            SelectionItemChartDataSeries* chartDataSeriesID = m_brain->getSelectionManager()->getChartDataSeriesIdentification();
-//            if (chartDataSeriesID->isOtherScreenDepthCloserToViewer(depth)) {
-//                ChartDataCartesian* chartDataCartesian =
-//                dynamic_cast<ChartDataCartesian*>(m_chartModelDataSeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
-//                CaretAssert(chartDataCartesian);
-//                chartDataSeriesID->setChart(m_chartModelDataSeriesBeingDrawnForIdentification,
-//                                            chartDataCartesian,
-//                                            chartLineIndex);
-//                
-//                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
-//                const float lineXYZ[3] = {
-//                    chartPoint->getX(),
-//                    chartPoint->getY(),
-//                    0.0
-//                };
-//                
-//                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartDataSeriesID,
-//                                                                 lineXYZ);
-//            }
-//        }
-//    }
-//    else if (m_chartModelFrequencySeriesBeingDrawnForIdentification != NULL) {
-//        m_fixedPipelineDrawing->getIndexFromColorSelection(m_chartCartesianSelectionTypeForIdentification,
-//                                                           m_fixedPipelineDrawing->mouseX,
-//                                                           m_fixedPipelineDrawing->mouseY,
-//                                                           identifiedItemIndex,
-//                                                           depth);
-//        if (identifiedItemIndex >= 0) {
-//            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
-//            const int32_t chartDataIndex = m_identificationIndices[idIndex];
-//            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
-//            
-//            SelectionItemChartFrequencySeries* chartFrequencySeriesID = m_brain->getSelectionManager()->getChartFrequencySeriesIdentification();
-//            if (chartFrequencySeriesID->isOtherScreenDepthCloserToViewer(depth)) {
-//                ChartDataCartesian* chartDataCartesian =
-//                dynamic_cast<ChartDataCartesian*>(m_chartModelFrequencySeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
-//                CaretAssert(chartDataCartesian);
-//                chartFrequencySeriesID->setChart(m_chartModelFrequencySeriesBeingDrawnForIdentification,
-//                                                 chartDataCartesian,
-//                                                 chartLineIndex);
-//                
-//                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
-//                const float lineXYZ[3] = {
-//                    chartPoint->getX(),
-//                    chartPoint->getY(),
-//                    0.0
-//                };
-//                
-//                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartFrequencySeriesID,
-//                                                                 lineXYZ);
-//            }
-//        }
-//    }
-//    else if (m_chartModelTimeSeriesBeingDrawnForIdentification != NULL) {
-//        m_fixedPipelineDrawing->getIndexFromColorSelection(m_chartCartesianSelectionTypeForIdentification,
-//                                                           m_fixedPipelineDrawing->mouseX,
-//                                                           m_fixedPipelineDrawing->mouseY,
-//                                                           identifiedItemIndex,
-//                                                           depth);
-//        if (identifiedItemIndex >= 0) {
-//            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
-//            const int32_t chartDataIndex = m_identificationIndices[idIndex];
-//            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
-//            
-//            SelectionItemChartTimeSeries* chartTimeSeriesID = m_brain->getSelectionManager()->getChartTimeSeriesIdentification();
-//            if (chartTimeSeriesID->isOtherScreenDepthCloserToViewer(depth)) {
-//                ChartDataCartesian* chartDataCartesian =
-//                dynamic_cast<ChartDataCartesian*>(m_chartModelTimeSeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
-//                CaretAssert(chartDataCartesian);
-//                chartTimeSeriesID->setChart(m_chartModelTimeSeriesBeingDrawnForIdentification,
-//                                            chartDataCartesian,
-//                                            chartLineIndex);
-//                
-//                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
-//                const float lineXYZ[3] = {
-//                    chartPoint->getX(),
-//                    chartPoint->getY(),
-//                    0.0
-//                };
-//                
-//                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartTimeSeriesID,
-//                                                                 lineXYZ);
-//            }
-//        }
-//    }
-//    else if (m_chartableMatrixInterfaceBeingDrawnForIdentification != NULL) {
-//        m_fixedPipelineDrawing->getIndexFromColorSelection(m_selectionItemDataType,
-//                                                           m_fixedPipelineDrawing->mouseX,
-//                                                           m_fixedPipelineDrawing->mouseY,
-//                                                           identifiedItemIndex,
-//                                                           depth);
-//        if (identifiedItemIndex >= 0) {
-//            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT;
-//            const int32_t rowIndex = m_identificationIndices[idIndex];
-//            const int32_t columnIndex = m_identificationIndices[idIndex + 1];
-//            
-//            SelectionItemChartMatrix* chartMatrixID = m_brain->getSelectionManager()->getChartMatrixIdentification();
-//            if (chartMatrixID->isOtherScreenDepthCloserToViewer(depth)) {
-//                chartMatrixID->setChartMatrix(m_chartableMatrixInterfaceBeingDrawnForIdentification,
-//                                              rowIndex,
-//                                              columnIndex);
-//            }
-//        }
-//    }
 }
+
+/**
+ * Process identification for line-series.
+ *
+ * @param lineSeriesChart
+ *     The line-series chart.
+ */
+void
+BrainOpenGLChartTwoDrawingFixedPipeline::processLineSeriesIdentification(const ChartableTwoFileLineSeriesChart* lineSeriesChart)
+{
+    //    int32_t identifiedItemIndex;
+    //    float depth = -1.0;
+    //
+    //    if (m_chartModelDataSeriesBeingDrawnForIdentification != NULL) {
+    //        m_fixedPipelineDrawing->getIndexFromColorSelection(m_chartCartesianSelectionTypeForIdentification,
+    //                                                           m_fixedPipelineDrawing->mouseX,
+    //                                                           m_fixedPipelineDrawing->mouseY,
+    //                                                           identifiedItemIndex,
+    //                                                           depth);
+    //        if (identifiedItemIndex >= 0) {
+    //            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
+    //            const int32_t chartDataIndex = m_identificationIndices[idIndex];
+    //            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
+    //
+    //            SelectionItemChartDataSeries* chartDataSeriesID = m_brain->getSelectionManager()->getChartDataSeriesIdentification();
+    //            if (chartDataSeriesID->isOtherScreenDepthCloserToViewer(depth)) {
+    //                ChartDataCartesian* chartDataCartesian =
+    //                dynamic_cast<ChartDataCartesian*>(m_chartModelDataSeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
+    //                CaretAssert(chartDataCartesian);
+    //                chartDataSeriesID->setChart(m_chartModelDataSeriesBeingDrawnForIdentification,
+    //                                            chartDataCartesian,
+    //                                            chartLineIndex);
+    //
+    //                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
+    //                const float lineXYZ[3] = {
+    //                    chartPoint->getX(),
+    //                    chartPoint->getY(),
+    //                    0.0
+    //                };
+    //
+    //                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartDataSeriesID,
+    //                                                                 lineXYZ);
+    //            }
+    //        }
+    //    }
+    //    else if (m_chartModelFrequencySeriesBeingDrawnForIdentification != NULL) {
+    //        m_fixedPipelineDrawing->getIndexFromColorSelection(m_chartCartesianSelectionTypeForIdentification,
+    //                                                           m_fixedPipelineDrawing->mouseX,
+    //                                                           m_fixedPipelineDrawing->mouseY,
+    //                                                           identifiedItemIndex,
+    //                                                           depth);
+    //        if (identifiedItemIndex >= 0) {
+    //            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
+    //            const int32_t chartDataIndex = m_identificationIndices[idIndex];
+    //            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
+    //
+    //            SelectionItemChartFrequencySeries* chartFrequencySeriesID = m_brain->getSelectionManager()->getChartFrequencySeriesIdentification();
+    //            if (chartFrequencySeriesID->isOtherScreenDepthCloserToViewer(depth)) {
+    //                ChartDataCartesian* chartDataCartesian =
+    //                dynamic_cast<ChartDataCartesian*>(m_chartModelFrequencySeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
+    //                CaretAssert(chartDataCartesian);
+    //                chartFrequencySeriesID->setChart(m_chartModelFrequencySeriesBeingDrawnForIdentification,
+    //                                                 chartDataCartesian,
+    //                                                 chartLineIndex);
+    //
+    //                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
+    //                const float lineXYZ[3] = {
+    //                    chartPoint->getX(),
+    //                    chartPoint->getY(),
+    //                    0.0
+    //                };
+    //
+    //                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartFrequencySeriesID,
+    //                                                                 lineXYZ);
+    //            }
+    //        }
+    //    }
+    //    else if (m_chartModelTimeSeriesBeingDrawnForIdentification != NULL) {
+    //        m_fixedPipelineDrawing->getIndexFromColorSelection(m_chartCartesianSelectionTypeForIdentification,
+    //                                                           m_fixedPipelineDrawing->mouseX,
+    //                                                           m_fixedPipelineDrawing->mouseY,
+    //                                                           identifiedItemIndex,
+    //                                                           depth);
+    //        if (identifiedItemIndex >= 0) {
+    //            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
+    //            const int32_t chartDataIndex = m_identificationIndices[idIndex];
+    //            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
+    //
+    //            SelectionItemChartTimeSeries* chartTimeSeriesID = m_brain->getSelectionManager()->getChartTimeSeriesIdentification();
+    //            if (chartTimeSeriesID->isOtherScreenDepthCloserToViewer(depth)) {
+    //                ChartDataCartesian* chartDataCartesian =
+    //                dynamic_cast<ChartDataCartesian*>(m_chartModelTimeSeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
+    //                CaretAssert(chartDataCartesian);
+    //                chartTimeSeriesID->setChart(m_chartModelTimeSeriesBeingDrawnForIdentification,
+    //                                            chartDataCartesian,
+    //                                            chartLineIndex);
+    //
+    //                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
+    //                const float lineXYZ[3] = {
+    //                    chartPoint->getX(),
+    //                    chartPoint->getY(),
+    //                    0.0
+    //                };
+    //                
+    //                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartTimeSeriesID,
+    //                                                                 lineXYZ);
+    //            }
+    //        }
+    //    }
+    
+}
+
+/**
+ * Process identification for matrix.
+ *
+ * @param matrixChart
+ *     The matrix chart.
+ */
+void
+BrainOpenGLChartTwoDrawingFixedPipeline::processMatrixIdentification(const ChartableTwoFileMatrixChart* matrixChart)
+{
+   if (matrixChart != NULL) {
+        int32_t identifiedItemIndex;
+        float depth = -1.0;
+        m_fixedPipelineDrawing->getIndexFromColorSelection(m_selectionItemDataType,
+                                                           m_fixedPipelineDrawing->mouseX,
+                                                           m_fixedPipelineDrawing->mouseY,
+                                                           identifiedItemIndex,
+                                                           depth);
+        if (identifiedItemIndex >= 0) {
+            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT;
+            const int32_t rowIndex = m_identificationIndices[idIndex];
+            const int32_t columnIndex = m_identificationIndices[idIndex + 1];
+            
+            if (m_selectionItemMatrix->isOtherScreenDepthCloserToViewer(depth)) {
+                m_selectionItemMatrix->setMatrixChart(const_cast<ChartableTwoFileMatrixChart*>(matrixChart),
+                                                      rowIndex,
+                                                      columnIndex);
+            }
+        }
+    }
+    
+}
+

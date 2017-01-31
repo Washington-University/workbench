@@ -43,6 +43,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "ChartableTwoFileMatrixChart.h"
 #include "ChartingDataManager.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
@@ -96,6 +97,7 @@
 #include "SceneWindowGeometry.h"
 #include "SelectionManager.h"
 #include "SelectionItemChartMatrix.h"
+#include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
@@ -2695,15 +2697,15 @@ GuiManager::processIdentification(const int32_t tabIndex,
             }
         }
         
-        SelectionItemChartMatrix* idChartMatrix = selectionManager->getChartMatrixIdentification();
-        if (idChartMatrix->isValid()) {
-            ChartableMatrixInterface* chartMatrixInterface = idChartMatrix->getChartableMatrixInterface();
+        SelectionItemChartMatrix* idChartOneMatrix = selectionManager->getChartMatrixIdentification();
+        if (idChartOneMatrix->isValid()) {
+            ChartableMatrixInterface* chartMatrixInterface = idChartOneMatrix->getChartableMatrixInterface();
             if (chartMatrixInterface != NULL) {
                 CiftiConnectivityMatrixParcelFile* ciftiParcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(chartMatrixInterface);
                 if (ciftiParcelFile != NULL) {
                     if (ciftiParcelFile->isMapDataLoadingEnabled(0)) {
-                        const int32_t rowIndex = idChartMatrix->getMatrixRowIndex();
-                        const int32_t columnIndex = idChartMatrix->getMatrixColumnIndex();
+                        const int32_t rowIndex = idChartOneMatrix->getMatrixRowIndex();
+                        const int32_t columnIndex = idChartOneMatrix->getMatrixColumnIndex();
                         if ((rowIndex >= 0)
                             && (columnIndex >= 0)) {
                             try {
@@ -2726,7 +2728,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 
                 CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(chartMatrixInterface);
                 if (scalarDataSeriesFile != NULL) {
-                    const int32_t rowIndex = idChartMatrix->getMatrixRowIndex();
+                    const int32_t rowIndex = idChartOneMatrix->getMatrixRowIndex();
                     if (rowIndex >= 0) {
                         scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
                                                                   rowIndex);
@@ -2766,6 +2768,91 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                                                         ciftiLoadingInfo);
                     updateGraphicsFlag = true;
                 
+                }
+            }
+        }
+        
+        SelectionItemChartTwoMatrix* idChartTwoMatrix = selectionManager->getChartTwoMatrixIdentification();
+        if (idChartTwoMatrix != NULL) {
+            if (idChartTwoMatrix->isValid()) {
+                ChartableTwoFileMatrixChart* matrixChart = idChartTwoMatrix->getFileMatrixChart();
+                const int32_t rowIndex = idChartTwoMatrix->getRowIndex();
+                const int32_t colIndex = idChartTwoMatrix->getColumnIndex();
+                
+                CaretMappableDataFile* cmdf = matrixChart->getCaretMappableDataFile();
+                CaretAssert(cmdf);
+                
+                switch (matrixChart->getMatrixContentType()) {
+                    case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE:
+                    {
+                        CiftiConnectivityMatrixParcelFile* ciftiParcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(cmdf);
+                        if (ciftiParcelFile != NULL) {
+                            if (ciftiParcelFile->isMapDataLoadingEnabled(0)) {
+                                if ((rowIndex >= 0)
+                                    && (colIndex >= 0)) {
+                                    try {
+                                        ciftiConnectivityManager->loadRowOrColumnFromParcelFile(brain,
+                                                                                                ciftiParcelFile,
+                                                                                                rowIndex,
+                                                                                                colIndex,
+                                                                                                ciftiLoadingInfo);
+                                        
+                                    }
+                                    catch (const DataFileException& e) {
+                                        cursor.restoreCursor();
+                                        QMessageBox::critical(parentWidget, "", e.whatString());
+                                        cursor.showWaitCursor();
+                                    }
+                                    updateGraphicsFlag = true;
+                                }
+                            }
+                        }
+                        else {
+                            CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(cmdf);
+                            if (matrixFile != NULL) {
+                                if ((rowIndex >= 0)
+                                    || (colIndex >= 0)) {
+                                    ciftiConnectivityManager->loadRowOrColumnFromConnectivityMatrixFile(brain,
+                                                                                                        matrixFile,
+                                                                                                        rowIndex,
+                                                                                                        colIndex,
+                                                                                                        ciftiLoadingInfo);
+                                    updateGraphicsFlag = true;
+                                    
+                                }
+                            }
+                        }
+                    }
+                        break;
+                    case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_SCALARS:
+                    {
+                        CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(cmdf);
+                        if (scalarDataSeriesFile != NULL) {
+                            if (rowIndex >= 0) {
+                                scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
+                                                                          rowIndex);
+                                
+                                const MapYokingGroupEnum::Enum mapYoking = scalarDataSeriesFile->getMatrixRowColumnMapYokingGroup(tabIndex);
+                                
+                                if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                                    EventMapYokingSelectMap selectMapEvent(mapYoking,
+                                                                           scalarDataSeriesFile,
+                                                                           rowIndex,
+                                                                           true);
+                                    EventManager::get()->sendEvent(selectMapEvent.getPointer());
+                                }
+                                else {
+                                    chartingDataManager->loadChartForCiftiMappableFileRow(scalarDataSeriesFile,
+                                                                                          rowIndex);
+                                }
+                                
+                                updateGraphicsFlag = true;
+                            }
+                        }
+                    }
+                        break;
+                    case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED:
+                        break;
                 }
             }
         }

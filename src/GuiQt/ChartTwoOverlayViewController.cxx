@@ -50,6 +50,7 @@ using namespace caret;
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "FilePathNamePrefixCompactor.h"
@@ -309,8 +310,7 @@ ChartTwoOverlayViewController::fileComboBoxSelected(int indx)
     
     updateViewController(m_chartOverlay);
     m_mapRowOrColumnYokingGroupComboBox->validateYokingChange(m_chartOverlay);
-    updateGraphicsWindow();
-    updateUserInterface();
+    updateUserInterfaceAndGraphicsWindow();
     updateOverlaySettingsEditor();
     
 //    if (file != NULL) {
@@ -325,11 +325,11 @@ ChartTwoOverlayViewController::fileComboBoxSelected(int indx)
 
 /**
  * Called when a selection is made from the map index spin box.
- * @parm indx
+ * @parm indxIn
  *    Index of selection.
  */
 void
-ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indx)
+ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indxIn)
 {
     if (m_chartOverlay == NULL)
     {
@@ -344,17 +344,17 @@ ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indx)
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
     
     /*
-     * Overlay indices range [0, N-1] but spin box shows [1, N].
+     * Spin box may range [0, N-1] or [1, N] but in source code
+     * indices are always [0, N-1]
      */
-    const int overlayIndex = indx - 1;
-    
-    m_chartOverlay->setSelectionData(file, overlayIndex);
+    const int32_t indx = indxIn - m_mapRowOrColumnIndexSpinBox->minimum();
+    m_chartOverlay->setSelectionData(file, indx);
     
     const MapYokingGroupEnum::Enum mapYoking = m_chartOverlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
-                                               overlayIndex,
+                                               indx,
                                                m_chartOverlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }
@@ -363,14 +363,13 @@ ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indx)
      * Need to update map name combo box.
      */
     m_mapRowOrColumnNameComboBox->blockSignals(true);
-    if ((overlayIndex >= 0)
-        && (overlayIndex < m_mapRowOrColumnNameComboBox->count())) {
-        m_mapRowOrColumnNameComboBox->setCurrentIndex(overlayIndex);
+    if ((indx >= 0)
+        && (indx < m_mapRowOrColumnNameComboBox->count())) {
+        m_mapRowOrColumnNameComboBox->setCurrentIndex(indx);
     }
     m_mapRowOrColumnNameComboBox->blockSignals(false);
     
-    this->updateUserInterface();
-    this->updateGraphicsWindow();
+    this->updateUserInterfaceAndGraphicsWindow();
     
     updateOverlaySettingsEditor();
 }
@@ -407,14 +406,15 @@ ChartTwoOverlayViewController::mapRowOrColumnNameComboBoxSelected(int indx)
     
     /*
      * Need to update map index spin box.
-     * Note that the map index spin box ranges [1, N].
+     * Spin box may range [0, N-1] or [1, N] but in source code
+     * indices are always [0, N-1]
      */
+    const int spinBoxIndex = indx + m_mapRowOrColumnIndexSpinBox->minimum();
     m_mapRowOrColumnIndexSpinBox->blockSignals(true);
-    m_mapRowOrColumnIndexSpinBox->setValue(indx);
+    m_mapRowOrColumnIndexSpinBox->setValue(spinBoxIndex);
     m_mapRowOrColumnIndexSpinBox->blockSignals(false);
     
-    this->updateUserInterface();
-    this->updateGraphicsWindow();
+    this->updateUserInterfaceAndGraphicsWindow();
     
     updateOverlaySettingsEditor();
 }
@@ -446,9 +446,7 @@ ChartTwoOverlayViewController::enabledCheckBoxClicked(bool checked)
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }
     
-    this->updateUserInterface();
-    
-    this->updateGraphicsWindow();
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
@@ -493,7 +491,7 @@ ChartTwoOverlayViewController::validateYokingSelection()
 {
     m_mapRowOrColumnYokingGroupComboBox->validateYokingChange(m_chartOverlay);
     updateViewController(m_chartOverlay);
-    updateGraphicsWindow();
+    updateUserInterfaceAndGraphicsWindow();
     //EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -664,8 +662,28 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             m_mapRowOrColumnNameComboBox->addItem(selectedFileMapNames[i]);
         }
         m_mapRowOrColumnNameComboBox->setCurrentIndex(selectedMapIndex);
-        m_mapRowOrColumnIndexSpinBox->setRange(0, numberOfMaps - 1);
-        m_mapRowOrColumnIndexSpinBox->setValue(selectedMapIndex);
+        
+        /*
+         * Spin box ranges [0, N-1] or [1, N] depending upon data
+         */
+        int32_t mapIndexMinimumValue = 1;
+        int32_t mapIndexMaximumValue = numberOfMaps;
+        switch (m_chartOverlay->getChartTwoDataType()) {
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                mapIndexMinimumValue = 0;
+                mapIndexMaximumValue = numberOfMaps - 1;
+                break;
+        }
+        
+        m_mapRowOrColumnIndexSpinBox->setRange(mapIndexMinimumValue, mapIndexMaximumValue);
+        const int spinBoxIndex = selectedMapIndex + m_mapRowOrColumnIndexSpinBox->minimum();
+        m_mapRowOrColumnIndexSpinBox->setValue(spinBoxIndex);
     }
     m_mapRowOrColumnNameComboBox->blockSignals(false);
     m_mapRowOrColumnIndexSpinBox->blockSignals(false);
@@ -812,12 +830,7 @@ ChartTwoOverlayViewController::updateUserInterfaceAndGraphicsWindow()
 void
 ChartTwoOverlayViewController::updateUserInterface()
 {
-//    if (m_chartOverlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//    }
-//    else {
-//        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).getPointer());
-//    }
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**
@@ -826,12 +839,8 @@ ChartTwoOverlayViewController::updateUserInterface()
 void
 ChartTwoOverlayViewController::updateGraphicsWindow()
 {
-//    if (m_chartOverlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//    }
-//    else {
-//        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
-//    }
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

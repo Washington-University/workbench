@@ -32,6 +32,9 @@ namespace caret {
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
     class ModelChart;
+    class SelectionItemChartTwoHistogram;
+    class SelectionItemChartTwoLineSeries;
+    class SelectionItemChartTwoMatrix;
     
     class BrainOpenGLChartTwoDrawingFixedPipeline : public BrainOpenGLChartTwoDrawingInterface {
         
@@ -87,7 +90,11 @@ namespace caret {
         
         void resetIdentification();
         
-        void processIdentification();
+        void processHistogramIdentification(const ChartableTwoFileHistogramChart* histogramChart);
+        
+        void processLineSeriesIdentification(const ChartableTwoFileLineSeriesChart* lineSeriesChart);
+        
+        void processMatrixIdentification(const ChartableTwoFileMatrixChart* matrixChart);
         
         void addToChartMatrixIdentification(const int32_t matrixRowIndex,
                                             const int32_t matrixColumnIndex,
@@ -132,6 +139,12 @@ namespace caret {
         
         CaretPreferences* m_preferences;
         
+        SelectionItemChartTwoHistogram* m_selectionItemHistogram;
+        
+        SelectionItemChartTwoLineSeries* m_selectionItemLineSeries;
+
+        SelectionItemChartTwoMatrix* m_selectionItemMatrix;
+
         bool m_identificationModeFlag;
         
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;

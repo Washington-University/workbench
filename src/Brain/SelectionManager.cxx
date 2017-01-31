@@ -37,6 +37,9 @@
 #include "SelectionItemChartFrequencySeries.h"
 #include "SelectionItemChartMatrix.h"
 #include "SelectionItemChartTimeSeries.h"
+#include "SelectionItemChartTwoHistogram.h"
+#include "SelectionItemChartTwoLineSeries.h"
+#include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
@@ -72,6 +75,10 @@ SelectionManager::SelectionManager()
     m_chartDataSeriesIdentification = new SelectionItemChartDataSeries();
     m_chartDataFrequencyIdentification = new SelectionItemChartFrequencySeries();
     m_chartMatrixIdentification     = new SelectionItemChartMatrix();
+    m_chartTwoHistogramIdentification = std::unique_ptr<SelectionItemChartTwoHistogram>(new SelectionItemChartTwoHistogram());
+    m_chartTwoLineSeriesIdentification = std::unique_ptr<SelectionItemChartTwoLineSeries>(new SelectionItemChartTwoLineSeries());
+    m_chartTwoMatrixIdentification = std::unique_ptr<SelectionItemChartTwoMatrix>(new SelectionItemChartTwoMatrix());
+    
     m_ciftiConnectivityMatrixRowColumnIdentfication = new SelectionItemCiftiConnectivityMatrixRowColumn();
     m_chartTimeSeriesIdentification = new SelectionItemChartTimeSeries();
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
@@ -91,6 +98,9 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_chartDataFrequencyIdentification);
     m_allSelectionItems.push_back(m_chartMatrixIdentification);
     m_allSelectionItems.push_back(m_chartTimeSeriesIdentification);
+    m_allSelectionItems.push_back(m_chartTwoHistogramIdentification.get());
+    m_allSelectionItems.push_back(m_chartTwoLineSeriesIdentification.get());
+    m_allSelectionItems.push_back(m_chartTwoMatrixIdentification.get());
     m_allSelectionItems.push_back(m_ciftiConnectivityMatrixRowColumnIdentfication);
     m_allSelectionItems.push_back(m_surfaceFocusIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
@@ -704,7 +714,6 @@ SelectionManager::getChartFrequencySeriesIdentification() const
     return m_chartDataFrequencyIdentification;
 }
 
-
 /**
  * @return Identification for matrix chart.
  */
@@ -721,6 +730,60 @@ const SelectionItemChartMatrix*
 SelectionManager::getChartMatrixIdentification() const
 {
     return m_chartMatrixIdentification;
+}
+
+/**
+ * @return Identification for chart two histogram identification
+ */
+SelectionItemChartTwoHistogram*
+SelectionManager::getChartTwoHistogramIdentification()
+{
+    return m_chartTwoHistogramIdentification.get();
+}
+
+/**
+ * @return Identification for chart two histogram identification
+ */
+const SelectionItemChartTwoHistogram*
+SelectionManager::getChartTwoHistogramIdentification() const
+{
+    return m_chartTwoHistogramIdentification.get();
+}
+
+/**
+ * @return Identification for chart two line series identification
+ */
+SelectionItemChartTwoLineSeries*
+SelectionManager::getChartTwoLineSeriesIdentification()
+{
+    return m_chartTwoLineSeriesIdentification.get();
+}
+
+/**
+ * @return Identification for chart two line series identification
+ */
+const SelectionItemChartTwoLineSeries*
+SelectionManager::getChartTwoLineSeriesIdentification() const
+{
+    return m_chartTwoLineSeriesIdentification.get();
+}
+
+/**
+ * @return Identification for chart two matrix identification.
+ */
+SelectionItemChartTwoMatrix*
+SelectionManager::getChartTwoMatrixIdentification()
+{
+    return m_chartTwoMatrixIdentification.get();
+}
+
+/**
+ * @return Identification for chart two matrix identification.
+ */
+const SelectionItemChartTwoMatrix*
+SelectionManager::getChartTwoMatrixIdentification() const
+{
+    return m_chartTwoMatrixIdentification.get();
 }
 
 /**

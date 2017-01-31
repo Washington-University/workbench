@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 
@@ -35,6 +37,9 @@ namespace caret {
     class SelectionItemChartFrequencySeries;
     class SelectionItemChartMatrix;
     class SelectionItemChartTimeSeries;
+    class SelectionItemChartTwoHistogram;
+    class SelectionItemChartTwoLineSeries;
+    class SelectionItemChartTwoMatrix;
     class SelectionItemCiftiConnectivityMatrixRowColumn;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
@@ -128,6 +133,18 @@ namespace caret {
         
         const SelectionItemCiftiConnectivityMatrixRowColumn* getCiftiConnectivityMatrixRowColumnIdentification() const;
         
+        SelectionItemChartTwoHistogram* getChartTwoHistogramIdentification();
+        
+        const SelectionItemChartTwoHistogram* getChartTwoHistogramIdentification() const;
+        
+        SelectionItemChartTwoLineSeries* getChartTwoLineSeriesIdentification();
+        
+        const SelectionItemChartTwoLineSeries* getChartTwoLineSeriesIdentification() const;
+        
+        SelectionItemChartTwoMatrix* getChartTwoMatrixIdentification();
+        
+        const SelectionItemChartTwoMatrix* getChartTwoMatrixIdentification() const;
+        
         AString getIdentificationText(const Brain* brain) const;
         
         void filterSelections(const bool applySelectionBackgroundFiltering);
@@ -177,6 +194,12 @@ namespace caret {
         
         SelectionItemChartTimeSeries* m_chartTimeSeriesIdentification;
         
+        std::unique_ptr<SelectionItemChartTwoHistogram>  m_chartTwoHistogramIdentification;
+        
+        std::unique_ptr<SelectionItemChartTwoLineSeries> m_chartTwoLineSeriesIdentification;
+        
+        std::unique_ptr<SelectionItemChartTwoMatrix>     m_chartTwoMatrixIdentification;
+
         SelectionItemCiftiConnectivityMatrixRowColumn* m_ciftiConnectivityMatrixRowColumnIdentfication;
         
         SelectionItemFocusSurface* m_surfaceFocusIdentification;

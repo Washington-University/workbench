@@ -33,6 +33,9 @@
 #include "ChartDataSource.h"
 #include "ChartModelDataSeries.h"
 #include "ChartableMatrixInterface.h"
+#include "ChartableTwoFileHistogramChart.h"
+#include "ChartableTwoFileLineSeriesChart.h"
+#include "ChartableTwoFileMatrixChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CaretVolumeExtension.h"
@@ -50,6 +53,9 @@
 #include "SelectionItemChartMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemChartTimeSeries.h"
+#include "SelectionItemChartTwoHistogram.h"
+#include "SelectionItemChartTwoLineSeries.h"
+#include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemImage.h"
@@ -142,6 +148,15 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
     
     this->generateCiftiConnectivityMatrixIdentificationText(idText,
                                                             idManager->getCiftiConnectivityMatrixRowColumnIdentification());
+    
+    this->generateChartTwoHistogramIdentificationText(idText,
+                                                      idManager->getChartTwoHistogramIdentification());
+    
+    this->generateChartTwoLineSeriesIdentificationText(idText,
+                                                      idManager->getChartTwoLineSeriesIdentification());
+    
+    this->generateChartTwoMatrixIdentificationText(idText,
+                                                      idManager->getChartTwoMatrixIdentification());
     
     this->generateImageIdentificationText(idText,
                                           idManager->getImageIdentification());
@@ -773,6 +788,79 @@ IdentificationTextGenerator::generateChartMatrixIdentificationText(Identificatio
 }
 
 /**
+ * Generate identification text for a chart two histogram.
+ *
+ * @param idText
+ *     String builder for identification text.
+ * @param idChartTwoHistogram
+ *     Information for selected chart two histogram.
+ */
+void
+IdentificationTextGenerator::generateChartTwoHistogramIdentificationText(IdentificationStringBuilder& idText,
+                                                 const SelectionItemChartTwoHistogram* idChartTwoHistogram) const
+{
+    CaretAssertToDoWarning();
+}
+
+/**
+ * Generate identification text for a chart two line-series.
+ *
+ * @param idText
+ *     String builder for identification text.
+ * @param idChartTwoLineSeries
+ *     Information for selected chart two line-series.
+ */
+void
+IdentificationTextGenerator::generateChartTwoLineSeriesIdentificationText(IdentificationStringBuilder& idText,
+                                                  const SelectionItemChartTwoLineSeries* idChartTwoLineSeries) const
+{
+    CaretAssertToDoWarning();
+}
+
+/**
+ * Generate identification text for a chart two matrix.
+ *
+ * @param idText
+ *     String builder for identification text.
+ * @param idChartTwoMatrix
+ *     Information for selected chart two matrix.
+ */
+void
+IdentificationTextGenerator::generateChartTwoMatrixIdentificationText(IdentificationStringBuilder& idText,
+                                              const SelectionItemChartTwoMatrix* idChartTwoMatrix) const
+{
+    if (idChartTwoMatrix->isValid()) {
+        const ChartableTwoFileMatrixChart* matrixChart = idChartTwoMatrix->getFileMatrixChart();
+        CaretAssert(matrixChart);
+        
+        const int32_t rowIndex = idChartTwoMatrix->getRowIndex();
+        const int32_t colIndex = idChartTwoMatrix->getColumnIndex();
+        
+        const CaretMappableDataFile* mapFile = matrixChart->getCaretMappableDataFile();
+        CaretAssert(mapFile);
+        
+        AString boldText("MATRIX ROW/COLUMN");
+        idText.addLine(false,
+                       boldText,
+                       mapFile->getFileNameNoPath());
+        
+        const CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(mapFile);
+        if (rowIndex >= 0) {
+            const AString rowName = (matrixFile != NULL) ? ("  " + matrixFile->getRowName(rowIndex)) : "";
+            idText.addLine(true,
+                           "Row",
+                           (AString::number(rowIndex) + rowName));
+        }
+        if (colIndex >= 0) {
+            const AString colName = (matrixFile != NULL) ? ("  " + matrixFile->getColumnName(colIndex)) : "";
+            idText.addLine(true,
+                           "Column",
+                           (AString::number(colIndex) + colName));
+        }
+    }
+}
+
+/**
  * Generate identification text for a CIFTI Connectivity Matrix Row/Column
  * @param idText
  *     String builder for identification text.
@@ -793,8 +881,8 @@ IdentificationTextGenerator::generateCiftiConnectivityMatrixIdentificationText(I
                        boldText,
                        connMatrixFile->getFileNameNoPath());
         
-        AString rowName = "";
-        AString colName = "";
+        AString rowName = " ";
+        AString colName = " ";
         bool validData = true;
         if (validData) {
             if (rowIndex >= 0) {
