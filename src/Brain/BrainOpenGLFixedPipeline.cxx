@@ -123,6 +123,7 @@
 #include "SelectionManager.h"
 #include "MathFunctions.h"
 #include "ModelChart.h"
+#include "ModelChartTwo.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelVolume.h"
@@ -397,6 +398,10 @@ BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(BrainOpenGLViewpor
             if (model != NULL) {
                 switch (model->getModelType()) {
                     case ModelTypeEnum::MODEL_TYPE_CHART:
+                        prefs->getBackgroundAndForegroundColors()->getColorForegroundChartView(m_foregroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorBackgroundChartView(m_backgroundColorByte);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
                         prefs->getBackgroundAndForegroundColors()->getColorForegroundChartView(m_foregroundColorByte);
                         prefs->getBackgroundAndForegroundColors()->getColorBackgroundChartView(m_backgroundColorByte);
                         break;
@@ -904,12 +909,16 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
             
             ModelChart* modelChart = dynamic_cast<ModelChart*>(model);
+            ModelChartTwo* modelTwoChart = dynamic_cast<ModelChartTwo*>(model);
             ModelSurface* surfaceModel = dynamic_cast<ModelSurface*>(model);
             ModelSurfaceMontage* surfaceMontageModel = dynamic_cast<ModelSurfaceMontage*>(model);
             ModelVolume* volumeModel = dynamic_cast<ModelVolume*>(model);
             ModelWholeBrain* wholeBrainModel = dynamic_cast<ModelWholeBrain*>(model);
             if (modelChart != NULL) {
-                drawChartData(browserTabContent, modelChart, viewport);
+                drawChartOneData(browserTabContent, modelChart, viewport);
+            }
+            else if (modelTwoChart != NULL) {
+                drawChartTwoData(browserTabContent, modelTwoChart, viewport);
             }
             else if (surfaceModel != NULL) {
                 m_mirroredClippingEnabled = true;
@@ -5275,7 +5284,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
  *    The viewport (x, y, width, height)
  */
 void
-BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
+BrainOpenGLFixedPipeline::drawChartOneData(BrowserTabContent* browserTabContent,
                     ModelChart* chartModel,
                     const int32_t viewport[4])
 {
@@ -5284,27 +5293,6 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
     CaretAssert(chartModel);
     
     const int32_t tabIndex = browserTabContent->getTabNumber();
-    
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1)) {
-        if (m_windowIndex == 0) {
-            float translation[3];
-            browserTabContent->getTranslation(translation);
-            BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
-            const float zooming = browserTabContent->getScaling();
-            
-            chartDrawing.drawChartOverlaySet(m_brain,
-                                             chartModel,
-                                             this,
-                                             getTextRenderer(),
-                                             translation,
-                                             zooming,
-                                             chartModel->getChartTwoOverlaySet(tabIndex),
-                                             SelectionItemDataTypeEnum::CHART_DATA_SERIES,
-                                             viewport,
-                                             tabIndex);
-            return;
-        }
-    }
     
     ChartModelCartesian* cartesianChart = NULL;
     ChartableMatrixInterface* matrixChartFile = NULL;
@@ -5373,6 +5361,44 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
                                      selectionItemDataType,
                                      this->windowTabIndex);
     }
+}
+
+/**
+ * Draw a chart two model.
+ *
+ * @param browserTabContent
+ *    Content of browser tab.
+ * @param chartModel
+ *    The chart model.
+ * @param viewport
+ *    The viewport (x, y, width, height)
+ */
+void
+BrainOpenGLFixedPipeline::drawChartTwoData(BrowserTabContent* browserTabContent,
+                                           ModelChartTwo* chartModel,
+                                           const int32_t viewport[4])
+{
+    
+    CaretAssert(browserTabContent);
+    CaretAssert(chartModel);
+    
+    const int32_t tabIndex = browserTabContent->getTabNumber();
+    
+    float translation[3];
+    browserTabContent->getTranslation(translation);
+    BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
+    const float zooming = browserTabContent->getScaling();
+    
+    chartDrawing.drawChartOverlaySet(m_brain,
+                                     chartModel,
+                                     this,
+                                     getTextRenderer(),
+                                     translation,
+                                     zooming,
+                                     chartModel->getChartTwoOverlaySet(tabIndex),
+                                     SelectionItemDataTypeEnum::CHART_DATA_SERIES,
+                                     viewport,
+                                     tabIndex);
 }
 
 /**

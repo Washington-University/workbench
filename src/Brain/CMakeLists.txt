@@ -141,6 +141,7 @@ IdentifiedItemVoxel.h
 ImageDepthPositionEnum.h
 Model.h
 ModelChart.h
+ModelChartTwo.h
 ModelSurface.h
 ModelSurfaceMontage.h
 ModelSurfaceSelector.h
@@ -284,6 +285,7 @@ IdentifiedItemVoxel.cxx
 ImageDepthPositionEnum.cxx
 Model.cxx
 ModelChart.cxx
+ModelChartTwo.cxx
 ModelSurface.cxx
 ModelSurfaceMontage.cxx
 ModelSurfaceSelector.cxx

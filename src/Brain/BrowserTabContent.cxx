@@ -40,6 +40,7 @@
 #include "CaretPreferences.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
+#include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
@@ -61,6 +62,7 @@
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "ModelChart.h"
+#include "ModelChartTwo.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelSurfaceSelector.h"
@@ -112,6 +114,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_wholeBrainModel = NULL;
     m_surfaceMontageModel = NULL;
     m_chartModel = NULL;
+    m_chartTwoModel = NULL;
     m_guiName = "";
     m_userName = "";
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
@@ -125,7 +128,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_flatSurfaceViewingTransformation = new ViewingTransformations();
     m_viewingTransformation            = new ViewingTransformations();
     m_volumeSliceViewingTransformation = new ViewingTransformationsVolume();
-    m_chartMatrixViewingTranformation  = new ViewingTransformations();
+    m_chartTwoMatrixViewingTranformation  = new ViewingTransformations();
     
     m_wholeBrainSurfaceSettings        = new WholeBrainSurfaceSettings();
     
@@ -170,9 +173,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                "ViewingTransformations",
                                m_volumeSliceViewingTransformation);
     
-    m_sceneClassAssistant->add("m_chartMatrixViewingTranformation",
+    m_sceneClassAssistant->add("m_chartTwoMatrixViewingTranformation",
                                "ViewingTransformations",
-                               m_chartMatrixViewingTranformation);
+                               m_chartTwoMatrixViewingTranformation);
     
     m_sceneClassAssistant->add("m_volumeSliceSettings",
                                "VolumeSliceSettings",
@@ -224,7 +227,7 @@ BrowserTabContent::~BrowserTabContent()
     delete m_cerebellumViewingTransformation;
     delete m_viewingTransformation;
     delete m_volumeSliceViewingTransformation;
-    delete m_chartMatrixViewingTranformation;
+    delete m_chartTwoMatrixViewingTranformation;
     delete m_obliqueVolumeRotationMatrix;
     
     delete m_surfaceModelSelector;
@@ -279,7 +282,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_flatSurfaceViewingTransformation = *tabToClone->m_flatSurfaceViewingTransformation;
     *m_viewingTransformation = *tabToClone->m_viewingTransformation;
     *m_volumeSliceViewingTransformation = *tabToClone->m_volumeSliceViewingTransformation;
-    *m_chartMatrixViewingTranformation = *tabToClone->m_chartMatrixViewingTranformation;
+    *m_chartTwoMatrixViewingTranformation = *tabToClone->m_chartTwoMatrixViewingTranformation;
     *m_volumeSliceSettings = *tabToClone->m_volumeSliceSettings;
     *m_wholeBrainSurfaceSettings = *tabToClone->m_wholeBrainSurfaceSettings;
     
@@ -422,6 +425,7 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
         bool volumeFlag     = false;
         switch (model->getModelType()) {
             case ModelTypeEnum::MODEL_TYPE_CHART:
+            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
                 chartFlag = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
@@ -553,6 +557,9 @@ BrowserTabContent::getModelForDisplay()
         case ModelTypeEnum::MODEL_TYPE_CHART:
             mdc = m_chartModel;
             break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            mdc = m_chartTwoModel;
+            break;
     }
     
     return mdc;
@@ -587,6 +594,9 @@ BrowserTabContent::getModelForDisplay() const
         case ModelTypeEnum::MODEL_TYPE_CHART:
             mdc = m_chartModel;
             break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            mdc = m_chartTwoModel;
+            break;
     }
     
     return mdc;
@@ -600,7 +610,7 @@ BrowserTabContent::getModelForDisplay() const
  *          chart.
  */
 ModelChart*
-BrowserTabContent::getDisplayedChartModel()
+BrowserTabContent::getDisplayedChartOneModel()
 {
     ModelChart* mc = dynamic_cast<ModelChart*>(getModelForDisplay());
     return mc;
@@ -614,9 +624,37 @@ BrowserTabContent::getDisplayedChartModel()
  *          chart.
  */
 const ModelChart*
-BrowserTabContent::getDisplayedChartModel() const
+BrowserTabContent::getDisplayedChartOneModel() const
 {
     const ModelChart* mc = dynamic_cast<const ModelChart*>(getModelForDisplay());
+    return mc;
+}
+
+/**
+ * Get the displayed chart model two.
+ *
+ * @return  Pointer to displayed chart model or
+ *          NULL if the displayed model is NOT a
+ *          chart.
+ */
+ModelChartTwo*
+BrowserTabContent::getDisplayedChartTwoModel()
+{
+    ModelChartTwo* mc = dynamic_cast<ModelChartTwo*>(getModelForDisplay());
+    return mc;
+}
+
+/**
+ * Get the displayed chart model two.
+ *
+ * @return  Pointer to displayed chart model or
+ *          NULL if the displayed model is NOT a
+ *          chart.
+ */
+const ModelChartTwo*
+BrowserTabContent::getDisplayedChartTwoModel() const
+{
+    const ModelChartTwo* mc = dynamic_cast<const ModelChartTwo*>(getModelForDisplay());
     return mc;
 }
 
@@ -726,18 +764,33 @@ BrowserTabContent::isFlatSurfaceDisplayed() const
 }
 
 /**
- * @return True if the displayed model is a chart
+ * @return True if the displayed model is a chart one
  */
 bool
-BrowserTabContent::isChartDisplayed() const
+BrowserTabContent::isChartOneDisplayed() const
 {
-    const ModelChart* chartModel = getDisplayedChartModel();
+    const ModelChart* chartModel = getDisplayedChartOneModel();
     if (chartModel != NULL) {
         return true;
     }
     
     return false;
 }
+
+/**
+ * @return True if the displayed model is a chart two
+ */
+bool
+BrowserTabContent::isChartTwoDisplayed() const
+{
+    const ModelChartTwo* chartModel = getDisplayedChartTwoModel();
+    if (chartModel != NULL) {
+        return true;
+    }
+    
+    return false;
+}
+
 
 /**
  * @return Is the displayed model a volume slice model?
@@ -856,7 +909,7 @@ BrowserTabContent::getOverlaySet() const
 }
 
 /**
- * @return Overlay set for this tab.
+ * @return Chart overlay set for this tab.
  */
 ChartTwoOverlaySet*
 BrowserTabContent::getChartTwoOverlaySet()
@@ -869,7 +922,7 @@ BrowserTabContent::getChartTwoOverlaySet()
 }
 
 /**
- * @return Overlay set for this tab.
+ * @return Chart overlay set for this tab.
  */
 const ChartTwoOverlaySet*
 BrowserTabContent::getChartTwoOverlaySet() const
@@ -910,6 +963,7 @@ BrowserTabContent::update(const std::vector<Model*> models)
     m_wholeBrainModel = NULL;
     m_surfaceMontageModel = NULL;
     m_chartModel = NULL;
+    m_chartTwoModel = NULL;
     
     for (int i = 0; i < numModels; i++) {
         Model* mdc = models[i];
@@ -919,6 +973,7 @@ BrowserTabContent::update(const std::vector<Model*> models)
         ModelWholeBrain* mdcwb = dynamic_cast<ModelWholeBrain*>(mdc);
         ModelSurfaceMontage* mdcsm = dynamic_cast<ModelSurfaceMontage*>(mdc);
         ModelChart* mdch = dynamic_cast<ModelChart*>(mdc);
+        ModelChartTwo* mdchTwo = dynamic_cast<ModelChartTwo*>(mdc);
         
         if (mdcs != NULL) {
             /* nothing to do since the surface model selector handles surfaces */
@@ -936,8 +991,12 @@ BrowserTabContent::update(const std::vector<Model*> models)
             m_surfaceMontageModel = mdcsm;
         }
         else if (mdch != NULL) {
-            CaretAssertMessage((m_chartModel == NULL), "There is more than one surface chart model.");
+            CaretAssertMessage((m_chartModel == NULL), "There is more than one chart model.");
             m_chartModel = mdch;
+        }
+        else if (mdchTwo != NULL) {
+            CaretAssertMessage((m_chartTwoModel == NULL), "There is more than one chart two model.");
+            m_chartTwoModel = mdchTwo;
         }
         else {
             CaretAssertMessage(0, (AString("Unknown type of brain model.") + mdc->getNameForGUI(true)));
@@ -972,6 +1031,11 @@ BrowserTabContent::update(const std::vector<Model*> models)
                 m_selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
             }
             break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            if (m_chartTwoModel == NULL) {
+                m_selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
+            }
+            break;
     }
     
     if (m_selectedModelType == ModelTypeEnum::MODEL_TYPE_INVALID) {
@@ -989,6 +1053,9 @@ BrowserTabContent::update(const std::vector<Model*> models)
         }
         else if (m_chartModel != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_CHART;
+        }
+        else if (m_chartTwoModel != NULL) {
+            m_selectedModelType = ModelTypeEnum::MODEL_TYPE_CHART_TWO;
         }
     }
     
@@ -1025,14 +1092,26 @@ BrowserTabContent::update(const std::vector<Model*> models)
 }
 
 /**
- * Is the chart model selection valid?
+ * Is the chart one model selection valid?
  *
  * @return bool indicating validity.
  */
 bool
-BrowserTabContent::isChartModelValid() const
+BrowserTabContent::isChartOneModelValid() const
 {
     bool valid = (m_chartModel != NULL);
+    return valid;
+}
+
+/**
+ * Is the chart two model selection valid?
+ *
+ * @return bool indicating validity.
+ */
+bool
+BrowserTabContent::isChartTwoModelValid() const
+{
+    bool valid = (m_chartTwoModel != NULL);
     return valid;
 }
 
@@ -1263,12 +1342,16 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
     }
     
     bool useOverlayFlag = false;
-    bool useChartsFlag  = false;
+    bool useChartOneFlag  = false;
+    bool useChartTwoFlag  = false;
     switch (getSelectedModelType()) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
-            useChartsFlag = true;
+            useChartOneFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            useChartTwoFlag = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             useOverlayFlag = true;
@@ -1305,8 +1388,8 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
         }
     }
     
-    if (useChartsFlag) {
-        ModelChart* modelChart = getDisplayedChartModel();
+    if (useChartOneFlag) {
+        ModelChart* modelChart = getDisplayedChartOneModel();
         if (modelChart != NULL) {
             CaretDataFileSelectionModel* fileModel = NULL;
             
@@ -1344,6 +1427,47 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
                             colorBarMapFileInfo.push_back(ColorBarFileMap(colorBar,
                                                                           mapFile,
                                                                           mapIndex));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    if (useChartTwoFlag) {
+        ModelChartTwo* modelChartTwo = getDisplayedChartTwoModel();
+        if (modelChartTwo != NULL) {
+            ChartTwoOverlaySet* overlaySet = m_chartTwoModel->getChartTwoOverlaySet(m_tabNumber);
+            if (overlaySet != NULL) {
+                const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+                for (int32_t i = 0; i < numOverlays; i++) {
+                    ChartTwoOverlay* chartOverlay = overlaySet->getOverlay(i);
+                    if (chartOverlay->isEnabled()) {
+                        switch (chartOverlay->getChartTwoDataType()) {
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                                break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                                break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                                break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                            {
+                                CaretMappableDataFile* overlayDataFile = NULL;
+                                int32_t mapIndex;
+                                chartOverlay->getSelectionData(overlayDataFile,
+                                                               mapIndex);
+                                
+                                if (overlayDataFile != NULL) {
+                                    if (overlayDataFile->isMappedWithPalette()) {
+                                        AnnotationColorBar* colorBar = chartOverlay->getColorBar();
+                                        const int32_t mapIndex = 0;
+                                        colorBarMapFileInfo.push_back(ColorBarFileMap(colorBar,
+                                                                                      overlayDataFile,
+                                                                                      mapIndex));
+                                    }
+                                }
+                            }
+                                break;
                         }
                     }
                 }
@@ -1408,12 +1532,16 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
     }
     
     bool useOverlayFlag = false;
-    bool useChartsFlag  = false;
+    bool useChartOneFlag  = false;
+    bool useChartTwoFlag  = false;
     switch (getSelectedModelType()) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
-            useChartsFlag = true;
+            useChartOneFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            useChartTwoFlag = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             useOverlayFlag = true;
@@ -1454,8 +1582,8 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
         }
     }
     
-    if (useChartsFlag) {
-        ModelChart* modelChart = getDisplayedChartModel();
+    if (useChartOneFlag) {
+        ModelChart* modelChart = getDisplayedChartOneModel();
         if (modelChart != NULL) {
             CaretDataFileSelectionModel* fileModel = NULL;
             
@@ -1501,6 +1629,47 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
             }
         }
     }
+    
+    if (useChartTwoFlag) {
+        ModelChartTwo* modelChartTwo = getDisplayedChartTwoModel();
+        if (modelChartTwo != NULL) {
+            ChartTwoOverlaySet* overlaySet = m_chartTwoModel->getChartTwoOverlaySet(m_tabNumber);
+            const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+            for (int32_t i = (numOverlays - 1); i >= 0; i--) {
+                ChartTwoOverlay* chartOverlay = overlaySet->getOverlay(i);
+                if (chartOverlay->isEnabled()) {
+                    switch (chartOverlay->getChartTwoDataType()) {
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                            break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                            break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                            break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                        {
+                            CaretMappableDataFile* overlayDataFile = NULL;
+                            int32_t mapIndex;
+                            chartOverlay->getSelectionData(overlayDataFile,
+                                                           mapIndex);
+                            
+                            if (overlayDataFile != NULL) {
+                                if (overlayDataFile->isMappedWithPalette()) {
+                                    AnnotationColorBar* colorBar = chartOverlay->getColorBar();
+                                    if (colorBar->isDisplayed()) {
+                                        mapFiles.push_back(overlayDataFile);
+                                        mapIndices.push_back(0);
+                                    }
+                                }
+                            }
+                        }
+                            break;
+                    }
+                }
+            }
+        }
+    }
+    
+    CaretAssert(mapFiles.size() == mapIndices.size());
 }
 
 /**
@@ -1655,6 +1824,25 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
             break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+        {
+            const ChartTwoOverlaySet* overlaySet = m_chartTwoModel->getChartTwoOverlaySet(tabIndex);
+            const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+            for (int32_t i = 0; i < numOverlays; i++) {
+                const ChartTwoOverlay* chartOverlay = overlaySet->getOverlay(i);
+                if (chartOverlay->isEnabled()) {
+                    CaretMappableDataFile* overlayDataFile = NULL;
+                    int32_t mapIndex;
+                    chartOverlay->getSelectionData(overlayDataFile,
+                                              mapIndex);
+                    
+                    if (overlayDataFile != NULL) {
+                        displayedDataFiles.insert(overlayDataFile);
+                    }
+                }
+            }
+        }
+            break;
     }
 
     /*
@@ -1751,8 +1939,8 @@ BrowserTabContent::getViewingTransformation()
     else if (isCerebellumDisplayed()) {
         return m_cerebellumViewingTransformation;
     }
-    else if (isChartDisplayed()) {
-        return m_chartMatrixViewingTranformation;
+    else if (isChartTwoDisplayed()) {
+        return m_chartTwoMatrixViewingTranformation;
     }
     return m_viewingTransformation;
 }
@@ -1769,8 +1957,8 @@ BrowserTabContent::getViewingTransformation() const
     else if (isCerebellumDisplayed()) {
         return m_cerebellumViewingTransformation;
     }
-    else if (isChartDisplayed()) {
-        return m_chartMatrixViewingTranformation;
+    else if (isChartTwoDisplayed()) {
+        return m_chartTwoMatrixViewingTranformation;
     }
     return m_viewingTransformation;
 }
@@ -2210,7 +2398,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 break;
         }
     }
-    else if (isChartDisplayed()) {
+    else if (isChartOneDisplayed()
+             || isChartTwoDisplayed()) {
         /* no rotation for chart */
     }
     else if (isCerebellumDisplayed()) {
@@ -2398,8 +2587,8 @@ void
 BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
                                      const int32_t mouseDY)
 {
-    if (isChartDisplayed()) {
-        ModelChart* modelChart = getDisplayedChartModel();
+    if (isChartOneDisplayed()) {
+        ModelChart* modelChart = getDisplayedChartOneModel();
         CaretAssert(modelChart);
         
         CaretDataFileSelectionModel* matrixSelectionModel = NULL;
@@ -2410,22 +2599,23 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
         if (modelChart->getSelectedChartOneDataType(m_tabNumber) == ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
             matrixSelectionModel = modelChart->getChartableMatrixSeriesFileSelectionModel(m_tabNumber);
         }
-            if (matrixSelectionModel != NULL) {
-                ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();
-                if (chartableInterface != NULL) {
-                    ChartMatrixDisplayProperties* matrixProperties = chartableInterface->getChartMatrixDisplayProperties(m_tabNumber);
-                    matrixProperties->setScaleMode(ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL);
-                    float scaling = matrixProperties->getViewZooming();
-                    if (mouseDY != 0.0) {
-                        scaling *= (1.0f + (mouseDY * 0.01));
-                    }
-                    if (scaling < 0.01) {
-                        scaling = 0.01;
-                    }
-                    matrixProperties->setViewZooming(scaling);
+        if (matrixSelectionModel != NULL) {
+            ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();
+            if (chartableInterface != NULL) {
+                ChartMatrixDisplayProperties* matrixProperties = chartableInterface->getChartMatrixDisplayProperties(m_tabNumber);
+                matrixProperties->setScaleMode(ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL);
+                float scaling = matrixProperties->getViewZooming();
+                if (mouseDY != 0.0) {
+                    scaling *= (1.0f + (mouseDY * 0.01));
                 }
+                if (scaling < 0.01) {
+                    scaling = 0.01;
+                }
+                matrixProperties->setViewZooming(scaling);
             }
- 
+        }
+    }
+    else if (isChartTwoDisplayed()) {
         float scaling = getViewingTransformation()->getScaling();
         if (mouseDY != 0.0) {
             scaling *= (1.0f + (mouseDY * 0.01));
@@ -2523,8 +2713,8 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         translation[2] += dz;
         m_volumeSliceViewingTransformation->setTranslation(translation);
     }
-    else if (isChartDisplayed()) {
-        ModelChart* modelChart = getDisplayedChartModel();
+    else if (isChartOneDisplayed()) {
+        ModelChart* modelChart = getDisplayedChartOneModel();
         CaretAssert(modelChart);
         
         CaretDataFileSelectionModel* matrixSelectionModel = NULL;
@@ -2547,16 +2737,14 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                 matrixProperties->setViewPanning(translation);
             }
         }
-        
-        /** Charting "two" */
-        {
-            float translation[3];
-            m_chartMatrixViewingTranformation->getTranslation(translation);
-            translation[0] += mouseDX;
-            translation[1] += mouseDY;
-            translation[2] = 0; // NO Z-translation
-            m_chartMatrixViewingTranformation->setTranslation(translation);
-        }
+    }
+    else if (isChartTwoDisplayed()) {
+        float translation[3];
+        m_chartTwoMatrixViewingTranformation->getTranslation(translation);
+        translation[0] += mouseDX;
+        translation[1] += mouseDY;
+        translation[2] = 0; // NO Z-translation
+        m_chartTwoMatrixViewingTranformation->setTranslation(translation);
     }
     else if (isCerebellumDisplayed()) {
         const float screenDX = mouseDX;
@@ -2765,12 +2953,12 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
         return;
     }
     
-    if (isChartDisplayed()) {
-        m_chartMatrixViewingTranformation->getTranslation(translationOut);
+    if (isChartTwoDisplayed()) {
+        m_chartTwoMatrixViewingTranformation->getTranslation(translationOut);
         Matrix4x4 matrix;
         matrix.identity();
         matrix.getMatrixForOpenGL(rotationMatrixOut);
-        scalingOut = m_chartMatrixViewingTranformation->getScaling();
+        scalingOut = m_chartTwoMatrixViewingTranformation->getScaling();
         return;
     }
     
@@ -3142,6 +3330,8 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         Surface* surface = NULL;
         switch (getSelectedModelType()) {
             case ModelTypeEnum::MODEL_TYPE_CHART:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
@@ -3998,7 +4188,7 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
                 *m_flatSurfaceViewingTransformation = *btc->m_flatSurfaceViewingTransformation;
                 *m_cerebellumViewingTransformation = *btc->m_cerebellumViewingTransformation;
                 *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
-                *m_chartMatrixViewingTranformation = *btc->m_chartMatrixViewingTranformation;
+                *m_chartTwoMatrixViewingTranformation = *btc->m_chartTwoMatrixViewingTranformation;
                 *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
                 *m_obliqueVolumeRotationMatrix = *btc->m_obliqueVolumeRotationMatrix;
                 *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
@@ -4049,7 +4239,7 @@ BrowserTabContent::updateYokedBrowserTabs()
                 *btc->m_flatSurfaceViewingTransformation = *m_flatSurfaceViewingTransformation;
                 *btc->m_cerebellumViewingTransformation = *m_cerebellumViewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
-                *btc->m_chartMatrixViewingTranformation = *m_chartMatrixViewingTranformation;
+                *btc->m_chartTwoMatrixViewingTranformation = *m_chartTwoMatrixViewingTranformation;
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;

@@ -273,7 +273,7 @@ BrainBrowserWindowToolBarChartAxes::getCartesianChart()
     
     BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
     if (browserTabContent != NULL) {
-        ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
+        ModelChart* modelChart = browserTabContent->getDisplayedChartOneModel();
         
         if (modelChart != NULL) {
             const int32_t tabIndex = browserTabContent->getTabNumber();

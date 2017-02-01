@@ -650,8 +650,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         int defaultTabIndex = -1;
         bool enableLayers = true;
         bool enableVolumeSurfaceOutline = false;
-        bool enableOldCharts = false;
-        bool enableNewCharts = false;
+        bool enableChartOne = false;
+        bool enableChartTwo = false;
         EventBrowserWindowContentGet browserContentEvent(m_browserWindowIndex);
         EventManager::get()->sendEvent(browserContentEvent.getPointer());
         BrowserTabContent* windowContent = browserContentEvent.getSelectedBrowserTabContent();
@@ -676,20 +676,18 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                                                       & haveVolumes);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART:
-                        if (m_browserWindowIndex == 0) {
-                            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1)) {
-                                defaultTabIndex = m_chartOverlayTabIndex;
-                                enableNewCharts = true;
-                            }
-                            else {
-                                defaultTabIndex = m_chartTabIndex;
-                                enableOldCharts = true;
-                            }
-                        }
-                        else {
-                            defaultTabIndex = m_chartTabIndex;
-                            enableOldCharts = true;
-                        }
+                        defaultTabIndex = m_chartTabIndex;
+                        enableChartOne = true;
+                        enableLayers = false;
+                        enableVolumeSurfaceOutline = false;
+                        haveBorders = false;
+                        haveFibers  = false;
+                        haveFoci    = false;
+                        haveLabels  = false;
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                        defaultTabIndex = m_chartOverlayTabIndex;
+                        enableChartTwo = true;
                         enableLayers = false;
                         enableVolumeSurfaceOutline = false;
                         haveBorders = false;
@@ -713,8 +711,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * NOTE: Order is important so that overlay tab is 
          * automatically selected.
          */
-        if (m_chartTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartTabIndex, enableOldCharts);
-        if (m_chartOverlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartOverlayTabIndex, enableNewCharts);
+        if (m_chartTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartTabIndex, enableChartOne);
+        if (m_chartOverlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartOverlayTabIndex, enableChartTwo);
         if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveConnFiles);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         

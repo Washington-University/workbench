@@ -31,7 +31,7 @@
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "EventManager.h"
-#include "ModelChart.h"
+#include "ModelChartTwo.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
 

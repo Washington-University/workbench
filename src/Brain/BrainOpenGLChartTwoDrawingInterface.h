@@ -32,7 +32,7 @@ namespace caret {
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLTextRenderInterface;
     class ChartTwoOverlaySet;
-    class ModelChart;
+    class ModelChartTwo;
     
     class BrainOpenGLChartTwoDrawingInterface {
         
@@ -46,8 +46,8 @@ namespace caret {
          *
          * @param brain
          *     Brain.
-         * @param chartModel
-         *     The chart model.
+         * @param chartTwoModel
+         *     The chart two model.
          * @param fixedPipelineDrawing
          *     The fixed pipeline OpenGL drawing.
          * @param textRenderer
@@ -66,7 +66,7 @@ namespace caret {
          *     Index of the tab.
          */
         virtual void drawChartOverlaySet(Brain* brain,
-                                         ModelChart* chartModel,
+                                         ModelChartTwo* chartTwoModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          BrainOpenGLTextRenderInterface* textRenderer,
                                          const float translation[3],

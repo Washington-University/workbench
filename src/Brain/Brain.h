@@ -84,6 +84,7 @@ namespace caret {
     class LabelFile;
     class MetricFile;
     class ModelChart;
+    class ModelChartTwo;
     class ModelSurfaceMontage;
     class ModelVolume;
     class ModelWholeBrain;
@@ -194,6 +195,10 @@ namespace caret {
         ModelChart* getChartModel();
         
         const ModelChart* getChartModel() const;
+        
+        ModelChartTwo* getChartTwoModel();
+        
+        const ModelChartTwo* getChartTwoModel() const;
         
         ChartingDataManager* getChartingDataManager();
         
@@ -752,6 +757,8 @@ namespace caret {
         std::vector<VolumeFile*> m_volumeFiles;
         
         ModelChart* m_modelChart;
+        
+        ModelChartTwo* m_modelChartTwo;
         
         ModelVolume* m_volumeSliceModel;
         

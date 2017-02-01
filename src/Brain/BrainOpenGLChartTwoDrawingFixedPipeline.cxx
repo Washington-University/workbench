@@ -29,7 +29,6 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
-#include "ChartMatrixScaleModeEnum.h"
 #include "ChartTwoMatrixDisplayProperties.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
@@ -39,7 +38,7 @@
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "IdentificationWithColor.h"
-#include "ModelChart.h"
+#include "ModelChartTwo.h"
 #include "SessionManager.h"
 #include "SelectionItemChartTwoHistogram.h"
 #include "SelectionItemChartTwoLineSeries.h"
@@ -77,8 +76,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  *
  * @param brain
  *     Brain.
- * @parm chartModel
- *     The chart model in the window.
+ * @parm chartTwoModel
+ *     The chart two model in the window.
  * @param fixedPipelineDrawing
  *     The fixed pipeline OpenGL drawing.
  * @param textRenderer
@@ -98,7 +97,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
-                                                             ModelChart* chartModel,
+                                                             ModelChartTwo* chartTwoModel,
                                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                              BrainOpenGLTextRenderInterface* textRenderer,
                                                              const float translation[3],
@@ -109,7 +108,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                                                              const int32_t tabIndex)
 {
     m_brain = brain;
-    m_chartModel = chartModel;
+    m_chartTwoModel = chartTwoModel;
     m_fixedPipelineDrawing = fixedPipelineDrawing;
     m_textRenderer = textRenderer;
     m_translation[0] = translation[0];
@@ -155,31 +154,33 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     
     resetIdentification();
     
-    const int32_t numberOfOverlays = chartOverlaySet->getNumberOfDisplayedOverlays();
-    if (numberOfOverlays > 0) {
-        ChartTwoOverlay* topOverlay = chartOverlaySet->getOverlay(0);
-        if (topOverlay->isEnabled()) {
-            CaretMappableDataFile* cmdf = NULL;
-            int32_t mapIndex = -1;
-            topOverlay->getSelectionData(cmdf, mapIndex);
-            if (cmdf != NULL) {
-                const ChartTwoDataTypeEnum::Enum chartDataType = topOverlay->getChartTwoDataType();
-                switch (chartDataType) {
-                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                        break;
-                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-                        drawHistogramChart();
-                        break;
-                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-                        break;
-                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                        drawMatrixChart();
-                        break;
+    if (m_chartOverlaySet != NULL) {
+        const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
+        if (numberOfOverlays > 0) {
+            ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
+            if (topOverlay->isEnabled()) {
+                CaretMappableDataFile* cmdf = NULL;
+                int32_t mapIndex = -1;
+                topOverlay->getSelectionData(cmdf, mapIndex);
+                if (cmdf != NULL) {
+                    const ChartTwoDataTypeEnum::Enum chartDataType = topOverlay->getChartTwoDataType();
+                    switch (chartDataType) {
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                            break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                            drawHistogramChart();
+                            break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                            break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                            drawMatrixChart();
+                            break;
+                    }
                 }
             }
-        }
-        for (int32_t iOverlay = (numberOfOverlays -1); iOverlay >= 0; iOverlay--) {
-            
+            for (int32_t iOverlay = (numberOfOverlays -1); iOverlay >= 0; iOverlay--) {
+                
+            }
         }
     }
     
@@ -425,7 +426,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
     /*
      * Set the width and neight of each matrix cell.
      */
-    const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
+    const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartTwoModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
     CaretAssert(matrixProperties);
     const float cellWidthZoom  = matrixProperties->getCellPercentageZoomWidth()  / 100.0;
     const float cellHeightZoom = matrixProperties->getCellPercentageZoomHeight() / 100.0;
@@ -615,7 +616,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         return;
     }
     
-    const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
+    const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartTwoModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
     CaretAssert(matrixProperties);
     
     bool displayGridLinesFlag = matrixProperties->isGridLinesDisplayed();

@@ -40,6 +40,8 @@ public:
         MODEL_TYPE_INVALID,
         /** Chart */
         MODEL_TYPE_CHART,
+        /** Chart Two */
+        MODEL_TYPE_CHART_TWO,
         /** Surface */
         MODEL_TYPE_SURFACE,
         /** Surface Montage */

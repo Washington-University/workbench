@@ -87,6 +87,7 @@
 #include "MathFunctions.h"
 #include "MetricFile.h"
 #include "ModelChart.h"
+#include "ModelChartTwo.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelVolume.h"
@@ -139,6 +140,7 @@ Brain::Brain()
     m_sceneAnnotationFile->clearModified();
     
     m_modelChart = NULL;
+    m_modelChartTwo = NULL;
     m_surfaceMontageModel = NULL;
     m_volumeSliceModel = NULL;
     m_wholeBrainModel = NULL;
@@ -264,6 +266,9 @@ Brain::~Brain()
     delete m_paletteFile;
     if (m_modelChart != NULL) {
         delete m_modelChart;
+    }
+    if (m_modelChartTwo != NULL) {
+        delete m_modelChartTwo;
     }
     if (m_surfaceMontageModel != NULL) {
         delete m_surfaceMontageModel;
@@ -679,6 +684,9 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     
     if (m_modelChart != NULL) {
         m_modelChart->reset();
+    }
+    if (m_modelChartTwo != NULL) {
+        m_modelChartTwo->reset();
     }
     
     m_gapsAndMargins->reset();
@@ -4708,6 +4716,16 @@ Brain::updateChartModel()
             m_modelChart = NULL;
         }
     }
+    
+    if (m_modelChartTwo == NULL) {
+        m_modelChartTwo = new ModelChartTwo(this);
+        EventModelAdd eventAddModel(m_modelChartTwo);
+        EventManager::get()->sendEvent(eventAddModel.getPointer());
+        
+        if (m_isSpecFileBeingRead == false) {
+            m_modelChartTwo->initializeOverlays();
+        }
+    }
 }
 
 /**
@@ -5923,6 +5941,24 @@ const ModelChart*
 Brain::getChartModel() const
 {
     return m_modelChart;
+}
+
+/**
+ * @return The chart two model (warning may be NULL!)
+ */
+ModelChartTwo*
+Brain::getChartTwoModel()
+{
+    return m_modelChartTwo;
+}
+
+/**
+ * @return The chart two model (warning may be NULL!)
+ */
+const ModelChartTwo*
+Brain::getChartTwoModel() const
+{
+    return m_modelChartTwo;
 }
 
 /**

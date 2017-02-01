@@ -41,7 +41,7 @@
 #include "ChartTwoMatrixDisplayProperties.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
-#include "ModelChart.h"
+#include "ModelChartTwo.h"
 #include "WuQFactory.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -96,10 +96,10 @@ void
 BrainBrowserWindowToolBarChartTwoAttributes::updateContent(BrowserTabContent* browserTabContent)
 {
     if (browserTabContent != NULL) {
-        ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
+        ModelChartTwo* modelChartTwo = browserTabContent->getDisplayedChartTwoModel();
         const int32_t tabIndex = browserTabContent->getTabNumber();
-        if (modelChart != NULL) {
-            switch (modelChart->getSelectedChartTwoDataType(tabIndex)) {
+        if (modelChartTwo != NULL) {
+            switch (modelChartTwo->getSelectedChartTwoDataType(tabIndex)) {
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
@@ -183,8 +183,8 @@ BrainBrowserWindowToolBarChartTwoAttributes::getChartableTwoMatrixDisplayPropert
 
     BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
     if (browserTabContent != NULL) {
-        ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
-        matrixDisplayProperties = modelChart->getChartTwoMatrixDisplayProperties(browserTabContent->getTabNumber());
+        ModelChartTwo* modelChartTwo = browserTabContent->getDisplayedChartTwoModel();
+        matrixDisplayProperties = modelChartTwo->getChartTwoMatrixDisplayProperties(browserTabContent->getTabNumber());
 //
 //        if (modelChart != NULL) {
 //            const int32_t tabIndex = browserTabContent->getTabNumber();

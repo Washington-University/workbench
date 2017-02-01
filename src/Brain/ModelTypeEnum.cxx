@@ -70,36 +70,40 @@ ModelTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(ModelTypeEnum(MODEL_TYPE_INVALID, 
-                                    0, 
-                                    "MODEL_TYPE_INVALID", 
-                                    "Invalid"));
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_INVALID,
+                                     0,
+                                     "MODEL_TYPE_INVALID",
+                                     "Invalid"));
     
-    enumData.push_back(ModelTypeEnum(MODEL_TYPE_CHART, 
-                                    1, 
-                                    "MODEL_TYPE_CHART", 
-                                    "Chart"));
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_CHART,
+                                     1,
+                                     "MODEL_TYPE_CHART",
+                                     "Chart"));
+    
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_CHART_TWO,
+                                     2,
+                                     "MODEL_TYPE_CHART_TWO",
+                                     "Chart"));
     
     enumData.push_back(ModelTypeEnum(MODEL_TYPE_SURFACE,
-                                     2,
+                                     3,
                                      "MODEL_TYPE_SURFACE",
                                      "Surface"));
     
     enumData.push_back(ModelTypeEnum(MODEL_TYPE_SURFACE_MONTAGE,
-                                                      3,
-                                                      "MODEL_TYPE_SURFACE_MONTAGE", 
-                                                      "Surface Montage"));
+                                     4,
+                                     "MODEL_TYPE_SURFACE_MONTAGE",
+                                     "Surface Montage"));
     
-    enumData.push_back(ModelTypeEnum(MODEL_TYPE_VOLUME_SLICES, 
-                                    4,
-                                    "MODEL_TYPE_VOLUME_SLICES", 
-                                    "Volume"));
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_VOLUME_SLICES,
+                                     5,
+                                     "MODEL_TYPE_VOLUME_SLICES",
+                                     "Volume"));
     
-    enumData.push_back(ModelTypeEnum(MODEL_TYPE_WHOLE_BRAIN, 
-                                    5,
-                                    "MODEL_TYPE_WHOLE_BRAIN", 
-                                    "Whole Brain"));
-    
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_WHOLE_BRAIN,
+                                     6,
+                                     "MODEL_TYPE_WHOLE_BRAIN",
+                                     "Whole Brain"));
 }
 
 /**

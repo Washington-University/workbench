@@ -177,6 +177,8 @@ VolumeSliceSettings::getDescriptionOfContent(const ModelTypeEnum::Enum modelType
     switch (modelType) {
         case ModelTypeEnum::MODEL_TYPE_CHART:
             break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            break;
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:

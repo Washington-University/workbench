@@ -30,9 +30,8 @@
 #include "BrowserTabContent.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
-#include "ChartModel.h"
 #include "EnumComboBoxTemplate.h"
-#include "ModelChart.h"
+#include "ModelChartTwo.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -105,9 +104,9 @@ BrainBrowserWindowToolBarChartTwoType::chartTypeRadioButtonClicked(int buttonInd
     
     m_parentToolBar->getTabContentFromSelectedTab();
     BrowserTabContent* btc = m_parentToolBar->getTabContentFromSelectedTab();
-    ModelChart* chartModel = btc->getDisplayedChartModel();
+    ModelChartTwo* chartModelTwo = btc->getDisplayedChartTwoModel();
     const int32_t tabIndex = btc->getTabNumber();
-    chartModel->setSelectedChartTwoDataType(tabIndex,
+    chartModelTwo->setSelectedChartTwoDataType(tabIndex,
                                             chartDataType);
     
     //updateContent(btc);
@@ -128,13 +127,13 @@ BrainBrowserWindowToolBarChartTwoType::updateContent(BrowserTabContent* browserT
     m_chartTypeButtonGroup->blockSignals(true);
     
     
-    const ModelChart* chartModel = browserTabContent->getDisplayedChartModel();
-    if (chartModel != NULL) {
+    const ModelChartTwo* chartModelTwo = browserTabContent->getDisplayedChartTwoModel();
+    if (chartModelTwo != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
-        const ChartTwoDataTypeEnum::Enum selectedChartType = chartModel->getSelectedChartTwoDataType(tabIndex);
+        const ChartTwoDataTypeEnum::Enum selectedChartType = chartModelTwo->getSelectedChartTwoDataType(tabIndex);
 
         std::vector<ChartTwoDataTypeEnum::Enum> validChartDataTypes;
-        chartModel->getValidChartTwoDataTypes(validChartDataTypes);
+        chartModelTwo->getValidChartTwoDataTypes(validChartDataTypes);
 
         for (auto chartTypeButton :  m_chartTypeRadioButtons) {
             ChartTwoDataTypeEnum::Enum chartType = chartTypeButton.first;

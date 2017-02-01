@@ -47,6 +47,7 @@ namespace caret {
     class ClippingPlaneGroup;
     class Matrix4x4;
     class ModelChart;
+    class ModelChartTwo;
     class ModelSurface;
     class ModelSurfaceMontage;
     class ModelSurfaceSelector;
@@ -108,9 +109,13 @@ namespace caret {
         
         Model* getModelForDisplay();
         
-        ModelChart* getDisplayedChartModel();
+        ModelChart* getDisplayedChartOneModel();
         
-        const ModelChart* getDisplayedChartModel() const;
+        const ModelChart* getDisplayedChartOneModel() const;
+        
+        ModelChartTwo* getDisplayedChartTwoModel();
+        
+        const ModelChartTwo* getDisplayedChartTwoModel() const;
         
         ModelSurface* getDisplayedSurfaceModel();
         
@@ -134,7 +139,9 @@ namespace caret {
         
         bool isCerebellumDisplayed() const;
         
-        bool isChartDisplayed() const;
+        bool isChartOneDisplayed() const;
+        
+        bool isChartTwoDisplayed() const;
         
         bool isFlatSurfaceDisplayed() const;
         
@@ -146,7 +153,9 @@ namespace caret {
         
         void update(const std::vector<Model*> models);
         
-        bool isChartModelValid() const;
+        bool isChartOneModelValid() const;
+        
+        bool isChartTwoModelValid() const;
         
         bool isSurfaceModelValid() const;
         
@@ -446,6 +455,9 @@ namespace caret {
         /** The chart model */
         ModelChart* m_chartModel;
         
+        /** The chart two model */
+        ModelChartTwo* m_chartTwoModel;
+        
         /** 
          * Name requested by user interface - reflects contents 
          * such as Surface, Volume Slices, etc
@@ -488,8 +500,8 @@ namespace caret {
         /** Transformation for volume slices viewing */
         ViewingTransformationsVolume* m_volumeSliceViewingTransformation;
 
-        /** Transformation for matrix chart viewing */
-        ViewingTransformations* m_chartMatrixViewingTranformation;
+        /** Transformation for matrix chart two viewing */
+        ViewingTransformations* m_chartTwoMatrixViewingTranformation;
         
         /** Volume slice settings for volume slices */
         VolumeSliceSettings* m_volumeSliceSettings;

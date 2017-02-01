@@ -146,7 +146,7 @@ BrainBrowserWindowToolBarChartType::chartTypeRadioButtonClicked(int buttonIndex)
     
     m_parentToolBar->getTabContentFromSelectedTab();
     BrowserTabContent* btc = m_parentToolBar->getTabContentFromSelectedTab();
-    ModelChart* chartModel = btc->getDisplayedChartModel();
+    ModelChart* chartModel = btc->getDisplayedChartOneModel();
     const int32_t tabIndex = btc->getTabNumber();
     chartModel->setSelectedChartOneDataType(tabIndex,
                                          chartDataType);
@@ -169,7 +169,7 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
     m_chartTypeButtonGroup->blockSignals(true);
     
     
-    const ModelChart* chartModel = browserTabContent->getDisplayedChartModel();
+    const ModelChart* chartModel = browserTabContent->getDisplayedChartOneModel();
     if (chartModel != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
         const ChartOneDataTypeEnum::Enum selectedChartType = chartModel->getSelectedChartOneDataType(tabIndex);

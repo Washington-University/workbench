@@ -275,7 +275,8 @@ namespace caret {
         QRadioButton* viewModeSurfaceMontageRadioButton;
         QRadioButton* viewModeVolumeRadioButton;
         QRadioButton* viewModeWholeBrainRadioButton;
-        QRadioButton* viewModeChartRadioButton;
+        QRadioButton* viewModeChartOneRadioButton;
+        QRadioButton* viewModeChartTwoRadioButton;
         
         QAction* customViewAction;
 
@@ -422,8 +423,6 @@ namespace caret {
         
         bool isContructorFinished;
         bool isDestructionInProgress;
-        
-        bool m_chartingTwoFlag;
     };
 }
 

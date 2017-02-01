@@ -31,7 +31,6 @@ namespace caret {
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
-    class ModelChart;
     class SelectionItemChartTwoHistogram;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
@@ -44,7 +43,7 @@ namespace caret {
         virtual ~BrainOpenGLChartTwoDrawingFixedPipeline();
         
         virtual void drawChartOverlaySet(Brain* brain,
-                                         ModelChart* chartModel,
+                                         ModelChartTwo* chartTwoModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          BrainOpenGLTextRenderInterface* textRenderer,
                                          const float translation[3],
@@ -117,7 +116,7 @@ namespace caret {
         
         Brain* m_brain;
         
-        ModelChart* m_chartModel;
+        ModelChartTwo* m_chartTwoModel;
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing;
         

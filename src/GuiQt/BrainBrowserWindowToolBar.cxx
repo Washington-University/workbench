@@ -93,6 +93,7 @@
 #include "GuiManager.h"
 #include "Model.h"
 #include "ModelChart.h"
+#include "ModelChartTwo.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelSurfaceSelector.h"
@@ -156,7 +157,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->isContructorFinished = false;
     this->isDestructionInProgress = false;
-    m_chartingTwoFlag = false;
 
     this->viewOrientationLeftIcon = NULL;
     this->viewOrientationRightIcon = NULL;
@@ -749,6 +749,7 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     int32_t cerebellumSurfaceTypeCode = 1000000;
     
     ModelChart* chartModel = NULL;
+    ModelChartTwo* chartTwoModel = NULL;
     ModelSurfaceMontage* surfaceMontageModel = NULL;
     ModelVolume* volumeModel = NULL;
     ModelWholeBrain* wholeBrainModel = NULL;
@@ -817,6 +818,9 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         else if (dynamic_cast<ModelChart*>(*iter)) {
             chartModel = dynamic_cast<ModelChart*>(*iter);
         }
+        else if (dynamic_cast<ModelChartTwo*>(*iter)) {
+            chartTwoModel = dynamic_cast<ModelChartTwo*>(*iter);
+        }
         else {
             CaretAssertMessage(0, AString("Unknow controller type: ") + (*iter)->getNameForGUI(true));
         }
@@ -854,6 +858,9 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     if (chartModel != NULL) {
         numberOfTabsNeeded++;
     }
+    if (chartTwoModel != NULL) {
+        numberOfTabsNeeded++;
+    }
     if (leftSurfaceModel != NULL) {
         numberOfTabsNeeded++;
     }
@@ -879,6 +886,8 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                            wholeBrainModel);
     tabIndex = loadIntoTab(tabIndex,
                            chartModel);
+    tabIndex = loadIntoTab(tabIndex,
+                           chartTwoModel);
     tabIndex = loadIntoTab(tabIndex,
                            leftSurfaceModel);
     tabIndex = loadIntoTab(tabIndex,
@@ -933,6 +942,8 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                         }
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
                         break;
                 }
             }
@@ -1370,16 +1381,6 @@ BrainBrowserWindowToolBar::updateToolBar()
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    /*
-     * Use new charting in 1st window and old charting in other windows?
-     */
-    m_chartingTwoFlag = false;
-    if (this->browserWindowIndex == 0) {
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1)) {
-            m_chartingTwoFlag = true;
-        }
-    }
-    
     BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
     
     const ModelTypeEnum::Enum viewModel = this->updateViewWidget(browserTabContent);
@@ -1388,7 +1389,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showWholeBrainSurfaceOptionsWidget = false;
     bool showSingleSurfaceOptionsWidget = false;
     bool showSurfaceMontageOptionsWidget = false;
-    bool showClippingOptionsWidget = true;
+    bool showClippingOptionsWidget = false;
     bool showVolumeIndicesWidget = false;
     bool showVolumePlaneWidget = false;
     bool showVolumeMontageWidget = false;
@@ -1409,62 +1410,61 @@ BrainBrowserWindowToolBar::updateToolBar()
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             showOrientationWidget = true;
             showSingleSurfaceOptionsWidget = true;
+            showClippingOptionsWidget = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             showOrientationWidget = true;
             showSurfaceMontageOptionsWidget = true;
+            showClippingOptionsWidget = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             showVolumeIndicesWidget = true;
             showVolumePlaneWidget = true;
             showVolumeMontageWidget = true;
+            showClippingOptionsWidget = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             showOrientationWidget = true;
             showWholeBrainSurfaceOptionsWidget = true;
             showVolumeIndicesWidget = true;
+            showClippingOptionsWidget = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
         {
-            if (m_chartingTwoFlag) {
-                showChartTwoTypeWidget = true;
-            }
-            else {
-                showChartOneTypeWidget = true;
-            }
-            
-            showClippingOptionsWidget = false;
-            
-            ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
+            ModelChart* modelChart = browserTabContent->getDisplayedChartOneModel();
             if (modelChart != NULL) {
-                if (m_chartingTwoFlag) {
-                    showChartTwoOrientationWidget = true;
-                    showChartTwoAttributesWidget  = true;
+                switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                        break;
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                        showChartOneAttributesWidget = true;
+                        break;
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                        showChartOneAttributesWidget = true;
+                        break;
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                        showChartOneAxesWidget = true;
+                        showChartOneAttributesWidget = true;
+                        break;
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                        showChartOneAxesWidget = true;
+                        showChartOneAttributesWidget = true;
+                        break;
+                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                        showChartOneAxesWidget = true;
+                        showChartOneAttributesWidget = true;
+                        break;
                 }
-                else {
-                    switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                            break;
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                            showChartOneAttributesWidget = true;
-                            break;
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-                            showChartOneAttributesWidget = true;
-                            break;
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-                            showChartOneAxesWidget = true;
-                            showChartOneAttributesWidget = true;
-                            break;
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
-                            showChartOneAxesWidget = true;
-                            showChartOneAttributesWidget = true;
-                            break;
-                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
-                            showChartOneAxesWidget = true;
-                            showChartOneAttributesWidget = true;
-                            break;
-                    }
-                }
+            }
+        }
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+        {
+            ModelChartTwo* modelChartTwo = browserTabContent->getDisplayedChartTwoModel();
+            if (modelChartTwo != NULL) {
+                showChartTwoTypeWidget        = true;
+                showChartTwoOrientationWidget = true;
+                showChartTwoAttributesWidget  = true;
             }
         }
             break;
@@ -1582,18 +1582,20 @@ BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTab
 QWidget* 
 BrainBrowserWindowToolBar::createViewWidget()
 {
-    this->viewModeChartRadioButton = new QRadioButton("Chart");
+    this->viewModeChartOneRadioButton = new QRadioButton("Chart");
+    this->viewModeChartTwoRadioButton = new QRadioButton("Chart Two");
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
     this->viewModeSurfaceMontageRadioButton = new QRadioButton("Montage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("All");
     
-//    this->viewModeChartRadioButton->setVisible(false);
+//    this->viewModeChartOneRadioButton->setVisible(false);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
-    layout->addWidget(this->viewModeChartRadioButton);
+    layout->addWidget(this->viewModeChartOneRadioButton);
+    layout->addWidget(this->viewModeChartTwoRadioButton);
     layout->addWidget(this->viewModeSurfaceMontageRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
     layout->addWidget(this->viewModeWholeBrainRadioButton);
@@ -1601,7 +1603,8 @@ BrainBrowserWindowToolBar::createViewWidget()
     layout->addStretch();
 
     QButtonGroup* viewModeRadioButtonGroup = new QButtonGroup(this);
-    viewModeRadioButtonGroup->addButton(this->viewModeChartRadioButton);
+    viewModeRadioButtonGroup->addButton(this->viewModeChartOneRadioButton);
+    viewModeRadioButtonGroup->addButton(this->viewModeChartTwoRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeSurfaceRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeSurfaceMontageRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeVolumeRadioButton);
@@ -1610,7 +1613,8 @@ BrainBrowserWindowToolBar::createViewWidget()
                      this, SLOT(viewModeRadioButtonClicked(QAbstractButton*)));
     
     this->viewWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->viewWidgetGroup->add(this->viewModeChartRadioButton);
+    this->viewWidgetGroup->add(this->viewModeChartOneRadioButton);
+    this->viewWidgetGroup->add(this->viewModeChartTwoRadioButton);
     this->viewWidgetGroup->add(this->viewModeSurfaceRadioButton);
     this->viewWidgetGroup->add(this->viewModeSurfaceMontageRadioButton);
     this->viewWidgetGroup->add(this->viewModeVolumeRadioButton);
@@ -1652,7 +1656,8 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
         this->viewModeSurfaceMontageRadioButton->setEnabled(browserTabContent->isSurfaceMontageModelValid());
         this->viewModeVolumeRadioButton->setEnabled(browserTabContent->isVolumeSliceModelValid());
         this->viewModeWholeBrainRadioButton->setEnabled(browserTabContent->isWholeBrainModelValid());
-        this->viewModeChartRadioButton->setEnabled(browserTabContent->isChartModelValid());
+        this->viewModeChartOneRadioButton->setEnabled(browserTabContent->isChartOneModelValid());
+        this->viewModeChartTwoRadioButton->setEnabled(browserTabContent->isChartTwoModelValid());
     }
     
     switch (modelType) {
@@ -1671,7 +1676,10 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
             this->viewModeWholeBrainRadioButton->setChecked(true);
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
-            this->viewModeChartRadioButton->setChecked(true);
+            this->viewModeChartOneRadioButton->setChecked(true);
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            this->viewModeChartTwoRadioButton->setChecked(true);
             break;
     }
     
@@ -3192,8 +3200,11 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
         return;
     }
     
-    if (this->viewModeChartRadioButton->isChecked()) {
+    if (this->viewModeChartOneRadioButton->isChecked()) {
         btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_CHART);
+    }
+    else if (this->viewModeChartTwoRadioButton->isChecked()) {
+        btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_CHART_TWO);
     }
     else if (this->viewModeSurfaceRadioButton->isChecked()) {
         btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_SURFACE);

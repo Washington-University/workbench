@@ -580,6 +580,8 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
         return NULL;
     }
     
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET, true);
+    
     int32_t windowIndex = -1;
     
     int32_t numWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
@@ -614,6 +616,8 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     
     bbw->resetGraphicsWidgetMinimumSize();
     
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET, false);
+
     return bbw;
 }
 

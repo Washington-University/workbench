@@ -68,6 +68,7 @@ namespace caret {
     class Surface;
     class Model;
     class ModelChart;
+    class ModelChartTwo;
     class ModelSurface;
     class ModelSurfaceMontage;
     class ModelVolume;
@@ -180,9 +181,13 @@ namespace caret {
         
         void initializeMembersBrainOpenGL();
         
-        void drawChartData(BrowserTabContent* browserTabContent,
-                            ModelChart* chartData,
-                            const int32_t viewport[4]);
+        void drawChartOneData(BrowserTabContent* browserTabContent,
+                              ModelChart* chartData,
+                              const int32_t viewport[4]);
+        
+        void drawChartTwoData(BrowserTabContent* browserTabContent,
+                              ModelChartTwo* chartData,
+                              const int32_t viewport[4]);
         
         void drawSurfaceModel(ModelSurface* surfaceModel,
                                    const int32_t viewport[4]);

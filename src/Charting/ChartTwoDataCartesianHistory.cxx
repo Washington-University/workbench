@@ -310,16 +310,18 @@ ChartTwoDataCartesianHistory::saveToScene(const SceneAttributes* sceneAttributes
     /*
      * Save chart history
      */
-    SceneObjectMapIntegerKey* chartHistoryMap = new SceneObjectMapIntegerKey("m_chartHistoryMap",
-                                                                                      SceneObjectDataTypeEnum::SCENE_CLASS);
-    const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
-    for (auto tabIndex : tabIndices) {
-        CaretAssertVectorIndex(m_chartHistory, tabIndex);
-        chartHistoryMap->addClass(tabIndex,
-                                  m_chartHistory[tabIndex]->saveToScene(sceneAttributes,
-                                                                        "m_chartHistory"));
+    const int32_t numHistory = static_cast<int32_t>(m_chartHistory.size());
+    if (numHistory > 0) {
+        SceneObjectMapIntegerKey* chartHistoryMap = new SceneObjectMapIntegerKey("m_chartHistoryMap",
+                                                                                 SceneObjectDataTypeEnum::SCENE_CLASS);
+        for (int32_t i = 0; i < numHistory; i++) {
+            CaretAssertVectorIndex(m_chartHistory, i);
+            chartHistoryMap->addClass(i,
+                                      m_chartHistory[i]->saveToScene(sceneAttributes,
+                                                                            "m_chartHistory"));
+        }
+        sceneClass->addChild(chartHistoryMap);
     }
-    sceneClass->addChild(chartHistoryMap);
 
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
@@ -357,12 +359,16 @@ ChartTwoDataCartesianHistory::restoreFromScene(const SceneAttributes* sceneAttri
      */
     const SceneObjectMapIntegerKey* chartHistoryMap = sceneClass->getMapIntegerKey("m_chartHistoryMap");
     if (chartHistoryMap != NULL) {
-        const std::vector<int32_t> tabIndices = chartHistoryMap->getKeys();
-        for (auto tabIndex : tabIndices) {
-            const SceneClass* sceneClass = chartHistoryMap->classValue(tabIndex);
-            CaretAssertVectorIndex(m_chartHistory, tabIndex);
-            m_chartHistory[tabIndex]->restoreFromScene(sceneAttributes,
-                                                       sceneClass);
+        const std::vector<int32_t> indices = chartHistoryMap->getKeys();
+        const int32_t numIndices = static_cast<int32_t>(indices.size());
+        for (int32_t i = 0; i < numIndices; i++) {
+            const SceneClass* historyClass = chartHistoryMap->classValue(i);
+            ChartTwoDataCartesian* historyItem = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
+                                                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            historyItem->restoreFromScene(sceneAttributes,
+                                          historyClass);
+            addHistoryItem(historyItem);
         }
     }
 
