@@ -21,40 +21,6 @@
  */
 /*LICENSE_END*/
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings in plain text mode (not "whole word only"):
-
-AlgorithmCiftiLabelProbability     : algorithm name, in CamelCase, with initial capital, same as what you saved the header file to
-ALGORITHM_CIFTI_LABEL_PROBABILITY    : uppercase of algorithm name, with underscore between words, used in #ifdef guards
-
-next, make AlgorithmCiftiLabelProbability.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiLabelProbability/g' > AlgorithmCiftiLabelProbability.cxx
-cat Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiLabelProbability/g' > Algorithms/AlgorithmCiftiLabelProbability.cxx
-cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiLabelProbability/g' > src/Algorithms/AlgorithmCiftiLabelProbability.cxx
-
-or manually copy and replace
-
-next, implement its functions - the algorithm work goes in the CONSTRUCTOR
-
-add these into Algorithms/CMakeLists.txt:
-
-AlgorithmCiftiLabelProbability.h
-AlgorithmCiftiLabelProbability.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "AlgorithmCiftiLabelProbability.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelProbability()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractAlgorithm.h"
 
 namespace caret {

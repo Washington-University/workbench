@@ -64,7 +64,7 @@ OperationParameters* AlgorithmSurfaceDistortion::getParameters()
     ret->createOptionalParameter(7, "-strain-method", "calculate distortion by the local affines between triangles");
     
     ret->setHelpText(
-        AString("This command, when not using -caret5-method or -edge-method, is equivalent to using -surface-vertex-areas on each surface, ") +
+        AString("This command, when not using -caret5-method, -edge-method, or -strain-method, is equivalent to using -surface-vertex-areas on each surface, ") +
         "smoothing both output metrics with the GEO_GAUSS_EQUAL method on the surface they came from if -smooth is specified, and then using the formula " +
         "'ln(distorted/reference)/ln(2)' on the smoothed results.\n\n" +
         "When using -caret5-method, it uses the surface distortion method from caret5, which takes the base 2 log of the ratio of tile areas, " +
