@@ -34,6 +34,16 @@ void NiftiIO::openRead(const QString& filename)
         throw DataFileException("file uses the binary datatype, which is unsupported: " + filename);
     }
     m_dims = m_header.getDimensions();
+    int64_t filesize = m_file.size();//returns -1 if it can't efficiently determine size
+    int64_t elemCount = getNumComponents();
+    for (int i = 0; i < (int)m_dims.size(); ++i)
+    {
+        elemCount *= m_dims[i];
+    }
+    if (filesize >= 0 && filesize < m_header.getDataOffset() + numBytesPerElem() * elemCount)
+    {
+        throw DataFileException("nifti file is truncated: " + filename);
+    }
 }
 
 void NiftiIO::writeNew(const QString& filename, const NiftiHeader& header, const int& version, const bool& withRead, const bool& swapEndian)

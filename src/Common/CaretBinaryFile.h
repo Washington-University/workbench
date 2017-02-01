@@ -55,6 +55,7 @@ namespace caret {
         int64_t pos();
         void read(void* dataOut, const int64_t& count, int64_t* numRead = NULL);//throw if numRead is NULL and (error or end of file reached early)
         void write(const void* dataIn, const int64_t& count);//failure to complete write is always an exception
+        int64_t size();//may return -1 if size cannot be determined efficiently
         class ImplInterface
         {
         protected:
@@ -65,6 +66,7 @@ namespace caret {
             const QString& getFilename() const { return m_fileName; }
             virtual void seek(const int64_t& position) = 0;
             virtual int64_t pos() = 0;
+            virtual int64_t size() = 0;
             virtual void read(void* dataOut, const int64_t& count, int64_t* numRead) = 0;
             virtual void write(const void* dataIn, const int64_t& count) = 0;
             virtual ~ImplInterface();
