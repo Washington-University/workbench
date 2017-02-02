@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "ChartTwoDataHistogram.h"
 #include "Histogram.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -78,6 +79,11 @@ m_histogramContentType(histogramContentType)
  */
 ChartableTwoFileHistogramChart::~ChartableTwoFileHistogramChart()
 {
+    for (auto mapHistoPair : m_indexHistogramsMap) {
+        delete mapHistoPair.second;
+    }
+    m_indexHistogramsMap.clear();
+    
     delete m_sceneAssistant;
 }
 
@@ -109,6 +115,39 @@ ChartableTwoFileHistogramChart::isEmpty() const
     return false;
 }
 
+/**
+ * Get the histogram chart for the given map index.
+ *
+ * @param mapIndex
+ *     Index for the map.
+ * @return 
+ *     Histogram for the map with the given index.  NULL if the file 
+ *     does not support a histogram.
+ */
+const ChartTwoDataHistogram*
+ChartableTwoFileHistogramChart::getMapHistogramChart(const int32_t mapIndex) const
+{
+    ChartTwoDataHistogram* histogramChartOut = NULL;
+    
+    std::map<int32_t, ChartTwoDataHistogram*>::iterator iter = m_indexHistogramsMap.find(mapIndex);
+    if (iter != m_indexHistogramsMap.end()) {
+        histogramChartOut = iter->second;
+    }
+    else {
+        histogramChartOut = new ChartTwoDataHistogram();
+        m_indexHistogramsMap.insert(std::make_pair(mapIndex,
+                                                   histogramChartOut));
+    }
+    
+    /*
+     * Update with histogram from the file even if it is NULL.
+     */
+    CaretMappableDataFile* mapFile = const_cast<CaretMappableDataFile*>(getCaretMappableDataFile());
+    CaretAssert(mapFile);
+    histogramChartOut->setHistogram(const_cast<Histogram*>(mapFile->getMapHistogram(mapIndex)));
+    
+    return histogramChartOut;
+}
 
 /**
  * Save subclass data to the scene.

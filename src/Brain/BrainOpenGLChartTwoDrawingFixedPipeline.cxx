@@ -29,6 +29,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "ChartTwoDataHistogram.h"
 #include "ChartTwoMatrixDisplayProperties.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
@@ -38,6 +39,7 @@
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "IdentificationWithColor.h"
+#include "MathFunctions.h"
 #include "ModelChartTwo.h"
 #include "SessionManager.h"
 #include "SelectionItemChartTwoHistogram.h"
@@ -127,6 +129,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     m_selectionItemLineSeries = m_brain->getSelectionManager()->getChartTwoLineSeriesIdentification();
     m_selectionItemMatrix     = m_brain->getSelectionManager()->getChartTwoMatrixIdentification();
 
+    bool drawHistogramFlag  = true;
+    bool drawLineSeriesFlag = true;
+    bool drawMatrixFlag     = true;
+    
     /*
      * Check for a 'selection' type mode
      */
@@ -135,9 +141,18 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (m_selectionItemHistogram->isEnabledForSelection()
-                || m_selectionItemLineSeries->isEnabledForSelection()
-                || m_selectionItemMatrix->isEnabledForSelection()) {
+            if ( ! m_selectionItemHistogram->isEnabledForSelection()) {
+                drawHistogramFlag = false;
+            }
+            if ( ! m_selectionItemLineSeries->isEnabledForSelection()) {
+                drawLineSeriesFlag = false;
+            }
+            if ( ! m_selectionItemMatrix->isEnabledForSelection()) {
+                drawMatrixFlag = false;
+            }
+            if (drawHistogramFlag
+                || drawLineSeriesFlag
+                || drawMatrixFlag) {
                 m_identificationModeFlag = true;
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
@@ -168,18 +183,22 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-                            drawHistogramChart();
+                            if (drawHistogramFlag) {
+                                drawHistogramChart();
+                            }
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                            if (drawLineSeriesFlag) {
+                                
+                            }
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                            drawMatrixChart();
+                            if (drawMatrixFlag) {
+                                drawMatrixChart();
+                            }
                             break;
                     }
                 }
-            }
-            for (int32_t iOverlay = (numberOfOverlays -1); iOverlay >= 0; iOverlay--) {
-                
             }
         }
     }
@@ -274,11 +293,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
 //                                           chartGraphicsDrawingViewport);
 //    }
     
-    glViewport(chartGraphicsDrawingViewport[0],
-               chartGraphicsDrawingViewport[1],
-               chartGraphicsDrawingViewport[2],
-               chartGraphicsDrawingViewport[3]);
-    
     
     const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
     CaretAssert(numberOfOverlays > 0);
@@ -289,11 +303,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
     /*
      * Get extent of histogram data
      */
-    CaretAssertToDoWarning(); // extent of all displayed histograms
     float xMin =   0.0;
-    float xMax = 100.0;
+    float xMax =   0.0;
     float yMin =   0.0;
-    float yMax = 100.0;
+    float yMax =   0.0;
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
         ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
         if ( ! chartOverlay->isEnabled()) {
@@ -311,14 +324,41 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         const ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
         const ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
         if (histogramChart->isValid()) {
+            const ChartTwoDataHistogram* histogramData = histogramChart->getMapHistogramChart(mapIndex);
+            float bounds[4];
+            if (histogramData->getBounds(bounds)) {
+                xMin = std::min(xMin, bounds[0]);
+                xMax = std::max(xMax, bounds[1]);
+                yMin = std::min(yMin, bounds[2]);
+                yMax = std::max(yMax, bounds[3]);
+            }
         }
     }
+    
+    /*
+     * Bounds valid?
+     */
+    if ((xMin >= xMax)
+        || (yMin >= yMax)) {
+        return;
+    }
+    
+//    std::cout << "All bounds: "
+//    << xMin << " "
+//    << xMax << " "
+//    << yMin << " "
+//    << yMax << " " << std::endl;
+    
+    glViewport(chartGraphicsDrawingViewport[0],
+               chartGraphicsDrawingViewport[1],
+               chartGraphicsDrawingViewport[2],
+               chartGraphicsDrawingViewport[3]);
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(xMin, xMax,
             yMin, yMax,
-            -1.0, 1.0);
+            -10.0, 10.0);
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -344,6 +384,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                      0.0);
     }
     
+    int32_t layerIndex = 0;
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
         ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
         if ( ! chartOverlay->isEnabled()) {
@@ -361,7 +402,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         const ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
         const ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
         if (histogramChart->isValid()) {
-            drawHistogramChartContent(histogramChart);
+            drawHistogramChartContent(histogramChart,
+                                      mapIndex);
+            layerIndex++;
         }
     }
 }
@@ -370,9 +413,346 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
  * Draw the given histogram chart.
  */
 void
-BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart)
+BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart,
+                                                                   const int32_t mapIndex)
 {
-    std::cout << "DRAW HISTOGRAM" << std::endl;
+    const ChartTwoDataHistogram* histogramData = histogramChart->getMapHistogramChart(mapIndex);
+    
+    if (m_identificationModeFlag) {
+        resetIdentification();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    
+//    m_identificationModeFlag = false;
+//    switch (m_fixedPipelineDrawing->mode) {
+//        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+//            break;
+//        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+//            if (m_selectionItemMatrix->isEnabledForSelection()) {
+//                m_identificationModeFlag = true;
+//                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//            }
+//            else {
+//                return;
+//            }
+//            break;
+//        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+//            return;
+//            break;
+//    }
+
+    float bounds[4];
+    if ( ! histogramData->getBounds(bounds)) {
+        return;
+    }
+    
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex3f(bounds[0], bounds[2], 0.0);
+    glVertex3f(bounds[1], bounds[3], 0.0);
+    glEnd();
+    
+    const std::vector<float> heightValues = histogramData->getHistogramValues();
+    const int32_t numValues = static_cast<int32_t>(heightValues.size());
+    if (numValues > 1) {
+        std::vector<float> quadVerticesXYZ;
+        std::vector<float> quadVerticesFloatRGBA;
+        std::vector<uint8_t> quadVerticesByteRGBA;
+        
+        switch (histogramData->getHistogramViewingType()) {
+            case ChartTwoHistogramViewingTypeEnum::HISTOGRAM_VIEWING_BARS:
+            {
+                /*
+                 * Reserve to prevent reszing of vectors 
+                 * as elements are added.
+                 */
+                const int32_t verticesPerBar = 4;
+                const int32_t totalVertices  = verticesPerBar * numValues;
+                quadVerticesXYZ.reserve(totalVertices * 3);
+                quadVerticesFloatRGBA.reserve(totalVertices * 4);
+                quadVerticesByteRGBA.reserve(totalVertices * 4);
+                
+                const float z = 0.;
+                
+                for (int32_t i = 0; i < numValues; i++) {
+                    float left   = i;
+                    float right  = i + 1;
+                    float bottom = 0;
+                    CaretAssertVectorIndex(heightValues, i);
+                    float top = heightValues[i];
+                    
+                    quadVerticesXYZ.push_back(left);
+                    quadVerticesXYZ.push_back(bottom);
+                    quadVerticesXYZ.push_back(z);
+                    quadVerticesXYZ.push_back(right);
+                    quadVerticesXYZ.push_back(bottom);
+                    quadVerticesXYZ.push_back(z);
+                    quadVerticesXYZ.push_back(right);
+                    quadVerticesXYZ.push_back(top);
+                    quadVerticesXYZ.push_back(z);
+                    quadVerticesXYZ.push_back(left);
+                    quadVerticesXYZ.push_back(top);
+                    quadVerticesXYZ.push_back(z);
+                    
+                    if (m_identificationModeFlag) {
+                        uint8_t idRGBA[4];
+                        addToHistogramIdentification(i, idRGBA);
+
+                        for (int32_t iRGB = 0; iRGB < verticesPerBar; iRGB++) {
+                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                        idRGBA, idRGBA + 4);
+                        }
+                    }
+                    else {
+                        float rgba[4] = { 1.0, 0.5, 0.0, 1.0 };
+                        for (int32_t iRGB = 0; iRGB < verticesPerBar; iRGB++) {
+                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                         rgba, rgba + 4);
+                        }
+                    }
+                    
+                }
+                
+                /*
+                 * Draw the bar elements.
+                 */
+                if (m_identificationModeFlag) {
+                    CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
+                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+                    glBegin(GL_QUADS);
+                    for (int32_t i = 0; i < numberQuadVertices; i++) {
+                        CaretAssertVectorIndex(quadVerticesByteRGBA, i*4 + 3);
+                        glColor4ubv(&quadVerticesByteRGBA[i*4]);
+                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+                        glVertex3fv(&quadVerticesXYZ[i*3]);
+                    }
+                    glEnd();
+                }
+                else {
+                    CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
+                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+                    glBegin(GL_QUADS);
+                    for (int32_t i = 0; i < numberQuadVertices; i++) {
+                        CaretAssertVectorIndex(quadVerticesFloatRGBA, i*4 + 3);
+                        glColor4fv(&quadVerticesFloatRGBA[i*4]);
+                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+                        glVertex3fv(&quadVerticesXYZ[i*3]);
+                    }
+                    glEnd();
+                }
+            }
+                break;
+            case ChartTwoHistogramViewingTypeEnum::HISTOGRAM_VIEWING_ENVELOPE:
+            {
+                /*
+                 * Reserve to prevent reszing of vectors
+                 * as elements are added.
+                 */
+                const int32_t verticesPerBar = 2;
+                const int32_t totalVertices  = verticesPerBar * numValues + 4;
+                quadVerticesXYZ.reserve(totalVertices * 3);
+                quadVerticesFloatRGBA.reserve(totalVertices * 4);
+                quadVerticesByteRGBA.reserve(totalVertices * 4);
+                
+                const float z = 0.0;
+                
+                const int32_t lastValueIndex = numValues - 1;
+                for (int32_t i = 0; i < numValues; i++) {
+                    float left   = i;
+                    float right  = i + 1;
+                    float bottom = 0;
+                    CaretAssertVectorIndex(heightValues, i);
+                    float top = heightValues[i];
+                    
+                    float rgba[4] = { 1.0, 0.5, 0.0, 1.0 };
+                    
+                    uint8_t idRGBA[4];
+                    if (m_identificationModeFlag) {
+                        addToHistogramIdentification(i, idRGBA);
+                    }
+                    
+                    if (i == 0) {
+                        /*
+                         * Left side of first bar
+                         */
+                        quadVerticesXYZ.push_back(left);
+                        quadVerticesXYZ.push_back(bottom);
+                        quadVerticesXYZ.push_back(z);
+                        if (m_identificationModeFlag) {
+                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                        idRGBA, idRGBA + 4);
+                        }
+                        else {
+                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                         rgba, rgba + 4);
+                        }
+                        quadVerticesXYZ.push_back(left);
+                        quadVerticesXYZ.push_back(top);
+                        quadVerticesXYZ.push_back(z);
+                        if (m_identificationModeFlag) {
+                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                        idRGBA, idRGBA + 4);
+                        }
+                        else {
+                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                         rgba, rgba + 4);
+                        }
+                    }
+                    else {
+                        if (top > heightValues[i - 1]) {
+                            /*
+                             * Line from previous bar that is lower in 
+                             * height than this bar
+                             */
+                            quadVerticesXYZ.push_back(left);
+                            quadVerticesXYZ.push_back(heightValues[i - 1]);
+                            quadVerticesXYZ.push_back(z);
+                            if (m_identificationModeFlag) {
+                                quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                            idRGBA, idRGBA + 4);
+                            }
+                            else {
+                                quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                             rgba, rgba + 4);
+                            }
+
+                            quadVerticesXYZ.push_back(left);
+                            quadVerticesXYZ.push_back(top);
+                            quadVerticesXYZ.push_back(z);
+                            if (m_identificationModeFlag) {
+                                quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                            idRGBA, idRGBA + 4);
+                            }
+                            else {
+                                quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                             rgba, rgba + 4);
+                            }
+                        }
+                    }
+                    
+                    /*
+                     * Draw line across top
+                     */
+                    quadVerticesXYZ.push_back(left);
+                    quadVerticesXYZ.push_back(top);
+                    quadVerticesXYZ.push_back(z);
+                    if (m_identificationModeFlag) {
+                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                    idRGBA, idRGBA + 4);
+                    }
+                    else {
+                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                     rgba, rgba + 4);
+                    }
+                    quadVerticesXYZ.push_back(right);
+                    quadVerticesXYZ.push_back(top);
+                    quadVerticesXYZ.push_back(z);
+                    if (m_identificationModeFlag) {
+                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                    idRGBA, idRGBA + 4);
+                    }
+                    else {
+                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                     rgba, rgba + 4);
+                    }
+
+                    if (i == lastValueIndex) {
+                        /*
+                         * Right side of last bar
+                         */
+                        quadVerticesXYZ.push_back(right);
+                        quadVerticesXYZ.push_back(top);
+                        quadVerticesXYZ.push_back(z);
+                        if (m_identificationModeFlag) {
+                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                        idRGBA, idRGBA + 4);
+                        }
+                        else {
+                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                         rgba, rgba + 4);
+                        }
+                        quadVerticesXYZ.push_back(right);
+                        quadVerticesXYZ.push_back(bottom);
+                        quadVerticesXYZ.push_back(z);
+                        if (m_identificationModeFlag) {
+                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                        idRGBA, idRGBA + 4);
+                        }
+                        else {
+                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                         rgba, rgba + 4);
+                        }
+                    }
+                    else {
+                        if (top > heightValues[i + 1]) {
+                            /*
+                             * Line from bar down to next bar
+                             * with a lower height
+                             */
+                            quadVerticesXYZ.push_back(right);
+                            quadVerticesXYZ.push_back(top);
+                            quadVerticesXYZ.push_back(z);
+                            if (m_identificationModeFlag) {
+                                quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                            idRGBA, idRGBA + 4);
+                            }
+                            else {
+                                quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                             rgba, rgba + 4);
+                            }
+                            quadVerticesXYZ.push_back(right);
+                            quadVerticesXYZ.push_back(heightValues[i + 1]);
+                            quadVerticesXYZ.push_back(z);
+                            if (m_identificationModeFlag) {
+                                quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                            idRGBA, idRGBA + 4);
+                            }
+                            else {
+                                quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                             rgba, rgba + 4);
+                            }
+                        }
+                    }
+                }
+                
+                /*
+                 * Draw the line elements.
+                 */
+                if (m_identificationModeFlag) {
+                    CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
+                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+                    m_fixedPipelineDrawing->setLineWidth(5);
+                    glBegin(GL_LINES);
+                    for (int32_t i = 0; i < numberQuadVertices; i++) {
+                        CaretAssertVectorIndex(quadVerticesByteRGBA, i*4 + 3);
+                        glColor4ubv(&quadVerticesByteRGBA[i*4]);
+                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+                        glVertex3fv(&quadVerticesXYZ[i*3]);
+                    }
+                    glEnd();
+                }
+                else {
+                    m_fixedPipelineDrawing->setLineWidth(2);
+                    CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
+                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+                    glBegin(GL_LINES);
+                    for (int32_t i = 0; i < numberQuadVertices; i++) {
+                        CaretAssertVectorIndex(quadVerticesFloatRGBA, i*4 + 3);
+                        glColor4fv(&quadVerticesFloatRGBA[i*4]);
+                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+                        glVertex3fv(&quadVerticesXYZ[i*3]);
+                    }
+                    glEnd();
+                }
+            }
+                break;
+        }
+        
+    }
+    
+    if (m_identificationModeFlag) {
+        processHistogramIdentification(histogramChart);
+    }
 }
 
 
@@ -584,23 +964,28 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                              const float cellHeight,
                                                              const float zooming)
 {
-    m_identificationModeFlag = false;
-    switch (m_fixedPipelineDrawing->mode) {
-        case BrainOpenGLFixedPipeline::MODE_DRAWING:
-            break;
-        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (m_selectionItemMatrix->isEnabledForSelection()) {
-                m_identificationModeFlag = true;
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            }
-            else {
-                return;
-            }
-            break;
-        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
-            return;
-            break;
+    if (m_identificationModeFlag) {
+        resetIdentification();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
+    
+//    m_identificationModeFlag = false;
+//    switch (m_fixedPipelineDrawing->mode) {
+//        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+//            break;
+//        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+//            if (m_selectionItemMatrix->isEnabledForSelection()) {
+//                m_identificationModeFlag = true;
+//                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//            }
+//            else {
+//                return;
+//            }
+//            break;
+//        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+//            return;
+//            break;
+//    }
     
     int32_t numberOfRows = 0;
     int32_t numberOfColumns = 0;
@@ -1097,36 +1482,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::saveStateOfOpenGL()
 }
 
 /**
- * Add an item for matrix identification.
- *
- * @param matrixRowIndex
- *     Index of the row
- * @param matrixColumnIndex
- *     Index of the column
- * @param rgbaForColorIdentificationOut
- *    Encoded identification in RGBA color OUTPUT
- */
-void
-BrainOpenGLChartTwoDrawingFixedPipeline::addToChartMatrixIdentification(const int32_t matrixRowIndex,
-                                                                     const int32_t matrixColumnIndex,
-                                                                     uint8_t rgbaForColorIdentificationOut[4])
-{
-    const int32_t idIndex = m_identificationIndices.size() / IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT;
-    
-    m_fixedPipelineDrawing->colorIdentification->addItem(rgbaForColorIdentificationOut,
-                                                         m_selectionItemDataType,
-                                                         idIndex);
-    rgbaForColorIdentificationOut[3] = 255;
-    
-    /*
-     * If these items change, need to update reset and
-     * processing of identification.
-     */
-    m_identificationIndices.push_back(matrixRowIndex);
-    m_identificationIndices.push_back(matrixColumnIndex);
-}
-
-/**
  * Restore the state of OpenGL.
  * Copied from Qt's qgl.cpp, qt_restore_gl_state().
  */
@@ -1157,6 +1512,31 @@ BrainOpenGLChartTwoDrawingFixedPipeline::resetIdentification()
         m_identificationIndices.reserve(estimatedNumberOfItems);
     }
 }
+/**
+ * Add an item for matrix identification.
+ *
+ * @param barIndex
+ *     Index of the histogram bar.
+ * @param rgbaForColorIdentificationOut
+ *    Encoded identification in RGBA color OUTPUT
+ */
+void
+BrainOpenGLChartTwoDrawingFixedPipeline::addToHistogramIdentification(const int barIndex,
+                                                                      uint8_t rgbaForColorIdentificationOut[4])
+{
+    const int32_t idIndex = m_identificationIndices.size() / IDENTIFICATION_INDICES_PER_HISTOGRAM;
+    
+    m_fixedPipelineDrawing->colorIdentification->addItem(rgbaForColorIdentificationOut,
+                                                         m_selectionItemDataType,
+                                                         idIndex);
+    rgbaForColorIdentificationOut[3] = 255;
+    
+    /*
+     * If these items change, need to update reset and
+     * processing of identification.
+     */
+    m_identificationIndices.push_back(barIndex);
+}
 
 /**
  * Process identification for histogram.
@@ -1167,7 +1547,24 @@ BrainOpenGLChartTwoDrawingFixedPipeline::resetIdentification()
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::processHistogramIdentification(const ChartableTwoFileHistogramChart* histogramChart)
 {
-    
+    if (histogramChart != NULL) {
+        int32_t identifiedItemIndex;
+        float depth = -1.0;
+        m_fixedPipelineDrawing->getIndexFromColorSelection(m_selectionItemDataType,
+                                                           m_fixedPipelineDrawing->mouseX,
+                                                           m_fixedPipelineDrawing->mouseY,
+                                                           identifiedItemIndex,
+                                                           depth);
+        if (identifiedItemIndex >= 0) {
+            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_HISTOGRAM;
+            const int32_t barIndex = m_identificationIndices[idIndex];
+            
+            if (m_selectionItemHistogram->isOtherScreenDepthCloserToViewer(depth)) {
+                m_selectionItemHistogram->setHistogramChart(const_cast<ChartableTwoFileHistogramChart*>(histogramChart),
+                                                            barIndex);
+            }
+        }
+    }
 }
 
 /**
@@ -1282,6 +1679,36 @@ BrainOpenGLChartTwoDrawingFixedPipeline::processLineSeriesIdentification(const C
 }
 
 /**
+ * Add an item for matrix identification.
+ *
+ * @param matrixRowIndex
+ *     Index of the row
+ * @param matrixColumnIndex
+ *     Index of the column
+ * @param rgbaForColorIdentificationOut
+ *    Encoded identification in RGBA color OUTPUT
+ */
+void
+BrainOpenGLChartTwoDrawingFixedPipeline::addToChartMatrixIdentification(const int32_t matrixRowIndex,
+                                                                        const int32_t matrixColumnIndex,
+                                                                        uint8_t rgbaForColorIdentificationOut[4])
+{
+    const int32_t idIndex = m_identificationIndices.size() / IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT;
+    
+    m_fixedPipelineDrawing->colorIdentification->addItem(rgbaForColorIdentificationOut,
+                                                         m_selectionItemDataType,
+                                                         idIndex);
+    rgbaForColorIdentificationOut[3] = 255;
+    
+    /*
+     * If these items change, need to update reset and
+     * processing of identification.
+     */
+    m_identificationIndices.push_back(matrixRowIndex);
+    m_identificationIndices.push_back(matrixColumnIndex);
+}
+
+/**
  * Process identification for matrix.
  *
  * @param matrixChart
@@ -1310,6 +1737,5 @@ BrainOpenGLChartTwoDrawingFixedPipeline::processMatrixIdentification(const Chart
             }
         }
     }
-    
 }
 

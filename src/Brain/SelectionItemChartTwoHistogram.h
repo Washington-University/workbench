@@ -28,6 +28,8 @@
 
 namespace caret {
 
+    class ChartableTwoFileHistogramChart;
+    
     class SelectionItemChartTwoHistogram : public SelectionItem {
         
     public:
@@ -43,12 +45,22 @@ namespace caret {
         
         virtual void reset() override;
         
+        ChartableTwoFileHistogramChart* getFileHistogramChart() const;
+        
+        int32_t getBarIndex() const;
+        
+        void setHistogramChart(ChartableTwoFileHistogramChart* fileHistogramChart,
+                               const int32_t barIndex);
 
         // ADD_NEW_METHODS_HERE
 
     private:
         void copyHelperSelectionItemChartTwoHistogram(const SelectionItemChartTwoHistogram& obj);
 
+        ChartableTwoFileHistogramChart* m_fileHistogramChart;
+        
+        int32_t m_barIndex;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

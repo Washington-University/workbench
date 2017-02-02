@@ -800,6 +800,22 @@ IdentificationTextGenerator::generateChartTwoHistogramIdentificationText(Identif
                                                  const SelectionItemChartTwoHistogram* idChartTwoHistogram) const
 {
     CaretAssertToDoWarning();
+    if (idChartTwoHistogram->isValid()) {
+        const ChartableTwoFileHistogramChart* fileHistogramChart = idChartTwoHistogram->getFileHistogramChart();
+        const int32_t barIndex = idChartTwoHistogram->getBarIndex();
+        
+        const CaretMappableDataFile* mapFile = fileHistogramChart->getCaretMappableDataFile();
+        CaretAssert(mapFile);
+        
+        AString boldText("Histogram");
+        idText.addLine(false,
+                       boldText,
+                       mapFile->getFileNameNoPath());
+        
+        idText.addLine(true,
+                       "Bar Index",
+                       (AString::number(barIndex)));
+    }
 }
 
 /**

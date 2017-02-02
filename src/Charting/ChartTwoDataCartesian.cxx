@@ -60,6 +60,19 @@ m_dataAxisUnitsX(dataAxisUnitsX),
 m_dataAxisUnitsY(dataAxisUnitsY)
 {
     initializeMembersChartTwoDataCartesian();
+    
+    switch (getChartTwoDataType()) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            CaretAssert(0);
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            CaretAssert(0);
+            break;
+    }
 }
 
 /**

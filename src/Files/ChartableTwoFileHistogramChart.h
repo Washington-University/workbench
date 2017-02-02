@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 
 #include "ChartableTwoFileBaseChart.h"
 #include "ChartTwoHistogramContentTypeEnum.h"
@@ -28,6 +29,8 @@
 
 namespace caret {
 
+    class ChartTwoDataHistogram;
+    
     class ChartableTwoFileHistogramChart : public ChartableTwoFileBaseChart {
         
     public:
@@ -42,12 +45,9 @@ namespace caret {
         
         virtual bool isEmpty() const override;
         
+        const ChartTwoDataHistogram* getMapHistogramChart(const int32_t mapIndex) const;
+        
         // ADD_NEW_METHODS_HERE
-
-          
-          
-          
-          
           
     protected: 
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
@@ -64,6 +64,8 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
 
         const ChartTwoHistogramContentTypeEnum::Enum m_histogramContentType;
+        
+        mutable std::map<int32_t, ChartTwoDataHistogram*> m_indexHistogramsMap;
         
         // ADD_NEW_MEMBERS_HERE
 

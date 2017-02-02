@@ -885,9 +885,9 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     tabIndex = loadIntoTab(tabIndex,
                            wholeBrainModel);
     tabIndex = loadIntoTab(tabIndex,
-                           chartModel);
-    tabIndex = loadIntoTab(tabIndex,
                            chartTwoModel);
+    tabIndex = loadIntoTab(tabIndex,
+                           chartModel);
     tabIndex = loadIntoTab(tabIndex,
                            leftSurfaceModel);
     tabIndex = loadIntoTab(tabIndex,

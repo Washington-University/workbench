@@ -28,6 +28,7 @@
 namespace caret {
 
     class CaretPreferences;
+    class ChartTwoDataHistogram;
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
@@ -89,15 +90,18 @@ namespace caret {
         
         void resetIdentification();
         
+        void addToHistogramIdentification(const int barIndex,
+                                          uint8_t rgbaForColorIdentificationOut[4]);
+        
         void processHistogramIdentification(const ChartableTwoFileHistogramChart* histogramChart);
         
         void processLineSeriesIdentification(const ChartableTwoFileLineSeriesChart* lineSeriesChart);
         
-        void processMatrixIdentification(const ChartableTwoFileMatrixChart* matrixChart);
-        
         void addToChartMatrixIdentification(const int32_t matrixRowIndex,
                                             const int32_t matrixColumnIndex,
-                                            uint8_t rgbaForColorIdentification[4]);
+                                            uint8_t rgbaForColorIdentificationOut[4]);
+        void processMatrixIdentification(const ChartableTwoFileMatrixChart* matrixChart);
+        
         void drawMatrixChart();
         
         void drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
@@ -108,7 +112,8 @@ namespace caret {
         
         void drawHistogramChart();
         
-        void drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart);
+        void drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart,
+                                       const int32_t mapIndex);
 
 //        void getMatrixHighlighting(const ChartableTwoFileMatrixChart* matrixChart,
 //                                   std::set<int32_t>& rowIndicesOut,
@@ -146,6 +151,7 @@ namespace caret {
 
         bool m_identificationModeFlag;
         
+        static const int32_t IDENTIFICATION_INDICES_PER_HISTOGRAM      = 1;
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT = 2;
         

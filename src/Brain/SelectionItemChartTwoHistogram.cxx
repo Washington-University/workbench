@@ -40,7 +40,8 @@ using namespace caret;
 SelectionItemChartTwoHistogram::SelectionItemChartTwoHistogram()
 : SelectionItem(SelectionItemDataTypeEnum::CHART_TWO_HISTOGRAM)
 {
-    
+    m_fileHistogramChart = NULL;
+    m_barIndex = -1;
 }
 
 /**
@@ -86,7 +87,28 @@ SelectionItemChartTwoHistogram::operator=(const SelectionItemChartTwoHistogram& 
 void 
 SelectionItemChartTwoHistogram::copyHelperSelectionItemChartTwoHistogram(const SelectionItemChartTwoHistogram& obj)
 {
-    
+    m_fileHistogramChart = obj.m_fileHistogramChart;
+    m_barIndex = obj.m_barIndex;
+}
+
+ChartableTwoFileHistogramChart*
+SelectionItemChartTwoHistogram::getFileHistogramChart() const
+{
+    return m_fileHistogramChart;
+}
+
+int32_t
+SelectionItemChartTwoHistogram::getBarIndex() const
+{
+    return m_barIndex;
+}
+
+void
+SelectionItemChartTwoHistogram::setHistogramChart(ChartableTwoFileHistogramChart* fileHistogramChart,
+                       const int32_t barIndex)
+{
+    m_fileHistogramChart = fileHistogramChart;
+    m_barIndex = barIndex;
 }
 
 /**
@@ -95,6 +117,11 @@ SelectionItemChartTwoHistogram::copyHelperSelectionItemChartTwoHistogram(const S
 bool
 SelectionItemChartTwoHistogram::isValid() const
 {
+    if ((m_fileHistogramChart != NULL)
+        && (m_barIndex >= 0)) {
+        return true;
+    }
+    
     return false;
 }
 
@@ -104,6 +131,8 @@ SelectionItemChartTwoHistogram::isValid() const
 void
 SelectionItemChartTwoHistogram::reset()
 {
+    m_fileHistogramChart = NULL;
+    m_barIndex = -1;
 }
 
 

@@ -679,7 +679,7 @@ ModelChart::receiveEvent(Event* event)
 AString
 ModelChart::getNameForGUI(const bool /*includeStructureFlag*/) const
 {
-    AString name = "Chart";
+    AString name = "ChartOld";
     return name;
 }
 
@@ -690,7 +690,7 @@ ModelChart::getNameForGUI(const bool /*includeStructureFlag*/) const
 AString 
 ModelChart::getNameForBrowserTab() const
 {
-    AString name = "Chart";
+    AString name = "ChartOld";
     return name;
 }
 
