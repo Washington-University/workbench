@@ -32,6 +32,7 @@ namespace caret {
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
+    class HistogramDrawingInfo;
     class SelectionItemChartTwoHistogram;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
@@ -115,6 +116,14 @@ namespace caret {
         void drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart,
                                        const int32_t mapIndex);
 
+        void drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart,
+                                       const int32_t mapIndex,
+                                       const HistogramDrawingInfo& histogramDrawingInfo);
+        
+        void colorHistogramWithPalette(const ChartableTwoFileHistogramChart* histogramChart,
+                                       const int32_t mapIndex,
+                                       std::vector<float>& rgbaOut);
+        
 //        void getMatrixHighlighting(const ChartableTwoFileMatrixChart* matrixChart,
 //                                   std::set<int32_t>& rowIndicesOut,
 //                                   std::set<int32_t>& columnIndicesOut) const;

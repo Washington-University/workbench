@@ -38,6 +38,7 @@ namespace caret {
     class GiftiMetaData;
     class GiftiLabelTable;
     class Histogram;
+    class HistogramDrawingInfo;
     class LabelDrawingProperties;
     class PaletteColorMapping;
     class PaletteFile;
@@ -271,6 +272,12 @@ namespace caret {
          *    not mapped using a palette).
          */
         virtual const FastStatistics* getFileFastStatistics() = 0;
+        
+        bool getMapHistogramDrawingInfo(const int32_t mapIndex,
+                                        const bool addEndPointForQwtFlag,
+                                        HistogramDrawingInfo& histogramDrawingInfoOut,
+                                        AString& errorMessageOut);
+        
         /**
          * Get histogram describing the distribution of data
          * mapped with a color palette for all data within

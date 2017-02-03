@@ -31,12 +31,16 @@
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
+#include "EventManager.h"
+#include "EventPaletteGetByName.h"
 #include "FastStatistics.h"
 #include "FileInformation.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "Histogram.h"
+#include "HistogramDrawingInfo.h"
 #include "LabelDrawingProperties.h"
+#include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -794,6 +798,131 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
         }
     }
 }
+
+/**
+ * Get the histogram bounds, heights, and RGBA coloring.
+ *
+ * @param mapIndex
+ *     Index of map.
+ * @param addEndPointForQwtFlag
+ *     If true, add point at end for drawing with Qwt.
+ * @param histogramDrawingInfoOut
+ *     Output containing histogram drawing information.
+ * @return
+ *     True if output data is valid, else false.
+ */
+bool
+CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
+                                               const bool addEndPointForQwtFlag,
+                                               HistogramDrawingInfo& histogramDrawingInfoOut,
+                                               AString& errorMessageOut) 
+{
+    errorMessageOut.clear();
+    histogramDrawingInfoOut.reset();
+    
+    if ( ! isMappedWithPalette()) {
+        errorMessageOut = "File is not mapped with palette!";
+        return false;
+    }
+    if ((mapIndex < 0)
+        || (mapIndex >= getNumberOfMaps())) {
+        CaretAssertMessage(0, "Invalid map index.");
+        errorMessageOut = "Invalid map index.";
+        return false;
+    }
+    
+    PaletteColorMapping* paletteColorMapping = getMapPaletteColorMapping(mapIndex);
+    CaretAssert(paletteColorMapping);
+    
+    EventPaletteGetByName paletteEvent(paletteColorMapping->getSelectedPaletteName());
+    EventManager::get()->sendEvent(paletteEvent.getPointer());
+    const Palette* palette = paletteEvent.getPalette();
+    if (palette == NULL) {
+        errorMessageOut = ("Unable to find palette named: "
+                           + paletteColorMapping->getSelectedPaletteName());
+        return false;
+    }
+    
+    const Histogram* histogram = getMapHistogram(mapIndex);
+    CaretAssert(histogram);
+    
+    FastStatistics* statistics = NULL;
+    switch (getPaletteNormalizationMode()) {
+        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+            statistics = const_cast<FastStatistics*>(getFileFastStatistics());
+            break;
+        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+            statistics = const_cast<FastStatistics*>(getMapFastStatistics(mapIndex));
+            break;
+    }
+    CaretAssert(statistics);
+    
+    float minValue = 0.0;
+    float maxValue = 0.0;
+    histogram->getRange(minValue,
+                        maxValue);
+    const float valueRange = maxValue - minValue;
+    if (valueRange <= 0.0) {
+        errorMessageOut = "Range of histogram values is zero";
+        return false;
+    }
+    
+    if ((paletteColorMapping != NULL)
+        && (statistics != NULL)
+        && (palette != NULL)
+        && (histogram != NULL)) {
+        std::vector<float> histogramBuckets = histogram->getHistogramDisplay();
+        const int32_t numBucketValues = static_cast<int32_t>(histogramBuckets.size());
+        if (numBucketValues < 2) {
+            errorMessageOut = "Histogram must contain two or more values";
+            return false;
+        }
+        
+        const int32_t numberOfDataPoints = (addEndPointForQwtFlag
+                                         ? (numBucketValues + 1)
+                                         : numBucketValues);
+        
+        histogramDrawingInfoOut.initialize(numberOfDataPoints);
+        
+        if (addEndPointForQwtFlag) {
+            /*
+             * Duplicate last point for Qwt or else Qwt may not draw correctly
+             */
+            histogramBuckets.push_back(histogramBuckets[histogramBuckets.size() - 1]);
+        }
+        histogramDrawingInfoOut.m_dataY = histogramBuckets;
+        
+        const float step = ((valueRange)
+                            / static_cast<float>(numberOfDataPoints));
+    
+        for (int64_t ix = 0; ix < numberOfDataPoints; ix++) {
+            const float value = (minValue
+                                 + (ix * step));
+            CaretAssertVectorIndex(histogramDrawingInfoOut.m_dataX, ix);
+            histogramDrawingInfoOut.m_dataX[ix] = value;
+        }
+        histogramDrawingInfoOut.m_dataX[0] = minValue;
+        histogramDrawingInfoOut.m_dataX[numberOfDataPoints - 1] = maxValue;
+        
+        const float* xValuesArray = &histogramDrawingInfoOut.m_dataX[0];
+        float* dataRGBA = &histogramDrawingInfoOut.m_dataRGBA[0];
+        
+        NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+                                                      paletteColorMapping,
+                                                      palette,
+                                                      xValuesArray,
+                                                      xValuesArray,
+                                                      numberOfDataPoints,
+                                                      dataRGBA,
+                                                      true); // ignore thresholding
+        
+        CaretAssert(histogramDrawingInfoOut.isValid());
+        return histogramDrawingInfoOut.isValid();
+    }
+    
+    return false;
+}
+
 
 /**
  * @return True if any of the maps in this file contain a
