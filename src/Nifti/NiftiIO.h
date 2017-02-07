@@ -49,6 +49,8 @@ namespace caret
         void convertRead(TO* out, FROM* in, const int64_t& count);//for reading from file
         template<typename TO, typename FROM>
         void convertWrite(TO* out, const FROM* in, const int64_t& count);//for writing to file
+        template<typename TO, typename FROM>
+        static TO clamp(const FROM& in);//deal with integer cast being undefined when converting from outside range
     public:
         void openRead(const QString& filename);
         void writeNew(const QString& filename, const NiftiHeader& header, const int& version = 1, const bool& withRead = false, const bool& swapEndian = false);
@@ -223,12 +225,12 @@ namespace caret
             {
                 for (int64_t i = 0; i < count; ++i)
                 {
-                    out[i] = (TO)floor(0.5 + offset + mult * (long double)in[i]);//we don't always need that much precision, but it will still be faster than hard drives
+                    out[i] = clamp<TO, long double>(floor(0.5l + offset + mult * (long double)in[i]));//we don't always need that much precision, but it will still be faster than hard drives
                 }
             } else {
                 for (int64_t i = 0; i < count; ++i)
                 {
-                    out[i] = (TO)floor(0.5 + in[i]);
+                    out[i] = clamp<TO, double>(floor(0.5 + in[i]));
                 }
             }
         } else {
@@ -253,17 +255,17 @@ namespace caret
         double mult, offset;
         bool doScale = m_header.getDataScaling(mult, offset);
         if (std::numeric_limits<TO>::is_integer)//do round to nearest when integer output type
-        {
+        {//TODO: what about NaN?
             if (doScale)
             {
                 for (int64_t i = 0; i < count; ++i)
                 {
-                    out[i] = (TO)floor(0.5 + ((long double)in[i] - offset) / mult);//we don't always need that much precision, but it will still be faster than hard drives
+                    out[i] = clamp<TO, long double>(floor(0.5l + ((long double)in[i] - offset) / mult));//we don't always need that much precision, but it will still be faster than hard drives
                 }
             } else {
                 for (int64_t i = 0; i < count; ++i)
                 {
-                    out[i] = (TO)floor(0.5 + in[i]);
+                    out[i] = clamp<TO, double>(floor(0.5 + in[i]));
                 }
             }
         } else {
@@ -283,6 +285,19 @@ namespace caret
         if (m_header.isSwapped()) ByteSwapping::swapArray(out, count);
     }
     
+    template<typename TO, typename FROM>
+    TO NiftiIO::clamp(const FROM& in)
+    {
+        std::numeric_limits<TO> mylimits;
+        if (mylimits.max() < in) return mylimits.max();
+        if (mylimits.is_integer)//c++11 can use lowest() instead of this mess
+        {
+            if (mylimits.min() > in) return mylimits.min();
+        } else {
+            if (-mylimits.max() > in) return -mylimits.max();
+        }
+        return (TO)in;
+    }
 }
 
 #endif //__NIFTI_IO_H__

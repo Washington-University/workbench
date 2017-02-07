@@ -42,7 +42,8 @@ namespace
         CiftiXML m_xml;//because we need to parse it to set up the dimensions anyway
     public:
         CiftiOnDiskImpl(const QString& filename);//read-only
-        CiftiOnDiskImpl(const QString& filename, const CiftiXML& xml, const CiftiVersion& version, const bool& swapEndian);//make new empty file with read/write
+        CiftiOnDiskImpl(const QString& filename, const CiftiXML& xml, const CiftiVersion& version, const bool& swapEndian,
+                        const int16_t& datatype, const bool& rescale, const double& minval, const double& maxval);//make new empty file with read/write
         void getRow(float* dataOut, const std::vector<int64_t>& indexSelect, const bool& tolerateShortRead) const;
         void getColumn(float* dataOut, const int64_t& index) const;
         const CiftiXML& getCiftiXML() const { return m_xml; }
@@ -108,6 +109,7 @@ CiftiFile::WriteImplInterface::~WriteImplInterface()
 CiftiFile::CiftiFile(const QString& fileName)
 {
     m_endianPref = NATIVE;
+    setWritingDataTypeNoScaling();//default argument is float32
     openFile(fileName);
 }
 
@@ -157,6 +159,24 @@ void CiftiFile::setWritingFile(const QString& fileName, const CiftiVersion& writ
     m_endianPref = endian;
 }
 
+void CiftiFile::setWritingDataTypeNoScaling(const int16_t& type)
+{
+    m_writingDataType = type;//could do some validation here
+    m_doWriteScaling = false;
+    m_minScalingVal = -1.0;
+    m_maxScalingVal = 1.0;
+    m_writingImpl.grabNew(NULL);//prevent writing to previous writing implementation, let the next set...() set up for writing
+}
+
+void CiftiFile::setWritingDataTypeAndScaling(const int16_t& type, const double& minval, const double& maxval)
+{
+    m_writingDataType = type;//could do some validation here
+    m_doWriteScaling = true;
+    m_minScalingVal = minval;
+    m_maxScalingVal = maxval;
+    m_writingImpl.grabNew(NULL);//prevent writing to previous writing implementation, let the next set...() set up for writing
+}
+
 void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVersion, const ENDIAN& endian)
 {
     if (m_readingImpl == NULL || m_dims.empty()) throw DataFileException("writeFile called on uninitialized CiftiFile");
@@ -174,7 +194,8 @@ void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVe
         m_readingImpl = tempMemory;//we are about to make the old reading impl very unhappy, replace it so that if we get an error while writing, we hang onto the memory version
         m_writingImpl.grabNew(NULL);//and make it re-magic the writing implementation again if data is set
     }
-    CaretPointer<WriteImplInterface> tempWrite(new CiftiOnDiskImpl(myInfo.getAbsoluteFilePath(), m_xml, writingVersion, writeSwapped));
+    CaretPointer<WriteImplInterface> tempWrite(new CiftiOnDiskImpl(myInfo.getAbsoluteFilePath(), m_xml, writingVersion, writeSwapped,
+                                                                   m_writingDataType, m_doWriteScaling, m_minScalingVal, m_maxScalingVal));
     copyImplData(m_readingImpl, tempWrite, m_dims);
     if (collision)//if we rewrote the file, we need the handle to the new file, and to dump the temporary in-memory version
     {
@@ -352,7 +373,8 @@ void CiftiFile::verifyWriteImpl()
                 }
             }
         }
-        m_writingImpl.grabNew(new CiftiOnDiskImpl(m_writingFile, m_xml, m_onDiskVersion, shouldSwap(m_endianPref)));//this constructor makes new file for writing
+        m_writingImpl.grabNew(new CiftiOnDiskImpl(m_writingFile, m_xml, m_onDiskVersion, shouldSwap(m_endianPref),
+                                                  m_writingDataType, m_doWriteScaling, m_minScalingVal, m_maxScalingVal));//this constructor makes new file for writing
         if (m_readingImpl != NULL)
         {
             copyImplData(m_readingImpl, m_writingImpl, m_dims);
@@ -570,11 +592,17 @@ namespace
     }
 }
 
-CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename, const CiftiXML& xml, const CiftiVersion& version, const bool& swapEndian)
+CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename, const CiftiXML& xml, const CiftiVersion& version, const bool& swapEndian,
+                                 const int16_t& datatype, const bool& rescale, const double& minval, const double& maxval)
 {//starts writing new file
     warnForBadExtension(filename, xml);
     NiftiHeader outHeader;
-    outHeader.setDataType(NIFTI_TYPE_FLOAT32);//actually redundant currently, default is float32
+    if (rescale)
+    {
+        outHeader.setDataTypeAndScaleRange(datatype, minval, maxval);
+    } else {
+        outHeader.setDataType(datatype);
+    }
     char intentName[16];
     int32_t intentCode = xml.getIntentInfo(version, intentName);
     outHeader.setIntent(intentCode, intentName);

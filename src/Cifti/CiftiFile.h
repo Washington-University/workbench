@@ -26,6 +26,7 @@
 #include "CiftiXML.h"
 #include "CiftiXMLOld.h"
 #include "MultiDimIterator.h"
+#include "nifti1.h"
 
 #include <QString>
 
@@ -45,7 +46,11 @@ namespace caret
             BIG
         };
 
-        CiftiFile() { m_endianPref = NATIVE; }
+        CiftiFile()
+        {
+            m_endianPref = NATIVE;
+            setWritingDataTypeNoScaling();//default argument is float32
+        }
         explicit CiftiFile(const QString &fileName);//calls openFile
         void openFile(const QString& fileName);//starts on-disk reading
         void openURL(const QString& url, const QString& user, const QString& pass);//open from XNAT
@@ -68,6 +73,10 @@ namespace caret
         void setCiftiXML(const CiftiXMLOld &xml, const bool useOldMetadata = true);//set xml from old implementation
         void setRow(const float* dataIn, const std::vector<int64_t>& indexSelect);
         void setColumn(const float* dataIn, const int64_t& index);//for 2D only, will be slow if on disk!
+        
+        ///data type and scaling options - should be set before setRow, etc, to avoid rewriting of file
+        void setWritingDataTypeNoScaling(const int16_t& type = NIFTI_TYPE_FLOAT32);
+        void setWritingDataTypeAndScaling(const int16_t& type, const double& minval, const double& maxval);
         
         void getRow(float* dataOut, const int64_t& index, const bool& tolerateShortRead) const;//backwards compatibility for old CiftiFile/CiftiInterface
         void getRow(float* dataOut, const int64_t& index) const;
@@ -100,6 +109,9 @@ namespace caret
         //CiftiXML m_xml;//uncomment when we drop CiftiInterface
         CiftiVersion m_onDiskVersion;
         ENDIAN m_endianPref;
+        bool m_doWriteScaling;
+        int16_t m_writingDataType;
+        double m_minScalingVal, m_maxScalingVal;
         
         void verifyWriteImpl();
         static void copyImplData(const ReadImplInterface* from, WriteImplInterface* to, const std::vector<int64_t>& dims);

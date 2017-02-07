@@ -71,33 +71,7 @@ void NiftiIO::close()
 
 int NiftiIO::getNumComponents() const
 {
-    switch (m_header.getDataType())
-    {
-        case NIFTI_TYPE_RGB24:
-            return 3;
-            break;
-        case NIFTI_TYPE_COMPLEX64:
-        case NIFTI_TYPE_COMPLEX128:
-        case NIFTI_TYPE_COMPLEX256:
-            return 2;
-            break;
-        case NIFTI_TYPE_INT8:
-        case NIFTI_TYPE_UINT8:
-        case NIFTI_TYPE_INT16:
-        case NIFTI_TYPE_UINT16:
-        case NIFTI_TYPE_INT32:
-        case NIFTI_TYPE_UINT32:
-        case NIFTI_TYPE_FLOAT32:
-        case NIFTI_TYPE_INT64:
-        case NIFTI_TYPE_UINT64:
-        case NIFTI_TYPE_FLOAT64:
-        case NIFTI_TYPE_FLOAT128:
-            return 1;
-            break;
-        default:
-            CaretAssert(0);
-            throw DataFileException("internal error, report what you did to the developers");
-    }
+    return m_header.getNumComponents();
 }
 
 int NiftiIO::numBytesPerElem()
