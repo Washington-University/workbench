@@ -217,7 +217,7 @@ AlgorithmLabelToVolumeMapping::AlgorithmLabelToVolumeMapping(ProgressObject* myP
     int numCols = myLabel->getNumberOfColumns();
     myVolOut->reinitialize(myVolSpace, numCols, 1, SubvolumeAttributes::LABEL);
     vector<vector<VoxelWeight> > forwardWeights;
-    RibbonMappingHelper::computeWeightsRibbon(forwardWeights, myVolSpace, innerSurf, outerSurf, NULL, subDivs);
+    RibbonMappingHelper::computeWeightsRibbon(forwardWeights, myVolSpace, innerSurf, outerSurf, NULL, subDivs, !thickColumn);
     map<VoxelIJK, vector<pair<int, float> > > reverseWeights;
     for (int i = 0; i < numNodes; ++i)
     {
