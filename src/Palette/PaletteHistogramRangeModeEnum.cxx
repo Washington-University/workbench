@@ -112,7 +112,7 @@ PaletteHistogramRangeModeEnum::initialize()
     
     enumData.push_back(PaletteHistogramRangeModeEnum(PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE,
                                     "PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE",
-                                    "Match Palette"));
+                                    "Palette"));
     
 }
 

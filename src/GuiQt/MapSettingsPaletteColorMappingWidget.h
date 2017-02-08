@@ -190,10 +190,11 @@ namespace caret {
         
         QComboBox* m_normalizationModeComboBox;
         
-        QRadioButton* histogramAllRadioButton;
-        QRadioButton* histogramMatchPaletteRadioButton;
+        EnumComboBoxTemplate* m_histogramHorizontalRangeComboBox;
         
         CaretColorEnumComboBox* m_histogramColorComboBox;
+        
+        EnumComboBoxTemplate* m_histogramChartTypeComboBox;
         
         CaretMappableDataFile* caretMappableDataFile;
         CaretMappableDataFile* m_previousCaretMappableDataFile;

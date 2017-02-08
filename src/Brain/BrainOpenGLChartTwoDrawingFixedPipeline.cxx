@@ -460,8 +460,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
         std::vector<float> quadVerticesFloatRGBA;
         std::vector<uint8_t> quadVerticesByteRGBA;
         
-        switch (histogramData->getHistogramViewingType()) {
-            case ChartTwoHistogramViewingTypeEnum::HISTOGRAM_VIEWING_BARS:
+        const CaretMappableDataFile* cmdf = histogramChart->getCaretMappableDataFile();
+        CaretAssert(cmdf);
+        const PaletteColorMapping* paletteColorMapping = cmdf->getMapPaletteColorMapping(mapIndex);
+        switch (paletteColorMapping->getHistogramChartType()) {
+            case PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_BARS:
             {
                 /*
                  * Reserve to prevent reszing of vectors
@@ -561,7 +564,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
                 }
             }
                 break;
-            case ChartTwoHistogramViewingTypeEnum::HISTOGRAM_VIEWING_ENVELOPE:
+            case PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_ENVELOPE:
             {
                 /*
                  * Reserve to prevent reszing of vectors

@@ -135,6 +135,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->thresholdRangeMode = pcm.thresholdRangeMode;
     this->thresholdNegMinPosMaxLinked = pcm.thresholdNegMinPosMaxLinked;
     this->histogramRangeMode = pcm.histogramRangeMode;
+    this->histogramChartType = pcm.histogramChartType;
     this->histogramColor = pcm.histogramColor;
     this->numericFormatMode = pcm.numericFormatMode;
     this->precisionDigits = pcm.precisionDigits;
@@ -184,6 +185,7 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->thresholdRangeMode == pcm.thresholdRangeMode)
         && (this->thresholdNegMinPosMaxLinked == pcm.thresholdNegMinPosMaxLinked)
         && (this->histogramRangeMode == pcm.histogramRangeMode)
+        && (this->histogramChartType == pcm.histogramChartType)
         && (this->histogramColor == pcm.histogramColor)
         && (this->numericFormatMode == pcm.numericFormatMode)
         && (this->precisionDigits == pcm.precisionDigits)
@@ -230,6 +232,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE;
     this->thresholdNegMinPosMaxLinked = false;
     this->histogramRangeMode = PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL;
+    this->histogramChartType = PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_BARS;
     this->histogramColor = CaretColorEnum::CUSTOM;  // CUSTOM is color with palette
     this->numericFormatMode = NumericFormatModeEnum::AUTO;
     this->precisionDigits = 2;
@@ -349,9 +352,10 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                      this->thresholdNegMinPosMaxLinked);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_RANGE_MODE,
                                      PaletteHistogramRangeModeEnum::toName(this->histogramRangeMode));
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_CHART_TYPE,
+                                     PaletteHistogramChartTypeEnum::toName(this->histogramChartType));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_COLOR,
                                      CaretColorEnum::toName(this->histogramColor));
-
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_NUMERIC_FORMAT_MODE,
                                      NumericFormatModeEnum::toName(this->numericFormatMode));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_PRECISION_DIGITS,
@@ -2746,6 +2750,30 @@ PaletteColorMapping::setHistogramRangeMode(const PaletteHistogramRangeModeEnum::
         setModified();
     }
 }
+
+/**
+ * @return The histogram chart type.
+ */
+PaletteHistogramChartTypeEnum::Enum PaletteColorMapping::getHistogramChartType() const
+{
+    return this->histogramChartType;
+}
+
+/**
+ * Set the histogram chart type.
+ *
+ * @param histogramChartType
+ *    New value for histogram chart type
+ */
+void
+PaletteColorMapping::setHistogramChartType(const PaletteHistogramChartTypeEnum::Enum histogramChartType)
+{
+    if (histogramChartType != this->histogramChartType) {
+        this->histogramChartType = histogramChartType;
+        setModified();
+    }
+}
+
 
 /**
  * @return Color for drawing histogram.

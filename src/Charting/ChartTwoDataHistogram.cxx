@@ -70,8 +70,6 @@ ChartTwoDataHistogram::initializeMembersChartTwoDataHistogram()
     m_boundsValid = false;
     m_histogram = NULL;
     
-    m_histogramViewingType = ChartTwoHistogramViewingTypeEnum::HISTOGRAM_VIEWING_BARS;
-    //m_histogramViewingType = ChartTwoHistogramViewingTypeEnum::HISTOGRAM_VIEWING_ENVELOPE;
     m_color = CaretColorEnum::RED;
     
     std::vector<CaretColorEnum::Enum> colorEnums;
@@ -262,19 +260,6 @@ ChartTwoDataHistogram::setColor(const CaretColorEnum::Enum color)
 {
     m_color = color;
 }
-
-ChartTwoHistogramViewingTypeEnum::Enum
-ChartTwoDataHistogram::getHistogramViewingType() const
-{
-    return m_histogramViewingType;
-}
-
-void
-ChartTwoDataHistogram::setHistogramViewingType(const ChartTwoHistogramViewingTypeEnum::Enum histogramViewingType)
-{
-    m_histogramViewingType = histogramViewingType;
-}
-
 
 /**
  * Save subclass data to the scene.

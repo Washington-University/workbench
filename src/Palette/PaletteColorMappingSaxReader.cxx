@@ -312,6 +312,18 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                                                + this->elementText);
                }
            }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_CHART_TYPE) {
+               bool isValid = false;
+               PaletteHistogramChartTypeEnum::Enum histogramChartType = PaletteHistogramChartTypeEnum::fromName(this->elementText,
+                                                                                                                &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setHistogramChartType(histogramChartType);
+               }
+               else {
+                   throw XmlSaxParserException("Invalid PaletteHistogramChartTypeEnum::Enum: "
+                                               + this->elementText);
+               }
+           }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_COLOR) {
                bool isValid = false;
                CaretColorEnum::Enum histogramColor = CaretColorEnum::fromName(this->elementText,

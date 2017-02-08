@@ -1,5 +1,5 @@
-#ifndef __CHART_TWO_HISTOGRAM_VIEWING_TYPE_ENUM_H__
-#define __CHART_TWO_HISTOGRAM_VIEWING_TYPE_ENUM_H__
+#ifndef __PALETTE_HISTOGRAM_CHART_TYPE_ENUM_H__
+#define __PALETTE_HISTOGRAM_CHART_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class ChartTwoHistogramViewingTypeEnum {
+class PaletteHistogramChartTypeEnum {
 
 public:
     /**
@@ -36,13 +36,13 @@ public:
      */
     enum Enum {
         /** */
-        HISTOGRAM_VIEWING_BARS,
+        PALETTE_HISTOGRAM_CHART_BARS,
         /** */
-        HISTOGRAM_VIEWING_ENVELOPE
+        PALETTE_HISTOGRAM_CHART_ENVELOPE
     };
 
 
-    ~ChartTwoHistogramViewingTypeEnum();
+    ~PaletteHistogramChartTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -63,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    ChartTwoHistogramViewingTypeEnum(const Enum enumValue, 
+    PaletteHistogramChartTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const ChartTwoHistogramViewingTypeEnum* findData(const Enum enumValue);
+    static const PaletteHistogramChartTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<ChartTwoHistogramViewingTypeEnum> enumData;
+    static std::vector<PaletteHistogramChartTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -94,11 +94,11 @@ private:
     AString guiName;
 };
 
-#ifdef __CHART_TWO_HISTOGRAM_VIEWING_TYPE_ENUM_DECLARE__
-std::vector<ChartTwoHistogramViewingTypeEnum> ChartTwoHistogramViewingTypeEnum::enumData;
-bool ChartTwoHistogramViewingTypeEnum::initializedFlag = false;
-int32_t ChartTwoHistogramViewingTypeEnum::integerCodeCounter = 0; 
-#endif // __CHART_TWO_HISTOGRAM_VIEWING_TYPE_ENUM_DECLARE__
+#ifdef __PALETTE_HISTOGRAM_CHART_TYPE_ENUM_DECLARE__
+std::vector<PaletteHistogramChartTypeEnum> PaletteHistogramChartTypeEnum::enumData;
+bool PaletteHistogramChartTypeEnum::initializedFlag = false;
+int32_t PaletteHistogramChartTypeEnum::integerCodeCounter = 0; 
+#endif // __PALETTE_HISTOGRAM_CHART_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__CHART_TWO_HISTOGRAM_VIEWING_TYPE_ENUM_H__
+#endif  //__PALETTE_HISTOGRAM_CHART_TYPE_ENUM_H__

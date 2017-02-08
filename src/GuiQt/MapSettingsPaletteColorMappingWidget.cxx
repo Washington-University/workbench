@@ -735,35 +735,37 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     /*
      * Control section
      */
-    this->histogramAllRadioButton = new QRadioButton(PaletteHistogramRangeModeEnum::toGuiName(PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL));
-    WuQtUtilities::setToolTipAndStatusTip(this->histogramAllRadioButton,
-                                          "Displays all map data in the histogram");
-    this->histogramMatchPaletteRadioButton = new QRadioButton(PaletteHistogramRangeModeEnum::toGuiName(PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE));
-    WuQtUtilities::setToolTipAndStatusTip(this->histogramMatchPaletteRadioButton, 
-                                          "Use the palette mapping selections");
-    
-    this->histogramAllRadioButton->setChecked(true);
-    
-    QButtonGroup* buttGroup = new QButtonGroup(this);
-    buttGroup->addButton(this->histogramAllRadioButton);
-    buttGroup->addButton(this->histogramMatchPaletteRadioButton);
-    QObject::connect(buttGroup, SIGNAL(buttonClicked(int)),
+    QLabel* horizRangeLabel = new QLabel("Range");
+    m_histogramHorizontalRangeComboBox = new EnumComboBoxTemplate(this);
+    QObject::connect(this->m_histogramHorizontalRangeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(applyAndUpdate()));
-    
-    m_histogramColorComboBox = new CaretColorEnumComboBox("Palette Coloring",
+    this->m_histogramHorizontalRangeComboBox->setup<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>();
+    this->m_histogramHorizontalRangeComboBox->getWidget()->setToolTip("Horizontal range of histogram");
+
+    QLabel* colorLabel = new QLabel("Color");
+    m_histogramColorComboBox = new CaretColorEnumComboBox("Palette",
                                                           this);
     WuQtUtilities::setToolTipAndStatusTip(m_histogramColorComboBox->getWidget(),
                                           "Set histogram coloring");
     QObject::connect(m_histogramColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(applyAndUpdate()));
     
+    QLabel* chartTypeLabel = new QLabel("Chart");
+    m_histogramChartTypeComboBox = new EnumComboBoxTemplate(this);
+    QObject::connect(this->m_histogramChartTypeComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(applyAndUpdate()));
+    this->m_histogramChartTypeComboBox->setup<PaletteHistogramChartTypeEnum, PaletteHistogramChartTypeEnum::Enum>();
+    this->m_histogramChartTypeComboBox->getWidget()->setToolTip("Set type of chart drawn");
+    
     QWidget* controlWidget = new QWidget();
     QGridLayout* controlLayout = new QGridLayout(controlWidget);
     this->setLayoutSpacingAndMargins(controlLayout);
-    controlLayout->addWidget(this->histogramAllRadioButton);
-    controlLayout->addWidget(this->histogramMatchPaletteRadioButton);
-    controlLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    controlLayout->addWidget(m_histogramColorComboBox->getWidget());
+    controlLayout->addWidget(chartTypeLabel, 0, 0);
+    controlLayout->addWidget(m_histogramChartTypeComboBox->getWidget(), 0, 1);
+    controlLayout->addWidget(colorLabel, 1, 0);
+    controlLayout->addWidget(m_histogramColorComboBox->getWidget(), 1, 1);
+    controlLayout->addWidget(horizRangeLabel, 2, 0);
+    controlLayout->addWidget(m_histogramHorizontalRangeComboBox->getWidget(), 2, 1);
     controlWidget->setFixedSize(controlWidget->sizeHint());
     
     /*
@@ -1611,17 +1613,12 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
     
         this->interpolateColorsCheckBox->setChecked(this->paletteColorMapping->isInterpolatePaletteFlag());
         
-        switch (this->paletteColorMapping->getHistogramRangeMode()) {
-            case PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL:
-                this->histogramAllRadioButton->setChecked(true);
-                break;
-            case PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE:
-                this->histogramMatchPaletteRadioButton->setChecked(true);
-                break;
-        }
-        
         m_histogramColorComboBox->setSelectedColor(this->paletteColorMapping->getHistogramColor());
         
+        m_histogramChartTypeComboBox->setSelectedItem<PaletteHistogramChartTypeEnum, PaletteHistogramChartTypeEnum::Enum>(this->paletteColorMapping->getHistogramChartType());
+
+        m_histogramHorizontalRangeComboBox->setSelectedItem<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>(this->paletteColorMapping->getHistogramRangeMode());
+
         updateThresholdSection();
         
         float minValue  = 0.0;
@@ -2132,14 +2129,10 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     
     this->paletteColorMapping->setInterpolatePaletteFlag(this->interpolateColorsCheckBox->isChecked());
     
-    if (this->histogramAllRadioButton->isChecked()) {
-        this->paletteColorMapping->setHistogramRangeMode(PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL);
-    }
-    else if (this->histogramMatchPaletteRadioButton->isChecked()) {
-        this->paletteColorMapping->setHistogramRangeMode(PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE);
-    }
     this->paletteColorMapping->setHistogramColor(m_histogramColorComboBox->getSelectedColor());
-    
+    this->paletteColorMapping->setHistogramChartType(m_histogramChartTypeComboBox->getSelectedItem<PaletteHistogramChartTypeEnum, PaletteHistogramChartTypeEnum::Enum>());
+    this->paletteColorMapping->setHistogramRangeMode(m_histogramHorizontalRangeComboBox->getSelectedItem<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>());
+
     float lowValue = this->thresholdLowSpinBox->value();
     float highValue = this->thresholdHighSpinBox->value();
     

@@ -30,6 +30,7 @@
 #include "NumericFormatModeEnum.h"
 #include "PaletteColorBarValuesModeEnum.h"
 #include "PaletteEnums.h"
+#include "PaletteHistogramChartTypeEnum.h"
 #include "PaletteHistogramRangeModeEnum.h"
 #include "PaletteThresholdRangeModeEnum.h"
 #include "XmlException.h"
@@ -212,6 +213,10 @@ namespace caret {
         
         void setHistogramRangeMode(const PaletteHistogramRangeModeEnum::Enum histogramRangeMode);
         
+        PaletteHistogramChartTypeEnum::Enum getHistogramChartType() const;
+        
+        void setHistogramChartType(const PaletteHistogramChartTypeEnum::Enum histogramChartType);
+        
         CaretColorEnum::Enum getHistogramColor() const;
         
         void setHistogramColor(const CaretColorEnum::Enum histogramColor);
@@ -317,6 +322,8 @@ namespace caret {
         bool thresholdNegMinPosMaxLinked;
         
         PaletteHistogramRangeModeEnum::Enum histogramRangeMode;
+        
+        PaletteHistogramChartTypeEnum::Enum histogramChartType;
         
         CaretColorEnum::Enum histogramColor;
         

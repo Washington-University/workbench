@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __CHART_TWO_HISTOGRAM_VIEWING_TYPE_ENUM_DECLARE__
-#include "ChartTwoHistogramViewingTypeEnum.h"
-#undef __CHART_TWO_HISTOGRAM_VIEWING_TYPE_ENUM_DECLARE__
+#define __PALETTE_HISTOGRAM_CHART_TYPE_ENUM_DECLARE__
+#include "PaletteHistogramChartTypeEnum.h"
+#undef __PALETTE_HISTOGRAM_CHART_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartTwoHistogramViewingTypeEnum 
- * \brief Type of histogram viewing by user.
+ * \class caret::PaletteHistogramChartTypeEnum 
+ * \brief Type of chart displayed for histogram.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_chartTwoHistogramViewingTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_paletteHistogramChartTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void chartTwoHistogramViewingTypeEnumComboBoxItemActivated();
+ *             void paletteHistogramChartTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "ChartTwoHistogramViewingTypeEnum.h"
+ *         #include "PaletteHistogramChartTypeEnum.h"
  * 
  *     Instatiate:
- *         m_chartTwoHistogramViewingTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_chartTwoHistogramViewingTypeEnumComboBox->setup<ChartTwoHistogramViewingTypeEnum,ChartTwoHistogramViewingTypeEnum::Enum>();
+ *         m_paletteHistogramChartTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_paletteHistogramChartTypeEnumComboBox->setup<PaletteHistogramChartTypeEnum,PaletteHistogramChartTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_chartTwoHistogramViewingTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(chartTwoHistogramViewingTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_paletteHistogramChartTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(paletteHistogramChartTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_chartTwoHistogramViewingTypeEnumComboBox->setSelectedItem<ChartTwoHistogramViewingTypeEnum,ChartTwoHistogramViewingTypeEnum::Enum>(NEW_VALUE);
+ *         m_paletteHistogramChartTypeEnumComboBox->setSelectedItem<PaletteHistogramChartTypeEnum,PaletteHistogramChartTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const ChartTwoHistogramViewingTypeEnum::Enum VARIABLE = m_chartTwoHistogramViewingTypeEnumComboBox->getSelectedItem<ChartTwoHistogramViewingTypeEnum,ChartTwoHistogramViewingTypeEnum::Enum>();
+ *         const PaletteHistogramChartTypeEnum::Enum VARIABLE = m_paletteHistogramChartTypeEnumComboBox->getSelectedItem<PaletteHistogramChartTypeEnum,PaletteHistogramChartTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-ChartTwoHistogramViewingTypeEnum::ChartTwoHistogramViewingTypeEnum(const Enum enumValue,
+PaletteHistogramChartTypeEnum::PaletteHistogramChartTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ ChartTwoHistogramViewingTypeEnum::ChartTwoHistogramViewingTypeEnum(const Enum en
 /**
  * Destructor.
  */
-ChartTwoHistogramViewingTypeEnum::~ChartTwoHistogramViewingTypeEnum()
+PaletteHistogramChartTypeEnum::~PaletteHistogramChartTypeEnum()
 {
 }
 
@@ -99,19 +99,19 @@ ChartTwoHistogramViewingTypeEnum::~ChartTwoHistogramViewingTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-ChartTwoHistogramViewingTypeEnum::initialize()
+PaletteHistogramChartTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(ChartTwoHistogramViewingTypeEnum(HISTOGRAM_VIEWING_BARS, 
-                                    "HISTOGRAM_VIEWING_BARS", 
+    enumData.push_back(PaletteHistogramChartTypeEnum(PALETTE_HISTOGRAM_CHART_BARS, 
+                                    "PALETTE_HISTOGRAM_CHART_BARS", 
                                     "Bars"));
     
-    enumData.push_back(ChartTwoHistogramViewingTypeEnum(HISTOGRAM_VIEWING_ENVELOPE, 
-                                    "HISTOGRAM_VIEWING_ENVELOPE", 
+    enumData.push_back(PaletteHistogramChartTypeEnum(PALETTE_HISTOGRAM_CHART_ENVELOPE, 
+                                    "PALETTE_HISTOGRAM_CHART_ENVELOPE", 
                                     "Envelope"));
     
 }
@@ -123,14 +123,14 @@ ChartTwoHistogramViewingTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const ChartTwoHistogramViewingTypeEnum*
-ChartTwoHistogramViewingTypeEnum::findData(const Enum enumValue)
+const PaletteHistogramChartTypeEnum*
+PaletteHistogramChartTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const ChartTwoHistogramViewingTypeEnum* d = &enumData[i];
+        const PaletteHistogramChartTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -147,10 +147,10 @@ ChartTwoHistogramViewingTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-ChartTwoHistogramViewingTypeEnum::toName(Enum enumValue) {
+PaletteHistogramChartTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ChartTwoHistogramViewingTypeEnum* enumInstance = findData(enumValue);
+    const PaletteHistogramChartTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -164,18 +164,18 @@ ChartTwoHistogramViewingTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ChartTwoHistogramViewingTypeEnum::Enum 
-ChartTwoHistogramViewingTypeEnum::fromName(const AString& name, bool* isValidOut)
+PaletteHistogramChartTypeEnum::Enum 
+PaletteHistogramChartTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ChartTwoHistogramViewingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = PaletteHistogramChartTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartTwoHistogramViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<PaletteHistogramChartTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartTwoHistogramViewingTypeEnum& d = *iter;
+        const PaletteHistogramChartTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -187,7 +187,7 @@ ChartTwoHistogramViewingTypeEnum::fromName(const AString& name, bool* isValidOut
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartTwoHistogramViewingTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type PaletteHistogramChartTypeEnum"));
     }
     return enumValue;
 }
@@ -200,10 +200,10 @@ ChartTwoHistogramViewingTypeEnum::fromName(const AString& name, bool* isValidOut
  *     String representing enumerated value.
  */
 AString 
-ChartTwoHistogramViewingTypeEnum::toGuiName(Enum enumValue) {
+PaletteHistogramChartTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ChartTwoHistogramViewingTypeEnum* enumInstance = findData(enumValue);
+    const PaletteHistogramChartTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -217,18 +217,18 @@ ChartTwoHistogramViewingTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ChartTwoHistogramViewingTypeEnum::Enum 
-ChartTwoHistogramViewingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+PaletteHistogramChartTypeEnum::Enum 
+PaletteHistogramChartTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ChartTwoHistogramViewingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = PaletteHistogramChartTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartTwoHistogramViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<PaletteHistogramChartTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartTwoHistogramViewingTypeEnum& d = *iter;
+        const PaletteHistogramChartTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -240,7 +240,7 @@ ChartTwoHistogramViewingTypeEnum::fromGuiName(const AString& guiName, bool* isVa
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartTwoHistogramViewingTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type PaletteHistogramChartTypeEnum"));
     }
     return enumValue;
 }
@@ -252,10 +252,10 @@ ChartTwoHistogramViewingTypeEnum::fromGuiName(const AString& guiName, bool* isVa
  *    Integer code for data type.
  */
 int32_t
-ChartTwoHistogramViewingTypeEnum::toIntegerCode(Enum enumValue)
+PaletteHistogramChartTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const ChartTwoHistogramViewingTypeEnum* enumInstance = findData(enumValue);
+    const PaletteHistogramChartTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -270,18 +270,18 @@ ChartTwoHistogramViewingTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-ChartTwoHistogramViewingTypeEnum::Enum
-ChartTwoHistogramViewingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+PaletteHistogramChartTypeEnum::Enum
+PaletteHistogramChartTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ChartTwoHistogramViewingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = PaletteHistogramChartTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartTwoHistogramViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<PaletteHistogramChartTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartTwoHistogramViewingTypeEnum& enumInstance = *iter;
+        const PaletteHistogramChartTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -293,7 +293,7 @@ ChartTwoHistogramViewingTypeEnum::fromIntegerCode(const int32_t integerCode, boo
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartTwoHistogramViewingTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type PaletteHistogramChartTypeEnum"));
     }
     return enumValue;
 }
@@ -306,13 +306,13 @@ ChartTwoHistogramViewingTypeEnum::fromIntegerCode(const int32_t integerCode, boo
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-ChartTwoHistogramViewingTypeEnum::getAllEnums(std::vector<ChartTwoHistogramViewingTypeEnum::Enum>& allEnums)
+PaletteHistogramChartTypeEnum::getAllEnums(std::vector<PaletteHistogramChartTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<ChartTwoHistogramViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<PaletteHistogramChartTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -328,16 +328,16 @@ ChartTwoHistogramViewingTypeEnum::getAllEnums(std::vector<ChartTwoHistogramViewi
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ChartTwoHistogramViewingTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+PaletteHistogramChartTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<ChartTwoHistogramViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<PaletteHistogramChartTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(ChartTwoHistogramViewingTypeEnum::toName(iter->enumValue));
+        allNames.push_back(PaletteHistogramChartTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -354,16 +354,16 @@ ChartTwoHistogramViewingTypeEnum::getAllNames(std::vector<AString>& allNames, co
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ChartTwoHistogramViewingTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+PaletteHistogramChartTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<ChartTwoHistogramViewingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<PaletteHistogramChartTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(ChartTwoHistogramViewingTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(PaletteHistogramChartTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

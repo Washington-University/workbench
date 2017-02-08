@@ -23,7 +23,6 @@
 
 #include "CaretColorEnum.h"
 #include "ChartAxisUnitsEnum.h"
-#include "ChartTwoHistogramViewingTypeEnum.h"
 #include "ChartTwoData.h"
 
 namespace caret {
@@ -45,10 +44,6 @@ namespace caret {
         const Histogram* getHistogram() const;
         
         void setHistogram(Histogram* histogram);
-        
-        ChartTwoHistogramViewingTypeEnum::Enum getHistogramViewingType() const;
-        
-        void setHistogramViewingType(const ChartTwoHistogramViewingTypeEnum::Enum histogramViewingType);
         
         bool getBounds(float boundsOut[4]) const;
         
@@ -84,8 +79,6 @@ namespace caret {
         CaretColorEnum::Enum m_color;
         
         static int32_t caretColorIndex;
-        
-        ChartTwoHistogramViewingTypeEnum::Enum m_histogramViewingType;
         
         std::vector<float> m_emptyData;
         
