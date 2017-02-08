@@ -799,7 +799,6 @@ void
 IdentificationTextGenerator::generateChartTwoHistogramIdentificationText(IdentificationStringBuilder& idText,
                                                  const SelectionItemChartTwoHistogram* idChartTwoHistogram) const
 {
-    CaretAssertToDoWarning();
     if (idChartTwoHistogram->isValid()) {
         const ChartableTwoFileHistogramChart* fileHistogramChart = idChartTwoHistogram->getFileHistogramChart();
         const int32_t barIndex = idChartTwoHistogram->getBarIndex();
@@ -830,7 +829,9 @@ void
 IdentificationTextGenerator::generateChartTwoLineSeriesIdentificationText(IdentificationStringBuilder& idText,
                                                   const SelectionItemChartTwoLineSeries* idChartTwoLineSeries) const
 {
-    CaretAssertToDoWarning();
+    if (idChartTwoLineSeries->isValid()) {
+        CaretAssertToDoWarning();
+    }
 }
 
 /**

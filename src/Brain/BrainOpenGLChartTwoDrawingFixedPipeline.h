@@ -114,19 +114,8 @@ namespace caret {
         void drawHistogramChart();
         
         void drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart,
-                                       const int32_t mapIndex);
-
-        void drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart,
                                        const int32_t mapIndex,
                                        const HistogramDrawingInfo& histogramDrawingInfo);
-        
-        void colorHistogramWithPalette(const ChartableTwoFileHistogramChart* histogramChart,
-                                       const int32_t mapIndex,
-                                       std::vector<float>& rgbaOut);
-        
-//        void getMatrixHighlighting(const ChartableTwoFileMatrixChart* matrixChart,
-//                                   std::set<int32_t>& rowIndicesOut,
-//                                   std::set<int32_t>& columnIndicesOut) const;
         
         Brain* m_brain;
         

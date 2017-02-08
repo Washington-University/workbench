@@ -134,6 +134,8 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->thresholdShowFailureInGreen = pcm.thresholdShowFailureInGreen;
     this->thresholdRangeMode = pcm.thresholdRangeMode;
     this->thresholdNegMinPosMaxLinked = pcm.thresholdNegMinPosMaxLinked;
+    this->histogramRangeMode = pcm.histogramRangeMode;
+    this->histogramColor = pcm.histogramColor;
     this->numericFormatMode = pcm.numericFormatMode;
     this->precisionDigits = pcm.precisionDigits;
     this->numericSubdivisionCount = pcm.numericSubdivisionCount;
@@ -181,6 +183,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->thresholdShowFailureInGreen == pcm.thresholdShowFailureInGreen)
         && (this->thresholdRangeMode == pcm.thresholdRangeMode)
         && (this->thresholdNegMinPosMaxLinked == pcm.thresholdNegMinPosMaxLinked)
+        && (this->histogramRangeMode == pcm.histogramRangeMode)
+        && (this->histogramColor == pcm.histogramColor)
         && (this->numericFormatMode == pcm.numericFormatMode)
         && (this->precisionDigits == pcm.precisionDigits)
         && (this->numericSubdivisionCount == pcm.numericSubdivisionCount)
@@ -225,6 +229,8 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     //this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP;
     this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE;
     this->thresholdNegMinPosMaxLinked = false;
+    this->histogramRangeMode = PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL;
+    this->histogramColor = CaretColorEnum::CUSTOM;  // CUSTOM is color with palette
     this->numericFormatMode = NumericFormatModeEnum::AUTO;
     this->precisionDigits = 2;
     this->numericSubdivisionCount = 0;
@@ -341,6 +347,10 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NEG_MIN_POS_MAX_LINKED,
                                      this->thresholdNegMinPosMaxLinked);
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_RANGE_MODE,
+                                     PaletteHistogramRangeModeEnum::toName(this->histogramRangeMode));
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_COLOR,
+                                     CaretColorEnum::toName(this->histogramColor));
 
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_NUMERIC_FORMAT_MODE,
                                      NumericFormatModeEnum::toName(this->numericFormatMode));
@@ -2714,9 +2724,58 @@ PaletteColorMapping::setThresholdNegMinPosMaxLinked(const bool linked)
 }
 
 /**
+ * @return The histogram range mode.
+ */
+PaletteHistogramRangeModeEnum::Enum
+PaletteColorMapping::getHistogramRangeMode() const
+{
+    return this->histogramRangeMode;
+}
+
+/**
+ * Set the histogram range mode.
+ *
+ * @param histogramRangeMode
+ *     New value for histogram range mode.
+ */
+void
+PaletteColorMapping::setHistogramRangeMode(const PaletteHistogramRangeModeEnum::Enum histogramRangeMode)
+{
+    if (histogramRangeMode != this->histogramRangeMode) {
+        this->histogramRangeMode = histogramRangeMode;
+        setModified();
+    }
+}
+
+/**
+ * @return Color for drawing histogram.
+ */
+CaretColorEnum::Enum
+PaletteColorMapping::getHistogramColor() const
+{
+    return histogramColor;
+}
+
+/**
+ * Set the color for drawing the histogram.
+ *
+ * @param histogramColor
+ *     New color for the histogram.
+ */
+void
+PaletteColorMapping::setHistogramColor(const CaretColorEnum::Enum histogramColor)
+{
+    if (histogramColor != this->histogramColor) {
+        this->histogramColor = histogramColor;
+        setModified();
+    }
+}
+
+/**
  * @return The numeric format mode.
  */
-NumericFormatModeEnum::Enum PaletteColorMapping::getNumericFormatMode() const
+NumericFormatModeEnum::Enum
+PaletteColorMapping::getNumericFormatMode() const
 {
     return this->numericFormatMode;
 }

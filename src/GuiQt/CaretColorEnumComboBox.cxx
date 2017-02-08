@@ -25,6 +25,9 @@
 
 #include <QComboBox>
 
+#include "CaretAssert.h"
+#include "WuQtUtilities.h"
+
 using namespace caret;
 
 
@@ -35,41 +38,34 @@ using namespace caret;
  *
  * Control for selection of Caret Color enumerated types.
  */
+
 /**
  * Constructor.
+ *
  * @param parent
  *     Parent object. 
  */
 CaretColorEnumComboBox::CaretColorEnumComboBox(QObject* parent)
 : WuQWidget(parent)
 {
-    this->colorComboBox = new QComboBox();
-    
-    std::vector<CaretColorEnum::Enum> colors;
-    CaretColorEnum::getColorEnums(colors);
-    
-    const int32_t numColors = static_cast<int32_t>(colors.size());
-    for (int32_t i = 0; i < numColors; i++) {
-        const CaretColorEnum::Enum colorEnum = colors[i];
-        const int32_t indx = this->colorComboBox->count();
-        const AString name = CaretColorEnum::toGuiName(colorEnum);
-        this->colorComboBox->addItem(name);
-        this->colorComboBox->setItemData(indx, 
-                                         CaretColorEnum::toIntegerCode(colorEnum));
+    initializeCaretColorComboBox("");
+}
 
-        const float* rgb = CaretColorEnum::toRGB(colorEnum);
-        QPixmap pm(10, 10);
-        pm.fill(QColor::fromRgbF(rgb[0],
-                                 rgb[1],
-                                 rgb[2]));
-        QIcon icon(pm);
-        this->colorComboBox->setItemIcon(indx,
-                                         icon);
-    }
-    
-    setSelectedColor(CaretColorEnum::BLACK);
-    QObject::connect(this->colorComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(colorComboBoxIndexChanged(int)));
+/**
+ * Constructor.
+ *
+ * @param customColorSelectionName
+ *     CaretColorEnum::CUSTOM is added to the combo with this name as the text.
+ *     Text must NOT be empty.
+ * @param parent
+ *     Parent object.
+ */
+CaretColorEnumComboBox::CaretColorEnumComboBox(const AString& customColorSelectionName,
+                                               QObject* parent)
+: WuQWidget(parent)
+{
+    CaretAssert( ! customColorSelectionName.isEmpty());
+    initializeCaretColorComboBox(customColorSelectionName);
 }
 
 /**
@@ -78,6 +74,71 @@ CaretColorEnumComboBox::CaretColorEnumComboBox(QObject* parent)
 CaretColorEnumComboBox::~CaretColorEnumComboBox()
 {
     
+}
+
+/**
+ * Initialize instance that may have optional caret color enums.
+ *
+ * @param customColorSelectionName
+ *     If NOT empty, CaretColorEnum::CUSTOM is added with text from this name.
+ */
+void
+CaretColorEnumComboBox::initializeCaretColorComboBox(const AString& customColorSelectionName)
+{
+    this->colorComboBox = new QComboBox();
+    
+    std::vector<CaretColorEnum::Enum> colors;
+    
+    int64_t caretColorOptions = 0;
+    if ( ! customColorSelectionName.isEmpty()) {
+        caretColorOptions |= CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR;
+    }
+    CaretColorEnum::getColorAndOptionalEnums(colors,
+                                             caretColorOptions);
+    
+    const int32_t numColors = static_cast<int32_t>(colors.size());
+    for (int32_t i = 0; i < numColors; i++) {
+        const CaretColorEnum::Enum colorEnum = colors[i];
+        const int32_t indx = this->colorComboBox->count();
+        AString name = CaretColorEnum::toGuiName(colorEnum);
+        if (colorEnum == CaretColorEnum::CUSTOM) {
+            if ( ! customColorSelectionName.isEmpty()) {
+                name = customColorSelectionName;
+            }
+        }
+        this->colorComboBox->addItem(name);
+        this->colorComboBox->setItemData(indx,
+                                         CaretColorEnum::toIntegerCode(colorEnum));
+        
+        /*
+         * Create an icon with the color.
+         */
+        float rgba[4];
+        CaretColorEnum::toRGBFloat(colorEnum, rgba);
+        if (colorEnum == CaretColorEnum::NONE) {
+            rgba[3] = 0.0;
+        }
+        else if (colorEnum == CaretColorEnum::CUSTOM) {
+            /*
+             * No pixmap for CUSTOM
+             */
+            rgba[3] = 0.0;
+        }
+        else {
+            rgba[3] = 1.0;
+        }
+        
+        if (rgba[3] > 0.0) {
+            QPixmap pm(WuQtUtilities::createCaretColorEnumPixmap(getWidget(), 10, 10, colorEnum, rgba, false));
+            QIcon icon(pm);
+            this->colorComboBox->setItemIcon(indx,
+                                             icon);
+        }
+    }
+    
+    setSelectedColor(CaretColorEnum::BLACK);
+    QObject::connect(this->colorComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(colorComboBoxIndexChanged(int)));
 }
 
 /**

@@ -843,9 +843,6 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
         return false;
     }
     
-    const Histogram* histogram = getMapHistogram(mapIndex);
-    CaretAssert(histogram);
-    
     FastStatistics* statistics = NULL;
     switch (getPaletteNormalizationMode()) {
         case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
@@ -855,15 +852,110 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
             statistics = const_cast<FastStatistics*>(getMapFastStatistics(mapIndex));
             break;
     }
-    CaretAssert(statistics);
     
-    float minValue = 0.0;
-    float maxValue = 0.0;
-    histogram->getRange(minValue,
-                        maxValue);
-    const float valueRange = maxValue - minValue;
-    if (valueRange <= 0.0) {
-        errorMessageOut = "Range of histogram values is zero";
+    CaretAssert(statistics);
+    float mostPos  = 0.0;
+    float leastPos = 0.0;
+    float leastNeg = 0.0;
+    float mostNeg  = 0.0;
+    bool matchFlag = false;
+    
+    switch (paletteColorMapping->getHistogramRangeMode()) {
+        case PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL:
+        {
+            float dummy;
+            statistics->getNonzeroRanges(mostNeg, dummy, dummy, mostPos);
+        }
+            break;
+        case PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE:
+        {
+            matchFlag = true;
+            switch (paletteColorMapping->getScaleMode()) {
+                case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+                    mostPos  = statistics->getMax();
+                    leastPos = 0.0;
+                    leastNeg = 0.0;
+                    mostNeg  = statistics->getMin();
+                    break;
+                case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
+                    mostPos  =  statistics->getApproxAbsolutePercentile(paletteColorMapping->getAutoScaleAbsolutePercentageMaximum());
+                    leastPos =  statistics->getApproxAbsolutePercentile(paletteColorMapping->getAutoScaleAbsolutePercentageMinimum());
+                    leastNeg = -statistics->getApproxAbsolutePercentile(paletteColorMapping->getAutoScaleAbsolutePercentageMinimum());
+                    mostNeg  = -statistics->getApproxAbsolutePercentile(paletteColorMapping->getAutoScaleAbsolutePercentageMaximum());
+                    break;
+                case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+                    mostPos  = statistics->getApproxPositivePercentile(paletteColorMapping->getAutoScalePercentagePositiveMaximum());
+                    leastPos = statistics->getApproxPositivePercentile(paletteColorMapping->getAutoScalePercentagePositiveMinimum());
+                    leastNeg = statistics->getApproxNegativePercentile(paletteColorMapping->getAutoScalePercentageNegativeMinimum());
+                    mostNeg  = statistics->getApproxNegativePercentile(paletteColorMapping->getAutoScalePercentageNegativeMaximum());
+                    break;
+                case PaletteScaleModeEnum::MODE_USER_SCALE:
+                    mostPos  = paletteColorMapping->getUserScalePositiveMaximum();
+                    leastPos = paletteColorMapping->getUserScalePositiveMinimum();
+                    leastNeg = paletteColorMapping->getUserScaleNegativeMinimum();
+                    mostNeg  = paletteColorMapping->getUserScaleNegativeMaximum();
+                    break;
+            }
+        }
+            break;
+    }
+
+    /*
+     * Remove data that is not displayed
+     */
+    bool isZeroIncluded = true;
+    const Histogram* histogram = NULL;
+    if (matchFlag) {
+        isZeroIncluded = paletteColorMapping->isDisplayZeroDataFlag();
+        
+        if ( ! paletteColorMapping->isDisplayNegativeDataFlag()) {
+            mostNeg  = 0.0;
+            leastNeg = 0.0;
+        }
+        if ( ! paletteColorMapping->isDisplayPositiveDataFlag()) {
+            mostPos  = 0.0;
+            leastPos = 0.0;
+        }
+        
+        switch (getPaletteNormalizationMode()) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                histogram = getFileHistogram(mostPos,
+                                             leastPos,
+                                             leastNeg,
+                                             mostNeg,
+                                             isZeroIncluded);
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                histogram = getMapHistogram(mapIndex,
+                                            mostPos,
+                                            leastPos,
+                                            leastNeg,
+                                            mostNeg,
+                                            isZeroIncluded);
+                break;
+        }
+    }
+    else {
+        switch (getPaletteNormalizationMode()) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                histogram = getFileHistogram();
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                histogram = getMapHistogram(mapIndex);
+                break;
+        }
+    }
+    
+    CaretAssert(histogram);
+    
+    
+    float minValueX = 0.0;
+    float maxValueX = 0.0;
+    histogram->getRange(minValueX,
+                        maxValueX);
+    const float valueRangeX = maxValueX - minValueX;
+    if (valueRangeX <= 0.0) {
+        errorMessageOut = "Range of histogram X-values is zero";
         return false;
     }
     
@@ -878,7 +970,7 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
             return false;
         }
         
-        const int32_t numberOfDataPoints = (addEndPointForQwtFlag
+        int32_t numberOfDataPoints = (addEndPointForQwtFlag
                                          ? (numBucketValues + 1)
                                          : numBucketValues);
         
@@ -892,29 +984,98 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
         }
         histogramDrawingInfoOut.m_dataY = histogramBuckets;
         
-        const float step = ((valueRange)
+        const bool hideZerosFlag = ( ! paletteColorMapping->isDisplayZeroDataFlag());
+        const float stepX = ((valueRangeX)
                             / static_cast<float>(numberOfDataPoints));
     
+        /*
+         * Need to find zero (or near zero if there is not an exact zero value)
+         */
+        int32_t indexZeroX = -1;
+        float indexZeroDistance = std::numeric_limits<float>::max();
+        
         for (int64_t ix = 0; ix < numberOfDataPoints; ix++) {
-            const float value = (minValue
-                                 + (ix * step));
+            float valueX = (minValueX
+                           + (ix * stepX));
+            
+            if (hideZerosFlag) {
+                const float zeroDistance = ((valueX >= 0) ? valueX : -valueX);
+                if (zeroDistance < indexZeroDistance) {
+                    indexZeroX = ix;
+                    indexZeroDistance = zeroDistance;
+                }
+            }
+            
             CaretAssertVectorIndex(histogramDrawingInfoOut.m_dataX, ix);
-            histogramDrawingInfoOut.m_dataX[ix] = value;
+            histogramDrawingInfoOut.m_dataX[ix] = valueX;
         }
-        histogramDrawingInfoOut.m_dataX[0] = minValue;
-        histogramDrawingInfoOut.m_dataX[numberOfDataPoints - 1] = maxValue;
+        
+        if (indexZeroX >= 0) {
+            const float posZero = 0.05;
+            const float negZero = -posZero;
+            int32_t negZeroIndex = -1;
+            
+            CaretAssertVectorIndex(histogramDrawingInfoOut.m_dataX, indexZeroX);
+            const float xValue = histogramDrawingInfoOut.m_dataX[indexZeroX];
+            if (xValue <= 0.0) {
+                negZeroIndex = indexZeroX;
+            }
+            else {
+                negZeroIndex = indexZeroX - 1;
+            }
+            
+            if ((negZeroIndex >= 0)
+                && (negZeroIndex < (numberOfDataPoints - 1))) {
+                CaretAssertVectorIndex(histogramDrawingInfoOut.m_dataX, negZeroIndex + 1);
+                CaretAssertVectorIndex(histogramDrawingInfoOut.m_dataY, negZeroIndex + 1);
+                histogramDrawingInfoOut.m_dataX[negZeroIndex] = negZero;
+                histogramDrawingInfoOut.m_dataY[negZeroIndex] = 0.0;
+                
+                histogramDrawingInfoOut.m_dataX.insert(histogramDrawingInfoOut.m_dataX.begin() + negZeroIndex + 1, posZero);
+                histogramDrawingInfoOut.m_dataY.insert(histogramDrawingInfoOut.m_dataY.begin() + negZeroIndex + 1, 0.0);
+            }
+            numberOfDataPoints = static_cast<int32_t>(histogramDrawingInfoOut.m_dataX.size());
+            CaretAssert(histogramDrawingInfoOut.m_dataX.size() == histogramDrawingInfoOut.m_dataY.size());
+            histogramDrawingInfoOut.m_dataRGBA.resize(numberOfDataPoints * 4);
+        }
+        
+//        for (int64_t ix = 0; ix < numberOfDataPoints; ix++) {
+//            CaretAssertVectorIndex(histogramDrawingInfoOut.m_dataX, ix);
+//            std::cout << "value " << ix << ": " << histogramDrawingInfoOut.m_dataX[ix] << "," << histogramDrawingInfoOut.m_dataX[ix] << std::endl;
+//        }
+        
+        histogramDrawingInfoOut.m_dataX[0] = minValueX;
+        histogramDrawingInfoOut.m_dataX[numberOfDataPoints - 1] = maxValueX;
         
         const float* xValuesArray = &histogramDrawingInfoOut.m_dataX[0];
-        float* dataRGBA = &histogramDrawingInfoOut.m_dataRGBA[0];
         
-        NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
-                                                      paletteColorMapping,
-                                                      palette,
-                                                      xValuesArray,
-                                                      xValuesArray,
-                                                      numberOfDataPoints,
-                                                      dataRGBA,
-                                                      true); // ignore thresholding
+        const CaretColorEnum::Enum histogramColor = paletteColorMapping->getHistogramColor();
+        if (histogramColor != CaretColorEnum::CUSTOM) {
+            float rgba[4];
+            CaretColorEnum::toRGBFloat(histogramColor, rgba);
+            rgba[3] = 1.0;
+            
+            for (int32_t i = 0; i < numberOfDataPoints; i++) {
+                const int32_t i4 = i * 4;
+                CaretAssertVectorIndex(histogramDrawingInfoOut.m_dataRGBA, i4 + 3);
+                histogramDrawingInfoOut.m_dataRGBA[i4]   = rgba[0];
+                histogramDrawingInfoOut.m_dataRGBA[i4+1] = rgba[1];
+                histogramDrawingInfoOut.m_dataRGBA[i4+2] = rgba[2];
+                histogramDrawingInfoOut.m_dataRGBA[i4+3] = rgba[3];
+            }
+        }
+        else {
+            float* dataRGBA = &histogramDrawingInfoOut.m_dataRGBA[0];
+            
+            NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+                                                          paletteColorMapping,
+                                                          palette,
+                                                          xValuesArray,
+                                                          xValuesArray,
+                                                          numberOfDataPoints,
+                                                          dataRGBA,
+                                                          true); // ignore thresholding
+        }
         
         CaretAssert(histogramDrawingInfoOut.isValid());
         return histogramDrawingInfoOut.isValid();

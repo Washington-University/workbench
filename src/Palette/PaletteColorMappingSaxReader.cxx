@@ -300,6 +300,30 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                    this->paletteColorMapping->setThresholdRangeMode(PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE);
                }
            }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_RANGE_MODE) {
+               bool isValid = false;
+               PaletteHistogramRangeModeEnum::Enum histogramRangeMode = PaletteHistogramRangeModeEnum::fromName(this->elementText,
+                                                                                               &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setHistogramRangeMode(histogramRangeMode);
+               }
+               else {
+                   throw XmlSaxParserException("Invalid PaletteHistogramRangeModeEnum::Enum: "
+                                               + this->elementText);
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_COLOR) {
+               bool isValid = false;
+               CaretColorEnum::Enum histogramColor = CaretColorEnum::fromName(this->elementText,
+                                                                                  &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setHistogramColor(histogramColor);
+               }
+               else {
+                   throw XmlSaxParserException("Invalid CaretColorEnum::Enum: "
+                                               + this->elementText);
+               }
+           }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_NUMERIC_FORMAT_MODE) {
                bool isValid = false;
                NumericFormatModeEnum::Enum numericFormatMode = NumericFormatModeEnum::fromName(this->elementText,

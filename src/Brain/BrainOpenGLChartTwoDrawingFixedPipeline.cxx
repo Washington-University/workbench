@@ -25,6 +25,7 @@
 
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -211,280 +212,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     restoreStateOfOpenGL();
 }
 
-///**
-// * Draw histogram charts.
-// */
-//void
-//BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
-//{
-//    const int32_t vpX      = m_viewport[0];
-//    const int32_t vpY      = m_viewport[1];
-//    const int32_t vpWidth  = m_viewport[2];
-//    const int32_t vpHeight = m_viewport[3];
-//    
-//    int32_t chartGraphicsDrawingViewport[4] = {
-//        vpX,
-//        vpY,
-//        vpWidth,
-//        vpHeight
-//    };
-//    
-//    
-////    /*
-////     * Margin is region around the chart in which
-////     * the axes legends, values, and ticks are drawn.
-////     */
-//    const double marginSize = 30;
-//    Margins margins(marginSize);
-////    
-////    double width, height;
-////    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getLeftAxis(), width, height);
-////    margins.m_left = std::max(margins.m_left, width);
-////    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getRightAxis(), width, height);
-////    margins.m_right = std::max(margins.m_right, width);
-////    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getTopAxis(), width, height);
-////    margins.m_top = std::max(margins.m_top, height);
-////    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getBottomAxis(), width, height);
-////    margins.m_bottom = std::max(margins.m_bottom, height);
-////    
-////    if (margins.m_left > marginSize) margins.m_left += 10;
-////    if (margins.m_right > marginSize) margins.m_right += 10;
-////    
-////    /*
-////     * Ensure that there is sufficient space for the axes data display.
-////     */
-////    if ((vpWidth > (marginSize * 3))
-////        && (vpHeight > (marginSize * 3))) {
-////        
-////        /* Draw legends and grids */
-////        drawChartAxis(vpX,
-////                      vpY,
-////                      vpWidth,
-////                      vpHeight,
-////                      margins,
-////                      textRenderer,
-////                      cartesianChart->getLeftAxis());
-////        
-////        drawChartAxis(vpX,
-////                      vpY,
-////                      vpWidth,
-////                      vpHeight,
-////                      margins,
-////                      textRenderer,
-////                      cartesianChart->getRightAxis());
-////        
-////        drawChartAxis(vpX,
-////                      vpY,
-////                      vpWidth,
-////                      vpHeight,
-////                      margins,
-////                      textRenderer,
-////                      cartesianChart->getBottomAxis());
-////        
-////        drawChartAxis(vpX,
-////                      vpY,
-////                      vpWidth,
-////                      vpHeight,
-////                      margins,
-////                      textRenderer,
-////                      cartesianChart->getTopAxis());
-////    
-////        
-////        drawChartGraphicsBoxAndSetViewport(vpX,
-////                                           vpY,
-////                                           vpWidth,
-////                                           vpHeight,
-////                                           margins,
-////                                           chartGraphicsDrawingViewport);
-////    }
-//    
-//    
-//    const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
-//    CaretAssert(numberOfOverlays > 0);
-//    const ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
-//    const ChartTwoCompoundDataType cdt = topOverlay->getChartTwoCompoundDataType();
-//    CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
-//    
-//    /*
-//     * Get extent of histogram data
-//     */
-//    float xMin =   0.0;
-//    float xMax =   0.0;
-//    float yMin =   0.0;
-//    float yMax =   0.0;
-//    for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
-//        ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
-//        if ( ! chartOverlay->isEnabled()) {
-//            continue;
-//        }
-//        
-//        CaretMappableDataFile* mapFile = NULL;
-//        int32_t mapIndex = 1;
-//        chartOverlay->getSelectionData(mapFile,
-//                                       mapIndex);
-//        if (mapFile == NULL) {
-//            continue;
-//        }
-//        
-//        const ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
-//        const ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
-//        if (histogramChart->isValid()) {
-//            const ChartTwoDataHistogram* histogramData = histogramChart->getMapHistogramChart(mapIndex);
-//            float bounds[4];
-//            if (histogramData->getBounds(bounds)) {
-//                xMin = std::min(xMin, bounds[0]);
-//                xMax = std::max(xMax, bounds[1]);
-//                yMin = std::min(yMin, bounds[2]);
-//                yMax = std::max(yMax, bounds[3]);
-//            }
-//        }
-//    }
-//    
-//    /*
-//     * Bounds valid?
-//     */
-//    if ((xMin >= xMax)
-//        || (yMin >= yMax)) {
-//        return;
-//    }
-//    
-////    std::cout << "All bounds: "
-////    << xMin << " "
-////    << xMax << " "
-////    << yMin << " "
-////    << yMax << " " << std::endl;
-//    
-//    glViewport(chartGraphicsDrawingViewport[0],
-//               chartGraphicsDrawingViewport[1],
-//               chartGraphicsDrawingViewport[2],
-//               chartGraphicsDrawingViewport[3]);
-//    
-//    glMatrixMode(GL_PROJECTION);
-//    glLoadIdentity();
-//    glOrtho(xMin, xMax,
-//            yMin, yMax,
-//            -10.0, 10.0);
-//    
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-//    
-//    bool applyTransformationsFlag = true;
-//    if (applyTransformationsFlag) {
-//        glTranslatef(m_translation[0],
-//                     m_translation[1],
-//                     0.0);
-//        
-//        const float chartWidth  = chartGraphicsDrawingViewport[2];
-//        const float chartHeight = chartGraphicsDrawingViewport[3];
-//        const float halfWidth   = chartWidth  / 2.0;
-//        const float halfHeight  = chartHeight / 2.0;
-//        glTranslatef(halfWidth,
-//                     halfHeight,
-//                     0.0);
-//        glScalef(m_zooming,
-//                 m_zooming,
-//                 1.0);
-//        glTranslatef(-halfWidth,
-//                     -halfHeight,
-//                     0.0);
-//    }
-//    
-//    int32_t layerIndex = 0;
-//    for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
-//        ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
-//        if ( ! chartOverlay->isEnabled()) {
-//            continue;
-//        }
-//        
-//        CaretMappableDataFile* mapFile = NULL;
-//        int32_t mapIndex = 1;
-//        chartOverlay->getSelectionData(mapFile,
-//                                       mapIndex);
-//        if (mapFile == NULL) {
-//            continue;
-//        }
-//        
-//        const ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
-//        const ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
-//        if (histogramChart->isValid()) {
-//            drawHistogramChartContent(histogramChart,
-//                                      mapIndex);
-//            layerIndex++;
-//        }
-//    }
-//}
-
-/*
- * REMOVE THIS
- */
-void
-BrainOpenGLChartTwoDrawingFixedPipeline::colorHistogramWithPalette(const ChartableTwoFileHistogramChart* histogramChart,
-                          const int32_t mapIndex,
-                          std::vector<float>& rgbaOut)
-{
-    CaretMappableDataFile* cmdf = const_cast<CaretMappableDataFile*>(histogramChart->getCaretMappableDataFile());
-    
-    FastStatistics* statistics = NULL;
-    switch (cmdf->getPaletteNormalizationMode()) {
-        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-            statistics = const_cast<FastStatistics*>(cmdf->getFileFastStatistics());
-            break;
-        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-            statistics = const_cast<FastStatistics*>(cmdf->getMapFastStatistics(mapIndex));
-            break;
-    }
-    CaretAssert(statistics);
-    
-    PaletteColorMapping* paletteColorMapping = cmdf->getMapPaletteColorMapping(mapIndex);
-    CaretAssert(paletteColorMapping);
-    PaletteFile* paletteFile = m_brain->getPaletteFile();
-    CaretAssert(paletteFile);
-    const Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
-
-    const Histogram* histogram = cmdf->getMapHistogram(mapIndex);
-    CaretAssert(histogram);
-    
-    if ((paletteColorMapping != NULL)
-        && (statistics != NULL)
-        && (palette != NULL)
-        && (histogram != NULL)) {
-        
-        const std::vector<float>& buckets = histogram->getHistogramDisplay();
-        if ( ! buckets.empty()) {
-            rgbaOut.resize(buckets.size() * 4);
-
-            const int32_t numDataValues = static_cast<int32_t>(buckets.size());
-            std::vector<float> data(numDataValues);
-            
-            const float minValue = statistics->getMin();
-            const float maxValue = statistics->getMax();
-            float step = 1.0;
-            if (numDataValues > 1) {
-                step = ((maxValue - minValue)
-                        / static_cast<float>(numDataValues));
-            }
-            for (int64_t ix = 0; ix < numDataValues; ix++) {
-                const float value = (minValue
-                                     + (ix * step));
-                CaretAssertVectorIndex(data, ix);
-                data[ix] = value;
-            }
-            
-            const float* dataValues = &data[0];
-            float* dataRGBA = &rgbaOut[0];
-            
-            NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
-                                                          paletteColorMapping,
-                                                          palette,
-                                                          dataValues,
-                                                          dataValues,
-                                                          numDataValues,
-                                                          dataRGBA,
-                                                          true); // ignore thresholding
-        }
-    }
-}
-
 /**
  * Draw histogram charts.
  */
@@ -633,42 +360,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
     CaretAssert(histogramDrawingInfoVector.size() == histogramChartVector.size());
     CaretAssert(histogramDrawingInfoVector.size() == mapIndexVector.size());
     
-    
-//    /*
-//     * Get extent of histogram data
-//     */
-//    float xMin =   0.0;
-//    float xMax =   0.0;
-//    float yMin =   0.0;
-//    float yMax =   0.0;
-//    for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
-//        ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
-//        if ( ! chartOverlay->isEnabled()) {
-//            continue;
-//        }
-//        
-//        CaretMappableDataFile* mapFile = NULL;
-//        int32_t mapIndex = 1;
-//        chartOverlay->getSelectionData(mapFile,
-//                                       mapIndex);
-//        if (mapFile == NULL) {
-//            continue;
-//        }
-//        
-//        const ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
-//        const ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
-//        if (histogramChart->isValid()) {
-//            const ChartTwoDataHistogram* histogramData = histogramChart->getMapHistogramChart(mapIndex);
-//            float bounds[4];
-//            if (histogramData->getBounds(bounds)) {
-//                xMin = std::min(xMin, bounds[0]);
-//                xMax = std::max(xMax, bounds[1]);
-//                yMin = std::min(yMin, bounds[2]);
-//                yMax = std::max(yMax, bounds[3]);
-//            }
-//        }
-//    }
-    
     /*
      * Bounds invalid?
      */
@@ -733,30 +424,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         delete histDrawPtr;
     }
     histogramDrawingInfoVector.clear();
-    
-//    int32_t layerIndex = 0;
-//    for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
-//        ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
-//        if ( ! chartOverlay->isEnabled()) {
-//            continue;
-//        }
-//        
-//        CaretMappableDataFile* mapFile = NULL;
-//        int32_t mapIndex = 1;
-//        chartOverlay->getSelectionData(mapFile,
-//                                       mapIndex);
-//        if (mapFile == NULL) {
-//            continue;
-//        }
-//        
-//        const ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
-//        const ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
-//        if (histogramChart->isValid()) {
-//            drawHistogramChartContent(histogramChart,
-//                                      mapIndex);
-//            layerIndex++;
-//        }
-//    }
 }
 
 /*
@@ -767,20 +434,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
                                                                    const int32_t mapIndex,
                                                                    const HistogramDrawingInfo& histogramDrawingInfo)
 {
-//    const ChartTwoDataHistogram* histogramData = histogramChart->getMapHistogramChart(mapIndex);
-//    CaretMappableDataFile* mapFile = const_cast<CaretMappableDataFile*>(histogramChart->getCaretMappableDataFile());
-//    CaretAssert(mapFile);
-//    
-//    HistogramDrawingInfo histogramDrawingInfo;
-//    AString errorMessage;
-//    if ( ! mapFile->getMapHistogramDrawingInfo(mapIndex,
-//                                               false,
-//                                               histogramDrawingInfo,
-//                                               errorMessage)) {
-//        CaretLogWarning(errorMessage + mapFile->getFileName());
-//        return;
-//    }
-    
     const ChartTwoDataHistogram* histogramData = histogramChart->getMapHistogramChart(mapIndex);
 
     if ( ! histogramDrawingInfo.isValid()) {
@@ -795,31 +448,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     
-    //    m_identificationModeFlag = false;
-    //    switch (m_fixedPipelineDrawing->mode) {
-    //        case BrainOpenGLFixedPipeline::MODE_DRAWING:
-    //            break;
-    //        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-    //            if (m_selectionItemMatrix->isEnabledForSelection()) {
-    //                m_identificationModeFlag = true;
-    //                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //            }
-    //            else {
-    //                return;
-    //            }
-    //            break;
-    //        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
-    //            return;
-    //            break;
-    //    }
-    
-    
-    glColor3f(1.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex3f(bounds[0], bounds[2], 0.0);
-    glVertex3f(bounds[1], bounds[3], 0.0);
-    glEnd();
-    
     const std::vector<float>& xValues = histogramDrawingInfo.getDataX();
     const std::vector<float>& yValues = histogramDrawingInfo.getDataY();
     const std::vector<float>& rgbaValues = histogramDrawingInfo.getDataRGBA();
@@ -828,12 +456,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
     
     const int32_t numValues = static_cast<int32_t>(xValues.size() - 1);
     if (numValues > 1) {
-        if ( ! m_identificationModeFlag) {
-            bool solidColorFlag = false;
-            if (solidColorFlag) {
-                
-            }
-        }
         std::vector<float> quadVerticesXYZ;
         std::vector<float> quadVerticesFloatRGBA;
         std::vector<uint8_t> quadVerticesByteRGBA;
@@ -848,78 +470,94 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
                 const int32_t verticesPerBar = 4;
                 const int32_t totalVertices  = verticesPerBar * numValues;
                 quadVerticesXYZ.reserve(totalVertices * 3);
+                std::vector<float> quadVerticesNormals;
+                quadVerticesNormals.reserve(totalVertices * 3);
                 quadVerticesFloatRGBA.reserve(totalVertices * 4);
                 quadVerticesByteRGBA.reserve(totalVertices * 4);
+                const float normalVector[3] = { 0.0, 0.0, 1.0 };
                 
                 const float z = 0.;
                 
                 for (int32_t i = 0; i < numValues; i++) {
-                    CaretAssertVectorIndex(xValues, i + 1);
-                    float left   = xValues[i];
-                    float right  = xValues[i+1];
-                    float bottom = 0;
-                    CaretAssertVectorIndex(yValues, i);
-                    float top = yValues[i];
-                    
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(bottom);
-                    quadVerticesXYZ.push_back(z);
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(bottom);
-                    quadVerticesXYZ.push_back(z);
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(top);
-                    quadVerticesXYZ.push_back(z);
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(top);
-                    quadVerticesXYZ.push_back(z);
-                    
-                    if (m_identificationModeFlag) {
-                        uint8_t idRGBA[4];
-                        addToHistogramIdentification(i, idRGBA);
+                    CaretAssertVectorIndex(rgbaValues, i*4 + 3);
+                    const float* rgba = &rgbaValues[i * 4];
+                    if (rgba[3] > 0.0) {
+                        CaretAssertVectorIndex(xValues, i + 1);
+                        float left   = xValues[i];
+                        float right  = xValues[i+1];
+                        float bottom = 0;
+                        CaretAssertVectorIndex(yValues, i);
+                        float top = yValues[i];
                         
-                        for (int32_t iRGB = 0; iRGB < verticesPerBar; iRGB++) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
+                        quadVerticesXYZ.push_back(left);
+                        quadVerticesXYZ.push_back(bottom);
+                        quadVerticesXYZ.push_back(z);
+                        quadVerticesXYZ.push_back(right);
+                        quadVerticesXYZ.push_back(bottom);
+                        quadVerticesXYZ.push_back(z);
+                        quadVerticesXYZ.push_back(right);
+                        quadVerticesXYZ.push_back(top);
+                        quadVerticesXYZ.push_back(z);
+                        quadVerticesXYZ.push_back(left);
+                        quadVerticesXYZ.push_back(top);
+                        quadVerticesXYZ.push_back(z);
+                        
+                        for (int32_t iNormal = 0; iNormal < verticesPerBar; iNormal++) {
+                            quadVerticesNormals.insert(quadVerticesNormals.end(),
+                                                       normalVector, normalVector + 3);
+                        }
+                        
+                        if (m_identificationModeFlag) {
+                            uint8_t idRGBA[4];
+                            addToHistogramIdentification(i, idRGBA);
+                            
+                            for (int32_t iRGB = 0; iRGB < verticesPerBar; iRGB++) {
+                                quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                            idRGBA, idRGBA + 4);
+                            }
+                        }
+                        else {
+                            for (int32_t iRGB = 0; iRGB < verticesPerBar; iRGB++) {
+                                quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                             rgba, rgba + 4);
+                            }
                         }
                     }
-                    else {
-                        CaretAssertVectorIndex(rgbaValues, i*4 + 3);
-                        const float* rgba = &rgbaValues[i * 4];
-                        for (int32_t iRGB = 0; iRGB < verticesPerBar; iRGB++) {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         rgba, rgba + 4);
-                        }
-                    }
-                    
                 }
                 
                 /*
                  * Draw the bar elements.
                  */
+                CaretAssert(quadVerticesXYZ.size() == quadVerticesNormals.size());
                 if (m_identificationModeFlag) {
                     CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
-                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-                    glBegin(GL_QUADS);
-                    for (int32_t i = 0; i < numberQuadVertices; i++) {
-                        CaretAssertVectorIndex(quadVerticesByteRGBA, i*4 + 3);
-                        glColor4ubv(&quadVerticesByteRGBA[i*4]);
-                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-                        glVertex3fv(&quadVerticesXYZ[i*3]);
-                    }
-                    glEnd();
+                    BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
+                                                           quadVerticesNormals,
+                                                           quadVerticesByteRGBA);
+//                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+//                    glBegin(GL_QUADS);
+//                    for (int32_t i = 0; i < numberQuadVertices; i++) {
+//                        CaretAssertVectorIndex(quadVerticesByteRGBA, i*4 + 3);
+//                        glColor4ubv(&quadVerticesByteRGBA[i*4]);
+//                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+//                        glVertex3fv(&quadVerticesXYZ[i*3]);
+//                    }
+//                    glEnd();
                 }
                 else {
                     CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
-                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-                    glBegin(GL_QUADS);
-                    for (int32_t i = 0; i < numberQuadVertices; i++) {
-                        CaretAssertVectorIndex(quadVerticesFloatRGBA, i*4 + 3);
-                        glColor4fv(&quadVerticesFloatRGBA[i*4]);
-                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-                        glVertex3fv(&quadVerticesXYZ[i*3]);
-                    }
-                    glEnd();
+                    BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
+                                                           quadVerticesNormals,
+                                                           quadVerticesFloatRGBA);
+//                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+//                    glBegin(GL_QUADS);
+//                    for (int32_t i = 0; i < numberQuadVertices; i++) {
+//                        CaretAssertVectorIndex(quadVerticesFloatRGBA, i*4 + 3);
+//                        glColor4fv(&quadVerticesFloatRGBA[i*4]);
+//                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+//                        glVertex3fv(&quadVerticesXYZ[i*3]);
+//                    }
+//                    glEnd();
                 }
             }
                 break;
@@ -1103,29 +741,40 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
                  */
                 if (m_identificationModeFlag) {
                     CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
-                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-                    m_fixedPipelineDrawing->setLineWidth(5);
-                    glBegin(GL_LINES);
-                    for (int32_t i = 0; i < numberQuadVertices; i++) {
-                        CaretAssertVectorIndex(quadVerticesByteRGBA, i*4 + 3);
-                        glColor4ubv(&quadVerticesByteRGBA[i*4]);
-                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-                        glVertex3fv(&quadVerticesXYZ[i*3]);
-                    }
-                    glEnd();
+                    
+                    const float lineWidth = 5.0;
+                    BrainOpenGLPrimitiveDrawing::drawLines(quadVerticesXYZ,
+                                                           quadVerticesByteRGBA,
+                                                           lineWidth);
+//                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+//                    m_fixedPipelineDrawing->setLineWidth(5);
+//                    glBegin(GL_LINES);
+//                    for (int32_t i = 0; i < numberQuadVertices; i++) {
+//                        CaretAssertVectorIndex(quadVerticesByteRGBA, i*4 + 3);
+//                        glColor4ubv(&quadVerticesByteRGBA[i*4]);
+//                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+//                        glVertex3fv(&quadVerticesXYZ[i*3]);
+//                    }
+//                    glEnd();
                 }
                 else {
-                    m_fixedPipelineDrawing->setLineWidth(2);
                     CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
-                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-                    glBegin(GL_LINES);
-                    for (int32_t i = 0; i < numberQuadVertices; i++) {
-                        CaretAssertVectorIndex(quadVerticesFloatRGBA, i*4 + 3);
-                        glColor4fv(&quadVerticesFloatRGBA[i*4]);
-                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-                        glVertex3fv(&quadVerticesXYZ[i*3]);
-                    }
-                    glEnd();
+                    
+                    const float lineWidth = 5.0;
+                    BrainOpenGLPrimitiveDrawing::drawLines(quadVerticesXYZ,
+                                                           quadVerticesFloatRGBA,
+                                                           lineWidth);
+                    
+//                    m_fixedPipelineDrawing->setLineWidth(2);
+//                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+//                    glBegin(GL_LINES);
+//                    for (int32_t i = 0; i < numberQuadVertices; i++) {
+//                        CaretAssertVectorIndex(quadVerticesFloatRGBA, i*4 + 3);
+//                        glColor4fv(&quadVerticesFloatRGBA[i*4]);
+//                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+//                        glVertex3fv(&quadVerticesXYZ[i*3]);
+//                    }
+//                    glEnd();
                 }
             }
                 break;
@@ -1137,369 +786,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
         processHistogramIdentification(histogramChart);
     }
 }
-
-
-/*
- * Draw the given histogram chart.
- */
-void
-BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart,
-                                                                   const int32_t mapIndex)
-{
-    const ChartTwoDataHistogram* histogramData = histogramChart->getMapHistogramChart(mapIndex);
-    
-    if (m_identificationModeFlag) {
-        resetIdentification();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-    
-//    m_identificationModeFlag = false;
-//    switch (m_fixedPipelineDrawing->mode) {
-//        case BrainOpenGLFixedPipeline::MODE_DRAWING:
-//            break;
-//        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-//            if (m_selectionItemMatrix->isEnabledForSelection()) {
-//                m_identificationModeFlag = true;
-//                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//            }
-//            else {
-//                return;
-//            }
-//            break;
-//        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
-//            return;
-//            break;
-//    }
-
-    float bounds[4];
-    if ( ! histogramData->getBounds(bounds)) {
-        return;
-    }
-    
-    glColor3f(1.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex3f(bounds[0], bounds[2], 0.0);
-    glVertex3f(bounds[1], bounds[3], 0.0);
-    glEnd();
-    
-    const std::vector<float> heightValues = histogramData->getHistogramValues();
-    const int32_t numValues = static_cast<int32_t>(heightValues.size());
-    if (numValues > 1) {
-        std::vector<float> dataColoringVectorRGBA;
-        if ( ! m_identificationModeFlag) {
-            bool solidColorFlag = false;
-            if (solidColorFlag) {
-                
-            }
-            else {
-                colorHistogramWithPalette(histogramChart,
-                                          mapIndex,
-                                          dataColoringVectorRGBA);
-                const size_t rgbaSize = numValues * 4;
-                CaretAssert(dataColoringVectorRGBA.size() == rgbaSize);
-            }
-        }
-        std::vector<float> quadVerticesXYZ;
-        std::vector<float> quadVerticesFloatRGBA;
-        std::vector<uint8_t> quadVerticesByteRGBA;
-        
-        switch (histogramData->getHistogramViewingType()) {
-            case ChartTwoHistogramViewingTypeEnum::HISTOGRAM_VIEWING_BARS:
-            {
-                /*
-                 * Reserve to prevent reszing of vectors 
-                 * as elements are added.
-                 */
-                const int32_t verticesPerBar = 4;
-                const int32_t totalVertices  = verticesPerBar * numValues;
-                quadVerticesXYZ.reserve(totalVertices * 3);
-                quadVerticesFloatRGBA.reserve(totalVertices * 4);
-                quadVerticesByteRGBA.reserve(totalVertices * 4);
-                
-                const float z = 0.;
-                
-                for (int32_t i = 0; i < numValues; i++) {
-                    float left   = i;
-                    float right  = i + 1;
-                    float bottom = 0;
-                    CaretAssertVectorIndex(heightValues, i);
-                    float top = heightValues[i];
-                    
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(bottom);
-                    quadVerticesXYZ.push_back(z);
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(bottom);
-                    quadVerticesXYZ.push_back(z);
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(top);
-                    quadVerticesXYZ.push_back(z);
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(top);
-                    quadVerticesXYZ.push_back(z);
-                    
-                    if (m_identificationModeFlag) {
-                        uint8_t idRGBA[4];
-                        addToHistogramIdentification(i, idRGBA);
-
-                        for (int32_t iRGB = 0; iRGB < verticesPerBar; iRGB++) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
-                        }
-                    }
-                    else {
-                        CaretAssertVectorIndex(dataColoringVectorRGBA, i*4 + 3);
-                        const float* rgba = &dataColoringVectorRGBA[i * 4];
-                        for (int32_t iRGB = 0; iRGB < verticesPerBar; iRGB++) {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         rgba, rgba + 4);
-                        }
-                    }
-                   
-                }
-                
-                /*
-                 * Draw the bar elements.
-                 */
-                if (m_identificationModeFlag) {
-                    CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
-                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-                    glBegin(GL_QUADS);
-                    for (int32_t i = 0; i < numberQuadVertices; i++) {
-                        CaretAssertVectorIndex(quadVerticesByteRGBA, i*4 + 3);
-                        glColor4ubv(&quadVerticesByteRGBA[i*4]);
-                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-                        glVertex3fv(&quadVerticesXYZ[i*3]);
-                    }
-                    glEnd();
-                }
-                else {
-                    CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
-                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-                    glBegin(GL_QUADS);
-                    for (int32_t i = 0; i < numberQuadVertices; i++) {
-                        CaretAssertVectorIndex(quadVerticesFloatRGBA, i*4 + 3);
-                        glColor4fv(&quadVerticesFloatRGBA[i*4]);
-                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-                        glVertex3fv(&quadVerticesXYZ[i*3]);
-                    }
-                    glEnd();
-                }
-            }
-                break;
-            case ChartTwoHistogramViewingTypeEnum::HISTOGRAM_VIEWING_ENVELOPE:
-            {
-                /*
-                 * Reserve to prevent reszing of vectors
-                 * as elements are added.
-                 */
-                const int32_t verticesPerBar = 2;
-                const int32_t totalVertices  = verticesPerBar * numValues + 4;
-                quadVerticesXYZ.reserve(totalVertices * 3);
-                quadVerticesFloatRGBA.reserve(totalVertices * 4);
-                quadVerticesByteRGBA.reserve(totalVertices * 4);
-                
-                const float z = 0.0;
-                
-                const int32_t lastValueIndex = numValues - 1;
-                for (int32_t i = 0; i < numValues; i++) {
-                    float left   = i;
-                    float right  = i + 1;
-                    float bottom = 0;
-                    CaretAssertVectorIndex(heightValues, i);
-                    float top = heightValues[i];
-                    
-                    float rgba[4] = { 1.0, 0.5, 0.0, 1.0 };
-                    
-                    uint8_t idRGBA[4];
-                    if (m_identificationModeFlag) {
-                        addToHistogramIdentification(i, idRGBA);
-                    }
-                    
-                    if (i == 0) {
-                        /*
-                         * Left side of first bar
-                         */
-                        quadVerticesXYZ.push_back(left);
-                        quadVerticesXYZ.push_back(bottom);
-                        quadVerticesXYZ.push_back(z);
-                        if (m_identificationModeFlag) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
-                        }
-                        else {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         rgba, rgba + 4);
-                        }
-                        quadVerticesXYZ.push_back(left);
-                        quadVerticesXYZ.push_back(top);
-                        quadVerticesXYZ.push_back(z);
-                        if (m_identificationModeFlag) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
-                        }
-                        else {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         rgba, rgba + 4);
-                        }
-                    }
-                    else {
-                        if (top > heightValues[i - 1]) {
-                            /*
-                             * Line from previous bar that is lower in 
-                             * height than this bar
-                             */
-                            quadVerticesXYZ.push_back(left);
-                            quadVerticesXYZ.push_back(heightValues[i - 1]);
-                            quadVerticesXYZ.push_back(z);
-                            if (m_identificationModeFlag) {
-                                quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                            idRGBA, idRGBA + 4);
-                            }
-                            else {
-                                quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                             rgba, rgba + 4);
-                            }
-
-                            quadVerticesXYZ.push_back(left);
-                            quadVerticesXYZ.push_back(top);
-                            quadVerticesXYZ.push_back(z);
-                            if (m_identificationModeFlag) {
-                                quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                            idRGBA, idRGBA + 4);
-                            }
-                            else {
-                                quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                             rgba, rgba + 4);
-                            }
-                        }
-                    }
-                    
-                    /*
-                     * Draw line across top
-                     */
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(top);
-                    quadVerticesXYZ.push_back(z);
-                    if (m_identificationModeFlag) {
-                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                    idRGBA, idRGBA + 4);
-                    }
-                    else {
-                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     rgba, rgba + 4);
-                    }
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(top);
-                    quadVerticesXYZ.push_back(z);
-                    if (m_identificationModeFlag) {
-                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                    idRGBA, idRGBA + 4);
-                    }
-                    else {
-                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     rgba, rgba + 4);
-                    }
-
-                    if (i == lastValueIndex) {
-                        /*
-                         * Right side of last bar
-                         */
-                        quadVerticesXYZ.push_back(right);
-                        quadVerticesXYZ.push_back(top);
-                        quadVerticesXYZ.push_back(z);
-                        if (m_identificationModeFlag) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
-                        }
-                        else {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         rgba, rgba + 4);
-                        }
-                        quadVerticesXYZ.push_back(right);
-                        quadVerticesXYZ.push_back(bottom);
-                        quadVerticesXYZ.push_back(z);
-                        if (m_identificationModeFlag) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
-                        }
-                        else {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         rgba, rgba + 4);
-                        }
-                    }
-                    else {
-                        if (top > heightValues[i + 1]) {
-                            /*
-                             * Line from bar down to next bar
-                             * with a lower height
-                             */
-                            quadVerticesXYZ.push_back(right);
-                            quadVerticesXYZ.push_back(top);
-                            quadVerticesXYZ.push_back(z);
-                            if (m_identificationModeFlag) {
-                                quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                            idRGBA, idRGBA + 4);
-                            }
-                            else {
-                                quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                             rgba, rgba + 4);
-                            }
-                            quadVerticesXYZ.push_back(right);
-                            quadVerticesXYZ.push_back(heightValues[i + 1]);
-                            quadVerticesXYZ.push_back(z);
-                            if (m_identificationModeFlag) {
-                                quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                            idRGBA, idRGBA + 4);
-                            }
-                            else {
-                                quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                             rgba, rgba + 4);
-                            }
-                        }
-                    }
-                }
-                
-                /*
-                 * Draw the line elements.
-                 */
-                if (m_identificationModeFlag) {
-                    CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
-                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-                    m_fixedPipelineDrawing->setLineWidth(5);
-                    glBegin(GL_LINES);
-                    for (int32_t i = 0; i < numberQuadVertices; i++) {
-                        CaretAssertVectorIndex(quadVerticesByteRGBA, i*4 + 3);
-                        glColor4ubv(&quadVerticesByteRGBA[i*4]);
-                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-                        glVertex3fv(&quadVerticesXYZ[i*3]);
-                    }
-                    glEnd();
-                }
-                else {
-                    m_fixedPipelineDrawing->setLineWidth(2);
-                    CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
-                    const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-                    glBegin(GL_LINES);
-                    for (int32_t i = 0; i < numberQuadVertices; i++) {
-                        CaretAssertVectorIndex(quadVerticesFloatRGBA, i*4 + 3);
-                        glColor4fv(&quadVerticesFloatRGBA[i*4]);
-                        CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-                        glVertex3fv(&quadVerticesXYZ[i*3]);
-                    }
-                    glEnd();
-                }
-            }
-                break;
-        }
-        
-    }
-    
-    if (m_identificationModeFlag) {
-        processHistogramIdentification(histogramChart);
-    }
-}
-
 
 /**
  * Draw a matrix chart.
@@ -1632,62 +918,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
     }
 }
 
-///**
-// * Get highlighting of rows or columns for a matrix.
-// *
-// * @param matrixChart
-// *     Matrix chart that is drawn.
-// * @param rowIndicesOut
-// *     Output with row indices for highlighting.
-// * @param columnIndicesOut
-// *     Output with column indices for highlighting.
-// */
-//void
-//BrainOpenGLChartTwoDrawingFixedPipeline::getMatrixHighlighting(const ChartableTwoFileMatrixChart* matrixChart,
-//                                                               std::set<int32_t>& rowIndicesOut,
-//                                                               std::set<int32_t>& columnIndicesOut) const
-//{
-//    const CiftiMappableDataFile* ciftiMapFile = matrixChart->getCiftiMappableDataFile();
-//    const CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(ciftiMapFile);
-//    if (connMapFile != NULL) {
-//        const ConnectivityDataLoaded* connDataLoaded = connMapFile->getConnectivityDataLoaded();
-//        if (connDataLoaded != NULL) {
-//            int64_t loadedRowIndex = -1;
-//            int64_t loadedColumnIndex = -1;
-//            connDataLoaded->getRowColumnLoading(loadedRowIndex,
-//                                                loadedColumnIndex);
-//            if (loadedRowIndex >= 0) {
-//                rowIndicesOut.insert(loadedRowIndex);
-//            }
-//            else if (loadedColumnIndex >= 0) {
-//                columnIndicesOut.insert(loadedColumnIndex);
-//            }
-//        }
-//    }
-//    
-//    const CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<const CiftiParcelScalarFile*>(ciftiMapFile);
-//    if (parcelScalarFile != NULL) {
-//        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelScalarFile);
-//        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-//        columnIndicesOut = mapOverlayEvent.getSelectedMapIndices();
-//    }
-//    
-//    const CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<const CiftiParcelLabelFile*>(ciftiMapFile);
-//    if (parcelLabelFile != NULL) {
-//        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelLabelFile);
-//        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-//        columnIndicesOut = mapOverlayEvent.getSelectedMapIndices();
-//    }
-//    
-//    const CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<const CiftiScalarDataSeriesFile*>(ciftiMapFile);
-//    if (scalarDataSeriesFile != NULL) {
-//        const int32_t scalarDataSeriesMapIndex = scalarDataSeriesFile->getSelectedMapIndex(m_tabIndex);
-//        if (scalarDataSeriesMapIndex >= 0) {
-//            rowIndicesOut.insert(scalarDataSeriesMapIndex);
-//        }
-//    }
-//}
-
 /*
  * Draw a matrix chart.
  *
@@ -1713,24 +943,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         resetIdentification();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
-    
-//    m_identificationModeFlag = false;
-//    switch (m_fixedPipelineDrawing->mode) {
-//        case BrainOpenGLFixedPipeline::MODE_DRAWING:
-//            break;
-//        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-//            if (m_selectionItemMatrix->isEnabledForSelection()) {
-//                m_identificationModeFlag = true;
-//                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//            }
-//            else {
-//                return;
-//            }
-//            break;
-//        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
-//            return;
-//            break;
-//    }
     
     int32_t numberOfRows = 0;
     int32_t numberOfColumns = 0;
@@ -1951,20 +1163,34 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         cellY -= cellHeight;
     }
     
+    const float normalVector[3] = { 0.0, 0.0, 1.0 };
+    std::vector<float> quadVerticesNormals;
+    quadVerticesNormals.reserve(quadVerticesXYZ.size());
+    const int32_t numberOfVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+    for (int32_t iNormal = 0; iNormal < numberOfVertices; iNormal++) {
+        quadVerticesNormals.insert(quadVerticesNormals.end(),
+                                   normalVector, normalVector + 3);
+    }
+    CaretAssert(quadVerticesXYZ.size() == quadVerticesNormals.size());
+    
     /*
      * Draw the matrix elements.
      */
     if (m_identificationModeFlag) {
         CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
-        const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-        glBegin(GL_QUADS);
-        for (int32_t i = 0; i < numberQuadVertices; i++) {
-            CaretAssertVectorIndex(quadVerticesByteRGBA, i*4 + 3);
-            glColor4ubv(&quadVerticesByteRGBA[i*4]);
-            CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-            glVertex3fv(&quadVerticesXYZ[i*3]);
-        }
-        glEnd();
+        BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
+                                               quadVerticesNormals,
+                                               quadVerticesByteRGBA);
+        
+//        const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+//        glBegin(GL_QUADS);
+//        for (int32_t i = 0; i < numberQuadVertices; i++) {
+//            CaretAssertVectorIndex(quadVerticesByteRGBA, i*4 + 3);
+//            glColor4ubv(&quadVerticesByteRGBA[i*4]);
+//            CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+//            glVertex3fv(&quadVerticesXYZ[i*3]);
+//        }
+//        glEnd();
     }
     else {
         /*
@@ -1975,15 +1201,17 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         
         CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
-        const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-        glBegin(GL_QUADS);
-        for (int32_t i = 0; i < numberQuadVertices; i++) {
-            CaretAssertVectorIndex(quadVerticesFloatRGBA, i*4 + 3);
-            glColor4fv(&quadVerticesFloatRGBA[i*4]);
-            CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-            glVertex3fv(&quadVerticesXYZ[i*3]);
-        }
-        glEnd();
+        BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
+                                               quadVerticesNormals,
+                                               quadVerticesFloatRGBA);
+//        glBegin(GL_QUADS);
+//        for (int32_t i = 0; i < numberQuadVertices; i++) {
+//            CaretAssertVectorIndex(quadVerticesFloatRGBA, i*4 + 3);
+//            glColor4fv(&quadVerticesFloatRGBA[i*4]);
+//            CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+//            glVertex3fv(&quadVerticesXYZ[i*3]);
+//        }
+//        glEnd();
         
         glDisable(GL_BLEND);
         
@@ -1999,6 +1227,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                 gridLineColorFloats);
             gridLineColorFloats[3] = 1.0;
             std::vector<float> outlineRGBA;
+            const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
             outlineRGBA.reserve(numberQuadVertices * 4);
             for (int32_t i = 0; i < numberQuadVertices; i++) {
                 outlineRGBA.push_back(gridLineColorFloats[0]);
@@ -2006,23 +1235,27 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 outlineRGBA.push_back(gridLineColorFloats[2]);
                 outlineRGBA.push_back(gridLineColorFloats[3]);
             }
+            CaretAssert(quadVerticesXYZ.size() == quadVerticesNormals.size());
             
             glPolygonMode(GL_FRONT, GL_LINE);
             glLineWidth(1.0);
-            glBegin(GL_QUADS);
-            for (int32_t i = 0; i < numberQuadVertices; i++) {
-                CaretAssertVectorIndex(outlineRGBA, i*4 + 3);
-                glColor4fv(&outlineRGBA[i*4]);
-                CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
-                glVertex3fv(&quadVerticesXYZ[i*3]);
-            }
-            glEnd();
+            BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
+                                                   quadVerticesNormals,
+                                                   outlineRGBA);
+//            glBegin(GL_QUADS);
+//            for (int32_t i = 0; i < numberQuadVertices; i++) {
+//                CaretAssertVectorIndex(outlineRGBA, i*4 + 3);
+//                glColor4fv(&outlineRGBA[i*4]);
+//                CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+//                glVertex3fv(&quadVerticesXYZ[i*3]);
+//            }
+//            glEnd();
         }
         
         if ( (! selectedRowIndices.empty())
             && highlightSelectedRowColumnFlag) {
-            std::vector<float> rowXYZ;
-            std::vector<float> rowRGBA;
+//            std::vector<float> rowXYZ;
+//            std::vector<float> rowRGBA;
             
             for (auto rowIndex : selectedRowIndices) {
                 const float rowY = (numberOfRows - rowIndex - 1) * cellHeight;
@@ -2044,72 +1277,83 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 const float minX = minColumn * cellWidth;
                 const float maxX = maxColumn * cellWidth;
                 
+                std::vector<float> rowXYZ;
+                rowXYZ.reserve(12);
                 rowXYZ.push_back(minX);
                 rowXYZ.push_back(rowY);
                 rowXYZ.push_back(0.0);
-                rowRGBA.push_back(highlightRGB[0]);
-                rowRGBA.push_back(highlightRGB[1]);
-                rowRGBA.push_back(highlightRGB[2]);
-                rowRGBA.push_back(1.0);
+//                rowRGBA.push_back(highlightRGB[0]);
+//                rowRGBA.push_back(highlightRGB[1]);
+//                rowRGBA.push_back(highlightRGB[2]);
+//                rowRGBA.push_back(1.0);
                 
                 rowXYZ.push_back(minX);
                 rowXYZ.push_back(rowY + cellHeight);
                 rowXYZ.push_back(0.0);
-                rowRGBA.push_back(highlightRGB[0]);
-                rowRGBA.push_back(highlightRGB[1]);
-                rowRGBA.push_back(highlightRGB[2]);
-                rowRGBA.push_back(1.0);
+//                rowRGBA.push_back(highlightRGB[0]);
+//                rowRGBA.push_back(highlightRGB[1]);
+//                rowRGBA.push_back(highlightRGB[2]);
+//                rowRGBA.push_back(1.0);
                 
                 rowXYZ.push_back(maxX);
                 rowXYZ.push_back(rowY + cellHeight);
                 rowXYZ.push_back(0.0);
-                rowRGBA.push_back(highlightRGB[0]);
-                rowRGBA.push_back(highlightRGB[1]);
-                rowRGBA.push_back(highlightRGB[2]);
-                rowRGBA.push_back(1.0);
+//                rowRGBA.push_back(highlightRGB[0]);
+//                rowRGBA.push_back(highlightRGB[1]);
+//                rowRGBA.push_back(highlightRGB[2]);
+//                rowRGBA.push_back(1.0);
                 
                 
                 rowXYZ.push_back(maxX);
                 rowXYZ.push_back(rowY);
                 rowXYZ.push_back(0.0);
-                rowRGBA.push_back(highlightRGB[0]);
-                rowRGBA.push_back(highlightRGB[1]);
-                rowRGBA.push_back(highlightRGB[2]);
-                rowRGBA.push_back(1.0);
+//                rowRGBA.push_back(highlightRGB[0]);
+//                rowRGBA.push_back(highlightRGB[1]);
+//                rowRGBA.push_back(highlightRGB[2]);
+//                rowRGBA.push_back(1.0);
+                
+                /*
+                 * As cells get larger, increase linewidth for selected row
+                 */
+                const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+                const float rgba[4] = { highlightRGB[0], highlightRGB[1], highlightRGB[2], 1.0f };
+                BrainOpenGLPrimitiveDrawing::drawLineLoop(rowXYZ,
+                                                          rgba,
+                                                          highlightLineWidth);
             }
             
-            CaretAssert((rowXYZ.size() / 3) == (rowRGBA.size() / 4));
-            
-            const int32_t numberOfVertices = static_cast<int32_t>(rowXYZ.size() / 3);
-            const int32_t numberOfQuads = numberOfVertices / 4;
-            CaretAssert((numberOfQuads * 4) == numberOfVertices);
-            
-            /*
-             * As cells get larger, increase linewidth for selected row
-             */
-            const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
-            glLineWidth(highlightLineWidth);
-            
-            for (int32_t iQuad = 0; iQuad < numberOfQuads; iQuad++) {
-                glBegin(GL_LINE_LOOP);
-                for (int32_t iVert = 0; iVert < 4; iVert++) {
-                    const int32_t rgbaOffset = (iQuad * 16) + (iVert * 4);
-                    CaretAssertVectorIndex(rowRGBA, rgbaOffset + 3);
-                    glColor4fv(&rowRGBA[rgbaOffset]);
-                    
-                    const int32_t xyzOffset = (iQuad * 12) + (iVert * 3);
-                    CaretAssertVectorIndex(rowXYZ, xyzOffset + 2);
-                    glVertex3fv(&rowXYZ[xyzOffset]);
-                }
-                glEnd();
-            }
+//            CaretAssert((rowXYZ.size() / 3) == (rowRGBA.size() / 4));
+//            
+//            const int32_t numberOfVertices = static_cast<int32_t>(rowXYZ.size() / 3);
+//            const int32_t numberOfQuads = numberOfVertices / 4;
+//            CaretAssert((numberOfQuads * 4) == numberOfVertices);
+//            
+//            /*
+//             * As cells get larger, increase linewidth for selected row
+//             */
+//            const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+//            glLineWidth(highlightLineWidth);
+//            
+//            for (int32_t iQuad = 0; iQuad < numberOfQuads; iQuad++) {
+//                glBegin(GL_LINE_LOOP);
+//                for (int32_t iVert = 0; iVert < 4; iVert++) {
+//                    const int32_t rgbaOffset = (iQuad * 16) + (iVert * 4);
+//                    CaretAssertVectorIndex(rowRGBA, rgbaOffset + 3);
+//                    glColor4fv(&rowRGBA[rgbaOffset]);
+//                    
+//                    const int32_t xyzOffset = (iQuad * 12) + (iVert * 3);
+//                    CaretAssertVectorIndex(rowXYZ, xyzOffset + 2);
+//                    glVertex3fv(&rowXYZ[xyzOffset]);
+//                }
+//                glEnd();
+//            }
             glLineWidth(1.0);
         }
         
         if ( (! selectedColumnIndices.empty())
             && highlightSelectedRowColumnFlag) {
-            std::vector<float> columnXYZ;
-            std::vector<float> columnRGBA;
+//            std::vector<float> columnXYZ;
+//            std::vector<float> columnRGBA;
             
             for (auto columnIndex : selectedColumnIndices) {
                 const float colX = columnIndex * cellWidth;
@@ -2132,65 +1376,76 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 const float maxY = maxRow * cellHeight;
                 
                 
+                std::vector<float> columnXYZ;
+                columnXYZ.reserve(12);
                 columnXYZ.push_back(colX);
                 columnXYZ.push_back(minY);
                 columnXYZ.push_back(0.0);
-                columnRGBA.push_back(highlightRGB[0]);
-                columnRGBA.push_back(highlightRGB[1]);
-                columnRGBA.push_back(highlightRGB[2]);
-                columnRGBA.push_back(1.0);
+//                columnRGBA.push_back(highlightRGB[0]);
+//                columnRGBA.push_back(highlightRGB[1]);
+//                columnRGBA.push_back(highlightRGB[2]);
+//                columnRGBA.push_back(1.0);
                 
                 columnXYZ.push_back(colX + cellWidth);
                 columnXYZ.push_back(minY);
                 columnXYZ.push_back(0.0);
-                columnRGBA.push_back(highlightRGB[0]);
-                columnRGBA.push_back(highlightRGB[1]);
-                columnRGBA.push_back(highlightRGB[2]);
-                columnRGBA.push_back(1.0);
+//                columnRGBA.push_back(highlightRGB[0]);
+//                columnRGBA.push_back(highlightRGB[1]);
+//                columnRGBA.push_back(highlightRGB[2]);
+//                columnRGBA.push_back(1.0);
                 
                 columnXYZ.push_back(colX + cellWidth);
                 columnXYZ.push_back(maxY);
                 columnXYZ.push_back(0.0);
-                columnRGBA.push_back(highlightRGB[0]);
-                columnRGBA.push_back(highlightRGB[1]);
-                columnRGBA.push_back(highlightRGB[2]);
-                columnRGBA.push_back(1.0);
+//                columnRGBA.push_back(highlightRGB[0]);
+//                columnRGBA.push_back(highlightRGB[1]);
+//                columnRGBA.push_back(highlightRGB[2]);
+//                columnRGBA.push_back(1.0);
                 
                 
                 columnXYZ.push_back(colX);
                 columnXYZ.push_back(maxY);
                 columnXYZ.push_back(0.0);
-                columnRGBA.push_back(highlightRGB[0]);
-                columnRGBA.push_back(highlightRGB[1]);
-                columnRGBA.push_back(highlightRGB[2]);
-                columnRGBA.push_back(1.0);
+//                columnRGBA.push_back(highlightRGB[0]);
+//                columnRGBA.push_back(highlightRGB[1]);
+//                columnRGBA.push_back(highlightRGB[2]);
+//                columnRGBA.push_back(1.0);
+                
+                /*
+                 * As cells get larger, increase linewidth for selected row
+                 */
+                const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+                const float rgba[4] = { highlightRGB[0], highlightRGB[1], highlightRGB[2], 1.0f };
+                BrainOpenGLPrimitiveDrawing::drawLineLoop(columnXYZ,
+                                                          rgba,
+                                                          highlightLineWidth);
             }
             
-            CaretAssert((columnXYZ.size() / 3) == (columnRGBA.size() / 4));
-            
-            const int32_t numberOfVertices = static_cast<int32_t>(columnXYZ.size() / 3);
-            const int32_t numberOfQuads = numberOfVertices / 4;
-            CaretAssert((numberOfQuads * 4) == numberOfVertices);
-            
-            /*
-             * As cells get larger, increase linewidth for selected row
-             */
-            const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
-            glLineWidth(highlightLineWidth);
-            
-            for (int32_t iQuad = 0; iQuad < numberOfQuads; iQuad++) {
-                glBegin(GL_LINE_LOOP);
-                for (int32_t iVert = 0; iVert < 4; iVert++) {
-                    const int32_t rgbaOffset = (iQuad * 16) + (iVert * 4);
-                    CaretAssertVectorIndex(columnRGBA, rgbaOffset + 3);
-                    glColor4fv(&columnRGBA[rgbaOffset]);
-                    
-                    const int32_t xyzOffset = (iQuad * 12) + (iVert * 3);
-                    CaretAssertVectorIndex(columnXYZ, xyzOffset + 2);
-                    glVertex3fv(&columnXYZ[xyzOffset]);
-                }
-                glEnd();
-            }
+//            CaretAssert((columnXYZ.size() / 3) == (columnRGBA.size() / 4));
+//            
+//            const int32_t numberOfVertices = static_cast<int32_t>(columnXYZ.size() / 3);
+//            const int32_t numberOfQuads = numberOfVertices / 4;
+//            CaretAssert((numberOfQuads * 4) == numberOfVertices);
+//            
+//            /*
+//             * As cells get larger, increase linewidth for selected row
+//             */
+//            const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+//            glLineWidth(highlightLineWidth);
+//            
+//            for (int32_t iQuad = 0; iQuad < numberOfQuads; iQuad++) {
+//                glBegin(GL_LINE_LOOP);
+//                for (int32_t iVert = 0; iVert < 4; iVert++) {
+//                    const int32_t rgbaOffset = (iQuad * 16) + (iVert * 4);
+//                    CaretAssertVectorIndex(columnRGBA, rgbaOffset + 3);
+//                    glColor4fv(&columnRGBA[rgbaOffset]);
+//                    
+//                    const int32_t xyzOffset = (iQuad * 12) + (iVert * 3);
+//                    CaretAssertVectorIndex(columnXYZ, xyzOffset + 2);
+//                    glVertex3fv(&columnXYZ[xyzOffset]);
+//                }
+//                glEnd();
+//            }
             glLineWidth(1.0);
         }
         

@@ -36,6 +36,9 @@ namespace caret {
     public:
         CaretColorEnumComboBox(QObject* parent);
         
+        CaretColorEnumComboBox(const AString& customColorSelectionName,
+                               QObject* parent);
+        
         virtual ~CaretColorEnumComboBox();
         
         CaretColorEnum::Enum getSelectedColor();
@@ -57,6 +60,9 @@ namespace caret {
         
     private:
         QComboBox* colorComboBox;
+
+        void initializeCaretColorComboBox(const AString& customColorSelectionName);
+        
     };
     
 #ifdef __CARET_COLOR_ENUM_COMBOBOX_DECLARE__

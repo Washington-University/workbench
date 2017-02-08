@@ -43,6 +43,7 @@
 #undef __MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_DECLARE__
 
 #include "Brain.h"
+#include "CaretColorEnumComboBox.h"
 #include "CaretMappableDataFile.h"
 #include "CursorDisplayScoped.h"
 #include "EnumComboBoxTemplate.h"
@@ -106,8 +107,6 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
      * but one is used on the histogram plot
      */
     this->setContextMenuPolicy(Qt::NoContextMenu);
-    
-    this->isHistogramColored = true;
     
     this->caretMappableDataFile = NULL;
     this->mapFileIndex = -1;
@@ -727,15 +726,6 @@ MapSettingsPaletteColorMappingWidget::thresholdRangeModeChanged()
 }
 
 /**
- * Called when a histogram control is changed.
- */
-void 
-MapSettingsPaletteColorMappingWidget::histogramControlChanged()
-{
-    this->updateWidget();
-}
-
-/**
  * Create the statistics section
  * @return the statistics section widget.
  */
@@ -745,10 +735,10 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     /*
      * Control section
      */
-    this->histogramAllRadioButton = new QRadioButton("All");
-    WuQtUtilities::setToolTipAndStatusTip(this->histogramAllRadioButton, 
+    this->histogramAllRadioButton = new QRadioButton(PaletteHistogramRangeModeEnum::toGuiName(PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL));
+    WuQtUtilities::setToolTipAndStatusTip(this->histogramAllRadioButton,
                                           "Displays all map data in the histogram");
-    this->histogramMatchPaletteRadioButton = new QRadioButton("Match\nPalette");
+    this->histogramMatchPaletteRadioButton = new QRadioButton(PaletteHistogramRangeModeEnum::toGuiName(PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE));
     WuQtUtilities::setToolTipAndStatusTip(this->histogramMatchPaletteRadioButton, 
                                           "Use the palette mapping selections");
     
@@ -758,14 +748,14 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     buttGroup->addButton(this->histogramAllRadioButton);
     buttGroup->addButton(this->histogramMatchPaletteRadioButton);
     QObject::connect(buttGroup, SIGNAL(buttonClicked(int)),
-                     this, SLOT(histogramControlChanged()));
+                     this, SLOT(applyAndUpdate()));
     
-    this->histogramUsePaletteColors = new QCheckBox("Colorize");
-    WuQtUtilities::setToolTipAndStatusTip(this->histogramUsePaletteColors, 
-                                          "If checked, histogram colors match colors mapped to data");
-    this->histogramUsePaletteColors->setChecked(true);
-    QObject::connect(this->histogramUsePaletteColors, SIGNAL(toggled(bool)),
-                     this, SLOT(histogramControlChanged()));
+    m_histogramColorComboBox = new CaretColorEnumComboBox("Palette Coloring",
+                                                          this);
+    WuQtUtilities::setToolTipAndStatusTip(m_histogramColorComboBox->getWidget(),
+                                          "Set histogram coloring");
+    QObject::connect(m_histogramColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
+                     this, SLOT(applyAndUpdate()));
     
     QWidget* controlWidget = new QWidget();
     QGridLayout* controlLayout = new QGridLayout(controlWidget);
@@ -773,7 +763,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     controlLayout->addWidget(this->histogramAllRadioButton);
     controlLayout->addWidget(this->histogramMatchPaletteRadioButton);
     controlLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    controlLayout->addWidget(this->histogramUsePaletteColors);
+    controlLayout->addWidget(m_histogramColorComboBox->getWidget());
     controlWidget->setFixedSize(controlWidget->sizeHint());
     
     /*
@@ -1621,6 +1611,17 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
     
         this->interpolateColorsCheckBox->setChecked(this->paletteColorMapping->isInterpolatePaletteFlag());
         
+        switch (this->paletteColorMapping->getHistogramRangeMode()) {
+            case PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL:
+                this->histogramAllRadioButton->setChecked(true);
+                break;
+            case PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE:
+                this->histogramMatchPaletteRadioButton->setChecked(true);
+                break;
+        }
+        
+        m_histogramColorComboBox->setSelectedColor(this->paletteColorMapping->getHistogramColor());
+        
         updateThresholdSection();
         
         float minValue  = 0.0;
@@ -1677,41 +1678,45 @@ MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statist
     float leastNeg = 0.0;
     float mostNeg  = 0.0;
     bool matchFlag = false;
-    if (this->histogramAllRadioButton->isChecked()) {
-        float dummy;
-        statisticsForAll->getNonzeroRanges(mostNeg, dummy, dummy, mostPos);
-    }
-    else if (this->histogramMatchPaletteRadioButton->isChecked()) {
-        matchFlag = true;
-        switch (this->paletteColorMapping->getScaleMode()) {
-            case PaletteScaleModeEnum::MODE_AUTO_SCALE:
-                mostPos  = statisticsForAll->getMax();
-                leastPos = 0.0;
-                leastNeg = 0.0;
-                mostNeg  = statisticsForAll->getMin();
-                break;
-            case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
-                mostPos  =  statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
-                leastPos =  statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
-                leastNeg = -statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
-                mostNeg  = -statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
-                break;
-            case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
-                mostPos  = statisticsForAll->getApproxPositivePercentile(this->scaleAutoPercentagePositiveMaximumSpinBox->value());
-                leastPos = statisticsForAll->getApproxPositivePercentile(this->scaleAutoPercentagePositiveMinimumSpinBox->value());
-                leastNeg = statisticsForAll->getApproxNegativePercentile(this->scaleAutoPercentageNegativeMinimumSpinBox->value());
-                mostNeg  = statisticsForAll->getApproxNegativePercentile(this->scaleAutoPercentageNegativeMaximumSpinBox->value());
-                break;
-            case PaletteScaleModeEnum::MODE_USER_SCALE:
-                mostPos  = this->scaleFixedPositiveMaximumSpinBox->value();
-                leastPos = this->scaleFixedPositiveMinimumSpinBox->value();
-                leastNeg = this->scaleFixedNegativeMinimumSpinBox->value();
-                mostNeg  = this->scaleFixedNegativeMaximumSpinBox->value();
-                break;
+    
+    switch (this->paletteColorMapping->getHistogramRangeMode()) {
+        case PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL:
+        {
+            float dummy;
+            statisticsForAll->getNonzeroRanges(mostNeg, dummy, dummy, mostPos);
         }
-    }
-    else {
-        CaretAssert(0);
+            break;
+        case PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE:
+        {
+            matchFlag = true;
+            switch (this->paletteColorMapping->getScaleMode()) {
+                case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+                    mostPos  = statisticsForAll->getMax();
+                    leastPos = 0.0;
+                    leastNeg = 0.0;
+                    mostNeg  = statisticsForAll->getMin();
+                    break;
+                case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
+                    mostPos  =  statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
+                    leastPos =  statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
+                    leastNeg = -statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
+                    mostNeg  = -statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
+                    break;
+                case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+                    mostPos  = statisticsForAll->getApproxPositivePercentile(this->scaleAutoPercentagePositiveMaximumSpinBox->value());
+                    leastPos = statisticsForAll->getApproxPositivePercentile(this->scaleAutoPercentagePositiveMinimumSpinBox->value());
+                    leastNeg = statisticsForAll->getApproxNegativePercentile(this->scaleAutoPercentageNegativeMinimumSpinBox->value());
+                    mostNeg  = statisticsForAll->getApproxNegativePercentile(this->scaleAutoPercentageNegativeMaximumSpinBox->value());
+                    break;
+                case PaletteScaleModeEnum::MODE_USER_SCALE:
+                    mostPos  = this->scaleFixedPositiveMaximumSpinBox->value();
+                    leastPos = this->scaleFixedPositiveMinimumSpinBox->value();
+                    leastNeg = this->scaleFixedNegativeMinimumSpinBox->value();
+                    mostNeg  = this->scaleFixedNegativeMaximumSpinBox->value();
+                    break;
+            }
+        }
+            break;
     }
     
     const PaletteNormalizationModeEnum::Enum normMode = this->caretMappableDataFile->getPaletteNormalizationMode();
@@ -1848,7 +1853,8 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             dataValues[numDataValues - 1] = maxValue;
             
             const Palette* palette = paletteFile->getPaletteByName(this->paletteColorMapping->getSelectedPaletteName());
-            if (this->histogramUsePaletteColors->isChecked()
+            const CaretColorEnum::Enum histogramColor = paletteColorMapping->getHistogramColor();
+            if ((histogramColor == CaretColorEnum::CUSTOM)
                 && (palette != NULL)) {
                 NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
                                                               paletteColorMapping, 
@@ -1860,12 +1866,16 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                                                               true); // ignore thresholding
             }
             else {
+                float colorRGBA[4];
+                CaretColorEnum::toRGBFloat(histogramColor,
+                                           colorRGBA);
+                colorRGBA[3] = 1.0;
                 for (int64_t i = 0; i < numDataValues; i++) {
                     const int64_t i4 = i * 4;
-                    dataRGBA[i4]   = 1.0;
-                    dataRGBA[i4+1] = 0.0;
-                    dataRGBA[i4+2] = 0.0;
-                    dataRGBA[i4+3] = 1.0;
+                    dataRGBA[i4]   = colorRGBA[0];
+                    dataRGBA[i4+1] = colorRGBA[1];
+                    dataRGBA[i4+2] = colorRGBA[2];
+                    dataRGBA[i4+3] = colorRGBA[3];
                 }
             }
         }
@@ -2121,6 +2131,14 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     this->paletteColorMapping->setDisplayZeroDataFlag(this->displayModeZeroCheckBox->isChecked());
     
     this->paletteColorMapping->setInterpolatePaletteFlag(this->interpolateColorsCheckBox->isChecked());
+    
+    if (this->histogramAllRadioButton->isChecked()) {
+        this->paletteColorMapping->setHistogramRangeMode(PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL);
+    }
+    else if (this->histogramMatchPaletteRadioButton->isChecked()) {
+        this->paletteColorMapping->setHistogramRangeMode(PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE);
+    }
+    this->paletteColorMapping->setHistogramColor(m_histogramColorComboBox->getSelectedColor());
     
     float lowValue = this->thresholdLowSpinBox->value();
     float highValue = this->thresholdHighSpinBox->value();

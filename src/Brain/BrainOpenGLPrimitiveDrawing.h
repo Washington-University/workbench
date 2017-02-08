@@ -66,6 +66,14 @@ namespace caret {
                               const uint8_t rgba[4],
                               const float lineWidth);
         
+        static void drawLines(const std::vector<float>& coordinates,
+                              const std::vector<float>& rgbaColors,
+                              const float lineWidth);
+        
+        static void drawLines(const std::vector<float>& coordinates,
+                              const std::vector<uint8_t>& rgbaColors,
+                              const float lineWidth);
+        
         static void drawLineStrip(const std::vector<float>& coordinates,
                               const float rgba[4],
                               const float lineWidth);
@@ -132,7 +140,11 @@ namespace caret {
                                                   const uint8_t rgba[4],
                                                   const float lineWidth);
         
-        
+        static void drawPrimitiveWithVertexArrays(GLenum mode,
+                                                  const std::vector<float>& coordinates,
+                                                  const std::vector<float>& normals,
+                                                  const std::vector<uint8_t>& rgba,
+                                                  const float lineWidth);
     };
     
 #ifdef __BRAIN_OPEN_G_L_PRIMITIVE_DRAWING_DECLARE__

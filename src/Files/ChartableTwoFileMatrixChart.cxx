@@ -87,14 +87,14 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
     updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForMatrix(numRows,
                                                                                                numCols));
     
-    m_rowColumnDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
-    if ( ! m_validRowColumnSelectionDimensions.empty()) {
-        CaretAssertVectorIndex(m_validRowColumnSelectionDimensions, 0);
-        m_rowColumnDimension = m_validRowColumnSelectionDimensions[0];
-    }
-    
-    m_sceneAssistant->add<ChartTwoMatrixLoadingDimensionEnum, ChartTwoMatrixLoadingDimensionEnum::Enum>("m_rowColumnDimension",
-                                                                                                        &m_rowColumnDimension);
+//    m_rowColumnDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
+//    if ( ! m_validRowColumnSelectionDimensions.empty()) {
+//        CaretAssertVectorIndex(m_validRowColumnSelectionDimensions, 0);
+//        m_rowColumnDimension = m_validRowColumnSelectionDimensions[0];
+//    }
+//    
+//    m_sceneAssistant->add<ChartTwoMatrixLoadingDimensionEnum, ChartTwoMatrixLoadingDimensionEnum::Enum>("m_rowColumnDimension",
+//                                                                                                        &m_rowColumnDimension);
 }
 
 /**
@@ -367,7 +367,22 @@ ChartableTwoFileMatrixChart::getMatrixDataRGBA(int32_t& numberOfRowsOut,
 ChartTwoMatrixLoadingDimensionEnum::Enum
 ChartableTwoFileMatrixChart::getSelectedRowColumnDimension() const
 {
-    return m_rowColumnDimension;
+    ChartTwoMatrixLoadingDimensionEnum::Enum loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
+    
+    const CaretMappableDataFile* cmdf = getCaretMappableDataFile();
+    const CiftiConnectivityMatrixParcelFile* matrixFile = dynamic_cast<const CiftiConnectivityMatrixParcelFile*>(cmdf);
+    if (matrixFile != NULL) {
+        switch (matrixFile->getMatrixLoadingDimension()) {
+            case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
+                break;
+            case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
+                break;
+        }
+    }
+    
+    return loadDimension;
 }
 
 /**
@@ -379,10 +394,24 @@ ChartableTwoFileMatrixChart::getSelectedRowColumnDimension() const
 void
 ChartableTwoFileMatrixChart::setSelectedRowColumnDimension(const ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension)
 {
-    if (m_rowColumnDimension != rowColumnDimension) {
-        m_rowColumnDimension = rowColumnDimension;
-        setModified();
+    CaretMappableDataFile* cmdf = getCaretMappableDataFile();
+    CiftiConnectivityMatrixParcelFile* matrixFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(cmdf);
+    if (matrixFile != NULL) {
+        ChartMatrixLoadingDimensionEnum::Enum oldLoadDim = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
+        switch (rowColumnDimension) {
+            case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                oldLoadDim = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
+                break;
+            case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                oldLoadDim = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
+                break;
+        }
+        matrixFile->setMatrixLoadingDimension(oldLoadDim);
     }
+//    if (m_rowColumnDimension != rowColumnDimension) {
+//        m_rowColumnDimension = rowColumnDimension;
+//        setModified();
+//    }
 }
 
 /**
@@ -413,7 +442,7 @@ ChartableTwoFileMatrixChart::getSelectedRowColumnIndices(const int32_t tabIndex,
                                                          std::vector<int32_t>& rowIndicesOut,
                                                          std::vector<int32_t>& columnIndicesOut) const
 {
-    rowColumnDimensionOut = m_rowColumnDimension;
+    rowColumnDimensionOut = getSelectedRowColumnDimension();
     rowIndicesOut.clear();
     columnIndicesOut.clear();
     
@@ -429,7 +458,7 @@ ChartableTwoFileMatrixChart::getSelectedRowColumnIndices(const int32_t tabIndex,
             int64_t loadedColumnIndex = -1;
             connDataLoaded->getRowColumnLoading(loadedRowIndex,
                                                 loadedColumnIndex);
-            switch (m_rowColumnDimension) {
+            switch (rowColumnDimensionOut) {
                 case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
                     if (loadedColumnIndex >= 0) {
                         columnIndicesSet.insert(loadedColumnIndex);
@@ -508,7 +537,7 @@ ChartableTwoFileMatrixChart::setSelectedRowColumnIndex(const int32_t tabIndex,
         int32_t numRows = -1;
         int32_t numCols = -1;
         getMatrixDimensions(numRows, numCols);
-        switch (m_rowColumnDimension) {
+        switch (getSelectedRowColumnDimension()) {
             case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
                 if ((rowColumnIndex >= 0)
                     && (rowColumnIndex < numCols)) {

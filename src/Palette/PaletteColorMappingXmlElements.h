@@ -45,6 +45,8 @@ namespace PaletteColorMappingXmlElements {
     static const AString XML_TAG_THRESHOLD_FAILURE_IN_GREEN = "ThresholdFailureInGreen";
     static const AString XML_TAG_THRESHOLD_RANGE_MODE = "ThresholdRangeMode";
     static const AString XML_TAG_THRESHOLD_NEG_MIN_POS_MAX_LINKED = "ThresholdLowHighLinked";
+    static const AString XML_TAG_HISTOGRAM_RANGE_MODE = "HistogramRangeMode";
+    static const AString XML_TAG_HISTOGRAM_COLOR = "HistogramColor";
     static const AString XML_TAG_NUMERIC_FORMAT_MODE = "NumericFormatMode";
     static const AString XML_TAG_PRECISION_DIGITS = "PrecisionDigits";
     static const AString XML_TAG_NUMERIC_SUBDIVISIONS = "NumericSubivisions";

@@ -83,7 +83,7 @@ namespace caret {
        
         const std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum> m_validRowColumnSelectionDimensions;
         
-        ChartTwoMatrixLoadingDimensionEnum::Enum m_rowColumnDimension;
+        //ChartTwoMatrixLoadingDimensionEnum::Enum m_rowColumnDimension;
 
         // ADD_NEW_MEMBERS_HERE
 

@@ -39,6 +39,7 @@ class QwtPlot;
 
 namespace caret {
     
+    class CaretColorEnumComboBox;
     class CaretMappableDataFile;
     class EnumComboBoxTemplate;
     class FastStatistics;
@@ -88,7 +89,6 @@ namespace caret {
         void scaleFixedPositiveMinimumValueChanged(double value);
         void scaleFixedPositiveMaximumValueChanged(double value);
         
-        void histogramControlChanged();
         void histogramResetViewButtonClicked();
         void applyAndUpdate();
         void applySelections();
@@ -193,9 +193,7 @@ namespace caret {
         QRadioButton* histogramAllRadioButton;
         QRadioButton* histogramMatchPaletteRadioButton;
         
-        QCheckBox* histogramUsePaletteColors;
-        
-        bool isHistogramColored;
+        CaretColorEnumComboBox* m_histogramColorComboBox;
         
         CaretMappableDataFile* caretMappableDataFile;
         CaretMappableDataFile* m_previousCaretMappableDataFile;
