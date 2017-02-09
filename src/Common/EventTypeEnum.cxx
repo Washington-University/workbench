@@ -161,6 +161,10 @@ EventTypeEnum::initialize()
                                      "EVENT_CHART_MATRIX_YOKING_VALIDATION",
                                      "Validate Yoking of matrix chart's rows/columns"));
 
+    enumData.push_back(EventTypeEnum(EVENT_CHART_OVERLAY_VALIDATE,
+                                     "EVENT_CHART_OVERLAY_VALIDATE",
+                                     "Validate a chart overlay for validity (it exists)"));
+    
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_ADD,
                                      "EVENT_DATA_FILE_ADD",
                                      "Add a data file to the Brain"));

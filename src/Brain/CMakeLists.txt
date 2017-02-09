@@ -109,6 +109,7 @@ EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabGetAllViewed.h
 EventBrowserTabNew.h
+EventChartOverlayValidate.h
 EventDataFileAdd.h
 EventDataFileDelete.h
 EventDataFileRead.h
@@ -254,6 +255,7 @@ EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabGetAllViewed.cxx
 EventBrowserTabNew.cxx
+EventChartOverlayValidate.cxx
 EventDataFileAdd.cxx
 EventDataFileDelete.cxx
 EventDataFileRead.cxx

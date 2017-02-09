@@ -1259,6 +1259,7 @@ GuiManager::receiveEvent(Event* event)
         BrainBrowserWindow* browserWindow = m_brainBrowserWindows[browserWindowIndex];
         CaretAssert(browserWindow);
         Overlay* overlay = mapEditEvent->getOverlay();
+        ChartTwoOverlay* chartOverlay = mapEditEvent->getChartTwoOverlay();
         
         switch (mode) {
             case EventOverlaySettingsEditorDialogRequest::MODE_OVERLAY_MAP_CHANGED:
@@ -1267,7 +1268,8 @@ GuiManager::receiveEvent(Event* event)
                      overlayEditorIter != m_overlaySettingsEditors.end();
                      overlayEditorIter++) {
                     OverlaySettingsEditorDialog* med = *overlayEditorIter;
-                    med->updateIfThisOverlayIsInDialog(overlay);
+                    med->updateIfThisOverlayIsInDialog(overlay,
+                                                       chartOverlay);
                 }
             }
                 break;
@@ -1316,7 +1318,8 @@ GuiManager::receiveEvent(Event* event)
                     }
                 }
                 
-                overlayEditor->updateDialogContent(overlay);
+                overlayEditor->updateDialogContent(overlay,
+                                                   chartOverlay);
                 overlayEditor->show();
                 overlayEditor->raise();
                 overlayEditor->activateWindow();

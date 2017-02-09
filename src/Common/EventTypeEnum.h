@@ -86,6 +86,8 @@ public:
         EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS,
         /** Event for yoking the loading of matrix chart rows/columns */
         EVENT_CHART_MATRIX_YOKING_VALIDATION,
+        /** Validate that chart overlay is valid (it exists). */
+        EVENT_CHART_OVERLAY_VALIDATE,
         /** Add a data file into the Brain*/
         EVENT_DATA_FILE_ADD,
         /** Delete a data file from the brain */

@@ -32,8 +32,10 @@
 #undef __OVERLAY_SETTINGS_EDITOR_DIALOG_DECLARE__
 
 #include "CaretMappableDataFile.h"
+#include "ChartTwoOverlay.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
+#include "EventChartOverlayValidate.h"
 #include "EventDataFileDelete.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -78,6 +80,8 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
 
     m_caretMappableDataFile = NULL;
     m_mapIndex = -1;
+    m_brainordinateOverlay = NULL;
+    m_chartOverlay = NULL;
     
     /*
      * No apply button
@@ -217,36 +221,79 @@ OverlaySettingsEditorDialog::focusInEvent(QFocusEvent* event)
 /**
  * Update if the given overlay is displayed in the dialog.
  * 
- * @param overlay
- *    The overlay.
+ * @param brainordinateOverlay
+ *    Brainordinate overlay for the dialog.
+ * @param chartOverlay
+ *    Chart overlay for the dialog.
  */
 void
-OverlaySettingsEditorDialog::updateIfThisOverlayIsInDialog(Overlay* overlay)
+OverlaySettingsEditorDialog::updateIfThisOverlayIsInDialog(Overlay* brainordinateOverlay,
+                                                           ChartTwoOverlay* chartOverlay)
 {
-    if (m_overlay == overlay) {
-        updateDialogContent(m_overlay);
+    if (m_brainordinateOverlay != NULL) {
+        if (m_brainordinateOverlay == brainordinateOverlay) {
+            updateDialogContent(m_brainordinateOverlay,
+                                NULL);
+        }
+    }
+    else if (m_chartOverlay != NULL) {
+        if (m_chartOverlay == chartOverlay) {
+            updateDialogContent(NULL,
+                                m_chartOverlay);
+        }
     }
 }
 
 /**
  * May be called to update the dialog's content.
  *
- * @param overlay
- *    Overlay for the dialog.
+ * @param brainordinateOverlay
+ *    Brainordinate overlay for the dialog.
+ * @param chartOverlay
+ *    Chart overlay for the dialog.
  */
 void 
-OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
+OverlaySettingsEditorDialog::updateDialogContent(Overlay* brainordinateOverlay,
+                                                 ChartTwoOverlay* chartOverlay)
 {
+    updateDialogContentPrivate(brainordinateOverlay,
+                               chartOverlay);
+}
+
+/**
+ * Update the dialog's content.  Only one of the parameters
+ * should be non-NULL.
+ *
+ * @param brainordinateOverlay
+ *    Brainordinate overlay for the dialog.
+ * @param chartOverlay
+ *    Chart overlay for the dialog.
+ */
+void
+OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOverlay,
+                                                        ChartTwoOverlay* chartOverlay)
+{
+    if ((brainordinateOverlay != NULL)
+        && (chartOverlay != NULL)) {
+        CaretAssert(0);  // only one should be non-NULL
+    }
+    
     const int32_t selectedTabIndex = m_tabWidget->currentIndex();
-    m_overlay = overlay;
+    m_brainordinateOverlay = brainordinateOverlay;
+    m_chartOverlay = chartOverlay;
+    
 //    m_caretMappableDataFile = caretMappableDataFile;
 //    m_mapFileIndex = mapFileIndex;
     
     m_caretMappableDataFile = NULL;
     m_mapIndex = -1;
-    if (m_overlay != NULL) {
-        overlay->getSelectionData(m_caretMappableDataFile,
-                                  m_mapIndex);
+    if (m_brainordinateOverlay != NULL) {
+        m_brainordinateOverlay->getSelectionData(m_caretMappableDataFile,
+                                                 m_mapIndex);
+    }
+    if (m_chartOverlay != NULL) {
+        m_chartOverlay->getSelectionData(m_caretMappableDataFile,
+                                         m_mapIndex);
     }
     
     bool isLabelsValid = false;
@@ -274,7 +321,7 @@ OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
             /*
              * Update layer widget
              */
-            m_layerWidget->updateContent(m_overlay);
+            m_layerWidget->updateContent(m_brainordinateOverlay);
             
             if (m_caretMappableDataFile->isMappedWithLabelTable()) {
                 if (m_caretMappableDataFile->getMapLabelTable(m_mapIndex) != NULL) {
@@ -282,7 +329,7 @@ OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
                      * Update label editor
                      */
                     isLabelsValid = true;
-                    m_labelsWidget->updateContent(overlay);
+                    m_labelsWidget->updateContent(m_brainordinateOverlay);
                 }
             }
             
@@ -303,8 +350,14 @@ OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
                     isPaletteValid = true;
                     m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
                                                               m_mapIndex);
-                    
-                    m_colorBarWidget->updateContent(m_overlay->getColorBar(),
+                    AnnotationColorBar* colorBar = NULL;
+                    if (m_brainordinateOverlay != NULL) {
+                        colorBar = m_brainordinateOverlay->getColorBar();
+                    }
+                    else if (m_chartOverlay != NULL) {
+                        colorBar = m_chartOverlay->getColorBar();
+                    }
+                    m_colorBarWidget->updateContent(colorBar,
                                                     paletteColorMapping);
                 }
             }
@@ -341,7 +394,7 @@ OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
             
         }
     }
-  
+
   
     /*
      * Set enabled status of tabs
@@ -408,15 +461,28 @@ OverlaySettingsEditorDialog::updateDialog()
     /*
      * Validate overlay to prevent crash
      */
-    EventOverlayValidate validateOverlayEvent(m_overlay);
-    EventManager::get()->sendEvent(validateOverlayEvent.getPointer());
-    if (validateOverlayEvent.isValidOverlay() == false) {
-        m_overlay = NULL;
+    
+    if (m_brainordinateOverlay != NULL) {
+        EventOverlayValidate validateOverlayEvent(m_brainordinateOverlay);
+        EventManager::get()->sendEvent(validateOverlayEvent.getPointer());
+        if ( ! validateOverlayEvent.isValidOverlay()) {
+            m_brainordinateOverlay = NULL;
+        }
     }
     
-    updateDialogContent(m_overlay);
+    if (m_chartOverlay != NULL) {
+        EventChartOverlayValidate validateChartOverlayEvent(m_chartOverlay);
+        EventManager::get()->sendEvent(validateChartOverlayEvent.getPointer());
+        if ( ! validateChartOverlayEvent.isValidChartOverlay()) {
+            m_chartOverlay = NULL;
+        }
+    }
+
+    updateDialogContentPrivate(m_brainordinateOverlay,
+                               m_chartOverlay);
     
-    if (m_overlay == NULL) {
+    if ((m_brainordinateOverlay == NULL)
+        && (m_chartOverlay == NULL)) {
         close();
     }
 }
@@ -433,7 +499,8 @@ OverlaySettingsEditorDialog::closeButtonPressed()
      * and we don't want the dialog updating if it is not
      * visible.
      */
-    updateDialogContent(NULL);
+    updateDialogContent(NULL,
+                        NULL);
     
     /*
      * Allow this dialog to be reused (checked means DO NOT reuse)

@@ -33,6 +33,7 @@
 #include "ChartableTwoFileMatrixChart.h"
 #include "ChartTwoOverlaySet.h"
 #include "EventCaretMappableDataFilesGet.h"
+#include "EventChartOverlayValidate.h"
 #include "EventManager.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
@@ -92,8 +93,8 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add("m_selectedHistogramMapIndex", &m_selectedHistogramMapIndex);
     m_sceneAssistant->add("m_allHistogramMapsSelectedFlag", &m_allHistogramMapsSelectedFlag);
     
-//    EventManager::get()->addEventListener(this,
-//                                          EventTypeEnum::EVENT_OVERLAY_VALIDATE);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE);
 }
 
 /**
@@ -114,12 +115,12 @@ ChartTwoOverlay::~ChartTwoOverlay()
 void
 ChartTwoOverlay::receiveEvent(Event* event)
 {
-//    if (event->getEventType() == EventTypeEnum::) {
-//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-//        CaretAssert(eventName);
-//
-//        event->setEventProcessed();
-//    }
+    if (event->getEventType() == EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE) {
+        EventChartOverlayValidate* eov = dynamic_cast<EventChartOverlayValidate*>(event);
+        CaretAssert(eov);
+        eov->testValidChartOverlay(this);
+        eov->setEventProcessed();
+    }
 }
 
 /**

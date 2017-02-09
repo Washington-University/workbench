@@ -33,6 +33,7 @@ class QTabWidget;
 namespace caret {
     
     class CaretMappableDataFile;
+    class ChartTwoOverlay;
     class LabelTableEditorWidget;
     class MapSettingsColorBarWidget;
     class MapSettingsFiberTrajectoryWidget;
@@ -48,9 +49,11 @@ namespace caret {
     public:
         OverlaySettingsEditorDialog(QWidget* parent);
         
-        void updateDialogContent(Overlay* overlay);
+        void updateDialogContent(Overlay* brainordinateOverlay,
+                                 ChartTwoOverlay* chartOverlay);
         
-        void updateIfThisOverlayIsInDialog(Overlay* overlay);
+        void updateIfThisOverlayIsInDialog(Overlay* brainordinateOverlay,
+                                           ChartTwoOverlay* chartOverlay);
         
         void updateDialog();
         
@@ -76,6 +79,9 @@ namespace caret {
         void editLabelTablePushButtonClicked();
         
     private:
+        void updateDialogContentPrivate(Overlay* brainordinateOverlay,
+                                        ChartTwoOverlay* chartOverlay);
+        
         QWidget* createWindowOptionsSection();
         
         QWidget* createMapFileAndNameSection();
@@ -90,7 +96,9 @@ namespace caret {
         
         CaretMappableDataFile* m_caretMappableDataFile;
         
-        Overlay* m_overlay;
+        Overlay* m_brainordinateOverlay;
+        
+        ChartTwoOverlay* m_chartOverlay;
         
         int32_t m_mapIndex;
         
