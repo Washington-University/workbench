@@ -21,7 +21,6 @@
  */
 /*LICENSE_END*/
 
-#include "CaretColorEnum.h"
 #include "ChartAxisUnitsEnum.h"
 #include "ChartTwoData.h"
 
@@ -39,17 +38,9 @@ namespace caret {
         
         virtual ChartTwoData* clone() const;
         
-        const std::vector<float>& getHistogramValues() const;
-
         const Histogram* getHistogram() const;
         
         void setHistogram(Histogram* histogram);
-        
-        bool getBounds(float boundsOut[4]) const;
-        
-        CaretColorEnum::Enum getColor() const;
-        
-        void setColor(const CaretColorEnum::Enum color);
         
         // ADD_NEW_METHODS_HERE
 
@@ -72,16 +63,6 @@ namespace caret {
         
         Histogram* m_histogram;
         
-        mutable float m_bounds[4];
-        
-        mutable bool m_boundsValid;
-        
-        CaretColorEnum::Enum m_color;
-        
-        static int32_t caretColorIndex;
-        
-        std::vector<float> m_emptyData;
-        
         SceneClassAssistant* m_sceneAssistant;
         
 
@@ -90,7 +71,6 @@ namespace caret {
     };
     
 #ifdef __CHART_TWO_DATA_HISTOGRAM_DECLARE__
-    int32_t ChartTwoDataHistogram::caretColorIndex = 0;
 #endif // __CHART_TWO_DATA_HISTOGRAM_DECLARE__
 
 } // namespace

@@ -23,13 +23,7 @@
 #include "ChartTwoDataHistogram.h"
 #undef __CHART_TWO_DATA_HISTOGRAM_DECLARE__
 
-#include <algorithm>
-#include <limits>
-
-#include <QTextStream>
-
 #include "CaretAssert.h"
-#include "ChartPoint.h"
 #include "Histogram.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -67,38 +61,9 @@ ChartTwoDataHistogram::~ChartTwoDataHistogram()
 void
 ChartTwoDataHistogram::initializeMembersChartTwoDataHistogram()
 {
-    m_boundsValid = false;
     m_histogram = NULL;
     
-    m_color = CaretColorEnum::RED;
-    
-    std::vector<CaretColorEnum::Enum> colorEnums;
-    CaretColorEnum::getColorEnums(colorEnums);
-    const int32_t numCaretColors = static_cast<int32_t>(colorEnums.size());
-    
-    bool colorFound = false;
-    while ( ! colorFound) {
-        ChartTwoDataHistogram::caretColorIndex++;
-        if (ChartTwoDataHistogram::caretColorIndex >= numCaretColors) {
-            ChartTwoDataHistogram::caretColorIndex = 0;
-        }
-        
-        if (colorEnums[ChartTwoDataHistogram::caretColorIndex] == CaretColorEnum::BLACK) {
-            /* do not use black */
-        }
-        else if (colorEnums[ChartTwoDataHistogram::caretColorIndex] == CaretColorEnum::WHITE) {
-            /* do not use white */
-        }
-        else {
-            m_color = colorEnums[ChartTwoDataHistogram::caretColorIndex];
-            colorFound = true;
-        }
-    }
-    
     m_sceneAssistant = new SceneClassAssistant();
-    
-    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_color",
-                                                                &m_color);
 }
 
 /**
@@ -155,7 +120,6 @@ void
 ChartTwoDataHistogram::copyHelperChartTwoDataHistogram(const ChartTwoDataHistogram& obj)
 {
     CaretAssert(0);
-    m_color             = obj.m_color;
     //m_histogram = obj.m_histogram;
 }
 
@@ -178,87 +142,6 @@ void
 ChartTwoDataHistogram::setHistogram(Histogram* histogram)
 {
     m_histogram = histogram;
-}
-
-/**
- * @return Reference to histogram values.  Vector is empty
- *         if histogram is invalid.
- */
-const std::vector<float>&
-ChartTwoDataHistogram::getHistogramValues() const
-{
-    if (m_histogram != NULL) {
-        return m_histogram->getHistogramDisplay();
-    }
-    
-    return m_emptyData;
-}
-
-
-/**
- * Get the bounds of all of the points.
- *
- * @param boundsOut
- *     On exit contains bounds (xmin, xmax, ymin, ymax).
- * @return
- *     True if bounds valid, else false.
- */
-bool
-ChartTwoDataHistogram::getBounds(float boundsOut[4]) const
-{
-    if (! m_boundsValid) {
-        m_bounds[0] = 0.0;
-        m_bounds[1] = 0.0;
-        m_bounds[2] = 0.0;
-        m_bounds[3] = 0.0;
-        
-        if (m_histogram != NULL) {
-            const int32_t numBuckets = m_histogram->getNumberOfBuckets();
-            if (numBuckets > 0) {
-                m_histogram->getRange(m_bounds[0],
-                                      m_bounds[1]);
-                
-                const std::vector<float>& values = getHistogramValues();
-                m_bounds[2] = 0.0;
-                if (values.empty()) {
-                    m_bounds[3] = 0.0;
-                }
-                else {
-                    m_bounds[3] = *std::max_element(values.begin(),
-                                                    values.end());
-                }
-                m_boundsValid = true;
-            }
-        }
-    }
-    
-    boundsOut[0] = m_bounds[0];
-    boundsOut[1] = m_bounds[1];
-    boundsOut[2] = m_bounds[2];
-    boundsOut[3] = m_bounds[3];
-    
-    return m_boundsValid;
-}
-
-/**
- * @return Color for chart
- */
-CaretColorEnum::Enum
-ChartTwoDataHistogram::getColor() const
-{
-    return m_color;
-}
-
-/**
- * Set the color for the chart.
- *
- * @param color
- *    New color for chart.
- */
-void
-ChartTwoDataHistogram::setColor(const CaretColorEnum::Enum color)
-{
-    m_color = color;
 }
 
 /**

@@ -127,6 +127,8 @@ ChartableTwoFileHistogramChart::isEmpty() const
 const ChartTwoDataHistogram*
 ChartableTwoFileHistogramChart::getMapHistogramChart(const int32_t mapIndex) const
 {
+    CaretAssertToDoFatal();  // This class may not be needed
+    
     ChartTwoDataHistogram* histogramChartOut = NULL;
     
     std::map<int32_t, ChartTwoDataHistogram*>::iterator iter = m_indexHistogramsMap.find(mapIndex);

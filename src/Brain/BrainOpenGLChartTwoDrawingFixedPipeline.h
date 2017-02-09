@@ -28,7 +28,6 @@
 namespace caret {
 
     class CaretPreferences;
-    class ChartTwoDataHistogram;
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;

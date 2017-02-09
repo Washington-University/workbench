@@ -30,7 +30,6 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
-#include "ChartTwoDataHistogram.h"
 #include "ChartTwoMatrixDisplayProperties.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
@@ -434,8 +433,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
                                                                    const int32_t mapIndex,
                                                                    const HistogramDrawingInfo& histogramDrawingInfo)
 {
-    const ChartTwoDataHistogram* histogramData = histogramChart->getMapHistogramChart(mapIndex);
-
     if ( ! histogramDrawingInfo.isValid()) {
         return;
     }
