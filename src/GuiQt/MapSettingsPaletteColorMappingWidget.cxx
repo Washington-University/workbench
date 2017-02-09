@@ -1877,10 +1877,17 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             }
         }
         
+        PaletteHistogramChartTypeEnum::Enum histogramChartType = this->paletteColorMapping->getHistogramChartType();
+        const bool allowEnvelopeChartTypeFlag = false;
+        if ( ! allowEnvelopeChartTypeFlag) {
+            histogramChartType = PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_BARS;
+        }
+        
         const bool displayZeros = paletteColorMapping->isDisplayZeroDataFlag();
         
         float z = 0.0;
         float maxDataFrequency = 0.0;
+        const int32_t lastIndex = numHistogramValues - 1;
         for (int64_t ix = 0; ix < numHistogramValues; ix++) {
             QColor color;
             const int64_t ix4 = ix * 4;
@@ -1921,16 +1928,64 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             }
             
             QVector<QPointF> samples;
-            samples.push_back(QPointF(startValue, dataFrequency));
-            samples.push_back(QPointF(stopValue, dataFrequency));
             
             QwtPlotCurve* curve = new QwtPlotCurve();
             curve->setRenderHint(QwtPlotItem::RenderAntialiased);
             curve->setVisible(true);
-            curve->setStyle(QwtPlotCurve::Steps);
             
-            curve->setBrush(QBrush(color)); //, brushStyle));
             curve->setPen(QPen(color));
+            switch (histogramChartType) {
+                case PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_BARS:
+                    curve->setStyle(QwtPlotCurve::Steps);
+                    curve->setBrush(QBrush(color));
+                    samples.push_back(QPointF(startValue, dataFrequency));
+                    samples.push_back(QPointF(stopValue, dataFrequency));
+                    break;
+                case PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_ENVELOPE:
+                    curve->setStyle(QwtPlotCurve::Lines);
+                    //curve->setBrush(QBrush(color));
+                    
+                    /*
+                     * Left side
+                     */
+                    if (ix == 0) {
+                        samples.push_back(QPointF(startValue, 0.0));
+                        samples.push_back(QPointF(startValue, dataFrequency));
+                    }
+                    else {
+                        CaretAssertVectorIndex(displayData, ix - 1);
+                        const float lastFrequency = displayData[ix - 1];
+                        if (dataFrequency > lastFrequency) {
+                            samples.push_back(QPointF(startValue, lastFrequency));
+                            samples.push_back(QPointF(startValue, dataFrequency));
+                        }
+                    }
+                    
+                    /*
+                     * Horizontal Bar
+                     */
+                    samples.push_back(QPointF(startValue, dataFrequency));
+                    samples.push_back(QPointF(stopValue, dataFrequency));
+
+                    /*
+                     * Right side
+                     */
+                    if (ix == lastIndex) {
+                        samples.push_back(QPointF(stopValue, dataFrequency));
+                        samples.push_back(QPointF(stopValue, 0.0));
+                    }
+                    else {
+                        CaretAssertVectorIndex(displayData, ix + 1);
+                        const float nextFrequency = displayData[ix + 1];
+                        if (dataFrequency > nextFrequency) {
+                            samples.push_back(QPointF(stopValue, dataFrequency));
+                            samples.push_back(QPointF(stopValue, nextFrequency));
+                        }
+                    }
+                    
+                    break;
+            }
+
             curve->setSamples(samples);
             
             curve->attach(this->thresholdPlot);

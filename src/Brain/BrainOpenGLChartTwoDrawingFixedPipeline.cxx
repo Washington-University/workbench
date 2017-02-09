@@ -340,9 +340,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
             AString errorMessage;
             CaretAssertVectorIndex(histogramDrawingInfoVector, histoIndex);
             if (mapFile->getMapHistogramDrawingInfo(mapIndex,
-                                                       false,
-                                                       *histogramDrawingInfoVector[histoIndex],
-                                                       errorMessage)) {
+                                                    chartOverlay->isAllMapsSelected(),
+                                                    false,
+                                                    *histogramDrawingInfoVector[histoIndex],
+                                                    errorMessage)) {
                 float bounds[4];
                 if (histogramDrawingInfoVector[histoIndex]->getBounds(bounds)) {
                     xMin = std::min(xMin, bounds[0]);

@@ -274,6 +274,7 @@ namespace caret {
         virtual const FastStatistics* getFileFastStatistics() = 0;
         
         bool getMapHistogramDrawingInfo(const int32_t mapIndex,
+                                        const bool useDataFromAllMapsFlag,
                                         const bool addEndPointForQwtFlag,
                                         HistogramDrawingInfo& histogramDrawingInfoOut,
                                         AString& errorMessageOut);

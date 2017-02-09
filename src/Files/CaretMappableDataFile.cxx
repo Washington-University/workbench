@@ -804,6 +804,8 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
  *
  * @param mapIndex
  *     Index of map.
+ * @param useDataFromAllMapsFlag
+ *     If true, data from ALL maps is used not just the map specified by map index.
  * @param addEndPointForQwtFlag
  *     If true, add point at end for drawing with Qwt.
  * @param histogramDrawingInfoOut
@@ -813,6 +815,7 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
  */
 bool
 CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
+                                                  const bool useDataFromAllMapsFlag,
                                                const bool addEndPointForQwtFlag,
                                                HistogramDrawingInfo& histogramDrawingInfoOut,
                                                AString& errorMessageOut) 
@@ -844,13 +847,18 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
     }
     
     FastStatistics* statistics = NULL;
-    switch (getPaletteNormalizationMode()) {
-        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-            statistics = const_cast<FastStatistics*>(getFileFastStatistics());
-            break;
-        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-            statistics = const_cast<FastStatistics*>(getMapFastStatistics(mapIndex));
-            break;
+    if (useDataFromAllMapsFlag) {
+        statistics = const_cast<FastStatistics*>(getFileFastStatistics());
+    }
+    else {
+        switch (getPaletteNormalizationMode()) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                statistics = const_cast<FastStatistics*>(getFileFastStatistics());
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                statistics = const_cast<FastStatistics*>(getMapFastStatistics(mapIndex));
+                break;
+        }
     }
     
     CaretAssert(statistics);
@@ -917,32 +925,46 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
             leastPos = 0.0;
         }
         
-        switch (getPaletteNormalizationMode()) {
-            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                histogram = getFileHistogram(mostPos,
-                                             leastPos,
-                                             leastNeg,
-                                             mostNeg,
-                                             isZeroIncluded);
-                break;
-            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                histogram = getMapHistogram(mapIndex,
-                                            mostPos,
-                                            leastPos,
-                                            leastNeg,
-                                            mostNeg,
-                                            isZeroIncluded);
-                break;
+        if (useDataFromAllMapsFlag) {
+            histogram = getFileHistogram(mostPos,
+                                         leastPos,
+                                         leastNeg,
+                                         mostNeg,
+                                         isZeroIncluded);
+        }
+        else {
+            switch (getPaletteNormalizationMode()) {
+                case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                    histogram = getFileHistogram(mostPos,
+                                                 leastPos,
+                                                 leastNeg,
+                                                 mostNeg,
+                                                 isZeroIncluded);
+                    break;
+                case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                    histogram = getMapHistogram(mapIndex,
+                                                mostPos,
+                                                leastPos,
+                                                leastNeg,
+                                                mostNeg,
+                                                isZeroIncluded);
+                    break;
+            }
         }
     }
     else {
-        switch (getPaletteNormalizationMode()) {
-            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                histogram = getFileHistogram();
-                break;
-            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                histogram = getMapHistogram(mapIndex);
-                break;
+        if (useDataFromAllMapsFlag) {
+            histogram = getFileHistogram();
+        }
+        else {
+            switch (getPaletteNormalizationMode()) {
+                case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                    histogram = getFileHistogram();
+                    break;
+                case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                    histogram = getMapHistogram(mapIndex);
+                    break;
+            }
         }
     }
     
