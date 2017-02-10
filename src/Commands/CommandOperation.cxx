@@ -73,6 +73,14 @@ void CommandOperation::disableProvenance()
 {
 }
 
+void CommandOperation::setCiftiOutputDTypeAndScale(const int16_t&, const double&, const double&)
+{
+}
+
+void CommandOperation::setCiftiOutputDTypeNoScale(const int16_t&)
+{
+}
+
 AString CommandOperation::doCompletion(ProgramParameters&, const bool&)
 {
     return "";

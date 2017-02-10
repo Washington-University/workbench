@@ -55,11 +55,31 @@ CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
     OperationParserInterface(myAutoOper)
 {
     m_doProvenance = true;
+    m_ciftiScale = false;
+    m_ciftiDType = NIFTI_TYPE_FLOAT32;
+    m_ciftiMax = -1.0;//these values won't get used, but don't leave them uninitialized
+    m_ciftiMin = -1.0;
 }
 
 void CommandParser::disableProvenance()
 {
     m_doProvenance = false;
+}
+
+void CommandParser::setCiftiOutputDTypeAndScale(const int16_t& dtype, const double& minVal, const double& maxVal)
+{
+    m_ciftiDType = dtype;
+    m_ciftiMin = minVal;
+    m_ciftiMax = maxVal;
+    m_ciftiScale = true;
+}
+
+void CommandParser::setCiftiOutputDTypeNoScale(const int16_t& dtype)
+{
+    m_ciftiDType = dtype;
+    m_ciftiMax = -1.0;//for sanity, don't keep any previous value around
+    m_ciftiMin = -1.0;
+    m_ciftiScale = false;
 }
 
 void CommandParser::executeOperation(ProgramParameters& parameters)
@@ -945,6 +965,12 @@ void CommandParser::makeOnDiskOutputs(const vector<OutputAssoc>& outAssociation)
                } else {
                     myCiftiParam->m_parameter.grabNew(new CiftiFile());
                     myCiftiParam->m_parameter->setWritingFile(outAssociation[i].m_fileName);
+                }
+                if (m_ciftiScale)
+                {
+                    myCiftiParam->m_parameter->setWritingDataTypeAndScaling(m_ciftiDType, m_ciftiMin, m_ciftiMax);
+                } else {
+                    myCiftiParam->m_parameter->setWritingDataTypeNoScaling(m_ciftiDType);
                 }
                 break;
             }

@@ -27,6 +27,7 @@
 #include "ProgramParameters.h"
 #include "CommandException.h"
 #include "ProgramParametersException.h"
+
 #include <vector>
 #include <set>
 
@@ -36,7 +37,9 @@ namespace caret {
     {
         int m_minIndent, m_maxIndent, m_indentIncrement, m_maxWidth;
         AString m_provenance, m_parentProvenance, m_workingDir;
-        bool m_doProvenance;
+        bool m_doProvenance, m_ciftiScale;
+        double m_ciftiMin, m_ciftiMax;
+        int16_t m_ciftiDType;
         const static AString PROVENANCE_NAME, PARENT_PROVENANCE_NAME, PROGRAM_PROVENANCE_NAME, CWD_PROVENANCE_NAME;//TODO: put this elsewhere?
         std::map<AString, const CiftiFile*> m_inputCiftiNames;
         struct OutputAssoc
@@ -55,7 +58,7 @@ namespace caret {
         void parseRemainingOptions(ParameterComponent* myAlgParams, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
         void provenanceBeforeOperation(const std::vector<OutputAssoc>& outAssociation);
         void provenanceAfterOperation(const std::vector<OutputAssoc>& outAssociation);
-        void makeOnDiskOutputs(const std::vector<OutputAssoc>& outAssociation);//ensures on-disk inputs aren't used as on-disk outputs, converting outputs to in-memory when needed
+        void makeOnDiskOutputs(const std::vector<OutputAssoc>& outAssociation);//ensures on-disk inputs aren't used as on-disk outputs, keeping outputs in-memory when needed
         void writeOutput(const std::vector<OutputAssoc>& outAssociation);
         AString getIndentString(int desired);
         void addHelpComponent(AString& info, ParameterComponent* myComponent, int curIndent);
@@ -71,6 +74,8 @@ namespace caret {
     public:
         CommandParser(AutoOperationInterface* myAutoOper);
         void disableProvenance();
+        void setCiftiOutputDTypeAndScale(const int16_t& dtype, const double& minVal, const double& maxVal);
+        void setCiftiOutputDTypeNoScale(const int16_t& dtype);
         void executeOperation(ProgramParameters& parameters);
         void showParsedOperation(ProgramParameters& parameters);
         AString doCompletion(ProgramParameters& parameters, const bool& useExtGlob);

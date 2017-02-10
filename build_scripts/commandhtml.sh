@@ -39,6 +39,10 @@ echo -n "$initialText" | head -n $((infoLine + 1)) >> "$outDir/$startPage"
 echo -n '<a href="'`command_to_page_name -arguments-help`'">' >> "$outDir/$startPage"
 echo "$initialText" | grep -- -arguments-help >> "$outDir/$startPage"
 echo -n '</a>' >> "$outDir/$startPage"
+#-global-options
+echo -n '<a href="'`command_to_page_name -global-options`'">' >> "$outDir/$startPage"
+echo "$initialText" | grep -- -global-options >> "$outDir/$startPage"
+echo -n '</a>' >> "$outDir/$startPage"
 #-cifti-help
 echo -n '<a href="'`command_to_page_name -cifti-help`'">' >> "$outDir/$startPage"
 echo "$initialText" | grep -- -cifti-help >> "$outDir/$startPage"
@@ -64,16 +68,20 @@ echo -n '</a>' >> "$outDir/$startPage"
 #remainder of help info
 allCommandsLine=`echo "$initialText" | grep -n -- -all-commands-help | cut -f1 -d:`
 echo "$initialText" | tail -n +$((allCommandsLine+2)) >> "$outDir/$startPage"
-#end page
+#end main page
 echo '</pre></BODY>' >> "$outDir/$startPage"
 echo '</HTML>' >> "$outDir/$startPage"
 
 #-arguments-help page
 make_basic_command_page "-arguments-help"
+#-arguments-help page
+make_basic_command_page "-global-options"
 #-cifti-help page
 make_basic_command_page "-cifti-help"
 #-cifti-help page
 make_basic_command_page "-gifti-help"
+#-all-commands-help page
+make_basic_command_page "-all-commands-help"
 
 #-list-commands page, and its subpages
 outPage="$outDir/`command_to_page_name -list-commands`"
@@ -90,6 +98,9 @@ do
     make_basic_command_page "$thisCommand"
     echo '<a href="'"`command_to_page_name $thisCommand`"'">'"${lines[$i]}"'</a>' >> "$outPage"
 done
+#end -list-commands page
+echo '</pre></BODY>' >> "$outPage"
+echo '</HTML>' >> "$outPage"
 
 #-list-deprecated-commands page, and its subpages
 outPage="$outDir/`command_to_page_name -list-deprecated-commands`"
@@ -106,11 +117,6 @@ do
     make_basic_command_page "$thisCommand"
     echo '<a href="'"`command_to_page_name $thisCommand`"'">'"${lines[$i]}"'</a>' >> "$outPage"
 done
-
-#end main page
+#end -list-deprecated-commands page
 echo '</pre></BODY>' >> "$outPage"
 echo '</HTML>' >> "$outPage"
-
-#-all-commands-help page
-make_basic_command_page "-all-commands-help"
-

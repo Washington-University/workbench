@@ -243,6 +243,7 @@
 #include "StructureEnum.h"
 
 #include <iostream>
+#include <map>
 
 using namespace caret;
 using namespace std;
@@ -513,6 +514,32 @@ CommandOperationManager::~CommandOperationManager()
     this->deprecatedOperations.clear();
 }
 
+namespace
+{
+    //quick hack to convert type argument to internal integer
+    int16_t stringToCiftiType(const AString& input)
+    {
+        map<AString, int16_t> nameToCode;
+        nameToCode["INT8"] = NIFTI_TYPE_INT8;
+        nameToCode["UINT8"] = NIFTI_TYPE_UINT8;
+        nameToCode["INT16"] = NIFTI_TYPE_INT16;
+        nameToCode["UINT16"] = NIFTI_TYPE_UINT16;
+        nameToCode["INT32"] = NIFTI_TYPE_INT32;
+        nameToCode["UINT32"] = NIFTI_TYPE_UINT32;
+        nameToCode["INT64"] = NIFTI_TYPE_INT64;
+        nameToCode["UINT64"] = NIFTI_TYPE_UINT64;
+        nameToCode["FLOAT32"] = NIFTI_TYPE_FLOAT32;
+        nameToCode["FLOAT64"] = NIFTI_TYPE_FLOAT64;
+        nameToCode["FLOAT128"] = NIFTI_TYPE_FLOAT128;
+        map<AString, int16_t>::iterator iter = nameToCode.find(input);
+        if (iter == nameToCode.end())
+        {
+            throw CommandException("Unrecognized cifti datatype: '" + input + "'");
+        }
+        return iter->second;
+    }
+}
+
 /**
  * Run a command.
  * 
@@ -544,6 +571,22 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
             CaretLogWarning("SIMD type '" + DotSIMDEnum::toName(impl) + "' not supported (could be cpu, compiler, or build options), using '" + DotSIMDEnum::toName(retval) + "'");
         }
     }
+    int16_t ciftiDType = NIFTI_TYPE_FLOAT32;
+    bool ciftiScale = false;
+    double ciftiMin = -1.0, ciftiMax = -1.0;
+    if (getGlobalOption(parameters, "-cifti-output-datatype", 1, globalOptionArgs))
+    {
+        ciftiDType = stringToCiftiType(globalOptionArgs[0]);
+    }
+    if (getGlobalOption(parameters, "-cifti-output-range", 2, globalOptionArgs))
+    {
+        ciftiScale = true;
+        bool valid = false;
+        ciftiMin = globalOptionArgs[0].toDouble(&valid);
+        if (!valid) throw CommandException("non-numeric option to -cifti-output-range: '" + globalOptionArgs[0] + "'");
+        ciftiMax = globalOptionArgs[1].toDouble(&valid);
+        if (!valid) throw CommandException("non-numeric option to -cifti-output-range: '" + globalOptionArgs[1] + "'");
+    }
 
     const uint64_t numberOfCommands = this->commandOperations.size();
     const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
@@ -561,6 +604,8 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
         printHelpInfo();
     } else if (commandSwitch == "-arguments-help") {
         printArgumentsHelp("wb_command");
+    } else if (commandSwitch == "-global-options") {
+        printGlobalOptions();
     } else if (commandSwitch == "-cifti-help") {
         printCiftiHelp("wb_command");
     } else if (commandSwitch == "-gifti-help") {
@@ -609,6 +654,12 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
             {
                 cout << operation->getHelpInformation("wb_command") << endl;
             } else {
+                if (ciftiScale)
+                {
+                    operation->setCiftiOutputDTypeAndScale(ciftiDType, ciftiMin, ciftiMax);
+                } else {
+                    operation->setCiftiOutputDTypeNoScale(ciftiDType);
+                }
                 operation->execute(parameters, preventProvenance);
             }
         }
@@ -645,7 +696,17 @@ AString CommandOperationManager::doCompletion(ProgramParameters& parameters, con
         }
         return ret;
     }
-    ret = "wordlist -disable-provenance\\ -logging\\ -simd";//we could prevent suggesting an already-provided global option, but that would be a bit surprising
+    OptionInfo ciftiDTypeInfo = parseGlobalOption(parameters, "-cifti-output-datatype", 1, globalOptionArgs, true);
+    if (ciftiDTypeInfo.specified && !ciftiDTypeInfo.complete)
+    {
+        return "wordlist INT8 UINT8 INT16 UINT16 INT32 UINT32 INT64 UINT64 FLOAT32 FLOAT64 FLOAT128";
+    }
+    OptionInfo ciftiRangeInfo = parseGlobalOption(parameters, "-cifti-output-range", 2, globalOptionArgs, true);
+    if (ciftiRangeInfo.specified && !ciftiRangeInfo.complete)
+    {//can't tab complete a literal number
+        return "";
+    }
+    ret = "wordlist -disable-provenance\\ -logging\\ -simd\\ -cifti-output-datatype\\ -cifti-output-range";//we could prevent suggesting an already-provided global option, but that would be a bit surprising
     const uint64_t numberOfCommands = this->commandOperations.size();
     const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
     if (!parameters.hasNext())
@@ -897,6 +958,7 @@ void CommandOperationManager::printHelpInfo()
     cout << endl << "Information options:" << endl;
     cout << "   -help                       show this help info" << endl;
     cout << "   -arguments-help             explain the format of subcommand help info" << endl;
+    cout << "   -global-options             display options that can be added to any command" << endl;
     cout << "   -cifti-help                 explain the cifti file format and related terms" << endl;
     cout << "   -gifti-help                 explain the gifti file format (metric, surface)" << endl;
     cout << "   -version                    show extended version information" << endl;
@@ -904,27 +966,6 @@ void CommandOperationManager::printHelpInfo()
     cout << "   -list-deprecated-commands   list deprecated subcommands" << endl;
     cout << "   -all-commands-help          show all processing subcommands and their help" << endl;
     cout << "                                  info - VERY LONG" << endl;
-    cout << endl << "Global options (can be added to any command):" << endl;
-    cout << "   -disable-provenance         don't generate provenance info in output files" << endl;
-    cout << "   -logging <level>            set the logging level, valid values are:" << endl;
-    vector<LogLevelEnum::Enum> logLevels;
-    LogLevelEnum::getAllEnums(logLevels);
-    for (vector<LogLevelEnum::Enum>::iterator iter = logLevels.begin();
-         iter != logLevels.end();
-         iter++) {
-        cout << "            " << LogLevelEnum::toName(*iter) << endl;
-    }
-    cout << endl;//add a line after the logging types for readability
-    //guide for wrap, assuming 80 columns:                                                  |
-    cout << "   -simd <type>                set the SIMD implementation to use (currently" << endl;
-    cout << "                                  used only for correlation, default AUTO which" << endl;
-    cout << "                                  selects fastest supported), valid values are:" << endl;
-    vector<DotSIMDEnum::Enum> simdTypes = DotSIMDEnum::getAllEnums();
-    for (vector<DotSIMDEnum::Enum>::iterator iter = simdTypes.begin();
-         iter != simdTypes.end();
-         iter++) {
-        cout << "         " << DotSIMDEnum::toName(*iter) << endl;
-    }
     cout << endl;
     cout << "To get the help information of a processing subcommand, run it without any" << endl;
     cout << "   additional arguments." << endl;
@@ -992,6 +1033,60 @@ void CommandOperationManager::printArgumentsHelp(const AString& programName)
     cout << "   after the scope of the -var option has ended due to the volume-out argument:" << endl;
     cout << endl;
     cout << "$ " << programName << " -volume-math 'sin(x)' -fixnan 0 -var x x.nii.gz sin_x.nii.gz -subvolume 1" << endl;
+    cout << endl;
+}
+
+void CommandOperationManager::printGlobalOptions()
+{
+    cout << "Global options (can be added to any command):" << endl;
+    cout << endl;
+    //guide for wrap, assuming 80 columns:                                                  |
+    cout << "   -disable-provenance               don't generate provenance info in output" << endl;
+    cout << "                                        files" << endl;
+    cout << endl;
+    cout << "   -cifti-output-datatype <type>     write cifti output with the given" << endl;
+    cout << "                                        datatype (default FLOAT32), note that" << endl;
+    cout << "                                        numeric precision is only float32," << endl;
+    cout << "                                        valid values are:" << endl;
+    cout << "                          INT8" << endl;
+    cout << "                          UINT8" << endl;
+    cout << "                          INT16" << endl;
+    cout << "                          UINT16" << endl;
+    cout << "                          INT32" << endl;
+    cout << "                          UINT32" << endl;
+    cout << "                          INT64" << endl;
+    cout << "                          UINT64" << endl;
+    cout << "                          FLOAT32" << endl;
+    cout << "                          FLOAT64" << endl;
+    cout << "                          FLOAT128" << endl;
+    cout << endl;
+    //guide for wrap, assuming 80 columns:                                                  |
+    cout << "   -cifti-output-range <min> <max>   write cifti output with scaling and offset" << endl;
+    cout << "                                        header fields such that <min> and <max>" << endl;
+    cout << "                                        are the most extreme values that can be" << endl;
+    cout << "                                        represented, mostly useful with integer" << endl;
+    cout << "                                        output datatypes (see above)" << endl;
+    cout << endl;
+    cout << "   -logging <level>                  set the logging level, valid values are:" << endl;
+    vector<LogLevelEnum::Enum> logLevels;
+    LogLevelEnum::getAllEnums(logLevels);
+    for (vector<LogLevelEnum::Enum>::iterator iter = logLevels.begin();
+         iter != logLevels.end();
+         iter++) {
+        cout << "            " << LogLevelEnum::toName(*iter) << endl;
+    }
+    cout << endl;//add a line after the logging types for readability
+    //guide for wrap, assuming 80 columns:                                                  |
+    cout << "   -simd <type>                      set the SIMD implementation to use" << endl;
+    cout << "                                        (currently used only for correlation," << endl;
+    cout << "                                        default AUTO which selects fastest" << endl;
+    cout << "                                        supported), valid values are:" << endl;
+    vector<DotSIMDEnum::Enum> simdTypes = DotSIMDEnum::getAllEnums();
+    for (vector<DotSIMDEnum::Enum>::iterator iter = simdTypes.begin();
+         iter != simdTypes.end();
+         iter++) {
+        cout << "         " << DotSIMDEnum::toName(*iter) << endl;
+    }
     cout << endl;
 }
 

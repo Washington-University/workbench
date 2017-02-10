@@ -27,6 +27,8 @@
 #include "ProgramParametersException.h"
 #include "AString.h"
 
+#include "nifti1.h"
+
 namespace caret {
 
     class ProgramParameters;
@@ -38,6 +40,10 @@ namespace caret {
         virtual ~CommandOperation();
         
         void execute(ProgramParameters& parameters, const bool& preventProvenance);
+        
+        virtual void setCiftiOutputDTypeAndScale(const int16_t& dtype, const double& minVal, const double& maxVal);
+        
+        virtual void setCiftiOutputDTypeNoScale(const int16_t& dtype);
         
         virtual AString doCompletion(ProgramParameters& parameters, const bool& useExtGlob);
         
