@@ -97,6 +97,12 @@ namespace caret {
                                          const float lineThickness,
                                          const float rgba[4]);
         
+//        static void drawRectangle(const float bottomLeft[3],
+//                                  const float bottomRight[3],
+//                                  const float topRight[3],
+//                                  const float topLeft[3],
+//                                  const float rgba[4]);
+        
     private:
         BrainOpenGLPrimitiveDrawing();
         

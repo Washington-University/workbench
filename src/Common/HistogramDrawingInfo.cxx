@@ -42,6 +42,7 @@ using namespace caret;
 HistogramDrawingInfo::HistogramDrawingInfo()
 : CaretObject()
 {
+    reset();
 }
 
 /**
@@ -64,7 +65,6 @@ HistogramDrawingInfo::initialize(const int32_t numberOfDataPoints)
     m_dataX.resize(numberOfDataPoints, 0.0);
     m_dataY.resize(numberOfDataPoints, 0.0);
     m_dataRGBA.resize(numberOfDataPoints * 4, 0.0);
-    
 }
 
 /**
@@ -77,6 +77,10 @@ HistogramDrawingInfo::reset()
     m_dataY.clear();
     m_dataRGBA.clear();
     m_boundsValid = false;
+    m_thresholdOneBoundsXYZ.clear();
+    m_thresholdTwoBoundsXYZ.clear();
+    m_thresholdOneBoundsValid = false;
+    m_thresholdOneBoundsValid = false;
 }
 
 
@@ -120,21 +124,51 @@ HistogramDrawingInfo::getBounds(float boundsOut[4]) const
         }
     }
     
-    if (m_boundsValid) {
-        boundsOut[0] = m_bounds[0];
-        boundsOut[1] = m_bounds[1];
-        boundsOut[2] = m_bounds[2];
-        boundsOut[3] = m_bounds[3];
-    }
-    else {
-        boundsOut[0] = 0.0;
-        boundsOut[1] = 0.0;
-        boundsOut[2] = 0.0;
-        boundsOut[3] = 0.0;
-    }
+    boundsOut[0] = m_bounds[0];
+    boundsOut[1] = m_bounds[1];
+    boundsOut[2] = m_bounds[2];
+    boundsOut[3] = m_bounds[3];
     
     return m_boundsValid;
 }
+
+///**
+// * Get the bounds for the threshold one.
+// *
+// * @param boundsOut
+// *     Output with bounds (minX, maxX, minY, maxY)
+// * @return
+// *     True if bounds valid, else false.
+// */
+//const 
+//HistogramDrawingInfo::getThresholdOneBounds(float boundsOut[4]) const
+//{
+//    boundsOut[0] = m_thresholdOneBounds[0];
+//    boundsOut[1] = m_thresholdOneBounds[1];
+//    boundsOut[2] = m_thresholdOneBounds[2];
+//    boundsOut[3] = m_thresholdOneBounds[3];
+//    
+//    return m_thresholdOneBoundsValid;
+//}
+
+///**
+// * Get the bounds for threshold two.
+// *
+// * @param boundsOut
+// *     Output with bounds (minX, maxX, minY, maxY)
+// * @return
+// *     True if bounds valid, else false.
+// */
+//bool
+//HistogramDrawingInfo::getThresholdTwoBounds(float boundsOut[4]) const
+//{
+//    boundsOut[0] = m_thresholdTwoBounds[0];
+//    boundsOut[1] = m_thresholdTwoBounds[1];
+//    boundsOut[2] = m_thresholdTwoBounds[2];
+//    boundsOut[3] = m_thresholdTwoBounds[3];
+//    
+//    return m_thresholdTwoBoundsValid;
+//}
 
 /**
  * @return Number of data points in the histogram.

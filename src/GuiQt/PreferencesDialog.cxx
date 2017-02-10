@@ -171,6 +171,10 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
             buttonText = "Chart Grid Lines";
             m_chartMatrixGridLinesColorWidget = colorSwatchWidget;
             break;
+        case PREF_COLOR_CHART_THRESHOLD:
+            buttonText = "Chart Threshold";
+            m_chartHistogramThresholdColorWidget = colorSwatchWidget;
+            break;
         case NUMBER_OF_PREF_COLORS:
             CaretAssert(0);
             break;
@@ -218,7 +222,9 @@ PreferencesDialog::createColorsWidget()
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_CHART_MATRIX_GRID_LINES,
                             colorSignalMapper);
-    
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_CHART_THRESHOLD,
+                            colorSignalMapper);
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_FOREGROUND_SURFACE,
                             colorSignalMapper);
@@ -299,6 +305,10 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
             case PREF_COLOR_CHART_MATRIX_GRID_LINES:
                 colors.getColorChartMatrixGridLines(rgb);
                 colorSwatchWidget = m_chartMatrixGridLinesColorWidget;
+                break;
+            case PREF_COLOR_CHART_THRESHOLD:
+                colors.getColorChartHistogramThreshold(rgb);
+                colorSwatchWidget = m_chartHistogramThresholdColorWidget;
                 break;
             case NUMBER_OF_PREF_COLORS:
                 CaretAssert(0);
@@ -791,6 +801,10 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
             colors.getColorChartMatrixGridLines(rgb);
             prefColorName = "Chart Matrix Grid Lines";
             break;
+        case PREF_COLOR_CHART_THRESHOLD:
+            colors.getColorChartHistogramThreshold(rgb);
+            prefColorName = "Chart Histohram Threshold";
+            break;
         case NUMBER_OF_PREF_COLORS:
             CaretAssert(0);
             break;
@@ -801,9 +815,9 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
                               rgb[2]);
     
     QColorDialog colorDialog(this);
-    colorDialog.setCurrentColor(initialColor);
     colorDialog.setOption(QColorDialog::DontUseNativeDialog);
     colorDialog.setWindowTitle(prefColorName);
+    colorDialog.setCurrentColor(initialColor);
     
     if (colorDialog.exec() == QColorDialog::Accepted) {
         const QColor newColor = colorDialog.currentColor();
@@ -840,6 +854,9 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
                 break;
             case PREF_COLOR_CHART_MATRIX_GRID_LINES:
                 colors.setColorChartMatrixGridLines(rgb);
+                break;
+            case PREF_COLOR_CHART_THRESHOLD:
+                colors.setColorChartHistogramThreshold(rgb);
                 break;
             case NUMBER_OF_PREF_COLORS:
                 CaretAssert(0);

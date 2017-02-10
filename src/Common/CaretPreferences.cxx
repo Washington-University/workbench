@@ -614,6 +614,10 @@ CaretPreferences::setUserBackgroundAndForegroundColors(const BackgroundAndForegr
     writeUnsignedByteArray(NAME_COLOR_CHART_MATRIX_GRID_LINES,
                            this->userColors.m_colorChartMatrixGridLines,
                            3);
+    
+    writeUnsignedByteArray(NAME_COLOR_CHART_HISTOGRAM_THRESHOLD,
+                           this->userColors.m_colorChartHistogramThreshold,
+                           3);
 }
 
 /**
@@ -1385,6 +1389,12 @@ CaretPreferences::readPreferences()
                           colorRGB,
                           3);
     userColors.setColorChartMatrixGridLines(colorRGB);
+    
+    userColors.getColorChartHistogramThreshold(colorRGB);
+    readUnsignedByteArray(NAME_COLOR_CHART_HISTOGRAM_THRESHOLD,
+                          colorRGB,
+                          3);
+    userColors.setColorChartHistogramThreshold(colorRGB);
     
     this->previousSpecFiles.clear();    
     const int numPrevSpec = this->qSettings->beginReadArray(NAME_PREVIOUS_SPEC_FILES);

@@ -1099,6 +1099,91 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
                                                           true); // ignore thresholding
         }
         
+        bool setThresholdingFlag = false;
+        switch (paletteColorMapping->getThresholdType()) {
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+                setThresholdingFlag = true;
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+                break;
+        }
+        
+        if (setThresholdingFlag) {
+            float bounds[4];
+            if (histogramDrawingInfoOut.getBounds(bounds)) {
+                const float minX = bounds[0];
+                const float maxX = bounds[1];
+                const float minY = bounds[2];
+                const float maxY = bounds[3];
+                
+                float threshMinValue = paletteColorMapping->getThresholdNormalMinimum();
+                float threshMaxValue = paletteColorMapping->getThresholdNormalMaximum();
+                switch (paletteColorMapping->getThresholdTest()) {
+                    case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+                    {
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ.resize(12);
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[0] = minX;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[1] = minY;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[2] = 0.0;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[3] = threshMinValue;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[4] = minY;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[5] = 0.0;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[6] = threshMinValue;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[7] = maxY;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[8] = 0.0;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[9] = minX;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[10] = maxY;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[11] = 0.0;
+
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ.resize(12);
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[0] = threshMaxValue;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[1] = minY;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[2] = 0.0;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[3] = maxX;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[4] = minY;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[5] = 0.0;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[6] = maxX;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[7] = maxY;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[8] = 0.0;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[9] = threshMaxValue;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[10] = maxY;
+                        histogramDrawingInfoOut.m_thresholdTwoBoundsXYZ[11] = 0.0;
+                    }
+                        break;
+                    case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
+                    {
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ.resize(12);
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[0] = threshMinValue;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[1] = minY;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[2] = 0.0;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[3] = threshMaxValue;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[4] = minY;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[5] = 0.0;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[6] = threshMaxValue;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[7] = maxY;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[8] = 0.0;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[9] = threshMinValue;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[10] = maxY;
+                        histogramDrawingInfoOut.m_thresholdOneBoundsXYZ[11] = 0.0;
+                    }
+                        break;
+                }
+                
+                switch (paletteColorMapping->getThresholdRangeMode()) {
+                    case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE:
+                        break;
+                    case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP:
+                        break;
+                    case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_UNLIMITED:
+                        break;
+                }
+            }
+        }
+        
         CaretAssert(histogramDrawingInfoOut.isValid());
         return histogramDrawingInfoOut.isValid();
     }

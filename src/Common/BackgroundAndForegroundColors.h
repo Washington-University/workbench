@@ -81,6 +81,10 @@ namespace caret {
         
         void setColorChartMatrixGridLines(const uint8_t colorChartMatrixGridLines[3]);
         
+        void getColorChartHistogramThreshold(uint8_t colorChartMatrixGridLines[3]) const;
+        
+        void setColorChartHistogramThreshold(const uint8_t colorChartMatrixGridLines[3]);
+        
     private:
         void copyHelperBackgroundAndForegroundColors(const BackgroundAndForegroundColors& obj);
 
@@ -106,6 +110,8 @@ namespace caret {
         uint8_t m_colorBackgroundVolume[3];
         
         uint8_t m_colorChartMatrixGridLines[3];
+        
+        uint8_t m_colorChartHistogramThreshold[3];
         
         // ADD_NEW_MEMBERS_HERE
 

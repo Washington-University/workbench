@@ -87,15 +87,16 @@ void
 BackgroundAndForegroundColors::copyHelperBackgroundAndForegroundColors(const BackgroundAndForegroundColors& obj)
 {
     for (int32_t i = 0; i < 3; i++) {
-        m_colorForegroundAll[i]        = obj.m_colorForegroundAll[i];
-        m_colorBackgroundAll[i]        = obj.m_colorBackgroundAll[i];
-        m_colorForegroundChart[i]      = obj.m_colorForegroundChart[i];
-        m_colorBackgroundChart[i]      = obj.m_colorBackgroundChart[i];
-        m_colorForegroundSurface[i]    = obj.m_colorForegroundSurface[i];
-        m_colorBackgroundSurface[i]    = obj.m_colorBackgroundSurface[i];
-        m_colorForegroundVolume[i]     = obj.m_colorForegroundVolume[i];
-        m_colorBackgroundVolume[i]     = obj.m_colorBackgroundVolume[i];
-        m_colorChartMatrixGridLines[i] = obj.m_colorChartMatrixGridLines[i];
+        m_colorForegroundAll[i]           = obj.m_colorForegroundAll[i];
+        m_colorBackgroundAll[i]           = obj.m_colorBackgroundAll[i];
+        m_colorForegroundChart[i]         = obj.m_colorForegroundChart[i];
+        m_colorBackgroundChart[i]         = obj.m_colorBackgroundChart[i];
+        m_colorForegroundSurface[i]       = obj.m_colorForegroundSurface[i];
+        m_colorBackgroundSurface[i]       = obj.m_colorBackgroundSurface[i];
+        m_colorForegroundVolume[i]        = obj.m_colorForegroundVolume[i];
+        m_colorBackgroundVolume[i]        = obj.m_colorBackgroundVolume[i];
+        m_colorChartMatrixGridLines[i]    = obj.m_colorChartMatrixGridLines[i];
+        m_colorChartHistogramThreshold[i] = obj.m_colorChartHistogramThreshold[i];
     }
 }
 
@@ -133,6 +134,11 @@ BackgroundAndForegroundColors::reset()
     const uint8_t chartGreen = 255;
     const uint8_t chartBlue  = 255;
     setColor(m_colorChartMatrixGridLines, chartRed, chartGreen, chartBlue);
+    
+    const uint8_t threshRed   = 100;
+    const uint8_t threshGreen = 100;
+    const uint8_t threshBlue  = 255;
+    setColor(m_colorChartHistogramThreshold, threshRed, threshGreen, threshBlue);
 }
 
 /**
@@ -388,6 +394,35 @@ BackgroundAndForegroundColors::setColorChartMatrixGridLines(const uint8_t colorC
         m_colorChartMatrixGridLines[i] = colorChartMatrixGridLines[i];
     }
 }
+
+/**
+ * Get the color for chart histogram threshold
+ *
+ * @param colorChartHistogramThreshold
+ *    RGB color components ranging [0, 255].
+ */
+void
+BackgroundAndForegroundColors::getColorChartHistogramThreshold(uint8_t colorChartHistogramThreshold[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorChartHistogramThreshold[i] = m_colorChartHistogramThreshold[i];
+    }
+}
+
+/**
+ * Set the color for chart histogram threshold
+ *
+ * @param colorChartHistogramThreshold
+ *    RGB color components ranging [0, 255].
+ */
+void
+BackgroundAndForegroundColors::setColorChartHistogramThreshold(const uint8_t colorChartHistogramThreshold[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        m_colorChartHistogramThreshold[i] = colorChartHistogramThreshold[i];
+    }
+}
+
 
 /**
  * Set a color with the given color components that range 0 to 255.

@@ -934,7 +934,7 @@ BrainOpenGLPrimitiveDrawing::drawPrimitiveWithVertexArrays(GLenum mode,
     
     CaretAssert(numCoords == (rgbaVector.size() / 4));
     
-    const int64_t numNormals = static_cast<int64_t>(normals.size());
+    const int64_t numNormals = static_cast<int64_t>(normals.size() / 3);
     if (numNormals > 0) {
         if (numCoords != numNormals) {
             const AString msg("Number of coordinates "
@@ -1022,7 +1022,7 @@ BrainOpenGLPrimitiveDrawing::drawPrimitiveWithVertexArrays(GLenum mode,
     
     CaretAssert(numCoords == (rgbaColors.size() / 4));
     
-    const int64_t numNormals = static_cast<int64_t>(normals.size());
+    const int64_t numNormals = static_cast<int64_t>(normals.size() / 3);
     if (numNormals > 0) {
         if (numCoords != numNormals) {
             const AString msg("Number of coordinates "

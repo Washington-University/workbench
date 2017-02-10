@@ -45,11 +45,21 @@ namespace caret {
         
         bool isValid() const;
         
+        /** @return X-coordinates of histogram bars */
         const std::vector<float>& getDataX() const { return m_dataX; }
 
+        /** @return Y-coordinates of histogram bars */
         const std::vector<float>& getDataY() const { return m_dataY; }
         
+        /** @return RGBA data for histogram bars */
         const std::vector<float>& getDataRGBA() const { return m_dataRGBA; }
+        
+        /** @return XYZ coordinates for threshold one bounds, may be empty ! */
+        const std::vector<float>& getThresholdOneBounds() const { return m_thresholdOneBoundsXYZ; }
+        
+        /** @return XYZ coordinates for threshold two bounds, may be empty ! */
+        const std::vector<float>& getThresholdTwoBounds() const { return m_thresholdTwoBoundsXYZ; }
+        
         
         // ADD_NEW_METHODS_HERE
 
@@ -70,6 +80,14 @@ namespace caret {
         std::vector<float> m_dataY;
         
         std::vector<float> m_dataRGBA;
+        
+        std::vector<float> m_thresholdOneBoundsXYZ;
+        
+        bool m_thresholdOneBoundsValid = false;
+        
+        std::vector<float> m_thresholdTwoBoundsXYZ;
+        
+        bool m_thresholdTwoBoundsValid = false;
         
         // ADD_NEW_MEMBERS_HERE
 

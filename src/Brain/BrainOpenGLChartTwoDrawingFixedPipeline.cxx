@@ -454,9 +454,37 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
     
     const int32_t numValues = static_cast<int32_t>(xValues.size() - 1);
     if (numValues > 1) {
+        {
+            uint8_t thresholdRGBByte[3];
+            m_preferences->getBackgroundAndForegroundColors()->getColorChartHistogramThreshold(thresholdRGBByte);
+            const float histogramRGBA[4] = {
+                thresholdRGBByte[0] / 255.0,
+                thresholdRGBByte[1] / 255.0,
+                thresholdRGBByte[2] / 255.0,
+                1.0
+            };
+            std::vector<float> histogramNormals = { 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1 };
+            CaretAssert(histogramNormals.size() == 12);
+            
+            const std::vector<float>& histogramOneXYZ = histogramDrawingInfo.getThresholdOneBounds();
+            if (histogramOneXYZ.size() == 12) {
+                BrainOpenGLPrimitiveDrawing::drawPolygon(histogramOneXYZ,
+                                                         histogramNormals,
+                                                         histogramRGBA);
+            }
+            
+            const std::vector<float>& histogramTwoXYZ = histogramDrawingInfo.getThresholdTwoBounds();
+            if (histogramTwoXYZ.size() == 12) {
+                BrainOpenGLPrimitiveDrawing::drawPolygon(histogramTwoXYZ,
+                                                         histogramNormals,
+                                                         histogramRGBA);
+            }
+        }
+        
         std::vector<float> quadVerticesXYZ;
         std::vector<float> quadVerticesFloatRGBA;
         std::vector<uint8_t> quadVerticesByteRGBA;
+        
         
         const CaretMappableDataFile* cmdf = histogramChart->getCaretMappableDataFile();
         CaretAssert(cmdf);

@@ -87,7 +87,8 @@ namespace caret {
             PREF_COLOR_FOREGROUND_SURFACE      = 6,
             PREF_COLOR_FOREGROUND_VOLUME       = 7,
             PREF_COLOR_CHART_MATRIX_GRID_LINES = 8,
-            NUMBER_OF_PREF_COLORS              = 9
+            PREF_COLOR_CHART_THRESHOLD         = 9,
+            NUMBER_OF_PREF_COLORS              = 10
         };
         
         QWidget* createColorsWidget();
@@ -129,6 +130,7 @@ namespace caret {
         QWidget* m_backgroundColorSurfaceWidget;
         QWidget* m_backgroundColorVolumeWidget;
         QWidget* m_chartMatrixGridLinesColorWidget;
+        QWidget* m_chartHistogramThresholdColorWidget;
 
         WuQTrueFalseComboBox* m_miscDevelopMenuEnabledComboBox;
         QComboBox* m_miscLoggingLevelComboBox;

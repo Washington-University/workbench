@@ -306,6 +306,7 @@ namespace caret {
         static const AString NAME_COLOR_BACKGROUND_VOLUME;
         static const AString NAME_COLOR_FOREGROUND_VOLUME;
         static const AString NAME_COLOR_CHART_MATRIX_GRID_LINES;
+        static const AString NAME_COLOR_CHART_HISTOGRAM_THRESHOLD;
         static const AString NAME_DEVELOP_MENU;
         static const AString NAME_DYNAMIC_CONNECTIVITY_ON;
         static const AString NAME_IMAGE_CAPTURE_METHOD;
@@ -346,6 +347,7 @@ namespace caret {
     const AString CaretPreferences::NAME_COLOR_BACKGROUND_VOLUME     = "colorBackgroundVolume";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_VOLUME     = "colorForegroundVolume";
     const AString CaretPreferences::NAME_COLOR_CHART_MATRIX_GRID_LINES = "colorChartMatrixGridLines";
+    const AString CaretPreferences::NAME_COLOR_CHART_HISTOGRAM_THRESHOLD = "colorChartHistogramThreshold";
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
     const AString CaretPreferences::NAME_DYNAMIC_CONNECTIVITY_ON = "dynamicConnectivityDefaultedOn";
     const AString CaretPreferences::NAME_IMAGE_CAPTURE_METHOD = "imageCaptureMethod";
