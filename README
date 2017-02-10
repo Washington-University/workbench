@@ -8,10 +8,12 @@ It is compiled using cmake, on linux do:
 
 mkdir build
 cd build
-cmake ../workbench/src -D CMAKE_BUILD_TYPE=Release
+cmake -D CMAKE_BUILD_TYPE=Release ../workbench/src
 make
 
 For other OSes, see http://www.cmake.org/cmake/help/runningcmake.html
+
+Also note the -j flag of "make" (like "make -j4") can be used to speed up the build by compiling multiple source files at the same time.
 
 This produces 3 executables, 2 of which are useful to the end user (Desktop/wb_view, CommandLine/wb_command), and one for running internal tests (Tests/test_driver).
 
