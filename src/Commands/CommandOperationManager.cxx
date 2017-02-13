@@ -1046,7 +1046,7 @@ void CommandOperationManager::printGlobalOptions()
     cout << endl;
     cout << "   -cifti-output-datatype <type>     write cifti output with the given" << endl;
     cout << "                                        datatype (default FLOAT32), note that" << endl;
-    cout << "                                        numeric precision is only float32," << endl;
+    cout << "                                        calculation precision is only float32," << endl;
     cout << "                                        valid values are:" << endl;
     cout << "                          INT8" << endl;
     cout << "                          UINT8" << endl;
