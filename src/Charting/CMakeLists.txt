@@ -38,6 +38,8 @@ ChartSelectionModeEnum.h
 ChartOneDataTypeEnum.h
 ChartingVersionEnum.h
 
+ChartTwoAxisScaleRangeModeEnum.h
+ChartTwoCartesianAxis.h
 ChartTwoCompoundDataType.h
 ChartTwoData.h
 ChartTwoDataCartesian.h
@@ -51,6 +53,7 @@ ChartTwoMatrixDisplayProperties.h
 ChartTwoMatrixLoadingDimensionEnum.h
 ChartTwoMatrixTriangularViewingModeEnum.h
 
+ChartTwoAxisScaleRangeModeEnum.cxx
 ChartAxis.cxx
 ChartAxisCartesian.cxx
 ChartAxisLocationEnum.cxx
@@ -74,6 +77,7 @@ ChartSelectionModeEnum.cxx
 ChartOneDataTypeEnum.cxx
 ChartingVersionEnum.cxx
 
+ChartTwoCartesianAxis.cxx
 ChartTwoCompoundDataType.cxx
 ChartTwoData.cxx
 ChartTwoDataCartesian.cxx

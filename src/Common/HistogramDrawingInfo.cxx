@@ -182,6 +182,34 @@ HistogramDrawingInfo::getNumberOfDataPoints() const
     return m_dataX.size();
 }
 
+/**
+ * Get the bucket value (x-axis) and bucket display value (y-axis)
+ * for the given bucket index.
+ *
+ * @param bucketIndex
+ *     Index of the bucket.
+ * @param bucketValueOut
+ *     Output with bucket value (x-axis)
+ * @param bucketHeightOut
+ *     Output with bucket height (y-axis)
+ * @return
+ *     True if output values are valid, else false.
+ */
+bool
+HistogramDrawingInfo::getBucketDataValueAndCount(const int32_t bucketIndex,
+                                                 float& bucketValueOut,
+                                                 float& bucketDisplayValueOut) const
+{
+    if ((bucketIndex >= 0)
+        && (bucketIndex < static_cast<int32_t>(m_dataX.size()))) {
+        bucketValueOut = m_dataX[bucketIndex];
+        CaretAssert(m_dataX.size() == m_dataY.size());
+        bucketDisplayValueOut = m_dataY[bucketIndex];
+        return true;
+    }
+    
+    return false;
+}
 
 /**
  * Get a description of this object's content.

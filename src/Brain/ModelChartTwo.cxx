@@ -74,9 +74,9 @@ ModelChartTwo::ModelChartTwo(Brain* brain)
                                                                                                      "Line Series Chart Overlays"));
 
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartableMatrixFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface(m_brain);
-        m_chartableMatrixSeriesFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(m_brain,
-                                                                                       DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES);
+        //m_chartableMatrixFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface(m_brain);
+        //m_chartableMatrixSeriesFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(m_brain,
+        //                                                                               DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES);
         m_chartTwoMatrixDisplayProperties[i] = new ChartTwoMatrixDisplayProperties();
     }
     
@@ -110,11 +110,11 @@ ModelChartTwo::~ModelChartTwo()
     removeAllCharts();    
 
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete m_chartableMatrixFileSelectionModel[i];
-        m_chartableMatrixFileSelectionModel[i] = NULL;
+        //delete m_chartableMatrixFileSelectionModel[i];
+        //m_chartableMatrixFileSelectionModel[i] = NULL;
         
-        delete m_chartableMatrixSeriesFileSelectionModel[i];
-        m_chartableMatrixSeriesFileSelectionModel[i] = NULL;
+        //delete m_chartableMatrixSeriesFileSelectionModel[i];
+        //m_chartableMatrixSeriesFileSelectionModel[i] = NULL;
         
         delete m_chartTwoMatrixDisplayProperties[i];
         m_chartTwoMatrixDisplayProperties[i] = NULL;
@@ -703,8 +703,8 @@ ModelChartTwo::restoreVersionTwoModelSpecificInformationFromScene(const SceneAtt
         const std::vector<int32_t> tabIndices = matrixPropsMap->getKeys();
         for (const int32_t tabIndex : tabIndices) {
             const SceneClass* sceneClass = matrixPropsMap->classValue(tabIndex);
-            m_chartableMatrixSeriesFileSelectionModel[tabIndex]->restoreFromScene(sceneAttributes,
-                                                                                  sceneClass);
+            //m_chartableMatrixSeriesFileSelectionModel[tabIndex]->restoreFromScene(sceneAttributes,
+            //                                                                      sceneClass);
         }
     }
 
@@ -834,8 +834,8 @@ ModelChartTwo::copyTabContent(const int32_t sourceTabIndex,
                                       destinationTabIndex);
     
     m_selectedChartTwoDataType[destinationTabIndex] = m_selectedChartTwoDataType[sourceTabIndex];
-    m_chartableMatrixFileSelectionModel[destinationTabIndex]->setSelectedFile(m_chartableMatrixFileSelectionModel[sourceTabIndex]->getSelectedFile());
-    m_chartableMatrixSeriesFileSelectionModel[destinationTabIndex]->setSelectedFile(m_chartableMatrixSeriesFileSelectionModel[sourceTabIndex]->getSelectedFile());
+    //m_chartableMatrixFileSelectionModel[destinationTabIndex]->setSelectedFile(m_chartableMatrixFileSelectionModel[sourceTabIndex]->getSelectedFile());
+    //m_chartableMatrixSeriesFileSelectionModel[destinationTabIndex]->setSelectedFile(m_chartableMatrixSeriesFileSelectionModel[sourceTabIndex]->getSelectedFile());
 }
 
 

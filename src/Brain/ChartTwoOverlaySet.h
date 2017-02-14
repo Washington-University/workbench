@@ -20,6 +20,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /*LICENSE_END*/
+#include <memory>
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
@@ -29,6 +30,7 @@
 
 
 namespace caret {
+    class ChartTwoCartesianAxis;
     class ChartTwoOverlay;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
@@ -57,6 +59,18 @@ namespace caret {
         void setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays);
         
         int32_t getNumberOfDisplayedOverlays() const;
+        
+        ChartTwoCartesianAxis* getChartAxisLeft();
+        
+        const ChartTwoCartesianAxis* getChartAxisLeft() const;
+        
+        ChartTwoCartesianAxis* getChartAxisRight();
+        
+        const ChartTwoCartesianAxis* getChartAxisRight() const;
+        
+        ChartTwoCartesianAxis* getChartAxisBottom();
+        
+        const ChartTwoCartesianAxis* getChartAxisBottom() const;
         
         void insertOverlayAbove(const int32_t overlayIndex);
         
@@ -113,6 +127,12 @@ namespace caret {
         ChartTwoOverlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
         
         const ChartTwoDataTypeEnum::Enum m_chartDataType;
+        
+        std::unique_ptr<ChartTwoCartesianAxis> m_chartAxisLeft;
+        
+        std::unique_ptr<ChartTwoCartesianAxis> m_chartAxisRight;
+        
+        std::unique_ptr<ChartTwoCartesianAxis> m_chartAxisBottom;
         
         const AString m_name;
         

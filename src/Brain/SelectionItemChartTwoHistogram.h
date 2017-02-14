@@ -47,10 +47,13 @@ namespace caret {
         
         ChartableTwoFileHistogramChart* getFileHistogramChart() const;
         
-        int32_t getBarIndex() const;
+        int32_t getBucketIndex() const;
+        
+        int32_t getMapIndex() const;
         
         void setHistogramChart(ChartableTwoFileHistogramChart* fileHistogramChart,
-                               const int32_t barIndex);
+                               const int32_t mapIndex,
+                               const int32_t bucketIndex);
 
         // ADD_NEW_METHODS_HERE
 
@@ -59,7 +62,8 @@ namespace caret {
 
         ChartableTwoFileHistogramChart* m_fileHistogramChart;
         
-        int32_t m_barIndex;
+        int32_t m_mapIndex;
+        int32_t m_bucketIndex;
         
         // ADD_NEW_MEMBERS_HERE
 

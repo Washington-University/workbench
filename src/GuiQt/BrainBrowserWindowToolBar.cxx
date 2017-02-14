@@ -1433,6 +1433,7 @@ BrainBrowserWindowToolBar::updateToolBar()
         {
             ModelChart* modelChart = browserTabContent->getDisplayedChartOneModel();
             if (modelChart != NULL) {
+                showChartOneTypeWidget = true;
                 switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
                     case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
                         break;

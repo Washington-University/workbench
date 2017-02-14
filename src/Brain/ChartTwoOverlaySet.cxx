@@ -24,6 +24,7 @@
 #undef __CHART_TWO_OVERLAY_SET_DECLARE__
 
 #include "CaretAssert.h"
+#include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
 #include "EventManager.h"
 #include "PlainTextStringBuilder.h"
@@ -61,7 +62,42 @@ m_tabIndex(tabIndex)
 {
     m_numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
     
-    m_sceneAssistant = new SceneClassAssistant();
+    m_chartAxisLeft   = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT));
+    m_chartAxisRight  = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT));
+    m_chartAxisBottom = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
+    
+    m_chartAxisLeft->setVisible(false);
+    m_chartAxisRight->setVisible(false);
+    m_chartAxisBottom->setVisible(false);
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            m_chartAxisLeft->setVisible(true);
+            m_chartAxisLeft->setLabelText("Counts");
+            m_chartAxisLeft->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            m_chartAxisBottom->setVisible(true);
+            m_chartAxisBottom->setLabelText("Data");
+            m_chartAxisBottom->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            m_chartAxisLeft->setVisible(true);
+            m_chartAxisBottom->setVisible(true);
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
+    
+    m_sceneAssistant  = new SceneClassAssistant();
+    m_sceneAssistant->add("m_chartAxisLeft",
+                          "ChartTwoCartesianAxis",
+                          m_chartAxisLeft.get());
+    m_sceneAssistant->add("m_chartAxisRight",
+                          "ChartTwoCartesianAxis",
+                          m_chartAxisRight.get());
+    m_sceneAssistant->add("m_chartAxisBottom",
+                          "ChartTwoCartesianAxis",
+                          m_chartAxisBottom.get());
     m_sceneAssistant->add("m_numberOfDisplayedOverlays",
                           &m_numberOfDisplayedOverlays);
     
@@ -548,6 +584,60 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
 //
 //        event->setEventProcessed();
 //    }
+}
+
+/**
+ * @return The chart left-axis.
+ */
+ChartTwoCartesianAxis*
+ChartTwoOverlaySet::getChartAxisLeft()
+{
+    return m_chartAxisLeft.get();
+}
+
+/**
+ * @return The chart left-axis (const method)
+ */
+const ChartTwoCartesianAxis*
+ChartTwoOverlaySet::getChartAxisLeft() const
+{
+    return m_chartAxisLeft.get();
+}
+
+/**
+ * @return The chart right-axis.
+ */
+ChartTwoCartesianAxis*
+ChartTwoOverlaySet::getChartAxisRight()
+{
+    return m_chartAxisRight.get();
+}
+
+/**
+ * @return The chart right-axis (const method)
+ */
+const ChartTwoCartesianAxis*
+ChartTwoOverlaySet::getChartAxisRight() const
+{
+    return m_chartAxisRight.get();
+}
+
+/**
+ * @return The chart bottom-axis.
+ */
+ChartTwoCartesianAxis*
+ChartTwoOverlaySet::getChartAxisBottom()
+{
+    return m_chartAxisBottom.get();
+}
+
+/**
+ * @return The chart bottom-axis (const method)
+ */
+const ChartTwoCartesianAxis*
+ChartTwoOverlaySet::getChartAxisBottom() const
+{
+    return m_chartAxisBottom.get();
 }
 
 /**

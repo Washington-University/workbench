@@ -60,6 +60,9 @@ namespace caret {
         /** @return XYZ coordinates for threshold two bounds, may be empty ! */
         const std::vector<float>& getThresholdTwoBounds() const { return m_thresholdTwoBoundsXYZ; }
         
+        bool getBucketDataValueAndCount(const int32_t bucketIndex,
+                                        float& bucketValueOut,
+                                        float& bucketDisplayValueOut) const;
         
         // ADD_NEW_METHODS_HERE
 

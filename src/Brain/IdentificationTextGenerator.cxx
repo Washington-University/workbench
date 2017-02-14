@@ -45,6 +45,8 @@
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
+#include "Histogram.h"
+#include "HistogramDrawingInfo.h"
 #include "ImageFile.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
@@ -800,20 +802,73 @@ IdentificationTextGenerator::generateChartTwoHistogramIdentificationText(Identif
                                                  const SelectionItemChartTwoHistogram* idChartTwoHistogram) const
 {
     if (idChartTwoHistogram->isValid()) {
-        const ChartableTwoFileHistogramChart* fileHistogramChart = idChartTwoHistogram->getFileHistogramChart();
-        const int32_t barIndex = idChartTwoHistogram->getBarIndex();
-        
-        const CaretMappableDataFile* mapFile = fileHistogramChart->getCaretMappableDataFile();
+        ChartableTwoFileHistogramChart* fileHistogramChart = idChartTwoHistogram->getFileHistogramChart();
+        const int32_t mapIndex    = idChartTwoHistogram->getMapIndex();
+        const int32_t bucketIndex = idChartTwoHistogram->getBucketIndex();
+        CaretMappableDataFile* mapFile = fileHistogramChart->getCaretMappableDataFile();
         CaretAssert(mapFile);
-        
-        AString boldText("Histogram");
-        idText.addLine(false,
-                       boldText,
-                       mapFile->getFileNameNoPath());
-        
-        idText.addLine(true,
-                       "Bar Index",
-                       (AString::number(barIndex)));
+
+        const bool allMapsFlag = (mapIndex < 0);
+        HistogramDrawingInfo histogramDrawingInfo;
+        AString errorMessage;
+        if (mapFile->getMapHistogramDrawingInfo(mapIndex,
+                                                allMapsFlag,
+                                                false,
+                                                histogramDrawingInfo,
+                                                errorMessage)) {
+            if (histogramDrawingInfo.isValid()) {
+                
+                float bucketValue = 0.0;
+                float bucketHeight = 0.0;
+                if (histogramDrawingInfo.getBucketDataValueAndCount(bucketIndex,
+                                                                    bucketValue,
+                                                                    bucketHeight)) {
+                    
+                    AString boldText("Histogram");
+                    idText.addLine(false,
+                                   boldText,
+                                   mapFile->getFileNameNoPath());
+                    idText.addLine(true,
+                                   "Bucket Index",
+                                   (AString::number(bucketIndex)));
+                    idText.addLine(true,
+                                   "Data Value at Bucket",
+                                   (AString::number(bucketValue)));
+                    
+                    idText.addLine(true,
+                                   "Bucket Count",
+                                   (AString::number(bucketHeight)));
+                }
+            }
+        }
+//        if (mapFile->getNumberOfMaps() > 0) {
+//            const Histogram* histogram = ((mapIndex >= 0)
+//                                          ? mapFile->getMapHistogram(mapIndex)
+//                                          : mapFile->getFileHistogram());
+//            
+//            float bucketValue = 0.0;
+//            float bucketHeight = 0.0;
+//            if (histogram->getBucketDataValueAndCount(bucketIndex,
+//                                                      bucketValue,
+//                                                      bucketHeight)) {
+//                AString boldText("Histogram");
+//                idText.addLine(false,
+//                               boldText,
+//                               mapFile->getFileNameNoPath());
+//                
+//                idText.addLine(true,
+//                               "Bucket Index",
+//                               (AString::number(bucketIndex)));
+//                
+//                idText.addLine(true,
+//                               "Data Value at Bucket",
+//                               (AString::number(bucketValue)));
+//                
+//                idText.addLine(true,
+//                               "Bucket Count",
+//                               (AString::number(bucketHeight)));
+//            }
+//        }
     }
 }
 

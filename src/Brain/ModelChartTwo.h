@@ -152,9 +152,9 @@ namespace caret {
 
         mutable ChartTwoDataTypeEnum::Enum m_selectedChartTwoDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        CaretDataFileSelectionModel* m_chartableMatrixFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        //CaretDataFileSelectionModel* m_chartableMatrixFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        CaretDataFileSelectionModel* m_chartableMatrixSeriesFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        //CaretDataFileSelectionModel* m_chartableMatrixSeriesFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
     };

@@ -41,7 +41,8 @@ SelectionItemChartTwoHistogram::SelectionItemChartTwoHistogram()
 : SelectionItem(SelectionItemDataTypeEnum::CHART_TWO_HISTOGRAM)
 {
     m_fileHistogramChart = NULL;
-    m_barIndex = -1;
+    m_mapIndex = -1;
+    m_bucketIndex = -1;
 }
 
 /**
@@ -88,8 +89,10 @@ void
 SelectionItemChartTwoHistogram::copyHelperSelectionItemChartTwoHistogram(const SelectionItemChartTwoHistogram& obj)
 {
     m_fileHistogramChart = obj.m_fileHistogramChart;
-    m_barIndex = obj.m_barIndex;
+    m_mapIndex = obj.m_mapIndex;
+    m_bucketIndex = obj.m_bucketIndex;
 }
+
 
 ChartableTwoFileHistogramChart*
 SelectionItemChartTwoHistogram::getFileHistogramChart() const
@@ -97,18 +100,42 @@ SelectionItemChartTwoHistogram::getFileHistogramChart() const
     return m_fileHistogramChart;
 }
 
+/**
+ * @return Index of map index selected.
+ */
 int32_t
-SelectionItemChartTwoHistogram::getBarIndex() const
+SelectionItemChartTwoHistogram::getMapIndex() const
 {
-    return m_barIndex;
+    return m_mapIndex;
 }
 
+/**
+ * @return Index of histogram bucket selected.
+ */
+int32_t
+SelectionItemChartTwoHistogram::getBucketIndex() const
+{
+    return m_bucketIndex;
+}
+
+/*
+ * Set histogram identification.
+ *
+ * @param fileHistogramChart
+ *     The histogram chart.
+ * @param mapIndex
+ *     Index of the map whose histogram is displayed (negative indicates all maps).
+ * @param bucketIndex
+ *     Index of the histogram bucket.
+ */
 void
 SelectionItemChartTwoHistogram::setHistogramChart(ChartableTwoFileHistogramChart* fileHistogramChart,
-                       const int32_t barIndex)
+                                                  const int32_t mapIndex,
+                                                  const int32_t bucketIndex)
 {
     m_fileHistogramChart = fileHistogramChart;
-    m_barIndex = barIndex;
+    m_mapIndex = mapIndex;
+    m_bucketIndex = bucketIndex;
 }
 
 /**
@@ -117,8 +144,11 @@ SelectionItemChartTwoHistogram::setHistogramChart(ChartableTwoFileHistogramChart
 bool
 SelectionItemChartTwoHistogram::isValid() const
 {
+    /*
+     * Map index is negative if all maps selected.
+     */
     if ((m_fileHistogramChart != NULL)
-        && (m_barIndex >= 0)) {
+        && (m_bucketIndex >= 0)) {
         return true;
     }
     
@@ -132,7 +162,8 @@ void
 SelectionItemChartTwoHistogram::reset()
 {
     m_fileHistogramChart = NULL;
-    m_barIndex = -1;
+    m_mapIndex = -1;
+    m_bucketIndex = -1;
 }
 
 

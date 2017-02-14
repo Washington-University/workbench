@@ -28,6 +28,7 @@
 namespace caret {
 
     class CaretPreferences;
+    class ChartTwoCartesianAxis;
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
@@ -90,7 +91,8 @@ namespace caret {
         
         void resetIdentification();
         
-        void addToHistogramIdentification(const int barIndex,
+        void addToHistogramIdentification(const int32_t mapIndex,
+                                          const int32_t bucketIndex,
                                           uint8_t rgbaForColorIdentificationOut[4]);
         
         void processHistogramIdentification(const ChartableTwoFileHistogramChart* histogramChart);
@@ -115,6 +117,27 @@ namespace caret {
         void drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart,
                                        const int32_t mapIndex,
                                        const HistogramDrawingInfo& histogramDrawingInfo);
+        
+        void drawChartGraphicsBoxAndSetViewport(const float vpX,
+                                                const float vpY,
+                                                const float vpWidth,
+                                                const float vpHeight,
+                                                const Margins& margins,
+                                                int32_t chartGraphicsDrawingViewportOut[4]);
+        
+        void drawChartAxisCartesian(const float dataBounds[4],
+                                     const float vpX,
+                                    const float vpY,
+                                    const float vpWidth,
+                                    const float vpHeight,
+                                    Margins& margins,
+                                    ChartTwoCartesianAxis* axis);
+        
+        void estimateCartesianChartAxisLegendsWidthHeight(const float dataBounds[4],
+                                                          const float viewportHeight,
+                                                          ChartTwoCartesianAxis* cartesianAxis,
+                                                          double& widthOut,
+                                                          double& heightOut);
         
         Brain* m_brain;
         
@@ -148,7 +171,7 @@ namespace caret {
 
         bool m_identificationModeFlag;
         
-        static const int32_t IDENTIFICATION_INDICES_PER_HISTOGRAM      = 1;
+        static const int32_t IDENTIFICATION_INDICES_PER_HISTOGRAM      = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT = 2;
         

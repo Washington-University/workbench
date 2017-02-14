@@ -803,7 +803,7 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
             break;
         case PREF_COLOR_CHART_THRESHOLD:
             colors.getColorChartHistogramThreshold(rgb);
-            prefColorName = "Chart Histohram Threshold";
+            prefColorName = "Chart Histogram Threshold";
             break;
         case NUMBER_OF_PREF_COLORS:
             CaretAssert(0);
