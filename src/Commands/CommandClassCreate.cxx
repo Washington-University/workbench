@@ -293,6 +293,11 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     t += ("#define " + ifndefName + "\n");
     t += this->getCopyright();
     t += ("\n");
+    if (m_useUniquePtrFlag) {
+        t += ("\n");
+        t += ("#include <memory>\n");
+        t += ("\n");
+    }
     
     t += (this->getIncludeDeclaration(derivedFromClassName) + "\n");
     t += ("\n");    
@@ -419,7 +424,12 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     }
     if (hasSceneInterface
         || hasSubClassSceneSaving) {
-        t += ("        SceneClassAssistant* m_sceneAssistant;\n");
+        if (m_useUniquePtrFlag) {
+            t += ("        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;\n");
+        }
+        else {
+            t += ("        SceneClassAssistant* m_sceneAssistant;\n");
+        }
         t += ("\n");
     }
     t += ("        " + getNewMembersString() + "\n");
@@ -536,7 +546,12 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += ("    \n");
     if (hasSceneInterface
         || hasSubClassSceneSaving) {
-        t += ("    m_sceneAssistant = new SceneClassAssistant();\n");
+        if (m_useUniquePtrFlag) {
+            t += ("    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());\n");
+        }
+        else {
+            t += ("    m_sceneAssistant = new SceneClassAssistant();\n");
+        }
         t += ("    \n");
     }
     if (hasEventListener) {
@@ -554,7 +569,9 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     }
     if (hasSceneInterface
         || hasSubClassSceneSaving) {
-        t += ("    delete m_sceneAssistant;\n");
+        if ( ! m_useUniquePtrFlag) {
+            t += ("    delete m_sceneAssistant;\n");
+        }
     }
     t += ("}\n");
     t += ("\n");

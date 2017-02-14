@@ -110,7 +110,7 @@ CommandClassAddMember::executeOperation(ProgramParameters& parameters)
     AString headerMethodCode = "";
     AString implementationCode = "";
     
-    const AString indentText = "        ";
+    const AString indentText = "    ";
     
     /*
      * Process parameters
@@ -162,6 +162,7 @@ CommandClassAddMember::executeOperation(ProgramParameters& parameters)
              * is a class and use a pointer for the class.  However,
              * treat AString and QString as primitive types.
              */
+            bool isEnum   = false;
             bool isString = false;
             bool isClass = false;
             const QChar firstDataTypeChar = dataType[0];
@@ -169,6 +170,9 @@ CommandClassAddMember::executeOperation(ProgramParameters& parameters)
                 if ((dataType == "AString")
                     || (dataType == "QString")) {
                     isString = true;
+                }
+                else if (dataType.endsWith("Enum")) {
+                    isEnum = true;
                 }
                 else {
                     isClass = true;
@@ -199,17 +203,25 @@ CommandClassAddMember::executeOperation(ProgramParameters& parameters)
                 firstGetSetNameChar = firstGetSetNameChar.toUpper();
                 getSetName[0] = firstGetSetNameChar;
             }
-            const AString getterName = ("get" + getSetName);
+            const AString getterName = (((dataType == "bool")
+                                         ? "is"
+                                         : "get") + getSetName);
             const AString setterName = ("set" + getSetName);
             
             /*
              * Declare the member for the header file
              */
+            if (isClass) {
+                headerMemberCode += ("#include <memory>\n"
+                                     "\n");
+            }
             if (description.isEmpty() == false) {
                 headerMemberCode += (indentText + "/** " + description + "*/\n");
             }
-            headerMemberCode += (indentText 
-                                 + returnType
+            headerMemberCode += (indentText
+                                 + (isClass ? "std::unique_ptr<" : "")
+                                 + dataType //returnType
+                                 + (isClass ? ">" : "")
                                  + " "
                                  + name
                                  + ";"
@@ -220,6 +232,17 @@ CommandClassAddMember::executeOperation(ProgramParameters& parameters)
             const AString classColonName = (className + "::");
             
             if (isClass) {
+                implementationCode += ("\n"
+                                       + indentText
+                                       + name
+                                       + " = std::unique_ptr<"
+                                       + dataType
+                                       + ">(new"
+                                       + dataType
+                                       + "());"
+                                       + "\n"
+                                       + "\n");
+                
                 /*
                  * For class members, create only getter methods
                  * that are both const and non-const
@@ -248,7 +271,7 @@ CommandClassAddMember::executeOperation(ProgramParameters& parameters)
                                            + (isConstMethod ? " const" : "")
                                            + "\n"
                                            + "{\n"
-                                           + "    return " + name + ";\n"
+                                           + "    return " + name + ".get();\n"
                                            + "}\n"
                                            + "\n");
                 }
@@ -291,6 +314,7 @@ CommandClassAddMember::executeOperation(ProgramParameters& parameters)
                 
                 implementationCode += ("/**\n"
                                        " * Set " + description + "\n"
+                                       " *\n"
                                        " * @param " + parameterName + "\n"
                                        " *    New value for " + description + "\n"
                                        " */\n"

@@ -72,6 +72,8 @@ namespace caret {
                                       const bool hasEventListener,
                                       const bool hasSceneInterface,
                                       const bool hasSubClassSceneSaving);
+        
+        const bool m_useUniquePtrFlag = true;
     };
     
 } // namespace
