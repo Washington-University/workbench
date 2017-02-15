@@ -54,11 +54,11 @@ namespace caret {
         float getUserScaleMaximumValue() const;
         
         void setUserScaleMaximumValue(const float value);
-        
-        float getMinimumValue() const;
-        
-        float getMaximumValue() const;
 
+        int32_t getUserDigitsRightOfDecimal() const;
+        
+        void setUserDigitsRightOfDecimal(const int32_t digitsRightOfDecimal);
+        
         ChartTwoAxisScaleRangeModeEnum::Enum getScaleRangeMode() const;
         
         void setScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode);
@@ -67,13 +67,13 @@ namespace caret {
         
         void setUnits(ChartAxisUnitsEnum::Enum units);
         
-        NumericFormatModeEnum::Enum getNumericFormat() const;
+        NumericFormatModeEnum::Enum getUserNumericFormat() const;
         
-        void setNumericFormat(const NumericFormatModeEnum::Enum numericFormat);
+        void setUserNumericFormat(const NumericFormatModeEnum::Enum numericFormat);
         
-        int32_t getNumberOfSubdivisions() const;
+        int32_t getUserNumberOfSubdivisions() const;
         
-        void setNumberOfSubdivisions(const int32_t numberOfSubdivisions);
+        void setUserNumberOfSubdivisions(const int32_t numberOfSubdivisions);
         
         bool isVisible() const;
         
@@ -83,12 +83,13 @@ namespace caret {
 
         void setShowTickmarks(const bool showTickmarks);
         
-        void getLabelsAndPositions(const float dataBounds[4],
+        bool getLabelsAndPositions(const float dataBounds[4],
                                    const float axisLengthInPixels,
-                                   const float fontSizeInPixels,
+                                   float& minimumOut,
+                                   float& maximumOut,
                                    std::vector<float>& labelOffsetInPixelsOut,
-                                   std::vector<AString>& labelTextOut);
-
+                                   std::vector<AString>& labelTextOut) const;
+        
         AString getLabelText() const;
         
         void setLabelText(const AString& labelText);
@@ -121,7 +122,11 @@ namespace caret {
     private:
         void copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAxis& obj);
 
-        virtual void updateForAutoRangeScale(const float dataBounds[4]);
+        bool getAutoRangeMinimumAndMaximum(const float dataBounds[4],
+                                           float& minimumOut,
+                                           float& maximumOut,
+                                           float& stepValueOut,
+                                           int32_t& digitsRightOfDecimalOut) const;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
@@ -131,25 +136,17 @@ namespace caret {
         
         float m_userScaleMaximumValue = 1.0;
         
-        float m_minimumValue = 0.0;
-        
-        float m_maximumValue = 100.0;
-        
-        float m_axisLabelsMinimumValue = 0.0;
-        
-        float m_axisLabelsMaximumValue = 100.0;
-        
         float m_axisLabelsStepValue = 1.0;
         
-        int32_t m_axisDigitsRightOfDecimal = 1;
+        int32_t m_userDigitsRightOfDecimal = 1;
         
         ChartTwoAxisScaleRangeModeEnum::Enum m_scaleRangeMode = ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO;
         
         ChartAxisUnitsEnum::Enum m_units = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
         
-        NumericFormatModeEnum::Enum m_numericFormat = NumericFormatModeEnum::AUTO;
+        NumericFormatModeEnum::Enum m_userNumericFormat = NumericFormatModeEnum::AUTO;
         
-        int32_t m_numberOfSubdivisions = 2;
+        int32_t m_userNumberOfSubdivisions = 2;
         
         AString m_labelText;
 

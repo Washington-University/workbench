@@ -56,27 +56,19 @@ m_axisLocation(axisLocation)
                           &m_userScaleMinimumValue);
     m_sceneAssistant->add("m_userScaleMaximumValue",
                           &m_userScaleMaximumValue);
-    m_sceneAssistant->add("m_minimumValue",
-                          &m_minimumValue);
-    m_sceneAssistant->add("m_maximumValue",
-                          &m_maximumValue);
-    m_sceneAssistant->add("m_axisLabelsMinimumValue",
-                          &m_axisLabelsMinimumValue);
-    m_sceneAssistant->add("m_axisLabelsMaximumValue",
-                          &m_axisLabelsMaximumValue);
     m_sceneAssistant->add("m_axisLabelsStepValue",
                           &m_axisLabelsStepValue);
-    m_sceneAssistant->add("m_axisDigitsRightOfDecimal",
-                          &m_axisDigitsRightOfDecimal);
+    m_sceneAssistant->add("m_userDigitsRightOfDecimal",
+                          &m_userDigitsRightOfDecimal);
     
     m_sceneAssistant->add<ChartTwoAxisScaleRangeModeEnum,ChartTwoAxisScaleRangeModeEnum::Enum>("m_scaleRangeMode",
                                                                                                &m_scaleRangeMode);
     m_sceneAssistant->add<ChartAxisUnitsEnum,ChartAxisUnitsEnum::Enum>("m_units",
                                                                        &m_units);
-    m_sceneAssistant->add<NumericFormatModeEnum,NumericFormatModeEnum::Enum>("m_numericFormat",
-                                                                             &m_numericFormat);
-    m_sceneAssistant->add("m_numberOfSubdivisions",
-                          &m_numberOfSubdivisions);
+    m_sceneAssistant->add<NumericFormatModeEnum,NumericFormatModeEnum::Enum>("m_userNumericFormat",
+                                                                             &m_userNumericFormat);
+    m_sceneAssistant->add("m_userNumberOfSubdivisions",
+                          &m_userNumberOfSubdivisions);
     m_sceneAssistant->add("m_labelText",
                           &m_labelText);
     m_sceneAssistant->add("m_visible",
@@ -133,16 +125,12 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     
     m_userScaleMinimumValue = obj.m_userScaleMinimumValue;
     m_userScaleMaximumValue = obj.m_userScaleMaximumValue;
-    m_minimumValue          = obj.m_minimumValue;
-    m_maximumValue          = obj.m_maximumValue;
-    m_axisLabelsMinimumValue          = obj.m_axisLabelsMinimumValue;
-    m_axisLabelsMaximumValue          = obj.m_axisLabelsMaximumValue;
     m_axisLabelsStepValue   = obj.m_axisLabelsStepValue;
-    m_axisDigitsRightOfDecimal = obj.m_axisDigitsRightOfDecimal;
+    m_userDigitsRightOfDecimal = obj.m_userDigitsRightOfDecimal;
     m_scaleRangeMode        = obj.m_scaleRangeMode;
     m_units                 = obj.m_units;
-    m_numericFormat         = obj.m_numericFormat;
-    m_numberOfSubdivisions  = obj.m_numberOfSubdivisions;
+    m_userNumericFormat         = obj.m_userNumericFormat;
+    m_userNumberOfSubdivisions  = obj.m_userNumberOfSubdivisions;
     m_labelText             = obj.m_labelText;
     m_visible               = obj.m_visible;
     m_showTickmarks         = obj.m_showTickmarks;
@@ -158,23 +146,45 @@ ChartTwoCartesianAxis::getAxisLocation() const
 }
 
 /**
- * @return Number of subdivisions
+ * @return User's digits right of decimal point.
  */
 int32_t
-ChartTwoCartesianAxis::getNumberOfSubdivisions() const
+ChartTwoCartesianAxis::getUserDigitsRightOfDecimal() const
 {
-    return m_numberOfSubdivisions;
+    return m_userDigitsRightOfDecimal;
 }
 
 /**
- * Set Number of subdivisions
+ * Set user's digits right of decimal point.
+ *
+ * @param digitsRightOfDecimal
+ *    Numer of digits right of decimal point.
+ */
+void
+ChartTwoCartesianAxis::setUserDigitsRightOfDecimal(const int32_t digitsRightOfDecimal)
+{
+    m_userDigitsRightOfDecimal = digitsRightOfDecimal;
+}
+
+
+/**
+ * @return User's number of subdivisions
+ */
+int32_t
+ChartTwoCartesianAxis::getUserNumberOfSubdivisions() const
+{
+    return m_userNumberOfSubdivisions;
+}
+
+/**
+ * Set User's number of subdivisions
  * @param numberOfSubdivisions
  *    New value for Number of subdivisions
  */
 void
-ChartTwoCartesianAxis::setNumberOfSubdivisions(const int32_t numberOfSubdivisions)
+ChartTwoCartesianAxis::setUserNumberOfSubdivisions(const int32_t numberOfSubdivisions)
 {
-    m_numberOfSubdivisions = numberOfSubdivisions;
+    m_userNumberOfSubdivisions = numberOfSubdivisions;
 }
 
 /**
@@ -215,24 +225,6 @@ void
 ChartTwoCartesianAxis::setUserScaleMinimumValue(const float userScaleMinimumValue)
 {
     m_userScaleMinimumValue = userScaleMinimumValue;
-}
-
-/**
- * @return The minimum value for the axis.
- */
-float
-ChartTwoCartesianAxis::getMinimumValue() const
-{
-    return m_minimumValue;
-}
-
-/**
- * @return The maximum value for the axis.
- */
-float
-ChartTwoCartesianAxis::getMaximumValue() const
-{
-    return m_maximumValue;
 }
 
 /**
@@ -319,24 +311,24 @@ ChartTwoCartesianAxis::setUnits(const ChartAxisUnitsEnum::Enum units)
 }
 
 /**
- * @return Numeric format mode
+ * @return User's umeric format mode
  */
 NumericFormatModeEnum::Enum
-ChartTwoCartesianAxis::getNumericFormat() const
+ChartTwoCartesianAxis::getUserNumericFormat() const
 {
-    return m_numericFormat;
+    return m_userNumericFormat;
 }
 
 /**
- * Set Numeric format mode
+ * Set User's Numeric format mode
  *
  * @param numericFormat
  *    New value for Numeric format mode
  */
 void
-ChartTwoCartesianAxis::setNumericFormat(const NumericFormatModeEnum::Enum numericFormat)
+ChartTwoCartesianAxis::setUserNumericFormat(const NumericFormatModeEnum::Enum numericFormat)
 {
-    m_numericFormat = numericFormat;
+    m_userNumericFormat = numericFormat;
 }
 
 /**
@@ -427,86 +419,71 @@ ChartTwoCartesianAxis::restoreFromScene(const SceneAttributes* sceneAttributes,
 }
 
 /**
- * Update for auto range scale.
+ * Given the bounds of the data, determine the auto range minimum and maximum values.
  *
  * @param dataBounds
- *     Bounds of data [minX, maxX, minY, maxY].
+ *     Bounds of the data.
+ * @param minimumOut
+ *     Output minimum value for autoranging.
+ * @param maximumOut
+ *     Output maximum value for autoranging.
+ * @param stepValueOut
+ *     Output step value for scale.
+ * @param digitsRightOfDecimalOut
+ *     Output with digits right of decimal.
+ * @return
+ *     True if output values are valid, else false.
  */
-void
-ChartTwoCartesianAxis::updateForAutoRangeScale(const float dataBounds[4])
+bool
+ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float dataBounds[4],
+                                                     float& minimumOut,
+                                                     float& maximumOut,
+                                                     float& stepValueOut,
+                                                     int32_t& digitsRightOfDecimalOut) const
 {
-    float minValue = m_minimumValue;
-    float maxValue = m_maximumValue;
+    float minValue =  1.0;
+    float maxValue = -1.0;
     
-    switch (m_scaleRangeMode) {
-        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO:
-        {
-            switch (m_axisLocation) {
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                    minValue = dataBounds[0];
-                    maxValue = dataBounds[1];
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                    minValue = dataBounds[2];
-                    maxValue = dataBounds[3];
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                    minValue = dataBounds[2];
-                    maxValue = dataBounds[3];
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                    minValue = dataBounds[0];
-                    maxValue = dataBounds[1];
-                    break;
-            }
-            
-            m_minimumValue = minValue;
-            m_maximumValue = maxValue;
-        }
+    switch (m_axisLocation) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+            minValue = dataBounds[0];
+            maxValue = dataBounds[1];
             break;
-        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER:
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+            minValue = dataBounds[2];
+            maxValue = dataBounds[3];
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+            minValue = dataBounds[2];
+            maxValue = dataBounds[3];
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            minValue = dataBounds[0];
+            maxValue = dataBounds[1];
             break;
     }
     
-    double scaleStep = 0.0;
-    double scaleMin  = 0.0;
-    double scaleMax  = 0.0;
-    int32_t digitsRightOfDecimal = 0;
-    
-    ChartScaleAutoRanging::createAutoScale(m_minimumValue,
-                                           m_maximumValue,
-                                           scaleMin,
-                                           scaleMax,
-                                           scaleStep,
-                                           digitsRightOfDecimal);
-    m_axisLabelsMinimumValue = scaleMin;
-    m_axisLabelsMaximumValue = scaleMax;
-    m_axisLabelsStepValue    = scaleStep;
-    m_axisDigitsRightOfDecimal   = digitsRightOfDecimal;
-    
-    /**
-     * Use auto-scaled range for left and right axis
-     */
-    switch (m_scaleRangeMode) {
-        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO:
-        switch (m_axisLocation) {
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                m_minimumValue = m_axisLabelsMinimumValue;
-                m_maximumValue = m_axisLabelsMaximumValue;
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                m_minimumValue = m_axisLabelsMinimumValue;
-                m_maximumValue = m_axisLabelsMaximumValue;
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                break;
-            break;
-        }
-        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER:
-            break;
+    if (maxValue > minValue) {
+        double scaleStep = 0.0;
+        double scaleMin  = 0.0;
+        double scaleMax  = 0.0;
+        int32_t digitsRightOfDecimal = 0;
+        
+        ChartScaleAutoRanging::createAutoScale(minValue,
+                                               maxValue,
+                                               scaleMin,
+                                               scaleMax,
+                                               scaleStep,
+                                               digitsRightOfDecimal);
+        minimumOut   = scaleMin;
+        maximumOut   = scaleMax;
+        stepValueOut = scaleStep;
+        digitsRightOfDecimalOut   = digitsRightOfDecimal;
+        
+        return true;
     }
+    
+    return false;
 }
 
 /**
@@ -515,39 +492,61 @@ ChartTwoCartesianAxis::updateForAutoRangeScale(const float dataBounds[4])
  * @param dataBounds
  *     Bounds of data [minX, maxX, minY, maxY].
  * @param axisLengthInPixels
- *   Length of axis in pixels.
- * @param fontSizeInPixels
- *   Size of the font in pixels.
+ *     Length of axis in pixels.
+ * @param minimumOut
+ *     Output minimum value for autoranging.
+ * @param maximumOut
+ *     Output maximum value for autoranging.
  * @param labelOffsetInPixelsOut
- *   Output containing offset in pixels for the scale labels.
+ *     Output containing offset in pixels for the scale labels.
  * @param labelTextOut
- *   Output containing text for scale labels.
+ *     Output containing text for scale labels.
+ * @return
+ *     True if output data is valid, else false.
  */
-void
+bool
 ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBounds[4],
                                              const float axisLengthInPixels,
-                                             const float /*fontSizeInPixels*/,
+                                             float& minimumOut,
+                                             float& maximumOut,
                                              std::vector<float>& labelOffsetInPixelsOut,
-                                             std::vector<AString>& labelTextOut)
+                                             std::vector<AString>& labelTextOut) const
 {
+    minimumOut = 0.0;
+    maximumOut = 0.0;
     labelOffsetInPixelsOut.clear();
     labelTextOut.clear();
     
     if (axisLengthInPixels < 25.0) {
-        return;
+        return false;
     }
     
-    updateForAutoRangeScale(dataBounds);
+    float labelsStart = 0.0;
+    float labelsEnd   = 0.0;
+    float labelsStep  = 1.0;
+    int32_t labelsDigitsRightOfDecimal = 0;
     
-    float dataStart = m_minimumValue;
-    float dataEnd   = m_maximumValue;
-    float dataRange = (m_maximumValue - m_minimumValue);
-    if (dataRange <= 0.0) {
-        return;
+    switch (m_scaleRangeMode) {
+        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO:
+            if ( ! getAutoRangeMinimumAndMaximum(dataBounds,
+                                                 labelsStart,
+                                                 labelsEnd,
+                                                 labelsStep,
+                                                 labelsDigitsRightOfDecimal)) {
+                return false;
+            }
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER:
+            if (m_userScaleMinimumValue < m_userScaleMaximumValue) {
+                labelsStart = m_userScaleMinimumValue;
+                labelsEnd   = m_userScaleMaximumValue;
+            }
+            break;
     }
+
+    minimumOut = labelsStart;
+    maximumOut = labelsEnd;
     
-    float labelsStart = m_axisLabelsMinimumValue;
-    float labelsEnd   = m_axisLabelsMaximumValue;
     /*
      * If the "labels end" or "labels start" value is not valid (infinity or not-a-number) there
      * are invalid values in the data and will cause the labels processing later
@@ -565,27 +564,27 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBounds[4],
                           "Run \"wb_command -file-information\" on files being charted to find the file "
                           "that contains invalid data so that the file can be fixed.");
         CaretLogWarning(msg);
-        return;
+        return false;
     }
     
-    float labelsRange = (m_axisLabelsMaximumValue - m_axisLabelsMinimumValue);
+    float labelsRange = (labelsEnd - labelsStart);
     if (labelsRange <= 0.0) {
-        return;
+        return false;
     }
     
-    const float tickLabelsStep = m_axisLabelsStepValue;
+    const float tickLabelsStep = labelsStep;
     if (tickLabelsStep <= 0.0) {
-        return;
+        return false;
     }
     
     
     float labelValue  = labelsStart;
     while (labelValue <= labelsEnd) {
-        float labelParametricValue = (labelValue - dataStart) / dataRange;
+        float labelParametricValue = (labelValue - labelsStart) / labelsRange;
         
         float labelValueForText = labelValue;
         
-        if (dataRange >= 10.0) {
+        if (labelsRange >= 10.0) {
             /*
              * Is this the first label?
              */
@@ -598,10 +597,10 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBounds[4],
                  * code no value is displayed at the left edge of the axis.
                  */
                 if (labelParametricValue < 0.0) {
-                    const float nextParametricValue = ((labelValue + tickLabelsStep) - dataStart) / dataRange;
+                    const float nextParametricValue = ((labelValue + tickLabelsStep) - labelsStart) / labelsRange;
                     if (nextParametricValue > 0.05) {
                         labelParametricValue = 0.0;
-                        labelValueForText = dataStart;
+                        labelValueForText = labelsStart;
                     }
                 }
             }
@@ -621,10 +620,10 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBounds[4],
                  * edge of the axis.
                  */
                 if (labelParametricValue > 1.0) {
-                    const float prevParametricValue = ((labelValue - tickLabelsStep) - dataStart) / dataRange;
+                    const float prevParametricValue = ((labelValue - tickLabelsStep) - labelsStart) / labelsRange;
                     if (prevParametricValue < 0.95) {
                         labelParametricValue = 1.0;
-                        labelValueForText = dataEnd;
+                        labelValueForText = labelsEnd;
                     }
                 }
             }
@@ -639,7 +638,7 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBounds[4],
         if ((labelParametricValue >= 0.0)
             && (labelParametricValue <= 1.0)) {
             const float labelPixelsPosition = axisLengthInPixels * labelParametricValue;
-            const AString labelText = AString::number(labelValueForText, 'f', m_axisDigitsRightOfDecimal);
+            const AString labelText = AString::number(labelValueForText, 'f', labelsDigitsRightOfDecimal);
             
             labelOffsetInPixelsOut.push_back(labelPixelsPosition);
             labelTextOut.push_back(labelText);
@@ -650,4 +649,8 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBounds[4],
         
         labelValue  += tickLabelsStep;
     }
+    
+    CaretAssert(labelOffsetInPixelsOut.size() == labelTextOut.size());
+    return ( ! labelTextOut.empty());
 }
+

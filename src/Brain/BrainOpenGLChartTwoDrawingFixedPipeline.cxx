@@ -406,35 +406,54 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         if ((vpWidth > (marginSize * 3))
             && (vpHeight > (marginSize * 3))) {
             
+            float axisMinimumValue = 0.0;
+            float axisMaximumValue = 0.0;
+            
             /* Draw legends and grids */
+            if (drawChartAxisCartesian(bounds,
+                                       vpX,
+                                       vpY,
+                                       vpWidth,
+                                       vpHeight,
+                                       margins,
+                                       leftAxis,
+                                       axisMinimumValue,
+                                       axisMaximumValue)) {
+                yMin = axisMinimumValue;
+                yMax = axisMaximumValue;
+            }
+            
             drawChartAxisCartesian(bounds,
                                    vpX,
                                    vpY,
                                    vpWidth,
                                    vpHeight,
                                    margins,
-                                   leftAxis);
+                                   rightAxis,
+                                   axisMinimumValue,
+                                   axisMaximumValue);
+            if (drawChartAxisCartesian(bounds,
+                                       vpX,
+                                       vpY,
+                                       vpWidth,
+                                       vpHeight,
+                                       margins,
+                                       bottomAxis,
+                                       axisMinimumValue,
+                                       axisMaximumValue)) {
+                xMin = axisMinimumValue;
+                xMax = axisMaximumValue;
+            }
+            
             drawChartAxisCartesian(bounds,
                                    vpX,
                                    vpY,
                                    vpWidth,
                                    vpHeight,
                                    margins,
-                                   rightAxis);
-            drawChartAxisCartesian(bounds,
-                                   vpX,
-                                   vpY,
-                                   vpWidth,
-                                   vpHeight,
-                                   margins,
-                                   bottomAxis);
-            drawChartAxisCartesian(bounds,
-                                   vpX,
-                                   vpY,
-                                   vpWidth,
-                                   vpHeight,
-                                   margins,
-                                   topAxis);
+                                   topAxis,
+                                   axisMinimumValue,
+                                   axisMaximumValue);
             
             drawChartGraphicsBoxAndSetViewport(vpX,
                                                vpY,
@@ -442,15 +461,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                                                vpHeight,
                                                margins,
                                                chartGraphicsDrawingViewport);
-            
-            if (leftAxis->isVisible()) {
-                yMin = leftAxis->getMinimumValue();
-                yMax = leftAxis->getMaximumValue();
-            }
-            if (bottomAxis->isVisible()) {
-                xMin = bottomAxis->getMinimumValue();
-                xMax = bottomAxis->getMaximumValue();
-            }
         }
         
         glViewport(chartGraphicsDrawingViewport[0],
@@ -1892,11 +1902,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
      * We are just estimating the width and height of the axes text labels.
      */
     const float axisLength = 1000.0;
+    float minimumValue = 0.0;
+    float maximumValue = 0.0;
     std::vector<float> labelOffsetInPixels;
     std::vector<AString> labelTexts;
     cartesianAxis->getLabelsAndPositions(dataBounds,
                                          axisLength,
-                                         fontSizeInPixels,
+                                         minimumValue,
+                                         maximumValue,
                                          labelOffsetInPixels,
                                          labelTexts);
     for (std::vector<AString>::iterator iter = labelTexts.begin();
@@ -2021,21 +2034,29 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
  *     (and not cut off).
  * @param axis
  *     Axis that is drawn.
+ * @param axisMinimumOut
+ *     Minimum value along the axis.
+ * @param axisMaximumOut
+ *     Maximum value along the axis.
+ * @return
+ *     True if the axis is valid and was drawn, else false.
  */
-void
+bool
 BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float dataBounds[4],
-                                                                 const float vpX,
-                                                             const float vpY,
-                                                             const float vpWidth,
-                                                             const float vpHeight,
-                                                             Margins& margins,
-                                                             ChartTwoCartesianAxis* axis)
+                                                                const float vpX,
+                                                                const float vpY,
+                                                                const float vpWidth,
+                                                                const float vpHeight,
+                                                                const Margins& margins,
+                                                                ChartTwoCartesianAxis* axis,
+                                                                float& axisMinimumOut,
+                                                                float& axisMaximumOut)
 {
     if (axis == NULL) {
-        return;
+        return false;
     }
     if ( ! axis->isVisible()) {
-        return;
+        return false;
     }
     
     float axisLength = 0.0;
@@ -2053,11 +2074,15 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
     
     std::vector<float> labelOffsetInPixels;
     std::vector<AString> labelTexts;
-    axis->getLabelsAndPositions(dataBounds,
-                                axisLength,
-                                fontSizeInPixels,
-                                labelOffsetInPixels,
-                                labelTexts);
+    const bool validAxisFlag = axis->getLabelsAndPositions(dataBounds,
+                                                           axisLength,
+                                                           axisMinimumOut,
+                                                           axisMaximumOut,
+                                                           labelOffsetInPixels,
+                                                           labelTexts);
+    if ( ! validAxisFlag) {
+        return false;
+    }
     
     const float rgba[4] = {
         m_fixedPipelineDrawing->m_foregroundColorFloat[0],
@@ -2246,5 +2271,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
             }
         }
     }
+    
+    return true;
 }
 
