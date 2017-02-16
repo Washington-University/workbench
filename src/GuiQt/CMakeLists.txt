@@ -73,8 +73,9 @@ ELSE()
         BrainBrowserWindowToolBar.h
         BrainBrowserWindowToolBarChartAttributes.h
         BrainBrowserWindowToolBarChartAxes.h
-        BrainBrowserWindowToolBarChartTwoOrientation.h
         BrainBrowserWindowToolBarChartTwoAttributes.h
+        BrainBrowserWindowToolBarChartTwoAxes.h
+        BrainBrowserWindowToolBarChartTwoOrientation.h
         BrainBrowserWindowToolBarChartTwoType.h
         BrainBrowserWindowToolBarChartType.h
         BrainBrowserWindowToolBarClipping.h
@@ -259,8 +260,9 @@ BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBarChartAttributes.h
 BrainBrowserWindowToolBarChartAxes.h
-BrainBrowserWindowToolBarChartTwoOrientation.h
 BrainBrowserWindowToolBarChartTwoAttributes.h
+BrainBrowserWindowToolBarChartTwoAxes.h
+BrainBrowserWindowToolBarChartTwoOrientation.h
 BrainBrowserWindowToolBarChartTwoType.h
 BrainBrowserWindowToolBarChartType.h
 BrainBrowserWindowToolBarClipping.h
@@ -469,8 +471,9 @@ BrainBrowserWindowOrientedToolBox.cxx
 BrainBrowserWindowToolBar.cxx
 BrainBrowserWindowToolBarChartAttributes.cxx
 BrainBrowserWindowToolBarChartAxes.cxx
-BrainBrowserWindowToolBarChartTwoOrientation.cxx
 BrainBrowserWindowToolBarChartTwoAttributes.cxx
+BrainBrowserWindowToolBarChartTwoAxes.cxx
+BrainBrowserWindowToolBarChartTwoOrientation.cxx
 BrainBrowserWindowToolBarChartTwoType.cxx
 BrainBrowserWindowToolBarChartType.cxx
 BrainBrowserWindowToolBarClipping.cxx

@@ -72,6 +72,8 @@ namespace caret {
         
         const ChartTwoCartesianAxis* getChartAxisBottom() const;
         
+        std::vector<ChartTwoCartesianAxis*> getDisplayedChartAxes() const;
+        
         void insertOverlayAbove(const int32_t overlayIndex);
         
         void insertOverlayBelow(const int32_t overlayIndex);

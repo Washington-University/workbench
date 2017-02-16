@@ -2196,6 +2196,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
         
         glColor3fv(m_fixedPipelineDrawing->m_foregroundColorFloat);
         
+        const bool showTicksFlag = axis->isShowTickmarks();
+        
         for (int32_t i = 0; i < numLabelsToDraw; i++) {
             const float tickStartX = labelX + labelOffsetInPixels[i] * labelOffsetMultiplierX;
             const float tickStartY = labelY + labelOffsetInPixels[i] * labelOffsetMultiplierY;
@@ -2203,12 +2205,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
             const float tickEndX = tickStartX + tickDeltaXY[0];
             const float tickEndY = tickStartY + tickDeltaXY[1];
             
-            glBegin(GL_LINES);
-            glVertex2f(tickStartX,
-                       tickStartY);
-            glVertex2f(tickEndX,
-                       tickEndY);
-            glEnd();
+            if (showTicksFlag) {
+                glBegin(GL_LINES);
+                glVertex2f(tickStartX,
+                           tickStartY);
+                glVertex2f(tickEndX,
+                           tickEndY);
+                glEnd();
+            }
             
             const float textX = tickEndX;
             const float textY = tickEndY;

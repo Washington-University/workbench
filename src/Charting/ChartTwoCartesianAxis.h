@@ -83,7 +83,7 @@ namespace caret {
 
         void setShowTickmarks(const bool showTickmarks);
         
-        bool getLabelsAndPositions(const float dataBounds[4],
+        bool getLabelsAndPositions(const float dataBoundsIn[4],
                                    const float axisLengthInPixels,
                                    float& minimumOut,
                                    float& maximumOut,
@@ -132,9 +132,9 @@ namespace caret {
 
         const ChartAxisLocationEnum::Enum m_axisLocation;
         
-        float m_userScaleMinimumValue = -1.0;
+        float m_userScaleMinimumValue = -100.0;
         
-        float m_userScaleMaximumValue = 1.0;
+        float m_userScaleMaximumValue = 100.0;
         
         float m_axisLabelsStepValue = 1.0;
         
@@ -146,7 +146,11 @@ namespace caret {
         
         NumericFormatModeEnum::Enum m_userNumericFormat = NumericFormatModeEnum::AUTO;
         
-        int32_t m_userNumberOfSubdivisions = 2;
+        /**
+         * Number of subdivisions.
+         * Note that value "-1" is AUTO (see QSpinBox::setSpecialValueText()) 
+         */
+        int32_t m_userNumberOfSubdivisions = -1;
         
         AString m_labelText;
 

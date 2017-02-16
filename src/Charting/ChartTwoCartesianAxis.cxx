@@ -27,6 +27,7 @@
 #include "CaretLogger.h"
 #include "ChartScaleAutoRanging.h"
 #include "MathFunctions.h"
+#include "NumericTextFormatting.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -169,6 +170,7 @@ ChartTwoCartesianAxis::setUserDigitsRightOfDecimal(const int32_t digitsRightOfDe
 
 /**
  * @return User's number of subdivisions
+ *    Note that value "-1" is AUTO (see QSpinBox::setSpecialValueText())
  */
 int32_t
 ChartTwoCartesianAxis::getUserNumberOfSubdivisions() const
@@ -179,7 +181,8 @@ ChartTwoCartesianAxis::getUserNumberOfSubdivisions() const
 /**
  * Set User's number of subdivisions
  * @param numberOfSubdivisions
- *    New value for Number of subdivisions
+ *    New value for Number of subdivisions.
+ *    Note that value "-1" is AUTO (see QSpinBox::setSpecialValueText())
  */
 void
 ChartTwoCartesianAxis::setUserNumberOfSubdivisions(const int32_t numberOfSubdivisions)
@@ -489,7 +492,7 @@ ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float dataBounds[4],
 /**
  * Get the axis labels and their positions for drawing the scale.
  *
- * @param dataBounds
+ * @param dataBoundsIn
  *     Bounds of data [minX, maxX, minY, maxY].
  * @param axisLengthInPixels
  *     Length of axis in pixels.
@@ -505,13 +508,20 @@ ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float dataBounds[4],
  *     True if output data is valid, else false.
  */
 bool
-ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBounds[4],
+ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBoundsIn[4],
                                              const float axisLengthInPixels,
                                              float& minimumOut,
                                              float& maximumOut,
                                              std::vector<float>& labelOffsetInPixelsOut,
                                              std::vector<AString>& labelTextOut) const
 {
+    float dataBounds[4] = {
+        dataBoundsIn[0],
+        dataBoundsIn[1],
+        dataBoundsIn[2],
+        dataBoundsIn[3],
+    };
+    
     minimumOut = 0.0;
     maximumOut = 0.0;
     labelOffsetInPixelsOut.clear();
@@ -528,22 +538,55 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBounds[4],
     
     switch (m_scaleRangeMode) {
         case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO:
-            if ( ! getAutoRangeMinimumAndMaximum(dataBounds,
-                                                 labelsStart,
-                                                 labelsEnd,
-                                                 labelsStep,
-                                                 labelsDigitsRightOfDecimal)) {
-                return false;
-            }
             break;
         case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER:
-            if (m_userScaleMinimumValue < m_userScaleMaximumValue) {
-                labelsStart = m_userScaleMinimumValue;
-                labelsEnd   = m_userScaleMaximumValue;
+            switch (m_axisLocation) {
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                    dataBounds[0] = m_userScaleMinimumValue;
+                    dataBounds[1] = m_userScaleMaximumValue;
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                    dataBounds[2] = m_userScaleMinimumValue;
+                    dataBounds[3] = m_userScaleMaximumValue;
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                    dataBounds[2] = m_userScaleMinimumValue;
+                    dataBounds[3] = m_userScaleMaximumValue;
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                    dataBounds[0] = m_userScaleMinimumValue;
+                    dataBounds[1] = m_userScaleMaximumValue;
+                    break;
             }
             break;
     }
 
+    if ( ! getAutoRangeMinimumAndMaximum(dataBounds,
+                                         labelsStart,
+                                         labelsEnd,
+                                         labelsStep,
+                                         labelsDigitsRightOfDecimal)) {
+        return false;
+    }
+    
+    switch (m_scaleRangeMode) {
+        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO:
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER:
+            labelsStart = m_userScaleMinimumValue;
+            labelsEnd   = m_userScaleMaximumValue;
+            break;
+    }
+    
+    if (m_userNumberOfSubdivisions >= 0) {
+        const float labelsRange = labelsEnd - labelsStart;
+        if (labelsRange <= 0.0) {
+            return false;
+        }
+        const float dividend = (1.0 + m_userNumberOfSubdivisions);
+        labelsStep = labelsRange / dividend;
+    }
+    
     minimumOut = labelsStart;
     maximumOut = labelsEnd;
     
@@ -577,6 +620,7 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBounds[4],
         return false;
     }
     
+    std::vector<float> labelNumericValues;
     
     float labelValue  = labelsStart;
     while (labelValue <= labelsEnd) {
@@ -638,16 +682,27 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBounds[4],
         if ((labelParametricValue >= 0.0)
             && (labelParametricValue <= 1.0)) {
             const float labelPixelsPosition = axisLengthInPixels * labelParametricValue;
-            const AString labelText = AString::number(labelValueForText, 'f', labelsDigitsRightOfDecimal);
-            
+            labelNumericValues.push_back(labelValueForText);
             labelOffsetInPixelsOut.push_back(labelPixelsPosition);
-            labelTextOut.push_back(labelText);
+            
+//            const AString labelText = AString::number(labelValueForText, 'f', labelsDigitsRightOfDecimal);
+//            labelTextOut.push_back(labelText);
         }
         else {
             //            std::cout << "Label value=" << labelValue << " parametric=" << labelParametricValue << " failed." << std::endl;
         }
         
         labelValue  += tickLabelsStep;
+    }
+    
+    const int32_t numValues = static_cast<int32_t>(labelNumericValues.size());
+    if (numValues > 0) {
+        labelTextOut.resize(numValues);
+        NumericTextFormatting::formatValueRange(m_userNumericFormat,
+                                                m_userDigitsRightOfDecimal,
+                                                &labelNumericValues[0],
+                                                &labelTextOut[0],
+                                                labelNumericValues.size());
     }
     
     CaretAssert(labelOffsetInPixelsOut.size() == labelTextOut.size());

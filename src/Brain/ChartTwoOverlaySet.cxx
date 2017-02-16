@@ -631,6 +631,25 @@ ChartTwoOverlaySet::getChartAxisBottom()
     return m_chartAxisBottom.get();
 }
 
+std::vector<ChartTwoCartesianAxis*>
+ChartTwoOverlaySet::getDisplayedChartAxes() const
+{
+    std::vector<ChartTwoCartesianAxis*> axes;
+    
+    if (m_chartAxisBottom->isVisible()) {
+        axes.push_back(m_chartAxisBottom.get());
+    }
+    if (m_chartAxisLeft->isVisible()) {
+        axes.push_back(m_chartAxisLeft.get());
+    }
+    if (m_chartAxisRight->isVisible()) {
+        axes.push_back(m_chartAxisRight.get());
+    }
+    
+    return axes;
+}
+
+
 /**
  * @return The chart bottom-axis (const method)
  */

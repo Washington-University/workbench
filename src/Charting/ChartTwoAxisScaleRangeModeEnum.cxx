@@ -108,11 +108,11 @@ ChartTwoAxisScaleRangeModeEnum::initialize()
 
     enumData.push_back(ChartTwoAxisScaleRangeModeEnum(AXIS_DATA_RANGE_AUTO, 
                                     "AXIS_DATA_RANGE_AUTO", 
-                                    "Axis Data Range Auto"));
+                                    "Auto"));
     
     enumData.push_back(ChartTwoAxisScaleRangeModeEnum(AXIS_DATA_RANGE_USER, 
                                     "AXIS_DATA_RANGE_USER", 
-                                    "Axis Data Range User"));
+                                    "User"));
     
 }
 
