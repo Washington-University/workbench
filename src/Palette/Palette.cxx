@@ -462,32 +462,62 @@ Palette::getPaletteColor(
         }
         if (paletteIndex >= 0) {
             const PaletteScalarAndColor* psac = this->getScalarAndColor(paletteIndex);
-            psac->getColor(rgbaOut);
-            if (interpolateColorFlag &&
-                (paletteIndex < (numScalarColors - 1))) {
-                const PaletteScalarAndColor* psacBelow = this->getScalarAndColor(paletteIndex + 1);
-                float totalDiff = psac->getScalar() - psacBelow->getScalar();
-                if (totalDiff != 0.0) {
-                    float offset = scalar - psacBelow->getScalar();
-                    float percentAbove = offset / totalDiff;
-                    float percentBelow = 1.0f - percentAbove;
-                    if ( ! psacBelow->isNoneColor()) {
-                        const float* rgbaAbove = psac->getColor();
-                        const float* rgbaBelow = psacBelow->getColor();
-                        
-                        rgbaOut[0] = (percentAbove * rgbaAbove[0]
-                                      + percentBelow * rgbaBelow[0]);
-                        rgbaOut[1] = (percentAbove * rgbaAbove[1]
-                                      + percentBelow * rgbaBelow[1]);
-                        rgbaOut[2] = (percentAbove * rgbaAbove[2]
-                                      + percentBelow * rgbaBelow[2]);
+            if (psac->isNoneColor()) {
+                rgbaOut[3] = 0.0;
+            }
+            else {
+                psac->getColor(rgbaOut); // color assigned here
+                if (interpolateColorFlag &&
+                    (paletteIndex < (numScalarColors - 1))) {
+                    const PaletteScalarAndColor* psacBelow = this->getScalarAndColor(paletteIndex + 1);
+                    float totalDiff = psac->getScalar() - psacBelow->getScalar();
+                    if (totalDiff != 0.0) {
+                        float offset = scalar - psacBelow->getScalar();
+                        float percentAbove = offset / totalDiff;
+                        float percentBelow = 1.0f - percentAbove;
+                        if ( ! psacBelow->isNoneColor()) {
+                            const float* rgbaAbove = psac->getColor();
+                            const float* rgbaBelow = psacBelow->getColor();
+                            
+                            rgbaOut[0] = (percentAbove * rgbaAbove[0]
+                                          + percentBelow * rgbaBelow[0]);
+                            rgbaOut[1] = (percentAbove * rgbaAbove[1]
+                                          + percentBelow * rgbaBelow[1]);
+                            rgbaOut[2] = (percentAbove * rgbaAbove[2]
+                                          + percentBelow * rgbaBelow[2]);
+                        }
                     }
                 }
             }
-            else if (psac->isNoneColor()) {
-                rgbaOut[3] = 0.0f;
-            }
         }
+//        if (paletteIndex >= 0) {
+//            const PaletteScalarAndColor* psac = this->getScalarAndColor(paletteIndex);
+//            psac->getColor(rgbaOut);
+//            if (interpolateColorFlag &&
+//                (paletteIndex < (numScalarColors - 1))) {
+//                const PaletteScalarAndColor* psacBelow = this->getScalarAndColor(paletteIndex + 1);
+//                float totalDiff = psac->getScalar() - psacBelow->getScalar();
+//                if (totalDiff != 0.0) {
+//                    float offset = scalar - psacBelow->getScalar();
+//                    float percentAbove = offset / totalDiff;
+//                    float percentBelow = 1.0f - percentAbove;
+//                    if ( ! psacBelow->isNoneColor()) {
+//                        const float* rgbaAbove = psac->getColor();
+//                        const float* rgbaBelow = psacBelow->getColor();
+//                        
+//                        rgbaOut[0] = (percentAbove * rgbaAbove[0]
+//                                      + percentBelow * rgbaBelow[0]);
+//                        rgbaOut[1] = (percentAbove * rgbaAbove[1]
+//                                      + percentBelow * rgbaBelow[1]);
+//                        rgbaOut[2] = (percentAbove * rgbaAbove[2]
+//                                      + percentBelow * rgbaBelow[2]);
+//                    }
+//                }
+//            }
+//            else if (psac->isNoneColor()) {
+//                rgbaOut[3] = 0.0f;
+//            }
+//        }
     }
 }
 
