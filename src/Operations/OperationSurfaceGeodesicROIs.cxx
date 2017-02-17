@@ -62,6 +62,9 @@ OperationParameters* OperationSurfaceGeodesicROIs::getParameters()
     OptionalParameter* namesOpt = ret->createOptionalParameter(7, "-names", "name the columns from text file");
     namesOpt->addStringParameter(1, "name-list-file", "a text file containing column names, one per line");
     
+    OptionalParameter* corrAreaOpt = ret->createOptionalParameter(8, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    corrAreaOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+
     ret->setHelpText(
         AString("For each vertex in the list file, a column in the output metric is created, and an ROI around that vertex is drawn in that column.  ") +
         "Each metric column will have zeros outside the geodesic distance spacified by <limit>, and by default will have a value of 1.0 inside it.  " +
@@ -144,6 +147,16 @@ void OperationSurfaceGeodesicROIs::useParameters(OperationParameters* myParams, 
             ++i;
         }
     }
+    MetricFile* corrAreas = NULL;
+    OptionalParameter* corrAreaOpt = myParams->getOptionalParameter(8);
+    if (corrAreaOpt->m_present)
+    {
+        corrAreas = corrAreaOpt->getMetric(1);
+        if (corrAreas->getNumberOfNodes() != numNodes)
+        {
+            throw OperationException("corrected areas metric does not match surface in number of vertices");
+        }
+    }
     myMetricOut->setNumberOfNodesAndColumns(numNodes, (int)nodelist.size());
     myMetricOut->setStructure(mySurf->getStructure());
     float invneg2sigmasqr = -0.5f / (sigma * sigma);
@@ -161,12 +174,20 @@ void OperationSurfaceGeodesicROIs::useParameters(OperationParameters* myParams, 
                                             ", " + AString::number(myCoord[2], 'f', 1) + ")");
         }
     }
+    CaretPointer<GeodesicHelper> myhelp;
+    CaretPointer<GeodesicHelperBase> mygeobase;
+    if (corrAreas == NULL)
+    {
+        myhelp = mySurf->getGeodesicHelper();
+    } else {
+        mygeobase.grabNew(new GeodesicHelperBase(mySurf, corrAreas->getValuePointerForColumn(0)));
+        myhelp.grabNew(new GeodesicHelper(mygeobase));
+    }
     switch (overlapType)
     {
         case 1://ALLOW
             for (int i = 0; i < (int)nodelist.size(); ++i)
             {
-                CaretPointer<GeodesicHelper> myhelp = mySurf->getGeodesicHelper();
                 vector<int32_t> roinodes;
                 vector<float> dists;
                 myhelp->getNodesToGeoDist(nodelist[i], limit, roinodes, dists);
@@ -199,7 +220,6 @@ void OperationSurfaceGeodesicROIs::useParameters(OperationParameters* myParams, 
             vector<float> bestDists(numNodes, -1.0f);
             for (int i = 0; i < (int)nodelist.size(); ++i)
             {
-                CaretPointer<GeodesicHelper> myhelp = mySurf->getGeodesicHelper();
                 vector<int32_t> roinodes;
                 vector<float> dists;
                 myhelp->getNodesToGeoDist(nodelist[i], limit, roinodes, dists);
