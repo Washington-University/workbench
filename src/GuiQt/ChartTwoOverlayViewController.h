@@ -25,6 +25,7 @@
 #include <QObject>
 #include <QPixmap>
 
+#include "ChartAxisLocationEnum.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"
 
 class QAction;
@@ -105,6 +106,8 @@ namespace caret {
 
         void menuMatrixTriangularViewModeTriggered(QAction* action);
         
+        void menuAxisLocationTriggered(QAction* action);
+        
     private:
         ChartTwoOverlayViewController(const ChartTwoOverlayViewController&);
 
@@ -120,6 +123,8 @@ namespace caret {
         
         QMenu* createMatrixTriangularViewModeMenu(QWidget* widget);
         
+        QMenu* createAxisLocationMenu(QWidget* widget);
+        
         void validateYokingSelection();
         
         void updateOverlaySettingsEditor();
@@ -129,7 +134,12 @@ namespace caret {
         QPixmap createMatrixTriangularViewModePixmap(QWidget* widget,
                                                      const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode);
 
+        QPixmap createAxisLocationPixmap(QWidget* widget,
+                                         const ChartAxisLocationEnum::Enum axisLocation);
+        
         void updateMatrixTriangularViewModeAction(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode);
+        
+        void updateAxisLocationAction(const ChartAxisLocationEnum::Enum axisLocation);
         
         const int32_t m_browserWindowIndex;
         
@@ -157,8 +167,14 @@ namespace caret {
         
         QAction* m_matrixTriangularViewModeAction;
         
+        QAction* m_axisLocationAction;
+        
+        QToolButton* m_axisLocationToolButton;
+        
         std::vector<std::tuple<ChartTwoMatrixTriangularViewingModeEnum::Enum, QAction*,QPixmap>> m_matrixViewMenuData;
 
+        std::vector<std::tuple<ChartAxisLocationEnum::Enum, QAction*,QPixmap>> m_axisLocationMenuData;
+        
         QComboBox* m_mapFileComboBox;
         
         MapYokingGroupComboBox* m_mapRowOrColumnYokingGroupComboBox;
@@ -172,8 +188,6 @@ namespace caret {
         QToolButton* m_constructionToolButton;
         
         QAction* m_constructionReloadFileAction;
-        
-        WuQGridLayoutGroup* m_gridLayoutGroup;
         
         // ADD_NEW_MEMBERS_HERE
 

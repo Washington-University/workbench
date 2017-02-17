@@ -78,6 +78,7 @@ m_overlayIndex(overlayIndex)
     m_colorBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
     
     m_matrixTriangularViewingMode = ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL;
+    m_cartesianVerticalAxisLocation = ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT;
     
     m_selectedMapFile  = NULL;
     m_selectedHistogramMapIndex = -1;
@@ -90,6 +91,8 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar.get());
     m_sceneAssistant->add<ChartTwoMatrixTriangularViewingModeEnum, ChartTwoMatrixTriangularViewingModeEnum::Enum>("m_matrixTriangularViewingMode",
                                                                         &m_matrixTriangularViewingMode);
+    m_sceneAssistant->add<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>("m_cartesianVerticalAxisLocation",
+                                                                              &m_cartesianVerticalAxisLocation);
     m_sceneAssistant->add("m_selectedHistogramMapIndex", &m_selectedHistogramMapIndex);
     m_sceneAssistant->add("m_allHistogramMapsSelectedFlag", &m_allHistogramMapsSelectedFlag);
     
@@ -281,6 +284,7 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     
     *m_colorBar = *overlay->m_colorBar;
     m_matrixTriangularViewingMode = overlay->m_matrixTriangularViewingMode;
+    m_cartesianVerticalAxisLocation = overlay->m_cartesianVerticalAxisLocation;
     
     m_selectedMapFile = overlay->m_selectedMapFile;
     m_selectedHistogramMapIndex = overlay->m_selectedHistogramMapIndex;
@@ -1078,6 +1082,73 @@ ChartTwoOverlay::isMatrixTriangularViewingModeSupported() const
     
     return false;
 }
+
+/**
+ * @return Location of vertical cartesian axis
+ */
+ChartAxisLocationEnum::Enum
+ChartTwoOverlay::getCartesianVerticalAxisLocation() const
+{
+    validateCartesianVerticalAxisLocation();
+    return m_cartesianVerticalAxisLocation;
+}
+
+/**
+ * Set Location of vertical cartesian axis
+ *
+ * @param cartesianVerticalAxisLocation
+ *    New value for Location of vertical cartesian axis
+ */
+void
+ChartTwoOverlay::setCartesianVerticalAxisLocation(const ChartAxisLocationEnum::Enum cartesianVerticalAxisLocation)
+{
+    m_cartesianVerticalAxisLocation = cartesianVerticalAxisLocation;
+    validateCartesianVerticalAxisLocation();
+}
+
+/**
+ * Validate cartesian vertical axis to valid locations (left and right)
+ */
+void
+ChartTwoOverlay::validateCartesianVerticalAxisLocation() const
+{
+    
+    switch (m_cartesianVerticalAxisLocation) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+            m_cartesianVerticalAxisLocation = ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT;
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            m_cartesianVerticalAxisLocation = ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT;
+            break;
+    }
+}
+
+
+/**
+ * @return Is the cartesian vertical axis location supported?
+ */
+bool
+ChartTwoOverlay::isCartesianVerticalAxisLocationSupported() const
+{
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            return true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
+    
+    return false;
+}
+
 
 /**
  * Save information specific to this type of model to the scene.

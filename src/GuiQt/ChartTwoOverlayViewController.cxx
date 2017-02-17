@@ -187,6 +187,18 @@ m_chartOverlay(NULL)
     
 
     /*
+     * Axis location button
+     */
+    m_axisLocationAction = WuQtUtilities::createAction("A",
+                                                       "Vertical Axis Location",
+                                                       this);
+    m_axisLocationToolButton = new QToolButton();
+    QMenu* axisLocationMenu = createAxisLocationMenu(m_axisLocationToolButton);
+    m_axisLocationAction->setMenu(axisLocationMenu);
+    m_axisLocationToolButton->setDefaultAction(m_axisLocationAction);
+    m_axisLocationToolButton->setPopupMode(QToolButton::InstantPopup);
+    
+    /*
      * Map file Selection Check Box
      */
     m_mapFileComboBox = WuQFactory::newComboBox();
@@ -784,6 +796,23 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             }
         }
     }
+    
+    /*
+     * Update vertical axis location
+     */
+    m_axisLocationAction->setEnabled(false);
+    if (validOverlayAndFileFlag) {
+        if (m_chartOverlay->isCartesianVerticalAxisLocationSupported()) {
+            m_axisLocationAction->setEnabled(true);
+            const ChartAxisLocationEnum::Enum axisLocation = m_chartOverlay->getCartesianVerticalAxisLocation();
+            for (auto& almd : m_axisLocationMenuData) {
+                if (std::get<0>(almd) == axisLocation) {
+                    updateAxisLocationAction(axisLocation);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -811,6 +840,33 @@ ChartTwoOverlayViewController::updateMatrixTriangularViewModeAction(const ChartT
         }
     }
     m_matrixTriangularViewModeAction->blockSignals(false);
+}
+
+/**
+ * Update the axis location button.
+ *
+ * @param axisLocation
+ *     Axis location.
+ */
+void
+ChartTwoOverlayViewController::updateAxisLocationAction(const ChartAxisLocationEnum::Enum axisLocation)
+{
+    CaretAssert(m_axisLocationAction);
+    m_axisLocationAction->blockSignals(true);
+    for (auto& almd : m_axisLocationMenuData) {
+        if (std::get<0>(almd) == axisLocation) {
+            QPixmap pixmap = std::get<2>(almd);
+            if ( ! pixmap.isNull()) {
+                m_axisLocationAction->setIcon(pixmap);
+                m_axisLocationAction->setText("");
+            }
+            else {
+                m_axisLocationAction->setText("A");
+            }
+            break;
+        }
+    }
+    m_axisLocationAction->blockSignals(false);
 }
 
 
@@ -857,8 +913,6 @@ ChartTwoOverlayViewController::createMatrixTriangularViewModeMenu(QWidget* paren
     QMenu* menu = new QMenu(parent);
     QObject::connect(menu, &QMenu::triggered,
                      this, &ChartTwoOverlayViewController::menuMatrixTriangularViewModeTriggered);
-//    QObject::connect(menu, SIGNAL(triggered(QAction*)),
-//                     this, SLOT(menuMatrixTriangularViewModeTriggered(QAction* action)));
 
     QActionGroup* actionGroup = new QActionGroup(this);
     actionGroup->setExclusive(true);
@@ -898,6 +952,59 @@ ChartTwoOverlayViewController::menuMatrixTriangularViewModeTriggered(QAction* ac
     }
 }
 
+/**
+ * Create the axis location menu.
+ * @param parent
+ *    Parent widget.
+ */
+QMenu*
+ChartTwoOverlayViewController::createAxisLocationMenu(QWidget* widget)
+{
+    std::vector<ChartAxisLocationEnum::Enum> axisLocations;
+    axisLocations.push_back(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
+    axisLocations.push_back(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT);
+    
+    QMenu* menu = new QMenu(widget);
+    QObject::connect(menu, &QMenu::triggered,
+                     this, &ChartTwoOverlayViewController::menuAxisLocationTriggered);
+    
+    QActionGroup* actionGroup = new QActionGroup(this);
+    actionGroup->setExclusive(true);
+    
+    for (auto axis: axisLocations) {
+        QAction* action = menu->addAction(ChartAxisLocationEnum::toGuiName(axis));
+        action->setCheckable(true);
+        action->setData((int)ChartAxisLocationEnum::toIntegerCode(axis));
+        QPixmap pixmap = createAxisLocationPixmap(menu, axis);
+        action->setIcon(pixmap);
+        actionGroup->addAction(action);
+        
+        m_axisLocationMenuData.push_back(std::make_tuple(axis, action, pixmap));
+    }
+    
+    return menu;
+}
+
+/**
+ * Called when an item is selected on axis location menu.
+ *
+ * @action
+ *     Action of menu item selected.
+ */
+void
+ChartTwoOverlayViewController::menuAxisLocationTriggered(QAction* action)
+{
+    const QVariant itemData = action->data();
+    CaretAssert(itemData.isValid());
+    bool valid = false;
+    ChartAxisLocationEnum::Enum axisLocation = ChartAxisLocationEnum::fromIntegerCode(itemData.toInt(), &valid);
+    
+    if (valid) {
+        m_chartOverlay->setCartesianVerticalAxisLocation(axisLocation);
+        updateAxisLocationAction(axisLocation);
+        this->updateGraphicsWindow();
+    }
+}
 
 /**
  * Create the construction menu.
@@ -1120,6 +1227,63 @@ ChartTwoOverlayViewController::menuReloadFileTriggered()
             updateUserInterfaceAndGraphicsWindow();
         }
     }
+}
+
+/**
+ * Create a axis location mode pixmap.
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @param axisLocation
+ *    Axis location represented by the icon.
+ * @return
+ *    Pixmap for matrix view mode.
+ */
+QPixmap
+ChartTwoOverlayViewController::createAxisLocationPixmap(QWidget* widget,
+                                                        const ChartAxisLocationEnum::Enum axisLocation)
+{
+    CaretAssert(widget);
+    
+    /*
+     * Create a small, square pixmap that will contain
+     * the foreground color around the pixmap's perimeter.
+     */
+    const qreal iconSize = 24.0;
+    const qreal minValue = 2.0;
+    const qreal maxValue = iconSize - minValue;
+    
+    QPixmap pixmap(static_cast<int>(iconSize),
+                   static_cast<int>(iconSize));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(widget,
+                                                                                                pixmap);
+    
+    QPen pen = painter->pen();
+    pen.setWidthF(2.0);
+    painter->setPen(pen);
+    
+    const int offsetFromEdge = 3;
+    switch (axisLocation) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+            painter->drawLine(QPointF(minValue, minValue + offsetFromEdge),
+                              QPointF(maxValue, minValue + offsetFromEdge));
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+            painter->drawLine(QPointF(minValue + offsetFromEdge, minValue),
+                              QPointF(minValue + offsetFromEdge, maxValue));
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+            painter->drawLine(QPointF(maxValue - offsetFromEdge, minValue),
+                              QPointF(maxValue - offsetFromEdge, maxValue));
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            painter->drawLine(QPointF(minValue, maxValue - offsetFromEdge),
+                              QPointF(maxValue, maxValue - offsetFromEdge));
+            break;
+    }
+    
+    return pixmap;
 }
 
 /**

@@ -24,6 +24,7 @@
 
 #include "CaretObject.h"
 
+#include "ChartAxisLocationEnum.h"
 #include "ChartTwoCompoundDataType.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"
 #include "EventListenerInterface.h"
@@ -85,6 +86,12 @@ namespace caret {
         
         bool isMatrixTriangularViewingModeSupported() const;
         
+        ChartAxisLocationEnum::Enum getCartesianVerticalAxisLocation() const;
+        
+        void setCartesianVerticalAxisLocation(const ChartAxisLocationEnum::Enum cartesianVerticalAxisLocation);
+        
+        bool isCartesianVerticalAxisLocationSupported() const;
+        
         void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,
                               std::vector<AString>& selectedFileMapNamesOut,
@@ -136,6 +143,8 @@ namespace caret {
                                      std::vector<AString>* selectedFileMapNamesOut,
                                      int32_t& selectedMapIndexOut) const;
         
+        void validateCartesianVerticalAxisLocation() const;
+        
         /** Parent chart overlay set (only used by first overlay in the set */
         ChartTwoOverlaySet* m_parentChartTwoOverlaySet;
         
@@ -171,6 +180,10 @@ namespace caret {
         bool m_allHistogramMapsSelectedFlag = false;
         
         ChartTwoMatrixTriangularViewingModeEnum::Enum m_matrixTriangularViewingMode;
+        
+        /** Location of vertical cartesian axis*/
+        mutable ChartAxisLocationEnum::Enum m_cartesianVerticalAxisLocation;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
