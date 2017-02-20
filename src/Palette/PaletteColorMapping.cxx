@@ -443,16 +443,13 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
     /*
      * Types of values for display
      */
-    const bool isPositiveOnly = (this->displayPositiveDataFlag && ( ! this->displayNegativeDataFlag));
-    const bool isNegativeOnly = (( ! this->displayPositiveDataFlag) && this->displayNegativeDataFlag);
-    
-    float xMinimum = -1.0;
-    float xMaximum =  1.0;
-    if (isPositiveOnly) {
-        xMinimum = 0.0;
+    float xMinimum = 0.0;
+    float xMaximum = 0.0;
+    if (this->displayPositiveDataFlag) {
+        xMaximum = 1.0;
     }
-    else if (isNegativeOnly) {
-        xMaximum = 0.0;
+    if (this->displayNegativeDataFlag) {
+        xMinimum = -1.0;
     }
     
     /*
@@ -463,119 +460,100 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
         interpolateColor = true;
     }
     
+    float zeroRGBA[4] = { 0.0, 0.0, 0.0, 0.0 };
+    
     /*
-     * Draw the colorbar starting with the color assigned
-     * to the negative end of the palette.
-     * Colorbar scalars range from -1 to 1.
+     * Palettes start with most positive scalar value that in on right side of palette
      */
-    const int iStart = palette->getNumberOfScalarsAndColors() - 1;
-    const int iEnd = 1;
-    const int iStep = -1;
-    for (int i = iStart; i >= iEnd; i += iStep) {
-        /*
-         * palette data for 'left' side of a color in the palette.
-         */
-        const PaletteScalarAndColor* sc = palette->getScalarAndColor(i);
-        float scalar = sc->getScalar();
-        float rgba[4];
-        sc->getColor(rgba);
-        
-        /*
-         * palette data for 'right' side of a color in the palette.
-         */
-        const PaletteScalarAndColor* nextSC = palette->getScalarAndColor(i - 1);
-        float nextScalar = nextSC->getScalar();
-        float nextRGBA[4];
-        nextSC->getColor(nextRGBA);
-        const bool isNoneColorFlag = nextSC->isNoneColor();
-        
-        /*
-         * Exclude negative regions if not displayed.
-         */
-        if ( ! this->displayNegativeDataFlag) {
-            if (nextScalar < 0.0) {
-                continue;
-            }
-            else if (scalar < 0.0) {
-                scalar = 0.0;
-            }
+    const int32_t numberOfColors = palette->getNumberOfScalarsAndColors();
+    const bool interpolationOnFlag = interpolateColor;
+    const int32_t lastColorIndex = numberOfColors - 1;
+    for (int32_t index = 0; index < numberOfColors; index++) {
+        const PaletteScalarAndColor* rightSideScalarColor = palette->getScalarAndColor(index);
+        if (rightSideScalarColor->isNoneColor()) {
+            /*
+             * No drawing for "none" color; skip to next color
+             */
+            continue;
         }
         
         /*
-         * Exclude positive regions if not displayed.
+         * Add vertices for right side of quad
          */
-        if ( ! this->displayPositiveDataFlag) {
-            if (scalar > 0.0) {
-                continue;
+        float rightSideScalar = rightSideScalarColor->getScalar();
+        if (index == 0) {
+            rightSideScalar = xMaximum; // First color extends to right side
+        }
+        float rightSideRGBA[4];
+        rightSideScalarColor->getColor(rightSideRGBA);
+        
+        //addXyRgba(quadsXYZ, quadsRGBA, rightSideScalar, -halfHeight, rightSideRGBA);
+        //addXyRgba(quadsXYZ, quadsRGBA, rightSideScalar,  halfHeight, rightSideRGBA);
+        
+        /*
+         * Default left side of palette subsection to far left side
+         * and same color as right side of palette subsection
+         */
+        float leftSideScalar = xMinimum;
+        float leftSideRGBA[4] = { rightSideRGBA[0], rightSideRGBA[1], rightSideRGBA[2], rightSideRGBA[3] };
+        
+        /*
+         * Determine the next scalar and color index for left side of quad
+         * Left side color is same color as right if:
+         *    # At last color in palette
+         *    # Next color is "none"
+         *    # Interpolation is OFF
+         */
+        int32_t nextIndex = index + 1;
+        if (nextIndex <= lastColorIndex) {
+            /*
+             * Set scalar value for left side of subsection of palette
+             */
+            const PaletteScalarAndColor* leftSideScalarColor = palette->getScalarAndColor(nextIndex);
+            leftSideScalar = leftSideScalarColor->getScalar();
+            
+            if (palette->getScalarAndColor(nextIndex)->isNoneColor()) {
+                /*
+                 * No interpolation if left side of subsection is "none" color
+                 */
             }
-            else if (nextScalar > 0.0) {
-                nextScalar = 0.0;
+            else if (interpolationOnFlag) {
+                /*
+                 * Set color for left side of subsection of palette
+                 */
+                leftSideScalarColor->getColor(leftSideRGBA);
             }
         }
         
-        /*
-         * Normally, the first entry has a scalar value of -1.
-         * If it does not, use the first color draw from
-         * -1 to the first scalar value.
-         */
-        if (i == iStart) {
-            if ( ! sc->isNoneColor()) {
-                if (scalar > -1.0) {
-                    const float xStart = -1.0;
-                    const float xEnd   = scalar;
-                    
-                    colorBar->addSection(xStart,
-                                         xEnd,
-                                         rgba,
-                                         rgba);
+        if ((rightSideScalar >= 0.0)
+            && (leftSideScalar <= 0.0)) {
+            /*
+             * Used for special case when zero is one but both 
+             * negative and postive are off
+             */
+            const float diff = rightSideScalar - leftSideScalar;
+            if (diff > 0.0) {
+                const float rightWeight = rightSideScalar;
+                const float leftWeight  = -leftSideScalar;
+                for (int32_t m = 0; m < 4; m++) {
+                    zeroRGBA[m] = ((leftSideRGBA[m] * leftWeight)
+                                   + (rightSideRGBA[m] * rightWeight));
+                }
+            }
+            else {
+                for (int32_t m = 0; m < 4; m++) {
+                    zeroRGBA[m] = rightSideRGBA[m];
                 }
             }
         }
         
         /*
-         * If the 'next' color is none, drawing
-         * is skipped to let the background show
-         * throw the 'none' region of the palette.
+         * Add a section to the color bar
          */
-        if ( ! isNoneColorFlag) {
-            /*
-             * left and right region of an entry in the palette
-             */
-            const float xStart = scalar;
-            const float xEnd   = nextScalar;
-            
-            /*
-             * Unless interpolating, use the 'next' color.
-             */
-            float* startRGBA = nextRGBA;
-            float* endRGBA   = nextRGBA;
-            if (interpolateColor) {
-                startRGBA = rgba;
-            }
-            
-            /*
-             * Draw the region in the palette.
-             */
-            colorBar->addSection(xStart,
-                                 xEnd,
-                                 startRGBA,
-                                 endRGBA);
-            
-            /*
-             * The last scalar value is normally 1.0.  If the last
-             * scalar is less than 1.0, then fill in the rest of
-             * the palette from the last scalar to 1.0.
-             */
-            if (i == iEnd) {
-                if (nextScalar < 1.0) {
-                    const float xStart = nextScalar;
-                    const float xEnd   = 1.0;
-                    colorBar->addSection(xStart,
-                                         xEnd,
-                                         nextRGBA,
-                                         nextRGBA);
-                }
-            }
+        leftSideScalar = MathFunctions::limitRange(leftSideScalar, xMinimum, xMaximum);
+        rightSideScalar = MathFunctions::limitRange(rightSideScalar, xMinimum, xMaximum);
+        if (rightSideScalar > leftSideScalar) {
+            colorBar->addSection(leftSideScalar, rightSideScalar, leftSideRGBA, rightSideRGBA);
         }
     }
     
@@ -638,13 +616,261 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
     if ( ! this->displayZeroDataFlag) {
         colorBar->addSection(0.0, 0.0, backgroundRGBA, backgroundRGBA);
     }
-
+    
+    /*
+     * If only zero is displayed
+     */
+    if (this->displayZeroDataFlag
+        && ( ! this->displayPositiveDataFlag)
+        && ( ! this->displayNegativeDataFlag)) {
+        if (zeroRGBA[3] > 0.0) {
+            colorBar->addSection(-1.0, 0.0, backgroundRGBA, backgroundRGBA);
+            colorBar->addSection( 0.0, 0.0, zeroRGBA, zeroRGBA);
+            colorBar->addSection( 1.0, 0.0, backgroundRGBA, backgroundRGBA);
+        }
+    }
+    
     /**
      * Add numeric text to the color bar.
      */
     setupAnnotationColorBarNumericText(statistics,
                                        colorBar);
 }
+
+///**
+// * Setup an annotation color bar with its color sections.
+// *
+// * @param statistics
+// *     Statistics of data for colorbar.
+// * @param colorBar
+// *     The annotation colorbar that has its color sections set.
+// */
+//void
+//PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
+//                                             AnnotationColorBar* colorBar)
+//{
+//    CaretAssert(statistics);
+//    CaretAssert(colorBar);
+//    
+//    colorBar->clearSections();
+//    
+//    const AString paletteName = getSelectedPaletteName();
+//    EventPaletteGetByName paletteEvent(paletteName);
+//    EventManager::get()->sendEvent(paletteEvent.getPointer());
+//    const Palette* palette = paletteEvent.getPalette();
+//    if (palette == NULL) {
+//        CaretLogSevere("Unable to find palette named \""
+//                       + paletteName
+//                       + "\"");
+//        return;
+//    }
+//    
+//    
+//    /*
+//     * Types of values for display
+//     */
+//    const bool isPositiveOnly = (this->displayPositiveDataFlag && ( ! this->displayNegativeDataFlag));
+//    const bool isNegativeOnly = (( ! this->displayPositiveDataFlag) && this->displayNegativeDataFlag);
+//    
+//    float xMinimum = -1.0;
+//    float xMaximum =  1.0;
+//    if (isPositiveOnly) {
+//        xMinimum = 0.0;
+//    }
+//    else if (isNegativeOnly) {
+//        xMaximum = 0.0;
+//    }
+//    
+//    /*
+//     * Always interpolate if the palette has only two colors
+//     */
+//    bool interpolateColor = this->interpolatePaletteFlag;
+//    if (palette->getNumberOfScalarsAndColors() <= 2) {
+//        interpolateColor = true;
+//    }
+//    
+//    /*
+//     * Draw the colorbar starting with the color assigned
+//     * to the negative end of the palette.
+//     * Colorbar scalars range from -1 to 1.
+//     */
+//    const int iStart = palette->getNumberOfScalarsAndColors() - 1;
+//    const int iEnd = 1;
+//    const int iStep = -1;
+//    for (int i = iStart; i >= iEnd; i += iStep) {
+//        /*
+//         * palette data for 'left' side of a color in the palette.
+//         */
+//        const PaletteScalarAndColor* sc = palette->getScalarAndColor(i);
+//        float scalar = sc->getScalar();
+//        float rgba[4];
+//        sc->getColor(rgba);
+//        
+//        /*
+//         * palette data for 'right' side of a color in the palette.
+//         */
+//        const PaletteScalarAndColor* nextSC = palette->getScalarAndColor(i - 1);
+//        float nextScalar = nextSC->getScalar();
+//        float nextRGBA[4];
+//        nextSC->getColor(nextRGBA);
+//        const bool isNoneColorFlag = nextSC->isNoneColor();
+//        
+//        /*
+//         * Exclude negative regions if not displayed.
+//         */
+//        if ( ! this->displayNegativeDataFlag) {
+//            if (nextScalar < 0.0) {
+//                continue;
+//            }
+//            else if (scalar < 0.0) {
+//                scalar = 0.0;
+//            }
+//        }
+//        
+//        /*
+//         * Exclude positive regions if not displayed.
+//         */
+//        if ( ! this->displayPositiveDataFlag) {
+//            if (scalar > 0.0) {
+//                continue;
+//            }
+//            else if (nextScalar > 0.0) {
+//                nextScalar = 0.0;
+//            }
+//        }
+//        
+//        /*
+//         * Normally, the first entry has a scalar value of -1.
+//         * If it does not, use the first color draw from
+//         * -1 to the first scalar value.
+//         */
+//        if (i == iStart) {
+//            if ( ! sc->isNoneColor()) {
+//                if (scalar > -1.0) {
+//                    const float xStart = -1.0;
+//                    const float xEnd   = scalar;
+//                    
+//                    colorBar->addSection(xStart,
+//                                         xEnd,
+//                                         rgba,
+//                                         rgba);
+//                }
+//            }
+//        }
+//        
+//        /*
+//         * If the 'next' color is none, drawing
+//         * is skipped to let the background show
+//         * throw the 'none' region of the palette.
+//         */
+//        if ( ! isNoneColorFlag) {
+//            /*
+//             * left and right region of an entry in the palette
+//             */
+//            const float xStart = scalar;
+//            const float xEnd   = nextScalar;
+//            
+//            /*
+//             * Unless interpolating, use the 'next' color.
+//             */
+//            float* startRGBA = nextRGBA;
+//            float* endRGBA   = nextRGBA;
+//            if (interpolateColor) {
+//                startRGBA = rgba;
+//            }
+//            
+//            /*
+//             * Draw the region in the palette.
+//             */
+//            colorBar->addSection(xStart,
+//                                 xEnd,
+//                                 startRGBA,
+//                                 endRGBA);
+//            
+//            /*
+//             * The last scalar value is normally 1.0.  If the last
+//             * scalar is less than 1.0, then fill in the rest of
+//             * the palette from the last scalar to 1.0.
+//             */
+//            if (i == iEnd) {
+//                if (nextScalar < 1.0) {
+//                    const float xStart = nextScalar;
+//                    const float xEnd   = 1.0;
+//                    colorBar->addSection(xStart,
+//                                         xEnd,
+//                                         nextRGBA,
+//                                         nextRGBA);
+//                }
+//            }
+//        }
+//    }
+//    
+//    float backgroundRGBA[4];
+//    colorBar->getBackgroundColorRGBA(backgroundRGBA);
+//    
+//    /*
+//     * Draw over thresholded regions with background color
+//     */
+//    if (this->thresholdType != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+//        const float minMaxThresholds[2] = {
+//            getThresholdMinimum(thresholdType),
+//            getThresholdMaximum(thresholdType)
+//        };
+//        float normalizedThresholds[2];
+//        
+//        mapDataToPaletteNormalizedValues(statistics,
+//                                         minMaxThresholds,
+//                                         normalizedThresholds,
+//                                         2);
+//        
+//        switch (this->thresholdTest) {
+//            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+//                if (normalizedThresholds[0] >= xMinimum) {
+//                    colorBar->addSection(xMinimum,
+//                                         normalizedThresholds[0],
+//                                         backgroundRGBA,
+//                                         backgroundRGBA);
+//                }
+//                if (normalizedThresholds[1] < xMaximum) {
+//                    colorBar->addSection(normalizedThresholds[1],
+//                                         xMaximum,
+//                                         backgroundRGBA,
+//                                         backgroundRGBA);
+//                }
+//                break;
+//            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
+//            {
+//                const float xMin = MathFunctions::limitRange(normalizedThresholds[0],
+//                                                             xMinimum,
+//                                                             xMaximum);
+//                const float xMax = MathFunctions::limitRange(normalizedThresholds[1],
+//                                                             xMinimum,
+//                                                             xMaximum);
+//                if (xMin < xMax) {
+//                    colorBar->addSection(normalizedThresholds[0],
+//                                         normalizedThresholds[1],
+//                                         backgroundRGBA,
+//                                         backgroundRGBA);
+//                }
+//            }
+//                break;
+//        }
+//    }
+//    
+//    /*
+//     * If zeros are not displayed, draw a line in the
+//     * background color at zero in the palette.
+//     */
+//    if ( ! this->displayZeroDataFlag) {
+//        colorBar->addSection(0.0, 0.0, backgroundRGBA, backgroundRGBA);
+//    }
+//
+//    /**
+//     * Add numeric text to the color bar.
+//     */
+//    setupAnnotationColorBarNumericText(statistics,
+//                                       colorBar);
+//}
 
 /**
  * Get auto scale percentage negative maximum.
@@ -2018,6 +2244,27 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
                                                                            true));
 //        normalizedPositionAndTextOut.push_back(std::make_pair(0.5,
 //                                                              zeroValueText));
+    }
+    
+    /*
+     * When zero only
+     */
+    if (isDisplayZeroDataFlag()) {
+        if (( ! negativeDataDisplayedFlag)
+            && ( ! positiveDataDisplayedFlag)) {
+            colorBarNumericTextOut.push_back(new AnnotationColorBarNumericText(0.0,
+                                                                               "",
+                                                                               AnnotationTextAlignHorizontalEnum::CENTER,
+                                                                               true));
+            colorBarNumericTextOut.push_back(new AnnotationColorBarNumericText(0.5,
+                                                                               "0.0",
+                                                                               AnnotationTextAlignHorizontalEnum::CENTER,
+                                                                               true));
+            colorBarNumericTextOut.push_back(new AnnotationColorBarNumericText(1.0,
+                                                                               "",
+                                                                               AnnotationTextAlignHorizontalEnum::CENTER,
+                                                                               true));
+        }
     }
     
     /*
