@@ -841,9 +841,9 @@ OverlayViewController::createConstructionMenu(QWidget* parent)
     
     menu->addSeparator();
     
-    menu->addAction("Copy Path and File Name to Clipboard",
-                    this,
-                    SLOT(menuCopyFileNameToClipBoard()));
+    m_copyPathAndFileNameToClipboardAction = menu->addAction("Copy Path and File Name to Clipboard",
+                                                             this,
+                                                             SLOT(menuCopyFileNameToClipBoard()));
     
     menu->addAction("Copy Map Name to Clipboard",
                     this,
@@ -864,7 +864,7 @@ OverlayViewController::menuConstructionAboutToShow()
         int32_t mapIndex = -1;
         this->overlay->getSelectionData(caretDataFile,
                                         mapIndex);
-        
+    
         QString menuText = "Reload Selected File";
         if (caretDataFile != NULL) {
             if (caretDataFile->isModified()) {
@@ -876,7 +876,12 @@ OverlayViewController::menuConstructionAboutToShow()
                 }
                 menuText += suffix;
             }
+            
+            const bool notDynConnFileFlag = (caretDataFile->getDataFileType() != DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC);
+            m_constructionReloadFileAction->setEnabled(notDynConnFileFlag);
+            m_copyPathAndFileNameToClipboardAction->setEnabled(notDynConnFileFlag);
         }
+        
         m_constructionReloadFileAction->setText(menuText);
     }
 }

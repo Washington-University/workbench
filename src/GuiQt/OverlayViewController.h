@@ -148,6 +148,8 @@ namespace caret {
         
         QAction* m_constructionReloadFileAction;
         
+        QAction* m_copyPathAndFileNameToClipboardAction;
+        
         WuQGridLayoutGroup* gridLayoutGroup;
         
     friend class OverlaySetViewController;
