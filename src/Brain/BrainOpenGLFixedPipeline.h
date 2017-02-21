@@ -453,13 +453,6 @@ namespace caret {
 //                                const int32_t tabViewport[4]);
         void drawTabAnnotations(BrainOpenGLViewportContent* tabContent);
         
-        void drawAllPalettes(Brain* brain);
-        
-        void drawPalette(const Palette* palette,
-                         const PaletteColorMapping* paletteColorMapping,
-                         const FastStatistics* statistics,
-                         const int paletteDrawingIndex);
-        
         void drawBackgroundImage(BrainOpenGLViewportContent* vpContent);
         
         void drawImage(BrainOpenGLViewportContent* vpContent,
