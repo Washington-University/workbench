@@ -351,7 +351,7 @@ void
 CaretColorEnum::toRGBAByte(Enum enumValue,
                            uint8_t rgbaOut[4])
 {
-    float rgbaFloat[3];
+    float rgbaFloat[4];
     toRGBAFloat(enumValue, rgbaFloat);
 
     rgbaOut[0] = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
