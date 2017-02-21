@@ -147,10 +147,19 @@ void
 CaretFileDialog::initializeCaretFileDialog()
 {
     /*
-     * Create a proxy model that hides files that do not match the file filter.
-     * On Macs, Qt shows files that do not match the file filter as disabled
-     * but we don't want them displayed.  The dialog will take ownership of 
-     * the proxy model so it does not need to be deleted by this instance.
+     * We MUST use a non-native dialog.
+     * Otherwise, the file filter proxy model 
+     * will not work.
+     */
+    setOption(QFileDialog::DontUseNativeDialog);
+    
+    /*
+     * Create a proxy model for filtering the data files.
+     * The proxy is used to limit the displayed files to 
+     * only those with the proper file extension.  In addition,
+     * since CIFTI and NIFTI files end in ".nii", filtering is
+     * performed so that CIFTI files are not displayed when
+     * the user selectes Volume files.
      */
     m_filterFilesProxyModel = new FilterFilesProxyModel();
     this->setProxyModel(m_filterFilesProxyModel);
