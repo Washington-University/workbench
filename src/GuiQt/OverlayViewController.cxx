@@ -366,7 +366,6 @@ OverlayViewController::fileComboBoxSelected(int indx)
 
     updateOverlaySettingsEditor();
     updateViewController(this->overlay);
-    updateGraphicsWindow();
     
     if (file != NULL) {
         if (file->isVolumeMappable()) {
@@ -376,6 +375,8 @@ OverlayViewController::fileComboBoxSelected(int indx)
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(browserWindowIndex).addToolBar().getPointer());
         }
     }
+    
+    updateGraphicsWindow();
 }
 
 /**

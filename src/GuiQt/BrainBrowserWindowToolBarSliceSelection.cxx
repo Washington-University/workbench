@@ -210,6 +210,7 @@ m_parentToolBar(parentToolBar)
     m_volumeIndicesWidgetGroup->add(m_volumeIndicesXcoordSpinBox);
     m_volumeIndicesWidgetGroup->add(m_volumeIndicesYcoordSpinBox);
     m_volumeIndicesWidgetGroup->add(m_volumeIndicesZcoordSpinBox);
+    m_volumeIndicesWidgetGroup->add(m_volumeSliceProjectionTypeEnumComboBox->getWidget());
     m_volumeIndicesWidgetGroup->add(m_volumeIdentificationUpdatesSlicesAction);
 }
 
@@ -255,6 +256,40 @@ BrainBrowserWindowToolBarSliceSelection::updateContent(BrowserTabContent* browse
     }
     
     if (vf != NULL) {
+        /*
+         * Test selected file to see if it is an oblique volume file (not a CIFTI file)
+         */
+        bool obliqueVolumeFlag = false;
+        VolumeFile* volumeFile = dynamic_cast<VolumeFile*>(vf);
+        if (volumeFile != NULL) {
+            if ( ! volumeFile->isPlumb()) {
+                obliqueVolumeFlag = true;
+            }
+        }
+        
+        /*
+         * Update slice projection type for allowed projection types
+         */
+        std::vector<VolumeSliceProjectionTypeEnum::Enum> validSliceProjections;
+        validSliceProjections.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
+        if ( ! obliqueVolumeFlag) {
+            validSliceProjections.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
+        }
+        m_volumeSliceProjectionTypeEnumComboBox->setupWithItems<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>(validSliceProjections);
+
+        /*
+         * If volume is oblique, change its projection type to oblique
+         */
+        switch (browserTabContent->getSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                if (obliqueVolumeFlag) {
+                    browserTabContent->setSliceProjectionType(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
+                }
+                break;
+        }
+        
         m_volumeIndicesAxialCheckBox->setChecked(browserTabContent->isSliceAxialEnabled());
         m_volumeIndicesCoronalCheckBox->setChecked(browserTabContent->isSliceCoronalEnabled());
         m_volumeIndicesParasagittalCheckBox->setChecked(browserTabContent->isSliceParasagittalEnabled());
@@ -432,29 +467,42 @@ BrainBrowserWindowToolBarSliceSelection::volumeIndicesAxialCheckBoxStateChanged(
 
 /**
  * Called when volume indices parasagittal spin box value is changed.
+ *
+ * @param sliceIndex
+ *     New index of slice.
  */
 void
-BrainBrowserWindowToolBarSliceSelection::volumeIndicesParasagittalSpinBoxValueChanged(int /*i*/)
+BrainBrowserWindowToolBarSliceSelection::volumeIndicesParasagittalSpinBoxValueChanged(int sliceIndex)
 {
-    this->readVolumeSliceIndicesAndUpdateSliceCoordinates();
+    this->readVolumeSliceIndicesAndUpdateSliceCoordinates(VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                                          sliceIndex);
 }
 
 /**
  * Called when volume indices coronal spin box value is changed.
+ *
+ * @param sliceIndex
+ *     New index of slice.
  */
 void
-BrainBrowserWindowToolBarSliceSelection::volumeIndicesCoronalSpinBoxValueChanged(int /*i*/)
+BrainBrowserWindowToolBarSliceSelection::volumeIndicesCoronalSpinBoxValueChanged(int sliceIndex)
 {
-    this->readVolumeSliceIndicesAndUpdateSliceCoordinates();
+    this->readVolumeSliceIndicesAndUpdateSliceCoordinates(VolumeSliceViewPlaneEnum::CORONAL,
+                                                          sliceIndex);
 }
 
 /**
  * Called when volume indices axial spin box value is changed.
+ *
+ * @param sliceIndex
+ *     New index of slice.
  */
 void
-BrainBrowserWindowToolBarSliceSelection::volumeIndicesAxialSpinBoxValueChanged(int /*i*/)
+BrainBrowserWindowToolBarSliceSelection::volumeIndicesAxialSpinBoxValueChanged(int sliceIndex)
 {
-    this->readVolumeSliceIndicesAndUpdateSliceCoordinates();
+    
+    this->readVolumeSliceIndicesAndUpdateSliceCoordinates(VolumeSliceViewPlaneEnum::AXIAL,
+                                                          sliceIndex);
 }
 
 /**
@@ -492,9 +540,15 @@ BrainBrowserWindowToolBarSliceSelection::volumeIndicesZcoordSpinBoxValueChanged(
 
 /**
  * Read the slice indices and update the slice coordinates.
+ *
+ * @param viewPlane
+ *     View plane whose slice index was changed
+ * @param sliceIndex
+ *     New slice index.
  */
 void
-BrainBrowserWindowToolBarSliceSelection::readVolumeSliceIndicesAndUpdateSliceCoordinates()
+BrainBrowserWindowToolBarSliceSelection::readVolumeSliceIndicesAndUpdateSliceCoordinates(const VolumeSliceViewPlaneEnum::Enum viewPlane,
+                                                                                         const int64_t sliceIndex)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
@@ -515,12 +569,73 @@ BrainBrowserWindowToolBarSliceSelection::readVolumeSliceIndicesAndUpdateSliceCoo
     }
     
     if (underlayVolumeFile != NULL) {
-        const int64_t parasagittalSlice = m_volumeIndicesParasagittalSpinBox->value();
-        const int64_t coronalSlice      = m_volumeIndicesCoronalSpinBox->value();
-        const int64_t axialSlice        = m_volumeIndicesAxialSpinBox->value();
-        btc->setSliceIndexAxial(underlayVolumeFile, axialSlice);
-        btc->setSliceIndexCoronal(underlayVolumeFile, coronalSlice);
-        btc->setSliceIndexParasagittal(underlayVolumeFile, parasagittalSlice);
+        const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = m_volumeSliceProjectionTypeEnumComboBox->getSelectedItem<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>();
+        switch (sliceProjectionType) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            {
+                float sx(1.0), sy(1.0), sz(1.0);
+                underlayVolumeFile->getVoxelSpacing(sx, sy, sz);
+                
+                switch (viewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        CaretAssert(0);
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                    {
+                        const int32_t diff  = sliceIndex - btc->getSliceIndexAxial(underlayVolumeFile);
+                        if (diff > 0) {
+                            btc->setSliceCoordinateAxial(btc->getSliceCoordinateAxial() + sz);
+                        }
+                        else {
+                            btc->setSliceCoordinateAxial(btc->getSliceCoordinateAxial() - sz);
+                        }
+                    }
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                    {
+                        const int32_t diff  = sliceIndex - btc->getSliceIndexCoronal(underlayVolumeFile);
+                        if (diff > 0) {
+                            btc->setSliceCoordinateCoronal(btc->getSliceCoordinateCoronal() + sy);
+                        }
+                        else {
+                            btc->setSliceCoordinateCoronal(btc->getSliceCoordinateCoronal() - sy);
+                        }
+                    }
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    {
+                        const int32_t diff  = sliceIndex - btc->getSliceIndexParasagittal(underlayVolumeFile);
+                        if (diff > 0) {
+                            btc->setSliceCoordinateParasagittal(btc->getSliceCoordinateParasagittal() + sx);
+                        }
+                        else {
+                            btc->setSliceCoordinateParasagittal(btc->getSliceCoordinateParasagittal() - sx);
+                        }
+                    }
+                        break;
+                }
+            }
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                switch (viewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        CaretAssert(0);
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        btc->setSliceIndexAxial(underlayVolumeFile,
+                                                sliceIndex);
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        btc->setSliceIndexCoronal(underlayVolumeFile,
+                                                  sliceIndex);
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        btc->setSliceIndexParasagittal(underlayVolumeFile,
+                                                       sliceIndex);
+                        break;
+                }
+                break;
+        }
     }
     
     this->updateSliceIndicesAndCoordinatesRanges();
