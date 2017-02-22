@@ -1291,6 +1291,37 @@ CiftiMappableConnectivityMatrixDataFile::getMapName(const int32_t /*mapIndex*/) 
     return m_rowLoadedTextForMapName;
 }
 
+/**
+ * @return True if the number of rows and columns is identical
+ * and the row and column names are identical for the same index 
+ * (row "i" name is same as column "i" name for all rows/columns).
+ */
+bool
+CiftiMappableConnectivityMatrixDataFile::hasSymetricRowColumnNames() const
+{
+    const CiftiXML& xml = m_ciftiFile->getCiftiXML();
+    if ((xml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::PARCELS)
+        && (xml.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::PARCELS)) {
+        const std::vector<CiftiParcelsMap::Parcel>& rowParcels    = xml.getParcelsMap(CiftiXML::ALONG_COLUMN).getParcels();
+        const std::vector<CiftiParcelsMap::Parcel>& columnParcels = xml.getParcelsMap(CiftiXML::ALONG_ROW).getParcels();
+        if (rowParcels.size() == columnParcels.size()) {
+            const int numRowsColumns = static_cast<int32_t>(rowParcels.size());
+            if (numRowsColumns > 0) {
+                for (int32_t i = 0; i < numRowsColumns; i++) {
+                    CaretAssertVectorIndex(rowParcels, i);
+                    CaretAssertVectorIndex(columnParcels, i);
+                    if (rowParcels[i].m_name != columnParcels[i].m_name) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
 AString
 CiftiMappableConnectivityMatrixDataFile::getRowName(const int32_t rowIndex) const
 {

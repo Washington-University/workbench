@@ -75,9 +75,13 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                                                      numCols);
     }
     
+    m_matrixTriangularViewingModeSupportedFlag = false;
     if ((numRows > 0)
         && (numCols > 0)) {
-        /* OK */
+        const CiftiConnectivityMatrixParcelFile* matrixFile = dynamic_cast<const CiftiConnectivityMatrixParcelFile*>(parentCaretMappableDataFile);
+        if (matrixFile != NULL) {
+            m_matrixTriangularViewingModeSupportedFlag = matrixFile->hasSymetricRowColumnNames();
+        }
     }
     else {
         m_matrixContentType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED;
@@ -140,6 +144,16 @@ ChartableTwoFileMatrixChart::isEmpty() const
     
     return true;
 }
+
+/**
+ * @return Is matrix triangular viewing modes supported?
+ */
+bool
+ChartableTwoFileMatrixChart::isMatrixTriangularViewingModeSupported() const
+{
+    return m_matrixTriangularViewingModeSupportedFlag;
+}
+
 
 /**
  * Get the matrix dimensions.

@@ -179,7 +179,7 @@ namespace caret {
         
         bool m_allHistogramMapsSelectedFlag = false;
         
-        ChartTwoMatrixTriangularViewingModeEnum::Enum m_matrixTriangularViewingMode;
+        mutable ChartTwoMatrixTriangularViewingModeEnum::Enum m_matrixTriangularViewingMode;
         
         /** Location of vertical cartesian axis*/
         mutable ChartAxisLocationEnum::Enum m_cartesianVerticalAxisLocation;

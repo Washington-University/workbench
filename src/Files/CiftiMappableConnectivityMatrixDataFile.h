@@ -78,6 +78,8 @@ namespace caret {
 
 		virtual AString getMapName(const int32_t mapIndex) const;
 
+        bool hasSymetricRowColumnNames() const;
+        
         AString getRowName(const int32_t rowIndex) const;
         
         AString getColumnName(const int32_t rowIndex) const;

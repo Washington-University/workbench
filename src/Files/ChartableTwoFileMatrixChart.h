@@ -49,8 +49,10 @@ namespace caret {
                                int32_t& numberOfColumnsOut,
                                std::vector<float>& rgbaOut) const;
         
-        // ADD_NEW_METHODS_HERE
+        bool isMatrixTriangularViewingModeSupported() const;
 
+        // ADD_NEW_METHODS_HERE
+        
         ChartTwoMatrixLoadingDimensionEnum::Enum getSelectedRowColumnDimension() const;
         
         void setSelectedRowColumnDimension(const ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension);
@@ -82,6 +84,8 @@ namespace caret {
         ChartTwoMatrixContentTypeEnum::Enum m_matrixContentType;
        
         const std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum> m_validRowColumnSelectionDimensions;
+        
+        bool m_matrixTriangularViewingModeSupportedFlag = false;
         
         //ChartTwoMatrixLoadingDimensionEnum::Enum m_rowColumnDimension;
 

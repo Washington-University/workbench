@@ -1047,6 +1047,12 @@ ChartTwoOverlay::setAllMapsSelected(const bool status)
 ChartTwoMatrixTriangularViewingModeEnum::Enum
 ChartTwoOverlay::getMatrixTriangularViewingMode() const
 {
+    if ( ! isMatrixTriangularViewingModeSupported()) {
+        if (m_matrixTriangularViewingMode != ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL) {
+            m_matrixTriangularViewingMode = ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL;
+        }
+    }
+    
     return m_matrixTriangularViewingMode;
 }
 
@@ -1076,8 +1082,11 @@ ChartTwoOverlay::isMatrixTriangularViewingModeSupported() const
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-            return true;
-            break;
+        {
+            ChartableTwoFileDelegate* chartDelegate        = m_selectedMapFile->getChartingDelegate();
+            const ChartableTwoFileMatrixChart* matrixChart = chartDelegate->getMatrixCharting();
+            return matrixChart->isMatrixTriangularViewingModeSupported();
+        }
     }
     
     return false;

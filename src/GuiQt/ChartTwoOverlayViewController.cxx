@@ -783,17 +783,18 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
      */
     m_matrixTriangularViewModeAction->setEnabled(false);
     if (validOverlayAndFileFlag) {
+        const ChartTwoMatrixTriangularViewingModeEnum::Enum viewMode = m_chartOverlay->getMatrixTriangularViewingMode();
+        
+        for (auto& mvmd : m_matrixViewMenuData) {
+            if (std::get<0>(mvmd) == viewMode) {
+                std::get<1>(mvmd)->setChecked(true);
+                updateMatrixTriangularViewModeAction(viewMode);
+                break;
+            }
+        }
+        
         if (m_chartOverlay->isMatrixTriangularViewingModeSupported()) {
             m_matrixTriangularViewModeAction->setEnabled(true);
-            const ChartTwoMatrixTriangularViewingModeEnum::Enum viewMode = m_chartOverlay->getMatrixTriangularViewingMode();
-            
-            for (auto& mvmd : m_matrixViewMenuData) {
-                if (std::get<0>(mvmd) == viewMode) {
-                    std::get<1>(mvmd)->setChecked(true);
-                    updateMatrixTriangularViewModeAction(viewMode);
-                    break;
-                }
-            }
         }
     }
     
