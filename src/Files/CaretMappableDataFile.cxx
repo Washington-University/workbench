@@ -861,6 +861,15 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
         }
     }
     
+    /*
+     * Statistics may be NULL for connectivity files (dense, dense dynamic)
+     * that have not yet loaded any data caused by the user clicking
+     * brainordinates.
+     */
+    if (statistics == NULL) {
+        return false;
+    }
+    
     CaretAssert(statistics);
     float mostPos  = 0.0;
     float leastPos = 0.0;
