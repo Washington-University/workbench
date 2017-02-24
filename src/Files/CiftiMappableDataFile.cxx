@@ -239,15 +239,6 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             break;
     }
     
-    /*
-     * Note: The first palette normalization mode is assumed to 
-     * be the default mode. The method called is in a parent class.
-     */
-    CaretAssertToDoWarning();
-//    if ( ! m_paletteNormalizationModesSupported.empty()) {
-//        setPaletteNormalizationMode(m_paletteNormalizationModesSupported[0]);
-//    }
-
     CaretAssert(m_dataReadingAccessMethod != DATA_ACCESS_METHOD_INVALID);
     CaretAssert(m_dataMappingAccessMethod != DATA_ACCESS_METHOD_INVALID);
     CaretAssert(m_colorMappingMethod      != COLOR_MAPPING_METHOD_INVALID);
