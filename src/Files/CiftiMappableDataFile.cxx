@@ -243,9 +243,10 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
      * Note: The first palette normalization mode is assumed to 
      * be the default mode. The method called is in a parent class.
      */
-    if ( ! m_paletteNormalizationModesSupported.empty()) {
-        setPaletteNormalizationMode(m_paletteNormalizationModesSupported[0]);
-    }
+    CaretAssertToDoWarning();
+//    if ( ! m_paletteNormalizationModesSupported.empty()) {
+//        setPaletteNormalizationMode(m_paletteNormalizationModesSupported[0]);
+//    }
 
     CaretAssert(m_dataReadingAccessMethod != DATA_ACCESS_METHOD_INVALID);
     CaretAssert(m_dataMappingAccessMethod != DATA_ACCESS_METHOD_INVALID);
@@ -1941,7 +1942,7 @@ CiftiMappableDataFile::getMapLabelTable(const int32_t mapIndex) const
  *     vector is assumed to be the default mode.
  */
 void
-CiftiMappableDataFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut)
+CiftiMappableDataFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) const
 {
     modesSupportedOut = m_paletteNormalizationModesSupported;
 }

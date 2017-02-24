@@ -32,6 +32,7 @@
 #include "FastStatistics.h"
 #include "FileInformation.h"
 #include "GiftiLabelTable.h"
+#include "GiftiMetaDataXmlElements.h"
 #include "Histogram.h"
 #include "LabelDrawingProperties.h"
 #include "PaletteColorMapping.h"
@@ -52,8 +53,6 @@ CaretMappableDataFile::CaretMappableDataFile(const DataFileTypeEnum::Enum dataFi
 : CaretDataFile(dataFileType)
 {
     m_labelDrawingProperties.grabNew(new LabelDrawingProperties());
-    
-    m_paletteNormalizationMode = PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA;
 }
 
 /**
@@ -98,7 +97,7 @@ CaretMappableDataFile::operator=(const CaretMappableDataFile& cmdf)
 void 
 CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile& cmdf)
 {
-    m_paletteNormalizationMode = cmdf.m_paletteNormalizationMode;
+    setPaletteNormalizationMode(cmdf.getPaletteNormalizationMode());
 }
 
 // note: method is documented in header file
@@ -303,7 +302,7 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
     
     if (isMappedWithPalette()) {
         sceneClass->addEnumeratedType<PaletteNormalizationModeEnum, PaletteNormalizationModeEnum::Enum>("m_paletteNormalizationMode",
-                                                                                                        m_paletteNormalizationMode);
+                                                                                                        getPaletteNormalizationMode());
         
         if (sceneAttributes->isModifiedPaletteSettingsSavedToScene()) {
             std::vector<SceneClass*> pcmClassVector;
@@ -380,8 +379,8 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
         getPaletteNormalizationModesSupported(paletteNormalizationModes);
         if ( ! paletteNormalizationModes.empty()) {
             const PaletteNormalizationModeEnum::Enum defValue = paletteNormalizationModes[0];
-            m_paletteNormalizationMode = sceneClass->getEnumeratedTypeValue<PaletteNormalizationModeEnum, PaletteNormalizationModeEnum::Enum>("m_paletteNormalizationMode",
-                                                                                                                                              defValue);
+            setPaletteNormalizationMode(sceneClass->getEnumeratedTypeValue<PaletteNormalizationModeEnum, PaletteNormalizationModeEnum::Enum>("m_paletteNormalizationMode",
+                                                                                                                                              defValue));
         }
         
         const int32_t numMaps = getNumberOfMaps();
@@ -983,7 +982,33 @@ CaretMappableDataFile::getLabelDrawingProperties() const
 PaletteNormalizationModeEnum::Enum
 CaretMappableDataFile::getPaletteNormalizationMode() const
 {
-    return m_paletteNormalizationMode;
+    /*
+     * As of 24 feb 2017, volume file has never supported file metadata
+     */
+    if (getDataFileType() == DataFileTypeEnum::VOLUME) {
+        return PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA;
+    }
+    
+    PaletteNormalizationModeEnum::Enum modeValue = PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA;
+    
+    const AString textValue = getFileMetaData()->get(GiftiMetaDataXmlElements::METADATA_PALETTE_NORMALIZATION_MODE);
+    bool validFlag = false;
+    modeValue = PaletteNormalizationModeEnum::fromName(textValue, &validFlag);
+    
+    if ( ! validFlag) {
+        std::vector<PaletteNormalizationModeEnum::Enum> validModes;
+        getPaletteNormalizationModesSupported(validModes);
+        
+        if ( ! validModes.empty()) {
+            CaretAssertVectorIndex(validModes, 0);
+            modeValue = validModes[0];
+        }
+        else {
+            modeValue = PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA;
+        }
+    }
+    
+    return modeValue;
 }
 
 /**
@@ -995,7 +1020,15 @@ CaretMappableDataFile::getPaletteNormalizationMode() const
 void
 CaretMappableDataFile::setPaletteNormalizationMode(const PaletteNormalizationModeEnum::Enum mode)
 {
-    m_paletteNormalizationMode = mode;
+    /*
+     * As of 24 feb 2017, volume file has never supported file metadata
+     */
+    if (getDataFileType() == DataFileTypeEnum::VOLUME) {
+        return;
+    }
+    
+    getFileMetaData()->set(GiftiMetaDataXmlElements::METADATA_PALETTE_NORMALIZATION_MODE,
+                           PaletteNormalizationModeEnum::toName(mode));
 }
 
 /**

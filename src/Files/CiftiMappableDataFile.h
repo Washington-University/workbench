@@ -208,7 +208,7 @@ namespace caret {
                                                  const float mostNegativeValueInclusive,
                                                  const bool includeZeroValues);
         
-        virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut);
+        virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) const;
         
         virtual int64_t getDataSizeUncompressedInBytes() const;
         

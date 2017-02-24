@@ -744,7 +744,7 @@ GiftiTypeFile::isMappedWithPalette() const
  *     vector is assumed to be the default mode.
  */
 void
-GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut)
+GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) const
 {
     modesSupportedOut.clear();
     

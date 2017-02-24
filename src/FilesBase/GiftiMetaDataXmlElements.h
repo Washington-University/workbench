@@ -205,6 +205,9 @@ namespace GiftiMetaDataXmlElements {
 
     /**name of palette color mapping stored in metadata */
      static const AString METADATA_NAME_PALETTE_COLOR_MAPPING = "PaletteColorMapping";
+    
+    /** name of palette normalization mode */
+    static const AString METADATA_PALETTE_NORMALIZATION_MODE = "PaletteNormalizationMode";
 
 } // namespace
 

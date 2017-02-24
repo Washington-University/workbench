@@ -731,7 +731,7 @@ CiftiFiberTrajectoryFile::getMapLabelTable(const int32_t /*mapIndex*/) const
  *     vector is assumed to be the default mode.
  */
 void
-CiftiFiberTrajectoryFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut)
+CiftiFiberTrajectoryFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) const
 {
     modesSupportedOut.clear();
 }

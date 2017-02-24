@@ -371,7 +371,7 @@ namespace caret {
          *     is more than one suppported mode, the first mode in the
          *     vector is assumed to be the default mode.
          */
-        virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) = 0;
+        virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) const = 0;
         
         /**
          * @return The palette normalization mode for the file.
@@ -464,7 +464,6 @@ namespace caret {
         
         CaretPointer<LabelDrawingProperties> m_labelDrawingProperties;
 
-        PaletteNormalizationModeEnum::Enum m_paletteNormalizationMode;
     };
 
 #ifdef __CARET_MAPPABLE_DATA_FILE_DECLARE__

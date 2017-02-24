@@ -1131,7 +1131,7 @@ VolumeFile::isMappedWithPalette() const
  *     vector is assumed to be the default mode.
  */
 void
-VolumeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut)
+VolumeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) const
 {
     modesSupportedOut.clear();
     
