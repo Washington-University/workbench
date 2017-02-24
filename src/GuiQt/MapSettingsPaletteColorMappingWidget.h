@@ -196,6 +196,8 @@ namespace caret {
         
         EnumComboBoxTemplate* m_histogramChartTypeComboBox;
         
+        QSpinBox* m_histogramBucketsSpinBox;
+        
         CaretMappableDataFile* caretMappableDataFile;
         CaretMappableDataFile* m_previousCaretMappableDataFile;
         

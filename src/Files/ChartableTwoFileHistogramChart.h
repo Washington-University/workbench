@@ -29,7 +29,7 @@
 
 namespace caret {
 
-    class ChartTwoDataHistogram;
+    //class ChartTwoDataHistogram;
     
     class ChartableTwoFileHistogramChart : public ChartableTwoFileBaseChart {
         
@@ -45,7 +45,7 @@ namespace caret {
         
         virtual bool isEmpty() const override;
         
-        const ChartTwoDataHistogram* getMapHistogramChart(const int32_t mapIndex) const;
+        //const ChartTwoDataHistogram* getMapHistogramChart(const int32_t mapIndex) const;
         
         // ADD_NEW_METHODS_HERE
           
@@ -65,7 +65,7 @@ namespace caret {
 
         const ChartTwoHistogramContentTypeEnum::Enum m_histogramContentType;
         
-        mutable std::map<int32_t, ChartTwoDataHistogram*> m_indexHistogramsMap;
+       // mutable std::map<int32_t, ChartTwoDataHistogram*> m_indexHistogramsMap;
         
         // ADD_NEW_MEMBERS_HERE
 

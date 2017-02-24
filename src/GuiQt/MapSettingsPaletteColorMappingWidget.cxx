@@ -757,6 +757,12 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     this->m_histogramChartTypeComboBox->setup<PaletteHistogramChartTypeEnum, PaletteHistogramChartTypeEnum::Enum>();
     this->m_histogramChartTypeComboBox->getWidget()->setToolTip("Set type of chart drawn");
     
+    const int32_t maxBuckets = 100000;
+    QLabel* bucketsLabel = new QLabel("Buckets");
+    m_histogramBucketsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(1, maxBuckets, 1);
+    QObject::connect(m_histogramBucketsSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(applyAndUpdate()));
+    
     QWidget* controlWidget = new QWidget();
     QGridLayout* controlLayout = new QGridLayout(controlWidget);
     this->setLayoutSpacingAndMargins(controlLayout);
@@ -766,6 +772,8 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     controlLayout->addWidget(m_histogramColorComboBox->getWidget(), 1, 1);
     controlLayout->addWidget(horizRangeLabel, 2, 0);
     controlLayout->addWidget(m_histogramHorizontalRangeComboBox->getWidget(), 2, 1);
+    controlLayout->addWidget(bucketsLabel, 3, 0);
+    controlLayout->addWidget(m_histogramBucketsSpinBox, 3, 1);
     controlWidget->setFixedSize(controlWidget->sizeHint());
     
     /*
@@ -1619,20 +1627,25 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
 
         m_histogramHorizontalRangeComboBox->setSelectedItem<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>(this->paletteColorMapping->getHistogramRangeMode());
 
+        
         updateThresholdSection();
         
         float minValue  = 0.0;
         float maxValue  = 0.0;
         
+        m_histogramBucketsSpinBox->blockSignals(true);
         FastStatistics* statistics = NULL;
         switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
             case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
                 statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getFileFastStatistics());
+                //m_histogramBucketsSpinBox->setValue(this->caretMappableDataFile->getFile);
                 break;
             case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
                 statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
+                //m_histogramBucketsSpinBox->setValue(this->paletteColorMapping->getHistogramNumberOfBuckets());
                 break;
         }
+        m_histogramBucketsSpinBox->blockSignals(false);
         
         if (statistics != NULL) {
             minValue  = statistics->getMin();
@@ -2187,7 +2200,8 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     this->paletteColorMapping->setHistogramColor(m_histogramColorComboBox->getSelectedColor());
     this->paletteColorMapping->setHistogramChartType(m_histogramChartTypeComboBox->getSelectedItem<PaletteHistogramChartTypeEnum, PaletteHistogramChartTypeEnum::Enum>());
     this->paletteColorMapping->setHistogramRangeMode(m_histogramHorizontalRangeComboBox->getSelectedItem<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>());
-
+//    this->paletteColorMapping->setHistogramNumberOfBuckets(m_histogramBucketsSpinBox->value());
+    
     float lowValue = this->thresholdLowSpinBox->value();
     float highValue = this->thresholdHighSpinBox->value();
     
