@@ -387,7 +387,7 @@ PaletteColorMapping::decodeFromStringXML(const AString& xml)
            
 {
     PaletteColorMappingSaxReader saxReader(this);
-    XmlSaxParser* parser = XmlSaxParser::createXmlParser();
+    CaretPointer<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
         parser->parseString(xml, &saxReader);
     }
@@ -408,7 +408,6 @@ PaletteColorMapping::decodeFromStringXML(const AString& xml)
         << e.whatString().toStdString();
         throw XmlException(AString::fromStdString(str.str()));
     }
-    delete parser;
 }
 
 /**
