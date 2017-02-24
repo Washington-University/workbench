@@ -336,10 +336,10 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
            else {
                std::ostringstream str;
                str
-               << "Unrecognized palette color mapping element \""
+               << "Unrecognized (perhaps new) palette color mapping element \""
                << qName.toStdString()
                << "\".";
-               throw XmlSaxParserException(AString::fromStdString(str.str()));
+               warning(XmlSaxParserException(AString::fromStdString(str.str())));
            }
          break;
    }
