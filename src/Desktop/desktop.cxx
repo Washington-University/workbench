@@ -265,11 +265,13 @@ messageHandlerForQt4(QtMsgType type, const char* msg)
 struct ProgramState
 {
     vector<AString> fileList;
-    int specLoadType;
     int windowSizeXY[2];
     int windowPosXY[2];
     int graphicsSizeXY[2];
     bool showSplash;
+    
+    AString specFileNameLoadWithDialog;
+    AString specFileNameLoadAll;
     
     AString sceneFileName;
     AString sceneNameOrNumber;
@@ -278,89 +280,6 @@ struct ProgramState
 };
 
 
-/*
-// maximum mumber of lines the output console should have
-
-static const WORD MAX_CONSOLE_LINES = 500;
-#include <windows.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <io.h>
-#include <iostream>
-#include <fstream>
-
-void RedirectIOToConsole()
-{
-
-    int hConHandle;
-
-    long lStdHandle;
-
-    CONSOLE_SCREEN_BUFFER_INFO coninfo;
-
-    FILE *fp;
-
-    // allocate a console for this app
-
-    AllocConsole();
-
-    // set the screen buffer to be big enough to let us scroll text
-
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
-
-    &coninfo);
-
-    coninfo.dwSize.Y = MAX_CONSOLE_LINES;
-
-    SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE),
-
-    coninfo.dwSize);
-
-    // redirect unbuffered STDOUT to the console
-
-    lStdHandle = (long)GetStdHandle(STD_OUTPUT_HANDLE);
-
-    hConHandle = _open_osfhandle(lStdHandle, _O_TEXT);
-
-    fp = _fdopen( hConHandle, "w" );
-
-    *stdout = *fp;
-
-    setvbuf( stdout, NULL, _IONBF, 0 );
-
-    // redirect unbuffered STDIN to the console
-
-    lStdHandle = (long)GetStdHandle(STD_INPUT_HANDLE);
-
-    hConHandle = _open_osfhandle(lStdHandle, _O_TEXT);
-
-    fp = _fdopen( hConHandle, "r" );
-
-    *stdin = *fp;
-
-    setvbuf( stdin, NULL, _IONBF, 0 );
-
-    // redirect unbuffered STDERR to the console
-
-    lStdHandle = (long)GetStdHandle(STD_ERROR_HANDLE);
-
-    hConHandle = _open_osfhandle(lStdHandle, _O_TEXT);
-
-    fp = _fdopen( hConHandle, "w" );
-
-    *stderr = *fp;
-
-    setvbuf( stderr, NULL, _IONBF, 0 );
-
-    // make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog
-
-    // point to console as well
-
-    ios::sync_with_stdio();
-
-}*/
-//#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
-
 //declare the functions associated with command line
 void printHelp(const AString& progName);
 void parseCommandLine(const AString& progName, ProgramParameters* myParams, ProgramState& myState);
@@ -368,8 +287,6 @@ int
 main(int argc, char* argv[])
 {
     srand(time(NULL));
-    //MS Windows code to allocate a new console, will have a preference to set this up
-    //RedirectIOToConsole();
     int result;
     {
         /*
@@ -447,7 +364,7 @@ main(int argc, char* argv[])
         
                                       
 #ifndef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-        if (QGLFormat::hasOpenGL() == false) {
+        if ( ! QGLFormat::hasOpenGL()) {
             app.processEvents();
             WuQMessageBox::errorOk(NULL,
                                    noOpenGLMessage);
@@ -474,30 +391,6 @@ main(int argc, char* argv[])
          */
         CaretLogConfig(applicationInformation.getCompiledWithDebugStatus());
         
-        //sanity check command line
-        bool haveSpec = false;
-        bool haveFiles = false;
-        for (int i = 0; i < (int)myState.fileList.size(); ++i)
-        {
-            if (myState.fileList[i].endsWith(".spec"))
-            {
-                if (haveSpec)
-                {
-                    cerr << "error, cannot load multiple spec files at this time" << endl;
-                    return -1;
-                }
-                haveSpec = true;
-            } else {
-                haveFiles = true;
-            }
-        }
-        //if error to have both data and spec files
-        /*if (haveFiles && haveSpec)
-        {
-            cerr << "error, cannot specify both spec files and data files on the command line" << endl;
-            return -1;
-        }//*/
-        
         /*
          * Enabled the desired splash screen based upon user preferences
          * and command line options.  Do not show selection splash screen
@@ -505,14 +398,8 @@ main(int argc, char* argv[])
          */ 
         CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
         bool showSelectionSplashScreen = preferences->isSplashScreenEnabled();
-        if (myState.fileList.empty() == false) {
-            showSelectionSplashScreen = false;
-        }
-        if (myState.sceneFileName.isEmpty() == false) {
-            showSelectionSplashScreen = false;
-        }
         bool showImageSplashScreen = (! showSelectionSplashScreen);
-        if (myState.showSplash == false) {
+        if ( ! myState.showSplash) {
             showSelectionSplashScreen = false;
             showImageSplashScreen = false;
         }
@@ -550,20 +437,16 @@ main(int argc, char* argv[])
         
         /*
          * Now that events have processed, see if there was a request for
-         * a data file to open
+         * a data file to open.
          */
         const AString dataFileNameFromOS = GuiManager::get()->getNameOfDataFileToOpenAfterStartup();
-        if (dataFileNameFromOS.isEmpty() == false) {
-            myState.fileList.push_back(dataFileNameFromOS);
+        if ( ! dataFileNameFromOS.isEmpty()) {
             showSelectionSplashScreen = false;
             if (dataFileNameFromOS.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION))) {
-                haveSpec  = true;
-                haveFiles = false;
-                myState.specLoadType = 0;
+                myState.specFileNameLoadWithDialog = dataFileNameFromOS;
             }
             else {
-                haveSpec  = false;
-                haveFiles = true;
+                myState.fileList.push_back(dataFileNameFromOS);
             }
         }
         
@@ -582,15 +465,11 @@ main(int argc, char* argv[])
                 const QString dataFileName = splashScreen.getSelectedDataFileName();
                 if ( ! dataFileName.isEmpty()) {
                     myState.fileList.clear();
-                    myState.fileList.push_back(dataFileName);
-                    if (dataFileName.endsWith(DataFileTypeEnum::SPECIFICATION)) {
-                        myState.specLoadType = 0; // which means use BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE;
-                        haveSpec  = true;
-                        haveFiles = false;
+                    if (dataFileName.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION))) {
+                        myState.specFileNameLoadWithDialog = dataFileName;
                     }
                     else {
-                        haveSpec  = false;
-                        haveFiles = true;
+                        myState.fileList.push_back(dataFileName);
                     }
                 }
             }
@@ -642,27 +521,21 @@ main(int argc, char* argv[])
             myWindow->setGraphicsWidgetFixedSize(myState.graphicsSizeXY[0], myState.graphicsSizeXY[1]);
         }
         
-        //use command line
-        if (haveFiles)
-        {
-            myWindow->loadFilesFromCommandLine(myState.fileList, BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG);//second parameter unused in this case
+        if ( ! myState.specFileNameLoadAll.isEmpty()) {
+            myWindow->loadFilesFromCommandLine({ myState.specFileNameLoadAll },
+                                               BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
         }
-        if (haveSpec)
-        {
-            switch (myState.specLoadType)
-            {
-                case 0://dialog
-                    myWindow->loadFilesFromCommandLine(myState.fileList, BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE);
-                    break;
-                case 1://load all
-                    myWindow->loadFilesFromCommandLine(myState.fileList, BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
-                    break;
-                default:
-                    CaretAssert(false);
-            }
+        else if ( ! myState.specFileNameLoadWithDialog.isEmpty()) {
+            myWindow->loadFilesFromCommandLine({ myState.specFileNameLoadWithDialog },
+                                               BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE);
         }
         
-        if (myState.sceneFileName.isEmpty() == false) {
+        if (! myState.fileList.empty()) {
+            myWindow->loadFilesFromCommandLine(myState.fileList,
+                                               BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG);
+        }
+        
+        if ( ! myState.sceneFileName.isEmpty()) {
             myWindow->loadSceneFromCommandLine(myState.sceneFileName,
                                                myState.sceneNameOrNumber);
         }
@@ -812,10 +685,6 @@ void printHelp(const AString& progName)
          iter++) {
         cout << "           " << qPrintable(LogLevelEnum::toName(*iter)) << endl;
     }
-//    foreach (LogLevelEnum::Enum level , logLevels) {
-//    for (LogLevelEnum::Enum level : logLevels) {
-//        cout << "           " << qPrintable(LogLevelEnum::toName(level)) << endl;
-//    }
     
     cout
     << endl
@@ -859,6 +728,8 @@ void printHelp(const AString& progName)
 void parseCommandLine(const AString& progName, ProgramParameters* myParams, ProgramState& myState)
 {
     bool hasFatalError = false;
+    
+    const AString moreThanOneSpecFileErrorMessage("More than one spec file is NOT allowed in options");
     
     try {
         while (myParams->hasNext())
@@ -911,7 +782,16 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                         hasFatalError = true;
                     }
                 } else if (thisParam == "-spec-load-all") {
-                    myState.specLoadType = 1;
+                    if ( ! myState.specFileNameLoadAll.isEmpty()) {
+                        cerr << qPrintable(moreThanOneSpecFileErrorMessage) << endl;
+                    }
+                    else if (myParams->hasNext()) {
+                        myState.specFileNameLoadAll = myParams->nextString("Spec File Name");
+                    }
+                    else {
+                        cerr << "Missing spec file name for \"-spec\" option" << endl;
+                        hasFatalError = true;
+                    }
                 } else if (thisParam == "-graphics-size") {
                     if (myParams->hasNext()) {
                         myState.graphicsSizeXY[0] = myParams->nextInt("Graphics Size X");
@@ -978,7 +858,18 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                     hasFatalError = true;
                 }
             } else {
-                myState.fileList.push_back(thisParam);
+                if (thisParam.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION))) {
+                    if ( ! myState.specFileNameLoadWithDialog.isEmpty()) {
+                        cerr << qPrintable(moreThanOneSpecFileErrorMessage) << endl;
+                        hasFatalError = true;
+                    }
+                    else {
+                        myState.specFileNameLoadWithDialog = thisParam;
+                    }
+                }
+                else {
+                    myState.fileList.push_back(thisParam);
+                }
             }
         }
     }
@@ -987,8 +878,30 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
         hasFatalError = true;
     }
     
+    if ( ( ! myState.specFileNameLoadWithDialog.isEmpty())
+        && ( ! myState.specFileNameLoadAll.isEmpty())) {
+        cerr << qPrintable(moreThanOneSpecFileErrorMessage) << endl;
+        hasFatalError = true;
+    }
+    
     if (hasFatalError) {
         exit(-1);
+    }
+    
+    /*
+     * If any files are listed, disable splash screen
+     */
+    if ( ! myState.fileList.empty()) {
+        myState.showSplash = false;
+    }
+    if ( ! myState.sceneFileName.isEmpty()) {
+        myState.showSplash = false;
+    }
+    if ( ! myState.specFileNameLoadWithDialog.isEmpty()) {
+        myState.showSplash = false;
+    }
+    if ( ! myState.specFileNameLoadAll.isEmpty()) {
+        myState.showSplash = false;
     }
 }
 
@@ -996,7 +909,6 @@ ProgramState::ProgramState()
 {
     sceneFileName = "";
     sceneNameOrNumber = "";
-    specLoadType = 0;//0: use spec window, 1: all
     windowSizeXY[0] = -1;
     windowSizeXY[1] = -1;
     windowPosXY[0] = -1;
