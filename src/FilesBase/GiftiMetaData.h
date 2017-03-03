@@ -129,6 +129,8 @@ public:
     
     void resetUniqueIdentifier();
 
+    bool isEmpty() const;
+    
 private:
     void readEntry(QXmlStreamReader& xml);
     

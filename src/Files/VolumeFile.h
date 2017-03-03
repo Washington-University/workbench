@@ -68,7 +68,6 @@ namespace caret {
             float m_histogramLimitedValuesLeastNegativeValueInclusive;
             float m_histogramLimitedValuesMostNegativeValueInclusive;
             bool m_histogramLimitedValuesIncludeZeroValues;
-            CaretPointer<GiftiMetaData> m_metadata;//NOTE: does not get saved currently!
         };
         
         mutable std::vector<BrickAttributes> m_brickAttributes;//because statistics and metadata construct lazily
@@ -209,12 +208,12 @@ namespace caret {
         /**
          * @return Get access to the file's metadata.
          */
-        GiftiMetaData* getFileMetaData() { return NULL; }//doesn't seem to be a spot for generic metadata in the nifti caret extension
+        GiftiMetaData* getFileMetaData();
         
         /**
          * @return Get access to unmodifiable file's metadata.
          */
-        const GiftiMetaData* getFileMetaData() const { return NULL; }
+        const GiftiMetaData* getFileMetaData() const;
         
         bool isSurfaceMappable() const { return false; }
         

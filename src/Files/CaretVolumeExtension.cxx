@@ -20,6 +20,8 @@
 
 #include "CaretVolumeExtension.h"
 #include "XmlSaxParser.h"
+#include "GiftiMetaData.h"
+#include "GiftiMetaDataSaxReader.h"
 #include "GiftiXmlElements.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
@@ -46,6 +48,7 @@ CaretVolumeExtension::clear() {
     m_comment.clear();
     m_date.clear();
     m_attributes.clear();
+    m_metadata.grabNew(NULL);
 }
 
 void CaretVolumeExtension::readFromXmlString(const AString& s)
@@ -74,6 +77,11 @@ void CaretVolumeExtension::writeAsXML(XmlWriter& xmlWriter)
     for (int i = 0; i < numVols; ++i)
     {
         m_attributes[i]->writeAsXML(xmlWriter, i);
+    }
+    if (m_metadata != NULL) { // write metadata only if it is not empty
+        if ( ! m_metadata->isEmpty()) {
+            m_metadata->writeAsXML(xmlWriter);
+        }
     }
     xmlWriter.writeEndElement();//just to make it clean
     xmlWriter.writeEndDocument();//so, this just flushes
@@ -114,6 +122,11 @@ void SubvolumeAttributes::writeAsXML(XmlWriter& xmlWriter, int index)
             typeString = "Unknown";
     }
     xmlWriter.writeElementCData(CARET_VOL_EXT_VI_TYPE, typeString);
+    if (m_metadata != NULL) { // write metadata only if it is not empty
+        if ( ! m_metadata->isEmpty()) {
+            m_metadata->writeAsXML(xmlWriter);
+        }
+    }
     xmlWriter.writeEndElement();
 }
 
@@ -143,6 +156,14 @@ void CaretVolumeExtensionXMLReader::characters(const char* ch)
         case PALETTE_COLOR_MAPPING:
             CaretAssert(m_paletteReader != NULL);
             m_paletteReader->characters(ch);
+            break;
+        case ROOT_META_DATA:
+        case VI_META_DATA:
+            CaretAssert(m_metadataReader);
+            m_metadataReader->characters(ch);
+            break;
+        case IGNORING_INVALID_ELEMENT:
+            m_ignoringInvalidElementContent.append(AString(ch).trimmed());
             break;
         default:
             m_charDataStack.back() += ch;
@@ -217,6 +238,18 @@ void CaretVolumeExtensionXMLReader::endElement(const AString& namespaceURI, cons
                 popState = false;
             }
             break;
+        case ROOT_META_DATA:
+        case VI_META_DATA:
+            CaretAssert(m_metadataReader);
+            m_metadataReader->endElement(namespaceURI, localName, qualifiedName);
+            if (qualifiedName == GiftiXmlElements::TAG_METADATA) {
+                m_metadataReader->endDocument();
+                m_metadataReader.grabNew(NULL);
+            }
+            else {
+                popState = false;
+            }
+            break;
         case VOLUME_TYPE:
             CaretAssertVectorIndex(m_toFill->m_attributes, m_viIndex);
             if (elemCharData == "Anatomy")
@@ -234,6 +267,24 @@ void CaretVolumeExtensionXMLReader::endElement(const AString& namespaceURI, cons
                 m_toFill->m_attributes[m_viIndex]->m_type = SubvolumeAttributes::VECTOR;
             } else {
                 m_toFill->m_attributes[m_viIndex]->m_type = SubvolumeAttributes::UNKNOWN;
+            }
+            break;
+        case IGNORING_INVALID_ELEMENT:
+            if (qualifiedName == m_ignoringInvalidElementName) {
+                /* finished parsing of invalid element */
+                warning(XmlSaxParserException("Unrecognized content discarded (attributes/whitespace removed): <"
+                                              + qualifiedName
+                                              + ">"
+                                              + m_ignoringInvalidElementContent
+                                              + "</"
+                                              + qualifiedName
+                                              + ">"));
+                m_ignoringInvalidElementName = "";
+                m_ignoringInvalidElementContent = "";
+            }
+            else {
+                m_ignoringInvalidElementContent.append("</" + qualifiedName + ">");
+                popState = false;
             }
             break;
     }
@@ -300,6 +351,12 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
                         m_toFill->m_attributes.resize(m_viIndex + 1);//don't worry, CaretPointer copy is relatively cheap
                     }
                     m_toFill->m_attributes[m_viIndex].grabNew(new SubvolumeAttributes());
+                } else if (qName == GiftiXmlElements::TAG_METADATA) {
+                    nextState = ROOT_META_DATA;
+                    m_toFill->m_metadata.grabNew(new GiftiMetaData);
+                    m_metadataReader.grabNew(new GiftiMetaDataSaxReader(m_toFill->m_metadata));
+                    m_metadataReader->startDocument();
+                    m_metadataReader->startElement(uri, localName, qName, atts);
                 }//anything else gets caught in INVALID below
                 break;
             case VOLUME_INFORMATION:
@@ -324,6 +381,13 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
                     m_paletteReader.grabNew(new PaletteColorMappingSaxReader(m_toFill->m_attributes[m_viIndex]->m_palette));
                     m_paletteReader->startDocument();
                     m_paletteReader->startElement(uri, localName, qName, atts);
+                } else if (qName == GiftiXmlElements::TAG_METADATA) {
+                    nextState = VI_META_DATA;
+                    CaretAssertVectorIndex(m_toFill->m_attributes, m_viIndex);
+                    m_toFill->m_attributes[m_viIndex]->m_metadata.grabNew(new GiftiMetaData);
+                    m_metadataReader.grabNew(new GiftiMetaDataSaxReader(m_toFill->m_attributes[m_viIndex]->m_metadata));
+                    m_metadataReader->startDocument();
+                    m_metadataReader->startElement(uri, localName, qName, atts);
                 } else if (qName == CARET_VOL_EXT_VI_TYPE) {
                     nextState = VOLUME_TYPE;
                 }
@@ -341,13 +405,34 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
                 CaretAssert(m_paletteReader != NULL);
                 m_paletteReader->startElement(uri, localName, qName, atts);
                 break;
+            case ROOT_META_DATA:
+            case VI_META_DATA:
+                addState = false;
+                CaretAssert(m_metadataReader);
+                m_metadataReader->startElement(uri, localName, qName, atts);
+                break;
+            case IGNORING_INVALID_ELEMENT:
+                addState = false;
+                m_ignoringInvalidElementContent.append("<" + qName + ">");
+                break;
         }
     }
     if (addState)
     {
         if (nextState == INVALID)
         {
-            throw XmlSaxParserException(AString("CaretVolumeExtension encountered an unexpected element: ") + invalidInfo);
+            /*
+             * If the invalid element name is not empty,
+             * then we are processing child elements of the
+             * invalid element.
+             */
+            if (m_ignoringInvalidElementName.isEmpty()) {
+                m_ignoringInvalidElementName = qName;
+                nextState = IGNORING_INVALID_ELEMENT;
+            }
+//            else {
+//                throw XmlSaxParserException(AString("CaretVolumeExtension encountered an unexpected element: ") + invalidInfo);
+//            }
         }
         m_stateStack.push_back(nextState);
         m_charDataStack.push_back(AString());

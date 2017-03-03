@@ -29,9 +29,12 @@
 #include "XmlSaxParserHandlerInterface.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "GiftiLabelTableSaxReader.h"
+#include "GiftiMetaDataSaxReader.h"
+
 
 namespace caret
 {
+    class GiftiMetaData;
 
     struct StudyMetadataLinkSet
     {
@@ -53,6 +56,7 @@ namespace caret
         AString m_comment;
         AString m_guiLabel;
         CaretPointer<GiftiLabelTable> m_labelTable;
+        CaretPointer<GiftiMetaData> m_metadata;
         StudyMetadataLinkSet m_studyMetadata;
         CaretPointer<PaletteColorMapping> m_palette;
         VolumeType m_type;
@@ -62,6 +66,7 @@ namespace caret
     
     struct CaretVolumeExtension
     {
+        mutable CaretPointer<GiftiMetaData> m_metadata;
         AString m_comment;
         AString m_date;//TODO: make a class to handle ISO-8601 dates
         std::vector<CaretPointer<SubvolumeAttributes> > m_attributes;
@@ -84,7 +89,10 @@ namespace caret
             LABEL_TABLE,
             STUDY_META_DATA_LINK_SET,
             PALETTE_COLOR_MAPPING,
-            VOLUME_TYPE
+            VOLUME_TYPE,
+            ROOT_META_DATA,
+            VI_META_DATA,
+            IGNORING_INVALID_ELEMENT
         };
         std::vector<State> m_stateStack;
         CaretVolumeExtension* m_toFill;
@@ -92,6 +100,9 @@ namespace caret
         int m_viIndex;
         CaretPointer<PaletteColorMappingSaxReader> m_paletteReader;
         CaretPointer<GiftiLabelTableSaxReader> m_labelReader;
+        CaretPointer<GiftiMetaDataSaxReader> m_metadataReader;
+        AString m_ignoringInvalidElementName;
+        AString m_ignoringInvalidElementContent;
         CaretVolumeExtensionXMLReader();//disallow default construction
         CaretVolumeExtensionXMLReader(const CaretVolumeExtensionXMLReader&);//disallow copy
         CaretVolumeExtensionXMLReader& operator=(const CaretVolumeExtensionXMLReader&);//disallow assignment

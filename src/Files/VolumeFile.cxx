@@ -645,7 +645,7 @@ void VolumeFile::validateMembers()
         }
     }
     
-    setPaletteNormalizationMode(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+    //setPaletteNormalizationMode(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
     
     m_singleSliceFlag = false;
     if ((dimensions[0] == 1)
@@ -697,6 +697,8 @@ VolumeFile::clearModified()
     CaretMappableDataFile::clearModified();
     clearModifiedVolumeBase();
 
+    getFileMetaData()->clearModified();
+    
     const int32_t numMaps = getNumberOfMaps();
     if (isMappedWithPalette())
     {
@@ -709,6 +711,10 @@ VolumeFile::clearModified()
         for (int32_t i = 0; i < numMaps; i++) {
             getMapLabelTable(i)->clearModified();
         }
+    }
+    
+    for (int32_t i = 0; i < numMaps; i++) {
+        getMapMetaData(i)->clearModified();
     }
 }
 
@@ -727,12 +733,21 @@ VolumeFile::isModifiedExcludingPaletteColorMapping() const
         return true;
     }
     
+    if (getFileMetaData()->isModified()) {
+        return true;
+    }
+    
     const int32_t numMaps = getNumberOfMaps();
     if (isMappedWithLabelTable()) {
         for (int32_t i = 0; i < numMaps; i++) {
             if (getMapLabelTable(i)->isModified()) {
                 return true;
             }
+        }
+    }
+    for (int32_t i = 0; i < numMaps; i++) {
+        if (getMapMetaData(i)->isModified()) {
+            return true;
         }
     }
     
@@ -797,22 +812,22 @@ VolumeFile::setMapName(const int32_t mapIndex,
 
 const GiftiMetaData* VolumeFile::getMapMetaData(const int32_t mapIndex) const
 {
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    if (m_brickAttributes[mapIndex].m_metadata == NULL)
+    CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
+    if (m_caretVolExt.m_attributes[mapIndex]->m_metadata == NULL)
     {
-        m_brickAttributes[mapIndex].m_metadata.grabNew(new GiftiMetaData());
+        m_caretVolExt.m_attributes[mapIndex]->m_metadata.grabNew(new GiftiMetaData());
     }
-    return m_brickAttributes[mapIndex].m_metadata;
+    return m_caretVolExt.m_attributes[mapIndex]->m_metadata;
 }
 
 GiftiMetaData* VolumeFile::getMapMetaData(const int32_t mapIndex)
 {
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    if (m_brickAttributes[mapIndex].m_metadata == NULL)
+    CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
+    if (m_caretVolExt.m_attributes[mapIndex]->m_metadata == NULL)
     {
-        m_brickAttributes[mapIndex].m_metadata.grabNew(new GiftiMetaData());
+        m_caretVolExt.m_attributes[mapIndex]->m_metadata.grabNew(new GiftiMetaData());
     }
-    return m_brickAttributes[mapIndex].m_metadata;
+    return m_caretVolExt.m_attributes[mapIndex]->m_metadata;
 }
 
 void VolumeFile::checkStatisticsValid()
@@ -1051,6 +1066,31 @@ VolumeFile::getFileHistogram(const float mostPositiveValueInclusive,
 }
 
 /**
+ * @return Pointer to file's metadata.
+ */
+GiftiMetaData*
+VolumeFile::getFileMetaData()
+{
+    if (m_caretVolExt.m_metadata == NULL) {
+        m_caretVolExt.m_metadata.grabNew(new GiftiMetaData);
+    }
+    return m_caretVolExt.m_metadata;
+}
+
+/**
+ * @return Pointer to file's metadata.
+ */
+const GiftiMetaData*
+VolumeFile::getFileMetaData() const
+{
+    if (m_caretVolExt.m_metadata == NULL) {
+        m_caretVolExt.m_metadata.grabNew(new GiftiMetaData);
+    }
+    return m_caretVolExt.m_metadata;
+}
+
+
+/**
  * Get all data for a volume file.  If the file is very
  * large this method may take a large amount of time!
  *
@@ -1262,12 +1302,12 @@ VolumeFile::isMappedWithRGBA() const
 AString 
 VolumeFile::getMapUniqueID(const int32_t mapIndex) const
 {
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    if (m_brickAttributes[mapIndex].m_metadata == NULL)
+    CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
+    if (m_caretVolExt.m_attributes[mapIndex]->m_metadata == NULL)
     {
-        m_brickAttributes[mapIndex].m_metadata.grabNew(new GiftiMetaData());
+        m_caretVolExt.m_attributes[mapIndex]->m_metadata.grabNew(new GiftiMetaData());
     }
-    return m_brickAttributes[mapIndex].m_metadata->getUniqueID();
+    return m_caretVolExt.m_attributes[mapIndex]->m_metadata->getUniqueID();
 }
 
 /**
