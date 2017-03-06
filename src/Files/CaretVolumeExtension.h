@@ -35,6 +35,7 @@
 namespace caret
 {
     class GiftiMetaData;
+    class XmlUnexpectedElementSaxParser;
 
     struct StudyMetadataLinkSet
     {
@@ -92,7 +93,7 @@ namespace caret
             VOLUME_TYPE,
             ROOT_META_DATA,
             VI_META_DATA,
-            IGNORING_INVALID_ELEMENT
+            UNEXPECTED_XML
         };
         std::vector<State> m_stateStack;
         CaretVolumeExtension* m_toFill;
@@ -101,8 +102,7 @@ namespace caret
         CaretPointer<PaletteColorMappingSaxReader> m_paletteReader;
         CaretPointer<GiftiLabelTableSaxReader> m_labelReader;
         CaretPointer<GiftiMetaDataSaxReader> m_metadataReader;
-        AString m_ignoringInvalidElementName;
-        AString m_ignoringInvalidElementContent;
+        CaretPointer<XmlUnexpectedElementSaxParser> m_unexpectedXmlElementSaxParser;
         CaretVolumeExtensionXMLReader();//disallow default construction
         CaretVolumeExtensionXMLReader(const CaretVolumeExtensionXMLReader&);//disallow copy
         CaretVolumeExtensionXMLReader& operator=(const CaretVolumeExtensionXMLReader&);//disallow assignment

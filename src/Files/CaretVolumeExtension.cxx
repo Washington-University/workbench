@@ -27,6 +27,7 @@
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteColorMappingXmlElements.h"
 #include "CaretLogger.h"
+#include "XmlUnexpectedElementSaxParser.h"
 #include <ctime>
 
 using namespace caret;
@@ -141,6 +142,7 @@ CaretVolumeExtensionXMLReader::CaretVolumeExtensionXMLReader(CaretVolumeExtensio
     CaretAssert(toFill != NULL);
     m_toFill = toFill;
     m_viIndex = -1;
+    m_unexpectedXmlElementSaxParser.grabNew(NULL);
 }
 
 void CaretVolumeExtensionXMLReader::characters(const char* ch)
@@ -162,8 +164,9 @@ void CaretVolumeExtensionXMLReader::characters(const char* ch)
             CaretAssert(m_metadataReader);
             m_metadataReader->characters(ch);
             break;
-        case IGNORING_INVALID_ELEMENT:
-            m_ignoringInvalidElementContent.append(AString(ch).trimmed());
+        case UNEXPECTED_XML:
+            CaretAssert(m_unexpectedXmlElementSaxParser);
+            m_unexpectedXmlElementSaxParser->characters(ch);
             break;
         default:
             m_charDataStack.back() += ch;
@@ -269,22 +272,21 @@ void CaretVolumeExtensionXMLReader::endElement(const AString& namespaceURI, cons
                 m_toFill->m_attributes[m_viIndex]->m_type = SubvolumeAttributes::UNKNOWN;
             }
             break;
-        case IGNORING_INVALID_ELEMENT:
-            if (qualifiedName == m_ignoringInvalidElementName) {
-                /* finished parsing of invalid element */
-                warning(XmlSaxParserException("Unrecognized content discarded (attributes/whitespace removed): <"
-                                              + qualifiedName
-                                              + ">"
-                                              + m_ignoringInvalidElementContent
-                                              + "</"
-                                              + qualifiedName
-                                              + ">"));
-                m_ignoringInvalidElementName = "";
-                m_ignoringInvalidElementContent = "";
-            }
-            else {
-                m_ignoringInvalidElementContent.append("</" + qualifiedName + ">");
-                popState = false;
+        case UNEXPECTED_XML:
+            CaretAssert(m_unexpectedXmlElementSaxParser);
+            switch (m_unexpectedXmlElementSaxParser->endElement(namespaceURI, localName, qualifiedName)) {
+                case XmlUnexpectedElementSaxParser::ReturnCodeEnum::DONE:
+                    warning(XmlSaxParserException("Unexpected XML ignored:\n"
+                                                  + m_unexpectedXmlElementSaxParser->getUnexpectedContentXML()));
+                    m_unexpectedXmlElementSaxParser.grabNew(NULL);
+                    break;
+                case XmlUnexpectedElementSaxParser::ReturnCodeEnum::ERROR:
+                    throw XmlSaxParserException("Processing of unexpected elements failed: "
+                                                + m_unexpectedXmlElementSaxParser->getUnexpectedContentXML());
+                    break;
+                case XmlUnexpectedElementSaxParser::ReturnCodeEnum::NOT_DONE:
+                    popState = false;
+                    break;
             }
             break;
     }
@@ -411,9 +413,10 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
                 CaretAssert(m_metadataReader);
                 m_metadataReader->startElement(uri, localName, qName, atts);
                 break;
-            case IGNORING_INVALID_ELEMENT:
+            case UNEXPECTED_XML:
                 addState = false;
-                m_ignoringInvalidElementContent.append("<" + qName + ">");
+                CaretAssert(m_unexpectedXmlElementSaxParser);
+                m_unexpectedXmlElementSaxParser->startElement(uri, localName, qName, atts);
                 break;
         }
     }
@@ -426,13 +429,10 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
              * then we are processing child elements of the
              * invalid element.
              */
-            if (m_ignoringInvalidElementName.isEmpty()) {
-                m_ignoringInvalidElementName = qName;
-                nextState = IGNORING_INVALID_ELEMENT;
-            }
-//            else {
-//                throw XmlSaxParserException(AString("CaretVolumeExtension encountered an unexpected element: ") + invalidInfo);
-//            }
+            CaretAssert(m_unexpectedXmlElementSaxParser == NULL);
+            m_unexpectedXmlElementSaxParser.grabNew(new XmlUnexpectedElementSaxParser());
+            m_unexpectedXmlElementSaxParser->startElement(uri, localName, qName, atts);
+            nextState = UNEXPECTED_XML;
         }
         m_stateStack.push_back(nextState);
         m_charDataStack.push_back(AString());

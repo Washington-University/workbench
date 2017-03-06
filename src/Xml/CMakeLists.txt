@@ -22,22 +22,24 @@ ENDIF ()
 # Create a Library
 #
 ADD_LIBRARY(Xml
-XmlWriter.h
-XmlException.h
 XmlAttributes.h
+XmlException.h
 XmlSaxParser.h
 XmlSaxParserException.h
 XmlSaxParserHandlerInterface.h
 XmlSaxParserWithQt.h
+XmlUnexpectedElementSaxParser.h
 XmlUtilities.h
+XmlWriter.h
 
-XmlWriter.cxx
-XmlException.cxx
 XmlAttributes.cxx
+XmlException.cxx
 XmlSaxParser.cxx
 XmlSaxParserException.cxx
 XmlSaxParserWithQt.cxx
+XmlUnexpectedElementSaxParser.cxx
 XmlUtilities.cxx
+XmlWriter.cxx
 )
 
 #
