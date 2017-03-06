@@ -22,10 +22,12 @@
 #include "XmlSaxParser.h"
 #include "GiftiMetaData.h"
 #include "GiftiMetaDataSaxReader.h"
+#include "GiftiMetaDataXmlElements.h"
 #include "GiftiXmlElements.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteColorMappingXmlElements.h"
+#include "PaletteNormalizationModeEnum.h"
 #include "CaretLogger.h"
 #include "XmlUnexpectedElementSaxParser.h"
 #include <ctime>
@@ -79,9 +81,29 @@ void CaretVolumeExtension::writeAsXML(XmlWriter& xmlWriter)
     {
         m_attributes[i]->writeAsXML(xmlWriter, i);
     }
-    if (m_metadata != NULL) { // write metadata only if it is not empty
+    if (m_metadata != NULL) {
         if ( ! m_metadata->isEmpty()) {
-            m_metadata->writeAsXML(xmlWriter);
+            /*
+             * Prior to "WB-664 Data normalization should be saved in file", VolumeFile did not contain
+             * file metadata.  If one attempts to read a volume file containing metadata with older
+             * versions of wb_view/wb_command or Caret5, XML parsing of the CaretVolumeExtension will
+             * immediately cease if an unexpected element is encountered.  So, to minimize isses with
+             * older versions of software, DO NOT write file metadata if it contains only one 
+             * element that is the default value (selected map) of palette normalization.
+             */
+            bool writeFileMetaDataFlag = true;
+            if (m_metadata->getNumberOfMetaData() == 1) {
+                const AString normalizationValueString = m_metadata->get(GiftiMetaDataXmlElements::METADATA_PALETTE_NORMALIZATION_MODE);
+                if ( ! normalizationValueString.isEmpty()) {
+                    if (normalizationValueString ==
+                        PaletteNormalizationModeEnum::toName(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA)) {
+                        writeFileMetaDataFlag = false;
+                    }
+                }
+            }
+            if (writeFileMetaDataFlag) {
+                m_metadata->writeAsXML(xmlWriter);
+            }
         }
     }
     xmlWriter.writeEndElement();//just to make it clean
