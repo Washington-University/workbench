@@ -320,13 +320,18 @@ XmlWriter::writeStartElement(const AString& localName) {
 void
 XmlWriter::writeStartElement(const AString& localName,
                   const XmlAttributes& attributes) {
+    int32_t  numAtts = attributes.getNumberOfAttributes();
+    if (numAtts <= 0) {
+        writeStartElement(localName);
+        return;
+    }
+    
    this->writeIndentation();
    this->writeTextToOutputStream("<" + localName + " ");
 
    int32_t attIndentSpaces = localName.length() + 2;
    AString attIndentString(attIndentSpaces, ' ');
 
-   int32_t  numAtts = attributes.getNumberOfAttributes();
    for (int32_t i = 0; i < numAtts; i++) {
       if (i > 0) {
          this->writeIndentation();
