@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 
 #include "CaretObject.h"
 #include "ChartAxisLocationEnum.h"

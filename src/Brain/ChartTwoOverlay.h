@@ -21,9 +21,9 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 
 #include "CaretObject.h"
-
 #include "ChartAxisLocationEnum.h"
 #include "ChartTwoCompoundDataType.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"

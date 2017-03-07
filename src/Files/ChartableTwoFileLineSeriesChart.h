@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include "ChartableTwoFileBaseChart.h"
 #include "ChartTwoLineSeriesContentTypeEnum.h"
 
