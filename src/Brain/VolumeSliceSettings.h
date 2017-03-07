@@ -27,6 +27,7 @@
 #include "SceneableInterface.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
+#include "VolumeSliceViewAllPlanesLayoutEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
 namespace caret {
@@ -50,6 +51,10 @@ namespace caret {
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
         
         void setSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
+        
+        VolumeSliceViewAllPlanesLayoutEnum::Enum getSlicePlanesAllViewLayout() const;
+        
+        void setSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum slicePlanesAllViewLayout);
         
         VolumeSliceDrawingTypeEnum::Enum getSliceDrawingType() const;
 
@@ -144,6 +149,9 @@ namespace caret {
 
         /** Axis of slice being viewed */
         VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
+
+        /** Layout of slice in all slices view */
+        VolumeSliceViewAllPlanesLayoutEnum::Enum m_slicePlanesAllViewLayout;
         
         /** Type of slice drawing (single/montage) */
         VolumeSliceDrawingTypeEnum::Enum m_sliceDrawingType;
@@ -165,7 +173,7 @@ namespace caret {
         mutable float m_sliceCoordinateCoronal;
         
         mutable float m_sliceCoordinateAxial;
-        
+
         bool m_sliceEnabledParasagittal;
         
         bool m_sliceEnabledCoronal;

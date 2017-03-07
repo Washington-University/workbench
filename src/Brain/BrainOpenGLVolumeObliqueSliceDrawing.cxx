@@ -31,6 +31,7 @@
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
+#include "BrainOpenGLVolumeSliceDrawing.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -194,6 +195,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
         drawVolumeSliceViewPlane(sliceDrawingType,
                                  sliceProjectionType,
                                  browserTabContent->getSliceViewPlane(),
+                                 browserTabContent->getSlicePlanesAllViewLayout(),
                                  viewport);
     }
     else if (browserTabContent->getDisplayedWholeBrainModel() != NULL) {
@@ -211,32 +213,41 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
  *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
  *    The plane for slice drawing.
+ * @param allPlanesLayout
+ *    The layout in ALL slices view.
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
 BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
-                              const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                              const int32_t viewport[4])
+                                                        const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                        const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
+                                                        const int32_t viewport[4])
 {
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
         {
-            const int32_t gap = 2;
+            int32_t paraVP[4]    = { 0, 0, 0, 0 };
+            int32_t coronalVP[4] = { 0, 0, 0, 0 };
+            int32_t axialVP[4]   = { 0, 0, 0, 0 };
             
-            const int32_t vpHalfX = viewport[2] / 2;
-            const int32_t vpHalfY = viewport[3] / 2;
+            BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+                                                                   VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                                                   allPlanesLayout,
+                                                                   paraVP);
+            BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+                                                                   VolumeSliceViewPlaneEnum::CORONAL,
+                                                                   allPlanesLayout,
+                                                                   coronalVP);
+            BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+                                                                   VolumeSliceViewPlaneEnum::AXIAL,
+                                                                   allPlanesLayout,
+                                                                   axialVP);
             
             /*
              * Draw parasagittal slice
              */
-            const int32_t paraVP[4] = {
-                viewport[0],
-                viewport[1] + vpHalfY + gap,
-                vpHalfX - gap,
-                vpHalfY - gap
-            };
             glPushMatrix();
             drawVolumeSliceViewType(sliceDrawingType,
                                     sliceProjectionType,
@@ -248,12 +259,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
             /*
              * Draw coronal slice
              */
-            const int32_t coronalVP[4] = {
-                viewport[0] + vpHalfX + gap,
-                viewport[1] + vpHalfY + gap,
-                vpHalfX - gap,
-                vpHalfY - gap
-            };
             glPushMatrix();
             drawVolumeSliceViewType(sliceDrawingType,
                                     sliceProjectionType,
@@ -265,12 +270,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
             /*
              * Draw axial slice
              */
-            const int32_t axialVP[4] = {
-                viewport[0] + vpHalfX + gap,
-                viewport[1],
-                vpHalfX - gap,
-                vpHalfY - gap
-            };
             glPushMatrix();
             drawVolumeSliceViewType(sliceDrawingType,
                                     sliceProjectionType,
@@ -278,22 +277,23 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
                                     axialVP);
             glPopMatrix();
             
-            /*
-             * 4th quadrant is used for axis showing orientation
-             */
-            const int32_t allVP[4] = {
-                viewport[0],
-                viewport[1],
-                vpHalfX - gap,
-                vpHalfY - gap
-            };
-            
-            switch (sliceProjectionType) {
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                    drawOrientationAxes(allVP);
-                    break;
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                    break;
+            if (allPlanesLayout == VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT) {
+                /*
+                 * 4th quadrant is used for axis showing orientation
+                 */
+                int32_t allVP[4] = { 0, 0, 0, 0 };
+                BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+                                                                       VolumeSliceViewPlaneEnum::ALL,
+                                                                       allPlanesLayout,
+                                                                       allVP);
+                
+                switch (sliceProjectionType) {
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                        drawOrientationAxes(allVP);
+                        break;
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                        break;
+                }
             }
         }
             break;
@@ -301,9 +301,9 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
         case VolumeSliceViewPlaneEnum::CORONAL:
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             drawVolumeSliceViewType(sliceDrawingType,
-                          sliceProjectionType,
-                          sliceViewPlane,
-                          viewport);
+                                    sliceProjectionType,
+                                    sliceViewPlane,
+                                    viewport);
             break;
     }
 }

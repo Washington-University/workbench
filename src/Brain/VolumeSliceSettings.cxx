@@ -47,6 +47,7 @@ VolumeSliceSettings::VolumeSliceSettings()
 : CaretObject()
 {
     m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
+    m_slicePlanesAllViewLayout = VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT;
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
     m_montageNumberOfColumns = 6; // was 3;
@@ -61,11 +62,12 @@ VolumeSliceSettings::VolumeSliceSettings()
     m_sliceEnabledParasagittal = true;
     m_initializedFlag = false;
     
-    //m_lastVolumeFile = NULL;
-
+    
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add<VolumeSliceViewPlaneEnum,VolumeSliceViewPlaneEnum::Enum>("m_sliceViewPlane",
                                                                                    &m_sliceViewPlane);
+    m_sceneAssistant->add<VolumeSliceViewAllPlanesLayoutEnum, VolumeSliceViewAllPlanesLayoutEnum::Enum>("m_slicePlanesAllViewLayout",
+                                                                                                        &m_slicePlanesAllViewLayout);
     m_sceneAssistant->add<VolumeSliceDrawingTypeEnum,VolumeSliceDrawingTypeEnum::Enum>("m_sliceDrawingType",
                                                                                    &m_sliceDrawingType);
     m_sceneAssistant->add<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>("m_sliceProjectionType",
@@ -130,6 +132,7 @@ void
 VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& obj)
 {
     m_sliceViewPlane         = obj.m_sliceViewPlane;
+    m_slicePlanesAllViewLayout = obj.m_slicePlanesAllViewLayout;
     m_sliceDrawingType       = obj.m_sliceDrawingType;
     m_sliceProjectionType    = obj.m_sliceProjectionType;
     
@@ -256,7 +259,29 @@ VolumeSliceSettings::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum slic
     m_sliceViewPlane = slicePlane;
 }
 
-/** 
+/**
+ * @return The layout for all slices view (grid, row, column)
+ */
+VolumeSliceViewAllPlanesLayoutEnum::Enum
+VolumeSliceSettings::getSlicePlanesAllViewLayout() const
+{
+    return m_slicePlanesAllViewLayout;
+}
+
+/**
+ * Set the layout for all slices view (grid, row, column)
+ *
+ * @param slicePlanesAllViewLayout
+ *     New value for layout.
+ */
+void
+VolumeSliceSettings::setSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum slicePlanesAllViewLayout)
+{
+    m_slicePlanesAllViewLayout = slicePlanesAllViewLayout;
+}
+
+
+/**
  * @return Type of slice drawing (single/montage)
  */
 VolumeSliceDrawingTypeEnum::Enum

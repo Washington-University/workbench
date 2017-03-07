@@ -3461,6 +3461,28 @@ BrowserTabContent::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum sliceP
 }
 
 /**
+ * @return The layout for all slices view (grid, row, column)
+ */
+VolumeSliceViewAllPlanesLayoutEnum::Enum
+BrowserTabContent::getSlicePlanesAllViewLayout() const
+{
+    return m_volumeSliceSettings->getSlicePlanesAllViewLayout();
+}
+
+/**
+ * Set the layout for all slices view (grid, row, column)
+ *
+ * @param slicePlanesAllViewLayout
+ *     New value for layout.
+ */
+void
+BrowserTabContent::setSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum slicePlanesAllViewLayout)
+{
+    m_volumeSliceSettings->setSlicePlanesAllViewLayout(slicePlanesAllViewLayout);
+    updateYokedBrowserTabs();
+}
+
+/**
  * @return Type of slice drawing (single/montage)
  */
 VolumeSliceDrawingTypeEnum::Enum

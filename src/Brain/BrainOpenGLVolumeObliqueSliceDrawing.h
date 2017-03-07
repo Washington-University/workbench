@@ -26,6 +26,7 @@
 #include "DisplayGroupEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
+#include "VolumeSliceViewAllPlanesLayoutEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
 
@@ -197,6 +198,7 @@ namespace caret {
         void drawVolumeSliceViewPlane(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                       const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                      const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
                                       const int32_t viewport[4]);
         
         void drawVolumeSliceViewType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,

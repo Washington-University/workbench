@@ -34,6 +34,7 @@
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
+#include "VolumeSliceViewAllPlanesLayoutEnum.h"
 #include "YokingGroupEnum.h"
 
 namespace caret {
@@ -273,6 +274,10 @@ namespace caret {
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
         
         void setSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
+        
+        VolumeSliceViewAllPlanesLayoutEnum::Enum getSlicePlanesAllViewLayout() const;
+        
+        void setSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum slicePlanesAllViewLayout);
         
         VolumeSliceDrawingTypeEnum::Enum getSliceDrawingType() const;
         

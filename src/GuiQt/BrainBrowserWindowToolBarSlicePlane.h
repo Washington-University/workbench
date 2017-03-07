@@ -25,6 +25,7 @@
 #include "BrainBrowserWindowToolBarComponent.h"
 
 class QActionGroup;
+class QMenu;
 
 namespace caret {
 
@@ -46,13 +47,20 @@ namespace caret {
         void volumePlaneActionGroupTriggered(QAction*);
         void volumePlaneResetToolButtonTriggered(bool checked);
         
+        void viewAllSliceLayoutMenuTriggered(QAction* action);
 
     private:
         BrainBrowserWindowToolBarSlicePlane(const BrainBrowserWindowToolBarSlicePlane&);
 
         BrainBrowserWindowToolBarSlicePlane& operator=(const BrainBrowserWindowToolBarSlicePlane&);
         
+        QMenu* createViewAllSlicesLayoutMenu();
+        
+        void updateViewAllSlicesLayoutMenu(BrowserTabContent* browserTabContent);
+        
         BrainBrowserWindowToolBar* m_parentToolBar;
+        
+        std::vector<QAction*> m_viewAllSliceLayoutMenuActions;
         
         WuQWidgetObjectGroup* m_volumePlaneWidgetGroup;
         

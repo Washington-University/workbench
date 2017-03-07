@@ -26,6 +26,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QHBoxLayout>
+#include <QMenu>
 #include <QToolButton>
 
 #include "BrainBrowserWindowToolBar.h"
@@ -93,9 +94,11 @@ m_parentToolBar(parentToolBar)
     }
     
     m_volumePlaneAllToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::ALL),
-                                                                       "View the PARASAGITTAL, CORONAL, and AXIAL slices",
+                                                                   "View the PARASAGITTAL, CORONAL, and AXIAL slices\n"
+                                                                   "Press arrow to display menu for layout selection",
                                                                        this);
     m_volumePlaneAllToolButtonAction->setCheckable(true);
+    m_volumePlaneAllToolButtonAction->setMenu(createViewAllSlicesLayoutMenu());
     
     
     m_volumePlaneActionGroup = new QActionGroup(this);
@@ -201,7 +204,79 @@ BrainBrowserWindowToolBarSlicePlane::updateContent(BrowserTabContent* browserTab
             break;
     }
     
+    updateViewAllSlicesLayoutMenu(browserTabContent);
+    
     m_volumePlaneWidgetGroup->blockAllSignals(false);
+}
+
+/**
+ * @return A new instance of the view all slices layout menu.
+ */
+QMenu*
+BrainBrowserWindowToolBarSlicePlane::createViewAllSlicesLayoutMenu()
+{
+    std::vector<VolumeSliceViewAllPlanesLayoutEnum::Enum> allLayouts;
+    VolumeSliceViewAllPlanesLayoutEnum::getAllEnums(allLayouts);
+    
+    QMenu* menu = new QMenu();
+    QActionGroup* actionGroup = new QActionGroup(this);
+    
+    for (auto layout : allLayouts) {
+        QAction* action = menu->addAction(VolumeSliceViewAllPlanesLayoutEnum::toGuiName(layout));
+        action->setData((int)VolumeSliceViewAllPlanesLayoutEnum::toIntegerCode(layout));
+        action->setCheckable(true);
+        m_viewAllSliceLayoutMenuActions.push_back(action);
+        
+        actionGroup->addAction(action);
+    }
+
+    QObject::connect(menu, &QMenu::triggered,
+                     this, &BrainBrowserWindowToolBarSlicePlane::viewAllSliceLayoutMenuTriggered);
+    return menu;
+}
+
+/**
+ * Gets called when the user selects an item on the view all slices layout menu.
+ *
+ * @param action
+ *     Action of menu item selected.
+ */
+void
+BrainBrowserWindowToolBarSlicePlane::viewAllSliceLayoutMenuTriggered(QAction* action)
+{
+    const int layoutInt = action->data().toInt();
+    bool validFlag = false;
+    const VolumeSliceViewAllPlanesLayoutEnum::Enum layout = VolumeSliceViewAllPlanesLayoutEnum::fromIntegerCode(layoutInt, &validFlag);
+    if (validFlag) {
+        BrowserTabContent* btc = getTabContentFromSelectedTab();
+        
+        btc->setSlicePlanesAllViewLayout(layout);
+        
+        m_parentToolBar->updateVolumeIndicesWidget(btc);
+        updateGraphicsWindow();
+        updateOtherYokedWindows();
+    }
+    else {
+        CaretLogSevere("Invalid layout in menu item: "
+                       + action->text());
+    }
+}
+
+/**
+ * Update the view all slices layout menu.
+ */
+void
+BrainBrowserWindowToolBarSlicePlane::updateViewAllSlicesLayoutMenu(BrowserTabContent* browserTabContent)
+{
+    const VolumeSliceViewAllPlanesLayoutEnum::Enum layout = browserTabContent->getSlicePlanesAllViewLayout();
+    const int layoutIntValue = VolumeSliceViewAllPlanesLayoutEnum::toIntegerCode(layout);
+    
+    for (auto action : m_viewAllSliceLayoutMenuActions) {
+        if (action->data().toInt() == layoutIntValue) {
+            action->setChecked(true);
+            break;
+        }
+    }
 }
 
 /**
