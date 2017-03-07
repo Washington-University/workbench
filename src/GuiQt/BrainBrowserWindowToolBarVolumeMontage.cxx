@@ -93,7 +93,8 @@ m_parentToolBar(parentToolBar)
     m_montageEnabledAction->setCheckable(true);
     QToolButton* montageEnabledToolButton = new QToolButton();
     montageEnabledToolButton->setDefaultAction(m_montageEnabledAction);
-    
+    WuQtUtilities::setToolButtonStyleForQt5Mac(montageEnabledToolButton);
+
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
     gridLayout->setVerticalSpacing(2);

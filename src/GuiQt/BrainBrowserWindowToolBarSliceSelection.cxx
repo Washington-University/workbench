@@ -168,6 +168,7 @@ m_parentToolBar(parentToolBar)
     }
     QToolButton* volumeIDToolButton = new QToolButton;
     volumeIDToolButton->setDefaultAction(m_volumeIdentificationUpdatesSlicesAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(volumeIDToolButton);
     
     m_volumeSliceProjectionTypeEnumComboBox = new EnumComboBoxTemplate(this);
     m_volumeSliceProjectionTypeEnumComboBox->setup<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>();
