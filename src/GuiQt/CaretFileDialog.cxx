@@ -396,7 +396,9 @@ CaretFileDialog::getChooseFileNameDialog(const DataFileTypeEnum::Enum dataFileTy
                                          QWidget *parent)
 {
     CaretFileDialog fd(parent);
-    //fd.setFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+    if (dataFileType != DataFileTypeEnum::UNKNOWN) {
+        fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+    }
     fd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
     fd.setAcceptMode(CaretFileDialog::AcceptSave);
     fd.setFileMode(CaretFileDialog::AnyFile);
