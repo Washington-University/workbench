@@ -1877,7 +1877,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             }
             else {
                 float colorRGBA[4];
-                CaretColorEnum::toRGBFloat(histogramColor,
+                CaretColorEnum::toRGBAFloat(histogramColor,
                                            colorRGBA);
                 colorRGBA[3] = 1.0;
                 for (int64_t i = 0; i < numDataValues; i++) {

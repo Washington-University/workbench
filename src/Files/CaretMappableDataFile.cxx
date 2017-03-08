@@ -1083,7 +1083,7 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
         const CaretColorEnum::Enum histogramColor = paletteColorMapping->getHistogramColor();
         if (histogramColor != CaretColorEnum::CUSTOM) {
             float rgba[4];
-            CaretColorEnum::toRGBFloat(histogramColor, rgba);
+            CaretColorEnum::toRGBAFloat(histogramColor, rgba);
             rgba[3] = 1.0;
             
             for (int32_t i = 0; i < numberOfDataPoints; i++) {
