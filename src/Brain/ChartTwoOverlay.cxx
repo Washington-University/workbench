@@ -226,13 +226,6 @@ ChartTwoOverlay::setChartTwoCompoundDataType(const ChartTwoCompoundDataType& cha
 bool
 ChartTwoOverlay::isEnabled() const
 {
-    /*
-     * First overlay is ALWAYS enabled
-     */
-    if (m_overlayIndex == 0) {
-        return true;
-    }
-    
     return m_enabled;
 }
 
@@ -244,13 +237,6 @@ ChartTwoOverlay::isEnabled() const
 void
 ChartTwoOverlay::setEnabled(const bool enabled)
 {
-    if (m_overlayIndex == 0) {
-        if ( ! enabled) {
-            CaretAssertMessage(0, "Request to disable first overlay should NEVER happen");
-            CaretLogSevere("Request to disable first overlay should NEVER happen");
-            return;
-        }
-    }
     m_enabled = enabled;
 }
 
@@ -273,12 +259,7 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
      *
      */
     
-    /*
-     * NEVER disable the first overlay
-     */
-    if (m_overlayIndex > 0) {
-        m_enabled = overlay->m_enabled;
-    }
+    m_enabled = overlay->m_enabled;
     
     m_mapYokingGroup = overlay->m_mapYokingGroup;
     

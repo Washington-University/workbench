@@ -48,8 +48,6 @@ namespace caret {
         
         ChartTwoOverlay* getPrimaryOverlay();
         
-        ChartTwoOverlay* getUnderlay();
-        
         ChartTwoOverlay* getOverlay(const int32_t overlayNumber);
         
         const ChartTwoOverlay* getOverlay(const int32_t overlayNumber) const;

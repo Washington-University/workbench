@@ -56,9 +56,6 @@
 
 using namespace caret;
 
-static const float fontSizeInPixels = 14;
-
-
 /**
  * \class caret::BrainOpenGLChartTwoDrawingFixedPipeline 
  * \brief Drawing of version two charts.
@@ -181,7 +178,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
         const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
         if (numberOfOverlays > 0) {
             ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
-            if (topOverlay->isEnabled()) {
+            //if (topOverlay->isEnabled()) {
                 CaretMappableDataFile* cmdf = NULL;
                 int32_t mapIndex = -1;
                 topOverlay->getSelectionData(cmdf, mapIndex);
@@ -207,7 +204,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                             break;
                     }
                 }
-            }
+            //}
         }
     }
     

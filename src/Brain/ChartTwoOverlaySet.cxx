@@ -150,16 +150,6 @@ ChartTwoOverlaySet::getPrimaryOverlay()
 }
 
 /**
- * @return Returns the underlay which is the lowest
- * displayed overlay.
- */
-ChartTwoOverlay*
-ChartTwoOverlaySet::getUnderlay()
-{
-    return m_overlays[getNumberOfDisplayedOverlays() - 1];
-}
-
-/**
  * Get the overlay at the specified index.
  * @param overlayNumber
  *   Index of the overlay.

@@ -709,16 +709,8 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_enabledCheckBox->setEnabled(false);
     m_enabledCheckBox->setChecked(false);
     if (validOverlayAndFileFlag) {
-        /*
-         * First overlay is ALWAYS ENABLED and HIDDEN
-         */
-        if (m_chartOverlayIndex == 0) {
-            m_enabledCheckBox->setVisible(false);
-        }
-        else {
-            m_enabledCheckBox->setEnabled(true);
-            m_enabledCheckBox->setChecked(m_chartOverlay->isEnabled());
-        }
+        m_enabledCheckBox->setEnabled(true);
+        m_enabledCheckBox->setChecked(m_chartOverlay->isEnabled());
     }
     
     
