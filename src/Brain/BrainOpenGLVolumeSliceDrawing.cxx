@@ -31,6 +31,7 @@
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrainordinateRegionOfInterest.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -232,15 +233,15 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawing
             int32_t coronalVP[4] = { 0, 0, 0, 0 };
             int32_t axialVP[4]   = { 0, 0, 0, 0 };
             
-            BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
                                     VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                     allPlanesLayout,
                                     paraVP);
-            BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
                                     VolumeSliceViewPlaneEnum::CORONAL,
                                     allPlanesLayout,
                                     coronalVP);
-            BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
                                     VolumeSliceViewPlaneEnum::AXIAL,
                                     allPlanesLayout,
                                     axialVP);
@@ -282,7 +283,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawing
                  * 4th quadrant is used for axis showing orientation
                  */
                 int32_t allVP[4] = { 0, 0, 0, 0 };
-                BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+                BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
                                         VolumeSliceViewPlaneEnum::ALL,
                                         allPlanesLayout,
                                         allVP);
@@ -304,136 +305,6 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawing
                           sliceProjectionType,
                           sliceViewPlane,
                           viewport);
-            break;
-    }
-}
-
-/**
- * Get the viewport for a slice in all slices view.
- *
- * @param tabViewport
- *    The viewport for the tab containing all slices.
- * @param sliceViewPlane
- *    The plane for slice drawing.  Note: "ALL" is used for orientation axes in oblique view.
- * @param allPlanesLayout
- *    The layout in ALL slices view.
- * @param viewportOut
- *    Output viewport (region of graphics area) for drawing slices.
- */
-void
-BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(const int32_t tabViewport[4],
-                                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                       const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
-                                                       int32_t viewportOut[4])
-{
-    const int32_t gap = 2;
-    const int32_t tabViewportX      = tabViewport[0];
-    const int32_t tabViewportY      = tabViewport[1];
-    const int32_t tabViewportWidth  = tabViewport[2];
-    const int32_t tabViewportHeight = tabViewport[3];
-    
-    switch (allPlanesLayout) {
-        case VolumeSliceViewAllPlanesLayoutEnum::COLUMN_LAYOUT:
-        {
-            const int32_t vpHeight = (tabViewportHeight - (gap * 2)) / 3;
-            const int32_t vpOffsetY = vpHeight + gap;
-            const int32_t vpWidth  = tabViewportWidth;
-            
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    viewportOut[0] = 0;
-                    viewportOut[1] = 0;
-                    viewportOut[2] = 0;
-                    viewportOut[3] = 0;
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    viewportOut[0] = tabViewportX;
-                    viewportOut[1] = tabViewportY;
-                    viewportOut[2] = vpWidth;
-                    viewportOut[3] = vpHeight;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    viewportOut[0] = tabViewportX;
-                    viewportOut[1] = tabViewportY + vpOffsetY;
-                    viewportOut[2] = vpWidth;
-                    viewportOut[3] = vpHeight;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    viewportOut[0] = tabViewportX;
-                    viewportOut[1] = tabViewportY + (vpOffsetY * 2);
-                    viewportOut[2] = vpWidth;
-                    viewportOut[3] = (tabViewportHeight - viewportOut[1]);
-                    break;
-            }
-        }
-            break;
-        case VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT:
-        {
-            const int32_t vpWidth   = (tabViewportWidth  - gap) / 2;
-            const int32_t vpHeight  = (tabViewportHeight - gap) / 2;
-            const int32_t vpOffsetX = vpWidth  + gap;
-            const int32_t vpOffsetY = vpHeight + gap;
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    viewportOut[0] = tabViewportX;
-                    viewportOut[1] = tabViewportY;
-                    viewportOut[2] = vpWidth;
-                    viewportOut[3] = vpHeight;
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    viewportOut[0] = tabViewportX + vpOffsetX;
-                    viewportOut[1] = tabViewportY;
-                    viewportOut[2] = (tabViewportWidth  - viewportOut[0]);
-                    viewportOut[3] = vpHeight;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    viewportOut[0] = tabViewportX + vpOffsetX;
-                    viewportOut[1] = tabViewportY + vpOffsetY;
-                    viewportOut[2] = (tabViewportWidth  - viewportOut[0]);
-                    viewportOut[3] = (tabViewportHeight - viewportOut[1]);
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    viewportOut[0] = tabViewportX;
-                    viewportOut[1] = tabViewportY + vpOffsetY;
-                    viewportOut[2] = vpWidth;
-                    viewportOut[3] = (tabViewportHeight - viewportOut[1]);
-                    break;
-            }
-        }
-            break;
-        case VolumeSliceViewAllPlanesLayoutEnum::ROW_LAYOUT:
-        {
-            const int32_t vpWidth   = (tabViewportWidth - (gap * 2)) / 3;
-            const int32_t vpOffsetX = vpWidth + gap;
-            const int32_t vpHeight  = tabViewportHeight;
-            
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    viewportOut[0] = 0;
-                    viewportOut[1] = 0;
-                    viewportOut[2] = 0;
-                    viewportOut[3] = 0;
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    viewportOut[0] = tabViewportX + (vpOffsetX * 2);
-                    viewportOut[1] = tabViewportY;
-                    viewportOut[2] = (tabViewportWidth - viewportOut[0]);
-                    viewportOut[3] = vpHeight;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    viewportOut[0] = tabViewportX;
-                    viewportOut[1] = tabViewportY;
-                    viewportOut[2] = vpWidth;
-                    viewportOut[3] = vpHeight;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    viewportOut[0] = tabViewportX + vpOffsetX;
-                    viewportOut[1] = tabViewportY;
-                    viewportOut[2] = vpWidth;
-                    viewportOut[3] = vpHeight;
-                    break;
-            }
-        }
             break;
     }
 }

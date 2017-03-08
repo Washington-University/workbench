@@ -56,10 +56,6 @@ namespace caret {
                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                   const int32_t viewport[4]);
 
-        static void getSliceAllViewViewport(const int32_t tabViewport[4],
-                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                            const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
-                                            int32_t viewportOut[4]);
         // ADD_NEW_METHODS_HERE
 
     private:

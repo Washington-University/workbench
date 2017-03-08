@@ -31,7 +31,7 @@
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
-#include "BrainOpenGLVolumeSliceDrawing.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -232,15 +232,15 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
             int32_t coronalVP[4] = { 0, 0, 0, 0 };
             int32_t axialVP[4]   = { 0, 0, 0, 0 };
             
-            BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
                                                                    VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                                                    allPlanesLayout,
                                                                    paraVP);
-            BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
                                                                    VolumeSliceViewPlaneEnum::CORONAL,
                                                                    allPlanesLayout,
                                                                    coronalVP);
-            BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
                                                                    VolumeSliceViewPlaneEnum::AXIAL,
                                                                    allPlanesLayout,
                                                                    axialVP);
@@ -282,7 +282,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
                  * 4th quadrant is used for axis showing orientation
                  */
                 int32_t allVP[4] = { 0, 0, 0, 0 };
-                BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+                BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
                                                                        VolumeSliceViewPlaneEnum::ALL,
                                                                        allPlanesLayout,
                                                                        allVP);

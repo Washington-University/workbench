@@ -23,6 +23,8 @@
 
 
 #include "CaretObject.h"
+#include "VolumeSliceViewPlaneEnum.h"
+#include "VolumeSliceViewAllPlanesLayoutEnum.h"
 
 namespace caret {
 
@@ -76,6 +78,16 @@ namespace caret {
                                                                       const int32_t windowIndex,
                                                                       const int32_t windowViewport[4]);
         
+        static void getSliceAllViewViewport(const int32_t tabViewport[4],
+                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                            const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
+                                            int32_t viewportOut[4]);
+        
+        static VolumeSliceViewPlaneEnum::Enum getSliceViewPlaneForVolumeAllSliceView(const int viewport[4],
+                                                                                     const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
+                                                                                     const int32_t mousePressX,
+                                                                                     const int32_t mousePressY,
+                                                                                     int sliceViewportOut[4]);
     private:
         /**
          * Assists with creation of the tile tab viewports

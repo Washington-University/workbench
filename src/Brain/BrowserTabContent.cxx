@@ -30,7 +30,6 @@
 #include "BorderFile.h"
 #include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
-#include "BrainOpenGLVolumeSliceDrawing.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionModel.h"
@@ -1999,46 +1998,46 @@ BrowserTabContent::ventralView()
     updateYokedBrowserTabs();
 }
 
-/*
- * @return The slice view plane for the given viewport coordinate.
- * If ALL is returned, is indicates that the given viewport coordinate
- * is in the bottom left region in which volume slices are not displayed.
- *
- * @param viewport
- *   The viewport.
- * @param mousePressX
- *   X Location of the mouse press.
- * @param mousePressY
- *   Y Location of the mouse press.
- */
-VolumeSliceViewPlaneEnum::Enum
-BrowserTabContent::getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport[4],
-                                                          const int32_t mousePressX,
-                                                          const int32_t mousePressY,
-                                                          int32_t sliceViewportOut[4]) const
-{
-    VolumeSliceViewPlaneEnum::Enum view = VolumeSliceViewPlaneEnum::ALL;
-
-    std::vector<VolumeSliceViewPlaneEnum::Enum> allSlicePlanes;
-    VolumeSliceViewPlaneEnum::getAllEnums(allSlicePlanes);
-    for (auto slicePlane : allSlicePlanes) {
-        BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
-                                                               slicePlane,
-                                                               getSlicePlanesAllViewLayout(),
-                                                               sliceViewportOut);
-        const int32_t vpX = mousePressX - sliceViewportOut[0];
-        const int32_t vpY = mousePressY - sliceViewportOut[1];
-        if ((vpX >= 0)
-            && (vpY >= 0)
-            && (vpX < sliceViewportOut[2])
-            && (vpY < sliceViewportOut[3])) {
-            return slicePlane;
-        }
-    }
-    
-    CaretLogSevere("Failed to find slice plane in all sliced view");
-    return view;
-    
+///*
+// * @return The slice view plane for the given viewport coordinate.
+// * If ALL is returned, is indicates that the given viewport coordinate
+// * is in the bottom left region in which volume slices are not displayed.
+// *
+// * @param viewport
+// *   The viewport.
+// * @param mousePressX
+// *   X Location of the mouse press.
+// * @param mousePressY
+// *   Y Location of the mouse press.
+// */
+//VolumeSliceViewPlaneEnum::Enum
+//BrowserTabContent::getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport[4],
+//                                                          const int32_t mousePressX,
+//                                                          const int32_t mousePressY,
+//                                                          int32_t sliceViewportOut[4]) const
+//{
+//    VolumeSliceViewPlaneEnum::Enum view = VolumeSliceViewPlaneEnum::ALL;
+//
+//    std::vector<VolumeSliceViewPlaneEnum::Enum> allSlicePlanes;
+//    VolumeSliceViewPlaneEnum::getAllEnums(allSlicePlanes);
+//    for (auto slicePlane : allSlicePlanes) {
+//        BrainOpenGLVolumeSliceDrawing::getSliceAllViewViewport(viewport,
+//                                                               slicePlane,
+//                                                               getSlicePlanesAllViewLayout(),
+//                                                               sliceViewportOut);
+//        const int32_t vpX = mousePressX - sliceViewportOut[0];
+//        const int32_t vpY = mousePressY - sliceViewportOut[1];
+//        if ((vpX >= 0)
+//            && (vpY >= 0)
+//            && (vpX < sliceViewportOut[2])
+//            && (vpY < sliceViewportOut[3])) {
+//            return slicePlane;
+//        }
+//    }
+//    
+//    CaretLogSevere("Failed to find slice plane in all sliced view");
+//    return view;
+//    
 //    const int32_t halfWidth  = viewport[2] / 2;
 //    const int32_t halfHeight = viewport[3] / 2;
 //    const int32_t viewportMousePressedX = mousePressX - viewport[0];
@@ -2097,7 +2096,7 @@ BrowserTabContent::getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport
 //            break;
 //    }
 //    return view;
-}
+//}
 
 ///*
 // * @return The slice view plane for the given viewport coordinate.
@@ -2218,10 +2217,11 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                     viewport[3]
                 };
                 if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
-                    slicePlane = getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                        mousePressX,
-                                                                        mousePressY,
-                                                                        sliceViewport);
+                    slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                                    getSlicePlanesAllViewLayout(),
+                                                                                                    mousePressX,
+                                                                                                    mousePressY,
+                                                                                                    sliceViewport);
                 }
                 
                 Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix();
@@ -2621,10 +2621,11 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         
         VolumeSliceViewPlaneEnum::Enum slicePlane = getSliceViewPlane();
         if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
-            slicePlane = getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                mousePressX,
-                                                                mousePressY,
-                                                                sliceViewport);
+            slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                            getSlicePlanesAllViewLayout(),
+                                                                                            mousePressX,
+                                                                                            mousePressY,
+                                                                                            sliceViewport);
         }
         
         switch (slicePlane) {

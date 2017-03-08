@@ -863,3 +863,180 @@ BrainOpenGLViewportContent::TileTabsViewportSizingInfo::print(const int32_t x,
     std::cout << qPrintable(msg) << std::endl;
 }
 
+
+/**
+ * Get the viewport for a slice in all slices view.
+ *
+ * @param tabViewport
+ *    The viewport for the tab containing all slices.
+ * @param sliceViewPlane
+ *    The plane for slice drawing.  Note: "ALL" is used for orientation axes in oblique view.
+ * @param allPlanesLayout
+ *    The layout in ALL slices view.
+ * @param viewportOut
+ *    Output viewport (region of graphics area) for drawing slices.
+ */
+void
+BrainOpenGLViewportContent::getSliceAllViewViewport(const int32_t tabViewport[4],
+                                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                       const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
+                                                       int32_t viewportOut[4])
+{
+    const int32_t gap = 2;
+    const int32_t tabViewportX      = tabViewport[0];
+    const int32_t tabViewportY      = tabViewport[1];
+    const int32_t tabViewportWidth  = tabViewport[2];
+    const int32_t tabViewportHeight = tabViewport[3];
+    
+    switch (allPlanesLayout) {
+        case VolumeSliceViewAllPlanesLayoutEnum::COLUMN_LAYOUT:
+        {
+            const int32_t vpHeight = (tabViewportHeight - (gap * 2)) / 3;
+            const int32_t vpOffsetY = vpHeight + gap;
+            const int32_t vpWidth  = tabViewportWidth;
+            
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    viewportOut[0] = 0;
+                    viewportOut[1] = 0;
+                    viewportOut[2] = 0;
+                    viewportOut[3] = 0;
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    viewportOut[0] = tabViewportX;
+                    viewportOut[1] = tabViewportY;
+                    viewportOut[2] = vpWidth;
+                    viewportOut[3] = vpHeight;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    viewportOut[0] = tabViewportX;
+                    viewportOut[1] = tabViewportY + vpOffsetY;
+                    viewportOut[2] = vpWidth;
+                    viewportOut[3] = vpHeight;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    viewportOut[0] = tabViewportX;
+                    viewportOut[1] = tabViewportY + (vpOffsetY * 2);
+                    viewportOut[2] = vpWidth;
+                    viewportOut[3] = (tabViewportHeight - viewportOut[1]);
+                    break;
+            }
+        }
+            break;
+        case VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT:
+        {
+            const int32_t vpWidth   = (tabViewportWidth  - gap) / 2;
+            const int32_t vpHeight  = (tabViewportHeight - gap) / 2;
+            const int32_t vpOffsetX = vpWidth  + gap;
+            const int32_t vpOffsetY = vpHeight + gap;
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    viewportOut[0] = tabViewportX;
+                    viewportOut[1] = tabViewportY;
+                    viewportOut[2] = vpWidth;
+                    viewportOut[3] = vpHeight;
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    viewportOut[0] = tabViewportX + vpOffsetX;
+                    viewportOut[1] = tabViewportY;
+                    viewportOut[2] = (tabViewportWidth  - viewportOut[0]);
+                    viewportOut[3] = vpHeight;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    viewportOut[0] = tabViewportX + vpOffsetX;
+                    viewportOut[1] = tabViewportY + vpOffsetY;
+                    viewportOut[2] = (tabViewportWidth  - viewportOut[0]);
+                    viewportOut[3] = (tabViewportHeight - viewportOut[1]);
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    viewportOut[0] = tabViewportX;
+                    viewportOut[1] = tabViewportY + vpOffsetY;
+                    viewportOut[2] = vpWidth;
+                    viewportOut[3] = (tabViewportHeight - viewportOut[1]);
+                    break;
+            }
+        }
+            break;
+        case VolumeSliceViewAllPlanesLayoutEnum::ROW_LAYOUT:
+        {
+            const int32_t vpWidth   = (tabViewportWidth - (gap * 2)) / 3;
+            const int32_t vpOffsetX = vpWidth + gap;
+            const int32_t vpHeight  = tabViewportHeight;
+            
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    viewportOut[0] = 0;
+                    viewportOut[1] = 0;
+                    viewportOut[2] = 0;
+                    viewportOut[3] = 0;
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    viewportOut[0] = tabViewportX + (vpOffsetX * 2);
+                    viewportOut[1] = tabViewportY;
+                    viewportOut[2] = (tabViewportWidth - viewportOut[0]);
+                    viewportOut[3] = vpHeight;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    viewportOut[0] = tabViewportX;
+                    viewportOut[1] = tabViewportY;
+                    viewportOut[2] = vpWidth;
+                    viewportOut[3] = vpHeight;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    viewportOut[0] = tabViewportX + vpOffsetX;
+                    viewportOut[1] = tabViewportY;
+                    viewportOut[2] = vpWidth;
+                    viewportOut[3] = vpHeight;
+                    break;
+            }
+        }
+            break;
+    }
+}
+
+/*
+ * @return The slice view plane for the given viewport coordinate.
+ * If ALL is returned, is indicates that the given viewport coordinate
+ * is in the bottom left region in which volume slices are not displayed.
+ *
+ * @param viewport
+ *   The viewport.
+ * @param mousePressX
+ *   X Location of the mouse press.
+ * @param mousePressY
+ *   Y Location of the mouse press.
+ * @param allPlanesLayout
+ *    The layout in ALL slices view.
+ * @param sliceViewportOut
+ *    Output viewport (region of graphics area) for drawing slices.
+ */
+VolumeSliceViewPlaneEnum::Enum
+BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport[4],
+                                                                   const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
+                                                                   const int32_t mousePressX,
+                                                                   const int32_t mousePressY,
+                                                                   int32_t sliceViewportOut[4])
+{
+    VolumeSliceViewPlaneEnum::Enum view = VolumeSliceViewPlaneEnum::ALL;
+    
+    std::vector<VolumeSliceViewPlaneEnum::Enum> allSlicePlanes;
+    VolumeSliceViewPlaneEnum::getAllEnums(allSlicePlanes);
+    for (auto slicePlane : allSlicePlanes) {
+        BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
+                                                           slicePlane,
+                                                           allPlanesLayout,
+                                                           sliceViewportOut);
+        const int32_t vpX = mousePressX - sliceViewportOut[0];
+        const int32_t vpY = mousePressY - sliceViewportOut[1];
+        if ((vpX >= 0)
+            && (vpY >= 0)
+            && (vpX < sliceViewportOut[2])
+            && (vpY < sliceViewportOut[3])) {
+            return slicePlane;
+        }
+    }
+    
+    CaretLogSevere("Failed to find slice plane in all sliced view");
+    return view;
+}
+

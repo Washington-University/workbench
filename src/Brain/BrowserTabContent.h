@@ -406,10 +406,10 @@ namespace caret {
         
         BrowserTabContent& operator=(const BrowserTabContent&);
         
-        VolumeSliceViewPlaneEnum::Enum getSliceViewPlaneForVolumeAllSliceView(const int viewport[4],
-                                                                  const int32_t mousePressX,
-                                                                  const int32_t mousePressY,
-                                                                              int sliceViewportOut[4]) const;
+//        VolumeSliceViewPlaneEnum::Enum getSliceViewPlaneForVolumeAllSliceView(const int viewport[4],
+//                                                                  const int32_t mousePressX,
+//                                                                  const int32_t mousePressY,
+//                                                                              int sliceViewportOut[4]) const;
         
         ViewingTransformations* getViewingTransformation();
         
