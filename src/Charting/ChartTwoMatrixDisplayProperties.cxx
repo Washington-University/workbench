@@ -151,7 +151,7 @@ ChartTwoMatrixDisplayProperties::resetPropertiesToDefault()
     m_cellPercentageZoomWidth        = 100.0;
     m_cellPercentageZoomHeight       = 100.0;
     m_highlightSelectedRowColumnFlag = true;
-    m_displayGridLinesFlag           = true;
+    m_displayGridLinesFlag           = false;
 }
 
 /**
