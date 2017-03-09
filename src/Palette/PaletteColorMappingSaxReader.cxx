@@ -341,18 +341,18 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                NumericFormatModeEnum::Enum numericFormatMode = NumericFormatModeEnum::fromName(this->elementText,
                                                                                                        &isValid);
                if (isValid) {
-                   this->paletteColorMapping->setNumericFormatMode(numericFormatMode);
+                   this->paletteColorMapping->setColorBarNumericFormatMode(numericFormatMode);
                }
                else {
-                   throw XmlSaxParserException("Invalid PalettePrecisionModeEnum::Enum: "
+                   throw XmlSaxParserException("Invalid NumericFormatModeEnum::Enum: "
                                                + this->elementText);
                }
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_PRECISION_DIGITS) {
-               this->paletteColorMapping->setPrecisionDigits(this->elementText.toInt());
+               this->paletteColorMapping->setColorBarPrecisionDigits(this->elementText.toInt());
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_NUMERIC_SUBDIVISIONS) {
-               this->paletteColorMapping->setNumericSubdivisionCount(this->elementText.toInt());
+               this->paletteColorMapping->setColorBarNumericSubdivisionCount(this->elementText.toInt());
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_COLOR_BAR_VALUES_MODE) {
                bool isValid = false;
@@ -367,7 +367,7 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                }
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_SHOW_TICK_MARKS) {
-               this->paletteColorMapping->setShowTickMarksSelected(toBool(this->elementText));
+               this->paletteColorMapping->setColorBarShowTickMarksSelected(toBool(this->elementText));
            }
            else {
                std::ostringstream str;

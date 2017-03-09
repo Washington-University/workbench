@@ -137,11 +137,11 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->histogramRangeMode = pcm.histogramRangeMode;
     this->histogramChartType = pcm.histogramChartType;
     this->histogramColor = pcm.histogramColor;
-    this->numericFormatMode = pcm.numericFormatMode;
-    this->precisionDigits = pcm.precisionDigits;
-    this->numericSubdivisionCount = pcm.numericSubdivisionCount;
+    this->colorBarNumericFormatMode = pcm.colorBarNumericFormatMode;
+    this->colorBarPrecisionDigits = pcm.colorBarPrecisionDigits;
+    this->colorBarNumericSubdivisionCount = pcm.colorBarNumericSubdivisionCount;
     this->colorBarValuesMode = pcm.colorBarValuesMode;
-    this->showTickMarksSelected = pcm.showTickMarksSelected;
+    this->colorBarShowTickMarksSelected = pcm.colorBarShowTickMarksSelected;
     
     this->clearModified();
 }
@@ -187,11 +187,11 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->histogramRangeMode == pcm.histogramRangeMode)
         && (this->histogramChartType == pcm.histogramChartType)
         && (this->histogramColor == pcm.histogramColor)
-        && (this->numericFormatMode == pcm.numericFormatMode)
-        && (this->precisionDigits == pcm.precisionDigits)
-        && (this->numericSubdivisionCount == pcm.numericSubdivisionCount)
+        && (this->colorBarNumericFormatMode == pcm.colorBarNumericFormatMode)
+        && (this->colorBarPrecisionDigits == pcm.colorBarPrecisionDigits)
+        && (this->colorBarNumericSubdivisionCount == pcm.colorBarNumericSubdivisionCount)
         && (this->colorBarValuesMode == pcm.colorBarValuesMode)
-        && (this->showTickMarksSelected == pcm.showTickMarksSelected)) {
+        && (this->colorBarShowTickMarksSelected == pcm.colorBarShowTickMarksSelected)) {
         return true;
     }
     
@@ -234,12 +234,12 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->histogramRangeMode = PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL;
     this->histogramChartType = PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_BARS;
     this->histogramColor = CaretColorEnum::CUSTOM;  // CUSTOM is color with palette
-    this->numericFormatMode = NumericFormatModeEnum::AUTO;
-    this->precisionDigits = 2;
-    this->numericSubdivisionCount = 0;
+    this->colorBarNumericFormatMode = NumericFormatModeEnum::AUTO;
+    this->colorBarPrecisionDigits = 2;
+    this->colorBarNumericSubdivisionCount = 0;
     this->modifiedFlag = false;
     this->colorBarValuesMode = PaletteColorBarValuesModeEnum::DATA;
-    this->showTickMarksSelected = false;
+    this->colorBarShowTickMarksSelected = false;
 }
 
 /**
@@ -357,17 +357,17 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_COLOR,
                                      CaretColorEnum::toName(this->histogramColor));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_NUMERIC_FORMAT_MODE,
-                                     NumericFormatModeEnum::toName(this->numericFormatMode));
+                                     NumericFormatModeEnum::toName(this->colorBarNumericFormatMode));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_PRECISION_DIGITS,
-                                     this->precisionDigits);
+                                     this->colorBarPrecisionDigits);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_NUMERIC_SUBDIVISIONS,
-                                     this->numericSubdivisionCount);
+                                     this->colorBarNumericSubdivisionCount);
 
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_COLOR_BAR_VALUES_MODE,
                                      PaletteColorBarValuesModeEnum::toName(this->colorBarValuesMode));
 
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_SHOW_TICK_MARKS,
-                                     this->showTickMarksSelected);
+                                     this->colorBarShowTickMarksSelected);
     
     xmlWriter.writeEndElement();
 }
@@ -1911,7 +1911,7 @@ PaletteColorMapping::setupAnnotationColorBarNumericText(const FastStatistics* st
         delete nt;
     }
     
-    colorBar->setShowTickMarksSelected(this->showTickMarksSelected);
+    colorBar->setShowTickMarksSelected(this->colorBarShowTickMarksSelected);
 }
 
 /**
@@ -2049,10 +2049,10 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      */
     std::vector<float> negativeValues;
     negativeValues.push_back(negMax);
-    if (this->numericSubdivisionCount > 0) {
+    if (this->colorBarNumericSubdivisionCount > 0) {
         const float range    = negMin - negMax;
-        const float interval = range / (this->numericSubdivisionCount + 1);
-        for (int32_t i = 0; i < this->numericSubdivisionCount; i++) {
+        const float interval = range / (this->colorBarNumericSubdivisionCount + 1);
+        for (int32_t i = 0; i < this->colorBarNumericSubdivisionCount; i++) {
             negativeValues.push_back(negMax
                                      + (interval * (i + 1)));
         }
@@ -2064,10 +2064,10 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      */
     std::vector<float> positiveValues;
     positiveValues.push_back(posMin);
-    if (this->numericSubdivisionCount > 0) {
+    if (this->colorBarNumericSubdivisionCount > 0) {
         const float range    = posMax - posMin;
-        const float interval = range / (this->numericSubdivisionCount + 1);
-        for (int32_t i = 0; i < this->numericSubdivisionCount; i++) {
+        const float interval = range / (this->colorBarNumericSubdivisionCount + 1);
+        for (int32_t i = 0; i < this->colorBarNumericSubdivisionCount; i++) {
             positiveValues.push_back(posMin
                                      + (interval * (i + 1)));
         }
@@ -2077,8 +2077,8 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
     /*
      * Will need to override these values when percentile
      */
-    NumericFormatModeEnum::Enum numericFormatModeForTextFormatting = this->numericFormatMode;
-    int32_t precisionDigitsForTextFormatting = this->precisionDigits;
+    NumericFormatModeEnum::Enum numericFormatModeForTextFormatting = this->colorBarNumericFormatMode;
+    int32_t precisionDigitsForTextFormatting = this->colorBarPrecisionDigits;
     
     /*
      * Processing for percentile mode
@@ -2457,10 +2457,10 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      */
     std::vector<float> negativeValues;
     negativeValues.push_back(negMax);
-    if (this->numericSubdivisionCount > 0) {
+    if (this->colorBarNumericSubdivisionCount > 0) {
         const float range    = negMin - negMax;
-        const float interval = range / (this->numericSubdivisionCount + 1);
-        for (int32_t i = 0; i < this->numericSubdivisionCount; i++) {
+        const float interval = range / (this->colorBarNumericSubdivisionCount + 1);
+        for (int32_t i = 0; i < this->colorBarNumericSubdivisionCount; i++) {
             negativeValues.push_back(negMax
                                      + (interval * (i + 1)));
         }
@@ -2472,10 +2472,10 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      */
     std::vector<float> positiveValues;
     positiveValues.push_back(posMin);
-    if (this->numericSubdivisionCount > 0) {
+    if (this->colorBarNumericSubdivisionCount > 0) {
         const float range    = posMax - posMin;
-        const float interval = range / (this->numericSubdivisionCount + 1);
-        for (int32_t i = 0; i < this->numericSubdivisionCount; i++) {
+        const float interval = range / (this->colorBarNumericSubdivisionCount + 1);
+        for (int32_t i = 0; i < this->colorBarNumericSubdivisionCount; i++) {
             positiveValues.push_back(posMin
                                      + (interval * (i + 1)));
         }
@@ -2485,8 +2485,8 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
     /*
      * Wil need to override these values when percentile
      */
-    NumericFormatModeEnum::Enum numericFormatModeForTextFormatting = this->numericFormatMode;
-    int32_t precisionDigitsForTextFormatting = this->precisionDigits;
+    NumericFormatModeEnum::Enum numericFormatModeForTextFormatting = this->colorBarNumericFormatMode;
+    int32_t precisionDigitsForTextFormatting = this->colorBarPrecisionDigits;
     
     /*
      * Processing for percentile mode
@@ -2800,77 +2800,77 @@ PaletteColorMapping::setHistogramColor(const CaretColorEnum::Enum histogramColor
 }
 
 /**
- * @return The numeric format mode.
+ * @return The color bar numeric format mode.
  */
 NumericFormatModeEnum::Enum
-PaletteColorMapping::getNumericFormatMode() const
+PaletteColorMapping::getColorBarNumericFormatMode() const
 {
-    return this->numericFormatMode;
+    return this->colorBarNumericFormatMode;
 }
 
 /**
- * Set the numeric format mode.
+ * Set the color bar numeric format mode.
  *
- * @param numericFormatMode
- *     New value for precision mode.
+ * @param colorBarNumericFormatMode
+ *     New value for color bar numberic format mode
  */
 void
-PaletteColorMapping::setNumericFormatMode(const NumericFormatModeEnum::Enum numericFormatMode)
+PaletteColorMapping::setColorBarNumericFormatMode(const NumericFormatModeEnum::Enum colorBarNumericFormatMode)
 {
-    if (numericFormatMode != this->numericFormatMode) {
-        this->numericFormatMode = numericFormatMode;
+    if (colorBarNumericFormatMode != this->colorBarNumericFormatMode) {
+        this->colorBarNumericFormatMode = colorBarNumericFormatMode;
         setModified();
     }
 }
 
 /**
- * @return The precision digits (right of decimal).
+ * @return The color bar precision digits (right of decimal).
  */
 int32_t
-PaletteColorMapping::getPrecisionDigits() const
+PaletteColorMapping::getColorBarPrecisionDigits() const
 {
-    return this->precisionDigits;
+    return this->colorBarPrecisionDigits;
 }
 
 /**
- * Set the precision digits (right of decimal)
+ * Set the color bar precision digits (right of decimal)
  *
- * @param precisionDigits
+ * @param colorBarPrecisionDigits
  *     New value for number of digits right of decimal.
  */
 void
-PaletteColorMapping::setPrecisionDigits(const int32_t precisionDigits)
+PaletteColorMapping::setColorBarPrecisionDigits(const int32_t colorBarPrecisionDigits)
 {
-    if (precisionDigits != this->precisionDigits) {
-        this->precisionDigits = precisionDigits;
+    if (colorBarPrecisionDigits != this->colorBarPrecisionDigits) {
+        this->colorBarPrecisionDigits = colorBarPrecisionDigits;
         setModified();
     }
 }
 
 /**
- * @return The numeric subdivision count which is the number of 
+ * @return The color bar numeric subdivision count which is the number of
  * numeric values uniformly spaced between zero and the maximum 
  * value.
  */
 int32_t
-PaletteColorMapping::getNumericSubdivisionCount() const
+PaletteColorMapping::getColorBarNumericSubdivisionCount() const
 {
-    return this->numericSubdivisionCount;
+    return this->colorBarNumericSubdivisionCount;
 }
 
 /**
- * Set the numeric subdivision count which is the number of
+ * Set the color bar numeric subdivision count which is the number of
  * numeric values uniformly spaced between zero and the maximum
  * value.
  *
- * @param numericSubvisionCount
+ * @param colorBarNumericSubdivisionCount
  *     New value for subdivision count.
  */
 void
-PaletteColorMapping::setNumericSubdivisionCount(const int32_t numericSubdivisionCount)
+PaletteColorMapping::setColorBarNumericSubdivisionCount(const int32_t colorBarNumericSubdivisionCount)
 {
-    if (numericSubdivisionCount != this->numericSubdivisionCount) {
-        this->numericSubdivisionCount = numericSubdivisionCount;
+    if (colorBarNumericSubdivisionCount != this->colorBarNumericSubdivisionCount) {
+        this->colorBarNumericSubdivisionCount = colorBarNumericSubdivisionCount;
         setModified();
     }
 }
@@ -2901,9 +2901,9 @@ void PaletteColorMapping::setColorBarValuesMode(const PaletteColorBarValuesModeE
  * @param Is show tick marks selected?
  */
 bool
-PaletteColorMapping::isShowTickMarksSelected() const
+PaletteColorMapping::isColorBarShowTickMarksSelected() const
 {
-    return this->showTickMarksSelected;
+    return this->colorBarShowTickMarksSelected;
 }
 
 /**
@@ -2913,10 +2913,10 @@ PaletteColorMapping::isShowTickMarksSelected() const
  *     New selection status.
  */
 void
-PaletteColorMapping::setShowTickMarksSelected(const bool selected)
+PaletteColorMapping::setColorBarShowTickMarksSelected(const bool selected)
 {
-    if (selected != this->showTickMarksSelected) {
-        this->showTickMarksSelected = selected;
+    if (selected != this->colorBarShowTickMarksSelected) {
+        this->colorBarShowTickMarksSelected = selected;
         setModified();
     }
 }

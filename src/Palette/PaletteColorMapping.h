@@ -221,25 +221,25 @@ namespace caret {
         
         void setHistogramColor(const CaretColorEnum::Enum histogramColor);
         
-        NumericFormatModeEnum::Enum getNumericFormatMode() const;
+        NumericFormatModeEnum::Enum getColorBarNumericFormatMode() const;
         
-        int32_t getPrecisionDigits() const;
+        int32_t getColorBarPrecisionDigits() const;
         
-        int32_t getNumericSubdivisionCount() const;
+        int32_t getColorBarNumericSubdivisionCount() const;
         
-        void setNumericFormatMode(const NumericFormatModeEnum::Enum numericFormatMode);
+        void setColorBarNumericFormatMode(const NumericFormatModeEnum::Enum colorBarNumericFormatMode);
         
-        void setPrecisionDigits(const int32_t precisionDigits);
+        void setColorBarPrecisionDigits(const int32_t colorBarPrecisionDigits);
         
-        void setNumericSubdivisionCount(const int32_t numericSubdivisionCount);
+        void setColorBarNumericSubdivisionCount(const int32_t colroBarNumericSubdivisionCount);
         
         PaletteColorBarValuesModeEnum::Enum getColorBarValuesMode() const;
         
         void setColorBarValuesMode(const PaletteColorBarValuesModeEnum::Enum colorBarValuesMode);
         
-        bool isShowTickMarksSelected() const;
+        bool isColorBarShowTickMarksSelected() const;
         
-        void setShowTickMarksSelected(const bool selected);
+        void setColorBarShowTickMarksSelected(const bool selected);
         
         void setModified();
         
@@ -327,15 +327,15 @@ namespace caret {
         
         CaretColorEnum::Enum histogramColor;
         
-        NumericFormatModeEnum::Enum numericFormatMode;
+        NumericFormatModeEnum::Enum colorBarNumericFormatMode;
         
-        int32_t precisionDigits;
+        int32_t colorBarPrecisionDigits;
         
-        int32_t numericSubdivisionCount;
+        int32_t colorBarNumericSubdivisionCount;
         
         PaletteColorBarValuesModeEnum::Enum colorBarValuesMode;
     
-        bool showTickMarksSelected;
+        bool colorBarShowTickMarksSelected;
         
         /**Tracks modification, DO NOT copy */
         bool modifiedFlag;
