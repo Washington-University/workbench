@@ -51,7 +51,7 @@ CaretVolumeExtension::clear() {
     m_comment.clear();
     m_date.clear();
     m_attributes.clear();
-    m_metadata.grabNew(NULL);
+    m_metadata.clear();
 }
 
 void CaretVolumeExtension::readFromXmlString(const AString& s)
@@ -81,29 +81,27 @@ void CaretVolumeExtension::writeAsXML(XmlWriter& xmlWriter)
     {
         m_attributes[i]->writeAsXML(xmlWriter, i);
     }
-    if (m_metadata != NULL) {
-        if ( ! m_metadata->isEmpty()) {
-            /*
-             * Prior to "WB-664 Data normalization should be saved in file", VolumeFile did not contain
-             * file metadata.  If one attempts to read a volume file containing metadata with older
-             * versions of wb_view/wb_command or Caret5, XML parsing of the CaretVolumeExtension will
-             * immediately cease if an unexpected element is encountered.  So, to minimize isses with
-             * older versions of software, DO NOT write file metadata if it contains only one 
-             * element that is the default value (selected map) of palette normalization.
-             */
-            bool writeFileMetaDataFlag = true;
-            if (m_metadata->getNumberOfMetaData() == 1) {
-                const AString normalizationValueString = m_metadata->get(GiftiMetaDataXmlElements::METADATA_PALETTE_NORMALIZATION_MODE);
-                if ( ! normalizationValueString.isEmpty()) {
-                    if (normalizationValueString ==
-                        PaletteNormalizationModeEnum::toName(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA)) {
-                        writeFileMetaDataFlag = false;
-                    }
+    if ( ! m_metadata.isEmpty()) {
+        /*
+         * Prior to "WB-664 Data normalization should be saved in file", VolumeFile did not contain
+         * file metadata.  If one attempts to read a volume file containing metadata with older
+         * versions of wb_view/wb_command or Caret5, XML parsing of the CaretVolumeExtension will
+         * immediately cease if an unexpected element is encountered.  So, to minimize isses with
+         * older versions of software, DO NOT write file metadata if it contains only one
+         * element that is the default value (selected map) of palette normalization.
+         */
+        bool writeFileMetaDataFlag = true;
+        if (m_metadata.getNumberOfMetaData() == 1) {
+            const AString normalizationValueString = m_metadata.get(GiftiMetaDataXmlElements::METADATA_PALETTE_NORMALIZATION_MODE);
+            if ( ! normalizationValueString.isEmpty()) {
+                if (normalizationValueString ==
+                    PaletteNormalizationModeEnum::toName(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA)) {
+                    writeFileMetaDataFlag = false;
                 }
             }
-            if (writeFileMetaDataFlag) {
-                m_metadata->writeAsXML(xmlWriter);
-            }
+        }
+        if (writeFileMetaDataFlag) {
+            m_metadata.writeAsXML(xmlWriter);
         }
     }
     xmlWriter.writeEndElement();//just to make it clean
@@ -145,10 +143,8 @@ void SubvolumeAttributes::writeAsXML(XmlWriter& xmlWriter, int index)
             typeString = "Unknown";
     }
     xmlWriter.writeElementCData(CARET_VOL_EXT_VI_TYPE, typeString);
-    if (m_metadata != NULL) { // write metadata only if it is not empty
-        if ( ! m_metadata->isEmpty()) {
-            m_metadata->writeAsXML(xmlWriter);
-        }
+    if ( ! m_metadata.isEmpty()) {
+        m_metadata.writeAsXML(xmlWriter);
     }
     xmlWriter.writeEndElement();
 }
@@ -377,8 +373,7 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
                     m_toFill->m_attributes[m_viIndex].grabNew(new SubvolumeAttributes());
                 } else if (qName == GiftiXmlElements::TAG_METADATA) {
                     nextState = ROOT_META_DATA;
-                    m_toFill->m_metadata.grabNew(new GiftiMetaData);
-                    m_metadataReader.grabNew(new GiftiMetaDataSaxReader(m_toFill->m_metadata));
+                    m_metadataReader.grabNew(new GiftiMetaDataSaxReader(&m_toFill->m_metadata));
                     m_metadataReader->startDocument();
                     m_metadataReader->startElement(uri, localName, qName, atts);
                 }//anything else gets caught in INVALID below
@@ -408,8 +403,7 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
                 } else if (qName == GiftiXmlElements::TAG_METADATA) {
                     nextState = VI_META_DATA;
                     CaretAssertVectorIndex(m_toFill->m_attributes, m_viIndex);
-                    m_toFill->m_attributes[m_viIndex]->m_metadata.grabNew(new GiftiMetaData);
-                    m_metadataReader.grabNew(new GiftiMetaDataSaxReader(m_toFill->m_attributes[m_viIndex]->m_metadata));
+                    m_metadataReader.grabNew(new GiftiMetaDataSaxReader(&m_toFill->m_attributes[m_viIndex]->m_metadata));
                     m_metadataReader->startDocument();
                     m_metadataReader->startElement(uri, localName, qName, atts);
                 } else if (qName == CARET_VOL_EXT_VI_TYPE) {

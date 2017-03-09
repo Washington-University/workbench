@@ -813,21 +813,13 @@ VolumeFile::setMapName(const int32_t mapIndex,
 const GiftiMetaData* VolumeFile::getMapMetaData(const int32_t mapIndex) const
 {
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
-    if (m_caretVolExt.m_attributes[mapIndex]->m_metadata == NULL)
-    {
-        m_caretVolExt.m_attributes[mapIndex]->m_metadata.grabNew(new GiftiMetaData());
-    }
-    return m_caretVolExt.m_attributes[mapIndex]->m_metadata;
+    return &m_caretVolExt.m_attributes[mapIndex]->m_metadata;
 }
 
 GiftiMetaData* VolumeFile::getMapMetaData(const int32_t mapIndex)
 {
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
-    if (m_caretVolExt.m_attributes[mapIndex]->m_metadata == NULL)
-    {
-        m_caretVolExt.m_attributes[mapIndex]->m_metadata.grabNew(new GiftiMetaData());
-    }
-    return m_caretVolExt.m_attributes[mapIndex]->m_metadata;
+    return &m_caretVolExt.m_attributes[mapIndex]->m_metadata;
 }
 
 void VolumeFile::checkStatisticsValid()
@@ -1071,10 +1063,7 @@ VolumeFile::getFileHistogram(const float mostPositiveValueInclusive,
 GiftiMetaData*
 VolumeFile::getFileMetaData()
 {
-    if (m_caretVolExt.m_metadata == NULL) {
-        m_caretVolExt.m_metadata.grabNew(new GiftiMetaData);
-    }
-    return m_caretVolExt.m_metadata;
+    return &m_caretVolExt.m_metadata;
 }
 
 /**
@@ -1083,10 +1072,7 @@ VolumeFile::getFileMetaData()
 const GiftiMetaData*
 VolumeFile::getFileMetaData() const
 {
-    if (m_caretVolExt.m_metadata == NULL) {
-        m_caretVolExt.m_metadata.grabNew(new GiftiMetaData);
-    }
-    return m_caretVolExt.m_metadata;
+    return &m_caretVolExt.m_metadata;
 }
 
 
@@ -1303,11 +1289,7 @@ AString
 VolumeFile::getMapUniqueID(const int32_t mapIndex) const
 {
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
-    if (m_caretVolExt.m_attributes[mapIndex]->m_metadata == NULL)
-    {
-        m_caretVolExt.m_attributes[mapIndex]->m_metadata.grabNew(new GiftiMetaData());
-    }
-    return m_caretVolExt.m_attributes[mapIndex]->m_metadata->getUniqueID();
+    return m_caretVolExt.m_attributes[mapIndex]->m_metadata.getUniqueID();
 }
 
 /**

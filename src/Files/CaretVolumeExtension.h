@@ -29,12 +29,12 @@
 #include "XmlSaxParserHandlerInterface.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "GiftiLabelTableSaxReader.h"
+#include "GiftiMetaData.h"
 #include "GiftiMetaDataSaxReader.h"
 
 
 namespace caret
 {
-    class GiftiMetaData;
     class XmlUnexpectedElementSaxParser;
 
     struct StudyMetadataLinkSet
@@ -57,7 +57,7 @@ namespace caret
         AString m_comment;
         AString m_guiLabel;
         CaretPointer<GiftiLabelTable> m_labelTable;
-        CaretPointer<GiftiMetaData> m_metadata;
+        GiftiMetaData m_metadata;
         StudyMetadataLinkSet m_studyMetadata;
         CaretPointer<PaletteColorMapping> m_palette;
         VolumeType m_type;
@@ -67,7 +67,7 @@ namespace caret
     
     struct CaretVolumeExtension
     {
-        mutable CaretPointer<GiftiMetaData> m_metadata;
+        GiftiMetaData m_metadata;
         AString m_comment;
         AString m_date;//TODO: make a class to handle ISO-8601 dates
         std::vector<CaretPointer<SubvolumeAttributes> > m_attributes;
