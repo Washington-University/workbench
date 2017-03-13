@@ -95,9 +95,8 @@ CaretMappableDataFile::operator=(const CaretMappableDataFile& cmdf)
  * Assists with copying instances of this class.
  */
 void 
-CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile& cmdf)
+CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile& /*cmdf*/)
 {
-    setPaletteNormalizationMode(cmdf.getPaletteNormalizationMode());
 }
 
 // note: method is documented in header file
