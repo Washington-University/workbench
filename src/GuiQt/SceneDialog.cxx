@@ -347,6 +347,7 @@ SceneDialog::updateSceneFileComboBoxModifiedIcons()
     }
     
     m_sceneFileSelectionComboBox->blockSignals(false);
+    /* comment */
 }
 
 /**
