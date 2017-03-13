@@ -176,9 +176,12 @@ namespace caret {
         /** Histogram used when statistics computed on all data in file */
         CaretPointer<Histogram> m_fileHistogram;
         
+        int32_t m_histogramNumberOfBuckets = 100;
+        
         /** Histogram with limited values used when statistics computed on all data in file */
         CaretPointer<Histogram> m_fileHistorgramLimitedValues;
         
+        int32_t m_fileHistogramLimitedValuesNumberOfBuckets = 100;
         float m_fileHistogramLimitedValuesMostPositiveValueInclusive;
         float m_fileHistogramLimitedValuesLeastPositiveValueInclusive;
         float m_fileHistogramLimitedValuesLeastNegativeValueInclusive;

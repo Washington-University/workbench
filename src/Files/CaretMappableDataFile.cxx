@@ -1200,6 +1200,39 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
     return false;
 }
 
+/**
+ * @return File histogram number of buckets.
+ */
+int32_t
+CaretMappableDataFile::getFileHistogramNumberOfBuckets() const
+{
+    /*
+     * Metadata returns zero if integer value not found
+     */
+    const GiftiMetaData* metadata = getFileMetaData();
+    CaretAssert(metadata);
+    int32_t numBuckets = metadata->getInt(GiftiMetaDataXmlElements::HISTOGRAM_NUMBER_OF_BUCKETS);
+    if (numBuckets <= 0) {
+        numBuckets = 100;
+    }
+    return numBuckets;
+}
+
+/**
+ * Set the file histogram number of buckets.
+ *
+ * @param numberOfBuckets
+ *     Number of buckets.
+ */
+void
+CaretMappableDataFile::setFileHistogramNumberOfBuckets(const int32_t numberOfBuckets)
+{
+    GiftiMetaData* metadata = getFileMetaData();
+    CaretAssert(metadata);
+    metadata->setInt(GiftiMetaDataXmlElements::HISTOGRAM_NUMBER_OF_BUCKETS,
+                     numberOfBuckets);
+}
+
 
 /**
  * @return True if any of the maps in this file contain a

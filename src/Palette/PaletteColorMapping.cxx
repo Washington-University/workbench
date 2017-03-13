@@ -137,6 +137,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->histogramRangeMode = pcm.histogramRangeMode;
     this->histogramChartType = pcm.histogramChartType;
     this->histogramColor = pcm.histogramColor;
+    this->histogramNumberOfBuckets = pcm.histogramNumberOfBuckets;
     this->colorBarNumericFormatMode = pcm.colorBarNumericFormatMode;
     this->colorBarPrecisionDigits = pcm.colorBarPrecisionDigits;
     this->colorBarNumericSubdivisionCount = pcm.colorBarNumericSubdivisionCount;
@@ -187,6 +188,7 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->histogramRangeMode == pcm.histogramRangeMode)
         && (this->histogramChartType == pcm.histogramChartType)
         && (this->histogramColor == pcm.histogramColor)
+        && (this->histogramNumberOfBuckets == pcm.histogramNumberOfBuckets)
         && (this->colorBarNumericFormatMode == pcm.colorBarNumericFormatMode)
         && (this->colorBarPrecisionDigits == pcm.colorBarPrecisionDigits)
         && (this->colorBarNumericSubdivisionCount == pcm.colorBarNumericSubdivisionCount)
@@ -234,6 +236,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->histogramRangeMode = PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL;
     this->histogramChartType = PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_BARS;
     this->histogramColor = CaretColorEnum::CUSTOM;  // CUSTOM is color with palette
+    this->histogramNumberOfBuckets = 100;
     this->colorBarNumericFormatMode = NumericFormatModeEnum::AUTO;
     this->colorBarPrecisionDigits = 2;
     this->colorBarNumericSubdivisionCount = 0;
@@ -356,6 +359,8 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                      PaletteHistogramChartTypeEnum::toName(this->histogramChartType));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_COLOR,
                                      CaretColorEnum::toName(this->histogramColor));
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_NUMBER_OF_BUCKETS,
+                                     this->histogramNumberOfBuckets);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_NUMERIC_FORMAT_MODE,
                                      NumericFormatModeEnum::toName(this->colorBarNumericFormatMode));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_PRECISION_DIGITS,
@@ -2795,6 +2800,30 @@ PaletteColorMapping::setHistogramColor(const CaretColorEnum::Enum histogramColor
 {
     if (histogramColor != this->histogramColor) {
         this->histogramColor = histogramColor;
+        setModified();
+    }
+}
+
+/**
+ * @return Histogram number of buckets.
+ */
+int32_t
+PaletteColorMapping::getHistogramNumberOfBuckets() const
+{
+    return this->histogramNumberOfBuckets;
+}
+
+/**
+ * Set the histogram number of buckets.
+ *
+ * @param histogramNumberOfBuckets
+ *     Number of buckets for the histogram.
+ */
+void
+PaletteColorMapping::setHistogramNumberOfBuckets(const int32_t histogramNumberOfBuckets)
+{
+    if (histogramNumberOfBuckets != this->histogramNumberOfBuckets) {
+        this->histogramNumberOfBuckets = histogramNumberOfBuckets;
         setModified();
     }
 }

@@ -56,21 +56,23 @@ m_histogramContentType(histogramContentType)
 {
     m_sceneAssistant = new SceneClassAssistant();
     
+    int32_t histogramNumberOfBuckets = 0;
     switch (m_histogramContentType) {
         case ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_UNSUPPORTED:
             break;
         case ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA:
+       {
+           CaretMappableDataFile* cmdf = getCaretMappableDataFile();
+           if (cmdf->getNumberOfMaps() > 0) {
+               const Histogram* histogram = cmdf->getMapHistogram(0);
+               if (histogram != NULL) {
+                   histogramNumberOfBuckets = histogram->getNumberOfBuckets();
+               }
+           }
+       }
             break;
     }
 
-    int32_t histogramNumberOfBuckets = 0;
-    CaretMappableDataFile* cmdf = getCaretMappableDataFile();
-    if (cmdf->getNumberOfMaps() > 0) {
-        const Histogram* histogram = cmdf->getMapHistogram(0);
-        if (histogram != NULL) {
-            histogramNumberOfBuckets = histogram->getNumberOfBuckets();
-        }
-    }
     updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForHistogram(histogramNumberOfBuckets));
 }
 

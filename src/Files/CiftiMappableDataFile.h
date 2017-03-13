@@ -552,17 +552,20 @@ namespace caret {
             
             void updateFastStatistics(const std::vector<float>& data);
             
-            bool isHistogramValid() const;
+            bool isHistogramValid(const int32_t numberOfBuckets) const;
             
-            void updateHistogram(const std::vector<float>& data);
+            void updateHistogram(const int32_t numberOfBuckets,
+                                 const std::vector<float>& data);
             
-            bool isHistogramLimitedValuesValid(const float mostPositiveValueInclusive,
+            bool isHistogramLimitedValuesValid(const int32_t numberOfBuckets,
+                                               const float mostPositiveValueInclusive,
                                                const float leastPositiveValueInclusive,
                                                const float leastNegativeValueInclusive,
                                                const float mostNegativeValueInclusive,
                                                const bool includeZeroValues) const;
             
-            void updateHistogramLimitedValues(const std::vector<float>& data,
+            void updateHistogramLimitedValues(const int32_t numberOfBuckets,
+                                              const std::vector<float>& data,
                                               const float mostPositiveValueInclusive,
                                               const float leastPositiveValueInclusive,
                                               const float leastNegativeValueInclusive,
@@ -618,9 +621,12 @@ namespace caret {
             /** histogram for all of map map */
             CaretPointer<Histogram> m_histogram;
         
+            int32_t m_histogramNumberOfBuckets = 100;
+            
             /** histogram for limited values from map */
             CaretPointer<Histogram> m_histogramLimitedValues;
             
+            int32_t m_histogramLimitedValuesNumberOfBuckets;
             float m_histogramLimitedValuesMostPositiveValueInclusive;
             float m_histogramLimitedValuesLeastPositiveValueInclusive;
             float m_histogramLimitedValuesLeastNegativeValueInclusive;
@@ -732,9 +738,12 @@ namespace caret {
         /** Histogram used when statistics computed on all data in file */
         CaretPointer<Histogram> m_fileHistogram;
         
+        int32_t m_fileHistogramNumberOfBuckets = 100;
+        
         /** Histogram with limited values used when statistics computed on all data in file */
         CaretPointer<Histogram> m_fileHistorgramLimitedValues;
         
+        int32_t m_fileHistogramLimitedValuesNumberOfBuckets = 100;
         float m_fileHistogramLimitedValuesMostPositiveValueInclusive;
         float m_fileHistogramLimitedValuesLeastPositiveValueInclusive;
         float m_fileHistogramLimitedValuesLeastNegativeValueInclusive;

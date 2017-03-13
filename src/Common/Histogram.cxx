@@ -176,6 +176,17 @@ void Histogram::update(const float* data, const int64_t& dataCount)
     }
 }
 
+void Histogram::update(const int32_t& numBuckets,
+                       const float* data, const int64_t& dataCount, float mostPositiveValueInclusive,
+                       float leastPositiveValueInclusive, float leastNegativeValueInclusive,
+                       float mostNegativeValueInclusive, const bool& includeZeroValues)
+{
+    resize(numBuckets);
+    update(data, dataCount, mostPositiveValueInclusive,
+           leastPositiveValueInclusive, leastNegativeValueInclusive,
+           mostNegativeValueInclusive, includeZeroValues);
+}
+
 void Histogram::update(const float* data, const int64_t& dataCount, float mostPositiveValueInclusive,
                        float leastPositiveValueInclusive, float leastNegativeValueInclusive,
                        float mostNegativeValueInclusive, const bool& includeZeroValues)

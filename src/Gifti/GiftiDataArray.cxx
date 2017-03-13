@@ -1723,13 +1723,21 @@ const FastStatistics* GiftiDataArray::getFastStatistics() const
     return m_fastStatistics;
 }
 
-const Histogram* GiftiDataArray::getHistogram() const
+const Histogram* GiftiDataArray::getHistogram(const int32_t numberOfBuckets) const
 {
     if (this->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
+        bool updateHistogramFlag = false;
         if (m_histogram == NULL) {
-            m_histogram.grabNew(new Histogram(100));
+            m_histogram.grabNew(new Histogram(numberOfBuckets));
+            updateHistogramFlag = true;
         }
-        m_histogram->update(dataPointerFloat, getTotalNumberOfElements());
+        else if (numberOfBuckets != m_histogramNumberOfBuckets) {
+            updateHistogramFlag = true;
+        }
+        if (updateHistogramFlag) {
+            m_histogram->update(numberOfBuckets, dataPointerFloat, getTotalNumberOfElements());
+            m_histogramNumberOfBuckets = numberOfBuckets;
+        }
     }
     return m_histogram;
 }
@@ -1772,23 +1780,43 @@ GiftiDataArray::getDescriptiveStatistics(const float mostPositiveValueInclusive,
     return this->descriptiveStatisticsLimitedValues;
 }
 
-const Histogram* GiftiDataArray::getHistogram(const float mostPositiveValueInclusive,
+const Histogram* GiftiDataArray::getHistogram(const int32_t numberOfBuckets,
+                                              const float mostPositiveValueInclusive,
                                               const float leastPositiveValueInclusive,
                                               const float leastNegativeValueInclusive,
                                               const float mostNegativeValueInclusive,
                                               const bool includeZeroValues) const
 {
     if (this->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
+        bool updateHistogramFlag = false;
         if (m_histogramLimitedValues == NULL)
         {
-            m_histogramLimitedValues.grabNew(new Histogram(100));
+            m_histogramLimitedValues.grabNew(new Histogram(numberOfBuckets));
+            updateHistogramFlag = true;
         }
-        m_histogramLimitedValues->update(dataPointerFloat, getTotalNumberOfElements(),
-                                         mostPositiveValueInclusive,
-                                         leastPositiveValueInclusive,
-                                         leastNegativeValueInclusive,
-                                         mostNegativeValueInclusive,
-                                         includeZeroValues);
+        else if ((numberOfBuckets != m_histogramLimitedValuesNumberOfBuckets)
+                 || (mostPositiveValueInclusive != m_histogramLimitedValuesMostPositiveValueInclusive)
+                 || (leastPositiveValueInclusive != m_histogramLimitedValuesLeastPositiveValueInclusive)
+                 || (leastNegativeValueInclusive != m_histogramLimitedValuesLeastNegativeValueInclusive)
+                 || (mostNegativeValueInclusive != m_histogramLimitedValuesMostNegativeValueInclusive)
+                 || (includeZeroValues != m_histogramLimitedValuesIncludeZeroValues)) {
+            updateHistogramFlag = true;
+        }
+        if (updateHistogramFlag) {
+            m_histogramLimitedValues->update(numberOfBuckets,
+                                             dataPointerFloat, getTotalNumberOfElements(),
+                                             mostPositiveValueInclusive,
+                                             leastPositiveValueInclusive,
+                                             leastNegativeValueInclusive,
+                                             mostNegativeValueInclusive,
+                                             includeZeroValues);
+            m_histogramLimitedValuesNumberOfBuckets = numberOfBuckets;
+            m_histogramLimitedValuesMostPositiveValueInclusive = mostPositiveValueInclusive;
+            m_histogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
+            m_histogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;
+            m_histogramLimitedValuesMostNegativeValueInclusive = mostNegativeValueInclusive;
+            m_histogramLimitedValuesIncludeZeroValues = includeZeroValues;
+        }
     }
     return m_histogramLimitedValues;
 }

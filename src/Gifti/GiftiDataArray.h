@@ -289,7 +289,7 @@ namespace caret {
         
         const FastStatistics* getFastStatistics() const;
         
-        const Histogram* getHistogram() const;
+        const Histogram* getHistogram(const int32_t numberOfBuckets) const;
         
         const DescriptiveStatistics* getDescriptiveStatistics(const float mostPositiveValueInclusive,
                                                               const float leastPositiveValueInclusive,
@@ -297,7 +297,8 @@ namespace caret {
                                                               const float mostNegativeValueInclusive,
                                                               const bool includeZeroValues) const;
         
-        const Histogram* getHistogram(const float mostPositiveValueInclusive,
+        const Histogram* getHistogram(const int32_t numberOfBuckets,
+                                      const float mostPositiveValueInclusive,
                                         const float leastPositiveValueInclusive,
                                         const float leastNegativeValueInclusive,
                                         const float mostNegativeValueInclusive,
@@ -410,11 +411,19 @@ namespace caret {
         mutable CaretPointer<FastStatistics> m_fastStatistics;
         
         mutable CaretPointer<Histogram> m_histogram;
+        mutable int32_t m_histogramNumberOfBuckets = 100;
+        
+        mutable CaretPointer<Histogram> m_histogramLimitedValues;
+        mutable int32_t m_histogramLimitedValuesNumberOfBuckets = 100;
+        mutable float m_histogramLimitedValuesMostPositiveValueInclusive;
+        mutable float m_histogramLimitedValuesLeastPositiveValueInclusive;
+        mutable float m_histogramLimitedValuesLeastNegativeValueInclusive;
+        mutable float m_histogramLimitedValuesMostNegativeValueInclusive;
+        mutable bool m_histogramLimitedValuesIncludeZeroValues;
         
         /// statistics about data (DO NOT COPY)
         mutable DescriptiveStatistics* descriptiveStatisticsLimitedValues;
         
-        mutable CaretPointer<Histogram> m_histogramLimitedValues;
         
         bool modifiedFlag; // DO NOT COPY
         // ***** BE SURE TO UPDATE copyHelper() if elements are added ******

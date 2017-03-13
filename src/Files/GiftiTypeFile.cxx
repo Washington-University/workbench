@@ -515,8 +515,18 @@ const FastStatistics* GiftiTypeFile::getMapFastStatistics(const int32_t mapIndex
 
 const Histogram* GiftiTypeFile::getMapHistogram(const int32_t mapIndex)
 {
+    int32_t numberOfBuckets = 0;
+    switch (getPaletteNormalizationMode()) {
+        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+            numberOfBuckets = getFileHistogramNumberOfBuckets();
+            break;
+        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+            numberOfBuckets = getMapPaletteColorMapping(mapIndex)->getHistogramNumberOfBuckets();
+            break;
+    }
+    
     const GiftiDataArray* gda = this->giftiFile->getDataArray(mapIndex);
-    return gda->getHistogram();
+    return gda->getHistogram(numberOfBuckets);
 }
 
 const Histogram* GiftiTypeFile::getMapHistogram(const int32_t mapIndex,
@@ -526,9 +536,19 @@ const Histogram* GiftiTypeFile::getMapHistogram(const int32_t mapIndex,
                                                 const float mostNegativeValueInclusive,
                                                 const bool includeZeroValues)
 {
+    int32_t numberOfBuckets = 0;
+    switch (getPaletteNormalizationMode()) {
+        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+            numberOfBuckets = getFileHistogramNumberOfBuckets();
+            break;
+        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+            numberOfBuckets = getMapPaletteColorMapping(mapIndex)->getHistogramNumberOfBuckets();
+            break;
+    }
     const GiftiDataArray* gda = this->giftiFile->getDataArray(mapIndex);
-    return gda->getHistogram(mostPositiveValueInclusive,
-                            leastPositiveValueInclusive,
+    return gda->getHistogram(numberOfBuckets,
+                             mostPositiveValueInclusive,
+                             leastPositiveValueInclusive,
                              leastNegativeValueInclusive,
                              mostNegativeValueInclusive,
                              includeZeroValues);
@@ -644,15 +664,32 @@ GiftiTypeFile::getFileFastStatistics()
 const Histogram*
 GiftiTypeFile::getFileHistogram()
 {
-    if (m_fileHistogram == NULL) {
+    const int32_t numBuckets = getFileHistogramNumberOfBuckets();
+    bool updateHistogramFlag = false;
+    if (m_fileHistogram != NULL) {
+        if (numBuckets != m_histogramNumberOfBuckets) {
+            updateHistogramFlag = true;
+        }
+    }
+    else {
+        updateHistogramFlag = true;
+        
+    }
+    
+    if (updateHistogramFlag) {
         std::vector<float> fileData;
         getFileDataFloat(fileData);
         if ( ! fileData.empty()) {
-            m_fileHistogram.grabNew(new Histogram());
-            m_fileHistogram->update(&fileData[0],
+            if (m_fileHistogram == NULL) {
+                m_fileHistogram.grabNew(new Histogram(numBuckets));
+            }
+            m_fileHistogram->update(numBuckets,
+                                    &fileData[0],
                                     fileData.size());
+            m_histogramNumberOfBuckets = numBuckets;
         }
     }
+    
     return m_fileHistogram;
 }
 
@@ -682,9 +719,11 @@ GiftiTypeFile::getFileHistogram(const float mostPositiveValueInclusive,
                                            const float mostNegativeValueInclusive,
                                            const bool includeZeroValues)
 {
+    const int32_t numberOfBuckets = getFileHistogramNumberOfBuckets();
     bool updateHistogramFlag = false;
     if (m_fileHistorgramLimitedValues != NULL) {
-        if ((mostPositiveValueInclusive != m_fileHistogramLimitedValuesMostPositiveValueInclusive)
+        if ((numberOfBuckets != m_fileHistogramLimitedValuesNumberOfBuckets)
+            || (mostPositiveValueInclusive != m_fileHistogramLimitedValuesMostPositiveValueInclusive)
             || (leastPositiveValueInclusive != m_fileHistogramLimitedValuesLeastPositiveValueInclusive)
             || (leastNegativeValueInclusive != m_fileHistogramLimitedValuesLeastNegativeValueInclusive)
             || (mostNegativeValueInclusive != m_fileHistogramLimitedValuesMostNegativeValueInclusive)
@@ -703,7 +742,8 @@ GiftiTypeFile::getFileHistogram(const float mostPositiveValueInclusive,
             if (m_fileHistorgramLimitedValues == NULL) {
                 m_fileHistorgramLimitedValues.grabNew(new Histogram());
             }
-            m_fileHistorgramLimitedValues->update(&fileData[0],
+            m_fileHistorgramLimitedValues->update(numberOfBuckets,
+                                                  &fileData[0],
                                                   fileData.size(),
                                                   mostPositiveValueInclusive,
                                                   leastPositiveValueInclusive,
@@ -711,6 +751,7 @@ GiftiTypeFile::getFileHistogram(const float mostPositiveValueInclusive,
                                                   mostNegativeValueInclusive,
                                                   includeZeroValues);
             
+            m_fileHistogramLimitedValuesNumberOfBuckets = numberOfBuckets;
             m_fileHistogramLimitedValuesMostPositiveValueInclusive  = mostPositiveValueInclusive;
             m_fileHistogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
             m_fileHistogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;
@@ -720,6 +761,45 @@ GiftiTypeFile::getFileHistogram(const float mostPositiveValueInclusive,
     }
     
     return m_fileHistorgramLimitedValues;
+//    bool updateHistogramFlag = false;
+//    if (m_fileHistorgramLimitedValues != NULL) {
+//        if ((mostPositiveValueInclusive != m_fileHistogramLimitedValuesMostPositiveValueInclusive)
+//            || (leastPositiveValueInclusive != m_fileHistogramLimitedValuesLeastPositiveValueInclusive)
+//            || (leastNegativeValueInclusive != m_fileHistogramLimitedValuesLeastNegativeValueInclusive)
+//            || (mostNegativeValueInclusive != m_fileHistogramLimitedValuesMostNegativeValueInclusive)
+//            || (includeZeroValues != m_fileHistogramLimitedValuesIncludeZeroValues)) {
+//            updateHistogramFlag = true;
+//        }
+//    }
+//    else {
+//        updateHistogramFlag = true;
+//    }
+//    
+//    if (updateHistogramFlag) {
+//        std::vector<float> fileData;
+//        getFileDataFloat(fileData);
+//        if ( ! fileData.empty()) {
+//            if (m_fileHistorgramLimitedValues == NULL) {
+//                m_fileHistorgramLimitedValues.grabNew(new Histogram());
+//            }
+//            m_fileHistorgramLimitedValues->update(getFileHistogramNumberOfBuckets(),
+//                                                  &fileData[0],
+//                                                  fileData.size(),
+//                                                  mostPositiveValueInclusive,
+//                                                  leastPositiveValueInclusive,
+//                                                  leastNegativeValueInclusive,
+//                                                  mostNegativeValueInclusive,
+//                                                  includeZeroValues);
+//            
+//            m_fileHistogramLimitedValuesMostPositiveValueInclusive  = mostPositiveValueInclusive;
+//            m_fileHistogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
+//            m_fileHistogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;
+//            m_fileHistogramLimitedValuesMostNegativeValueInclusive  = mostNegativeValueInclusive;
+//            m_fileHistogramLimitedValuesIncludeZeroValues           = includeZeroValues;
+//        }
+//    }
+//    
+//    return m_fileHistorgramLimitedValues;
 }
 
 /**

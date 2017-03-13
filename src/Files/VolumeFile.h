@@ -62,7 +62,9 @@ namespace caret {
         {//TODO: prune this once statistics gets straightened out
             CaretPointer<FastStatistics> m_fastStatistics;
             CaretPointer<Histogram> m_histogram;
+            int32_t m_histogramNumberOfBuckets = 100;
             CaretPointer<Histogram> m_histogramLimitedValues;
+            int32_t m_histogramLimitedValuesNumberOfBuckets = 100;
             float m_histogramLimitedValuesMostPositiveValueInclusive;
             float m_histogramLimitedValuesLeastPositiveValueInclusive;
             float m_histogramLimitedValuesLeastNegativeValueInclusive;
@@ -80,9 +82,12 @@ namespace caret {
         /** Histogram used when statistics computed on all data in file */
         CaretPointer<Histogram> m_fileHistogram;
         
+        int32_t m_fileHistogramNumberOfBuckets = 100;
+        
         /** Histogram with limited values used when statistics computed on all data in file */
         CaretPointer<Histogram> m_fileHistorgramLimitedValues;
         
+        int32_t m_fileHistogramLimitedValuesNumberOfBuckets;
         float m_fileHistogramLimitedValuesMostPositiveValueInclusive;
         float m_fileHistogramLimitedValuesLeastPositiveValueInclusive;
         float m_fileHistogramLimitedValuesLeastNegativeValueInclusive;

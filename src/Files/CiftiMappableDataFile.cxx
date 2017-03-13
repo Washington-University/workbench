@@ -1718,12 +1718,22 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex)
     if (isMappedWithPalette()) {
         CaretAssertVectorIndex(m_mapContent,
                                mapIndex);
+        int32_t numberOfBuckets = 0;
+        switch (getPaletteNormalizationMode()) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                numberOfBuckets = getFileHistogramNumberOfBuckets();
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                numberOfBuckets = getMapPaletteColorMapping(mapIndex)->getHistogramNumberOfBuckets();
+                break;
+        }
         
-        if ( ! m_mapContent[mapIndex]->isHistogramValid()) {
+        if ( ! m_mapContent[mapIndex]->isHistogramValid(numberOfBuckets)) {
             std::vector<float> data;
             getMapData(mapIndex,
                        data);
-            m_mapContent[mapIndex]->updateHistogram(data);
+            m_mapContent[mapIndex]->updateHistogram(numberOfBuckets,
+                                                    data);
         }
         
         histogramOut = m_mapContent[mapIndex]->m_histogram;
@@ -1766,7 +1776,17 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex,
     if (isMappedWithPalette()) {
         CaretAssertVectorIndex(m_mapContent,
                                mapIndex);
-        if ( ! m_mapContent[mapIndex]->isHistogramLimitedValuesValid(mostPositiveValueInclusive,
+        int32_t numberOfBuckets = 0;
+        switch (getPaletteNormalizationMode()) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                numberOfBuckets = getFileHistogramNumberOfBuckets();
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                numberOfBuckets = getMapPaletteColorMapping(mapIndex)->getHistogramNumberOfBuckets();
+                break;
+        }
+        if ( ! m_mapContent[mapIndex]->isHistogramLimitedValuesValid(numberOfBuckets,
+                                                                     mostPositiveValueInclusive,
                                                                      leastPositiveValueInclusive,
                                                                      leastNegativeValueInclusive,
                                                                      mostNegativeValueInclusive,
@@ -1774,7 +1794,8 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex,
             std::vector<float> data;
             getMapData(mapIndex,
                        data);
-            m_mapContent[mapIndex]->updateHistogramLimitedValues(data,
+            m_mapContent[mapIndex]->updateHistogramLimitedValues(numberOfBuckets,
+                                                                 data,
                                                                  mostPositiveValueInclusive,
                                                                  leastPositiveValueInclusive,
                                                                  leastNegativeValueInclusive,
@@ -1843,13 +1864,28 @@ CiftiMappableDataFile::getFileFastStatistics()
 const Histogram*
 CiftiMappableDataFile::getFileHistogram()
 {
-    if (m_fileHistogram == NULL) {
+    bool updateHistogramFlag = false;
+    const int32_t numberOfBuckets = getFileHistogramNumberOfBuckets();
+    if (m_fileHistogram != NULL) {
+        if (numberOfBuckets != m_fileHistogramNumberOfBuckets) {
+            updateHistogramFlag = true;
+        }
+    }
+    else {
+        updateHistogramFlag = true;
+    }
+    if (updateHistogramFlag) {
         std::vector<float> fileData;
         getFileData(fileData);
+        
         if ( ! fileData.empty()) {
-            m_fileHistogram.grabNew(new Histogram());
-            m_fileHistogram->update(&fileData[0],
+            if (m_fileHistogram == NULL) {
+                m_fileHistogram.grabNew(new Histogram(numberOfBuckets));
+            }
+            m_fileHistogram->update(numberOfBuckets,
+                                    &fileData[0],
                                     fileData.size());
+            m_fileHistogramNumberOfBuckets = numberOfBuckets;
         }
     }
     return m_fileHistogram;
@@ -1882,8 +1918,10 @@ CiftiMappableDataFile::getFileHistogram(const float mostPositiveValueInclusive,
                                            const bool includeZeroValues)
 {
     bool updateHistogramFlag = false;
+    const int32_t numberOfBuckets = getFileHistogramNumberOfBuckets();
     if (m_fileHistorgramLimitedValues != NULL) {
-        if ((mostPositiveValueInclusive != m_fileHistogramLimitedValuesMostPositiveValueInclusive)
+        if ((numberOfBuckets != m_fileHistogramLimitedValuesNumberOfBuckets)
+            ||(mostPositiveValueInclusive != m_fileHistogramLimitedValuesMostPositiveValueInclusive)
             || (leastPositiveValueInclusive != m_fileHistogramLimitedValuesLeastPositiveValueInclusive)
             || (leastNegativeValueInclusive != m_fileHistogramLimitedValuesLeastNegativeValueInclusive)
             || (mostNegativeValueInclusive != m_fileHistogramLimitedValuesMostNegativeValueInclusive)
@@ -1902,7 +1940,8 @@ CiftiMappableDataFile::getFileHistogram(const float mostPositiveValueInclusive,
             if (m_fileHistorgramLimitedValues == NULL) {
                 m_fileHistorgramLimitedValues.grabNew(new Histogram());
             }
-            m_fileHistorgramLimitedValues->update(&fileData[0],
+            m_fileHistorgramLimitedValues->update(numberOfBuckets,
+                                                  &fileData[0],
                                                   fileData.size(),
                                                   mostPositiveValueInclusive,
                                                   leastPositiveValueInclusive,
@@ -1910,6 +1949,7 @@ CiftiMappableDataFile::getFileHistogram(const float mostPositiveValueInclusive,
                                                   mostNegativeValueInclusive,
                                                   includeZeroValues);
             
+            m_fileHistogramLimitedValuesNumberOfBuckets             = numberOfBuckets;
             m_fileHistogramLimitedValuesMostPositiveValueInclusive  = mostPositiveValueInclusive;
             m_fileHistogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
             m_fileHistogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;
@@ -6889,32 +6929,41 @@ CiftiMappableDataFile::MapContent::updateFastStatistics(const std::vector<float>
 }
 
 /**
+ * @param numberOfBuckets,
+ *    Number of buckets in the histogram.
  * @return True if histogram is valid, else false.
  */
 bool
-CiftiMappableDataFile::MapContent::isHistogramValid() const
+CiftiMappableDataFile::MapContent::isHistogramValid(const int32_t numberOfBuckets) const
 {
-    return (m_histogram != NULL);
+    return ((m_histogram != NULL)
+            && (m_histogramNumberOfBuckets == numberOfBuckets));
 }
 
 /**
  * Update the Histogram but only when needed.
  *
+ * @param numberOfBuckets,
+ *    Number of buckets in the histogram.
  * @param data
  *     Data for histogram.
  */
 void
-CiftiMappableDataFile::MapContent::updateHistogram(const std::vector<float>& data)
+CiftiMappableDataFile::MapContent::updateHistogram(const int32_t numberOfBuckets,
+                                                   const std::vector<float>& data)
 {
     if (data.empty()) {
         m_histogram.grabNew(NULL);
     }
     else {
+        CaretAssert(m_paletteColorMapping);
         if (m_histogram == NULL) {
-            m_histogram.grabNew(new Histogram());
-            m_histogram->update(&data[0],
-                                     data.size());
+            m_histogram.grabNew(new Histogram(numberOfBuckets));
         }
+        m_histogram->update(numberOfBuckets,
+                            &data[0],
+                            data.size());
+        m_histogramNumberOfBuckets = numberOfBuckets;
     }
 }
 
@@ -6922,6 +6971,8 @@ CiftiMappableDataFile::MapContent::updateHistogram(const std::vector<float>& dat
  * Is limited values histogram valid?  Is is valid when it exists and
  * the limited value parameters have not changed.
  *
+ * @param numberOfBuckets,
+ *    Number of buckets in the histogram.
  * @param mostPositiveValueInclusive
  *    Values more positive than this value are excluded.
  * @param leastPositiveValueInclusive
@@ -6936,7 +6987,8 @@ CiftiMappableDataFile::MapContent::updateHistogram(const std::vector<float>& dat
  * @return true if valid, else false.
  */
 bool
-CiftiMappableDataFile::MapContent::isHistogramLimitedValuesValid(const float mostPositiveValueInclusive,
+CiftiMappableDataFile::MapContent::isHistogramLimitedValuesValid(const int32_t numberOfBuckets,
+                                                                 const float mostPositiveValueInclusive,
                                                                  const float leastPositiveValueInclusive,
                                                                  const float leastNegativeValueInclusive,
                                                                  const float mostNegativeValueInclusive,
@@ -6945,7 +6997,8 @@ CiftiMappableDataFile::MapContent::isHistogramLimitedValuesValid(const float mos
     if (m_histogramLimitedValues == NULL) {
         return false;
     }
-    else if ((mostPositiveValueInclusive != m_histogramLimitedValuesMostPositiveValueInclusive)
+    else if ((numberOfBuckets != m_histogramLimitedValuesNumberOfBuckets)
+             || (mostPositiveValueInclusive != m_histogramLimitedValuesMostPositiveValueInclusive)
              || (leastPositiveValueInclusive != m_histogramLimitedValuesLeastPositiveValueInclusive)
              || (leastNegativeValueInclusive != m_histogramLimitedValuesLeastNegativeValueInclusive)
              || (mostNegativeValueInclusive != m_histogramLimitedValuesMostNegativeValueInclusive)
@@ -6973,7 +7026,8 @@ CiftiMappableDataFile::MapContent::isHistogramLimitedValuesValid(const float mos
  *    If true zero values (very near zero) are included.
  */
 void
-CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const std::vector<float>& data,
+CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const int32_t numberOfBuckets,
+                                                                const std::vector<float>& data,
                                                                 const float mostPositiveValueInclusive,
                                                                 const float leastPositiveValueInclusive,
                                                                 const float leastNegativeValueInclusive,
@@ -6987,14 +7041,15 @@ CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const std::vecto
         if (m_histogramLimitedValues == NULL) {
             m_histogramLimitedValues.grabNew(new Histogram());
         }
-        m_histogramLimitedValues->update(&data[0],
+        m_histogramLimitedValues->update(numberOfBuckets,
+                                         &data[0],
                                          data.size(),
                                          mostPositiveValueInclusive,
                                          leastPositiveValueInclusive,
                                          leastNegativeValueInclusive,
                                          mostNegativeValueInclusive,
                                          includeZeroValues);
-        
+        m_histogramLimitedValuesNumberOfBuckets = numberOfBuckets;
         m_histogramLimitedValuesMostPositiveValueInclusive = mostPositiveValueInclusive;
         m_histogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
         m_histogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;

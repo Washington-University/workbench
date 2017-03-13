@@ -884,9 +884,31 @@ const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex)
     CaretAssertVectorIndex(m_brickAttributes, mapIndex);
     checkStatisticsValid();
     const int64_t* dimensions = getDimensionsPtr();
+    
+    bool updateHistogramFlag = false;
+    int32_t numberOfBuckets = 0;
+    switch (getPaletteNormalizationMode()) {
+        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+            numberOfBuckets = getFileHistogramNumberOfBuckets();
+            break;
+        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+            numberOfBuckets = getMapPaletteColorMapping(mapIndex)->getHistogramNumberOfBuckets();
+            break;
+    }
     if (m_brickAttributes[mapIndex].m_histogram == NULL)
     {
-        m_brickAttributes[mapIndex].m_histogram.grabNew(new Histogram(100, getFrame(mapIndex), dimensions[0] * dimensions[1] * dimensions[2]));
+        m_brickAttributes[mapIndex].m_histogram.grabNew(new Histogram(numberOfBuckets));
+        updateHistogramFlag = true;
+    }
+    else if (numberOfBuckets != m_brickAttributes[mapIndex].m_histogramNumberOfBuckets)
+    {
+        updateHistogramFlag = true;
+    }
+    
+    if (updateHistogramFlag)
+    {
+        m_brickAttributes[mapIndex].m_histogram->update(numberOfBuckets, getFrame(mapIndex), dimensions[0] * dimensions[1] * dimensions[2]);
+        m_brickAttributes[mapIndex].m_histogramNumberOfBuckets = numberOfBuckets;
     }
     return m_brickAttributes[mapIndex].m_histogram;
 }
@@ -921,12 +943,22 @@ VolumeFile::getMapHistogram(const int32_t mapIndex,
     
     bool updateHistogramFlag = false;
     
+    int32_t numberOfBuckets = 0;
+    switch (getPaletteNormalizationMode()) {
+        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+            numberOfBuckets = getFileHistogramNumberOfBuckets();
+            break;
+        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+            numberOfBuckets = getMapPaletteColorMapping(mapIndex)->getHistogramNumberOfBuckets();
+            break;
+    }
     if (m_brickAttributes[mapIndex].m_histogramLimitedValues == NULL)
     {
         m_brickAttributes[mapIndex].m_histogramLimitedValues.grabNew(new Histogram(100));
         updateHistogramFlag = true;
     }
-    else if ((mostPositiveValueInclusive != m_brickAttributes[mapIndex].m_histogramLimitedValuesMostPositiveValueInclusive)
+    else if ((numberOfBuckets != m_brickAttributes[mapIndex].m_histogramLimitedValuesNumberOfBuckets)
+             || (mostPositiveValueInclusive != m_brickAttributes[mapIndex].m_histogramLimitedValuesMostPositiveValueInclusive)
              || (leastPositiveValueInclusive != m_brickAttributes[mapIndex].m_histogramLimitedValuesLeastPositiveValueInclusive)
              || (leastNegativeValueInclusive != m_brickAttributes[mapIndex].m_histogramLimitedValuesLeastNegativeValueInclusive)
              || (mostNegativeValueInclusive != m_brickAttributes[mapIndex].m_histogramLimitedValuesMostNegativeValueInclusive)
@@ -935,13 +967,15 @@ VolumeFile::getMapHistogram(const int32_t mapIndex,
     }
     
     if (updateHistogramFlag) {
-        m_brickAttributes[mapIndex].m_histogramLimitedValues->update(getFrame(mapIndex),
+        m_brickAttributes[mapIndex].m_histogramLimitedValues->update(numberOfBuckets,
+                                                                     getFrame(mapIndex),
                                                                      dimensions[0] * dimensions[1] * dimensions[2],
                                                                      mostPositiveValueInclusive,
                                                                      leastPositiveValueInclusive,
                                                                      leastNegativeValueInclusive,
                                                                      mostNegativeValueInclusive,
                                                                      includeZeroValues);
+        m_brickAttributes[mapIndex].m_histogramLimitedValuesNumberOfBuckets = numberOfBuckets;
         m_brickAttributes[mapIndex].m_histogramLimitedValuesMostPositiveValueInclusive = mostPositiveValueInclusive;
         m_brickAttributes[mapIndex].m_histogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
         m_brickAttributes[mapIndex].m_histogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;
@@ -1009,15 +1043,32 @@ VolumeFile::getFileFastStatistics()
 const Histogram*
 VolumeFile::getFileHistogram()
 {
-    if (m_fileHistogram == NULL) {
+    const int32_t numBuckets = getFileHistogramNumberOfBuckets();
+    bool updateHistogramFlag = false;
+    if (m_fileHistogram != NULL) {
+        if (numBuckets != m_fileHistogramNumberOfBuckets) {
+            updateHistogramFlag = true;
+        }
+    }
+    else {
+        updateHistogramFlag = true;
+        
+    }
+    
+    if (updateHistogramFlag) {
         std::vector<float> fileData;
         getFileData(fileData);
         if ( ! fileData.empty()) {
-            m_fileHistogram.grabNew(new Histogram());
-            m_fileHistogram->update(&fileData[0],
+            if (m_fileHistogram == NULL) {
+                m_fileHistogram.grabNew(new Histogram(numBuckets));
+            }
+            m_fileHistogram->update(numBuckets,
+                                    &fileData[0],
                                     fileData.size());
+            m_fileHistogramNumberOfBuckets = numBuckets;
         }
     }
+    
     return m_fileHistogram;
 }
 
@@ -1047,9 +1098,11 @@ VolumeFile::getFileHistogram(const float mostPositiveValueInclusive,
                                            const float mostNegativeValueInclusive,
                                            const bool includeZeroValues)
 {
+    const int32_t numberOfBuckets = getFileHistogramNumberOfBuckets();
     bool updateHistogramFlag = false;
     if (m_fileHistorgramLimitedValues != NULL) {
-        if ((mostPositiveValueInclusive != m_fileHistogramLimitedValuesMostPositiveValueInclusive)
+        if ((numberOfBuckets != m_fileHistogramLimitedValuesNumberOfBuckets)
+            || (mostPositiveValueInclusive != m_fileHistogramLimitedValuesMostPositiveValueInclusive)
             || (leastPositiveValueInclusive != m_fileHistogramLimitedValuesLeastPositiveValueInclusive)
             || (leastNegativeValueInclusive != m_fileHistogramLimitedValuesLeastNegativeValueInclusive)
             || (mostNegativeValueInclusive != m_fileHistogramLimitedValuesMostNegativeValueInclusive)
@@ -1068,7 +1121,8 @@ VolumeFile::getFileHistogram(const float mostPositiveValueInclusive,
             if (m_fileHistorgramLimitedValues == NULL) {
                 m_fileHistorgramLimitedValues.grabNew(new Histogram());
             }
-            m_fileHistorgramLimitedValues->update(&fileData[0],
+            m_fileHistorgramLimitedValues->update(numberOfBuckets,
+                                                  &fileData[0],
                                                   fileData.size(),
                                                   mostPositiveValueInclusive,
                                                   leastPositiveValueInclusive,
@@ -1076,6 +1130,7 @@ VolumeFile::getFileHistogram(const float mostPositiveValueInclusive,
                                                   mostNegativeValueInclusive,
                                                   includeZeroValues);
             
+            m_fileHistogramLimitedValuesNumberOfBuckets = numberOfBuckets;
             m_fileHistogramLimitedValuesMostPositiveValueInclusive  = mostPositiveValueInclusive;
             m_fileHistogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
             m_fileHistogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;

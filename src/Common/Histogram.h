@@ -41,6 +41,16 @@ namespace caret
         
         void computeCumulative();
         
+        void update(const float* data,
+                    const int64_t& dataCount,
+                    float mostPositiveValueInclusive,
+                    float leastPositiveValueInclusive,
+                    float leastNegativeValueInclusive,
+                    float mostNegativeValueInclusive,
+                    const bool& includeZeroValues);
+        
+        void update(const float* data, const int64_t& dataCount);
+        
     public:
         Histogram(const int& numBuckets = 100);
         
@@ -48,11 +58,10 @@ namespace caret
         
         Histogram(const int& numBuckets, const float* data, const int64_t& dataCount);
         
-        void update(const float* data, const int64_t& dataCount);
-        
         void update(const int& numBuckets, const float* data, const int64_t& dataCount);
         
-        void update(const float* data,
+        void update(const int32_t& numBuckets,
+                    const float* data,
                     const int64_t& dataCount,
                     float mostPositiveValueInclusive,
                     float leastPositiveValueInclusive,

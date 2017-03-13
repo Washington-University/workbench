@@ -315,6 +315,10 @@ namespace caret {
                                                    const float mostNegativeValueInclusive,
                                                   const bool includeZeroValues) = 0;
 
+        int32_t getFileHistogramNumberOfBuckets() const;
+        
+        void setFileHistogramNumberOfBuckets(const int32_t numberOfBuckets);
+        
         /**
          * Get the palette color mapping for the map at the given index.
          *

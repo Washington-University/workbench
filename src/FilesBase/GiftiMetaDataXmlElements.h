@@ -208,6 +208,9 @@ namespace GiftiMetaDataXmlElements {
     
     /** name of palette normalization mode */
     static const AString METADATA_PALETTE_NORMALIZATION_MODE = "PaletteNormalizationMode";
+    
+    /** name of histogram number of buckets */
+    static const AString HISTOGRAM_NUMBER_OF_BUCKETS = "HistogramNumberOfBuckets";
 
 } // namespace
 

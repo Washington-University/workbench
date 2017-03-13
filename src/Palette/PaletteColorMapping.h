@@ -221,6 +221,10 @@ namespace caret {
         
         void setHistogramColor(const CaretColorEnum::Enum histogramColor);
         
+        int32_t getHistogramNumberOfBuckets() const;
+        
+        void setHistogramNumberOfBuckets(const int32_t histogramNumberOfBuckets);
+    
         NumericFormatModeEnum::Enum getColorBarNumericFormatMode() const;
         
         int32_t getColorBarPrecisionDigits() const;
@@ -326,6 +330,8 @@ namespace caret {
         PaletteHistogramChartTypeEnum::Enum histogramChartType;
         
         CaretColorEnum::Enum histogramColor;
+        
+        int32_t histogramNumberOfBuckets;
         
         NumericFormatModeEnum::Enum colorBarNumericFormatMode;
         

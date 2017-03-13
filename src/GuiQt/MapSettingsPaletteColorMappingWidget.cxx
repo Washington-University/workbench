@@ -1638,11 +1638,11 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
         switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
             case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
                 statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getFileFastStatistics());
-                //m_histogramBucketsSpinBox->setValue(this->caretMappableDataFile->getFile);
+                m_histogramBucketsSpinBox->setValue(this->caretMappableDataFile->getFileHistogramNumberOfBuckets());
                 break;
             case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
                 statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
-                //m_histogramBucketsSpinBox->setValue(this->paletteColorMapping->getHistogramNumberOfBuckets());
+                m_histogramBucketsSpinBox->setValue(this->paletteColorMapping->getHistogramNumberOfBuckets());
                 break;
         }
         m_histogramBucketsSpinBox->blockSignals(false);
@@ -2200,7 +2200,14 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     this->paletteColorMapping->setHistogramColor(m_histogramColorComboBox->getSelectedColor());
     this->paletteColorMapping->setHistogramChartType(m_histogramChartTypeComboBox->getSelectedItem<PaletteHistogramChartTypeEnum, PaletteHistogramChartTypeEnum::Enum>());
     this->paletteColorMapping->setHistogramRangeMode(m_histogramHorizontalRangeComboBox->getSelectedItem<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>());
-//    this->paletteColorMapping->setHistogramNumberOfBuckets(m_histogramBucketsSpinBox->value());
+    switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
+        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+            this->caretMappableDataFile->setFileHistogramNumberOfBuckets(m_histogramBucketsSpinBox->value());
+            break;
+        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+            this->paletteColorMapping->setHistogramNumberOfBuckets(m_histogramBucketsSpinBox->value());
+            break;
+    }
     
     float lowValue = this->thresholdLowSpinBox->value();
     float highValue = this->thresholdHighSpinBox->value();

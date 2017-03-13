@@ -336,6 +336,9 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                                                + this->elementText);
                }
            }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_NUMBER_OF_BUCKETS) {
+               this->paletteColorMapping->setHistogramNumberOfBuckets(this->elementText.toInt());
+           }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_NUMERIC_FORMAT_MODE) {
                bool isValid = false;
                NumericFormatModeEnum::Enum numericFormatMode = NumericFormatModeEnum::fromName(this->elementText,
