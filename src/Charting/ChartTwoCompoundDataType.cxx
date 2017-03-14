@@ -330,15 +330,15 @@ ChartTwoCompoundDataType::toString() const
 {
     const AString indent = "    ";
     AString text = ("type="
-                    + ChartTwoDataTypeEnum::toName(m_chartDataType));
+                    + ChartTwoDataTypeEnum::toGuiName(m_chartDataType));
     
     switch (m_chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-            text.appendWithNewLine(indent
-                                   + "buckets="
-                                   + QString::number(m_histogramNumberOfBuckets));
+            //text.appendWithNewLine(indent
+            //                       + "buckets="
+            //                       + QString::number(m_histogramNumberOfBuckets));
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             text.appendWithNewLine(indent

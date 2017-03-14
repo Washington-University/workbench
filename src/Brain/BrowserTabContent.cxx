@@ -418,15 +418,17 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
     const Model* model = getModelForDisplay();
     
     if (model != NULL) {
-        bool chartFlag      = false;
-        bool surfaceFlag    = false;
+        bool chartOneFlag = false;
+        bool chartTwoFlag = false;
+        bool surfaceFlag  = false;
         bool surfaceMontageFlag = false;
         bool wholeBrainFlag = false;
         bool volumeFlag     = false;
         switch (model->getModelType()) {
             case ModelTypeEnum::MODEL_TYPE_CHART:
+                chartOneFlag = true;
             case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-                chartFlag = true;
+                chartTwoFlag = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
@@ -444,7 +446,7 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
                 break;
         }
         
-        if (chartFlag) {
+        if (chartOneFlag) {
             model->getDescriptionOfContent(tabIndex,
                                            descriptionOut);
         }
@@ -496,7 +498,13 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
             descriptionOut.popIndentation();
         }
         
-        if ( ! chartFlag) {
+        if (chartOneFlag) {
+            /* nothing */
+        }
+        else if (chartTwoFlag) {
+            getChartTwoOverlaySet()->getDescriptionOfContent(descriptionOut);
+        }
+        else {
             getOverlaySet()->getDescriptionOfContent(descriptionOut);
         }
     }
