@@ -743,7 +743,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     this->m_histogramHorizontalRangeComboBox->getWidget()->setToolTip("Horizontal range of histogram");
 
     QLabel* colorLabel = new QLabel("Color");
-    m_histogramColorComboBox = new CaretColorEnumComboBox("Palette",
+    m_histogramColorComboBox = new CaretColorEnumComboBox("With Palette",
                                                           this);
     WuQtUtilities::setToolTipAndStatusTip(m_histogramColorComboBox->getWidget(),
                                           "Set histogram coloring");
