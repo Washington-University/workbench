@@ -265,12 +265,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
     /*
      * Get the histogram drawing information and overall extent
      */
-    float xMin = std::numeric_limits<float>::max();;
-    float xMax = -std::numeric_limits<float>::max();;
+    float xMin = std::numeric_limits<float>::max();
+    float xMax = -std::numeric_limits<float>::max();
     float yMinLeft  = std::numeric_limits<float>::max();
-    float yMaxLeft  = -std::numeric_limits<float>::max();;
-    float yMinRight = std::numeric_limits<float>::max();;
-    float yMaxRight = -std::numeric_limits<float>::max();;
+    float yMaxLeft  = -std::numeric_limits<float>::max();
+    float yMinRight = std::numeric_limits<float>::max();
+    float yMaxRight = -std::numeric_limits<float>::max();
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
         ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
         if ( ! chartOverlay->isEnabled()) {
@@ -344,7 +344,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
          * Margin is region around the chart in which
          * the axes legends, values, and ticks are drawn.
          */
-        const double marginSize = 30;
+        const double marginSize = 10;
         Margins margins(marginSize);
         
         ChartTwoCartesianAxis* leftAxis   = m_chartOverlaySet->getChartAxisLeft();
@@ -1761,6 +1761,46 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
             heightOut = std::max(heightOut, textHeight);
         }
     }
+    
+    const AString labelText = cartesianAxis->getLabelText();
+    if ( ! labelText.isEmpty()) {
+        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+        annotationText.setText(labelText);
+        switch (cartesianAxis->getAxisLocation()) {
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                annotationText.setOrientation(AnnotationTextOrientationEnum::STACKED);
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                annotationText.setOrientation(AnnotationTextOrientationEnum::STACKED);
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
+                break;
+        }
+        
+        double textWidth = 0.0;
+        double textHeight = 0.0;
+        m_textRenderer->getTextWidthHeightInPixels(annotationText, viewportHeight, textWidth, textHeight);
+        
+        const float verticalOffset = 4; // adds space between scale values and label
+        switch (cartesianAxis->getAxisLocation()) {
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                heightOut += (textHeight + verticalOffset);
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                widthOut += textWidth;
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                widthOut += textWidth;
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                heightOut += (textHeight + verticalOffset);
+                break;
+        }
+    }
 }
 
 /**
@@ -1788,9 +1828,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
                                                                          const Margins& margins,
                                                                          int32_t chartGraphicsDrawingViewportOut[4])
 {
-    
-    const float gridLineWidth = 2;
-    const float halfGridLineWidth = gridLineWidth / 2.0;
+    const float halfGridLineWidth = GRID_LINE_WIDTH / 2.0;
     
     const float gridLeft   = vpX + margins.m_left;
     const float gridRight  = vpX + vpWidth - margins.m_right;
@@ -1811,7 +1849,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    glLineWidth(gridLineWidth);
+    glLineWidth(GRID_LINE_WIDTH);
     
     glColor3fv(m_fixedPipelineDrawing->m_foregroundColorFloat);
     
@@ -1838,10 +1876,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
     /*
      * Region inside the grid's box
      */
-    const int32_t graphicsLeft   = static_cast<int32_t>(gridLeft   + std::ceil(gridLineWidth  + 1.0));
-    const int32_t graphicsRight  = static_cast<int32_t>(gridRight  - std::floor(gridLineWidth + 1.0));
-    const int32_t graphicsBottom = static_cast<int32_t>(gridBottom + std::ceil(gridLineWidth  + 1.0));
-    const int32_t graphicsTop    = static_cast<int32_t>(gridTop    - std::floor(gridLineWidth + 1.0));
+    const int32_t graphicsLeft   = static_cast<int32_t>(gridLeft   + std::ceil(GRID_LINE_WIDTH  + 1.0));
+    const int32_t graphicsRight  = static_cast<int32_t>(gridRight  - std::floor(GRID_LINE_WIDTH + 1.0));
+    const int32_t graphicsBottom = static_cast<int32_t>(gridBottom + std::ceil(GRID_LINE_WIDTH  + 1.0));
+    const int32_t graphicsTop    = static_cast<int32_t>(gridTop    - std::floor(GRID_LINE_WIDTH + 1.0));
     
     const int32_t graphicsWidth = graphicsRight - graphicsLeft;
     const int32_t graphicsHeight = graphicsTop  - graphicsBottom;
@@ -2032,14 +2070,73 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
         
         const bool showTicksFlag = axis->isShowTickmarks();
         
+        const float halfGridLineWidth = GRID_LINE_WIDTH / 2.0;
+        const int32_t firstIndex = 0;
+        const int32_t lastIndex  = numLabelsToDraw - 1;
         for (int32_t i = 0; i < numLabelsToDraw; i++) {
-            const float tickStartX = labelX + labelOffsetInPixels[i] * labelOffsetMultiplierX;
-            const float tickStartY = labelY + labelOffsetInPixels[i] * labelOffsetMultiplierY;
-            
+            float tickStartX = labelX + labelOffsetInPixels[i] * labelOffsetMultiplierX;
+            float tickStartY = labelY + labelOffsetInPixels[i] * labelOffsetMultiplierY;
+            float textOffsetX = 0.0;
+            float textOffsetY = 0.0;
+            switch (axis->getAxisLocation()) {
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                    if (i == firstIndex) {
+                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+                        tickStartX += halfGridLineWidth;
+                    }
+                    else if (i == lastIndex) {
+                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+                        tickStartX -= halfGridLineWidth;
+                    }
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+                    tickStartX -= halfGridLineWidth;
+                    if (i == firstIndex) {
+                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                        tickStartY += halfGridLineWidth;
+                    }
+                    else if (i == lastIndex) {
+                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                        tickStartY -= halfGridLineWidth;
+                    }
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+                    tickStartX += halfGridLineWidth;
+                    if (i == firstIndex) {
+                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                        tickStartY += halfGridLineWidth;
+                    }
+                    else if (i == lastIndex) {
+                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                        tickStartY -= halfGridLineWidth;
+                    }
+                    textOffsetX = -2.0;
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                    if (i == firstIndex) {
+                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+                        tickStartX += halfGridLineWidth;
+                    }
+                    else if (i == lastIndex) {
+                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+                        tickStartX -= halfGridLineWidth;
+                    }
+                    textOffsetY = -2.0;
+                    break;
+            }
             const float tickEndX = tickStartX + tickDeltaXY[0];
             const float tickEndY = tickStartY + tickDeltaXY[1];
             
             if (showTicksFlag) {
+                glLineWidth(GRID_LINE_WIDTH);
                 glBegin(GL_LINES);
                 glVertex2f(tickStartX,
                            tickStartY);
@@ -2048,8 +2145,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
                 glEnd();
             }
             
-            const float textX = tickEndX;
-            const float textY = tickEndY;
+            const float textX = tickEndX + textOffsetX;
+            const float textY = tickEndY + textOffsetY;
             annotationText.setText(labelTexts[i]);
             m_textRenderer->drawTextAtViewportCoords(textX,
                                                    textY,

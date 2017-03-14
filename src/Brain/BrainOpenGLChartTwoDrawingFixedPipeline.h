@@ -171,6 +171,8 @@ namespace caret {
 
         SelectionItemChartTwoMatrix* m_selectionItemMatrix;
 
+        const float GRID_LINE_WIDTH = 2.0;
+        
         bool m_identificationModeFlag;
         
         static const int32_t IDENTIFICATION_INDICES_PER_HISTOGRAM      = 2;
