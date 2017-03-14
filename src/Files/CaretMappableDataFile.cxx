@@ -403,6 +403,14 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     
     m_labelDrawingProperties->restoreFromScene(sceneAttributes,
                                                sceneClass->getClass("m_labelDrawingProperties"));
+    const SceneClass* chartingDelegateClass = sceneClass->getClass("m_chartingDelegate");
+    m_chartingDelegate.reset();
+    if (chartingDelegateClass != NULL) {
+        ChartableTwoFileDelegate* chartingDelegate = getChartingDelegate(); // creates charting delegate if not valid
+        chartingDelegate->updateAfterFileChanged();
+        chartingDelegate->restoreFromScene(sceneAttributes,
+                                             chartingDelegateClass);
+    }
     
     if (isMappedWithPalette()) {
         /*
