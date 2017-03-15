@@ -1161,6 +1161,41 @@ ChartTwoOverlay::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
+    std::vector<CaretMappableDataFile*> mapFiles;
+    CaretMappableDataFile* selectedMapFile = NULL;
+    //AString selectedMapUniqueID;
+    int32_t selectedMapIndex;
+    getSelectionData(mapFiles,
+                     selectedMapFile,
+                     selectedMapIndex);
+    
+    AString sceneSelectedMapFileNameWithPath;
+    AString sceneSelectedMapFileNameNoPath;
+    AString sceneSelectedMapName;
+    int32_t sceneSelectedMapIndex = selectedMapIndex;
+    
+    /*
+     * NOTE:Some of the connectivity matrix files may not have a valid
+     * selection index (-1) until the user identifies a brainordinate
+     */
+    if (selectedMapFile != NULL) {
+        sceneSelectedMapFileNameWithPath = selectedMapFile->getFileName();
+        sceneSelectedMapFileNameNoPath = selectedMapFile->getFileNameNoPath();
+        if ((selectedMapIndex >= 0)
+            && (selectedMapIndex < selectedMapFile->getNumberOfMaps())) {
+            sceneSelectedMapName = selectedMapFile->getMapName(selectedMapIndex);
+        }
+    }
+
+    sceneClass->addPathName("sceneSelectedMapFileNameWithPath",
+                            sceneSelectedMapFileNameWithPath);
+    sceneClass->addString("sceneSelectedMapFileNameNoPath",
+                          sceneSelectedMapFileNameNoPath);
+    sceneClass->addString("sceneSelectedMapName",
+                          sceneSelectedMapName);
+    sceneClass->addInteger("sceneSelectedMapIndex",
+                           sceneSelectedMapIndex);
+
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
     //                        sceneClass);
@@ -1189,6 +1224,179 @@ ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
+    
+    /*
+     * Making a call to getSelectionData() to get the availble
+     * map files
+     */
+    std::vector<CaretMappableDataFile*> mapFiles;
+    CaretMappableDataFile* unusedSelectedMapFile = NULL;
+    int32_t unusedSelectedMapIndex;
+    getSelectionData(mapFiles,
+                     unusedSelectedMapFile,
+                     unusedSelectedMapIndex);
+
+    const AString selectedMapFileNameWithPath = sceneClass->getPathNameValue("sceneSelectedMapFileNameWithPath");
+    
+    const AString selectedMapFileName = sceneClass->getStringValue("sceneSelectedMapFileNameNoPath",
+                                                                   "");
+    const AString selectedMapName = sceneClass->getStringValue("sceneSelectedMapName",
+                                                               "");
+    const int32_t selectedMapIndex = sceneClass->getIntegerValue("sceneSelectedMapIndex",
+                                                                 -1);
+    
+    bool found = false;
+    
+    /*
+     * Is used when the file is found but a map is not matched
+     */
+    CaretMappableDataFile* matchedMapFile = NULL;
+    
+    /*
+     * First try to find file by filename INCLUDING path and map by unique ID
+     */
+    
+    /*
+     * Find map by unique ID, map index, and map file
+     */
+    CaretMappableDataFile* foundMapNameFile = NULL;
+    int32_t foundMapNameIndex  = -1;
+    CaretMappableDataFile* foundMapIndexFile = NULL;
+    int32_t foundMapIndex = -1;
+    
+    /*
+     * Try to match files twice.  First time by name with path, then
+     * by name without path.
+     */
+    for (int iTries = 0; iTries < 2; iTries++) {
+        for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
+             iter != mapFiles.end();
+             iter++) {
+            CaretMappableDataFile* mapFile = *iter;
+            
+            bool testIt = false;
+            switch (iTries) {
+                case 0: {
+                    const AString fileName = mapFile->getFileName();
+                    if (fileName == selectedMapFileNameWithPath) {
+                        testIt = true;
+                    }
+                }
+                    break;
+                    
+                case 1: {
+                    const AString fileName = mapFile->getFileNameNoPath();
+                    if (fileName == selectedMapFileName) {
+                        testIt = true;
+                    }
+                }
+                    break;
+            }
+            
+            
+            if (testIt) {
+                CaretMappableDataFile* mapFile = *iter;
+                matchedMapFile = mapFile;
+                
+                if (foundMapNameIndex < 0) {
+                    if ( ! selectedMapName.isEmpty()) {
+                        const int mapNameIndex = mapFile->getMapIndexFromName(selectedMapName);
+                        if (mapNameIndex >= 0) {
+                            foundMapNameFile  = mapFile;
+                            foundMapNameIndex = mapNameIndex;
+                        }
+                    }
+                    
+                }
+                
+                if (foundMapIndex < 0) {
+                    if (selectedMapIndex >= 0) {
+                        if (selectedMapIndex < mapFile->getNumberOfMaps()) {
+                            foundMapIndexFile = mapFile;
+                            foundMapIndex     = selectedMapIndex;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    if (! found) {
+        if (foundMapIndex >= 0) {
+            if (foundMapIndexFile != NULL) {
+                setSelectionData(foundMapIndexFile,
+                                 foundMapIndex);
+                found = true;
+            }
+        }
+    }
+    
+    if (! found) {
+        if (foundMapNameIndex >= 0) {
+            if (foundMapNameFile != NULL) {
+                setSelectionData(foundMapNameFile,
+                                 foundMapNameIndex);
+                found = true;
+            }
+        }
+    }
+    
+    if ( ! found) {
+        /*
+         * If not found by unique ID, try to find map by name
+         */
+        if ( ! selectedMapName.isEmpty()) {
+            for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
+                 iter != mapFiles.end();
+                 iter++) {
+                CaretMappableDataFile* mapFile = *iter;
+                const AString fileName = mapFile->getFileNameNoPath();
+                if (fileName == selectedMapFileName) {
+                    CaretMappableDataFile* mapFile = *iter;
+                    matchedMapFile = mapFile;
+                    
+                    const int32_t mapIndex = mapFile->getMapIndexFromName(selectedMapName);
+                    if (mapIndex >= 0) {
+                        setSelectionData(mapFile,
+                                         mapIndex);
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    /*
+     * NOTE:Some of the connectivity matrix files may not have a valid
+     * selection index (-1) until the user identifies a brainordinate
+     */
+    if ( ! found) {
+        if (matchedMapFile != NULL) {
+            if (matchedMapFile->getNumberOfMaps() > 0) {
+                int32_t defaultMapIndex = -1;
+                switch (m_chartDataType) {
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                        defaultMapIndex = 0;
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                        defaultMapIndex = 0;
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                        break;
+                }
+                setSelectionData(matchedMapFile,
+                                 defaultMapIndex);
+            }
+        }
+    }
+    
+    
+    
+    
+    
     
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,

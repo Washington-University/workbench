@@ -31,6 +31,8 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
+#include "SceneObjectMapIntegerKey.h"
+
 
 using namespace caret;
 

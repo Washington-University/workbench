@@ -185,6 +185,9 @@ namespace caret {
                                  const SceneClass& sceneClass) = 0;
             virtual void save(const SceneAttributes& sceneAttributes,
                               SceneClass& sceneClass) = 0;
+            
+            AString getName() const { return m_name; }
+            
         protected:
             const AString m_name;
             

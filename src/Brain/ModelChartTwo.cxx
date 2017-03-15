@@ -703,8 +703,8 @@ ModelChartTwo::restoreVersionTwoModelSpecificInformationFromScene(const SceneAtt
         const std::vector<int32_t> tabIndices = matrixPropsMap->getKeys();
         for (const int32_t tabIndex : tabIndices) {
             const SceneClass* sceneClass = matrixPropsMap->classValue(tabIndex);
-            //m_chartableMatrixSeriesFileSelectionModel[tabIndex]->restoreFromScene(sceneAttributes,
-            //                                                                      sceneClass);
+            m_chartTwoMatrixDisplayProperties[tabIndex]->restoreFromScene(sceneAttributes,
+                                                                          sceneClass);
         }
     }
 

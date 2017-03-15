@@ -594,11 +594,16 @@ ChartableTwoFileDelegate::saveToScene(const SceneAttributes* sceneAttributes,
     if (m_histogramCharting != NULL) {
         sceneClass->addClass(m_histogramCharting->saveToScene(sceneAttributes,
                                                               "m_histogramCharting"));
+    }
+    if (m_lineSeriesCharting != NULL) {
         sceneClass->addClass(m_lineSeriesCharting->saveToScene(sceneAttributes,
                                                               "m_lineSeriesCharting"));
-        sceneClass->addClass(m_matrixCharting->saveToScene(sceneAttributes,
-                                                              "m_matrixCharting"));
     }
+    if (m_matrixCharting != NULL) {
+        sceneClass->addClass(m_matrixCharting->saveToScene(sceneAttributes,
+                                                           "m_matrixCharting"));
+    }
+    
     return sceneClass;
 }
 

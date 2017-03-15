@@ -28,6 +28,7 @@
 #include "ChartTwoOverlaySet.h"
 #include "EventBrowserTabDelete.h"
 #include "EventManager.h"
+#include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 using namespace caret;
@@ -195,17 +196,34 @@ ChartTwoOverlaySetArray::saveToScene(const SceneAttributes* sceneAttributes,
                                             "ChartTwoOverlaySetArray",
                                             1);
     
-    const int32_t numOverlaySetsToSave = getNumberOfChartOverlaySets();
+    std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
     
-    std::vector<SceneClass*> overlaySetVector;
-    for (int i = 0; i < numOverlaySetsToSave; i++) {
-        overlaySetVector.push_back(m_chartOverlaySets[i]->saveToScene(sceneAttributes,
-                                                                      "m_chartOverlaySet"));
+    /*
+     * Save overlay sets for tabs
+     */
+    SceneObjectMapIntegerKey* overlaySetMap = new SceneObjectMapIntegerKey("m_chartOverlaySetMAP",
+                                                                            SceneObjectDataTypeEnum::SCENE_CLASS);
+    
+    for (const auto tabIndex : tabIndices) {
+        overlaySetMap->addClass(tabIndex, m_chartOverlaySets[tabIndex]->saveToScene(sceneAttributes,
+                                                                                    "m_chartOverlaySet"));
     }
+    sceneClass->addChild(overlaySetMap);
+
     
-    SceneClassArray* overlaySetArray = new SceneClassArray("m_chartOverlaySets",
-                                                             overlaySetVector);
-    sceneClass->addChild(overlaySetArray);
+    
+    
+//    const int32_t numOverlaySetsToSave = getNumberOfChartOverlaySets();
+//    
+//    std::vector<SceneClass*> overlaySetVector;
+//    for (int i = 0; i < numOverlaySetsToSave; i++) {
+//        overlaySetVector.push_back(m_chartOverlaySets[i]->saveToScene(sceneAttributes,
+//                                                                      "m_chartOverlaySet"));
+//    }
+//    
+//    SceneClassArray* overlaySetArray = new SceneClassArray("m_chartOverlaySets",
+//                                                             overlaySetVector);
+//    sceneClass->addChild(overlaySetArray);
     
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
@@ -233,16 +251,27 @@ ChartTwoOverlaySetArray::restoreFromScene(const SceneAttributes* sceneAttributes
         return;
     }
     
-    
-    const SceneClassArray* overlaySetArray = sceneClass->getClassArray("m_chartOverlaySets");
-    if (overlaySetArray != NULL) {
-        const int32_t numOverlaySets = std::min(overlaySetArray->getNumberOfArrayElements(),
-                                             (int32_t)BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
-        for (int32_t i = 0; i < numOverlaySets; i++) {
-            m_chartOverlaySets[i]->restoreFromScene(sceneAttributes,
-                                                    overlaySetArray->getClassAtIndex(i));
+    const SceneObjectMapIntegerKey* overlaySetMap = sceneClass->getMapIntegerKey("m_chartOverlaySetMAP");
+    if (overlaySetMap != NULL) {
+        const std::vector<int32_t> tabIndices = overlaySetMap->getKeys();
+        for (const auto tabIndex : tabIndices) {
+            const SceneClass* sceneClass = overlaySetMap->classValue(tabIndex);
+            CaretAssertVectorIndex(m_chartOverlaySets, tabIndex);
+            m_chartOverlaySets[tabIndex]->restoreFromScene(sceneAttributes,
+                                                           sceneClass);
         }
     }
+
+    
+//    const SceneClassArray* overlaySetArray = sceneClass->getClassArray("m_chartOverlaySets");
+//    if (overlaySetArray != NULL) {
+//        const int32_t numOverlaySets = std::min(overlaySetArray->getNumberOfArrayElements(),
+//                                             (int32_t)BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+//        for (int32_t i = 0; i < numOverlaySets; i++) {
+//            m_chartOverlaySets[i]->restoreFromScene(sceneAttributes,
+//                                                    overlaySetArray->getClassAtIndex(i));
+//        }
+//    }
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
