@@ -1,4 +1,5 @@
 language: cpp
+dist: trusty
 sudo: false
 
 notifications:
@@ -11,7 +12,7 @@ cache:
 addons:
     apt:
         packages:
-            - libqt4-dev
+            - qt5-default
             - zlib1g-dev
             - libosmesa6-dev
             - libssl-dev
