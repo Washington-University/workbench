@@ -30,6 +30,7 @@
 #include <set>
 #include <map>
 
+#include "CaretDataFileSelectionModel.h"
 #include "ChartTwoDataTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "MapYokingGroupEnum.h"
@@ -43,6 +44,7 @@ namespace caret {
     class ChartTwoOverlaySetArray;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiMappableDataFile;
+    class ModelChart;
     class OverlaySetArray;
     class SurfaceFile;
     
@@ -105,6 +107,8 @@ namespace caret {
         
         void reset();
         
+        void restoreSceneFromChartOneModel(ModelChart* modelChartOne);
+        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass) override;
@@ -125,6 +129,9 @@ namespace caret {
         
         void restoreVersionTwoChartModelsFromScene(const SceneAttributes* sceneAttributes,
                                                    const SceneClass* sceneClass);
+        
+        void restoreMatrixChartFromChartOneModel(ModelChart* modelChartOne,
+                                                 const int32_t tabIndex);
         
 //        void getTabsAndBrainordinateChartFilesForLineChartLoading(std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >& chartBrainordinateFileEnabledTabsOut) const;
 //

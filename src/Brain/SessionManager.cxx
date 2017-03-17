@@ -744,6 +744,10 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_browserTabs[tabIndex] = tab;
     }
     
+    for (auto brainPtr : m_brains) {
+        brainPtr->restoreModelChartOneToModelChartTwo();
+    }
+    
     /*
      * Restore foreground and background colors to scene foreground and background colors
      */

@@ -254,6 +254,8 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    setRestoredFromScene(true);
+    
     if (m_modelType == ModelTypeEnum::MODEL_TYPE_SURFACE) {
         const AString surfaceName = sceneClass->getStringValue("surfaceName",
                                                                "NOT-FOUND");
@@ -433,5 +435,26 @@ Model::copyTabContent(const int32_t /*sourceTabIndex*/,
 {
     
 }
+
+/**
+ * @return True if model was restored from scene
+ */
+bool Model::isRestoredFromScene() const
+{
+    return m_restoredFromSceneFlag;
+}
+
+/**
+ * Set model was restored from scene.
+ *
+ * @param restoredStatus
+ *    New value for restored status.
+ */
+void
+Model::setRestoredFromScene(const bool restoredStatus)
+{
+    m_restoredFromSceneFlag = restoredStatus;
+}
+
 
 

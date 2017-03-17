@@ -7200,6 +7200,9 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     EventModelGetAll getAllModels;
     EventManager::get()->sendEvent(getAllModels.getPointer());
     std::vector<Model*> allModels = getAllModels.getModels();
+    for (auto model : allModels) {
+        model->setRestoredFromScene(false);
+    }
     const SceneClassArray* modelsClassArray = sceneClass->getClassArray("models");
     const int32_t numModelClasses = modelsClassArray->getNumberOfArrayElements();
     for (int32_t i = 0; i < numModelClasses; i++) {
@@ -7211,7 +7214,7 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
              iter != allModels.end();
              iter++) {
             Model* mdc = *iter;
-            mdc->restoreFromScene(sceneAttributes, 
+            mdc->restoreFromScene(sceneAttributes,
                                   modelsClassArray->getClassAtIndex(i));
         }
     }
@@ -7277,6 +7280,27 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                                sceneClass->getClass("m_brainordinateHighlightRegionOfInterest"));
     
     m_sceneAnnotationFile->clearModified();
+}
+
+/**
+ * If model one charts are in scene but not
+ * model two charts, attempt to restore model
+ * one charts to model two charts.
+ *
+ * This must be performed AFTER browser tabs
+ * have been restored by the SessionManager.
+ */
+void
+Brain::restoreModelChartOneToModelChartTwo()
+{
+    CaretAssert(m_modelChartTwo);
+    if ( ! m_modelChartTwo->isRestoredFromScene()) {
+        CaretAssert(m_modelChart);
+        if (m_modelChart->isRestoredFromScene()) {
+            m_modelChartTwo->restoreSceneFromChartOneModel(m_modelChart);
+        }
+    }
+    
 }
 
 /**

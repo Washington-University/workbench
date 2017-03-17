@@ -87,6 +87,10 @@ namespace caret {
         virtual void copyTabContent(const int32_t sourceTabIndex,
                                     const int32_t destinationTabIndex);
         
+        bool isRestoredFromScene() const;
+        
+        void setRestoredFromScene(const bool restoredStatus);
+        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                  SceneClass* sceneClass) = 0;
@@ -115,6 +119,8 @@ namespace caret {
         ModelTypeEnum::Enum m_modelType;
         
         std::vector<OldSceneTransformation> m_oldSceneTransformations;
+        
+        bool m_restoredFromSceneFlag = false;
     };
 
 } // namespace

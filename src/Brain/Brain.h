@@ -407,6 +407,8 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
+        void restoreModelChartOneToModelChartTwo();
+        
         IdentificationManager* getIdentificationManager();
 
         SelectionManager* getSelectionManager();

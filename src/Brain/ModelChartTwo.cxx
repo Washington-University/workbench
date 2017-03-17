@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "AnnotationColorBar.h"
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -30,17 +31,25 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartableTwoFileDelegate.h"
+#include "ChartableMatrixParcelInterface.h"
+#include "ChartableMatrixSeriesInterface.h"
+#include "ChartMatrixDisplayProperties.h"
+#include "ChartableTwoFileMatrixChart.h"
 #include "ChartTwoMatrixDisplayProperties.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "ChartTwoOverlaySetArray.h"
 #include "ChartingVersionEnum.h"
+#include "ConnectivityDataLoaded.h"
+#include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CiftiScalarDataSeriesFile.h"
+#include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
+#include "ModelChart.h"
 #include "ModelChartTwo.h"
 #include "OverlaySet.h"
 #include "OverlaySetArray.h"
@@ -713,6 +722,180 @@ ModelChartTwo::restoreVersionTwoModelSpecificInformationFromScene(const SceneAtt
      */
     restoreVersionTwoChartModelsFromScene(sceneAttributes,
                                           sceneClass);
+}
+
+/**
+ * Try to restore a scene from a version one chart model
+ * by copying data from the chart one model.
+ *
+ * @param modelChartOne
+ *     The charting version one model.
+ */
+void
+ModelChartTwo::restoreSceneFromChartOneModel(ModelChart* modelChartOne)
+{
+    if (isRestoredFromScene()) {
+        CaretAssert(0);
+    }
+    setRestoredFromScene(true);
+    
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
+    
+    for (auto tabIndex : validTabIndices) {
+        switch (modelChartOne->getSelectedChartOneDataType(tabIndex)) {
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                setSelectedChartTwoDataType(tabIndex, ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES);
+                break;
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                setSelectedChartTwoDataType(tabIndex,
+                                            ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+                restoreMatrixChartFromChartOneModel(modelChartOne,
+                                                    tabIndex);
+                break;
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                setSelectedChartTwoDataType(tabIndex,
+                                            ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+                restoreMatrixChartFromChartOneModel(modelChartOne,
+                                                    tabIndex);
+                break;
+        }
+    }
+}
+
+/**
+ * Restore matrix from model one chart by copying from the model.
+ *
+ * @param modelChartOne
+ *     The charting version one model.
+ * @param tabIndex
+ *     Index of tab being restored
+ */
+void
+ModelChartTwo::restoreMatrixChartFromChartOneModel(ModelChart* modelChartOne,
+                                                   const int32_t tabIndex)
+{
+    CaretAssert(modelChartOne);
+    
+    CaretDataFileSelectionModel* fileSelectionModel = NULL;
+    switch (modelChartOne->getSelectedChartOneDataType(tabIndex)) {
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+            CaretAssert(0);
+            break;
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+            fileSelectionModel = modelChartOne->getChartableMatrixParcelFileSelectionModel(tabIndex);
+            break;
+        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+            fileSelectionModel = modelChartOne->getChartableMatrixSeriesFileSelectionModel(tabIndex);
+            break;
+    }
+    
+    CaretDataFile* caretDataFile = fileSelectionModel->getSelectedFile();
+    if (caretDataFile == NULL) {
+        return;
+    }
+    CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
+    if (mapFile == NULL) {
+        return;
+    }
+    
+    ChartableTwoFileMatrixChart* fileMatrixChart = mapFile->getChartingDelegate()->getMatrixCharting();
+    if (fileMatrixChart == NULL) {
+        return;
+    }
+    
+    ChartableMatrixParcelInterface* chartOneMatrixParcelFile = dynamic_cast<ChartableMatrixParcelInterface*>(mapFile);
+    ChartableMatrixSeriesInterface* chartOneMatrixSeriesFile = dynamic_cast<ChartableMatrixSeriesInterface*>(mapFile);
+    
+    int32_t selectedRowColumnIndex = -1;
+    MapYokingGroupEnum::Enum chartOneYoking = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+    ChartMatrixDisplayProperties* chartOneMatrixDisplayProperties = NULL;
+    if (chartOneMatrixParcelFile != NULL) {
+        chartOneMatrixDisplayProperties = chartOneMatrixParcelFile->getChartMatrixDisplayProperties(tabIndex);
+        
+        switch (chartOneMatrixParcelFile->getMatrixLoadingDimension()) {
+            case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                fileMatrixChart->setSelectedRowColumnDimension(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN);
+                break;
+            case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                fileMatrixChart->setSelectedRowColumnDimension(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW);
+                break;
+        }
+        
+        CiftiMappableConnectivityMatrixDataFile* connMatrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(mapFile);
+        if (connMatrixFile != NULL) {
+            const ConnectivityDataLoaded* connDataLoaded = connMatrixFile->getConnectivityDataLoaded();
+            if (connDataLoaded != NULL) {
+                int64_t loadedRowIndex = -1;
+                int64_t loadedColumnIndex = -1;
+                connDataLoaded->getRowColumnLoading(loadedRowIndex,
+                                                    loadedColumnIndex);
+                if (loadedRowIndex >= 0) {
+                    selectedRowColumnIndex = loadedRowIndex;
+                }
+                else if (loadedColumnIndex >= 0) {
+                    selectedRowColumnIndex = loadedColumnIndex;
+                }
+            }
+        }
+    }
+    else if (chartOneMatrixSeriesFile != NULL) {
+        chartOneMatrixDisplayProperties = chartOneMatrixSeriesFile->getChartMatrixDisplayProperties(tabIndex);
+        
+        chartOneYoking = chartOneMatrixSeriesFile->getMatrixRowColumnMapYokingGroup(tabIndex);
+        fileMatrixChart->setSelectedRowColumnDimension(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW);
+        selectedRowColumnIndex = chartOneMatrixSeriesFile->getSelectedMapIndex(tabIndex);
+    }
+    else {
+        CaretAssertMessage(0, "Has new matrix chart type been added?");
+        return;
+    }
+    
+    
+    CaretAssert(chartOneMatrixDisplayProperties);
+    ChartTwoMatrixDisplayProperties* chartTwoMatrixDisplayProperties = getChartTwoMatrixDisplayProperties(tabIndex);
+    CaretAssert(chartTwoMatrixDisplayProperties);
+    chartTwoMatrixDisplayProperties->resetPropertiesToDefault();
+    chartTwoMatrixDisplayProperties->setGridLinesDisplayed(chartOneMatrixDisplayProperties->isGridLinesDisplayed());
+    chartTwoMatrixDisplayProperties->setSelectedRowColumnHighlighted(chartOneMatrixDisplayProperties->isSelectedRowColumnHighlighted());
+    AnnotationColorBar* chartOneColorBar = chartOneMatrixDisplayProperties->getColorBar();
+    
+    EventBrowserTabGet getTabEvent(tabIndex);
+    EventManager::get()->sendEvent(getTabEvent.getPointer());
+    BrowserTabContent* browserTabContent = getTabEvent.getBrowserTab();
+    if (browserTabContent != NULL) {
+        ChartTwoOverlaySet* chartTwoOverlaySet = browserTabContent->getChartTwoOverlaySet();
+        CaretAssert(chartTwoOverlaySet);
+        for (int32_t iOverlay = 0; iOverlay < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; iOverlay++) {
+            ChartTwoOverlay* chartTwoOverlay = chartTwoOverlaySet->getOverlay(iOverlay);
+            CaretAssert(chartTwoOverlay);
+            if (iOverlay == 0) {
+                chartTwoOverlay->setEnabled(true);
+                chartTwoOverlay->setSelectionData(mapFile,
+                                                  selectedRowColumnIndex);
+                chartTwoOverlay->setMatrixTriangularViewingMode(ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL);
+                chartTwoOverlay->setAllMapsSelected(false);
+                chartTwoOverlay->setCartesianVerticalAxisLocation(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
+                chartTwoOverlay->setMapYokingGroup(chartOneYoking);
+                AnnotationColorBar* chartTwoColorBar = chartTwoOverlay->getColorBar();
+                if ((chartOneColorBar != NULL)
+                    && (chartTwoColorBar != NULL)) {
+                    *chartTwoColorBar = *chartOneColorBar;
+                }
+            }
+            else {
+                chartTwoOverlay->setEnabled(false);
+            }
+        }
+    }
 }
 
 /**

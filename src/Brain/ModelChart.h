@@ -201,6 +201,8 @@ namespace caret {
         CaretDataFileSelectionModel* m_chartableMatrixSeriesFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
+        
+        friend class ModelChartTwo;
     };
 
 } // namespace
