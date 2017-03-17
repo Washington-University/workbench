@@ -29,6 +29,6 @@ before_install:
     - cd ../build
 
 script:
-    - cmake -D CMAKE_CXX_FLAGS=-std=c++11 -D CMAKE_BUILD_TYPE=Release -D WORKBENCH_MESA_DIR=/usr ../workbench/src
+    - cmake -D CMAKE_CXX_FLAGS="-std=c++11 -Wno-narrowing" -D CMAKE_BUILD_TYPE=Release -D WORKBENCH_MESA_DIR=/usr ../workbench/src
     - make -j 4
     - ctest
