@@ -13,6 +13,7 @@ addons:
     apt:
         packages:
             - qt5-default
+            - libqt5opengl5-dev
             - zlib1g-dev
             - libosmesa6-dev
             - libssl-dev
