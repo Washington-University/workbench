@@ -68,6 +68,8 @@ m_axisLocation(axisLocation)
                                                                        &m_units);
     m_sceneAssistant->add<NumericFormatModeEnum,NumericFormatModeEnum::Enum>("m_userNumericFormat",
                                                                              &m_userNumericFormat);
+    m_sceneAssistant->add("m_autoSubdivisionsEnabled",
+                          &m_autoSubdivisionsEnabled);
     m_sceneAssistant->add("m_userNumberOfSubdivisions",
                           &m_userNumberOfSubdivisions);
     m_sceneAssistant->add("m_axisTitle",
@@ -131,6 +133,7 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_scaleRangeMode        = obj.m_scaleRangeMode;
     m_units                 = obj.m_units;
     m_userNumericFormat         = obj.m_userNumericFormat;
+    m_autoSubdivisionsEnabled = obj.m_autoSubdivisionsEnabled;
     m_userNumberOfSubdivisions  = obj.m_userNumberOfSubdivisions;
     m_axisTitle             = obj.m_axisTitle;
     m_visible               = obj.m_visible;
@@ -169,8 +172,7 @@ ChartTwoCartesianAxis::setUserDigitsRightOfDecimal(const int32_t digitsRightOfDe
 
 
 /**
- * @return User's number of subdivisions
- *    Note that value "-1" is AUTO (see QSpinBox::setSpecialValueText())
+ * @return User's number of subdivisions.
  */
 int32_t
 ChartTwoCartesianAxis::getUserNumberOfSubdivisions() const
@@ -182,12 +184,32 @@ ChartTwoCartesianAxis::getUserNumberOfSubdivisions() const
  * Set User's number of subdivisions
  * @param numberOfSubdivisions
  *    New value for Number of subdivisions.
- *    Note that value "-1" is AUTO (see QSpinBox::setSpecialValueText())
  */
 void
 ChartTwoCartesianAxis::setUserNumberOfSubdivisions(const int32_t numberOfSubdivisions)
 {
     m_userNumberOfSubdivisions = numberOfSubdivisions;
+}
+
+/**
+ * @return auto subdivisions enabled
+ */
+bool
+ChartTwoCartesianAxis::isAutoSubdivisionsEnabled() const
+{
+    return m_autoSubdivisionsEnabled;
+}
+
+/**
+ * Set auto subdivisions enabled
+ *
+ * @param autoSubdivisionsEnabled
+ *    New value for auto subdivisions enabled
+ */
+void
+ChartTwoCartesianAxis::setAutoSubdivisionsEnabled(const bool autoSubdivisionsEnabled)
+{
+    m_autoSubdivisionsEnabled = autoSubdivisionsEnabled;
 }
 
 /**
@@ -578,7 +600,7 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float dataBoundsIn[4],
             break;
     }
     
-    if (m_userNumberOfSubdivisions >= 0) {
+    if ( ! m_autoSubdivisionsEnabled) {
         const float labelsRange = labelsEnd - labelsStart;
         if (labelsRange <= 0.0) {
             return false;

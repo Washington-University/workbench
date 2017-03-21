@@ -72,6 +72,10 @@ namespace caret {
         
         void setUserNumericFormat(const NumericFormatModeEnum::Enum numericFormat);
         
+        bool isAutoSubdivisionsEnabled() const;
+        
+        void setAutoSubdivisionsEnabled(const bool autoSubdivisionsEnabled);
+        
         int32_t getUserNumberOfSubdivisions() const;
         
         void setUserNumberOfSubdivisions(const int32_t numberOfSubdivisions);
@@ -147,11 +151,9 @@ namespace caret {
         
         NumericFormatModeEnum::Enum m_userNumericFormat = NumericFormatModeEnum::AUTO;
         
-        /**
-         * Number of subdivisions.
-         * Note that value "-1" is AUTO (see QSpinBox::setSpecialValueText()) 
-         */
-        int32_t m_userNumberOfSubdivisions = -1;
+        bool m_autoSubdivisionsEnabled = true;
+
+        int32_t m_userNumberOfSubdivisions = 2;
         
         AString m_axisTitle;
 

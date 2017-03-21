@@ -92,6 +92,8 @@ namespace caret {
         
         QSpinBox* m_userDigitsRightOfDecimalSpinBox;
         
+        QCheckBox* m_autoSubdivisionsCheckBox;
+        
         QSpinBox* m_userSubdivisionsSpinBox;
         
         ChartTwoCartesianAxis* m_chartAxis;

@@ -115,14 +115,18 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     
     m_userDigitsRightOfDecimalSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 10, 1);
     QObject::connect(m_userDigitsRightOfDecimalSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt); // ok int converts to double
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
     m_userDigitsRightOfDecimalSpinBox->setToolTip("Set digits right of decimal for\ndecimal or scientific format");
     
-    m_userSubdivisionsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(-1, 10, 1);
-    m_userSubdivisionsSpinBox->setSpecialValueText("Auto");
+    m_autoSubdivisionsCheckBox = new QCheckBox("Auto");
+    QObject::connect(m_autoSubdivisionsCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
+    m_autoSubdivisionsCheckBox->setToolTip("Enable auto subdivisions");
+    
+    m_userSubdivisionsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 100, 1);
     QObject::connect(m_userSubdivisionsSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt); // ok int converts to double
-    m_userSubdivisionsSpinBox->setToolTip("Set subdivisions on the axis");
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt); 
+    m_userSubdivisionsSpinBox->setToolTip("Set subdivisions on the axis when Auto is not checked");
     
     /*
      * Group widgets for blocking signals
@@ -135,6 +139,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_widgetGroup->add(m_showTickMarksCheckBox);
     m_widgetGroup->add(m_userNumericFormatComboBox->getWidget());
     m_widgetGroup->add(m_userDigitsRightOfDecimalSpinBox);
+    m_widgetGroup->add(m_autoSubdivisionsCheckBox);
     m_widgetGroup->add(m_userSubdivisionsSpinBox);
     
     const int COLUMN_ONE   = 0;
@@ -142,6 +147,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     const int COLUMN_THREE = 2;
     const int COLUMN_FOUR  = 3;
     const int COLUMN_FIVE  = 4;
+    const int COLUMN_SIX   = 5;
     /*
      * Layouts
      */
@@ -165,16 +171,17 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     
     int rightRow = 0;
     layout->addWidget(m_axisNameToolButton, rightRow, COLUMN_FOUR, Qt::AlignLeft);
-    layout->addWidget(m_showTickMarksCheckBox, rightRow, COLUMN_FIVE);
+    layout->addWidget(m_showTickMarksCheckBox, rightRow, COLUMN_FIVE, 1, 2);
     rightRow++;
     layout->addWidget(new QLabel("Format"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
-    layout->addWidget(m_userNumericFormatComboBox->getWidget(), rightRow, COLUMN_FIVE);
+    layout->addWidget(m_userNumericFormatComboBox->getWidget(), rightRow, COLUMN_FIVE, 1, 2);
     rightRow++;
     layout->addWidget(new QLabel("Decimals"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
-    layout->addWidget(m_userDigitsRightOfDecimalSpinBox, rightRow, COLUMN_FIVE);
+    layout->addWidget(m_userDigitsRightOfDecimalSpinBox, rightRow, COLUMN_FIVE, 1, 2);
     rightRow++;
     layout->addWidget(new QLabel("Subdivisions"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
-    layout->addWidget(m_userSubdivisionsSpinBox, rightRow, COLUMN_FIVE);
+    layout->addWidget(m_autoSubdivisionsCheckBox, rightRow, COLUMN_FIVE, Qt::AlignHCenter);
+    layout->addWidget(m_userSubdivisionsSpinBox, rightRow, COLUMN_SIX, Qt::AlignRight);
     rightRow++;
 
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
@@ -310,7 +317,9 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoCartesianAxis* cha
         m_userNumericFormatComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(numericFormat);
         m_userDigitsRightOfDecimalSpinBox->setValue(m_chartAxis->getUserDigitsRightOfDecimal());
         m_userDigitsRightOfDecimalSpinBox->setEnabled(numericFormat != NumericFormatModeEnum::AUTO);
+        m_autoSubdivisionsCheckBox->setChecked(m_chartAxis->isAutoSubdivisionsEnabled());
         m_userSubdivisionsSpinBox->setValue(m_chartAxis->getUserNumberOfSubdivisions());
+        m_userSubdivisionsSpinBox->setEnabled( ! m_chartAxis->isAutoSubdivisionsEnabled());
         
         m_widgetGroup->blockAllSignals(false);
     }
@@ -330,6 +339,7 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
         m_chartAxis->setShowTickmarks(m_showTickMarksCheckBox->isChecked());
         m_chartAxis->setUserNumericFormat(m_userNumericFormatComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());
         m_chartAxis->setUserDigitsRightOfDecimal(m_userDigitsRightOfDecimalSpinBox->value());
+        m_chartAxis->setAutoSubdivisionsEnabled(m_autoSubdivisionsCheckBox->isChecked());
         m_chartAxis->setUserNumberOfSubdivisions(m_userSubdivisionsSpinBox->value());
     }
 
