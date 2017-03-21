@@ -76,13 +76,13 @@ m_tabIndex(tabIndex)
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
             m_chartAxisLeft->setVisible(true);
-            m_chartAxisLeft->setLabelText("Counts");
+            m_chartAxisLeft->setAxisTitle("Counts");
             m_chartAxisLeft->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             m_chartAxisRight->setVisible(false);
-            m_chartAxisRight->setLabelText("Counts");
+            m_chartAxisRight->setAxisTitle("Counts");
             m_chartAxisRight->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             m_chartAxisBottom->setVisible(true);
-            m_chartAxisBottom->setLabelText("Data");
+            m_chartAxisBottom->setAxisTitle("Data");
             m_chartAxisBottom->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:

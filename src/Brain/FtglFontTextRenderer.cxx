@@ -70,6 +70,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <memory>
 
 #include <QFile>
 #include <QStringList>
@@ -877,7 +878,23 @@ FtglFontTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotatio
     m_viewportHeight = viewportHeight;
     
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
-    getBoundsForTextAtViewportCoords(annotationText, 0.0, 0.0, 0.0, viewportHeight, bottomLeft, bottomRight, topRight, topLeft);
+    if (annotationText.getRotationAngle() != 0.0) {
+        /*
+         * Any rotation must be removed as the rotation is applied to the viewport postions.
+         * For example, if the text is rotated -90 degrees, the top-right and top-left will
+         * be on the left and bottom-right and bottom-left will be on the right
+         */
+        std::unique_ptr<Annotation> annotation = std::unique_ptr<Annotation>(annotationText.clone());
+        AnnotationText* textCopy = dynamic_cast<AnnotationText*>(annotation.get());
+        CaretAssert(textCopy);
+        textCopy->setRotationAngle(0.0);
+        getBoundsForTextAtViewportCoords(*textCopy, 0.0, 0.0, 0.0,
+                                         viewportHeight, bottomLeft, bottomRight, topRight, topLeft);
+    }
+    else {
+        getBoundsForTextAtViewportCoords(annotationText, 0.0, 0.0, 0.0,
+                                         viewportHeight, bottomLeft, bottomRight, topRight, topLeft);
+    }
     
     widthOut  = MathFunctions::distance3D(bottomLeft, bottomRight);
     heightOut = MathFunctions::distance3D(topLeft, bottomLeft);

@@ -179,6 +179,9 @@ namespace caret {
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT = 2;
         
+        static constexpr float s_tickLength = 5.0;
+
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

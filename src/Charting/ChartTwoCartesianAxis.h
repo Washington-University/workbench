@@ -84,16 +84,16 @@ namespace caret {
 
         void setShowTickmarks(const bool showTickmarks);
         
-        bool getLabelsAndPositions(const float dataBoundsIn[4],
+        bool getScaleValuesAndOffsets(const float dataBoundsIn[4],
                                    const float axisLengthInPixels,
                                    float& minimumOut,
                                    float& maximumOut,
-                                   std::vector<float>& labelOffsetInPixelsOut,
-                                   std::vector<AString>& labelTextOut) const;
+                                   std::vector<float>& scaleValuesOffsetInPixelsOut,
+                                   std::vector<AString>& scaleValuesOut) const;
         
-        AString getLabelText() const;
+        AString getAxisTitle() const;
         
-        void setLabelText(const AString& labelText);
+        void setAxisTitle(const AString& axisTitle);
         
         // ADD_NEW_METHODS_HERE
 
@@ -153,7 +153,7 @@ namespace caret {
          */
         int32_t m_userNumberOfSubdivisions = -1;
         
-        AString m_labelText;
+        AString m_axisTitle;
 
         bool m_visible = false;
 

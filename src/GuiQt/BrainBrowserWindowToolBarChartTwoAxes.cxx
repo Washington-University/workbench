@@ -79,7 +79,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      * Controls for axis parameters
      */
     m_axisNameToolButton = new QToolButton();
-    m_axisNameToolButton->setText("Edit Axis Label");
+    m_axisNameToolButton->setText("Edit Axis Title");
     QObject::connect(m_axisNameToolButton, &QToolButton::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisNameToolButtonClicked);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_axisNameToolButton);
@@ -386,16 +386,14 @@ BrainBrowserWindowToolBarChartTwoAxes::axisNameToolButtonClicked(bool)
 {
     CaretAssert(m_chartAxis);
     if (m_chartAxis != NULL) {
-        WuQDataEntryDialog newNameDialog("Axis Name",
+        WuQDataEntryDialog newNameDialog("Axis Title",
                                          m_axisNameToolButton);
         QLineEdit* lineEdit = newNameDialog.addLineEditWidget("Axis Name");
-        lineEdit->setText(m_chartAxis->getLabelText());
+        lineEdit->setText(m_chartAxis->getAxisTitle());
         if (newNameDialog.exec() == WuQDataEntryDialog::Accepted) {
             const AString name = lineEdit->text().trimmed();
-            if ( ! name.isEmpty()) {
-                m_chartAxis->setLabelText(name);
-                valueChanged();
-            }
+            m_chartAxis->setAxisTitle(name);
+            valueChanged();
         }
     }
 }

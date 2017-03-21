@@ -70,8 +70,8 @@ m_axisLocation(axisLocation)
                                                                              &m_userNumericFormat);
     m_sceneAssistant->add("m_userNumberOfSubdivisions",
                           &m_userNumberOfSubdivisions);
-    m_sceneAssistant->add("m_labelText",
-                          &m_labelText);
+    m_sceneAssistant->add("m_axisTitle",
+                          &m_axisTitle);
     m_sceneAssistant->add("m_visible",
                           &m_visible);
     m_sceneAssistant->add("m_showTickmarks",
@@ -132,7 +132,7 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_units                 = obj.m_units;
     m_userNumericFormat         = obj.m_userNumericFormat;
     m_userNumberOfSubdivisions  = obj.m_userNumberOfSubdivisions;
-    m_labelText             = obj.m_labelText;
+    m_axisTitle             = obj.m_axisTitle;
     m_visible               = obj.m_visible;
     m_showTickmarks         = obj.m_showTickmarks;
 }
@@ -345,24 +345,24 @@ ChartTwoCartesianAxis::toString() const
 }
 
 /**
- * @return Text for axis label
+ * @return Title for axis
  */
 AString
-ChartTwoCartesianAxis::getLabelText() const
+ChartTwoCartesianAxis::getAxisTitle() const
 {
-    return m_labelText;
+    return m_axisTitle;
 }
 
 /**
- * Set Text for axis label
+ * Set title for axis
  *
- * @param labelText
- *    New value for Text for axis label
+ * @param axisTitle
+ *    New value for axis title
  */
 void
-ChartTwoCartesianAxis::setLabelText(const AString& labelText)
+ChartTwoCartesianAxis::setAxisTitle(const AString& axisTitle)
 {
-    m_labelText = labelText;
+    m_axisTitle = axisTitle;
 }
 
 /**
@@ -490,7 +490,7 @@ ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float dataBounds[4],
 }
 
 /**
- * Get the axis labels and their positions for drawing the scale.
+ * Get the axis scale text values and their positions for drawing the scale.
  *
  * @param dataBoundsIn
  *     Bounds of data [minX, maxX, minY, maxY].
@@ -500,20 +500,20 @@ ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float dataBounds[4],
  *     Output minimum value for autoranging.
  * @param maximumOut
  *     Output maximum value for autoranging.
- * @param labelOffsetInPixelsOut
- *     Output containing offset in pixels for the scale labels.
- * @param labelTextOut
- *     Output containing text for scale labels.
+ * @param scaleValuesOffsetInPixelsOut
+ *     Output containing offset in pixels for the scale values.
+ * @param scaleValuesOut
+ *     Output containing text for scale values.
  * @return
  *     True if output data is valid, else false.
  */
 bool
-ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBoundsIn[4],
-                                             const float axisLengthInPixels,
-                                             float& minimumOut,
-                                             float& maximumOut,
-                                             std::vector<float>& labelOffsetInPixelsOut,
-                                             std::vector<AString>& labelTextOut) const
+ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float dataBoundsIn[4],
+                                                const float axisLengthInPixels,
+                                                float& minimumOut,
+                                                float& maximumOut,
+                                                std::vector<float>& scaleValuesOffsetInPixelsOut,
+                                                std::vector<AString>& scaleValuesOut) const
 {
     float dataBounds[4] = {
         dataBoundsIn[0],
@@ -524,8 +524,8 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBoundsIn[4],
     
     minimumOut = 0.0;
     maximumOut = 0.0;
-    labelOffsetInPixelsOut.clear();
-    labelTextOut.clear();
+    scaleValuesOffsetInPixelsOut.clear();
+    scaleValuesOut.clear();
     
     if (axisLengthInPixels < 25.0) {
         return false;
@@ -683,7 +683,7 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBoundsIn[4],
             && (labelParametricValue <= 1.0)) {
             const float labelPixelsPosition = axisLengthInPixels * labelParametricValue;
             labelNumericValues.push_back(labelValueForText);
-            labelOffsetInPixelsOut.push_back(labelPixelsPosition);
+            scaleValuesOffsetInPixelsOut.push_back(labelPixelsPosition);
             
 //            const AString labelText = AString::number(labelValueForText, 'f', labelsDigitsRightOfDecimal);
 //            labelTextOut.push_back(labelText);
@@ -697,15 +697,15 @@ ChartTwoCartesianAxis::getLabelsAndPositions(const float dataBoundsIn[4],
     
     const int32_t numValues = static_cast<int32_t>(labelNumericValues.size());
     if (numValues > 0) {
-        labelTextOut.resize(numValues);
+        scaleValuesOut.resize(numValues);
         NumericTextFormatting::formatValueRange(m_userNumericFormat,
                                                 m_userDigitsRightOfDecimal,
                                                 &labelNumericValues[0],
-                                                &labelTextOut[0],
+                                                &scaleValuesOut[0],
                                                 labelNumericValues.size());
     }
     
-    CaretAssert(labelOffsetInPixelsOut.size() == labelTextOut.size());
-    return ( ! labelTextOut.empty());
+    CaretAssert(scaleValuesOffsetInPixelsOut.size() == scaleValuesOut.size());
+    return ( ! scaleValuesOut.empty());
 }
 
