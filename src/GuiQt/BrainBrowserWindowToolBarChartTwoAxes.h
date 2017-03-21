@@ -48,6 +48,8 @@ namespace caret {
         
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
+        virtual void receiveEvent(Event* event);
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:
@@ -60,6 +62,8 @@ namespace caret {
         void valueChangedDouble(double);
         
         void valueChangedInt(int);
+        
+        void axisMinimumMaximumValueChanged(double);
         
         void axisNameToolButtonClicked(bool);
         

@@ -593,6 +593,8 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float dataBoundsIn[4],
     
     switch (m_scaleRangeMode) {
         case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO:
+            m_userScaleMinimumValue = labelsStart;
+            m_userScaleMaximumValue = labelsEnd;
             break;
         case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER:
             labelsStart = m_userScaleMinimumValue;

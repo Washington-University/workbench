@@ -35,10 +35,11 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretDataFileSelectionModel.h"
+#include "CaretMappableDataFile.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlaySet.h"
 #include "EnumComboBoxTemplate.h"
-#include "CaretMappableDataFile.h"
+#include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "ModelChartTwo.h"
@@ -94,12 +95,12 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     const double bigValue = 999999.0;
     m_userMinimumValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigValue, bigValue, 1.0, 1);
     QObject::connect(m_userMinimumValueSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::axisMinimumMaximumValueChanged);
     m_userMinimumValueSpinBox->setToolTip("Set user scaling axis minimum value");
     
     m_userMaximumValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigValue, bigValue, 1.0, 1);
     QObject::connect(m_userMaximumValueSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::axisMinimumMaximumValueChanged);
     m_userMaximumValueSpinBox->setToolTip("Set user scaling axis maximum value");
     
     m_showTickMarksCheckBox = new QCheckBox("Show Ticks");
@@ -188,6 +189,9 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     WuQtUtilities::setLayoutSpacingAndMargins(dialogLayout, 0, 2);
     dialogLayout->addLayout(layout);
     dialogLayout->addStretch();
+
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
 }
 
 /**
@@ -195,6 +199,25 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
  */
 BrainBrowserWindowToolBarChartTwoAxes::~BrainBrowserWindowToolBarChartTwoAxes()
 {
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *    The event.
+ */
+void
+BrainBrowserWindowToolBarChartTwoAxes::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN) {
+        EventBrowserWindowGraphicsRedrawn* redrawEvent = dynamic_cast<EventBrowserWindowGraphicsRedrawn*>(event);
+        CaretAssert(redrawEvent);
+        updateContent(getTabContentFromSelectedTab());
+    }
+    else {
+        BrainBrowserWindowToolBarComponent::receiveEvent(event);
+    }
 }
 
 /**
@@ -343,9 +366,9 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
         m_chartAxis->setUserNumberOfSubdivisions(m_userSubdivisionsSpinBox->value());
     }
 
-    updateContent(getTabContentFromSelectedTab());
-    
     updateGraphics();
+    
+    updateContent(getTabContentFromSelectedTab());
 }
 
 /**
@@ -357,6 +380,24 @@ BrainBrowserWindowToolBarChartTwoAxes::updateGraphics()
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+
+/**
+ * Called when the minimum or maximum value is changed.
+ */
+void
+BrainBrowserWindowToolBarChartTwoAxes::axisMinimumMaximumValueChanged(double)
+{
+    if (m_chartAxis != NULL) {
+        /*
+         * If the minimum or maximum value is modified by user,
+         * ensure Auto/User Range selection is USER
+         */
+        m_autoUserRangeComboBox->getWidget()->blockSignals(true);
+        m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER);
+        m_autoUserRangeComboBox->getWidget()->blockSignals(false);
+        valueChanged();
+    }
+}
 
 /**
  * Called when a widget is changed by a slot using a bool parameter.

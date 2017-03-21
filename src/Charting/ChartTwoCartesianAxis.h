@@ -137,9 +137,9 @@ namespace caret {
 
         const ChartAxisLocationEnum::Enum m_axisLocation;
         
-        float m_userScaleMinimumValue = -100.0;
+        mutable float m_userScaleMinimumValue = -100.0;
         
-        float m_userScaleMaximumValue = 100.0;
+        mutable float m_userScaleMaximumValue = 100.0;
         
         float m_axisLabelsStepValue = 1.0;
         
