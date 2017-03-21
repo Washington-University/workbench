@@ -1473,11 +1473,9 @@ BrainBrowserWindowToolBar::updateToolBar()
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                         showChartTwoAxesWidget = true;
-                        showChartTwoOrientationWidget = true;
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                         showChartTwoAxesWidget = true;
-                        showChartTwoOrientationWidget = true;
                         showChartTwoAttributesWidget  = true;
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
