@@ -260,9 +260,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
     
     std::vector<HistogramChartDrawingInfo*> drawingInfo;
     
-    bool haveBottomAxisFlag = false;
-    bool haveLeftAxisFlag   = false;
-    bool haveRightAxisFlag  = false;
+//    bool haveBottomAxisFlag = false;
+//    bool haveLeftAxisFlag   = false;
+//    bool haveRightAxisFlag  = false;
     
     /*
      * Get the histogram drawing information and overall extent
@@ -308,7 +308,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                     xMin = std::min(xMin, bounds[0]);
                     xMax = std::max(xMax, bounds[1]);
                     
-                    haveBottomAxisFlag = true;
+//                    haveBottomAxisFlag = true;
                     switch (chartOverlay->getCartesianVerticalAxisLocation()) {
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                             CaretAssertMessage(0, "TOP axis not allowed for vertical axis");
@@ -316,12 +316,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
                             yMinRight = std::min(yMinRight, bounds[2]);
                             yMaxRight = std::max(yMaxRight, bounds[3]);
-                            haveRightAxisFlag = true;
+//                            haveRightAxisFlag = true;
                             break;
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                             yMinLeft = std::min(yMinLeft, bounds[2]);
                             yMaxLeft = std::max(yMaxLeft, bounds[3]);
-                            haveLeftAxisFlag = true;
+//                            haveLeftAxisFlag = true;
                             break;
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                             CaretAssertMessage(0, "BOTTOM axis not allowed for vertical axis");
@@ -354,9 +354,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         ChartTwoCartesianAxis* bottomAxis = m_chartOverlaySet->getChartAxisBottom();
         ChartTwoCartesianAxis* topAxis    = NULL;
         
-        leftAxis->setVisible(haveLeftAxisFlag);
-        rightAxis->setVisible(haveRightAxisFlag);
-        bottomAxis->setVisible(haveBottomAxisFlag);
+//        leftAxis->setVisible(haveLeftAxisFlag);
+//        rightAxis->setVisible(haveRightAxisFlag);
+//        bottomAxis->setVisible(haveBottomAxisFlag);
         
         const float boundsLeftBottomTop[4] = { xMin, xMax, yMinLeft, yMaxLeft };
         const float boundsRight[4] = { xMin, xMax, yMinRight, yMaxRight };

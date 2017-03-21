@@ -631,6 +631,55 @@ ChartTwoOverlaySet::getDisplayedChartAxes() const
 {
     std::vector<ChartTwoCartesianAxis*> axes;
     
+    bool showAxesFlag = false;
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            showAxesFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            showAxesFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
+
+    bool showBottomFlag = false;
+    bool showLeftFlag   = false;
+    bool showRightFlag  = false;
+    
+    if (showAxesFlag) {
+        for (auto overlay : m_overlays) {
+            if (overlay->isEnabled()) {
+                CaretMappableDataFile* mapFile = NULL;
+                int32_t mapIndex = -1;
+                overlay->getSelectionData(mapFile, mapIndex);
+                if (mapFile != NULL) {
+                    showBottomFlag = true;
+                    switch (overlay->getCartesianVerticalAxisLocation()) {
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                            CaretAssert(0);
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                            showLeftFlag = true;
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                            showRightFlag = true;
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                            CaretAssert(0);
+                            break;
+                    }
+                }
+            }
+        }
+    }
+    
+    m_chartAxisBottom->setVisible(showBottomFlag);
+    m_chartAxisLeft->setVisible(showLeftFlag);
+    m_chartAxisRight->setVisible(showRightFlag);
+    
     if (m_chartAxisBottom->isVisible()) {
         axes.push_back(m_chartAxisBottom.get());
     }
