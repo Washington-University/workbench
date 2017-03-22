@@ -180,11 +180,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
         const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
         if (numberOfOverlays > 0) {
             ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
-            //if (topOverlay->isEnabled()) {
-                CaretMappableDataFile* cmdf = NULL;
-                int32_t mapIndex = -1;
-                topOverlay->getSelectionData(cmdf, mapIndex);
-                if (cmdf != NULL) {
+            CaretAssert(topOverlay);
+            CaretMappableDataFile* mapFile = NULL;
+            ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+            int32_t selectedIndex = -1;
+            topOverlay->getSelectionData(mapFile,
+                                      selectedIndexType,
+                                      selectedIndex);
+                if (mapFile != NULL) {
                     const ChartTwoDataTypeEnum::Enum chartDataType = topOverlay->getChartTwoDataType();
                     switch (chartDataType) {
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
@@ -206,7 +209,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                             break;
                     }
                 }
-            //}
         }
     }
     
@@ -280,9 +282,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         }
         
         CaretMappableDataFile* mapFile = NULL;
-        int32_t mapIndex = 1;
+        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+        int32_t selectedIndex = -1;
         chartOverlay->getSelectionData(mapFile,
-                                       mapIndex);
+                                       selectedIndexType,
+                                       selectedIndex);
         if (mapFile == NULL) {
             continue;
         }
@@ -291,16 +295,17 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         const ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
         
         if (histogramChart->isValid()) {
+            CaretAssert(selectedIndexType == ChartTwoOverlay::SelectedIndexType::MAP);
             AString errorMessage;
             HistogramDrawingInfo* histogramDrawingInfo = new HistogramDrawingInfo();
-            if (mapFile->getMapHistogramDrawingInfo(mapIndex,
+            if (mapFile->getMapHistogramDrawingInfo(selectedIndex,
                                                     chartOverlay->isAllMapsSelected(),
                                                     false,
                                                     *histogramDrawingInfo,
                                                     errorMessage)) {
                 drawingInfo.push_back(new HistogramChartDrawingInfo(histogramDrawingInfo,
                                                                     histogramChart,
-                                                                    mapIndex,
+                                                                    selectedIndex,
                                                                     chartOverlay->getCartesianVerticalAxisLocation()));
                 
                 float bounds[4];
@@ -966,9 +971,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
         }
         
         CaretMappableDataFile* mapFile = NULL;
-        int32_t mapIndex = 1;
+        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+        int32_t selectedIndex = -1;
         chartOverlay->getSelectionData(mapFile,
-                                       mapIndex);
+                                       selectedIndexType,
+                                       selectedIndex);
         if (mapFile == NULL) {
             continue;
         }

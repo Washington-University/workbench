@@ -208,21 +208,25 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
     const MapYokingGroupEnum::Enum previousMapYokingGroup = chartOverlay->getMapYokingGroup();
     const MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
     CaretMappableDataFile* mapFile = NULL;
-    int32_t mapIndex = -1;
-    chartOverlay->getSelectionData(mapFile, mapIndex);
+    ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
+    chartOverlay->getSelectionData(mapFile,
+                                     selectedIndexType,
+                                     selectedIndex);
     bool selectionStatus = chartOverlay->isEnabled();
     
     if ((mapFile != NULL)
-        && (mapIndex >= 0)) {
+        && (selectedIndexType == ChartTwoOverlay::SelectedIndexType::MAP)
+        && (selectedIndex >= 0)) {
         const YokeValidationResult result = validateYoking(mapFile,
-                                                           mapIndex,
+                                                           selectedIndex,
                                                            selectionStatus);
         
         switch (result) {
             case YOKE_VALIDATE_RESULT_ACCEPT:
                 chartOverlay->setEnabled(selectionStatus);
                 chartOverlay->setSelectionData(mapFile,
-                                          mapIndex);
+                                               selectedIndex);
                 chartOverlay->setMapYokingGroup(newYokingGroup);
                 break;
             case YOKE_VALIDATE_RESULT_OFF:

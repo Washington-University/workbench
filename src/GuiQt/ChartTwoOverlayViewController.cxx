@@ -282,17 +282,20 @@ ChartTwoOverlayViewController::updateOverlaySettingsEditor()
     }
     
     CaretMappableDataFile* mapFile = NULL;
-    int32_t mapIndex = -1;
+    ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
     m_chartOverlay->getSelectionData(mapFile,
-                              mapIndex);
+                                     selectedIndexType,
+                                     selectedIndex);
     
     if ((mapFile != NULL)
-        && (mapIndex >= 0)) {
+        && (selectedIndex >= 0)) {
         EventOverlaySettingsEditorDialogRequest pcme(EventOverlaySettingsEditorDialogRequest::MODE_OVERLAY_MAP_CHANGED,
                                                      m_browserWindowIndex,
                                                      m_chartOverlay,
                                                      mapFile,
-                                                     mapIndex);
+                                                     selectedIndexType,
+                                                     selectedIndex);
         EventManager::get()->sendEvent(pcme.getPointer());
     }
 }
@@ -446,16 +449,20 @@ ChartTwoOverlayViewController::enabledCheckBoxClicked(bool checked)
     
     const MapYokingGroupEnum::Enum mapYoking = m_chartOverlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-        CaretMappableDataFile* myFile = NULL;
-        int32_t myIndex = -1;
-        m_chartOverlay->getSelectionData(myFile,
-                                        myIndex);
+        CaretMappableDataFile* mapFile = NULL;
+        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+        int32_t selectedIndex = -1;
+        m_chartOverlay->getSelectionData(mapFile,
+                                         selectedIndexType,
+                                         selectedIndex);
         
-        EventMapYokingSelectMap selectMapEvent(mapYoking,
-                                               myFile,
-                                               myIndex,
-                                               m_chartOverlay->isEnabled());
-        EventManager::get()->sendEvent(selectMapEvent.getPointer());
+        if (selectedIndexType == ChartTwoOverlay::SelectedIndexType::MAP) {
+            EventMapYokingSelectMap selectMapEvent(mapYoking,
+                                                   mapFile,
+                                                   selectedIndex,
+                                                   m_chartOverlay->isEnabled());
+            EventManager::get()->sendEvent(selectMapEvent.getPointer());
+        }
     }
     
     this->updateUserInterfaceAndGraphicsWindow();
@@ -535,16 +542,19 @@ ChartTwoOverlayViewController::settingsActionTriggered()
         return;
     }
     
-    CaretMappableDataFile* mapFile;
-    int32_t mapIndex = -1;
+    CaretMappableDataFile* mapFile = NULL;
+    ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
     m_chartOverlay->getSelectionData(mapFile,
-                                    mapIndex);
+                                     selectedIndexType,
+                                     selectedIndex);
     if (mapFile != NULL) {
         EventOverlaySettingsEditorDialogRequest pcme(EventOverlaySettingsEditorDialogRequest::MODE_SHOW_EDITOR,
                                                      m_browserWindowIndex,
                                                      m_chartOverlay,
                                                      mapFile,
-                                                     mapIndex);
+                                                     selectedIndexType,
+                                                     selectedIndex);
         EventManager::get()->sendEvent(pcme.getPointer());
     }
 }
@@ -559,10 +569,12 @@ ChartTwoOverlayViewController::historyActionTriggered(bool)
         return;
     }
     
-    CaretMappableDataFile* mapFile;
-    int32_t mapIndex = -1;
+    CaretMappableDataFile* mapFile = NULL;
+    ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
     m_chartOverlay->getSelectionData(mapFile,
-                                     mapIndex);
+                                     selectedIndexType,
+                                     selectedIndex);
     
     std::cout << "History button clicked.  Enabled="
     << qPrintable(AString::fromBool(m_chartOverlay->isHistorySupported())) << std::endl;
@@ -596,12 +608,14 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     std::vector<CaretMappableDataFile*> dataFiles;
     CaretMappableDataFile* selectedFile = NULL;
     std::vector<AString> selectedFileMapNames;
-    int32_t selectedMapIndex = -1;
+    ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
     if (m_chartOverlay != NULL) {
         m_chartOverlay->getSelectionData(dataFiles,
                                          selectedFile,
                                          selectedFileMapNames,
-                                         selectedMapIndex);
+                                         selectedIndexType,
+                                         selectedIndex);
     }
     
     /*
@@ -673,7 +687,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             CaretAssertVectorIndex(selectedFileMapNames, i);
             m_mapRowOrColumnNameComboBox->addItem(selectedFileMapNames[i]);
         }
-        m_mapRowOrColumnNameComboBox->setCurrentIndex(selectedMapIndex);
+        m_mapRowOrColumnNameComboBox->setCurrentIndex(selectedIndex);
         
         /*
          * Spin box ranges [0, N-1] or [1, N] depending upon data
@@ -694,7 +708,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
         }
         
         m_mapRowOrColumnIndexSpinBox->setRange(mapIndexMinimumValue, mapIndexMaximumValue);
-        const int spinBoxIndex = selectedMapIndex + m_mapRowOrColumnIndexSpinBox->minimum();
+        const int spinBoxIndex = selectedIndex + m_mapRowOrColumnIndexSpinBox->minimum();
         m_mapRowOrColumnIndexSpinBox->setValue(spinBoxIndex);
     }
     m_mapRowOrColumnNameComboBox->blockSignals(false);
@@ -1062,17 +1076,19 @@ void
 ChartTwoOverlayViewController::menuConstructionAboutToShow()
 {
     if (m_chartOverlay != NULL) {
-        CaretMappableDataFile* caretDataFile = NULL;
-        int32_t mapIndex = -1;
-        m_chartOverlay->getSelectionData(caretDataFile,
-                                        mapIndex);
+        CaretMappableDataFile* mapFile = NULL;
+        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+        int32_t selectedIndex = -1;
+        m_chartOverlay->getSelectionData(mapFile,
+                                         selectedIndexType,
+                                         selectedIndex);
         
         QString menuText = "Reload Selected File";
-        if (caretDataFile != NULL) {
-            if (caretDataFile->isModified()) {
+        if (mapFile != NULL) {
+            if (mapFile->isModified()) {
                 QString suffix = " (MODIFIED)";
-                if (caretDataFile->isModifiedPaletteColorMapping()) {
-                    if ( ! caretDataFile->isModifiedExcludingPaletteColorMapping()) {
+                if (mapFile->isModifiedPaletteColorMapping()) {
+                    if ( ! mapFile->isModifiedExcludingPaletteColorMapping()) {
                         suffix = " (MODIFIED PALETTE)";
                     }
                 }
@@ -1135,13 +1151,15 @@ void
 ChartTwoOverlayViewController::menuCopyFileNameToClipBoard()
 {
     if (m_chartOverlay != NULL) {
-        CaretMappableDataFile* caretDataFile = NULL;
-        int32_t mapIndex = -1;
-        m_chartOverlay->getSelectionData(caretDataFile,
-                                        mapIndex);
+        CaretMappableDataFile* mapFile = NULL;
+        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+        int32_t selectedIndex = -1;
+        m_chartOverlay->getSelectionData(mapFile,
+                                         selectedIndexType,
+                                         selectedIndex);
         
-        if (caretDataFile != NULL) {
-            QApplication::clipboard()->setText(caretDataFile->getFileName().trimmed(),
+        if (mapFile != NULL) {
+            QApplication::clipboard()->setText(mapFile->getFileName().trimmed(),
                                                QClipboard::Clipboard);
         }
     }
@@ -1154,15 +1172,21 @@ void
 ChartTwoOverlayViewController::menuCopyMapNameToClipBoard()
 {
     if (m_chartOverlay != NULL) {
-        CaretMappableDataFile* caretDataFile = NULL;
-        int32_t mapIndex = -1;
-        m_chartOverlay->getSelectionData(caretDataFile,
-                                        mapIndex);
+        std::vector<CaretMappableDataFile*> allMapFiles;
+        std::vector<AString> indexNames;
+        CaretMappableDataFile* mapFile = NULL;
+        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+        int32_t selectedIndex = -1;
+        m_chartOverlay->getSelectionData(allMapFiles,
+                                         mapFile,
+                                         indexNames,
+                                         selectedIndexType,
+                                         selectedIndex);
         
-        if (caretDataFile != NULL) {
-            if ((mapIndex >= 0)
-                && (mapIndex < caretDataFile->getNumberOfMaps())) {
-                QApplication::clipboard()->setText(caretDataFile->getMapName(mapIndex).trimmed(),
+        if (mapFile != NULL) {
+            if ((selectedIndex >= 0)
+                && (selectedIndex < static_cast<int32_t>(indexNames.size()))) {
+                QApplication::clipboard()->setText(indexNames[selectedIndex],
                                                    QClipboard::Clipboard);
             }
         }
@@ -1176,16 +1200,18 @@ void
 ChartTwoOverlayViewController::menuReloadFileTriggered()
 {
     if (m_chartOverlay != NULL) {
-        CaretMappableDataFile* caretDataFile = NULL;
-        int32_t mapIndex = -1;
-        m_chartOverlay->getSelectionData(caretDataFile,
-                                        mapIndex);
+        CaretMappableDataFile* mapFile = NULL;
+        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+        int32_t selectedIndex = -1;
+        m_chartOverlay->getSelectionData(mapFile,
+                                         selectedIndexType,
+                                         selectedIndex);
         
-        if (caretDataFile != NULL) {
+        if (mapFile != NULL) {
             AString username;
             AString password;
             
-            if (DataFile::isFileOnNetwork(caretDataFile->getFileName())) {
+            if (DataFile::isFileOnNetwork(mapFile->getFileName())) {
                 const QString msg("This file is on the network.  "
                                   "If accessing the file requires a username and "
                                   "password, enter it here.  Otherwise, remove any "
@@ -1205,7 +1231,7 @@ ChartTwoOverlayViewController::menuReloadFileTriggered()
             }
             
             EventDataFileReload reloadEvent(GuiManager::get()->getBrain(),
-                                            caretDataFile);
+                                            mapFile);
             reloadEvent.setUsernameAndPassword(username,
                                                password);
             EventManager::get()->sendEvent(reloadEvent.getPointer());

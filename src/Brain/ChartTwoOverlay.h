@@ -42,6 +42,13 @@ namespace caret {
     class ChartTwoOverlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
+        enum class SelectedIndexType {
+            INVALID,
+            MAP,
+            ROW,
+            COLUMN
+        };
+        
         ChartTwoOverlay(ChartTwoOverlaySet* parentChartTwoOverlaySet,
                      const ChartTwoDataTypeEnum::Enum chartDataType,
                      const int32_t overlayIndex);
@@ -95,14 +102,17 @@ namespace caret {
         void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,
                               std::vector<AString>& selectedFileMapNamesOut,
-                              int32_t& selectedMapIndexOut) const;
+                              SelectedIndexType& selectedIndexTypeOut,
+                              int32_t& selectedIndexOut) const;
         
         void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,
-                              int32_t& selectedMapIndexOut) const;
+                              SelectedIndexType& selectedIndexTypeOut,
+                              int32_t& selectedIndexOut) const;
         
         void getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
-                              int32_t& selectedMapIndexOut) const;
+                              SelectedIndexType& selectedIndexTypeOut,
+                              int32_t& selectedIndexOut) const;
         
         void setSelectionData(CaretMappableDataFile* selectedMapFile,
                               const int32_t selectedMapIndex);
@@ -141,7 +151,8 @@ namespace caret {
         void getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& mapFilesOut,
                                      CaretMappableDataFile* &selectedMapFileOut,
                                      std::vector<AString>* selectedFileMapNamesOut,
-                                     int32_t& selectedMapIndexOut) const;
+                                     SelectedIndexType& selectedIndexTypeOut,
+                                     int32_t& selectedIndexOut) const;
         
         void validateCartesianVerticalAxisLocation() const;
         

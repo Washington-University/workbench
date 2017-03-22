@@ -657,8 +657,11 @@ ChartTwoOverlaySet::getDisplayedChartAxes() const
         for (auto overlay : m_overlays) {
             if (overlay->isEnabled()) {
                 CaretMappableDataFile* mapFile = NULL;
-                int32_t mapIndex = -1;
-                overlay->getSelectionData(mapFile, mapIndex);
+                ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+                int32_t selectedIndex = -1;
+                overlay->getSelectionData(mapFile,
+                                          selectedIndexType,
+                                          selectedIndex);
                 if (mapFile != NULL) {
                     showBottomFlag = true;
                     switch (overlay->getCartesianVerticalAxisLocation()) {

@@ -1466,18 +1466,20 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
                                 break;
                             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                             {
-                                CaretMappableDataFile* overlayDataFile = NULL;
-                                int32_t mapIndex;
-                                chartOverlay->getSelectionData(overlayDataFile,
-                                                               mapIndex);
+                                CaretMappableDataFile* mapFile = NULL;
+                                ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+                                int32_t selectedIndex = -1;
+                                chartOverlay->getSelectionData(mapFile,
+                                                               selectedIndexType,
+                                                               selectedIndex);
                                 
-                                if (overlayDataFile != NULL) {
-                                    if (overlayDataFile->isMappedWithPalette()) {
+                                if (mapFile != NULL) {
+                                    if (mapFile->isMappedWithPalette()) {
                                         AnnotationColorBar* colorBar = chartOverlay->getColorBar();
                                         const int32_t mapIndex = 0;
                                         colorBarMapFileInfo.push_back(ColorBarFileMap(colorBar,
-                                                                                      overlayDataFile,
-                                                                                      mapIndex));
+                                                                                      mapFile,
+                                                                                      selectedIndex));
                                     }
                                 }
                             }
@@ -1654,6 +1656,24 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
                 if (chartOverlay->isEnabled()) {
                     switch (chartOverlay->getChartTwoDataType()) {
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                        {
+                            CaretMappableDataFile* mapFile = NULL;
+                            ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+                            int32_t selectedIndex = -1;
+                            chartOverlay->getSelectionData(mapFile,
+                                                           selectedIndexType,
+                                                           selectedIndex);
+                            
+                            if (mapFile != NULL) {
+                                if (mapFile->isMappedWithPalette()) {
+                                    AnnotationColorBar* colorBar = chartOverlay->getColorBar();
+                                    if (colorBar->isDisplayed()) {
+                                        mapFiles.push_back(mapFile);
+                                        mapIndices.push_back(selectedIndex);
+                                    }
+                                }
+                            }
+                        }
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                             break;
@@ -1661,16 +1681,18 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                         {
-                            CaretMappableDataFile* overlayDataFile = NULL;
-                            int32_t mapIndex;
-                            chartOverlay->getSelectionData(overlayDataFile,
-                                                           mapIndex);
+                            CaretMappableDataFile* mapFile = NULL;
+                            ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+                            int32_t selectedIndex = -1;
+                            chartOverlay->getSelectionData(mapFile,
+                                                           selectedIndexType,
+                                                           selectedIndex);
                             
-                            if (overlayDataFile != NULL) {
-                                if (overlayDataFile->isMappedWithPalette()) {
+                            if (mapFile != NULL) {
+                                if (mapFile->isMappedWithPalette()) {
                                     AnnotationColorBar* colorBar = chartOverlay->getColorBar();
                                     if (colorBar->isDisplayed()) {
-                                        mapFiles.push_back(overlayDataFile);
+                                        mapFiles.push_back(mapFile);
                                         mapIndices.push_back(0);
                                     }
                                 }
@@ -1845,13 +1867,15 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
             for (int32_t i = 0; i < numOverlays; i++) {
                 const ChartTwoOverlay* chartOverlay = overlaySet->getOverlay(i);
                 if (chartOverlay->isEnabled()) {
-                    CaretMappableDataFile* overlayDataFile = NULL;
-                    int32_t mapIndex;
-                    chartOverlay->getSelectionData(overlayDataFile,
-                                              mapIndex);
+                    CaretMappableDataFile* mapFile = NULL;
+                    ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+                    int32_t selectedIndex = -1;
+                    chartOverlay->getSelectionData(mapFile,
+                                                   selectedIndexType,
+                                                   selectedIndex);
                     
-                    if (overlayDataFile != NULL) {
-                        displayedDataFiles.insert(overlayDataFile);
+                    if (mapFile != NULL) {
+                        displayedDataFiles.insert(mapFile);
                     }
                 }
             }

@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "ChartTwoOverlay.h"
 #include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
@@ -100,7 +101,9 @@ namespace caret {
         
         ChartTwoOverlay* m_chartOverlay;
         
-        int32_t m_mapIndex;
+        ChartTwoOverlay::SelectedIndexType m_chartOverlaySelectedIndexType;
+        
+        int32_t m_selectedMapFileIndex;
         
         MapSettingsPaletteColorMappingWidget* m_paletteColorMappingWidget;
         
