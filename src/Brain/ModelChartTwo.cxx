@@ -1015,10 +1015,17 @@ ModelChartTwo::copyTabContent(const int32_t sourceTabIndex,
     
     m_overlaySetArray->copyOverlaySet(sourceTabIndex,
                                       destinationTabIndex);
-    
+    CaretAssertArrayIndex(m_selectedChartTwoDataType, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, sourceTabIndex);
+    CaretAssertArrayIndex(m_selectedChartTwoDataType, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, destinationTabIndex);
     m_selectedChartTwoDataType[destinationTabIndex] = m_selectedChartTwoDataType[sourceTabIndex];
-    //m_chartableMatrixFileSelectionModel[destinationTabIndex]->setSelectedFile(m_chartableMatrixFileSelectionModel[sourceTabIndex]->getSelectedFile());
-    //m_chartableMatrixSeriesFileSelectionModel[destinationTabIndex]->setSelectedFile(m_chartableMatrixSeriesFileSelectionModel[sourceTabIndex]->getSelectedFile());
+    
+    m_histogramChartOverlaySetArray->copyChartOverlaySet(sourceTabIndex,
+                                                         destinationTabIndex);
+    m_lineSeriesChartOverlaySetArray->copyChartOverlaySet(sourceTabIndex,
+                                                         destinationTabIndex);
+    m_matrixChartOverlaySetArray->copyChartOverlaySet(sourceTabIndex,
+                                                         destinationTabIndex);
+    *m_chartTwoMatrixDisplayProperties[destinationTabIndex] = *m_chartTwoMatrixDisplayProperties[sourceTabIndex];
 }
 
 

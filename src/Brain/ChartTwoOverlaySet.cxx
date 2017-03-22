@@ -139,6 +139,10 @@ ChartTwoOverlaySet::copyOverlaySet(const ChartTwoOverlaySet* overlaySet)
         CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
         m_overlays[i]->copyData(overlaySet->getOverlay(i));
     }
+    *m_chartAxisLeft   = *overlaySet->m_chartAxisLeft;
+    *m_chartAxisRight  = *overlaySet->m_chartAxisRight;
+    *m_chartAxisBottom = *overlaySet->m_chartAxisBottom;
+    
     m_numberOfDisplayedOverlays = overlaySet->m_numberOfDisplayedOverlays;
 }
 

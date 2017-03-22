@@ -148,6 +148,8 @@ namespace caret {
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;
         
+        mutable ChartTwoDataTypeEnum::Enum m_selectedChartTwoDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         /** Chart Overlay sets for XX data type */
         std::unique_ptr<ChartTwoOverlaySetArray> m_histogramChartOverlaySetArray;
         
@@ -159,8 +161,6 @@ namespace caret {
         
         ChartTwoMatrixDisplayProperties* m_chartTwoMatrixDisplayProperties[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
-        mutable ChartTwoDataTypeEnum::Enum m_selectedChartTwoDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
         //CaretDataFileSelectionModel* m_chartableMatrixFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         //CaretDataFileSelectionModel* m_chartableMatrixSeriesFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
