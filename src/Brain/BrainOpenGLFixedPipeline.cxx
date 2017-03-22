@@ -5382,23 +5382,13 @@ BrainOpenGLFixedPipeline::drawChartTwoData(BrowserTabContent* browserTabContent,
     CaretAssert(browserTabContent);
     CaretAssert(chartModel);
     
-    const int32_t tabIndex = browserTabContent->getTabNumber();
-    
-    float translation[3];
-    browserTabContent->getTranslation(translation);
     BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
-    const float zooming = browserTabContent->getScaling();
-    
     chartDrawing.drawChartOverlaySet(m_brain,
+                                     browserTabContent,
                                      chartModel,
                                      this,
-                                     getTextRenderer(),
-                                     translation,
-                                     zooming,
-                                     chartModel->getChartTwoOverlaySet(tabIndex),
                                      SelectionItemDataTypeEnum::CHART_DATA_SERIES,
-                                     viewport,
-                                     tabIndex);
+                                     viewport);
 }
 
 /**

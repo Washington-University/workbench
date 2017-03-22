@@ -29,6 +29,7 @@ namespace caret {
 
     class CaretPreferences;
     class ChartTwoCartesianAxis;
+    class ChartTwoOverlaySet;
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
@@ -45,15 +46,11 @@ namespace caret {
         virtual ~BrainOpenGLChartTwoDrawingFixedPipeline();
         
         virtual void drawChartOverlaySet(Brain* brain,
+                                         BrowserTabContent* browserTabContent,
                                          ModelChartTwo* chartTwoModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                         BrainOpenGLTextRenderInterface* textRenderer,
-                                         const float translation[3],
-                                         const float zooming,
-                                         ChartTwoOverlaySet* chartOverlaySet,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
-                                         const int32_t viewport[4],
-                                         const int32_t tabIndex) override;
+                                         const int32_t viewport[4]) override;
 
         // ADD_NEW_METHODS_HERE
 

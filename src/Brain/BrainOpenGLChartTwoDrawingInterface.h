@@ -31,7 +31,7 @@ namespace caret {
     class Brain;
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLTextRenderInterface;
-    class ChartTwoOverlaySet;
+    class BrowserTabContent;
     class ModelChartTwo;
     
     class BrainOpenGLChartTwoDrawingInterface {
@@ -46,35 +46,23 @@ namespace caret {
          *
          * @param brain
          *     Brain.
+         * @param browserTabContent
+         *     Content of the browser tab.
          * @param chartTwoModel
          *     The chart two model.
          * @param fixedPipelineDrawing
          *     The fixed pipeline OpenGL drawing.
-         * @param textRenderer
-         *     Text rendering.
-         * @param translation
-         *     The chart's translation.
-         * @param zooming
-         *     The chart's zooming.
-         * @param chartOverlaySet
-         *     Chart overlay set that is drawn.
          * @param selectionItemDataType
          *     Selected data type.
          * @param viewport
          *     Viewport for the chart.
-         * @param tabIndex
-         *     Index of the tab.
          */
         virtual void drawChartOverlaySet(Brain* brain,
+                                         BrowserTabContent* browserTabContent,
                                          ModelChartTwo* chartTwoModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                         BrainOpenGLTextRenderInterface* textRenderer,
-                                         const float translation[3],
-                                         const float zooming,
-                                         ChartTwoOverlaySet* chartOverlaySet,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
-                                         const int32_t viewport[4],
-                                         const int32_t tabIndex) = 0;
+                                         const int32_t viewport[4]) = 0;
 
 
         // ADD_NEW_METHODS_HERE

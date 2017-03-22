@@ -1459,6 +1459,24 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
                     if (chartOverlay->isEnabled()) {
                         switch (chartOverlay->getChartTwoDataType()) {
                             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                            {
+                                CaretMappableDataFile* mapFile = NULL;
+                                ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+                                int32_t selectedIndex = -1;
+                                chartOverlay->getSelectionData(mapFile,
+                                                               selectedIndexType,
+                                                               selectedIndex);
+                                
+                                
+                                if (mapFile != NULL) {
+                                    if (mapFile->isMappedWithPalette()) {
+                                        AnnotationColorBar* colorBar = chartOverlay->getColorBar();
+                                        colorBarMapFileInfo.push_back(ColorBarFileMap(colorBar,
+                                                                                      mapFile,
+                                                                                      selectedIndex));
+                                    }
+                                }
+                            }
                                 break;
                             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                                 break;
@@ -1473,10 +1491,15 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
                                                                selectedIndexType,
                                                                selectedIndex);
                                 
+                                
                                 if (mapFile != NULL) {
                                     if (mapFile->isMappedWithPalette()) {
                                         AnnotationColorBar* colorBar = chartOverlay->getColorBar();
-                                        const int32_t mapIndex = 0;
+                                        /*
+                                         * Matrix is all maps and uses map index 0
+                                         */
+                                        selectedIndex = 0;
+
                                         colorBarMapFileInfo.push_back(ColorBarFileMap(colorBar,
                                                                                       mapFile,
                                                                                       selectedIndex));

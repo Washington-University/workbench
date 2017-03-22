@@ -25,11 +25,13 @@
 
 #include <algorithm>
 
+#include "AnnotationColorBar.h"
 #include "AnnotationPointSizeText.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLTextRenderInterface.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
@@ -85,57 +87,97 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  *
  * @param brain
  *     Brain.
- * @parm chartTwoModel
- *     The chart two model in the window.
+ * @param browserTabContent
+ *     Content of the browser tab.
+ * @param chartTwoModel
+ *     The chart two model.
  * @param fixedPipelineDrawing
  *     The fixed pipeline OpenGL drawing.
- * @param textRenderer
- *     Text rendering.
- * @param translation
- *     The chart's translation.
- * @param zooming
- *     The chart's zooming.
- * @param chartOverlaySet
- *     Chart overlay set that is drawn.
  * @param selectionItemDataType
  *     Selected data type.
  * @param viewport
  *     Viewport for the chart.
- * @param tabIndex
- *     Index of the tab.
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
+                                                             BrowserTabContent* browserTabContent,
                                                              ModelChartTwo* chartTwoModel,
                                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                                             BrainOpenGLTextRenderInterface* textRenderer,
-                                                             const float translation[3],
-                                                             const float zooming,
-                                                             ChartTwoOverlaySet* chartOverlaySet,
                                                              const SelectionItemDataTypeEnum::Enum selectionItemDataType,
-                                                             const int32_t viewport[4],
-                                                             const int32_t tabIndex)
+                                                             const int32_t viewport[4])
 {
+    CaretAssert(brain);
+    CaretAssert(browserTabContent);
+    CaretAssert(chartTwoModel);
+    CaretAssert(fixedPipelineDrawing);
     m_brain = brain;
     m_chartTwoModel = chartTwoModel;
     m_fixedPipelineDrawing = fixedPipelineDrawing;
-    m_textRenderer = textRenderer;
-    m_translation[0] = translation[0];
-    m_translation[1] = translation[1];
-    m_translation[2] = translation[2];
-    m_zooming        = zooming;
-    m_chartOverlaySet = chartOverlaySet;
+    m_textRenderer = fixedPipelineDrawing->getTextRenderer();
+    m_translation[0] = 0.0;
+    m_translation[1] = 0.0;
+    m_translation[2] = 0.0;
+    browserTabContent->getTranslation(m_translation);
+    m_tabIndex = browserTabContent->getTabNumber();
+    m_zooming        = browserTabContent->getScaling();
+    m_chartOverlaySet = m_chartTwoModel->getChartTwoOverlaySet(m_tabIndex);
     m_selectionItemDataType = selectionItemDataType;
     m_viewport[0] = viewport[0];
     m_viewport[1] = viewport[1];
     m_viewport[2] = viewport[2];
     m_viewport[3] = viewport[3];
-    m_tabIndex = tabIndex;
 
     m_selectionItemHistogram  = m_brain->getSelectionManager()->getChartTwoHistogramIdentification();
     m_selectionItemLineSeries = m_brain->getSelectionManager()->getChartTwoLineSeriesIdentification();
     m_selectionItemMatrix     = m_brain->getSelectionManager()->getChartTwoMatrixIdentification();
 
+    /*
+     * Find color bars for this tab and decrease height of 
+     * viewport so chart is above color bars.
+     */
+    std::vector<AnnotationColorBar*> colorBars;
+    browserTabContent->getAnnotationColorBars(colorBars);
+    if ( ! colorBars.empty()) {
+        int heightOfAllColorBars = 0;
+        
+        for (auto cb : colorBars) {
+            bool useItFlag = false;
+            switch (cb->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    useItFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    break;
+            }
+            
+            if (useItFlag) {
+                float bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
+                float viewportXYZ[3] = { 5.0, 5.0, 0.0 };
+                const bool boundsValid = cb->getShapeBounds(m_viewport[2], m_viewport[3],
+                                                            viewportXYZ,
+                                                            bottomLeft, bottomRight, topRight, topLeft);
+                if (boundsValid) {
+                    heightOfAllColorBars += (topRight[1] - bottomRight[1]);
+                }
+            }
+        }
+        
+        if (heightOfAllColorBars > 0) {
+            const int32_t extraSpace = 5;
+            heightOfAllColorBars += extraSpace;
+            if (heightOfAllColorBars < viewport[3]) {
+                m_viewport[1] += heightOfAllColorBars;
+                m_viewport[3] -= heightOfAllColorBars;
+            }
+        }
+    }
+    
     bool drawHistogramFlag  = true;
     bool drawLineSeriesFlag = true;
     bool drawMatrixFlag     = true;
