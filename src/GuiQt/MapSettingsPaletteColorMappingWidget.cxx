@@ -1827,7 +1827,8 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
         //const int64_t* histogram = const_cast<int64_t*>(statistics->getHistogram());
         float minValue, maxValue;
         myHist->getRange(minValue, maxValue);
-        const std::vector<float>& displayData = myHist->getHistogramDisplay();
+        const std::vector<float>& displayDataReference = myHist->getHistogramDisplay();
+        std::vector<float> displayData = displayDataReference; // may modify it
         const int64_t numHistogramValues = (int64_t)(displayData.size());
         
         /*
@@ -1863,29 +1864,46 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             dataValues[numDataValues - 1] = maxValue;
             
             const Palette* palette = paletteFile->getPaletteByName(this->paletteColorMapping->getSelectedPaletteName());
-            const CaretColorEnum::Enum histogramColor = paletteColorMapping->getHistogramColor();
-            if ((histogramColor == CaretColorEnum::CUSTOM)
-                && (palette != NULL)) {
+            
+            /*
+             * Color with palette so that alpha values are zero for regions not displayed
+             */
+            if (palette != NULL) {
                 NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
-                                                              paletteColorMapping, 
-                                                              palette, 
-                                                              dataValues, 
-                                                              dataValues, 
-                                                              numDataValues, 
+                                                              paletteColorMapping,
+                                                              palette,
+                                                              dataValues,
+                                                              dataValues,
+                                                              numDataValues,
                                                               dataRGBA,
                                                               true); // ignore thresholding
+                
+                /*
+                 * If bucket is not colored (zero alpha) set bucket height to zero
+                 */
+                for (int32_t i = 0; i < numHistogramValues; i++) {
+                    const int32_t alphaIndex = i * 4 + 3;
+                    CaretAssertArrayIndex(dataRGBA, (numDataValues * 4), alphaIndex);
+                    if (dataRGBA[alphaIndex] <= 0.0) {
+                        CaretAssertVectorIndex(displayData, i);
+                        displayData[i] = 0.0;
+                    }
+                }
             }
-            else {
+            
+            const CaretColorEnum::Enum histogramColor = paletteColorMapping->getHistogramColor();
+            if (histogramColor != CaretColorEnum::CUSTOM) {
+                /*
+                 * DO NOT override RGBA
+                 */
                 float colorRGBA[4];
                 CaretColorEnum::toRGBAFloat(histogramColor,
                                            colorRGBA);
-                colorRGBA[3] = 1.0;
                 for (int64_t i = 0; i < numDataValues; i++) {
                     const int64_t i4 = i * 4;
                     dataRGBA[i4]   = colorRGBA[0];
                     dataRGBA[i4+1] = colorRGBA[1];
                     dataRGBA[i4+2] = colorRGBA[2];
-                    dataRGBA[i4+3] = colorRGBA[3];
                 }
             }
         }
@@ -1915,12 +1933,12 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             
             bool displayIt = true;
             
-            if (displayZeros == false) {
-                if ((startValue <= 0.0) && (stopValue >= 0.0)) {
-                    dataFrequency = 0.0;
-                    displayIt = false;
-                }
-            }
+//            if (displayZeros == false) {
+//                if ((startValue <= 0.0) && (stopValue >= 0.0)) {
+//                    dataFrequency = 0.0;
+//                    displayIt = false;
+//                }
+//            }
             
             if (dataFrequency > maxDataFrequency) {
                 maxDataFrequency = dataFrequency;

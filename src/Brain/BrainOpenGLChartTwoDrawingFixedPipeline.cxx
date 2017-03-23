@@ -723,6 +723,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
                     CaretAssertVectorIndex(xValues, i + 1);
                     float left   = xValues[i];
                     float right  = xValues[i + 1];
+                    CaretAssert(right >= left);
                     float bottom = 0;
                     CaretAssertVectorIndex(yValues, i);
                     float top = yValues[i];
