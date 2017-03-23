@@ -61,17 +61,17 @@ OperationParameters* AlgorithmSurfaceDistortion::getParameters()
     
     ret->createOptionalParameter(6, "-edge-method", "calculate distortion of edge lengths rather than areas");
     
-    ret->createOptionalParameter(7, "-strain-method", "calculate distortion by the local affines between triangles");
+    ret->createOptionalParameter(7, "-local-affine-method", "calculate distortion by the local affines between triangles");
     
     ret->setHelpText(
-        AString("This command, when not using -caret5-method, -edge-method, or -strain-method, is equivalent to using -surface-vertex-areas on each surface, ") +
+        AString("This command, when not using -caret5-method, -edge-method, or -local-affine-method, is equivalent to using -surface-vertex-areas on each surface, ") +
         "smoothing both output metrics with the GEO_GAUSS_EQUAL method on the surface they came from if -smooth is specified, and then using the formula " +
         "'ln(distorted/reference)/ln(2)' on the smoothed results.\n\n" +
         "When using -caret5-method, it uses the surface distortion method from caret5, which takes the base 2 log of the ratio of tile areas, " +
         "then averages those results at each vertex, and then smooths the result on the reference surface.\n\n" +
         "When using -edge-method, the -smooth option is ignored, and the output at each vertex is the average of 'abs(ln(refEdge/distortEdge)/ln(2))' over all edges " +
         "connected to the vertex.\n\n" +
-        "When using -strain-method, the -smooth option is ignored.  The output is two columns, the first is the area distortion ratio, and the second is anisotropic strain.  " +
+        "When using -local-affine-method, the -smooth option is ignored.  The output is two columns, the first is the area distortion ratio, and the second is anisotropic strain.  " +
         "These are calculated by an affine transform between matching triangles, and then averaged across the triangles of a vertex."
     );
     return ret;
@@ -96,7 +96,7 @@ void AlgorithmSurfaceDistortion::useParameters(OperationParameters* myParams, Pr
     if (edgeMethod) ++methodCount;
     bool strainMethod = myParams->getOptionalParameter(7)->m_present;
     if (strainMethod) ++methodCount;
-    if (methodCount > 1) throw AlgorithmException("you may not specify more than one of -caret5-method, -edge-method, or -strain-method");
+    if (methodCount > 1) throw AlgorithmException("you may not specify more than one of -caret5-method, -edge-method, or -local-affine-method");
     AlgorithmSurfaceDistortion(myProgObj, referenceSurf, distortedSurf, myMetricOut, smooth, caret5method, edgeMethod, strainMethod);
 }
 
