@@ -127,6 +127,8 @@ namespace caret {
         
         void updateThresholdControlsMinimumMaximumRangeValues();
         
+        void updatePaletteMappedToDataValueLabels();
+        
         void setLayoutSpacingAndMargins(QLayout* layout);
         
         const Histogram* getHistogram(const FastStatistics* statisticsForAll) const;
@@ -155,6 +157,11 @@ namespace caret {
         QDoubleSpinBox* scaleFixedNegativeMinimumSpinBox;
         QDoubleSpinBox* scaleFixedPositiveMinimumSpinBox;
         QDoubleSpinBox* scaleFixedPositiveMaximumSpinBox;
+        
+        QLabel* scaleNegativeMaximumValueLabel;
+        QLabel* scaleNegativeMinimumValueLabel;
+        QLabel* scalePositiveMinimumValueLabel;
+        QLabel* scalePositiveMaximumValueLabel;
         
         QCheckBox* displayModePositiveCheckBox;
         QCheckBox* displayModeZeroCheckBox;

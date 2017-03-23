@@ -965,6 +965,7 @@ MapSettingsPaletteColorMappingWidget::scaleAutoPercentageNegativeMaximumValueCha
         this->scaleAutoPercentageNegativeMinimumSpinBox->blockSignals(false);
     }
     applySelections();
+    updatePaletteMappedToDataValueLabels();
 }
 
 /**
@@ -985,6 +986,7 @@ MapSettingsPaletteColorMappingWidget::scaleAutoPercentageNegativeMinimumValueCha
         this->scaleAutoPercentageNegativeMaximumSpinBox->blockSignals(false);
     }
     applySelections();
+    updatePaletteMappedToDataValueLabels();
 }
 
 
@@ -1006,6 +1008,7 @@ MapSettingsPaletteColorMappingWidget::scaleAutoPercentagePositiveMinimumValueCha
         this->scaleAutoPercentagePositiveMaximumSpinBox->blockSignals(false);
     }
     applySelections();
+    updatePaletteMappedToDataValueLabels();
 }
 
 
@@ -1027,6 +1030,7 @@ MapSettingsPaletteColorMappingWidget::scaleAutoPercentagePositiveMaximumValueCha
         this->scaleAutoPercentagePositiveMinimumSpinBox->blockSignals(false);
     }
     applySelections();
+    updatePaletteMappedToDataValueLabels();
 }
 
 /**
@@ -1047,6 +1051,7 @@ MapSettingsPaletteColorMappingWidget::scaleAutoAbsolutePercentageMinimumValueCha
         this->scaleAutoAbsolutePercentageMaximumSpinBox->blockSignals(false);
     }
     applySelections();
+    updatePaletteMappedToDataValueLabels();
 }
 
 /**
@@ -1067,6 +1072,7 @@ MapSettingsPaletteColorMappingWidget::scaleAutoAbsolutePercentageMaximumValueCha
         this->scaleAutoAbsolutePercentageMinimumSpinBox->blockSignals(false);
     }
     applySelections();
+    updatePaletteMappedToDataValueLabels();
 }
 
 /**
@@ -1087,6 +1093,7 @@ MapSettingsPaletteColorMappingWidget::scaleFixedNegativeMaximumValueChanged(doub
         this->scaleFixedNegativeMinimumSpinBox->blockSignals(false);
     }
     applySelections();
+    updatePaletteMappedToDataValueLabels();
 }
 
 /**
@@ -1107,6 +1114,7 @@ MapSettingsPaletteColorMappingWidget::scaleFixedNegativeMinimumValueChanged(doub
         this->scaleFixedNegativeMaximumSpinBox->blockSignals(false);
     }
     applySelections();
+    updatePaletteMappedToDataValueLabels();
 }
 
 /**
@@ -1127,6 +1135,7 @@ MapSettingsPaletteColorMappingWidget::scaleFixedPositiveMinimumValueChanged(doub
         this->scaleFixedPositiveMaximumSpinBox->blockSignals(false);
     }
     applySelections();
+    updatePaletteMappedToDataValueLabels();
 }
 
 /**
@@ -1147,6 +1156,7 @@ MapSettingsPaletteColorMappingWidget::scaleFixedPositiveMaximumValueChanged(doub
         this->scaleFixedPositiveMinimumSpinBox->blockSignals(false);
     }
     applySelections();
+    updatePaletteMappedToDataValueLabels();
 }
 
 /**
@@ -1353,16 +1363,30 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     this->paletteWidgetGroup->add(this->scaleFixedPositiveMaximumSpinBox);
     this->scaleFixedPositiveMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
 
+    /*
+     * Labels for values at palette percentages
+     */
+    this->scaleNegativeMaximumValueLabel = new QLabel("");
+    this->scaleNegativeMinimumValueLabel = new QLabel("");
+    this->scalePositiveMinimumValueLabel = new QLabel("");
+    this->scalePositiveMaximumValueLabel = new QLabel("");
+    
+    /*
+     * Layout widgets
+     */
     QWidget* colorMappingWidget = new QWidget();
     QGridLayout* colorMappingLayout = new QGridLayout(colorMappingWidget);
     colorMappingLayout->setColumnStretch(0, 0);
     colorMappingLayout->setColumnStretch(1, 100);
     colorMappingLayout->setColumnStretch(2, 100);
+    colorMappingLayout->setColumnStretch(3, 100);
+    colorMappingLayout->setColumnStretch(4, 100);
     this->setLayoutSpacingAndMargins(colorMappingLayout);
     colorMappingLayout->addWidget(this->scaleAutoRadioButton, 0, 0, Qt::AlignHCenter);
     colorMappingLayout->addWidget(this->scaleAutoAbsolutePercentageRadioButton, 0, 1, Qt::AlignHCenter);
     colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 2, Qt::AlignHCenter);
     colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 3, Qt::AlignHCenter);
+    colorMappingLayout->addWidget(new QLabel("Data"), 0, 4, Qt::AlignHCenter);
     colorMappingLayout->addWidget(new QLabel("Pos Max"), 1, 0, Qt::AlignRight);
     colorMappingLayout->addWidget(new QLabel("Pos Min"), 2, 0, Qt::AlignRight);
     colorMappingLayout->addWidget(new QLabel("Neg Min"), 3, 0, Qt::AlignRight);
@@ -1377,6 +1401,10 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     colorMappingLayout->addWidget(this->scaleFixedPositiveMinimumSpinBox, 2, 3);
     colorMappingLayout->addWidget(this->scaleFixedNegativeMinimumSpinBox, 3, 3);
     colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 3);
+    colorMappingLayout->addWidget(this->scalePositiveMaximumValueLabel, 1, 4, Qt::AlignRight);
+    colorMappingLayout->addWidget(this->scalePositiveMinimumValueLabel, 2, 4, Qt::AlignRight);
+    colorMappingLayout->addWidget(this->scaleNegativeMinimumValueLabel, 3, 4, Qt::AlignRight);
+    colorMappingLayout->addWidget(this->scaleNegativeMaximumValueLabel, 4, 4, Qt::AlignRight);
 
     /*
      * Display Mode
@@ -1514,6 +1542,70 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
 }
 
 /**
+ * Update the labels that list values that correspond to the palette
+ * mapping values (percent neg/pos min/max, full, etc).
+ */
+void
+MapSettingsPaletteColorMappingWidget::updatePaletteMappedToDataValueLabels()
+{
+    if (this->caretMappableDataFile == NULL) {
+        return;
+    }
+    else if (this->mapFileIndex < 0) {
+        return;
+    }
+    
+    FastStatistics* statistics = NULL;
+    switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
+        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+            statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getFileFastStatistics());
+            break;
+        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+            statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
+            break;
+    }
+    
+    double posMaxLabelValue = 0.0;
+    double posMinLabelValue = 0.0;
+    double negMinLabelValue = 0.0;
+    double negMaxLabelValue = 0.0;
+    
+    if (statistics != NULL) {
+        switch (this->paletteColorMapping->getScaleMode()) {
+            case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+                posMaxLabelValue = statistics->getMostPositiveValue();
+                posMinLabelValue = 0.0;
+                negMinLabelValue = 0.0;
+                negMaxLabelValue = statistics->getMostNegativeValue();
+                break;
+            case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
+                posMaxLabelValue = statistics->getApproxPositivePercentile(this->paletteColorMapping->getAutoScaleAbsolutePercentageMaximum());
+                posMinLabelValue = statistics->getApproxPositivePercentile(this->paletteColorMapping->getAutoScaleAbsolutePercentageMinimum());
+                negMinLabelValue = -posMinLabelValue;
+                negMaxLabelValue = -posMaxLabelValue;
+                break;
+            case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+                posMaxLabelValue = statistics->getApproxPositivePercentile(this->paletteColorMapping->getAutoScalePercentagePositiveMaximum());
+                posMinLabelValue = statistics->getApproxPositivePercentile(this->paletteColorMapping->getAutoScalePercentagePositiveMinimum());
+                negMinLabelValue = statistics->getApproxNegativePercentile(this->paletteColorMapping->getAutoScalePercentageNegativeMinimum());
+                negMaxLabelValue = statistics->getApproxNegativePercentile(this->paletteColorMapping->getAutoScalePercentageNegativeMaximum());
+                break;
+            case PaletteScaleModeEnum::MODE_USER_SCALE:
+                posMaxLabelValue = this->paletteColorMapping->getUserScalePositiveMaximum();
+                posMinLabelValue = this->paletteColorMapping->getUserScalePositiveMinimum();
+                negMinLabelValue = this->paletteColorMapping->getUserScaleNegativeMinimum();
+                negMaxLabelValue = this->paletteColorMapping->getUserScaleNegativeMaximum();
+                break;
+        }
+    }
+    
+    this->scalePositiveMaximumValueLabel->setText(QString::number(posMaxLabelValue, 'f', 2));
+    this->scalePositiveMinimumValueLabel->setText(QString::number(posMinLabelValue, 'f', 2));
+    this->scaleNegativeMinimumValueLabel->setText(QString::number(negMinLabelValue, 'f', 2));
+    this->scaleNegativeMaximumValueLabel->setText(QString::number(negMaxLabelValue, 'f', 2));
+}
+
+/**
  * This PRIVATE method updates the editor content and MUST always be used
  * when something within this class requires updating the displayed data.
  *
@@ -1627,25 +1719,32 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
 
         m_histogramHorizontalRangeComboBox->setSelectedItem<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>(this->paletteColorMapping->getHistogramRangeMode());
 
-        
+        updatePaletteMappedToDataValueLabels();
         updateThresholdSection();
         
         float minValue  = 0.0;
         float maxValue  = 0.0;
         
         m_histogramBucketsSpinBox->blockSignals(true);
-        FastStatistics* statistics = NULL;
         switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
             case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getFileFastStatistics());
                 m_histogramBucketsSpinBox->setValue(this->caretMappableDataFile->getFileHistogramNumberOfBuckets());
                 break;
             case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
                 m_histogramBucketsSpinBox->setValue(this->paletteColorMapping->getHistogramNumberOfBuckets());
                 break;
         }
         m_histogramBucketsSpinBox->blockSignals(false);
+        
+        FastStatistics* statistics = NULL;
+        switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getFileFastStatistics());
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
+                break;
+        }
         
         if (statistics != NULL) {
             minValue  = statistics->getMin();
