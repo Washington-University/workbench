@@ -246,11 +246,12 @@ m_chartOverlay(NULL)
     QObject::connect(m_mapRowOrColumnIndexSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(mapRowOrColumnIndexSpinBoxValueChanged(int)));
     m_mapRowOrColumnIndexSpinBox->setToolTip("Select map/row/column by its index");
-    m_mapRowOrColumnIndexSpinBox->setRange(0, 9999); // fix size for 4 digits
+    m_mapRowOrColumnIndexSpinBox->setRange(1, 9999); // fix size for 4 digits
     m_mapRowOrColumnIndexSpinBox->setFixedSize(m_mapRowOrColumnIndexSpinBox->sizeHint());
 //    m_mapRowOrColumnIndexSpinBox->setSizePolicy(QSizePolicy::Fixed,
 //                                                QSizePolicy::Fixed);
-    m_mapRowOrColumnIndexSpinBox->setRange(0, 0);
+    m_mapRowOrColumnIndexSpinBox->setRange(1, 1);
+    m_mapRowOrColumnIndexSpinBox->setValue(1);
     
     /*
      * Map/Row/Column Name Combo Box
@@ -676,8 +677,8 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_mapRowOrColumnNameComboBox->clear();
     m_mapRowOrColumnIndexSpinBox->setEnabled(false);
     m_mapRowOrColumnIndexSpinBox->blockSignals(true);
-    m_mapRowOrColumnIndexSpinBox->setRange(0, 0);
-    m_mapRowOrColumnIndexSpinBox->setValue(0);
+    m_mapRowOrColumnIndexSpinBox->setRange(1, 1);
+    m_mapRowOrColumnIndexSpinBox->setValue(1);
     const int32_t numberOfMaps = static_cast<int32_t>(selectedFileMapNames.size());
     if (numberOfMaps > 0) {
         m_mapRowOrColumnNameComboBox->setEnabled(true);
@@ -702,8 +703,6 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                mapIndexMinimumValue = 0;
-                mapIndexMaximumValue = numberOfMaps - 1;
                 break;
         }
         

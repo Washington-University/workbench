@@ -28,6 +28,7 @@
 #include "CiftiParcelLabelFile.h"
 #include "CiftiParcelReordering.h"
 #include "CiftiParcelScalarFile.h"
+#include "CiftiXML.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "ConnectivityDataLoaded.h"
 #include "EventCaretMappableDataFileMapsViewedInOverlays.h"
@@ -37,10 +38,8 @@
 
 using namespace caret;
 
-
-    
 /**
- * \class caret::ChartableTwoFileMatrixChart 
+ * \class caret::ChartableTwoFileMatrixChart
  * \brief Implementation of base chart delegate for matrix charts.
  * \ingroup Files
  */
@@ -65,19 +64,143 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
 {
     m_sceneAssistant = new SceneClassAssistant();
     
-    int32_t numRows = 0;
-    int32_t numCols = 0;
+    m_numberOfRows = 0;
+    m_numberOfColumns = 0;
+    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_parcelScalarFileSelectedColumn[i] = 0;
+    }
+    m_sceneAssistant->addTabIndexedIntegerArray("m_parcelScalarFileSelectedColumn",
+                                                m_parcelScalarFileSelectedColumn);
     
     if (m_matrixContentType != ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED) {
         CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
         CaretAssert(ciftiMapFile);
-        ciftiMapFile->helpMapFileGetMatrixDimensions(numRows,
-                                                     numCols);
+        ciftiMapFile->helpMapFileGetMatrixDimensions(m_numberOfRows,
+                                                     m_numberOfColumns);
+        
+        switch (ciftiMapFile->getDataFileType()) {
+            case DataFileTypeEnum::ANNOTATION:
+                break;
+            case DataFileTypeEnum::BORDER:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                m_matrixDataFileType = MatrixDataFileType::PARCEL;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                m_matrixDataFileType = MatrixDataFileType::PARCEL_LABEL;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                m_matrixDataFileType = MatrixDataFileType::PARCEL_SCALAR;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                m_matrixDataFileType = MatrixDataFileType::SCALAR_DATA_SERIES;
+                break;
+            case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::IMAGE:
+                break;
+            case DataFileTypeEnum::LABEL:
+                break;
+            case DataFileTypeEnum::METRIC:
+                break;
+            case DataFileTypeEnum::PALETTE:
+                break;
+            case DataFileTypeEnum::RGBA:
+                break;
+            case DataFileTypeEnum::SCENE:
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                break;
+            case DataFileTypeEnum::SURFACE:
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                break;
+            case DataFileTypeEnum::VOLUME:
+                break;
+        }
+        
+        bool hasColumnMapSelectionFlag = false;
+        switch (m_matrixDataFileType) {
+            case MatrixDataFileType::INVALID:
+                CaretAssert(0);
+                return;
+                break;
+            case MatrixDataFileType::PARCEL:
+                m_parcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(ciftiMapFile);
+                CaretAssert(m_parcelFile);
+                m_hasRowSelectionFlag    = true;
+                m_hasColumnSelectionFlag = true;
+                break;
+            case MatrixDataFileType::PARCEL_LABEL:
+                m_parcelLabelFile = dynamic_cast<CiftiParcelLabelFile*>(ciftiMapFile);
+                CaretAssert(m_parcelLabelFile);
+                break;
+            case MatrixDataFileType::PARCEL_SCALAR:
+                m_parcelScalarFile = dynamic_cast<CiftiParcelScalarFile*>(ciftiMapFile);
+                m_hasColumnSelectionFlag  = true;
+                hasColumnMapSelectionFlag = true;
+                CaretAssert(m_parcelScalarFile);
+                break;
+            case MatrixDataFileType::SCALAR_DATA_SERIES:
+                m_scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(ciftiMapFile);
+                CaretAssert(m_scalarDataSeriesFile);
+                break;
+        }
+        
+        if (m_hasRowSelectionFlag) {
+            const CiftiParcelsMap* rowParcelsMap = ciftiMapFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_COLUMN);
+            if (rowParcelsMap != NULL) {
+                const int32_t numRowParcels = rowParcelsMap->getLength();
+                CaretAssert(numRowParcels == m_numberOfRows);
+                for (int32_t i = 0; i < numRowParcels; i++) {
+                    m_rowNames.push_back("Row " + AString::number(i + 1) + ": " + rowParcelsMap->getIndexName(i));
+                }
+            }
+        }
+        
+        if (m_hasColumnSelectionFlag) {
+            const CiftiParcelsMap* colParcelsMap = ciftiMapFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_ROW);
+            if (colParcelsMap != NULL) {
+                const int32_t numColParcels = colParcelsMap->getLength();
+                CaretAssert(numColParcels == m_numberOfColumns);
+                for (int32_t i = 0; i < numColParcels; i++) {
+                    m_columnNames.push_back("Column " + AString::number(i + 1) + ": " + colParcelsMap->getIndexName(i));
+                }
+            }
+            
+            if (hasColumnMapSelectionFlag) {
+                m_columnNames.clear();
+                for (int32_t i = 0; i < m_numberOfColumns; i++) {
+                    m_columnNames.push_back(m_parcelScalarFile->getMapName(i));
+                }
+            }
+        }
     }
     
     m_matrixTriangularViewingModeSupportedFlag = false;
-    if ((numRows > 0)
-        && (numCols > 0)) {
+    if ((m_numberOfRows > 0)
+        && (m_numberOfColumns > 0)) {
         const CiftiConnectivityMatrixParcelFile* matrixFile = dynamic_cast<const CiftiConnectivityMatrixParcelFile*>(parentCaretMappableDataFile);
         if (matrixFile != NULL) {
             m_matrixTriangularViewingModeSupportedFlag = matrixFile->hasSymetricRowColumnNames();
@@ -88,17 +211,8 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
     }
     
     
-    updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForMatrix(numRows,
-                                                                                               numCols));
-    
-//    m_rowColumnDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
-//    if ( ! m_validRowColumnSelectionDimensions.empty()) {
-//        CaretAssertVectorIndex(m_validRowColumnSelectionDimensions, 0);
-//        m_rowColumnDimension = m_validRowColumnSelectionDimensions[0];
-//    }
-//    
-//    m_sceneAssistant->add<ChartTwoMatrixLoadingDimensionEnum, ChartTwoMatrixLoadingDimensionEnum::Enum>("m_rowColumnDimension",
-//                                                                                                        &m_rowColumnDimension);
+    updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForMatrix(m_numberOfRows,
+                                                                                                  m_numberOfColumns));
 }
 
 /**
@@ -205,174 +319,6 @@ ChartableTwoFileMatrixChart::getMatrixDataRGBA(int32_t& numberOfRowsOut,
     return ciftiMapFile->getMatrixForChartingRGBA(numberOfRowsOut,
                                                   numberOfColumnsOut,
                                                   rgbaOut);
-    
-//    bool useMapFileHelperFlag = false;
-//    bool useMatrixFileHelperFlag = false;
-//    
-//    std::vector<int32_t> parcelReorderedRowIndices;
-//    
-//    switch (ciftiMapFile->getDataFileType()) {
-//        case DataFileTypeEnum::CONNECTIVITY_DENSE:
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-//        {
-//            useMatrixFileHelperFlag    = true;
-//            
-//            const CiftiConnectivityMatrixParcelFile* parcelConnFile = dynamic_cast<const CiftiConnectivityMatrixParcelFile*>(ciftiMapFile);
-//            CaretAssert(parcelConnFile);
-//            if (parcelConnFile != NULL) {
-//                CiftiParcelLabelFile* parcelLabelReorderingFile = NULL;
-//                int32_t parcelLabelFileMapIndex = -1;
-//                bool reorderingEnabledFlag = false;
-//                
-//                std::vector<CiftiParcelLabelFile*> parcelLabelFiles;
-//                parcelConnFile->getSelectedParcelLabelFileAndMapForReordering(parcelLabelFiles,
-//                                                                              parcelLabelReorderingFile,
-//                                                                              parcelLabelFileMapIndex,
-//                                                                              reorderingEnabledFlag);
-//                
-//                if (reorderingEnabledFlag) {
-//                    const CiftiParcelReordering* parcelReordering = parcelConnFile->getParcelReordering(parcelLabelReorderingFile,
-//                                                                                                        parcelLabelFileMapIndex);
-//                    if (parcelReordering != NULL) {
-//                        parcelReorderedRowIndices = parcelReordering->getReorderedParcelIndices();
-//                    }
-//                }
-//            }
-//        }
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
-//        {
-//            useMapFileHelperFlag = true;
-//            
-//            const CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<const CiftiParcelLabelFile*>(ciftiMapFile);
-//            CaretAssert(parcelLabelFile);
-//            if (parcelLabelFile != NULL) {
-//                CiftiParcelLabelFile* parcelLabelReorderingFile = NULL;
-//                int32_t parcelLabelFileMapIndex = -1;
-//                bool reorderingEnabledFlag = false;
-//                
-//                std::vector<CiftiParcelLabelFile*> parcelLabelFiles;
-//                parcelLabelFile->getSelectedParcelLabelFileAndMapForReordering(parcelLabelFiles,
-//                                                                               parcelLabelReorderingFile,
-//                                                                               parcelLabelFileMapIndex,
-//                                                                               reorderingEnabledFlag);
-//                
-//                if (reorderingEnabledFlag) {
-//                    const CiftiParcelReordering* parcelReordering = parcelLabelFile->getParcelReordering(parcelLabelReorderingFile,
-//                                                                                                         parcelLabelFileMapIndex);
-//                    if (parcelReordering != NULL) {
-//                        parcelReorderedRowIndices = parcelReordering->getReorderedParcelIndices();
-//                    }
-//                }
-//            }
-//        }
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
-//        {
-//            useMapFileHelperFlag = true;
-//            
-//            const CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<const CiftiParcelScalarFile*>(ciftiMapFile);
-//            CaretAssert(parcelScalarFile);
-//            if (parcelScalarFile != NULL) {
-//                CiftiParcelLabelFile* parcelLabelReorderingFile = NULL;
-//                int32_t parcelLabelFileMapIndex = -1;
-//                bool reorderingEnabledFlag = false;
-//                
-//                std::vector<CiftiParcelLabelFile*> parcelLabelFiles;
-//                parcelScalarFile->getSelectedParcelLabelFileAndMapForReordering(parcelLabelFiles,
-//                                                                                parcelLabelReorderingFile,
-//                                                                                parcelLabelFileMapIndex,
-//                                                                                reorderingEnabledFlag);
-//                
-//                if (reorderingEnabledFlag) {
-//                    const CiftiParcelReordering* parcelReordering = parcelScalarFile->getParcelReordering(parcelLabelReorderingFile,
-//                                                                                                          parcelLabelFileMapIndex);
-//                    if (parcelReordering != NULL) {
-//                        parcelReorderedRowIndices = parcelReordering->getReorderedParcelIndices();
-//                    }
-//                }
-//            }
-//        }
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
-//            useMatrixFileHelperFlag = true;
-//            break;
-//        case DataFileTypeEnum::ANNOTATION:
-//            break;
-//        case DataFileTypeEnum::BORDER:
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-//            break;
-//        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
-//            break;
-//        case DataFileTypeEnum::FOCI:
-//            break;
-//        case DataFileTypeEnum::IMAGE:
-//            break;
-//        case DataFileTypeEnum::LABEL:
-//            break;
-//        case DataFileTypeEnum::METRIC:
-//            break;
-//        case DataFileTypeEnum::PALETTE:
-//            break;
-//        case DataFileTypeEnum::RGBA:
-//            break;
-//        case DataFileTypeEnum::SCENE:
-//            break;
-//        case DataFileTypeEnum::SPECIFICATION:
-//            break;
-//        case DataFileTypeEnum::SURFACE:
-//            break;
-//        case DataFileTypeEnum::UNKNOWN:
-//            break;
-//        case DataFileTypeEnum::VOLUME:
-//            break;
-//    }
-//    
-//    if (( ! useMapFileHelperFlag)
-//        && ( ! useMatrixFileHelperFlag)) {
-//        CaretAssertMessage(0, "Trying to get matrix from a file that does not support matrix display");
-//        return false;
-//    }
-//    
-//    bool validDataFlag = false;
-//    if (useMapFileHelperFlag) {
-//        validDataFlag = ciftiMapFile->helpMapFileLoadChartDataMatrixRGBA(numberOfRowsOut,
-//                                                                                          numberOfColumnsOut,
-//                                                                                          parcelReorderedRowIndices,
-//                                                                                          rgbaOut);
-//    }
-//    else if (useMatrixFileHelperFlag) {
-//        validDataFlag = ciftiMapFile->helpMatrixFileLoadChartDataMatrixRGBA(numberOfRowsOut,
-//                                                                                             numberOfColumnsOut,
-//                                                                                             parcelReorderedRowIndices,
-//                                                                                             rgbaOut);
-//    }
-//    switch (m_matrixContentType) {
-//        case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED:
-//            break;
-//        case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE:
-//            break;
-//        case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_SERIES:
-//            break;
-//    }
-//    
-//    return validDataFlag;
 }
 
 /**
@@ -383,17 +329,31 @@ ChartableTwoFileMatrixChart::getSelectedRowColumnDimension() const
 {
     ChartTwoMatrixLoadingDimensionEnum::Enum loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
     
-    const CaretMappableDataFile* cmdf = getCaretMappableDataFile();
-    const CiftiConnectivityMatrixParcelFile* matrixFile = dynamic_cast<const CiftiConnectivityMatrixParcelFile*>(cmdf);
-    if (matrixFile != NULL) {
-        switch (matrixFile->getMatrixLoadingDimension()) {
-            case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
-                loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
-                break;
-            case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
-                loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
-                break;
-        }
+    switch (m_matrixDataFileType) {
+        case MatrixDataFileType::INVALID:
+            CaretAssert(0);
+            break;
+        case MatrixDataFileType::PARCEL:
+            CaretAssert(m_parcelFile);
+            switch (m_parcelFile->getMatrixLoadingDimension()) {
+                case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                    loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
+                    break;
+                case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                    loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
+                    break;
+            }
+            break;
+        case MatrixDataFileType::PARCEL_LABEL:
+            CaretAssert(m_parcelLabelFile);
+            break;
+        case MatrixDataFileType::PARCEL_SCALAR:
+            CaretAssert(m_parcelScalarFile);
+            loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
+            break;
+        case MatrixDataFileType::SCALAR_DATA_SERIES:
+            CaretAssert(m_scalarDataSeriesFile);
+            break;
     }
     
     return loadDimension;
@@ -408,24 +368,35 @@ ChartableTwoFileMatrixChart::getSelectedRowColumnDimension() const
 void
 ChartableTwoFileMatrixChart::setSelectedRowColumnDimension(const ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension)
 {
-    CaretMappableDataFile* cmdf = getCaretMappableDataFile();
-    CiftiConnectivityMatrixParcelFile* matrixFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(cmdf);
-    if (matrixFile != NULL) {
-        ChartMatrixLoadingDimensionEnum::Enum oldLoadDim = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
-        switch (rowColumnDimension) {
-            case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
-                oldLoadDim = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
-                break;
-            case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
-                oldLoadDim = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
-                break;
+    switch (m_matrixDataFileType) {
+        case MatrixDataFileType::INVALID:
+            CaretAssert(0);
+            break;
+        case MatrixDataFileType::PARCEL:
+        {
+            CaretAssert(m_parcelFile);
+            ChartMatrixLoadingDimensionEnum::Enum oldLoadDim = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
+            switch (rowColumnDimension) {
+                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                    oldLoadDim = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
+                    break;
+                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                    oldLoadDim = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
+                    break;
+            }
+            m_parcelFile->setMatrixLoadingDimension(oldLoadDim);
         }
-        matrixFile->setMatrixLoadingDimension(oldLoadDim);
+            break;
+        case MatrixDataFileType::PARCEL_LABEL:
+            CaretAssert(m_parcelLabelFile);
+            break;
+        case MatrixDataFileType::PARCEL_SCALAR:
+            CaretAssert(m_parcelScalarFile);
+            break;
+        case MatrixDataFileType::SCALAR_DATA_SERIES:
+            CaretAssert(m_scalarDataSeriesFile);
+            break;
     }
-//    if (m_rowColumnDimension != rowColumnDimension) {
-//        m_rowColumnDimension = rowColumnDimension;
-//        setModified();
-//    }
 }
 
 /**
@@ -443,80 +414,91 @@ ChartableTwoFileMatrixChart::getValidRowColumnSelectionDimensions(std::vector<Ch
 /**
  * @param tabIndex
  *     Index of the tab.
- * @param rowColumnDimensionOut
+ * @param selectedRowIndicesOut
  *     Indices if indices are for rows or columns.
- * @param rowIndicesOut
+ * @param selectedRowIndicesOut
  *     Output with row indices selected.
- * @param columnIndicesOut
+ * @param selectedColumnIndicesOut
  *     Output with column indices selected.
  */
 void
 ChartableTwoFileMatrixChart::getSelectedRowColumnIndices(const int32_t tabIndex,
                                                          ChartTwoMatrixLoadingDimensionEnum::Enum& rowColumnDimensionOut,
-                                                         std::vector<int32_t>& rowIndicesOut,
-                                                         std::vector<int32_t>& columnIndicesOut) const
+                                                         std::vector<int32_t>& selectedRowIndicesOut,
+                                                         std::vector<int32_t>& selectedColumnIndicesOut) const
 {
     rowColumnDimensionOut = getSelectedRowColumnDimension();
-    rowIndicesOut.clear();
-    columnIndicesOut.clear();
+    selectedRowIndicesOut.clear();
+    selectedColumnIndicesOut.clear();
     
     std::set<int32_t> rowIndicesSet;
     std::set<int32_t> columnIndicesSet;
     
-    const CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
-    const CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(ciftiMapFile);
-    if (connMapFile != NULL) {
-        const ConnectivityDataLoaded* connDataLoaded = connMapFile->getConnectivityDataLoaded();
-        if (connDataLoaded != NULL) {
-            int64_t loadedRowIndex = -1;
-            int64_t loadedColumnIndex = -1;
-            connDataLoaded->getRowColumnLoading(loadedRowIndex,
-                                                loadedColumnIndex);
-            switch (rowColumnDimensionOut) {
-                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
-                    if (loadedColumnIndex >= 0) {
-                        columnIndicesSet.insert(loadedColumnIndex);
-                    }
-                    break;
-                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
-                    if (loadedRowIndex >= 0) {
-                        rowIndicesSet.insert(loadedRowIndex);
-                    }
-                    break;
+    switch (m_matrixDataFileType) {
+        case MatrixDataFileType::INVALID:
+            CaretAssert(0);
+            break;
+        case MatrixDataFileType::PARCEL:
+        {
+            CaretAssert(m_parcelFile);
+            const ConnectivityDataLoaded* connDataLoaded = m_parcelFile->getConnectivityDataLoaded();
+            if (connDataLoaded != NULL) {
+                int64_t loadedRowIndex = -1;
+                int64_t loadedColumnIndex = -1;
+                connDataLoaded->getRowColumnLoading(loadedRowIndex,
+                                                    loadedColumnIndex);
+                switch (rowColumnDimensionOut) {
+                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                        if (loadedColumnIndex >= 0) {
+                            columnIndicesSet.insert(loadedColumnIndex);
+                        }
+                        break;
+                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                        if (loadedRowIndex >= 0) {
+                            rowIndicesSet.insert(loadedRowIndex);
+                        }
+                        break;
+                }
             }
         }
-    }
-    
-    const CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<const CiftiParcelScalarFile*>(ciftiMapFile);
-    if (parcelScalarFile != NULL) {
-        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelScalarFile);
-        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
-            columnIndicesSet.insert(indx);
+            break;
+        case MatrixDataFileType::PARCEL_LABEL:
+        {
+            CaretAssert(m_parcelLabelFile);
+            EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(m_parcelLabelFile);
+            EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+            for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
+                columnIndicesSet.insert(indx);
+            }
         }
-    }
-    
-    const CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<const CiftiParcelLabelFile*>(ciftiMapFile);
-    if (parcelLabelFile != NULL) {
-        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelLabelFile);
-        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
-            columnIndicesSet.insert(indx);
+            break;
+        case MatrixDataFileType::PARCEL_SCALAR:
+            CaretAssertArrayIndex(m_parcelScalarFileSelectedColumn, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+            columnIndicesSet.insert(m_parcelScalarFileSelectedColumn[tabIndex]);
+//        {
+//            CaretAssert(m_parcelScalarFile);
+//            EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(m_parcelScalarFile);
+//            EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+//            for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
+//                columnIndicesSet.insert(indx);
+//            }
+//        }
+            break;
+        case MatrixDataFileType::SCALAR_DATA_SERIES:
+        {
+            CaretAssert(m_scalarDataSeriesFile);
+            const int32_t scalarDataSeriesMapIndex = m_scalarDataSeriesFile->getSelectedMapIndex(tabIndex);
+            if (scalarDataSeriesMapIndex >= 0) {
+                rowIndicesSet.insert(scalarDataSeriesMapIndex);
+            }
         }
+            break;
     }
     
-    const CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<const CiftiScalarDataSeriesFile*>(ciftiMapFile);
-    if (scalarDataSeriesFile != NULL) {
-        const int32_t scalarDataSeriesMapIndex = scalarDataSeriesFile->getSelectedMapIndex(tabIndex);
-        if (scalarDataSeriesMapIndex >= 0) {
-            rowIndicesSet.insert(scalarDataSeriesMapIndex);
-        }
-    }
-    
-    rowIndicesOut.insert(rowIndicesOut.end(),
+    selectedRowIndicesOut.insert(selectedRowIndicesOut.end(),
                          rowIndicesSet.begin(),
                          rowIndicesSet.end());
-    columnIndicesOut.insert(columnIndicesOut.end(),
+    selectedColumnIndicesOut.insert(selectedColumnIndicesOut.end(),
                          columnIndicesSet.begin(),
                          columnIndicesSet.end());
 }
@@ -541,59 +523,125 @@ ChartableTwoFileMatrixChart::setSelectedRowColumnIndex(const int32_t tabIndex,
         return;
     }
     
-    CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
-    CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(ciftiMapFile);
-    if (connMapFile != NULL) {
-        /*
-         * Load data for the row/column.
-         * Invalidating coloring results in the necessary update of brainordinate coloring.
-         */
-        int32_t numRows = -1;
-        int32_t numCols = -1;
-        getMatrixDimensions(numRows, numCols);
-        switch (getSelectedRowColumnDimension()) {
-            case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
-                if ((rowColumnIndex >= 0)
-                    && (rowColumnIndex < numCols)) {
-                    connMapFile->loadDataForColumnIndex(rowColumnIndex);
-                    connMapFile->invalidateColoringInAllMaps();
-                }
-                break;
-            case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
-                if ((rowColumnIndex >= 0)
-                    && (rowColumnIndex < numRows)) {
-                    connMapFile->loadDataForRowIndex(rowColumnIndex);
-                    connMapFile->invalidateColoringInAllMaps();
-                }
-                break;
+    switch (m_matrixDataFileType) {
+        case MatrixDataFileType::INVALID:
+            CaretAssert(0);
+            break;
+        case MatrixDataFileType::PARCEL:
+        {
+            CaretAssert(m_parcelFile);
+            int32_t numRows = -1;
+            int32_t numCols = -1;
+            getMatrixDimensions(numRows, numCols);
+            switch (getSelectedRowColumnDimension()) {
+                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                    if ((rowColumnIndex >= 0)
+                        && (rowColumnIndex < numCols)) {
+                        m_parcelFile->loadDataForColumnIndex(rowColumnIndex);
+                        m_parcelFile->invalidateColoringInAllMaps();
+                    }
+                    break;
+                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                    if ((rowColumnIndex >= 0)
+                        && (rowColumnIndex < numRows)) {
+                        m_parcelFile->loadDataForRowIndex(rowColumnIndex);
+                        m_parcelFile->invalidateColoringInAllMaps();
+                    }
+                    break;
+            }
         }
-    }
-    
-    CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<CiftiParcelScalarFile*>(ciftiMapFile);
-    if (parcelScalarFile != NULL) {
-        CaretAssertToDoWarning();
-//        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelScalarFile);
-//        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-//        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
-//            columnIndicesSet.insert(indx);
-//        }
-    }
-    
-    const CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<const CiftiParcelLabelFile*>(ciftiMapFile);
-    if (parcelLabelFile != NULL) {
-//        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelLabelFile);
-//        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-//        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
-//            columnIndicesSet.insert(indx);
-//        }
-    }
-    
-    CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(ciftiMapFile);
-    if (scalarDataSeriesFile != NULL) {
-        scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
-                                                  rowColumnIndex);
+            break;
+        case MatrixDataFileType::PARCEL_LABEL:
+        {
+            CaretAssert(m_parcelLabelFile);
+            CaretAssertToDoWarning();
+            //        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(m_parcelLabelFile);
+            //        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+            //        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
+            //            columnIndicesSet.insert(indx);
+            //        }
+        }
+            break;
+        case MatrixDataFileType::PARCEL_SCALAR:
+        {
+            CaretAssert(m_parcelScalarFile);
+            CaretAssertArrayIndex(m_parcelScalarFileSelectedColumn, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+            m_parcelScalarFileSelectedColumn[tabIndex] = rowColumnIndex;
+            //        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(m_parcelScalarFile);
+            //        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+            //        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
+            //            columnIndicesSet.insert(indx);
+            //        }
+        }
+            break;
+        case MatrixDataFileType::SCALAR_DATA_SERIES:
+            CaretAssert(m_scalarDataSeriesFile);
+            m_scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
+                                                      rowColumnIndex);
+            break;
     }
 }
+
+/**
+ * @return True if the file supports row selection.
+ */
+bool
+ChartableTwoFileMatrixChart::hasRowSelection() const
+{
+    return m_hasRowSelectionFlag;
+}
+
+/**
+ * @return True if the file supports column selection.
+ */
+bool
+ChartableTwoFileMatrixChart::hasColumnSelection() const
+{
+    return m_hasColumnSelectionFlag;
+}
+
+/**
+ * @return Name of row at the given index.
+ *
+ * @param rowIndex
+ *     Index of the row.
+ */
+AString
+ChartableTwoFileMatrixChart::getRowName(const int32_t rowIndex) const
+{
+    if ((rowIndex >= 0)
+        && (rowIndex < m_numberOfRows)) {
+        if (rowIndex < static_cast<int32_t>(m_rowNames.size())) {
+            CaretAssertVectorIndex(m_rowNames, rowIndex);
+            return m_rowNames[rowIndex];
+        }
+        return ("Row: " + AString::number(rowIndex));
+    }
+    
+    return "";
+}
+
+/**
+ * @return Name of column at the given index.
+ *
+ * @param columnIndex
+ *     Index of the row.
+ */
+AString
+ChartableTwoFileMatrixChart::getColumnName(const int32_t columnIndex) const
+{
+    if ((columnIndex >= 0)
+        && (columnIndex < m_numberOfColumns)) {
+        if (columnIndex < static_cast<int32_t>(m_columnNames.size())) {
+            CaretAssertVectorIndex(m_columnNames, columnIndex);
+            return m_columnNames[columnIndex];
+        }
+        return ("Column: " + AString::number(columnIndex));
+    }
+    
+    return "";
+}
+
 
 /**
  * Save subclass data to the scene.

@@ -21,12 +21,18 @@
  */
 /*LICENSE_END*/
 
+#include "BrainConstants.h"
 #include "ChartTwoMatrixContentTypeEnum.h"
 #include "ChartTwoMatrixLoadingDimensionEnum.h"
 #include "ChartableTwoFileBaseChart.h"
 
 namespace caret {
 
+    class CiftiConnectivityMatrixParcelFile;
+    class CiftiParcelLabelFile;
+    class CiftiParcelScalarFile;
+    class CiftiScalarDataSeriesFile;
+    
     class ChartableTwoFileMatrixChart : public ChartableTwoFileBaseChart {
         
     public:
@@ -61,13 +67,29 @@ namespace caret {
 
         void getSelectedRowColumnIndices(const int32_t tabIndex,
                                          ChartTwoMatrixLoadingDimensionEnum::Enum& rowColumnDimensionOut,
-                                         std::vector<int32_t>& rowIndicesOut,
-                                         std::vector<int32_t>& columnIndicesOut) const;
+                                         std::vector<int32_t>& selectedRowIndicesOut,
+                                         std::vector<int32_t>& selectedColumnIndicesOut) const;
         
         void setSelectedRowColumnIndex(const int32_t tabIndex,
                                        const int32_t rowColumnIndex);
         
+        bool hasRowSelection() const;
+        
+        bool hasColumnSelection() const;
+        
+        AString getRowName(const int32_t rowIndex) const;
+        
+        AString getColumnName(const int32_t columnIndex) const;
+        
     protected:
+        enum class MatrixDataFileType {
+            INVALID,
+            PARCEL,
+            PARCEL_LABEL,
+            PARCEL_SCALAR,
+            SCALAR_DATA_SERIES
+        };
+        
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass) override;
 
@@ -87,8 +109,27 @@ namespace caret {
         
         bool m_matrixTriangularViewingModeSupportedFlag = false;
         
-        //ChartTwoMatrixLoadingDimensionEnum::Enum m_rowColumnDimension;
+        int32_t m_numberOfRows = 0;
+        
+        int32_t m_numberOfColumns = 0;
+        
+        std::vector<AString> m_rowNames;
+        
+        std::vector<AString> m_columnNames;
+        
+        bool m_hasRowSelectionFlag = false;
+        
+        bool m_hasColumnSelectionFlag = false;
+        
+        MatrixDataFileType m_matrixDataFileType = MatrixDataFileType::INVALID;
+        
+        CiftiConnectivityMatrixParcelFile *m_parcelFile = NULL;
+        CiftiParcelLabelFile* m_parcelLabelFile = NULL;
+        CiftiParcelScalarFile* m_parcelScalarFile = NULL;
+        CiftiScalarDataSeriesFile* m_scalarDataSeriesFile = NULL;
 
+        int32_t m_parcelScalarFileSelectedColumn[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

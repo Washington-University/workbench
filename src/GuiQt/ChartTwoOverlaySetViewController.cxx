@@ -130,8 +130,8 @@ m_browserWindowIndex(browserWindowIndex)
         QLabel* fileLabel     = new QLabel("File");
         QLabel* yokeLabel     = new QLabel("Yoke");
         QLabel* allMapsLabel  = new QLabel("All");
-        m_mapRowOrColumnIndexLabel = new QLabel("Map Index");
-        m_mapRowOrColumnNameLabel  = new QLabel("Map Name");
+        m_mapRowOrColumnIndexLabel = new QLabel("Index");
+        m_mapRowOrColumnNameLabel  = new QLabel("Name");
         
         int row = gridLayout->rowCount();
         gridLayout->addWidget(onLabel, row, COLUMN_ON, Qt::AlignHCenter);
@@ -303,28 +303,28 @@ ChartTwoOverlaySetViewController::updateViewController()
         m_chartOverlayGridLayoutGroups[i]->setVisible(displayOverlay);
     }
     
-    const ChartTwoOverlay* primaryOverlay = chartOverlaySet->getPrimaryOverlay();
-    if (primaryOverlay != NULL) {
-        AString mapRowOrColumnName = "Map";
-        switch (primaryOverlay->getChartTwoDataType()) {
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                mapRowOrColumnName = "Row";
-                break;
-        }
-        
-        if (m_mapRowOrColumnIndexLabel != NULL) {
-            m_mapRowOrColumnIndexLabel->setText(mapRowOrColumnName+ " Index");
-        }
-        if (m_mapRowOrColumnNameLabel != NULL) {
-            m_mapRowOrColumnNameLabel->setText(mapRowOrColumnName + " Name");
-        }
-    }
+//    const ChartTwoOverlay* primaryOverlay = chartOverlaySet->getPrimaryOverlay();
+//    if (primaryOverlay != NULL) {
+//        AString mapRowOrColumnName = "Map";
+//        switch (primaryOverlay->getChartTwoDataType()) {
+//            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+//                break;
+//            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+//                break;
+//            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+//                break;
+//            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+//                mapRowOrColumnName = "Row";
+//                break;
+//        }
+//        
+//        if (m_mapRowOrColumnIndexLabel != NULL) {
+//            m_mapRowOrColumnIndexLabel->setText(mapRowOrColumnName+ " Index");
+//        }
+//        if (m_mapRowOrColumnNameLabel != NULL) {
+//            m_mapRowOrColumnNameLabel->setText(mapRowOrColumnName + " Name");
+//        }
+//    }
 }
 
 /**

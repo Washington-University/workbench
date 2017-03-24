@@ -626,31 +626,41 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                                                          rowIndices,
                                                          columnIndices);
                 
-                AString namePrefix;
                 switch (rowColumnDimension) {
                     case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
                         numMaps = numCols;
-                        namePrefix = "Column ";
                         if ( ! columnIndices.empty()) {
                             selectedIndexTypeOut = SelectedIndexType::COLUMN;
                             selectedIndexOut     = columnIndices[0];
                         }
+                        if (matrixChart->hasColumnSelection()) {
+                            if (selectedFileMapNamesOut != NULL) {
+                                for (int32_t i = 0; i < numMaps; i++) {
+                                    selectedFileMapNamesOut->push_back(matrixChart->getColumnName(i));
+                                    //                                const AString namePrefix = "Column ";
+                                    //                                selectedFileMapNamesOut->push_back(namePrefix + QString::number(i));
+                                }
+                            }
+                        }
                         break;
                     case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
                         numMaps = numRows;
-                        namePrefix = "Row ";
                         if ( ! rowIndices.empty()) {
                             selectedIndexTypeOut = SelectedIndexType::ROW;
                             selectedIndexOut     = rowIndices[0];
                         }
+                        if (matrixChart->hasRowSelection()) {
+                            if (selectedFileMapNamesOut != NULL) {
+                                for (int32_t i = 0; i < numMaps; i++) {
+                                    selectedFileMapNamesOut->push_back(matrixChart->getRowName(i));
+                                    //                                const AString namePrefix = "Row ";
+                                    //                                selectedFileMapNamesOut->push_back(namePrefix + QString::number(i));
+                                }
+                            }
+                        }
                         break;
                 }
                 
-                if (selectedFileMapNamesOut != NULL) {
-                    for (int32_t i = 0; i < numMaps; i++) {
-                        selectedFileMapNamesOut->push_back(namePrefix + QString::number(i));
-                    }
-                }
                 
                 
             }
