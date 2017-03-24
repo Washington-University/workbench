@@ -75,6 +75,7 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* toNifti = ret->createOptionalParameter(3, "-to-nifti", "convert to NIFTI1");
     toNifti->addCiftiParameter(1, "cifti-in", "the input cifti file");
     toNifti->addVolumeOutputParameter(2, "nifti-out", "the output nifti file");
+    toNifti->createOptionalParameter(3, "-smaller-file", "use better-fitting dimension lengths");
     
     OptionalParameter* fromNifti = ret->createOptionalParameter(4, "-from-nifti", "convert a NIFTI (1 or 2) file made with this command back into CIFTI");
     fromNifti->addVolumeParameter(1, "nifti-in", "the input nifti file");
@@ -293,20 +294,32 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         CiftiFile* myCiftiIn = toNifti->getCifti(1);
         if (myCiftiIn->getCiftiXML().getNumberOfDimensions() != 2) throw OperationException("conversion only supported for 2D cifti");
         VolumeFile* myNiftiOut = toNifti->getOutputVolume(2);
+        bool betterDims = toNifti->getOptionalParameter(3)->m_present;
         vector<int64_t> outDims(4, 1);
         outDims[3] = myCiftiIn->getNumberOfColumns();
         if (outDims[3] > numeric_limits<short>::max()) throw OperationException("cifti rows are too long for nifti1, failing");
         int64_t numRows = myCiftiIn->getNumberOfRows();
-        int64_t temp = numRows;
-        int index = 0;
-        while (temp > numeric_limits<short>::max())
-        {
-            if (index > 1) throw OperationException("too many cifti rows for nifti1 spatial dimensions, failing");
-            outDims[index] = numeric_limits<short>::max();
-            temp = (temp - 1) / numeric_limits<short>::max() + 1;//round up
-            ++index;
+        const int64_t SHORTMAX = numeric_limits<short>::max();//less ugly than writing it out every time
+        if (betterDims)
+        {//find the minimum needed third dimension, then compute from that how many elements the first two dimensions must encompass, etc
+            outDims[2] = (numRows - 1) / (SHORTMAX * SHORTMAX) + 1;//round up
+            if (outDims[2] > SHORTMAX) throw OperationException("too many cifti rows for nifti1 spatial dimensions, failing");
+            int64_t temp = (numRows - 1) / outDims[2] + 1;//and again...
+            outDims[1] = (temp - 1) / SHORTMAX + 1;
+            outDims[0] = (temp - 1) / outDims[1] + 1;
+        } else {
+            int64_t temp = numRows;
+            int index = 0;
+            while (temp > SHORTMAX)
+            {
+                if (index > 1) throw OperationException("too many cifti rows for nifti1 spatial dimensions, failing");
+                outDims[index] = SHORTMAX;
+                temp = (temp - 1) / SHORTMAX + 1;//round up
+                ++index;
+            }
+            outDims[index] = temp;
         }
-        outDims[index] = temp;
+        CaretAssert(outDims[0] * outDims[1] * outDims[2] >= numRows);//make sure we didn't screw up the math
         myNiftiOut->reinitialize(outDims, FloatMatrix::identity(4).getMatrix());
         myNiftiOut->setValueAllVoxels(0.0f);
         int64_t ijk[3] = { 0, 0, 0 };
