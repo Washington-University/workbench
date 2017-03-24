@@ -328,7 +328,8 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
             }
         }
     }
-#pragma omp CARET_PARFOR schedule(dynamic)
+//somehow this loop set is helped by collapsing the two outers, while the other two are not helped by it
+#pragma omp CARET_PARFOR schedule(dynamic) collapse(2)
     for (int j = 0; j < myDims[1]; ++j)//and finally k
     {
         for (int i = 0; i < myDims[0]; ++i)
