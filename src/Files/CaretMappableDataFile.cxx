@@ -394,7 +394,16 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                     if (std::find(paletteNormalizationModes.begin(),
                                   paletteNormalizationModes.end(),
                                   palNormValue) != paletteNormalizationModes.end()) {
+                        /*
+                         * Do not allow the metadata's modification status
+                         * to change or else many files will have a modified
+                         * status after restoration of the scene.
+                         */
+                        const bool metadataModFlag = getFileMetaData()->isModified();
                         setPaletteNormalizationMode(palNormValue);
+                        if ( ! metadataModFlag) {
+                            getFileMetaData()->clearModified();
+                        }
                     }
                 }
             }
