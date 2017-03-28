@@ -35,6 +35,8 @@
 #include "SceneClassAssistant.h"
 #include "ScenePathName.h"
 #include "ScenePathNameArray.h"
+#include "ScenePrimitive.h"
+#include "ScenePrimitiveArray.h"
 
 using namespace caret;
     
@@ -588,6 +590,35 @@ DisplayPropertiesImages::restoreFromScene(const SceneAttributes* sceneAttributes
                 DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::fromIntegerCode(idg, NULL);
                 m_imageFileInDisplayGroup[displayGroup] = findImageFile(filename);
             }
+        }
+    }
+    
+    /*
+     * Old scenes image display status for tab
+     */
+    const SceneObjectMapIntegerKey* oldTabStatus = sceneClass->getMapIntegerKey("m_displayStatusInTab");
+    if (oldTabStatus != NULL) {
+        const std::map<int32_t, SceneObject*>& dataMap = oldTabStatus->getMap();
+        for (auto& tabPrim : dataMap) {
+            const int32_t tabIndex = tabPrim.first;
+            const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(tabPrim.second);
+            CaretAssert(primitive);
+            m_displayStatus->setValue(DisplayGroupEnum::DISPLAY_GROUP_TAB, tabIndex, primitive->booleanValue());
+        }
+    }
+
+    /*
+     * Old scenes image display status for display group
+     */
+    const ScenePrimitiveArray* oldGroupStatus = sceneClass->getPrimitiveArray("m_displayStatusInDisplayGroup");
+    if (oldGroupStatus != NULL) {
+        const int32_t numValues = std::min(oldGroupStatus->getNumberOfArrayElements(),
+                                           static_cast<int32_t>(DisplayGroupEnum::NUMBER_OF_GROUPS));
+        for (int32_t i = 0; i < numValues; i++) {
+            bool validFlag = false;
+            const DisplayGroupEnum::Enum dg = DisplayGroupEnum::fromIntegerCode(i, &validFlag);
+            CaretAssert(validFlag);
+            m_displayStatus->setValue(dg, 0, oldGroupStatus->booleanValue(i));
         }
     }
 }
