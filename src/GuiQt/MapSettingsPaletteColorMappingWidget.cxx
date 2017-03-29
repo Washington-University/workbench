@@ -1223,7 +1223,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
      * Spin box width
      */
     const int percentSpinBoxWidth = 75;
-    const int fixedSpinBoxWidth   = 100;  // fixed may have much larger data values
+    const int fixedSpinBoxWidth   = 82;  // fixed may have much larger data values
     /*
      * Percentage mapping 
      */
@@ -1315,7 +1315,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-BIG_NUMBER,
                                                                    0.0,
                                                                    1.0,
-                                                                   3,
+                                                                   2,
                                                                    this,
                                                                    SLOT(scaleFixedNegativeMaximumValueChanged(double)));
 
@@ -1328,7 +1328,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-BIG_NUMBER,
                                                                    0.0,
                                                                    1.0,
-                                                                   3,
+                                                                   2,
                                                                    this,
                                                                    SLOT(scaleFixedNegativeMinimumValueChanged(double)));
 
@@ -1341,7 +1341,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
                                                                    BIG_NUMBER,
                                                                    1.0,
-                                                                   3,
+                                                                   2,
                                                                    this,
                                                                    SLOT(scaleFixedPositiveMinimumValueChanged(double)));
 
@@ -1354,7 +1354,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
                                                                    BIG_NUMBER,
                                                                    1.0,
-                                                                   3,
+                                                                   2,
                                                                    this,
                                                                    SLOT(scaleFixedPositiveMaximumValueChanged(double)));
 
@@ -1366,10 +1366,15 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     /*
      * Labels for values at palette percentages
      */
-    this->scaleNegativeMaximumValueLabel = new QLabel("");
-    this->scaleNegativeMinimumValueLabel = new QLabel("");
-    this->scalePositiveMinimumValueLabel = new QLabel("");
-    this->scalePositiveMaximumValueLabel = new QLabel("");
+    const AString bigText(7, QChar(' '));
+    this->scaleNegativeMaximumValueLabel = new QLabel(bigText);
+    this->scaleNegativeMinimumValueLabel = new QLabel(bigText);
+    this->scalePositiveMinimumValueLabel = new QLabel(bigText);
+    this->scalePositiveMaximumValueLabel = new QLabel(bigText);
+//    this->scaleNegativeMaximumValueLabel->setSizePolicy(QSizePolicy::Fixed, this->scaleNegativeMaximumValueLabel->sizePolicy().verticalPolicy());
+//    this->scaleNegativeMinimumValueLabel->setSizePolicy(QSizePolicy::Fixed, this->scaleNegativeMinimumValueLabel->sizePolicy().verticalPolicy());
+//    this->scalePositiveMinimumValueLabel->setSizePolicy(QSizePolicy::Fixed, this->scalePositiveMinimumValueLabel->sizePolicy().verticalPolicy());
+//    this->scalePositiveMaximumValueLabel->setSizePolicy(QSizePolicy::Fixed, this->scalePositiveMaximumValueLabel->sizePolicy().verticalPolicy());
     
     /*
      * Layout widgets
