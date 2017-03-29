@@ -132,33 +132,27 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     this->setLayoutSpacingAndMargins(leftLayout);
     leftLayout->addWidget(thresholdWidget);
     leftLayout->addWidget(paletteWidget);
-    leftLayout->addStretch();
+//    leftLayout->addStretch();
     
     QVBoxLayout* dataLayout = new QVBoxLayout();
     dataLayout->addWidget(normalizationWidget);
     dataLayout->addWidget(dataOptionsWidget);
-    //dataLayout->addStretch();
-    
-//    QHBoxLayout* histoColorBarLayout = new QHBoxLayout();
-//    histoColorBarLayout->addWidget(histogramControlWidget);
-//    histoColorBarLayout->addStretch();
     
     QWidget* bottomRightWidget = new QWidget();
     QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
     this->setLayoutSpacingAndMargins(bottomRightLayout);
-//    bottomRightLayout->addLayout(histoColorBarLayout);
     bottomRightLayout->addWidget(histogramControlWidget);
     bottomRightLayout->addLayout(dataLayout);
     bottomRightLayout->addStretch();
     bottomRightWidget->setFixedHeight(bottomRightWidget->sizeHint().height());
-//    bottomRightWidget->setFixedSize(bottomRightWidget->sizeHint());
     
     QWidget* rightWidget = new QWidget();
     QVBoxLayout* rightLayout = new QVBoxLayout(rightWidget);
     this->setLayoutSpacingAndMargins(rightLayout);
     rightLayout->addWidget(histogramWidget, 100);
     rightLayout->addWidget(bottomRightWidget, 0);
-    rightLayout->addStretch();
+    rightWidget->setFixedHeight(leftWidget->sizeHint().height());
+//    rightLayout->addStretch();
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     this->setLayoutSpacingAndMargins(layout);
