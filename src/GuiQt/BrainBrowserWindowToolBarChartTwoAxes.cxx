@@ -236,7 +236,7 @@ BrainBrowserWindowToolBarChartTwoAxes::updateContent(BrowserTabContent* browserT
     
     ChartTwoCartesianAxis* selectedAxis = NULL;
     
-    const ChartAxisLocationEnum::Enum defaultAxis = getSelectedAxisLocation();
+    const ChartAxisLocationEnum::Enum lastSelectedAxis = getSelectedAxisLocation();
 
     m_axisComboBox->blockSignals(true);
     m_axisComboBox->getComboBox()->clear();
@@ -259,21 +259,38 @@ BrainBrowserWindowToolBarChartTwoAxes::updateContent(BrowserTabContent* browserT
             }
             
             if (chartOverlaySet != NULL) {
-                int32_t defaultAxisIndex = 0;
+                int32_t defaultAxisIndex = -1;
                 
                 std::vector<ChartAxisLocationEnum::Enum> validAxesLocations;
                 std::vector<ChartTwoCartesianAxis*> axes = chartOverlaySet->getDisplayedChartAxes();
                 const int32_t numAxes = static_cast<int32_t>(axes.size());
                 for (int32_t i = 0; i < numAxes; i++) {
                     const ChartAxisLocationEnum::Enum axisLocation = axes[i]->getAxisLocation();
-                    if (defaultAxis == axisLocation) {
+                    if (lastSelectedAxis == axisLocation) {
                         defaultAxisIndex = i;
                     }
                     validAxesLocations.push_back(axisLocation);
                 }
                 CaretAssert(validAxesLocations.size() == axes.size());
                 
+                if (defaultAxisIndex < 0) {
+                    /*
+                     * If selected axis not found, switch to opposite axis
+                     * User may have switched vertical axis from left to right
+                     */
+                    ChartAxisLocationEnum::Enum oppositeAxis = ChartAxisLocationEnum::getOppositeAxis(lastSelectedAxis);
+                    for (int32_t i = 0; i < numAxes; i++) {
+                        if (oppositeAxis == axes[i]->getAxisLocation()) {
+                            defaultAxisIndex = i;
+                            break;
+                        }
+                    }
+                }
+                
                 if ( ! axes.empty()) {
+                    if (defaultAxisIndex < 0) {
+                        defaultAxisIndex = 0;
+                    }
                     CaretAssertVectorIndex(validAxesLocations, defaultAxisIndex);
                     const ChartAxisLocationEnum::Enum axisLocation = validAxesLocations[defaultAxisIndex];
                     m_axisComboBox->setupWithItems<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>(validAxesLocations);

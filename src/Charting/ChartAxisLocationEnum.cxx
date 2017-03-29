@@ -379,3 +379,33 @@ ChartAxisLocationEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const b
     }
 }
 
+/**
+ * Get the opposite axis for the given axis (left <--> right;  top <--> bottom).
+ * 
+ * @param axis
+ *     The axis.
+ * @return
+ *     Opposite axis.
+ */
+ChartAxisLocationEnum::Enum
+ChartAxisLocationEnum::getOppositeAxis(const ChartAxisLocationEnum::Enum axis)
+{
+    ChartAxisLocationEnum::Enum oppositeAxis = ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM;
+    switch (axis) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+            oppositeAxis = ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP;
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+            oppositeAxis = ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT;
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+            oppositeAxis = ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT;
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            oppositeAxis = ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM;
+            break;
+    }
+    return oppositeAxis;
+}
+
+

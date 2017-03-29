@@ -66,6 +66,8 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static ChartAxisLocationEnum::Enum getOppositeAxis(const ChartAxisLocationEnum::Enum axis);
+    
 private:
     ChartAxisLocationEnum(const Enum enumValue, 
                  const AString& name,

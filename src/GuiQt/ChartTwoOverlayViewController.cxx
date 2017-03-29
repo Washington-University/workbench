@@ -901,7 +901,7 @@ ChartTwoOverlayViewController::updateUserInterface()
 void
 ChartTwoOverlayViewController::updateGraphicsWindow()
 {
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    //EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
