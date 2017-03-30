@@ -23,6 +23,7 @@
 
 #include <set>
 #include "BrainOpenGLChartTwoDrawingInterface.h"
+#include "ChartAxisLocationEnum.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"
 
 namespace caret {
@@ -55,6 +56,21 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        class HistogramChartDrawingInfo {
+        public:
+            HistogramChartDrawingInfo(HistogramDrawingInfo* histogramDrawingInfo,
+                                      const ChartableTwoFileHistogramChart* histogramChart,
+                                      int32_t mapIndex,
+                                      ChartAxisLocationEnum::Enum verticalAxisLocation);
+            
+            HistogramDrawingInfo* m_histogramDrawingInfo;
+            const ChartableTwoFileHistogramChart* m_histogramChart;
+            int32_t m_mapIndex;
+            ChartAxisLocationEnum::Enum m_verticalAxisLocation;
+            
+            ~HistogramChartDrawingInfo();
+        };
+        
         class Margins {
         public:
             Margins(const double defaultSize) {
@@ -111,9 +127,9 @@ namespace caret {
         
         void drawHistogramChart();
         
-        void drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart,
-                                       const int32_t mapIndex,
-                                       const HistogramDrawingInfo& histogramDrawingInfo);
+        void drawHistogramChartContent(const HistogramChartDrawingInfo* drawingInfo,
+                                       const bool drawHistogramBarsFlag,
+                                       const bool drawHistogramEnvelopeFlag);
         
         void drawChartGraphicsBoxAndSetViewport(const float vpX,
                                                 const float vpY,

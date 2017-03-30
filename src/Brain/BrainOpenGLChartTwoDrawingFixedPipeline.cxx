@@ -257,27 +257,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     restoreStateOfOpenGL();
 }
 
-class HistogramChartDrawingInfo {
-public:
-    HistogramChartDrawingInfo(HistogramDrawingInfo* histogramDrawingInfo,
-                              const ChartableTwoFileHistogramChart* histogramChart,
-                              int32_t mapIndex,
-                              ChartAxisLocationEnum::Enum verticalAxisLocation)
-    : m_histogramDrawingInfo(histogramDrawingInfo),
-    m_histogramChart(histogramChart),
-    m_mapIndex(mapIndex),
-    m_verticalAxisLocation(verticalAxisLocation) { }
-    
-    HistogramDrawingInfo* m_histogramDrawingInfo;
-    const ChartableTwoFileHistogramChart* m_histogramChart;
-    int32_t m_mapIndex;
-    ChartAxisLocationEnum::Enum m_verticalAxisLocation;
-    
-    ~HistogramChartDrawingInfo() {
-        delete m_histogramDrawingInfo;
-    }
-};
-
 /**
  * Draw histogram charts.
  */
@@ -380,8 +359,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
      * Bounds valid?
      */
     if ((xMin < xMax)
-        && ((yMinLeft < yMaxLeft)
-            || (yMinRight < yMaxRight))) {
+        && ((yMinLeft < yMaxLeft) || (yMinRight < yMaxRight))) {
         /*
          * Margin is region around the chart in which
          * the axes legends, values, and ticks are drawn.
@@ -393,7 +371,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         ChartTwoCartesianAxis* rightAxis  = NULL;
         ChartTwoCartesianAxis* bottomAxis = NULL;
         ChartTwoCartesianAxis* topAxis    = NULL;
-            
+        
         std::vector<ChartTwoCartesianAxis*> displayedAxes = m_chartOverlaySet->getDisplayedChartAxes();
         for (auto axis : displayedAxes) {
             CaretAssert(axis);
@@ -416,7 +394,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         const float boundsLeftBottomTop[4] = { xMin, xMax, yMinLeft, yMaxLeft };
         const float boundsRight[4] = { xMin, xMax, yMinRight, yMaxRight };
         double width = 0.0, height = 0.0;
-
+        
         estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpHeight, leftAxis, width, height);
         margins.m_left = std::max(margins.m_left, width);
         estimateCartesianChartAxisLegendsWidthHeight(boundsRight, vpHeight, rightAxis, width, height);
@@ -453,13 +431,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
             }
             
             if (drawChartAxisCartesian(boundsRight,
-                                   vpX,
-                                   vpY,
-                                   vpWidth,
-                                   vpHeight,
-                                   margins,
-                                   rightAxis,
-                                   axisMinimumValue,
+                                       vpX,
+                                       vpY,
+                                       vpWidth,
+                                       vpHeight,
+                                       margins,
+                                       rightAxis,
+                                       axisMinimumValue,
                                        axisMaximumValue)) {
                 yMinRight = axisMinimumValue;
                 yMaxRight = axisMaximumValue;
@@ -501,79 +479,168 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                    chartGraphicsDrawingViewport[3]);
         
         
+        /*
+         * Draw the bars for all histogram and then draw the envelopes
+         * so the envelopes are not obscured by the bars
+         */
+        for (int32_t drawModeInt = 0; drawModeInt < 2; drawModeInt++) {
             for (auto& drawInfo : drawingInfo) {
                 if (drawInfo->m_histogramDrawingInfo->isValid()) {
-                    
-                    bool leftVerticalAxisFlag = true;
-                    switch (drawInfo->m_verticalAxisLocation) {
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                            leftVerticalAxisFlag = false;
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                            break;
+                    const CaretMappableDataFile* cmdf = drawInfo->m_histogramChart->getCaretMappableDataFile();
+                    CaretAssert(cmdf);
+                    const PaletteColorMapping* paletteColorMapping = cmdf->getMapPaletteColorMapping(drawInfo->m_mapIndex);
+                    bool drawBarsFlag = false;
+                    bool drawEnvelopeFlag = false;
+                    if (drawModeInt == 0) {
+                        drawBarsFlag = paletteColorMapping->isHistogramBarsVisible();
+                    }
+                    else if (drawModeInt == 1) {
+                        drawEnvelopeFlag = paletteColorMapping->isHistogramEnvelopeVisible();
                     }
                     
-                    glMatrixMode(GL_PROJECTION);
-                    glLoadIdentity();
-                    if (leftVerticalAxisFlag) {
-                        glOrtho(xMin, xMax,
-                                yMinLeft, yMaxLeft,
-                                -10.0, 10.0);
-                    }
-                    else {
-                        glOrtho(xMin, xMax,
-                                yMinRight, yMaxRight,
-                                -10.0, 10.0);
-                    }
-                    
-                    glMatrixMode(GL_MODELVIEW);
-                    glLoadIdentity();
-                    
-                    bool applyTransformationsFlag = false;
-                    if (applyTransformationsFlag) {
-                        glTranslatef(m_translation[0],
-                                     m_translation[1],
-                                     0.0);
+                    if (drawBarsFlag
+                        || drawEnvelopeFlag) {
+                        bool leftVerticalAxisFlag = true;
+                        switch (drawInfo->m_verticalAxisLocation) {
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                                break;
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                                break;
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                                leftVerticalAxisFlag = false;
+                                break;
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                                break;
+                        }
                         
-                        const float chartWidth  = chartGraphicsDrawingViewport[2];
-                        const float chartHeight = chartGraphicsDrawingViewport[3];
-                        const float halfWidth   = chartWidth  / 2.0;
-                        const float halfHeight  = chartHeight / 2.0;
-                        glTranslatef(halfWidth,
-                                     halfHeight,
-                                     0.0);
-                        glScalef(m_zooming,
-                                 m_zooming,
-                                 1.0);
-                        glTranslatef(-halfWidth,
-                                     -halfHeight,
-                                     0.0);
+                        glMatrixMode(GL_PROJECTION);
+                        glLoadIdentity();
+                        if (leftVerticalAxisFlag) {
+                            glOrtho(xMin, xMax,
+                                    yMinLeft, yMaxLeft,
+                                    -10.0, 10.0);
+                        }
+                        else {
+                            glOrtho(xMin, xMax,
+                                    yMinRight, yMaxRight,
+                                    -10.0, 10.0);
+                        }
+                        
+                        glMatrixMode(GL_MODELVIEW);
+                        glLoadIdentity();
+                        
+                        bool applyTransformationsFlag = false;
+                        if (applyTransformationsFlag) {
+                            glTranslatef(m_translation[0],
+                                         m_translation[1],
+                                         0.0);
+                            
+                            const float chartWidth  = chartGraphicsDrawingViewport[2];
+                            const float chartHeight = chartGraphicsDrawingViewport[3];
+                            const float halfWidth   = chartWidth  / 2.0;
+                            const float halfHeight  = chartHeight / 2.0;
+                            glTranslatef(halfWidth,
+                                         halfHeight,
+                                         0.0);
+                            glScalef(m_zooming,
+                                     m_zooming,
+                                     1.0);
+                            glTranslatef(-halfWidth,
+                                         -halfHeight,
+                                         0.0);
+                        }
+                        
+                        drawHistogramChartContent(drawInfo,
+                                                  drawBarsFlag,
+                                                  drawEnvelopeFlag);
                     }
-                    
-                    drawHistogramChartContent(drawInfo->m_histogramChart,
-                                              drawInfo->m_mapIndex,
-                                              *drawInfo->m_histogramDrawingInfo);
                 }
             }
-    }
-    
-    for (auto& histDrawInfo : drawingInfo) {
-        delete histDrawInfo;
+        }
+        
+//        for (auto& drawInfo : drawingInfo) {
+//            if (drawInfo->m_histogramDrawingInfo->isValid()) {
+//                
+//                bool leftVerticalAxisFlag = true;
+//                switch (drawInfo->m_verticalAxisLocation) {
+//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+//                        break;
+//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+//                        break;
+//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+//                        leftVerticalAxisFlag = false;
+//                        break;
+//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+//                        break;
+//                }
+//                
+//                glMatrixMode(GL_PROJECTION);
+//                glLoadIdentity();
+//                if (leftVerticalAxisFlag) {
+//                    glOrtho(xMin, xMax,
+//                            yMinLeft, yMaxLeft,
+//                            -10.0, 10.0);
+//                }
+//                else {
+//                    glOrtho(xMin, xMax,
+//                            yMinRight, yMaxRight,
+//                            -10.0, 10.0);
+//                }
+//                
+//                glMatrixMode(GL_MODELVIEW);
+//                glLoadIdentity();
+//                
+//                bool applyTransformationsFlag = false;
+//                if (applyTransformationsFlag) {
+//                    glTranslatef(m_translation[0],
+//                                 m_translation[1],
+//                                 0.0);
+//                    
+//                    const float chartWidth  = chartGraphicsDrawingViewport[2];
+//                    const float chartHeight = chartGraphicsDrawingViewport[3];
+//                    const float halfWidth   = chartWidth  / 2.0;
+//                    const float halfHeight  = chartHeight / 2.0;
+//                    glTranslatef(halfWidth,
+//                                 halfHeight,
+//                                 0.0);
+//                    glScalef(m_zooming,
+//                             m_zooming,
+//                             1.0);
+//                    glTranslatef(-halfWidth,
+//                                 -halfHeight,
+//                                 0.0);
+//                }
+//                
+//                drawHistogramChartContent(drawInfo->m_histogramChart,
+//                                          drawInfo->m_mapIndex,
+//                                          *drawInfo->m_histogramDrawingInfo,
+//                                          true,
+//                                          true);
+//            }
+//        }
     }
 }
 
 /*
  * Draw the given histogram chart.
+ *
+ * @param drawingInfo
+ *    Histogram drawing information..
+ * @param drawHistogramBarsFlag
+ *    Draw the histogram as bars.
+ * @param drawHistogramEnvelopeFlag
+ *    Draw the histogram as an envelope.
+ *
  */
 void
-BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const ChartableTwoFileHistogramChart* histogramChart,
-                                                                   const int32_t mapIndex,
-                                                                   const HistogramDrawingInfo& histogramDrawingInfo)
+BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const HistogramChartDrawingInfo* drawingInfo,
+                                                                   const bool drawHistogramBarsFlag,
+                                                                   const bool drawHistogramEnvelopeFlag)
 {
+    const ChartableTwoFileHistogramChart* histogramChart = drawingInfo->m_histogramChart;
+    const int32_t mapIndex = drawingInfo->m_mapIndex;
+    const HistogramDrawingInfo& histogramDrawingInfo = *drawingInfo->m_histogramDrawingInfo;
+    
     if ( ! histogramDrawingInfo.isValid()) {
         return;
     }
@@ -626,10 +693,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
         std::vector<uint8_t> quadVerticesByteRGBA;
         
         
-        const CaretMappableDataFile* cmdf = histogramChart->getCaretMappableDataFile();
-        CaretAssert(cmdf);
-        const PaletteColorMapping* paletteColorMapping = cmdf->getMapPaletteColorMapping(mapIndex);
-        if (paletteColorMapping->isHistogramBarsVisible()) {
+//        const CaretMappableDataFile* cmdf = histogramChart->getCaretMappableDataFile();
+//        CaretAssert(cmdf);
+        if (drawHistogramBarsFlag) {
             /*
              * Reserve to prevent reszing of vectors
              * as elements are added.
@@ -710,7 +776,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Chartab
             }
         }
         
-        if (paletteColorMapping->isHistogramEnvelopeVisible()) {
+        if (drawHistogramEnvelopeFlag) {
             /*
              * Reserve to prevent reszing of vectors
              * as elements are added.
@@ -2619,4 +2685,20 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
     }
     
     return true;
+}
+
+BrainOpenGLChartTwoDrawingFixedPipeline::HistogramChartDrawingInfo::HistogramChartDrawingInfo(HistogramDrawingInfo* histogramDrawingInfo,
+                          const ChartableTwoFileHistogramChart* histogramChart,
+                          int32_t mapIndex,
+                          ChartAxisLocationEnum::Enum verticalAxisLocation)
+: m_histogramDrawingInfo(histogramDrawingInfo),
+m_histogramChart(histogramChart),
+m_mapIndex(mapIndex),
+m_verticalAxisLocation(verticalAxisLocation)
+{
+}
+
+
+BrainOpenGLChartTwoDrawingFixedPipeline::HistogramChartDrawingInfo::~HistogramChartDrawingInfo() {
+    delete m_histogramDrawingInfo;
 }
