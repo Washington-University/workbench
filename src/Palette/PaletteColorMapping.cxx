@@ -135,7 +135,8 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->thresholdRangeMode = pcm.thresholdRangeMode;
     this->thresholdNegMinPosMaxLinked = pcm.thresholdNegMinPosMaxLinked;
     this->histogramRangeMode = pcm.histogramRangeMode;
-    this->histogramChartType = pcm.histogramChartType;
+    this->histogramBarsVisible = pcm.histogramBarsVisible;
+    this->histogramEnvelopeVisible = pcm.histogramEnvelopeVisible;
     this->histogramColor = pcm.histogramColor;
     this->histogramNumberOfBuckets = pcm.histogramNumberOfBuckets;
     this->colorBarNumericFormatMode = pcm.colorBarNumericFormatMode;
@@ -186,7 +187,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->thresholdRangeMode == pcm.thresholdRangeMode)
         && (this->thresholdNegMinPosMaxLinked == pcm.thresholdNegMinPosMaxLinked)
         && (this->histogramRangeMode == pcm.histogramRangeMode)
-        && (this->histogramChartType == pcm.histogramChartType)
+        && (this->histogramBarsVisible == pcm.histogramBarsVisible)
+        && (this->histogramEnvelopeVisible == pcm.histogramEnvelopeVisible)
         && (this->histogramColor == pcm.histogramColor)
         && (this->histogramNumberOfBuckets == pcm.histogramNumberOfBuckets)
         && (this->colorBarNumericFormatMode == pcm.colorBarNumericFormatMode)
@@ -234,7 +236,8 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE;
     this->thresholdNegMinPosMaxLinked = false;
     this->histogramRangeMode = PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL;
-    this->histogramChartType = PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_BARS;
+    this->histogramBarsVisible = true;
+    this->histogramEnvelopeVisible = false;
     this->histogramColor = CaretColorEnum::CUSTOM;  // CUSTOM is color with palette
     this->histogramNumberOfBuckets = 100;
     this->colorBarNumericFormatMode = NumericFormatModeEnum::AUTO;
@@ -355,8 +358,10 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                      this->thresholdNegMinPosMaxLinked);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_RANGE_MODE,
                                      PaletteHistogramRangeModeEnum::toName(this->histogramRangeMode));
-    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_CHART_TYPE,
-                                     PaletteHistogramChartTypeEnum::toName(this->histogramChartType));
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_BARS_VISIBLE,
+                                     this->histogramBarsVisible);
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_ENVELOPE_VISIBLE,
+                                     this->histogramEnvelopeVisible);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_COLOR,
                                      CaretColorEnum::toName(this->histogramColor));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_NUMBER_OF_BUCKETS,
@@ -2757,28 +2762,52 @@ PaletteColorMapping::setHistogramRangeMode(const PaletteHistogramRangeModeEnum::
 }
 
 /**
- * @return The histogram chart type.
+ * @return show histogram bars
  */
-PaletteHistogramChartTypeEnum::Enum PaletteColorMapping::getHistogramChartType() const
+bool
+PaletteColorMapping::isHistogramBarsVisible() const
 {
-    return this->histogramChartType;
+    return this->histogramBarsVisible;
 }
 
 /**
- * Set the histogram chart type.
+ * Set show histogram bars
  *
- * @param histogramChartType
- *    New value for histogram chart type
+ * @param histogramBarsVisible
+ *    New value for show histogram bars
  */
 void
-PaletteColorMapping::setHistogramChartType(const PaletteHistogramChartTypeEnum::Enum histogramChartType)
+PaletteColorMapping::setHistogramBarsVisible(const bool histogramBarsVisible)
 {
-    if (histogramChartType != this->histogramChartType) {
-        this->histogramChartType = histogramChartType;
+    if (histogramBarsVisible != this->histogramBarsVisible) {
+        this->histogramBarsVisible = histogramBarsVisible;
         setModified();
     }
 }
 
+/**
+ * @return show histogram envelope
+ */
+bool
+PaletteColorMapping::isHistogramEnvelopeVisible() const
+{
+    return this->histogramEnvelopeVisible;
+}
+
+/**
+ * Set show histogram envelope
+ *
+ * @param histogramEnvelopeVisible
+ *    New value for show histogram envelope
+ */
+void
+PaletteColorMapping::setHistogramEnvelopeVisible(const bool histogramEnvelopeVisible)
+{
+    if (histogramEnvelopeVisible != this->histogramEnvelopeVisible) {
+        this->histogramEnvelopeVisible = histogramEnvelopeVisible;
+        setModified();
+    }
+}
 
 /**
  * @return Color for drawing histogram.

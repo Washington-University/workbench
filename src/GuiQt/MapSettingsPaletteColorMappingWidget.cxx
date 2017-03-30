@@ -726,9 +726,20 @@ MapSettingsPaletteColorMappingWidget::thresholdRangeModeChanged()
 QWidget* 
 MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
 {
-    /*
-     * Control section
-     */
+    QLabel* showLabel = new QLabel("Show ");
+    m_histogramBarsVisibleCheckBox = new QCheckBox("Bars");
+    QObject::connect(m_histogramBarsVisibleCheckBox, &QCheckBox::clicked,
+                     [=] { this->applyAndUpdate(); } );
+                     
+    m_histogramEnvelopeVisibleCheckBox = new QCheckBox("Envelope");
+    QObject::connect(m_histogramEnvelopeVisibleCheckBox, &QCheckBox::clicked,
+                     [=] { this->applyAndUpdate(); });
+    
+    QHBoxLayout* showLayout = new QHBoxLayout();
+    showLayout->addWidget(m_histogramBarsVisibleCheckBox);
+    showLayout->addStretch();
+    showLayout->addWidget(m_histogramEnvelopeVisibleCheckBox);
+    
     QLabel* horizRangeLabel = new QLabel("Range");
     m_histogramHorizontalRangeComboBox = new EnumComboBoxTemplate(this);
     QObject::connect(this->m_histogramHorizontalRangeComboBox, SIGNAL(itemActivated()),
@@ -736,20 +747,13 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     this->m_histogramHorizontalRangeComboBox->setup<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>();
     this->m_histogramHorizontalRangeComboBox->getWidget()->setToolTip("Horizontal range of histogram");
 
-    QLabel* colorLabel = new QLabel("Color");
+    QLabel* colorLabel = new QLabel("Bars Color");
     m_histogramColorComboBox = new CaretColorEnumComboBox("With Palette",
                                                           this);
     WuQtUtilities::setToolTipAndStatusTip(m_histogramColorComboBox->getWidget(),
                                           "Set histogram coloring");
     QObject::connect(m_histogramColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(applyAndUpdate()));
-    
-    QLabel* chartTypeLabel = new QLabel("Chart");
-    m_histogramChartTypeComboBox = new EnumComboBoxTemplate(this);
-    QObject::connect(this->m_histogramChartTypeComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(applyAndUpdate()));
-    this->m_histogramChartTypeComboBox->setup<PaletteHistogramChartTypeEnum, PaletteHistogramChartTypeEnum::Enum>();
-    this->m_histogramChartTypeComboBox->getWidget()->setToolTip("Set type of chart drawn");
     
     const int32_t maxBuckets = 100000;
     QLabel* bucketsLabel = new QLabel("Buckets");
@@ -760,14 +764,19 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     QWidget* controlWidget = new QWidget();
     QGridLayout* controlLayout = new QGridLayout(controlWidget);
     this->setLayoutSpacingAndMargins(controlLayout);
-    controlLayout->addWidget(chartTypeLabel, 0, 0);
-    controlLayout->addWidget(m_histogramChartTypeComboBox->getWidget(), 0, 1);
-    controlLayout->addWidget(colorLabel, 1, 0);
-    controlLayout->addWidget(m_histogramColorComboBox->getWidget(), 1, 1);
-    controlLayout->addWidget(horizRangeLabel, 2, 0);
-    controlLayout->addWidget(m_histogramHorizontalRangeComboBox->getWidget(), 2, 1);
-    controlLayout->addWidget(bucketsLabel, 3, 0);
-    controlLayout->addWidget(m_histogramBucketsSpinBox, 3, 1);
+    int rowIndex = 0;
+    controlLayout->addWidget(showLabel, rowIndex, 0);
+    controlLayout->addLayout(showLayout, rowIndex, 1);
+    rowIndex++;
+    controlLayout->addWidget(colorLabel, rowIndex, 0);
+    controlLayout->addWidget(m_histogramColorComboBox->getWidget(), rowIndex, 1);
+    rowIndex++;
+    controlLayout->addWidget(horizRangeLabel, rowIndex, 0);
+    controlLayout->addWidget(m_histogramHorizontalRangeComboBox->getWidget(), rowIndex, 1);
+    rowIndex++;
+    controlLayout->addWidget(bucketsLabel, rowIndex, 0);
+    controlLayout->addWidget(m_histogramBucketsSpinBox, rowIndex, 1);
+    rowIndex++;
     controlWidget->setFixedSize(controlWidget->sizeHint());
     
     /*
@@ -1714,7 +1723,8 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
         
         m_histogramColorComboBox->setSelectedColor(this->paletteColorMapping->getHistogramColor());
         
-        m_histogramChartTypeComboBox->setSelectedItem<PaletteHistogramChartTypeEnum, PaletteHistogramChartTypeEnum::Enum>(this->paletteColorMapping->getHistogramChartType());
+        m_histogramBarsVisibleCheckBox->setChecked(this->paletteColorMapping->isHistogramBarsVisible());
+        m_histogramEnvelopeVisibleCheckBox->setChecked(this->paletteColorMapping->isHistogramEnvelopeVisible());
 
         m_histogramHorizontalRangeComboBox->setSelectedItem<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>(this->paletteColorMapping->getHistogramRangeMode());
 
@@ -2006,125 +2016,142 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             }
         }
         
-        PaletteHistogramChartTypeEnum::Enum histogramChartType = this->paletteColorMapping->getHistogramChartType();
-        const bool allowEnvelopeChartTypeFlag = false;
-        if ( ! allowEnvelopeChartTypeFlag) {
-            histogramChartType = PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_BARS;
-        }
+//        const bool drawBarsFlag = this->paletteColorMapping->isHistogramBarsVisible();
+//        bool drawEnvelopeFlag = false;
+//        const bool allowEnvelopeChartTypeFlag = true;
+//        if (allowEnvelopeChartTypeFlag) {
+//            drawEnvelopeFlag = this->paletteColorMapping->isHistogramEnvelopeVisible();
+//        }
         
-        const bool displayZeros = paletteColorMapping->isDisplayZeroDataFlag();
+        const QPalette palette = this->thresholdPlot->palette();
+        const QPalette::ColorRole foregroundRole = this->thresholdPlot->foregroundRole();
+        const QBrush foregroundBrush = palette.brush(foregroundRole);
+        const QColor foregroundColor = foregroundBrush.color();
         
         float z = 0.0;
         float maxDataFrequency = 0.0;
-        const int32_t lastIndex = numHistogramValues - 1;
-        for (int64_t ix = 0; ix < numHistogramValues; ix++) {
-            QColor color;
-            const int64_t ix4 = ix * 4;
-            color.setRedF(dataRGBA[ix4]);
-            color.setGreenF(dataRGBA[ix4+1]);
-            color.setBlueF(dataRGBA[ix4+2]);
-            color.setAlphaF(1.0);
-            
-            const float startValue = dataValues[ix];
-            const float stopValue  = dataValues[ix + 1];
-            float dataFrequency = displayData[ix];
-            
-            bool displayIt = true;
-            
-//            if (displayZeros == false) {
-//                if ((startValue <= 0.0) && (stopValue >= 0.0)) {
-//                    dataFrequency = 0.0;
-//                    displayIt = false;
-//                }
-//            }
-            
-            if (dataFrequency > maxDataFrequency) {
-                maxDataFrequency = dataFrequency;
+        for (int32_t drawModeInt = 0; drawModeInt < 2; drawModeInt++) {
+            bool drawBarsFlag = false;
+            bool drawEnvelopeFlag = false;
+            if (drawModeInt == 0) {
+                drawBarsFlag = this->paletteColorMapping->isHistogramBarsVisible();
+            }
+            else if (drawModeInt == 1) {
+                drawEnvelopeFlag = this->paletteColorMapping->isHistogramEnvelopeVisible();
             }
             
-            /*
-             * If color is not displayed ('none' or thresholded), 
-             * set its frequncey value to a small value so that the plot
-             * retains its shape and color is still slightly visible
-             */
-            //Qt::BrushStyle brushStyle = Qt::SolidPattern;
-            if (dataRGBA[ix4+3] <= 0.0) {
-                displayIt = false;
-            }
-            
-            if (displayIt == false) {
-                color.setAlpha(0);
-            }
-            
-            QVector<QPointF> samples;
-            
-            QwtPlotCurve* curve = new QwtPlotCurve();
-            curve->setRenderHint(QwtPlotItem::RenderAntialiased);
-            curve->setVisible(true);
-            
-            curve->setPen(QPen(color));
-            switch (histogramChartType) {
-                case PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_BARS:
-                    curve->setStyle(QwtPlotCurve::Steps);
-                    curve->setBrush(QBrush(color));
-                    samples.push_back(QPointF(startValue, dataFrequency));
-                    samples.push_back(QPointF(stopValue, dataFrequency));
-                    break;
-                case PaletteHistogramChartTypeEnum::PALETTE_HISTOGRAM_CHART_ENVELOPE:
-                    curve->setStyle(QwtPlotCurve::Lines);
-                    //curve->setBrush(QBrush(color));
+            if (drawBarsFlag
+                || drawEnvelopeFlag) {
+                const int32_t lastIndex = numHistogramValues - 1;
+                for (int64_t ix = 0; ix < numHistogramValues; ix++) {
+                    QColor color;
+                    const int64_t ix4 = ix * 4;
+                    if (drawBarsFlag) {
+                        color.setRedF(dataRGBA[ix4]);
+                        color.setGreenF(dataRGBA[ix4+1]);
+                        color.setBlueF(dataRGBA[ix4+2]);
+                        color.setAlphaF(1.0);
+                    }
+                    else if (drawEnvelopeFlag) {
+                        color = foregroundColor;
+                    }
+                    
+                    const float startValue = dataValues[ix];
+                    const float stopValue  = dataValues[ix + 1];
+                    float dataFrequency = displayData[ix];
+                    
+                    bool displayIt = true;
+                    
+                    if (dataFrequency > maxDataFrequency) {
+                        maxDataFrequency = dataFrequency;
+                    }
                     
                     /*
-                     * Left side
+                     * If color is not displayed ('none' or thresholded),
+                     * set its frequncey value to a small value so that the plot
+                     * retains its shape and color is still slightly visible
                      */
-                    if (ix == 0) {
-                        samples.push_back(QPointF(startValue, 0.0));
-                        samples.push_back(QPointF(startValue, dataFrequency));
+                    //Qt::BrushStyle brushStyle = Qt::SolidPattern;
+                    if (dataRGBA[ix4+3] <= 0.0) {
+                        displayIt = false;
                     }
-                    else {
-                        CaretAssertVectorIndex(displayData, ix - 1);
-                        const float lastFrequency = displayData[ix - 1];
-                        if (dataFrequency > lastFrequency) {
-                            samples.push_back(QPointF(startValue, lastFrequency));
+                    
+                    if (displayIt == false) {
+                        color.setAlpha(0);
+                    }
+                    
+                    QVector<QPointF> samples;
+                    
+                    QwtPlotCurve* curve = new QwtPlotCurve();
+                    curve->setRenderHint(QwtPlotItem::RenderAntialiased);
+                    curve->setVisible(true);
+                    
+                    curve->setPen(QPen(color));
+                    
+                    if (drawBarsFlag) {
+                        curve->setStyle(QwtPlotCurve::Steps);
+                        curve->setBrush(QBrush(color));
+                        samples.push_back(QPointF(startValue, dataFrequency));
+                        samples.push_back(QPointF(stopValue, dataFrequency));
+                    }
+                    if (drawEnvelopeFlag) {
+                        curve->setStyle(QwtPlotCurve::Lines);
+                        //curve->setBrush(QBrush(color));
+                        
+                        /*
+                         * Left side
+                         */
+                        if (ix == 0) {
+                            samples.push_back(QPointF(startValue, 0.0));
                             samples.push_back(QPointF(startValue, dataFrequency));
                         }
-                    }
-                    
-                    /*
-                     * Horizontal Bar
-                     */
-                    samples.push_back(QPointF(startValue, dataFrequency));
-                    samples.push_back(QPointF(stopValue, dataFrequency));
-
-                    /*
-                     * Right side
-                     */
-                    if (ix == lastIndex) {
+                        else {
+                            CaretAssertVectorIndex(displayData, ix - 1);
+                            const float lastFrequency = displayData[ix - 1];
+                            if (dataFrequency > lastFrequency) {
+                                samples.push_back(QPointF(startValue, lastFrequency));
+                                samples.push_back(QPointF(startValue, dataFrequency));
+                            }
+                        }
+                        
+                        /*
+                         * Horizontal Bar
+                         */
+                        samples.push_back(QPointF(startValue, dataFrequency));
                         samples.push_back(QPointF(stopValue, dataFrequency));
-                        samples.push_back(QPointF(stopValue, 0.0));
-                    }
-                    else {
-                        CaretAssertVectorIndex(displayData, ix + 1);
-                        const float nextFrequency = displayData[ix + 1];
-                        if (dataFrequency > nextFrequency) {
+                        
+                        /*
+                         * Right side
+                         */
+                        if (ix == lastIndex) {
                             samples.push_back(QPointF(stopValue, dataFrequency));
-                            samples.push_back(QPointF(stopValue, nextFrequency));
+                            samples.push_back(QPointF(stopValue, 0.0));
+                        }
+                        else {
+                            CaretAssertVectorIndex(displayData, ix + 1);
+                            const float nextFrequency = displayData[ix + 1];
+                            if (dataFrequency > nextFrequency) {
+                                samples.push_back(QPointF(stopValue, dataFrequency));
+                                samples.push_back(QPointF(stopValue, nextFrequency));
+                            }
                         }
                     }
                     
-                    break;
+                    curve->setSamples(samples);
+                    
+                    curve->attach(this->thresholdPlot);
+                    
+                    if (ix == 0) {
+                        z = curve->z();
+                    }
+                }
+                
             }
-
-            curve->setSamples(samples);
             
-            curve->attach(this->thresholdPlot);
-            
-            if (ix == 0) {
-                z = curve->z();
-            }
+            z--;
         }
-        
-        z = z - 1;
+
+        z--;
         
         if ((numHistogramValues > 2) 
             && (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF)) {
@@ -2314,7 +2341,8 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     this->paletteColorMapping->setInterpolatePaletteFlag(this->interpolateColorsCheckBox->isChecked());
     
     this->paletteColorMapping->setHistogramColor(m_histogramColorComboBox->getSelectedColor());
-    this->paletteColorMapping->setHistogramChartType(m_histogramChartTypeComboBox->getSelectedItem<PaletteHistogramChartTypeEnum, PaletteHistogramChartTypeEnum::Enum>());
+    this->paletteColorMapping->setHistogramBarsVisible(m_histogramBarsVisibleCheckBox->isChecked());
+    this->paletteColorMapping->setHistogramEnvelopeVisible(m_histogramEnvelopeVisibleCheckBox->isChecked());
     this->paletteColorMapping->setHistogramRangeMode(m_histogramHorizontalRangeComboBox->getSelectedItem<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>());
     switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
         case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:

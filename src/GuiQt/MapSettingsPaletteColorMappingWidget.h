@@ -201,8 +201,10 @@ namespace caret {
         
         CaretColorEnumComboBox* m_histogramColorComboBox;
         
-        EnumComboBoxTemplate* m_histogramChartTypeComboBox;
+        QCheckBox* m_histogramBarsVisibleCheckBox;
         
+        QCheckBox* m_histogramEnvelopeVisibleCheckBox;
+
         QSpinBox* m_histogramBucketsSpinBox;
         
         CaretMappableDataFile* caretMappableDataFile;
