@@ -171,6 +171,10 @@ namespace caret {
         
         void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
+        bool hasCiftiXML() const;
+        
+        const CiftiXML getCiftiXML() const;
+        
         // ADD_NEW_METHODS_HERE
         
     private:

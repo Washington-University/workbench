@@ -28,6 +28,7 @@
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CiftiXML.h"
 #include "DataFileContentInformation.h"
 #include "FastStatistics.h"
 #include "FileInformation.h"
@@ -1053,5 +1054,13 @@ CaretMappableDataFile::isMappedWithRGBA() const
     return false;
 }
 
+bool CaretMappableDataFile::hasCiftiXML() const
+{
+    return false;
+}
 
+const CiftiXML CaretMappableDataFile::getCiftiXML() const
+{
+    return CiftiXML();
+}
 

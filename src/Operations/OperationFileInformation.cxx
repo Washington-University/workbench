@@ -27,6 +27,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPointer.h"
 #include "CiftiMappableDataFile.h"
+#include "CiftiXML.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
 #include "GiftiMetaData.h"
@@ -81,6 +82,8 @@ OperationFileInformation::getParameters()
     OptionalParameter* mdKeyOpt = metadataOpt->createOptionalParameter(1, "-key", "only print the metadata for one key, with no formatting");
     mdKeyOpt->addStringParameter(1, "key", "the metadata key");
     
+    ret->createOptionalParameter(7, "-only-cifti-xml", "suppress normal output, print the cifti xml if the file type has it");
+    
     AString helpText("List information about the content of a data file.  "
                      "Only one -only option may be specified.  "
                      "The information listed when no -only option is present is dependent upon the type of data file.");
@@ -129,6 +132,9 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
             }
         }
     }
+    
+    bool onlyCiftiXML = myParams->getOptionalParameter(7)->m_present;
+    if (onlyCiftiXML) ++countOnlys;
     
     if (countOnlys > 1) throw OperationException("only one -only-* option may be specified");
     
@@ -183,6 +189,15 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
                 throw OperationException("specified metadata key is not present in the file");
             }
             cout << myMD->get(mdKey) << endl;
+        }
+    }
+    if (onlyCiftiXML)
+    {
+        CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile.getPointer());
+        if (mappableFile != NULL && mappableFile->hasCiftiXML())
+        {
+            const CiftiXML& myXML = mappableFile->getCiftiXML();
+            cout << myXML.writeXMLToString(myXML.getParsedVersion()) << endl;
         }
     }
     if (countOnlys == 0)

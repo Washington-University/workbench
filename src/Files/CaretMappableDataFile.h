@@ -31,6 +31,7 @@
 namespace caret {
 
     class ChartDataCartesian;
+    class CiftiXML;
     class FastStatistics;
     class GiftiMetaData;
     class GiftiLabelTable;
@@ -435,6 +436,17 @@ namespace caret {
         
         /* documented in cxx file. */
         virtual bool isModifiedPaletteColorMapping() const;
+        
+        /**
+         * Check whether the file contains Cifti XML (all cifti types and also wbsparse have it)
+         */
+        virtual bool hasCiftiXML() const;
+        
+        /**
+         * Get the Cifti XML, if the file has it
+         * This could be faster if it returned a reference, but then it would have to throw when there is no xml object
+         */
+        virtual const CiftiXML getCiftiXML() const;
         
         /* documented in cxx file. */
         bool isModified() const;

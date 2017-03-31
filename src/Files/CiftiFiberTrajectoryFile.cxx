@@ -1903,3 +1903,16 @@ CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInforma
 
 }
 
+bool CiftiFiberTrajectoryFile::hasCiftiXML() const
+{
+    return true;
+}
+
+const CiftiXML CiftiFiberTrajectoryFile::getCiftiXML() const
+{
+    if (m_sparseFile != NULL)
+    {
+        return m_sparseFile->getCiftiXML();
+    }
+    return CiftiXML();
+}

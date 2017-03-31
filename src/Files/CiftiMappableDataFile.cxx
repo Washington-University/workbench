@@ -6896,3 +6896,16 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
     m_rgbaValid = true;
 }
 
+bool CiftiMappableDataFile::hasCiftiXML() const
+{
+    return true;
+}
+
+const CiftiXML CiftiMappableDataFile::getCiftiXML() const
+{
+    if (m_ciftiFile != NULL)
+    {
+        return m_ciftiFile->getCiftiXML();
+    }
+    return CiftiXML();
+}

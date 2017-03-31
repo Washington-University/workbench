@@ -450,6 +450,10 @@ namespace caret {
                                           int64_t voxelIJKOut[3],
                                           float voxelXYZOut[3],
                                           bool& voxelValidOut) const;
+                                          
+        bool hasCiftiXML() const;
+        
+        const CiftiXML getCiftiXML() const;
         
     private:
         
