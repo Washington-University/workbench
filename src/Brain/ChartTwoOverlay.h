@@ -154,6 +154,8 @@ namespace caret {
                                      SelectedIndexType& selectedIndexTypeOut,
                                      int32_t& selectedIndexOut) const;
         
+        bool isMapYokingSupportedPrivate(const CaretMappableDataFile* mapFile) const;
+        
         void validateCartesianVerticalAxisLocation() const;
         
         /** Parent chart overlay set (only used by first overlay in the set */

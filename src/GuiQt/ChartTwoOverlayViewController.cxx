@@ -171,7 +171,6 @@ m_chartOverlay(NULL)
     QPixmap historyPixmap = createHistoryPixmap(m_historyToolButton);
     m_historyAction->setIcon(historyPixmap);
     m_historyToolButton->setDefaultAction(m_historyAction);
-    //m_historyToolButton->setIconSize(historyPixmap.size());
     
     /*
      * Matrix triangular view mode button
@@ -248,8 +247,6 @@ m_chartOverlay(NULL)
     m_mapRowOrColumnIndexSpinBox->setToolTip("Select map/row/column by its index");
     m_mapRowOrColumnIndexSpinBox->setRange(1, 9999); // fix size for 4 digits
     m_mapRowOrColumnIndexSpinBox->setFixedSize(m_mapRowOrColumnIndexSpinBox->sizeHint());
-//    m_mapRowOrColumnIndexSpinBox->setSizePolicy(QSizePolicy::Fixed,
-//                                                QSizePolicy::Fixed);
     m_mapRowOrColumnIndexSpinBox->setRange(1, 1);
     m_mapRowOrColumnIndexSpinBox->setValue(1);
     
@@ -317,26 +314,10 @@ ChartTwoOverlayViewController::fileComboBoxSelected(int indx)
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
     m_chartOverlay->setSelectionData(file, -1);
     
-    // DO NOT DO HERE validateYokingSelection();
-    
-    //validateYokingSelection(overlay->getYokingGroup());
-    // not needed with call to validateYokingSelection: this->updateViewController(this->overlay);
-    
-    // called inside validateYokingSelection();  this->updateUserInterfaceAndGraphicsWindow();
-    
     updateViewController(m_chartOverlay);
     m_mapRowOrColumnYokingGroupComboBox->validateYokingChange(m_chartOverlay);
     updateUserInterfaceAndGraphicsWindow();
     updateOverlaySettingsEditor();
-    
-//    if (file != NULL) {
-//        if (file->isVolumeMappable()) {
-//            /*
-//             * Need to update slice indices/coords in toolbar.
-//             */
-//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBar().getPointer());
-//        }
-//    }
 }
 
 /**
@@ -512,7 +493,6 @@ ChartTwoOverlayViewController::validateYokingSelection()
     m_mapRowOrColumnYokingGroupComboBox->validateYokingChange(m_chartOverlay);
     updateViewController(m_chartOverlay);
     updateUserInterfaceAndGraphicsWindow();
-    //EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -733,8 +713,8 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_mapRowOrColumnYokingGroupComboBox->getWidget()->setEnabled(false);
     m_mapRowOrColumnYokingGroupComboBox->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
     if (validOverlayAndFileFlag) {
-        m_mapRowOrColumnYokingGroupComboBox->getWidget()->setEnabled(true);
         if (m_chartOverlay->isMapYokingSupported()) {
+            m_mapRowOrColumnYokingGroupComboBox->getWidget()->setEnabled(true);
             m_mapRowOrColumnYokingGroupComboBox->setMapYokingGroup(m_chartOverlay->getMapYokingGroup());
         }
     }
@@ -901,8 +881,13 @@ ChartTwoOverlayViewController::updateUserInterface()
 void
 ChartTwoOverlayViewController::updateGraphicsWindow()
 {
-    //EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    if (m_chartOverlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+    else {
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    }
 }
 
 /**

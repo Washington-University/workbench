@@ -24,9 +24,12 @@
 #undef __CHART_TWO_OVERLAY_SET_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretMappableDataFile.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
 #include "EventManager.h"
+#include "EventMapYokingSelectMap.h"
+#include "EventMapYokingValidation.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -111,8 +114,8 @@ m_tabIndex(tabIndex)
                                          m_chartDataType,
                                          i);
     }
-//    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
-//    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
 }
 
 /**
@@ -200,10 +203,6 @@ ChartTwoOverlaySet::getDescriptionOfContent(PlainTextStringBuilder& descriptionO
     for (int32_t i = 0; i < numOverlays; i++) {
         if (getOverlay(i)->isEnabled()) {
             descriptionOut.pushIndentation();
-            
-//            descriptionOut.addLine("Overlay "
-//                                   + AString::number(i + 1)
-//                                   + ": ");
             
             descriptionOut.pushIndentation();
             getOverlay(i)->getDescriptionOfContent(descriptionOut);
@@ -369,141 +368,10 @@ ChartTwoOverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
 void
 ChartTwoOverlaySet::initializeOverlays()
 {
-//    bool isMatchToVolumeUnderlay = false;
-//    bool isMatchToVolumeOverlays = false;
-//    
-//    switch (m_includeVolumeFiles) {
-//        case Overlay::INCLUDE_VOLUME_FILES_NO:
-//            break;
-//        case Overlay::INCLUDE_VOLUME_FILES_YES:
-//            /*
-//             * If no surface structures, then it must be volume slice view
-//             * so allow volumes to be in the overlays.
-//             */
-//            if (m_includeSurfaceStructures.empty()) {
-//                isMatchToVolumeOverlays = true;
-//            }
-//            isMatchToVolumeUnderlay = true;
-//            break;
-//    }
-//    
-//    /*
-//     * Underlays consist of anatomical type data
-//     */
-//    std::vector<CaretMappableDataFile*> underlayMapFiles;
-//    std::vector<int32_t> underlayMapIndices;
-//    findUnderlayFiles(m_includeSurfaceStructures,
-//                      isMatchToVolumeUnderlay,
-//                      underlayMapFiles,
-//                      underlayMapIndices);
-//    
-//    /*
-//     * Middle layers are Cifti labels or Gifti Labels
-//     * that do not contain shape data
-//     */
-//    std::vector<CaretMappableDataFile*> middleLayerMapFiles;
-//    std::vector<int32_t> middleLayerMapIndices;
-//    findMiddleLayerFiles(m_includeSurfaceStructures,
-//                         isMatchToVolumeOverlays,
-//                         middleLayerMapFiles,
-//                         middleLayerMapIndices);
-//    
-//    /*
-//     * Overlays consist of Cifti scalars or Gifti Metric
-//     */
-//    std::vector<CaretMappableDataFile*> overlayMapFiles;
-//    std::vector<int32_t> overlayMapIndices;
-//    findOverlayFiles(m_includeSurfaceStructures,
-//                     isMatchToVolumeOverlays,
-//                     overlayMapFiles,
-//                     overlayMapIndices);
-//    
-//    const int32_t numberOfUnderlayFiles = static_cast<int32_t>(underlayMapFiles.size());
-//    
-//    /*
-//     * Number of overlay that are displayed.
-//     */
-//    const int32_t numberOfDisplayedOverlays = getNumberOfDisplayedOverlays();
-//    
-//    
-//    /*
-//     * Track overlay that were initialized
-//     */
-//    std::vector<bool> overlayInitializedFlag(numberOfDisplayedOverlays,
-//                                             false);
-//    
-//    /*
-//     * Put in the shape files at the bottom
-//     * Note that highest overlay index is bottom
-//     */
-//    int32_t overlayIndexForUnderlay = (numberOfDisplayedOverlays - 1);
-//    for (int32_t underlayFileIndex = 0; underlayFileIndex < numberOfUnderlayFiles; underlayFileIndex++) {
-//        if (overlayIndexForUnderlay >= 0) {
-//            Overlay* overlay = getOverlay(overlayIndexForUnderlay);
-//            overlay->setSelectionData(underlayMapFiles[underlayFileIndex],
-//                                      underlayMapIndices[underlayFileIndex]);
-//            overlayInitializedFlag[overlayIndexForUnderlay] = true;
-//            overlayIndexForUnderlay--;
-//        }
-//        else {
-//            break;
-//        }
-//    }
-//    
-//    /*
-//     * Combine overlay and middle layer files
-//     */
-//    std::vector<CaretMappableDataFile*> upperLayerFiles;
-//    std::vector<int32_t> upperLayerIndices;
-//    upperLayerFiles.insert(upperLayerFiles.end(),
-//                           overlayMapFiles.begin(),
-//                           overlayMapFiles.end());
-//    upperLayerIndices.insert(upperLayerIndices.end(),
-//                             overlayMapIndices.begin(),
-//                             overlayMapIndices.end());
-//    upperLayerFiles.insert(upperLayerFiles.end(),
-//                           middleLayerMapFiles.begin(),
-//                           middleLayerMapFiles.end());
-//    upperLayerIndices.insert(upperLayerIndices.end(),
-//                             middleLayerMapIndices.begin(),
-//                             middleLayerMapIndices.end());
-//    CaretAssert(upperLayerFiles.size() == upperLayerIndices.size());
-//    
-//    const int32_t numberOfUpperFiles = static_cast<int32_t>(upperLayerFiles.size());
-//    
-//    /*
-//     * Put in overlay and middle layer files
-//     */
-//    for (int32_t upperFileIndex = 0; upperFileIndex < numberOfUpperFiles; upperFileIndex++) {
-//        /*
-//         * Find available overlay
-//         */
-//        int32_t upperLayerOverlayIndex = -1;
-//        for (int32_t overlayIndex = 0; overlayIndex < numberOfDisplayedOverlays; overlayIndex++) {
-//            if (overlayInitializedFlag[overlayIndex] == false) {
-//                upperLayerOverlayIndex = overlayIndex;
-//                break;
-//            }
-//        }
-//        
-//        if (upperLayerOverlayIndex >= 0) {
-//            Overlay* upperLayerOverlay = getOverlay(upperLayerOverlayIndex);
-//            upperLayerOverlay->setSelectionData(upperLayerFiles[upperFileIndex],
-//                                                upperLayerIndices[upperFileIndex]);
-//            overlayInitializedFlag[upperLayerOverlayIndex] = true;
-//        }
-//        else {
-//            break;
-//        }
-//    }
-//    
-//    /*
-//     * Disable overlays that were not initialized
-//     */
-//    for (int32_t i = 0; i < numberOfDisplayedOverlays; i++) {
-//        CaretAssertVectorIndex(overlayInitializedFlag, i);
-//        getOverlay(i)->setEnabled(overlayInitializedFlag[i]);
-//    }
+    /*
+     * This method could be used to choose specific file types
+     * for the default overlays similar to that in OverlaySet.cxx.
+     */
 }
 
 /**
@@ -521,26 +389,14 @@ ChartTwoOverlaySet::firstOverlaySelectionChanged()
     m_inFirstOverlayChangedMethodFlag = true;
     
     ChartTwoCompoundDataType cdt = m_overlays[0]->getChartTwoCompoundDataType();
-
-    
-    
-    
-//    std::cout << qPrintable("First Chart Overlay in tab "
-//                            + AString::number(m_tabIndex + 1)
-//                            + ":\n"
-//                            +  cdt.toString()) << std::endl;
     
     for (int32_t i = 1; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
         m_overlays[i]->setChartTwoCompoundDataType(cdt);
-//        if (m_overlays[i]->isEnabled()) {
-//            std::cout << "   Overlay " << i << qPrintable(m_overlays[i]->toString()) << std::endl;
-//        }
     }
     
     PlainTextStringBuilder description;
     getDescriptionOfContent(description);
-    //std::cout << "First Overlay Changed: " << qPrintable(description.getText()) << std::endl;
     
     m_inFirstOverlayChangedMethodFlag = false;
 }
@@ -577,12 +433,88 @@ ChartTwoOverlaySet::toString() const
 void
 ChartTwoOverlaySet::receiveEvent(Event* event)
 {
-//    if (event->getEventType() == EventTypeEnum::) {
-//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-//        CaretAssert(eventName);
-//
-//        event->setEventProcessed();
-//    }
+    if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
+        /*
+         * The events intended for overlays are received here so that
+         * only DISPLAYED overlays are updated.
+         */
+        EventMapYokingValidation* mapYokeEvent = dynamic_cast<EventMapYokingValidation*>(event);
+        CaretAssert(mapYokeEvent);
+        
+        const MapYokingGroupEnum::Enum requestedYokingGroup = mapYokeEvent->getMapYokingGroup();
+        if (requestedYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            
+            /*
+             * Find all overlays with the requested yoking
+             */
+            const int32_t overlayCount = getNumberOfDisplayedOverlays();
+            for (int32_t j = 0; j < overlayCount; j++) {
+                ChartTwoOverlay* overlay = getOverlay(j);
+                if (overlay->isMapYokingSupported()) {
+                    CaretMappableDataFile* mapFile = NULL;
+                    ChartTwoOverlay::SelectedIndexType indexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+                    int32_t mapIndex = -1;
+                    overlay->getSelectionData(mapFile,
+                                              indexType,
+                                              mapIndex);
+                    if (mapFile != NULL) {
+                        if (overlay->isMapYokingSupported()) {
+                            mapYokeEvent->addMapYokedFile(mapFile, overlay->getMapYokingGroup(), m_tabIndex);
+                        }
+                    }
+                }
+            }
+        }
+        
+        mapYokeEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP) {
+        /*
+         * The events intended for overlays are received here so that
+         * only DISPLAYED overlays are updated.
+         */
+        EventMapYokingSelectMap* selectMapEvent = dynamic_cast<EventMapYokingSelectMap*>(event);
+        CaretAssert(selectMapEvent);
+        const MapYokingGroupEnum::Enum eventYokingGroup = selectMapEvent->getMapYokingGroup();
+        if (eventYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            const int32_t yokingGroupMapIndex = MapYokingGroupEnum::getSelectedMapIndex(eventYokingGroup);
+            const bool yokingGroupSelectedStatus = MapYokingGroupEnum::isEnabled(eventYokingGroup);
+            const CaretMappableDataFile* eventMapFile = selectMapEvent->getCaretMappableDataFile();
+            
+            /*
+             * Find all overlays with the requested yoking
+             */
+            const int32_t overlayCount = getNumberOfDisplayedOverlays();
+            for (int32_t j = 0; j < overlayCount; j++) {
+                ChartTwoOverlay* overlay = getOverlay(j);
+                if (overlay->isMapYokingSupported()) {
+                    if (overlay->getMapYokingGroup() == selectMapEvent->getMapYokingGroup()) {
+                        CaretMappableDataFile* mapFile = NULL;
+                        ChartTwoOverlay::SelectedIndexType indexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+                        int32_t mapIndex = -1;
+                        overlay->getSelectionData(mapFile,
+                                                  indexType,
+                                                  mapIndex);
+                        
+                        if (mapFile != NULL) {
+                            if (overlay->isMapYokingSupported()) {
+                                if (yokingGroupMapIndex < mapFile->getNumberOfMaps()) {
+                                    overlay->setSelectionData(mapFile,
+                                                              yokingGroupMapIndex);
+                                }
+                                
+                                if (mapFile == eventMapFile) {
+                                    overlay->setEnabled(yokingGroupSelectedStatus);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            selectMapEvent->setEventProcessed();
+        }
+    }
 }
 
 /**

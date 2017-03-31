@@ -113,7 +113,6 @@ ChartableTwoFileHistogramChart::isValid() const
 bool
 ChartableTwoFileHistogramChart::isEmpty() const
 {
-    CaretAssertToDoWarning();
     return false;
 }
 

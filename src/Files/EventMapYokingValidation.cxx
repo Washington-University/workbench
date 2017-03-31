@@ -220,7 +220,7 @@ m_tabIndex(tabIndex)
     
     m_infoText = (AString::number(m_numberOfMaps)
                   + " maps in tab "
-                  + AString::number(tabIndex)
+                  + AString::number(tabIndex + 1)
                   + " file: "
                   + caretMapFile->getFileNameNoPath());
 }

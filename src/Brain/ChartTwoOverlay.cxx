@@ -69,7 +69,6 @@ m_overlayIndex(overlayIndex)
 {
     CaretAssert(m_parentChartTwoOverlaySet);
     
-   // m_chartCompoundDataType
     m_name = "Overlay " + AString::number(overlayIndex + 1);
     m_enabled = (m_overlayIndex == 0);
     m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
@@ -329,10 +328,36 @@ ChartTwoOverlay::isHistorySupported() const
 }
 
 /**
- * Is map yoking supported ?
+ * @return Is map yoking supported ?
+ * 
+ * NOTE: Within this class, do not use this method.
+ * Instead, use isMapYokingSupportedPrivate().
  */
 bool
 ChartTwoOverlay::isMapYokingSupported() const
+{
+    CaretMappableDataFile* mapFile = NULL;
+    SelectedIndexType indexType = SelectedIndexType::INVALID;
+    int32_t mapIndex = -1;
+    getSelectionData(mapFile, indexType, mapIndex);
+
+    return isMapYokingSupportedPrivate(mapFile);
+}
+
+/**
+ * Is map yoking supported for the given map file?
+ * This is a private method and used within this class.
+ * as use of the public method could cause stack
+ * overlow by use of isMapYokingSupported() and
+ * getSelectionData().
+ *
+ * @param mapFile
+ *     The map file.  A NULL value is allowed.
+ * @return 
+ *     True if map yoking is supported, else false.
+ */
+bool
+ChartTwoOverlay::isMapYokingSupportedPrivate(const CaretMappableDataFile* mapFile) const
 {
     bool supportedFlag = false;
     
@@ -348,7 +373,21 @@ ChartTwoOverlay::isMapYokingSupported() const
             supportedFlag = true;
             break;
     }
-    return true;
+    
+    if (supportedFlag) {
+        supportedFlag = false;
+        
+        if (mapFile != NULL) {
+            if (mapFile->getNumberOfMaps() > 1) {
+                if (mapFile->isSurfaceMappable()
+                    || mapFile->isVolumeMappable()) {
+                    supportedFlag = true;
+                }
+            }
+        }
+    }
+    
+    return supportedFlag;
 }
 
 /**
@@ -660,9 +699,6 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                         }
                         break;
                 }
-                
-                
-                
             }
                 break;
         }
@@ -682,6 +718,12 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
         }
         CaretAssert(m_parentChartTwoOverlaySet);
         m_parentChartTwoOverlaySet->firstOverlaySelectionChanged();
+    }
+    
+    if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        if ( ! isMapYokingSupportedPrivate(m_selectedMapFile)) {
+            m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+        }
     }
 }
 
@@ -725,13 +767,6 @@ ChartTwoOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
             if (m_selectedMapFile == NULL) {
                 m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
             }
-            //        if (selectedMapFile != NULL) {
-            //            MapYokingGroupEnum::setSelectedMapIndex(m_mapYokingGroup,
-            //                                                        selectedMapIndex);
-            //        }
-            //        else {
-            //            m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
-            //        }
         }
     }
     
@@ -749,18 +784,6 @@ ChartTwoOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
                      selectedIndex);
 }
 
-/*
- switch (m_chartDataType) {
- case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
- break;
- case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
- break;
- case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
- break;
- case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
- break;
- }
- */
 /**
  * @return Is the all maps  supported?
  */
@@ -1021,7 +1044,8 @@ ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);    
+                                     sceneClass);
+    const MapYokingGroupEnum::Enum mapYokingGroupFromScene = m_mapYokingGroup;
     
     /*
      * Making a call to getSelectionData() to get the availble
@@ -1193,6 +1217,18 @@ ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
+    if (mapYokingGroupFromScene != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        /*
+         * Need to update selections and then apply yoking as 
+         * yoking is cleared when the the previous file
+         * was not found.
+         */
+        CaretMappableDataFile* mapFile = NULL;
+        SelectedIndexType indexType = SelectedIndexType::INVALID;
+        int32_t mapIndex = -1;
+        getSelectionData(mapFile, indexType, mapIndex);
+        setMapYokingGroup(mapYokingGroupFromScene);
+    }
     
     
     
