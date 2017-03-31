@@ -776,7 +776,153 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
             }
         }
         
-        if (drawHistogramEnvelopeFlag) {
+        const bool smoothFlag = true;
+        
+        if (drawHistogramEnvelopeFlag
+            && smoothFlag) {
+            /*
+             * Reserve to prevent reszing of vectors
+             * as elements are added.
+             */
+            const int32_t verticesPerBar = 2;
+            const int32_t totalVertices  = verticesPerBar * numValues + 4;
+            quadVerticesXYZ.reserve(totalVertices * 3);
+            quadVerticesFloatRGBA.reserve(totalVertices * 4);
+            quadVerticesByteRGBA.reserve(totalVertices * 4);
+            
+            const float z = 0.0;
+            
+            const int32_t lastValueIndex = numValues - 1;
+            for (int32_t i = 0; i < numValues; i++) {
+                CaretAssertVectorIndex(xValues, i + 1);
+                float left   = xValues[i];
+                float right  = xValues[i + 1];
+                CaretAssert(right >= left);
+                float bottom = 0;
+                CaretAssertVectorIndex(yValues, i + 1);
+                float topLeft = yValues[i];
+                float topRight = yValues[i+1];
+                
+                uint8_t idRGBA[4];
+                if (m_identificationModeFlag) {
+                    addToHistogramIdentification(mapIndex, i, idRGBA);
+                }
+                if (i == 0) {
+                    quadVerticesXYZ.push_back(left);
+                    quadVerticesXYZ.push_back(bottom);
+                    quadVerticesXYZ.push_back(z);
+                    if (m_identificationModeFlag) {
+                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                    idRGBA, idRGBA + 4);
+                    }
+                    else {
+                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
+                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                    }
+                    
+                    quadVerticesXYZ.push_back(left);
+                    quadVerticesXYZ.push_back(topLeft);
+                    quadVerticesXYZ.push_back(z);
+                    if (m_identificationModeFlag) {
+                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                    idRGBA, idRGBA + 4);
+                    }
+                    else {
+                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
+                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                    }
+                }
+                
+                quadVerticesXYZ.push_back((left + right) / 2.0);
+                quadVerticesXYZ.push_back(topLeft);
+                quadVerticesXYZ.push_back(z);
+                if (m_identificationModeFlag) {
+                    quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                idRGBA, idRGBA + 4);
+                }
+                else {
+                    quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                 m_fixedPipelineDrawing->m_foregroundColorFloat,
+                                                 m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                }
+//                quadVerticesXYZ.push_back(left);
+//                quadVerticesXYZ.push_back(topLeft);
+//                quadVerticesXYZ.push_back(z);
+//                if (m_identificationModeFlag) {
+//                    quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+//                                                idRGBA, idRGBA + 4);
+//                }
+//                else {
+//                    quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+//                                                 m_fixedPipelineDrawing->m_foregroundColorFloat,
+//                                                 m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+//                }
+//                
+//                quadVerticesXYZ.push_back(right);
+//                quadVerticesXYZ.push_back(topRight);
+//                quadVerticesXYZ.push_back(z);
+//                if (m_identificationModeFlag) {
+//                    quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+//                                                idRGBA, idRGBA + 4);
+//                }
+//                else {
+//                    quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+//                                                 m_fixedPipelineDrawing->m_foregroundColorFloat,
+//                                                 m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+//                }
+                
+                if (i == lastValueIndex) {
+                    quadVerticesXYZ.push_back(right);
+                    quadVerticesXYZ.push_back(topRight);
+                    quadVerticesXYZ.push_back(z);
+                    if (m_identificationModeFlag) {
+                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                    idRGBA, idRGBA + 4);
+                    }
+                    else {
+                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
+                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                    }
+
+                    quadVerticesXYZ.push_back(right);
+                    quadVerticesXYZ.push_back(bottom);
+                    quadVerticesXYZ.push_back(z);
+                    if (m_identificationModeFlag) {
+                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
+                                                    idRGBA, idRGBA + 4);
+                    }
+                    else {
+                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
+                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
+                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                    }
+                }
+            }
+            
+            /*
+             * Draw the elements.
+             */
+            if (m_identificationModeFlag) {
+                CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
+                
+                const float lineWidth = 5.0;
+                BrainOpenGLPrimitiveDrawing::drawLineStrip(quadVerticesXYZ,
+                                                       quadVerticesByteRGBA,
+                                                       lineWidth);
+            }
+            else {
+                CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
+                
+                const float lineWidth = 2.0;
+                BrainOpenGLPrimitiveDrawing::drawLineStrip(quadVerticesXYZ,
+                                                       quadVerticesFloatRGBA,
+                                                       lineWidth);
+            }
+        }
+        else if (drawHistogramEnvelopeFlag) {
             /*
              * Reserve to prevent reszing of vectors
              * as elements are added.

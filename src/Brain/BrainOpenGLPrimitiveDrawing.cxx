@@ -782,6 +782,61 @@ BrainOpenGLPrimitiveDrawing::drawLines(const std::vector<float>& coordinates,
 }
 
 /**
+ * Draw a line between each pair of three-dimensional coordinates in the given color
+ * with optional normal vectors.
+ *
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param rgba
+ *     RGBA Colors [0.0, 1.0] for each vertex.
+ * @param lineWidth
+ *     Line width used by line drawing modes.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawLineStrip(const std::vector<float>& coordinates,
+                                       const std::vector<float>& rgbaColors,
+                                       const float lineWidth)
+{
+    std::vector<float> emptyNormals;
+    
+    std::vector<uint8_t> rgbaBytes;
+    rgbaBytes.reserve(rgbaColors.size());
+    for (const float component : rgbaColors) {
+        rgbaBytes.push_back(static_cast<uint8_t>(component * 255.0));
+    }
+    
+    drawPrimitiveWithVertexArrays(GL_LINE_STRIP,
+                                  coordinates,
+                                  emptyNormals,
+                                  rgbaBytes,
+                                  lineWidth);
+}
+
+/**
+ * Draw a line between each pair of three-dimensional coordinates in the given color
+ * with optional normal vectors.
+ *
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param rgba
+ *     RGBA Colors [0, 255] for each vertex.
+ * @param lineWidth
+ *     Line width used by line drawing modes.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawLineStrip(const std::vector<float>& coordinates,
+                                       const std::vector<uint8_t>& rgbaColors,
+                                       const float lineWidth)
+{
+    std::vector<float> emptyNormals;
+    drawPrimitiveWithVertexArrays(GL_LINE_STRIP,
+                                  coordinates,
+                                  emptyNormals,
+                                  rgbaColors,
+                                  lineWidth);
+}
+
+/**
  * Draw a line strip with the given coordinates in the given color
  * with optional normal vectors.
  *

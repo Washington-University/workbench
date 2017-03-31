@@ -82,6 +82,14 @@ namespace caret {
                               const uint8_t rgba[4],
                               const float lineWidth);
         
+        static void drawLineStrip(const std::vector<float>& coordinates,
+                              const std::vector<float>& rgbaColors,
+                              const float lineWidth);
+        
+        static void drawLineStrip(const std::vector<float>& coordinates,
+                              const std::vector<uint8_t>& rgbaColors,
+                              const float lineWidth);
+        
         static void drawPolygon(const std::vector<float>& coordinates,
                                 const std::vector<float>& normals,
                                 const float rgba[4]);
