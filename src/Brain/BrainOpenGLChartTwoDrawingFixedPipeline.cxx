@@ -281,7 +281,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
     const ChartTwoCompoundDataType cdt = topOverlay->getChartTwoCompoundDataType();
     CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
     
-    std::vector<HistogramChartDrawingInfo*> drawingInfo;
+    std::vector<std::unique_ptr<HistogramChartDrawingInfo>> drawingInfo;
     
     /*
      * Get the histogram drawing information and overall extent
@@ -320,10 +320,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                                                     false,
                                                     *histogramDrawingInfo,
                                                     errorMessage)) {
-                drawingInfo.push_back(new HistogramChartDrawingInfo(histogramDrawingInfo,
-                                                                    histogramChart,
-                                                                    selectedIndex,
-                                                                    chartOverlay->getCartesianVerticalAxisLocation()));
+                drawingInfo.push_back(std::unique_ptr<HistogramChartDrawingInfo>(new HistogramChartDrawingInfo(histogramDrawingInfo,
+                                                                                                               histogramChart,
+                                                                                                               selectedIndex,
+                                                                                                               chartOverlay->getCartesianVerticalAxisLocation())));
                 
                 float bounds[4];
                 if (histogramDrawingInfo->getBounds(bounds)) {
@@ -550,7 +550,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                                          0.0);
                         }
                         
-                        drawHistogramChartContent(drawInfo,
+                        drawHistogramChartContent(drawInfo.get(),
                                                   drawBarsFlag,
                                                   drawEnvelopeFlag);
                     }
