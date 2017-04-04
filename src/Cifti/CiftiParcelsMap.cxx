@@ -20,7 +20,7 @@
 
 #include "CiftiParcelsMap.h"
 
-#include "CaretException.h"
+#include "DataFileException.h"
 #include "CaretLogger.h"
 
 #include <QStringList>
@@ -36,7 +36,7 @@ void CiftiParcelsMap::addParcel(const CiftiParcelsMap::Parcel& parcel)
     {
         if (parcel.m_name == m_parcels[i].m_name)
         {
-            throw CaretException("cannot add parcel with duplicate name '" + parcel.m_name + "'");//NOTE: technically this restriction isn't in the standard, but that was probably an oversight
+            throw DataFileException("cannot add parcel with duplicate name '" + parcel.m_name + "'");//NOTE: technically this restriction isn't in the standard, but that was probably an oversight
         }
     }
     int64_t voxelListSize = (int64_t)parcel.m_voxelIndices.size();
@@ -48,7 +48,7 @@ void CiftiParcelsMap::addParcel(const CiftiParcelsMap::Parcel& parcel)
         {
             if (!m_haveVolumeSpace)
             {
-                throw CaretException("you must set the volume space before adding parcels that use voxels");
+                throw DataFileException("you must set the volume space before adding parcels that use voxels");
             }
             dims = m_volSpace.getDims();
         }
@@ -56,17 +56,17 @@ void CiftiParcelsMap::addParcel(const CiftiParcelsMap::Parcel& parcel)
         {
             if (iter->m_ijk[0] < 0 || iter->m_ijk[1] < 0 || iter->m_ijk[2] < 0)
             {
-                throw CaretException("found negative index triple in voxel list");
+                throw DataFileException("found negative index triple in voxel list");
             }
             if (!m_ignoreVolSpace && (iter->m_ijk[0] >= dims[0] ||
                                       iter->m_ijk[1] >= dims[1] ||
                                       iter->m_ijk[2] >= dims[2]))
             {
-                throw CaretException("found invalid index triple in voxel list");
+                throw DataFileException("found invalid index triple in voxel list");
             }
             if (tempLookup.find(iter->m_ijk) != NULL)
             {
-                throw CaretException("parcels may not overlap in voxels");
+                throw DataFileException("parcels may not overlap in voxels");
             }
             tempLookup.at(iter->m_ijk) = thisParcel;
         }
@@ -76,26 +76,26 @@ void CiftiParcelsMap::addParcel(const CiftiParcelsMap::Parcel& parcel)
         map<StructureEnum::Enum, SurfaceInfo>::const_iterator info = m_surfInfo.find(iter->first);
         if (info == m_surfInfo.end())
         {
-            throw CaretException("you must set surfaces before adding parcels that use them");
+            throw DataFileException("you must set surfaces before adding parcels that use them");
         }
         const set<int64_t>& nodeSet = iter->second;
         if (nodeSet.size() == 0)
         {
-            throw CaretException("parcels may not include empty node lists");//NOTE: technically not required by Cifti, change if problematic, but probably never allow empty list in internal state
+            throw DataFileException("parcels may not include empty node lists");//NOTE: technically not required by Cifti, change if problematic, but probably never allow empty list in internal state
         }
         for (set<int64_t>::const_iterator iter2 = nodeSet.begin(); iter2 != nodeSet.end(); ++iter2)
         {
             if (*iter2 < 0)
             {
-                throw CaretException("found negative vertex in parcel");
+                throw DataFileException("found negative vertex in parcel");
             }
             if (*iter2 >= info->second.m_numNodes)
             {
-                throw CaretException("found invalid vertex in parcel");
+                throw DataFileException("found invalid vertex in parcel");
             }
             if (info->second.m_lookup[*iter2] != -1)
             {
-                throw CaretException("parcels may not overlap in vertices");
+                throw DataFileException("parcels may not overlap in vertices");
             }
         }
     }
@@ -122,7 +122,7 @@ void CiftiParcelsMap::addSurface(const int64_t& numberOfNodes, const StructureEn
     map<StructureEnum::Enum, SurfaceInfo>::const_iterator test = m_surfInfo.find(structure);
     if (test != m_surfInfo.end())
     {
-        throw CaretException("parcel surface structures may not be used more than once");
+        throw DataFileException("parcel surface structures may not be used more than once");
     }
     SurfaceInfo tempInfo;
     tempInfo.m_numNodes = numberOfNodes;
@@ -152,7 +152,7 @@ void CiftiParcelsMap::setVolumeSpace(const VolumeSpace& space)
                 iter->m_ijk[1] >= dims[1] ||
                 iter->m_ijk[2] >= dims[2])
             {
-                throw CaretException("parcels may not contain voxel indices outside the volume space");
+                throw DataFileException("parcels may not contain voxel indices outside the volume space");
             }
         }
     }
@@ -223,7 +223,7 @@ const VolumeSpace& CiftiParcelsMap::getVolumeSpace() const
     CaretAssert(!m_ignoreVolSpace);//this should never be set except during parsing of cifti-1
     if (!m_haveVolumeSpace)
     {
-        throw CaretException("getVolumeSpace called when no volume space exists");
+        throw DataFileException("getVolumeSpace called when no volume space exists");
     }
     return m_volSpace;
 }
@@ -384,32 +384,32 @@ void CiftiParcelsMap::readXML1(QXmlStreamReader& xml)
             QXmlStreamAttributes attrs = xml.attributes();
             if (!attrs.hasAttribute("BrainStructure"))
             {
-                throw CaretException("Surface element missing required attribute BrainStructure");
+                throw DataFileException("Surface element missing required attribute BrainStructure");
             }
             bool ok = false;
             StructureEnum::Enum tempStructure = StructureEnum::fromCiftiName(attrs.value("BrainStructure").toString(), &ok);
             if (!ok)
             {
-                throw CaretException("invalid value for BrainStructure: " + attrs.value("BrainStructure").toString());
+                throw DataFileException("invalid value for BrainStructure: " + attrs.value("BrainStructure").toString());
             }
             if (!attrs.hasAttribute("SurfaceNumberOfNodes"))
             {
-                throw CaretException("Surface element missing required attribute SurfaceNumberOfNodes");
+                throw DataFileException("Surface element missing required attribute SurfaceNumberOfNodes");
             }
             int64_t numNodes = attrs.value("SurfaceNumberOfNodes").toString().toLongLong(&ok);
             if (!ok || numNodes < 1)
             {
-                throw CaretException("invalid value for SurfaceNumberOfNodes: " + attrs.value("SurfaceNumberOfNodes").toString());
+                throw DataFileException("invalid value for SurfaceNumberOfNodes: " + attrs.value("SurfaceNumberOfNodes").toString());
             }
             addSurface(numNodes, tempStructure);//let the standard modification functions do error checking
             if (xml.readNextStartElement())
             {
-                throw CaretException("unexpected element inside Surface: " + xml.name().toString());
+                throw DataFileException("unexpected element inside Surface: " + xml.name().toString());
             }
         } else if (name == "Parcel") {
             myParcels.push_back(readParcel1(xml));
         } else {
-            throw CaretException("unexpected element in parcels map: " + name.toString());
+            throw DataFileException("unexpected element in parcels map: " + name.toString());
         }
     }
     int64_t numParcels = (int64_t)myParcels.size();
@@ -433,27 +433,27 @@ void CiftiParcelsMap::readXML2(QXmlStreamReader& xml)
             QXmlStreamAttributes attrs = xml.attributes();
             if (!attrs.hasAttribute("BrainStructure"))
             {
-                throw CaretException("Surface element missing required attribute BrainStructure");
+                throw DataFileException("Surface element missing required attribute BrainStructure");
             }
             bool ok = false;
             StructureEnum::Enum tempStructure = StructureEnum::fromCiftiName(attrs.value("BrainStructure").toString(), &ok);
             if (!ok)
             {
-                throw CaretException("invalid value for BrainStructure: " + attrs.value("BrainStructure").toString());
+                throw DataFileException("invalid value for BrainStructure: " + attrs.value("BrainStructure").toString());
             }
             if (!attrs.hasAttribute("SurfaceNumberOfVertices"))
             {
-                throw CaretException("Surface element missing required attribute SurfaceNumberOfVertices");
+                throw DataFileException("Surface element missing required attribute SurfaceNumberOfVertices");
             }
             int64_t numNodes = attrs.value("SurfaceNumberOfVertices").toString().toLongLong(&ok);
             if (!ok || numNodes < 1)
             {
-                throw CaretException("invalid value for SurfaceNumberOfVertices: " + attrs.value("SurfaceNumberOfVertices").toString());
+                throw DataFileException("invalid value for SurfaceNumberOfVertices: " + attrs.value("SurfaceNumberOfVertices").toString());
             }
             addSurface(numNodes, tempStructure);//let the standard modification functions do error checking
             if (xml.readNextStartElement())
             {
-                throw CaretException("unexpected element inside Surface: " + xml.name().toString());
+                throw DataFileException("unexpected element inside Surface: " + xml.name().toString());
             }
         } else if (name == "Parcel") {
             myParcels.push_back(readParcel2(xml));
@@ -461,14 +461,14 @@ void CiftiParcelsMap::readXML2(QXmlStreamReader& xml)
         } else if (name == "Volume") {
             if (m_haveVolumeSpace)
             {
-                throw CaretException("Volume specified more than once in Parcels mapping type");
+                throw DataFileException("Volume specified more than once in Parcels mapping type");
             } else {
                 m_volSpace.readCiftiXML2(xml);
                 if (xml.hasError()) return;
                 m_haveVolumeSpace = true;
             }
         } else {
-            throw CaretException("unexpected element in parcels map: " + name.toString());
+            throw DataFileException("unexpected element in parcels map: " + name.toString());
         }
     }
     int64_t numParcels = (int64_t)myParcels.size();
@@ -486,7 +486,7 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel1(QXmlStreamReader& xml)
     QXmlStreamAttributes attrs = xml.attributes();
     if (!attrs.hasAttribute("Name"))
     {
-        throw CaretException("Parcel element missing required attribute Name");
+        throw DataFileException("Parcel element missing required attribute Name");
     }
     ret.m_name = attrs.value("Name").toString();
     while (xml.readNextStartElement())
@@ -497,17 +497,17 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel1(QXmlStreamReader& xml)
             QXmlStreamAttributes attrs1 = xml.attributes();
             if (!attrs1.hasAttribute("BrainStructure"))
             {
-                throw CaretException("Nodes element missing required attribute BrainStructure");
+                throw DataFileException("Nodes element missing required attribute BrainStructure");
             }
             bool ok = false;
             StructureEnum::Enum myStructure = StructureEnum::fromCiftiName(attrs1.value("BrainStructure").toString(), &ok);
             if (!ok)
             {
-                throw CaretException("unrecognized value for BrainStructure: " + attrs1.value("BrainStructure").toString());
+                throw DataFileException("unrecognized value for BrainStructure: " + attrs1.value("BrainStructure").toString());
             }
             if (ret.m_surfaceNodes.find(myStructure) != ret.m_surfaceNodes.end())
             {
-                throw CaretException("Nodes elements may not reuse a BrainStructure within a Parcel");
+                throw DataFileException("Nodes elements may not reuse a BrainStructure within a Parcel");
             }
             set<int64_t>& mySet = ret.m_surfaceNodes[myStructure];
             vector<int64_t> array = readIndexArray(xml);
@@ -517,34 +517,34 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel1(QXmlStreamReader& xml)
             {
                 if (mySet.find(array[i]) != mySet.end())
                 {
-                    throw CaretException("Nodes elements may not reuse indices");
+                    throw DataFileException("Nodes elements may not reuse indices");
                 }
                 mySet.insert(array[i]);
             }
         } else if (name == "VoxelIndicesIJK") {
             if (haveVoxels)
             {
-                throw CaretException("VoxelIndicesIJK may only appear once in a Parcel");
+                throw DataFileException("VoxelIndicesIJK may only appear once in a Parcel");
             }
             vector<int64_t> array = readIndexArray(xml);
             if (xml.hasError()) return ret;
             int64_t arraySize = (int64_t)array.size();
             if (arraySize % 3 != 0)
             {
-                throw CaretException("number of indices in VoxelIndicesIJK must be a multiple of 3");
+                throw DataFileException("number of indices in VoxelIndicesIJK must be a multiple of 3");
             }
             for (int64_t index3 = 0; index3 < arraySize; index3 += 3)
             {
                 VoxelIJK temp(array.data() + index3);
                 if (ret.m_voxelIndices.find(temp) != ret.m_voxelIndices.end())
                 {
-                    throw CaretException("VoxelIndicesIJK elements may not reuse voxels");
+                    throw DataFileException("VoxelIndicesIJK elements may not reuse voxels");
                 }
                 ret.m_voxelIndices.insert(temp);
             }
             haveVoxels = true;
         } else {
-            throw CaretException("unexpected element in Parcel: " + name.toString());
+            throw DataFileException("unexpected element in Parcel: " + name.toString());
         }
     }
     CaretAssert(xml.isEndElement() && xml.name() == "Parcel");
@@ -558,7 +558,7 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel2(QXmlStreamReader& xml)
     QXmlStreamAttributes attrs = xml.attributes();
     if (!attrs.hasAttribute("Name"))
     {
-        throw CaretException("Parcel element missing required attribute Name");
+        throw DataFileException("Parcel element missing required attribute Name");
     }
     ret.m_name = attrs.value("Name").toString();
     while (xml.readNextStartElement())
@@ -569,17 +569,17 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel2(QXmlStreamReader& xml)
             QXmlStreamAttributes attrs1 = xml.attributes();
             if (!attrs1.hasAttribute("BrainStructure"))
             {
-                throw CaretException("Vertices element missing required attribute BrainStructure");
+                throw DataFileException("Vertices element missing required attribute BrainStructure");
             }
             bool ok = false;
             StructureEnum::Enum myStructure = StructureEnum::fromCiftiName(attrs1.value("BrainStructure").toString(), &ok);
             if (!ok)
             {
-                throw CaretException("unrecognized value for BrainStructure: " + attrs1.value("BrainStructure").toString());
+                throw DataFileException("unrecognized value for BrainStructure: " + attrs1.value("BrainStructure").toString());
             }
             if (ret.m_surfaceNodes.find(myStructure) != ret.m_surfaceNodes.end())
             {
-                throw CaretException("Vertices elements may not reuse a BrainStructure within a Parcel");
+                throw DataFileException("Vertices elements may not reuse a BrainStructure within a Parcel");
             }
             set<int64_t>& mySet = ret.m_surfaceNodes[myStructure];
             vector<int64_t> array = readIndexArray(xml);
@@ -589,34 +589,34 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel2(QXmlStreamReader& xml)
             {
                 if (mySet.find(array[i]) != mySet.end())
                 {
-                    throw CaretException("Vertices elements may not reuse indices");
+                    throw DataFileException("Vertices elements may not reuse indices");
                 }
                 mySet.insert(array[i]);
             }
         } else if (name == "VoxelIndicesIJK") {
             if (haveVoxels)
             {
-                throw CaretException("VoxelIndicesIJK may only appear once in a Parcel");
+                throw DataFileException("VoxelIndicesIJK may only appear once in a Parcel");
             }
             vector<int64_t> array = readIndexArray(xml);
             if (xml.hasError()) return ret;
             int64_t arraySize = (int64_t)array.size();
             if (arraySize % 3 != 0)
             {
-                throw CaretException("number of indices in VoxelIndicesIJK must be a multiple of 3");
+                throw DataFileException("number of indices in VoxelIndicesIJK must be a multiple of 3");
             }
             for (int64_t index3 = 0; index3 < arraySize; index3 += 3)
             {
                 VoxelIJK temp(array.data() + index3);
                 if (ret.m_voxelIndices.find(temp) != ret.m_voxelIndices.end())
                 {
-                    throw CaretException("VoxelIndicesIJK elements may not reuse voxels");
+                    throw DataFileException("VoxelIndicesIJK elements may not reuse voxels");
                 }
                 ret.m_voxelIndices.insert(temp);
             }
             haveVoxels = true;
         } else {
-            throw CaretException("unexpected element in Parcel: " + name.toString());
+            throw DataFileException("unexpected element in Parcel: " + name.toString());
         }
     }
     CaretAssert(xml.isEndElement() && xml.name() == "Parcel");
@@ -637,7 +637,7 @@ vector<int64_t> CiftiParcelsMap::readIndexArray(QXmlStreamReader& xml)
         ret.push_back(separated[i].toLongLong(&ok));
         if (!ok)
         {
-            throw CaretException("found noninteger in index array: " + separated[i]);
+            throw DataFileException("found noninteger in index array: " + separated[i]);
         }
     }
     return ret;

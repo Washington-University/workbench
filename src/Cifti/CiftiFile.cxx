@@ -587,7 +587,7 @@ namespace
                 break;
             default:
                 CaretAssert(0);
-                throw CaretException("internal error, tell the developers what you just tried to do");
+                throw DataFileException("internal error, tell the developers what you just tried to do");
         }
     }
 }

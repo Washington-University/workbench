@@ -21,7 +21,7 @@
 #include "CiftiScalarsMap.h"
 
 #include "CaretAssert.h"
-#include "CaretException.h"
+#include "DataFileException.h"
 #include "CaretLogger.h"
 //HACK: to compare metadata in a const function, we make a copy and remove the palette data - but metadata's copy intentionally breaks == because of the UUID, so we need to reset it
 #include "GiftiMetaDataXmlElements.h"
@@ -155,7 +155,7 @@ void CiftiScalarsMap::readXML1(QXmlStreamReader& xml)
             {
                 if (xml.name() != "NamedMap")
                 {
-                    throw CaretException("unexpected element in scalars map: " + xml.name().toString());
+                    throw DataFileException("unexpected element in scalars map: " + xml.name().toString());
                 }
                 m_maps.push_back(ScalarMap());//HACK: because operator= is deliberately broken by GiftiMetadata for UUID
                 m_maps.back().readXML1(xml);
@@ -180,7 +180,7 @@ void CiftiScalarsMap::readXML2(QXmlStreamReader& xml)
             {
                 if (xml.name() != "NamedMap")
                 {
-                    throw CaretException("unexpected element in scalars map: " + xml.name().toString());
+                    throw DataFileException("unexpected element in scalars map: " + xml.name().toString());
                 }
                 m_maps.push_back(ScalarMap());//HACK: because operator= is deliberately broken by GiftiMetadata for UUID
                 m_maps.back().readXML2(xml);
@@ -208,7 +208,7 @@ void CiftiScalarsMap::ScalarMap::readXML1(QXmlStreamReader& xml)
                 {
                     if (haveMetaData)
                     {
-                        throw CaretException("MetaData specified multiple times in one NamedMap");
+                        throw DataFileException("MetaData specified multiple times in one NamedMap");
                     }
                     m_metaData.readCiftiXML1(xml);
                     if (xml.hasError()) return;
@@ -216,7 +216,7 @@ void CiftiScalarsMap::ScalarMap::readXML1(QXmlStreamReader& xml)
                 } else if (name == "MapName") {
                     if (haveName)
                     {
-                        throw CaretException("MapName specified multiple times in one NamedMap");
+                        throw DataFileException("MapName specified multiple times in one NamedMap");
                     }
                     m_name = xml.readElementText();//raises error if element encountered
                     if (xml.hasError()) return;
@@ -226,7 +226,7 @@ void CiftiScalarsMap::ScalarMap::readXML1(QXmlStreamReader& xml)
                     xml.readElementText(QXmlStreamReader::SkipChildElements);//accept some malformed Cifti-1 files
                     if (xml.hasError()) return;
                 } else {
-                    throw CaretException("unexpected element in NamedMap: " + name.toString());
+                    throw DataFileException("unexpected element in NamedMap: " + name.toString());
                 }
                 break;
             }
@@ -236,7 +236,7 @@ void CiftiScalarsMap::ScalarMap::readXML1(QXmlStreamReader& xml)
     }
     if (!haveName)
     {
-        throw CaretException("NamedMap missing required child element MapName");
+        throw DataFileException("NamedMap missing required child element MapName");
     }
     CaretAssert(xml.isEndElement() && xml.name() == "NamedMap");
 }
@@ -255,7 +255,7 @@ void CiftiScalarsMap::ScalarMap::readXML2(QXmlStreamReader& xml)
                 {
                     if (haveMetaData)
                     {
-                        throw CaretException("MetaData specified multiple times in one NamedMap");
+                        throw DataFileException("MetaData specified multiple times in one NamedMap");
                     }
                     m_metaData.readCiftiXML2(xml);
                     if (xml.hasError()) return;
@@ -263,13 +263,13 @@ void CiftiScalarsMap::ScalarMap::readXML2(QXmlStreamReader& xml)
                 } else if (name == "MapName") {
                     if (haveName)
                     {
-                        throw CaretException("MapName specified multiple times in one NamedMap");
+                        throw DataFileException("MapName specified multiple times in one NamedMap");
                     }
                     m_name = xml.readElementText();//raises error if element encountered
                     if (xml.hasError()) return;
                     haveName = true;
                 } else {
-                    throw CaretException("unexpected element in NamedMap: " + name.toString());
+                    throw DataFileException("unexpected element in NamedMap: " + name.toString());
                 }
                 break;
             }
@@ -279,7 +279,7 @@ void CiftiScalarsMap::ScalarMap::readXML2(QXmlStreamReader& xml)
     }
     if (!haveName)
     {
-        throw CaretException("NamedMap missing required child element MapName");
+        throw DataFileException("NamedMap missing required child element MapName");
     }
     CaretAssert(xml.isEndElement() && xml.name() == "NamedMap");
 }

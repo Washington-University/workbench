@@ -21,7 +21,7 @@
 #include "CiftiLabelsMap.h"
 
 #include "CaretAssert.h"
-#include "CaretException.h"
+#include "DataFileException.h"
 #include "CaretLogger.h"
 
 using namespace caret;
@@ -124,7 +124,7 @@ void CiftiLabelsMap::readXML1(QXmlStreamReader& xml)
             {
                 if (xml.name() != "NamedMap")
                 {
-                    throw CaretException("unexpected element in labels map: " + xml.name().toString());
+                    throw DataFileException("unexpected element in labels map: " + xml.name().toString());
                 }
                 LabelMap tempMap;
                 tempMap.readXML1(xml);
@@ -149,7 +149,7 @@ void CiftiLabelsMap::readXML2(QXmlStreamReader& xml)
             {
                 if (xml.name() != "NamedMap")
                 {
-                    throw CaretException("unexpected element in labels map: " + xml.name().toString());
+                    throw DataFileException("unexpected element in labels map: " + xml.name().toString());
                 }
                 LabelMap tempMap;
                 tempMap.readXML2(xml);
@@ -177,7 +177,7 @@ void CiftiLabelsMap::LabelMap::readXML1(QXmlStreamReader& xml)
                 {
                     if (haveMetaData)
                     {
-                        throw CaretException("MetaData specified multiple times in one NamedMap");
+                        throw DataFileException("MetaData specified multiple times in one NamedMap");
                     }
                     m_metaData.readCiftiXML1(xml);
                     if (xml.hasError()) return;
@@ -185,7 +185,7 @@ void CiftiLabelsMap::LabelMap::readXML1(QXmlStreamReader& xml)
                 } else if (name == "LabelTable") {
                     if (haveTable)
                     {
-                        throw CaretException("LabelTable specified multiple times in one NamedMap");
+                        throw DataFileException("LabelTable specified multiple times in one NamedMap");
                     }
                     m_labelTable.readFromQXmlStreamReader(xml);
                     if (xml.hasError()) return;
@@ -193,13 +193,13 @@ void CiftiLabelsMap::LabelMap::readXML1(QXmlStreamReader& xml)
                 } else if (name == "MapName") {
                     if (haveName)
                     {
-                        throw CaretException("MapName specified multiple times in one NamedMap");
+                        throw DataFileException("MapName specified multiple times in one NamedMap");
                     }
                     m_name = xml.readElementText();//raises error if element encountered
                     if (xml.hasError()) return;
                     haveName = true;
                 } else {
-                    throw CaretException("unexpected element in NamedMap: " + name.toString());
+                    throw DataFileException("unexpected element in NamedMap: " + name.toString());
                 }
                 break;
             }
@@ -209,11 +209,11 @@ void CiftiLabelsMap::LabelMap::readXML1(QXmlStreamReader& xml)
     }
     if (!haveName)
     {
-        throw CaretException("NamedMap missing required child element MapName");
+        throw DataFileException("NamedMap missing required child element MapName");
     }
     if (!haveTable)
     {
-        throw CaretException("NamedMap in labels mapping missing required child element LabelTable");
+        throw DataFileException("NamedMap in labels mapping missing required child element LabelTable");
     }
 }
 
@@ -231,7 +231,7 @@ void CiftiLabelsMap::LabelMap::readXML2(QXmlStreamReader& xml)
                 {
                     if (haveMetaData)
                     {
-                        throw CaretException("MetaData specified multiple times in one NamedMap");
+                        throw DataFileException("MetaData specified multiple times in one NamedMap");
                     }
                     m_metaData.readCiftiXML2(xml);
                     if (xml.hasError()) return;
@@ -239,7 +239,7 @@ void CiftiLabelsMap::LabelMap::readXML2(QXmlStreamReader& xml)
                 } else if (name == "LabelTable") {
                     if (haveTable)
                     {
-                        throw CaretException("LabelTable specified multiple times in one NamedMap");
+                        throw DataFileException("LabelTable specified multiple times in one NamedMap");
                     }
                     m_labelTable.readFromQXmlStreamReader(xml);
                     if (xml.hasError()) return;
@@ -247,13 +247,13 @@ void CiftiLabelsMap::LabelMap::readXML2(QXmlStreamReader& xml)
                 } else if (name == "MapName") {
                     if (haveName)
                     {
-                        throw CaretException("MapName specified multiple times in one NamedMap");
+                        throw DataFileException("MapName specified multiple times in one NamedMap");
                     }
                     m_name = xml.readElementText();//raises error if element encountered
                     if (xml.hasError()) return;
                     haveName = true;
                 } else {
-                    throw CaretException("unexpected element in NamedMap: " + name.toString());
+                    throw DataFileException("unexpected element in NamedMap: " + name.toString());
                 }
                 break;
             }
@@ -263,11 +263,11 @@ void CiftiLabelsMap::LabelMap::readXML2(QXmlStreamReader& xml)
     }
     if (!haveName)
     {
-        throw CaretException("NamedMap missing required child element MapName");
+        throw DataFileException("NamedMap missing required child element MapName");
     }
     if (!haveTable)
     {
-        throw CaretException("NamedMap in labels mapping missing required child element LabelTable");
+        throw DataFileException("NamedMap in labels mapping missing required child element LabelTable");
     }
 }
 

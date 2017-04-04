@@ -21,7 +21,7 @@
 #include "CiftiSeriesMap.h"
 
 #include "CaretAssert.h"
-#include "CaretException.h"
+#include "DataFileException.h"
 #include "CaretLogger.h"
 
 #include <cmath>
@@ -86,7 +86,7 @@ void CiftiSeriesMap::readXML1(QXmlStreamReader& xml)
     bool ok = false;
     if (!attrs.hasAttribute("TimeStepUnits"))
     {
-        throw CaretException("timepoints mapping is missing required attribute TimeStepUnits");
+        throw DataFileException("timepoints mapping is missing required attribute TimeStepUnits");
     }
     QStringRef unitString = attrs.value("TimeStepUnits");
     if (unitString == "NIFTI_UNITS_SEC")
@@ -97,28 +97,28 @@ void CiftiSeriesMap::readXML1(QXmlStreamReader& xml)
     } else if (unitString == "NIFTI_UNITS_USEC") {
         mult = 0.000001f;
     } else {
-        throw CaretException("unrecognized value for TimeStepUnits: " + unitString.toString());
+        throw DataFileException("unrecognized value for TimeStepUnits: " + unitString.toString());
     }
     if (attrs.hasAttribute("TimeStart"))//optional and nonstandard
     {
         newStart = mult * attrs.value("TimeStart").toString().toFloat(&ok);
         if (!ok)
         {
-            throw CaretException("unrecognized value for TimeStart: " + attrs.value("TimeStart").toString());
+            throw DataFileException("unrecognized value for TimeStart: " + attrs.value("TimeStart").toString());
         }
     }
     if (!attrs.hasAttribute("TimeStep"))
     {
-        throw CaretException("timepoints mapping is missing required attribute TimeStep");
+        throw DataFileException("timepoints mapping is missing required attribute TimeStep");
     }
     newStep = mult * attrs.value("TimeStep").toString().toFloat(&ok);
     if (!ok)
     {
-        throw CaretException("unrecognized value for TimeStep: " + attrs.value("TimeStep").toString());
+        throw DataFileException("unrecognized value for TimeStep: " + attrs.value("TimeStep").toString());
     }
     if (xml.readNextStartElement())
     {
-        throw CaretException("unexpected element in timepoints map: " + xml.name().toString());
+        throw DataFileException("unexpected element in timepoints map: " + xml.name().toString());
     }
     m_length = -1;//cifti-1 doesn't know length in xml, must be set by checking the matrix
     m_start = newStart;
@@ -136,7 +136,7 @@ void CiftiSeriesMap::readXML2(QXmlStreamReader& xml)
     bool ok = false;
     if (!attrs.hasAttribute("SeriesUnit"))
     {
-        throw CaretException("series mapping is missing required attribute SeriesUnit");
+        throw DataFileException("series mapping is missing required attribute SeriesUnit");
     }
     QStringRef unitString = attrs.value("SeriesUnit");
     if (unitString == "HERTZ")
@@ -149,52 +149,52 @@ void CiftiSeriesMap::readXML2(QXmlStreamReader& xml)
     } else if (unitString == "SECOND") {
         newUnit = SECOND;
     } else {
-        throw CaretException("unrecognized value for SeriesUnit: " + unitString.toString());
+        throw DataFileException("unrecognized value for SeriesUnit: " + unitString.toString());
     }
     if (!attrs.hasAttribute("SeriesExponent"))
     {
-        throw CaretException("series mapping is missing required attribute SeriesExponent");
+        throw DataFileException("series mapping is missing required attribute SeriesExponent");
     }
     int exponent = attrs.value("SeriesExponent").toString().toInt(&ok);
     if (!ok)
     {
-        throw CaretException("unrecognized value for SeriesExponent: " + attrs.value("SeriesExponent").toString());
+        throw DataFileException("unrecognized value for SeriesExponent: " + attrs.value("SeriesExponent").toString());
     }
     mult = pow(10.0f, exponent);
     if (!attrs.hasAttribute("SeriesStart"))
     {
-        throw CaretException("series mapping is missing required attribute SeriesStart");
+        throw DataFileException("series mapping is missing required attribute SeriesStart");
     }
     newStart = mult * attrs.value("SeriesStart").toString().toFloat(&ok);
     if (!ok)
     {
-        throw CaretException("unrecognized value for SeriesStart: " + attrs.value("SeriesStart").toString());
+        throw DataFileException("unrecognized value for SeriesStart: " + attrs.value("SeriesStart").toString());
     }
     if (!attrs.hasAttribute("SeriesStep"))
     {
-        throw CaretException("series mapping is missing required attribute SeriesStep");
+        throw DataFileException("series mapping is missing required attribute SeriesStep");
     }
     newStep = mult * attrs.value("SeriesStep").toString().toFloat(&ok);
     if (!ok)
     {
-        throw CaretException("unrecognized value for SeriesStep: " + attrs.value("SeriesStep").toString());
+        throw DataFileException("unrecognized value for SeriesStep: " + attrs.value("SeriesStep").toString());
     }
     if (!attrs.hasAttribute("NumberOfSeriesPoints"))
     {
-        throw CaretException("series mapping is missing required attribute NumberOfSeriesPoints");
+        throw DataFileException("series mapping is missing required attribute NumberOfSeriesPoints");
     }
     newLength = attrs.value("NumberOfSeriesPoints").toString().toLongLong(&ok);
     if (!ok)
     {
-        throw CaretException("unrecognized value for NumberOfSeriesPoints: " + attrs.value("NumberOfSeriesPoints").toString());
+        throw DataFileException("unrecognized value for NumberOfSeriesPoints: " + attrs.value("NumberOfSeriesPoints").toString());
     }
     if (newLength < 1)
     {
-        throw CaretException("NumberOfSeriesPoints must be positive");
+        throw DataFileException("NumberOfSeriesPoints must be positive");
     }
     if (xml.readNextStartElement())
     {
-        throw CaretException("unexpected element in series map: " + xml.name().toString());
+        throw DataFileException("unexpected element in series map: " + xml.name().toString());
     }
     m_length = newLength;
     m_start = newStart;

@@ -20,7 +20,7 @@
 
 #include "CiftiVersion.h"
 
-#include "CaretException.h"
+#include "DataFileException.h"
 
 using namespace caret;
 
@@ -44,13 +44,13 @@ CiftiVersion::CiftiVersion(const QString& versionString)
     {
         m_minor = 0;
         m_major = versionString.toShort(&ok);
-        if (!ok) throw CaretException("improperly formatted CIFTI version string: '" + versionString + "'");
+        if (!ok) throw DataFileException("improperly formatted CIFTI version string: '" + versionString + "'");
     } else {
-        if (result == 0) throw CaretException("improperly formatted CIFTI version string: '" + versionString + "'");
+        if (result == 0) throw DataFileException("improperly formatted CIFTI version string: '" + versionString + "'");
         m_major = versionString.mid(0, result).toShort(&ok);
-        if (!ok) throw CaretException("improperly formatted CIFTI version string: '" + versionString + "'");
+        if (!ok) throw DataFileException("improperly formatted CIFTI version string: '" + versionString + "'");
         m_minor = versionString.mid(result + 1).toShort(&ok);
-        if (!ok) throw CaretException("improperly formatted CIFTI version string: '" + versionString + "'");
+        if (!ok) throw DataFileException("improperly formatted CIFTI version string: '" + versionString + "'");
     }
 }
 

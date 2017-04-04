@@ -21,7 +21,7 @@
 #include "CiftiXML.h"
 
 #include "CaretAssert.h"
-#include "CaretException.h"
+#include "DataFileException.h"
 #include "CaretLogger.h"
 #include "GiftiMetaData.h"
 #include "PaletteColorMapping.h"
@@ -39,12 +39,12 @@ int CiftiXML::directionFromString(const QString& input)
     int converted = input.toInt(&ok);
     if (ok)
     {
-        if (converted < 1) throw CaretException("invalid integer direction, use 1 or greater");
+        if (converted < 1) throw DataFileException("invalid integer direction, use 1 or greater");
         return converted - 1;//use 1-indexed convention for input
     }
     if (input == "ROW") return ALONG_ROW;
     if (input == "COLUMN") return ALONG_COLUMN;//should we also allow STACK?  integers seem cleaner
-    throw CaretException("unrecognized direction string, please use an integer, 'ROW', or 'COLUMN'");
+    throw DataFileException("unrecognized direction string, please use an integer, 'ROW', or 'COLUMN'");
 }
 
 QString CiftiXML::directionFromStringExplanation()
@@ -251,7 +251,7 @@ void CiftiXML::setMap(const int& direction, const CiftiMappingType& mapIn)
         {
             if (i != direction && m_indexMaps[i] != NULL && m_indexMaps[i]->getType() == CiftiMappingType::LABELS)
             {
-                throw CaretException("Cifti XML cannot contain a label mapping on more than one dimension");
+                throw DataFileException("Cifti XML cannot contain a label mapping on more than one dimension");
             }
         }
     }
@@ -323,7 +323,7 @@ int32_t CiftiXML::getIntentInfo(const CiftiVersion& writingVersion, char intentN
                 break;
         }
     } else {
-        throw CaretException("unknown cifti version: " + writingVersion.toString());
+        throw DataFileException("unknown cifti version: " + writingVersion.toString());
     }
     int i;
     for (i = 0; i < 16 && name[i] != '\0'; ++i) intentNameOut[i] = name[i];
@@ -346,14 +346,14 @@ void CiftiXML::readXML(QXmlStreamReader& xml)
                 {
                     if (haveCifti)
                     {
-                        throw CaretException("CIFTI element may only be specified once");
+                        throw DataFileException("CIFTI element may only be specified once");
                     }
                     QXmlStreamAttributes attributes = xml.attributes();
                     if(attributes.hasAttribute("Version"))
                     {
                         m_parsedVersion = CiftiVersion(attributes.value("Version").toString());
                     } else {
-                        throw CaretException("Cifti XML missing Version attribute.");
+                        throw DataFileException("Cifti XML missing Version attribute.");
                     }
                     if (m_parsedVersion == CiftiVersion(1, 0))//switch/case on major/minor would be much harder to read
                     {
@@ -367,24 +367,24 @@ void CiftiXML::readXML(QXmlStreamReader& xml)
                         parseCIFTI2(xml);
                         if (xml.hasError()) break;
                     } else {
-                        throw CaretException("unknown Cifti Version: '" + m_parsedVersion.toString());
+                        throw DataFileException("unknown Cifti Version: '" + m_parsedVersion.toString());
                     }
                     haveCifti = true;
                 } else {
-                    throw CaretException("unexpected root element in Cifti XML: " + name.toString());
+                    throw DataFileException("unexpected root element in Cifti XML: " + name.toString());
                 }
             }
         }
         if (!xml.hasError() && !haveCifti)
         {
-            throw CaretException("CIFTI element not found");
+            throw DataFileException("CIFTI element not found");
         }
     } catch (CaretException& e) {
-        throw CaretException("Cifti XML error: " + e.whatString());//so we can throw on error instead of doing a bunch of dancing with xml.raiseError and xml.hasError
+        throw DataFileException("Cifti XML error: " + e.whatString());//so we can throw on error instead of doing a bunch of dancing with xml.raiseError and xml.hasError
     }
     if(xml.hasError())
     {
-        throw CaretException("Cifti XML error: " + xml.errorString());
+        throw DataFileException("Cifti XML error: " + xml.errorString());
     }
 }
 
@@ -395,10 +395,10 @@ void CiftiXML::parseCIFTI1(QXmlStreamReader& xml)
     {
         if (attributes.value("NumberOfMatrices") != "1")
         {
-            throw CaretException("attribute NumberOfMatrices in CIFTI is required to be 1 for CIFTI-1");
+            throw DataFileException("attribute NumberOfMatrices in CIFTI is required to be 1 for CIFTI-1");
         }
     } else {
-        throw CaretException("missing attribute NumberOfMatrices in CIFTI");
+        throw DataFileException("missing attribute NumberOfMatrices in CIFTI");
     }
     bool haveMatrix = false;
     while (!xml.atEnd())
@@ -411,13 +411,13 @@ void CiftiXML::parseCIFTI1(QXmlStreamReader& xml)
             {
                 if (haveMatrix)
                 {
-                    throw CaretException("Matrix element may only be specified once");
+                    throw DataFileException("Matrix element may only be specified once");
                 }
                 parseMatrix1(xml);
                 if (xml.hasError()) return;
                 haveMatrix = true;
             } else {
-                throw CaretException("unexpected element in CIFTI: " + name.toString());
+                throw DataFileException("unexpected element in CIFTI: " + name.toString());
             }
         } else if (xml.isEndElement()) {
             break;
@@ -425,7 +425,7 @@ void CiftiXML::parseCIFTI1(QXmlStreamReader& xml)
     }
     if (!haveMatrix)
     {
-        throw CaretException("Matrix element not found in CIFTI");
+        throw DataFileException("Matrix element not found in CIFTI");
     }
     if (xml.hasError()) return;
     CaretAssert(xml.isEndElement() && xml.name() == "CIFTI");
@@ -445,13 +445,13 @@ void CiftiXML::parseCIFTI2(QXmlStreamReader& xml)//yes, these will often have la
             {
                 if (haveMatrix)
                 {
-                    throw CaretException("Matrix element may only be specified once");
+                    throw DataFileException("Matrix element may only be specified once");
                 }
                 parseMatrix2(xml);
                 if (xml.hasError()) return;
                 haveMatrix = true;
             } else {
-                throw CaretException("unexpected element in CIFTI: " + name.toString());
+                throw DataFileException("unexpected element in CIFTI: " + name.toString());
             }
         } else if (xml.isEndElement()) {
             break;
@@ -459,7 +459,7 @@ void CiftiXML::parseCIFTI2(QXmlStreamReader& xml)//yes, these will often have la
     }
     if (!haveMatrix)
     {
-        throw CaretException("Matrix element not found in CIFTI");
+        throw DataFileException("Matrix element not found in CIFTI");
     }
     CaretAssert(xml.isEndElement() && xml.name() == "CIFTI");
 }
@@ -479,7 +479,7 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
             {
                 if (haveMetadata)
                 {
-                    throw CaretException("MetaData may only be specified once in Matrix");
+                    throw DataFileException("MetaData may only be specified once in Matrix");
                 }
                 m_fileMetaData.readCiftiXML1(xml);
                 if (xml.hasError()) return;
@@ -490,7 +490,7 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
             } else if (name == "Volume") {
                 if (haveVolSpace)
                 {
-                    throw CaretException("Volume may only be specified once in Matrix");
+                    throw DataFileException("Volume may only be specified once in Matrix");
                 }
                 fileVolSpace.readCiftiXML1(xml);
                 if (xml.hasError()) return;
@@ -499,7 +499,7 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
                 CaretLogFiner("skipping unused LabelTable element in Matrix in CIFTI-1");
                 xml.readElementText(QXmlStreamReader::SkipChildElements);
             } else {
-                throw CaretException("unexpected element in Matrix: " + name.toString());
+                throw DataFileException("unexpected element in Matrix: " + name.toString());
             }
         } else if (xml.isEndElement()) {
             break;
@@ -511,7 +511,7 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
         {
             int displaynum = i;
             if (displaynum < 2) displaynum = 1 - displaynum;//re-invert so that it shows the same number as the XML is missing
-            throw CaretException("missing mapping for dimension '" + QString::number(displaynum) + "'");
+            throw DataFileException("missing mapping for dimension '" + QString::number(displaynum) + "'");
         }
         switch (m_indexMaps[i]->getType())
         {
@@ -524,7 +524,7 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
                     {
                         myMap.setVolumeSpace(fileVolSpace);//also does the needed checking of voxel indices
                     } else {
-                        throw CaretException("BrainModels map uses voxels, but no Volume element exists");
+                        throw DataFileException("BrainModels map uses voxels, but no Volume element exists");
                     }
                 }
                 break;
@@ -538,7 +538,7 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
                     {
                         myMap.setVolumeSpace(fileVolSpace);//ditto
                     } else {
-                        throw CaretException("Parcels map uses voxels, but no Volume element exists");
+                        throw DataFileException("Parcels map uses voxels, but no Volume element exists");
                     }
                 }
                 break;
@@ -564,7 +564,7 @@ void CiftiXML::parseMatrix2(QXmlStreamReader& xml)
             {
                 if (haveMetadata)
                 {
-                    throw CaretException("MetaData may only be specified once in Matrix");
+                    throw DataFileException("MetaData may only be specified once in Matrix");
                 }
                 m_fileMetaData.readCiftiXML2(xml);
                 if (xml.hasError()) return;
@@ -573,7 +573,7 @@ void CiftiXML::parseMatrix2(QXmlStreamReader& xml)
                 parseMatrixIndicesMap2(xml);
                 if (xml.hasError()) return;
             } else {
-                throw CaretException("unexpected element in Matrix: " + name.toString());
+                throw DataFileException("unexpected element in Matrix: " + name.toString());
             }
         } else if (xml.isEndElement()) {
             break;
@@ -583,7 +583,7 @@ void CiftiXML::parseMatrix2(QXmlStreamReader& xml)
     {
         if (m_indexMaps[i] == NULL)
         {
-            throw CaretException("missing mapping for dimension '" + QString::number(i) + "'");
+            throw DataFileException("missing mapping for dimension '" + QString::number(i) + "'");
         }
     }
     CaretAssert(xml.isEndElement() && xml.name() == "Matrix");
@@ -594,11 +594,11 @@ void CiftiXML::parseMatrixIndicesMap1(QXmlStreamReader& xml)
     QXmlStreamAttributes attributes = xml.attributes();
     if (!attributes.hasAttribute("AppliesToMatrixDimension"))
     {
-        throw CaretException("missing attribute AppliesToMatrixDimension in MatrixIndicesMap");
+        throw DataFileException("missing attribute AppliesToMatrixDimension in MatrixIndicesMap");
     }
     if (!attributes.hasAttribute("IndicesMapToDataType"))
     {
-        throw CaretException("missing attribute IndicesMapToDataType in MatrixIndicesMap");
+        throw DataFileException("missing attribute IndicesMapToDataType in MatrixIndicesMap");
     }
     QStringList values = attributes.value("AppliesToMatrixDimension").toString().split(',');
     bool ok = false;
@@ -608,12 +608,12 @@ void CiftiXML::parseMatrixIndicesMap1(QXmlStreamReader& xml)
         int parsed = values[i].toInt(&ok);
         if (!ok || parsed < 0)
         {
-            throw CaretException("bad value in AppliesToMatrixDimension list: " + values[i]);
+            throw DataFileException("bad value in AppliesToMatrixDimension list: " + values[i]);
         }
         if (parsed < 2) parsed = 1 - parsed;//in other words, 0 becomes 1 and 1 becomes 0, since cifti-1 had them reversed
         if (used.find(parsed) != used.end())
         {
-            throw CaretException("AppliesToMatrixDimension contains repeated value: " + values[i]);
+            throw DataFileException("AppliesToMatrixDimension contains repeated value: " + values[i]);
         }
         used.insert(parsed);
     }
@@ -631,7 +631,7 @@ void CiftiXML::parseMatrixIndicesMap1(QXmlStreamReader& xml)
     } else if (type == "CIFTI_INDEX_TYPE_SCALARS") {
         toRead = CaretPointer<CiftiScalarsMap>(new CiftiScalarsMap());
     } else {
-        throw CaretException("invalid value for IndicesMapToDataType in CIFTI-1: " + type.toString());
+        throw DataFileException("invalid value for IndicesMapToDataType in CIFTI-1: " + type.toString());
     }
     toRead->readXML1(xml);//this will warn (with 'finer' log level?) if it is nonstandard
     if (xml.hasError()) return;
@@ -655,11 +655,11 @@ void CiftiXML::parseMatrixIndicesMap2(QXmlStreamReader& xml)
     QXmlStreamAttributes attributes = xml.attributes();
     if (!attributes.hasAttribute("AppliesToMatrixDimension"))
     {
-        throw CaretException("missing attribute AppliesToMatrixDimension in MatrixIndicesMap");
+        throw DataFileException("missing attribute AppliesToMatrixDimension in MatrixIndicesMap");
     }
     if (!attributes.hasAttribute("IndicesMapToDataType"))
     {
-        throw CaretException("missing attribute IndicesMapToDataType in MatrixIndicesMap");
+        throw DataFileException("missing attribute IndicesMapToDataType in MatrixIndicesMap");
     }
     QStringList values = attributes.value("AppliesToMatrixDimension").toString().split(',');
     bool ok = false;
@@ -669,11 +669,11 @@ void CiftiXML::parseMatrixIndicesMap2(QXmlStreamReader& xml)
         int parsed = values[i].toInt(&ok);
         if (!ok || parsed < 0)
         {
-            throw CaretException("bad value in AppliesToMatrixDimension list: " + values[i]);
+            throw DataFileException("bad value in AppliesToMatrixDimension list: " + values[i]);
         }
         if (used.find(parsed) != used.end())
         {
-            throw CaretException("AppliesToMatrixDimension contains repeated value: " + values[i]);
+            throw DataFileException("AppliesToMatrixDimension contains repeated value: " + values[i]);
         }
         used.insert(parsed);
     }
@@ -691,7 +691,7 @@ void CiftiXML::parseMatrixIndicesMap2(QXmlStreamReader& xml)
     } else if (type == "CIFTI_INDEX_TYPE_SERIES") {
         toRead = CaretPointer<CiftiSeriesMap>(new CiftiSeriesMap());
     } else {
-        throw CaretException("invalid value for IndicesMapToDataType in CIFTI-1: " + type.toString());
+        throw DataFileException("invalid value for IndicesMapToDataType in CIFTI-1: " + type.toString());
     }
     toRead->readXML2(xml);
     if (xml.hasError()) return;
@@ -746,7 +746,7 @@ void CiftiXML::writeXML(QXmlStreamWriter& xml, const CiftiVersion& writingVersio
     } else if (writingVersion == CiftiVersion(2, 0)) {
         writeMatrix2(xml);
     } else {
-        throw CaretException("unknown Cifti writing version: '" + writingVersion.toString() + "'");
+        throw DataFileException("unknown Cifti writing version: '" + writingVersion.toString() + "'");
     }
     xml.writeEndElement();
 }
@@ -758,7 +758,7 @@ void CiftiXML::writeMatrix1(QXmlStreamWriter& xml) const
     VolumeSpace volSpace;
     for (int i = 0; i < numDims; ++i)
     {
-        if (m_indexMaps[i] == NULL) throw CaretException("dimension " + QString::number(i) + " was not given a mapping");
+        if (m_indexMaps[i] == NULL) throw DataFileException("dimension " + QString::number(i) + " was not given a mapping");
         switch (m_indexMaps[i]->getType())
         {
             case CiftiMappingType::BRAIN_MODELS:
@@ -770,7 +770,7 @@ void CiftiXML::writeMatrix1(QXmlStreamWriter& xml) const
                     {
                         if (myMap.getVolumeSpace() != volSpace)
                         {
-                            throw CaretException("cannot write different volume spaces for different dimensions in CIFTI-1");
+                            throw DataFileException("cannot write different volume spaces for different dimensions in CIFTI-1");
                         }
                     } else {
                         haveVolData = true;
@@ -788,7 +788,7 @@ void CiftiXML::writeMatrix1(QXmlStreamWriter& xml) const
                     {
                         if (myMap.getVolumeSpace() != volSpace)
                         {
-                            throw CaretException("cannot write different volume spaces for different dimensions in CIFTI-1");
+                            throw DataFileException("cannot write different volume spaces for different dimensions in CIFTI-1");
                         }
                     } else {
                         haveVolData = true;
@@ -847,7 +847,7 @@ void CiftiXML::writeMatrix2(QXmlStreamWriter& xml) const
     int numDims = (int)m_indexMaps.size();
     for (int i = 0; i < numDims; ++i)
     {
-        if (m_indexMaps[i] == NULL) throw CaretException("dimension " + QString::number(i) + " was not given a mapping");
+        if (m_indexMaps[i] == NULL) throw DataFileException("dimension " + QString::number(i) + " was not given a mapping");
     }
     xml.writeStartElement("Matrix");
     if (m_filePalette != NULL)
