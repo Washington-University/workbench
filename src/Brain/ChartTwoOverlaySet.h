@@ -30,6 +30,7 @@
 
 
 namespace caret {
+    class CaretMappableDataFile;
     class ChartTwoCartesianAxis;
     class ChartTwoOverlay;
     class PlainTextStringBuilder;
@@ -57,6 +58,8 @@ namespace caret {
         void setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays);
         
         int32_t getNumberOfDisplayedOverlays() const;
+        
+        ChartTwoOverlay* getDisplayedOverlayContainingDataFile(const CaretMappableDataFile* mapFile);
         
         ChartTwoCartesianAxis* getChartAxisLeft();
         

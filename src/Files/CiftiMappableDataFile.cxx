@@ -37,6 +37,7 @@
 #include "CiftiParcelLabelFile.h"
 #include "CiftiParcelReordering.h"
 #include "CiftiParcelScalarFile.h"
+#include "CiftiParcelSeriesFile.h"
 #include "CaretTemporaryFile.h"
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
@@ -667,6 +668,7 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName)
         }
         
         if (m_ciftiFile != NULL) {
+            setFileName(ciftiMapFileName); // need by charting delegate
             initializeAfterReading(ciftiMapFileName);
         }
     }
@@ -1593,6 +1595,30 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
         }
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+        {
+            useMapFileHelperFlag = true;
+            
+            const CiftiParcelSeriesFile* parcelSeriesFile = dynamic_cast<const CiftiParcelSeriesFile*>(this);
+            CaretAssert(parcelSeriesFile);
+            if (parcelSeriesFile != NULL) {
+                CiftiParcelLabelFile* parcelLabelReorderingFile = NULL;
+                int32_t parcelLabelFileMapIndex = -1;
+                bool reorderingEnabledFlag = false;
+                std::vector<CiftiParcelLabelFile*> parcelLabelFiles;
+                parcelSeriesFile->getSelectedParcelLabelFileAndMapForReordering(parcelLabelFiles,
+                                                                                parcelLabelReorderingFile,
+                                                                                parcelLabelFileMapIndex,
+                                                                                reorderingEnabledFlag);
+                
+                if (reorderingEnabledFlag) {
+                    const CiftiParcelReordering* parcelReordering = parcelSeriesFile->getParcelReordering(parcelLabelReorderingFile,
+                                                                                                          parcelLabelFileMapIndex);
+                    if (parcelReordering != NULL) {
+                        parcelReorderedRowIndices = parcelReordering->getReorderedParcelIndices();
+                    }
+                }
+            }
+        }
             break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
             useMatrixFileHelperFlag = true;
@@ -6382,7 +6408,7 @@ CiftiMappableDataFile::helpMapFileLoadChartDataMatrixRGBA(int32_t& numberOfRowsO
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
-    const AString badMapTypeMessage("Matrix charts supports only maps in columns at this time for LABEL and SCALAR data");
+    const AString badMapTypeMessage("Matrix charts supports only maps in columns at this time for LABEL, SCALAR, and SERIES data");
     if (useLabelTableFlag) {
         if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::LABELS) {
             CaretAssertMessage(0, badMapTypeMessage);
@@ -6392,7 +6418,13 @@ CiftiMappableDataFile::helpMapFileLoadChartDataMatrixRGBA(int32_t& numberOfRowsO
     }
 
     if (usePaletteFlag) {
-        if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::SCALARS) {
+        if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS) {
+            /* ok */
+        }
+        else if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES) {
+            /* ok */
+        }
+        else {
             CaretAssertMessage(0, badMapTypeMessage);
             CaretLogSevere(badMapTypeMessage);
             return false;

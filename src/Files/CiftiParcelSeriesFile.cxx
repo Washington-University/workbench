@@ -25,8 +25,10 @@
 
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
+#include "CiftiParcelReorderingModel.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -47,6 +49,13 @@ CiftiParcelSeriesFile::CiftiParcelSeriesFile()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
+    
+    m_parcelReorderingModel = std::unique_ptr<CiftiParcelReorderingModel>(new CiftiParcelReorderingModel(this));
+    
+    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_sceneAssistant->add("m_parcelReorderingModel",
+                          "CiftiParcelReorderingModel",
+                          m_parcelReorderingModel.get());
 }
 
 /**
@@ -282,6 +291,9 @@ CiftiParcelSeriesFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
     CiftiMappableDataFile::saveFileDataToScene(sceneAttributes,
                                                sceneClass);
     
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
     sceneClass->addBooleanArray("m_chartingEnabledForTab",
                                 m_chartingEnabledForTab,
                                 BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
@@ -308,6 +320,9 @@ CiftiParcelSeriesFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     CiftiMappableDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
     
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    
     const ScenePrimitiveArray* tabArray = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");
     if (tabArray != NULL) {
         sceneClass->getBooleanArrayValue("m_chartingEnabledForTab",
@@ -324,6 +339,97 @@ CiftiParcelSeriesFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
             m_chartingEnabledForTab[i] = chartingEnabled;
         }
     }
+}
+
+/**
+ * Get the selected parcel label file used for reordering of parcels.
+ *
+ * @param compatibleParcelLabelFilesOut
+ *    All Parcel Label files that are compatible with file implementing
+ *    this interface.
+ * @param selectedParcelLabelFileOut
+ *    The selected parcel label file used for reordering the parcels.
+ *    May be NULL!
+ * @param selectedParcelLabelFileMapIndexOut
+ *    Map index in the selected parcel label file.
+ * @param enabledStatusOut
+ *    Enabled status of reordering.
+ */
+void
+CiftiParcelSeriesFile::getSelectedParcelLabelFileAndMapForReordering(std::vector<CiftiParcelLabelFile*>& compatibleParcelLabelFilesOut,
+                                                                     CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+                                                                     int32_t& selectedParcelLabelFileMapIndexOut,
+                                                                     bool& enabledStatusOut) const
+{
+    m_parcelReorderingModel->getSelectedParcelLabelFileAndMapForReordering(compatibleParcelLabelFilesOut,
+                                                                           selectedParcelLabelFileOut,
+                                                                           selectedParcelLabelFileMapIndexOut,
+                                                                           enabledStatusOut);
+}
+
+/**
+ * Set the selected parcel label file used for reordering of parcels.
+ *
+ * @param selectedParcelLabelFile
+ *    The selected parcel label file used for reordering the parcels.
+ *    May be NULL!
+ * @param selectedParcelLabelFileMapIndex
+ *    Map index in the selected parcel label file.
+ * @param enabledStatus
+ *    Enabled status of reordering.
+ */
+void
+CiftiParcelSeriesFile::setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
+                                                                     const int32_t selectedParcelLabelFileMapIndex,
+                                                                     const bool enabledStatus)
+{
+    m_parcelReorderingModel->setSelectedParcelLabelFileAndMapForReordering(selectedParcelLabelFile,
+                                                                           selectedParcelLabelFileMapIndex,
+                                                                           enabledStatus);
+}
+
+/**
+ * Get the parcel reordering for the given map index that was created using
+ * the given parcel label file and its map index.
+ *
+ * @param parcelLabelFile
+ *    The selected parcel label file used for reordering the parcels.
+ * @param parcelLabelFileMapIndex
+ *    Map index in the selected parcel label file.
+ * @return
+ *    Pointer to parcel reordering or NULL if not found.
+ */
+const CiftiParcelReordering*
+CiftiParcelSeriesFile::getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                           const int32_t parcelLabelFileMapIndex) const
+{
+    return m_parcelReorderingModel->getParcelReordering(parcelLabelFile,
+                                                        parcelLabelFileMapIndex);
+}
+
+/**
+ * Create the parcel reordering for the given map index using
+ * the given parcel label file and its map index.
+ *
+ * @param parcelLabelFile
+ *    The selected parcel label file used for reordering the parcels.
+ * @param parcelLabelFileMapIndex
+ *    Map index in the selected parcel label file.
+ * @param ciftiParcelsMap
+ *    The CIFTI parcels map that will or has been reordered.
+ * @param errorMessageOut
+ *    Error message output.  Will only be non-empty if NULL is returned.
+ * @return
+ *    Pointer to parcel reordering or NULL if not found.
+ */
+bool
+CiftiParcelSeriesFile::createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                              const int32_t parcelLabelFileMapIndex,
+                                              AString& errorMessageOut)
+{
+    return m_parcelReorderingModel->createParcelReordering(parcelLabelFile,
+                                                           parcelLabelFileMapIndex,
+                                                           errorMessageOut);
 }
 
 

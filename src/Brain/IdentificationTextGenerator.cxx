@@ -910,24 +910,51 @@ IdentificationTextGenerator::generateChartTwoMatrixIdentificationText(Identifica
         
         const CaretMappableDataFile* mapFile = matrixChart->getCaretMappableDataFile();
         CaretAssert(mapFile);
-        
-        AString boldText("MATRIX ROW/COLUMN");
-        idText.addLine(false,
-                       boldText,
-                       mapFile->getFileNameNoPath());
-        
-        const CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(mapFile);
-        if (rowIndex >= 0) {
-            const AString rowName = (matrixFile != NULL) ? ("  " + matrixFile->getRowName(rowIndex)) : "";
-            idText.addLine(true,
-                           "Row",
-                           (AString::number(rowIndex) + rowName));
+       
+        const bool newIdFlag = true;
+        if (newIdFlag) {
+            AString boldText("MATRIX ");
+            idText.addLine(false,
+                           boldText,
+                           mapFile->getFileNameNoPath());
+            if ((rowIndex >= 0)
+                && (matrixChart->hasRowSelection())) {
+                const AString rowName = matrixChart->getRowName(rowIndex);
+                if ( ! rowName.isEmpty()) {
+                    idText.addLine(true,
+                                   ("Row " + AString::number(rowIndex + 1)),
+                                   rowName);
+                }
+            }
+            if ((colIndex >= 0)
+                && (matrixChart->hasColumnSelection())) {
+                const AString colName = matrixChart->getColumnName(colIndex);
+                if ( ! colName.isEmpty()) {
+                    idText.addLine(true,
+                                   ("Column " + AString::number(colIndex + 1)),
+                                   colName);
+                }
+            }
         }
-        if (colIndex >= 0) {
-            const AString colName = (matrixFile != NULL) ? ("  " + matrixFile->getColumnName(colIndex)) : "";
-            idText.addLine(true,
-                           "Column",
-                           (AString::number(colIndex) + colName));
+        else {
+            AString boldText("MATRIX ROW/COLUMN");
+            idText.addLine(false,
+                           boldText,
+                           mapFile->getFileNameNoPath());
+            
+            const CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(mapFile);
+            if (rowIndex >= 0) {
+                const AString rowName = (matrixFile != NULL) ? ("  " + matrixFile->getRowName(rowIndex + 1)) : "";
+                idText.addLine(true,
+                               "Row",
+                               (AString::number(rowIndex + 1) + rowName));
+            }
+            if (colIndex >= 0) {
+                const AString colName = (matrixFile != NULL) ? ("  " + matrixFile->getColumnName(colIndex + 1)) : "";
+                idText.addLine(true,
+                               "Column",
+                               (AString::number(colIndex + 1) + colName));
+            }
         }
     }
 }

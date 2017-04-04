@@ -31,6 +31,7 @@ namespace caret {
     class CiftiConnectivityMatrixParcelFile;
     class CiftiParcelLabelFile;
     class CiftiParcelScalarFile;
+    class CiftiParcelSeriesFile;
     class CiftiScalarDataSeriesFile;
     
     class ChartableTwoFileMatrixChart : public ChartableTwoFileBaseChart {
@@ -77,6 +78,10 @@ namespace caret {
         
         bool hasColumnSelection() const;
         
+        AString getRowNumberAndName(const int32_t rowIndex) const;
+        
+        AString getColumnNumberAndName(const int32_t columnIndex) const;
+        
         AString getRowName(const int32_t rowIndex) const;
         
         AString getColumnName(const int32_t columnIndex) const;
@@ -87,6 +92,7 @@ namespace caret {
             PARCEL,
             PARCEL_LABEL,
             PARCEL_SCALAR,
+            PARCEL_SERIES,
             SCALAR_DATA_SERIES
         };
         
@@ -117,6 +123,10 @@ namespace caret {
         
         std::vector<AString> m_columnNames;
         
+        std::vector<AString> m_rowNumberAndNames;
+        
+        std::vector<AString> m_columnNumberAndNames;
+        
         bool m_hasRowSelectionFlag = false;
         
         bool m_hasColumnSelectionFlag = false;
@@ -126,9 +136,12 @@ namespace caret {
         CiftiConnectivityMatrixParcelFile *m_parcelFile = NULL;
         CiftiParcelLabelFile* m_parcelLabelFile = NULL;
         CiftiParcelScalarFile* m_parcelScalarFile = NULL;
+        CiftiParcelSeriesFile* m_parcelSeriesFile = NULL;
         CiftiScalarDataSeriesFile* m_scalarDataSeriesFile = NULL;
 
+        int32_t m_parcelLabelFileSelectedColumn[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         int32_t m_parcelScalarFileSelectedColumn[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        int32_t m_parcelSeriesFileSelectedColumn[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         // ADD_NEW_MEMBERS_HERE
 

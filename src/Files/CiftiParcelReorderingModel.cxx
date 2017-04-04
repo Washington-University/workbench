@@ -56,8 +56,9 @@ m_parentCiftiMappableDataFile(parentCiftiMappableDataFile)
     
     switch (parentCiftiMappableDataFile->getDataFileType()) {
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
             break;
         default:
             CaretAssert(0);
@@ -191,6 +192,7 @@ CiftiParcelReorderingModel::getParcelLabelFiles() const
                         testAlongRow    = true;
                         break;
                     case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                    case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                         testAlongColumn = true;
                         break;
                     case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:

@@ -43,8 +43,11 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "ChartingDataManager.h"
+#include "ChartTwoOverlay.h"
+#include "ChartTwoOverlaySet.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
@@ -57,6 +60,7 @@
 #include "ElapsedTimer.h"
 #include "EventAlertUser.h"
 #include "EventAnnotationGetDrawnInWindow.h"
+#include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -85,6 +89,7 @@
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
+#include "ModelChartTwo.h"
 #include "OverlaySettingsEditorDialog.h"
 #include "MacDockMenu.h"
 #include "MovieDialog.h"
@@ -2789,77 +2794,164 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 CaretMappableDataFile* cmdf = matrixChart->getCaretMappableDataFile();
                 CaretAssert(cmdf);
                 
-                switch (matrixChart->getMatrixContentType()) {
-                    case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE:
-                    {
-                        CiftiConnectivityMatrixParcelFile* ciftiParcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(cmdf);
-                        if (ciftiParcelFile != NULL) {
-                            if (ciftiParcelFile->isMapDataLoadingEnabled(0)) {
-                                if ((rowIndex >= 0)
-                                    && (colIndex >= 0)) {
-                                    try {
-                                        ciftiConnectivityManager->loadRowOrColumnFromParcelFile(brain,
-                                                                                                ciftiParcelFile,
-                                                                                                rowIndex,
-                                                                                                colIndex,
-                                                                                                ciftiLoadingInfo);
-                                        
-                                    }
-                                    catch (const DataFileException& e) {
-                                        cursor.restoreCursor();
-                                        QMessageBox::critical(parentWidget, "", e.whatString());
-                                        cursor.showWaitCursor();
-                                    }
-                                    updateGraphicsFlag = true;
-                                }
-                            }
-                        }
-                        else {
-                            CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(cmdf);
-                            if (matrixFile != NULL) {
-                                if ((rowIndex >= 0)
-                                    || (colIndex >= 0)) {
-                                    ciftiConnectivityManager->loadRowOrColumnFromConnectivityMatrixFile(brain,
-                                                                                                        matrixFile,
-                                                                                                        rowIndex,
-                                                                                                        colIndex,
-                                                                                                        ciftiLoadingInfo);
-                                    updateGraphicsFlag = true;
-                                    
-                                }
-                            }
-                        }
+                bool loadMapFlag = false;
+                
+                ChartTwoOverlay* chartOverlayContainingDataFile = NULL;
+                
+                EventBrowserTabGet eventBrowserTab(tabIndex);
+                EventManager::get()->sendEvent(eventBrowserTab.getPointer());
+                BrowserTabContent* tabContent = eventBrowserTab.getBrowserTab();
+                if (tabContent != NULL) {
+                    ModelChartTwo* chartTwoModel = tabContent->getDisplayedChartTwoModel();
+                    if (chartTwoModel->getSelectedChartTwoDataType(tabIndex) == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
+                        ChartTwoOverlaySet* chartOverlaySet = tabContent->getChartTwoOverlaySet();
+                        chartOverlayContainingDataFile = chartOverlaySet->getDisplayedOverlayContainingDataFile(cmdf);
                     }
-                        break;
-                    case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_SCALARS:
-                    {
-                        CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(cmdf);
-                        if (scalarDataSeriesFile != NULL) {
-                            if (rowIndex >= 0) {
-                                scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
-                                                                          rowIndex);
-                                
-                                const MapYokingGroupEnum::Enum mapYoking = scalarDataSeriesFile->getMatrixRowColumnMapYokingGroup(tabIndex);
-                                
-                                if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                }
+                
+                bool foundChartOverlayFlag = false;
+                
+                if (chartOverlayContainingDataFile != NULL) {
+                    ChartableTwoFileMatrixChart* matrixChart = cmdf->getChartingDelegate()->getMatrixCharting();
+                    if (matrixChart != NULL) {
+                        if (matrixChart->isValid()) {
+                            int32_t rowColumnIndex = -1;
+                            switch (matrixChart->getSelectedRowColumnDimension()) {
+                                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                                    rowColumnIndex = colIndex;
+                                    break;
+                                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                                    rowColumnIndex = rowIndex;
+                                    break;
+                            }
+                            chartOverlayContainingDataFile->setSelectionData(cmdf,
+                                                                             rowColumnIndex);
+                            const MapYokingGroupEnum::Enum mapYoking = chartOverlayContainingDataFile->getMapYokingGroup();
+                            if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
                                     EventMapYokingSelectMap selectMapEvent(mapYoking,
-                                                                           scalarDataSeriesFile,
-                                                                           rowIndex,
+                                                                           cmdf,
+                                                                           rowColumnIndex,
                                                                            true);
                                     EventManager::get()->sendEvent(selectMapEvent.getPointer());
+                            }
+                            updateGraphicsFlag = true;
+                            foundChartOverlayFlag = true;
+                        }
+                    }
+                }
+                
+                if ( ! foundChartOverlayFlag) {
+                    CaretLogWarning("PROGRAMMER NOTE: Failed to find chart overlay containing identified matrix row/column");
+                    
+                    switch (matrixChart->getMatrixContentType()) {
+                        case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE:
+                        {
+                            CiftiConnectivityMatrixParcelFile* ciftiParcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(cmdf);
+                            if (ciftiParcelFile != NULL) {
+                                if (ciftiParcelFile->isMapDataLoadingEnabled(0)) {
+                                    if ((rowIndex >= 0)
+                                        && (colIndex >= 0)) {
+                                        try {
+                                            ciftiConnectivityManager->loadRowOrColumnFromParcelFile(brain,
+                                                                                                    ciftiParcelFile,
+                                                                                                    rowIndex,
+                                                                                                    colIndex,
+                                                                                                    ciftiLoadingInfo);
+                                            
+                                        }
+                                        catch (const DataFileException& e) {
+                                            cursor.restoreCursor();
+                                            QMessageBox::critical(parentWidget, "", e.whatString());
+                                            cursor.showWaitCursor();
+                                        }
+                                        updateGraphicsFlag = true;
+                                    }
+                                }
+                            }
+                            else {
+                                CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(cmdf);
+                                if (matrixFile != NULL) {
+                                    if ((rowIndex >= 0)
+                                        || (colIndex >= 0)) {
+                                        ciftiConnectivityManager->loadRowOrColumnFromConnectivityMatrixFile(brain,
+                                                                                                            matrixFile,
+                                                                                                            rowIndex,
+                                                                                                            colIndex,
+                                                                                                            ciftiLoadingInfo);
+                                        updateGraphicsFlag = true;
+                                        
+                                    }
                                 }
                                 else {
-                                    chartingDataManager->loadChartForCiftiMappableFileRow(scalarDataSeriesFile,
-                                                                                          rowIndex);
+                                    loadMapFlag = true;
                                 }
+                            }
+                        }
+                            break;
+                        case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_SCALARS:
+                        {
+                            CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(cmdf);
+                            if (scalarDataSeriesFile != NULL) {
+                                if (rowIndex >= 0) {
+                                    scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
+                                                                              rowIndex);
+                                    
+                                    const MapYokingGroupEnum::Enum mapYoking = scalarDataSeriesFile->getMatrixRowColumnMapYokingGroup(tabIndex);
+                                    
+                                    if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                                        EventMapYokingSelectMap selectMapEvent(mapYoking,
+                                                                               scalarDataSeriesFile,
+                                                                               rowIndex,
+                                                                               true);
+                                        EventManager::get()->sendEvent(selectMapEvent.getPointer());
+                                    }
+                                    else {
+                                        chartingDataManager->loadChartForCiftiMappableFileRow(scalarDataSeriesFile,
+                                                                                              rowIndex);
+                                    }
+                                    
+                                    updateGraphicsFlag = true;
+                                }
+                            }
+                        }
+                            break;
+                        case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED:
+                            break;
+                    }
+                    
+                    if (loadMapFlag) {
+                        ChartableTwoFileMatrixChart* matrixChart = cmdf->getChartingDelegate()->getMatrixCharting();
+                        if (matrixChart != NULL) {
+                            if (matrixChart->isValid()) {
+                                int32_t rowColumnIndex = -1;
+                                switch (matrixChart->getSelectedRowColumnDimension()) {
+                                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                                        rowColumnIndex = colIndex;
+                                        break;
+                                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                                        rowColumnIndex = rowIndex;
+                                        break;
+                                }
+                                matrixChart->setSelectedRowColumnIndex(tabIndex,
+                                                                       rowColumnIndex);
+                                //                            const MapYokingGroupEnum::Enum mapYoking = matrixChart->getMatrixRowColumnMapYokingGroup(tabIndex);
+                                //
+                                //                            if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                                //                                EventMapYokingSelectMap selectMapEvent(mapYoking,
+                                //                                                                       scalarDataSeriesFile,
+                                //                                                                       rowIndex,
+                                //                                                                       true);
+                                //                                EventManager::get()->sendEvent(selectMapEvent.getPointer());
+                                //                            }
+                                //                            else {
+                                //                                chartingDataManager->loadChartForCiftiMappableFileRow(scalarDataSeriesFile,
+                                //                                                                                      rowIndex);
+                                //                            }
                                 
                                 updateGraphicsFlag = true;
                             }
                         }
                     }
-                        break;
-                    case ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED:
-                        break;
                 }
             }
         }

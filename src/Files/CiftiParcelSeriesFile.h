@@ -21,12 +21,19 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include "BrainConstants.h"
 #include "ChartableLineSeriesBrainordinateInterface.h"
 #include "CiftiMappableDataFile.h"
 
 namespace caret {
 
+    class CiftiParcelLabelFile;
+    class CiftiParcelReordering;
+    class CiftiParcelReorderingModel;
+    class SceneClassAssistant;
+    
     class CiftiParcelSeriesFile :
     public CiftiMappableDataFile,
     public ChartableLineSeriesBrainordinateInterface {
@@ -53,6 +60,23 @@ namespace caret {
         
         virtual void getSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
+        virtual void getSelectedParcelLabelFileAndMapForReordering(std::vector<CiftiParcelLabelFile*>& compatibleParcelLabelFilesOut,
+                                                                   CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+                                                                   int32_t& selectedParcelLabelFileMapIndexOut,
+                                                                   bool& enabledStatusOut) const;
+        
+        virtual void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
+                                                                   const int32_t selectedParcelLabelFileMapIndex,
+                                                                   const bool enabledStatus);
+        
+        virtual bool createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                            const int32_t parcelLabelFileMapIndex,
+                                            AString& errorMessageOut);
+        
+        virtual const CiftiParcelReordering* getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                                 const int32_t parcelLabelFileMapIndex) const;
+        
+
     private:
         CiftiParcelSeriesFile(const CiftiParcelSeriesFile&);
 
@@ -71,7 +95,12 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
 
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
+        
         bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        std::unique_ptr<CiftiParcelReorderingModel> m_parcelReorderingModel;
+        
     };
     
 #ifdef __CIFTI_PARCEL_SERIES_FILE_DECLARE__

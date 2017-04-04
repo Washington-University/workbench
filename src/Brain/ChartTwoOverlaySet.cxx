@@ -213,6 +213,39 @@ ChartTwoOverlaySet::getDescriptionOfContent(PlainTextStringBuilder& descriptionO
     }
 }
 
+/**
+ * Find the top-most displayed and enabled overlay containing the given data file.
+ *
+ * @param mapFile
+ *     File for which overlay is requested.
+ */
+ChartTwoOverlay*
+ChartTwoOverlaySet::getDisplayedOverlayContainingDataFile(const CaretMappableDataFile* mapFile)
+{
+    if (mapFile == NULL) {
+        return NULL;
+    }
+    
+    ChartTwoOverlay* overlayOut = NULL;
+    
+    const int numOverlays = getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numOverlays; i++) {
+        ChartTwoOverlay* overlay = getOverlay(i);
+        if (overlay->isEnabled()) {
+            CaretMappableDataFile* overlayMapFile = NULL;
+            ChartTwoOverlay::SelectedIndexType selectionType = ChartTwoOverlay::SelectedIndexType::INVALID;
+            int32_t dataFileIndex = -1;
+            overlay->getSelectionData(overlayMapFile,
+                                            selectionType,
+                                            dataFileIndex);
+            if (mapFile == overlayMapFile) {
+                overlayOut = overlay;
+            }
+        }
+    }
+    
+    return overlayOut;
+}
 
 /**
  * Add a displayed overlay.  If the maximum

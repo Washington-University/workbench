@@ -28,6 +28,7 @@
 #include "CiftiParcelLabelFile.h"
 #include "CiftiParcelReordering.h"
 #include "CiftiParcelScalarFile.h"
+#include "CiftiParcelSeriesFile.h"
 #include "CiftiXML.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "ConnectivityDataLoaded.h"
@@ -68,10 +69,16 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
     m_numberOfColumns = 0;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_parcelLabelFileSelectedColumn[i] = 0;
         m_parcelScalarFileSelectedColumn[i] = 0;
+        m_parcelSeriesFileSelectedColumn[i] = 0;
     }
+    m_sceneAssistant->addTabIndexedIntegerArray("m_parcelLabelFileSelectedColumn",
+                                                m_parcelLabelFileSelectedColumn);
     m_sceneAssistant->addTabIndexedIntegerArray("m_parcelScalarFileSelectedColumn",
                                                 m_parcelScalarFileSelectedColumn);
+    m_sceneAssistant->addTabIndexedIntegerArray("m_parcelSeriesFileSelectedColumn",
+                                                m_parcelSeriesFileSelectedColumn);
     
     if (m_matrixContentType != ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED) {
         CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
@@ -112,6 +119,7 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 m_matrixDataFileType = MatrixDataFileType::PARCEL_SCALAR;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                m_matrixDataFileType = MatrixDataFileType::PARCEL_SERIES;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                 m_matrixDataFileType = MatrixDataFileType::SCALAR_DATA_SERIES;
@@ -140,7 +148,10 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 break;
         }
         
-        bool hasColumnMapSelectionFlag = false;
+        bool hasColumnParcelsFlag  = false;
+        bool hasColumnMapNamesFlag = false;
+        bool hasRowParcelsFlag     = false;
+        bool hasRowNumbersFlag       = false;
         switch (m_matrixDataFileType) {
             case MatrixDataFileType::INVALID:
                 CaretAssert(0);
@@ -150,17 +161,27 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 m_parcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(ciftiMapFile);
                 CaretAssert(m_parcelFile);
                 m_hasRowSelectionFlag    = true;
+                hasRowParcelsFlag        = true;
                 m_hasColumnSelectionFlag = true;
+                hasColumnParcelsFlag     = true;
                 break;
             case MatrixDataFileType::PARCEL_LABEL:
                 m_parcelLabelFile = dynamic_cast<CiftiParcelLabelFile*>(ciftiMapFile);
                 CaretAssert(m_parcelLabelFile);
+                m_hasColumnSelectionFlag  = true;
+                hasColumnMapNamesFlag = true;
                 break;
             case MatrixDataFileType::PARCEL_SCALAR:
                 m_parcelScalarFile = dynamic_cast<CiftiParcelScalarFile*>(ciftiMapFile);
-                m_hasColumnSelectionFlag  = true;
-                hasColumnMapSelectionFlag = true;
                 CaretAssert(m_parcelScalarFile);
+                m_hasColumnSelectionFlag  = true;
+                hasColumnMapNamesFlag = true;
+                break;
+            case MatrixDataFileType::PARCEL_SERIES:
+                m_parcelSeriesFile = dynamic_cast<CiftiParcelSeriesFile*>(ciftiMapFile);
+                CaretAssert(m_parcelSeriesFile);
+                m_hasColumnSelectionFlag  = true;
+                hasColumnMapNamesFlag = true;
                 break;
             case MatrixDataFileType::SCALAR_DATA_SERIES:
                 m_scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(ciftiMapFile);
@@ -169,32 +190,88 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
         }
         
         if (m_hasRowSelectionFlag) {
-            const CiftiParcelsMap* rowParcelsMap = ciftiMapFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_COLUMN);
-            if (rowParcelsMap != NULL) {
-                const int32_t numRowParcels = rowParcelsMap->getLength();
-                CaretAssert(numRowParcels == m_numberOfRows);
-                for (int32_t i = 0; i < numRowParcels; i++) {
-                    m_rowNames.push_back("Row " + AString::number(i + 1) + ": " + rowParcelsMap->getIndexName(i));
+            if (hasRowParcelsFlag) {
+                const CiftiParcelsMap* rowParcelsMap = ciftiMapFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_COLUMN);
+                if (rowParcelsMap != NULL) {
+                    const int32_t numRowParcels = rowParcelsMap->getLength();
+                    CaretAssert(numRowParcels == m_numberOfRows);
+                    for (int32_t i = 0; i < numRowParcels; i++) {
+                        m_rowNames.push_back(rowParcelsMap->getIndexName(i));
+                        m_rowNumberAndNames.push_back("Row " + AString::number(i + 1) + ": " + rowParcelsMap->getIndexName(i));
+                    }
+                }
+                else {
+                    const CiftiParcelsMap* columnParcelsMap = ciftiMapFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_ROW);
+                    if (columnParcelsMap != NULL) {
+                        CaretAssertMessage(0, ("Trying to use row parcels but parcels are in columns.  There are "
+                                               + AString::number(columnParcelsMap->getLength())
+                                               + " parcels in the column for the file "
+                                               + getCaretMappableDataFile()->getFileNameNoPath()));
+                    }
+                    else {
+                        CaretAssertMessage(0, "Trying to use row parcels but there are none for the file "
+                                           + getCaretMappableDataFile()->getFileNameNoPath());
+                    }
+                }
+            }
+            else if (hasRowNumbersFlag) {
+                for (int32_t i = 0; i < m_numberOfRows; i++) {
+                    m_rowNames.push_back(AString::number(i));
+                    m_rowNumberAndNames.push_back("Row " + AString::number(i + 1) + ": " + AString::number(i + 1));
                 }
             }
         }
         
         if (m_hasColumnSelectionFlag) {
-            const CiftiParcelsMap* colParcelsMap = ciftiMapFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_ROW);
-            if (colParcelsMap != NULL) {
-                const int32_t numColParcels = colParcelsMap->getLength();
-                CaretAssert(numColParcels == m_numberOfColumns);
-                for (int32_t i = 0; i < numColParcels; i++) {
-                    m_columnNames.push_back("Column " + AString::number(i + 1) + ": " + colParcelsMap->getIndexName(i));
+            if (hasColumnParcelsFlag) {
+                const CiftiParcelsMap* colParcelsMap = ciftiMapFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_ROW);
+                if (colParcelsMap != NULL) {
+                    const int32_t numColParcels = colParcelsMap->getLength();
+                    CaretAssert(numColParcels == m_numberOfColumns);
+                    for (int32_t i = 0; i < numColParcels; i++) {
+                        m_columnNames.push_back(colParcelsMap->getIndexName(i));
+                        m_columnNumberAndNames.push_back("Column " + AString::number(i + 1) + ": " + colParcelsMap->getIndexName(i));
+                    }
+                }
+                else {
+                    const CiftiParcelsMap* rowParcelsMap = ciftiMapFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_COLUMN);
+                    if (rowParcelsMap != NULL) {
+                        CaretAssertMessage(0, ("Trying to use column parcels but parcels are in rows.  There are "
+                                               + AString::number(rowParcelsMap->getLength())
+                                               + " parcels in the row for the file "
+                                               + getCaretMappableDataFile()->getFileNameNoPath()));
+                    }
+                    else {
+                        CaretAssertMessage(0, "Trying to use column parcels but there are none for the file "
+                                           + getCaretMappableDataFile()->getFileNameNoPath());
+                    }
+                }
+            }
+            else if (hasColumnMapNamesFlag) {
+                const int32_t numMaps = ciftiMapFile->getNumberOfMaps();
+                CaretAssert(m_numberOfColumns == numMaps);
+                for (int32_t i = 0; i < numMaps; i++) {
+                    m_columnNames.push_back(ciftiMapFile->getMapName(i));
+                    m_columnNumberAndNames.push_back("Column " + AString::number(i + 1) + ": " + ciftiMapFile->getMapName(i));
                 }
             }
             
-            if (hasColumnMapSelectionFlag) {
-                m_columnNames.clear();
-                for (int32_t i = 0; i < m_numberOfColumns; i++) {
-                    m_columnNames.push_back(m_parcelScalarFile->getMapName(i));
-                }
-            }
+//            if (hasColumnMapSelectionFlag) {
+//                m_columnNames.clear();
+//                for (int32_t i = 0; i < m_numberOfColumns; i++) {
+//                    m_columnNames.push_back(ciftiMapFile->getMapName(i));
+//                }
+//                if (m_parcelScalarFile != NULL) {
+//                    for (int32_t i = 0; i < m_numberOfColumns; i++) {
+//                        m_columnNames.push_back(m_parcelScalarFile->getMapName(i));
+//                    }
+//                }
+//                if (m_parcelSeriesFile != NULL) {
+//                    for (int32_t i = 0; i < m_numberOfColumns; i++) {
+//                        m_columnNames.push_back(m_parcelSeriesFile->getMapName(i));
+//                    }
+//                }
+//            }
         }
     }
     
@@ -346,9 +423,14 @@ ChartableTwoFileMatrixChart::getSelectedRowColumnDimension() const
             break;
         case MatrixDataFileType::PARCEL_LABEL:
             CaretAssert(m_parcelLabelFile);
+            loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
             break;
         case MatrixDataFileType::PARCEL_SCALAR:
             CaretAssert(m_parcelScalarFile);
+            loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
+            break;
+        case MatrixDataFileType::PARCEL_SERIES:
+            CaretAssert(m_parcelSeriesFile);
             loadDimension = ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
             break;
         case MatrixDataFileType::SCALAR_DATA_SERIES:
@@ -392,6 +474,9 @@ ChartableTwoFileMatrixChart::setSelectedRowColumnDimension(const ChartTwoMatrixL
             break;
         case MatrixDataFileType::PARCEL_SCALAR:
             CaretAssert(m_parcelScalarFile);
+            break;
+        case MatrixDataFileType::PARCEL_SERIES:
+            CaretAssert(m_parcelSeriesFile);
             break;
         case MatrixDataFileType::SCALAR_DATA_SERIES:
             CaretAssert(m_scalarDataSeriesFile);
@@ -464,25 +549,23 @@ ChartableTwoFileMatrixChart::getSelectedRowColumnIndices(const int32_t tabIndex,
             break;
         case MatrixDataFileType::PARCEL_LABEL:
         {
-            CaretAssert(m_parcelLabelFile);
-            EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(m_parcelLabelFile);
-            EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-            for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
-                columnIndicesSet.insert(indx);
-            }
+            CaretAssertArrayIndex(m_parcelLabelFileSelectedColumn, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+            columnIndicesSet.insert(m_parcelLabelFileSelectedColumn[tabIndex]);
+//            CaretAssert(m_parcelLabelFile);
+//            EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(m_parcelLabelFile);
+//            EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+//            for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
+//                columnIndicesSet.insert(indx);
+//            }
         }
             break;
         case MatrixDataFileType::PARCEL_SCALAR:
             CaretAssertArrayIndex(m_parcelScalarFileSelectedColumn, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
             columnIndicesSet.insert(m_parcelScalarFileSelectedColumn[tabIndex]);
-//        {
-//            CaretAssert(m_parcelScalarFile);
-//            EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(m_parcelScalarFile);
-//            EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-//            for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
-//                columnIndicesSet.insert(indx);
-//            }
-//        }
+            break;
+        case MatrixDataFileType::PARCEL_SERIES:
+            CaretAssertArrayIndex(m_parcelSeriesFileSelectedColumn, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+            columnIndicesSet.insert(m_parcelSeriesFileSelectedColumn[tabIndex]);
             break;
         case MatrixDataFileType::SCALAR_DATA_SERIES:
         {
@@ -554,7 +637,8 @@ ChartableTwoFileMatrixChart::setSelectedRowColumnIndex(const int32_t tabIndex,
         case MatrixDataFileType::PARCEL_LABEL:
         {
             CaretAssert(m_parcelLabelFile);
-            CaretAssertToDoWarning();
+            CaretAssertArrayIndex(m_parcelLabelFileSelectedColumn, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+            m_parcelLabelFileSelectedColumn[tabIndex] = rowColumnIndex;
             //        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(m_parcelLabelFile);
             //        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
             //        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
@@ -567,12 +651,12 @@ ChartableTwoFileMatrixChart::setSelectedRowColumnIndex(const int32_t tabIndex,
             CaretAssert(m_parcelScalarFile);
             CaretAssertArrayIndex(m_parcelScalarFileSelectedColumn, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
             m_parcelScalarFileSelectedColumn[tabIndex] = rowColumnIndex;
-            //        EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(m_parcelScalarFile);
-            //        EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
-            //        for (auto indx : mapOverlayEvent.getSelectedMapIndices()) {
-            //            columnIndicesSet.insert(indx);
-            //        }
         }
+            break;
+        case MatrixDataFileType::PARCEL_SERIES:
+            CaretAssert(m_parcelSeriesFile);
+            CaretAssertArrayIndex(m_parcelSeriesFileSelectedColumn, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+            m_parcelSeriesFileSelectedColumn[tabIndex] = rowColumnIndex;
             break;
         case MatrixDataFileType::SCALAR_DATA_SERIES:
             CaretAssert(m_scalarDataSeriesFile);
@@ -642,6 +726,47 @@ ChartableTwoFileMatrixChart::getColumnName(const int32_t columnIndex) const
     return "";
 }
 
+/**
+ * @return Name of row at the given index.
+ *
+ * @param rowIndex
+ *     Index of the row.
+ */
+AString
+ChartableTwoFileMatrixChart::getRowNumberAndName(const int32_t rowIndex) const
+{
+    if ((rowIndex >= 0)
+        && (rowIndex < m_numberOfRows)) {
+        if (rowIndex < static_cast<int32_t>(m_rowNumberAndNames.size())) {
+            CaretAssertVectorIndex(m_rowNumberAndNames, rowIndex);
+            return m_rowNumberAndNames[rowIndex];
+        }
+        return ("Row: " + AString::number(rowIndex));
+    }
+    
+    return "";
+}
+
+/**
+ * @return Name of column at the given index.
+ *
+ * @param columnIndex
+ *     Index of the row.
+ */
+AString
+ChartableTwoFileMatrixChart::getColumnNumberAndName(const int32_t columnIndex) const
+{
+    if ((columnIndex >= 0)
+        && (columnIndex < m_numberOfColumns)) {
+        if (columnIndex < static_cast<int32_t>(m_columnNumberAndNames.size())) {
+            CaretAssertVectorIndex(m_columnNumberAndNames, columnIndex);
+            return m_columnNumberAndNames[columnIndex];
+        }
+        return ("Column: " + AString::number(columnIndex));
+    }
+    
+    return "";
+}
 
 /**
  * Save subclass data to the scene.
