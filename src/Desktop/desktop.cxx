@@ -852,6 +852,15 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                      * http://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder
                      * http://trac.wxwidgets.org/ticket/15432
                      */
+                } else if (thisParam == "-NSDocumentRevisionsDebugMode") {
+                    /*
+                     * When wb_view is started within Apple's XCode, these parameters are added
+                     * so ignore them:
+                     *    -NSDocumentRevisionsDebugMode YES
+                     */
+                    if (myParams->hasNext()) {
+                        myParams->nextString("Argument to -NSDocumentRevisionsDebugMode");
+                    }
                 } else {
                     cerr << "unrecognized option \"" << thisParam << "\"" << endl;
                     printHelp(progName);
