@@ -51,6 +51,12 @@ ChartTwoCartesianAxis::ChartTwoCartesianAxis(const ChartAxisLocationEnum::Enum a
 : CaretObject(),
 m_axisLocation(axisLocation)
 {
+    /*
+     * Allowable range minimum and maximum
+     * NOT SAVED TO SCENE 
+     */
+    m_rangeMinimumValue = -std::numeric_limits<float>::max();
+    m_rangeMaximumValue =  std::numeric_limits<float>::max();
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_userScaleMinimumValue",
@@ -126,6 +132,8 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
 {
     CaretAssert(m_axisLocation == obj.m_axisLocation);
     
+    m_rangeMinimumValue     = obj.m_rangeMinimumValue;
+    m_rangeMaximumValue     = obj.m_rangeMaximumValue;
     m_userScaleMinimumValue = obj.m_userScaleMinimumValue;
     m_userScaleMaximumValue = obj.m_userScaleMaximumValue;
     m_axisLabelsStepValue   = obj.m_axisLabelsStepValue;
@@ -138,6 +146,7 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_axisTitle             = obj.m_axisTitle;
     m_visible               = obj.m_visible;
     m_showTickmarks         = obj.m_showTickmarks;
+    limitUserScaleMinMaxToValidRange();
 }
 
 /**
@@ -147,6 +156,53 @@ ChartAxisLocationEnum::Enum
 ChartTwoCartesianAxis::getAxisLocation() const
 {
     return m_axisLocation;
+}
+
+/**
+ * Get the range of values allowed.
+ *
+ * @param rangeMinimumOut
+ *     Minimum value allowed.
+ * @param rangeMaximumOut
+ *     Maximum value allowed.
+ */
+void
+ChartTwoCartesianAxis::getRange(float& rangeMinimumOut,
+                                float& rangeMaximumOut) const
+{
+    rangeMinimumOut = m_rangeMinimumValue;
+    rangeMaximumOut = m_rangeMaximumValue;
+}
+
+/**
+ * Set the range of values allowed.
+ *
+ * @param rangeMinimum
+ *     Minimum value allowed.
+ * @param rangeMaximum
+ *     Maximum value allowed.
+ */
+void
+ChartTwoCartesianAxis::setRange(const float rangeMinimum,
+                                const float rangeMaximum)
+{
+    m_rangeMinimumValue = rangeMinimum;
+    m_rangeMaximumValue = rangeMaximum;
+    limitUserScaleMinMaxToValidRange();
+}
+
+/**
+ * Limit the user scale min/max values to be within the valid range.
+ */
+void
+ChartTwoCartesianAxis::limitUserScaleMinMaxToValidRange()
+{
+    m_userScaleMinimumValue = MathFunctions::limitRange(m_userScaleMinimumValue,
+                                                        m_rangeMinimumValue,
+                                                        m_rangeMaximumValue);
+    m_userScaleMaximumValue = MathFunctions::limitRange(m_userScaleMaximumValue,
+                                                        m_rangeMinimumValue,
+                                                        m_rangeMaximumValue);
 }
 
 /**
@@ -239,6 +295,7 @@ void
 ChartTwoCartesianAxis::setUserScaleMaximumValue(const float userScaleMaximumValue)
 {
     m_userScaleMaximumValue = userScaleMaximumValue;
+    limitUserScaleMinMaxToValidRange();
 }
 
 /**
@@ -250,6 +307,7 @@ void
 ChartTwoCartesianAxis::setUserScaleMinimumValue(const float userScaleMinimumValue)
 {
     m_userScaleMinimumValue = userScaleMinimumValue;
+    limitUserScaleMinMaxToValidRange();
 }
 
 /**

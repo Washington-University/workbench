@@ -63,7 +63,9 @@ namespace caret {
         
         void valueChangedInt(int);
         
-        void axisMinimumMaximumValueChanged(double);
+        void axisMinimumValueChanged(double);
+        
+        void axisMaximumValueChanged(double);
         
         void axisNameToolButtonClicked(bool);
         

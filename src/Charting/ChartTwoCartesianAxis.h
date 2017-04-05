@@ -48,6 +48,12 @@ namespace caret {
         
         ChartAxisLocationEnum::Enum getAxisLocation() const;
         
+        void getRange(float& rangeMinimumOut,
+                      float& rangeMaximumOut) const;
+        
+        void setRange(const float rangeMinimum,
+                      const float rangeMaximum);
+        
         float getUserScaleMinimumValue() const;
         
         void setUserScaleMinimumValue(const float value);
@@ -132,10 +138,18 @@ namespace caret {
                                            float& maximumOut,
                                            float& stepValueOut,
                                            int32_t& digitsRightOfDecimalOut) const;
+
+        void limitUserScaleMinMaxToValidRange();
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         const ChartAxisLocationEnum::Enum m_axisLocation;
+        
+        /** Allowable range minimum NOT SAVED TO SCENE */
+        float m_rangeMinimumValue = 0.0;
+        
+        /** Allowable range maximum NOT SAVED TO SCENE */
+        float m_rangeMaximumValue = 1.0;
         
         mutable float m_userScaleMinimumValue = -100.0;
         

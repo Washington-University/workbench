@@ -95,12 +95,12 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     const double bigValue = 999999.0;
     m_userMinimumValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigValue, bigValue, 1.0, 1);
     QObject::connect(m_userMinimumValueSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::axisMinimumMaximumValueChanged);
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::axisMinimumValueChanged);
     m_userMinimumValueSpinBox->setToolTip("Set user scaling axis minimum value");
     
     m_userMaximumValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigValue, bigValue, 1.0, 1);
     QObject::connect(m_userMaximumValueSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::axisMinimumMaximumValueChanged);
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::axisMaximumValueChanged);
     m_userMaximumValueSpinBox->setToolTip("Set user scaling axis maximum value");
     
     m_showTickMarksCheckBox = new QCheckBox("Show Ticks");
@@ -350,7 +350,11 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoCartesianAxis* cha
         m_widgetGroup->blockAllSignals(true);
         //m_axisNameToolButton->setText(m_chartAxis->getLabelText());
         m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(m_chartAxis->getScaleRangeMode());
+        float rangeMin(0.0), rangeMax(0.0);
+        m_chartAxis->getRange(rangeMin, rangeMax);
+        m_userMinimumValueSpinBox->setRange(rangeMin, rangeMax);
         m_userMinimumValueSpinBox->setValue(m_chartAxis->getUserScaleMinimumValue());
+        m_userMaximumValueSpinBox->setRange(rangeMin, rangeMax);
         m_userMaximumValueSpinBox->setValue(m_chartAxis->getUserScaleMaximumValue());
         m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
         const NumericFormatModeEnum::Enum numericFormat = m_chartAxis->getUserNumericFormat();
@@ -397,12 +401,14 @@ BrainBrowserWindowToolBarChartTwoAxes::updateGraphics()
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
-
 /**
- * Called when the minimum or maximum value is changed.
+ * Called when the minimum value is changed.
+ *
+ * @param minimumValue
+ *     New minimum value.
  */
 void
-BrainBrowserWindowToolBarChartTwoAxes::axisMinimumMaximumValueChanged(double)
+BrainBrowserWindowToolBarChartTwoAxes::axisMinimumValueChanged(double minimumValue)
 {
     if (m_chartAxis != NULL) {
         /*
@@ -412,6 +418,47 @@ BrainBrowserWindowToolBarChartTwoAxes::axisMinimumMaximumValueChanged(double)
         m_autoUserRangeComboBox->getWidget()->blockSignals(true);
         m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER);
         m_autoUserRangeComboBox->getWidget()->blockSignals(false);
+        
+        /*
+         * Ensure maximum value is always greater than or equal to minimum
+         */
+        if (minimumValue > m_userMaximumValueSpinBox->value()) {
+            m_userMaximumValueSpinBox->blockSignals(true);
+            m_userMaximumValueSpinBox->setValue(minimumValue);
+            m_userMaximumValueSpinBox->blockSignals(false);
+        }
+        
+        valueChanged();
+    }
+}
+
+/**
+ * Called when the maximum value is changed.
+ *
+ * @param maximumValue
+ *     New maximum value.
+ */
+void
+BrainBrowserWindowToolBarChartTwoAxes::axisMaximumValueChanged(double maximumValue)
+{
+    if (m_chartAxis != NULL) {
+        /*
+         * If the minimum or maximum value is modified by user,
+         * ensure Auto/User Range selection is USER
+         */
+        m_autoUserRangeComboBox->getWidget()->blockSignals(true);
+        m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER);
+        m_autoUserRangeComboBox->getWidget()->blockSignals(false);
+
+        /*
+         * Ensure minimum value is always less than or equal to maximum
+         */
+        if (maximumValue < m_userMinimumValueSpinBox->value()) {
+            m_userMinimumValueSpinBox->blockSignals(true);
+            m_userMinimumValueSpinBox->setValue(maximumValue);
+            m_userMinimumValueSpinBox->blockSignals(false);
+        }
+        
         valueChanged();
     }
 }

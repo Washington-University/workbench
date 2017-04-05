@@ -78,15 +78,26 @@ m_tabIndex(tabIndex)
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+        {
             m_chartAxisLeft->setVisible(true);
             m_chartAxisLeft->setAxisTitle("Counts");
             m_chartAxisLeft->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            float rangeMin = 0.0, rangeMax = 0.0;
+            m_chartAxisLeft->getRange(rangeMin, rangeMax);
+            rangeMin = 0.0;
+            m_chartAxisLeft->setRange(rangeMin, rangeMax);
+            
             m_chartAxisRight->setVisible(false);
             m_chartAxisRight->setAxisTitle("Counts");
             m_chartAxisRight->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            m_chartAxisRight->getRange(rangeMin, rangeMax);
+            rangeMin = 0.0;
+            m_chartAxisRight->setRange(rangeMin, rangeMax);
+            
             m_chartAxisBottom->setVisible(true);
             m_chartAxisBottom->setAxisTitle("Data");
             m_chartAxisBottom->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+        }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             m_chartAxisLeft->setVisible(true);
