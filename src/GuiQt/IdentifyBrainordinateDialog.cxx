@@ -332,9 +332,11 @@ IdentifyBrainordinateDialog::createCiftiRowWidget(const std::vector<DataFileType
     m_ciftiRowFileComboBox = new CaretDataFileSelectionComboBox(this);
     
     m_ciftiRowFileIndexLabel = new QLabel("Row Index");
-    m_ciftiRowFileIndexSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0,
+    m_ciftiRowFileIndexSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(1,
                                                                       std::numeric_limits<int>::max(),
                                                                       1);
+    QObject::connect(m_ciftiRowFileIndexSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(apply()));
     m_ciftiRowFileIndexSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
     m_ciftiRowFileIndexSpinBox->setToolTip("Row indices start at zero.");
     
@@ -748,7 +750,7 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
         CiftiMappableDataFile*    ciftiMapFile  = dynamic_cast<CiftiMappableDataFile*>(dataFile);
         CiftiFiberTrajectoryFile* ciftiTrajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(dataFile);
         
-        const int32_t selectedCiftiRowIndex = m_ciftiRowFileIndexSpinBox->value();
+        const int32_t selectedCiftiRowIndex = m_ciftiRowFileIndexSpinBox->value() - m_ciftiRowFileIndexSpinBox->minimum();
         
         try {
             StructureEnum::Enum surfaceStructure;
