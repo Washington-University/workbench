@@ -1075,7 +1075,7 @@ CaretMappableDataFile::getMapHistogramDrawingInfo(const int32_t mapIndex,
         /*
          * If selected, apply solid color to histogram
          */
-        const CaretColorEnum::Enum histogramColor = paletteColorMapping->getHistogramColor();
+        const CaretColorEnum::Enum histogramColor = paletteColorMapping->getHistogramBarsColor();
         if (histogramColor != CaretColorEnum::CUSTOM) {
             float rgba[4];
             CaretColorEnum::toRGBAFloat(histogramColor, rgba);

@@ -220,9 +220,13 @@ namespace caret {
         
         void setHistogramEnvelopeVisible(const bool histogramEnvelopeVisible);
         
-        CaretColorEnum::Enum getHistogramColor() const;
+        CaretColorEnum::Enum getHistogramBarsColor() const;
         
-        void setHistogramColor(const CaretColorEnum::Enum histogramColor);
+        void setHistogramBarsColor(const CaretColorEnum::Enum histogramBarsColor);
+        
+        CaretColorEnum::Enum getHistogramEnvelopeColor() const;
+        
+        void setHistogramEnvelopeColor(const CaretColorEnum::Enum histogramEnvelopeColor);
         
         int32_t getHistogramNumberOfBuckets() const;
         
@@ -334,7 +338,9 @@ namespace caret {
 
         bool histogramEnvelopeVisible;
         
-        CaretColorEnum::Enum histogramColor;
+        CaretColorEnum::Enum histogramBarsColor;
+        
+        CaretColorEnum::Enum histogramEnvelopeColor;
         
         int32_t histogramNumberOfBuckets;
         

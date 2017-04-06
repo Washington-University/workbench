@@ -318,12 +318,25 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_ENVELOPE_VISIBLE) {
                this->paletteColorMapping->setHistogramEnvelopeVisible(toBool(this->elementText));
            }
-           else if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_COLOR) {
+           else if ((qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_BARS_COLOR)
+                    || (qName == "HistogramColor")) {
                bool isValid = false;
-               CaretColorEnum::Enum histogramColor = CaretColorEnum::fromName(this->elementText,
+               CaretColorEnum::Enum histogramBarsColor = CaretColorEnum::fromName(this->elementText,
                                                                                   &isValid);
                if (isValid) {
-                   this->paletteColorMapping->setHistogramColor(histogramColor);
+                   this->paletteColorMapping->setHistogramBarsColor(histogramBarsColor);
+               }
+               else {
+                   throw XmlSaxParserException("Invalid CaretColorEnum::Enum: "
+                                               + this->elementText);
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_ENVELOPE_COLOR) {
+               bool isValid = false;
+               CaretColorEnum::Enum histogramEnvelopeColor = CaretColorEnum::fromName(this->elementText,
+                                                                                  &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setHistogramEnvelopeColor(histogramEnvelopeColor);
                }
                else {
                    throw XmlSaxParserException("Invalid CaretColorEnum::Enum: "

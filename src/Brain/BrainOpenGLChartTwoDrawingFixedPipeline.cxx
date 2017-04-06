@@ -550,7 +550,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                                          0.0);
                         }
                         
+                        const CaretColorEnum::Enum envelopeColor = paletteColorMapping->getHistogramEnvelopeColor();
                         drawHistogramChartContent(drawInfo.get(),
+                                                  envelopeColor,
                                                   drawBarsFlag,
                                                   drawEnvelopeFlag);
                     }
@@ -625,7 +627,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
  * Draw the given histogram chart.
  *
  * @param drawingInfo
- *    Histogram drawing information..
+ *    Histogram drawing information.
+ * @param envelopeColor
+ *    Color for drawing envelope.
  * @param drawHistogramBarsFlag
  *    Draw the histogram as bars.
  * @param drawHistogramEnvelopeFlag
@@ -634,9 +638,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const HistogramChartDrawingInfo* drawingInfo,
+                                                                   const CaretColorEnum::Enum envelopeColor,
                                                                    const bool drawHistogramBarsFlag,
                                                                    const bool drawHistogramEnvelopeFlag)
 {
+    float envelopeSolidColorRGBA[4];
+    CaretColorEnum::toRGBAFloat(envelopeColor,
+                                envelopeSolidColorRGBA);
+    
     const ChartableTwoFileHistogramChart* histogramChart = drawingInfo->m_histogramChart;
     const int32_t mapIndex = drawingInfo->m_mapIndex;
     const HistogramDrawingInfo& histogramDrawingInfo = *drawingInfo->m_histogramDrawingInfo;
@@ -797,12 +806,34 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                 CaretAssertVectorIndex(xValues, i + 1);
                 float left   = xValues[i];
                 float right  = xValues[i + 1];
+                
                 CaretAssert(right >= left);
                 float bottom = 0;
+                
                 CaretAssertVectorIndex(yValues, i + 1);
                 float topLeft = yValues[i];
                 float topRight = yValues[i+1];
                 
+                float leftRGBA[4];
+                float rightRGBA[4];
+                float middleRGBA[4];
+                if (envelopeColor == CaretColorEnum::CUSTOM) {
+                    CaretAssertVectorIndex(rgbaValues, (i + 1) * 4 + 3);
+                    const float* leftColorPtr = &rgbaValues[i * 4];
+                    const float* rightColorPtr = &rgbaValues[i * 4];
+                    for (int32_t m = 0; m < 4; m++) {
+                        leftRGBA[m] = leftColorPtr[m];
+                        rightRGBA[m] = rightColorPtr[m];
+                        middleRGBA[m] = (leftColorPtr[m] + rightColorPtr[m]) / 2.0;
+                    };
+                }
+                else {
+                    for (int32_t m = 0; m < 4; m++) {
+                        leftRGBA[m] = envelopeSolidColorRGBA[m];
+                        rightRGBA[m] = envelopeSolidColorRGBA[m];
+                        middleRGBA[m] = envelopeSolidColorRGBA[m];
+                    };
+                }
                 uint8_t idRGBA[4];
                 if (m_identificationModeFlag) {
                     addToHistogramIdentification(mapIndex, i, idRGBA);
@@ -817,8 +848,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                     }
                     else {
                         quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                     leftRGBA,
+                                                     leftRGBA + 4);
                     }
                     
                     quadVerticesXYZ.push_back(left);
@@ -830,8 +861,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                     }
                     else {
                         quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                     leftRGBA,
+                                                     leftRGBA + 4);
                     }
                 }
                 
@@ -844,34 +875,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                 }
                 else {
                     quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                 m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                 m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                 middleRGBA,
+                                                 middleRGBA + 4);
                 }
-//                quadVerticesXYZ.push_back(left);
-//                quadVerticesXYZ.push_back(topLeft);
-//                quadVerticesXYZ.push_back(z);
-//                if (m_identificationModeFlag) {
-//                    quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-//                                                idRGBA, idRGBA + 4);
-//                }
-//                else {
-//                    quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-//                                                 m_fixedPipelineDrawing->m_foregroundColorFloat,
-//                                                 m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
-//                }
-//                
-//                quadVerticesXYZ.push_back(right);
-//                quadVerticesXYZ.push_back(topRight);
-//                quadVerticesXYZ.push_back(z);
-//                if (m_identificationModeFlag) {
-//                    quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-//                                                idRGBA, idRGBA + 4);
-//                }
-//                else {
-//                    quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-//                                                 m_fixedPipelineDrawing->m_foregroundColorFloat,
-//                                                 m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
-//                }
                 
                 if (i == lastValueIndex) {
                     quadVerticesXYZ.push_back(right);
@@ -883,8 +889,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                     }
                     else {
                         quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                     rightRGBA,
+                                                     rightRGBA + 4);
                     }
 
                     quadVerticesXYZ.push_back(right);
@@ -896,8 +902,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                     }
                     else {
                         quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                     rightRGBA,
+                                                     rightRGBA + 4);
                     }
                 }
             }
@@ -963,8 +969,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                     }
                     else {
                         quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                     envelopeSolidColorRGBA,
+                                                     envelopeSolidColorRGBA + 4);
                     }
                     quadVerticesXYZ.push_back(left);
                     quadVerticesXYZ.push_back(top);
@@ -975,8 +981,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                     }
                     else {
                         quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                     envelopeSolidColorRGBA,
+                                                     envelopeSolidColorRGBA + 4);
                     }
                 }
                 else {
@@ -994,8 +1000,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                         }
                         else {
                             quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                         m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                         envelopeSolidColorRGBA,
+                                                         envelopeSolidColorRGBA + 4);
                         }
                         
                         quadVerticesXYZ.push_back(left);
@@ -1007,8 +1013,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                         }
                         else {
                             quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                         m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                         envelopeSolidColorRGBA,
+                                                         envelopeSolidColorRGBA + 4);
                         }
                     }
                 }
@@ -1025,8 +1031,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                 }
                 else {
                     quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                 m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                 m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                 envelopeSolidColorRGBA,
+                                                 envelopeSolidColorRGBA + 4);
                 }
                 quadVerticesXYZ.push_back(right);
                 quadVerticesXYZ.push_back(top);
@@ -1037,8 +1043,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                 }
                 else {
                     quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                 m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                 m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                 envelopeSolidColorRGBA,
+                                                 envelopeSolidColorRGBA + 4);
                 }
                 
                 if (i == lastValueIndex) {
@@ -1054,8 +1060,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                     }
                     else {
                         quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                     envelopeSolidColorRGBA,
+                                                     envelopeSolidColorRGBA + 4);
                     }
                     quadVerticesXYZ.push_back(right);
                     quadVerticesXYZ.push_back(bottom);
@@ -1066,8 +1072,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                     }
                     else {
                         quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                     m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                     envelopeSolidColorRGBA,
+                                                     envelopeSolidColorRGBA + 4);
                     }
                 }
                 else {
@@ -1085,8 +1091,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                         }
                         else {
                             quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                         m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                         envelopeSolidColorRGBA,
+                                                         envelopeSolidColorRGBA + 4);
                         }
                         quadVerticesXYZ.push_back(right);
                         quadVerticesXYZ.push_back(yValues[i + 1]);
@@ -1097,8 +1103,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                         }
                         else {
                             quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         m_fixedPipelineDrawing->m_foregroundColorFloat,
-                                                         m_fixedPipelineDrawing->m_foregroundColorFloat + 4);
+                                                         envelopeSolidColorRGBA,
+                                                         envelopeSolidColorRGBA + 4);
                         }
                     }
                 }

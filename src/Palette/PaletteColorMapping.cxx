@@ -137,7 +137,8 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->histogramRangeMode = pcm.histogramRangeMode;
     this->histogramBarsVisible = pcm.histogramBarsVisible;
     this->histogramEnvelopeVisible = pcm.histogramEnvelopeVisible;
-    this->histogramColor = pcm.histogramColor;
+    this->histogramBarsColor = pcm.histogramBarsColor;
+    this->histogramEnvelopeColor = pcm.histogramEnvelopeColor;
     this->histogramNumberOfBuckets = pcm.histogramNumberOfBuckets;
     this->colorBarNumericFormatMode = pcm.colorBarNumericFormatMode;
     this->colorBarPrecisionDigits = pcm.colorBarPrecisionDigits;
@@ -189,7 +190,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->histogramRangeMode == pcm.histogramRangeMode)
         && (this->histogramBarsVisible == pcm.histogramBarsVisible)
         && (this->histogramEnvelopeVisible == pcm.histogramEnvelopeVisible)
-        && (this->histogramColor == pcm.histogramColor)
+        && (this->histogramBarsColor == pcm.histogramBarsColor)
+        && (this->histogramEnvelopeColor == pcm.histogramEnvelopeColor)
         && (this->histogramNumberOfBuckets == pcm.histogramNumberOfBuckets)
         && (this->colorBarNumericFormatMode == pcm.colorBarNumericFormatMode)
         && (this->colorBarPrecisionDigits == pcm.colorBarPrecisionDigits)
@@ -238,7 +240,8 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->histogramRangeMode = PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL;
     this->histogramBarsVisible = true;
     this->histogramEnvelopeVisible = false;
-    this->histogramColor = CaretColorEnum::CUSTOM;  // CUSTOM is color with palette
+    this->histogramBarsColor = CaretColorEnum::CUSTOM;  // CUSTOM is color with palette
+    this->histogramEnvelopeColor = CaretColorEnum::RED;
     this->histogramNumberOfBuckets = 100;
     this->colorBarNumericFormatMode = NumericFormatModeEnum::AUTO;
     this->colorBarPrecisionDigits = 2;
@@ -362,8 +365,10 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                      this->histogramBarsVisible);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_ENVELOPE_VISIBLE,
                                      this->histogramEnvelopeVisible);
-    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_COLOR,
-                                     CaretColorEnum::toName(this->histogramColor));
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_BARS_COLOR,
+                                     CaretColorEnum::toName(this->histogramBarsColor));
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_ENVELOPE_COLOR,
+                                     CaretColorEnum::toName(this->histogramEnvelopeColor));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_NUMBER_OF_BUCKETS,
                                      this->histogramNumberOfBuckets);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_NUMERIC_FORMAT_MODE,
@@ -2810,25 +2815,49 @@ PaletteColorMapping::setHistogramEnvelopeVisible(const bool histogramEnvelopeVis
 }
 
 /**
- * @return Color for drawing histogram.
+ * @return Color for drawing histogram bars
  */
 CaretColorEnum::Enum
-PaletteColorMapping::getHistogramColor() const
+PaletteColorMapping::getHistogramBarsColor() const
 {
-    return histogramColor;
+    return histogramBarsColor;
 }
 
 /**
- * Set the color for drawing the histogram.
+ * Set the color for drawing the histogram bars
  *
- * @param histogramColor
- *     New color for the histogram.
+ * @param histogramBarsColor
+ *     New color for the histogram bars
  */
 void
-PaletteColorMapping::setHistogramColor(const CaretColorEnum::Enum histogramColor)
+PaletteColorMapping::setHistogramBarsColor(const CaretColorEnum::Enum histogramBarsColor)
 {
-    if (histogramColor != this->histogramColor) {
-        this->histogramColor = histogramColor;
+    if (histogramBarsColor != this->histogramBarsColor) {
+        this->histogramBarsColor = histogramBarsColor;
+        setModified();
+    }
+}
+
+/**
+ * @return Color for drawing histogram envelope
+ */
+CaretColorEnum::Enum
+PaletteColorMapping::getHistogramEnvelopeColor() const
+{
+    return histogramEnvelopeColor;
+}
+
+/**
+ * Set the color for drawing the histogram envelope
+ *
+ * @param histogramEnvelopeColor
+ *     New color for the histogram envelope.
+ */
+void
+PaletteColorMapping::setHistogramEnvelopeColor(const CaretColorEnum::Enum histogramEnvelopeColor)
+{
+    if (histogramEnvelopeColor != this->histogramEnvelopeColor) {
+        this->histogramEnvelopeColor = histogramEnvelopeColor;
         setModified();
     }
 }

@@ -83,11 +83,11 @@ namespace caret {
         
         static QWidget* createHorizontalLineWidget();
         
-        static QPixmap createCaretColorEnumPixmap(const QWidget* widgetForPixmap,
+        static QPixmap createCaretColorEnumPixmap(const QWidget* widget,
                                                   const int32_t  pixmapWidth,
                                                   const int32_t  pixmapHeight,
                                                   const CaretColorEnum::Enum caretColor,
-                                                  const float    rgba[4],
+                                                  const float    customColorRGBA[4],
                                                   const bool     outlineFlag);
         
         static QSharedPointer<QPainter> createPixmapWidgetPainter(const QWidget* widget,

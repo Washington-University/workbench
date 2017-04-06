@@ -199,7 +199,9 @@ namespace caret {
         
         EnumComboBoxTemplate* m_histogramHorizontalRangeComboBox;
         
-        CaretColorEnumComboBox* m_histogramColorComboBox;
+        CaretColorEnumComboBox* m_histogramBarsColorComboBox;
+        
+        CaretColorEnumComboBox* m_histogramEnvelopeColorComboBox;
         
         QCheckBox* m_histogramBarsVisibleCheckBox;
         

@@ -23,6 +23,7 @@
 
 #include <set>
 #include "BrainOpenGLChartTwoDrawingInterface.h"
+#include "CaretColorEnum.h"
 #include "ChartAxisLocationEnum.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"
 
@@ -128,6 +129,7 @@ namespace caret {
         void drawHistogramChart();
         
         void drawHistogramChartContent(const HistogramChartDrawingInfo* drawingInfo,
+                                       const CaretColorEnum::Enum envelopeColor,
                                        const bool drawHistogramBarsFlag,
                                        const bool drawHistogramEnvelopeFlag);
         
