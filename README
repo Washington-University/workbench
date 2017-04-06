@@ -1,19 +1,17 @@
-Connectome Workbench requires QT4 or QT5 to compile.  Recommended is the latest 4.8.x release, or 5.6 or later.  For QT4, try the following configure options:
+Connectome Workbench requires QT5 to compile.  Recommended is version 5.6 or later (due to an issue with the toolbar size on earlier versions).
 
--system-zlib -no-webkit -qt-libmng -qt-libpng -qt-libtiff -qt-libjpeg -nomake demos -nomake examples -no-qt3support -no-dbus -opensource -exceptions -stl -no-multimedia -no-phonon -no-audio-backend -openssl
+It is highly recommended to compile with OSMesa, which allow the -show-scene command and the "render pixmap" image capture method to work.  Use it by setting the *cmake* variable WORKBENCH_MESA_DIR, such that ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h exists.
 
-It is highly recommended to compile with OSMesa, which allow the -show-scene command and the "render pixmap" image capture method to work.  Use it by setting OSMESA_DIR as an environment variable, such that $OSMESA_DIR/include/GL/osmesa.h exists, before running cmake.
-
-It is compiled using cmake, on linux do:
+It is compiled using cmake, for example, on linux you can do:
 
 mkdir build
 cd build
-cmake -D CMAKE_BUILD_TYPE=Release ../workbench/src
-make
+cmake -D CMAKE_BUILD_TYPE=Release -D WORKBENCH_MESA_DIR=/usr -D WORKBENCH_USE_QT5=TRUE ../workbench/src
+nice make -j8
 
 For other OSes, see http://www.cmake.org/cmake/help/runningcmake.html
 
-Also note the -j flag of "make" (like "make -j4") can be used to speed up the build by compiling multiple source files at the same time.
+Note the -j flag of "make" is used in the example to speed up the build by compiling multiple source files at the same time.  If you have a different number of cores/hardware threads or want to reduce the load, adjust it accordingly.  The "nice" command is not needed, it is used to make the compilation have less priority than other processes.
 
 This produces 3 executables, 2 of which are useful to the end user (Desktop/wb_view, CommandLine/wb_command), and one for running internal tests (Tests/test_driver).
 
@@ -29,7 +27,7 @@ make install
 
 It should be noted that wb_import, provided in the HCP binary releases of Connectome Workbench, is actually part of caret5 (http://brainvis.wustl.edu/wiki/index.php/Caret:Download).
 
-Connectome Workbench itself is licensed under GPLv2 or later, copyright 2014-2016 Washington University School of Medicine, see LICENSE file
+Connectome Workbench itself is licensed under GPLv2 or later, copyright 2014-2017 Washington University School of Medicine, see LICENSE file
 
 Some source files are licensed under an MIT license (Expat), for easier code reuse in non-GPL projects:
 Files/SurfaceResamplingHelper.cxx
