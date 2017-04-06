@@ -106,7 +106,7 @@ CiftiBrainordinateDataSeriesFile::initializeDenseDynamicFile()
         GiftiMetaData* fileMetaData = m_ciftiFile->getCiftiXML().getFileMetaData();
         const AString encodedPaletteColorMappingString = fileMetaData->get(s_paletteColorMappingNameInMetaData);
         if ( ! encodedPaletteColorMappingString.isEmpty()) {
-            if (m_lazyInitializedDenseDynamicFile-getNumberOfMaps() > 0) {
+            if (m_lazyInitializedDenseDynamicFile->getNumberOfMaps() > 0) {
                 PaletteColorMapping* pcm = m_lazyInitializedDenseDynamicFile->getMapPaletteColorMapping(0);
                 CaretAssert(pcm);
                 pcm->decodeFromStringXML(encodedPaletteColorMappingString);
@@ -171,7 +171,7 @@ CiftiBrainordinateDataSeriesFile::writeFile(const AString& ciftiMapFileName)
     if (m_lazyInitializedDenseDynamicFile != NULL) {
         GiftiMetaData* fileMetaData = m_ciftiFile->getCiftiXML().getFileMetaData();
         CaretAssert(fileMetaData);
-        if (m_lazyInitializedDenseDynamicFile-getNumberOfMaps() > 0) {
+        if (m_lazyInitializedDenseDynamicFile->getNumberOfMaps() > 0) {
             fileMetaData->set(s_paletteColorMappingNameInMetaData,
                               m_lazyInitializedDenseDynamicFile->getMapPaletteColorMapping(0)->encodeInXML());
         }
