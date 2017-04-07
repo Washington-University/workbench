@@ -338,7 +338,7 @@ IdentifyBrainordinateDialog::createCiftiRowWidget(const std::vector<DataFileType
     QObject::connect(m_ciftiRowFileIndexSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(apply()));
     m_ciftiRowFileIndexSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
-    m_ciftiRowFileIndexSpinBox->setToolTip("Row indices start at zero.");
+    m_ciftiRowFileIndexSpinBox->setToolTip("Row indices start at one.");
     
     QWidget* widget = new QWidget();
     QGridLayout* ciftiRowLayout = new QGridLayout(widget);
