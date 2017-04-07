@@ -455,6 +455,11 @@ namespace caret {
         
         const CiftiXML getCiftiXML() const;
         
+        /** 
+         * @return The index base (zero or one) for displaying row and column indices in the Graphical User Interface 
+         */
+        static inline int32_t getCiftiFileRowColumnIndexBaseForGUI() { return CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI; }
+
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);
@@ -743,6 +748,15 @@ namespace caret {
 
         
         static const int32_t S_CIFTI_XML_ALONG_INVALID;
+        
+    protected:
+        /**
+         * This value is used for the "base index" of CIFTI rows/columns
+         * in the user-interface.
+         */
+        static const int32_t CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI = 1;
+        
+    private:
         
 //        std::vector<int64_t> m_ciftiDimensions;
         

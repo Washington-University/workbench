@@ -195,7 +195,7 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
                                                paletteFile);
                 rowColumnInformationOut.push_back(pf->getFileNameNoPath()
                                                   + " column index="
-                                                  + AString::number(rowColumnIndexToLoad));
+                                                  + AString::number(rowColumnIndexToLoad + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 break;
             case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
                 pf->loadDataForRowIndex(rowColumnIndexToLoad);
@@ -203,7 +203,7 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
                                                paletteFile);
                 rowColumnInformationOut.push_back(pf->getFileNameNoPath()
                                                   + " row index="
-                                                  + AString::number(rowColumnIndexToLoad));
+                                                  + AString::number(rowColumnIndexToLoad + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 break;
         }
     }
@@ -227,7 +227,7 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromConnectivityMatrixFil
                                        paletteFile);
         rowColumnInformationOut.push_back(ciftiConnMatrixFile->getFileNameNoPath()
                                           + " row index="
-                                          + AString::number(rowIndex));
+                                          + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
     }
     else if (columnIndex >= 0) {
         ciftiConnMatrixFile->loadDataForColumnIndex(columnIndex);
@@ -235,7 +235,7 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromConnectivityMatrixFil
                                                         paletteFile);
         rowColumnInformationOut.push_back(ciftiConnMatrixFile->getFileNameNoPath()
                                           + " column index="
-                                          + AString::number(columnIndex));
+                                          + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
     }
     
     return true;
@@ -292,20 +292,20 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                  * Get row/column info for node
                  */
                 rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
-                                                  + " nodeIndex="
+                                                  + " vertex index="
                                                   + AString::number(nodeIndex)
-                                                  + ", row index= "
-                                                  + AString::number(rowIndex));
+                                                  + ", row index="
+                                                  + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
             }
             else if (columnIndex >= 0) {
                 /*
                  * Get row/column info for node
                  */
                 rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
-                                                  + " nodeIndex="
+                                                  + " vertex index="
                                                   + AString::number(nodeIndex)
-                                                  + ", column index= "
-                                                  + AString::number(columnIndex));
+                                                  + ", column index="
+                                                  + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
             }
         }
     }
@@ -409,8 +409,8 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                 rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
                                                   + " Voxel XYZ="
                                                   + AString::fromNumbers(xyz, 3, ",")
-                                                  + ", row index= "
-                                                  + AString::number(rowIndex));
+                                                  + ", row index="
+                                                  + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
             }
             else if (columnIndex >= 0) {
                 /*
@@ -419,8 +419,8 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                 rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
                                                   + " Voxel XYZ="
                                                   + AString::fromNumbers(xyz, 3, ",")
-                                                  + ", column index= "
-                                                  + AString::number(columnIndex));
+                                                  + ", column index="
+                                                  + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
             }
         }
     }

@@ -75,6 +75,15 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
     m_classNameHierarchy.grabNew(NULL);
     m_fileDataReadingType = FILE_READ_DATA_ALL;
     
+    switch (CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI) {
+        case 0:
+        case 1:
+            break;
+        default:
+            CaretAssertMessage(0, "CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI must be zero or one!");
+            break;
+    }
+    
     m_containsSurfaceData = false;
     m_containsVolumeData = false;
     m_mappingTimeStart = 0.0;

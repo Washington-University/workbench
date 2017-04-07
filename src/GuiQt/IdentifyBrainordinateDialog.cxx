@@ -332,13 +332,23 @@ IdentifyBrainordinateDialog::createCiftiRowWidget(const std::vector<DataFileType
     m_ciftiRowFileComboBox = new CaretDataFileSelectionComboBox(this);
     
     m_ciftiRowFileIndexLabel = new QLabel("Row Index");
-    m_ciftiRowFileIndexSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(1,
+    m_ciftiRowFileIndexSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI(),
                                                                       std::numeric_limits<int>::max(),
                                                                       1);
     QObject::connect(m_ciftiRowFileIndexSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(apply()));
     m_ciftiRowFileIndexSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
-    m_ciftiRowFileIndexSpinBox->setToolTip("Row indices start at one.");
+    switch (CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()) {
+        case 0:
+            m_ciftiRowFileIndexSpinBox->setToolTip("Row indices start at zero.");
+            break;
+        case 1:
+            m_ciftiRowFileIndexSpinBox->setToolTip("Row indices start at one.");
+            break;
+        default:
+            CaretAssert(0);
+            m_ciftiRowFileIndexSpinBox->setToolTip("PROGRAM ERROR CIFTI FILE ROW/COLUMN BASE INDEX SHOULD BE ONE OR ZERO.");
+    }
     
     QWidget* widget = new QWidget();
     QGridLayout* ciftiRowLayout = new QGridLayout(widget);

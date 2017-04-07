@@ -799,12 +799,12 @@ IdentificationTextGenerator::generateCiftiConnectivityMatrixIdentificationText(I
         if (validData) {
             if (rowIndex >= 0) {
                 idText.addLine(true,
-                               ("Row " + AString::number(rowIndex + 1)),
+                               ("Row " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                rowName);
             }
             if (colIndex >= 0) {
                 idText.addLine(true,
-                               ("Column " + AString::number(colIndex + 1)),
+                               ("Column " + AString::number(colIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                colName);
             }
         }

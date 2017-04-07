@@ -664,17 +664,17 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIn
         if ((rowIndex >= 0)
             && (rowIndex < m_ciftiFile->getNumberOfRows())) {
             m_rowLoadedTextForMapName = ("Row: "
-                                         + AString::number(rowIndex));
+                                         + AString::number(rowIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI));
             
             m_rowLoadedText = ("Row_"
-                               + AString::number(rowIndex));
+                               + AString::number(rowIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI));
             CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiFile->getNumberOfRows()));
             m_loadedRowData.resize(dataCount);
             
             getProcessedDataForRow(&m_loadedRowData[0],
                                    rowIndex);
             
-            CaretLogFine("Read row " + AString::number(rowIndex));
+            CaretLogFine("Read row " + AString::number(rowIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI));
             m_connectivityDataLoaded->setRowColumnLoading(rowIndex,
                                                           -1);
         }
@@ -705,17 +705,17 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t co
         if ((columnIndex >= 0)
             && (columnIndex < m_ciftiFile->getNumberOfColumns())) {
             m_rowLoadedTextForMapName = ("Column: "
-                                         + AString::number(columnIndex));
+                                         + AString::number(columnIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI));
             
             m_rowLoadedText = ("Column_"
-                               + AString::number(columnIndex));
+                               + AString::number(columnIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI));
             CaretAssert((columnIndex >= 0) && (columnIndex < m_ciftiFile->getNumberOfColumns()));
             m_loadedRowData.resize(dataCount);
             
             getProcessedDataForColumn(&m_loadedRowData[0],
                                       columnIndex);
             
-            CaretLogFine("Read column " + AString::number(columnIndex));
+            CaretLogFine("Read column " + AString::number(columnIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI));
             m_connectivityDataLoaded->setRowColumnLoading(-1,
                                                           columnIndex);
         }
@@ -806,15 +806,15 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
             
             if (dataCount > 0) {
                 m_rowLoadedTextForMapName = ("Row: "
-                                         + AString::number(rowIndex)
-                                         + ", Node Index: "
+                                         + AString::number(rowIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI)
+                                         + ", Vertex Index: "
                                          + AString::number(nodeIndex)
                                          + ", Structure: "
                                          + StructureEnum::toName(structure));
 
                 m_rowLoadedText = ("Row_"
-                                   + AString::number(rowIndex)
-                                   + "_Node_Index_"
+                                   + AString::number(rowIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI)
+                                   + "_Vertex_Index_"
                                    + AString::number(nodeIndex)
                                    + "_Structure_"
                                    + StructureEnum::toGuiName(structure));
@@ -823,7 +823,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                 getProcessedDataForRow(&m_loadedRowData[0],
                                     rowIndex);
                 
-                CaretLogFine("Read row for node " + AString::number(nodeIndex));
+                CaretLogFine("Read row for vertex " + AString::number(nodeIndex));
                 
                 m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
                                                                 surfaceNumberOfNodes,
@@ -839,15 +839,15 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
             const int64_t dataCount = m_ciftiFile->getNumberOfRows();
             if (dataCount > 0) {
                 m_rowLoadedTextForMapName = ("Column: "
-                                             + AString::number(columnIndex)
-                                             + ", Node Index: "
+                                             + AString::number(columnIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI)
+                                             + ", Vertex Index: "
                                              + AString::number(nodeIndex)
                                              + ", Structure: "
                                              + StructureEnum::toName(structure));
                 
                 m_rowLoadedText = ("Column_"
-                                   + AString::number(columnIndex)
-                                   + "_Node_Index_"
+                                   + AString::number(columnIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI)
+                                   + "_Vertex_Index_"
                                    + AString::number(nodeIndex)
                                    + "_Structure_"
                                    + StructureEnum::toGuiName(structure));
@@ -856,7 +856,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                 getProcessedDataForColumn(&m_loadedRowData[0],
                                           columnIndex);
                 
-                CaretLogFine("Read column for node " + AString::number(nodeIndex));
+                CaretLogFine("Read column for vertex " + AString::number(nodeIndex));
                 
                 m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
                                                                 surfaceNumberOfNodes,
@@ -869,7 +869,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
         }
         
         if (dataWasLoaded == false) {
-            CaretLogFine("FAILED to read data for node " + AString::number(nodeIndex));
+            CaretLogFine("FAILED to read data for vertex " + AString::number(nodeIndex));
             m_connectivityDataLoaded->reset();
         }
     }
@@ -880,7 +880,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     
     updateForChangeInMapDataWithMapIndex(0);
 
-    AString msg = ("Time load data for surface node in "
+    AString msg = ("Time load data for surface vertex in "
                    + getFileNameNoPath()
                    + " was "
                    + AString::number(timer.getElapsedTimeSeconds())
@@ -979,7 +979,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
     }
     
     if (dataWasLoaded == false) {
-        CaretLogFine("FAILED to read data for node average" + AString::fromNumbers(nodeIndices, ","));
+        CaretLogFine("FAILED to read data for vertex average" + AString::fromNumbers(nodeIndices, ","));
     }
 
     updateForChangeInMapDataWithMapIndex(0);
@@ -1064,13 +1064,13 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
                                    rowIndex);
             
             m_rowLoadedTextForMapName = ("Row: "
-                                        + AString::number(rowIndex)
+                                        + AString::number(rowIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI)
                                         + ", Voxel XYZ: ("
                                         + AString::fromNumbers(xyz, 3, ",")
                                         + ")");
             
             m_rowLoadedText = ("Row_"
-                                + AString::number(rowIndex)
+                                + AString::number(rowIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI)
                                 + "_Voxel_XYZ_"
                                 + AString::fromNumbers(xyz, 3, "_").replace('-', 'm'));
             
@@ -1089,13 +1089,13 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
                                       columnIndex);
             
             m_rowLoadedTextForMapName = ("Column: "
-                                         + AString::number(columnIndex)
+                                         + AString::number(columnIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI)
                                          + ", Voxel XYZ: ("
                                          + AString::fromNumbers(xyz, 3, ",")
                                          + ")");
             
             m_rowLoadedText = ("Column_"
-                               + AString::number(columnIndex)
+                               + AString::number(columnIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI)
                                + "_Voxel_XYZ_"
                                + AString::fromNumbers(xyz, 3, "_").replace('-', 'm'));
             
