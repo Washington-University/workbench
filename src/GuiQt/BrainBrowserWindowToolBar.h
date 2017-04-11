@@ -128,6 +128,7 @@ namespace caret {
         void updateGraphicsWindow();
         void updateUserInterface();
         void updateToolBox();
+        void updateAllTabNames();
         void updateTabName(const int32_t tabIndex);
         void updateOtherYokedWindows();
         

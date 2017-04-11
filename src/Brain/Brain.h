@@ -691,6 +691,8 @@ namespace caret {
         
         void updateSurfaceMontageModel();
         
+        void updateBrainStructures();
+        
         void updateFiberTrajectoryMatchingFiberOrientationFiles();
         
         void validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) const;

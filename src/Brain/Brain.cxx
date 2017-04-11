@@ -371,6 +371,30 @@ Brain::getBrainStructure(StructureEnum::Enum structure,
 }
 
 /**
+ * Update brain structures by removing any that contain zero data files
+ */
+void
+Brain::updateBrainStructures()
+{
+    std::vector<BrainStructure*> validBrainStructures;
+    
+    for (auto bs : m_brainStructures) {
+        CaretAssert(bs);
+        if (bs->hasDataFiles()) {
+            validBrainStructures.push_back(bs);
+        }
+        else {
+            delete bs;
+        }
+    }
+    
+    if (m_brainStructures.size() != validBrainStructures.size()) {
+        m_brainStructures = validBrainStructures;
+    }
+}
+
+
+/**
  * Increment and return the duplicate counter for the given data file type.
  *
  * @param dataFileType
@@ -5215,6 +5239,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
 void
 Brain::updateAfterFilesAddedOrRemoved()
 {
+    updateBrainStructures();
     updateChartModel();
     updateVolumeSliceModel();
     updateWholeBrainModel();

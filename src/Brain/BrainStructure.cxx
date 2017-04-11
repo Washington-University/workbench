@@ -1110,6 +1110,19 @@ BrainStructure::getNodeAttributes() const
 }
 
 /**
+ * @return True if this brain structure contains any data files, else false.
+ */
+bool
+BrainStructure::hasDataFiles() const
+{
+    std::vector<CaretDataFile*> allDataFiles;
+    getAllDataFiles(allDataFiles);
+    
+    return ( ! allDataFiles.empty());
+}
+
+
+/**
  * Get all loaded data files.
  * @param allDataFilesOut
  *    Data files are loaded into this parameter.

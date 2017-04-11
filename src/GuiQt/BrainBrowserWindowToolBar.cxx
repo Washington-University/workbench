@@ -1169,6 +1169,17 @@ BrainBrowserWindowToolBar::renameTab()
 }
 
 /**
+ * Update the names of all tabs.
+ */
+void
+BrainBrowserWindowToolBar::updateAllTabNames()
+{
+    for (int32_t i = 0; i < this->tabBar->count(); i++) {
+        updateTabName(i);
+    }
+}
+
+/**
  * Update the name of the tab at the given index.  The 
  * name is obtained from the tabs browser content.
  *
@@ -1462,7 +1473,7 @@ BrainBrowserWindowToolBar::updateToolBar()
         CaretLogSevere("Update counter is non-zero at end of updateToolBar()");
     }
     
-    this->updateTabName(-1);
+    this->updateAllTabNames();
     
     BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
     if (browserWindow != NULL) {
