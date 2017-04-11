@@ -45,6 +45,7 @@
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
 #include "EventProgressUpdate.h"
+#include "GraphicsFactory.h"
 #include "ImageCaptureSettings.h"
 #include "LogManager.h"
 #include "MapYokingGroupEnum.h"
@@ -153,6 +154,11 @@ SessionManager::createSessionManager(const ApplicationTypeEnum::Enum application
     EventManager::createEventManager();
     
     /*
+     * Create the graphics factory.
+     */
+    GraphicsFactory::createGraphicsFactory();
+    
+    /*
      * Create session manager.
      */
     s_singletonSessionManager = new SessionManager();
@@ -170,6 +176,8 @@ SessionManager::deleteSessionManager()
     
     delete s_singletonSessionManager;
     s_singletonSessionManager = NULL;
+    
+    GraphicsFactory::deleteGraphicsFactory();
     
     /*
      * Session manager must be deleted before the event

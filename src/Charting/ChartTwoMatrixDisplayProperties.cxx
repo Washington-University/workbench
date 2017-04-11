@@ -42,7 +42,9 @@ using namespace caret;
  * Constructor.
  */
 ChartTwoMatrixDisplayProperties::ChartTwoMatrixDisplayProperties()
-: CaretObject()
+: CaretObject(),
+EventListenerInterface(),
+SceneableInterface()
 {
     initializeInstance();
 }
@@ -83,7 +85,9 @@ ChartTwoMatrixDisplayProperties::initializeInstance()
  *    Object that is copied.
  */
 ChartTwoMatrixDisplayProperties::ChartTwoMatrixDisplayProperties(const ChartTwoMatrixDisplayProperties& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+EventListenerInterface(),
+SceneableInterface(obj)
 {
     initializeInstance();
     
@@ -138,7 +142,7 @@ ChartTwoMatrixDisplayProperties::toString() const
  *    An event for which this instance is listening.
  */
 void
-ChartTwoMatrixDisplayProperties::receiveEvent(Event* event)
+ChartTwoMatrixDisplayProperties::receiveEvent(Event* /*event*/)
 {
 }
 

@@ -79,6 +79,7 @@ Operations
 Algorithms
 OperationsBase
 Brain
+Graphics
 ${FTGL_LIBRARIES}
 Files
 Annotations

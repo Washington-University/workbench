@@ -103,6 +103,7 @@ Algorithms
 OperationsBase
 GuiQt
 Brain
+Graphics
 Files
 Annotations
 Cifti

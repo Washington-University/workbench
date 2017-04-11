@@ -125,6 +125,7 @@ OperationsBase
 ${Qwt_LIBRARIES}
 OSMesaDummy
 Brain
+Graphics
 ${FTGL_LIBRARIES}
 Files
 Annotations
@@ -196,6 +197,7 @@ ${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Commands
 ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Brain
+${CMAKE_SOURCE_DIR}/Graphics
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Palette

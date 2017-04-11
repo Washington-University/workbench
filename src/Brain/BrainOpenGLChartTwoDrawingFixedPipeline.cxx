@@ -45,6 +45,10 @@
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "FastStatistics.h"
+#include "GraphicsEngineOpenGL.h"
+#include "GraphicsFactory.h"
+#include "GraphicsPrimitiveV3fC4f.h"
+#include "GraphicsPrimitiveV3fC4ub.h"
 #include "HistogramDrawingInfo.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
@@ -131,6 +135,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     m_selectionItemLineSeries = m_brain->getSelectionManager()->getChartTwoLineSeriesIdentification();
     m_selectionItemMatrix     = m_brain->getSelectionManager()->getChartTwoMatrixIdentification();
 
+    m_fixedPipelineDrawing->disableLighting();
+    
     /*
      * Find color bars for this tab and decrease height of 
      * viewport so chart is above color bars.
@@ -1345,12 +1351,17 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
     };
 
     int32_t rgbaOffset = 0;
-    std::vector<float> quadVerticesXYZ;
-    quadVerticesXYZ.reserve(numberOfRows * numberOfColumns * 3);
-    std::vector<float> quadVerticesFloatRGBA;
-    quadVerticesFloatRGBA.reserve(numberOfRows * numberOfColumns * 4);
-    std::vector<uint8_t> quadVerticesByteRGBA;
-    quadVerticesByteRGBA.reserve(numberOfRows * numberOfColumns * 4);
+//    std::vector<float> quadVerticesXYZ;
+//    quadVerticesXYZ.reserve(numberOfRows * numberOfColumns * 3);
+//    std::vector<float> quadVerticesFloatRGBA;
+//    quadVerticesFloatRGBA.reserve(numberOfRows * numberOfColumns * 4);
+//    std::vector<uint8_t> quadVerticesByteRGBA;
+//    quadVerticesByteRGBA.reserve(numberOfRows * numberOfColumns * 4);
+    
+    std::unique_ptr<GraphicsPrimitiveV3fC4f> quadsData4f
+       = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsFactory::get()->newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+    std::unique_ptr<GraphicsPrimitiveV3fC4ub> quadsData4ub
+       = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsFactory::get()->newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
     
     float cellY = (numberOfRows - 1) * cellHeight;
     for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
@@ -1445,68 +1456,76 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 }
                 
                 if (m_identificationModeFlag) {
-                    quadVerticesByteRGBA.push_back(idRGBA[0]);
-                    quadVerticesByteRGBA.push_back(idRGBA[1]);
-                    quadVerticesByteRGBA.push_back(idRGBA[2]);
-                    quadVerticesByteRGBA.push_back(idRGBA[3]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[0]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[1]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[2]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[3]);
+                    quadsData4ub->addVertex(cellX, cellY, 0.0, idRGBA);
                 }
                 else {
-                    quadVerticesFloatRGBA.push_back(rgba[0]);
-                    quadVerticesFloatRGBA.push_back(rgba[1]);
-                    quadVerticesFloatRGBA.push_back(rgba[2]);
-                    quadVerticesFloatRGBA.push_back(rgba[3]);
+//                    quadVerticesFloatRGBA.push_back(rgba[0]);
+//                    quadVerticesFloatRGBA.push_back(rgba[1]);
+//                    quadVerticesFloatRGBA.push_back(rgba[2]);
+//                    quadVerticesFloatRGBA.push_back(rgba[3]);
+                    quadsData4f->addVertex(cellX, cellY, 0.0, rgba);
                 }
-                quadVerticesXYZ.push_back(cellX);
-                quadVerticesXYZ.push_back(cellY);
-                quadVerticesXYZ.push_back(0.0);
+//                quadVerticesXYZ.push_back(cellX);
+//                quadVerticesXYZ.push_back(cellY);
+//                quadVerticesXYZ.push_back(0.0);
                 
                 if (m_identificationModeFlag) {
-                    quadVerticesByteRGBA.push_back(idRGBA[0]);
-                    quadVerticesByteRGBA.push_back(idRGBA[1]);
-                    quadVerticesByteRGBA.push_back(idRGBA[2]);
-                    quadVerticesByteRGBA.push_back(idRGBA[3]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[0]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[1]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[2]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[3]);
+                    quadsData4ub->addVertex(cellX + cellWidth, cellY, 0.0, idRGBA);
                 }
                 else {
-                    quadVerticesFloatRGBA.push_back(rgba[0]);
-                    quadVerticesFloatRGBA.push_back(rgba[1]);
-                    quadVerticesFloatRGBA.push_back(rgba[2]);
-                    quadVerticesFloatRGBA.push_back(rgba[3]);
+//                    quadVerticesFloatRGBA.push_back(rgba[0]);
+//                    quadVerticesFloatRGBA.push_back(rgba[1]);
+//                    quadVerticesFloatRGBA.push_back(rgba[2]);
+//                    quadVerticesFloatRGBA.push_back(rgba[3]);
+                    quadsData4f->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
                 }
-                quadVerticesXYZ.push_back(cellX + cellWidth);
-                quadVerticesXYZ.push_back(cellY);
-                quadVerticesXYZ.push_back(0.0);
+//                quadVerticesXYZ.push_back(cellX + cellWidth);
+//                quadVerticesXYZ.push_back(cellY);
+//                quadVerticesXYZ.push_back(0.0);
                 
                 if (m_identificationModeFlag) {
-                    quadVerticesByteRGBA.push_back(idRGBA[0]);
-                    quadVerticesByteRGBA.push_back(idRGBA[1]);
-                    quadVerticesByteRGBA.push_back(idRGBA[2]);
-                    quadVerticesByteRGBA.push_back(idRGBA[3]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[0]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[1]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[2]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[3]);
+                    quadsData4ub->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, idRGBA);
                 }
                 else {
-                    quadVerticesFloatRGBA.push_back(rgba[0]);
-                    quadVerticesFloatRGBA.push_back(rgba[1]);
-                    quadVerticesFloatRGBA.push_back(rgba[2]);
-                    quadVerticesFloatRGBA.push_back(rgba[3]);
+//                    quadVerticesFloatRGBA.push_back(rgba[0]);
+//                    quadVerticesFloatRGBA.push_back(rgba[1]);
+//                    quadVerticesFloatRGBA.push_back(rgba[2]);
+//                    quadVerticesFloatRGBA.push_back(rgba[3]);
+                    quadsData4f->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
                 }
-                quadVerticesXYZ.push_back(cellX + cellWidth);
-                quadVerticesXYZ.push_back(cellY + cellHeight);
-                quadVerticesXYZ.push_back(0.0);
+//                quadVerticesXYZ.push_back(cellX + cellWidth);
+//                quadVerticesXYZ.push_back(cellY + cellHeight);
+//                quadVerticesXYZ.push_back(0.0);
                 
                 if (m_identificationModeFlag) {
-                    quadVerticesByteRGBA.push_back(idRGBA[0]);
-                    quadVerticesByteRGBA.push_back(idRGBA[1]);
-                    quadVerticesByteRGBA.push_back(idRGBA[2]);
-                    quadVerticesByteRGBA.push_back(idRGBA[3]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[0]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[1]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[2]);
+//                    quadVerticesByteRGBA.push_back(idRGBA[3]);
+                    quadsData4ub->addVertex(cellX, cellY + cellHeight, 0.0, idRGBA);
                 }
                 else {
-                    quadVerticesFloatRGBA.push_back(rgba[0]);
-                    quadVerticesFloatRGBA.push_back(rgba[1]);
-                    quadVerticesFloatRGBA.push_back(rgba[2]);
-                    quadVerticesFloatRGBA.push_back(rgba[3]);
+//                    quadVerticesFloatRGBA.push_back(rgba[0]);
+//                    quadVerticesFloatRGBA.push_back(rgba[1]);
+//                    quadVerticesFloatRGBA.push_back(rgba[2]);
+//                    quadVerticesFloatRGBA.push_back(rgba[3]);
+                    quadsData4f->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
                 }
-                quadVerticesXYZ.push_back(cellX);
-                quadVerticesXYZ.push_back(cellY + cellHeight);
-                quadVerticesXYZ.push_back(0.0);
+//                quadVerticesXYZ.push_back(cellX);
+//                quadVerticesXYZ.push_back(cellY + cellHeight);
+//                quadVerticesXYZ.push_back(0.0);
             }
             
             cellX += cellWidth;
@@ -1515,24 +1534,30 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         cellY -= cellHeight;
     }
     
-    const float normalVector[3] = { 0.0, 0.0, 1.0 };
-    std::vector<float> quadVerticesNormals;
-    quadVerticesNormals.reserve(quadVerticesXYZ.size());
-    const int32_t numberOfVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-    for (int32_t iNormal = 0; iNormal < numberOfVertices; iNormal++) {
-        quadVerticesNormals.insert(quadVerticesNormals.end(),
-                                   normalVector, normalVector + 3);
-    }
-    CaretAssert(quadVerticesXYZ.size() == quadVerticesNormals.size());
+//    const float normalVector[3] = { 0.0, 0.0, 1.0 };
+//    std::vector<float> quadVerticesNormals;
+//    quadVerticesNormals.reserve(quadVerticesXYZ.size());
+//    const int32_t numberOfVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+//    for (int32_t iNormal = 0; iNormal < numberOfVertices; iNormal++) {
+//        quadVerticesNormals.insert(quadVerticesNormals.end(),
+//                                   normalVector, normalVector + 3);
+//    }
+//    CaretAssert(quadVerticesXYZ.size() == quadVerticesNormals.size());
+    
+    GraphicsEngineOpenGL* engineOpenGL = GraphicsFactory::get()->getGraphicsEngineOpenGL();
+    CaretAssert(engineOpenGL);
     
     /*
      * Draw the matrix elements.
      */
     if (m_identificationModeFlag) {
-        CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
-        BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
-                                               quadVerticesNormals,
-                                               quadVerticesByteRGBA);
+//        CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
+//        BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
+//                                               quadVerticesNormals,
+//                                               quadVerticesByteRGBA);
+        
+//        std::cout << "Quads: " << quadVerticesXYZ.size() << " Primitive: " << quadsData4ub->toString() << std::endl;
+        engineOpenGL->draw(quadsData4ub.get());
     }
     else {
         /*
@@ -1542,10 +1567,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         
-        CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
-        BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
-                                               quadVerticesNormals,
-                                               quadVerticesFloatRGBA);
+//        CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
+//        BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
+//                                               quadVerticesNormals,
+//                                               quadVerticesFloatRGBA);
+//        std::cout << "Quads: " << quadVerticesXYZ.size() << " Primitive: " << quadsData4f->toString() << std::endl;
+        engineOpenGL->draw(quadsData4f.get());
+        
         glDisable(GL_BLEND);
         
         
@@ -1559,22 +1587,35 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
                                                 gridLineColorFloats);
             gridLineColorFloats[3] = 1.0;
-            std::vector<float> outlineRGBA;
-            const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-            outlineRGBA.reserve(numberQuadVertices * 4);
-            for (int32_t i = 0; i < numberQuadVertices; i++) {
-                outlineRGBA.push_back(gridLineColorFloats[0]);
-                outlineRGBA.push_back(gridLineColorFloats[1]);
-                outlineRGBA.push_back(gridLineColorFloats[2]);
-                outlineRGBA.push_back(gridLineColorFloats[3]);
-            }
-            CaretAssert(quadVerticesXYZ.size() == quadVerticesNormals.size());
+//            std::vector<float> outlineRGBA;
             
+            std::unique_ptr<GraphicsPrimitiveV3fC4f> outlineData4f
+            = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsFactory::get()->newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+            const std::vector<float>& gridXYZ = quadsData4f->getFloatXYZ();
+            const int32_t numCells = static_cast<int32_t>(gridXYZ.size() / 3);
+            for (int32_t i = 0; i < numCells; i++) {
+                CaretAssertVectorIndex(gridXYZ, i*3);
+                outlineData4f->addVertex(&gridXYZ[i*3], gridLineColorFloats);
+            }
             glPolygonMode(GL_FRONT, GL_LINE);
             glLineWidth(1.0);
-            BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
-                                                   quadVerticesNormals,
-                                                   outlineRGBA);
+            engineOpenGL->draw(outlineData4f.get());
+            
+//            const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+//            outlineRGBA.reserve(numberQuadVertices * 4);
+//            for (int32_t i = 0; i < numberQuadVertices; i++) {
+//                outlineRGBA.push_back(gridLineColorFloats[0]);
+//                outlineRGBA.push_back(gridLineColorFloats[1]);
+//                outlineRGBA.push_back(gridLineColorFloats[2]);
+//                outlineRGBA.push_back(gridLineColorFloats[3]);
+//            }
+//            CaretAssert(quadVerticesXYZ.size() == quadVerticesNormals.size());
+//            
+//            glPolygonMode(GL_FRONT, GL_LINE);
+//            glLineWidth(1.0);
+//            BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
+//                                                   quadVerticesNormals,
+//                                                   outlineRGBA);
         }
         
         if ( (! selectedRowIndices.empty())

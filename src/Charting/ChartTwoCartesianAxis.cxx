@@ -49,6 +49,7 @@ using namespace caret;
  */
 ChartTwoCartesianAxis::ChartTwoCartesianAxis(const ChartAxisLocationEnum::Enum axisLocation)
 : CaretObject(),
+SceneableInterface(),
 m_axisLocation(axisLocation)
 {
     /*
@@ -100,6 +101,7 @@ ChartTwoCartesianAxis::~ChartTwoCartesianAxis()
  */
 ChartTwoCartesianAxis::ChartTwoCartesianAxis(const ChartTwoCartesianAxis& obj)
 : CaretObject(obj),
+SceneableInterface(obj),
 m_axisLocation(obj.m_axisLocation)
 {
     this->copyHelperChartTwoCartesianAxis(obj);

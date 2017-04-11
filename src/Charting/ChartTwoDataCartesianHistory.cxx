@@ -43,7 +43,8 @@ using namespace caret;
  * Constructor.
  */
 ChartTwoDataCartesianHistory::ChartTwoDataCartesianHistory()
-: CaretObjectTracksModification()
+: CaretObjectTracksModification(),
+SceneableInterface()
 {
     initializeInstance();
 }
@@ -63,7 +64,8 @@ ChartTwoDataCartesianHistory::~ChartTwoDataCartesianHistory()
  *    Object that is copied.
  */
 ChartTwoDataCartesianHistory::ChartTwoDataCartesianHistory(const ChartTwoDataCartesianHistory& obj)
-: CaretObjectTracksModification(obj)
+: CaretObjectTracksModification(obj),
+SceneableInterface(obj)
 {
     initializeInstance();
     this->copyHelperChartTwoDataCartesianHistory(obj);

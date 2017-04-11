@@ -80,7 +80,6 @@ BrainStructureNodeAttributes.h
 BrowserTabContent.h
 CaretDataFileSelectionModel.h
 CaretMappableDataFileAndMapSelectionModel.h
-CaretOpenGLInclude.h
 ChartTwoOverlay.h
 ChartTwoOverlaySet.h
 ChartTwoOverlaySetArray.h
@@ -358,6 +357,7 @@ ${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files
+${CMAKE_SOURCE_DIR}/Graphics
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
