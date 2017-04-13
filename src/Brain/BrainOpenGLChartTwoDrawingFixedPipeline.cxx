@@ -47,6 +47,7 @@
 #include "FastStatistics.h"
 #include "GraphicsEngineOpenGL.h"
 #include "GraphicsFactory.h"
+#include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "HistogramDrawingInfo.h"
@@ -77,6 +78,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::BrainOpenGLChartTwoDrawingFixedPipeline
 : BrainOpenGLChartTwoDrawingInterface()
 {
     m_preferences = SessionManager::get()->getCaretPreferences();
+    m_graphicsFactory = GraphicsFactory::get();
+    CaretAssert(m_graphicsFactory);
+    m_graphicsOpenGL = m_graphicsFactory->getGraphicsEngineOpenGL();
+    CaretAssert(m_graphicsOpenGL);
 }
 
 /**
@@ -565,67 +570,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                 }
             }
         }
-        
-//        for (auto& drawInfo : drawingInfo) {
-//            if (drawInfo->m_histogramDrawingInfo->isValid()) {
-//                
-//                bool leftVerticalAxisFlag = true;
-//                switch (drawInfo->m_verticalAxisLocation) {
-//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//                        break;
-//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//                        break;
-//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//                        leftVerticalAxisFlag = false;
-//                        break;
-//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//                        break;
-//                }
-//                
-//                glMatrixMode(GL_PROJECTION);
-//                glLoadIdentity();
-//                if (leftVerticalAxisFlag) {
-//                    glOrtho(xMin, xMax,
-//                            yMinLeft, yMaxLeft,
-//                            -10.0, 10.0);
-//                }
-//                else {
-//                    glOrtho(xMin, xMax,
-//                            yMinRight, yMaxRight,
-//                            -10.0, 10.0);
-//                }
-//                
-//                glMatrixMode(GL_MODELVIEW);
-//                glLoadIdentity();
-//                
-//                bool applyTransformationsFlag = false;
-//                if (applyTransformationsFlag) {
-//                    glTranslatef(m_translation[0],
-//                                 m_translation[1],
-//                                 0.0);
-//                    
-//                    const float chartWidth  = chartGraphicsDrawingViewport[2];
-//                    const float chartHeight = chartGraphicsDrawingViewport[3];
-//                    const float halfWidth   = chartWidth  / 2.0;
-//                    const float halfHeight  = chartHeight / 2.0;
-//                    glTranslatef(halfWidth,
-//                                 halfHeight,
-//                                 0.0);
-//                    glScalef(m_zooming,
-//                             m_zooming,
-//                             1.0);
-//                    glTranslatef(-halfWidth,
-//                                 -halfHeight,
-//                                 0.0);
-//                }
-//                
-//                drawHistogramChartContent(drawInfo->m_histogramChart,
-//                                          drawInfo->m_mapIndex,
-//                                          *drawInfo->m_histogramDrawingInfo,
-//                                          true,
-//                                          true);
-//            }
-//        }
     }
 }
 
@@ -708,8 +652,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
         std::vector<uint8_t> quadVerticesByteRGBA;
         
         
-//        const CaretMappableDataFile* cmdf = histogramChart->getCaretMappableDataFile();
-//        CaretAssert(cmdf);
         if (drawHistogramBarsFlag) {
             /*
              * Reserve to prevent reszing of vectors
@@ -1344,24 +1286,19 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
     
     uint8_t highlightRGBByte[3];
     m_preferences->getBackgroundAndForegroundColors()->getColorForegroundChartView(highlightRGBByte);
-    const float highlightRGB[3] = {
+    const float highlightRGBA[4] = {
         highlightRGBByte[0] / 255.0,
         highlightRGBByte[1] / 255.0,
-        highlightRGBByte[2] / 255.0
+        highlightRGBByte[2] / 255.0,
+        1.0
     };
 
     int32_t rgbaOffset = 0;
-//    std::vector<float> quadVerticesXYZ;
-//    quadVerticesXYZ.reserve(numberOfRows * numberOfColumns * 3);
-//    std::vector<float> quadVerticesFloatRGBA;
-//    quadVerticesFloatRGBA.reserve(numberOfRows * numberOfColumns * 4);
-//    std::vector<uint8_t> quadVerticesByteRGBA;
-//    quadVerticesByteRGBA.reserve(numberOfRows * numberOfColumns * 4);
     
     std::unique_ptr<GraphicsPrimitiveV3fC4f> quadsData4f
-       = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsFactory::get()->newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+       = std::unique_ptr<GraphicsPrimitiveV3fC4f>(m_graphicsFactory->newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> quadsData4ub
-       = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsFactory::get()->newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
+       = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(m_graphicsFactory->newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
     
     float cellY = (numberOfRows - 1) * cellHeight;
     for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
@@ -1456,76 +1393,17 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 }
                 
                 if (m_identificationModeFlag) {
-//                    quadVerticesByteRGBA.push_back(idRGBA[0]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[1]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[2]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[3]);
                     quadsData4ub->addVertex(cellX, cellY, 0.0, idRGBA);
-                }
-                else {
-//                    quadVerticesFloatRGBA.push_back(rgba[0]);
-//                    quadVerticesFloatRGBA.push_back(rgba[1]);
-//                    quadVerticesFloatRGBA.push_back(rgba[2]);
-//                    quadVerticesFloatRGBA.push_back(rgba[3]);
-                    quadsData4f->addVertex(cellX, cellY, 0.0, rgba);
-                }
-//                quadVerticesXYZ.push_back(cellX);
-//                quadVerticesXYZ.push_back(cellY);
-//                quadVerticesXYZ.push_back(0.0);
-                
-                if (m_identificationModeFlag) {
-//                    quadVerticesByteRGBA.push_back(idRGBA[0]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[1]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[2]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[3]);
                     quadsData4ub->addVertex(cellX + cellWidth, cellY, 0.0, idRGBA);
-                }
-                else {
-//                    quadVerticesFloatRGBA.push_back(rgba[0]);
-//                    quadVerticesFloatRGBA.push_back(rgba[1]);
-//                    quadVerticesFloatRGBA.push_back(rgba[2]);
-//                    quadVerticesFloatRGBA.push_back(rgba[3]);
-                    quadsData4f->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
-                }
-//                quadVerticesXYZ.push_back(cellX + cellWidth);
-//                quadVerticesXYZ.push_back(cellY);
-//                quadVerticesXYZ.push_back(0.0);
-                
-                if (m_identificationModeFlag) {
-//                    quadVerticesByteRGBA.push_back(idRGBA[0]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[1]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[2]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[3]);
                     quadsData4ub->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, idRGBA);
-                }
-                else {
-//                    quadVerticesFloatRGBA.push_back(rgba[0]);
-//                    quadVerticesFloatRGBA.push_back(rgba[1]);
-//                    quadVerticesFloatRGBA.push_back(rgba[2]);
-//                    quadVerticesFloatRGBA.push_back(rgba[3]);
-                    quadsData4f->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
-                }
-//                quadVerticesXYZ.push_back(cellX + cellWidth);
-//                quadVerticesXYZ.push_back(cellY + cellHeight);
-//                quadVerticesXYZ.push_back(0.0);
-                
-                if (m_identificationModeFlag) {
-//                    quadVerticesByteRGBA.push_back(idRGBA[0]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[1]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[2]);
-//                    quadVerticesByteRGBA.push_back(idRGBA[3]);
                     quadsData4ub->addVertex(cellX, cellY + cellHeight, 0.0, idRGBA);
                 }
                 else {
-//                    quadVerticesFloatRGBA.push_back(rgba[0]);
-//                    quadVerticesFloatRGBA.push_back(rgba[1]);
-//                    quadVerticesFloatRGBA.push_back(rgba[2]);
-//                    quadVerticesFloatRGBA.push_back(rgba[3]);
+                    quadsData4f->addVertex(cellX, cellY, 0.0, rgba);
+                    quadsData4f->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
+                    quadsData4f->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
                     quadsData4f->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
                 }
-//                quadVerticesXYZ.push_back(cellX);
-//                quadVerticesXYZ.push_back(cellY + cellHeight);
-//                quadVerticesXYZ.push_back(0.0);
             }
             
             cellX += cellWidth;
@@ -1534,30 +1412,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         cellY -= cellHeight;
     }
     
-//    const float normalVector[3] = { 0.0, 0.0, 1.0 };
-//    std::vector<float> quadVerticesNormals;
-//    quadVerticesNormals.reserve(quadVerticesXYZ.size());
-//    const int32_t numberOfVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-//    for (int32_t iNormal = 0; iNormal < numberOfVertices; iNormal++) {
-//        quadVerticesNormals.insert(quadVerticesNormals.end(),
-//                                   normalVector, normalVector + 3);
-//    }
-//    CaretAssert(quadVerticesXYZ.size() == quadVerticesNormals.size());
-    
-    GraphicsEngineOpenGL* engineOpenGL = GraphicsFactory::get()->getGraphicsEngineOpenGL();
-    CaretAssert(engineOpenGL);
-    
     /*
      * Draw the matrix elements.
      */
     if (m_identificationModeFlag) {
-//        CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
-//        BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
-//                                               quadVerticesNormals,
-//                                               quadVerticesByteRGBA);
-        
-//        std::cout << "Quads: " << quadVerticesXYZ.size() << " Primitive: " << quadsData4ub->toString() << std::endl;
-        engineOpenGL->draw(quadsData4ub.get());
+        m_graphicsOpenGL->draw(quadsData4ub.get());
     }
     else {
         /*
@@ -1567,12 +1426,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         
-//        CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
-//        BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
-//                                               quadVerticesNormals,
-//                                               quadVerticesFloatRGBA);
-//        std::cout << "Quads: " << quadVerticesXYZ.size() << " Primitive: " << quadsData4f->toString() << std::endl;
-        engineOpenGL->draw(quadsData4f.get());
+        m_graphicsOpenGL->draw(quadsData4f.get());
         
         glDisable(GL_BLEND);
         
@@ -1581,41 +1435,26 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
          * Drawn an outline around the matrix elements.
          */
         if (displayGridLinesFlag) {
-            uint8_t gridLineColorBytes[3];
+            uint8_t gridLineColorBytes[4];
             m_preferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridLineColorBytes);
             float gridLineColorFloats[4];
             CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
                                                 gridLineColorFloats);
             gridLineColorFloats[3] = 1.0;
-//            std::vector<float> outlineRGBA;
             
-            std::unique_ptr<GraphicsPrimitiveV3fC4f> outlineData4f
-            = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsFactory::get()->newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+            std::unique_ptr<GraphicsPrimitiveV3f> outlineData4f
+            = std::unique_ptr<GraphicsPrimitiveV3f>(m_graphicsFactory->newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
+                                                                                       gridLineColorFloats));
             const std::vector<float>& gridXYZ = quadsData4f->getFloatXYZ();
             const int32_t numCells = static_cast<int32_t>(gridXYZ.size() / 3);
             for (int32_t i = 0; i < numCells; i++) {
                 CaretAssertVectorIndex(gridXYZ, i*3);
-                outlineData4f->addVertex(&gridXYZ[i*3], gridLineColorFloats);
+                outlineData4f->addVertex(&gridXYZ[i*3]);
             }
             glPolygonMode(GL_FRONT, GL_LINE);
             glLineWidth(1.0);
-            engineOpenGL->draw(outlineData4f.get());
-            
-//            const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
-//            outlineRGBA.reserve(numberQuadVertices * 4);
-//            for (int32_t i = 0; i < numberQuadVertices; i++) {
-//                outlineRGBA.push_back(gridLineColorFloats[0]);
-//                outlineRGBA.push_back(gridLineColorFloats[1]);
-//                outlineRGBA.push_back(gridLineColorFloats[2]);
-//                outlineRGBA.push_back(gridLineColorFloats[3]);
-//            }
-//            CaretAssert(quadVerticesXYZ.size() == quadVerticesNormals.size());
-//            
-//            glPolygonMode(GL_FRONT, GL_LINE);
-//            glLineWidth(1.0);
-//            BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
-//                                                   quadVerticesNormals,
-//                                                   outlineRGBA);
+            m_graphicsOpenGL->draw(outlineData4f.get());
+            glPolygonMode(GL_FRONT, GL_FILL);
         }
         
         if ( (! selectedRowIndices.empty())
@@ -1640,32 +1479,17 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 const float minX = minColumn * cellWidth;
                 const float maxX = maxColumn * cellWidth;
                 
-                std::vector<float> rowXYZ;
-                rowXYZ.reserve(12);
-                rowXYZ.push_back(minX);
-                rowXYZ.push_back(rowY);
-                rowXYZ.push_back(0.0);
-                
-                rowXYZ.push_back(minX);
-                rowXYZ.push_back(rowY + cellHeight);
-                rowXYZ.push_back(0.0);
-                
-                rowXYZ.push_back(maxX);
-                rowXYZ.push_back(rowY + cellHeight);
-                rowXYZ.push_back(0.0);
-                
-                rowXYZ.push_back(maxX);
-                rowXYZ.push_back(rowY);
-                rowXYZ.push_back(0.0);
-                
-                /*
-                 * As cells get larger, increase linewidth for selected row
-                 */
+                std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
+                = std::unique_ptr<GraphicsPrimitiveV3f>(m_graphicsFactory->newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+                                                                                           highlightRGBA));
+
+                rowOutlineData4f->addVertex(minX, rowY);
+                rowOutlineData4f->addVertex(maxX, rowY);
+                rowOutlineData4f->addVertex(maxX, rowY + cellHeight, 0.0);
+                rowOutlineData4f->addVertex(minX, rowY + cellHeight, 0.0);
                 const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
-                const float rgba[4] = { highlightRGB[0], highlightRGB[1], highlightRGB[2], 1.0f };
-                BrainOpenGLPrimitiveDrawing::drawLineLoop(rowXYZ,
-                                                          rgba,
-                                                          highlightLineWidth);
+                glLineWidth(highlightLineWidth);
+                m_graphicsOpenGL->draw(rowOutlineData4f.get());
             }
             
             glLineWidth(1.0);
@@ -1693,33 +1517,17 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 const float minY = minRow * cellHeight;
                 const float maxY = maxRow * cellHeight;
                 
+                std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
+                = std::unique_ptr<GraphicsPrimitiveV3f>(m_graphicsFactory->newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+                                                                                           highlightRGBA));
                 
-                std::vector<float> columnXYZ;
-                columnXYZ.reserve(12);
-                columnXYZ.push_back(colX);
-                columnXYZ.push_back(minY);
-                columnXYZ.push_back(0.0);
-                
-                columnXYZ.push_back(colX + cellWidth);
-                columnXYZ.push_back(minY);
-                columnXYZ.push_back(0.0);
-                
-                columnXYZ.push_back(colX + cellWidth);
-                columnXYZ.push_back(maxY);
-                columnXYZ.push_back(0.0);
-                
-                columnXYZ.push_back(colX);
-                columnXYZ.push_back(maxY);
-                columnXYZ.push_back(0.0);
-                
-                /*
-                 * As cells get larger, increase linewidth for selected row
-                 */
+                columnOutlineData4f->addVertex(colX, minY);
+                columnOutlineData4f->addVertex(colX + cellWidth, minY);
+                columnOutlineData4f->addVertex(colX + cellWidth, maxY);
+                columnOutlineData4f->addVertex(colX, maxY);
                 const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
-                const float rgba[4] = { highlightRGB[0], highlightRGB[1], highlightRGB[2], 1.0f };
-                BrainOpenGLPrimitiveDrawing::drawLineLoop(columnXYZ,
-                                                          rgba,
-                                                          highlightLineWidth);
+                glLineWidth(highlightLineWidth);
+                m_graphicsOpenGL->draw(columnOutlineData4f.get());
             }
             glLineWidth(1.0);
         }
@@ -2191,29 +1999,20 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
+    std::unique_ptr<GraphicsPrimitiveV3f> gridData
+    = std::unique_ptr<GraphicsPrimitiveV3f>(m_graphicsFactory->newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
+                                                                               m_fixedPipelineDrawing->m_foregroundColorFloat));
+    
+    gridData->addVertex(gridLeft,  gridBottom + halfGridLineWidth);
+    gridData->addVertex(gridRight, gridBottom + halfGridLineWidth);
+    gridData->addVertex(gridRight - halfGridLineWidth, gridBottom);
+    gridData->addVertex(gridRight - halfGridLineWidth, gridTop);
+    gridData->addVertex(gridRight, gridTop - halfGridLineWidth);
+    gridData->addVertex(gridLeft,  gridTop - halfGridLineWidth);
+    gridData->addVertex(gridLeft + halfGridLineWidth, gridTop);
+    gridData->addVertex(gridLeft + halfGridLineWidth, gridBottom);
     glLineWidth(GRID_LINE_WIDTH);
-    
-    glColor3fv(m_fixedPipelineDrawing->m_foregroundColorFloat);
-    
-    glBegin(GL_LINES);
-    
-    /* bottom line */
-    glVertex3f(gridLeft,  gridBottom + halfGridLineWidth, 0.0);
-    glVertex3f(gridRight, gridBottom + halfGridLineWidth, 0.0);
-    
-    /* right line */
-    glVertex3f(gridRight - halfGridLineWidth, gridBottom, 0.0);
-    glVertex3f(gridRight - halfGridLineWidth, gridTop,    0.0);
-    
-    /* top line */
-    glVertex3f(gridRight, gridTop - halfGridLineWidth, 0.0);
-    glVertex3f(gridLeft,  gridTop - halfGridLineWidth, 0.0);
-    
-    /* left line */
-    glVertex3f(gridLeft + halfGridLineWidth, gridTop,    0.0);
-    glVertex3f(gridLeft + halfGridLineWidth, gridBottom, 0.0);
-    
-    glEnd();
+    m_graphicsOpenGL->draw(gridData.get());
     
     /*
      * Region inside the grid's box
@@ -2230,330 +2029,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
     chartGraphicsDrawingViewportOut[2] = graphicsWidth;
     chartGraphicsDrawingViewportOut[3] = graphicsHeight;
 }
-
-///**
-// * Draw the chart axes grid/box
-// *
-// * @param vpX
-// *     Viewport X for all chart content
-// * @param vpY
-// *     Viewport Y for all chart content
-// * @param vpWidth
-// *     Viewport width for all chart content
-// * @param vpHeight
-// *     Viewport height for all chart content
-// * @param margins
-// *     Margin around graphics region.  The margin corresponding to the
-// *     axis may be changed so that all text in the axis is visible
-// *     (and not cut off).
-// * @param axis
-// *     Axis that is drawn.
-// * @param axisMinimumOut
-// *     Minimum value along the axis.
-// * @param axisMaximumOut
-// *     Maximum value along the axis.
-// * @return
-// *     True if the axis is valid and was drawn, else false.
-// */
-//bool
-//BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float dataBounds[4],
-//                                                                const float vpX,
-//                                                                const float vpY,
-//                                                                const float vpWidth,
-//                                                                const float vpHeight,
-//                                                                const Margins& margins,
-//                                                                ChartTwoCartesianAxis* axis,
-//                                                                float& axisMinimumOut,
-//                                                                float& axisMaximumOut)
-//{
-//    if (axis == NULL) {
-//        return false;
-//    }
-//    if ( ! axis->isVisible()) {
-//        return false;
-//    }
-//    
-//    float axisLength = 0.0;
-//    
-//    switch (axis->getAxisLocation()) {
-//        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//            axisLength = vpWidth - (margins.m_left + margins.m_right);
-//            break;
-//        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//            axisLength = vpHeight - (margins.m_top + margins.m_bottom);
-//            break;
-//    }
-//    
-//    std::vector<float> labelOffsetInPixels;
-//    std::vector<AString> labelTexts;
-//    const bool validAxisFlag = axis->getLabelsAndPositions(dataBounds,
-//                                                           axisLength,
-//                                                           axisMinimumOut,
-//                                                           axisMaximumOut,
-//                                                           labelOffsetInPixels,
-//                                                           labelTexts);
-//    if ( ! validAxisFlag) {
-//        return false;
-//    }
-//    
-//    const float rgba[4] = {
-//        m_fixedPipelineDrawing->m_foregroundColorFloat[0],
-//        m_fixedPipelineDrawing->m_foregroundColorFloat[1],
-//        m_fixedPipelineDrawing->m_foregroundColorFloat[2],
-//        1.0
-//    };
-//    
-//    const int32_t numLabelsToDraw = static_cast<int32_t>(labelTexts.size());
-//    AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-//    annotationText.setCustomTextColor(rgba);
-//    annotationText.setTextColor(CaretColorEnum::CUSTOM);
-//    
-//    if (numLabelsToDraw > 0) {
-//        float labelX = 0.0;
-//        float labelY = 0.0;
-//        float labelOffsetMultiplierX = 0.0;
-//        float labelOffsetMultiplierY = 0.0;
-//        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-//        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//        
-//        /*
-//         * Viewport for axis name and numeric values
-//         */
-//        int32_t axisVpX = vpX;
-//        int32_t axisVpY = vpY;
-//        int32_t axisVpWidth = vpWidth;
-//        int32_t axisVpHeight = vpHeight;
-//        
-//        float tickDeltaXY[2] = { 0.0, 0.0 };
-//        const float tickLength = 5.0;
-//        switch (axis->getAxisLocation()) {
-//            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//                axisVpX = vpX;
-//                axisVpY = vpY;
-//                axisVpWidth = vpWidth;
-//                axisVpHeight = margins.m_bottom;
-//                labelX = margins.m_left;
-//                labelY = margins.m_bottom;
-//                labelOffsetMultiplierX = 1.0;
-//                labelOffsetMultiplierY = 0.0;
-//                annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-//                annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-//                tickDeltaXY[0] = 0.0;
-//                tickDeltaXY[1] = -tickLength;
-//                break;
-//            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//                axisVpX = vpX;
-//                axisVpY = vpY + vpHeight - margins.m_top;
-//                axisVpWidth = vpWidth;
-//                axisVpHeight = margins.m_top;
-//                labelX = margins.m_left;
-//                labelY = 0.0;
-//                labelOffsetMultiplierX = 1.0;
-//                labelOffsetMultiplierY = 0.0;
-//                annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-//                annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-//                tickDeltaXY[0] = 0.0;
-//                tickDeltaXY[1] = tickLength;
-//                break;
-//            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//                axisVpX = vpX;
-//                axisVpY = vpY;
-//                axisVpWidth = margins.m_left;
-//                axisVpHeight = vpHeight;
-//                labelX = margins.m_left;
-//                labelY = margins.m_bottom;
-//                labelOffsetMultiplierX = 0.0;
-//                labelOffsetMultiplierY = 1.0;
-//                annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-//                annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//                tickDeltaXY[0] = -tickLength;
-//                tickDeltaXY[1] = 0.0;
-//                break;
-//            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//                axisVpX = vpX + vpWidth - margins.m_right;
-//                axisVpY = vpY;
-//                axisVpWidth = margins.m_right;
-//                axisVpHeight = vpHeight;
-//                labelX = 0.0;
-//                labelY = margins.m_bottom;
-//                labelOffsetMultiplierX = 0.0;
-//                labelOffsetMultiplierY = 1.0;
-//                annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-//                annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//                tickDeltaXY[0] = tickLength;
-//                tickDeltaXY[1] = 0.0;
-//                break;
-//        }
-//        
-//        /*
-//         * Viewport for axis text and numeric values
-//         */
-//        const int viewport[4] = {
-//            axisVpX,
-//            axisVpY,
-//            axisVpWidth,
-//            axisVpHeight
-//        };
-//        glViewport(viewport[0],
-//                   viewport[1],
-//                   viewport[2],
-//                   viewport[3]);
-//        
-//        glMatrixMode(GL_PROJECTION);
-//        glLoadIdentity();
-//        glOrtho(0, axisVpWidth, 0, axisVpHeight, -1.0, 1.0);
-//        
-//        glMatrixMode(GL_MODELVIEW);
-//        glLoadIdentity();
-//        
-//        glColor3fv(m_fixedPipelineDrawing->m_foregroundColorFloat);
-//        
-//        const bool showTicksFlag = axis->isShowTickmarks();
-//        
-//        const float halfGridLineWidth = GRID_LINE_WIDTH / 2.0;
-//        const int32_t firstIndex = 0;
-//        const int32_t lastIndex  = numLabelsToDraw - 1;
-//        for (int32_t i = 0; i < numLabelsToDraw; i++) {
-//            float tickStartX = labelX + labelOffsetInPixels[i] * labelOffsetMultiplierX;
-//            float tickStartY = labelY + labelOffsetInPixels[i] * labelOffsetMultiplierY;
-//            float textOffsetX = 0.0;
-//            float textOffsetY = 0.0;
-//            switch (axis->getAxisLocation()) {
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-//                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-//                    if (i == firstIndex) {
-//                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-//                        tickStartX += halfGridLineWidth;
-//                    }
-//                    else if (i == lastIndex) {
-//                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-//                        tickStartX -= halfGridLineWidth;
-//                    }
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-//                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//                    tickStartX -= halfGridLineWidth;
-//                    if (i == firstIndex) {
-//                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-//                        tickStartY += halfGridLineWidth;
-//                    }
-//                    else if (i == lastIndex) {
-//                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-//                        tickStartY -= halfGridLineWidth;
-//                    }
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-//                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//                    tickStartX += halfGridLineWidth;
-//                    if (i == firstIndex) {
-//                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-//                        tickStartY += halfGridLineWidth;
-//                    }
-//                    else if (i == lastIndex) {
-//                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-//                        tickStartY -= halfGridLineWidth;
-//                    }
-//                    textOffsetX = -2.0;
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-//                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-//                    if (i == firstIndex) {
-//                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-//                        tickStartX += halfGridLineWidth;
-//                    }
-//                    else if (i == lastIndex) {
-//                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-//                        tickStartX -= halfGridLineWidth;
-//                    }
-//                    textOffsetY = -2.0;
-//                    break;
-//            }
-//            const float tickEndX = tickStartX + tickDeltaXY[0];
-//            const float tickEndY = tickStartY + tickDeltaXY[1];
-//            
-//            if (showTicksFlag) {
-//                glLineWidth(GRID_LINE_WIDTH);
-//                glBegin(GL_LINES);
-//                glVertex2f(tickStartX,
-//                           tickStartY);
-//                glVertex2f(tickEndX,
-//                           tickEndY);
-//                glEnd();
-//            }
-//            
-//            const float textX = tickEndX + textOffsetX;
-//            const float textY = tickEndY + textOffsetY;
-//            annotationText.setText(labelTexts[i]);
-//            m_textRenderer->drawTextAtViewportCoords(textX,
-//                                                   textY,
-//                                                   0.0,
-//                                                   annotationText);
-//        }
-//        
-//        const AString axisText = axis->getLabelText();
-//        if ( ! axisText.isEmpty()) {
-//            //AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-//            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-//            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//            
-//            bool drawAxisTextVerticalFlag = false;
-//            float axisTextCenterX = axisVpWidth / 2.0;
-//            float axisTextCenterY = axisVpHeight / 2.0;
-//            const float textMarginOffset = 5.0;
-//            switch (axis->getAxisLocation()) {
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//                    axisTextCenterX = margins.m_left + axisTextCenterX;
-//                    axisTextCenterY = textMarginOffset;
-//                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//                    axisTextCenterX = vpX + (vpWidth / 2.0);
-//                    axisTextCenterY = margins.m_top - textMarginOffset;
-//                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//                    axisTextCenterX = textMarginOffset;
-//                    axisTextCenterY = margins.m_bottom + axisTextCenterY;
-//                    //annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-//                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-//                    drawAxisTextVerticalFlag = true;
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//                    axisTextCenterX = margins.m_right - textMarginOffset;
-//                    axisTextCenterY = vpY + (vpHeight / 2.0);
-//                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-//                    drawAxisTextVerticalFlag = true;
-//                    break;
-//            }
-//            if (drawAxisTextVerticalFlag) {
-//                //annotationText.setOrientation(AnnotationTextOrientationEnum::STACKED);
-//                annotationText.setRotationAngle(-90.0);
-//                annotationText.setText(axisText);
-//                m_textRenderer->drawTextAtViewportCoords(axisTextCenterX,
-//                                                       axisTextCenterY,
-//                                                       0.0,
-//                                                       annotationText);
-//                annotationText.setRotationAngle(0.0);
-//            }
-//            else {
-//                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
-//                annotationText.setText(axisText);
-//                m_textRenderer->drawTextAtViewportCoords(axisTextCenterX,
-//                                                       axisTextCenterY,
-//                                                       0.0,
-//                                                       annotationText);
-//            }
-//        }
-//    }
-//    
-//    return true;
-//}
 
 /**
  * Draw the chart axes grid/box
@@ -2730,6 +2205,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
         
         glColor3fv(m_fixedPipelineDrawing->m_foregroundColorFloat);
         
+        std::unique_ptr<GraphicsPrimitiveV3f> ticksData
+        = std::unique_ptr<GraphicsPrimitiveV3f>(m_graphicsFactory->newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
+                                                                                   m_fixedPipelineDrawing->m_foregroundColorFloat));
+        
         const bool showTicksEnabledFlag = axis->isShowTickmarks();
         
         const float halfGridLineWidth = GRID_LINE_WIDTH / 2.0;
@@ -2806,13 +2285,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
             }
             
             if (showTickAtScaleValueFlag) {
-                glLineWidth(GRID_LINE_WIDTH);
-                glBegin(GL_LINES);
-                glVertex2f(tickStartX,
-                           tickStartY);
-                glVertex2f(tickEndX,
-                           tickEndY);
-                glEnd();
+                ticksData->addVertex(tickStartX, tickStartY);
+                ticksData->addVertex(tickEndX,   tickEndY);
             }
             
             const float textX = tickEndX + textOffsetX;
@@ -2822,6 +2296,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
                                                      textY,
                                                      0.0,
                                                      annotationText);
+        }
+
+        if (ticksData->isValid()) {
+            glLineWidth(GRID_LINE_WIDTH);
+            m_graphicsOpenGL->draw(ticksData.get());
         }
         
         const AString axisTitle = axis->getAxisTitle();

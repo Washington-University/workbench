@@ -102,6 +102,8 @@
 #include "GapsAndMargins.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GraphicsEngineOpenGL.h"
+#include "GraphicsFactory.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
@@ -495,6 +497,17 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(std::vector<BrainOpen
 }
 
 /**
+ * Delete unused OpenGL buffers in the OpenGL graphics engine.
+ * OpenGL must be "current" for this to occur.
+ */
+void
+BrainOpenGLFixedPipeline::deleteOpenGLGraphicsFactoryUnusedBuffers()
+{
+    GraphicsFactory::get()->getGraphicsEngineOpenGL()->deleteUnusedBuffers();
+}
+
+
+/**
  * Draw models in their respective viewports.
  *
  * @param brain
@@ -520,6 +533,8 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     m_clippingPlaneGroup = NULL;
     
     this->checkForOpenGLError(NULL, "At beginning of drawModels()");
+    
+    deleteOpenGLGraphicsFactoryUnusedBuffers();
     
     /*
      * Default the background colors to first model
@@ -649,6 +664,8 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
         CaretAssert(m_windowIndex == viewportContents[0]->getWindowIndex());
         drawWindowAnnotations(windowViewport);
     }
+    
+    deleteOpenGLGraphicsFactoryUnusedBuffers();
     
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     

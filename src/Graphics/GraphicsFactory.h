@@ -33,6 +33,7 @@
 
 namespace caret {
     class GraphicsEngineOpenGL;
+    class GraphicsPrimitiveV3f;
     class GraphicsPrimitiveV3fC4f;
     class GraphicsPrimitiveV3fC4ub;
 
@@ -50,6 +51,12 @@ namespace caret {
         static GraphicsFactory* get();
         
         GraphicsEngineOpenGL* getGraphicsEngineOpenGL();
+        
+        GraphicsPrimitiveV3f* newPrimitiveV3f(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                              const float floatRGBA[4]);
+        
+        GraphicsPrimitiveV3f* newPrimitiveV3f(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                              const uint8_t unsignedByteRGBA[4]);
         
         GraphicsPrimitiveV3fC4f* newPrimitiveV3fC4f(const GraphicsPrimitive::PrimitiveType primitiveType);
         

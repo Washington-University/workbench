@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "GraphicsEngineOpenGL.h"
+#include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 
@@ -109,6 +110,38 @@ GraphicsFactory::getGraphicsEngineOpenGL()
 {
     CaretAssert(m_graphicsEngineOpenGL.get());
     return m_graphicsEngineOpenGL.get();
+}
+
+/**
+ * @return A new primitive for XYZ with solid color float RGBA.  Caller is responsible
+ * for deleting the returned pointer.
+ *
+ * @param primitiveType
+ *     Type of primitive drawn (triangles, lines, etc.)
+ */
+GraphicsPrimitiveV3f*
+GraphicsFactory::newPrimitiveV3f(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                 const float floatRGBA[4])
+{
+    GraphicsPrimitiveV3f* primitive = new GraphicsPrimitiveV3f(primitiveType,
+                                                               floatRGBA);
+    return primitive;
+}
+
+/**
+ * @return A new primitive for XYZ with solid color unsigned byte RGBA.  Caller is responsible
+ * for deleting the returned pointer.
+ *
+ * @param primitiveType
+ *     Type of primitive drawn (triangles, lines, etc.)
+ */
+GraphicsPrimitiveV3f*
+GraphicsFactory::newPrimitiveV3f(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                 const uint8_t unsignedByteRGBA[4])
+{
+    GraphicsPrimitiveV3f* primitive = new GraphicsPrimitiveV3f(primitiveType,
+                                                               unsignedByteRGBA);
+    return primitive;
 }
 
 /**

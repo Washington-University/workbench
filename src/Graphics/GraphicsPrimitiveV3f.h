@@ -1,5 +1,5 @@
-#ifndef __GRAPHICS_PRIMITIVE_V3F_C4F_H__
-#define __GRAPHICS_PRIMITIVE_V3F_C4F_H__
+#ifndef __GRAPHICS_PRIMITIVE_V3F_H__
+#define __GRAPHICS_PRIMITIVE_V3F_H__
 
 /*LICENSE_START*/
 /*
@@ -31,43 +31,48 @@
 
 namespace caret {
 
-    class GraphicsPrimitiveV3fC4f : public GraphicsPrimitive {
+    class GraphicsPrimitiveV3f : public GraphicsPrimitive {
         
     public:
-        GraphicsPrimitiveV3fC4f(const PrimitiveType primitiveType);
+        GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
+                                const float rgba[4]);
         
-        virtual ~GraphicsPrimitiveV3fC4f();
+        GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
+                                const uint8_t rgba[4]);
         
-        GraphicsPrimitiveV3fC4f(const GraphicsPrimitiveV3fC4f& obj);
+        virtual ~GraphicsPrimitiveV3f();
+        
+        GraphicsPrimitiveV3f(const GraphicsPrimitiveV3f& obj);
 
-        void addVertex(const float xyz[3],
-                       const float rgba[4]);
+        void addVertex(const float xyz[3]);
 
         void addVertex(const float x,
                        const float y,
-                       const float z,
-                       const float rgba[4]);
+                       const float z);
         
         void addVertex(const float x,
-                       const float y,
-                       const float rgba[4]);
+                       const float y);
         
         virtual GraphicsPrimitive* clone() const;
         
         // ADD_NEW_METHODS_HERE
 
     private:
-        GraphicsPrimitiveV3fC4f& operator=(const GraphicsPrimitiveV3fC4f& obj);
+        GraphicsPrimitiveV3f& operator=(const GraphicsPrimitiveV3f& obj);
         
-        void copyHelperGraphicsPrimitiveV3fC4f(const GraphicsPrimitiveV3fC4f& obj);
+        void copyHelperGraphicsPrimitiveV3f(const GraphicsPrimitiveV3f& obj);
 
+        float m_floatSolidRGBA[4];
+        
+        uint8_t m_unsignedByteSolidRGBA[4];
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __GRAPHICS_PRIMITIVE_V3F_C4F_DECLARE__
+#ifdef __GRAPHICS_PRIMITIVE_V3F_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GRAPHICS_PRIMITIVE_V3F_C4F_DECLARE__
+#endif // __GRAPHICS_PRIMITIVE_V3F_DECLARE__
 
 } // namespace
-#endif  //__GRAPHICS_PRIMITIVE_V3F_C4F_H__
+#endif  //__GRAPHICS_PRIMITIVE_V3F_H__

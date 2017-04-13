@@ -1,5 +1,5 @@
-#ifndef __GRAPHICS_ENGINE_OPEN_G_L_H__
-#define __GRAPHICS_ENGINE_OPEN_G_L_H__
+#ifndef __EVENT_GRAPHICS_ENGINE_OPEN_G_L_DELETE_BUFFERS_H__
+#define __EVENT_GRAPHICS_ENGINE_OPEN_G_L_DELETE_BUFFERS_H__
 
 /*LICENSE_START*/
 /*
@@ -21,51 +21,44 @@
  */
 /*LICENSE_END*/
 
-#include <QMutex>
+
 
 #include <memory>
 
 #include "CaretOpenGLInclude.h"
-#include "GraphicsEngine.h"
+#include "Event.h"
 
 
 
 namespace caret {
 
-    class GraphicsEngineOpenGL : public GraphicsEngine {
+    class EventGraphicsEngineOpenGLDeleteBuffers : public Event {
         
     public:
-        GraphicsEngineOpenGL();
+        EventGraphicsEngineOpenGLDeleteBuffers(const std::vector<GLuint>& bufferIdentifiers);
         
-        virtual ~GraphicsEngineOpenGL();
+        EventGraphicsEngineOpenGLDeleteBuffers(const GLuint bufferIdentifier);
         
-        virtual void receiveEvent(Event* event);
-        
-        virtual void draw(GraphicsPrimitive* primitive);
+        virtual ~EventGraphicsEngineOpenGLDeleteBuffers();
 
-        void deleteUnusedBuffers();
-        
+        std::vector<GLuint> getBufferIdentifiers() const;
+
         // ADD_NEW_METHODS_HERE
 
     private:
-        GraphicsEngineOpenGL(const GraphicsEngineOpenGL&);
+        EventGraphicsEngineOpenGLDeleteBuffers(const EventGraphicsEngineOpenGLDeleteBuffers&);
 
-        GraphicsEngineOpenGL& operator=(const GraphicsEngineOpenGL&);
+        EventGraphicsEngineOpenGLDeleteBuffers& operator=(const EventGraphicsEngineOpenGLDeleteBuffers&);
         
-        /** prevents concurrent access to m_unusedBufferIdentifiers */
-        QMutex m_unusedBufferIdentifiersMutex;
-        
-        /** use a mutex whenever accessing this member */
-        std::vector<GLuint> m_unusedBufferIdentifiers;
-        
-        
+        std::vector<GLuint> m_bufferIdentifiers;
         // ADD_NEW_MEMBERS_HERE
+        
 
     };
     
-#ifdef __GRAPHICS_ENGINE_OPEN_G_L_DECLARE__
+#ifdef __EVENT_GRAPHICS_ENGINE_OPEN_G_L_DELETE_BUFFERS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GRAPHICS_ENGINE_OPEN_G_L_DECLARE__
+#endif // __EVENT_GRAPHICS_ENGINE_OPEN_G_L_DELETE_BUFFERS_DECLARE__
 
 } // namespace
-#endif  //__GRAPHICS_ENGINE_OPEN_G_L_H__
+#endif  //__EVENT_GRAPHICS_ENGINE_OPEN_G_L_DELETE_BUFFERS_H__

@@ -26,6 +26,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventManager.h"
+#include "GraphicsEngineDataOpenGL.h"
+
 using namespace caret;
 
 
@@ -68,7 +70,7 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexType       vertexType,
  */
 GraphicsPrimitive::~GraphicsPrimitive()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
+    EventManager::get()->removeAllEventsFromListener(this);    
 }
 
 /**
@@ -96,7 +98,10 @@ void
 GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
 {
     m_xyz       = obj.m_xyz;
+    m_floatNormalVectorXYZ = obj.m_floatNormalVectorXYZ;
     m_floatRGBA = obj.m_floatRGBA;
+    m_unsignedByteRGBA = obj.m_unsignedByteRGBA;
+    m_graphicsEngineDataForOpenGL.reset();
 }
 
 /**
@@ -147,28 +152,94 @@ GraphicsPrimitive::isValid() const
         }
         
         switch (m_primitiveType) {
-            case PrimitiveType::QUADS:
-            {
-                const uint32_t extraVertices = numXYZ % 4;
-                if (extraVertices > 0) {
-                    CaretLogWarning("Extra vertices for drawing quads ignored.");
+            case PrimitiveType::LINE_LOOP:
+                if (numXYZ < 3) {
+                    CaretLogWarning("Line loop must have at least 3 vertices.");
                 }
-            }
+                break;
+            case PrimitiveType::LINE_STRIP:
+                if (numXYZ < 2) {
+                    CaretLogWarning("Line strip must have at least 2 vertices.");
+                }
+                break;
+            case PrimitiveType::LINES:
+                if (numXYZ < 2) {
+                    CaretLogWarning("Lines must have at least 2 vertices.");
+                }
+                else {
+                    const uint32_t extraVertices = numXYZ % 2;
+                    if (extraVertices > 0) {
+                        CaretLogWarning("Extra vertices for drawing lines ignored.");
+                    }
+                }
+                break;
+            case PrimitiveType::POINTS:
+                break;
+            case PrimitiveType::POLYGON:
+                if (numXYZ < 3) {
+                    CaretLogWarning("Polygon must have at least 3 vertices.");
+                }
+                break;
+            case PrimitiveType::QUAD_STRIP:
+                if (numXYZ < 4) {
+                    CaretLogWarning("Quad strip must have at least 4 vertices.");
+                }
+                else {
+                    const uint32_t extraVertices = numXYZ % 2;
+                    if (extraVertices > 0) {
+                        CaretLogWarning("Extra vertices for drawing quads ignored.");
+                    }
+                }
+                break;
+            case PrimitiveType::QUADS:
+                if (numXYZ < 4) {
+                    CaretLogWarning("Quads must have at least 4 vertices.");
+                }
+                else {
+                    const uint32_t extraVertices = numXYZ % 4;
+                    if (extraVertices > 0) {
+                        CaretLogWarning("Extra vertices for drawing quads ignored.");
+                    }
+                }
+                break;
+            case PrimitiveType::TRIANGLE_FAN:
+                if (numXYZ < 3) {
+                    CaretLogWarning("Triangle fan must have at least 3 vertices.");
+                }
+                break;
+            case PrimitiveType::TRIANGLE_STRIP:
+                if (numXYZ < 3) {
+                    CaretLogWarning("Triangle strip must have at least 3 vertices.");
+                }
                 break;
             case PrimitiveType::TRIANGLES:
-            {
-                const uint32_t extraVertices = numXYZ % 3;
-                if (extraVertices > 0) {
-                    CaretLogWarning("Extra vertices for drawing triangles ignored.");
+                if (numXYZ < 3) {
+                    CaretLogWarning("Triangles must have at least 3 vertices.");
                 }
-            }
+                else {
+                    const uint32_t extraVertices = numXYZ % 3;
+                    if (extraVertices > 0) {
+                        CaretLogWarning("Extra vertices for drawing triangles ignored.");
+                    }
+                }
                 break;
         }
+
         return true;
     }
     
     return false;
 }
+
+/**
+ * Print the primitive's data, data may be long!
+ */
+void
+GraphicsPrimitive::print() const
+{
+    std::cout << toStringPrivate(true) << std::endl;
+}
+
 
 /**
  * Get a description of this object's content.
@@ -177,34 +248,145 @@ GraphicsPrimitive::isValid() const
 AString
 GraphicsPrimitive::toString() const
 {
+    return toStringPrivate(false);
+}
+
+/**
+ * Convert to string.
+ *
+ * @param includeAllDataFlag
+ *     If true, numerical values are included.  Else, only type of data.
+ */
+AString
+GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
+{
     AString s;
     
+    switch (m_primitiveType) {
+        case PrimitiveType::LINE_LOOP:
+            s.appendWithNewLine("Primitive: Line Loop");
+            break;
+        case PrimitiveType::LINE_STRIP:
+            s.appendWithNewLine("Primitive: Line Strip");
+            break;
+        case PrimitiveType::LINES:
+            s.appendWithNewLine("Primitive: Lines");
+            break;
+        case PrimitiveType::POINTS:
+            s.appendWithNewLine("Primitive: Points");
+            break;
+        case PrimitiveType::POLYGON:
+            s.appendWithNewLine("Primitive: Polygon");
+            break;
+        case PrimitiveType::QUAD_STRIP:
+            s.appendWithNewLine("Primitive: Quad Strip");
+            break;
+        case PrimitiveType::QUADS:
+            s.appendWithNewLine("Primitive: Quads");
+            break;
+        case PrimitiveType::TRIANGLE_FAN:
+            s.appendWithNewLine("Primitive: Triangle Fan");
+            break;
+        case PrimitiveType::TRIANGLE_STRIP:
+            s.appendWithNewLine("Primitive: Triangle Strip");
+            break;
+        case PrimitiveType::TRIANGLES:
+            s.appendWithNewLine("Primitive: Triangles");
+            break;
+    }
     switch (m_vertexType) {
         case VertexType::FLOAT_XYZ:
-            s.append("Vertex: " + AString::number(m_xyz.size()) + " Float XYZ.  ");
+            s.appendWithNewLine("Vertex: " + AString::number(m_xyz.size()) + " Float XYZ.  ");
+            if (includeAllDataFlag ) {
+                s.append("\n   ");
+                const int32_t count = static_cast<int32_t>(m_xyz.size());
+                for (int32_t i = 0; i < count; i++) {
+                    s.append(AString::number(m_xyz[i]) + " ");
+                    if (((i+1) % 3) == 0) {
+                        s.append("\n   ");
+                    }
+                }
+                s.append("\n");
+            }
             break;
     }
     
     switch (m_normalVectorType) {
         case NormalVectorType::FLOAT_XYZ:
-            s.append("Normal Vector: " + AString::number(m_floatNormalVectorXYZ.size()) + " Float XYZ.  ");
+            s.appendWithNewLine("Normal Vector: " + AString::number(m_floatNormalVectorXYZ.size()) + " Float XYZ.  ");
             break;
+            if (includeAllDataFlag ) {
+                s.append("\n   ");
+                const int32_t count = static_cast<int32_t>(m_floatNormalVectorXYZ.size());
+                for (int32_t i = 0; i < count; i++) {
+                    s.append(AString::number(m_floatNormalVectorXYZ[i]) + " ");
+                    if (((i+1) % 3) == 0) {
+                        s.append("\n   ");
+                    }
+                }
+            }
         case NormalVectorType::NONE:
-            s.append("Normal Vector: None.  ");
+            s.appendWithNewLine("Normal Vector: None.  ");
             break;
     }
     
     switch (m_colorType) {
         case ColorType::FLOAT_RGBA:
-            s.append("Color: " + AString::number(m_floatRGBA.size()) + " Float RGBA 0.0 to 1.0.  ");
+            s.appendWithNewLine("Color: " + AString::number(m_floatRGBA.size()) + " Float RGBA 0.0 to 1.0.  ");
+            if (includeAllDataFlag ) {
+                s.append("\n   ");
+                const int32_t count = static_cast<int32_t>(m_floatRGBA.size());
+                for (int32_t i = 0; i < count; i++) {
+                    s.append(AString::number(m_floatRGBA[i]) + " ");
+                    if (((i+1) % 4) == 0) {
+                        s.append("\n   ");
+                    }
+                }
+            }
             break;
         case ColorType::UNSIGNED_BYTE_RGBA:
-            s.append("Color: " + AString::number(m_unsignedByteRGBA.size()) + " Unsigned Byte RGBA  0 to 255");
+            s.appendWithNewLine("Color: " + AString::number(m_unsignedByteRGBA.size()) + " Unsigned Byte RGBA  0 to 255");
+            if (includeAllDataFlag ) {
+                s.append("\n   ");
+                const int32_t count = static_cast<int32_t>(m_unsignedByteRGBA.size());
+                for (int32_t i = 0; i < count; i++) {
+                    s.append(AString::number(m_unsignedByteRGBA[i]) + " ");
+                    if (((i+1) % 4) == 0) {
+                        s.append("\n   ");
+                    }
+                }
+            }
             break;
     }
     
     return s;
 }
+/**
+ * Get the OpenGL graphics engine data in this instance.
+ *
+ * @return
+ *     OpenGL graphics engine data or NULL if not found.
+ */
+GraphicsEngineDataOpenGL*
+GraphicsPrimitive::getGraphicsEngineDataForOpenGL()
+{
+    return m_graphicsEngineDataForOpenGL.get();
+}
+
+/**
+ * Set the OpenGL graphics engine data in this instance.
+ *
+ * @param graphicsEngineForOpenGL
+ *     OpenGLgraphics engine for which graphics engine data is desired.  This value may
+ *     NULL to remove graphics engine data for the given graphics engine.
+ *     This instance will take ownership of this data and handle deletion of it.
+ */
+void
+GraphicsPrimitive::setGraphicsEngineDataForOpenGL(GraphicsEngineDataOpenGL* graphicsEngineDataForOpenGL)
+{
+    m_graphicsEngineDataForOpenGL.reset(graphicsEngineDataForOpenGL);
+}
+
 
 /**
  * Receive an event.

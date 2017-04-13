@@ -160,7 +160,9 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_CHART_MATRIX_YOKING_VALIDATION,
                                      "EVENT_CHART_MATRIX_YOKING_VALIDATION",
                                      "Validate Yoking of matrix chart's rows/columns"));
-
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_ENGINE_OPENGL_DELETE_BUFFERS,
+                                     "EVENT_GRAPHICS_ENGINE_OPENGL_DELETE_BUFFERS",
+                                     "Request OpenGL Graphics Engine delete buffers"));
     enumData.push_back(EventTypeEnum(EVENT_CHART_OVERLAY_VALIDATE,
                                      "EVENT_CHART_OVERLAY_VALIDATE",
                                      "Validate a chart overlay for validity (it exists)"));

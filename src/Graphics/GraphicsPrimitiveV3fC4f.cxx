@@ -122,6 +122,28 @@ GraphicsPrimitiveV3fC4f::addVertex(const float x,
 }
 
 /**
+ * Add a 2D vertex.  Z will be zero.
+ *
+ * @param x
+ *     X-coordinate of vertex.
+ * @param y
+ *     Y-coordinate of vertex.
+ * @param rgba
+ *     RGBA color components ranging 0.0 to 1.0.
+ */
+void
+GraphicsPrimitiveV3fC4f::addVertex(const float x,
+                                   const float y,
+                                   const float rgba[4])
+{
+    m_xyz.push_back(x);
+    m_xyz.push_back(y);
+    m_xyz.push_back(0.0);
+    m_floatRGBA.insert(m_floatRGBA.end(),
+                       rgba, rgba + 4);
+}
+
+/**
  * Clone this primitive.
  */
 GraphicsPrimitive*

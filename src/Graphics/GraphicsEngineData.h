@@ -1,5 +1,5 @@
-#ifndef __GRAPHICS_ENGINE_OPEN_G_L_H__
-#define __GRAPHICS_ENGINE_OPEN_G_L_H__
+#ifndef __GRAPHICS_ENGINE_DATA_H__
+#define __GRAPHICS_ENGINE_DATA_H__
 
 /*LICENSE_START*/
 /*
@@ -21,51 +21,43 @@
  */
 /*LICENSE_END*/
 
-#include <QMutex>
+
 
 #include <memory>
 
-#include "CaretOpenGLInclude.h"
-#include "GraphicsEngine.h"
+#include "CaretObject.h"
 
+#include "EventListenerInterface.h"
 
 
 namespace caret {
 
-    class GraphicsEngineOpenGL : public GraphicsEngine {
+    class GraphicsEngineData : public CaretObject, public EventListenerInterface {
         
     public:
-        GraphicsEngineOpenGL();
+        GraphicsEngineData();
         
-        virtual ~GraphicsEngineOpenGL();
+        virtual ~GraphicsEngineData();
         
-        virtual void receiveEvent(Event* event);
-        
-        virtual void draw(GraphicsPrimitive* primitive);
 
-        void deleteUnusedBuffers();
-        
         // ADD_NEW_METHODS_HERE
 
-    private:
-        GraphicsEngineOpenGL(const GraphicsEngineOpenGL&);
+        virtual AString toString() const;
+        
+        virtual void receiveEvent(Event* event);
 
-        GraphicsEngineOpenGL& operator=(const GraphicsEngineOpenGL&);
-        
-        /** prevents concurrent access to m_unusedBufferIdentifiers */
-        QMutex m_unusedBufferIdentifiersMutex;
-        
-        /** use a mutex whenever accessing this member */
-        std::vector<GLuint> m_unusedBufferIdentifiers;
-        
+    private:
+        GraphicsEngineData(const GraphicsEngineData&);
+
+        GraphicsEngineData& operator=(const GraphicsEngineData&);
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __GRAPHICS_ENGINE_OPEN_G_L_DECLARE__
+#ifdef __GRAPHICS_ENGINE_DATA_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GRAPHICS_ENGINE_OPEN_G_L_DECLARE__
+#endif // __GRAPHICS_ENGINE_DATA_DECLARE__
 
 } // namespace
-#endif  //__GRAPHICS_ENGINE_OPEN_G_L_H__
+#endif  //__GRAPHICS_ENGINE_DATA_H__

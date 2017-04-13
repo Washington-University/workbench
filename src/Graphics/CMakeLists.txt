@@ -33,17 +33,25 @@ ENDIF (OPENGL_FOUND)
 #
 ADD_LIBRARY(Graphics
 CaretOpenGLInclude.h
+EventGraphicsEngineOpenGLDeleteBuffers.h
 GraphicsEngine.h
+GraphicsEngineData.h
+GraphicsEngineDataOpenGL.h
 GraphicsEngineOpenGL.h
 GraphicsFactory.h
 GraphicsPrimitive.h
+GraphicsPrimitiveV3f.h
 GraphicsPrimitiveV3fC4f.h
 GraphicsPrimitiveV3fC4ub.h
 
+EventGraphicsEngineOpenGLDeleteBuffers.cxx
 GraphicsEngine.cxx
+GraphicsEngineData.cxx
+GraphicsEngineDataOpenGL.cxx
 GraphicsEngineOpenGL.cxx
 GraphicsFactory.cxx
 GraphicsPrimitive.cxx
+GraphicsPrimitiveV3f.cxx
 GraphicsPrimitiveV3fC4f.cxx
 GraphicsPrimitiveV3fC4ub.cxx
 )

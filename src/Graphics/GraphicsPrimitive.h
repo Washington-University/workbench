@@ -22,7 +22,7 @@
 /*LICENSE_END*/
 
 
-
+#include <map>
 #include <memory>
 
 #include "CaretObject.h"
@@ -32,6 +32,9 @@
 
 namespace caret {
 
+    class GraphicsEngine;
+    class GraphicsEngineDataOpenGL;
+    
     class GraphicsPrimitive : public CaretObject, public EventListenerInterface {
         
     public:
@@ -63,10 +66,65 @@ namespace caret {
             UNSIGNED_BYTE_RGBA
         };
         
+        /**
+         * Type of primitives for drawing
+         * Descriptions are copied from the glVertex man page.
+         */
         enum class PrimitiveType {
-            /** Quads - Four vertices form one quad */
+            /**
+             * Draws a connected group of line segments from the first vertex to the last.  
+             * Vertices n and n+1 define line n.  n-1 lines are drawn. 
+             */
+            LINE_LOOP,
+            /** 
+             * Treats each pair of vertices as an independent line  segment.
+             * Vertices  2n-1  and  2n define line n.  n/2 lines are drawn.
+             */
+            LINE_STRIP,
+            /** 
+             * Draws a connected group of line segments from the first vertex to the last,  then  back
+             * to the first.  Vertices n and n+1 define line n.  The last line, however, is defined by
+             * vertices n and 1.  n lines are drawn. 
+             */
+            LINES,
+            /**
+             * Treats each vertex as a single point.  Vertex n defines point n.  n points are drawn.
+             */
+            POINTS,
+            /** 
+             * Draws a single, convex polygon.  Vertices 1 through n define this polygon. 
+             */
+            POLYGON,
+            /** 
+             * Draws  a connected group of quadrilaterals.  One quadrilateral is defined for each pair
+             * of vertices presented after the first pair.  Vertices 2n-1, 2n, 2n+2, and  2n+1  define
+             * quadrilateral  n.  n/2 quadrilaterals are drawn.  Note that the order in which vertices
+             * are used to construct a quadrilateral from strip data is different from that used  with
+             * independent data.
+             */
+            QUAD_STRIP,
+            /** 
+             * Treats each group of four vertices as an  independent  quadrilateral.
+             * Vertices  4n-3, 4n-2, 4n-3, and 4n define quadrilateral n.  n/4 quadrilaterals are drawn.
+             */
             QUADS,
-            /** Triangles - Three vertices form one triangle */
+            /**
+             * Draws a connected group of triangles.  One triangle is defined  for  each  vertex
+             * presented  after the first two vertices.  Vertices 1, n+1, and n+2 define triangle n.  n-2
+             * triangles are drawn.
+             */
+            TRIANGLE_FAN,
+            /** 
+             * Draws  a  connected  group  of triangles.  One triangle is defined for each vertex
+             * presented after the first two vertices.  For odd n, vertices n, n+1, and n+2 define
+             * triangle  n.   For  even  n,  vertices n+1, n, and n+2 define triangle n.  n-2 triangles are
+             * drawn.
+             */
+            TRIANGLE_STRIP,
+            /** 
+             * Treats each triplet of vertices as an independent triangle.  Vertices 3n-2,  3n-1,  and
+             * 3n define triangle n.  n/3 triangles are drawn. 
+             */
             TRIANGLES
         };
         
@@ -108,7 +166,13 @@ namespace caret {
          */
         const std::vector<float>& getFloatXYZ() const { return m_xyz; }
         
-        virtual AString toString() const;
+        GraphicsEngineDataOpenGL* getGraphicsEngineDataForOpenGL();
+        
+        void setGraphicsEngineDataForOpenGL(GraphicsEngineDataOpenGL* graphicsEngineDataForOpenGL);
+        
+        virtual AString toString() const override;
+        
+        virtual void print() const;
         
         /**
          * Clone this primitive.
@@ -116,6 +180,8 @@ namespace caret {
         virtual GraphicsPrimitive* clone() const = 0;
         
     protected:
+        AString toStringPrivate(const bool includeAllDataFlag) const;
+        
         const VertexType  m_vertexType;
         
         const NormalVectorType m_normalVectorType;
@@ -123,6 +189,8 @@ namespace caret {
         const ColorType  m_colorType;
         
         const PrimitiveType m_primitiveType;
+
+        std::unique_ptr<GraphicsEngineDataOpenGL> m_graphicsEngineDataForOpenGL;
         
         std::vector<float> m_xyz;
         
@@ -135,6 +203,8 @@ namespace caret {
     private:
         void copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj);
 
+        friend class GraphicsEngineDataOpenGL;
+        
         friend class GraphicsEngineOpenGL;
         
         // ADD_NEW_MEMBERS_HERE
