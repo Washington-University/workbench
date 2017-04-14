@@ -98,11 +98,13 @@ using namespace caret;
  *   The parent widget.
  */
 BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
+                                     const BrainOpenGLWidget* shareWidget,
                                      const int32_t windowIndex)
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 : QOpenGLWidget(parent),
 #else
-: QGLWidget(parent),
+: QGLWidget(parent,
+            shareWidget),
 #endif
 windowIndex(windowIndex),
 m_textRenderer(NULL)

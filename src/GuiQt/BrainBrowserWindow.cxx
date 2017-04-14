@@ -149,8 +149,29 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                          + AString::number(m_browserWindowIndex + 1));
     setObjectName(windowTitle());
     
+    BrainOpenGLWidget* shareOpenGLContextWidget = NULL;
+    if ( ! s_brainBrowserWindows.empty()) {
+        std::set<BrainBrowserWindow*>::iterator iter = s_brainBrowserWindows.begin();
+        CaretAssert(iter != s_brainBrowserWindows.end());
+        shareOpenGLContextWidget = (*iter)->m_openGLWidget;
+        CaretAssert(shareOpenGLContextWidget);
+    }
     m_openGLWidget = new BrainOpenGLWidget(this,
-                                               browserWindowIndex);
+                                           shareOpenGLContextWidget,
+                                           browserWindowIndex);
+    if (shareOpenGLContextWidget != NULL) {
+        /*
+         * Need to know if OpenGL context sharing is enabled.
+         */
+        m_openGLWidgetSharingContextFlag = m_openGLWidget->isSharing();
+    }
+    else {
+        /*
+         * This is the first window so set OpenGL context
+         * to true since there are no other contexts
+         */
+        m_openGLWidgetSharingContextFlag = true;
+    }
     
     const int openGLSizeX = 500;
     const int openGLSizeY = (WuQtUtilities::isSmallDisplay() ? 200 : 375);
@@ -263,6 +284,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                     Qt::Vertical);
     }
 #endif
+    s_brainBrowserWindows.insert(this);
 }
 
 /**
@@ -270,6 +292,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
  */
 BrainBrowserWindow::~BrainBrowserWindow()
 {
+    s_brainBrowserWindows.erase(this);
+    
     EventManager::get()->removeAllEventsFromListener(this);
     
     delete m_defaultTileTabsConfiguration;
@@ -4519,5 +4543,19 @@ BrainBrowserWindow::hasValidOpenGL()
 {
     return m_openGLWidget->isValid();
 }
+
+/**
+ * @return True if this OpenGL widget in this window is sharing
+ * its OpenGL context.  Note: the first window is considered
+ * sharing since it is the only context.  Sharing is needed
+ * when there are multiple windows to simplify management
+ * of OpenGL Buffers, textures, etc.
+ */
+bool
+BrainBrowserWindow::isOpenGLWidgetSharingContext() const
+{
+    return m_openGLWidgetSharingContextFlag;
+}
+
 
 

@@ -214,7 +214,8 @@ namespace caret {
         
         BrainBrowserWindow* newBrainBrowserWindow(QWidget* parent,
                                                   BrowserTabContent* browserTabContent,
-                                                  const bool createDefaultTabs);
+                                                  const bool createDefaultTabs,
+                                                  AString& errorMessageOut);
         
         void reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindow);
         

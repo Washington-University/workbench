@@ -570,18 +570,27 @@ GuiManager::getBrowserWindowByWindowIndex(const int32_t browserWindowIndex)
  *    Optional tab for initial windwo tab.
  * @param createDefaultTabs
  *    If true, create the default tabs in the new window.
+ * @param errorMessageOut
+ *    Contains message if window could not be created.
+ * @return 
+ *    Pointer to new window or NULL if unable to create a window.
  */
 BrainBrowserWindow*
 GuiManager::newBrainBrowserWindow(QWidget* parent,
                                   BrowserTabContent* browserTabContent,
-                                  const bool createDefaultTabs)
+                                  const bool createDefaultTabs,
+                                  AString& errorMessageOut)
 {
+    errorMessageOut.clear();
+    
     /*
      * If no tabs can be created, do not create a new window.
      */
     EventBrowserTabGetAll getAllTabs;
     EventManager::get()->sendEvent(getAllTabs.getPointer());
     if (getAllTabs.getNumberOfBrowserTabs() == BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS) {
+        errorMessageOut = ("All browser tabs are being used.  "
+                           "Close some browser tabs and then try creating a new window.");
         return NULL;
     }
     
@@ -594,6 +603,15 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
         if (m_brainBrowserWindows[i] == NULL) {
             windowIndex = i;
             break;
+        }
+    }
+    
+    if (windowIndex < 0) {
+        if (numWindows >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS) {
+            errorMessageOut = ("Unable to create a new window as the maximum number of windows ("
+                               + AString::number(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)
+                               + ") are currently open.");
+            return NULL;
         }
     }
     
@@ -611,6 +629,18 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     else {
         bbw = new BrainBrowserWindow(windowIndex, browserTabContent, tabsMode);
         m_brainBrowserWindows[windowIndex] = bbw;
+    }
+    
+    /*
+     * Did OpenGL Context sharing fail?
+     */
+    if ( ! bbw->isOpenGLWidgetSharingContext()) {
+        delete bbw;
+        errorMessageOut = ("There has been a failure when creating an OpenGL Widget "
+                           "with a \"shared context\" for the new window.  "
+                           "This may be caused by a limitation of the OpenGL graphics or the "
+                           "windowing system on your computer.");
+        return NULL;
     }
     
     if (parent != NULL) {
@@ -1207,11 +1237,13 @@ GuiManager::receiveEvent(Event* event)
             dynamic_cast<EventBrowserWindowNew*>(event);
         CaretAssert(eventNewBrowser);
         
+        AString errorMessage;
         BrainBrowserWindow* bbw = this->newBrainBrowserWindow(eventNewBrowser->getParent(), 
                                                               eventNewBrowser->getBrowserTabContent(),
-                                                              true);
+                                                              true,
+                                                              errorMessage);
         if (bbw == NULL) {
-            eventNewBrowser->setErrorMessage("Workench is exhausted.  It cannot create any more windows.");
+            eventNewBrowser->setErrorMessage(errorMessage);
             eventNewBrowser->setEventProcessed();
             return;
         }
@@ -2415,18 +2447,23 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             for (int32_t i = 0; i < numBrowserClasses; i++) {
                 const SceneClass* browserClass = browserWindowArray->getClassAtIndex(i);
                 BrainBrowserWindow* bbw = NULL;
-                if (availableWindows.empty() == false) {
+                AString errorMessage;
+                if ( ! availableWindows.empty()) {
                     bbw = availableWindows.front();
                     availableWindows.pop_front();
                 }
                 else {
                     bbw = newBrainBrowserWindow(NULL,
                                                 NULL,
-                                                false);
+                                                false,
+                                                errorMessage);
                 }
                 if (bbw != NULL) {
                     bbw->restoreFromScene(sceneAttributes,
                                           browserClass);
+                }
+                else {
+                    sceneAttributes->addToErrorMessage("\n" + errorMessage);
                 }
             }
         }

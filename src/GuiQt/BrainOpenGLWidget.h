@@ -71,6 +71,7 @@ namespace caret {
         
     public:
         BrainOpenGLWidget(QWidget* parent,
+                          const BrainOpenGLWidget* shareWidget,
                           const int32_t windowIndex);
         
         ~BrainOpenGLWidget();

@@ -22,6 +22,7 @@
  */
 /*LICENSE_END*/
 
+#include <set>
 #include <stdint.h>
 
 #include <QImage>
@@ -147,6 +148,8 @@ namespace caret {
         void setAspectRatio(const float aspectRatio);
         
         bool hasValidOpenGL();
+        
+        bool isOpenGLWidgetSharingContext() const;
         
     protected:
         void closeEvent(QCloseEvent* event);
@@ -302,6 +305,8 @@ namespace caret {
         
         BrainOpenGLWidget* m_openGLWidget;
         
+        bool m_openGLWidgetSharingContextFlag;
+        
         BrainBrowserWindowToolBar* m_toolbar;
         
         QAction* m_aboutWorkbenchAction;
@@ -432,8 +437,10 @@ namespace caret {
         /** Y position from scene file for first window */
         static int32_t s_sceneFileFirstWindowY;
         
+        static std::set<BrainBrowserWindow*> s_brainBrowserWindows;
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
+    std::set<BrainBrowserWindow*> BrainBrowserWindow::s_brainBrowserWindows;
     AString BrainBrowserWindow::s_previousOpenFileNameFilter;
     AString BrainBrowserWindow::s_previousOpenFileDirectory;
     QByteArray BrainBrowserWindow::s_previousOpenFileGeometry;
