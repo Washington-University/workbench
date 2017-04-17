@@ -37,11 +37,13 @@
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "EventBrowserTabGet.h"
+#include "EventMapYokingSelectMap.h"
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "DummyFontTextRenderer.h"
 #include "FtglFontTextRenderer.h"
 #include "ImageFile.h"
+#include "MapYokingGroupEnum.h"
 #include "OperationShowScene.h"
 #include "OperationException.h"
 #include "Scene.h"
@@ -105,6 +107,10 @@ OperationShowScene::getParameters()
     ret->createOptionalParameter(6, windowSizeSwitch, "Override image size with window size");
     
     ret->createOptionalParameter(7, "-no-scene-colors", "Do not use background and foreground colors in scene");
+    
+    OptionalParameter* mapYokeOpt = ret->createOptionalParameter(8, "-set-map-yoke", "Override selected map index for a map yoking group.");
+    mapYokeOpt->addStringParameter(1, "Map Yoking Roman Numeral", "Roman numeral identifying the map yoking group (I, II, III, IV, V, VI, VII, VIII, IX, X)");
+    mapYokeOpt->addIntegerParameter(2, "Map Index", "Map index for yoking group.  Indices start at 1 (one)");
     
     AString helpText("Render content of browser windows displayed in a scene "
                      "into image file(s).  The image file name should be "
@@ -179,6 +185,28 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     
     const bool doNotUseSceneColorsFlag = myParams->getOptionalParameter(7)->m_present;
     
+    MapYokingGroupEnum::Enum mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+    int32_t mapYokingMapIndex = -1;
+    OptionalParameter* mapYokeOpt = myParams->getOptionalParameter(8);
+    if (mapYokeOpt->m_present) {
+        const AString romanNumeral = mapYokeOpt->getString(1);
+        bool validFlag = false;
+        mapYokingGroup = MapYokingGroupEnum::fromGuiName(romanNumeral, &validFlag);
+        if ( ! validFlag) {
+            throw OperationException(romanNumeral
+                                     + " does not identify a valid Map Yoking Group.  ");
+        }
+        mapYokingMapIndex = mapYokeOpt->getInteger(2);
+        if (mapYokingMapIndex < 1) {
+            throw OperationException("Map yoking map index must be one or greater.");
+        }
+        
+        /*
+         * Map indice in code start at zero
+         */
+        mapYokingMapIndex--;
+    }
+    
     if ( ! useWindowSizeForImageSizeFlag) {
         if ((userImageWidth <= 0)
             || (userImageHeight <= 0)) {
@@ -246,6 +274,19 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     const GapsAndMargins* gapsAndMargins = brain->getGapsAndMargins();
     
     bool missingWindowMessageHasBeenDisplayed = false;
+    
+    /*
+     * Apply map yoking
+     */
+    if (mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        MapYokingGroupEnum::setSelectedMapIndex(mapYokingGroup, mapYokingMapIndex);
+        
+        EventMapYokingSelectMap yokeEvent(mapYokingGroup,
+                                          NULL,
+                                          mapYokingMapIndex,
+                                          true);
+        EventManager::get()->sendEvent(yokeEvent.getPointer());
+    }
     
     /*
      * Restore windows
