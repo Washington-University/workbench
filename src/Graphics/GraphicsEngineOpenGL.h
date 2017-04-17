@@ -21,10 +21,6 @@
  */
 /*LICENSE_END*/
 
-#include <QMutex>
-
-#include <memory>
-
 #include "CaretOpenGLInclude.h"
 #include "GraphicsEngine.h"
 
@@ -32,6 +28,8 @@
 
 namespace caret {
 
+    class GraphicsOpenGLBufferObject;
+    
     class GraphicsEngineOpenGL : public GraphicsEngine {
         
     public:
@@ -41,23 +39,16 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
         
-        virtual void draw(GraphicsPrimitive* primitive);
+        virtual void draw(void* openglContextPointer,
+                          GraphicsPrimitive* primitive);
 
-        void deleteUnusedBuffers();
-        
         // ADD_NEW_METHODS_HERE
 
     private:
+        
         GraphicsEngineOpenGL(const GraphicsEngineOpenGL&);
 
         GraphicsEngineOpenGL& operator=(const GraphicsEngineOpenGL&);
-        
-        /** prevents concurrent access to m_unusedBufferIdentifiers */
-        QMutex m_unusedBufferIdentifiersMutex;
-        
-        /** use a mutex whenever accessing this member */
-        std::vector<GLuint> m_unusedBufferIdentifiers;
-        
         
         // ADD_NEW_MEMBERS_HERE
 

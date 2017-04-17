@@ -108,6 +108,10 @@ public:
         EVENT_GET_VIEWPORT_SIZE,
         /** OpenGL graphics engine delete buffers */
         EVENT_GRAPHICS_ENGINE_OPENGL_DELETE_BUFFERS,
+        /** Create a buffer object for an OpenGL context */
+        EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT,
+        /** Delete a buffer object for an OpenGL context */
+        EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT,
         /** Update all graphics windows */
         EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
         /** Update graphics in a window */

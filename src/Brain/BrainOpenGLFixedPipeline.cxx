@@ -252,7 +252,7 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
  *
  * @param brain
  *    The brain (must be valid!)
- * @param viewportConent
+ * @param viewportContent
  *    Viewport content in which mouse was clicked
  * @param mouseX
  *    X position of mouse click
@@ -267,7 +267,7 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
  *    selected.
  */
 void 
-BrainOpenGLFixedPipeline::selectModel(Brain* brain,
+BrainOpenGLFixedPipeline::selectModelImplementation(Brain* brain,
                                       BrainOpenGLViewportContent* viewportContent,
                                       const int32_t mouseX,
                                       const int32_t mouseY,
@@ -339,7 +339,7 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
  *    Contains projection result upon exit.
  */
 void 
-BrainOpenGLFixedPipeline::projectToModel(Brain* brain,
+BrainOpenGLFixedPipeline::projectToModelImplementation(Brain* brain,
                                          BrainOpenGLViewportContent* viewportContent,
                                          const int32_t mouseX,
                                          const int32_t mouseY,
@@ -497,17 +497,6 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(std::vector<BrainOpen
 }
 
 /**
- * Delete unused OpenGL buffers in the OpenGL graphics engine.
- * OpenGL must be "current" for this to occur.
- */
-void
-BrainOpenGLFixedPipeline::deleteOpenGLGraphicsFactoryUnusedBuffers()
-{
-    GraphicsFactory::get()->getGraphicsEngineOpenGL()->deleteUnusedBuffers();
-}
-
-
-/**
  * Draw models in their respective viewports.
  *
  * @param brain
@@ -516,7 +505,7 @@ BrainOpenGLFixedPipeline::deleteOpenGLGraphicsFactoryUnusedBuffers()
  *    Viewport info for drawing.
  */
 void 
-BrainOpenGLFixedPipeline::drawModels(Brain* brain,
+BrainOpenGLFixedPipeline::drawModelsImplementation(Brain* brain,
                                      std::vector<BrainOpenGLViewportContent*>& viewportContents)
 {
     m_brain = brain;
@@ -533,8 +522,6 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     m_clippingPlaneGroup = NULL;
     
     this->checkForOpenGLError(NULL, "At beginning of drawModels()");
-    
-    deleteOpenGLGraphicsFactoryUnusedBuffers();
     
     /*
      * Default the background colors to first model
@@ -664,8 +651,6 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
         CaretAssert(m_windowIndex == viewportContents[0]->getWindowIndex());
         drawWindowAnnotations(windowViewport);
     }
-    
-    deleteOpenGLGraphicsFactoryUnusedBuffers();
     
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     

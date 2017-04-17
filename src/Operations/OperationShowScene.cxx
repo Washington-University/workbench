@@ -479,6 +479,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                                                                      tabIndexToHighlight);
                         
                         brainOpenGL->drawModels(brain,
+                                                mesaContext,
                                                 viewports);
                         
                         const int32_t outputImageIndex = ((numBrowserClasses > 1)
@@ -535,6 +536,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     viewportContents.push_back(content);
                     
                     brainOpenGL->drawModels(brain,
+                                            mesaContext,
                                             viewportContents);
                     
                     const int32_t outputImageIndex = ((numBrowserClasses > 1)

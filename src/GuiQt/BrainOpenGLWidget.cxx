@@ -559,6 +559,7 @@ BrainOpenGLWidget::paintGL()
         this->openGL->setBorderBeingDrawn(NULL);
     }
     this->openGL->drawModels(GuiManager::get()->getBrain(),
+                             this->context(),
                              this->drawingViewportContents);
     
     /*
@@ -1088,6 +1089,7 @@ BrainOpenGLWidget::performIdentification(const int x,
     
     if (idViewport != NULL) {
         this->openGL->selectModel(GuiManager::get()->getBrain(),
+                                  this->context(),
                                   idViewport,
                                   x, 
                                   y,
@@ -1148,6 +1150,7 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
          const int idY = y - vp[1];
          */
         this->openGL->selectModel(GuiManager::get()->getBrain(),
+                                  this->context(),
                                   idViewport,
                                   x,
                                   y,
@@ -1210,6 +1213,7 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
          const int idY = y - vp[1];
          */
         this->openGL->selectModel(GuiManager::get()->getBrain(),
+                                  this->context(),
                                   idViewport,
                                   x,
                                   y,
@@ -1263,6 +1267,7 @@ BrainOpenGLWidget::performProjection(const int x,
          const int idY = y - vp[1];
          */
         this->openGL->projectToModel(GuiManager::get()->getBrain(),
+                                     this->context(),
                                      projectionViewport,
                                      x,
                                      y,

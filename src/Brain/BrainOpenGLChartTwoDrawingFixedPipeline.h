@@ -37,6 +37,7 @@ namespace caret {
     class ChartableTwoFileMatrixChart;
     class GraphicsEngineOpenGL;
     class GraphicsFactory;
+    class GraphicsPrimitive;
     class HistogramDrawingInfo;
     class SelectionItemChartTwoHistogram;
     class SelectionItemChartTwoLineSeries;
@@ -157,6 +158,8 @@ namespace caret {
                                                           ChartTwoCartesianAxis* cartesianAxis,
                                                           double& widthOut,
                                                           double& heightOut);
+        
+        void drawPrimitivePrivate(GraphicsPrimitive* primitive);
         
         Brain* m_brain;
         

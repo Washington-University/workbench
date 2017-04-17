@@ -22,6 +22,9 @@
  */
 /*LICENSE_END*/
 
+#include <QMutex>
+
+#include <memory>
 #include <set>
 #include <stdint.h>
 
@@ -55,7 +58,9 @@
 #endif // GL_VERSION_4_0
 
 
+
 #include "CaretObject.h"
+#include "EventListenerInterface.h"
 
 namespace caret {
     
@@ -70,7 +75,7 @@ namespace caret {
     /**
      * Performs drawing of graphics using OpenGL.
      */
-    class BrainOpenGL : public CaretObject {
+    class BrainOpenGL : public CaretObject, public EventListenerInterface {
         
     protected:
         BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer);
@@ -104,17 +109,22 @@ namespace caret {
          *
          * @param brain
          *    The brain (must be valid!)
+         * @param openGLContextPointer
+         *    Pointer to the active OpenGL context.
          * @param viewportContents
          *    Viewport info for drawing.
          */
-        virtual void drawModels(Brain* brain,
-                                std::vector<BrainOpenGLViewportContent*>& viewportContents) = 0;
+        void drawModels(Brain* brain,
+                        void* openGLContextPointer,
+                        std::vector<BrainOpenGLViewportContent*>& viewportContents);
         
         /**
          * Selection on a model.
          *
          * @param brain
          *    The brain (must be valid!)
+         * @param openGLContextPointer
+         *    Pointer to the active OpenGL context.
          * @param viewportContent
          *    Viewport content in which mouse was clicked
          * @param mouseX
@@ -129,11 +139,12 @@ namespace caret {
          *    selected.  If this parameter is false, the node will be
          *    selected.
          */
-        virtual void selectModel(Brain* brain,
-                                 BrainOpenGLViewportContent* viewportContent,
-                                 const int32_t mouseX,
-                                 const int32_t mouseY,
-                                 const bool applySelectionBackgroundFiltering) = 0;
+        void selectModel(Brain* brain,
+                         void* openGLContextPointer,
+                         BrainOpenGLViewportContent* viewportContent,
+                         const int32_t mouseX,
+                         const int32_t mouseY,
+                         const bool applySelectionBackgroundFiltering);
         
         /**
          * Project the given window coordinate to the active models.
@@ -143,6 +154,8 @@ namespace caret {
          *
          * @param brain
          *    The brain (must be valid!)
+         * @param openGLContextPointer
+         *    Pointer to the active OpenGL context.
          * @param viewportContent
          *    Viewport content in which mouse was clicked
          * @param mouseX
@@ -150,11 +163,12 @@ namespace caret {
          * @param mouseY
          *    Y position of mouse click
          */
-        virtual void projectToModel(Brain* brain,
-                                    BrainOpenGLViewportContent* viewportContent,
-                                    const int32_t mouseX,
-                                    const int32_t mouseY,
-                                    SurfaceProjectedItem& projectionOut) = 0;
+        void projectToModel(Brain* brain,
+                            void* openGLContextPointer,
+                            BrainOpenGLViewportContent* viewportContent,
+                            const int32_t mouseX,
+                            const int32_t mouseY,
+                            SurfaceProjectedItem& projectionOut);
         
         virtual BrainOpenGLTextureManager* getTextureManager() = 0;
         
@@ -212,12 +226,95 @@ namespace caret {
         
         virtual AString getStateOfOpenGL() const;
         
+        virtual void receiveEvent(Event* event);
+        
+        inline void* getOpenGLContextPointer() { return m_openGLContextPointer; }
+        
     private:
+        class DeleteBufferNameInfo {
+        public:
+            DeleteBufferNameInfo(void* openglContextPointer,
+                                 const GLuint bufferName)
+            : m_openglContextPointer(openglContextPointer),
+            m_bufferName(bufferName) { }
+            
+            void* m_openglContextPointer;
+            GLuint m_bufferName;
+        };
+        
+        void deleteUnusedBuffers();
+        
+        /** prevents concurrent access to m_buffersForDeletionLater */
+        QMutex m_buffersForDeletionLaterMutex;
+        
+        /** use a mutex whenever accessing this member */
+        std::vector<DeleteBufferNameInfo> m_buffersForDeletionLater;
+        
+        /** Pointer to the current OpenGL Context */
+        void* m_openGLContextPointer = 0;
+        
         BrainOpenGL(const BrainOpenGL&);
         BrainOpenGL& operator=(const BrainOpenGL&);
         
         
     protected:
+        /**
+         * Draw models in their respective viewports.
+         *
+         * @param brain
+         *    The brain (must be valid!)
+         * @param viewportContents
+         *    Viewport info for drawing.
+         */
+        virtual void drawModelsImplementation(Brain* brain,
+                                std::vector<BrainOpenGLViewportContent*>& viewportContents) = 0;
+        
+        /**
+         * Selection on a model.
+         *
+         * @param brain
+         *    The brain (must be valid!)
+         * @param viewportContent
+         *    Viewport content in which mouse was clicked
+         * @param mouseX
+         *    X position of mouse click
+         * @param mouseY
+         *    Y position of mouse click
+         * @param applySelectionBackgroundFiltering
+         *    If true (which is in most cases), if there are multiple items
+         *    selected, those items "behind" other items are not reported.
+         *    For example, suppose a focus is selected and there is a node
+         *    the focus.  If this parameter is true, the node will NOT be
+         *    selected.  If this parameter is false, the node will be
+         *    selected.
+         */
+        virtual void selectModelImplementation(Brain* brain,
+                                 BrainOpenGLViewportContent* viewportContent,
+                                 const int32_t mouseX,
+                                 const int32_t mouseY,
+                                 const bool applySelectionBackgroundFiltering) = 0;
+        
+        /**
+         * Project the given window coordinate to the active models.
+         * If the projection is successful, The 'original' XYZ
+         * coordinate in 'projectionOut' will be valid.  In addition,
+         * the barycentric coordinate may also be valid in 'projectionOut'.
+         *
+         * @param brain
+         *    The brain (must be valid!)
+         * @param viewportContent
+         *    Viewport content in which mouse was clicked
+         * @param mouseX
+         *    X position of mouse click
+         * @param mouseY
+         *    Y position of mouse click
+         */
+        virtual void projectToModelImplementation(Brain* brain,
+                                    BrainOpenGLViewportContent* viewportContent,
+                                    const int32_t mouseX,
+                                    const int32_t mouseY,
+                                    SurfaceProjectedItem& projectionOut) = 0;
+
         AString getOpenGLEnabledEnumAsText(const AString& enumName,
                                     const GLenum enumValue) const;
         

@@ -32,6 +32,10 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "DummyFontTextRenderer.h"
+#include "EventGraphicsOpenGLCreateBufferObject.h"
+#include "EventGraphicsOpenGLDeleteBufferObject.h"
+#include "EventManager.h"
+#include "GraphicsOpenGLBufferObject.h"
 #include "Model.h"
 #include "SessionManager.h"
 
@@ -52,6 +56,9 @@ BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
     m_textRenderer = textRenderer;
     this->borderBeingDrawn = NULL;
     m_drawHighlightedEndPoints = false;
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT);
 }
 
 /**
@@ -59,11 +66,213 @@ BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
  */
 BrainOpenGL::~BrainOpenGL()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     if (m_textRenderer != NULL) {
         delete m_textRenderer;
         m_textRenderer = NULL;
     }
 }
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *    An event for which this instance is listening.
+ */
+void
+BrainOpenGL::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT) {
+        EventGraphicsOpenGLCreateBufferObject* createBufferEvent
+        = dynamic_cast<EventGraphicsOpenGLCreateBufferObject*>(event);
+        CaretAssert(createBufferEvent);
+        
+        if (m_openGLContextPointer == NULL) {
+            AString msg("PROGRAM ERROR: "
+                        "A request for a new OpenGL Buffer Object has been made.  "
+                        "However, there is no OpenGL context currently active so "
+                        "a buffer cannot be created.  This is an error in the "
+                        "code and it is likely that the software will crash.");
+            createBufferEvent->setErrorMessage(msg);
+            createBufferEvent->setOpenGLBufferObject(NULL);
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            return;
+        }
+        
+        GLuint bufferName = 0;
+        glGenBuffers(1, &bufferName);
+        
+        createBufferEvent->setOpenGLBufferObject(new GraphicsOpenGLBufferObject(m_openGLContextPointer,
+                                                                                bufferName));
+        createBufferEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT) {
+        QMutexLocker locker(&m_buffersForDeletionLaterMutex);
+
+        EventGraphicsOpenGLDeleteBufferObject* deleteBufferEvent
+        = dynamic_cast<EventGraphicsOpenGLDeleteBufferObject*>(event);
+        CaretAssert(deleteBufferEvent);
+        GraphicsOpenGLBufferObject* bufferObject = deleteBufferEvent->getOpenGLBufferObject();
+        if (bufferObject != NULL) {
+            m_buffersForDeletionLater.emplace(m_buffersForDeletionLater.end(),
+                                              bufferObject->getOpenGLContextPointer(),
+                                              bufferObject->getBufferObjectName());
+        }
+        
+        deleteBufferEvent->setEventProcessed();
+    }
+}
+
+/**
+ * Draw models in their respective viewports.
+ *
+ * @param brain
+ *    The brain (must be valid!)
+ * @param openGLContextPointer
+ *    Pointer to the active OpenGL context.
+ * @param viewportContents
+ *    Viewport info for drawing.
+ */
+void BrainOpenGL::drawModels(Brain* brain,
+                             void* openGLContextPointer,
+                             std::vector<BrainOpenGLViewportContent*>& viewportContents)
+{
+    m_openGLContextPointer = openGLContextPointer;
+    
+    drawModelsImplementation(brain,
+                             viewportContents);
+    
+    deleteUnusedBuffers();
+    
+    m_openGLContextPointer = NULL;
+}
+
+/**
+ * Selection on a model.
+ *
+ * @param brain
+ *    The brain (must be valid!)
+ * @param openGLContextPointer
+ *    Pointer to the active OpenGL context.
+ * @param viewportContent
+ *    Viewport content in which mouse was clicked
+ * @param mouseX
+ *    X position of mouse click
+ * @param mouseY
+ *    Y position of mouse click
+ * @param applySelectionBackgroundFiltering
+ *    If true (which is in most cases), if there are multiple items
+ *    selected, those items "behind" other items are not reported.
+ *    For example, suppose a focus is selected and there is a node
+ *    the focus.  If this parameter is true, the node will NOT be
+ *    selected.  If this parameter is false, the node will be
+ *    selected.
+ */
+void BrainOpenGL::selectModel(Brain* brain,
+                              void* openGLContextPointer,
+                              BrainOpenGLViewportContent* viewportContent,
+                              const int32_t mouseX,
+                              const int32_t mouseY,
+                              const bool applySelectionBackgroundFiltering)
+{
+    m_openGLContextPointer = openGLContextPointer;
+    
+    selectModelImplementation(brain,
+                              viewportContent,
+                              mouseX,
+                              mouseY,
+                              applySelectionBackgroundFiltering);
+    
+    deleteUnusedBuffers();
+    
+    m_openGLContextPointer = NULL;
+}
+
+/**
+ * Project the given window coordinate to the active models.
+ * If the projection is successful, The 'original' XYZ
+ * coordinate in 'projectionOut' will be valid.  In addition,
+ * the barycentric coordinate may also be valid in 'projectionOut'.
+ *
+ * @param brain
+ *    The brain (must be valid!)
+ * @param openGLContextPointer
+ *    Pointer to the active OpenGL context.
+ * @param viewportContent
+ *    Viewport content in which mouse was clicked
+ * @param mouseX
+ *    X position of mouse click
+ * @param mouseY
+ *    Y position of mouse click
+ */
+void BrainOpenGL::projectToModel(Brain* brain,
+                    void* openGLContextPointer,
+                    BrainOpenGLViewportContent* viewportContent,
+                    const int32_t mouseX,
+                    const int32_t mouseY,
+                    SurfaceProjectedItem& projectionOut)
+{
+    m_openGLContextPointer = openGLContextPointer;
+    
+    projectToModelImplementation(brain,
+                                 viewportContent,
+                                 mouseX,
+                                 mouseY,
+                                 projectionOut);
+    deleteUnusedBuffers();
+    
+    m_openGLContextPointer = NULL;
+}
+
+
+/**
+ * This method must be called only when the OpenGL context
+ * is current.
+ */
+void
+BrainOpenGL::deleteUnusedBuffers()
+{
+    //if ( !  m_unusedBufferIdentifiers.empty()) {
+    if ( ! m_buffersForDeletionLater.empty()) {
+        QMutexLocker locker(&m_buffersForDeletionLaterMutex);
+        
+        std::vector<DeleteBufferNameInfo> otherContextBufferIdentifiers;
+        
+        std::vector<GLuint> bufferNames;
+        
+        for (auto bufferInfo : m_buffersForDeletionLater) {
+            if (bufferInfo.m_openglContextPointer == m_openGLContextPointer) {
+                if (glIsBuffer(bufferInfo.m_bufferName)) {
+                    bufferNames.push_back(bufferInfo.m_bufferName);
+                }
+                else {
+                    CaretLogWarning("Attempting to delete invalid OpenGL buffer ID: "
+                                    + AString::number(bufferInfo.m_bufferName));
+                }
+            }
+            else {
+                otherContextBufferIdentifiers.push_back(bufferInfo);
+            }
+        }
+        
+        if ( ! bufferNames.empty()) {
+            const GLuint* namesPointer = &bufferNames[0];
+            glDeleteBuffers(bufferNames.size(),
+                            namesPointer);
+            m_buffersForDeletionLater.clear();
+            
+            std::cout << "Deleted " << bufferNames.size() << " buffers." << std::endl;
+        }
+        
+        m_buffersForDeletionLater = otherContextBufferIdentifiers;
+        if ( ! m_buffersForDeletionLater.empty()) {
+            std::cout << "Not deleting " << m_buffersForDeletionLater.size() << " in another OpenGL Context." << std::endl;
+        }
+    }
+}
+
 
 /**
  * @return The active text renderer.

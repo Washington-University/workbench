@@ -26,10 +26,11 @@
 #include <QMutexLocker>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
 #include "GraphicsEngineDataOpenGL.h"
-#include "EventGraphicsEngineOpenGLDeleteBuffers.h"
 #include "EventManager.h"
+#include "GraphicsOpenGLBufferObject.h"
 #include "GraphicsPrimitive.h"
 
 using namespace caret;
@@ -48,8 +49,6 @@ using namespace caret;
 GraphicsEngineOpenGL::GraphicsEngineOpenGL()
 : GraphicsEngine()
 {
-    EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_GRAPHICS_ENGINE_OPENGL_DELETE_BUFFERS);
 }
 
 /**
@@ -57,7 +56,6 @@ GraphicsEngineOpenGL::GraphicsEngineOpenGL()
  */
 GraphicsEngineOpenGL::~GraphicsEngineOpenGL()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -69,59 +67,20 @@ GraphicsEngineOpenGL::~GraphicsEngineOpenGL()
 void
 GraphicsEngineOpenGL::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_ENGINE_OPENGL_DELETE_BUFFERS) {
-        EventGraphicsEngineOpenGLDeleteBuffers* bufferEvent
-        = dynamic_cast<EventGraphicsEngineOpenGLDeleteBuffers*>(event);
-        CaretAssert(bufferEvent);
-        event->setEventProcessed();
-        
-        std::vector<GLuint> bufferIDs = bufferEvent->getBufferIdentifiers();
-        
-        QMutexLocker locker(&m_unusedBufferIdentifiersMutex);
-        
-        m_unusedBufferIdentifiers.insert(m_unusedBufferIdentifiers.end(),
-                                         bufferIDs.begin(), bufferIDs.end());
-    }
-    else {
-        GraphicsEngine::receiveEvent(event);
-    }
+    GraphicsEngine::receiveEvent(event);
 }
-
-/**
- * This method must be called only when the OpenGL context
- * is current.
- */
-void
-GraphicsEngineOpenGL::deleteUnusedBuffers()
-{
-    const GLsizei numberOfIDs = m_unusedBufferIdentifiers.size();
-    if (numberOfIDs > 0) {
-        QMutexLocker locker(&m_unusedBufferIdentifiersMutex);
-        
-        for (GLuint buffID : m_unusedBufferIdentifiers) {
-            if ( ! glIsBuffer(buffID)) {
-                std::cout << "Attempting to delete invalid buffer ID: " << buffID << std::endl;
-            }
-        }
-        
-        const GLuint* idsPointer = &m_unusedBufferIdentifiers[0];
-        glDeleteBuffers(numberOfIDs,
-                        idsPointer);
-        m_unusedBufferIdentifiers.clear();
-        
-        std::cout << "Deleted " << numberOfIDs << " buffers." << std::endl;
-    }
-}
-
 
 /**
  * Draw the given graphics primitive.
  *
+ * @param openglContextPointer
+ *     Pointer to the active OpenGL context.
  * @param primitive
  *     Primitive that is drawn.
  */
 void
-GraphicsEngineOpenGL::draw(GraphicsPrimitive* primitive)
+GraphicsEngineOpenGL::draw(void* openglContextPointer,
+                           GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     if ( ! primitive->isValid()) {
@@ -136,96 +95,18 @@ GraphicsEngineOpenGL::draw(GraphicsPrimitive* primitive)
         openglData->loadBuffers(primitive);
     }
     
-//    GLenum coordinateDataType = GL_FLOAT;
-//    GLint coordinatesPerVertex = 0;
-//    GLuint coordinateBufferID = 0;
-//    GLsizei coordinateCount = 0;
-//    switch (primitive->m_vertexType) {
-//        case GraphicsPrimitive::VertexType::FLOAT_XYZ:
-//            coordinateDataType = GL_FLOAT;
-//            coordinatesPerVertex = 3; // X, Y, Z
-//
-//            coordinateCount = primitive->m_xyz.size();
-//            const GLuint xyzSizeBytes = coordinateCount * sizeof(float);
-//            const GLvoid* xyzDataPointer = (const GLvoid*)&primitive->m_xyz[0];
-//            
-//            glGenBuffers(1, &coordinateBufferID);
-//            glBindBuffer(GL_ARRAY_BUFFER,
-//                         coordinateBufferID);
-//            glBufferData(GL_ARRAY_BUFFER,
-//                         xyzSizeBytes,
-//                         xyzDataPointer,
-//                         GL_STREAM_DRAW);
-//            break;
-//    }
-//    
-//    GLenum normalVectorDataType = GL_FLOAT;
-//    GLuint normalBufferID = 0;
-//    switch (primitive->m_normalVectorType) {
-//        case GraphicsPrimitive::NormalVectorType::NONE:
-//            break;
-//        case GraphicsPrimitive::NormalVectorType::FLOAT_XYZ:
-//        {
-//            normalVectorDataType = GL_FLOAT;
-//            const GLuint normalSizeBytes = primitive->m_floatNormalVectorXYZ.size() * sizeof(float);
-//            const GLvoid* normalDataPointer = (const GLvoid*)&primitive->m_floatNormalVectorXYZ[0];
-//
-//            glGenBuffers(1, &normalBufferID);
-//            glBindBuffer(GL_ARRAY_BUFFER,
-//                         normalBufferID);
-//            glBufferData(GL_ARRAY_BUFFER,
-//                         normalSizeBytes,
-//                         normalDataPointer,
-//                         GL_STREAM_DRAW);
-//        }
-//            break;
-//    }
-//    
-//    GLenum colorDataType = GL_FLOAT;
-//    GLint componentsPerColor = 0;
-//    GLuint colorBufferID = 0;
-//    glGenBuffers(1, &colorBufferID);
-//    switch (primitive->m_colorType) {
-//        case GraphicsPrimitive::ColorType::FLOAT_RGBA:
-//        {
-//            componentsPerColor = 4;
-//            colorDataType = GL_FLOAT;
-//            
-//            const GLuint colorSizeBytes = primitive->m_floatRGBA.size() * sizeof(float);
-//            const GLvoid* colorDataPointer = (const GLvoid*)&primitive->m_floatRGBA[0];
-//            
-//            glBindBuffer(GL_ARRAY_BUFFER,
-//                         colorBufferID);
-//            glBufferData(GL_ARRAY_BUFFER,
-//                         colorSizeBytes,
-//                         colorDataPointer,
-//                         GL_STREAM_DRAW);
-//        }
-//            break;
-//        case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
-//        {
-//            componentsPerColor = 4;
-//            colorDataType = GL_UNSIGNED_BYTE;
-//            
-//            const GLuint colorSizeBytes = primitive->m_unsignedByteRGBA.size() * sizeof(uint8_t);
-//            const GLvoid* colorDataPointer = (const GLvoid*)&primitive->m_unsignedByteRGBA[0];
-//            
-//            glBindBuffer(GL_ARRAY_BUFFER,
-//                         colorBufferID);
-//            glBufferData(GL_ARRAY_BUFFER,
-//                         colorSizeBytes,
-//                         colorDataPointer,
-//                         GL_STREAM_DRAW);
-//        }
-//            break;
-//    }
-
+    const GLuint coordBufferID = openglData->m_coordinateBufferObject->getBufferObjectName();
+    CaretAssert(coordBufferID);
+    if ( ! glIsBuffer(coordBufferID)) {
+        std::cout << "Coordinate buffer is INVALID" << std::endl;
+    }
+    
     /*
      * Setup vertices for drawing
      */
     glEnableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER,
-                 openglData->m_coordinateBufferID);
+                 coordBufferID);
     glVertexPointer(openglData->m_coordinatesPerVertex,
                     openglData->m_coordinateDataType,
                     0,
@@ -234,9 +115,9 @@ GraphicsEngineOpenGL::draw(GraphicsPrimitive* primitive)
     /*
      * Setup normals for drawing
      */
-    if (openglData->m_normalVectorBufferID > 0) {
+    if (openglData->m_normalVectorBufferObject != NULL) {
         glEnableClientState(GL_NORMAL_ARRAY);
-        glBindBuffer(GL_ARRAY_BUFFER, openglData->m_normalVectorBufferID);
+        glBindBuffer(GL_ARRAY_BUFFER, openglData->m_normalVectorBufferObject->getBufferObjectName());
         glNormalPointer(openglData->m_normalVectorDataType, 0, (GLvoid*)0);
     }
     else {
@@ -247,7 +128,7 @@ GraphicsEngineOpenGL::draw(GraphicsPrimitive* primitive)
      * Setup colors for drawing
      */
     glEnableClientState(GL_COLOR_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, openglData->m_colorBufferID);
+    glBindBuffer(GL_ARRAY_BUFFER, openglData->m_colorBufferObject->getBufferObjectName());
     glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
     
     /*
@@ -261,7 +142,6 @@ GraphicsEngineOpenGL::draw(GraphicsPrimitive* primitive)
     /*
      * Draw the primitive
      */
-//    const GLsizei indicesCount = openglDatacoordinateCount / coordinatesPerVertex;
     GLenum openGLPrimitiveType = GL_INVALID_ENUM;
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::LINE_LOOP:
@@ -305,18 +185,5 @@ GraphicsEngineOpenGL::draw(GraphicsPrimitive* primitive)
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
-    
-    
-//    /*
-//     * Delete buffers
-//     */
-//    glDeleteBuffers(1,
-//                    &coordinateBufferID);
-//    if (normalBufferID > 0) {
-//        glDeleteBuffers(1,
-//                        &normalBufferID);
-//    }
-//    glDeleteBuffers(1,
-//                    &colorBufferID);
 }
 

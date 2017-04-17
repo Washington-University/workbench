@@ -31,6 +31,7 @@
 
 namespace caret {
 
+    class GraphicsOpenGLBufferObject;
     class GraphicsPrimitive;
     
     class GraphicsEngineDataOpenGL : public GraphicsEngineData {
@@ -51,19 +52,22 @@ namespace caret {
 
         GraphicsEngineDataOpenGL& operator=(const GraphicsEngineDataOpenGL&);
         
+        void deleteBufferObjectHelper(GraphicsOpenGLBufferObject* &bufferObject);
+        
         GLsizei m_arrayIndicesCount = 0;
         
-        GLuint m_coordinateBufferID = 0;
+        /** Coordinate buffer object WE DO NOT DELETE THIS */
+        GraphicsOpenGLBufferObject* m_coordinateBufferObject = NULL;
         
         GLenum m_coordinateDataType = GL_FLOAT;
 
         GLint m_coordinatesPerVertex = 0;
 
-        GLuint m_normalVectorBufferID = 0;
+        GraphicsOpenGLBufferObject* m_normalVectorBufferObject = NULL;
         
         GLenum m_normalVectorDataType = GL_FLOAT;
         
-        GLuint m_colorBufferID = 0;
+        GraphicsOpenGLBufferObject* m_colorBufferObject = NULL;
         
         GLenum m_colorDataType = GL_FLOAT;
         

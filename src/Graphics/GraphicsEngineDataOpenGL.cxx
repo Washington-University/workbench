@@ -24,8 +24,9 @@
 #undef __GRAPHICS_ENGINE_DATA_OPEN_G_L_DECLARE__
 
 #include "CaretAssert.h"
-#include "EventGraphicsEngineOpenGLDeleteBuffers.h"
+#include "EventGraphicsOpenGLCreateBufferObject.h"
 #include "EventManager.h"
+#include "GraphicsOpenGLBufferObject.h"
 #include "GraphicsPrimitive.h"
 
 using namespace caret;
@@ -55,30 +56,34 @@ GraphicsEngineDataOpenGL::~GraphicsEngineDataOpenGL()
     deleteBuffers();
 }
 
+/**
+ * Delete an OpenGL buffer object.
+ *
+ * @param bufferObject
+ *     Reference to pointer of buffer object for deletion.
+ *     If NULL, no action is taken.
+ *     Will be NULL upon exit.
+ */
+void
+GraphicsEngineDataOpenGL::deleteBufferObjectHelper(GraphicsOpenGLBufferObject* &bufferObject)
+{
+    if (bufferObject != NULL) {
+        delete bufferObject;
+        bufferObject = NULL;
+    }
+}
+
+/**
+ * Delete the OpenGL buffer objects.
+ */
 void
 GraphicsEngineDataOpenGL::deleteBuffers()
 {
-    std::vector<GLuint> bufferIDs;
+    deleteBufferObjectHelper(m_coordinateBufferObject);
     
-    if (m_coordinateBufferID > 0) {
-        bufferIDs.push_back(m_coordinateBufferID);
-    }
-    m_coordinateBufferID = 0;
+    deleteBufferObjectHelper(m_normalVectorBufferObject);
     
-    if (m_normalVectorBufferID > 0) {
-        bufferIDs.push_back(m_normalVectorBufferID);
-    }
-    m_normalVectorBufferID = 0;
-    
-    if (m_colorBufferID > 0) {
-        bufferIDs.push_back(m_colorBufferID);
-    }
-    m_colorBufferID = 0;
-    
-    if ( ! bufferIDs.empty()) {
-        EventGraphicsEngineOpenGLDeleteBuffers buffersEvent(bufferIDs);
-        EventManager::get()->sendEvent(buffersEvent.getPointer());
-    }
+    deleteBufferObjectHelper(m_colorBufferObject);
 }
 
 
@@ -103,9 +108,13 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             const GLuint xyzSizeBytes = coordinateCount * sizeof(float);
             const GLvoid* xyzDataPointer = (const GLvoid*)&primitive->m_xyz[0];
             
-            glGenBuffers(1, &m_coordinateBufferID);
+            EventGraphicsOpenGLCreateBufferObject createEvent;
+            EventManager::get()->sendEvent(createEvent.getPointer());
+            m_coordinateBufferObject = createEvent.getOpenGLBufferObject();
+            CaretAssert(m_coordinateBufferObject->getBufferObjectName());
+            
             glBindBuffer(GL_ARRAY_BUFFER,
-                         m_coordinateBufferID);
+                         m_coordinateBufferObject->getBufferObjectName());
             glBufferData(GL_ARRAY_BUFFER,
                          xyzSizeBytes,
                          xyzDataPointer,
@@ -129,9 +138,13 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             const GLuint normalSizeBytes = primitive->m_floatNormalVectorXYZ.size() * sizeof(float);
             const GLvoid* normalDataPointer = (const GLvoid*)&primitive->m_floatNormalVectorXYZ[0];
             
-            glGenBuffers(1, &m_normalVectorBufferID);
+            EventGraphicsOpenGLCreateBufferObject createEvent;
+            EventManager::get()->sendEvent(createEvent.getPointer());
+            m_normalVectorBufferObject = createEvent.getOpenGLBufferObject();
+            CaretAssert(m_normalVectorBufferObject->getBufferObjectName());
+            
             glBindBuffer(GL_ARRAY_BUFFER,
-                         m_normalVectorBufferID);
+                         m_normalVectorBufferObject->getBufferObjectName());
             glBufferData(GL_ARRAY_BUFFER,
                          normalSizeBytes,
                          normalDataPointer,
@@ -140,10 +153,14 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             break;
     }
     
-    glGenBuffers(1, &m_colorBufferID);
     switch (primitive->m_colorType) {
         case GraphicsPrimitive::ColorType::FLOAT_RGBA:
         {
+            EventGraphicsOpenGLCreateBufferObject createEvent;
+            EventManager::get()->sendEvent(createEvent.getPointer());
+            m_colorBufferObject = createEvent.getOpenGLBufferObject();
+            CaretAssert(m_colorBufferObject->getBufferObjectName());
+            
             m_componentsPerColor = 4;
             m_colorDataType = GL_FLOAT;
             
@@ -151,7 +168,7 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             const GLvoid* colorDataPointer = (const GLvoid*)&primitive->m_floatRGBA[0];
             
             glBindBuffer(GL_ARRAY_BUFFER,
-                         m_colorBufferID);
+                         m_colorBufferObject->getBufferObjectName());
             glBufferData(GL_ARRAY_BUFFER,
                          colorSizeBytes,
                          colorDataPointer,
@@ -160,6 +177,11 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             break;
         case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
         {
+            EventGraphicsOpenGLCreateBufferObject createEvent;
+            EventManager::get()->sendEvent(createEvent.getPointer());
+            m_colorBufferObject = createEvent.getOpenGLBufferObject();
+            CaretAssert(m_colorBufferObject->getBufferObjectName());
+            
             m_componentsPerColor = 4;
             m_colorDataType = GL_UNSIGNED_BYTE;
             
@@ -167,7 +189,7 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             const GLvoid* colorDataPointer = (const GLvoid*)&primitive->m_unsignedByteRGBA[0];
             
             glBindBuffer(GL_ARRAY_BUFFER,
-                         m_colorBufferID);
+                         m_colorBufferObject->getBufferObjectName());
             glBufferData(GL_ARRAY_BUFFER,
                          colorSizeBytes,
                          colorDataPointer,

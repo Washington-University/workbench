@@ -1,5 +1,5 @@
-#ifndef __GRAPHICS_ENGINE_H__
-#define __GRAPHICS_ENGINE_H__
+#ifndef __EVENT_GRAPHICS_OPEN_G_L_CREATE_BUFFER_OBJECT_H__
+#define __EVENT_GRAPHICS_OPEN_G_L_CREATE_BUFFER_OBJECT_H__
 
 /*LICENSE_START*/
 /*
@@ -22,52 +22,43 @@
 /*LICENSE_END*/
 
 
+#include "Event.h"
 
-#include <memory>
-
-#include "CaretObject.h"
-
-#include "EventListenerInterface.h"
 
 
 namespace caret {
 
-    class GraphicsPrimitive;
+    class GraphicsOpenGLBufferObject;
     
-    class GraphicsEngine : public CaretObject, public EventListenerInterface {
+    class EventGraphicsOpenGLCreateBufferObject : public Event {
         
     public:
-        GraphicsEngine();
+        EventGraphicsOpenGLCreateBufferObject();
         
-        virtual ~GraphicsEngine();
+        virtual ~EventGraphicsOpenGLCreateBufferObject();
+
+        void setOpenGLBufferObject(GraphicsOpenGLBufferObject* openglBufferObject);
         
-        /**
-         * Draw the given graphics primitive.
-         *
-         * @param primitive
-         *     Primitive that is drawn.
-         */
-        virtual void draw(void* graphicsContextPointer,
-                          GraphicsPrimitive* primitive) = 0;
+        GraphicsOpenGLBufferObject* getOpenGLBufferObject() const;
 
         // ADD_NEW_METHODS_HERE
 
-        virtual AString toString() const;
-        
-        virtual void receiveEvent(Event* event);
-
     private:
-        GraphicsEngine(const GraphicsEngine&);
+        EventGraphicsOpenGLCreateBufferObject(const EventGraphicsOpenGLCreateBufferObject&);
 
-        GraphicsEngine& operator=(const GraphicsEngine&);
+        EventGraphicsOpenGLCreateBufferObject& operator=(const EventGraphicsOpenGLCreateBufferObject&);
+        
+        mutable GraphicsOpenGLBufferObject* m_openglBufferObject = NULL;
+        
+        mutable bool m_openglBufferObjectWasTakenFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __GRAPHICS_ENGINE_DECLARE__
+#ifdef __EVENT_GRAPHICS_OPEN_G_L_CREATE_BUFFER_OBJECT_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GRAPHICS_ENGINE_DECLARE__
+#endif // __EVENT_GRAPHICS_OPEN_G_L_CREATE_BUFFER_OBJECT_DECLARE__
 
 } // namespace
-#endif  //__GRAPHICS_ENGINE_H__
+#endif  //__EVENT_GRAPHICS_OPEN_G_L_CREATE_BUFFER_OBJECT_H__

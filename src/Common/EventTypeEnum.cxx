@@ -23,6 +23,7 @@
 #undef __EVENT_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 
 using namespace caret;
 
@@ -160,6 +161,12 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_CHART_MATRIX_YOKING_VALIDATION,
                                      "EVENT_CHART_MATRIX_YOKING_VALIDATION",
                                      "Validate Yoking of matrix chart's rows/columns"));
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT,
+                                     "EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT",
+                                     "Create an OpenGL Buffer Object for an OpenGL Context"));
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT,
+                                     "EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT",
+                                     "Delete an OpenGL Buffer Object for an OpenGL Context"));
     enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_ENGINE_OPENGL_DELETE_BUFFERS,
                                      "EVENT_GRAPHICS_ENGINE_OPENGL_DELETE_BUFFERS",
                                      "Request OpenGL Graphics Engine delete buffers"));
@@ -360,7 +367,11 @@ EventTypeEnum::findData(const Enum enumValue)
         }
     }
 
-    return NULL;
+    AString msg("Failed to find EventTypeEnum for an enumerated value.  The most likely causes is a failure "
+                "to add the enumerated value in EventTypeEnum::initialize()");
+    CaretAssertMessage(0, msg);
+    CaretLogSevere(msg);
+    return &enumData[0];  // prevent crash
 }
 
 /**

@@ -104,20 +104,6 @@ namespace caret {
 
         ~BrainOpenGLFixedPipeline();
         
-        void drawModels(Brain* brain,
-                        std::vector<BrainOpenGLViewportContent*>& viewportContents);
-        
-        void selectModel(Brain* brain,
-                         BrainOpenGLViewportContent* viewportContent,
-                         const int32_t mouseX,
-                         const int32_t mouseY,
-                         const bool applySelectionBackgroundFiltering);
-        
-        void projectToModel(Brain* brain,
-                            BrainOpenGLViewportContent* viewportContent,
-                            const int32_t mouseX,
-                            const int32_t mouseY,
-                            SurfaceProjectedItem& projectionOut);
         
         void initializeOpenGL();
         
@@ -131,6 +117,22 @@ namespace caret {
                                                  int32_t& gapOut);
         
         virtual BrainOpenGLTextureManager* getTextureManager();
+        
+    protected:
+        void drawModelsImplementation(Brain* brain,
+                                      std::vector<BrainOpenGLViewportContent*>& viewportContents) override;
+        
+        void selectModelImplementation(Brain* brain,
+                                       BrainOpenGLViewportContent* viewportContent,
+                                       const int32_t mouseX,
+                                       const int32_t mouseY,
+                                       const bool applySelectionBackgroundFiltering) override;
+        
+        void projectToModelImplementation(Brain* brain,
+                                          BrainOpenGLViewportContent* viewportContent,
+                                          const int32_t mouseX,
+                                          const int32_t mouseY,
+                                          SurfaceProjectedItem& projectionOut) override;
         
     private:
         class VolumeDrawInfo {
@@ -511,7 +513,7 @@ namespace caret {
         void setTabViewport(const BrainOpenGLViewportContent* vpContent);
         
         void setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& viewportContents);
-                
+
         /** Index of window */
         const int32_t m_windowIndex;
         

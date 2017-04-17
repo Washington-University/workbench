@@ -1416,7 +1416,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
      * Draw the matrix elements.
      */
     if (m_identificationModeFlag) {
-        m_graphicsOpenGL->draw(quadsData4ub.get());
+        drawPrimitivePrivate(quadsData4ub.get());
     }
     else {
         /*
@@ -1426,7 +1426,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         
-        m_graphicsOpenGL->draw(quadsData4f.get());
+        drawPrimitivePrivate(quadsData4f.get());
         
         glDisable(GL_BLEND);
         
@@ -1453,7 +1453,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             }
             glPolygonMode(GL_FRONT, GL_LINE);
             glLineWidth(1.0);
-            m_graphicsOpenGL->draw(outlineData4f.get());
+            drawPrimitivePrivate(outlineData4f.get());
             glPolygonMode(GL_FRONT, GL_FILL);
         }
         
@@ -1489,7 +1489,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 rowOutlineData4f->addVertex(minX, rowY + cellHeight, 0.0);
                 const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
                 glLineWidth(highlightLineWidth);
-                m_graphicsOpenGL->draw(rowOutlineData4f.get());
+                drawPrimitivePrivate(rowOutlineData4f.get());
             }
             
             glLineWidth(1.0);
@@ -1527,7 +1527,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 columnOutlineData4f->addVertex(colX, maxY);
                 const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
                 glLineWidth(highlightLineWidth);
-                m_graphicsOpenGL->draw(columnOutlineData4f.get());
+                drawPrimitivePrivate(columnOutlineData4f.get());
             }
             glLineWidth(1.0);
         }
@@ -2012,7 +2012,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
     gridData->addVertex(gridLeft + halfGridLineWidth, gridTop);
     gridData->addVertex(gridLeft + halfGridLineWidth, gridBottom);
     glLineWidth(GRID_LINE_WIDTH);
-    m_graphicsOpenGL->draw(gridData.get());
+    drawPrimitivePrivate(gridData.get());
     
     /*
      * Region inside the grid's box
@@ -2300,7 +2300,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
 
         if (ticksData->isValid()) {
             glLineWidth(GRID_LINE_WIDTH);
-            m_graphicsOpenGL->draw(ticksData.get());
+            drawPrimitivePrivate(ticksData.get());
         }
         
         const AString axisTitle = axis->getAxisTitle();
@@ -2358,6 +2358,20 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
     
     return true;
 }
+
+/**
+ * Draw the graphics primitive.
+ *
+ * @param primitive
+ *     Primitive that will be drawn.
+ */
+void
+BrainOpenGLChartTwoDrawingFixedPipeline::drawPrimitivePrivate(GraphicsPrimitive* primitive)
+{
+    m_graphicsOpenGL->draw(m_fixedPipelineDrawing->getOpenGLContextPointer(),
+                           primitive);
+}
+
 
 BrainOpenGLChartTwoDrawingFixedPipeline::HistogramChartDrawingInfo::HistogramChartDrawingInfo(HistogramDrawingInfo* histogramDrawingInfo,
                           const ChartableTwoFileHistogramChart* histogramChart,

@@ -1,5 +1,5 @@
-#ifndef __EVENT_GRAPHICS_ENGINE_OPEN_G_L_DELETE_BUFFERS_H__
-#define __EVENT_GRAPHICS_ENGINE_OPEN_G_L_DELETE_BUFFERS_H__
+#ifndef __EVENT_GRAPHICS_OPEN_G_L_DELETE_BUFFER_OBJECT_H__
+#define __EVENT_GRAPHICS_OPEN_G_L_DELETE_BUFFER_OBJECT_H__
 
 /*LICENSE_START*/
 /*
@@ -22,43 +22,39 @@
 /*LICENSE_END*/
 
 
-
-#include <memory>
-
-#include "CaretOpenGLInclude.h"
 #include "Event.h"
 
 
 
 namespace caret {
 
-    class EventGraphicsEngineOpenGLDeleteBuffers : public Event {
+    class GraphicsOpenGLBufferObject;
+    
+    class EventGraphicsOpenGLDeleteBufferObject : public Event {
         
     public:
-        EventGraphicsEngineOpenGLDeleteBuffers(const std::vector<GLuint>& bufferIdentifiers);
+        EventGraphicsOpenGLDeleteBufferObject(GraphicsOpenGLBufferObject* openglBufferObject);
         
-        EventGraphicsEngineOpenGLDeleteBuffers(const GLuint bufferIdentifier);
+        virtual ~EventGraphicsOpenGLDeleteBufferObject();
         
-        virtual ~EventGraphicsEngineOpenGLDeleteBuffers();
-
-        std::vector<GLuint> getBufferIdentifiers() const;
-
+        GraphicsOpenGLBufferObject* getOpenGLBufferObject() const;
+        
         // ADD_NEW_METHODS_HERE
-
+        
     private:
-        EventGraphicsEngineOpenGLDeleteBuffers(const EventGraphicsEngineOpenGLDeleteBuffers&);
+        EventGraphicsOpenGLDeleteBufferObject(const EventGraphicsOpenGLDeleteBufferObject&);
 
-        EventGraphicsEngineOpenGLDeleteBuffers& operator=(const EventGraphicsEngineOpenGLDeleteBuffers&);
+        EventGraphicsOpenGLDeleteBufferObject& operator=(const EventGraphicsOpenGLDeleteBufferObject&);
         
-        std::vector<GLuint> m_bufferIdentifiers;
+        mutable GraphicsOpenGLBufferObject* m_openglBufferObject = NULL;
+        
         // ADD_NEW_MEMBERS_HERE
-        
 
     };
     
-#ifdef __EVENT_GRAPHICS_ENGINE_OPEN_G_L_DELETE_BUFFERS_DECLARE__
+#ifdef __EVENT_GRAPHICS_OPEN_G_L_DELETE_BUFFER_OBJECT_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_GRAPHICS_ENGINE_OPEN_G_L_DELETE_BUFFERS_DECLARE__
+#endif // __EVENT_GRAPHICS_OPEN_G_L_DELETE_BUFFER_OBJECT_DECLARE__
 
 } // namespace
-#endif  //__EVENT_GRAPHICS_ENGINE_OPEN_G_L_DELETE_BUFFERS_H__
+#endif  //__EVENT_GRAPHICS_OPEN_G_L_DELETE_BUFFER_OBJECT_H__
