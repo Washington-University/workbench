@@ -35,11 +35,8 @@ ADD_LIBRARY(Graphics
 CaretOpenGLInclude.h
 EventGraphicsOpenGLCreateBufferObject.h
 EventGraphicsOpenGLDeleteBufferObject.h
-GraphicsEngine.h
 GraphicsEngineData.h
 GraphicsEngineDataOpenGL.h
-GraphicsEngineOpenGL.h
-GraphicsFactory.h
 GraphicsOpenGLBufferObject.h
 GraphicsPrimitive.h
 GraphicsPrimitiveV3f.h
@@ -48,11 +45,8 @@ GraphicsPrimitiveV3fC4ub.h
 
 EventGraphicsOpenGLCreateBufferObject.cxx
 EventGraphicsOpenGLDeleteBufferObject.cxx
-GraphicsEngine.cxx
 GraphicsEngineData.cxx
 GraphicsEngineDataOpenGL.cxx
-GraphicsEngineOpenGL.cxx
-GraphicsFactory.cxx
 GraphicsOpenGLBufferObject.cxx
 GraphicsPrimitive.cxx
 GraphicsPrimitiveV3f.cxx

@@ -102,8 +102,6 @@
 #include "GapsAndMargins.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
-#include "GraphicsEngineOpenGL.h"
-#include "GraphicsFactory.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"

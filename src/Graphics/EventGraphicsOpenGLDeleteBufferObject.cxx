@@ -43,10 +43,10 @@ using namespace caret;
  * Constructor.
  *
  * @param openglBufferObject
- *     The OpenGL Buffer Object.  This instance will take ownership of the buffer so the caller
- *     MUST NOT ever reference the buffer object after calling this method.
+ *     The OpenGL Buffer Object whose buffer name is deleted.
+ *     After this event the openglBufferObject should be deleted by the caller.
  */
-EventGraphicsOpenGLDeleteBufferObject::EventGraphicsOpenGLDeleteBufferObject(GraphicsOpenGLBufferObject* openglBufferObject)
+EventGraphicsOpenGLDeleteBufferObject::EventGraphicsOpenGLDeleteBufferObject(const GraphicsOpenGLBufferObject* openglBufferObject)
 : Event(EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT),
 m_openglBufferObject(openglBufferObject)
 {
@@ -67,21 +67,11 @@ EventGraphicsOpenGLDeleteBufferObject::~EventGraphicsOpenGLDeleteBufferObject()
 }
 
 /**
- * @return OpenGL Buffer Object that was created or NULL if
- * unable to create buffer object due to no valid context.
- * Caller takes ownership of the buffer object.  If this method
- * is called more than once, NULL will be returned the second
- * and all subsequent times.
+ * @return OpenGL Buffer Object that was deletedc
  */
-GraphicsOpenGLBufferObject*
+const GraphicsOpenGLBufferObject*
 EventGraphicsOpenGLDeleteBufferObject::getOpenGLBufferObject() const
 {
-    /*
-     * Do not let buffer object be retrieved more than once.
-     */
-    GraphicsOpenGLBufferObject* bufferObjectPointer = m_openglBufferObject;
-    m_openglBufferObject = NULL;
-    
-    return bufferObjectPointer;
+    return m_openglBufferObject;
 }
 

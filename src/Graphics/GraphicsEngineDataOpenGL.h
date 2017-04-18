@@ -37,13 +37,18 @@ namespace caret {
     class GraphicsEngineDataOpenGL : public GraphicsEngineData {
         
     public:
-        GraphicsEngineDataOpenGL();
+        GraphicsEngineDataOpenGL(const void* openglContextPointer);
         
         virtual ~GraphicsEngineDataOpenGL();
 
         void deleteBuffers();
         
         void loadBuffers(GraphicsPrimitive* primitive);
+        
+        static void draw(void* openglContextPointer,
+                         GraphicsPrimitive* primitive);
+        
+        const void* getOpenGLContextPointer() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -54,9 +59,10 @@ namespace caret {
         
         void deleteBufferObjectHelper(GraphicsOpenGLBufferObject* &bufferObject);
         
+        const void* m_openglContextPointer;
+        
         GLsizei m_arrayIndicesCount = 0;
         
-        /** Coordinate buffer object WE DO NOT DELETE THIS */
         GraphicsOpenGLBufferObject* m_coordinateBufferObject = NULL;
         
         GLenum m_coordinateDataType = GL_FLOAT;
@@ -72,8 +78,6 @@ namespace caret {
         GLenum m_colorDataType = GL_FLOAT;
         
         GLint m_componentsPerColor = 0;
-        
-        friend class GraphicsEngineOpenGL;
         
         // ADD_NEW_MEMBERS_HERE
 

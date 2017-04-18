@@ -33,11 +33,11 @@ namespace caret {
     class EventGraphicsOpenGLDeleteBufferObject : public Event {
         
     public:
-        EventGraphicsOpenGLDeleteBufferObject(GraphicsOpenGLBufferObject* openglBufferObject);
+        EventGraphicsOpenGLDeleteBufferObject(const GraphicsOpenGLBufferObject* openglBufferObject);
         
         virtual ~EventGraphicsOpenGLDeleteBufferObject();
         
-        GraphicsOpenGLBufferObject* getOpenGLBufferObject() const;
+        const GraphicsOpenGLBufferObject* getOpenGLBufferObject() const;
         
         // ADD_NEW_METHODS_HERE
         
@@ -46,7 +46,7 @@ namespace caret {
 
         EventGraphicsOpenGLDeleteBufferObject& operator=(const EventGraphicsOpenGLDeleteBufferObject&);
         
-        mutable GraphicsOpenGLBufferObject* m_openglBufferObject = NULL;
+        const GraphicsOpenGLBufferObject* m_openglBufferObject = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

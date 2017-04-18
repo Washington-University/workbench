@@ -114,7 +114,7 @@ BrainOpenGL::receiveEvent(Event* event)
         EventGraphicsOpenGLDeleteBufferObject* deleteBufferEvent
         = dynamic_cast<EventGraphicsOpenGLDeleteBufferObject*>(event);
         CaretAssert(deleteBufferEvent);
-        GraphicsOpenGLBufferObject* bufferObject = deleteBufferEvent->getOpenGLBufferObject();
+        const GraphicsOpenGLBufferObject* bufferObject = deleteBufferEvent->getOpenGLBufferObject();
         if (bufferObject != NULL) {
             m_buffersForDeletionLater.emplace(m_buffersForDeletionLater.end(),
                                               bufferObject->getOpenGLContextPointer(),
@@ -262,13 +262,13 @@ BrainOpenGL::deleteUnusedBuffers()
             glDeleteBuffers(bufferNames.size(),
                             namesPointer);
             m_buffersForDeletionLater.clear();
-            
-            std::cout << "Deleted " << bufferNames.size() << " buffers." << std::endl;
         }
         
         m_buffersForDeletionLater = otherContextBufferIdentifiers;
         if ( ! m_buffersForDeletionLater.empty()) {
-            std::cout << "Not deleting " << m_buffersForDeletionLater.size() << " in another OpenGL Context." << std::endl;
+            CaretLogWarning("Not deleting "
+                            + AString::number(m_buffersForDeletionLater.size())
+                            + " in another OpenGL Context.");
         }
     }
 }

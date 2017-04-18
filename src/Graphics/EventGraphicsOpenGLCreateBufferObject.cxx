@@ -41,7 +41,7 @@ using namespace caret;
  * Creates an OpenGL Buffer Object for the current context.
  * There MUST BE an active OpenGL context when this event
  * is processed.  Otherwise, a buffer object cannot be
- * created and a program will likely occur.
+ * created and a program failure will likely occur.
  */
 
 /**

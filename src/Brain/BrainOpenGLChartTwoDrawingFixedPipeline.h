@@ -35,8 +35,6 @@ namespace caret {
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
-    class GraphicsEngineOpenGL;
-    class GraphicsFactory;
     class GraphicsPrimitive;
     class HistogramDrawingInfo;
     class SelectionItemChartTwoHistogram;
@@ -194,9 +192,6 @@ namespace caret {
         const float GRID_LINE_WIDTH = 2.0;
         
         bool m_identificationModeFlag;
-        
-        GraphicsFactory*      m_graphicsFactory = NULL;
-        GraphicsEngineOpenGL* m_graphicsOpenGL  = NULL;
         
         static const int32_t IDENTIFICATION_INDICES_PER_HISTOGRAM      = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;

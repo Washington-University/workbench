@@ -45,8 +45,7 @@
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "FastStatistics.h"
-#include "GraphicsEngineOpenGL.h"
-#include "GraphicsFactory.h"
+#include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
@@ -78,10 +77,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::BrainOpenGLChartTwoDrawingFixedPipeline
 : BrainOpenGLChartTwoDrawingInterface()
 {
     m_preferences = SessionManager::get()->getCaretPreferences();
-    m_graphicsFactory = GraphicsFactory::get();
-    CaretAssert(m_graphicsFactory);
-    m_graphicsOpenGL = m_graphicsFactory->getGraphicsEngineOpenGL();
-    CaretAssert(m_graphicsOpenGL);
 }
 
 /**
@@ -1296,9 +1291,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
     int32_t rgbaOffset = 0;
     
     std::unique_ptr<GraphicsPrimitiveV3fC4f> quadsData4f
-       = std::unique_ptr<GraphicsPrimitiveV3fC4f>(m_graphicsFactory->newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+    = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> quadsData4ub
-       = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(m_graphicsFactory->newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
+       = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
     
     float cellY = (numberOfRows - 1) * cellHeight;
     for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
@@ -1443,7 +1438,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             gridLineColorFloats[3] = 1.0;
             
             std::unique_ptr<GraphicsPrimitiveV3f> outlineData4f
-            = std::unique_ptr<GraphicsPrimitiveV3f>(m_graphicsFactory->newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
+            = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
                                                                                        gridLineColorFloats));
             const std::vector<float>& gridXYZ = quadsData4f->getFloatXYZ();
             const int32_t numCells = static_cast<int32_t>(gridXYZ.size() / 3);
@@ -1480,7 +1475,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 const float maxX = maxColumn * cellWidth;
                 
                 std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
-                = std::unique_ptr<GraphicsPrimitiveV3f>(m_graphicsFactory->newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
                                                                                            highlightRGBA));
 
                 rowOutlineData4f->addVertex(minX, rowY);
@@ -1518,7 +1513,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 const float maxY = maxRow * cellHeight;
                 
                 std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
-                = std::unique_ptr<GraphicsPrimitiveV3f>(m_graphicsFactory->newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
                                                                                            highlightRGBA));
                 
                 columnOutlineData4f->addVertex(colX, minY);
@@ -2000,7 +1995,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
     glLoadIdentity();
     
     std::unique_ptr<GraphicsPrimitiveV3f> gridData
-    = std::unique_ptr<GraphicsPrimitiveV3f>(m_graphicsFactory->newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
+    = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
                                                                                m_fixedPipelineDrawing->m_foregroundColorFloat));
     
     gridData->addVertex(gridLeft,  gridBottom + halfGridLineWidth);
@@ -2206,7 +2201,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
         glColor3fv(m_fixedPipelineDrawing->m_foregroundColorFloat);
         
         std::unique_ptr<GraphicsPrimitiveV3f> ticksData
-        = std::unique_ptr<GraphicsPrimitiveV3f>(m_graphicsFactory->newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
+        = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
                                                                                    m_fixedPipelineDrawing->m_foregroundColorFloat));
         
         const bool showTicksEnabledFlag = axis->isShowTickmarks();
@@ -2368,8 +2363,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawPrimitivePrivate(GraphicsPrimitive* primitive)
 {
-    m_graphicsOpenGL->draw(m_fixedPipelineDrawing->getOpenGLContextPointer(),
-                           primitive);
+    GraphicsEngineDataOpenGL::draw(m_fixedPipelineDrawing->getOpenGLContextPointer(),
+                                   primitive);
 }
 
 

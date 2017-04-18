@@ -32,8 +32,10 @@
 
 namespace caret {
 
-    class GraphicsEngine;
     class GraphicsEngineDataOpenGL;
+    class GraphicsPrimitiveV3f;
+    class GraphicsPrimitiveV3fC4f;
+    class GraphicsPrimitiveV3fC4ub;
     
     class GraphicsPrimitive : public CaretObject, public EventListenerInterface {
         
@@ -140,6 +142,16 @@ namespace caret {
         GraphicsPrimitive& operator=(const GraphicsPrimitive& obj);
         
     public:
+        static GraphicsPrimitiveV3f* newPrimitiveV3f(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                              const float floatRGBA[4]);
+        
+        static GraphicsPrimitiveV3f* newPrimitiveV3f(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                              const uint8_t unsignedByteRGBA[4]);
+        
+        static GraphicsPrimitiveV3fC4f* newPrimitiveV3fC4f(const GraphicsPrimitive::PrimitiveType primitiveType);
+        
+        static GraphicsPrimitiveV3fC4ub* newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType primitiveType);
+        
         virtual ~GraphicsPrimitive();
         
         virtual void receiveEvent(Event* event);
@@ -204,8 +216,6 @@ namespace caret {
         void copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj);
 
         friend class GraphicsEngineDataOpenGL;
-        
-        friend class GraphicsEngineOpenGL;
         
         // ADD_NEW_MEMBERS_HERE
 
