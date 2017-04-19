@@ -116,6 +116,10 @@ BrainOpenGL::receiveEvent(Event* event)
         CaretAssert(deleteBufferEvent);
         const GraphicsOpenGLBufferObject* bufferObject = deleteBufferEvent->getOpenGLBufferObject();
         if (bufferObject != NULL) {
+            /*
+             * Buffers are created within an OpenGL context and must
+             * be deleted within that OpenGL context.
+             */
             m_buffersForDeletionLater.emplace(m_buffersForDeletionLater.end(),
                                               bufferObject->getOpenGLContextPointer(),
                                               bufferObject->getBufferObjectName());

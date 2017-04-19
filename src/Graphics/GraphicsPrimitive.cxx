@@ -108,6 +108,43 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
 }
 
 /**
+ * Request the capacity of the primitive for the given number of vertices.
+ * Using this method can help reduce reallocations as data is added 
+ * to the primitive.  Note: the primitive data is stored in 
+ * std::vector's and this method functions identically to
+ * std::vector::reserve().
+ *
+ * @param numberOfVertices
+ *     Number of vertices
+ */
+void
+GraphicsPrimitive::reserveForNumberOfVertices(const int32_t numberOfVertices)
+{
+    switch (m_vertexType) {
+        case VertexType::FLOAT_XYZ:
+            m_xyz.reserve(numberOfVertices * 3);
+            break;
+    }
+    
+    switch (m_normalVectorType) {
+        case NormalVectorType::FLOAT_XYZ:
+            m_floatNormalVectorXYZ.reserve(numberOfVertices * 3);
+            break;
+        case NormalVectorType::NONE:
+            break;
+    }
+    
+    switch (m_colorType) {
+        case ColorType::FLOAT_RGBA:
+            m_floatRGBA.reserve(numberOfVertices * 4);
+            break;
+        case ColorType::UNSIGNED_BYTE_RGBA:
+            m_unsignedByteRGBA.reserve(numberOfVertices * 4);
+            break;
+    }
+}
+
+/**
  * @return Is this graphics primitive valid.
  * Primitive is valid if all of these conditions are met
  * (A) ((count(xyz) * 3) == (count(rgba) * 4))

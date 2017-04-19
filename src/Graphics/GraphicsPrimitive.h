@@ -154,6 +154,8 @@ namespace caret {
         
         virtual ~GraphicsPrimitive();
         
+        void reserveForNumberOfVertices(const int32_t numberOfVertices);
+        
         virtual void receiveEvent(Event* event);
         
         bool isValid() const;

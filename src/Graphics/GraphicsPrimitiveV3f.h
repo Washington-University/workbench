@@ -52,6 +52,9 @@ namespace caret {
         
         void addVertex(const float x,
                        const float y);
+
+        void addVertices(const float xyzArray[],
+                         const int32_t numberOfVertices);
         
         virtual GraphicsPrimitive* clone() const;
         

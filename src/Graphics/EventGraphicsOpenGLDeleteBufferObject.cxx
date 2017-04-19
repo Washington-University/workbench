@@ -58,16 +58,19 @@ m_openglBufferObject(openglBufferObject)
  */
 EventGraphicsOpenGLDeleteBufferObject::~EventGraphicsOpenGLDeleteBufferObject()
 {
-    if (m_openglBufferObject != NULL) {
-        CaretLogSevere("Failure to delete OpenGL Buffer Object Name="
+    if (this->getEventProcessCount() <= 0) {
+        CaretLogSevere("Deletion of OpenGL Buffer Object Name="
                        + AString::number(m_openglBufferObject->getBufferObjectName())
                        + ", context pointer="
-                       + AString::number((qulonglong)m_openglBufferObject->getOpenGLContextPointer()));
+                       + AString::number((qulonglong)m_openglBufferObject->getOpenGLContextPointer())
+                       + " appears to have failed.  The events processed count is zero and that "
+                       "indicates that the event was not received in any listener or the "
+                       "listener failed to set the event as processed.");
     }
 }
 
 /**
- * @return OpenGL Buffer Object that was deletedc
+ * @return OpenGL Buffer Object that was deleted
  */
 const GraphicsOpenGLBufferObject*
 EventGraphicsOpenGLDeleteBufferObject::getOpenGLBufferObject() const

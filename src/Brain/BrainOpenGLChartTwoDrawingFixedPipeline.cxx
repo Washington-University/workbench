@@ -29,7 +29,6 @@
 #include "AnnotationPointSizeText.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
-#include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -629,23 +628,22 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
             
             const std::vector<float>& histogramOneXYZ = histogramDrawingInfo.getThresholdOneBounds();
             if (histogramOneXYZ.size() == 12) {
-                BrainOpenGLPrimitiveDrawing::drawPolygon(histogramOneXYZ,
-                                                         histogramNormals,
-                                                         histogramRGBA);
+                std::unique_ptr<GraphicsPrimitiveV3f> threshPrim
+                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGON, histogramRGBA));
+                threshPrim->addVertices(&histogramOneXYZ[0],
+                                        4);
+                drawPrimitivePrivate(threshPrim.get());
             }
             
             const std::vector<float>& histogramTwoXYZ = histogramDrawingInfo.getThresholdTwoBounds();
             if (histogramTwoXYZ.size() == 12) {
-                BrainOpenGLPrimitiveDrawing::drawPolygon(histogramTwoXYZ,
-                                                         histogramNormals,
-                                                         histogramRGBA);
+                std::unique_ptr<GraphicsPrimitiveV3f> threshPrim
+                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGON, histogramRGBA));
+                threshPrim->addVertices(&histogramTwoXYZ[0],
+                                        4);
+                drawPrimitivePrivate(threshPrim.get());
             }
         }
-        
-        std::vector<float> quadVerticesXYZ;
-        std::vector<float> quadVerticesFloatRGBA;
-        std::vector<uint8_t> quadVerticesByteRGBA;
-        
         
         if (drawHistogramBarsFlag) {
             /*
@@ -654,12 +652,19 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
              */
             const int32_t verticesPerBar = 4;
             const int32_t totalVertices  = verticesPerBar * numValues;
-            quadVerticesXYZ.reserve(totalVertices * 3);
-            std::vector<float> quadVerticesNormals;
-            quadVerticesNormals.reserve(totalVertices * 3);
-            quadVerticesFloatRGBA.reserve(totalVertices * 4);
-            quadVerticesByteRGBA.reserve(totalVertices * 4);
-            const float normalVector[3] = { 0.0, 0.0, 1.0 };
+            
+            std::unique_ptr<GraphicsPrimitiveV3fC4f> histogramFloatRGBA
+            = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+            std::unique_ptr<GraphicsPrimitiveV3fC4ub> histogramByteRGBA
+            = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
+            
+            
+            if(m_identificationModeFlag) {
+                histogramByteRGBA->reserveForNumberOfVertices(totalVertices);
+            }
+            else {
+                histogramFloatRGBA->reserveForNumberOfVertices(totalVertices);
+            }
             
             const float z = 0.;
             
@@ -674,38 +679,19 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                     CaretAssertVectorIndex(yValues, i);
                     float top = yValues[i];
                     
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(bottom);
-                    quadVerticesXYZ.push_back(z);
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(bottom);
-                    quadVerticesXYZ.push_back(z);
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(top);
-                    quadVerticesXYZ.push_back(z);
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(top);
-                    quadVerticesXYZ.push_back(z);
-                    
-                    for (int32_t iNormal = 0; iNormal < verticesPerBar; iNormal++) {
-                        quadVerticesNormals.insert(quadVerticesNormals.end(),
-                                                   normalVector, normalVector + 3);
-                    }
-                    
                     if (m_identificationModeFlag) {
                         uint8_t idRGBA[4];
                         addToHistogramIdentification(mapIndex, i, idRGBA);
-                        
-                        for (int32_t iRGB = 0; iRGB < verticesPerBar; iRGB++) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
-                        }
+                        histogramByteRGBA->addVertex(left, bottom, z, idRGBA);
+                        histogramByteRGBA->addVertex(right, bottom, z, idRGBA);
+                        histogramByteRGBA->addVertex(right, top, z, idRGBA);
+                        histogramByteRGBA->addVertex(left, top, z, idRGBA);
                     }
                     else {
-                        for (int32_t iRGB = 0; iRGB < verticesPerBar; iRGB++) {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         rgba, rgba + 4);
-                        }
+                        histogramFloatRGBA->addVertex(left, bottom, z, rgba);
+                        histogramFloatRGBA->addVertex(right, bottom, z, rgba);
+                        histogramFloatRGBA->addVertex(right, top, z, rgba);
+                        histogramFloatRGBA->addVertex(left, top, z, rgba);
                     }
                 }
             }
@@ -713,34 +699,32 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
             /*
              * Draw the bar elements.
              */
-            CaretAssert(quadVerticesXYZ.size() == quadVerticesNormals.size());
             if (m_identificationModeFlag) {
-                CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
-                BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
-                                                       quadVerticesNormals,
-                                                       quadVerticesByteRGBA);
+                drawPrimitivePrivate(histogramByteRGBA.get());
             }
             else {
-                CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
-                BrainOpenGLPrimitiveDrawing::drawQuads(quadVerticesXYZ,
-                                                       quadVerticesNormals,
-                                                       quadVerticesFloatRGBA);
+                drawPrimitivePrivate(histogramFloatRGBA.get());
             }
         }
         
-        const bool smoothFlag = true;
-        
-        if (drawHistogramEnvelopeFlag
-            && smoothFlag) {
+        if (drawHistogramEnvelopeFlag) {
+            std::unique_ptr<GraphicsPrimitiveV3fC4f> histogramFloatRGBA
+            = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINE_STRIP));
+            std::unique_ptr<GraphicsPrimitiveV3fC4ub> histogramByteRGBA
+            = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::LINE_STRIP));
+            
             /*
              * Reserve to prevent reszing of vectors
              * as elements are added.
              */
             const int32_t verticesPerBar = 2;
             const int32_t totalVertices  = verticesPerBar * numValues + 4;
-            quadVerticesXYZ.reserve(totalVertices * 3);
-            quadVerticesFloatRGBA.reserve(totalVertices * 4);
-            quadVerticesByteRGBA.reserve(totalVertices * 4);
+            if (m_identificationModeFlag) {
+                histogramByteRGBA->reserveForNumberOfVertices(totalVertices);
+            }
+            else {
+                histogramFloatRGBA->reserveForNumberOfVertices(totalVertices);
+            }
             
             const float z = 0.0;
             
@@ -782,71 +766,41 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
                     addToHistogramIdentification(mapIndex, i, idRGBA);
                 }
                 if (i == 0) {
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(bottom);
-                    quadVerticesXYZ.push_back(z);
                     if (m_identificationModeFlag) {
-                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                    idRGBA, idRGBA + 4);
+                        histogramByteRGBA->addVertex(left, bottom, z, idRGBA);
                     }
                     else {
-                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     leftRGBA,
-                                                     leftRGBA + 4);
+                        histogramFloatRGBA->addVertex(left, bottom, z, leftRGBA);
                     }
                     
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(topLeft);
-                    quadVerticesXYZ.push_back(z);
                     if (m_identificationModeFlag) {
-                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                    idRGBA, idRGBA + 4);
+                        histogramByteRGBA->addVertex(left, topLeft, z, idRGBA);
                     }
                     else {
-                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     leftRGBA,
-                                                     leftRGBA + 4);
+                        histogramFloatRGBA->addVertex(left, topLeft, z, leftRGBA);
                     }
                 }
                 
-                quadVerticesXYZ.push_back((left + right) / 2.0);
-                quadVerticesXYZ.push_back(topLeft);
-                quadVerticesXYZ.push_back(z);
                 if (m_identificationModeFlag) {
-                    quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                idRGBA, idRGBA + 4);
+                    histogramByteRGBA->addVertex((left+right)/2.0, topLeft, z, idRGBA);
                 }
                 else {
-                    quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                 middleRGBA,
-                                                 middleRGBA + 4);
+                    histogramFloatRGBA->addVertex((left+right)/2.0, topLeft, z, middleRGBA);
                 }
                 
                 if (i == lastValueIndex) {
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(topRight);
-                    quadVerticesXYZ.push_back(z);
                     if (m_identificationModeFlag) {
-                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                    idRGBA, idRGBA + 4);
+                        histogramByteRGBA->addVertex(right, topRight, z, idRGBA);
                     }
                     else {
-                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     rightRGBA,
-                                                     rightRGBA + 4);
+                        histogramFloatRGBA->addVertex(right, topRight, z, rightRGBA);
                     }
 
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(bottom);
-                    quadVerticesXYZ.push_back(z);
                     if (m_identificationModeFlag) {
-                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                    idRGBA, idRGBA + 4);
+                        histogramByteRGBA->addVertex(right, bottom, z, idRGBA);
                     }
                     else {
-                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     rightRGBA,
-                                                     rightRGBA + 4);
+                        histogramFloatRGBA->addVertex(right, bottom, z, rightRGBA);
                     }
                 }
             }
@@ -855,222 +809,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const Histogr
              * Draw the elements.
              */
             if (m_identificationModeFlag) {
-                CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
-                
-                const float lineWidth = 5.0;
-                BrainOpenGLPrimitiveDrawing::drawLineStrip(quadVerticesXYZ,
-                                                       quadVerticesByteRGBA,
-                                                       lineWidth);
+                glLineWidth(5.0);
+                drawPrimitivePrivate(histogramByteRGBA.get());
             }
             else {
-                CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
-                
-                const float lineWidth = 2.0;
-                BrainOpenGLPrimitiveDrawing::drawLineStrip(quadVerticesXYZ,
-                                                       quadVerticesFloatRGBA,
-                                                       lineWidth);
-            }
-        }
-        else if (drawHistogramEnvelopeFlag) {
-            /*
-             * Reserve to prevent reszing of vectors
-             * as elements are added.
-             */
-            const int32_t verticesPerBar = 2;
-            const int32_t totalVertices  = verticesPerBar * numValues + 4;
-            quadVerticesXYZ.reserve(totalVertices * 3);
-            quadVerticesFloatRGBA.reserve(totalVertices * 4);
-            quadVerticesByteRGBA.reserve(totalVertices * 4);
-            
-            const float z = 0.0;
-            
-            const int32_t lastValueIndex = numValues - 1;
-            for (int32_t i = 0; i < numValues; i++) {
-                CaretAssertVectorIndex(xValues, i + 1);
-                float left   = xValues[i];
-                float right  = xValues[i + 1];
-                CaretAssert(right >= left);
-                float bottom = 0;
-                CaretAssertVectorIndex(yValues, i);
-                float top = yValues[i];
-                
-                uint8_t idRGBA[4];
-                if (m_identificationModeFlag) {
-                    addToHistogramIdentification(mapIndex, i, idRGBA);
-                }
-                
-                if (i == 0) {
-                    /*
-                     * Left side of first bar
-                     */
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(bottom);
-                    quadVerticesXYZ.push_back(z);
-                    if (m_identificationModeFlag) {
-                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                    idRGBA, idRGBA + 4);
-                    }
-                    else {
-                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     envelopeSolidColorRGBA,
-                                                     envelopeSolidColorRGBA + 4);
-                    }
-                    quadVerticesXYZ.push_back(left);
-                    quadVerticesXYZ.push_back(top);
-                    quadVerticesXYZ.push_back(z);
-                    if (m_identificationModeFlag) {
-                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                    idRGBA, idRGBA + 4);
-                    }
-                    else {
-                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     envelopeSolidColorRGBA,
-                                                     envelopeSolidColorRGBA + 4);
-                    }
-                }
-                else {
-                    if (top > yValues[i - 1]) {
-                        /*
-                         * Line from previous bar that is lower in
-                         * height than this bar
-                         */
-                        quadVerticesXYZ.push_back(left);
-                        quadVerticesXYZ.push_back(yValues[i - 1]);
-                        quadVerticesXYZ.push_back(z);
-                        if (m_identificationModeFlag) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
-                        }
-                        else {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         envelopeSolidColorRGBA,
-                                                         envelopeSolidColorRGBA + 4);
-                        }
-                        
-                        quadVerticesXYZ.push_back(left);
-                        quadVerticesXYZ.push_back(top);
-                        quadVerticesXYZ.push_back(z);
-                        if (m_identificationModeFlag) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
-                        }
-                        else {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         envelopeSolidColorRGBA,
-                                                         envelopeSolidColorRGBA + 4);
-                        }
-                    }
-                }
-                
-                /*
-                 * Draw line across top
-                 */
-                quadVerticesXYZ.push_back(left);
-                quadVerticesXYZ.push_back(top);
-                quadVerticesXYZ.push_back(z);
-                if (m_identificationModeFlag) {
-                    quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                idRGBA, idRGBA + 4);
-                }
-                else {
-                    quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                 envelopeSolidColorRGBA,
-                                                 envelopeSolidColorRGBA + 4);
-                }
-                quadVerticesXYZ.push_back(right);
-                quadVerticesXYZ.push_back(top);
-                quadVerticesXYZ.push_back(z);
-                if (m_identificationModeFlag) {
-                    quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                idRGBA, idRGBA + 4);
-                }
-                else {
-                    quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                 envelopeSolidColorRGBA,
-                                                 envelopeSolidColorRGBA + 4);
-                }
-                
-                if (i == lastValueIndex) {
-                    /*
-                     * Right side of last bar
-                     */
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(top);
-                    quadVerticesXYZ.push_back(z);
-                    if (m_identificationModeFlag) {
-                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                    idRGBA, idRGBA + 4);
-                    }
-                    else {
-                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     envelopeSolidColorRGBA,
-                                                     envelopeSolidColorRGBA + 4);
-                    }
-                    quadVerticesXYZ.push_back(right);
-                    quadVerticesXYZ.push_back(bottom);
-                    quadVerticesXYZ.push_back(z);
-                    if (m_identificationModeFlag) {
-                        quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                    idRGBA, idRGBA + 4);
-                    }
-                    else {
-                        quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                     envelopeSolidColorRGBA,
-                                                     envelopeSolidColorRGBA + 4);
-                    }
-                }
-                else {
-                    if (top > yValues[i + 1]) {
-                        /*
-                         * Line from bar down to next bar
-                         * with a lower height
-                         */
-                        quadVerticesXYZ.push_back(right);
-                        quadVerticesXYZ.push_back(top);
-                        quadVerticesXYZ.push_back(z);
-                        if (m_identificationModeFlag) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
-                        }
-                        else {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         envelopeSolidColorRGBA,
-                                                         envelopeSolidColorRGBA + 4);
-                        }
-                        quadVerticesXYZ.push_back(right);
-                        quadVerticesXYZ.push_back(yValues[i + 1]);
-                        quadVerticesXYZ.push_back(z);
-                        if (m_identificationModeFlag) {
-                            quadVerticesByteRGBA.insert(quadVerticesByteRGBA.end(),
-                                                        idRGBA, idRGBA + 4);
-                        }
-                        else {
-                            quadVerticesFloatRGBA.insert(quadVerticesFloatRGBA.end(),
-                                                         envelopeSolidColorRGBA,
-                                                         envelopeSolidColorRGBA + 4);
-                        }
-                    }
-                }
-            }
-            
-            /*
-             * Draw the elements.
-             */
-            if (m_identificationModeFlag) {
-                CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesByteRGBA.size() / 4));
-                
-                const float lineWidth = 5.0;
-                BrainOpenGLPrimitiveDrawing::drawLines(quadVerticesXYZ,
-                                                       quadVerticesByteRGBA,
-                                                       lineWidth);
-            }
-            else {
-                CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
-                
-                const float lineWidth = 1.0;
-                BrainOpenGLPrimitiveDrawing::drawLines(quadVerticesXYZ,
-                                                       quadVerticesFloatRGBA,
-                                                       lineWidth);
+                glLineWidth(2.0);
+                drawPrimitivePrivate(histogramFloatRGBA.get());
             }
         }
     }
@@ -1294,6 +1038,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
     = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> quadsData4ub
        = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
+    const int32_t numberOfCells = numberOfColumns * numberOfRows;
+    if (m_identificationModeFlag) {
+        quadsData4ub->reserveForNumberOfVertices(numberOfCells);
+    }
+    else {
+        quadsData4f->reserveForNumberOfVertices(numberOfCells);
+    }
     
     float cellY = (numberOfRows - 1) * cellHeight;
     for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
@@ -1437,11 +1188,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                 gridLineColorFloats);
             gridLineColorFloats[3] = 1.0;
             
+            const std::vector<float>& gridXYZ = quadsData4f->getFloatXYZ();
+            const int32_t numCells = static_cast<int32_t>(gridXYZ.size() / 3);
+
             std::unique_ptr<GraphicsPrimitiveV3f> outlineData4f
             = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
                                                                                        gridLineColorFloats));
-            const std::vector<float>& gridXYZ = quadsData4f->getFloatXYZ();
-            const int32_t numCells = static_cast<int32_t>(gridXYZ.size() / 3);
+            outlineData4f->reserveForNumberOfVertices(numCells);
             for (int32_t i = 0; i < numCells; i++) {
                 CaretAssertVectorIndex(gridXYZ, i*3);
                 outlineData4f->addVertex(&gridXYZ[i*3]);
@@ -1477,6 +1230,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
                 = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
                                                                                            highlightRGBA));
+                rowOutlineData4f->reserveForNumberOfVertices(4);
 
                 rowOutlineData4f->addVertex(minX, rowY);
                 rowOutlineData4f->addVertex(maxX, rowY);
@@ -1515,6 +1269,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
                 = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
                                                                                            highlightRGBA));
+                columnOutlineData4f->reserveForNumberOfVertices(4);
                 
                 columnOutlineData4f->addVertex(colX, minY);
                 columnOutlineData4f->addVertex(colX + cellWidth, minY);
@@ -1997,7 +1752,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
     std::unique_ptr<GraphicsPrimitiveV3f> gridData
     = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
                                                                                m_fixedPipelineDrawing->m_foregroundColorFloat));
-    
+    gridData->reserveForNumberOfVertices(8);
     gridData->addVertex(gridLeft,  gridBottom + halfGridLineWidth);
     gridData->addVertex(gridRight, gridBottom + halfGridLineWidth);
     gridData->addVertex(gridRight - halfGridLineWidth, gridBottom);
@@ -2203,6 +1958,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
         std::unique_ptr<GraphicsPrimitiveV3f> ticksData
         = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
                                                                                    m_fixedPipelineDrawing->m_foregroundColorFloat));
+        ticksData->reserveForNumberOfVertices(numScaleValuesToDraw * 2);
         
         const bool showTicksEnabledFlag = axis->isShowTickmarks();
         

@@ -192,6 +192,24 @@ GraphicsPrimitiveV3f::addVertex(const float x,
 }
 
 /**
+ * Add XYZ vertices from an array.
+ *
+ * @param xyzArray
+ *    Array containing XYZ vertex data.
+ * @param numberOfVertices
+ *    Number of vertices (xyz triplets) to add
+ */
+void
+GraphicsPrimitiveV3f::addVertices(const float xyzArray[],
+                                  const int32_t numberOfVertices)
+{
+    for (int32_t i = 0; i < numberOfVertices; i++) {
+        addVertex(&xyzArray[i*3]);
+    }
+}
+
+
+/**
  * Clone this primitive.
  */
 GraphicsPrimitive*
