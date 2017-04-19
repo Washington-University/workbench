@@ -954,6 +954,17 @@ GuiManager::exitProgram(BrainBrowserWindow* parent)
     }
     
     if (okToExit) {
+        /*
+         * While resetting the brain is not absolutely necessary,
+         * some files may use GraphicsOpenGLBufferObject that are
+         * created by BrainOpenGL.  Resetting the brain will close
+         * all files which results in the GraphicsOpenGLBufferObject
+         * being released.  If the brain is not reset, the files 
+         * are deleted after BrainOpenGL so BrainOpenGL will report
+         * that GraphicsOpenGLBufferObjects were not deleted.
+         */
+        get()->getBrain()->resetBrain();
+        
         std::vector<BrainBrowserWindow*> bws = this->getAllOpenBrainBrowserWindows();
         for (int i = 0; i < static_cast<int>(bws.size()); i++) {
             bws[i]->deleteLater();
