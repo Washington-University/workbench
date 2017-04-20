@@ -978,317 +978,827 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                              const float cellHeight,
                                                              const float zooming)
 {
+    GraphicsPrimitiveV3fC4f* matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType);
+    if (matrixPrimitive == NULL) {
+        return;
+    }
+    
     if (m_identificationModeFlag) {
         resetIdentification();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     
-    int32_t numberOfRows = 0;
-    int32_t numberOfColumns = 0;
-    std::vector<float> matrixRGBA;
-    if ( ! matrixChart->getMatrixDataRGBA(numberOfRows,
-                                       numberOfColumns,
-                                    matrixRGBA)) {
-        CaretLogWarning("Matrix RGBA invalid");
-        return;
-    }
-    if ((numberOfRows <= 0)
-        || (numberOfColumns <= 0)) {
-        return;
-    }
+    glPushMatrix();
+    glScalef(cellWidth, cellHeight, 1.0);
+    /*
+     * Enable alpha blending so voxels that are not drawn from higher layers
+     * allow voxels from lower layers to be seen.
+     */
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    drawPrimitivePrivate(matrixPrimitive);
     
     const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartTwoModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
     CaretAssert(matrixProperties);
     
-    bool displayGridLinesFlag = matrixProperties->isGridLinesDisplayed();
-    const bool highlightSelectedRowColumnFlag = matrixProperties->isSelectedRowColumnHighlighted();
-    
-    
-    std::vector<int32_t> selectedColumnIndices;
-    std::vector<int32_t> selectedRowIndices;
-    ChartTwoMatrixLoadingDimensionEnum::Enum selectedRowColumnDimension;
-    matrixChart->getSelectedRowColumnIndices(m_tabIndex,
-                                             selectedRowColumnDimension,
-                                             selectedRowIndices,
-                                             selectedColumnIndices);
-    std::map<int32_t, RowColumnMinMax> columnRangesForRow;
-    for (int32_t rowIndex : selectedRowIndices) {
-        columnRangesForRow[rowIndex] = RowColumnMinMax();
+    if (matrixProperties->isGridLinesDisplayed()) {
+        glPolygonMode(GL_FRONT,
+                      GL_LINE);
+        uint8_t gridLineColorBytes[4];
+        m_preferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridLineColorBytes);
+        float gridLineColorFloats[4];
+        CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
+                                            gridLineColorFloats);
+        gridLineColorFloats[3] = 1.0;
+        GraphicsEngineDataOpenGL::drawWithOverrideColor(m_fixedPipelineDrawing->getOpenGLContextPointer(),
+                                                        matrixPrimitive,
+                                                        gridLineColorFloats);
+        glPolygonMode(GL_FRONT,
+                      GL_FILL);
     }
-    const bool haveSelectedRowsFlag = ( ! columnRangesForRow.empty());
     
-    std::map<int32_t, RowColumnMinMax> rowRangesForColumn;
-    for (int32_t columnIndex : selectedColumnIndices) {
-        rowRangesForColumn[columnIndex] = RowColumnMinMax();
-    }
-    const bool haveSelectedColumnsFlag = ( ! rowRangesForColumn.empty());
+    int32_t numberOfRows = 0;
+    int32_t numberOfColumns = 0;
+    matrixChart->getMatrixDimensions(numberOfRows,
+                                     numberOfColumns);
     
-    uint8_t highlightRGBByte[3];
-    m_preferences->getBackgroundAndForegroundColors()->getColorForegroundChartView(highlightRGBByte);
-    const float highlightRGBA[4] = {
-        highlightRGBByte[0] / 255.0,
-        highlightRGBByte[1] / 255.0,
-        highlightRGBByte[2] / 255.0,
-        1.0
-    };
+    if (matrixProperties->isSelectedRowColumnHighlighted()) {
+        uint8_t highlightRGBByte[3];
+        m_preferences->getBackgroundAndForegroundColors()->getColorForegroundChartView(highlightRGBByte);
+        const float highlightRGBA[4] = {
+            highlightRGBByte[0] / 255.0,
+            highlightRGBByte[1] / 255.0,
+            highlightRGBByte[2] / 255.0,
+            1.0
+        };
+        
+        std::vector<int32_t> selectedColumnIndices;
+        std::vector<int32_t> selectedRowIndices;
+        ChartTwoMatrixLoadingDimensionEnum::Enum selectedRowColumnDimension;
+        matrixChart->getSelectedRowColumnIndices(m_tabIndex,
+                                                 selectedRowColumnDimension,
+                                                 selectedRowIndices,
+                                                 selectedColumnIndices);
+        for (auto rowIndex : selectedRowIndices) {
+            std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
+            = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+                                                                                       highlightRGBA));
+            rowOutlineData4f->reserveForNumberOfVertices(4);
+            
+            float minX = 0;
+            float maxX = numberOfColumns;
+            const float minY = numberOfRows - rowIndex - 1;
+            const float maxY = minY + 1.0f;
 
-    int32_t rgbaOffset = 0;
-    
-    std::unique_ptr<GraphicsPrimitiveV3fC4f> quadsData4f
-    = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
-    std::unique_ptr<GraphicsPrimitiveV3fC4ub> quadsData4ub
-       = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
-    const int32_t numberOfCells = numberOfColumns * numberOfRows;
-    if (m_identificationModeFlag) {
-        quadsData4ub->reserveForNumberOfVertices(numberOfCells);
-    }
-    else {
-        quadsData4f->reserveForNumberOfVertices(numberOfCells);
-    }
-    
-    float cellY = (numberOfRows - 1) * cellHeight;
-    for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
-        float cellX = 0;
-        for (int32_t columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
-            CaretAssertVectorIndex(matrixRGBA, rgbaOffset+3);
-            const float* rgba = &matrixRGBA[rgbaOffset];
-            rgbaOffset += 4;
-            
-            bool drawCellFlag = true;
-            if (chartViewingType != ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL) {
-                if (numberOfRows == numberOfColumns) {
-                    drawCellFlag = false;
-                    switch (chartViewingType) {
-                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
-                            break;
-                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
-                            if (rowIndex != columnIndex) {
-                                drawCellFlag = true;
-                            }
-                            break;
-                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
-                            if (rowIndex > columnIndex) {
-                                drawCellFlag = true;
-                            }
-                            break;
-                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
-                            if (rowIndex < columnIndex) {
-                                drawCellFlag = true;
-                            }
-                            break;
-                    }
-                }
-                else {
-                    drawCellFlag = false;
-                    const float slope = static_cast<float>(numberOfRows) / static_cast<float>(numberOfColumns);
-                    const int32_t diagonalRow = static_cast<int32_t>(slope * columnIndex);
-                    
-                    switch (chartViewingType) {
-                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
-                            drawCellFlag = true;
-                            break;
-                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
-                            if (rowIndex != diagonalRow) {
-                                drawCellFlag = true;
-                            }
-                            break;
-                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
-                            if (rowIndex > diagonalRow) {
-                                drawCellFlag = true;
-                            }
-                            break;
-                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
-                            if (rowIndex < diagonalRow) {
-                                drawCellFlag = true;
-                            }
-                            break;
-                    }
-                }
+            switch (chartViewingType) {
+                case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+                    break;
+                case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                    break;
+                case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                    maxX = rowIndex;  // matrix is symmetric
+                    break;
+                case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                    minX = rowIndex + 1;  // matrix is symmetric
+                    break;
             }
             
-            if (drawCellFlag) {
-                if (haveSelectedRowsFlag) {
-                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = columnRangesForRow.find(rowIndex);
-                    if (minMaxIter != columnRangesForRow.end()) {
-                        if (columnIndex < minMaxIter->second.m_min) {
-                            minMaxIter->second.m_min = columnIndex;
-                        }
-                        if (columnIndex > minMaxIter->second.m_max) {
-                            minMaxIter->second.m_max = columnIndex;
-                        }
-                    }
-                }
-                
-                if (haveSelectedColumnsFlag) {
-                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = rowRangesForColumn.find(columnIndex);
-                    if (minMaxIter != rowRangesForColumn.end()) {
-                        if (rowIndex < minMaxIter->second.m_min) {
-                            minMaxIter->second.m_min = rowIndex;
-                        }
-                        if (rowIndex > minMaxIter->second.m_max) {
-                            minMaxIter->second.m_max = rowIndex;
-                        }
-                    }
-                }
-                
-                uint8_t idRGBA[4];
-                if (m_identificationModeFlag) {
-                    addToChartMatrixIdentification(rowIndex,
-                                                   columnIndex,
-                                                   idRGBA);
-                }
-                
-                if (m_identificationModeFlag) {
-                    quadsData4ub->addVertex(cellX, cellY, 0.0, idRGBA);
-                    quadsData4ub->addVertex(cellX + cellWidth, cellY, 0.0, idRGBA);
-                    quadsData4ub->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, idRGBA);
-                    quadsData4ub->addVertex(cellX, cellY + cellHeight, 0.0, idRGBA);
-                }
-                else {
-                    quadsData4f->addVertex(cellX, cellY, 0.0, rgba);
-                    quadsData4f->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
-                    quadsData4f->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
-                    quadsData4f->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
-                }
-            }
-            
-            cellX += cellWidth;
+            rowOutlineData4f->addVertex(minX, minY);
+            rowOutlineData4f->addVertex(maxX, minY);
+            rowOutlineData4f->addVertex(maxX, maxY);
+            rowOutlineData4f->addVertex(minX, maxY);
+            const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
+            glLineWidth(highlightLineWidth);
+            drawPrimitivePrivate(rowOutlineData4f.get());
         }
         
-        cellY -= cellHeight;
+        for (auto columnIndex : selectedColumnIndices) {
+            std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
+            = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+                                                                                       highlightRGBA));
+            columnOutlineData4f->reserveForNumberOfVertices(4);
+            
+            const float minX = columnIndex;
+            const float maxX = columnIndex + 1;
+            float minY = 0;
+            float maxY = numberOfRows;;
+            
+            switch (chartViewingType) {
+                case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+                    break;
+                case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                    break;
+                case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                    maxY = columnIndex;  // matrix is symmetric
+                    break;
+                case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                    minY = columnIndex + 1;  // matrix is symmetric
+                    break;
+            }
+            columnOutlineData4f->addVertex(minX, minY);
+            columnOutlineData4f->addVertex(maxX, minY);
+            columnOutlineData4f->addVertex(maxX, maxY);
+            columnOutlineData4f->addVertex(minX, maxY);
+            const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
+            glLineWidth(highlightLineWidth);
+            drawPrimitivePrivate(columnOutlineData4f.get());
+        }
     }
     
-    /*
-     * Draw the matrix elements.
-     */
     if (m_identificationModeFlag) {
-        drawPrimitivePrivate(quadsData4ub.get());
-    }
-    else {
         /*
-         * Enable alpha blending so voxels that are not drawn from higher layers
-         * allow voxels from lower layers to be seen.
+         *
          */
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT,
+                      viewport);
+        GLdouble projectionMatrix[16];
+        glGetDoublev(GL_PROJECTION_MATRIX,
+                     projectionMatrix);
+        GLdouble modelMatrix[16];
+        glGetDoublev(GL_MODELVIEW_MATRIX,
+                     modelMatrix);
+        GLdouble windowXYZ[3] = { m_fixedPipelineDrawing->mouseX, m_fixedPipelineDrawing->mouseY, 0.0 };
         
-        drawPrimitivePrivate(quadsData4f.get());
-        
-        glDisable(GL_BLEND);
-        
-        
-        /*
-         * Drawn an outline around the matrix elements.
-         */
-        if (displayGridLinesFlag) {
-            uint8_t gridLineColorBytes[4];
-            m_preferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridLineColorBytes);
-            float gridLineColorFloats[4];
-            CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
-                                                gridLineColorFloats);
-            gridLineColorFloats[3] = 1.0;
-            
-            const std::vector<float>& gridXYZ = quadsData4f->getFloatXYZ();
-            const int32_t numCells = static_cast<int32_t>(gridXYZ.size() / 3);
-
-            std::unique_ptr<GraphicsPrimitiveV3f> outlineData4f
-            = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
-                                                                                       gridLineColorFloats));
-            outlineData4f->reserveForNumberOfVertices(numCells);
-            for (int32_t i = 0; i < numCells; i++) {
-                CaretAssertVectorIndex(gridXYZ, i*3);
-                outlineData4f->addVertex(&gridXYZ[i*3]);
+        GLdouble matrixXYZ[3];
+        if (gluUnProject(windowXYZ[0], windowXYZ[1], windowXYZ[2],
+                         modelMatrix, projectionMatrix, viewport,
+                         &matrixXYZ[0], &matrixXYZ[1], &matrixXYZ[2])) {
+            const int32_t rowOriginBottomIndex = static_cast<int32_t>(matrixXYZ[1]);
+            const int32_t columnIndex = static_cast<int32_t>(matrixXYZ[0]);
+            if ((rowOriginBottomIndex >= 0)
+                && (rowOriginBottomIndex < numberOfRows)
+                && (columnIndex >= 0)
+                && (columnIndex < numberOfColumns)) {
+                const int32_t rowIndex = numberOfRows - rowOriginBottomIndex - 1;
+                
+                float pixelRGBA[4];
+                float pixelDepth = 0.0;
+                if (m_fixedPipelineDrawing->getPixelDepthAndRGBA(m_fixedPipelineDrawing->mouseX,
+                                                                 m_fixedPipelineDrawing->mouseY,
+                                                                 pixelDepth,
+                                                                 pixelRGBA)) {
+                    
+                    std::cout << "Pixel Depth/RGBA: " << pixelDepth << ", " << AString::fromNumbers(pixelRGBA, 4, ",") << std::endl;
+                    if (m_selectionItemMatrix->isOtherScreenDepthCloserToViewer(pixelDepth)) {
+                        if (pixelRGBA[3] > 0.0) {
+                            m_selectionItemMatrix->setMatrixChart(const_cast<ChartableTwoFileMatrixChart*>(matrixChart),
+                                                                  rowIndex,
+                                                                  columnIndex);
+                        }
+                    }
+                }
             }
-            glPolygonMode(GL_FRONT, GL_LINE);
-            glLineWidth(1.0);
-            drawPrimitivePrivate(outlineData4f.get());
+        }
+    }
+    
+    glDisable(GL_BLEND);
+    glPopMatrix();
+    
+    
+    const bool drawOLD = false;
+    if (drawOLD) {
+        int32_t numberOfRows = 0;
+        int32_t numberOfColumns = 0;
+        std::vector<float> matrixRGBA;
+        if ( ! matrixChart->getMatrixDataRGBA(numberOfRows,
+                                              numberOfColumns,
+                                              matrixRGBA)) {
+            CaretLogWarning("Matrix RGBA invalid");
+            return;
+        }
+        if ((numberOfRows <= 0)
+            || (numberOfColumns <= 0)) {
+            return;
+        }
+        
+        const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartTwoModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
+        CaretAssert(matrixProperties);
+        
+        bool displayGridLinesFlag = matrixProperties->isGridLinesDisplayed();
+        const bool highlightSelectedRowColumnFlag = matrixProperties->isSelectedRowColumnHighlighted();
+        
+        
+        std::vector<int32_t> selectedColumnIndices;
+        std::vector<int32_t> selectedRowIndices;
+        ChartTwoMatrixLoadingDimensionEnum::Enum selectedRowColumnDimension;
+        matrixChart->getSelectedRowColumnIndices(m_tabIndex,
+                                                 selectedRowColumnDimension,
+                                                 selectedRowIndices,
+                                                 selectedColumnIndices);
+        std::map<int32_t, RowColumnMinMax> columnRangesForRow;
+        for (int32_t rowIndex : selectedRowIndices) {
+            columnRangesForRow[rowIndex] = RowColumnMinMax();
+        }
+        const bool haveSelectedRowsFlag = ( ! columnRangesForRow.empty());
+        
+        std::map<int32_t, RowColumnMinMax> rowRangesForColumn;
+        for (int32_t columnIndex : selectedColumnIndices) {
+            rowRangesForColumn[columnIndex] = RowColumnMinMax();
+        }
+        const bool haveSelectedColumnsFlag = ( ! rowRangesForColumn.empty());
+        
+        uint8_t highlightRGBByte[3];
+        m_preferences->getBackgroundAndForegroundColors()->getColorForegroundChartView(highlightRGBByte);
+        const float highlightRGBA[4] = {
+            highlightRGBByte[0] / 255.0,
+            highlightRGBByte[1] / 255.0,
+            highlightRGBByte[2] / 255.0,
+            1.0
+        };
+        
+        int32_t rgbaOffset = 0;
+        
+        std::unique_ptr<GraphicsPrimitiveV3fC4f> quadsData4f
+        = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+        std::unique_ptr<GraphicsPrimitiveV3fC4ub> quadsData4ub
+        = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
+        const int32_t numberOfCells = numberOfColumns * numberOfRows;
+        if (m_identificationModeFlag) {
+            quadsData4ub->reserveForNumberOfVertices(numberOfCells);
+        }
+        else {
+            quadsData4f->reserveForNumberOfVertices(numberOfCells);
+        }
+        
+        float cellY = (numberOfRows - 1) * cellHeight;
+        for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
+            float cellX = 0;
+            for (int32_t columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
+                CaretAssertVectorIndex(matrixRGBA, rgbaOffset+3);
+                const float* rgba = &matrixRGBA[rgbaOffset];
+                rgbaOffset += 4;
+                
+                bool drawCellFlag = true;
+                if (chartViewingType != ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL) {
+                    if (numberOfRows == numberOfColumns) {
+                        drawCellFlag = false;
+                        switch (chartViewingType) {
+                            case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+                                break;
+                            case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                                if (rowIndex != columnIndex) {
+                                    drawCellFlag = true;
+                                }
+                                break;
+                            case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                                if (rowIndex > columnIndex) {
+                                    drawCellFlag = true;
+                                }
+                                break;
+                            case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                                if (rowIndex < columnIndex) {
+                                    drawCellFlag = true;
+                                }
+                                break;
+                        }
+                    }
+                    else {
+                        drawCellFlag = false;
+                        const float slope = static_cast<float>(numberOfRows) / static_cast<float>(numberOfColumns);
+                        const int32_t diagonalRow = static_cast<int32_t>(slope * columnIndex);
+                        
+                        switch (chartViewingType) {
+                            case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+                                drawCellFlag = true;
+                                break;
+                            case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                                if (rowIndex != diagonalRow) {
+                                    drawCellFlag = true;
+                                }
+                                break;
+                            case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                                if (rowIndex > diagonalRow) {
+                                    drawCellFlag = true;
+                                }
+                                break;
+                            case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                                if (rowIndex < diagonalRow) {
+                                    drawCellFlag = true;
+                                }
+                                break;
+                        }
+                    }
+                }
+                
+                if (drawCellFlag) {
+                    if (haveSelectedRowsFlag) {
+                        std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = columnRangesForRow.find(rowIndex);
+                        if (minMaxIter != columnRangesForRow.end()) {
+                            if (columnIndex < minMaxIter->second.m_min) {
+                                minMaxIter->second.m_min = columnIndex;
+                            }
+                            if (columnIndex > minMaxIter->second.m_max) {
+                                minMaxIter->second.m_max = columnIndex;
+                            }
+                        }
+                    }
+                    
+                    if (haveSelectedColumnsFlag) {
+                        std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = rowRangesForColumn.find(columnIndex);
+                        if (minMaxIter != rowRangesForColumn.end()) {
+                            if (rowIndex < minMaxIter->second.m_min) {
+                                minMaxIter->second.m_min = rowIndex;
+                            }
+                            if (rowIndex > minMaxIter->second.m_max) {
+                                minMaxIter->second.m_max = rowIndex;
+                            }
+                        }
+                    }
+                    
+                    uint8_t idRGBA[4];
+                    if (m_identificationModeFlag) {
+                        addToChartMatrixIdentification(rowIndex,
+                                                       columnIndex,
+                                                       idRGBA);
+                    }
+                    
+                    if (m_identificationModeFlag) {
+                        quadsData4ub->addVertex(cellX, cellY, 0.0, idRGBA);
+                        quadsData4ub->addVertex(cellX + cellWidth, cellY, 0.0, idRGBA);
+                        quadsData4ub->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, idRGBA);
+                        quadsData4ub->addVertex(cellX, cellY + cellHeight, 0.0, idRGBA);
+                    }
+                    else {
+                        quadsData4f->addVertex(cellX, cellY, 0.0, rgba);
+                        quadsData4f->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
+                        quadsData4f->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
+                        quadsData4f->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
+                    }
+                }
+                
+                cellX += cellWidth;
+            }
+            
+            cellY -= cellHeight;
+        }
+        
+        /*
+         * Draw the matrix elements.
+         */
+        if (m_identificationModeFlag) {
+            drawPrimitivePrivate(quadsData4ub.get());
+        }
+        else {
+            /*
+             * Enable alpha blending so voxels that are not drawn from higher layers
+             * allow voxels from lower layers to be seen.
+             */
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            
+            drawPrimitivePrivate(quadsData4f.get());
+            
+            glDisable(GL_BLEND);
+            
+            
+            /*
+             * Drawn an outline around the matrix elements.
+             */
+            if (displayGridLinesFlag) {
+                uint8_t gridLineColorBytes[4];
+                m_preferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridLineColorBytes);
+                float gridLineColorFloats[4];
+                CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
+                                                    gridLineColorFloats);
+                gridLineColorFloats[3] = 1.0;
+                
+                const std::vector<float>& gridXYZ = quadsData4f->getFloatXYZ();
+                const int32_t numCells = static_cast<int32_t>(gridXYZ.size() / 3);
+                
+                std::unique_ptr<GraphicsPrimitiveV3f> outlineData4f
+                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
+                                                                                           gridLineColorFloats));
+                outlineData4f->reserveForNumberOfVertices(numCells);
+                for (int32_t i = 0; i < numCells; i++) {
+                    CaretAssertVectorIndex(gridXYZ, i*3);
+                    outlineData4f->addVertex(&gridXYZ[i*3]);
+                }
+                glPolygonMode(GL_FRONT, GL_LINE);
+                glLineWidth(1.0);
+                drawPrimitivePrivate(outlineData4f.get());
+                glPolygonMode(GL_FRONT, GL_FILL);
+            }
+            
+            if ( (! selectedRowIndices.empty())
+                && highlightSelectedRowColumnFlag) {
+                for (auto rowIndex : selectedRowIndices) {
+                    const float rowY = (numberOfRows - rowIndex - 1) * cellHeight;
+                    
+                    int32_t minColumn = 0;
+                    int32_t maxColumn = numberOfColumns;
+                    if (haveSelectedRowsFlag) {
+                        std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = columnRangesForRow.find(rowIndex);
+                        if (minMaxIter != columnRangesForRow.end()) {
+                            const int32_t minValue = minMaxIter->second.m_min;
+                            const int32_t rowMaxColumn = minMaxIter->second.m_max;
+                            if (minValue < rowMaxColumn) {
+                                minColumn = minValue;
+                                maxColumn = rowMaxColumn + 1;
+                            }
+                        }
+                    }
+                    
+                    const float minX = minColumn * cellWidth;
+                    const float maxX = maxColumn * cellWidth;
+                    
+                    std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
+                    = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+                                                                                               highlightRGBA));
+                    rowOutlineData4f->reserveForNumberOfVertices(4);
+                    
+                    rowOutlineData4f->addVertex(minX, rowY);
+                    rowOutlineData4f->addVertex(maxX, rowY);
+                    rowOutlineData4f->addVertex(maxX, rowY + cellHeight, 0.0);
+                    rowOutlineData4f->addVertex(minX, rowY + cellHeight, 0.0);
+                    const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+                    glLineWidth(highlightLineWidth);
+                    drawPrimitivePrivate(rowOutlineData4f.get());
+                }
+                
+                glLineWidth(1.0);
+            }
+            
+            if ( (! selectedColumnIndices.empty())
+                && highlightSelectedRowColumnFlag) {
+                for (auto columnIndex : selectedColumnIndices) {
+                    const float colX = columnIndex * cellWidth;
+                    
+                    int32_t minRow = 0;
+                    int32_t maxRow = numberOfRows;
+                    if (haveSelectedColumnsFlag) {
+                        std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = rowRangesForColumn.find(columnIndex);
+                        if (minMaxIter != rowRangesForColumn.end()) {
+                            const int32_t minValue = minMaxIter->second.m_min;
+                            const int32_t maxValue = minMaxIter->second.m_max;
+                            if (minValue < maxValue) {
+                                minRow = minValue;
+                                maxRow = maxValue + 1;
+                            }
+                        }
+                    }
+                    
+                    const float minY = minRow * cellHeight;
+                    const float maxY = maxRow * cellHeight;
+                    
+                    std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
+                    = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+                                                                                               highlightRGBA));
+                    columnOutlineData4f->reserveForNumberOfVertices(4);
+                    
+                    columnOutlineData4f->addVertex(colX, minY);
+                    columnOutlineData4f->addVertex(colX + cellWidth, minY);
+                    columnOutlineData4f->addVertex(colX + cellWidth, maxY);
+                    columnOutlineData4f->addVertex(colX, maxY);
+                    const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+                    glLineWidth(highlightLineWidth);
+                    drawPrimitivePrivate(columnOutlineData4f.get());
+                }
+                glLineWidth(1.0);
+            }
+            
             glPolygonMode(GL_FRONT, GL_FILL);
         }
         
-        if ( (! selectedRowIndices.empty())
-            && highlightSelectedRowColumnFlag) {
-            for (auto rowIndex : selectedRowIndices) {
-                const float rowY = (numberOfRows - rowIndex - 1) * cellHeight;
-                
-                int32_t minColumn = 0;
-                int32_t maxColumn = numberOfColumns;
-                if (haveSelectedRowsFlag) {
-                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = columnRangesForRow.find(rowIndex);
-                    if (minMaxIter != columnRangesForRow.end()) {
-                        const int32_t minValue = minMaxIter->second.m_min;
-                        const int32_t rowMaxColumn = minMaxIter->second.m_max;
-                        if (minValue < rowMaxColumn) {
-                            minColumn = minValue;
-                            maxColumn = rowMaxColumn + 1;
-                        }
-                    }
-                }
-                
-                const float minX = minColumn * cellWidth;
-                const float maxX = maxColumn * cellWidth;
-                
-                std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
-                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
-                                                                                           highlightRGBA));
-                rowOutlineData4f->reserveForNumberOfVertices(4);
-
-                rowOutlineData4f->addVertex(minX, rowY);
-                rowOutlineData4f->addVertex(maxX, rowY);
-                rowOutlineData4f->addVertex(maxX, rowY + cellHeight, 0.0);
-                rowOutlineData4f->addVertex(minX, rowY + cellHeight, 0.0);
-                const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
-                glLineWidth(highlightLineWidth);
-                drawPrimitivePrivate(rowOutlineData4f.get());
-            }
-            
-            glLineWidth(1.0);
+        if (m_identificationModeFlag) {
+            processMatrixIdentification(matrixChart);
         }
-        
-        if ( (! selectedColumnIndices.empty())
-            && highlightSelectedRowColumnFlag) {
-            for (auto columnIndex : selectedColumnIndices) {
-                const float colX = columnIndex * cellWidth;
-                
-                int32_t minRow = 0;
-                int32_t maxRow = numberOfRows;
-                if (haveSelectedColumnsFlag) {
-                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = rowRangesForColumn.find(columnIndex);
-                    if (minMaxIter != rowRangesForColumn.end()) {
-                        const int32_t minValue = minMaxIter->second.m_min;
-                        const int32_t maxValue = minMaxIter->second.m_max;
-                        if (minValue < maxValue) {
-                            minRow = minValue;
-                            maxRow = maxValue + 1;
-                        }
-                    }
-                }
-
-                const float minY = minRow * cellHeight;
-                const float maxY = maxRow * cellHeight;
-                
-                std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
-                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
-                                                                                           highlightRGBA));
-                columnOutlineData4f->reserveForNumberOfVertices(4);
-                
-                columnOutlineData4f->addVertex(colX, minY);
-                columnOutlineData4f->addVertex(colX + cellWidth, minY);
-                columnOutlineData4f->addVertex(colX + cellWidth, maxY);
-                columnOutlineData4f->addVertex(colX, maxY);
-                const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
-                glLineWidth(highlightLineWidth);
-                drawPrimitivePrivate(columnOutlineData4f.get());
-            }
-            glLineWidth(1.0);
-        }
-        
-        glPolygonMode(GL_FRONT, GL_FILL);
-    }
-    
-    if (m_identificationModeFlag) {
-        processMatrixIdentification(matrixChart);
     }
 }
+
+///*
+// * Draw a matrix chart.
+// *
+// * @param matrixChart
+// *     Matrix chart that is drawn.
+// * @param chartViewingType
+// *     Type of chart viewing.
+// * @param cellWidth
+// *     Width of cell.
+// * @param cellHeight
+// *     Height of cell.
+// * @param zooming
+// *     Current zooming.
+// */
+//void
+//BrainOpenGLChartTwoDrawingFixedPipeline::OLDdrawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
+//                                                                const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
+//                                                                const float cellWidth,
+//                                                                const float cellHeight,
+//                                                                const float zooming)
+//{
+//    if (m_identificationModeFlag) {
+//        resetIdentification();
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    }
+//    
+//    int32_t numberOfRows = 0;
+//    int32_t numberOfColumns = 0;
+//    std::vector<float> matrixRGBA;
+//    if ( ! matrixChart->getMatrixDataRGBA(numberOfRows,
+//                                          numberOfColumns,
+//                                          matrixRGBA)) {
+//        CaretLogWarning("Matrix RGBA invalid");
+//        return;
+//    }
+//    if ((numberOfRows <= 0)
+//        || (numberOfColumns <= 0)) {
+//        return;
+//    }
+//    
+//    const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartTwoModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
+//    CaretAssert(matrixProperties);
+//    
+//    bool displayGridLinesFlag = matrixProperties->isGridLinesDisplayed();
+//    const bool highlightSelectedRowColumnFlag = matrixProperties->isSelectedRowColumnHighlighted();
+//    
+//    
+//    std::vector<int32_t> selectedColumnIndices;
+//    std::vector<int32_t> selectedRowIndices;
+//    ChartTwoMatrixLoadingDimensionEnum::Enum selectedRowColumnDimension;
+//    matrixChart->getSelectedRowColumnIndices(m_tabIndex,
+//                                             selectedRowColumnDimension,
+//                                             selectedRowIndices,
+//                                             selectedColumnIndices);
+//    std::map<int32_t, RowColumnMinMax> columnRangesForRow;
+//    for (int32_t rowIndex : selectedRowIndices) {
+//        columnRangesForRow[rowIndex] = RowColumnMinMax();
+//    }
+//    const bool haveSelectedRowsFlag = ( ! columnRangesForRow.empty());
+//    
+//    std::map<int32_t, RowColumnMinMax> rowRangesForColumn;
+//    for (int32_t columnIndex : selectedColumnIndices) {
+//        rowRangesForColumn[columnIndex] = RowColumnMinMax();
+//    }
+//    const bool haveSelectedColumnsFlag = ( ! rowRangesForColumn.empty());
+//    
+//    uint8_t highlightRGBByte[3];
+//    m_preferences->getBackgroundAndForegroundColors()->getColorForegroundChartView(highlightRGBByte);
+//    const float highlightRGBA[4] = {
+//        highlightRGBByte[0] / 255.0,
+//        highlightRGBByte[1] / 255.0,
+//        highlightRGBByte[2] / 255.0,
+//        1.0
+//    };
+//    
+//    int32_t rgbaOffset = 0;
+//    
+//    std::unique_ptr<GraphicsPrimitiveV3fC4f> quadsData4f
+//    = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+//    std::unique_ptr<GraphicsPrimitiveV3fC4ub> quadsData4ub
+//    = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
+//    const int32_t numberOfCells = numberOfColumns * numberOfRows;
+//    if (m_identificationModeFlag) {
+//        quadsData4ub->reserveForNumberOfVertices(numberOfCells);
+//    }
+//    else {
+//        quadsData4f->reserveForNumberOfVertices(numberOfCells);
+//    }
+//    
+//    float cellY = (numberOfRows - 1) * cellHeight;
+//    for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
+//        float cellX = 0;
+//        for (int32_t columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
+//            CaretAssertVectorIndex(matrixRGBA, rgbaOffset+3);
+//            const float* rgba = &matrixRGBA[rgbaOffset];
+//            rgbaOffset += 4;
+//            
+//            bool drawCellFlag = true;
+//            if (chartViewingType != ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL) {
+//                if (numberOfRows == numberOfColumns) {
+//                    drawCellFlag = false;
+//                    switch (chartViewingType) {
+//                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+//                            break;
+//                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+//                            if (rowIndex != columnIndex) {
+//                                drawCellFlag = true;
+//                            }
+//                            break;
+//                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+//                            if (rowIndex > columnIndex) {
+//                                drawCellFlag = true;
+//                            }
+//                            break;
+//                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+//                            if (rowIndex < columnIndex) {
+//                                drawCellFlag = true;
+//                            }
+//                            break;
+//                    }
+//                }
+//                else {
+//                    drawCellFlag = false;
+//                    const float slope = static_cast<float>(numberOfRows) / static_cast<float>(numberOfColumns);
+//                    const int32_t diagonalRow = static_cast<int32_t>(slope * columnIndex);
+//                    
+//                    switch (chartViewingType) {
+//                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+//                            drawCellFlag = true;
+//                            break;
+//                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+//                            if (rowIndex != diagonalRow) {
+//                                drawCellFlag = true;
+//                            }
+//                            break;
+//                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+//                            if (rowIndex > diagonalRow) {
+//                                drawCellFlag = true;
+//                            }
+//                            break;
+//                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+//                            if (rowIndex < diagonalRow) {
+//                                drawCellFlag = true;
+//                            }
+//                            break;
+//                    }
+//                }
+//            }
+//            
+//            if (drawCellFlag) {
+//                if (haveSelectedRowsFlag) {
+//                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = columnRangesForRow.find(rowIndex);
+//                    if (minMaxIter != columnRangesForRow.end()) {
+//                        if (columnIndex < minMaxIter->second.m_min) {
+//                            minMaxIter->second.m_min = columnIndex;
+//                        }
+//                        if (columnIndex > minMaxIter->second.m_max) {
+//                            minMaxIter->second.m_max = columnIndex;
+//                        }
+//                    }
+//                }
+//                
+//                if (haveSelectedColumnsFlag) {
+//                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = rowRangesForColumn.find(columnIndex);
+//                    if (minMaxIter != rowRangesForColumn.end()) {
+//                        if (rowIndex < minMaxIter->second.m_min) {
+//                            minMaxIter->second.m_min = rowIndex;
+//                        }
+//                        if (rowIndex > minMaxIter->second.m_max) {
+//                            minMaxIter->second.m_max = rowIndex;
+//                        }
+//                    }
+//                }
+//                
+//                uint8_t idRGBA[4];
+//                if (m_identificationModeFlag) {
+//                    addToChartMatrixIdentification(rowIndex,
+//                                                   columnIndex,
+//                                                   idRGBA);
+//                }
+//                
+//                if (m_identificationModeFlag) {
+//                    quadsData4ub->addVertex(cellX, cellY, 0.0, idRGBA);
+//                    quadsData4ub->addVertex(cellX + cellWidth, cellY, 0.0, idRGBA);
+//                    quadsData4ub->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, idRGBA);
+//                    quadsData4ub->addVertex(cellX, cellY + cellHeight, 0.0, idRGBA);
+//                }
+//                else {
+//                    quadsData4f->addVertex(cellX, cellY, 0.0, rgba);
+//                    quadsData4f->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
+//                    quadsData4f->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
+//                    quadsData4f->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
+//                }
+//            }
+//            
+//            cellX += cellWidth;
+//        }
+//        
+//        cellY -= cellHeight;
+//    }
+//    
+//    /*
+//     * Draw the matrix elements.
+//     */
+//    if (m_identificationModeFlag) {
+//        drawPrimitivePrivate(quadsData4ub.get());
+//    }
+//    else {
+//        /*
+//         * Enable alpha blending so voxels that are not drawn from higher layers
+//         * allow voxels from lower layers to be seen.
+//         */
+//        glEnable(GL_BLEND);
+//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//        
+//        drawPrimitivePrivate(quadsData4f.get());
+//        
+//        glDisable(GL_BLEND);
+//        
+//        
+//        /*
+//         * Drawn an outline around the matrix elements.
+//         */
+//        if (displayGridLinesFlag) {
+//            uint8_t gridLineColorBytes[4];
+//            m_preferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridLineColorBytes);
+//            float gridLineColorFloats[4];
+//            CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
+//                                                gridLineColorFloats);
+//            gridLineColorFloats[3] = 1.0;
+//            
+//            const std::vector<float>& gridXYZ = quadsData4f->getFloatXYZ();
+//            const int32_t numCells = static_cast<int32_t>(gridXYZ.size() / 3);
+//            
+//            std::unique_ptr<GraphicsPrimitiveV3f> outlineData4f
+//            = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
+//                                                                                       gridLineColorFloats));
+//            outlineData4f->reserveForNumberOfVertices(numCells);
+//            for (int32_t i = 0; i < numCells; i++) {
+//                CaretAssertVectorIndex(gridXYZ, i*3);
+//                outlineData4f->addVertex(&gridXYZ[i*3]);
+//            }
+//            glPolygonMode(GL_FRONT, GL_LINE);
+//            glLineWidth(1.0);
+//            drawPrimitivePrivate(outlineData4f.get());
+//            glPolygonMode(GL_FRONT, GL_FILL);
+//        }
+//        
+//        if ( (! selectedRowIndices.empty())
+//            && highlightSelectedRowColumnFlag) {
+//            for (auto rowIndex : selectedRowIndices) {
+//                const float rowY = (numberOfRows - rowIndex - 1) * cellHeight;
+//                
+//                int32_t minColumn = 0;
+//                int32_t maxColumn = numberOfColumns;
+//                if (haveSelectedRowsFlag) {
+//                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = columnRangesForRow.find(rowIndex);
+//                    if (minMaxIter != columnRangesForRow.end()) {
+//                        const int32_t minValue = minMaxIter->second.m_min;
+//                        const int32_t rowMaxColumn = minMaxIter->second.m_max;
+//                        if (minValue < rowMaxColumn) {
+//                            minColumn = minValue;
+//                            maxColumn = rowMaxColumn + 1;
+//                        }
+//                    }
+//                }
+//                
+//                const float minX = minColumn * cellWidth;
+//                const float maxX = maxColumn * cellWidth;
+//                
+//                std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
+//                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+//                                                                                           highlightRGBA));
+//                rowOutlineData4f->reserveForNumberOfVertices(4);
+//                
+//                rowOutlineData4f->addVertex(minX, rowY);
+//                rowOutlineData4f->addVertex(maxX, rowY);
+//                rowOutlineData4f->addVertex(maxX, rowY + cellHeight, 0.0);
+//                rowOutlineData4f->addVertex(minX, rowY + cellHeight, 0.0);
+//                const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+//                glLineWidth(highlightLineWidth);
+//                drawPrimitivePrivate(rowOutlineData4f.get());
+//            }
+//            
+//            glLineWidth(1.0);
+//        }
+//        
+//        if ( (! selectedColumnIndices.empty())
+//            && highlightSelectedRowColumnFlag) {
+//            for (auto columnIndex : selectedColumnIndices) {
+//                const float colX = columnIndex * cellWidth;
+//                
+//                int32_t minRow = 0;
+//                int32_t maxRow = numberOfRows;
+//                if (haveSelectedColumnsFlag) {
+//                    std::map<int32_t, RowColumnMinMax>::iterator minMaxIter = rowRangesForColumn.find(columnIndex);
+//                    if (minMaxIter != rowRangesForColumn.end()) {
+//                        const int32_t minValue = minMaxIter->second.m_min;
+//                        const int32_t maxValue = minMaxIter->second.m_max;
+//                        if (minValue < maxValue) {
+//                            minRow = minValue;
+//                            maxRow = maxValue + 1;
+//                        }
+//                    }
+//                }
+//                
+//                const float minY = minRow * cellHeight;
+//                const float maxY = maxRow * cellHeight;
+//                
+//                std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
+//                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+//                                                                                           highlightRGBA));
+//                columnOutlineData4f->reserveForNumberOfVertices(4);
+//                
+//                columnOutlineData4f->addVertex(colX, minY);
+//                columnOutlineData4f->addVertex(colX + cellWidth, minY);
+//                columnOutlineData4f->addVertex(colX + cellWidth, maxY);
+//                columnOutlineData4f->addVertex(colX, maxY);
+//                const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+//                glLineWidth(highlightLineWidth);
+//                drawPrimitivePrivate(columnOutlineData4f.get());
+//            }
+//            glLineWidth(1.0);
+//        }
+//        
+//        glPolygonMode(GL_FRONT, GL_FILL);
+//    }
+//    
+//    if (m_identificationModeFlag) {
+//        processMatrixIdentification(matrixChart);
+//    }
+//}
 
 /**
  * Save the state of OpenGL.

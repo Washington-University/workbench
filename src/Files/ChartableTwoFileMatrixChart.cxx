@@ -399,6 +399,23 @@ ChartableTwoFileMatrixChart::getMatrixDataRGBA(int32_t& numberOfRowsOut,
 }
 
 /**
+ * @return The graphics primitive containing the matrix representation of the file.
+ * All cells are of dimension 1.0 x 1.0
+ *
+ * @param matrixViewMode
+ *     The matrix visualization mode (upper/lower).
+ */
+GraphicsPrimitiveV3fC4f*
+ChartableTwoFileMatrixChart::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode) const
+{
+    const CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
+    CaretAssert(ciftiMapFile);
+    
+    return ciftiMapFile->getMatrixChartingGraphicsPrimitive(matrixViewMode);
+}
+
+
+/**
  * @return The selected row/column dimension.
  */
 ChartTwoMatrixLoadingDimensionEnum::Enum

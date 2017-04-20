@@ -48,6 +48,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
+#include "GraphicsPrimitiveV3fC4f.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "Histogram.h"
 #include "NodeAndVoxelColoring.h"
@@ -1396,6 +1397,11 @@ CiftiMappableDataFile::invalidateColoringInAllMaps()
         CaretAssertVectorIndex(m_mapContent, i);
         m_mapContent[i]->m_rgbaValid = false;
     }
+    
+    /*
+     * Force recreation of matrix so that it receives updates to coloring.
+     */
+    m_matrixGraphicsPrimitive.reset();
 }
 
 /**
@@ -1474,6 +1480,116 @@ CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba,
                   0.0);
     }
 }
+
+/**
+ * @return The graphics primitive containing the matrix representation of the file.
+ * All cells are of dimension 1.0 x 1.0
+ *
+ * @param matrixViewMode
+ *     The matrix visualization mode (upper/lower).
+ */
+GraphicsPrimitiveV3fC4f*
+CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode) const
+{
+    if (m_matrixGraphicsPrimitive == NULL) {
+        int32_t numberOfRows = 0;
+        int32_t numberOfColumns = 0;
+        std::vector<float> matrixRGBA;
+        if (getMatrixForChartingRGBA(numberOfRows, numberOfColumns, matrixRGBA)) {
+            const int32_t numberOfCells = numberOfRows * numberOfColumns;
+            if (numberOfCells > 0) {
+                m_matrixGraphicsPrimitive
+                = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+                m_matrixGraphicsPrimitive->reserveForNumberOfVertices(numberOfCells * 4);  // QUADS
+                m_matrixGraphicsPrimitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
+                
+                int32_t rgbaOffset = 0;
+                const float cellHeight = 1.0;
+                const float cellWidth = 1.0;
+                float cellY = (numberOfRows - 1) * cellHeight;
+                for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
+                    float cellX = 0;
+                    for (int32_t columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
+                        CaretAssertVectorIndex(matrixRGBA, rgbaOffset+3);
+                        const float* rgba = &matrixRGBA[rgbaOffset];
+                        rgbaOffset += 4;
+                        
+                        bool drawCellFlag = true;
+                        if (matrixViewMode != ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL) {
+                            if (numberOfRows == numberOfColumns) {
+                                drawCellFlag = false;
+                                switch (matrixViewMode) {
+                                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+                                        break;
+                                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                                        if (rowIndex != columnIndex) {
+                                            drawCellFlag = true;
+                                        }
+                                        break;
+                                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                                        if (rowIndex > columnIndex) {
+                                            drawCellFlag = true;
+                                        }
+                                        break;
+                                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                                        if (rowIndex < columnIndex) {
+                                            drawCellFlag = true;
+                                        }
+                                        break;
+                                }
+                            }
+                            else {
+                                drawCellFlag = true;
+                                const bool allowNonSquareMatrixDiagonalsFlag = false;
+                                if (allowNonSquareMatrixDiagonalsFlag) {
+                                    drawCellFlag = false;
+                                    const float slope = static_cast<float>(numberOfRows) / static_cast<float>(numberOfColumns);
+                                    const int32_t diagonalRow = static_cast<int32_t>(slope * columnIndex);
+                                    
+                                    switch (matrixViewMode) {
+                                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+                                            drawCellFlag = true;
+                                            break;
+                                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                                            if (rowIndex != diagonalRow) {
+                                                drawCellFlag = true;
+                                            }
+                                            break;
+                                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                                            if (rowIndex > diagonalRow) {
+                                                drawCellFlag = true;
+                                            }
+                                            break;
+                                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                                            if (rowIndex < diagonalRow) {
+                                                drawCellFlag = true;
+                                            }
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (drawCellFlag) {
+                            m_matrixGraphicsPrimitive->addVertex(cellX, cellY, 0.0, rgba);
+                            m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
+                            m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
+                            m_matrixGraphicsPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
+                        }
+                        
+                        cellX += cellWidth;
+                    }
+                    
+                    cellY -= cellHeight;
+                }
+            }
+
+        }
+    }
+    
+    return m_matrixGraphicsPrimitive.get();
+}
+
 
 /**
  * Get the matrix RGBA coloring for this matrix data creator.
@@ -2292,6 +2408,11 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
     else {
         CaretAssert(0);
     }
+    
+    /*
+     * Force recreation of matrix so that it receives updates to coloring.
+     */
+    m_matrixGraphicsPrimitive.reset();
 }
 
 /**

@@ -24,11 +24,13 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPointer.h"
 #include "CaretObjectTracksModification.h"
+#include "ChartTwoMatrixTriangularViewingModeEnum.h"
 #include "CiftiMappingType.h"
 #include "CiftiXMLElements.h"
 #include "DisplayGroupEnum.h"
 #include "VolumeMappableInterface.h"
 
+#include <memory>
 #include <set>
 
 namespace caret {
@@ -39,6 +41,7 @@ namespace caret {
     class CiftiParcelsMap;
     class CiftiXML;
     class FastStatistics;
+    class GraphicsPrimitiveV3fC4f;
     class GroupAndNameHierarchyModel;
     class Histogram;
     class SparseVolumeIndexer;
@@ -480,6 +483,8 @@ namespace caret {
                                       int32_t& numberOfColumnsOut,
                                       std::vector<float>& rgbaOut) const;
         
+        GraphicsPrimitiveV3fC4f* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode) const;
+        
         virtual void getFileData(std::vector<float>& data) const;
         
         const CiftiFile* getCiftiFile() const { return m_ciftiFile; }
@@ -737,6 +742,8 @@ namespace caret {
         
         /** Histogram used when statistics computed on all data in file */
         CaretPointer<Histogram> m_fileHistogram;
+        
+        mutable std::unique_ptr<GraphicsPrimitiveV3fC4f> m_matrixGraphicsPrimitive;
         
         int32_t m_fileHistogramNumberOfBuckets = 100;
         

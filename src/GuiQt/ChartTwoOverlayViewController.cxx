@@ -38,6 +38,7 @@
 using namespace caret;
 
 #include "AnnotationColorBar.h"
+#include "Brain.h"
 #include "CaretMappableDataFile.h"
 #include "ChartTwoOverlay.h"
 #include "ChartableTwoFileDelegate.h"
@@ -939,6 +940,16 @@ ChartTwoOverlayViewController::menuMatrixTriangularViewModeTriggered(QAction* ac
     if (valid) {
         m_chartOverlay->setMatrixTriangularViewingMode(viewMode);
         updateMatrixTriangularViewModeAction(viewMode);
+        CaretMappableDataFile* mapFile = NULL;
+        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+        int32_t selectedIndex = -1;
+        m_chartOverlay->getSelectionData(mapFile,
+                                         selectedIndexType,
+                                         selectedIndex);
+        if (mapFile != NULL) {
+            PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+            mapFile->updateScalarColoringForAllMaps(paletteFile);
+        }
         this->updateGraphicsWindow();
     }
 }

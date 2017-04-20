@@ -5687,6 +5687,94 @@ BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* model,
 }
 
 /**
+ * Get the depth and RGBA value at the given pixel position.
+ *
+ * @param pixelX
+ *     The pixel X-coordinate
+ * @param pixelY
+ *     The pixel Y-coordinate
+ * @param depthOut
+ *     Output containing depth at pixel.
+ * @param rgbaOut
+ *     Output containing RGBA components at pixel.
+ * @return
+ *     True if output is valid, else false.
+ *     Invalid could be due to an invalid pixel XY.
+ *
+ */
+bool
+BrainOpenGLFixedPipeline::getPixelDepthAndRGBA(const int32_t pixelX,
+                                               const int32_t pixelY,
+                                               float& depthOut,
+                                               float rgbaOut[4])
+{
+    depthOut   = -1.0;
+    rgbaOut[0] =  0.0;
+    rgbaOut[1] =  0.0;
+    rgbaOut[2] =  0.0;
+    rgbaOut[3] =  0.0;
+    
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    if ((pixelX >= viewport[0])
+        && (pixelX < viewport[2])
+        && (pixelY >= viewport[1])
+        && (pixelY < viewport[3])) {
+        /* OK */
+    }
+    else {
+        /*
+         * Invalid pixel XY
+         */
+        return false;
+    }
+    
+    /*
+     * Saves glPixelStore parameters
+     */
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    
+    /*
+     * QOpenGLWidget Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation).  This is
+     * probably why calls to glReadBuffer() always cause an
+     * OpenGL error.
+     */
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /* do not call glReadBuffer() */
+#else
+    glReadBuffer(GL_BACK);
+#endif
+    glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_PACK_ALIGNMENT, 4); // float is 4 bytes
+    glReadPixels(pixelX,
+                 pixelY,
+                 1,
+                 1,
+                 GL_RGBA,
+                 GL_FLOAT,
+                 rgbaOut);
+    
+    /*
+     * Get depth from depth buffer
+     */
+    glReadPixels(pixelX,
+                 pixelY,
+                 1,
+                 1,
+                 GL_DEPTH_COMPONENT,
+                 GL_FLOAT,
+                 &depthOut);
+    
+    glPopClientAttrib();
+    
+    return true;
+}
+
+
+/**
  * Analyze color information to extract identification data.
  * @param dataType
  *    Type of data.

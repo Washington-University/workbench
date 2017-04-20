@@ -24,6 +24,7 @@
 #include "BrainConstants.h"
 #include "ChartTwoMatrixContentTypeEnum.h"
 #include "ChartTwoMatrixLoadingDimensionEnum.h"
+#include "ChartTwoMatrixTriangularViewingModeEnum.h"
 #include "ChartableTwoFileBaseChart.h"
 
 namespace caret {
@@ -33,6 +34,7 @@ namespace caret {
     class CiftiParcelScalarFile;
     class CiftiParcelSeriesFile;
     class CiftiScalarDataSeriesFile;
+    class GraphicsPrimitiveV3fC4f;
     
     class ChartableTwoFileMatrixChart : public ChartableTwoFileBaseChart {
         
@@ -55,6 +57,8 @@ namespace caret {
         bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                int32_t& numberOfColumnsOut,
                                std::vector<float>& rgbaOut) const;
+        
+        GraphicsPrimitiveV3fC4f* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode) const;
         
         bool isMatrixTriangularViewingModeSupported() const;
 

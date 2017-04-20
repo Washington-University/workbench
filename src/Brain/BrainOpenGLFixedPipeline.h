@@ -337,6 +337,11 @@ namespace caret {
         
         void disableLineAntiAliasing();
         
+        bool getPixelDepthAndRGBA(const int32_t pixelX,
+                                  const int32_t pixelY,
+                                  float& depthOut,
+                                  float rgbaOut[4]);
+        
         void getIndexFromColorSelection(const SelectionItemDataTypeEnum::Enum dataType,
                                            const int32_t x,
                                            const int32_t y,

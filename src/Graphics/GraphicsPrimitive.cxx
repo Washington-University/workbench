@@ -145,6 +145,28 @@ GraphicsPrimitive::reserveForNumberOfVertices(const int32_t numberOfVertices)
 }
 
 /**
+ * @return The usage type hint for graphics system.
+ */
+GraphicsPrimitive::UsageType
+GraphicsPrimitive::getUsageType() const
+{
+    return m_usageType;
+}
+
+/**
+ * Set the usage type hint for graphics system.
+ *
+ * @param usageType
+ *     New value for usage type.
+ */
+void
+GraphicsPrimitive::setUsageType(const UsageType usageType)
+{
+    m_usageType = usageType;
+}
+
+
+/**
  * @return Is this graphics primitive valid.
  * Primitive is valid if all of these conditions are met
  * (A) ((count(xyz) * 3) == (count(rgba) * 4))
@@ -426,7 +448,6 @@ GraphicsPrimitive::setGraphicsEngineDataForOpenGL(GraphicsEngineDataOpenGL* grap
 {
     m_graphicsEngineDataForOpenGL.reset(graphicsEngineDataForOpenGL);
 }
-
 
 /**
  * Receive an event.

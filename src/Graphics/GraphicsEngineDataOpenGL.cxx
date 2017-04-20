@@ -106,6 +106,19 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     
+    GLenum usageHint = GL_STREAM_DRAW;
+    switch (primitive->getUsageType()) {
+        case GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES:
+            usageHint = GL_STREAM_DRAW;
+            break;
+        case GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES:
+            usageHint = GL_STATIC_DRAW;
+            break;
+        case GraphicsPrimitive::UsageType::MODIFIED_MANY_DRAWN_MANY_TIMES:
+            usageHint = GL_DYNAMIC_DRAW;
+            break;
+    }
+    
     GLsizei coordinateCount = 0;
     switch (primitive->m_vertexType) {
         case GraphicsPrimitive::VertexType::FLOAT_XYZ:
@@ -126,7 +139,7 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             glBufferData(GL_ARRAY_BUFFER,
                          xyzSizeBytes,
                          xyzDataPointer,
-                         GL_STREAM_DRAW);
+                         usageHint);
             break;
     }
     
@@ -156,7 +169,7 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             glBufferData(GL_ARRAY_BUFFER,
                          normalSizeBytes,
                          normalDataPointer,
-                         GL_STREAM_DRAW);
+                         usageHint);
         }
             break;
     }
@@ -180,7 +193,7 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             glBufferData(GL_ARRAY_BUFFER,
                          colorSizeBytes,
                          colorDataPointer,
-                         GL_STREAM_DRAW);
+                         usageHint);
         }
             break;
         case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
@@ -201,7 +214,7 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             glBufferData(GL_ARRAY_BUFFER,
                          colorSizeBytes,
                          colorDataPointer,
-                         GL_STREAM_DRAW);
+                         usageHint);
         }
             break;
     }
@@ -219,11 +232,59 @@ void
 GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
                                GraphicsPrimitive* primitive)
 {
+    const float dummyRGBA[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    drawPrivate(openglContextPointer,
+                primitive,
+                dummyRGBA,
+                false);
+}
+
+/**
+ * Draw the given graphics primitive.
+ *
+ * @param openglContextPointer
+ *     Pointer to the active OpenGL context.
+ * @param primitive
+ *     Primitive that is drawn.
+ * @param solidColorOverrideRGBA
+ *     Color that is applied to all vertices.
+ */
+void
+GraphicsEngineDataOpenGL::drawWithOverrideColor(void* openglContextPointer,
+                                                GraphicsPrimitive* primitive,
+                                                const float solidColorOverrideRGBA[4])
+{
+    drawPrivate(openglContextPointer,
+                primitive,
+                solidColorOverrideRGBA,
+                true);
+}
+
+
+/**
+ * Draw the graphics primitive.
+ *
+ * @param openglContextPointer
+ *     Pointer to the active OpenGL context.
+ * @param primitive
+ *     Primitive that is drawn.
+ * @param solidColorOverrideRGBA
+ *     RGBA for overriding primitive's internal color data.
+ * @param solidColorOverrideValid
+ *     If true, color with the override color instead of the internal color.
+ */
+void
+GraphicsEngineDataOpenGL::drawPrivate(void* openglContextPointer,
+                                      GraphicsPrimitive* primitive,
+                                      const float solidColorOverrideRGBA[4],
+                                      const bool solidColorOverrideValid)
+{
     CaretAssert(openglContextPointer);
     CaretAssert(primitive);
     if ( ! primitive->isValid()) {
         return;
     }
+    
     
     GraphicsEngineDataOpenGL* openglData = primitive->getGraphicsEngineDataForOpenGL();
     if (openglData == NULL) {
@@ -273,9 +334,44 @@ GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
     /*
      * Setup colors for drawing
      */
-    glEnableClientState(GL_COLOR_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, openglData->m_colorBufferObject->getBufferObjectName());
-    glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
+    GLuint overrideColorBufferName = 0;
+    if (solidColorOverrideValid) {
+        const int32_t numberOfVertices = primitive->m_xyz.size() / 3;
+        if (numberOfVertices > 0) {
+            glGenBuffers(1, &overrideColorBufferName);
+            CaretAssert(overrideColorBufferName > 0);
+            
+            const GLint  componentsPerColor = 4;
+            const GLenum colorDataType = GL_FLOAT;
+            
+            
+            std::vector<float> colorRGBA(numberOfVertices * componentsPerColor);
+            for (int32_t i = 0; i < numberOfVertices; i++) {
+                const int32_t i4 = i * 4;
+                CaretAssertVectorIndex(colorRGBA, i4 + 3);
+                colorRGBA[i4]   = solidColorOverrideRGBA[0];
+                colorRGBA[i4+1] = solidColorOverrideRGBA[1];
+                colorRGBA[i4+2] = solidColorOverrideRGBA[2];
+                colorRGBA[i4+3] = solidColorOverrideRGBA[3];
+            }
+            
+            const GLuint colorSizeBytes = colorRGBA.size() * sizeof(float);
+            const GLvoid* colorDataPointer = (const GLvoid*)&colorRGBA[0];
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         overrideColorBufferName);
+            glBufferData(GL_ARRAY_BUFFER,
+                         colorSizeBytes,
+                         colorDataPointer,
+                         GL_STREAM_DRAW);
+            glEnableClientState(GL_COLOR_ARRAY);
+            glColorPointer(componentsPerColor, colorDataType, 0, (GLvoid*)0);
+        }
+    }
+    else {
+        glEnableClientState(GL_COLOR_ARRAY);
+        glBindBuffer(GL_ARRAY_BUFFER, openglData->m_colorBufferObject->getBufferObjectName());
+        glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
+    }
     
     /*
      * Unbind buffers
@@ -331,6 +427,10 @@ GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
+    
+    if (overrideColorBufferName > 0) {
+        glDeleteBuffers(1, &overrideColorBufferName);
+    }
 }
 
 /**

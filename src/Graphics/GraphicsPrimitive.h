@@ -130,6 +130,28 @@ namespace caret {
             TRIANGLES
         };
         
+        /**
+         * Hint to graphics engine on how the primitive is used.
+         * The hint must be set prior to loading of buffers.
+         */
+        enum class UsageType {
+            /**
+             * Buffer is modified once and used a few times
+             * Like OpenGL STREAM_DRAW
+             */
+            MODIFIED_ONCE_DRAWN_FEW_TIMES,
+            /**
+             * Buffer is modified once and used many times
+             * Like OpenGL STATIC_DRAW
+             */
+            MODIFIED_ONCE_DRAWN_MANY_TIMES,
+            /**
+             * Buffer is modified many times and used many times
+             * Like OpenGL DYNAMIC_DRAW
+             */
+            MODIFIED_MANY_DRAWN_MANY_TIMES
+        };
+        
     protected:
         GraphicsPrimitive(const VertexType       vertexType,
                           const NormalVectorType normalVectorType,
@@ -155,6 +177,10 @@ namespace caret {
         virtual ~GraphicsPrimitive();
         
         void reserveForNumberOfVertices(const int32_t numberOfVertices);
+        
+        UsageType getUsageType() const;
+        
+        void setUsageType(const UsageType usage);
         
         virtual void receiveEvent(Event* event);
         
@@ -204,6 +230,8 @@ namespace caret {
         
         const PrimitiveType m_primitiveType;
 
+        UsageType m_usageType = UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES;
+        
         std::unique_ptr<GraphicsEngineDataOpenGL> m_graphicsEngineDataForOpenGL;
         
         std::vector<float> m_xyz;

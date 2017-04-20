@@ -127,6 +127,12 @@ namespace caret {
                                  const float cellHeight,
                                  const float zooming);
         
+//        void OLDdrawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
+//                                    const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
+//                                    const float cellWidth,
+//                                    const float cellHeight,
+//                                    const float zooming);
+        
         void drawHistogramChart();
         
         void drawHistogramChartContent(const HistogramChartDrawingInfo* drawingInfo,

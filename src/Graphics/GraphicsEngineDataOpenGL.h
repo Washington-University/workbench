@@ -48,6 +48,10 @@ namespace caret {
         static void draw(void* openglContextPointer,
                          GraphicsPrimitive* primitive);
         
+        static void drawWithOverrideColor(void* openglContextPointer,
+                                          GraphicsPrimitive* primitive,
+                                          const float solidColorOverrideRGBA[4]);
+        
         const void* getOpenGLContextPointer() const;
         
         // ADD_NEW_METHODS_HERE
@@ -58,6 +62,11 @@ namespace caret {
         GraphicsEngineDataOpenGL& operator=(const GraphicsEngineDataOpenGL&);
         
         void deleteBufferObjectHelper(GraphicsOpenGLBufferObject* &bufferObject);
+        
+        static void drawPrivate(void* openglContextPointer,
+                                GraphicsPrimitive* primitive,
+                                const float solidColorOverrideRGBA[4],
+                                const bool solidColorOverrideValid);
         
         const void* m_openglContextPointer;
         
