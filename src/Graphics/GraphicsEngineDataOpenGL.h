@@ -33,6 +33,7 @@ namespace caret {
 
     class GraphicsOpenGLBufferObject;
     class GraphicsPrimitive;
+    class GraphicsPrimitiveSelectionHelper;
     
     class GraphicsEngineDataOpenGL : public GraphicsEngineData {
         
@@ -48,6 +49,13 @@ namespace caret {
         static void draw(void* openglContextPointer,
                          GraphicsPrimitive* primitive);
         
+        static void drawWithSelection(void* openglContextPointer,
+                                      GraphicsPrimitive* primitive,
+                                      const int32_t pixelX,
+                                      const int32_t pixelY,
+                                      int32_t& selectedPrimitiveIndexOut,
+                                      float&   selectedPrimitiveDepthOut);
+        
         static void drawWithOverrideColor(void* openglContextPointer,
                                           GraphicsPrimitive* primitive,
                                           const float solidColorOverrideRGBA[4]);
@@ -57,16 +65,23 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        enum class PrivateDrawMode {
+            DRAW_COLOR_SOLID,
+            DRAW_NORMAL,
+            DRAW_SELECTION
+        };
+        
         GraphicsEngineDataOpenGL(const GraphicsEngineDataOpenGL&);
 
         GraphicsEngineDataOpenGL& operator=(const GraphicsEngineDataOpenGL&);
         
         void deleteBufferObjectHelper(GraphicsOpenGLBufferObject* &bufferObject);
         
-        static void drawPrivate(void* openglContextPointer,
+        static void drawPrivate(const PrivateDrawMode drawMode,
+                                void* openglContextPointer,
                                 GraphicsPrimitive* primitive,
-                                const float solidColorOverrideRGBA[4],
-                                const bool solidColorOverrideValid);
+                                GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper,
+                                const float solidColorRGBA[4]);
         
         const void* m_openglContextPointer;
         

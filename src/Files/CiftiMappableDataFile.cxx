@@ -1503,6 +1503,20 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                 m_matrixGraphicsPrimitive->reserveForNumberOfVertices(numberOfCells * 4);  // QUADS
                 m_matrixGraphicsPrimitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
                 
+                /*
+                 * NOTE: All matrix cells receive coloring, event those that are
+                 * not displayed due to the triangular view selection.
+                 * The reason is that it greatly simplifies identification as
+                 * one can derive the row and column from the primitive index.
+                 * Using quads also simplifies identification.  Lastly, since
+                 * OpenGL buffers are used, drawing is very fast.
+                 */
+                
+                /*
+                 * Alpha zero for cells that are "not drawn"
+                 */
+                const float cellNotDrawRGBA[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+                
                 int32_t rgbaOffset = 0;
                 const float cellHeight = 1.0;
                 const float cellWidth = 1.0;
@@ -1575,6 +1589,12 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                             m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
                             m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
                             m_matrixGraphicsPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
+                        }
+                        else {
+                            m_matrixGraphicsPrimitive->addVertex(cellX, cellY, 0.0, cellNotDrawRGBA);
+                            m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellNotDrawRGBA);
+                            m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellNotDrawRGBA);
+                            m_matrixGraphicsPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellNotDrawRGBA);
                         }
                         
                         cellX += cellWidth;

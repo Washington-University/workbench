@@ -29,6 +29,7 @@
 #include "EventManager.h"
 #include "GraphicsOpenGLBufferObject.h"
 #include "GraphicsPrimitive.h"
+#include "GraphicsPrimitiveSelectionHelper.h"
 
 using namespace caret;
 
@@ -232,12 +233,95 @@ void
 GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
                                GraphicsPrimitive* primitive)
 {
-    const float dummyRGBA[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    drawPrivate(openglContextPointer,
+    float dummyRGBA[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    drawPrivate(PrivateDrawMode::DRAW_NORMAL,
+                openglContextPointer,
                 primitive,
-                dummyRGBA,
-                false);
+                NULL,
+                dummyRGBA);
 }
+
+void
+GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
+                                            GraphicsPrimitive* primitive,
+                                            const int32_t pixelX,
+                                            const int32_t pixelY,
+                                            int32_t& selectedPrimitiveIndexOut,
+                                            float&   selectedPrimitiveDepthOut)
+{
+    CaretAssert(primitive);
+    
+    selectedPrimitiveIndexOut = -1;
+    selectedPrimitiveDepthOut = 0.0;
+
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    if ((pixelX    >= viewport[0])
+        && (pixelX <  viewport[2])
+        && (pixelY >= viewport[1])
+        && (pixelY <  viewport[3])) {
+        /*
+         * Saves glPixelStore parameters
+         */
+        glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+        glPushAttrib(GL_LIGHTING_BIT);
+        
+        glShadeModel(GL_FLAT);
+        glDisable(GL_LIGHTING);
+        
+        float dummyRGBA[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        GraphicsPrimitiveSelectionHelper selectionHelper(primitive);
+        selectionHelper.setupSelectionBeforeDrawing();
+        drawPrivate(PrivateDrawMode::DRAW_SELECTION,
+                    openglContextPointer,
+                    primitive,
+                    &selectionHelper,
+                    dummyRGBA);
+        
+        /*
+         * QOpenGLWidget Note: The QOpenGLWidget always renders in a
+         * frame buffer object (see its documentation).  This is
+         * probably why calls to glReadBuffer() always cause an
+         * OpenGL error.
+         */
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+        /* do not call glReadBuffer() */
+#else
+        glReadBuffer(GL_BACK);
+#endif
+        uint8_t pixelRGBA[4];
+
+        glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+        glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1); // bytes
+        glReadPixels(pixelX,
+                     pixelY,
+                     1,
+                     1,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     pixelRGBA);
+        
+        /*
+         * Get depth from depth buffer
+         */
+        glPixelStorei(GL_PACK_ALIGNMENT, 4); // float
+        glReadPixels(pixelX,
+                     pixelY,
+                     1,
+                     1,
+                     GL_DEPTH_COMPONENT,
+                     GL_FLOAT,
+                     &selectedPrimitiveDepthOut);
+        
+        glPopAttrib();
+        glPopClientAttrib();
+        
+        selectedPrimitiveIndexOut = selectionHelper.getPrimitiveIndexFromEncodedRGBA(pixelRGBA);
+    }
+}
+
 
 /**
  * Draw the given graphics primitive.
@@ -254,30 +338,33 @@ GraphicsEngineDataOpenGL::drawWithOverrideColor(void* openglContextPointer,
                                                 GraphicsPrimitive* primitive,
                                                 const float solidColorOverrideRGBA[4])
 {
-    drawPrivate(openglContextPointer,
+    drawPrivate(PrivateDrawMode::DRAW_COLOR_SOLID,
+                openglContextPointer,
                 primitive,
-                solidColorOverrideRGBA,
-                true);
+                NULL,
+                solidColorOverrideRGBA);
 }
-
 
 /**
  * Draw the graphics primitive.
  *
+ * @param drawMode
+ *     Mode for drawing.
  * @param openglContextPointer
  *     Pointer to the active OpenGL context.
  * @param primitive
  *     Primitive that is drawn.
- * @param solidColorOverrideRGBA
- *     RGBA for overriding primitive's internal color data.
- * @param solidColorOverrideValid
- *     If true, color with the override color instead of the internal color.
+ * @param primitiveSelectionHelper
+ *     Selection helper when draw mode is selection.
+ * @param solidColorRGBA
+ *     Color for solid color mode.
  */
 void
-GraphicsEngineDataOpenGL::drawPrivate(void* openglContextPointer,
+GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
+                                      void* openglContextPointer,
                                       GraphicsPrimitive* primitive,
-                                      const float solidColorOverrideRGBA[4],
-                                      const bool solidColorOverrideValid)
+                                      GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper,
+                                      const float solidColorRGBA[4])
 {
     CaretAssert(openglContextPointer);
     CaretAssert(primitive);
@@ -334,43 +421,75 @@ GraphicsEngineDataOpenGL::drawPrivate(void* openglContextPointer,
     /*
      * Setup colors for drawing
      */
-    GLuint overrideColorBufferName = 0;
-    if (solidColorOverrideValid) {
-        const int32_t numberOfVertices = primitive->m_xyz.size() / 3;
-        if (numberOfVertices > 0) {
-            glGenBuffers(1, &overrideColorBufferName);
-            CaretAssert(overrideColorBufferName > 0);
-            
-            const GLint  componentsPerColor = 4;
-            const GLenum colorDataType = GL_FLOAT;
-            
-            
-            std::vector<float> colorRGBA(numberOfVertices * componentsPerColor);
-            for (int32_t i = 0; i < numberOfVertices; i++) {
-                const int32_t i4 = i * 4;
-                CaretAssertVectorIndex(colorRGBA, i4 + 3);
-                colorRGBA[i4]   = solidColorOverrideRGBA[0];
-                colorRGBA[i4+1] = solidColorOverrideRGBA[1];
-                colorRGBA[i4+2] = solidColorOverrideRGBA[2];
-                colorRGBA[i4+3] = solidColorOverrideRGBA[3];
+    GLuint localColorBufferName = 0;
+    switch (drawMode) {
+        case PrivateDrawMode::DRAW_COLOR_SOLID:
+        {
+            const int32_t numberOfVertices = primitive->m_xyz.size() / 3;
+            if (numberOfVertices > 0) {
+                glGenBuffers(1, &localColorBufferName);
+                CaretAssert(localColorBufferName > 0);
+                
+                const GLint  componentsPerColor = 4;
+                const GLenum colorDataType = GL_FLOAT;
+                
+                
+                std::vector<float> colorRGBA(numberOfVertices * componentsPerColor);
+                for (int32_t i = 0; i < numberOfVertices; i++) {
+                    const int32_t i4 = i * 4;
+                    CaretAssertVectorIndex(colorRGBA, i4 + 3);
+                    colorRGBA[i4]   = solidColorRGBA[0];
+                    colorRGBA[i4+1] = solidColorRGBA[1];
+                    colorRGBA[i4+2] = solidColorRGBA[2];
+                    colorRGBA[i4+3] = solidColorRGBA[3];
+                }
+                
+                const GLuint colorSizeBytes = colorRGBA.size() * sizeof(float);
+                const GLvoid* colorDataPointer = (const GLvoid*)&colorRGBA[0];
+                glBindBuffer(GL_ARRAY_BUFFER,
+                             localColorBufferName);
+                glBufferData(GL_ARRAY_BUFFER,
+                             colorSizeBytes,
+                             colorDataPointer,
+                             GL_STREAM_DRAW);
+                glEnableClientState(GL_COLOR_ARRAY);
+                glColorPointer(componentsPerColor, colorDataType, 0, (GLvoid*)0);
             }
-            
-            const GLuint colorSizeBytes = colorRGBA.size() * sizeof(float);
-            const GLvoid* colorDataPointer = (const GLvoid*)&colorRGBA[0];
-            glBindBuffer(GL_ARRAY_BUFFER,
-                         overrideColorBufferName);
-            glBufferData(GL_ARRAY_BUFFER,
-                         colorSizeBytes,
-                         colorDataPointer,
-                         GL_STREAM_DRAW);
-            glEnableClientState(GL_COLOR_ARRAY);
-            glColorPointer(componentsPerColor, colorDataType, 0, (GLvoid*)0);
         }
-    }
-    else {
-        glEnableClientState(GL_COLOR_ARRAY);
-        glBindBuffer(GL_ARRAY_BUFFER, openglData->m_colorBufferObject->getBufferObjectName());
-        glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
+            break;
+        case PrivateDrawMode::DRAW_NORMAL:
+        {
+            glEnableClientState(GL_COLOR_ARRAY);
+            glBindBuffer(GL_ARRAY_BUFFER, openglData->m_colorBufferObject->getBufferObjectName());
+            glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
+        }
+            break;
+        case PrivateDrawMode::DRAW_SELECTION:
+        {
+            const int32_t numberOfVertices = primitive->m_xyz.size() / 3;
+            if (numberOfVertices > 0) {
+                glGenBuffers(1, &localColorBufferName);
+                CaretAssert(localColorBufferName > 0);
+                
+                const GLint  componentsPerColor = 4;
+                const GLenum colorDataType = GL_UNSIGNED_BYTE;
+                
+                const std::vector<uint8_t> selectionRGBA = primitiveSelectionHelper->getSelectionEncodedRGBA();
+                CaretAssert((selectionRGBA.size() / 4) == numberOfVertices);
+                
+                const GLuint colorSizeBytes = selectionRGBA.size() * sizeof(GLubyte);
+                const GLvoid* colorDataPointer = (const GLvoid*)&selectionRGBA[0];
+                glBindBuffer(GL_ARRAY_BUFFER,
+                             localColorBufferName);
+                glBufferData(GL_ARRAY_BUFFER,
+                             colorSizeBytes,
+                             colorDataPointer,
+                             GL_STREAM_DRAW);
+                glEnableClientState(GL_COLOR_ARRAY);
+                glColorPointer(componentsPerColor, colorDataType, 0, (GLvoid*)0);
+            }
+        }
+            break;
     }
     
     /*
@@ -428,8 +547,8 @@ GraphicsEngineDataOpenGL::drawPrivate(void* openglContextPointer,
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     
-    if (overrideColorBufferName > 0) {
-        glDeleteBuffers(1, &overrideColorBufferName);
+    if (localColorBufferName > 0) {
+        glDeleteBuffers(1, &localColorBufferName);
     }
 }
 

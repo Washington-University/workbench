@@ -202,6 +202,11 @@ namespace caret {
         inline ColorType  getColorType() const { return m_colorType; }
         
         /**
+         * @return Type of primitive.
+         */
+        inline PrimitiveType getPrimitiveType() const { return m_primitiveType; }
+        
+        /**
          * @return The float coordinates.
          */
         const std::vector<float>& getFloatXYZ() const { return m_xyz; }
@@ -246,6 +251,7 @@ namespace caret {
         void copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj);
 
         friend class GraphicsEngineDataOpenGL;
+        friend class GraphicsPrimitiveSelectionHelper;
         
         // ADD_NEW_MEMBERS_HERE
 

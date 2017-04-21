@@ -39,6 +39,7 @@ GraphicsEngineData.h
 GraphicsEngineDataOpenGL.h
 GraphicsOpenGLBufferObject.h
 GraphicsPrimitive.h
+GraphicsPrimitiveSelectionHelper.h
 GraphicsPrimitiveV3f.h
 GraphicsPrimitiveV3fC4f.h
 GraphicsPrimitiveV3fC4ub.h
@@ -49,6 +50,7 @@ GraphicsEngineData.cxx
 GraphicsEngineDataOpenGL.cxx
 GraphicsOpenGLBufferObject.cxx
 GraphicsPrimitive.cxx
+GraphicsPrimitiveSelectionHelper.cxx
 GraphicsPrimitiveV3f.cxx
 GraphicsPrimitiveV3fC4f.cxx
 GraphicsPrimitiveV3fC4ub.cxx
