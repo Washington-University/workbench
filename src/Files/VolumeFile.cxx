@@ -223,6 +223,13 @@ void VolumeFile::readFile(const AString& filename)
         NiftiIO myIO;//begin nifti specific code - should this go somewhere else?
         myIO.openRead(fileToRead);
         const NiftiHeader& inHeader = myIO.getHeader();
+        for (int i = 0; i < (int)inHeader.m_extensions.size(); ++i)
+        {//check for actually being cifti
+            if (inHeader.m_extensions[i]->m_ecode == NIFTI_ECODE_CIFTI)
+            {
+                throw DataFileException(filename, "Cifti files cannot be used as volume files");
+            }
+        }
         int numComponents = myIO.getNumComponents();
         vector<int64_t> myDims = myIO.getDimensions();
         int fullDims = 3;//deal with nifti with less than 3 dimensions
@@ -233,8 +240,20 @@ void VolumeFile::readFile(const AString& filename)
             extraDims = vector<int64_t>(myDims.begin() + 3, myDims.end());
         }
         while (myDims.size() < 3) myDims.push_back(1);//pretend we have 3 dimensions in header, always, things that use getOriginalDimensions assume this (because "VolumeFile")
+        if (myDims.size() > 3)
+        {//check for cifti-like dimensions here, so that we have the filename to report in the error
+            int64_t numFrames = myDims[3];
+            for (int i = 4; i < (int)myDims.size(); ++i)
+            {
+                numFrames *= myDims[i];
+            }
+            if (myDims[0] == 1 && myDims[1] == 1 && myDims[2] == 1 && numFrames > 10000)
+            {
+                throw DataFileException(filename, "volume FOV is 1x1x1 voxel, with over 10,000 frames, which suggests a broken cifti file (no header extension)");
+            }
+        }//this check is also done in reinitialize(), but we don't want to call getSForm before this check when reading a file
         reinitialize(myDims, inHeader.getSForm(), numComponents);
-        setFileName(filename);  // must be donw after reinitialize() since it calls clear() which clears the name of the file
+        setFileName(filename);  // must be done after reinitialize() since it calls clear() which clears the name of the file
         int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
         if (numComponents != 1)
         {
