@@ -599,17 +599,21 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
     AString commandSwitch;
     commandSwitch = fixUnicode(parameters.nextString("Command Name"), false);
     
+    //hardcode program name, instead of taking it from the parameters, so that it doesn't include path or show wrapper script details
+    const AString myProgramName = "wb_command";
     if (commandSwitch == "-help")
     {
         printHelpInfo();
     } else if (commandSwitch == "-arguments-help") {
-        printArgumentsHelp("wb_command");
+        printArgumentsHelp(myProgramName);
     } else if (commandSwitch == "-global-options") {
         printGlobalOptions();
     } else if (commandSwitch == "-cifti-help") {
-        printCiftiHelp("wb_command");
+        printCiftiHelp();
     } else if (commandSwitch == "-gifti-help") {
-        printGiftiHelp("wb_command");
+        printGiftiHelp();
+    } else if (commandSwitch == "-parallel-help") {
+        printParallelHelp(myProgramName);
     } else if (commandSwitch == "-version") {
         printVersionInfo();
     } else if (commandSwitch == "-list-commands") {
@@ -617,7 +621,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
     } else if (commandSwitch == "-list-deprecated-commands") {
         printDeprecatedCommands();
     } else if (commandSwitch == "-all-commands-help") {
-        printAllCommandsHelpInfo("wb_command");
+        printAllCommandsHelpInfo(myProgramName);
     } else {
         
         CommandOperation* operation = NULL;
@@ -652,7 +656,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
         } else {
             if (!parameters.hasNext() && operation->takesParameters())
             {
-                cout << operation->getHelpInformation("wb_command") << endl;
+                cout << operation->getHelpInformation(myProgramName) << endl;
             } else {
                 if (ciftiScale)
                 {
@@ -959,6 +963,7 @@ void CommandOperationManager::printHelpInfo()
     cout << "   -help                       show this help info" << endl;
     cout << "   -arguments-help             explain the format of subcommand help info" << endl;
     cout << "   -global-options             display options that can be added to any command" << endl;
+    cout << "   -parallel-help              details on how wb_command uses parallelization" << endl;
     cout << "   -cifti-help                 explain the cifti file format and related terms" << endl;
     cout << "   -gifti-help                 explain the gifti file format (metric, surface)" << endl;
     cout << "   -version                    show extended version information" << endl;
@@ -1090,7 +1095,7 @@ void CommandOperationManager::printGlobalOptions()
     cout << endl;
 }
 
-void CommandOperationManager::printCiftiHelp(const AString& /*programName*/)
+void CommandOperationManager::printCiftiHelp()
 {
     //guide for wrap, assuming 80 columns:                                                  |
     cout << "   The CIFTI format is a new data file format intended to make it easier to" << endl;
@@ -1154,7 +1159,7 @@ void CommandOperationManager::printCiftiHelp(const AString& /*programName*/)
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
 }
 
-void CommandOperationManager::printGiftiHelp(const AString& /*programName*/)
+void CommandOperationManager::printGiftiHelp()
 {
     //guide for wrap, assuming 80 columns:                                                  |
     cout << "   The GIFTI format is an established data file format intended for use with" << endl;
@@ -1175,6 +1180,32 @@ void CommandOperationManager::printGiftiHelp(const AString& /*programName*/)
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   For the full details of the GIFTI format, see" << endl;
     cout << "      http://www.nitrc.org/projects/gifti/" << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+}
+
+void CommandOperationManager::printParallelHelp(const AString& programName)
+{
+    //guide for wrap, assuming 80 columns:                                                  |
+    cout << "   Many processing commands make use of multithreading so that scripts can" << endl;
+    cout << "   finish more quickly.  By default, these commands will use all available" << endl;
+    cout << "   cores on the system.  Because we use OpenMP for the parallelization, this" << endl;
+    cout << "   behavior can be controlled through various environment variables.  In" << endl;
+    cout << "   particular, 'OMP_NUM_THREADS' will set the maximum number of threads it will" << endl;
+    cout << "   use, when exported as an environment variable.  Additionally, some shells," << endl;
+    cout << "   such as bash, have syntax that allows you to set an environment variable for" << endl;
+    cout << "   a single command or script, for instance:" << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+    cout << "$ OMP_NUM_THREADS=4 "<< programName << " -volume-smoothing input.nii.gz 4 output.nii.gz" << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+    cout << "   If you have a multi-socket system, be aware that the parallelization can be" << endl;
+    cout << "   much slower when threads are on different sockets, and this interacts badly" << endl;
+    cout << "   with the default behavior of using all available cores.  It is advisable to" << endl;
+    cout << "   use other tools to restrict the entire script to execute on a single socket," << endl;
+    cout << "   especially if a queueing system is involved." << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+    cout << "   Also note that wb_view contains a few features that use multithreading," << endl;
+    cout << "   which can be controlled by setting the same environment variables before" << endl;
+    cout << "   launching wb_view (dynamic connectivity, border optimize)." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
 }
 
