@@ -262,15 +262,15 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
         {
             for (int whichStruct = 0; whichStruct < (int)thisVolStructs.size(); ++whichStruct)
             {
-                vector<StructureEnum::Enum>::const_iterator iter = std::find(volStructures.begin(), volStructures.end(), thisSurfStructs[whichStruct]);
+                vector<StructureEnum::Enum>::const_iterator iter = std::find(volStructures.begin(), volStructures.end(), thisVolStructs[whichStruct]);
                 if (iter == volStructures.end())
                 {
-                    cout << ("discarding volume structure " + StructureEnum::toName(thisSurfStructs[whichStruct]) + " from file '" + thisCifti->getFileName() + "'") << endl;
+                    cout << ("discarding volume structure " + StructureEnum::toName(thisVolStructs[whichStruct]) + " from file '" + thisCifti->getFileName() + "'") << endl;
                 } else {
                     int outIndex = (int)(iter - volStructures.begin());
                     if (volInfo[outIndex].type != NONE)
                     {
-                        throw OperationException("cifti file '" + thisCifti->getFileName() + "' contains data for structure " + StructureEnum::toName(thisSurfStructs[whichStruct]) +
+                        throw OperationException("cifti file '" + thisCifti->getFileName() + "' contains data for structure " + StructureEnum::toName(thisVolStructs[whichStruct]) +
                                                 ", but data for this structure also exists in an another option's file");
                     }
                     volInfo[outIndex].type = CIFTI;
@@ -283,9 +283,10 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
                 cout << ("discarding volume structures from file '" + thisCifti->getFileName() + "'") << endl;
             }
         }
-        if (ciftiNameFile == NULL && (isLabel || thisXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS))
+        if (ciftiNameFile == NULL && (isLabel || thisXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS ||
+                                      thisXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::PARCELS))
         {
-            ciftiNameFile = thisCifti;//cifti trumps everything, if it has scalar or label
+            ciftiNameFile = thisCifti;//cifti trumps everything, if it has scalar or label or parcels
         }
     }
     const vector<ParameterComponent*>& metricInstances = *(myParams->getRepeatableParameterInstances(6));
@@ -477,10 +478,12 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
                     outMap.setMapName(i, nameMap.getIndexName(i));
                 }
             } else {
-                CaretAssert(nameFile != NULL);
-                for (int64_t i = 0; i < numMaps; ++i)
+                if (nameFile != NULL)//if only input is cifti dtseries, there are no names to use
                 {
-                    outMap.setMapName(i, nameFile->getMapName(i));
+                    for (int64_t i = 0; i < numMaps; ++i)
+                    {
+                        outMap.setMapName(i, nameFile->getMapName(i));
+                    }
                 }
             }
             outXML.setMap(CiftiXML::ALONG_ROW, outMap);
@@ -495,10 +498,12 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
                     outMap.setMapName(i, nameMap.getIndexName(i));
                 }
             } else {
-                CaretAssert(nameFile != NULL);
-                for (int64_t i = 0; i < numMaps; ++i)
+                if (nameFile != NULL)
                 {
-                    outMap.setMapName(i, nameFile->getMapName(i));
+                    for (int64_t i = 0; i < numMaps; ++i)
+                    {
+                        outMap.setMapName(i, nameFile->getMapName(i));
+                    }
                 }
             }
             outXML.setMap(CiftiXML::ALONG_ROW, outMap);
