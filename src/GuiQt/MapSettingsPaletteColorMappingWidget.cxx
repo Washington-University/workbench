@@ -363,8 +363,7 @@ MapSettingsPaletteColorMappingWidget::updateAfterThresholdValuesChanged(const fl
     this->paletteColorMapping->setThresholdMinimum(threshType, lowThreshold);
     this->paletteColorMapping->setThresholdMaximum(threshType, highThreshold);
     updateThresholdSection();
-    updateHistogramPlot();
-    updateColoringAndGraphics();
+    this->applySelections();
 }
 
 /**
@@ -2148,6 +2147,8 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
                 pcm->copy(*this->paletteColorMapping);
             }
         }
+        PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+        this->caretMappableDataFile->updateScalarColoringForAllMaps(paletteFile);
     }
     
     this->updateHistogramPlot();
