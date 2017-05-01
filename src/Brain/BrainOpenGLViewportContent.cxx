@@ -918,7 +918,7 @@ BrainOpenGLViewportContent::getSliceAllViewViewport(const int32_t tabViewport[4]
                     viewportOut[0] = tabViewportX;
                     viewportOut[1] = tabViewportY + (vpOffsetY * 2);
                     viewportOut[2] = vpWidth;
-                    viewportOut[3] = (tabViewportHeight - viewportOut[1]);
+                    viewportOut[3] = vpHeight;
                     break;
             }
         }
@@ -939,20 +939,20 @@ BrainOpenGLViewportContent::getSliceAllViewViewport(const int32_t tabViewport[4]
                 case VolumeSliceViewPlaneEnum::AXIAL:
                     viewportOut[0] = tabViewportX + vpOffsetX;
                     viewportOut[1] = tabViewportY;
-                    viewportOut[2] = (tabViewportWidth  - viewportOut[0]);
+                    viewportOut[2] = vpWidth;
                     viewportOut[3] = vpHeight;
                     break;
                 case VolumeSliceViewPlaneEnum::CORONAL:
                     viewportOut[0] = tabViewportX + vpOffsetX;
                     viewportOut[1] = tabViewportY + vpOffsetY;
-                    viewportOut[2] = (tabViewportWidth  - viewportOut[0]);
-                    viewportOut[3] = (tabViewportHeight - viewportOut[1]);
+                    viewportOut[2] = vpWidth;
+                    viewportOut[3] = vpHeight;
                     break;
                 case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                     viewportOut[0] = tabViewportX;
                     viewportOut[1] = tabViewportY + vpOffsetY;
                     viewportOut[2] = vpWidth;
-                    viewportOut[3] = (tabViewportHeight - viewportOut[1]);
+                    viewportOut[3] = vpHeight;
                     break;
             }
         }
@@ -973,7 +973,7 @@ BrainOpenGLViewportContent::getSliceAllViewViewport(const int32_t tabViewport[4]
                 case VolumeSliceViewPlaneEnum::AXIAL:
                     viewportOut[0] = tabViewportX + (vpOffsetX * 2);
                     viewportOut[1] = tabViewportY;
-                    viewportOut[2] = (tabViewportWidth - viewportOut[0]);
+                    viewportOut[2] = vpWidth;
                     viewportOut[3] = vpHeight;
                     break;
                 case VolumeSliceViewPlaneEnum::CORONAL:
