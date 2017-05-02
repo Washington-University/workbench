@@ -26,6 +26,7 @@
 #include <QComboBox>
 
 #include "BrainStructure.h"
+#include "FileInformation.h"
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
 #include "WuQEventBlockingFilter.h"
@@ -176,9 +177,24 @@ SurfaceSelectionViewController::updateControl(SurfaceSelectionModel* selectionMo
         }
     }
     
+    AString toolTipText;
     if (numSurfaces > 0) {
         this->surfaceComboBox->setCurrentIndex(selectedIndex);
+        
+        /*
+         * ToolTip contains file and path
+         */
+        CaretAssertVectorIndex(surfaces, selectedIndex);
+        const Surface* s = surfaces[selectedIndex];
+        if (s != NULL) {
+            FileInformation fileInfo(s->getFileName());
+            toolTipText = ("Name: "
+                           + fileInfo.getFileName()
+                           + "\nPath: "
+                           + fileInfo.getPathName());
+        }
     }
+    this->surfaceComboBox->setToolTip(toolTipText);
     
     this->surfaceComboBox->blockSignals(false);
     
