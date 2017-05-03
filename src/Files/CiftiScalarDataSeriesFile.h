@@ -35,8 +35,7 @@ namespace caret {
     class CiftiScalarDataSeriesFile :
     public CiftiMappableDataFile,
     public ChartableLineSeriesRowColumnInterface,
-    public ChartableMatrixSeriesInterface,
-    public EventListenerInterface {
+    public ChartableMatrixSeriesInterface {
         
     public:
         CiftiScalarDataSeriesFile();

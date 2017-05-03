@@ -1031,17 +1031,22 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         CaretAssert(matrixProperties);
         
         if (matrixProperties->isGridLinesDisplayed()) {
+//            uint8_t gridLineColorBytes[4];
+//            m_preferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridLineColorBytes);
+//            float gridLineColorFloats[4];
+//            CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
+//                                                gridLineColorFloats);
+//            gridLineColorFloats[3] = 1.0;
+//            GraphicsEngineDataOpenGL::drawWithOverrideColor(m_fixedPipelineDrawing->getOpenGLContextPointer(),
+//                                                            matrixPrimitive,
+//                                                            gridLineColorFloats);
+            
             glPolygonMode(GL_FRONT,
                           GL_LINE);
-            uint8_t gridLineColorBytes[4];
-            m_preferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridLineColorBytes);
-            float gridLineColorFloats[4];
-            CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
-                                                gridLineColorFloats);
-            gridLineColorFloats[3] = 1.0;
-            GraphicsEngineDataOpenGL::drawWithOverrideColor(m_fixedPipelineDrawing->getOpenGLContextPointer(),
-                                                            matrixPrimitive,
-                                                            gridLineColorFloats);
+            
+            GraphicsEngineDataOpenGL::drawWithAlternativeColor(m_fixedPipelineDrawing->getOpenGLContextPointer(),
+                                                               matrixPrimitive,
+                                                               matrixChart->getMatrixChartGraphicsPrimitiveGridColorIdentifier());
             glPolygonMode(GL_FRONT,
                           GL_FILL);
         }

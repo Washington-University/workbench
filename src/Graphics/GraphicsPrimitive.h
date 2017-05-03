@@ -186,6 +186,8 @@ namespace caret {
         
         bool isValid() const;
         
+        bool isAlternativeColoringValid(const int32_t identifier) const;
+        
         /**
          * @return Type of the vertices.
          */
@@ -227,6 +229,20 @@ namespace caret {
     protected:
         AString toStringPrivate(const bool includeAllDataFlag) const;
         
+        void setAlternativeFloatRGBAProtected(const int32_t identifier,
+                                              const std::vector<float>& rgbaFloat);
+        
+        void setAlternativeUnsignedByteRGBAProtected(const int32_t identifier,
+                                                     const std::vector<uint8_t>& rgbaByte);
+        
+        const std::vector<float>& getAlternativeFloatRGBAProtected(const int32_t identifier) const;
+        
+        const std::vector<uint8_t>& getAlternativeUnsignedByteRGBAProtected(const int32_t identifier) const;
+        
+        bool isAlternativeFloatRGBAValidProtected(const int32_t identifier) const;
+        
+        bool isAlternativeUnsignedByteRGBAValidProtected(const int32_t identifier) const;
+        
         const VertexType  m_vertexType;
         
         const NormalVectorType m_normalVectorType;
@@ -247,11 +263,19 @@ namespace caret {
         
         std::vector<uint8_t> m_unsignedByteRGBA;
         
+        std::map<int32_t, std::vector<float>> m_alternativeFloatRGBA;
+        
+        std::map<int32_t, std::vector<uint8_t>> m_alternativeUnsignedByteRGBA;
+        
     private:
         void copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj);
 
         friend class GraphicsEngineDataOpenGL;
         friend class GraphicsPrimitiveSelectionHelper;
+        
+        std::vector<float> m_dummyFloatRGBAVector;
+        
+        std::vector<uint8_t> m_dummyUnsignedByteRGBAVector;
         
         // ADD_NEW_MEMBERS_HERE
 

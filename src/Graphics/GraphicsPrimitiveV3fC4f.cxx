@@ -144,6 +144,23 @@ GraphicsPrimitiveV3fC4f::addVertex(const float x,
 }
 
 /**
+ * Set alternative RGBA coloring with float data.
+ *
+ * @param identifier
+ *     Any integer value used to identify the alternative coloring.
+ * @param rgbaFloat
+ *     The alternative coloring that must contain the correct number of
+ *     RGBA components for the primitive's number of vertices.
+ */
+void
+GraphicsPrimitiveV3fC4f::setAlternativeFloatRGBA(const int32_t identifier,
+                                                  const std::vector<float>& rgbaFloat)
+{
+    setAlternativeFloatRGBAProtected(identifier,
+                                     rgbaFloat);
+}
+
+/**
  * Clone this primitive.
  */
 GraphicsPrimitive*

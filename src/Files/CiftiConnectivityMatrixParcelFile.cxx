@@ -59,8 +59,7 @@ using namespace caret;
  */
 CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
 : CiftiMappableConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_PARCEL),
-ChartableMatrixParcelInterface(),
-EventListenerInterface()
+ChartableMatrixParcelInterface()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
@@ -170,6 +169,8 @@ CiftiConnectivityMatrixParcelFile::receiveEvent(Event* event)
             }
         }
     }
+    
+    CiftiMappableConnectivityMatrixDataFile::receiveEvent(event);
 }
 
 /**

@@ -122,6 +122,23 @@ GraphicsPrimitiveV3fC4ub::addVertex(const float x,
 }
 
 /**
+ * Set alternative RGBA coloring with unsigned byte data.
+ *
+ * @param identifier
+ *     Any integer value used to identify the alternative coloring.
+ * @param rgbaUnsignedByte
+ *     The alternative coloring that must contain the correct number of
+ *     RGBA components for the primitive's number of vertices.
+ */
+void
+GraphicsPrimitiveV3fC4ub::setAlternativeUnsignedByteRGBA(const int32_t identifier,
+                                                         const std::vector<uint8_t>& rgbaUnsignedByte)
+{
+    setAlternativeUnsignedByteRGBAProtected(identifier,
+                                            rgbaUnsignedByte);
+}
+
+/**
  * Clone this primitive.
  */
 GraphicsPrimitive*

@@ -28,6 +28,7 @@
 #include "CiftiMappingType.h"
 #include "CiftiXMLElements.h"
 #include "DisplayGroupEnum.h"
+#include "EventListenerInterface.h"
 #include "VolumeMappableInterface.h"
 
 #include <memory>
@@ -49,6 +50,7 @@ namespace caret {
     
     class CiftiMappableDataFile :
     public CaretMappableDataFile,
+    public EventListenerInterface,
     public VolumeMappableInterface {
         
     protected:
@@ -150,6 +152,8 @@ namespace caret {
                                                                      const StructureEnum::Enum structure,
                                                                      const int32_t numberOfNodes,
                                                                      AString& errorMessageOut);
+        
+        virtual void receiveEvent(Event* event);
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
@@ -484,6 +488,9 @@ namespace caret {
                                       std::vector<float>& rgbaOut) const;
         
         GraphicsPrimitiveV3fC4f* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode) const;
+        
+        /** Identifier for the matrix primitives alternative color used for the grid coloring */
+        int32_t getMatrixChartGraphicsPrimitiveGridColorIdentifier() const { return 1; }
         
         virtual void getFileData(std::vector<float>& data) const;
         

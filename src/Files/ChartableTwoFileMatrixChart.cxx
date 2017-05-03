@@ -414,6 +414,17 @@ ChartableTwoFileMatrixChart::getMatrixChartingGraphicsPrimitive(const ChartTwoMa
     return ciftiMapFile->getMatrixChartingGraphicsPrimitive(matrixViewMode);
 }
 
+/** 
+ * @return Identifier for the matrix primitives alternative color used for the grid coloring 
+ */
+int32_t
+ChartableTwoFileMatrixChart::getMatrixChartGraphicsPrimitiveGridColorIdentifier() const
+{
+    const CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
+    CaretAssert(ciftiMapFile);
+    
+    return ciftiMapFile->getMatrixChartGraphicsPrimitiveGridColorIdentifier();
+}
 
 /**
  * @return The selected row/column dimension.

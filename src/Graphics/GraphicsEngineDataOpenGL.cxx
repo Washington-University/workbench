@@ -93,20 +93,24 @@ GraphicsEngineDataOpenGL::deleteBuffers()
     deleteBufferObjectHelper(m_normalVectorBufferObject);
     
     deleteBufferObjectHelper(m_colorBufferObject);
+    
+    for (auto mapBuff: m_alternativeColorBufferObjectMap) {
+        deleteBufferObjectHelper(mapBuff.second);
+    }
+    m_alternativeColorBufferObjectMap.clear();
 }
 
-
 /**
- * Load the buffers with data from the grpahics primitive.
+ * Get the OpenGL Buffer Usage Hint from the primitive.
  *
  * @param primitive
- *     The graphics primitive that will be drawn.
+ *     The graphics primitive
+ * @return
+ *     The OpenGL Buffer Usage Hint.
  */
-void
-GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
+GLenum
+GraphicsEngineDataOpenGL::getOpeGLBufferUsageHint(const GraphicsPrimitive* primitive) const
 {
-    CaretAssert(primitive);
-    
     GLenum usageHint = GL_STREAM_DRAW;
     switch (primitive->getUsageType()) {
         case GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES:
@@ -119,6 +123,22 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             usageHint = GL_DYNAMIC_DRAW;
             break;
     }
+    
+    return usageHint;
+}
+
+/**
+ * Load the buffers with data from the grpahics primitive.
+ *
+ * @param primitive
+ *     The graphics primitive that will be drawn.
+ */
+void
+GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
+{
+    CaretAssert(primitive);
+    
+    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
     
     GLsizei coordinateCount = 0;
     switch (primitive->m_vertexType) {
@@ -222,6 +242,112 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
 }
 
 /**
+ * Load the buffer for the given alternative color identifier.  If the buffer
+ * was previously loaded, no action is taken.
+ *
+ * @param primitive
+ *     The graphics primitive that will be drawn.
+ * @param alternativeColorIdentifier
+ *     Identifier for the alternative color.
+ * @return
+ *     True if the alternative color buffer is valid for the given alternative 
+ *     color identifier so drawing can be performed.  Otherwise, false is returned.
+ */
+GraphicsOpenGLBufferObject*
+GraphicsEngineDataOpenGL::loadAlternativeColorBuffer(GraphicsPrimitive* primitive,
+                                                     const int32_t alternativeColorIdentifier)
+{
+    std::map<int32_t, GraphicsOpenGLBufferObject*>::iterator iter = m_alternativeColorBufferObjectMap.find(alternativeColorIdentifier);
+    if (iter != m_alternativeColorBufferObjectMap.end()) {
+        return iter->second;
+    }
+    
+    GraphicsOpenGLBufferObject* outputOpenGLBufferObject = NULL;
+    
+    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
+    
+    switch (primitive->m_colorType) {
+        case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+        {
+            const std::vector<float>& alternativeFloatRGBA = primitive->getAlternativeFloatRGBAProtected(alternativeColorIdentifier);
+            if ((alternativeFloatRGBA.size() / 4) != (primitive->m_xyz.size() / 3)) {
+                const AString msg("Number of alternative RGBA values is for "
+                                  + AString::number((alternativeFloatRGBA.size() / 4))
+                                  + " vertices but should be for "
+                                  + AString::number((primitive->m_xyz.size() / 3))
+                                  + " vertices.");
+                CaretAssertMessage(0, msg);
+                CaretLogSevere(msg);
+                return NULL;
+            }
+            
+            EventGraphicsOpenGLCreateBufferObject createEvent;
+            EventManager::get()->sendEvent(createEvent.getPointer());
+            GraphicsOpenGLBufferObject* bufferObject = createEvent.getOpenGLBufferObject();
+            CaretAssert(bufferObject->getBufferObjectName());
+            
+            m_componentsPerColor = 4;
+            m_colorDataType = GL_FLOAT;
+            
+            const GLuint colorSizeBytes = alternativeFloatRGBA.size() * sizeof(float);
+            const GLvoid* colorDataPointer = (const GLvoid*)&alternativeFloatRGBA[0];
+            
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         bufferObject->getBufferObjectName());
+            glBufferData(GL_ARRAY_BUFFER,
+                         colorSizeBytes,
+                         colorDataPointer,
+                         usageHint);
+            
+            m_alternativeColorBufferObjectMap.insert(std::make_pair(alternativeColorIdentifier,
+                                                                    bufferObject));
+            outputOpenGLBufferObject = bufferObject;
+        }
+            break;
+        case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+        {
+            const std::vector<uint8_t>& alternativeUnsignedByteRGBA = primitive->getAlternativeUnsignedByteRGBAProtected(alternativeColorIdentifier);
+            if ((alternativeUnsignedByteRGBA.size() / 4) != (primitive->m_xyz.size() / 3)) {
+                const AString msg("Number of alternative RGBA values is for "
+                                  + AString::number((alternativeUnsignedByteRGBA.size() / 4))
+                                  + " vertices but should be for "
+                                  + AString::number((primitive->m_xyz.size() / 3))
+                                  + " vertices.");
+                CaretAssertMessage(0, msg);
+                CaretLogSevere(msg);
+                return NULL;
+            }
+            
+            EventGraphicsOpenGLCreateBufferObject createEvent;
+            EventManager::get()->sendEvent(createEvent.getPointer());
+            GraphicsOpenGLBufferObject* bufferObject = createEvent.getOpenGLBufferObject();
+            CaretAssert(bufferObject->getBufferObjectName());
+            
+            m_componentsPerColor = 4;
+            m_colorDataType = GL_UNSIGNED_BYTE;
+            
+            const GLuint colorSizeBytes = alternativeUnsignedByteRGBA.size() * sizeof(uint8_t);
+            const GLvoid* colorDataPointer = (const GLvoid*)&alternativeUnsignedByteRGBA[0];
+            
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         bufferObject->getBufferObjectName());
+            glBufferData(GL_ARRAY_BUFFER,
+                         colorSizeBytes,
+                         colorDataPointer,
+                         usageHint);
+            
+            m_alternativeColorBufferObjectMap.insert(std::make_pair(alternativeColorIdentifier,
+                                                                    bufferObject));
+            outputOpenGLBufferObject = bufferObject;
+        }
+            break;
+    }
+    
+    return outputOpenGLBufferObject;
+}
+
+
+/**
  * Draw the given graphics primitive.
  *
  * @param openglContextPointer
@@ -238,9 +364,26 @@ GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
                 openglContextPointer,
                 primitive,
                 NULL,
+                -1,
                 dummyRGBA);
 }
 
+/**
+ * Draw to determine the index of primitive at the given (X, Y) location
+ *
+ * @param openglContextPointer
+ *     Pointer to the active OpenGL context.
+ * @param primitive
+ *     Primitive that is drawn.
+ * @param pixelX
+ *     X location for selection.
+ * @param pixelY
+ *     Y location for selection.
+ * @param selectedPrimitiveIndexOut
+ *     Output with the index of the primitive (invalid no primitve at location
+ * @param selectedPrimitiveDepthOut
+ *     Output with depth at the location.
+ */
 void
 GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
                                             GraphicsPrimitive* primitive,
@@ -277,6 +420,7 @@ GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
                     openglContextPointer,
                     primitive,
                     &selectionHelper,
+                    -1,
                     dummyRGBA);
         
         /*
@@ -324,7 +468,7 @@ GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
 
 
 /**
- * Draw the given graphics primitive.
+ * Draw the given graphics primitive using a solid color.
  *
  * @param openglContextPointer
  *     Pointer to the active OpenGL context.
@@ -342,8 +486,33 @@ GraphicsEngineDataOpenGL::drawWithOverrideColor(void* openglContextPointer,
                 openglContextPointer,
                 primitive,
                 NULL,
+                -1,
                 solidColorOverrideRGBA);
 }
+
+/**
+ * Draw the given graphics primitive using an alternative color.
+ *
+ * @param openglContextPointer
+ *     Pointer to the active OpenGL context.
+ * @param primitive
+ *     Primitive that is drawn.
+ * @param alternativeColorIdentifier
+ *     Identifier for the alternative color.
+ */
+void
+GraphicsEngineDataOpenGL::drawWithAlternativeColor(void* openglContextPointer,
+                                                   GraphicsPrimitive* primitive,
+                                                   const int32_t alternativeColorIdentifier)
+{
+    float dummyRGBA[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    drawPrivate(PrivateDrawMode::DRAW_COLOR_ALTERNATIVE,
+                openglContextPointer,
+                primitive, NULL,
+                alternativeColorIdentifier,
+                dummyRGBA);
+}
+
 
 /**
  * Draw the graphics primitive.
@@ -356,6 +525,8 @@ GraphicsEngineDataOpenGL::drawWithOverrideColor(void* openglContextPointer,
  *     Primitive that is drawn.
  * @param primitiveSelectionHelper
  *     Selection helper when draw mode is selection.
+ * @param alternativeColorIdentifier
+ *     Identifier for the alternative color.
  * @param solidColorRGBA
  *     Color for solid color mode.
  */
@@ -364,6 +535,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
                                       void* openglContextPointer,
                                       GraphicsPrimitive* primitive,
                                       GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper,
+                                      const int32_t alternativeColorIdentifier,
                                       const float solidColorRGBA[4])
 {
     CaretAssert(openglContextPointer);
@@ -372,6 +544,21 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         return;
     }
     
+    switch (drawMode) {
+        case PrivateDrawMode::DRAW_COLOR_ALTERNATIVE:
+            if ( ! primitive->isAlternativeColoringValid(alternativeColorIdentifier)) {
+                CaretLogSevere("Alternative coloring is invalid for index="
+                               + AString::number(alternativeColorIdentifier));
+                return;
+            }
+            break;
+        case PrivateDrawMode::DRAW_COLOR_SOLID:
+            break;
+        case PrivateDrawMode::DRAW_NORMAL:
+            break;
+        case PrivateDrawMode::DRAW_SELECTION:
+            break;
+    }
     
     GraphicsEngineDataOpenGL* openglData = primitive->getGraphicsEngineDataForOpenGL();
     if (openglData == NULL) {
@@ -392,13 +579,34 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     const GLuint coordBufferID = openglData->m_coordinateBufferObject->getBufferObjectName();
     CaretAssert(coordBufferID);
     if ( ! glIsBuffer(coordBufferID)) {
-        std::cout << "Coordinate buffer is INVALID" << std::endl;
+        CaretAssertMessage(0, "Coordinate buffer is INVALID");
+        CaretLogSevere("Coordinate buffer is INVALID");
+        return;
     }
     
+    GraphicsOpenGLBufferObject* alternativeColorBufferObject = NULL;
+    switch (drawMode) {
+        case PrivateDrawMode::DRAW_COLOR_ALTERNATIVE:
+            alternativeColorBufferObject = openglData->loadAlternativeColorBuffer(primitive,
+                                                                                  alternativeColorIdentifier);
+            if (alternativeColorBufferObject == NULL) {
+                CaretAssertMessage(0, "Coordinate buffer is INVALID");
+                CaretLogSevere("Coordinate buffer is INVALID");
+                return;
+            }
+            break;
+        case PrivateDrawMode::DRAW_COLOR_SOLID:
+            break;
+        case PrivateDrawMode::DRAW_NORMAL:
+            break;
+        case PrivateDrawMode::DRAW_SELECTION:
+            break;
+    }
     /*
      * Setup vertices for drawing
      */
     glEnableClientState(GL_VERTEX_ARRAY);
+    CaretAssert(glIsBuffer(coordBufferID));
     glBindBuffer(GL_ARRAY_BUFFER,
                  coordBufferID);
     glVertexPointer(openglData->m_coordinatesPerVertex,
@@ -411,6 +619,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
      */
     if (openglData->m_normalVectorBufferObject != NULL) {
         glEnableClientState(GL_NORMAL_ARRAY);
+        CaretAssert(glIsBuffer(openglData->m_normalVectorBufferObject->getBufferObjectName()));
         glBindBuffer(GL_ARRAY_BUFFER, openglData->m_normalVectorBufferObject->getBufferObjectName());
         glNormalPointer(openglData->m_normalVectorDataType, 0, (GLvoid*)0);
     }
@@ -423,6 +632,14 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
      */
     GLuint localColorBufferName = 0;
     switch (drawMode) {
+        case PrivateDrawMode::DRAW_COLOR_ALTERNATIVE:
+        {
+            glEnableClientState(GL_COLOR_ARRAY);
+            CaretAssert(glIsBuffer(alternativeColorBufferObject->getBufferObjectName()));
+            glBindBuffer(GL_ARRAY_BUFFER, alternativeColorBufferObject->getBufferObjectName());
+            glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
+        }
+            break;
         case PrivateDrawMode::DRAW_COLOR_SOLID:
         {
             const int32_t numberOfVertices = primitive->m_xyz.size() / 3;
@@ -432,7 +649,6 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
                 
                 const GLint  componentsPerColor = 4;
                 const GLenum colorDataType = GL_FLOAT;
-                
                 
                 std::vector<float> colorRGBA(numberOfVertices * componentsPerColor);
                 for (int32_t i = 0; i < numberOfVertices; i++) {
@@ -460,6 +676,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         case PrivateDrawMode::DRAW_NORMAL:
         {
             glEnableClientState(GL_COLOR_ARRAY);
+            CaretAssert(glIsBuffer(openglData->m_colorBufferObject->getBufferObjectName()));
             glBindBuffer(GL_ARRAY_BUFFER, openglData->m_colorBufferObject->getBufferObjectName());
             glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
         }

@@ -21,13 +21,11 @@
  */
 /*LICENSE_END*/
 
-
-
+#include <map>
 #include <memory>
 
 #include "GraphicsEngineData.h"
 #include "CaretOpenGLInclude.h"
-
 
 namespace caret {
 
@@ -46,6 +44,9 @@ namespace caret {
         
         void loadBuffers(GraphicsPrimitive* primitive);
         
+        GraphicsOpenGLBufferObject* loadAlternativeColorBuffer(GraphicsPrimitive* primitive,
+                                                               const int32_t alternativeColorIdentifier);
+        
         static void draw(void* openglContextPointer,
                          GraphicsPrimitive* primitive);
         
@@ -60,12 +61,17 @@ namespace caret {
                                           GraphicsPrimitive* primitive,
                                           const float solidColorOverrideRGBA[4]);
         
+        static void drawWithAlternativeColor(void* openglContextPointer,
+                                             GraphicsPrimitive* primitive,
+                                             const int32_t alternativeColorIdentifier);
+        
         const void* getOpenGLContextPointer() const;
         
         // ADD_NEW_METHODS_HERE
 
     private:
         enum class PrivateDrawMode {
+            DRAW_COLOR_ALTERNATIVE,
             DRAW_COLOR_SOLID,
             DRAW_NORMAL,
             DRAW_SELECTION
@@ -81,7 +87,10 @@ namespace caret {
                                 void* openglContextPointer,
                                 GraphicsPrimitive* primitive,
                                 GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper,
+                                const int32_t alternativeColorIdentifier,
                                 const float solidColorRGBA[4]);
+        
+        GLenum getOpeGLBufferUsageHint(const GraphicsPrimitive* primitive) const;
         
         const void* m_openglContextPointer;
         
@@ -98,6 +107,8 @@ namespace caret {
         GLenum m_normalVectorDataType = GL_FLOAT;
         
         GraphicsOpenGLBufferObject* m_colorBufferObject = NULL;
+        
+        std::map<int32_t, GraphicsOpenGLBufferObject*> m_alternativeColorBufferObjectMap;
         
         GLenum m_colorDataType = GL_FLOAT;
         

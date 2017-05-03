@@ -43,6 +43,7 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "GuiManager.h"
 #include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
@@ -868,6 +869,7 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
         
         updateColorWidget(prefs);
         
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }

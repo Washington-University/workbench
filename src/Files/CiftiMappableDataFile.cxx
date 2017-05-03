@@ -24,9 +24,11 @@
 #include "CiftiMappableDataFile.h"
 #undef __CIFTI_MAPPABLE_DATA_FILE_DECLARE__
 
+#include "BackgroundAndForegroundColors.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "ChartDataCartesian.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
@@ -42,7 +44,9 @@
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
+#include "EventCaretPreferencesGet.h"
 #include "EventPaletteGetByName.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "FastStatistics.h"
 #include "FileInformation.h"
 #include "GiftiLabel.h"
@@ -264,6 +268,8 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
     setupCiftiReadingMappingDirection();
     
     m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel());
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
 
 /**
@@ -271,9 +277,29 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
  */
 CiftiMappableDataFile::~CiftiMappableDataFile()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     clearPrivate();
 }
 
+/**
+ * Receive an event.
+ *
+ * @param event
+ *    An event for which this instance is listening.
+ */
+void
+CiftiMappableDataFile::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
+        EventSurfaceColoringInvalidate* colorInvalidateEvent
+            = dynamic_cast<EventSurfaceColoringInvalidate*>(event);
+        CaretAssert(colorInvalidateEvent);
+        colorInvalidateEvent->setEventProcessed();
+        
+        invalidateColoringInAllMaps();
+    }
+}
 
 /**
  * Create a new instance of a CIFTI file from the given CIFTI data file type
@@ -1399,7 +1425,8 @@ CiftiMappableDataFile::invalidateColoringInAllMaps()
     }
     
     /*
-     * Force recreation of matrix so that it receives updates to coloring.
+     * Force recreation of matrix so that it receives updates to coloring
+     * and in particular, matrix grid outline coloring
      */
     m_matrixGraphicsPrimitive.reset();
 }
@@ -1504,6 +1531,29 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                 m_matrixGraphicsPrimitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
                 
                 /*
+                 * RGBA for grid outline
+                 */
+                EventCaretPreferencesGet preferencesEvent;
+                EventManager::get()->sendEvent(preferencesEvent.getPointer());
+                CaretPreferences* caretPreferences = preferencesEvent.getCaretPreferences();
+                float cellOutlineRGBA[4] = { 1.0, 0.0, 0.0, 1.0 };
+                if (caretPreferences != NULL) {
+                    uint8_t gridByteRGBA[4];
+                    caretPreferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridByteRGBA);
+                    cellOutlineRGBA[0] = static_cast<float>(gridByteRGBA[0]) / 255.0f;
+                    cellOutlineRGBA[1] = static_cast<float>(gridByteRGBA[1]) / 255.0f;
+                    cellOutlineRGBA[2] = static_cast<float>(gridByteRGBA[2]) / 255.0f;
+                    cellOutlineRGBA[3] = 1.0;
+                }
+                std::vector<float> gridOutlineRGBA;
+                gridOutlineRGBA.reserve(numberOfCells * 4 * 4); // four vertices per cell, four color components per vertex
+                
+                /*
+                 * Alpha zero for cells that are "not drawn"
+                 */
+                const float cellNotDrawRGBA[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+                
+                /*
                  * NOTE: All matrix cells receive coloring, event those that are
                  * not displayed due to the triangular view selection.
                  * The reason is that it greatly simplifies identification as
@@ -1511,12 +1561,6 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                  * Using quads also simplifies identification.  Lastly, since
                  * OpenGL buffers are used, drawing is very fast.
                  */
-                
-                /*
-                 * Alpha zero for cells that are "not drawn"
-                 */
-                const float cellNotDrawRGBA[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-                
                 int32_t rgbaOffset = 0;
                 const float cellHeight = 1.0;
                 const float cellWidth = 1.0;
@@ -1554,6 +1598,10 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                             }
                             else {
                                 drawCellFlag = true;
+                                
+                                /*
+                                 * Diagonals for non-square matrices not allowed
+                                 */
                                 const bool allowNonSquareMatrixDiagonalsFlag = false;
                                 if (allowNonSquareMatrixDiagonalsFlag) {
                                     drawCellFlag = false;
@@ -1589,12 +1637,18 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                             m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
                             m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
                             m_matrixGraphicsPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
+                            for (int32_t i4 = 0; i4 < 4; i4++) {
+                                gridOutlineRGBA.insert(gridOutlineRGBA.end(), cellOutlineRGBA, cellOutlineRGBA + 4);
+                            }
                         }
                         else {
                             m_matrixGraphicsPrimitive->addVertex(cellX, cellY, 0.0, cellNotDrawRGBA);
                             m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellNotDrawRGBA);
                             m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellNotDrawRGBA);
                             m_matrixGraphicsPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellNotDrawRGBA);
+                            for (int32_t i4 = 0; i4 < 4; i4++) {
+                                gridOutlineRGBA.insert(gridOutlineRGBA.end(), cellNotDrawRGBA, cellNotDrawRGBA + 4);
+                            }
                         }
                         
                         cellX += cellWidth;
@@ -1602,6 +1656,9 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                     
                     cellY -= cellHeight;
                 }
+                
+                m_matrixGraphicsPrimitive->setAlternativeFloatRGBA(getMatrixChartGraphicsPrimitiveGridColorIdentifier(),
+                                                                   gridOutlineRGBA);
             }
 
         }

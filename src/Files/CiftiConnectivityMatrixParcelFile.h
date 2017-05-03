@@ -24,7 +24,6 @@
 #include "BrainConstants.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "ChartableMatrixParcelInterface.h"
-#include "EventListenerInterface.h"
 
 namespace caret {
 
@@ -34,8 +33,7 @@ namespace caret {
     
     class CiftiConnectivityMatrixParcelFile :
     public CiftiMappableConnectivityMatrixDataFile,
-    public ChartableMatrixParcelInterface,
-    public EventListenerInterface {
+    public ChartableMatrixParcelInterface {
         
     public:
         CiftiConnectivityMatrixParcelFile();

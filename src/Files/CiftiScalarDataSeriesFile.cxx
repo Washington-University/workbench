@@ -141,6 +141,8 @@ CiftiScalarDataSeriesFile::receiveEvent(Event* event)
         
         selectMapEvent->setEventProcessed();
     }
+    
+    CiftiMappableDataFile::receiveEvent(event);
 }
 
 /**

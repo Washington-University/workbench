@@ -60,6 +60,8 @@ namespace caret {
         
         GraphicsPrimitiveV3fC4f* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode) const;
         
+        int32_t getMatrixChartGraphicsPrimitiveGridColorIdentifier() const;
+        
         bool isMatrixTriangularViewingModeSupported() const;
 
         // ADD_NEW_METHODS_HERE
