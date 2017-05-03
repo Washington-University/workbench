@@ -7295,12 +7295,12 @@ Brain::restoreModelChartOneToModelChartTwo()
 {
     CaretAssert(m_modelChartTwo);
     if ( ! m_modelChartTwo->isRestoredFromScene()) {
-        CaretAssert(m_modelChart);
-        if (m_modelChart->isRestoredFromScene()) {
-            m_modelChartTwo->restoreSceneFromChartOneModel(m_modelChart);
+        if (m_modelChart != NULL) {
+            if (m_modelChart->isRestoredFromScene()) {
+                m_modelChartTwo->restoreSceneFromChartOneModel(m_modelChart);
+            }
         }
     }
-    
 }
 
 /**
