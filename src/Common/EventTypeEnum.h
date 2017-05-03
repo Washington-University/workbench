@@ -84,6 +84,8 @@ public:
         EVENT_CARET_MAPPABLE_DATA_FILES_GET,
         /** Get CaretMappableDataFiles and their maps viewed as overlays */
         EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS,
+        /** Event to get the Caret Preferences */
+        EVENT_CARET_PREFERENCES_GET,
         /** Event for yoking the loading of matrix chart rows/columns */
         EVENT_CHART_MATRIX_YOKING_VALIDATION,
         /** Validate that chart overlay is valid (it exists). */

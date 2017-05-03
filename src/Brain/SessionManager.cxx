@@ -41,6 +41,7 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabIndicesGetAll.h"
 #include "EventBrowserTabNew.h"
+#include "EventCaretPreferencesGet.h"
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
@@ -76,12 +77,12 @@ SessionManager::SessionManager()
         m_browserTabs[i] = NULL;
     }
     
-    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_PREFERENCES_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL);
@@ -339,6 +340,14 @@ SessionManager::receiveEvent(Event* event)
                 tabEvent->addBrowserTabIndex(m_browserTabs[i]->getTabNumber());
             }
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_CARET_PREFERENCES_GET) {
+        EventCaretPreferencesGet* preferencesEvent =
+        dynamic_cast<EventCaretPreferencesGet*>(event);
+        CaretAssert(preferencesEvent);
+        
+        preferencesEvent->setCaretPreferences(m_caretPreferences);
+        preferencesEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_ADD) {
         EventModelAdd* addModelsEvent =

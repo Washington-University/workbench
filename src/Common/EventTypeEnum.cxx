@@ -157,6 +157,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS,
                                      "EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS",
                                      "Get Caret Mappable data file maps viewed in overlays"));
+
+    enumData.push_back(EventTypeEnum(EVENT_CARET_PREFERENCES_GET,
+                                     "EVENT_CARET_PREFERENCES_GET",
+                                     "Get the Caret Preferences"));
     
     enumData.push_back(EventTypeEnum(EVENT_CHART_MATRIX_YOKING_VALIDATION,
                                      "EVENT_CHART_MATRIX_YOKING_VALIDATION",

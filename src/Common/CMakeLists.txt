@@ -99,6 +99,7 @@ ElapsedTimer.h
 Event.h
 EventAlertUser.h
 EventBrowserTabIndicesGetAll.h
+EventCaretPreferencesGet.h
 EventGetViewportSize.h
 EventListenerInterface.h
 EventManager.h
@@ -198,6 +199,7 @@ ElapsedTimer.cxx
 Event.cxx
 EventAlertUser.cxx
 EventBrowserTabIndicesGetAll.cxx
+EventCaretPreferencesGet.cxx
 EventGetViewportSize.cxx
 EventManager.cxx
 EventPaletteGetByName.cxx
