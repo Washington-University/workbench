@@ -114,11 +114,6 @@ namespace caret {
         
         void processLineSeriesIdentification(const ChartableTwoFileLineSeriesChart* lineSeriesChart);
         
-        void addToChartMatrixIdentification(const int32_t matrixRowIndex,
-                                            const int32_t matrixColumnIndex,
-                                            uint8_t rgbaForColorIdentificationOut[4]);
-        void processMatrixIdentification(const ChartableTwoFileMatrixChart* matrixChart);
-        
         void drawMatrixChart();
         
         void drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
@@ -126,12 +121,6 @@ namespace caret {
                                  const float cellWidth,
                                  const float cellHeight,
                                  const float zooming);
-        
-//        void OLDdrawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
-//                                    const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
-//                                    const float cellWidth,
-//                                    const float cellHeight,
-//                                    const float zooming);
         
         void drawHistogramChart();
         
