@@ -27,6 +27,7 @@
 
 #include "BrainStructure.h"
 #include "FileInformation.h"
+#include "FilePathNamePrefixCompactor.h"
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
 #include "WuQEventBlockingFilter.h"
@@ -150,7 +151,7 @@ SurfaceSelectionViewController::initializeControl(const Mode mode,
  *    Selection model used to update this control.  If this parameter is NULL
  *    all selections are removed from the control.
  */
-void 
+void
 SurfaceSelectionViewController::updateControl(SurfaceSelectionModel* selectionModel)
 {
     std::vector<Surface*> surfaces;
@@ -163,13 +164,24 @@ SurfaceSelectionViewController::updateControl(SurfaceSelectionModel* selectionMo
     
     this->surfaceComboBox->blockSignals(true);
     
+    /*
+     * There may be surface files with the same name but different
+     * paths so include unique parts of path in names
+     */
+    std::vector<CaretDataFile*> caretDataFiles(surfaces.begin(),
+                                          surfaces.end());
+    std::vector<AString> displayNames;
+    FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(caretDataFiles,
+                                                                            displayNames);
+    CaretAssert(surfaces.size() == displayNames.size());
+    
     int32_t selectedIndex = 0;
     
     this->surfaceComboBox->clear();
     const int32_t numSurfaces = static_cast<int32_t>(surfaces.size());
     for (int32_t i = 0; i < numSurfaces; i++) {
         const int32_t indx = this->surfaceComboBox->count();
-        this->surfaceComboBox->addItem(surfaces[i]->getFileNameNoPath());
+        this->surfaceComboBox->addItem(displayNames[i]);
         this->surfaceComboBox->setItemData(indx, qVariantFromValue((void*)surfaces[i]));
         
         if (surfaces[i] == selectedSurface) {
@@ -197,7 +209,6 @@ SurfaceSelectionViewController::updateControl(SurfaceSelectionModel* selectionMo
     this->surfaceComboBox->setToolTip(toolTipText);
     
     this->surfaceComboBox->blockSignals(false);
-    
 }
 
 /**
