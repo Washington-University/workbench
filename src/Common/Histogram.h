@@ -77,6 +77,10 @@ namespace caret
         ///get display values - counts divided by bucket widths - will be consistent on the same data regardless of number of buckets or 
         const std::vector<float>& getHistogramDisplay() const { return m_display; }
         
+        bool getHistogramDisplayBucketDataValueAndHeight( const int32_t bucketIndex,
+                                                         float& bucketDataValueOut,
+                                                         float& bucketHeightOut) const;
+
         int getNumberOfBuckets() const { return (int)m_buckets.size(); }
         
         void getCounts(int64_t& posCount, int64_t& zeroCount, int64_t& negCount, int64_t& infCount, int64_t& negInfCount, int64_t& nanCount) const

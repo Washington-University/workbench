@@ -480,6 +480,16 @@ ChartTwoOverlayViewController::allMapsCheckBoxClicked(bool status)
         return;
     }
     
+    CaretMappableDataFile* mapFile = NULL;
+    ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
+    m_chartOverlay->getSelectionData(mapFile,
+                                     selectedIndexType,
+                                     selectedIndex);
+    if (mapFile != NULL) {
+        mapFile->invalidateHistogramChartColoring();
+    }
+    
     m_chartOverlay->setAllMapsSelected(status);
     
     this->updateGraphicsWindow();

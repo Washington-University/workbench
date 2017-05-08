@@ -325,3 +325,49 @@ void Histogram::computeCumulative()
         m_cumulative[i] = accum;
     }
 }
+
+/**
+ * Get the data value and height for the histogram's bucket index.
+ *
+ * @param bucketIndex
+ *     The bucket index.
+ * @param bucketDataValueOut
+ *     Output with data value at the bucket (x-axis)
+ * @param bucketHeightOut
+ *     Output with height of bucket (y-axis)
+ * @return
+ *     True if output values are positive, else false.
+ */
+bool
+Histogram::getHistogramDisplayBucketDataValueAndHeight( const int32_t bucketIndex,
+                                                       float& bucketDataValueOut,
+                                                       float& bucketHeightOut) const
+{
+    bucketDataValueOut = 0.0;
+    bucketHeightOut    = 0.0;
+    
+    const std::vector<float>& buckets = getHistogramDisplay();
+    const int32_t numberOfBuckets = static_cast<int32_t>(buckets.size());
+    if ((bucketIndex >= 0)
+        && (bucketIndex < numberOfBuckets)) {
+        CaretAssertVectorIndex(buckets,
+                               bucketIndex);
+        
+        float rangeMin = 0.0;
+        float rangeMax = 0.0;
+        getRange(rangeMin, rangeMax);
+        bucketDataValueOut = rangeMin;
+        if (rangeMax > rangeMin) {
+            const float range = rangeMax - rangeMin;
+            const float bucketWidth = range / numberOfBuckets;
+            bucketDataValueOut = (rangeMin
+                                  + (bucketIndex * bucketWidth));
+        }
+        
+        bucketHeightOut = buckets[bucketIndex];
+        
+        return true;
+    }
+    
+    return false;
+}
