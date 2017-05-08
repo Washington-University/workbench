@@ -1455,6 +1455,8 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
                                               palette,
                                               this,
                                               mapIndex);
+    
+    invalidateHistogramChartColoring();
 }
 
 /**

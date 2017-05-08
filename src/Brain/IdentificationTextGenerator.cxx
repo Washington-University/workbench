@@ -33,6 +33,7 @@
 #include "ChartDataSource.h"
 #include "ChartModelDataSeries.h"
 #include "ChartableMatrixInterface.h"
+#include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
@@ -46,7 +47,6 @@
 #include "Focus.h"
 #include "GiftiLabel.h"
 #include "Histogram.h"
-#include "HistogramDrawingInfo.h"
 #include "ImageFile.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
@@ -801,72 +801,78 @@ void
 IdentificationTextGenerator::generateChartTwoHistogramIdentificationText(IdentificationStringBuilder& idText,
                                                  const SelectionItemChartTwoHistogram* idChartTwoHistogram) const
 {
+    const int32_t mapIndex    = idChartTwoHistogram->getMapIndex();
+    const int32_t bucketIndex = idChartTwoHistogram->getBucketIndex();
+    const bool    allMapsFlag = idChartTwoHistogram->isAllMapsSelected();
+    
     if (idChartTwoHistogram->isValid()) {
         ChartableTwoFileHistogramChart* fileHistogramChart = idChartTwoHistogram->getFileHistogramChart();
-        const int32_t mapIndex    = idChartTwoHistogram->getMapIndex();
-        const int32_t bucketIndex = idChartTwoHistogram->getBucketIndex();
+        CaretAssert(fileHistogramChart);
         CaretMappableDataFile* mapFile = fileHistogramChart->getCaretMappableDataFile();
         CaretAssert(mapFile);
-
-        const bool allMapsFlag = (mapIndex < 0);
-        HistogramDrawingInfo histogramDrawingInfo;
-        AString errorMessage;
-        if (mapFile->getMapHistogramDrawingInfo(mapIndex,
-                                                allMapsFlag,
-                                                false,
-                                                histogramDrawingInfo,
-                                                errorMessage)) {
-            if (histogramDrawingInfo.isValid()) {
+        
+        {
+            ChartableTwoFileHistogramChart* chartingDelegate = mapFile->getChartingDelegate()->getHistogramCharting();
+            CaretAssert(chartingDelegate);
+            const Histogram* histogram = chartingDelegate->getHistogramForChartDrawing(mapIndex,
+                                                                                       allMapsFlag);
+            CaretAssert(histogram);
+            
+            float bucketValue = 0.0;
+            float bucketHeight = 0.0;
+            if (histogram->getHistogramDisplayBucketDataValueAndHeight(bucketIndex, bucketValue, bucketHeight)) {
+                AString boldText("Histogram");
+                idText.addLine(false,
+                               boldText,
+                               mapFile->getFileNameNoPath());
                 
-                float bucketValue = 0.0;
-                float bucketHeight = 0.0;
-                if (histogramDrawingInfo.getBucketDataValueAndCount(bucketIndex,
-                                                                    bucketValue,
-                                                                    bucketHeight)) {
-                    
-                    AString boldText("Histogram");
-                    idText.addLine(false,
-                                   boldText,
-                                   mapFile->getFileNameNoPath());
-                    idText.addLine(true,
-                                   "Bucket Index",
-                                   (AString::number(bucketIndex)));
-                    idText.addLine(true,
-                                   "Data Value at Bucket",
-                                   (AString::number(bucketValue)));
-                    
-                    idText.addLine(true,
-                                   "Bucket Count",
-                                   (AString::number(bucketHeight)));
-                }
+                idText.addLine(true,
+                               "Bucket Index",
+                               (AString::number(bucketIndex)));
+                
+                idText.addLine(true,
+                               "Data Value at Bucket",
+                               (AString::number(bucketValue)));
+                
+                const int64_t bucketHeightInteger = static_cast<int64_t>(bucketHeight);
+                idText.addLine(true,
+                               "Bucket Count",
+                               (AString::number(bucketHeightInteger)));
             }
         }
-//        if (mapFile->getNumberOfMaps() > 0) {
-//            const Histogram* histogram = ((mapIndex >= 0)
-//                                          ? mapFile->getMapHistogram(mapIndex)
-//                                          : mapFile->getFileHistogram());
-//            
-//            float bucketValue = 0.0;
-//            float bucketHeight = 0.0;
-//            if (histogram->getBucketDataValueAndCount(bucketIndex,
-//                                                      bucketValue,
-//                                                      bucketHeight)) {
-//                AString boldText("Histogram");
-//                idText.addLine(false,
-//                               boldText,
-//                               mapFile->getFileNameNoPath());
+        
+
+//        HistogramDrawingInfo histogramDrawingInfo;
+//        AString errorMessage;
+//        if (mapFile->getMapHistogramDrawingInfo(mapIndex,
+//                                                allMapsFlag,
+//                                                false,
+//                                                histogramDrawingInfo,
+//                                                errorMessage)) {
+//            if (histogramDrawingInfo.isValid()) {
 //                
-//                idText.addLine(true,
-//                               "Bucket Index",
-//                               (AString::number(bucketIndex)));
-//                
-//                idText.addLine(true,
-//                               "Data Value at Bucket",
-//                               (AString::number(bucketValue)));
-//                
-//                idText.addLine(true,
-//                               "Bucket Count",
-//                               (AString::number(bucketHeight)));
+//                float bucketValue = 0.0;
+//                float bucketHeight = 0.0;
+//                if (histogramDrawingInfo.getBucketDataValueAndCount(bucketIndex,
+//                                                                    bucketValue,
+//                                                                    bucketHeight)) {
+//                    
+//                    AString boldText("OLD Histogram");
+//                    idText.addLine(false,
+//                                   boldText,
+//                                   mapFile->getFileNameNoPath());
+//                    idText.addLine(true,
+//                                   "Bucket Index",
+//                                   (AString::number(bucketIndex)));
+//                    idText.addLine(true,
+//                                   "Data Value at Bucket",
+//                                   (AString::number(bucketValue)));
+//                    
+//                    const int64_t bucketHeightInteger = static_cast<int64_t>(bucketHeight);
+//                    idText.addLine(true,
+//                                   "Bucket Count",
+//                                   (AString::number(bucketHeightInteger)));
+//                }
 //            }
 //        }
     }

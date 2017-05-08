@@ -40,9 +40,7 @@ using namespace caret;
 SelectionItemChartTwoHistogram::SelectionItemChartTwoHistogram()
 : SelectionItem(SelectionItemDataTypeEnum::CHART_TWO_HISTOGRAM)
 {
-    m_fileHistogramChart = NULL;
-    m_mapIndex = -1;
-    m_bucketIndex = -1;
+    resetPrivate();
 }
 
 /**
@@ -88,9 +86,10 @@ SelectionItemChartTwoHistogram::operator=(const SelectionItemChartTwoHistogram& 
 void 
 SelectionItemChartTwoHistogram::copyHelperSelectionItemChartTwoHistogram(const SelectionItemChartTwoHistogram& obj)
 {
-    m_fileHistogramChart = obj.m_fileHistogramChart;
-    m_mapIndex = obj.m_mapIndex;
-    m_bucketIndex = obj.m_bucketIndex;
+    m_fileHistogramChart  = obj.m_fileHistogramChart;
+    m_mapIndex            = obj.m_mapIndex;
+    m_bucketIndex         = obj.m_bucketIndex;
+    m_allMapsSelectedFlag = obj.m_allMapsSelectedFlag;
 }
 
 
@@ -101,7 +100,8 @@ SelectionItemChartTwoHistogram::getFileHistogramChart() const
 }
 
 /**
- * @return Index of map index selected.
+ * @return Index of map index selected.  Also
+ * should test isAllMapsSelected()
  */
 int32_t
 SelectionItemChartTwoHistogram::getMapIndex() const
@@ -118,6 +118,16 @@ SelectionItemChartTwoHistogram::getBucketIndex() const
     return m_bucketIndex;
 }
 
+/**
+ * @return Is all maps selected?
+ */
+bool
+SelectionItemChartTwoHistogram::isAllMapsSelected() const
+{
+    return m_allMapsSelectedFlag;
+}
+
+
 /*
  * Set histogram identification.
  *
@@ -127,15 +137,19 @@ SelectionItemChartTwoHistogram::getBucketIndex() const
  *     Index of the map whose histogram is displayed (negative indicates all maps).
  * @param bucketIndex
  *     Index of the histogram bucket.
+ * @param allMapsSelected
+ *     True if all maps selected, else false.
  */
 void
 SelectionItemChartTwoHistogram::setHistogramChart(ChartableTwoFileHistogramChart* fileHistogramChart,
                                                   const int32_t mapIndex,
-                                                  const int32_t bucketIndex)
+                                                  const int32_t bucketIndex,
+                                                  const bool allMapsSelected)
 {
-    m_fileHistogramChart = fileHistogramChart;
-    m_mapIndex = mapIndex;
-    m_bucketIndex = bucketIndex;
+    m_fileHistogramChart  = fileHistogramChart;
+    m_mapIndex            = mapIndex;
+    m_bucketIndex         = bucketIndex;
+    m_allMapsSelectedFlag = allMapsSelected;
 }
 
 /**
@@ -148,11 +162,27 @@ SelectionItemChartTwoHistogram::isValid() const
      * Map index is negative if all maps selected.
      */
     if ((m_fileHistogramChart != NULL)
-        && (m_bucketIndex >= 0)) {
+        && (m_bucketIndex >= 0)
+        && ((m_mapIndex >= 0)
+            || m_allMapsSelectedFlag)) {
         return true;
     }
     
     return false;
+}
+
+/**
+ * Reset the selections PRIVATE.
+ * Note that reset() is virtual and cannot
+ * be called from constructor.
+ */
+void
+SelectionItemChartTwoHistogram::resetPrivate()
+{
+    m_fileHistogramChart = NULL;
+    m_mapIndex = -1;
+    m_bucketIndex = -1;
+    m_allMapsSelectedFlag = false;
 }
 
 /**
@@ -161,9 +191,7 @@ SelectionItemChartTwoHistogram::isValid() const
 void
 SelectionItemChartTwoHistogram::reset()
 {
-    m_fileHistogramChart = NULL;
-    m_mapIndex = -1;
-    m_bucketIndex = -1;
+    resetPrivate();
 }
 
 

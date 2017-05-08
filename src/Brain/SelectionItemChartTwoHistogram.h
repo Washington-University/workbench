@@ -51,19 +51,25 @@ namespace caret {
         
         int32_t getMapIndex() const;
         
+        bool isAllMapsSelected() const;
+        
         void setHistogramChart(ChartableTwoFileHistogramChart* fileHistogramChart,
                                const int32_t mapIndex,
-                               const int32_t bucketIndex);
+                               const int32_t bucketIndex,
+                               const bool allMapsSelected);
 
         // ADD_NEW_METHODS_HERE
 
     private:
         void copyHelperSelectionItemChartTwoHistogram(const SelectionItemChartTwoHistogram& obj);
 
+        void resetPrivate();
+        
         ChartableTwoFileHistogramChart* m_fileHistogramChart;
         
         int32_t m_mapIndex;
         int32_t m_bucketIndex;
+        bool m_allMapsSelectedFlag;
         
         // ADD_NEW_MEMBERS_HERE
 

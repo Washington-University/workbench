@@ -966,7 +966,7 @@ void
 GiftiTypeFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
                                        const PaletteFile* /*paletteFile*/)
 {
-    /* no volumes in gifti */
+    invalidateHistogramChartColoring();
 }
 
 /**

@@ -420,6 +420,8 @@ namespace caret {
         virtual void updateScalarColoringForMap(const int32_t mapIndex,
                                           const PaletteFile* paletteFile) = 0;
         
+        void invalidateHistogramChartColoring();
+        
         virtual bool isPaletteColorMappingEqualForAllMaps() const;
         
         /**

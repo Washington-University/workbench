@@ -221,8 +221,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     
     saveStateOfOpenGL();
     
-    resetIdentification();
-    
     if (m_chartOverlaySet != NULL) {
         const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
         if (numberOfOverlays > 0) {
@@ -313,8 +311,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
             continue;
         }
         
-        const ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
-        const ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
+        ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
+        ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
         
         if (histogramChart->isValid()) {
             CaretAssert(selectedIndexType == ChartTwoOverlay::SelectedIndexType::MAP);
@@ -328,7 +326,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                 drawingInfo.push_back(std::unique_ptr<HistogramChartDrawingInfo>(new HistogramChartDrawingInfo(histogramDrawingInfo,
                                                                                                                histogramChart,
                                                                                                                selectedIndex,
-                                                                                                               chartOverlay->getCartesianVerticalAxisLocation())));
+                                                                                                               chartOverlay->getCartesianVerticalAxisLocation(),
+                                                                                                               (chartOverlay->isAllMapsSupported()
+                                                                                                                && chartOverlay->isAllMapsSelected()))));
                 
                 float bounds[4];
                 if (histogramDrawingInfo->getBounds(bounds)) {
@@ -488,339 +488,106 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
          * Draw the bars for all histogram and then draw the envelopes
          * so the envelopes are not obscured by the bars
          */
-        for (int32_t drawModeInt = 0; drawModeInt < 2; drawModeInt++) {
-            for (auto& drawInfo : drawingInfo) {
-                if (drawInfo->m_histogramDrawingInfo->isValid()) {
-                    const CaretMappableDataFile* cmdf = drawInfo->m_histogramChart->getCaretMappableDataFile();
-                    CaretAssert(cmdf);
-                    const PaletteColorMapping* paletteColorMapping = cmdf->getMapPaletteColorMapping(drawInfo->m_mapIndex);
-                    bool drawBarsFlag = false;
-                    bool drawEnvelopeFlag = false;
-                    if (drawModeInt == 0) {
-                        drawBarsFlag = paletteColorMapping->isHistogramBarsVisible();
-                    }
-                    else if (drawModeInt == 1) {
-                        drawEnvelopeFlag = paletteColorMapping->isHistogramEnvelopeVisible();
+        for (auto& drawInfo : drawingInfo) {
+            if (drawInfo->m_histogramDrawingInfo->isValid()) {
+                const CaretMappableDataFile* cmdf = drawInfo->m_histogramChart->getCaretMappableDataFile();
+                CaretAssert(cmdf);
+                const PaletteColorMapping* paletteColorMapping = cmdf->getMapPaletteColorMapping(drawInfo->m_mapIndex);
+                const bool drawBarsFlag     = paletteColorMapping->isHistogramBarsVisible();
+                const bool drawEnvelopeFlag = paletteColorMapping->isHistogramEnvelopeVisible();
+                
+                if (drawBarsFlag
+                    || drawEnvelopeFlag) {
+                    bool leftVerticalAxisFlag = true;
+                    switch (drawInfo->m_verticalAxisLocation) {
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                            leftVerticalAxisFlag = false;
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                            break;
                     }
                     
-                    if (drawBarsFlag
-                        || drawEnvelopeFlag) {
-                        bool leftVerticalAxisFlag = true;
-                        switch (drawInfo->m_verticalAxisLocation) {
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                                leftVerticalAxisFlag = false;
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                                break;
-                        }
+                    glMatrixMode(GL_PROJECTION);
+                    glLoadIdentity();
+                    if (leftVerticalAxisFlag) {
+                        glOrtho(xMin, xMax,
+                                yMinLeft, yMaxLeft,
+                                -10.0, 10.0);
+                    }
+                    else {
+                        glOrtho(xMin, xMax,
+                                yMinRight, yMaxRight,
+                                -10.0, 10.0);
+                    }
+                    
+                    glMatrixMode(GL_MODELVIEW);
+                    glLoadIdentity();
+                    
+                    bool applyTransformationsFlag = false;
+                    if (applyTransformationsFlag) {
+                        glTranslatef(m_translation[0],
+                                     m_translation[1],
+                                     0.0);
                         
-                        glMatrixMode(GL_PROJECTION);
-                        glLoadIdentity();
-                        if (leftVerticalAxisFlag) {
-                            glOrtho(xMin, xMax,
-                                    yMinLeft, yMaxLeft,
-                                    -10.0, 10.0);
+                        const float chartWidth  = chartGraphicsDrawingViewport[2];
+                        const float chartHeight = chartGraphicsDrawingViewport[3];
+                        const float halfWidth   = chartWidth  / 2.0;
+                        const float halfHeight  = chartHeight / 2.0;
+                        glTranslatef(halfWidth,
+                                     halfHeight,
+                                     0.0);
+                        glScalef(m_zooming,
+                                 m_zooming,
+                                 1.0);
+                        glTranslatef(-halfWidth,
+                                     -halfHeight,
+                                     0.0);
+                    }
+                    
+                    ChartableTwoFileHistogramChart::HistogramPrimitives* histogramPrimitives =
+                    drawInfo->m_histogramChart->getMapHistogramDrawingPrimitives(drawInfo->m_mapIndex,
+                                                                                 drawInfo->m_allMapsSelected);
+                    if (histogramPrimitives != NULL) {
+                        if (m_identificationModeFlag) {
+                            int32_t primitiveIndex = -1;
+                            float   primitiveDepth = 0.0;
+                            glPushMatrix();
+                            glScalef(1.0, 1000.0, 1.0); // exagerrage height of bars for identification
+                            GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getOpenGLContextPointer(),
+                                                                        histogramPrimitives->getBarsPrimitive(),
+                                                                        m_fixedPipelineDrawing->mouseX,
+                                                                        m_fixedPipelineDrawing->mouseY,
+                                                                        primitiveIndex,
+                                                                        primitiveDepth);
+                            glPopMatrix();
+                            std::cout << "Histogram selection: " << primitiveIndex << std::endl;
+                            if (primitiveIndex >= 0) {
+                                if (m_selectionItemHistogram->isOtherScreenDepthCloserToViewer(primitiveDepth)) {
+                                    m_selectionItemHistogram->setHistogramChart(const_cast<ChartableTwoFileHistogramChart*>(drawInfo->m_histogramChart),
+                                                                                drawInfo->m_mapIndex,
+                                                                                primitiveIndex,
+                                                                                drawInfo->m_allMapsSelected);
+                                }
+                            }
                         }
                         else {
-                            glOrtho(xMin, xMax,
-                                    yMinRight, yMaxRight,
-                                    -10.0, 10.0);
+                            drawPrimitivePrivate(histogramPrimitives->getThresholdPrimitive());
+                            if (drawBarsFlag) {
+                                drawPrimitivePrivate(histogramPrimitives->getBarsPrimitive());
+                            }
+                            if (drawEnvelopeFlag) {
+                                m_fixedPipelineDrawing->enableLineAntiAliasing();
+                                drawPrimitivePrivate(histogramPrimitives->getEnvelopePrimitive());
+                            }
                         }
-                        
-                        glMatrixMode(GL_MODELVIEW);
-                        glLoadIdentity();
-                        
-                        bool applyTransformationsFlag = false;
-                        if (applyTransformationsFlag) {
-                            glTranslatef(m_translation[0],
-                                         m_translation[1],
-                                         0.0);
-                            
-                            const float chartWidth  = chartGraphicsDrawingViewport[2];
-                            const float chartHeight = chartGraphicsDrawingViewport[3];
-                            const float halfWidth   = chartWidth  / 2.0;
-                            const float halfHeight  = chartHeight / 2.0;
-                            glTranslatef(halfWidth,
-                                         halfHeight,
-                                         0.0);
-                            glScalef(m_zooming,
-                                     m_zooming,
-                                     1.0);
-                            glTranslatef(-halfWidth,
-                                         -halfHeight,
-                                         0.0);
-                        }
-                        
-                        const CaretColorEnum::Enum envelopeColor = paletteColorMapping->getHistogramEnvelopeColor();
-                        drawHistogramChartContent(drawInfo.get(),
-                                                  envelopeColor,
-                                                  drawBarsFlag,
-                                                  drawEnvelopeFlag);
                     }
                 }
             }
         }
-    }
-}
-
-/*
- * Draw the given histogram chart.
- *
- * @param drawingInfo
- *    Histogram drawing information.
- * @param envelopeColor
- *    Color for drawing envelope.
- * @param drawHistogramBarsFlag
- *    Draw the histogram as bars.
- * @param drawHistogramEnvelopeFlag
- *    Draw the histogram as an envelope.
- *
- */
-void
-BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChartContent(const HistogramChartDrawingInfo* drawingInfo,
-                                                                   const CaretColorEnum::Enum envelopeColor,
-                                                                   const bool drawHistogramBarsFlag,
-                                                                   const bool drawHistogramEnvelopeFlag)
-{
-    float envelopeSolidColorRGBA[4];
-    CaretColorEnum::toRGBAFloat(envelopeColor,
-                                envelopeSolidColorRGBA);
-    
-    const ChartableTwoFileHistogramChart* histogramChart = drawingInfo->m_histogramChart;
-    const int32_t mapIndex = drawingInfo->m_mapIndex;
-    const HistogramDrawingInfo& histogramDrawingInfo = *drawingInfo->m_histogramDrawingInfo;
-    
-    if ( ! histogramDrawingInfo.isValid()) {
-        return;
-    }
-    float bounds[4];
-    if ( ! histogramDrawingInfo.getBounds(bounds)) {
-        return;
-    }
-    if (m_identificationModeFlag) {
-        resetIdentification();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-    
-    const std::vector<float>& xValues = histogramDrawingInfo.getDataX();
-    const std::vector<float>& yValues = histogramDrawingInfo.getDataY();
-    const std::vector<float>& rgbaValues = histogramDrawingInfo.getDataRGBA();
-    CaretAssert(xValues.size() == yValues.size());
-    CaretAssert((xValues.size() * 4) == rgbaValues.size());
-    
-    const int32_t numValues = static_cast<int32_t>(xValues.size() - 1);
-    if (numValues > 1) {
-        {
-            uint8_t thresholdRGBByte[3];
-            m_preferences->getBackgroundAndForegroundColors()->getColorChartHistogramThreshold(thresholdRGBByte);
-            const float histogramRGBA[4] = {
-                thresholdRGBByte[0] / 255.0,
-                thresholdRGBByte[1] / 255.0,
-                thresholdRGBByte[2] / 255.0,
-                1.0
-            };
-            std::vector<float> histogramNormals = { 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1 };
-            CaretAssert(histogramNormals.size() == 12);
-            
-            const std::vector<float>& histogramOneXYZ = histogramDrawingInfo.getThresholdOneBounds();
-            if (histogramOneXYZ.size() == 12) {
-                std::unique_ptr<GraphicsPrimitiveV3f> threshPrim
-                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGON, histogramRGBA));
-                threshPrim->addVertices(&histogramOneXYZ[0],
-                                        4);
-                drawPrimitivePrivate(threshPrim.get());
-            }
-            
-            const std::vector<float>& histogramTwoXYZ = histogramDrawingInfo.getThresholdTwoBounds();
-            if (histogramTwoXYZ.size() == 12) {
-                std::unique_ptr<GraphicsPrimitiveV3f> threshPrim
-                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGON, histogramRGBA));
-                threshPrim->addVertices(&histogramTwoXYZ[0],
-                                        4);
-                drawPrimitivePrivate(threshPrim.get());
-            }
-        }
-        
-        if (drawHistogramBarsFlag) {
-            /*
-             * Reserve to prevent reszing of vectors
-             * as elements are added.
-             */
-            const int32_t verticesPerBar = 4;
-            const int32_t totalVertices  = verticesPerBar * numValues;
-            
-            std::unique_ptr<GraphicsPrimitiveV3fC4f> histogramFloatRGBA
-            = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
-            std::unique_ptr<GraphicsPrimitiveV3fC4ub> histogramByteRGBA
-            = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
-            
-            
-            if(m_identificationModeFlag) {
-                histogramByteRGBA->reserveForNumberOfVertices(totalVertices);
-            }
-            else {
-                histogramFloatRGBA->reserveForNumberOfVertices(totalVertices);
-            }
-            
-            const float z = 0.;
-            
-            for (int32_t i = 0; i < numValues; i++) {
-                CaretAssertVectorIndex(rgbaValues, i*4 + 3);
-                const float* rgba = &rgbaValues[i * 4];
-                if (rgba[3] > 0.0) {
-                    CaretAssertVectorIndex(xValues, i + 1);
-                    float left   = xValues[i];
-                    float right  = xValues[i+1];
-                    float bottom = 0;
-                    CaretAssertVectorIndex(yValues, i);
-                    float top = yValues[i];
-                    
-                    if (m_identificationModeFlag) {
-                        uint8_t idRGBA[4];
-                        addToHistogramIdentification(mapIndex, i, idRGBA);
-                        histogramByteRGBA->addVertex(left, bottom, z, idRGBA);
-                        histogramByteRGBA->addVertex(right, bottom, z, idRGBA);
-                        histogramByteRGBA->addVertex(right, top, z, idRGBA);
-                        histogramByteRGBA->addVertex(left, top, z, idRGBA);
-                    }
-                    else {
-                        histogramFloatRGBA->addVertex(left, bottom, z, rgba);
-                        histogramFloatRGBA->addVertex(right, bottom, z, rgba);
-                        histogramFloatRGBA->addVertex(right, top, z, rgba);
-                        histogramFloatRGBA->addVertex(left, top, z, rgba);
-                    }
-                }
-            }
-            
-            /*
-             * Draw the bar elements.
-             */
-            if (m_identificationModeFlag) {
-                drawPrimitivePrivate(histogramByteRGBA.get());
-            }
-            else {
-                drawPrimitivePrivate(histogramFloatRGBA.get());
-            }
-        }
-        
-        if (drawHistogramEnvelopeFlag) {
-            std::unique_ptr<GraphicsPrimitiveV3fC4f> histogramFloatRGBA
-            = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINE_STRIP));
-            std::unique_ptr<GraphicsPrimitiveV3fC4ub> histogramByteRGBA
-            = std::unique_ptr<GraphicsPrimitiveV3fC4ub>(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::LINE_STRIP));
-            
-            /*
-             * Reserve to prevent reszing of vectors
-             * as elements are added.
-             */
-            const int32_t verticesPerBar = 2;
-            const int32_t totalVertices  = verticesPerBar * numValues + 4;
-            if (m_identificationModeFlag) {
-                histogramByteRGBA->reserveForNumberOfVertices(totalVertices);
-            }
-            else {
-                histogramFloatRGBA->reserveForNumberOfVertices(totalVertices);
-            }
-            
-            const float z = 0.0;
-            
-            const int32_t lastValueIndex = numValues - 1;
-            for (int32_t i = 0; i < numValues; i++) {
-                CaretAssertVectorIndex(xValues, i + 1);
-                float left   = xValues[i];
-                float right  = xValues[i + 1];
-                
-                CaretAssert(right >= left);
-                float bottom = 0;
-                
-                CaretAssertVectorIndex(yValues, i + 1);
-                float topLeft = yValues[i];
-                float topRight = yValues[i+1];
-                
-                float leftRGBA[4];
-                float rightRGBA[4];
-                float middleRGBA[4];
-                if (envelopeColor == CaretColorEnum::CUSTOM) {
-                    CaretAssertVectorIndex(rgbaValues, (i + 1) * 4 + 3);
-                    const float* leftColorPtr = &rgbaValues[i * 4];
-                    const float* rightColorPtr = &rgbaValues[i * 4];
-                    for (int32_t m = 0; m < 4; m++) {
-                        leftRGBA[m] = leftColorPtr[m];
-                        rightRGBA[m] = rightColorPtr[m];
-                        middleRGBA[m] = (leftColorPtr[m] + rightColorPtr[m]) / 2.0;
-                    };
-                }
-                else {
-                    for (int32_t m = 0; m < 4; m++) {
-                        leftRGBA[m] = envelopeSolidColorRGBA[m];
-                        rightRGBA[m] = envelopeSolidColorRGBA[m];
-                        middleRGBA[m] = envelopeSolidColorRGBA[m];
-                    };
-                }
-                uint8_t idRGBA[4];
-                if (m_identificationModeFlag) {
-                    addToHistogramIdentification(mapIndex, i, idRGBA);
-                }
-                if (i == 0) {
-                    if (m_identificationModeFlag) {
-                        histogramByteRGBA->addVertex(left, bottom, z, idRGBA);
-                    }
-                    else {
-                        histogramFloatRGBA->addVertex(left, bottom, z, leftRGBA);
-                    }
-                    
-                    if (m_identificationModeFlag) {
-                        histogramByteRGBA->addVertex(left, topLeft, z, idRGBA);
-                    }
-                    else {
-                        histogramFloatRGBA->addVertex(left, topLeft, z, leftRGBA);
-                    }
-                }
-                
-                if (m_identificationModeFlag) {
-                    histogramByteRGBA->addVertex((left+right)/2.0, topLeft, z, idRGBA);
-                }
-                else {
-                    histogramFloatRGBA->addVertex((left+right)/2.0, topLeft, z, middleRGBA);
-                }
-                
-                if (i == lastValueIndex) {
-                    if (m_identificationModeFlag) {
-                        histogramByteRGBA->addVertex(right, topRight, z, idRGBA);
-                    }
-                    else {
-                        histogramFloatRGBA->addVertex(right, topRight, z, rightRGBA);
-                    }
-
-                    if (m_identificationModeFlag) {
-                        histogramByteRGBA->addVertex(right, bottom, z, idRGBA);
-                    }
-                    else {
-                        histogramFloatRGBA->addVertex(right, bottom, z, rightRGBA);
-                    }
-                }
-            }
-            
-            /*
-             * Draw the elements.
-             */
-            if (m_identificationModeFlag) {
-                glLineWidth(5.0);
-                drawPrimitivePrivate(histogramByteRGBA.get());
-            }
-            else {
-                glLineWidth(2.0);
-                drawPrimitivePrivate(histogramFloatRGBA.get());
-            }
-        }
-    }
-    
-    if (m_identificationModeFlag) {
-        processHistogramIdentification(histogramChart);
     }
 }
 
@@ -984,7 +751,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
     }
     
     if (m_identificationModeFlag) {
-        resetIdentification();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     
@@ -1174,80 +940,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::restoreStateOfOpenGL()
     glPopAttrib();
     glPopClientAttrib();
     
-}
-
-/**
- * Reset identification.
- */
-void
-BrainOpenGLChartTwoDrawingFixedPipeline::resetIdentification()
-{
-    m_identificationIndices.clear();
-    
-    if (m_identificationModeFlag) {
-        const int32_t estimatedNumberOfItems = 1000;
-        m_identificationIndices.reserve(estimatedNumberOfItems);
-    }
-}
-/**
- * Add an item for matrix identification.
- *
- * @param mapIndex
- *     Index of the map whose histogram is displayed (negative indicates all maps).
- * @param bucketIndex
- *     Index of the histogram bar.
- * @param rgbaForColorIdentificationOut
- *     Encoded identification in RGBA color OUTPUT
- */
-void
-BrainOpenGLChartTwoDrawingFixedPipeline::addToHistogramIdentification(const int32_t mapIndex,
-                                                                      const int32_t bucketIndex,
-                                                                      uint8_t rgbaForColorIdentificationOut[4])
-{
-    const int32_t idIndex = m_identificationIndices.size() / IDENTIFICATION_INDICES_PER_HISTOGRAM;
-    
-    m_fixedPipelineDrawing->colorIdentification->addItem(rgbaForColorIdentificationOut,
-                                                         m_selectionItemDataType,
-                                                         idIndex);
-    rgbaForColorIdentificationOut[3] = 255;
-    
-    /*
-     * If these items change, need to update reset and
-     * processing of identification.
-     */
-    m_identificationIndices.push_back(mapIndex);
-    m_identificationIndices.push_back(bucketIndex);
-}
-
-/**
- * Process identification for histogram.
- *
- * @param histogramChart
- *     The histogram chart.
- */
-void
-BrainOpenGLChartTwoDrawingFixedPipeline::processHistogramIdentification(const ChartableTwoFileHistogramChart* histogramChart)
-{
-    if (histogramChart != NULL) {
-        int32_t identifiedItemIndex;
-        float depth = -1.0;
-        m_fixedPipelineDrawing->getIndexFromColorSelection(m_selectionItemDataType,
-                                                           m_fixedPipelineDrawing->mouseX,
-                                                           m_fixedPipelineDrawing->mouseY,
-                                                           identifiedItemIndex,
-                                                           depth);
-        if (identifiedItemIndex >= 0) {
-            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_HISTOGRAM;
-            const int32_t mapIndex = m_identificationIndices[idIndex];
-            const int32_t bucketIndex = m_identificationIndices[idIndex+1];
-            
-            if (m_selectionItemHistogram->isOtherScreenDepthCloserToViewer(depth)) {
-                m_selectionItemHistogram->setHistogramChart(const_cast<ChartableTwoFileHistogramChart*>(histogramChart),
-                                                            mapIndex,
-                                                            bucketIndex);
-            }
-        }
-    }
 }
 
 /**
@@ -1902,6 +1594,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawPrimitivePrivate(GraphicsPrimitive* primitive)
 {
+    if (primitive == NULL) {
+        return;
+    }
+    
     GraphicsEngineDataOpenGL::draw(m_fixedPipelineDrawing->getOpenGLContextPointer(),
                                    primitive);
 }
@@ -1917,15 +1613,19 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawPrimitivePrivate(GraphicsPrimitive*
  *    Index of the map for which histogram is displayed.
  * @param verticalAxisLocation
  *    Location of vertical axis for the histogram
+ * @param allMapsSelected
+ *    True if ALL MAPS selected for histogram, else false.
  */
 BrainOpenGLChartTwoDrawingFixedPipeline::HistogramChartDrawingInfo::HistogramChartDrawingInfo(HistogramDrawingInfo* histogramDrawingInfo,
-                                                                                              const ChartableTwoFileHistogramChart* histogramChart,
+                                                                                              ChartableTwoFileHistogramChart* histogramChart,
                                                                                               int32_t mapIndex,
-                                                                                              ChartAxisLocationEnum::Enum verticalAxisLocation)
+                                                                                              ChartAxisLocationEnum::Enum verticalAxisLocation,
+                                                                                              const bool allMapsSelected)
 : m_histogramDrawingInfo(histogramDrawingInfo),
 m_histogramChart(histogramChart),
 m_mapIndex(mapIndex),
-m_verticalAxisLocation(verticalAxisLocation)
+m_verticalAxisLocation(verticalAxisLocation),
+m_allMapsSelected(allMapsSelected)
 {
 }
 

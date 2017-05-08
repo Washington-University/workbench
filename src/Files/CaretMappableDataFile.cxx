@@ -27,7 +27,8 @@
 
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
-#include "ChartTwoDataCartesianHistory.h"
+#include "ChartableTwoFileDelegate.h"
+#include "ChartableTwoFileHistogramChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
@@ -206,8 +207,10 @@ CaretMappableDataFile::updateScalarColoringForAllMaps(const PaletteFile* palette
     const int32_t numMaps = getNumberOfMaps();
     for (int32_t iMap = 0; iMap < numMaps; iMap++) {
         updateScalarColoringForMap(iMap,
-                             paletteFile);
+                                   paletteFile);
     }
+    
+    invalidateHistogramChartColoring();
 }
 
 /**
@@ -253,6 +256,15 @@ CaretMappableDataFile::isPaletteColorMappingEqualForAllMaps() const
     }
 
     return true;
+}
+
+/**
+ * Invalidate all histogram coloring for this file.
+ */
+void
+CaretMappableDataFile::invalidateHistogramChartColoring()
+{
+    m_chartingDelegate->getHistogramCharting()->invalidateAllColoring();
 }
 
 // note: method is documented in header file

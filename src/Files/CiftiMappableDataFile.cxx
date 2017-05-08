@@ -1429,6 +1429,7 @@ CiftiMappableDataFile::invalidateColoringInAllMaps()
      * and in particular, matrix grid outline coloring
      */
     m_matrixGraphicsPrimitive.reset();
+    invalidateHistogramChartColoring();
 }
 
 /**
@@ -2489,6 +2490,8 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
     /*
      * Force recreation of matrix so that it receives updates to coloring.
      */
+    
+    invalidateHistogramChartColoring();
     m_matrixGraphicsPrimitive.reset();
 }
 

@@ -61,14 +61,16 @@ namespace caret {
         class HistogramChartDrawingInfo {
         public:
             HistogramChartDrawingInfo(HistogramDrawingInfo* histogramDrawingInfo,
-                                      const ChartableTwoFileHistogramChart* histogramChart,
+                                      ChartableTwoFileHistogramChart* histogramChart,
                                       int32_t mapIndex,
-                                      ChartAxisLocationEnum::Enum verticalAxisLocation);
+                                      ChartAxisLocationEnum::Enum verticalAxisLocation,
+                                      const bool allMapsSelected);
             
             HistogramDrawingInfo* m_histogramDrawingInfo;
-            const ChartableTwoFileHistogramChart* m_histogramChart;
+            ChartableTwoFileHistogramChart* m_histogramChart;
             int32_t m_mapIndex;
             ChartAxisLocationEnum::Enum m_verticalAxisLocation;
+            const bool m_allMapsSelected;
             
             ~HistogramChartDrawingInfo();
         };
@@ -104,14 +106,6 @@ namespace caret {
         
         void saveStateOfOpenGL();
         
-        void resetIdentification();
-        
-        void addToHistogramIdentification(const int32_t mapIndex,
-                                          const int32_t bucketIndex,
-                                          uint8_t rgbaForColorIdentificationOut[4]);
-        
-        void processHistogramIdentification(const ChartableTwoFileHistogramChart* histogramChart);
-        
         void processLineSeriesIdentification(const ChartableTwoFileLineSeriesChart* lineSeriesChart);
         
         void drawMatrixChart();
@@ -123,11 +117,6 @@ namespace caret {
                                  const float zooming);
         
         void drawHistogramChart();
-        
-        void drawHistogramChartContent(const HistogramChartDrawingInfo* drawingInfo,
-                                       const CaretColorEnum::Enum envelopeColor,
-                                       const bool drawHistogramBarsFlag,
-                                       const bool drawHistogramEnvelopeFlag);
         
         void drawChartGraphicsBoxAndSetViewport(const float vpX,
                                                 const float vpY,
@@ -173,8 +162,6 @@ namespace caret {
         float m_translation[3];
         
         float m_zooming;
-        
-        std::vector<int32_t> m_identificationIndices;
         
         CaretPreferences* m_preferences;
         
