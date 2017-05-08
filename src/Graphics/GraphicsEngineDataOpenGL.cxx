@@ -401,9 +401,9 @@ GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
     if ((pixelX    >= viewport[0])
-        && (pixelX <  viewport[2])
+        && (pixelX <  (viewport[0] + viewport[2]))
         && (pixelY >= viewport[1])
-        && (pixelY <  viewport[3])) {
+        && (pixelY <  (viewport[1] + viewport[3]))) {
         /*
          * Saves glPixelStore parameters
          */
