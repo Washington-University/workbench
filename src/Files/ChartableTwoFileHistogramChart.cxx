@@ -571,11 +571,18 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
                                                               true); // ignore thresholding
                 
                 
-                const int32_t estimatedNumberOfVertices = (numBucketValues * 4); // four vertices per quad
+                const int32_t estimatedNumberOfVerticesForQuads = (numBucketValues * 4); // four vertices per quad
+                const int32_t estimatedNumberOfVerticesForEnvelope = (numBucketValues * 2) + 4; // 2 vertices per line segment plus start/end
 
+                /*
+                 * Use Quads when drawing bars (four vertices quad).
+                 * Use Lines when drawing envelope (two vertices per line)
+                 * Using quads and lines simplifies identification of individual bars in the histogram
+                 */
                 GraphicsPrimitiveV3fC4f* barsPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS);
-                barsPrimitive->reserveForNumberOfVertices(estimatedNumberOfVertices);
-                GraphicsPrimitiveV3fC4f* envelopePrimitive  = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINE_STRIP);
+                barsPrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForQuads);
+                GraphicsPrimitiveV3fC4f* envelopePrimitive  = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINES);
+                envelopePrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForEnvelope);
                 GraphicsPrimitiveV3fC4f* thresholdPrimitive = NULL;
                 
                 bool setThresholdingFlag = false;
@@ -719,20 +726,40 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
                         const float envelopeX = x + halfBucketWidth;
                         if (i == 0) {
                             envelopePrimitive->addVertex(envelopeX, yMin, envelopeSolidColorRGBA);
+                            envelopePrimitive->addVertex(envelopeX, yMax, envelopeSolidColorRGBA);
                         }
-                        envelopePrimitive->addVertex(envelopeX, yMax, envelopeSolidColorRGBA);
-                        if (i == (numBucketValues - 1)) {
-                            envelopePrimitive->addVertex(envelopeX, yMin, envelopeSolidColorRGBA);
+                        else {
+                            const float xPrevious = envelopeX - bucketWidth;
+                            CaretAssertVectorIndex(histogramBuckets, i - 1);
+                            const float yPrevious = histogramBuckets[i - 1];
+                            
+                            envelopePrimitive->addVertex(xPrevious, yPrevious, envelopeSolidColorRGBA);
+                            envelopePrimitive->addVertex(envelopeX, yMax, envelopeSolidColorRGBA);
+                            if (i == (numBucketValues - 1)) {
+                                envelopePrimitive->addVertex(envelopeX, yMax, envelopeSolidColorRGBA);
+                                envelopePrimitive->addVertex(envelopeX, yMin, envelopeSolidColorRGBA);
+                            }
                         }
                     }
                     else {
                         const float envelopeX = x + halfBucketWidth;
                         if (i == 0) {
                             envelopePrimitive->addVertex(envelopeX, yMin, rgba);
+                            envelopePrimitive->addVertex(envelopeX, yMax, rgba);
                         }
-                        envelopePrimitive->addVertex(envelopeX, yMax, rgba);
-                        if (i == (numBucketValues - 1)) {
-                            envelopePrimitive->addVertex(envelopeX, yMin, rgba);
+                        else {
+                            const float xPrevious = envelopeX - bucketWidth;
+                            CaretAssertVectorIndex(histogramBuckets, i - 1);
+                            const float yPrevious = histogramBuckets[i - 1];
+                            CaretAssertVectorIndex(histogramRGBA, (i - 1) * 4 + 3);
+                            
+                            envelopePrimitive->addVertex(xPrevious, yPrevious, &histogramRGBA[(i - 1) * 4]);
+                            envelopePrimitive->addVertex(envelopeX, yMax, rgba);
+                            
+                            if (i == (numBucketValues - 1)) {
+                                envelopePrimitive->addVertex(envelopeX, yMax, rgba);
+                                envelopePrimitive->addVertex(envelopeX, yMin, rgba);
+                            }
                         }
                     }
                     
@@ -743,7 +770,6 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
                                                                                     barsPrimitive,
                                                                                     envelopePrimitive);
                 
-                std::cout << "Created new histograms" << std::endl;
                 m_mapHistogramBarsPrimitive.insert(std::make_pair(mapIndex,
                                                                   std::unique_ptr<HistogramPrimitives>(histogramPrimitives)));
                 

@@ -552,19 +552,41 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                     drawInfo->m_histogramChart->getMapHistogramDrawingPrimitives(drawInfo->m_mapIndex,
                                                                                  drawInfo->m_allMapsSelected);
                     if (histogramPrimitives != NULL) {
+                        const float ENVELOPE_LINE_WIDTH = 1.0;
+                        
                         if (m_identificationModeFlag) {
                             int32_t primitiveIndex = -1;
                             float   primitiveDepth = 0.0;
-                            glPushMatrix();
-                            glScalef(1.0, 1000.0, 1.0); // exagerrage height of bars for identification
-                            GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getOpenGLContextPointer(),
-                                                                        histogramPrimitives->getBarsPrimitive(),
-                                                                        m_fixedPipelineDrawing->mouseX,
-                                                                        m_fixedPipelineDrawing->mouseY,
-                                                                        primitiveIndex,
-                                                                        primitiveDepth);
-                            glPopMatrix();
-                            std::cout << "Histogram selection: " << primitiveIndex << std::endl;
+                            
+                            if (drawBarsFlag) {
+                                /*
+                                 * Scale histogram bars in Y-axis so that identification
+                                 * will function when mouse is above a bar.  This is helpful
+                                 * for identification of bars with a very small height.
+                                 */
+                                glPushMatrix();
+                                glScalef(1.0, 1000.0, 1.0);
+                                GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getOpenGLContextPointer(),
+                                                                            histogramPrimitives->getBarsPrimitive(),
+                                                                            m_fixedPipelineDrawing->mouseX,
+                                                                            m_fixedPipelineDrawing->mouseY,
+                                                                            primitiveIndex,
+                                                                            primitiveDepth);
+                                glPopMatrix();
+                            }
+                            else if (drawEnvelopeFlag) {
+                                /*
+                                 * Increase line width for identification
+                                 */
+                                glLineWidth(ENVELOPE_LINE_WIDTH * 3.0f);
+                                GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getOpenGLContextPointer(),
+                                                                            histogramPrimitives->getEnvelopePrimitive(),
+                                                                            m_fixedPipelineDrawing->mouseX,
+                                                                            m_fixedPipelineDrawing->mouseY,
+                                                                            primitiveIndex,
+                                                                            primitiveDepth);
+                            }
+                            
                             if (primitiveIndex >= 0) {
                                 if (m_selectionItemHistogram->isOtherScreenDepthCloserToViewer(primitiveDepth)) {
                                     m_selectionItemHistogram->setHistogramChart(const_cast<ChartableTwoFileHistogramChart*>(drawInfo->m_histogramChart),
@@ -580,8 +602,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
                                 drawPrimitivePrivate(histogramPrimitives->getBarsPrimitive());
                             }
                             if (drawEnvelopeFlag) {
+                                glLineWidth(ENVELOPE_LINE_WIDTH);
                                 m_fixedPipelineDrawing->enableLineAntiAliasing();
                                 drawPrimitivePrivate(histogramPrimitives->getEnvelopePrimitive());
+                                m_fixedPipelineDrawing->disableLineAntiAliasing();
                             }
                         }
                     }

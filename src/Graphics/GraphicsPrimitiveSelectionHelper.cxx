@@ -61,23 +61,31 @@ GraphicsPrimitiveSelectionHelper::~GraphicsPrimitiveSelectionHelper()
 void
 GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
 {
+    int32_t numberOfVertices = 0;
+    
+    switch (m_parentGraphicsPrimitive->getVertexType()) {
+        case GraphicsPrimitive::VertexType::FLOAT_XYZ:
+            numberOfVertices = m_parentGraphicsPrimitive->getFloatXYZ().size() / 3;
+            break;
+    }
+    
     m_numberOfVerticesPerPrimitive = 0;
     
     switch (m_parentGraphicsPrimitive->getPrimitiveType()) {
         case GraphicsPrimitive::PrimitiveType::LINE_LOOP:
-            CaretAssertMessage(0, "Not yet implemented");
+            m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
         case GraphicsPrimitive::PrimitiveType::LINE_STRIP:
-            CaretAssertMessage(0, "Not yet implemented");
+            m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
         case GraphicsPrimitive::PrimitiveType::LINES:
-            CaretAssertMessage(0, "Not yet implemented");
+            m_numberOfVerticesPerPrimitive = 2;
             break;
         case GraphicsPrimitive::PrimitiveType::POINTS:
-            CaretAssertMessage(0, "Not yet implemented");
+            m_numberOfVerticesPerPrimitive = 1;
             break;
         case GraphicsPrimitive::PrimitiveType::POLYGON:
-            CaretAssertMessage(0, "Not yet implemented");
+            m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
         case GraphicsPrimitive::PrimitiveType::QUAD_STRIP:
             CaretAssertMessage(0, "Not yet implemented");
@@ -92,17 +100,10 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
             CaretAssertMessage(0, "Not yet implemented");
             break;
         case GraphicsPrimitive::PrimitiveType::TRIANGLES:
-            CaretAssertMessage(0, "Not yet implemented");
+            m_numberOfVerticesPerPrimitive = 3;
             break;
     }
     
-    int32_t numberOfVertices = 0;
-    
-    switch (m_parentGraphicsPrimitive->getVertexType()) {
-        case GraphicsPrimitive::VertexType::FLOAT_XYZ:
-            numberOfVertices = m_parentGraphicsPrimitive->getFloatXYZ().size() / 3;
-            break;
-    }
     if (numberOfVertices > 0) {
         const int32_t numberOfPrimitives = numberOfVertices / m_numberOfVerticesPerPrimitive;
         const int32_t maxPrimitivesSupported = 255 * 255 * 255;
