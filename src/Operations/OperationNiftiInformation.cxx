@@ -21,6 +21,7 @@
 #include "OperationNiftiInformation.h"
 #include "OperationException.h"
 
+#include "CaretBinaryFile.h"
 #include "CiftiFile.h"
 #include "NiftiIO.h"
 #include "CiftiXML.h"
@@ -46,7 +47,8 @@ OperationParameters* OperationNiftiInformation::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addStringParameter(1, "nifti-file", "the nifti/cifti file to examine");
     
-    ret->createOptionalParameter(2, "-print-header", "display the header contents");
+    OptionalParameter* headerOpt = ret->createOptionalParameter(2, "-print-header", "display the header contents");
+    headerOpt->createOptionalParameter(1, "-allow-truncated", "print the header even if the data is truncated");
     
     ret->createOptionalParameter(3, "-print-matrix", "output the values in the matrix (cifti only)");
     
@@ -64,7 +66,8 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
 {
     LevelProgress myProgress(myProgObj);
     const AString fileName = myParams->getString(1);
-    bool printHeader = myParams->getOptionalParameter(2)->m_present;
+    OptionalParameter* headerOpt = myParams->getOptionalParameter(2);
+    bool printHeader = headerOpt->m_present;
     bool printMatrix = myParams->getOptionalParameter(3)->m_present;
     OptionalParameter* printXmlOpt = myParams->getOptionalParameter(4);
     bool printXml = printXmlOpt->m_present;
@@ -73,10 +76,19 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
 
     if(printHeader)
     {
-        NiftiIO myIO;
-        myIO.openRead(fileName);
-        cout << myIO.getHeader().toString() << endl;
-        cout << getMemorySizeAsString(myIO.getDimensions()) << endl;
+        if (!headerOpt->getOptionalParameter(1)->m_present)
+        {//NiftiIO contains the file length check
+            NiftiIO myIO;
+            myIO.openRead(fileName);
+            cout << myIO.getHeader().toString() << endl;
+            cout << getMemorySizeAsString(myIO.getDimensions()) << endl;
+        } else {//NiftiHeader doesn't
+            CaretBinaryFile myFile(fileName);
+            NiftiHeader myHeader;
+            myHeader.read(myFile);
+            cout << myHeader.toString() << endl;
+            cout << getMemorySizeAsString(myHeader.getDimensions()) << endl;
+        }
     }
     if(printXml)
     {
