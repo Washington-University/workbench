@@ -130,7 +130,7 @@ void
 ChartableTwoFileHistogramChart::invalidateAllColoring()
 {
     m_mapHistogramBarsPrimitive.clear();
-    std::cout << "Invalidating histograms..." << std::endl;
+    //std::cout << "Invalidating histograms..." << std::endl;
 }
 
 /**
@@ -338,484 +338,285 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
         return NULL;
     }
     
-//    if ( ! myMapFile->isMappedWithPalette()) {
-//        return histogramPrimitives;
-//    }
-//    if ((mapIndex < 0)
-//        || (mapIndex >= myMapFile->getNumberOfMaps())) {
-//        return histogramPrimitives;
-//    }
-//    
-//    PaletteColorMapping* paletteColorMapping = myMapFile->getMapPaletteColorMapping(mapIndex);
-//    CaretAssert(paletteColorMapping);
-//    
-//    EventPaletteGetByName paletteEvent(paletteColorMapping->getSelectedPaletteName());
-//    EventManager::get()->sendEvent(paletteEvent.getPointer());
-//    const Palette* palette = paletteEvent.getPalette();
-//    if (palette == NULL) {
-//        CaretLogSevere("Unable to find palette named: "
-//                           + paletteColorMapping->getSelectedPaletteName());
-//        return histogramPrimitives;
-//    }
-//    
-//    FastStatistics* statistics = NULL;
-//    if (useDataFromAllMapsFlag) {
-//        statistics = const_cast<FastStatistics*>(myMapFile->getFileFastStatistics());
-//    }
-//    else {
-//        switch (myMapFile->getPaletteNormalizationMode()) {
-//            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-//                statistics = const_cast<FastStatistics*>(myMapFile->getFileFastStatistics());
-//                break;
-//            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-//                statistics = const_cast<FastStatistics*>(myMapFile->getMapFastStatistics(mapIndex));
-//                break;
-//        }
-//    }
-//    
-//    /*
-//     * Statistics may be NULL for connectivity files (dense, dense dynamic)
-//     * that have not yet loaded any data caused by the user clicking
-//     * brainordinates.
-//     */
-//    if (statistics == NULL) {
-//        return histogramPrimitives;
-//    }
-//
-//    MapIndexPrimitiveContainer::iterator iter = m_mapHistogramBarsPrimitive.find(mapIndex);
-//    if (iter != m_mapHistogramBarsPrimitive.end()) {
-//        histogramPrimitives = iter->second.get();
-//    }
-//    
-//    if (histogramPrimitives == NULL) {
-//        CaretAssert(statistics);
-//        float mostPos  = 0.0;
-//        float leastPos = 0.0;
-//        float leastNeg = 0.0;
-//        float mostNeg  = 0.0;
-//        bool matchFlag = false;
-//        
-//        switch (paletteColorMapping->getHistogramRangeMode()) {
-//            case PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL:
-//            {
-//                float dummy;
-//                statistics->getNonzeroRanges(mostNeg, dummy, dummy, mostPos);
-//            }
-//                break;
-//            case PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_MATCH_PALETTE:
-//            {
-//                matchFlag = true;
-//                switch (paletteColorMapping->getScaleMode()) {
-//                    case PaletteScaleModeEnum::MODE_AUTO_SCALE:
-//                        mostPos  = statistics->getMax();
-//                        leastPos = 0.0;
-//                        leastNeg = 0.0;
-//                        mostNeg  = statistics->getMin();
-//                        break;
-//                    case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
-//                        mostPos  =  statistics->getApproxAbsolutePercentile(paletteColorMapping->getAutoScaleAbsolutePercentageMaximum());
-//                        leastPos =  statistics->getApproxAbsolutePercentile(paletteColorMapping->getAutoScaleAbsolutePercentageMinimum());
-//                        leastNeg = -statistics->getApproxAbsolutePercentile(paletteColorMapping->getAutoScaleAbsolutePercentageMinimum());
-//                        mostNeg  = -statistics->getApproxAbsolutePercentile(paletteColorMapping->getAutoScaleAbsolutePercentageMaximum());
-//                        break;
-//                    case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
-//                        mostPos  = statistics->getApproxPositivePercentile(paletteColorMapping->getAutoScalePercentagePositiveMaximum());
-//                        leastPos = statistics->getApproxPositivePercentile(paletteColorMapping->getAutoScalePercentagePositiveMinimum());
-//                        leastNeg = statistics->getApproxNegativePercentile(paletteColorMapping->getAutoScalePercentageNegativeMinimum());
-//                        mostNeg  = statistics->getApproxNegativePercentile(paletteColorMapping->getAutoScalePercentageNegativeMaximum());
-//                        break;
-//                    case PaletteScaleModeEnum::MODE_USER_SCALE:
-//                        mostPos  = paletteColorMapping->getUserScalePositiveMaximum();
-//                        leastPos = paletteColorMapping->getUserScalePositiveMinimum();
-//                        leastNeg = paletteColorMapping->getUserScaleNegativeMinimum();
-//                        mostNeg  = paletteColorMapping->getUserScaleNegativeMaximum();
-//                        break;
-//                }
-//            }
-//                break;
-//        }
-//        
-//        /*
-//         * Remove data that is not displayed
-//         */
-//        bool isZeroIncluded = true;
-//        const Histogram* histogram = NULL;
-//        if (matchFlag) {
-//            isZeroIncluded = paletteColorMapping->isDisplayZeroDataFlag();
-//            
-//            if ( ! paletteColorMapping->isDisplayNegativeDataFlag()) {
-//                mostNeg  = 0.0;
-//                leastNeg = 0.0;
-//            }
-//            if ( ! paletteColorMapping->isDisplayPositiveDataFlag()) {
-//                mostPos  = 0.0;
-//                leastPos = 0.0;
-//            }
-//            
-//            if (useDataFromAllMapsFlag) {
-//                histogram = myMapFile->getFileHistogram(mostPos,
-//                                             leastPos,
-//                                             leastNeg,
-//                                             mostNeg,
-//                                             isZeroIncluded);
-//            }
-//            else {
-//                switch (myMapFile->getPaletteNormalizationMode()) {
-//                    case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-//                        histogram = myMapFile->getFileHistogram(mostPos,
-//                                                     leastPos,
-//                                                     leastNeg,
-//                                                     mostNeg,
-//                                                     isZeroIncluded);
-//                        break;
-//                    case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-//                        histogram = myMapFile->getMapHistogram(mapIndex,
-//                                                    mostPos,
-//                                                    leastPos,
-//                                                    leastNeg,
-//                                                    mostNeg,
-//                                                    isZeroIncluded);
-//                        break;
-//                }
-//            }
-//        }
-//        else {
-//            if (useDataFromAllMapsFlag) {
-//                histogram = myMapFile->getFileHistogram();
-//            }
-//            else {
-//                switch (myMapFile->getPaletteNormalizationMode()) {
-//                    case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-//                        histogram = myMapFile->getFileHistogram();
-//                        break;
-//                    case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-//                        histogram = myMapFile->getMapHistogram(mapIndex);
-//                        break;
-//                }
-//            }
-//        }
+    CaretAssert(histogram);
     
-        CaretAssert(histogram);
-        
-        /* CUT HERE */
-        /*
-         * Move this code to a function
-         */
-        {
-            FastStatistics* statistics = NULL;
-            if (useDataFromAllMapsFlag) {
+    FastStatistics* statistics = NULL;
+    if (useDataFromAllMapsFlag) {
+        statistics = const_cast<FastStatistics*>(myMapFile->getFileFastStatistics());
+    }
+    else {
+        switch (myMapFile->getPaletteNormalizationMode()) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
                 statistics = const_cast<FastStatistics*>(myMapFile->getFileFastStatistics());
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                statistics = const_cast<FastStatistics*>(myMapFile->getMapFastStatistics(mapIndex));
+                break;
+        }
+    }
+    
+    PaletteColorMapping* paletteColorMapping = myMapFile->getMapPaletteColorMapping(mapIndex);
+    CaretAssert(paletteColorMapping);
+    
+    EventPaletteGetByName paletteEvent(paletteColorMapping->getSelectedPaletteName());
+    EventManager::get()->sendEvent(paletteEvent.getPointer());
+    const Palette* palette = paletteEvent.getPalette();
+    if (palette == NULL) {
+        CaretLogSevere("Unable to find palette named: "
+                       + paletteColorMapping->getSelectedPaletteName());
+        return NULL;
+    }
+    
+    float minValueX = 0.0;
+    float maxValueX = 0.0;
+    histogram->getRange(minValueX,
+                        maxValueX);
+    const float valueRangeX = maxValueX - minValueX;
+    if (valueRangeX <= 0.0) {
+        CaretLogSevere("Range of histogram X-values is zero");
+        return NULL;
+    }
+    
+    if ((paletteColorMapping != NULL)
+        && (statistics != NULL)
+        && (palette != NULL)
+        && (histogram != NULL)) {
+        std::vector<float> histogramBuckets = histogram->getHistogramDisplay();
+        const int32_t numBucketValues = static_cast<int32_t>(histogramBuckets.size());
+        if (numBucketValues < 2) {
+            CaretLogSevere("Histogram must contain two or more values");
+            return NULL;
+        }
+        
+        const float bucketWidth = valueRangeX / (numBucketValues - 1);
+        std::vector<float> xValuesAtBuckets;
+        xValuesAtBuckets.reserve(numBucketValues);
+        for (int32_t i = 0; i < numBucketValues; i++) {
+            xValuesAtBuckets.push_back(minValueX + (bucketWidth * i));
+        }
+        CaretAssert(xValuesAtBuckets.size() == histogramBuckets.size());
+        
+        std::vector<float> histogramRGBA;
+        histogramRGBA.resize(numBucketValues * 4,
+                             0.0f);
+        NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+                                                      paletteColorMapping,
+                                                      palette,
+                                                      &xValuesAtBuckets[0],
+                                                      &xValuesAtBuckets[0],
+                                                      numBucketValues,
+                                                      &histogramRGBA[0],
+                                                      true); // ignore thresholding
+        
+        
+        const int32_t estimatedNumberOfVerticesForQuads = (numBucketValues * 4); // four vertices per quad
+        const int32_t estimatedNumberOfVerticesForEnvelope = (numBucketValues * 2) + 4; // 2 vertices per line segment plus start/end
+        
+        /*
+         * Use Quads when drawing bars (four vertices quad).
+         * Use Lines when drawing envelope (two vertices per line)
+         * Using quads and lines simplifies identification of individual bars in the histogram
+         */
+        GraphicsPrimitiveV3fC4f* barsPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS);
+        barsPrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForQuads);
+        GraphicsPrimitiveV3fC4f* envelopePrimitive  = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINES);
+        envelopePrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForEnvelope);
+        GraphicsPrimitiveV3fC4f* thresholdPrimitive = NULL;
+        
+        bool setThresholdingFlag = false;
+        switch (paletteColorMapping->getThresholdType()) {
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+                setThresholdingFlag = true;
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+                break;
+        }
+        
+        if (setThresholdingFlag) {
+            /*
+             * RGBA for thresholding
+             */
+            EventCaretPreferencesGet preferencesEvent;
+            EventManager::get()->sendEvent(preferencesEvent.getPointer());
+            CaretPreferences* caretPreferences = preferencesEvent.getCaretPreferences();
+            float threshRGBA[4] = { 1.0, 0.0, 0.0, 1.0 };
+            if (caretPreferences != NULL) {
+                uint8_t threshByteRGBA[4];
+                caretPreferences->getBackgroundAndForegroundColors()->getColorChartHistogramThreshold(threshByteRGBA);
+                threshRGBA[0] = static_cast<float>(threshByteRGBA[0]) / 255.0f;
+                threshRGBA[1] = static_cast<float>(threshByteRGBA[1]) / 255.0f;
+                threshRGBA[2] = static_cast<float>(threshByteRGBA[2]) / 255.0f;
+                threshRGBA[3] = 1.0;
             }
-            else {
-                switch (myMapFile->getPaletteNormalizationMode()) {
-                    case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                        statistics = const_cast<FastStatistics*>(myMapFile->getFileFastStatistics());
-                        break;
-                    case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                        statistics = const_cast<FastStatistics*>(myMapFile->getMapFastStatistics(mapIndex));
-                        break;
-                }
-            }
+            const float minX = -1000000.0f; //minValueX;
+            const float maxX = 1000000.0f;
+            const float minY = 0.0;
+            const float maxY = *std::max_element(histogramBuckets.begin(),
+                                                 histogramBuckets.end());
             
-            PaletteColorMapping* paletteColorMapping = myMapFile->getMapPaletteColorMapping(mapIndex);
-            CaretAssert(paletteColorMapping);
+            float threshMinValue = paletteColorMapping->getThresholdNormalMinimum();
+            float threshMaxValue = paletteColorMapping->getThresholdNormalMaximum();
             
-            EventPaletteGetByName paletteEvent(paletteColorMapping->getSelectedPaletteName());
-            EventManager::get()->sendEvent(paletteEvent.getPointer());
-            const Palette* palette = paletteEvent.getPalette();
-            if (palette == NULL) {
-                CaretLogSevere("Unable to find palette named: "
-                               + paletteColorMapping->getSelectedPaletteName());
-                return NULL;
-            }
+            thresholdPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS);
             
-            float minValueX = 0.0;
-            float maxValueX = 0.0;
-            histogram->getRange(minValueX,
-                                maxValueX);
-            const float valueRangeX = maxValueX - minValueX;
-            if (valueRangeX <= 0.0) {
-                CaretLogSevere("Range of histogram X-values is zero");
-                return NULL;
-            }
-            
-            if ((paletteColorMapping != NULL)
-                && (statistics != NULL)
-                && (palette != NULL)
-                && (histogram != NULL)) {
-                std::vector<float> histogramBuckets = histogram->getHistogramDisplay();
-                const int32_t numBucketValues = static_cast<int32_t>(histogramBuckets.size());
-                if (numBucketValues < 2) {
-                    CaretLogSevere("Histogram must contain two or more values");
-                    return NULL;
+            switch (paletteColorMapping->getThresholdTest()) {
+                case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+                {
+                    thresholdPrimitive->reserveForNumberOfVertices(8);
+                    thresholdPrimitive->addVertex(minX, minY, threshRGBA);
+                    thresholdPrimitive->addVertex(threshMinValue, minY, threshRGBA);
+                    thresholdPrimitive->addVertex(threshMinValue, maxY, threshRGBA);
+                    thresholdPrimitive->addVertex(minX, maxY, threshRGBA);
+                    
+                    thresholdPrimitive->addVertex(threshMaxValue, minY, threshRGBA);
+                    thresholdPrimitive->addVertex(maxX, minY, threshRGBA);
+                    thresholdPrimitive->addVertex(maxX, maxY, threshRGBA);
+                    thresholdPrimitive->addVertex(threshMaxValue, maxY, threshRGBA);
                 }
-                
-                const float bucketWidth = valueRangeX / (numBucketValues - 1);
-                std::vector<float> xValuesAtBuckets;
-                xValuesAtBuckets.reserve(numBucketValues);
-                for (int32_t i = 0; i < numBucketValues; i++) {
-                    xValuesAtBuckets.push_back(minValueX + (bucketWidth * i));
+                    break;
+                case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
+                {
+                    thresholdPrimitive->reserveForNumberOfVertices(4);
+                    thresholdPrimitive->addVertex(threshMinValue, minY, threshRGBA);
+                    thresholdPrimitive->addVertex(threshMaxValue, minY, threshRGBA);
+                    thresholdPrimitive->addVertex(threshMaxValue, maxY, threshRGBA);
+                    thresholdPrimitive->addVertex(threshMinValue, maxY, threshRGBA);
                 }
-                CaretAssert(xValuesAtBuckets.size() == histogramBuckets.size());
-                
-                std::vector<float> histogramRGBA;
-                histogramRGBA.resize(numBucketValues * 4,
-                                     0.0f);
-                NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
-                                                              paletteColorMapping,
-                                                              palette,
-                                                              &xValuesAtBuckets[0],
-                                                              &xValuesAtBuckets[0],
-                                                              numBucketValues,
-                                                              &histogramRGBA[0],
-                                                              true); // ignore thresholding
-                
-                
-                const int32_t estimatedNumberOfVerticesForQuads = (numBucketValues * 4); // four vertices per quad
-                const int32_t estimatedNumberOfVerticesForEnvelope = (numBucketValues * 2) + 4; // 2 vertices per line segment plus start/end
-
-                /*
-                 * Use Quads when drawing bars (four vertices quad).
-                 * Use Lines when drawing envelope (two vertices per line)
-                 * Using quads and lines simplifies identification of individual bars in the histogram
-                 */
-                GraphicsPrimitiveV3fC4f* barsPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS);
-                barsPrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForQuads);
-                GraphicsPrimitiveV3fC4f* envelopePrimitive  = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINES);
-                envelopePrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForEnvelope);
-                GraphicsPrimitiveV3fC4f* thresholdPrimitive = NULL;
-                
-                bool setThresholdingFlag = false;
-                switch (paletteColorMapping->getThresholdType()) {
-                    case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
-                        break;
-                    case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
-                        break;
-                    case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
-                        setThresholdingFlag = true;
-                        break;
-                    case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
-                        break;
-                }
-                
-                if (setThresholdingFlag) {
-                    /*
-                     * RGBA for thresholding
-                     */
-                    EventCaretPreferencesGet preferencesEvent;
-                    EventManager::get()->sendEvent(preferencesEvent.getPointer());
-                    CaretPreferences* caretPreferences = preferencesEvent.getCaretPreferences();
-                    float threshRGBA[4] = { 1.0, 0.0, 0.0, 1.0 };
-                    if (caretPreferences != NULL) {
-                        uint8_t threshByteRGBA[4];
-                        caretPreferences->getBackgroundAndForegroundColors()->getColorChartHistogramThreshold(threshByteRGBA);
-                        threshRGBA[0] = static_cast<float>(threshByteRGBA[0]) / 255.0f;
-                        threshRGBA[1] = static_cast<float>(threshByteRGBA[1]) / 255.0f;
-                        threshRGBA[2] = static_cast<float>(threshByteRGBA[2]) / 255.0f;
-                        threshRGBA[3] = 1.0;
-                    }
-                    const float minX = -1000000.0f; //minValueX;
-                    const float maxX = 1000000.0f;
-                    const float minY = 0.0;
-                    const float maxY = *std::max_element(histogramBuckets.begin(),
-                                                         histogramBuckets.end());
-                    
-                    float threshMinValue = paletteColorMapping->getThresholdNormalMinimum();
-                    float threshMaxValue = paletteColorMapping->getThresholdNormalMaximum();
-                    
-                    thresholdPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS);
-                    
-                        switch (paletteColorMapping->getThresholdTest()) {
-                            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
-                            {
-                                thresholdPrimitive->reserveForNumberOfVertices(8);
-                                thresholdPrimitive->addVertex(minX, minY, threshRGBA);
-                                thresholdPrimitive->addVertex(threshMinValue, minY, threshRGBA);
-                                thresholdPrimitive->addVertex(threshMinValue, maxY, threshRGBA);
-                                thresholdPrimitive->addVertex(minX, maxY, threshRGBA);
-                                
-                                thresholdPrimitive->addVertex(threshMaxValue, minY, threshRGBA);
-                                thresholdPrimitive->addVertex(maxX, minY, threshRGBA);
-                                thresholdPrimitive->addVertex(maxX, maxY, threshRGBA);
-                                thresholdPrimitive->addVertex(threshMaxValue, maxY, threshRGBA);
-                            }
-                                break;
-                            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
-                            {
-                                thresholdPrimitive->reserveForNumberOfVertices(4);
-                                thresholdPrimitive->addVertex(threshMinValue, minY, threshRGBA);
-                                thresholdPrimitive->addVertex(threshMaxValue, minY, threshRGBA);
-                                thresholdPrimitive->addVertex(threshMaxValue, maxY, threshRGBA);
-                                thresholdPrimitive->addVertex(threshMinValue, maxY, threshRGBA);
-                            }
-                                break;
-                        }
-                }
-                
-                /*
-                 * If selected, apply solid color to envelope histogram
-                 */
-                const CaretColorEnum::Enum histogramEnvelopeColor = paletteColorMapping->getHistogramEnvelopeColor();
-                float envelopeSolidColorRGBA[4] = { 0.0, 0.0, 0.0, 0.0 };
-                bool envelopeSolidColorFlag = false;
-                if (histogramEnvelopeColor != CaretColorEnum::CUSTOM) {
-                    CaretColorEnum::toRGBAFloat(histogramEnvelopeColor,
-                                                envelopeSolidColorRGBA);
-                    envelopeSolidColorFlag = true;
-                }
-                
-                /*
-                 * If selected, apply solid color to bars histogram
-                 */
-                const CaretColorEnum::Enum histogramBarsColor = paletteColorMapping->getHistogramBarsColor();
-                float barsSolidColorRGBA[4] = { 0.0, 0.0, 0.0, 0.0 };
-                bool barsSolidColorFlag = false;
-                if (histogramBarsColor != CaretColorEnum::CUSTOM) {
-                    CaretColorEnum::toRGBAFloat(histogramBarsColor,
-                                                barsSolidColorRGBA);
-                    barsSolidColorFlag = true;
-                }
-                
-                /*
-                 * Move start one-half of bucket width so that bar's 
-                 * X-value is centered within the bar
-                 */
-                const float halfBucketWidth = bucketWidth / 2.0f;
-                const float startX = minValueX - halfBucketWidth;
-                
-                
-                float x = startX;
-                for (int32_t i = 0; i < numBucketValues; i++) {
-                    CaretAssertVectorIndex(histogramBuckets, i);
-                    const float xMin = x;
-                    const float xMax = x + bucketWidth;
-                    const float yMin = 0.0f;
-                    float yMax = histogramBuckets[i];
-                    
-                    CaretAssertVectorIndex(histogramRGBA, i*4+3);
-                    const float* rgba = &histogramRGBA[i * 4];
-                    const float alpha = rgba[3];
-                    
-                    /*
-                     * Use a height of zero when there is no coloring
-                     * (apha == 0) for a bar since the bars will be 
-                     * smoothed to create the envelope.
-                     */
-                    if (alpha <= 0.0) {
-                        yMax = 0.0;
-                    }
-                    
-                    if (barsSolidColorFlag) {
-                        /*
-                         * Use alpha from normal coloring
-                         */
-                        barsSolidColorRGBA[3] = rgba[3];
-                        barsPrimitive->addVertex(xMin, yMin, barsSolidColorRGBA);
-                        barsPrimitive->addVertex(xMax, yMin, barsSolidColorRGBA);
-                        barsPrimitive->addVertex(xMax, yMax, barsSolidColorRGBA);
-                        barsPrimitive->addVertex(xMin, yMax, barsSolidColorRGBA);
-                    }
-                    else {
-                        barsPrimitive->addVertex(xMin, yMin, rgba);
-                        barsPrimitive->addVertex(xMax, yMin, rgba);
-                        barsPrimitive->addVertex(xMax, yMax, rgba);
-                        barsPrimitive->addVertex(xMin, yMax, rgba);
-                    }
-                    
-                    if (envelopeSolidColorFlag) {
-                        const float envelopeX = x + halfBucketWidth;
-                        if (i == 0) {
-                            envelopePrimitive->addVertex(envelopeX, yMin, envelopeSolidColorRGBA);
-                            envelopePrimitive->addVertex(envelopeX, yMax, envelopeSolidColorRGBA);
-                        }
-                        else {
-                            const float xPrevious = envelopeX - bucketWidth;
-                            CaretAssertVectorIndex(histogramBuckets, i - 1);
-                            const float yPrevious = histogramBuckets[i - 1];
-                            
-                            envelopePrimitive->addVertex(xPrevious, yPrevious, envelopeSolidColorRGBA);
-                            envelopePrimitive->addVertex(envelopeX, yMax, envelopeSolidColorRGBA);
-                            if (i == (numBucketValues - 1)) {
-                                envelopePrimitive->addVertex(envelopeX, yMax, envelopeSolidColorRGBA);
-                                envelopePrimitive->addVertex(envelopeX, yMin, envelopeSolidColorRGBA);
-                            }
-                        }
-                    }
-                    else {
-                        const float envelopeX = x + halfBucketWidth;
-                        if (i == 0) {
-                            envelopePrimitive->addVertex(envelopeX, yMin, rgba);
-                            envelopePrimitive->addVertex(envelopeX, yMax, rgba);
-                        }
-                        else {
-                            const float xPrevious = envelopeX - bucketWidth;
-                            CaretAssertVectorIndex(histogramBuckets, i - 1);
-                            const float yPrevious = histogramBuckets[i - 1];
-                            CaretAssertVectorIndex(histogramRGBA, (i - 1) * 4 + 3);
-                            
-                            envelopePrimitive->addVertex(xPrevious, yPrevious, &histogramRGBA[(i - 1) * 4]);
-                            envelopePrimitive->addVertex(envelopeX, yMax, rgba);
-                            
-                            if (i == (numBucketValues - 1)) {
-                                envelopePrimitive->addVertex(envelopeX, yMax, rgba);
-                                envelopePrimitive->addVertex(envelopeX, yMin, rgba);
-                            }
-                        }
-                    }
-                    
-                    x += bucketWidth;
-                }
-                
-                HistogramPrimitives* histogramPrimitives =  new HistogramPrimitives(thresholdPrimitive,
-                                                                                    barsPrimitive,
-                                                                                    envelopePrimitive);
-                
-                m_mapHistogramBarsPrimitive.insert(std::make_pair(mapIndex,
-                                                                  std::unique_ptr<HistogramPrimitives>(histogramPrimitives)));
-                
-                return histogramPrimitives;
-                
+                    break;
             }
         }
+        
+        /*
+         * If selected, apply solid color to envelope histogram
+         */
+        const CaretColorEnum::Enum histogramEnvelopeColor = paletteColorMapping->getHistogramEnvelopeColor();
+        float envelopeSolidColorRGBA[4] = { 0.0, 0.0, 0.0, 0.0 };
+        bool envelopeSolidColorFlag = false;
+        if (histogramEnvelopeColor != CaretColorEnum::CUSTOM) {
+            CaretColorEnum::toRGBAFloat(histogramEnvelopeColor,
+                                        envelopeSolidColorRGBA);
+            envelopeSolidColorFlag = true;
+        }
+        
+        /*
+         * If selected, apply solid color to bars histogram
+         */
+        const CaretColorEnum::Enum histogramBarsColor = paletteColorMapping->getHistogramBarsColor();
+        float barsSolidColorRGBA[4] = { 0.0, 0.0, 0.0, 0.0 };
+        bool barsSolidColorFlag = false;
+        if (histogramBarsColor != CaretColorEnum::CUSTOM) {
+            CaretColorEnum::toRGBAFloat(histogramBarsColor,
+                                        barsSolidColorRGBA);
+            barsSolidColorFlag = true;
+        }
+        
+        /*
+         * Move start one-half of bucket width so that bar's
+         * X-value is centered within the bar
+         */
+        const float halfBucketWidth = bucketWidth / 2.0f;
+        const float startX = minValueX - halfBucketWidth;
+        
+        
+        float x = startX;
+        for (int32_t i = 0; i < numBucketValues; i++) {
+            CaretAssertVectorIndex(histogramBuckets, i);
+            const float xMin = x;
+            const float xMax = x + bucketWidth;
+            const float yMin = 0.0f;
+            float yMax = histogramBuckets[i];
+            
+            CaretAssertVectorIndex(histogramRGBA, i*4+3);
+            const float* rgba = &histogramRGBA[i * 4];
+            const float alpha = rgba[3];
+            
+            /*
+             * Use a height of zero when there is no coloring
+             * (apha == 0) for a bar since the bars will be
+             * smoothed to create the envelope.
+             */
+            if (alpha <= 0.0) {
+                yMax = 0.0;
+            }
+            
+            if (barsSolidColorFlag) {
+                /*
+                 * Use alpha from normal coloring
+                 */
+                barsSolidColorRGBA[3] = rgba[3];
+                barsPrimitive->addVertex(xMin, yMin, barsSolidColorRGBA);
+                barsPrimitive->addVertex(xMax, yMin, barsSolidColorRGBA);
+                barsPrimitive->addVertex(xMax, yMax, barsSolidColorRGBA);
+                barsPrimitive->addVertex(xMin, yMax, barsSolidColorRGBA);
+            }
+            else {
+                barsPrimitive->addVertex(xMin, yMin, rgba);
+                barsPrimitive->addVertex(xMax, yMin, rgba);
+                barsPrimitive->addVertex(xMax, yMax, rgba);
+                barsPrimitive->addVertex(xMin, yMax, rgba);
+            }
+            
+            if (envelopeSolidColorFlag) {
+                const float envelopeX = x + halfBucketWidth;
+                if (i == 0) {
+                    envelopePrimitive->addVertex(envelopeX, yMin, envelopeSolidColorRGBA);
+                    envelopePrimitive->addVertex(envelopeX, yMax, envelopeSolidColorRGBA);
+                }
+                else {
+                    const float xPrevious = envelopeX - bucketWidth;
+                    CaretAssertVectorIndex(histogramBuckets, i - 1);
+                    const float yPrevious = histogramBuckets[i - 1];
+                    
+                    envelopePrimitive->addVertex(xPrevious, yPrevious, envelopeSolidColorRGBA);
+                    envelopePrimitive->addVertex(envelopeX, yMax, envelopeSolidColorRGBA);
+                    if (i == (numBucketValues - 1)) {
+                        envelopePrimitive->addVertex(envelopeX, yMax, envelopeSolidColorRGBA);
+                        envelopePrimitive->addVertex(envelopeX, yMin, envelopeSolidColorRGBA);
+                    }
+                }
+            }
+            else {
+                const float envelopeX = x + halfBucketWidth;
+                if (i == 0) {
+                    envelopePrimitive->addVertex(envelopeX, yMin, rgba);
+                    envelopePrimitive->addVertex(envelopeX, yMax, rgba);
+                }
+                else {
+                    const float xPrevious = envelopeX - bucketWidth;
+                    CaretAssertVectorIndex(histogramBuckets, i - 1);
+                    const float yPrevious = histogramBuckets[i - 1];
+                    CaretAssertVectorIndex(histogramRGBA, (i - 1) * 4 + 3);
+                    
+                    envelopePrimitive->addVertex(xPrevious, yPrevious, &histogramRGBA[(i - 1) * 4]);
+                    envelopePrimitive->addVertex(envelopeX, yMax, rgba);
+                    
+                    if (i == (numBucketValues - 1)) {
+                        envelopePrimitive->addVertex(envelopeX, yMax, rgba);
+                        envelopePrimitive->addVertex(envelopeX, yMin, rgba);
+                    }
+                }
+            }
+            
+            x += bucketWidth;
+        }
+        
+        HistogramPrimitives* histogramPrimitives =  new HistogramPrimitives(thresholdPrimitive,
+                                                                            barsPrimitive,
+                                                                            envelopePrimitive);
+        
+        m_mapHistogramBarsPrimitive.insert(std::make_pair(mapIndex,
+                                                          std::unique_ptr<HistogramPrimitives>(histogramPrimitives)));
+        
+        return histogramPrimitives;
+        
+    }
     
     return NULL;
 }
-
-///**
-// * Get the histogram chart for the given map index.
-// *
-// * @param mapIndex
-// *     Index for the map.
-// * @return 
-// *     Histogram for the map with the given index.  NULL if the file 
-// *     does not support a histogram.
-// */
-//const ChartTwoDataHistogram*
-//ChartableTwoFileHistogramChart::getMapHistogramChart(const int32_t mapIndex) const
-//{
-//    CaretAssertToDoFatal();  // This class may not be needed
-//    
-//    ChartTwoDataHistogram* histogramChartOut = NULL;
-//    
-//    std::map<int32_t, ChartTwoDataHistogram*>::iterator iter = m_indexHistogramsMap.find(mapIndex);
-//    if (iter != m_indexHistogramsMap.end()) {
-//        histogramChartOut = iter->second;
-//    }
-//    else {
-//        histogramChartOut = new ChartTwoDataHistogram();
-//        m_indexHistogramsMap.insert(std::make_pair(mapIndex,
-//                                                   histogramChartOut));
-//    }
-//    
-//    /*
-//     * Update with histogram from the file even if it is NULL.
-//     */
-//    CaretMappableDataFile* mapFile = const_cast<CaretMappableDataFile*>(getCaretMappableDataFile());
-//    CaretAssert(mapFile);
-//    histogramChartOut->setHistogram(const_cast<Histogram*>(mapFile->getMapHistogram(mapIndex)));
-//    
-//    return histogramChartOut;
-//}
 
 /**
  * Save subclass data to the scene.
@@ -878,15 +679,9 @@ ChartableTwoFileHistogramChart::HistogramPrimitives::HistogramPrimitives(Graphic
                     GraphicsPrimitiveV3fC4f* barsPrimitive,
                     GraphicsPrimitiveV3fC4f* envelopePrimitive)
 {
-//    if (thresholdPrimitive != NULL) {
-        m_thresholdPrimitive.reset(thresholdPrimitive);
-//    }
-//    if (barsPrimitive != NULL) {
-        m_barsPrimitive.reset(barsPrimitive);
-//    }
-//    if (envelopePrimitive != NULL) {
-        m_envelopePrimitive.reset(envelopePrimitive);
-//    }
+    m_thresholdPrimitive.reset(thresholdPrimitive);
+    m_barsPrimitive.reset(barsPrimitive);
+    m_envelopePrimitive.reset(envelopePrimitive);
 }
 
 /*

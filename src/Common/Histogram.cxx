@@ -73,6 +73,9 @@ void Histogram::reset()
         m_cumulative[i] = 0;
         m_display[i] = 0.0f;
     }
+    m_displayHeightMax = 0.0;
+    m_bucketMin = 0.0;
+    m_bucketMax = 0.0;
 }
 
 void Histogram::update(const int& numBuckets, const float* data, const int64_t& dataCount)
@@ -170,9 +173,13 @@ void Histogram::update(const float* data, const int64_t& dataCount)
         ++m_buckets[bucket];
     }
     computeCumulative();
+    m_displayHeightMax = 0.0;
     for (int i = 0; i < numBuckets; ++i)
     {//compute display values by normalizing by bucket size
         m_display[i] = m_buckets[i] / bucketsize;
+        if (m_display[i] > m_displayHeightMax) {
+            m_displayHeightMax = m_display[i];
+        }
     }
 }
 
@@ -309,9 +316,13 @@ void Histogram::update(const float* data, const int64_t& dataCount, float mostPo
         ++m_buckets[bucket];
     }
     computeCumulative();
+    m_displayHeightMax = 0.0;
     for (int i = 0; i < numBuckets; ++i)
     {//compute display values by normalizing by bucket size
         m_display[i] = m_buckets[i] / bucketsize;
+        if (m_display[i] > m_displayHeightMax) {
+            m_displayHeightMax = m_display[i];
+        }
     }
 }
 

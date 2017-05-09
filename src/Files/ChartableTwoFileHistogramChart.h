@@ -91,8 +91,6 @@ namespace caret {
         
         void invalidateAllColoring();
         
-        //const ChartTwoDataHistogram* getMapHistogramChart(const int32_t mapIndex) const;
-        
         // ADD_NEW_METHODS_HERE
           
     protected: 
@@ -111,19 +109,11 @@ namespace caret {
 
         const ChartTwoHistogramContentTypeEnum::Enum m_histogramContentType;
         
-//        std::unique_ptr<GraphicsPrimitiveV3fC4f> m_fileHistogramBarsPrimitive;
-//        
-//        std::unique_ptr<GraphicsPrimitiveV3fC4f> m_fileHistogramBarsLimitiedValuesPrimitive;
-        
         typedef std::map<int32_t, std::unique_ptr<HistogramPrimitives>> MapIndexPrimitiveContainer;
         
         MapIndexPrimitiveContainer m_mapHistogramBarsPrimitive;
         
         MapIndexPrimitiveContainer m_mapHistogramThresholdPrimitive;
-        
-        //std::map<int32_t, std::unique_ptr<GraphicsPrimitiveV3fC4f>> m_mapHistogramBarsLimitedValuesPrimitive;
-        
-       // mutable std::map<int32_t, ChartTwoDataHistogram*> m_indexHistogramsMap;
         
         // ADD_NEW_MEMBERS_HERE
 

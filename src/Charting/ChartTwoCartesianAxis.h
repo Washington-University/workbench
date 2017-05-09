@@ -27,7 +27,6 @@
 #include "ChartAxisLocationEnum.h"
 #include "ChartAxisUnitsEnum.h"
 #include "ChartTwoAxisScaleRangeModeEnum.h"
-#include "HistogramDrawingInfo.h"
 #include "NumericFormatModeEnum.h"
 #include "SceneableInterface.h"
 

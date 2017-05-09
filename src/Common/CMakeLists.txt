@@ -112,7 +112,6 @@ FileAdapter.h
 FileInformation.h
 FloatMatrix.h
 Histogram.h
-HistogramDrawingInfo.h
 HtmlStringBuilder.h
 ImageCaptureMethodEnum.h
 Logger.h
@@ -211,7 +210,6 @@ FileAdapter.cxx
 FileInformation.cxx
 FloatMatrix.cxx
 Histogram.cxx
-HistogramDrawingInfo.cxx
 HtmlStringBuilder.cxx
 ImageCaptureMethodEnum.cxx
 Logger.cxx

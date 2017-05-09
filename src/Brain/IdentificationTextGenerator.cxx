@@ -840,41 +840,6 @@ IdentificationTextGenerator::generateChartTwoHistogramIdentificationText(Identif
                                (AString::number(bucketHeightInteger)));
             }
         }
-        
-
-//        HistogramDrawingInfo histogramDrawingInfo;
-//        AString errorMessage;
-//        if (mapFile->getMapHistogramDrawingInfo(mapIndex,
-//                                                allMapsFlag,
-//                                                false,
-//                                                histogramDrawingInfo,
-//                                                errorMessage)) {
-//            if (histogramDrawingInfo.isValid()) {
-//                
-//                float bucketValue = 0.0;
-//                float bucketHeight = 0.0;
-//                if (histogramDrawingInfo.getBucketDataValueAndCount(bucketIndex,
-//                                                                    bucketValue,
-//                                                                    bucketHeight)) {
-//                    
-//                    AString boldText("OLD Histogram");
-//                    idText.addLine(false,
-//                                   boldText,
-//                                   mapFile->getFileNameNoPath());
-//                    idText.addLine(true,
-//                                   "Bucket Index",
-//                                   (AString::number(bucketIndex)));
-//                    idText.addLine(true,
-//                                   "Data Value at Bucket",
-//                                   (AString::number(bucketValue)));
-//                    
-//                    const int64_t bucketHeightInteger = static_cast<int64_t>(bucketHeight);
-//                    idText.addLine(true,
-//                                   "Bucket Count",
-//                                   (AString::number(bucketHeightInteger)));
-//                }
-//            }
-//        }
     }
 }
 

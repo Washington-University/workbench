@@ -36,7 +36,6 @@ namespace caret {
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
     class GraphicsPrimitive;
-    class HistogramDrawingInfo;
     class SelectionItemChartTwoHistogram;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
@@ -60,13 +59,11 @@ namespace caret {
     private:
         class HistogramChartDrawingInfo {
         public:
-            HistogramChartDrawingInfo(HistogramDrawingInfo* histogramDrawingInfo,
-                                      ChartableTwoFileHistogramChart* histogramChart,
+            HistogramChartDrawingInfo(ChartableTwoFileHistogramChart* histogramChart,
                                       int32_t mapIndex,
                                       ChartAxisLocationEnum::Enum verticalAxisLocation,
                                       const bool allMapsSelected);
             
-            HistogramDrawingInfo* m_histogramDrawingInfo;
             ChartableTwoFileHistogramChart* m_histogramChart;
             int32_t m_mapIndex;
             ChartAxisLocationEnum::Enum m_verticalAxisLocation;

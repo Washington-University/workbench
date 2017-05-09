@@ -32,6 +32,8 @@ namespace caret
         std::vector<int64_t> m_buckets, m_cumulative;
         std::vector<float> m_display;
         float m_bucketMin, m_bucketMax;
+        float m_displayHeightMax;
+        
         ///counts of each class of number
         int64_t m_posCount, m_zeroCount, m_negCount, m_infCount, m_negInfCount, m_nanCount;
         
@@ -91,6 +93,17 @@ namespace caret
             infCount = m_infCount;
             negInfCount = m_negInfCount;
             nanCount = m_nanCount;
+        }
+        
+        /**
+         * Get the low edge of the low bucket (x-min), and the high edge of the high bucket (x-max)
+         * and the maximum display height (y-max).  Low Y is always zero.
+         */
+        void getRangeAndMaxDisplayHeight(float& histMin, float& histMax, float& displayHeightMax) const
+        {
+            histMin          = m_bucketMin;
+            histMax          = m_bucketMax;
+            displayHeightMax = m_displayHeightMax;
         }
         
         ///returns the low edge of the low bucket, and the high edge of the high bucket

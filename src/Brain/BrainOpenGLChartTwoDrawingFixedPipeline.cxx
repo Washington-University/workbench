@@ -48,7 +48,6 @@
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
-#include "HistogramDrawingInfo.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "ModelChartTwo.h"
@@ -317,45 +316,37 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         if (histogramChart->isValid()) {
             CaretAssert(selectedIndexType == ChartTwoOverlay::SelectedIndexType::MAP);
             AString errorMessage;
-            HistogramDrawingInfo* histogramDrawingInfo = new HistogramDrawingInfo();
-            if (mapFile->getMapHistogramDrawingInfo(selectedIndex,
-                                                    chartOverlay->isAllMapsSelected(),
-                                                    false,
-                                                    *histogramDrawingInfo,
-                                                    errorMessage)) {
-                drawingInfo.push_back(std::unique_ptr<HistogramChartDrawingInfo>(new HistogramChartDrawingInfo(histogramDrawingInfo,
-                                                                                                               histogramChart,
-                                                                                                               selectedIndex,
-                                                                                                               chartOverlay->getCartesianVerticalAxisLocation(),
-                                                                                                               (chartOverlay->isAllMapsSupported()
-                                                                                                                && chartOverlay->isAllMapsSelected()))));
+            drawingInfo.push_back(std::unique_ptr<HistogramChartDrawingInfo>(new HistogramChartDrawingInfo(histogramChart,
+                                                                                                           selectedIndex,
+                                                                                                           chartOverlay->getCartesianVerticalAxisLocation(),
+                                                                                                           (chartOverlay->isAllMapsSupported()
+                                                                                                            && chartOverlay->isAllMapsSelected()))));
+            const Histogram* histogram = histogramChart->getHistogramForChartDrawing(selectedIndex,
+                                                                                     (chartOverlay->isAllMapsSupported()
+                                                                                      && chartOverlay->isAllMapsSelected()));
+            CaretAssert(histogram);
+            float histogramMinX = 0.0, histogramMaxX = 0.0, histogramMaxY = 0.0;
+            histogram->getRangeAndMaxDisplayHeight(histogramMinX, histogramMaxX, histogramMaxY);
+            if (histogramMaxX > histogramMinX) {
+                xMin = std::min(xMin, histogramMinX);
+                xMax = std::max(xMax, histogramMaxX);
                 
-                float bounds[4];
-                if (histogramDrawingInfo->getBounds(bounds)) {
-                    xMin = std::min(xMin, bounds[0]);
-                    xMax = std::max(xMax, bounds[1]);
-                    
-                    switch (chartOverlay->getCartesianVerticalAxisLocation()) {
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                            CaretAssertMessage(0, "TOP axis not allowed for vertical axis");
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                            yMinRight = std::min(yMinRight, bounds[2]);
-                            yMaxRight = std::max(yMaxRight, bounds[3]);
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                            yMinLeft = std::min(yMinLeft, bounds[2]);
-                            yMaxLeft = std::max(yMaxLeft, bounds[3]);
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                            CaretAssertMessage(0, "BOTTOM axis not allowed for vertical axis");
-                            break;
-                    }
+                switch (chartOverlay->getCartesianVerticalAxisLocation()) {
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                        CaretAssertMessage(0, "TOP axis not allowed for vertical axis");
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                        yMinRight = std::min(yMinRight, 0.0f);
+                        yMaxRight = std::max(yMaxRight, histogramMaxY);
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                        yMinLeft = std::min(yMinLeft, 0.0f);
+                        yMaxLeft = std::max(yMaxLeft, histogramMaxY);
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                        CaretAssertMessage(0, "BOTTOM axis not allowed for vertical axis");
+                        break;
                 }
-            }
-            else {
-                delete histogramDrawingInfo;
-                CaretLogWarning(errorMessage + mapFile->getFileName());
             }
         }
     }
@@ -489,7 +480,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
          * so the envelopes are not obscured by the bars
          */
         for (auto& drawInfo : drawingInfo) {
-            if (drawInfo->m_histogramDrawingInfo->isValid()) {
+            if (drawInfo->m_histogramChart->isValid()) {
                 const CaretMappableDataFile* cmdf = drawInfo->m_histogramChart->getCaretMappableDataFile();
                 CaretAssert(cmdf);
                 const PaletteColorMapping* paletteColorMapping = cmdf->getMapPaletteColorMapping(drawInfo->m_mapIndex);
@@ -1629,8 +1620,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawPrimitivePrivate(GraphicsPrimitive*
 /**
  * Constructor.
  *
- * @param histogramDrawingInfo
- *    Drawing information for histogram
  * @param histogramChart
  *    The file's histogram charting
  * @param mapIndex
@@ -1640,12 +1629,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawPrimitivePrivate(GraphicsPrimitive*
  * @param allMapsSelected
  *    True if ALL MAPS selected for histogram, else false.
  */
-BrainOpenGLChartTwoDrawingFixedPipeline::HistogramChartDrawingInfo::HistogramChartDrawingInfo(HistogramDrawingInfo* histogramDrawingInfo,
-                                                                                              ChartableTwoFileHistogramChart* histogramChart,
+BrainOpenGLChartTwoDrawingFixedPipeline::HistogramChartDrawingInfo::HistogramChartDrawingInfo(ChartableTwoFileHistogramChart* histogramChart,
                                                                                               int32_t mapIndex,
                                                                                               ChartAxisLocationEnum::Enum verticalAxisLocation,
                                                                                               const bool allMapsSelected)
-: m_histogramDrawingInfo(histogramDrawingInfo),
+:
 m_histogramChart(histogramChart),
 m_mapIndex(mapIndex),
 m_verticalAxisLocation(verticalAxisLocation),
@@ -1656,6 +1644,6 @@ m_allMapsSelected(allMapsSelected)
 /**
  * Destructor.
  */
-BrainOpenGLChartTwoDrawingFixedPipeline::HistogramChartDrawingInfo::~HistogramChartDrawingInfo() {
-    delete m_histogramDrawingInfo;
+BrainOpenGLChartTwoDrawingFixedPipeline::HistogramChartDrawingInfo::~HistogramChartDrawingInfo()
+{
 }
