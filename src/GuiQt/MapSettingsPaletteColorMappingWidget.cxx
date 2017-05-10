@@ -2442,7 +2442,8 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
         for (int32_t i = 0; i < numMaps; i++) {
             PaletteColorMapping* pcm = this->caretMappableDataFile->getMapPaletteColorMapping(i);
             if (pcm != this->paletteColorMapping) {
-                pcm->copy(*this->paletteColorMapping);
+                pcm->copy(*this->paletteColorMapping,
+                          false);
             }
         }
         PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
@@ -2717,7 +2718,8 @@ MapSettingsPaletteColorMappingWidget::applyToMultipleFilesPushbuttonClicked()
                 for (int32_t iMap = 0; iMap < numMaps; iMap++) {
                     PaletteColorMapping* pcm = cmdf->getMapPaletteColorMapping(iMap);
                     if (pcm != this->paletteColorMapping) {
-                        pcm->copy(*this->paletteColorMapping);
+                        pcm->copy(*this->paletteColorMapping,
+                                  false);
                     }
                 }
                 

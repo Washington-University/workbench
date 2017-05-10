@@ -532,7 +532,8 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                         pcm.decodeFromStringXML(pcmString);
                         
                         PaletteColorMapping* pcmMap = getMapPaletteColorMapping(restoreMapIndex);
-                        pcmMap->copy(pcm);
+                        pcmMap->copy(pcm,
+                                     true);
                         pcmMap->clearModified();
                         
                         /*

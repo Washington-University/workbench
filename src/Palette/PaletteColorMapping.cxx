@@ -71,7 +71,8 @@ PaletteColorMapping::PaletteColorMapping(const PaletteColorMapping& o)
     : CaretObject(o)
 {
     this->initializeMembersPaletteColorMapping();
-    this->copyHelper(o);
+    this->copyHelper(o,
+                     true);
 }
 
 /**
@@ -82,7 +83,8 @@ PaletteColorMapping::operator=(const PaletteColorMapping& o)
 {
     if (this != &o) {
         CaretObject::operator=(o);
-        this->copyHelper(o);
+        this->copyHelper(o,
+                         true);
     };
     return *this;
 }
@@ -92,19 +94,29 @@ PaletteColorMapping::operator=(const PaletteColorMapping& o)
  * color mapping.
  * @param pcm
  *    Color mapping that is copied to this.
+ * @param copyHistogramAttributesFlag
+ *    If true copy histogram attributes.
  */
 void 
-PaletteColorMapping::copy(const PaletteColorMapping& pcm)
+PaletteColorMapping::copy(const PaletteColorMapping& pcm,
+                          const bool copyHistogramAttributesFlag)
 {
-    this->copyHelper(pcm);
+    this->copyHelper(pcm,
+                     copyHistogramAttributesFlag);
     setModified();
 }
 
 /**
  * Helps with copy constructor and assignment operator.
+ *
+ * @param pcm
+ *    Color mapping that is copied to this.
+ * @param copyHistogramAttributesFlag
+ *    If true copy histogram attributes.
  */
 void
-PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
+PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm,
+                                const bool copyHistogramAttributesFlag)
 {
     this->autoScalePercentageNegativeMaximum = pcm.autoScalePercentageNegativeMaximum;
     this->autoScalePercentageNegativeMinimum = pcm.autoScalePercentageNegativeMinimum;
@@ -134,12 +146,14 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->thresholdShowFailureInGreen = pcm.thresholdShowFailureInGreen;
     this->thresholdRangeMode = pcm.thresholdRangeMode;
     this->thresholdNegMinPosMaxLinked = pcm.thresholdNegMinPosMaxLinked;
-    this->histogramRangeMode = pcm.histogramRangeMode;
-    this->histogramBarsVisible = pcm.histogramBarsVisible;
-    this->histogramEnvelopeVisible = pcm.histogramEnvelopeVisible;
-    this->histogramBarsColor = pcm.histogramBarsColor;
-    this->histogramEnvelopeColor = pcm.histogramEnvelopeColor;
-    this->histogramNumberOfBuckets = pcm.histogramNumberOfBuckets;
+    if (copyHistogramAttributesFlag) {
+        this->histogramRangeMode = pcm.histogramRangeMode;
+        this->histogramBarsVisible = pcm.histogramBarsVisible;
+        this->histogramEnvelopeVisible = pcm.histogramEnvelopeVisible;
+        this->histogramBarsColor = pcm.histogramBarsColor;
+        this->histogramEnvelopeColor = pcm.histogramEnvelopeColor;
+        this->histogramNumberOfBuckets = pcm.histogramNumberOfBuckets;
+    }
     this->colorBarNumericFormatMode = pcm.colorBarNumericFormatMode;
     this->colorBarPrecisionDigits = pcm.colorBarPrecisionDigits;
     this->colorBarNumericSubdivisionCount = pcm.colorBarNumericSubdivisionCount;
@@ -159,6 +173,8 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
 bool
 PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
 {
+    bool allMatchFlag = false;
+    
     if ((this->autoScalePercentageNegativeMaximum == pcm.autoScalePercentageNegativeMaximum)
         && (this->autoScalePercentageNegativeMinimum == pcm.autoScalePercentageNegativeMinimum)
         && (this->autoScalePercentagePositiveMaximum == pcm.autoScalePercentagePositiveMaximum)
@@ -187,21 +203,31 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->thresholdShowFailureInGreen == pcm.thresholdShowFailureInGreen)
         && (this->thresholdRangeMode == pcm.thresholdRangeMode)
         && (this->thresholdNegMinPosMaxLinked == pcm.thresholdNegMinPosMaxLinked)
-        && (this->histogramRangeMode == pcm.histogramRangeMode)
-        && (this->histogramBarsVisible == pcm.histogramBarsVisible)
-        && (this->histogramEnvelopeVisible == pcm.histogramEnvelopeVisible)
-        && (this->histogramBarsColor == pcm.histogramBarsColor)
-        && (this->histogramEnvelopeColor == pcm.histogramEnvelopeColor)
-        && (this->histogramNumberOfBuckets == pcm.histogramNumberOfBuckets)
         && (this->colorBarNumericFormatMode == pcm.colorBarNumericFormatMode)
         && (this->colorBarPrecisionDigits == pcm.colorBarPrecisionDigits)
         && (this->colorBarNumericSubdivisionCount == pcm.colorBarNumericSubdivisionCount)
         && (this->colorBarValuesMode == pcm.colorBarValuesMode)
         && (this->colorBarShowTickMarksSelected == pcm.colorBarShowTickMarksSelected)) {
-        return true;
+
+        allMatchFlag = true;
+        
+        const bool includeHistogramAttributesFlag = false;
+        if (includeHistogramAttributesFlag) {
+            if ((this->histogramRangeMode == pcm.histogramRangeMode)
+                && (this->histogramBarsVisible == pcm.histogramBarsVisible)
+                && (this->histogramEnvelopeVisible == pcm.histogramEnvelopeVisible)
+                && (this->histogramBarsColor == pcm.histogramBarsColor)
+                && (this->histogramEnvelopeColor == pcm.histogramEnvelopeColor)
+                && (this->histogramNumberOfBuckets == pcm.histogramNumberOfBuckets)) {
+                allMatchFlag = true;
+            }
+            else {
+                allMatchFlag = false;
+            }
+        }
     }
     
-    return false;
+    return allMatchFlag;
 }
 
 

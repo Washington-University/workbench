@@ -58,10 +58,12 @@ namespace caret {
         
         virtual ~PaletteColorMapping();
         
-        void copy(const PaletteColorMapping& pcm);
+        void copy(const PaletteColorMapping& pcm,
+                  const bool copyHistogramAttributesFlag);
         
     private:
-        void copyHelper(const PaletteColorMapping& o);
+        void copyHelper(const PaletteColorMapping& o,
+                        const bool copyHistogramAttributesFlag);
         
         void initializeMembersPaletteColorMapping();
         

@@ -196,7 +196,8 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
         CaretAssert(scalarPalette);
         const PaletteColorMapping* densePalette = sourceCiftiMatrixFile->getMapPaletteColorMapping(0);
         CaretAssert(densePalette);
-        scalarPalette->copy(*densePalette);
+        scalarPalette->copy(*densePalette,
+                            true);
         
         scalarFile->setModified();
         
