@@ -99,8 +99,7 @@ namespace caret {
         BrainOpenGLFixedPipeline& operator=(const BrainOpenGLFixedPipeline&);
         
     public:
-        BrainOpenGLFixedPipeline(const int32_t windowIndex,
-                                 BrainOpenGLTextRenderInterface* textRenderer);
+        BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterface* textRenderer);
 
         ~BrainOpenGLFixedPipeline();
         
@@ -119,16 +118,19 @@ namespace caret {
         virtual BrainOpenGLTextureManager* getTextureManager();
         
     protected:
-        void drawModelsImplementation(Brain* brain,
+        void drawModelsImplementation(const int32_t windowIndex,
+                                      Brain* brain,
                                       std::vector<BrainOpenGLViewportContent*>& viewportContents) override;
         
-        void selectModelImplementation(Brain* brain,
+        void selectModelImplementation(const int32_t windowIndex,
+                                       Brain* brain,
                                        BrainOpenGLViewportContent* viewportContent,
                                        const int32_t mouseX,
                                        const int32_t mouseY,
                                        const bool applySelectionBackgroundFiltering) override;
         
-        void projectToModelImplementation(Brain* brain,
+        void projectToModelImplementation(const int32_t windowIndex,
+                                          Brain* brain,
                                           BrainOpenGLViewportContent* viewportContent,
                                           const int32_t mouseX,
                                           const int32_t mouseY,
@@ -520,7 +522,7 @@ namespace caret {
         void setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& viewportContents);
 
         /** Index of window */
-        const int32_t m_windowIndex;
+        int32_t m_windowIndex = -1;
         
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;

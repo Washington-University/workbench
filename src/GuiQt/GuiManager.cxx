@@ -634,12 +634,21 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     /*
      * Did OpenGL Context sharing fail?
      */
-    if ( ! bbw->isOpenGLWidgetSharingContext()) {
+    if ( ! bbw->isOpenGLContextSharingValid()) {
         delete bbw;
         errorMessageOut = ("There has been a failure when creating an OpenGL Widget "
                            "with a \"shared context\" for the new window.  "
                            "This may be caused by a limitation of the OpenGL graphics or the "
-                           "windowing system on your computer.");
+                           "windowing system on your computer.\n"
+                           "\n"
+                           "Please restart wb_view and report this problem as a bug using "
+                           "Help Menu --> Report a Workbench Bug...\n"
+                           "\n"
+                           "You will be able to continue using wb_view but you will not "
+                           "be able to have more than one window open.");
+        if (windowIndex >= 0) {
+            m_brainBrowserWindows[windowIndex] = NULL;
+        }
         return NULL;
     }
     

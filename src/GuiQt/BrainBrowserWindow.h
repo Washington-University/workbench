@@ -110,8 +110,6 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
 
-//        void getViewportSize(int &w, int &h);
-        
         TileTabsConfiguration* getSelectedTileTabsConfiguration();
         
         void setSelectedTileTabsConfiguration(TileTabsConfiguration* configuration);
@@ -149,8 +147,8 @@ namespace caret {
         
         bool hasValidOpenGL();
         
-        bool isOpenGLWidgetSharingContext() const;
-        
+        bool isOpenGLContextSharingValid() const;
+
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);
@@ -304,8 +302,6 @@ namespace caret {
         int32_t m_browserWindowIndex;
         
         BrainOpenGLWidget* m_openGLWidget;
-        
-        bool m_openGLWidgetSharingContextFlag;
         
         BrainBrowserWindowToolBar* m_toolbar;
         

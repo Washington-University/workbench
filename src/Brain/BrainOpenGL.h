@@ -104,67 +104,22 @@ namespace caret {
         
         void setTextRenderer(BrainOpenGLTextRenderInterface* textRenderer);
         
-        /**
-         * Draw models in their respective viewports.
-         *
-         * @param brain
-         *    The brain (must be valid!)
-         * @param openGLContextPointer
-         *    Pointer to the active OpenGL context.
-         * @param viewportContents
-         *    Viewport info for drawing.
-         */
-        void drawModels(Brain* brain,
-                        void* openGLContextPointer,
+        void drawModels(const int32_t windowIndex,
+                        Brain* brain,
+                        void* contextSharingGroupPointer,
                         std::vector<BrainOpenGLViewportContent*>& viewportContents);
         
-        /**
-         * Selection on a model.
-         *
-         * @param brain
-         *    The brain (must be valid!)
-         * @param openGLContextPointer
-         *    Pointer to the active OpenGL context.
-         * @param viewportContent
-         *    Viewport content in which mouse was clicked
-         * @param mouseX
-         *    X position of mouse click
-         * @param mouseY
-         *    Y position of mouse click
-         * @param applySelectionBackgroundFiltering
-         *    If true (which is in most cases), if there are multiple items
-         *    selected, those items "behind" other items are not reported.
-         *    For example, suppose a focus is selected and there is a node
-         *    the focus.  If this parameter is true, the node will NOT be
-         *    selected.  If this parameter is false, the node will be
-         *    selected.
-         */
-        void selectModel(Brain* brain,
-                         void* openGLContextPointer,
+        void selectModel(const int32_t windowIndex,
+                         Brain* brain,
+                         void* contextSharingGroupPointer,
                          BrainOpenGLViewportContent* viewportContent,
                          const int32_t mouseX,
                          const int32_t mouseY,
                          const bool applySelectionBackgroundFiltering);
         
-        /**
-         * Project the given window coordinate to the active models.
-         * If the projection is successful, The 'original' XYZ
-         * coordinate in 'projectionOut' will be valid.  In addition,
-         * the barycentric coordinate may also be valid in 'projectionOut'.
-         *
-         * @param brain
-         *    The brain (must be valid!)
-         * @param openGLContextPointer
-         *    Pointer to the active OpenGL context.
-         * @param viewportContent
-         *    Viewport content in which mouse was clicked
-         * @param mouseX
-         *    X position of mouse click
-         * @param mouseY
-         *    Y position of mouse click
-         */
-        void projectToModel(Brain* brain,
-                            void* openGLContextPointer,
+        void projectToModel(const int32_t windowIndex,
+                            Brain* brain,
+                            void* contextSharingGroupPointer,
                             BrainOpenGLViewportContent* viewportContent,
                             const int32_t mouseX,
                             const int32_t mouseY,
@@ -228,7 +183,10 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
         
-        inline void* getOpenGLContextPointer() { return m_openGLContextPointer; }
+        /**
+         * @return Pointer to OpenGL context sharing group pointer.
+         */
+        inline void* getContextSharingGroupPointer() { return m_contextSharingGroupPointer; }
         
     private:
         class DeleteBufferNameInfo {
@@ -250,8 +208,8 @@ namespace caret {
         /** use a mutex whenever accessing this member */
         std::vector<DeleteBufferNameInfo> m_buffersForDeletionLater;
         
-        /** Pointer to the current OpenGL Context */
-        void* m_openGLContextPointer = 0;
+        /** Pointer to the current OpenGL Context sharing group */
+        void* m_contextSharingGroupPointer = 0;
         
         BrainOpenGL(const BrainOpenGL&);
         BrainOpenGL& operator=(const BrainOpenGL&);
@@ -261,17 +219,22 @@ namespace caret {
         /**
          * Draw models in their respective viewports.
          *
+         * @param windowIndex
+         *    Index of window for drawing
          * @param brain
          *    The brain (must be valid!)
          * @param viewportContents
          *    Viewport info for drawing.
          */
-        virtual void drawModelsImplementation(Brain* brain,
+        virtual void drawModelsImplementation(const int32_t windowIndex,
+                                              Brain* brain,
                                 std::vector<BrainOpenGLViewportContent*>& viewportContents) = 0;
         
         /**
          * Selection on a model.
          *
+         * @param windowIndex
+         *    Index of window for selection
          * @param brain
          *    The brain (must be valid!)
          * @param viewportContent
@@ -288,7 +251,8 @@ namespace caret {
          *    selected.  If this parameter is false, the node will be
          *    selected.
          */
-        virtual void selectModelImplementation(Brain* brain,
+        virtual void selectModelImplementation(const int32_t windowIndex,
+                                               Brain* brain,
                                  BrainOpenGLViewportContent* viewportContent,
                                  const int32_t mouseX,
                                  const int32_t mouseY,
@@ -300,6 +264,8 @@ namespace caret {
          * coordinate in 'projectionOut' will be valid.  In addition,
          * the barycentric coordinate may also be valid in 'projectionOut'.
          *
+         * @param windowIndex
+         *    Index of window for projection
          * @param brain
          *    The brain (must be valid!)
          * @param viewportContent
@@ -308,8 +274,11 @@ namespace caret {
          *    X position of mouse click
          * @param mouseY
          *    Y position of mouse click
+         * @param projectionOut
+         *    Output with projection result.
          */
-        virtual void projectToModelImplementation(Brain* brain,
+        virtual void projectToModelImplementation(const int32_t windowIndex,
+                                                  Brain* brain,
                                     BrainOpenGLViewportContent* viewportContent,
                                     const int32_t mouseX,
                                     const int32_t mouseY,

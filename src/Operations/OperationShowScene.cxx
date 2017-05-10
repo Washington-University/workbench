@@ -420,7 +420,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
              * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
              */
             if (restoreToTabTiles) {
-                CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL(windowIndex));
+                CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
                 
                 const AString tileTabsConfigString = browserClass->getStringValue("m_sceneTileTabsConfiguration");
                 if ( ! tileTabsConfigString.isEmpty()) {
@@ -478,7 +478,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                                                                      windowViewport,
                                                                                                      tabIndexToHighlight);
                         
-                        brainOpenGL->drawModels(brain,
+                        brainOpenGL->drawModels(windowIndex,
+                                                brain,
                                                 mesaContext,
                                                 viewports);
                         
@@ -505,7 +506,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                 }
             }
             else {
-                CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL(windowIndex));
+                CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
                 
                 /*
                  * Restore toolbar
@@ -535,7 +536,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     std::vector<BrainOpenGLViewportContent*> viewportContents;
                     viewportContents.push_back(content);
                     
-                    brainOpenGL->drawModels(brain,
+                    brainOpenGL->drawModels(windowIndex,
+                                            brain,
                                             mesaContext,
                                             viewportContents);
                     
@@ -708,13 +710,11 @@ OperationShowScene::getToolBoxSize(const SceneClass* toolBoxClass,
 /**
  * Create OpenGL Rendering.
  *
- * @param windowIndex
- *     Index of window.
  * @return
  *     BrainOpenGL.
  */
 BrainOpenGLFixedPipeline*
-OperationShowScene::createBrainOpenGL(const int32_t windowIndex)
+OperationShowScene::createBrainOpenGL()
 {
     /*
      * The OpenGL rendering takes ownership of the text renderer
@@ -742,8 +742,7 @@ OperationShowScene::createBrainOpenGL(const int32_t windowIndex)
      * will occur as the OpenGL context is invalid when things such as
      * display lists or buffers are deleted.
      */
-    BrainOpenGLFixedPipeline* brainOpenGL = new BrainOpenGLFixedPipeline(windowIndex,
-                                                                         textRenderer);
+    BrainOpenGLFixedPipeline* brainOpenGL = new BrainOpenGLFixedPipeline(textRenderer);
     brainOpenGL->initializeOpenGL();
     
     return brainOpenGL;

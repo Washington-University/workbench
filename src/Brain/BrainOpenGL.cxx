@@ -88,7 +88,7 @@ BrainOpenGL::receiveEvent(Event* event)
         = dynamic_cast<EventGraphicsOpenGLCreateBufferObject*>(event);
         CaretAssert(createBufferEvent);
         
-        if (m_openGLContextPointer == NULL) {
+        if (m_contextSharingGroupPointer == NULL) {
             AString msg("PROGRAM ERROR: "
                         "A request for a new OpenGL Buffer Object has been made.  "
                         "However, there is no OpenGL context currently active so "
@@ -104,7 +104,7 @@ BrainOpenGL::receiveEvent(Event* event)
         GLuint bufferName = 0;
         glGenBuffers(1, &bufferName);
         
-        createBufferEvent->setOpenGLBufferObject(new GraphicsOpenGLBufferObject(m_openGLContextPointer,
+        createBufferEvent->setOpenGLBufferObject(new GraphicsOpenGLBufferObject(m_contextSharingGroupPointer,
                                                                                 bufferName));
         createBufferEvent->setEventProcessed();
     }
@@ -132,34 +132,40 @@ BrainOpenGL::receiveEvent(Event* event)
 /**
  * Draw models in their respective viewports.
  *
+ * @param windowIndex
+ *    Index of window for drawing.
  * @param brain
  *    The brain (must be valid!)
- * @param openGLContextPointer
+ * @param contextSharingGroupPointer
  *    Pointer to the active OpenGL context.
  * @param viewportContents
  *    Viewport info for drawing.
  */
-void BrainOpenGL::drawModels(Brain* brain,
-                             void* openGLContextPointer,
+void BrainOpenGL::drawModels(const int32_t windowIndex,
+                             Brain* brain,
+                             void* contextSharingGroupPointer,
                              std::vector<BrainOpenGLViewportContent*>& viewportContents)
 {
-    m_openGLContextPointer = openGLContextPointer;
+    m_contextSharingGroupPointer = contextSharingGroupPointer;
     
-    drawModelsImplementation(brain,
+    drawModelsImplementation(windowIndex,
+                             brain,
                              viewportContents);
     
     deleteUnusedBuffers();
     
-    m_openGLContextPointer = NULL;
+    m_contextSharingGroupPointer = NULL;
 }
 
 /**
  * Selection on a model.
  *
+ * @param windowIndex
+ *    Index of window for selection.
  * @param brain
  *    The brain (must be valid!)
- * @param openGLContextPointer
- *    Pointer to the active OpenGL context.
+ * @param contextSharingGroupPointer
+ *    Pointer to the active OpenGL context
  * @param viewportContent
  *    Viewport content in which mouse was clicked
  * @param mouseX
@@ -174,16 +180,18 @@ void BrainOpenGL::drawModels(Brain* brain,
  *    selected.  If this parameter is false, the node will be
  *    selected.
  */
-void BrainOpenGL::selectModel(Brain* brain,
-                              void* openGLContextPointer,
+void BrainOpenGL::selectModel(const int32_t windowIndex,
+                              Brain* brain,
+                              void* contextSharingGroupPointer,
                               BrainOpenGLViewportContent* viewportContent,
                               const int32_t mouseX,
                               const int32_t mouseY,
                               const bool applySelectionBackgroundFiltering)
 {
-    m_openGLContextPointer = openGLContextPointer;
+    m_contextSharingGroupPointer = contextSharingGroupPointer;
     
-    selectModelImplementation(brain,
+    selectModelImplementation(windowIndex,
+                              brain,
                               viewportContent,
                               mouseX,
                               mouseY,
@@ -191,7 +199,7 @@ void BrainOpenGL::selectModel(Brain* brain,
     
     deleteUnusedBuffers();
     
-    m_openGLContextPointer = NULL;
+    m_contextSharingGroupPointer = NULL;
 }
 
 /**
@@ -200,9 +208,11 @@ void BrainOpenGL::selectModel(Brain* brain,
  * coordinate in 'projectionOut' will be valid.  In addition,
  * the barycentric coordinate may also be valid in 'projectionOut'.
  *
+ * @param windowIndex
+ *    Index of window for projection
  * @param brain
  *    The brain (must be valid!)
- * @param openGLContextPointer
+ * @param contextSharingGroupPointer
  *    Pointer to the active OpenGL context.
  * @param viewportContent
  *    Viewport content in which mouse was clicked
@@ -210,24 +220,28 @@ void BrainOpenGL::selectModel(Brain* brain,
  *    X position of mouse click
  * @param mouseY
  *    Y position of mouse click
+ * @param projectionOut
+ *    Output with projection result.
  */
-void BrainOpenGL::projectToModel(Brain* brain,
-                    void* openGLContextPointer,
+void BrainOpenGL::projectToModel(const int32_t windowIndex,
+                                 Brain* brain,
+                    void* contextSharingGroupPointer,
                     BrainOpenGLViewportContent* viewportContent,
                     const int32_t mouseX,
                     const int32_t mouseY,
                     SurfaceProjectedItem& projectionOut)
 {
-    m_openGLContextPointer = openGLContextPointer;
+    m_contextSharingGroupPointer = contextSharingGroupPointer;
     
-    projectToModelImplementation(brain,
+    projectToModelImplementation(windowIndex,
+                                 brain,
                                  viewportContent,
                                  mouseX,
                                  mouseY,
                                  projectionOut);
     deleteUnusedBuffers();
     
-    m_openGLContextPointer = NULL;
+    m_contextSharingGroupPointer = NULL;
 }
 
 
@@ -247,7 +261,7 @@ BrainOpenGL::deleteUnusedBuffers()
         std::vector<GLuint> bufferNames;
         
         for (auto bufferInfo : m_buffersForDeletionLater) {
-            if (bufferInfo.m_openglContextPointer == m_openGLContextPointer) {
+            if (bufferInfo.m_openglContextPointer == m_contextSharingGroupPointer) {
                 if (glIsBuffer(bufferInfo.m_bufferName)) {
                     bufferNames.push_back(bufferInfo.m_bufferName);
                 }

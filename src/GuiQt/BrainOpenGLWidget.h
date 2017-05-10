@@ -22,6 +22,8 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
 #include "CaretOpenGLInclude.h"
 
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
@@ -103,6 +105,8 @@ namespace caret {
         
         std::vector<const BrainOpenGLViewportContent*> getViewportContent() const;
 
+        bool isOpenGLContextSharingValid() const;
+        
     protected:
         virtual void initializeGL();
         
@@ -148,8 +152,6 @@ namespace caret {
         
         void captureImage(EventImageCapture* imageCaptureEvent);
         
-        BrainOpenGL* openGL;
-        
         const int32_t windowIndex;
         
         /** Do not own text renderer so DO NOT delete */
@@ -192,12 +194,24 @@ namespace caret {
         bool    m_mousePositionValid;
         CaretPointer<MouseEvent> m_mousePositionEvent;
         
+        bool m_openGLContextSharingValid = false;
+        
+        void* m_contextShareGroupPointer = NULL;
+        
         static bool s_defaultGLFormatInitialized;
+        
+        static std::set<BrainOpenGLWidget*> s_brainOpenGLWidgets;
+        
+        static BrainOpenGL* s_singletonOpenGL;
+        
+
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__
-    const int32_t BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE = 0; //10;
-    bool BrainOpenGLWidget::s_defaultGLFormatInitialized = false;
+        const int32_t BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE = 0; //10;
+        bool BrainOpenGLWidget::s_defaultGLFormatInitialized = false;
+        std::set<BrainOpenGLWidget*> BrainOpenGLWidget::s_brainOpenGLWidgets;
+        BrainOpenGL* BrainOpenGLWidget::s_singletonOpenGL = NULL;
 #endif // __BRAIN_OPENGL_WIDGET_DEFINE__
     
 } // namespace

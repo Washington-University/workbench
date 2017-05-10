@@ -161,23 +161,18 @@ static bool drawTabAnnotationsAfterTabContentFlag = true;
 /**
  * Constructor.
  *
- * @param parentGLWidget
+ * @param textRenderer
  *   The optional text renderer is used for text rendering.
  *   This parameter may be NULL in which case no text
  *   rendering is performed.
  */
-BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(const int32_t windowIndex,
-                                                   BrainOpenGLTextRenderInterface* textRenderer)
-: BrainOpenGL(textRenderer),
-m_windowIndex(windowIndex)
+BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterface* textRenderer)
+: BrainOpenGL(textRenderer)
 {
-    CaretAssert((m_windowIndex >= 0)
-                && (m_windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
-    
     this->initializeMembersBrainOpenGL();
     this->colorIdentification   = new IdentificationWithColor();
     m_annotationDrawing.grabNew(new BrainOpenGLAnnotationDrawingFixedPipeline(this));
-    m_textureManager.grabNew(new BrainOpenGLTextureManager(m_windowIndex));
+    m_textureManager.grabNew(new BrainOpenGLTextureManager(0)); //m_windowIndex));
                              
     m_shapeSphere = NULL;
     m_shapeCone   = NULL;
@@ -248,6 +243,8 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
 /**
  * Selection on a model.
  *
+ * @param windowIndex
+ *    Index of window for selection
  * @param brain
  *    The brain (must be valid!)
  * @param viewportContent
@@ -265,14 +262,18 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
  *    selected.
  */
 void 
-BrainOpenGLFixedPipeline::selectModelImplementation(Brain* brain,
+BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
+                                                    Brain* brain,
                                       BrainOpenGLViewportContent* viewportContent,
                                       const int32_t mouseX,
                                       const int32_t mouseY,
                                       const bool applySelectionBackgroundFiltering)
 {
     m_brain = brain;
+    m_windowIndex = windowIndex;
     CaretAssert(m_brain);
+    CaretAssert((m_windowIndex >= 0)
+                && (m_windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
     
     setTabViewport(viewportContent);
     
@@ -317,6 +318,7 @@ BrainOpenGLFixedPipeline::selectModelImplementation(Brain* brain,
     m_brain->getSelectionManager()->filterSelections(applySelectionBackgroundFiltering);
     
     m_brain = NULL;
+    m_windowIndex = -1;
 }
 
 /**
@@ -325,6 +327,8 @@ BrainOpenGLFixedPipeline::selectModelImplementation(Brain* brain,
  * coordinate in 'projectionOut' will be valid.  In addition,
  * the barycentric coordinate may also be valid in 'projectionOut'.
  *
+ * @param windowIndex
+ *    Index of window for projection
  * @param brain
  *    The brain (must be valid!)
  * @param viewportContent
@@ -337,14 +341,18 @@ BrainOpenGLFixedPipeline::selectModelImplementation(Brain* brain,
  *    Contains projection result upon exit.
  */
 void 
-BrainOpenGLFixedPipeline::projectToModelImplementation(Brain* brain,
+BrainOpenGLFixedPipeline::projectToModelImplementation(const int32_t windowIndex,
+                                                       Brain* brain,
                                          BrainOpenGLViewportContent* viewportContent,
                                          const int32_t mouseX,
                                          const int32_t mouseY,
                                          SurfaceProjectedItem& projectionOut)
 {
     m_brain = brain;
+    m_windowIndex = windowIndex;
     CaretAssert(m_brain);
+    CaretAssert((m_windowIndex >= 0)
+                && (m_windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
     
     setTabViewport(viewportContent);
     
@@ -373,6 +381,7 @@ BrainOpenGLFixedPipeline::projectToModelImplementation(Brain* brain,
     
     this->modeProjectionData = NULL;
     m_brain = NULL;
+    m_windowIndex = -1;
 }
 
 /**
@@ -497,17 +506,23 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(std::vector<BrainOpen
 /**
  * Draw models in their respective viewports.
  *
+ * @param windowIndex
+ *    Index of window for drawing
  * @param brain
  *    The brain (must be valid!)
  * @param viewportContents
  *    Viewport info for drawing.
  */
 void 
-BrainOpenGLFixedPipeline::drawModelsImplementation(Brain* brain,
+BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
+                                                   Brain* brain,
                                      std::vector<BrainOpenGLViewportContent*>& viewportContents)
 {
     m_brain = brain;
+    m_windowIndex = windowIndex;
     CaretAssert(m_brain);
+    CaretAssert((m_windowIndex >= 0)
+                && (m_windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
     
     setTabViewport(NULL);
     
@@ -653,6 +668,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(Brain* brain,
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     
     m_brain = NULL;
+    m_windowIndex = -1;
 }
 
 /**

@@ -43,7 +43,7 @@ namespace caret {
         static bool isShowSceneCommandAvailable();
         
     private:
-        static BrainOpenGLFixedPipeline* createBrainOpenGL(const int32_t windowIndex);
+        static BrainOpenGLFixedPipeline* createBrainOpenGL();
         
         static void writeImage(const AString& imageFileName,
                                   const int32_t imageIndex,

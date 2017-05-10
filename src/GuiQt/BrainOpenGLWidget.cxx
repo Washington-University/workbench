@@ -25,8 +25,8 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-#include <QOpenGLContext>
 #endif
+#include <QOpenGLContext>
 #include <QToolTip>
 #include <QWheelEvent>
 
@@ -109,7 +109,6 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 windowIndex(windowIndex),
 m_textRenderer(NULL)
 {
-    this->openGL = NULL;
     this->borderBeingDrawn = new Border();
     
     m_mousePositionValid = false;
@@ -162,6 +161,31 @@ m_textRenderer(NULL)
      */
     setFormat(QSurfaceFormat::defaultFormat());
 #endif
+    
+    /*
+     * Test to see if OpenGL context sharing is valid.
+     * If there is no sharingWidget, then this is the 
+     * first window opened.
+     */
+    m_openGLContextSharingValid = true;
+    if (shareWidget != NULL) {
+        if ( ! isSharing()) {
+            m_openGLContextSharingValid = false;
+        }
+    }
+    
+//    std::cout << "Share widget: " << std::hex << (uint64_t)shareWidget
+//    << ", Context Pointer: " << std::hex << (uint64_t)context()
+//    << ", Share Group: " << std::hex << (uint64_t)context()->contextHandle()->shareGroup()
+//    << ", Sharing enabled: " << (isSharing() ? "Yes" : "No")
+//    << std::endl;
+    
+    CaretAssert(context());
+    CaretAssert(context()->contextHandle());
+    m_contextShareGroupPointer = context()->contextHandle()->shareGroup();
+    CaretAssert(m_contextShareGroupPointer);
+    
+    s_brainOpenGLWidgets.insert(this);
 }
 
 /**
@@ -176,10 +200,6 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
     
     this->clearDrawingViewportContents();
     
-    if (this->openGL != NULL) {
-        delete this->openGL;
-        this->openGL = NULL;
-    }
     delete this->userInputViewModeProcessor;
     delete this->userInputAnnotationsModeProcessor;
     delete this->userInputBordersModeProcessor;
@@ -191,7 +211,27 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
     delete this->borderBeingDrawn;
     
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    s_brainOpenGLWidgets.erase(this);
+    if (s_brainOpenGLWidgets.empty()) {
+        if (s_singletonOpenGL != NULL) {
+            delete s_singletonOpenGL;
+            s_singletonOpenGL = NULL;
+        }
+    }
 }
+
+/**
+ * @return True if OpenGL Context Sharing is valid among
+ * multiple graphics windows.
+ * Note: If there is one window, we declare sharing valid.
+ */
+bool
+BrainOpenGLWidget::isOpenGLContextSharingValid() const
+{
+    return m_openGLContextSharingValid;
+}
+
 
 /**
  * Initializes graphics.
@@ -199,9 +239,8 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
 void 
 BrainOpenGLWidget::initializeGL()
 {
-    if (this->openGL == NULL) {
-        this->openGL = new BrainOpenGLFixedPipeline(this->windowIndex,
-                                                    createTextRenderer());
+    if (s_singletonOpenGL == NULL) {
+        s_singletonOpenGL = new BrainOpenGLFixedPipeline(createTextRenderer());
     }
     else {
         /*
@@ -213,10 +252,10 @@ BrainOpenGLWidget::initializeGL()
          * recreated.  Otherwise, fonts will be garbage in the
          * image produced by QGLWidget::renderPixmap().
          */
-        this->openGL->setTextRenderer(createTextRenderer());
+        s_singletonOpenGL->setTextRenderer(createTextRenderer());
     }
     
-    this->openGL->initializeOpenGL();
+    s_singletonOpenGL->initializeOpenGL();
     
     this->lastMouseX = 0;
     this->lastMouseY = 0;
@@ -328,7 +367,7 @@ BrainOpenGLWidget::getOpenGLInformation()
              + "\n   Minor Version: " + AString::number(format.minorVersion()));
 #endif
     
-    info += ("\n\n" + this->openGL->getOpenGLInformation());
+    info += ("\n\n" + s_singletonOpenGL->getOpenGLInformation());
     
 #if BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
     int32_t numDisplayLists = 0;
@@ -496,9 +535,9 @@ BrainOpenGLWidget::paintGL()
     /*
      * Highlighting of border points
      */
-    this->openGL->setDrawHighlightedEndPoints(false);
+    s_singletonOpenGL->setDrawHighlightedEndPoints(false);
     if (this->selectedUserInputProcessor == this->userInputBordersModeProcessor) {
-        this->openGL->setDrawHighlightedEndPoints(this->userInputBordersModeProcessor->isHighlightBorderEndPoints());
+        s_singletonOpenGL->setDrawHighlightedEndPoints(this->userInputBordersModeProcessor->isHighlightBorderEndPoints());
     }
     
     const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
@@ -553,13 +592,14 @@ BrainOpenGLWidget::paintGL()
     }
     
     if (this->selectedUserInputProcessor == userInputBordersModeProcessor) {
-        this->openGL->setBorderBeingDrawn(this->borderBeingDrawn);
+        s_singletonOpenGL->setBorderBeingDrawn(this->borderBeingDrawn);
     }
     else {
-        this->openGL->setBorderBeingDrawn(NULL);
+        s_singletonOpenGL->setBorderBeingDrawn(NULL);
     }
-    this->openGL->drawModels(GuiManager::get()->getBrain(),
-                             this->context(),
+    s_singletonOpenGL->drawModels(this->windowIndex,
+                             GuiManager::get()->getBrain(),
+                             m_contextShareGroupPointer,
                              this->drawingViewportContents);
     
     /*
@@ -1088,8 +1128,9 @@ BrainOpenGLWidget::performIdentification(const int x,
     idManager->getVoxelEditingIdentification()->setEnabledForSelection(false);
     
     if (idViewport != NULL) {
-        this->openGL->selectModel(GuiManager::get()->getBrain(),
-                                  this->context(),
+        s_singletonOpenGL->selectModel(this->windowIndex,
+                                  GuiManager::get()->getBrain(),
+                                  m_contextShareGroupPointer,
                                   idViewport,
                                   x, 
                                   y,
@@ -1149,8 +1190,9 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
          const int idX = x - vp[0];
          const int idY = y - vp[1];
          */
-        this->openGL->selectModel(GuiManager::get()->getBrain(),
-                                  this->context(),
+        s_singletonOpenGL->selectModel(this->windowIndex,
+                                  GuiManager::get()->getBrain(),
+                                  m_contextShareGroupPointer,
                                   idViewport,
                                   x,
                                   y,
@@ -1212,8 +1254,9 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
          const int idX = x - vp[0];
          const int idY = y - vp[1];
          */
-        this->openGL->selectModel(GuiManager::get()->getBrain(),
-                                  this->context(),
+        s_singletonOpenGL->selectModel(this->windowIndex,
+                                  GuiManager::get()->getBrain(),
+                                  m_contextShareGroupPointer,
                                   idViewport,
                                   x,
                                   y,
@@ -1266,8 +1309,9 @@ BrainOpenGLWidget::performProjection(const int x,
          const int idX = x - vp[0];
          const int idY = y - vp[1];
          */
-        this->openGL->projectToModel(GuiManager::get()->getBrain(),
-                                     this->context(),
+        s_singletonOpenGL->projectToModel(this->windowIndex,
+                                     GuiManager::get()->getBrain(),
+                                     m_contextShareGroupPointer,
                                      projectionViewport,
                                      x,
                                      y,
@@ -1678,7 +1722,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
              * region caused by aspect locking that needs to 
              * be excluded.
              */
-            BrainOpenGLTextureManager* textureManager = this->openGL->getTextureManager();
+            BrainOpenGLTextureManager* textureManager = s_singletonOpenGL->getTextureManager();
             CaretAssert(textureManager);
             textureManager->deleteAllTexturesForWindow(this->windowIndex);
             
@@ -1686,7 +1730,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
                                                 outputImageHeight);
             image = pixmap.toImage();
             textureManager->deleteAllTexturesForWindow(this->windowIndex);
-            this->openGL->setTextRenderer(createTextRenderer());
+            s_singletonOpenGL->setTextRenderer(createTextRenderer());
 #endif
         }
             break;
@@ -1700,7 +1744,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
         imageCaptureEvent->setImage(image);
         
         uint8_t backgroundColor[3];
-        this->openGL->getBackgroundColor(backgroundColor);
+        s_singletonOpenGL->getBackgroundColor(backgroundColor);
         imageCaptureEvent->setBackgroundColor(backgroundColor);
     }
 

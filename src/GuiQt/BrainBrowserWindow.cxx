@@ -159,20 +159,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     m_openGLWidget = new BrainOpenGLWidget(this,
                                            shareOpenGLContextWidget,
                                            browserWindowIndex);
-    if (shareOpenGLContextWidget != NULL) {
-        /*
-         * Need to know if OpenGL context sharing is enabled.
-         */
-        m_openGLWidgetSharingContextFlag = m_openGLWidget->isSharing();
-    }
-    else {
-        /*
-         * This is the first window so set OpenGL context
-         * to true since there are no other contexts
-         */
-        m_openGLWidgetSharingContextFlag = true;
-    }
-    
+
     const int openGLSizeX = 500;
     const int openGLSizeY = (WuQtUtilities::isSmallDisplay() ? 200 : 375);
     m_openGLWidget->setMinimumSize(openGLSizeX, 
@@ -292,9 +279,12 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
  */
 BrainBrowserWindow::~BrainBrowserWindow()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     s_brainBrowserWindows.erase(this);
     
-    EventManager::get()->removeAllEventsFromListener(this);
+    if (s_brainBrowserWindows.empty()) {
+    }
     
     delete m_defaultTileTabsConfiguration;
     delete m_sceneTileTabsConfiguration;
@@ -466,131 +456,6 @@ BrainBrowserWindow::receiveEvent(Event* event)
             viewportSizeEvent->setViewportSize(viewport);
         }
     }
-//    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE) {
-//        EventBrowserTabGetViewportSize* viewportSizeEvent = dynamic_cast<EventBrowserTabGetViewportSize*>(event);
-//        CaretAssert(viewportSizeEvent);
-//        
-//        std::vector<BrowserTabContent*> allTabContent;
-//        m_toolbar->getAllTabContent(allTabContent);
-//        
-//        const std::vector<const BrainOpenGLViewportContent*> allViewportContent = m_openGLWidget->getViewportContent();
-//        
-//        int32_t tabViewport[4] = { 0, 0, 0, 0 };
-//        bool tabViewportValid = false;
-//        
-//        int32_t notBestTabViewport[4] = { 0, 0, 0, 0 };
-//        bool notBestTabViewportValid = false;
-//        
-//        /*
-//         * Find the viewport content containing the specified tab by index
-//         */
-//        for (std::vector<BrowserTabContent*>::iterator tabIter = allTabContent.begin();
-//             tabIter != allTabContent.end();
-//             tabIter++) {
-//            const BrowserTabContent* btc = *tabIter;
-//            CaretAssert(btc);
-//            
-//            switch (viewportSizeEvent->getMode()) {
-//                case EventBrowserTabGetViewportSize::MODE_SURFACE_MONTAGE:
-//                {
-//                    const Model* model = btc->getModelForDisplay();
-//                    if (model->getModelType() == ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE) {
-//                        for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
-//                             vpIter != allViewportContent.end();
-//                             vpIter++) {
-//                            const BrainOpenGLViewportContent* vpContent = *vpIter;
-//                            if (vpContent->getTabIndex() == btc->getTabNumber()) {
-//                                vpContent->getTabViewportBeforeApplyingMargins(tabViewport);
-//                                tabViewportValid = true;
-//                                break;
-//                            }
-//                        }
-//                    }
-//                }
-//                    break;
-//                case EventBrowserTabGetViewportSize::MODE_TAB_INDEX:
-//                    if (btc->getTabNumber() == viewportSizeEvent->getIndex()) {
-//                        for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
-//                             vpIter != allViewportContent.end();
-//                             vpIter++) {
-//                            const BrainOpenGLViewportContent* vpContent = *vpIter;
-//                            if (vpContent->getTabIndex() == viewportSizeEvent->getIndex()) {
-//                                vpContent->getTabViewportBeforeApplyingMargins(tabViewport);
-//                                tabViewportValid = true;
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    break;
-//                case EventBrowserTabGetViewportSize::MODE_VOLUME_MONTAGE:
-//                {
-//                    const Model* model = btc->getModelForDisplay();
-//                    if (model->getModelType() == ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES) {
-//                        for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
-//                             vpIter != allViewportContent.end();
-//                             vpIter++) {
-//                            const BrainOpenGLViewportContent* vpContent = *vpIter;
-//                            if (vpContent->getTabIndex() == btc->getTabNumber()) {
-//                                if (btc->getSliceDrawingType() == VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE) {
-//                                    vpContent->getTabViewportBeforeApplyingMargins(tabViewport);
-//                                    tabViewportValid = true;
-//                                    break;
-//                                }
-//                                else {
-//                                    vpContent->getTabViewportBeforeApplyingMargins(notBestTabViewport);
-//                                    notBestTabViewportValid = true;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//                    break;
-//                case EventBrowserTabGetViewportSize::MODE_WINDOW_INDEX:
-//                    if (m_browserWindowIndex == viewportSizeEvent->getIndex()) {
-//                        for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
-//                             vpIter != allViewportContent.end();
-//                             vpIter++) {
-//                            const BrainOpenGLViewportContent* vpContent = *vpIter;
-//                            if (vpContent->getTabIndex() == viewportSizeEvent->getIndex()) {
-//                                vpContent->getTabViewportBeforeApplyingMargins(tabViewport);
-//                                tabViewportValid = true;
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    break;
-//            }
-//            
-//            if (tabViewportValid) {
-//                break;
-//            }
-//        }
-//        
-//        if ( ! tabViewportValid) {
-//            if (notBestTabViewportValid) {
-//                tabViewport[0] = notBestTabViewport[0];
-//                tabViewport[1] = notBestTabViewport[1];
-//                tabViewport[2] = notBestTabViewport[2];
-//                tabViewport[3] = notBestTabViewport[3];
-//                tabViewportValid = true;
-//            }
-//            else {
-//                /*
-//                 * Tab is in this window but not the active tab.
-//                 * So, use the active tab's viewport
-//                 */
-//                if ( ! allViewportContent.empty()) {
-//                    CaretAssertVectorIndex(allViewportContent, 0);
-//                    allViewportContent[0]->getTabViewportBeforeApplyingMargins(tabViewport);
-//                    tabViewportValid = true;
-//                }
-//            }
-//        }
-//        
-//        if (tabViewportValid) {
-//            viewportSizeEvent->setViewportSize(tabViewport);
-//        }
-//    }
     else if ((event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW)
              || (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS)) {
         /*
@@ -606,6 +471,18 @@ BrainBrowserWindow::receiveEvent(Event* event)
          */
         processEditMenuAboutToShow();
     }
+}
+
+/**
+ * @return True if OpenGL Context Sharing is valid among
+ * multiple graphics windows.
+ * Note: If there is one window, we declare sharing valid.
+ */
+bool
+BrainBrowserWindow::isOpenGLContextSharingValid() const
+{
+    CaretAssert(m_openGLWidget);
+    return m_openGLWidget->isOpenGLContextSharingValid();
 }
 
 /**
@@ -712,21 +589,6 @@ BrainBrowserWindow::getGraphicsWidgetSize(int32_t& xOut,
                 }
             }
         }
-        
-//        float aspectLockedWidth  = aspectViewport[2];
-//        float aspectLockedHeight = aspectViewport[3];
-//        if ((aspectLockedWidth > 0)
-//            && (aspectLockedHeight > 0)) {
-//            if ((widthOut != aspectLockedWidth)
-//                || (heightOut != aspectLockedHeight)) {
-//                
-//                std::cout << "Viewport adjusted from << " << AString::number(widthOut) << ", " << AString::number(heightOut)
-//                << " to " << aspectLockedWidth << ", " << aspectLockedHeight << std::endl;
-//                
-//                widthOut  = aspectLockedWidth;
-//                heightOut = aspectLockedHeight;
-//            }
-//        }
     }
 }
 
@@ -4543,19 +4405,4 @@ BrainBrowserWindow::hasValidOpenGL()
 {
     return m_openGLWidget->isValid();
 }
-
-/**
- * @return True if this OpenGL widget in this window is sharing
- * its OpenGL context.  Note: the first window is considered
- * sharing since it is the only context.  Sharing is needed
- * when there are multiple windows to simplify management
- * of OpenGL Buffers, textures, etc.
- */
-bool
-BrainBrowserWindow::isOpenGLWidgetSharingContext() const
-{
-    return m_openGLWidgetSharingContextFlag;
-}
-
-
 
