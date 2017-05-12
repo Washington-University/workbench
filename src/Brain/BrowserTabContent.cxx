@@ -1886,19 +1886,21 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
         {
             const ChartTwoOverlaySet* overlaySet = m_chartTwoModel->getChartTwoOverlaySet(tabIndex);
-            const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
-            for (int32_t i = 0; i < numOverlays; i++) {
-                const ChartTwoOverlay* chartOverlay = overlaySet->getOverlay(i);
-                if (chartOverlay->isEnabled()) {
-                    CaretMappableDataFile* mapFile = NULL;
-                    ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
-                    int32_t selectedIndex = -1;
-                    chartOverlay->getSelectionData(mapFile,
-                                                   selectedIndexType,
-                                                   selectedIndex);
-                    
-                    if (mapFile != NULL) {
-                        displayedDataFiles.insert(mapFile);
+            if (overlaySet != NULL) {
+                const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+                for (int32_t i = 0; i < numOverlays; i++) {
+                    const ChartTwoOverlay* chartOverlay = overlaySet->getOverlay(i);
+                    if (chartOverlay->isEnabled()) {
+                        CaretMappableDataFile* mapFile = NULL;
+                        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+                        int32_t selectedIndex = -1;
+                        chartOverlay->getSelectionData(mapFile,
+                                                       selectedIndexType,
+                                                       selectedIndex);
+                        
+                        if (mapFile != NULL) {
+                            displayedDataFiles.insert(mapFile);
+                        }
                     }
                 }
             }
