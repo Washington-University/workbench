@@ -44,6 +44,7 @@ GraphicsPrimitiveV3fC4ub::GraphicsPrimitiveV3fC4ub(const PrimitiveType primitive
 : GraphicsPrimitive(VertexType::FLOAT_XYZ,
                     NormalVectorType::NONE,
                     ColorType::UNSIGNED_BYTE_RGBA,
+                    TextureType::NONE,
                     primitiveType)
 {
     
@@ -73,7 +74,7 @@ GraphicsPrimitiveV3fC4ub::GraphicsPrimitiveV3fC4ub(const GraphicsPrimitiveV3fC4u
  *    Object that is copied.
  */
 void 
-GraphicsPrimitiveV3fC4ub::copyHelperGraphicsPrimitiveV3fC4ub(const GraphicsPrimitiveV3fC4ub& obj)
+GraphicsPrimitiveV3fC4ub::copyHelperGraphicsPrimitiveV3fC4ub(const GraphicsPrimitiveV3fC4ub& /*obj*/)
 {
     
 }

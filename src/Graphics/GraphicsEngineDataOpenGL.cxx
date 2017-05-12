@@ -26,8 +26,10 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventGraphicsOpenGLCreateBufferObject.h"
+#include "EventGraphicsOpenGLCreateTextureName.h"
 #include "EventManager.h"
 #include "GraphicsOpenGLBufferObject.h"
+#include "GraphicsOpenGLTextureName.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveSelectionHelper.h"
 
@@ -94,10 +96,27 @@ GraphicsEngineDataOpenGL::deleteBuffers()
     
     deleteBufferObjectHelper(m_colorBufferObject);
     
+    deleteBufferObjectHelper(m_textureCoordinatesBufferObject);
+    
     for (auto mapBuff: m_alternativeColorBufferObjectMap) {
         deleteBufferObjectHelper(mapBuff.second);
     }
     m_alternativeColorBufferObjectMap.clear();
+    
+    if (m_textureImageDataName != NULL) {
+        delete m_textureImageDataName;
+        m_textureImageDataName = NULL;
+    }
+}
+
+/**
+ * Invalidate the coordinates after they have
+ * changed in the graphics primitive.
+ */
+void
+GraphicsEngineDataOpenGL::invalidateCoordinates()
+{
+    m_reloadCoordinatesFlag = true;
 }
 
 /**
@@ -128,17 +147,18 @@ GraphicsEngineDataOpenGL::getOpeGLBufferUsageHint(const GraphicsPrimitive* primi
 }
 
 /**
- * Load the buffers with data from the grpahics primitive.
+ * Load the coordinate buffer.
  *
  * @param primitive
  *     The graphics primitive that will be drawn.
  */
 void
-GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
+GraphicsEngineDataOpenGL::loadCoordinateBuffer(GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     
     GLenum usageHint = getOpeGLBufferUsageHint(primitive);
+    
     
     GLsizei coordinateCount = 0;
     switch (primitive->m_vertexType) {
@@ -148,11 +168,20 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             
             coordinateCount = primitive->m_xyz.size();
             const GLuint xyzSizeBytes = coordinateCount * sizeof(float);
+            CaretAssert(xyzSizeBytes > 0);
             const GLvoid* xyzDataPointer = (const GLvoid*)&primitive->m_xyz[0];
             
-            EventGraphicsOpenGLCreateBufferObject createEvent;
-            EventManager::get()->sendEvent(createEvent.getPointer());
-            m_coordinateBufferObject = createEvent.getOpenGLBufferObject();
+            /*
+             * Coordinate buffer may have been created.
+             * Coordinates may change but the number of coordinates does not change.
+             */
+            if (m_coordinateBufferObject == NULL) {
+                EventGraphicsOpenGLCreateBufferObject createEvent;
+                EventManager::get()->sendEvent(createEvent.getPointer());
+                m_coordinateBufferObject = createEvent.getOpenGLBufferObject();
+                CaretAssert(m_coordinateBufferObject);
+            }
+            
             CaretAssert(m_coordinateBufferObject->getBufferObjectName());
             
             glBindBuffer(GL_ARRAY_BUFFER,
@@ -171,6 +200,23 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
         m_arrayIndicesCount = 0;
     }
     
+    m_reloadCoordinatesFlag = false;
+}
+
+/**
+ * Load the normal vector buffer.
+ *
+ * @param primitive
+ *     The graphics primitive that will be drawn.
+ */
+void
+GraphicsEngineDataOpenGL::loadNormalVectorBuffer(GraphicsPrimitive* primitive)
+{
+    CaretAssert(primitive);
+    
+    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
+    
+    
     switch (primitive->m_normalVectorType) {
         case GraphicsPrimitive::NormalVectorType::NONE:
             break;
@@ -178,6 +224,7 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
         {
             m_normalVectorDataType = GL_FLOAT;
             const GLuint normalSizeBytes = primitive->m_floatNormalVectorXYZ.size() * sizeof(float);
+            CaretAssert(normalSizeBytes > 0);
             const GLvoid* normalDataPointer = (const GLvoid*)&primitive->m_floatNormalVectorXYZ[0];
             
             EventGraphicsOpenGLCreateBufferObject createEvent;
@@ -194,8 +241,24 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
         }
             break;
     }
+}
+
+/**
+ * Load the color buffer.
+ * @param primitive
+ *     The graphics primitive that will be drawn.
+ */
+void
+GraphicsEngineDataOpenGL::loadColorBuffer(GraphicsPrimitive* primitive)
+{
+    CaretAssert(primitive);
+    
+    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
+    
     
     switch (primitive->m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            break;
         case GraphicsPrimitive::ColorType::FLOAT_RGBA:
         {
             EventGraphicsOpenGLCreateBufferObject createEvent;
@@ -207,6 +270,7 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             m_colorDataType = GL_FLOAT;
             
             const GLuint colorSizeBytes = primitive->m_floatRGBA.size() * sizeof(float);
+            CaretAssert(colorSizeBytes > 0);
             const GLvoid* colorDataPointer = (const GLvoid*)&primitive->m_floatRGBA[0];
             
             glBindBuffer(GL_ARRAY_BUFFER,
@@ -228,6 +292,7 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             m_colorDataType = GL_UNSIGNED_BYTE;
             
             const GLuint colorSizeBytes = primitive->m_unsignedByteRGBA.size() * sizeof(uint8_t);
+            CaretAssert(colorSizeBytes > 0);
             const GLvoid* colorDataPointer = (const GLvoid*)&primitive->m_unsignedByteRGBA[0];
             
             glBindBuffer(GL_ARRAY_BUFFER,
@@ -240,6 +305,294 @@ GraphicsEngineDataOpenGL::loadBuffers(GraphicsPrimitive* primitive)
             break;
     }
 }
+
+/**
+ * Load the texture coordinate buffer.
+ * @param primitive
+ *     The graphics primitive that will be drawn.
+ */
+void
+GraphicsEngineDataOpenGL::loadTextureCoordinateBuffer(GraphicsPrimitive* primitive)
+{
+    CaretAssert(primitive);
+    
+    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
+    
+    switch (primitive->m_textureType) {
+        case GraphicsPrimitive::TextureType::FLOAT_STR:
+        {
+            EventGraphicsOpenGLCreateBufferObject createEvent;
+            EventManager::get()->sendEvent(createEvent.getPointer());
+            m_textureCoordinatesBufferObject = createEvent.getOpenGLBufferObject();
+            CaretAssert(m_textureCoordinatesBufferObject->getBufferObjectName());
+            
+            m_textureCoordinatesDataType = GL_FLOAT;
+            const GLuint textureSizeBytes = primitive->m_floatTextureSTR.size() * sizeof(float);
+            CaretAssert(textureSizeBytes > 0);
+            const GLvoid* textureDataPointer = (const GLvoid*)&primitive->m_floatTextureSTR[0];
+            
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         m_textureCoordinatesBufferObject->getBufferObjectName());
+            glBufferData(GL_ARRAY_BUFFER,
+                         textureSizeBytes,
+                         textureDataPointer,
+                         usageHint);
+            
+        }
+            break;
+        case GraphicsPrimitive::TextureType::NONE:
+            break;
+    }    
+}
+
+
+/**
+ * Load the buffers with data from the grpahics primitive.
+ *
+ * @param primitive
+ *     The graphics primitive that will be drawn.
+ */
+void
+GraphicsEngineDataOpenGL::loadAllBuffers(GraphicsPrimitive* primitive)
+{
+    loadCoordinateBuffer(primitive);
+    loadNormalVectorBuffer(primitive);
+    loadColorBuffer(primitive);
+    loadTextureCoordinateBuffer(primitive);
+    
+//    CaretAssert(primitive);
+//    
+//    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
+//    
+//    GLsizei coordinateCount = 0;
+//    switch (primitive->m_vertexType) {
+//        case GraphicsPrimitive::VertexType::FLOAT_XYZ:
+//            m_coordinateDataType = GL_FLOAT;
+//            m_coordinatesPerVertex = 3; // X, Y, Z
+//            
+//            coordinateCount = primitive->m_xyz.size();
+//            const GLuint xyzSizeBytes = coordinateCount * sizeof(float);
+//            CaretAssert(xyzSizeBytes > 0);
+//            const GLvoid* xyzDataPointer = (const GLvoid*)&primitive->m_xyz[0];
+//            
+//            EventGraphicsOpenGLCreateBufferObject createEvent;
+//            EventManager::get()->sendEvent(createEvent.getPointer());
+//            m_coordinateBufferObject = createEvent.getOpenGLBufferObject();
+//            CaretAssert(m_coordinateBufferObject->getBufferObjectName());
+//            
+//            glBindBuffer(GL_ARRAY_BUFFER,
+//                         m_coordinateBufferObject->getBufferObjectName());
+//            glBufferData(GL_ARRAY_BUFFER,
+//                         xyzSizeBytes,
+//                         xyzDataPointer,
+//                         usageHint);
+//            break;
+//    }
+//    
+//    if (m_coordinatesPerVertex > 0) {
+//        m_arrayIndicesCount = coordinateCount / m_coordinatesPerVertex;
+//    }
+//    else {
+//        m_arrayIndicesCount = 0;
+//    }
+//    
+//    switch (primitive->m_normalVectorType) {
+//        case GraphicsPrimitive::NormalVectorType::NONE:
+//            break;
+//        case GraphicsPrimitive::NormalVectorType::FLOAT_XYZ:
+//        {
+//            m_normalVectorDataType = GL_FLOAT;
+//            const GLuint normalSizeBytes = primitive->m_floatNormalVectorXYZ.size() * sizeof(float);
+//            CaretAssert(normalSizeBytes > 0);
+//            const GLvoid* normalDataPointer = (const GLvoid*)&primitive->m_floatNormalVectorXYZ[0];
+//            
+//            EventGraphicsOpenGLCreateBufferObject createEvent;
+//            EventManager::get()->sendEvent(createEvent.getPointer());
+//            m_normalVectorBufferObject = createEvent.getOpenGLBufferObject();
+//            CaretAssert(m_normalVectorBufferObject->getBufferObjectName());
+//            
+//            glBindBuffer(GL_ARRAY_BUFFER,
+//                         m_normalVectorBufferObject->getBufferObjectName());
+//            glBufferData(GL_ARRAY_BUFFER,
+//                         normalSizeBytes,
+//                         normalDataPointer,
+//                         usageHint);
+//        }
+//            break;
+//    }
+//    
+//    switch (primitive->m_colorType) {
+//        case GraphicsPrimitive::ColorType::NONE:
+//            break;
+//        case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+//        {
+//            EventGraphicsOpenGLCreateBufferObject createEvent;
+//            EventManager::get()->sendEvent(createEvent.getPointer());
+//            m_colorBufferObject = createEvent.getOpenGLBufferObject();
+//            CaretAssert(m_colorBufferObject->getBufferObjectName());
+//            
+//            m_componentsPerColor = 4;
+//            m_colorDataType = GL_FLOAT;
+//            
+//            const GLuint colorSizeBytes = primitive->m_floatRGBA.size() * sizeof(float);
+//            CaretAssert(colorSizeBytes > 0);
+//            const GLvoid* colorDataPointer = (const GLvoid*)&primitive->m_floatRGBA[0];
+//            
+//            glBindBuffer(GL_ARRAY_BUFFER,
+//                         m_colorBufferObject->getBufferObjectName());
+//            glBufferData(GL_ARRAY_BUFFER,
+//                         colorSizeBytes,
+//                         colorDataPointer,
+//                         usageHint);
+//        }
+//            break;
+//        case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+//        {
+//            EventGraphicsOpenGLCreateBufferObject createEvent;
+//            EventManager::get()->sendEvent(createEvent.getPointer());
+//            m_colorBufferObject = createEvent.getOpenGLBufferObject();
+//            CaretAssert(m_colorBufferObject->getBufferObjectName());
+//            
+//            m_componentsPerColor = 4;
+//            m_colorDataType = GL_UNSIGNED_BYTE;
+//            
+//            const GLuint colorSizeBytes = primitive->m_unsignedByteRGBA.size() * sizeof(uint8_t);
+//            CaretAssert(colorSizeBytes > 0);
+//            const GLvoid* colorDataPointer = (const GLvoid*)&primitive->m_unsignedByteRGBA[0];
+//            
+//            glBindBuffer(GL_ARRAY_BUFFER,
+//                         m_colorBufferObject->getBufferObjectName());
+//            glBufferData(GL_ARRAY_BUFFER,
+//                         colorSizeBytes,
+//                         colorDataPointer,
+//                         usageHint);
+//        }
+//            break;
+//    }
+//    
+//    switch (primitive->m_textureType) {
+//        case GraphicsPrimitive::TextureType::FLOAT_STR:
+//        {
+//            EventGraphicsOpenGLCreateBufferObject createEvent;
+//            EventManager::get()->sendEvent(createEvent.getPointer());
+//            m_textureCoordinatesBufferObject = createEvent.getOpenGLBufferObject();
+//            CaretAssert(m_textureCoordinatesBufferObject->getBufferObjectName());
+//            
+//            m_textureCoordinatesDataType = GL_FLOAT;
+//            const GLuint textureSizeBytes = primitive->m_floatTextureSTR.size() * sizeof(float);
+//            CaretAssert(textureSizeBytes > 0);
+//            const GLvoid* textureDataPointer = (const GLvoid*)&primitive->m_floatTextureSTR[0];
+//            
+//            glBindBuffer(GL_ARRAY_BUFFER,
+//                         m_textureCoordinatesBufferObject->getBufferObjectName());
+//            glBufferData(GL_ARRAY_BUFFER,
+//                         textureSizeBytes,
+//                         textureDataPointer,
+//                         usageHint);
+//            
+//        }
+//            break;
+//        case GraphicsPrimitive::TextureType::NONE:
+//            break;
+//    }
+}
+
+/**
+ * If needed, load the texture buffer.
+ * Note that the texture buffer may be invalidated when
+ * an image is captures as the image capture wipes out all
+ * textures.
+ *
+ * @param primitive
+ *     The graphics primitive that will be drawn.
+*/
+void
+GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitive)
+{
+    if (m_textureImageDataName != NULL) {
+        return;
+    }
+    
+    switch (primitive->m_textureType) {
+        case GraphicsPrimitive::TextureType::FLOAT_STR:
+        {
+            const int32_t imageWidth  = primitive->m_textureImageWidth;
+            const int32_t imageHeight = primitive->m_textureImageHeight;
+            const int32_t imageNumberOfBytes = imageWidth * imageHeight * 4;
+            if (imageNumberOfBytes <= 0) {
+                CaretLogWarning("Invalid texture (empty data) for drawing primitive with texture");
+                return;
+            }
+            if (imageNumberOfBytes != static_cast<int32_t>(primitive->m_textureImageBytesRGBA.size())) {
+                CaretLogWarning("Image bytes size incorrect for image width/height");
+                return;
+            }
+            
+            glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+            
+            const GLubyte* imageBytesRGBA = &primitive->m_textureImageBytesRGBA[0];
+            EventGraphicsOpenGLCreateTextureName createEvent;
+            EventManager::get()->sendEvent(createEvent.getPointer());
+            m_textureImageDataName = createEvent.getOpenGLTextureName();
+            CaretAssert(m_textureImageDataName);
+            
+            const GLuint openGLTextureName = m_textureImageDataName->getTextureName();
+            
+            glBindTexture(GL_TEXTURE_2D, openGLTextureName);
+            
+            
+            bool useMipMapFlag = true;
+            if (useMipMapFlag) {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                const int errorCode = gluBuild2DMipmaps(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
+                                                        GL_RGBA,           // number of components
+                                                        imageWidth,        // width of image
+                                                        imageHeight,       // height of image
+                                                        GL_RGBA,           // format of the pixel data
+                                                        GL_UNSIGNED_BYTE,  // data type of pixel data
+                                                        imageBytesRGBA);    // pointer to image data
+                if (errorCode != 0) {
+                    useMipMapFlag = false;
+                    
+                    const GLubyte* errorChars = gluErrorString(errorCode);
+                    if (errorChars != NULL) {
+                        const QString errorText = ("ERROR building mipmaps for annotation image: "
+                                                   + AString((char*)errorChars));
+                        CaretLogSevere(errorText);
+                    }
+                }
+            }
+            
+            if ( ! useMipMapFlag) {
+                CaretAssertToDoFatal(); // image must be 2^N by 2^M
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                
+                glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
+                             0,                 // level of detail 0=base, n is nth mipmap reduction
+                             GL_RGBA,           // number of components
+                             imageWidth,        // width of image
+                             imageHeight,       // height of image
+                             0,                 // border
+                             GL_RGBA,           // format of the pixel data
+                             GL_UNSIGNED_BYTE,  // data type of pixel data
+                             imageBytesRGBA);   // pointer to image data
+            }
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glPopClientAttrib();
+        }
+            break;
+        case GraphicsPrimitive::TextureType::NONE:
+            break;
+    }
+}
+
 
 /**
  * Load the buffer for the given alternative color identifier.  If the buffer
@@ -267,6 +620,9 @@ GraphicsEngineDataOpenGL::loadAlternativeColorBuffer(GraphicsPrimitive* primitiv
     GLenum usageHint = getOpeGLBufferUsageHint(primitive);
     
     switch (primitive->m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            CaretAssert(0);
+            break;
         case GraphicsPrimitive::ColorType::FLOAT_RGBA:
         {
             const std::vector<float>& alternativeFloatRGBA = primitive->getAlternativeFloatRGBAProtected(alternativeColorIdentifier);
@@ -565,8 +921,18 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         openglData = new GraphicsEngineDataOpenGL(openglContextPointer);
         primitive->setGraphicsEngineDataForOpenGL(openglData);
         
-        openglData->loadBuffers(primitive);
+        openglData->loadAllBuffers(primitive);
     }
+    else {
+        /*
+         * Coordinates may get updated.
+         */
+        if (openglData->m_reloadCoordinatesFlag) {
+            openglData->loadCoordinateBuffer(primitive);
+        }
+    }
+    
+    openglData->loadTextureImageDataBuffer(primitive);
     
     if (openglContextPointer != openglData->getOpenGLContextPointer()) {
         const AString msg("Only one OpenGL graphics context is allowed.  Have there been "
@@ -602,6 +968,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         case PrivateDrawMode::DRAW_SELECTION:
             break;
     }
+    
     /*
      * Setup vertices for drawing
      */
@@ -627,88 +994,126 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         glDisableClientState(GL_NORMAL_ARRAY);
     }
     
+    bool hasColorFlag = false;
+    switch (primitive->getColorType()) {
+        case GraphicsPrimitive::ColorType::NONE:
+            break;
+        case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+            hasColorFlag = true;
+            break;
+        case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+            hasColorFlag = true;
+            break;
+    }
     /*
      * Setup colors for drawing
      */
     GLuint localColorBufferName = 0;
-    switch (drawMode) {
-        case PrivateDrawMode::DRAW_COLOR_ALTERNATIVE:
-        {
-            glEnableClientState(GL_COLOR_ARRAY);
-            CaretAssert(glIsBuffer(alternativeColorBufferObject->getBufferObjectName()));
-            glBindBuffer(GL_ARRAY_BUFFER, alternativeColorBufferObject->getBufferObjectName());
-            glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
-        }
-            break;
-        case PrivateDrawMode::DRAW_COLOR_SOLID:
-        {
-            const int32_t numberOfVertices = primitive->m_xyz.size() / 3;
-            if (numberOfVertices > 0) {
-                glGenBuffers(1, &localColorBufferName);
-                CaretAssert(localColorBufferName > 0);
-                
-                const GLint  componentsPerColor = 4;
-                const GLenum colorDataType = GL_FLOAT;
-                
-                std::vector<float> colorRGBA(numberOfVertices * componentsPerColor);
-                for (int32_t i = 0; i < numberOfVertices; i++) {
-                    const int32_t i4 = i * 4;
-                    CaretAssertVectorIndex(colorRGBA, i4 + 3);
-                    colorRGBA[i4]   = solidColorRGBA[0];
-                    colorRGBA[i4+1] = solidColorRGBA[1];
-                    colorRGBA[i4+2] = solidColorRGBA[2];
-                    colorRGBA[i4+3] = solidColorRGBA[3];
+    if (hasColorFlag) {
+        switch (drawMode) {
+            case PrivateDrawMode::DRAW_COLOR_ALTERNATIVE:
+            {
+                glEnableClientState(GL_COLOR_ARRAY);
+                CaretAssert(glIsBuffer(alternativeColorBufferObject->getBufferObjectName()));
+                glBindBuffer(GL_ARRAY_BUFFER, alternativeColorBufferObject->getBufferObjectName());
+                glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
+            }
+                break;
+            case PrivateDrawMode::DRAW_COLOR_SOLID:
+            {
+                const int32_t numberOfVertices = primitive->m_xyz.size() / 3;
+                if (numberOfVertices > 0) {
+                    glGenBuffers(1, &localColorBufferName);
+                    CaretAssert(localColorBufferName > 0);
+                    
+                    const GLint  componentsPerColor = 4;
+                    const GLenum colorDataType = GL_FLOAT;
+                    
+                    std::vector<float> colorRGBA(numberOfVertices * componentsPerColor);
+                    for (int32_t i = 0; i < numberOfVertices; i++) {
+                        const int32_t i4 = i * 4;
+                        CaretAssertVectorIndex(colorRGBA, i4 + 3);
+                        colorRGBA[i4]   = solidColorRGBA[0];
+                        colorRGBA[i4+1] = solidColorRGBA[1];
+                        colorRGBA[i4+2] = solidColorRGBA[2];
+                        colorRGBA[i4+3] = solidColorRGBA[3];
+                    }
+                    
+                    const GLuint colorSizeBytes = colorRGBA.size() * sizeof(float);
+                    const GLvoid* colorDataPointer = (const GLvoid*)&colorRGBA[0];
+                    glBindBuffer(GL_ARRAY_BUFFER,
+                                 localColorBufferName);
+                    glBufferData(GL_ARRAY_BUFFER,
+                                 colorSizeBytes,
+                                 colorDataPointer,
+                                 GL_STREAM_DRAW);
+                    glEnableClientState(GL_COLOR_ARRAY);
+                    glColorPointer(componentsPerColor, colorDataType, 0, (GLvoid*)0);
                 }
-                
-                const GLuint colorSizeBytes = colorRGBA.size() * sizeof(float);
-                const GLvoid* colorDataPointer = (const GLvoid*)&colorRGBA[0];
-                glBindBuffer(GL_ARRAY_BUFFER,
-                             localColorBufferName);
-                glBufferData(GL_ARRAY_BUFFER,
-                             colorSizeBytes,
-                             colorDataPointer,
-                             GL_STREAM_DRAW);
-                glEnableClientState(GL_COLOR_ARRAY);
-                glColorPointer(componentsPerColor, colorDataType, 0, (GLvoid*)0);
             }
-        }
-            break;
-        case PrivateDrawMode::DRAW_NORMAL:
-        {
-            glEnableClientState(GL_COLOR_ARRAY);
-            CaretAssert(glIsBuffer(openglData->m_colorBufferObject->getBufferObjectName()));
-            glBindBuffer(GL_ARRAY_BUFFER, openglData->m_colorBufferObject->getBufferObjectName());
-            glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
-        }
-            break;
-        case PrivateDrawMode::DRAW_SELECTION:
-        {
-            const int32_t numberOfVertices = primitive->m_xyz.size() / 3;
-            if (numberOfVertices > 0) {
-                glGenBuffers(1, &localColorBufferName);
-                CaretAssert(localColorBufferName > 0);
-                
-                const GLint  componentsPerColor = 4;
-                const GLenum colorDataType = GL_UNSIGNED_BYTE;
-                
-                const std::vector<uint8_t> selectionRGBA = primitiveSelectionHelper->getSelectionEncodedRGBA();
-                CaretAssert((selectionRGBA.size() / 4) == numberOfVertices);
-                
-                const GLuint colorSizeBytes = selectionRGBA.size() * sizeof(GLubyte);
-                const GLvoid* colorDataPointer = (const GLvoid*)&selectionRGBA[0];
-                glBindBuffer(GL_ARRAY_BUFFER,
-                             localColorBufferName);
-                glBufferData(GL_ARRAY_BUFFER,
-                             colorSizeBytes,
-                             colorDataPointer,
-                             GL_STREAM_DRAW);
+                break;
+            case PrivateDrawMode::DRAW_NORMAL:
+            {
                 glEnableClientState(GL_COLOR_ARRAY);
-                glColorPointer(componentsPerColor, colorDataType, 0, (GLvoid*)0);
+                CaretAssert(glIsBuffer(openglData->m_colorBufferObject->getBufferObjectName()));
+                glBindBuffer(GL_ARRAY_BUFFER, openglData->m_colorBufferObject->getBufferObjectName());
+                glColorPointer(openglData->m_componentsPerColor, openglData->m_colorDataType, 0, (GLvoid*)0);
             }
+                break;
+            case PrivateDrawMode::DRAW_SELECTION:
+            {
+                const int32_t numberOfVertices = primitive->m_xyz.size() / 3;
+                if (numberOfVertices > 0) {
+                    glGenBuffers(1, &localColorBufferName);
+                    CaretAssert(localColorBufferName > 0);
+                    
+                    const GLint  componentsPerColor = 4;
+                    const GLenum colorDataType = GL_UNSIGNED_BYTE;
+                    
+                    const std::vector<uint8_t> selectionRGBA = primitiveSelectionHelper->getSelectionEncodedRGBA();
+                    CaretAssert((selectionRGBA.size() / 4) == numberOfVertices);
+                    
+                    const GLuint colorSizeBytes = selectionRGBA.size() * sizeof(GLubyte);
+                    const GLvoid* colorDataPointer = (const GLvoid*)&selectionRGBA[0];
+                    glBindBuffer(GL_ARRAY_BUFFER,
+                                 localColorBufferName);
+                    glBufferData(GL_ARRAY_BUFFER,
+                                 colorSizeBytes,
+                                 colorDataPointer,
+                                 GL_STREAM_DRAW);
+                    glEnableClientState(GL_COLOR_ARRAY);
+                    glColorPointer(componentsPerColor, colorDataType, 0, (GLvoid*)0);
+                }
+            }
+                break;
         }
+    }
+    
+    bool hasTextureFlag = false;
+    switch (primitive->getTextureType()) {
+        case GraphicsPrimitive::TextureType::NONE:
+            break;
+        case GraphicsPrimitive::TextureType::FLOAT_STR:
+            hasTextureFlag = true;
             break;
     }
     
+    /*
+     * Setup textures for drawing
+     */
+    if (hasTextureFlag
+        && (drawMode == PrivateDrawMode::DRAW_NORMAL)
+        && (openglData->m_textureImageDataName->getTextureName())) {
+            glEnable(GL_TEXTURE_2D);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBindTexture(GL_TEXTURE_2D, openglData->m_textureImageDataName->getTextureName());
+            
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            CaretAssert(glIsBuffer(openglData->m_textureCoordinatesBufferObject->getBufferObjectName()));
+            glBindBuffer(GL_ARRAY_BUFFER, openglData->m_textureCoordinatesBufferObject->getBufferObjectName());
+        glTexCoordPointer(3, openglData->m_textureCoordinatesDataType, 0, (GLvoid*)0);
+    }
+     
     /*
      * Unbind buffers
      */
@@ -763,10 +1168,14 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     
     if (localColorBufferName > 0) {
         glDeleteBuffers(1, &localColorBufferName);
     }
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 }
 
 /**

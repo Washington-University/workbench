@@ -30,6 +30,7 @@
 namespace caret {
 
     class GraphicsOpenGLBufferObject;
+    class GraphicsOpenGLTextureName;
     class GraphicsPrimitive;
     class GraphicsPrimitiveSelectionHelper;
     
@@ -41,11 +42,6 @@ namespace caret {
         virtual ~GraphicsEngineDataOpenGL();
 
         void deleteBuffers();
-        
-        void loadBuffers(GraphicsPrimitive* primitive);
-        
-        GraphicsOpenGLBufferObject* loadAlternativeColorBuffer(GraphicsPrimitive* primitive,
-                                                               const int32_t alternativeColorIdentifier);
         
         static void draw(void* openglContextPointer,
                          GraphicsPrimitive* primitive);
@@ -67,6 +63,8 @@ namespace caret {
         
         const void* getOpenGLContextPointer() const;
         
+        void invalidateCoordinates();
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -74,12 +72,27 @@ namespace caret {
             DRAW_COLOR_ALTERNATIVE,
             DRAW_COLOR_SOLID,
             DRAW_NORMAL,
-            DRAW_SELECTION
+            DRAW_SELECTION,
         };
         
         GraphicsEngineDataOpenGL(const GraphicsEngineDataOpenGL&);
 
         GraphicsEngineDataOpenGL& operator=(const GraphicsEngineDataOpenGL&);
+        
+        void loadAllBuffers(GraphicsPrimitive* primitive);
+        
+        void loadCoordinateBuffer(GraphicsPrimitive* primitive);
+        
+        void loadNormalVectorBuffer(GraphicsPrimitive* primitive);
+        
+        void loadColorBuffer(GraphicsPrimitive* primitive);
+        
+        void loadTextureCoordinateBuffer(GraphicsPrimitive* primitive);
+        
+        GraphicsOpenGLBufferObject* loadAlternativeColorBuffer(GraphicsPrimitive* primitive,
+                                                               const int32_t alternativeColorIdentifier);
+        
+        void loadTextureImageDataBuffer(GraphicsPrimitive* primitive);
         
         void deleteBufferObjectHelper(GraphicsOpenGLBufferObject* &bufferObject);
         
@@ -102,6 +115,8 @@ namespace caret {
 
         GLint m_coordinatesPerVertex = 0;
 
+        bool m_reloadCoordinatesFlag = false;
+        
         GraphicsOpenGLBufferObject* m_normalVectorBufferObject = NULL;
         
         GLenum m_normalVectorDataType = GL_FLOAT;
@@ -114,7 +129,13 @@ namespace caret {
         
         GLint m_componentsPerColor = 0;
         
-        // ADD_NEW_MEMBERS_HERE
+        GraphicsOpenGLBufferObject* m_textureCoordinatesBufferObject = NULL;
+        
+        GLenum m_textureCoordinatesDataType = GL_FLOAT;
+        
+        GraphicsOpenGLTextureName* m_textureImageDataName = NULL;
+        
+// ADD_NEW_MEMBERS_HERE
 
     };
     

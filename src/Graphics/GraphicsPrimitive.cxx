@@ -30,6 +30,7 @@
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "GraphicsPrimitiveV3fT3F.h"
 
 using namespace caret;
 
@@ -51,18 +52,22 @@ using namespace caret;
  *     Type of the normal vectors.
  * @param colorType
  *     Type of the colors.
+ * @param textureType
+ *     Type of texture coordinates.
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
  */
 GraphicsPrimitive::GraphicsPrimitive(const VertexType       vertexType,
                                      const NormalVectorType normalVectorType,
                                      const ColorType        colorType,
+                                     const TextureType      textureType,
                                      const PrimitiveType    primitiveType)
 : CaretObject(),
  EventListenerInterface(),
  m_vertexType(vertexType),
  m_normalVectorType(normalVectorType),
  m_colorType(colorType),
+ m_textureType(textureType),
  m_primitiveType(primitiveType)
 {
     
@@ -87,6 +92,7 @@ GraphicsPrimitive::GraphicsPrimitive(const GraphicsPrimitive& obj)
  m_vertexType(obj.m_vertexType),
  m_normalVectorType(obj.m_normalVectorType),
  m_colorType(obj.m_colorType),
+m_textureType(obj.m_textureType),
 m_primitiveType(obj.m_primitiveType)
 {
     this->copyHelperGraphicsPrimitive(obj);
@@ -106,6 +112,11 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_unsignedByteRGBA            = obj.m_unsignedByteRGBA;
     m_alternativeFloatRGBA        = obj.m_alternativeFloatRGBA;
     m_alternativeUnsignedByteRGBA = obj.m_alternativeUnsignedByteRGBA;
+    m_floatTextureSTR             = obj.m_floatTextureSTR;
+    m_textureImageBytesRGBA       = obj.m_textureImageBytesRGBA;
+    m_textureImageWidth           = obj.m_textureImageWidth;
+    m_textureImageHeight          = obj.m_textureImageHeight;
+
     m_graphicsEngineDataForOpenGL.reset();
 }
 
@@ -137,11 +148,21 @@ GraphicsPrimitive::reserveForNumberOfVertices(const int32_t numberOfVertices)
     }
     
     switch (m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            break;
         case ColorType::FLOAT_RGBA:
             m_floatRGBA.reserve(numberOfVertices * 4);
             break;
         case ColorType::UNSIGNED_BYTE_RGBA:
             m_unsignedByteRGBA.reserve(numberOfVertices * 4);
+            break;
+    }
+    
+    switch (m_textureType) {
+        case GraphicsPrimitive::TextureType::NONE:
+            break;
+        case GraphicsPrimitive::TextureType::FLOAT_STR:
+            m_floatTextureSTR.reserve(numberOfVertices * 3);
             break;
     }
 }
@@ -201,18 +222,47 @@ GraphicsPrimitive::isValid() const
                 break;
         }
         
+        bool haveRgbaFlag = false;
         uint32_t numColorRGBA = 0;
         switch (m_colorType) {
+            case GraphicsPrimitive::ColorType::NONE:
+                haveRgbaFlag = false;
+                break;
             case ColorType::FLOAT_RGBA:
                 numColorRGBA = m_floatRGBA.size();
+                haveRgbaFlag = true;
                 break;
             case ColorType::UNSIGNED_BYTE_RGBA:
                 numColorRGBA = m_unsignedByteRGBA.size();
+                haveRgbaFlag = true;
                 break;
         }
-        if ((numXYZ / 3) != (numColorRGBA / 4)) {
-            CaretLogWarning("ERROR: GraphicsPrimitive XYZ size does not match RGBA size");
-            return false;
+        if (haveRgbaFlag) {
+            if ((numXYZ / 3) != (numColorRGBA / 4)) {
+                CaretLogWarning("ERROR: GraphicsPrimitive XYZ size does not match RGBA size");
+                return false;
+            }
+        }
+        
+        bool haveTextureFlag = false;
+        uint32_t numTextureSTR = 0;
+        switch (m_textureType) {
+            case TextureType::NONE:
+                break;
+            case TextureType::FLOAT_STR:
+                numTextureSTR = m_floatTextureSTR.size();
+                haveTextureFlag = true;
+                break;
+        }
+        if (haveTextureFlag) {
+            if (numXYZ != numTextureSTR) {
+                CaretLogWarning("ERROR: GraphicsPrimitive XYZ size does not match Texture STR size");
+                return false;
+            }
+            
+            if (m_textureImageBytesRGBA.empty()) {
+                CaretLogWarning("ERROR: GraphicsPrimitive has invalid texture data");
+            }
         }
         
         switch (m_primitiveType) {
@@ -395,6 +445,8 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
     }
     
     switch (m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            break;
         case ColorType::FLOAT_RGBA:
             s.appendWithNewLine("Color: " + AString::number(m_floatRGBA.size()) + " Float RGBA 0.0 to 1.0.  ");
             if (includeAllDataFlag ) {
@@ -423,6 +475,26 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             break;
     }
     
+    switch (m_textureType) {
+        case TextureType::NONE:
+            break;
+        case TextureType::FLOAT_STR:
+            s.appendWithNewLine("Texture: " + AString::number(m_floatTextureSTR.size()) + " Float Texture 0.0 to 1.0.  ");
+            s.appendWithNewLine("   Width: " + AString::number(m_textureImageWidth)
+                                + " Height: " + AString::number(m_textureImageHeight));
+            if (includeAllDataFlag ) {
+                s.append("\n   ");
+                const int32_t count = static_cast<int32_t>(m_floatTextureSTR.size());
+                for (int32_t i = 0; i < count; i++) {
+                    s.append(AString::number(m_floatTextureSTR[i]) + " ");
+                    if (((i+1) % 3) == 0) {
+                        s.append("\n   ");
+                    }
+                }
+            }
+            break;
+    }
+    
     return s;
 }
 
@@ -438,6 +510,8 @@ GraphicsPrimitive::isAlternativeColoringValid(const int32_t identifier) const
     bool validFlag = false;
     
     switch (m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            break;
         case ColorType::FLOAT_RGBA:
             validFlag = isAlternativeFloatRGBAValidProtected(identifier);
             break;
@@ -493,6 +567,32 @@ GraphicsPrimitive::isAlternativeUnsignedByteRGBAValidProtected(const int32_t ide
     
     return false;
 }
+
+/**
+ * Replace the existing XYZ coordinates with the given
+ * XYZ coordinates.  The existing and new coordinates
+ * MUST BE the same size.
+ *
+ * @param xyz
+ *     The new XYZ coordinates.
+ */
+void
+GraphicsPrimitive::replaceFloatXYZ(const std::vector<float>& xyz)
+{
+    if (xyz.size() == m_xyz.size()) {
+        m_xyz = xyz;
+        
+        if (m_graphicsEngineDataForOpenGL != NULL) {
+            m_graphicsEngineDataForOpenGL->invalidateCoordinates();
+        }
+    }
+    else {
+        const AString msg("Replacement XYZ must be same size as existing xyz");
+        CaretLogWarning(msg);
+        CaretAssertMessage(0, msg);
+    }
+}
+
 
 /**
  * @return A reference to the alternative coloring.  An empty vector is returned
@@ -559,6 +659,9 @@ GraphicsPrimitive::setAlternativeFloatRGBAProtected(const int32_t identifier,
     }
     
     switch (m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            CaretAssert(0);
+            break;
         case ColorType::FLOAT_RGBA:
             break;
         case ColorType::UNSIGNED_BYTE_RGBA:
@@ -601,6 +704,9 @@ GraphicsPrimitive::setAlternativeUnsignedByteRGBAProtected(const int32_t identif
     }
     
     switch (m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            CaretAssert(0);
+            break;
         case ColorType::FLOAT_RGBA:
         {
             const AString msg("Alternative RGBA must match primitive color type which is float");
@@ -616,6 +722,34 @@ GraphicsPrimitive::setAlternativeUnsignedByteRGBAProtected(const int32_t identif
                                                         rgbaByte));
 }
 
+/**
+ * Set the image for the texture.
+ *
+ * @param imageBytesRGBA
+ *     Bytes containing the image data.  4 bytes per pixel.
+ * @param imageWidth
+ *     Width of the actual image.
+ * @param imageHeight
+ *     Height of the image.
+ */
+void
+GraphicsPrimitive::setTextureImage(const uint8_t* imageBytesRGBA,
+                                   const int32_t imageWidth,
+                                   const int32_t imageHeight)
+{
+    m_textureImageBytesRGBA.clear();
+    m_textureImageWidth  = -1;
+    m_textureImageHeight = -1;
+    
+    const int32_t numBytes = imageWidth * imageHeight * 4;
+    if (numBytes > 0) {
+        m_textureImageBytesRGBA.reserve(numBytes);
+        m_textureImageWidth  = imageWidth;
+        m_textureImageHeight = imageHeight;
+        m_textureImageBytesRGBA.insert(m_textureImageBytesRGBA.end(),
+                                       imageBytesRGBA, imageBytesRGBA + numBytes);
+    }
+}
 
 /**
  * Get the OpenGL graphics engine data in this instance.
@@ -717,6 +851,19 @@ GraphicsPrimitiveV3fC4ub*
 GraphicsPrimitive::newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType primitiveType)
 {
     GraphicsPrimitiveV3fC4ub* primitive = new GraphicsPrimitiveV3fC4ub(primitiveType);
+    return primitive;
+}
+
+GraphicsPrimitiveV3fT3F*
+GraphicsPrimitive::newPrimitiveV3fT3F(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                                   const uint8_t* imageBytesRGBA,
+                                                   const int32_t imageWidth,
+                                                   const int32_t imageHeight)
+{
+    GraphicsPrimitiveV3fT3F* primitive = new GraphicsPrimitiveV3fT3F(primitiveType,
+                                                                     imageBytesRGBA,
+                                                                     imageWidth,
+                                                                     imageHeight);
     return primitive;
 }
 

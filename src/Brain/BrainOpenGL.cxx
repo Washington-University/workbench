@@ -33,9 +33,12 @@
 #include "CaretPreferences.h"
 #include "DummyFontTextRenderer.h"
 #include "EventGraphicsOpenGLCreateBufferObject.h"
+#include "EventGraphicsOpenGLCreateTextureName.h"
 #include "EventGraphicsOpenGLDeleteBufferObject.h"
+#include "EventGraphicsOpenGLDeleteTextureName.h"
 #include "EventManager.h"
 #include "GraphicsOpenGLBufferObject.h"
+#include "GraphicsOpenGLTextureName.h"
 #include "Model.h"
 #include "SessionManager.h"
 
@@ -58,7 +61,9 @@ BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
     m_drawHighlightedEndPoints = false;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME);
 }
 
 /**
@@ -108,6 +113,31 @@ BrainOpenGL::receiveEvent(Event* event)
                                                                                 bufferName));
         createBufferEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME) {
+        EventGraphicsOpenGLCreateTextureName* createTextureEvent
+        = dynamic_cast<EventGraphicsOpenGLCreateTextureName*>(event);
+        CaretAssert(createTextureEvent);
+        
+        if (m_contextSharingGroupPointer == NULL) {
+            AString msg("PROGRAM ERROR: "
+                        "A request for a new OpenGL Texture Name has been made.  "
+                        "However, there is no OpenGL context currently active so "
+                        "a texture cannot be created.  This is an error in the "
+                        "code and it is likely that the software will crash.");
+            createTextureEvent->setErrorMessage(msg);
+            createTextureEvent->setOpenGLTextureName(NULL);
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            return;
+        }
+        
+        GLuint textureName = 0;
+        glGenTextures(1, &textureName);
+        
+        createTextureEvent->setOpenGLTextureName(new GraphicsOpenGLTextureName(m_contextSharingGroupPointer,
+                                                                                textureName));
+        createTextureEvent->setEventProcessed();
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT) {
         QMutexLocker locker(&m_buffersForDeletionLaterMutex);
 
@@ -126,6 +156,25 @@ BrainOpenGL::receiveEvent(Event* event)
         }
         
         deleteBufferEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME) {
+        QMutexLocker locker(&m_texturesForDeletionLaterMutex);
+        
+        EventGraphicsOpenGLDeleteTextureName* deleteTextureEvent
+        = dynamic_cast<EventGraphicsOpenGLDeleteTextureName*>(event);
+        CaretAssert(deleteTextureEvent);
+        const GraphicsOpenGLTextureName* textureName = deleteTextureEvent->getOpenGLTextureName();
+        if (textureName != NULL) {
+            /*
+             * Textures names are created within an OpenGL context and must
+             * be deleted within that OpenGL context.
+             */
+            m_texturesForDeletionLater.emplace(m_texturesForDeletionLater.end(),
+                                              textureName->getOpenGLContextPointer(),
+                                              textureName->getTextureName());
+        }
+        
+        deleteTextureEvent->setEventProcessed();
     }
 }
 
@@ -152,7 +201,7 @@ void BrainOpenGL::drawModels(const int32_t windowIndex,
                              brain,
                              viewportContents);
     
-    deleteUnusedBuffers();
+    deleteUnusedOpenGLNames();
     
     m_contextSharingGroupPointer = NULL;
 }
@@ -197,7 +246,7 @@ void BrainOpenGL::selectModel(const int32_t windowIndex,
                               mouseY,
                               applySelectionBackgroundFiltering);
     
-    deleteUnusedBuffers();
+    deleteUnusedOpenGLNames();
     
     m_contextSharingGroupPointer = NULL;
 }
@@ -239,7 +288,7 @@ void BrainOpenGL::projectToModel(const int32_t windowIndex,
                                  mouseX,
                                  mouseY,
                                  projectionOut);
-    deleteUnusedBuffers();
+    deleteUnusedOpenGLNames();
     
     m_contextSharingGroupPointer = NULL;
 }
@@ -250,24 +299,23 @@ void BrainOpenGL::projectToModel(const int32_t windowIndex,
  * is current.
  */
 void
-BrainOpenGL::deleteUnusedBuffers()
+BrainOpenGL::deleteUnusedOpenGLNames()
 {
-    //if ( !  m_unusedBufferIdentifiers.empty()) {
     if ( ! m_buffersForDeletionLater.empty()) {
         QMutexLocker locker(&m_buffersForDeletionLaterMutex);
         
-        std::vector<DeleteBufferNameInfo> otherContextBufferIdentifiers;
+        std::vector<OpenGLNameInfo> otherContextBufferIdentifiers;
         
         std::vector<GLuint> bufferNames;
         
         for (auto bufferInfo : m_buffersForDeletionLater) {
             if (bufferInfo.m_openglContextPointer == m_contextSharingGroupPointer) {
-                if (glIsBuffer(bufferInfo.m_bufferName)) {
-                    bufferNames.push_back(bufferInfo.m_bufferName);
+                if (glIsBuffer(bufferInfo.m_name)) {
+                    bufferNames.push_back(bufferInfo.m_name);
                 }
                 else {
                     CaretLogWarning("Attempting to delete invalid OpenGL buffer ID: "
-                                    + AString::number(bufferInfo.m_bufferName));
+                                    + AString::number(bufferInfo.m_name));
                 }
             }
             else {
@@ -286,7 +334,44 @@ BrainOpenGL::deleteUnusedBuffers()
         if ( ! m_buffersForDeletionLater.empty()) {
             CaretLogWarning("Not deleting "
                             + AString::number(m_buffersForDeletionLater.size())
-                            + " in another OpenGL Context.");
+                            + " buffers in another OpenGL Context.");
+        }
+    }
+    
+    if ( ! m_texturesForDeletionLater.empty()) {
+        QMutexLocker locker(&m_texturesForDeletionLaterMutex);
+        
+        std::vector<OpenGLNameInfo> otherContextTextureIdentifiers;
+        
+        std::vector<GLuint> textureNames;
+        
+        for (auto textureInfo : m_texturesForDeletionLater) {
+            if (textureInfo.m_openglContextPointer == m_contextSharingGroupPointer) {
+                if (glIsTexture(textureInfo.m_name)) {
+                    textureNames.push_back(textureInfo.m_name);
+                }
+                else {
+                    CaretLogWarning("Attempting to delete invalid OpenGL Texture Name: "
+                                    + AString::number(textureInfo.m_name));
+                }
+            }
+            else {
+                otherContextTextureIdentifiers.push_back(textureInfo);
+            }
+        }
+        
+        if ( ! textureNames.empty()) {
+            const GLuint* namesPointer = &textureNames[0];
+            glDeleteTextures(textureNames.size(),
+                             namesPointer);
+            m_texturesForDeletionLater.clear();
+        }
+        
+        m_texturesForDeletionLater = otherContextTextureIdentifiers;
+        if ( ! m_texturesForDeletionLater.empty()) {
+            CaretLogWarning("Not deleting "
+                            + AString::number(m_texturesForDeletionLater.size())
+                            + " textures in another OpenGL Context.");
         }
     }
 }

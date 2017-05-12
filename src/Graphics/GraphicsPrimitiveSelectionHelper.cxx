@@ -141,9 +141,12 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
                         m_selectionEncodedRGBA[indexRGBA+1] = green;
                         m_selectionEncodedRGBA[indexRGBA+2] = blue;
                         
-                        uint8_t vertexAlpha = 0.0;
+                        uint8_t vertexAlpha = 0;
                         const int32_t vertexAlphaIndex = indexRGBA + 3;
                         switch (colorType) {
+                            case GraphicsPrimitive::ColorType::NONE:
+                                vertexAlpha = 255;
+                                break;
                             case GraphicsPrimitive::ColorType::FLOAT_RGBA:
                                 CaretAssertVectorIndex(m_parentGraphicsPrimitive->m_floatRGBA,
                                                        vertexAlphaIndex);

@@ -36,6 +36,7 @@ namespace caret {
     class GraphicsPrimitiveV3f;
     class GraphicsPrimitiveV3fC4f;
     class GraphicsPrimitiveV3fC4ub;
+    class GraphicsPrimitiveV3fT3F;
     
     class GraphicsPrimitive : public CaretObject, public EventListenerInterface {
         
@@ -62,10 +63,22 @@ namespace caret {
          * Type of colors
          */
         enum class ColorType {
+            /** No color components */
+            NONE,
             /** Four float values per vertex containing Red, Green, Blue, Alpha ranging 0.0 to 1.0 */
             FLOAT_RGBA,
             /** Four unsigned byte values per vertex containing Red, Green, Blue, Alpha ranging 0 to 255 */
             UNSIGNED_BYTE_RGBA
+        };
+        
+        /**
+         * Type of texture components
+         */
+        enum class TextureType {
+            /** No texture coordinates */
+            NONE,
+            /** Three float values per vertex contains S, T, and R texture coordinates */
+            FLOAT_STR
         };
         
         /**
@@ -156,6 +169,7 @@ namespace caret {
         GraphicsPrimitive(const VertexType       vertexType,
                           const NormalVectorType normalVectorType,
                           const ColorType        colorType,
+                          const TextureType      textureType,
                           const PrimitiveType    primitiveType);
         
         GraphicsPrimitive(const GraphicsPrimitive& obj);
@@ -173,6 +187,11 @@ namespace caret {
         static GraphicsPrimitiveV3fC4f* newPrimitiveV3fC4f(const GraphicsPrimitive::PrimitiveType primitiveType);
         
         static GraphicsPrimitiveV3fC4ub* newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType primitiveType);
+        
+        static GraphicsPrimitiveV3fT3F* newPrimitiveV3fT3F(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                                           const uint8_t* imageBytesRGBA,
+                                                           const int32_t imageWidth,
+                                                           const int32_t imageHeight);
         
         virtual ~GraphicsPrimitive();
         
@@ -209,9 +228,16 @@ namespace caret {
         inline PrimitiveType getPrimitiveType() const { return m_primitiveType; }
         
         /**
+         * @return Type of texture.
+         */
+        inline TextureType getTextureType() const { return m_textureType; }
+        
+        /**
          * @return The float coordinates.
          */
         const std::vector<float>& getFloatXYZ() const { return m_xyz; }
+        
+        void replaceFloatXYZ(const std::vector<float>& xyz);
         
         GraphicsEngineDataOpenGL* getGraphicsEngineDataForOpenGL();
         
@@ -243,11 +269,17 @@ namespace caret {
         
         bool isAlternativeUnsignedByteRGBAValidProtected(const int32_t identifier) const;
         
+        void setTextureImage(const uint8_t* imageBytesRGBA,
+                             const int32_t imageWidth,
+                             const int32_t imageHeight);
+        
         const VertexType  m_vertexType;
         
         const NormalVectorType m_normalVectorType;
         
         const ColorType  m_colorType;
+        
+        const TextureType m_textureType;
         
         const PrimitiveType m_primitiveType;
 
@@ -266,6 +298,14 @@ namespace caret {
         std::map<int32_t, std::vector<float>> m_alternativeFloatRGBA;
         
         std::map<int32_t, std::vector<uint8_t>> m_alternativeUnsignedByteRGBA;
+        
+        std::vector<float> m_floatTextureSTR;
+        
+        std::vector<uint8_t> m_textureImageBytesRGBA;
+        
+        int32_t m_textureImageWidth = -1;
+        
+        int32_t m_textureImageHeight = -1;
         
     private:
         void copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj);

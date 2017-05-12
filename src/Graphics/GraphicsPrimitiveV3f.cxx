@@ -50,6 +50,7 @@ GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
 : GraphicsPrimitive(VertexType::FLOAT_XYZ,
                     NormalVectorType::NONE,
                     ColorType::FLOAT_RGBA,
+                    TextureType::NONE,
                     primitiveType)
 {
     m_floatSolidRGBA[0] = rgba[0];
@@ -71,6 +72,7 @@ GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
 : GraphicsPrimitive(VertexType::FLOAT_XYZ,
                     NormalVectorType::NONE,
                     ColorType::UNSIGNED_BYTE_RGBA,
+                    TextureType::NONE,
                     primitiveType)
 {
     m_unsignedByteSolidRGBA[0] = rgba[0];
@@ -105,7 +107,10 @@ GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const GraphicsPrimitiveV3f& obj)
 void 
 GraphicsPrimitiveV3f::copyHelperGraphicsPrimitiveV3f(const GraphicsPrimitiveV3f& obj)
 {
-    
+    for (int32_t i = 0; i < 4; i++) {
+        m_floatSolidRGBA[i]        = obj.m_floatSolidRGBA[i];
+        m_unsignedByteSolidRGBA[i] = obj.m_unsignedByteSolidRGBA[i];
+    }
 }
 
 /**
@@ -121,6 +126,9 @@ GraphicsPrimitiveV3f::addVertex(const float xyz[3])
                  xyz, xyz + 3);
     
     switch (m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            CaretAssert(0);
+            break;
         case GraphicsPrimitive::ColorType::FLOAT_RGBA:
             m_floatRGBA.insert(m_floatRGBA.end(),
                                m_floatSolidRGBA, m_floatSolidRGBA + 4);
@@ -151,6 +159,9 @@ GraphicsPrimitiveV3f::addVertex(const float x,
     m_xyz.push_back(y);
     m_xyz.push_back(z);
     switch (m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            CaretAssert(0);
+            break;
         case GraphicsPrimitive::ColorType::FLOAT_RGBA:
             m_floatRGBA.insert(m_floatRGBA.end(),
                                m_floatSolidRGBA, m_floatSolidRGBA + 4);
@@ -180,6 +191,9 @@ GraphicsPrimitiveV3f::addVertex(const float x,
     m_xyz.push_back(y);
     m_xyz.push_back(0.0);
     switch (m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            CaretAssert(0);
+            break;
         case GraphicsPrimitive::ColorType::FLOAT_RGBA:
             m_floatRGBA.insert(m_floatRGBA.end(),
                                m_floatSolidRGBA, m_floatSolidRGBA + 4);

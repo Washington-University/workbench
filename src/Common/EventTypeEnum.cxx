@@ -168,12 +168,15 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT,
                                      "EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT",
                                      "Create an OpenGL Buffer Object for an OpenGL Context"));
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME,
+                                     "EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME",
+                                     "Create an OpenGL Texture Name for an OpenGL Context"));
     enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT,
                                      "EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT",
                                      "Delete an OpenGL Buffer Object for an OpenGL Context"));
-    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_ENGINE_OPENGL_DELETE_BUFFERS,
-                                     "EVENT_GRAPHICS_ENGINE_OPENGL_DELETE_BUFFERS",
-                                     "Request OpenGL Graphics Engine delete buffers"));
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME,
+                                     "EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME",
+                                     "Delete an OpenGL Texture Name for an OpenGL Context"));
     enumData.push_back(EventTypeEnum(EVENT_CHART_OVERLAY_VALIDATE,
                                      "EVENT_CHART_OVERLAY_VALIDATE",
                                      "Validate a chart overlay for validity (it exists)"));

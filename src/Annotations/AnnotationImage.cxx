@@ -24,7 +24,9 @@
 #undef __ANNOTATION_IMAGE_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "DrawnWithOpenGLTextureInfo.h"
+#include "GraphicsPrimitiveV3fT3F.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -268,6 +270,31 @@ const DrawnWithOpenGLTextureInfo*
 AnnotationImage::getDrawWithOpenGLTextureInfo() const
 {
     return m_drawnWithOpenGLTextureInfo;
+}
+
+/**
+ * @return The graphics primitive for drawing the image as a texture.
+ */
+GraphicsPrimitiveV3fT3F*
+AnnotationImage::getGraphicsPrimitive() const
+{
+    if (m_graphicsPrimitive == NULL) {
+        if ( ! m_imageBytesRGBA.empty()) {
+            GraphicsPrimitiveV3fT3F* primitive = GraphicsPrimitive::newPrimitiveV3fT3F(GraphicsPrimitive::PrimitiveType::QUADS,
+                                                                                       &m_imageBytesRGBA[0],
+                                                                                       m_imageWidth,
+                                                                                       m_imageHeight);
+            primitive->addVertex(50, 50, 0.0, 0.0);
+            primitive->addVertex(250, 50, 1.0, 0.0);
+            primitive->addVertex(250, 250, 1.0, 1.0);
+            primitive->addVertex(50, 250, 0.0, 1.0);
+            m_graphicsPrimitive.reset(primitive);
+            
+            CaretLogWarning("Need to be able to override coordinates");
+        }
+    }
+    
+    return m_graphicsPrimitive.get();
 }
 
 /**

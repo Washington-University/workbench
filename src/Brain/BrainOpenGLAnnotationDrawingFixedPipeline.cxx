@@ -54,6 +54,8 @@
 #include "DisplayPropertiesAnnotation.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
+#include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsPrimitiveV3fT3F.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -2494,15 +2496,30 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                 }
             }
             
-            drawImageBytesWithTexture(image->getDrawWithOpenGLTextureInfo(),
-                                      bottomLeft,
-                                      bottomRight,
-                                      topRight,
-                                      topLeft,
-                                      imageRgbaBytes,
-                                      imageWidth,
-                                      imageHeight);
-            drawnFlag = true;
+            GraphicsPrimitiveV3fT3F* primitive = image->getGraphicsPrimitive();
+            if (primitive != NULL) {
+                if (primitive->isValid()) {
+                    std::vector<float> xyz;
+                    xyz.insert(xyz.end(), bottomLeft,  bottomLeft + 3);
+                    xyz.insert(xyz.end(), bottomRight, bottomRight + 3);
+                    xyz.insert(xyz.end(), topRight,    topRight + 3);
+                    xyz.insert(xyz.end(), topLeft,     topLeft + 3);
+                    primitive->replaceFloatXYZ(xyz);
+                    
+                    GraphicsEngineDataOpenGL::draw(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                   primitive);
+                }
+                drawnFlag = true;
+            }
+
+//            drawImageBytesWithTexture(image->getDrawWithOpenGLTextureInfo(),
+//                                      bottomLeft,
+//                                      bottomRight,
+//                                      topRight,
+//                                      topLeft,
+//                                      imageRgbaBytes,
+//                                      imageWidth,
+//                                      imageHeight);
             
             if (drawForegroundFlag) {
                 BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,

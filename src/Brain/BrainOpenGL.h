@@ -189,24 +189,30 @@ namespace caret {
         inline void* getContextSharingGroupPointer() { return m_contextSharingGroupPointer; }
         
     private:
-        class DeleteBufferNameInfo {
+        class OpenGLNameInfo {
         public:
-            DeleteBufferNameInfo(void* openglContextPointer,
-                                 const GLuint bufferName)
+            OpenGLNameInfo(void* openglContextPointer,
+                           const GLuint name)
             : m_openglContextPointer(openglContextPointer),
-            m_bufferName(bufferName) { }
+            m_name(name) { }
             
             void* m_openglContextPointer;
-            GLuint m_bufferName;
+            GLuint m_name;
         };
         
-        void deleteUnusedBuffers();
+        void deleteUnusedOpenGLNames();
         
         /** prevents concurrent access to m_buffersForDeletionLater */
         QMutex m_buffersForDeletionLaterMutex;
         
         /** use a mutex whenever accessing this member */
-        std::vector<DeleteBufferNameInfo> m_buffersForDeletionLater;
+        std::vector<OpenGLNameInfo> m_buffersForDeletionLater;
+        
+        /** prevents concurrent access to m_texturesForDeletionLater */
+        QMutex m_texturesForDeletionLaterMutex;
+        
+        /** use a mutex whenever accessing this member */
+        std::vector<OpenGLNameInfo> m_texturesForDeletionLater;
         
         /** Pointer to the current OpenGL Context sharing group */
         void* m_contextSharingGroupPointer = 0;

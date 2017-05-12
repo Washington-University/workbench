@@ -500,9 +500,10 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE:
         case EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW:
         case EventTypeEnum::EVENT_GET_VIEWPORT_SIZE:
-        case EventTypeEnum::EVENT_GRAPHICS_ENGINE_OPENGL_DELETE_BUFFERS:
         case EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT:
+        case EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME:
         case EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT:
+        case EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME:
         case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS:
         case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW:
         case EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY:
