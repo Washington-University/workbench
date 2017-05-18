@@ -1,6 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 <file>./About/hcp-logo.png</file>
+<file>./Caution/caution.png</file>
 <file>./Cursor/pen_eraser.png</file>
 <file>./gui_resources.qrc</file>
 <file>./LayersPanel/colorbar.png</file>

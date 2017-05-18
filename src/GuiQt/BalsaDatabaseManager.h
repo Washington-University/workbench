@@ -36,19 +36,42 @@ namespace caret {
         
         virtual ~BalsaDatabaseManager();
         
+        bool getStudyIDFromStudyTitle(const AString& databaseURL,
+                                      const AString& username,
+                                      const AString& password,
+                                      const AString& studyTitle,
+                                      AString& studyIdOut,
+                                      AString& errorMessageOut);
+        
         bool uploadZippedSceneFile(const AString& databaseURL,
-                   const AString& username,
-                   const AString& password,
-                   const SceneFile* sceneFile,
-                   const AString& zipFileName,
-                   const AString& extractToDirectoryName,
-                   AString& errorMessageOut);
+                                   const AString& username,
+                                   const AString& password,
+                                   const SceneFile* sceneFile,
+                                   const AString& zipFileName,
+                                   const AString& extractToDirectoryName,
+                                   AString& errorMessageOut);
+        
+        static bool zipSceneAndDataFiles(const SceneFile* sceneFile,
+                                         const AString& extractDirectory,
+                                         const AString& zipFileName,
+                                         AString& errorMessageOut);
+        
+        // ADD_NEW_METHODS_HERE
+
+        virtual AString toString() const;
+        
+        virtual void receiveEvent(Event* event);
+
+    private:
+        BalsaDatabaseManager(const BalsaDatabaseManager&);
+
+        BalsaDatabaseManager& operator=(const BalsaDatabaseManager&);
         
         bool login(const AString& loginURL,
                    const AString& username,
                    const AString& password,
                    AString& errorMessageOut);
-
+        
         AString getJSessionIdCookie() const;
         
         bool uploadFile(const AString& uploadURL,
@@ -62,34 +85,16 @@ namespace caret {
                                  AString& responseContentOut,
                                  AString& errorMessageOut);
         
-        static bool zipSceneAndDataFiles(const SceneFile* sceneFile,
-                                  const AString& extractDirectory,
-                                  const AString& zipFileName,
-                                  AString& errorMessageOut);
-        
-        // ADD_NEW_METHODS_HERE
-
-        virtual AString toString() const;
-        
-        virtual void receiveEvent(Event* event);
-
-    private:
-        BalsaDatabaseManager(const BalsaDatabaseManager&);
-
-        BalsaDatabaseManager& operator=(const BalsaDatabaseManager&);
+        bool requestStudyID(const AString& databaseURL,
+                            const AString& studyTitle,
+                            AString& studyIDOut,
+                            AString& errorMessageOut);
         
         bool uploadFileWithCaretHttpManager(const AString& uploadURL,
                         const AString& fileName,
                         const AString& httpContentTypeName,
                         AString& responseContentOut,
                         AString& errorMessageOut);
-        
-        bool uploadFileWithHttpCommunicator(const AString& uploadURL,
-                                            const AString& fileName,
-                                            const AString& httpContentTypeName,
-                                            AString& responseContentOut,
-                                            AString& errorMessageOut);
-        
         
         bool processUploadResponse(const std::map<AString, AString>& responseHeaders,
                                    const AString& responseContent,

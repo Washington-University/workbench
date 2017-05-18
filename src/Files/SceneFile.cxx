@@ -63,6 +63,7 @@ SceneFile::SceneFile()
 : CaretDataFile(DataFileTypeEnum::SCENE)
 {
     m_balsaStudyID = "";
+    m_balsaStudyTitle = "";
     m_baseDirectory = "";
     m_metadata = new GiftiMetaData();
 }
@@ -93,6 +94,7 @@ SceneFile::clear()
     m_metadata->clear();
     
     m_balsaStudyID = "";
+    m_balsaStudyTitle = "";
     m_baseDirectory = "";
     
     for (std::vector<Scene*>::iterator iter = m_scenes.begin();
@@ -490,6 +492,30 @@ SceneFile::setBalsaStudyID(const AString& balsaStudyID)
 }
 
 /**
+ * @return The BALSA Study Title.
+ */
+AString
+SceneFile::getBalsaStudyTitle() const
+{
+    return m_balsaStudyTitle;
+}
+
+/**
+ * Set the BALSA Study Title.
+ *
+ * @param balsaStudyTitle
+ *     New value for BALSA Study Title.
+ */
+void
+SceneFile::setBalsaStudyTitle(const AString& balsaStudyTitle)
+{
+    if (balsaStudyTitle != m_balsaStudyTitle) {
+        m_balsaStudyTitle = balsaStudyTitle;
+        setModified();
+    }
+}
+
+/**
  * @return The Base Directory
  */
 AString
@@ -646,8 +672,11 @@ SceneFile::writeFile(const AString& filename)
         xmlWriter.writeStartElement(SceneFile::XML_TAG_SCENE_INFO_DIRECTORY_TAG);
         xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_STUDY_ID_TAG,
                                     getBalsaStudyID());
+        xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_STUDY_TITLE_TAG,
+                                    getBalsaStudyTitle());
         xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BASE_DIRECTORY_TAG,
                                     getBaseDirectory());
+        
         for (int32_t i = 0; i < numScenes; i++) {
             m_scenes[i]->getSceneInfo()->writeSceneInfo(xmlWriter,
                                                         i);

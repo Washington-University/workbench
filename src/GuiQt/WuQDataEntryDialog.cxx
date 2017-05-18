@@ -103,6 +103,16 @@ WuQDataEntryDialog::~WuQDataEntryDialog()
 }
 
 /**
+ * Hide the cancel button.
+ */
+void
+WuQDataEntryDialog::hideCancelButton()
+{
+    setCancelButtonText("");
+}
+
+
+/**
  * Finish construction of the dialog.
  *
  * @param scrollBarStatus
@@ -287,7 +297,28 @@ WuQDataEntryDialog::addWidget(const QString& labelText,
    
    return widget;
 }
-                     
+
+/**
+ * add widget that spans both the label and widget columns to next available row in the dialog.
+ */
+QWidget*
+WuQDataEntryDialog::addWidget(QWidget* widget)
+{
+    //
+    // Keep pointer to widget
+    //
+    widgets.push_back(widget);
+    
+    //
+    // add widget to layout
+    //
+    const int rowNumber = widgetGridLayout->rowCount();
+    widgetGridLayout->addWidget(widget,
+                                rowNumber, 0, 1, 2);
+    
+    return widget;
+}
+
 /**
  * add a check box.
  */

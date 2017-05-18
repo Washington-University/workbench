@@ -97,6 +97,7 @@ ScenePreviewDialog::ScenePreviewDialog(const Scene* scene,
     AString descriptionText;
     const int32_t negativeIsUnlimitedNumberOfLines = -1;
     SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
+                                                                     -1,
                                                                      nameText,
                                                                      sceneIdText,
                                                                      descriptionText,

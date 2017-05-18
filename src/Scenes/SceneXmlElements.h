@@ -155,7 +155,11 @@ namespace caret {
          * XML Tag for BALSA Study ID element.
          */
         static const AString SCENE_INFO_BALSA_STUDY_ID_TAG = "BalsaStudyID";
-    
+        
+        /**
+         * XML Tag for BALSA Study ID element.
+         */
+        static const AString SCENE_INFO_BALSA_STUDY_TITLE_TAG = "BalsaStudyTitle";
         
         /**
          * XML Tag for Base Directory ID element.

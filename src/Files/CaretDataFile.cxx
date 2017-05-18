@@ -47,14 +47,13 @@ SceneableInterface()
 {
     m_dataFileType = dataFileType;
     
-    AString name = (DataFileTypeEnum::toName(m_dataFileType).toLower()
-                    + "_file_"
+    AString name = ("untitled_"
                     + AString::number(s_defaultFileNameCounter)
                     + "."
                     + DataFileTypeEnum::toFileExtension(m_dataFileType));
     s_defaultFileNameCounter++;
     
-    setFileName(name);
+    setFileNameProtected(name);
 }
 
 /**

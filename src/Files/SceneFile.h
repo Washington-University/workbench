@@ -87,6 +87,10 @@ namespace caret {
         
         void setBalsaStudyID(const AString& balsaStudyID);
         
+        AString getBalsaStudyTitle() const;
+        
+        void setBalsaStudyTitle(const AString& balsaStudyTitle);
+        
         AString getBaseDirectory() const;
         
         void setBaseDirectory(const AString& baseDirectory);
@@ -123,6 +127,9 @@ namespace caret {
 
         /** the BALSA Study ID */
         AString m_balsaStudyID;
+        
+        /** the BALSA Study Title */
+        AString m_balsaStudyTitle;
         
         /** the Base Directory */
         AString m_baseDirectory;

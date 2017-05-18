@@ -48,6 +48,7 @@
 #include "PlainTextStringBuilder.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
+#include "SceneDialog.h"
 #include "SceneFile.h"
 #include "SceneInfo.h"
 #include "SessionManager.h"
@@ -202,6 +203,9 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     }
     QString descriptionString = description.getText().trimmed();
     
+    const AString defaultNewSceneName = ("New Scene " + AString::number(sceneFile->getNumberOfScenes() + 1));
+    m_nameLineEdit->setText(defaultNewSceneName);
+    
     switch (m_mode) {
         case MODE_ADD_NEW_SCENE:
             m_descriptionTextEdit->setPlainText(descriptionString);
@@ -215,6 +219,9 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
             m_descriptionTextEdit->setPlainText(sceneToInsertOrReplace->getDescription());
             break;
     }
+    
+    m_nameLineEdit->setFocus();
+    m_nameLineEdit->selectAll();
     
     setMinimumWidth(600);
     setMinimumHeight(300);
@@ -611,6 +618,18 @@ SceneCreateReplaceDialog::okButtonClicked()
         WuQMessageBox::errorOk(this,
                                errorMessage);
         return;
+    }
+    
+    if ( ! s_previousSelections.m_addModifiedPaletteSettings) {
+        if ( ! SceneDialog::checkForModifiedFiles(GuiManager::TEST_FOR_MODIFIED_FILES_PALETTE_ONLY_MODE_FOR_SCENE_ADD,
+                                                  this)) {
+            /*
+             * Add modified palettes to scene is off but
+             * there are modified palettes and user has
+             * chose to not create the scene
+             */
+            return;
+        }
     }
     
     Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);

@@ -45,6 +45,8 @@ namespace caret {
 
         DataFile& operator=(const DataFile&);
         
+        void setFileNameProtected(const AString& filename);
+        
     public:
         virtual AString getFileName() const;
         
@@ -90,16 +92,18 @@ namespace caret {
         
         void checkFileWritability(const AString& filename);
         
+        bool exists() const;
+        
     private:
         void copyHelperDataFile(const DataFile& df);
         
         void initializeMembersDataFile();
         
         /** name of data file */
-        AString filename;
+        AString m_filename;
         
         /** modification status */
-        bool modifiedFlag;
+        bool m_modifiedFlag;
         
     };
     

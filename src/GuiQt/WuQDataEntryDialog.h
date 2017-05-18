@@ -64,12 +64,16 @@ namespace caret {
                            const WuQDialog::ScrollAreaStatus scrollBarStatus,
                            Qt::WindowFlags f = 0);
         
+        void hideCancelButton();
+        
         // destructor
         ~WuQDataEntryDialog();
         
         // add widget to next available row in the dialog
         QWidget* addWidget(const QString& labelText,
                            QWidget* widget);
+        
+        QWidget* addWidget(QWidget* widget);
         
         // add widgets to the next available row in the dialog
         void addWidgetsToNextRow(QWidget* leftColumnWidget,

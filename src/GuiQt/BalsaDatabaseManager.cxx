@@ -513,6 +513,172 @@ BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
 }
 
 /**
+ * Get the study ID from a study Title
+ *
+ * @param databaseURL
+ *     URL for database
+ * @param studyTitle
+ *     Title of the study
+ * @param studyIDOut
+ *     Output with the study ID
+ * @param errorMessageOut
+ *     Output with error message
+ * @return 
+ *     True if success, else false.
+ */
+bool
+BalsaDatabaseManager::requestStudyID(const AString& databaseURL,
+                                     const AString& studyTitle,
+                                     AString& studyIDOut,
+                                     AString& errorMessageOut)
+{
+    const AString studyIdURL(databaseURL
+                             + "/study/save");
+
+    errorMessageOut.clear();
+    
+    CaretHttpRequest uploadRequest;
+    uploadRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
+    uploadRequest.m_url    = studyIdURL;
+    uploadRequest.m_headers.insert(std::make_pair("Content-Type",
+                                                  "application/x-www-form-urlencoded"));
+    uploadRequest.m_headers.insert(std::make_pair("Cookie",
+                                                  getJSessionIdCookie()));
+    uploadRequest.m_arguments.push_back(std::make_pair("title",
+                                                  studyTitle));
+    
+    CaretHttpResponse idResponse;
+    CaretHttpManager::httpRequest(uploadRequest, idResponse);
+    
+    if (m_debugFlag) {
+        std::cout << "Request study ID response Code: " << idResponse.m_responseCode << std::endl;
+    }
+    
+    AString locationFromHeader;
+    for (std::map<AString, AString>::iterator mapIter = idResponse.m_headers.begin();
+         mapIter != idResponse.m_headers.end();
+         mapIter++) {
+        if (m_debugFlag) {
+            std::cout << "   Request study ID Response Header: " << qPrintable(mapIter->first)
+            << " -> " << qPrintable(mapIter->second) << std::endl;
+        }
+        if (mapIter->first.toLower() == "location") {
+            locationFromHeader = mapIter->second;
+        }
+    }
+    
+    idResponse.m_body.push_back('\0');
+    AString responseContent(&idResponse.m_body[0]);
+    
+    if (m_debugFlag) {
+        std::cout << "Request Study ID reply body:" << responseContent << std::endl;
+    }
+    
+    CaretLogFine("Request Study ID to BALSA reply body: "
+                 + responseContent);
+    
+    if (idResponse.m_responseCode != 200) {
+        errorMessageOut = ("Requesting study ID failed HTTP code: "
+                           + QString::number(idResponse.m_responseCode)
+                           + "\n"
+                           "Could be due failure to agree to data user terms.");
+        
+        return false;
+    }
+    
+    if ( ! locationFromHeader.isEmpty()) {
+        const int lastSlashIndex = locationFromHeader.lastIndexOf('/');
+        if (lastSlashIndex >= 0) {
+            studyIDOut = locationFromHeader.mid(lastSlashIndex + 1);
+            if (studyIDOut.isNull()
+                || studyIDOut.isEmpty()) {
+                errorMessageOut = ("Received 'Location' from BALSA but unable to find study ID in the URL: "
+                                   + locationFromHeader);
+                return false;
+            }
+            
+            /*
+             * Have the Study ID
+             */
+            return true;
+        }
+        else {
+            errorMessageOut = ("Received 'Location' from BALSA but unable to find study ID in the URL: "
+                               + locationFromHeader);
+        }
+    }
+    else {
+        if (responseContent.indexOf("must be unique") >= 0) {
+            errorMessageOut = ("A study with the title \""
+                               + studyTitle
+                               + "\" already exists and duplicate study titles are not allowed in the BALSA database.");
+        }
+        else {
+            errorMessageOut = "Unable to find 'Location' in response from BALSA.";
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Login to BALSA and request a study ID from a study title.
+ *
+ * @param databaseURL
+ *     URL of the database.
+ * @param username
+ *     Username for logging in.
+ * @param password
+ *     Password for logging in.
+ * @param studyTitle
+ *     The study's titlee.
+ * @param studyIdOut
+ *     Output containing the study ID.
+ * @param errorMessageOut
+ *     Contains description of any error(s).
+ * @return
+ *     True if processing was successful, else false.
+ */
+bool
+BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& databaseURL,
+                                               const AString& username,
+                                               const AString& password,
+                                               const AString& studyTitle,
+                                               AString& studyIdOut,
+                                               AString& errorMessageOut)
+{
+    if (studyTitle.isEmpty()) {
+        errorMessageOut = "The study title is empty.";
+        return false;
+    }
+    
+    /*
+     * Login
+     */
+    const AString loginURL(databaseURL
+                           + "/j_spring_security_check");
+    if ( ! login(loginURL,
+                 username,
+                 password,
+                 errorMessageOut)) {
+        
+        return false;
+    }
+    
+    CaretLogInfo("SESSION ID from BALSA Login: "
+                 + getJSessionIdCookie());
+    
+    if ( ! requestStudyID(databaseURL,
+                          studyTitle,
+                          studyIdOut,
+                          errorMessageOut)) {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
  * Login to BALSA, zip the scene and data files, and upload the
  * ZIP file to BALSA.
  *

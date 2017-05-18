@@ -650,7 +650,8 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
     switch (testModifiedMode) {
         case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
             break;
-        case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD:
+        case TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD:
+        case TEST_FOR_MODIFIED_FILES_PALETTE_ONLY_MODE_FOR_SCENE_ADD:
             dataFileTypesToExclude.push_back(DataFileTypeEnum::SCENE);
             dataFileTypesToExclude.push_back(DataFileTypeEnum::SPECIFICATION);
             break;
@@ -679,7 +680,26 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
             case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
                 modifiedDataFiles.push_back(file);
                 break;
-            case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD:
+            case TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD:
+            {
+                /*
+                 * Is modification data but NOT palette
+                 */
+                CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(file);
+                bool dataModFlag = false;
+                if (mappableDataFile != NULL) {
+                    if ( ! mappableDataFile->isModifiedPaletteColorMapping()) {
+                        if (mappableDataFile->isModifiedExcludingPaletteColorMapping()) {
+                            dataModFlag = true;
+                        }
+                    }
+                }
+                if (dataModFlag) {
+                    modifiedDataFiles.push_back(file);
+                }
+                break;
+            }
+            case TEST_FOR_MODIFIED_FILES_PALETTE_ONLY_MODE_FOR_SCENE_ADD:
             {
                 /*
                  * Is modification just the palette color mapping?
@@ -695,9 +715,6 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
                 }
                 if (paletteOnlyModFlag) {
                     paletteModifiedDataFiles.push_back(file);
-                }
-                else {
-                    modifiedDataFiles.push_back(file);
                 }
                 
             }
@@ -719,7 +736,8 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
     switch (testModifiedMode) {
         case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
             break;
-        case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD:
+        case TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD:
+        case TEST_FOR_MODIFIED_FILES_PALETTE_ONLY_MODE_FOR_SCENE_ADD:
             /*
              * Do not need to notify about modified scene annotations
              * since scene annotations are saved to the scene
@@ -732,7 +750,7 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
     
     if ((modFileCount > 0)
         || sceneAnnotationsModifiedFlag
-        || paletteModFileCount) {
+        || paletteModFileCount > 0) {
         /*
          * Display dialog allowing user to save files (goes to Save/Manage
          * Files dialog), exit without saving, or cancel.
@@ -741,7 +759,8 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
             case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
                 textMessageOut = "Do you want to save changes you made to these files?";
                 break;
-            case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD:
+            case TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD:
+            case TEST_FOR_MODIFIED_FILES_PALETTE_ONLY_MODE_FOR_SCENE_ADD:
                 textMessageOut = "Do you want to continue creating the scene?";
                 break;
             case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW:
@@ -762,9 +781,9 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
             infoTextMsg.append("\n");
         }
         if (paletteModFileCount > 0) {
-            infoTextMsg.appendWithNewLine("These file(s) contain modified palette color mapping.  It is not "
-                                          "necessary to save these file(s) if the save palette color mapping "
-                                          "option is selected on the scene creation dialog:\n");
+            infoTextMsg.appendWithNewLine("These file(s) contain modified palette color mapping "
+                                          "AND \"Add modified palette color mapping to scene\" "
+                                          "is NOT checked on the Create New Scene Dialog.\n");
             for (std::vector<CaretDataFile*>::iterator iter = paletteModifiedDataFiles.begin();
                  iter != paletteModifiedDataFiles.end();
                  iter++) {
@@ -1617,6 +1636,8 @@ GuiManager::showHideSceneDialog(const bool status,
         
         this->sceneDialog->show();
         this->sceneDialog->activateWindow();
+        
+        this->sceneDialog->createDefaultSceneFile();
     }
     else {
         this->sceneDialog->close();

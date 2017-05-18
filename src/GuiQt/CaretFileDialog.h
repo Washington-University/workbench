@@ -52,6 +52,13 @@ namespace caret {
                                        QString *selectedFilter = 0,
                                        Options options = 0);
         
+        // model method to get open file name
+        static QString getOpenFileNameDialog(const DataFileTypeEnum::Enum dataFileType,
+                                             QWidget* parent = 0,
+                                             const QString& caption = QString(),
+                                             const QString& dir = QString(),
+                                             Options options = 0);
+        
         // modal method to get save file name
         static QString getSaveFileNameDialog(QWidget *parent = 0,
                                        const QString &caption = QString(),

@@ -33,6 +33,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QTabWidget>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -70,10 +71,12 @@
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneCreateOptionsDialog.h"
 #include "SceneCreateReplaceDialog.h"
 #include "SceneFile.h"
 #include "SceneInfo.h"
 #include "ScenePreviewDialog.h"
+#include "SceneShowOptionsDialog.h"
 #include "SessionManager.h"
 #include "UsernamePasswordWidget.h"
 #include "WuQDataEntryDialog.h"
@@ -121,10 +124,23 @@ SceneDialog::SceneDialog(QWidget* parent)
      */
     setApplyButtonText("");
     
+    
+    /*
+     * Construction Tool Button
+     */
+    m_cautionIconValid = WuQtUtilities::loadIcon(":/Caution/caution.png",
+                                                 m_cautionIcon);
+    
+//    this->constructionAction = WuQtUtilities::createAction("M",
+//                                                           "Add/Move/Remove Overlays",
+//                                                           this);
+//    if (constructionIconValid) {
+//        this->constructionAction->setIcon(constructionIcon);
+//    }
     /*
      * Set the dialog's widget
      */
-    this->setCentralWidget(createMainPage(),
+    this->setCentralWidget(createScenesWidget(),
                            WuQDialog::SCROLL_AREA_NEVER);
 
     /*
@@ -148,6 +164,8 @@ SceneDialog::SceneDialog(QWidget* parent)
      * read.
      */
     EventManager::get()->addProcessedEventListener(this,
+                                                   EventTypeEnum::EVENT_DATA_FILE_ADD);
+    EventManager::get()->addProcessedEventListener(this,
                                                    EventTypeEnum::EVENT_DATA_FILE_READ);
     EventManager::get()->addProcessedEventListener(this,
                                                    EventTypeEnum::EVENT_DATA_FILE_RELOAD);
@@ -165,6 +183,60 @@ SceneDialog::~SceneDialog()
 }
 
 /**
+ * Process a close event.
+ *
+ * @param event
+ *     The close event.
+ */
+void
+SceneDialog::closeEvent(QCloseEvent* event)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    const int32_t numSceneFiles = brain->getNumberOfSceneFiles();
+    if (numSceneFiles <= 0) {
+        WuQDialogNonModal::closeEvent(event);
+        return;
+    }
+
+    int32_t numberOfModifiedSceneFiles = 0;
+    for (int32_t i = 0; i < numSceneFiles; i++) {
+        const SceneFile* sceneFile = brain->getSceneFile(i);
+        if (sceneFile->isModified()) {
+            numberOfModifiedSceneFiles++;
+        }
+    }
+    
+    if (numberOfModifiedSceneFiles <= 0) {
+        WuQDialogNonModal::closeEvent(event);
+        return;
+    }
+    
+//    const SceneFile* sceneFile = getSelectedSceneFile();
+//    
+//    if ((numberOfModifiedSceneFiles == 1)
+//        && sceneFile->isModified()) {
+//        const bool successFlag = warnIfSceneFileIsModified(ModifiedWarningType::CLOSE_DIALOG_BUTTON);
+//        if (successFlag) {
+//            return;
+//        }
+//        event->ignore();
+//        WuQDialogNonModal::closeEvent(event);
+//        return;
+//    }
+    
+    const AString msg("<html>There are modified scene file(s).  You can save modified scene files using File Menu->Save/Manage Files "
+                      "or by selecting them on the Scene Dialog and using the Save/Save As buttons.<p>"
+                      "Continue closing this Scene Dialog?");
+    if (WuQMessageBox::warningOkCancel(this, msg)) {
+        WuQDialogNonModal::closeEvent(event);
+        return;
+    }
+    
+    event->ignore();
+    WuQDialogNonModal::closeEvent(event);
+}
+
+/**
  * Update the scene dialog.
  */
 void
@@ -172,7 +244,27 @@ SceneDialog::updateDialog()
 {
     loadSceneFileComboBox(NULL);
     loadScenesIntoDialog(NULL);
+    
+    updateSceneFileModifiedStatusLabel();
 }
+
+/**
+ * Create the default scene file if 
+ * there are any models and there are no
+ * scene files.
+ */
+void
+SceneDialog::createDefaultSceneFile()
+{
+    if (getSelectedSceneFile() == NULL) {
+        EventModelGetAll allModelsEvent;
+        EventManager::get()->sendEvent(allModelsEvent.getPointer());
+        if ( ! allModelsEvent.getModels().empty()) {
+            newSceneFileButtonClicked();
+        }
+    }
+}
+
 
 /**
  * Get the selected scene file.
@@ -231,7 +323,35 @@ SceneDialog::getSelectedScene()
     return selectedScene;
 }
 
-
+/**
+ * Update the modified icons in the scene file combo box.
+ */
+void
+SceneDialog::updateSceneFileComboBoxModifiedIcons()
+{
+    if ( ! m_cautionIconValid) {
+        return;
+    }
+    
+    m_sceneFileSelectionComboBox->blockSignals(true);
+    
+    const int32_t numItems = m_sceneFileSelectionComboBox->count();
+    for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
+        void* filePointer = m_sceneFileSelectionComboBox->itemData(itemIndex).value<void*>();
+        SceneFile* sceneFile = (SceneFile*)filePointer;
+        CaretAssert(sceneFile);
+        if (sceneFile->isModified()) {
+            m_sceneFileSelectionComboBox->setItemIcon(itemIndex,
+                                                      m_cautionIcon);
+        }
+        else {
+            m_sceneFileSelectionComboBox->setItemIcon(itemIndex,
+                                                      QIcon());
+        }
+    }
+    
+    m_sceneFileSelectionComboBox->blockSignals(false);
+}
 
 /**
  * Load the scene files into the scene file combo box.
@@ -260,33 +380,26 @@ SceneDialog::loadSceneFileComboBox(SceneFile* selectedSceneFileIn)
         }
         
         const AString name = sceneFile->getFileNameNoPath();
-        m_sceneFileSelectionComboBox->addItem(name,
-                                              qVariantFromValue((void*)sceneFile));
+        if (sceneFile->isModified()
+            && m_cautionIconValid) {
+            m_sceneFileSelectionComboBox->addItem(m_cautionIcon,
+                                                  name,
+                                                  qVariantFromValue((void*)sceneFile));
+        }
+        else {
+            m_sceneFileSelectionComboBox->addItem(name,
+                                                  qVariantFromValue((void*)sceneFile));
+        }
     }
     
     
     if (numSceneFiles > 0) {
         m_sceneFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
-        loadSceneFileMetaDataWidgets();
     }
     
     m_sceneFileButtonsGroup->setEnabled(getSelectedSceneFile() != NULL);
-}
 
-/**
- * Load the Scene File BALSA Study ID Line Edit
- */
-void
-SceneDialog::loadSceneFileMetaDataWidgets()
-{
-    m_fileBalsaStudyIDLineEdit->clear();
-    m_fileBaseDirectoryLineEdit->clear();
-    
-    SceneFile* sceneFile = getSelectedSceneFile();
-    if (sceneFile != NULL) {
-        m_fileBalsaStudyIDLineEdit->setText(sceneFile->getBalsaStudyID());
-        m_fileBaseDirectoryLineEdit->setText(sceneFile->getBaseDirectory());
-    }
+    updateSceneFileModifiedStatusLabel();
 }
 
 /**
@@ -393,6 +506,24 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
     m_replaceScenePushButton->setEnabled(validScene);
     m_showScenePushButton->setEnabled(validScene);
     m_showSceneImagePreviewPushButton->setEnabled(validScene);
+    m_showSceneOptionsPushButton->setEnabled(validScene);
+}
+
+/**
+ * @return Number of valid scene info widgets.
+ */
+int32_t
+SceneDialog::getNumberOfValidSceneInfoWidgets() const
+{
+    int32_t numValid = 0;
+    
+    for (auto ssiw : m_sceneClassInfoWidgets) {
+        if (ssiw->isValid()) {
+            numValid++;
+        }
+    }
+    
+    return numValid;
 }
 
 /**
@@ -401,7 +532,7 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
 void
 SceneDialog::enableSceneMoveUpAndDownButtons()
 {
-    const int32_t numberOfSceneInfoWidgets = static_cast<int32_t>(m_sceneClassInfoWidgets.size());
+    const int32_t numberOfSceneInfoWidgets = getNumberOfValidSceneInfoWidgets();
     m_moveSceneUpPushButton->setEnabled(m_selectedSceneClassInfoIndex > 0);
     m_moveSceneDownPushButton->setEnabled((m_selectedSceneClassInfoIndex >= 0)
                                           && (m_selectedSceneClassInfoIndex < (numberOfSceneInfoWidgets - 1)));
@@ -475,6 +606,48 @@ SceneDialog::highlightScene(const Scene* scene)
 }
 
 /**
+ * Called to open a scene file.
+ */
+void
+SceneDialog::openSceneFileButtonClicked()
+{
+    if ( ! displayNewSceneWarning()) {
+        return;
+    }
+    
+    if ( ! warnIfSceneFileIsModified(ModifiedWarningType::OPEN_FILE_BUTTON)) {
+        return;
+    }
+    
+    /*
+     * Let user choose a different path/name
+     */
+    AString openSceneFileName = CaretFileDialog::getOpenFileNameDialog(DataFileTypeEnum::SCENE,
+                                                                       m_openSceneFilePushButton,
+                                                                       "Open a Scene File",
+                                                                       "");
+    /*
+     * If user cancels, return
+     */
+    if (openSceneFileName.isEmpty()) {
+        return;
+    }
+    
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    /*
+     * Note that this dialog receives EventDataFileRead
+     * as a post-processed event and will take care of
+     * the dialog updates.
+     */
+    EventDataFileRead dataFileEvent(GuiManager::get()->getBrain());
+    dataFileEvent.addDataFile(DataFileTypeEnum::SCENE, openSceneFileName);
+    EventManager::get()->sendEvent(dataFileEvent.getPointer());
+}
+
+
+/**
  * Called to create a new scene file.
  */
 void 
@@ -484,31 +657,327 @@ SceneDialog::newSceneFileButtonClicked()
         return;
     }
     
-    /*
-     * Let user choose a different path/name
-     */
-    SceneFile* newSceneFile = new SceneFile();
-    GuiManager::get()->getBrain()->convertDataFilePathNameToAbsolutePathName(newSceneFile);
-    AString newSceneFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::SCENE,
-                                                                      this,
-                                                                      "Choose Scene File Name",
-                                                                      newSceneFile->getFileName());
-    /*
-     * If user cancels, delete the new scene file and return
-     */
-    if (newSceneFileName.isEmpty()) {
-        delete newSceneFile;
+    if ( ! warnIfSceneFileIsModified(ModifiedWarningType::NEW_FILE_BUTTON)) {
         return;
     }
     
+    SceneFile* newSceneFile = new SceneFile();
+    GuiManager::get()->getBrain()->convertDataFilePathNameToAbsolutePathName(newSceneFile);
+    newSceneFile->clearModified();
+
     /*
-     * Set name of new scene file and add to brain
+     * Note that this dialog receives EventDataFileAdd
+     * as a post-processed event and will take care of
+     * the dialog updates.
      */
-    newSceneFile->setFileName(newSceneFileName);
     EventManager::get()->sendEvent(EventDataFileAdd(newSceneFile).getPointer());
-    this->loadSceneFileComboBox(newSceneFile);
-    this->sceneFileSelected();    
 }
+
+/**
+ * Save the selected scene file.
+ */
+void
+SceneDialog::saveSceneFileButtonClicked()
+{
+    saveSelectedSceneFile();
+}
+
+/**
+ * Save the selected scene file with a new name.
+ */
+void SceneDialog::saveAsSceneFileButtonClicked()
+{
+    saveAsSelectedSceneFile();
+}
+
+/**
+ * Save the selected scene file using the file' current name.
+ *
+ * @return True if file was saved else false and an error message is displayed.
+ */
+bool
+SceneDialog::saveSelectedSceneFile()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        WuQMessageBox::errorOk(m_saveSceneFilePushButton, "There is no selected scene file to save");
+        return false;
+    }
+
+    try {
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
+        
+        Brain* brain = GuiManager::get()->getBrain();
+        brain->writeDataFile(sceneFile);
+    }
+    catch (const DataFileException& e) {
+        WuQMessageBox::errorOk(m_saveSceneFilePushButton, e.whatString());
+        return false;
+    }
+    
+    updateSceneFileModifiedStatusLabel();
+    
+    return true;
+}
+
+/**
+ * Save the selected scene file with display of a file selection dialog using the file' current name.
+ *
+ * @return True if file was saved else false and an error message is displayed.
+ */
+bool
+SceneDialog::saveAsSelectedSceneFile()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        WuQMessageBox::errorOk(m_saveAsSceneFilePushButton, "There is no selected scene file to save");
+        return false;
+    }
+    
+    const AString filename = CaretFileDialog::getSaveFileNameDialog(sceneFile->getDataFileType(),
+                                                                    m_saveAsSceneFilePushButton,
+                                                                    "Save Scene File As",
+                                                                    sceneFile->getFileName());
+    if (filename.isEmpty()) {
+        return false;
+    }
+    
+    try {
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
+        
+        sceneFile->setFileName(filename);
+        Brain* brain = GuiManager::get()->getBrain();
+        brain->writeDataFile(sceneFile);
+    }
+    catch (const DataFileException& e) {
+        WuQMessageBox::errorOk(m_saveAsSceneFilePushButton, e.whatString());
+        return false;
+    }
+    
+    updateSceneFileModifiedStatusLabel();
+    
+    return true;
+}
+
+/**
+ * If the selected scene file is modified, warn the user and
+ * suggest saving the file prior to continuing.
+ *
+ * @param warningType
+ *     Type of warning.
+ * @return
+ *     True if the operation should continue, else false.
+ */
+bool
+SceneDialog::warnIfSceneFileIsModified(const ModifiedWarningType warningType)
+{
+    const SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        return true;
+    }
+    if ( ! sceneFile->isModified()) {
+        return true;
+    }
+
+    /**
+     * Return true if warning is disabled for an operation
+     */
+    switch (warningType) {
+        case ModifiedWarningType::CLOSE_DIALOG_BUTTON:
+            break;
+        case ModifiedWarningType::FILE_COMBO_BOX_CHANGE_FILE:
+            return true;
+            break;
+        case ModifiedWarningType::NEW_FILE_BUTTON:
+            return true;
+            break;
+        case ModifiedWarningType::OPEN_FILE_BUTTON:
+            return true;
+            break;
+        case ModifiedWarningType::UPLOAD_FILE_BUTTON:
+            break;
+        case ModifiedWarningType::ZIP_FILE_BUTTON:
+            break;
+    }
+    
+    /*
+     * Parent for message box dialogs
+     */
+    QWidget* messageBoxParent = NULL;
+    switch (warningType) {
+        case ModifiedWarningType::CLOSE_DIALOG_BUTTON:
+            messageBoxParent = this;
+            break;
+        case ModifiedWarningType::FILE_COMBO_BOX_CHANGE_FILE:
+            messageBoxParent = m_sceneFileSelectionComboBox;
+            break;
+        case ModifiedWarningType::NEW_FILE_BUTTON:
+            messageBoxParent = m_newSceneFilePushButton;
+            break;
+        case ModifiedWarningType::OPEN_FILE_BUTTON:
+            messageBoxParent = m_openSceneFilePushButton;
+            break;
+        case ModifiedWarningType::UPLOAD_FILE_BUTTON:
+            messageBoxParent = m_uploadSceneFilePushButton;
+            break;
+        case ModifiedWarningType::ZIP_FILE_BUTTON:
+            messageBoxParent = m_zipSceneFilePushButton;
+            break;
+    }
+    CaretAssert(messageBoxParent);
+    
+    if (sceneFile->getNumberOfScenes() <= 0) {
+        switch (warningType) {
+            case ModifiedWarningType::CLOSE_DIALOG_BUTTON:
+                return true;
+                break;
+            case ModifiedWarningType::FILE_COMBO_BOX_CHANGE_FILE:
+                return true;
+                break;
+            case ModifiedWarningType::NEW_FILE_BUTTON:
+                return true;
+                break;
+            case ModifiedWarningType::OPEN_FILE_BUTTON:
+                return true;
+                break;
+            case ModifiedWarningType::UPLOAD_FILE_BUTTON:
+                break;
+            case ModifiedWarningType::ZIP_FILE_BUTTON:
+                break;
+        }
+        
+        WuQMessageBox::errorOk(messageBoxParent,
+                               "There are no scenes in the scene file !");
+        return false;
+    }
+    
+    bool enableContinueButton = false;
+    bool enableSaveButton     = sceneFile->exists();
+    QMessageBox::Icon messageBoxIcon = QMessageBox::NoIcon;
+    
+    /*
+     * Set up the informative text
+     */
+    AString saveText = ("Press the <B>Save</B> button to save the scene file with its current name ");
+    AString saveAsText = ("Press the <B>Save As</B> button to save the scene file to a new name using a file dialog ");
+    AString continueText = ("Press the <B>Continue</B> button to skip saving the scene file (you may save it at a later time) ");
+    AString cancelText = ("Press the <B>Cancel</B> button to skip saving the scene file and ");
+    switch (warningType) {
+        case ModifiedWarningType::CLOSE_DIALOG_BUTTON:
+            messageBoxIcon = QMessageBox::Warning;
+            enableContinueButton = true;
+            saveText.append("and close the scene dialog");
+            saveAsText.append("and close the scene dialog");
+            continueText.append("and close the scene dialog");
+            cancelText.append("do not close the scene dialog");
+            break;
+        case ModifiedWarningType::FILE_COMBO_BOX_CHANGE_FILE:
+            messageBoxIcon = QMessageBox::Warning;
+            enableContinueButton = true;
+            saveText.append("and change the selected scene file");
+            saveAsText.append("and change the selected scene file");
+            continueText.append("and change the selected scene file");
+            cancelText.append("cancel changing the selected scene file");
+            break;
+        case ModifiedWarningType::NEW_FILE_BUTTON:
+            messageBoxIcon = QMessageBox::Warning;
+            enableContinueButton = true;
+            saveText.append(" and create a new scene file");
+            saveAsText.append(" and create a new scene file");
+            continueText.append(" and create a new scene file");
+            cancelText.append("cancel creation of a new scene file");
+            break;
+        case ModifiedWarningType::OPEN_FILE_BUTTON:
+            messageBoxIcon = QMessageBox::Warning;
+            enableContinueButton = true;
+            saveText.append("and display a dialog for opening a scene file");
+            saveAsText.append("and display a dialog for opening a scene file");
+            continueText.append("and display a dialog for opening a scene file");
+            cancelText.append("cancel opening a scene file");
+            break;
+        case ModifiedWarningType::UPLOAD_FILE_BUTTON:
+            messageBoxIcon = QMessageBox::Warning;
+            saveText.append("and continue uploading the scene file");
+            saveAsText.append("and continue uploading the scene file");
+            continueText.append("");
+            cancelText.append("cancel uploading the scene file");
+            break;
+        case ModifiedWarningType::ZIP_FILE_BUTTON:
+            messageBoxIcon = QMessageBox::Warning;
+            saveText.append("and zip the scene file");
+            saveAsText.append("and zip the scene file");
+            continueText.append("and zip the scene file");
+            cancelText.append("and cancel zipping the scene file");
+            break;
+    }
+    
+    AString informativeText("<html>");
+    if (enableSaveButton) {
+        informativeText.append(saveText + "<p>");
+    }
+    informativeText.append(saveAsText + "<p>");
+    if (enableContinueButton) {
+        informativeText.append(continueText + "<p>");
+    }
+    informativeText.append(cancelText + "<p>");
+    informativeText.append("</html>");
+    
+    /*
+     * Create and display the message box dialog
+     */
+    QMessageBox messageBox(messageBoxParent);
+    messageBox.setText("The selected scene file has been modified but not saved: "
+                       + sceneFile->getFileNameNoPath());
+    messageBox.setInformativeText(informativeText);
+    messageBox.setIcon(messageBoxIcon);
+    QPushButton* saveButton = NULL;
+    if (enableSaveButton) {
+        saveButton = messageBox.addButton("Save", QMessageBox::AcceptRole);
+    }
+    QPushButton* saveAsButton   = messageBox.addButton("Save As...", QMessageBox::AcceptRole);
+    QPushButton* cancelButton   = messageBox.addButton("Cancel", QMessageBox::NoRole);
+    QPushButton* continueButton = NULL;
+    if (enableContinueButton) {
+        continueButton = messageBox.addButton("Continue", QMessageBox::AcceptRole);
+    }
+    
+    if (saveButton != NULL) {
+        messageBox.setDefaultButton(saveButton);
+    }
+    else {
+        messageBox.setDefaultButton(saveAsButton);
+    }
+    
+    messageBox.exec();
+
+    QAbstractButton* button = messageBox.clickedButton();
+    CaretAssert(button);
+
+    bool successFlag = false;
+    
+    if (button == saveButton) {
+        successFlag = saveSelectedSceneFile();
+    }
+    else if (button == saveAsButton) {
+        successFlag = saveAsSelectedSceneFile();
+        
+    }
+    else if (button == cancelButton) {
+        successFlag = false;
+        
+    }
+    else if (button == continueButton) {
+        successFlag = true;
+    }
+    else {
+        CaretAssertMessage(0, "Button clicked not handled " + button->text());
+    }
+    
+    return successFlag;
+}
+
 
 /**
  * Called when upload scene file is selected.
@@ -516,28 +985,22 @@ SceneDialog::newSceneFileButtonClicked()
 void
 SceneDialog::uploadSceneFileButtonClicked()
 {
-    SceneFile* sceneFile = getSelectedSceneFile();
-    if (sceneFile == NULL) {
-        WuQMessageBox::errorOk(m_uploadSceneFilePushButton,
-                               "No Scene File is selected.");
-        return;
-    }
-    if (sceneFile->isModified()) {
-        WuQMessageBox::errorOk(m_uploadSceneFilePushButton,
-                               "Selected Scene File is modified and must be saved prior to uploading.");
+    if ( ! warnIfSceneFileIsModified(ModifiedWarningType::UPLOAD_FILE_BUTTON)) {
         return;
     }
     
-    if (sceneFile->getBalsaStudyID().trimmed().isEmpty()) {
-        const QString msg("The BALSA Study ID is missing.  You must go to the "
-                          "<a href=\"https://balsa.wustl.edu\">BALSA Database</a> and get a BALSA Study ID.");
-        WuQMessageBox::errorOk(m_uploadSceneFilePushButton, msg);
-        return;
-    }
+    SceneFile* sceneFile = getSelectedSceneFile();
+//    if (sceneFile->isModified()) {
+//        WuQMessageBox::errorOk(m_uploadSceneFilePushButton,
+//                               "Selected Scene File is modified and must be saved prior to uploading.");
+//        return;
+//    }
     
     BalsaDatabaseUploadSceneFileDialog uploadDialog(sceneFile,
                                                     this);
     uploadDialog.exec();
+    
+    updateSceneFileModifiedStatusLabel();
 }
 
 
@@ -547,119 +1010,41 @@ SceneDialog::uploadSceneFileButtonClicked()
 void
 SceneDialog::zipSceneFileButtonClicked()
 {
+    if ( ! warnIfSceneFileIsModified(ModifiedWarningType::ZIP_FILE_BUTTON)) {
+        return;
+    }
+    
     SceneFile* sceneFile = getSelectedSceneFile();
-    if (sceneFile == NULL) {
-        WuQMessageBox::errorOk(m_zipSceneFilePushButton,
-                               "No Scene File is selected.");
-        return;
-    }
-    if (sceneFile->isModified()) {
-        WuQMessageBox::errorOk(m_zipSceneFilePushButton,
-                               "Selected Scene File is modified and must be saved prior to zipping.");
-        return;
-    }
+//    if (sceneFile == NULL) {
+//        WuQMessageBox::errorOk(m_zipSceneFilePushButton,
+//                               "No Scene File is selected.");
+//        return;
+//    }
+//    if (sceneFile->isModified()) {
+//        WuQMessageBox::errorOk(m_zipSceneFilePushButton,
+//                               "Selected Scene File is modified and must be saved prior to zipping.");
+//        return;
+//    }
     
     ZipSceneFileDialog zipDialog(sceneFile,
                                  this);
     zipDialog.exec();
+    
+    updateSceneFileModifiedStatusLabel();
 }
 
 /**
  * Called when a scene file is selected.
+ *
+ * @param index
+ *     Index of item selected.
  */
 void 
-SceneDialog::sceneFileSelected()
+SceneDialog::sceneFileSelected(int index)
 {
     loadScenesIntoDialog(NULL);
-    loadSceneFileMetaDataWidgets();
-}
-
-/**
- * Called when Edit Study ID button is clicked.
- */
-void
-SceneDialog::editFileBalsaStudyIDButtonClicked()
-{
-    SceneFile* sceneFile = getSelectedSceneFile();
-    if (sceneFile == NULL) {
-        return;
-    }
     
-    WuQDataEntryDialog ded("Edit BALSA Database Info",
-                           m_editBalsaStudyIDPushButton,
-                           WuQDialog::SCROLL_AREA_AS_NEEDED);
-    
-    QLineEdit* lineEdit = ded.addLineEditWidget("BALSA Study ID");
-    lineEdit->setText(sceneFile->getBalsaStudyID());
-    lineEdit->setMinimumWidth(200);
-    if (ded.exec() == WuQDataEntryDialog::Accepted) {
-        const AString idText = lineEdit->text().trimmed();
-        sceneFile->setBalsaStudyID(idText);
-        loadSceneFileMetaDataWidgets();
-    }
-}
-
-/**
- * Called when upload scene file is selected.
- */
-void
-SceneDialog::editBaseDirectoryPushButtonClicked()
-{
-    SceneFile* sceneFile = getSelectedSceneFile();
-    if (sceneFile == NULL) {
-        return;
-    }
-    
-    WuQDataEntryDialog ded("Edit Base Directory",
-                           m_editBaseDirectoryPushButton,
-                           WuQDialog::SCROLL_AREA_AS_NEEDED);
-    
-    QLineEdit* lineEdit = ded.addLineEditWidget("Base Directory");
-    lineEdit->setText(sceneFile->getBaseDirectory());
-    lineEdit->setMinimumWidth(500);
-    if (ded.exec() == WuQDataEntryDialog::Accepted) {
-        const AString idText = lineEdit->text().trimmed();
-        sceneFile->setBaseDirectory(idText);
-        loadSceneFileMetaDataWidgets();
-    }
-}
-
-/**
- * Called when upload scene file is selected.
- */
-void
-SceneDialog::browseBaseDirectoryPushButtonClicked()
-{
-    SceneFile* sceneFile = getSelectedSceneFile();
-    if (sceneFile == NULL) {
-        return;
-    }
-    
-    /*
-     * Let user choose directory path
-     */
-    QString directoryName;
-    FileInformation fileInfo(sceneFile->getBaseDirectory());
-    if (fileInfo.exists()) {
-        if (fileInfo.isDirectory()) {
-            directoryName = fileInfo.getAbsoluteFilePath();
-        }
-    }
-    AString newDirectoryName = CaretFileDialog::getExistingDirectoryDialog(m_browseBaseDirectoryPushButton,
-                                                                           "Choose Base Directory",
-                                                                           directoryName);
-    /*
-     * If user cancels,  return
-     */
-    if (newDirectoryName.isEmpty()) {
-        return;
-    }
-    
-    /*
-     * Set name of new scene file and add to brain
-     */
-    sceneFile->setBaseDirectory(newDirectoryName);
-    loadSceneFileMetaDataWidgets();
+    updateSceneFileModifiedStatusLabel();
 }
 
 /**
@@ -672,7 +1057,8 @@ SceneDialog::addNewSceneButtonClicked()
         return;
     }
     
-    if ( ! checkForModifiedFiles(true)) {
+    if ( ! checkForModifiedFiles(GuiManager::TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD,
+                                 this)) {
         return;
     }
     
@@ -686,6 +1072,9 @@ SceneDialog::addNewSceneButtonClicked()
         
         loadScenesIntoDialog(newScene);
     }
+    
+    
+    updateSceneFileModifiedStatusLabel();
 }
 
 /**
@@ -698,7 +1087,8 @@ SceneDialog::insertSceneButtonClicked()
         return;
     }
     
-    if ( ! checkForModifiedFiles(true)) {
+    if ( ! checkForModifiedFiles(GuiManager::TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD,
+                                 this)) {
         return;
     }
     
@@ -716,6 +1106,8 @@ SceneDialog::insertSceneButtonClicked()
             loadScenesIntoDialog(newScene);
         }
     }
+    
+    updateSceneFileModifiedStatusLabel();
 }
 
 /**
@@ -972,6 +1364,8 @@ SceneDialog::moveSceneUpButtonClicked()
         if (scene != NULL) {
             sceneFile->moveScene(scene, -1);
             loadScenesIntoDialog(scene);
+            
+            updateSceneFileModifiedStatusLabel();
         }
     }
 }
@@ -988,6 +1382,8 @@ SceneDialog::moveSceneDownButtonClicked()
         if (scene != NULL) {
             sceneFile->moveScene(scene, 1);
             loadScenesIntoDialog(scene);
+            
+            updateSceneFileModifiedStatusLabel();
         }
     }
 }
@@ -1002,7 +1398,8 @@ SceneDialog::replaceSceneButtonClicked()
         return;
     }
     
-    if ( ! checkForModifiedFiles(true)) {
+    if ( ! checkForModifiedFiles(GuiManager::TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD,
+                                 this)) {
         return;
     }
     
@@ -1018,6 +1415,8 @@ SceneDialog::replaceSceneButtonClicked()
             }
             
             loadScenesIntoDialog(newScene);
+            
+            updateSceneFileModifiedStatusLabel();
         }
     }
 }
@@ -1115,14 +1514,28 @@ SceneDialog::replaceSceneButtonClicked()
  *     true if the scene should be created, otherwise false.
  */
 bool
-SceneDialog::checkForModifiedFiles(const bool creatingSceneFlag)
+SceneDialog::checkForModifiedFiles(const GuiManager::TestModifiedMode testMode,
+                                   QWidget* parent)
 {
+    bool creatingSceneFlag = false;
+    switch (testMode) {
+        case GuiManager::TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD:
+            creatingSceneFlag = true;
+            break;
+        case GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
+            break;
+        case GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW:
+            break;
+        case GuiManager::TEST_FOR_MODIFIED_FILES_PALETTE_ONLY_MODE_FOR_SCENE_ADD:
+            break;
+    }
+    
     if (creatingSceneFlag) {
         EventModelGetAll allModelsEvent;
         EventManager::get()->sendEvent(allModelsEvent.getPointer());
         if (allModelsEvent.getModels().empty()) {
             const QString msg("No surfaces or volumes are loaded.  Continue creating scene?");
-            if ( ! WuQMessageBox::warningYesNo(this,
+            if ( ! WuQMessageBox::warningYesNo(parent,
                                                msg)) {
                 return false;
             }
@@ -1131,10 +1544,10 @@ SceneDialog::checkForModifiedFiles(const bool creatingSceneFlag)
     
     AString dialogMessage;
     AString modifiedFilesMessage;
-    GuiManager::TestModifiedMode testMode = GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW;
-    if (creatingSceneFlag) {
-        testMode = GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD;
-    }
+//    GuiManager::TestModifiedMode testMode = GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW;
+//    if (creatingSceneFlag) {
+//        testMode = GuiManager::TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD;
+//    }
     const bool haveModifiedFilesFlag = GuiManager::get()->testForModifiedFiles(testMode,
                                                                                dialogMessage,
                                                                                modifiedFilesMessage);
@@ -1146,7 +1559,7 @@ SceneDialog::checkForModifiedFiles(const bool creatingSceneFlag)
                                "Warning",
                                dialogMessage,
                                QMessageBox::NoButton,
-                               this);
+                               parent);
         warningDialog.setInformativeText(modifiedFilesMessage);
         
         QPushButton* yesButton = warningDialog.addButton("Yes", QMessageBox::AcceptRole);
@@ -1172,11 +1585,10 @@ SceneDialog::checkForModifiedFiles(const bool creatingSceneFlag)
 }
 
 /**
- * Create the main page.
- * @return the main page.
+ * @return The Scenes widget.
  */
 QWidget* 
-SceneDialog::createMainPage()
+SceneDialog::createScenesWidget()
 {
     QWidget* sceneFileWidget = createSceneFileWidget();
     
@@ -1253,28 +1665,95 @@ SceneDialog::createMainPage()
      * Show scene image button
      */
     m_showSceneImagePreviewPushButton = new QPushButton("Preview...");
-    m_showSceneImagePreviewPushButton->setToolTip("Show larger image and full description\n"
+    m_showSceneImagePreviewPushButton->setToolTip("Show larger preview image and full description\n"
                                                   "for the selected scene");
     QObject::connect(m_showSceneImagePreviewPushButton, SIGNAL(clicked()),
                      this, SLOT(showImagePreviewButtonClicked()));
     
     /*
+     * Show scene options button
+     */
+    m_showSceneOptionsPushButton = new QPushButton("Options...");
+    m_showSceneOptionsPushButton->setToolTip("Display a dialog for show scene options");
+    QObject::connect(m_showSceneOptionsPushButton, &QPushButton::clicked,
+                     this, &SceneDialog::showSceneOptionsButtonClicked);
+    
+    /*
+     * Create scene options button
+     */
+    m_createSceneOptionsPushButton = NULL;
+    bool haveCreateOptionsFlag = false;
+    if (haveCreateOptionsFlag) {
+        m_createSceneOptionsPushButton = new QPushButton("Options...");
+        m_createSceneOptionsPushButton->setToolTip("Display a dialog for create scene options");
+        QObject::connect(m_createSceneOptionsPushButton, &QPushButton::clicked,
+                         this, &SceneDialog::createSceneOptionsButtonClicked);
+    }
+    
+    /*
+     * Margins/spacing for button groups
+     */
+    /*
+     * Group for show buttons
+     */
+    QGroupBox* showGroupBox = new QGroupBox("Show Scene");
+    showGroupBox->setFlat(true);
+    showGroupBox->setSizePolicy(showGroupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+    QVBoxLayout* showGroupLayout = new QVBoxLayout(showGroupBox);
+    WuQtUtilities::setLayoutSpacingAndMargins(showGroupLayout, 2, 2);
+    showGroupLayout->addWidget(m_showScenePushButton);
+    showGroupLayout->addWidget(m_showSceneImagePreviewPushButton);
+    showGroupLayout->addWidget(m_showSceneOptionsPushButton);
+    
+    /*
+     * Group for create buttons
+     */
+    QGroupBox* createGroupBox = new QGroupBox("Create Scene");
+    createGroupBox->setFlat(true);
+    createGroupBox->setSizePolicy(createGroupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+    QVBoxLayout* createGroupLayout = new QVBoxLayout(createGroupBox);
+    WuQtUtilities::setLayoutSpacingAndMargins(createGroupLayout, 2, 2);
+    createGroupLayout->addWidget(m_addNewScenePushButton);
+    createGroupLayout->addWidget(m_insertNewScenePushButton);
+    createGroupLayout->addWidget(m_replaceScenePushButton);
+    if (m_createSceneOptionsPushButton) {
+        createGroupLayout->addWidget(m_createSceneOptionsPushButton);
+    }
+
+    /*
+     * Group for test buttons
+     */
+    QGroupBox* testGroupBox = new QGroupBox("Testing");
+    testGroupBox->setFlat(true);
+    testGroupBox->setSizePolicy(testGroupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+    QVBoxLayout* testGroupLayout = new QVBoxLayout(testGroupBox);
+    WuQtUtilities::setLayoutSpacingAndMargins(testGroupLayout, 2, 2);
+    testGroupLayout->addWidget(m_testScenesPushButton);
+    
+    /*
+     * Group for organize buttons
+     */
+    QGroupBox* organizeGroupBox = new QGroupBox("Selected Scene");
+    organizeGroupBox->setFlat(true);
+    organizeGroupBox->setSizePolicy(organizeGroupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+    QVBoxLayout* organizeGroupLayout = new QVBoxLayout(organizeGroupBox);
+    WuQtUtilities::setLayoutSpacingAndMargins(organizeGroupLayout, 2, 2);
+    organizeGroupLayout->addWidget(m_moveSceneUpPushButton);
+    organizeGroupLayout->addWidget(m_moveSceneDownPushButton);
+    organizeGroupLayout->addSpacing(5);
+    organizeGroupLayout->addWidget(m_deleteScenePushButton);
+    
+    /*
      * Layout for scene buttons
      */
     QVBoxLayout* sceneButtonLayout = new QVBoxLayout();
-    sceneButtonLayout->addWidget(m_showScenePushButton);
-    sceneButtonLayout->addWidget(m_showSceneImagePreviewPushButton);
+    sceneButtonLayout->addWidget(showGroupBox);
     sceneButtonLayout->addSpacing(20);
-    sceneButtonLayout->addWidget(m_addNewScenePushButton);
-    sceneButtonLayout->addWidget(m_insertNewScenePushButton);
-    sceneButtonLayout->addWidget(m_replaceScenePushButton);
+    sceneButtonLayout->addWidget(createGroupBox);
     sceneButtonLayout->addStretch();
-    sceneButtonLayout->addWidget(m_testScenesPushButton);
+    sceneButtonLayout->addWidget(testGroupBox);
     sceneButtonLayout->addSpacing(20);
-    sceneButtonLayout->addWidget(m_moveSceneUpPushButton);
-    sceneButtonLayout->addWidget(m_moveSceneDownPushButton);
-    sceneButtonLayout->addSpacing(20);
-    sceneButtonLayout->addWidget(m_deleteScenePushButton);
+    sceneButtonLayout->addWidget(organizeGroupBox);
 
     /*
      * Widget and layout containing the scene class info.
@@ -1291,11 +1770,6 @@ SceneDialog::createMainPage()
     m_sceneSelectionScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_sceneSelectionScrollArea->setWidget(m_sceneSelectionWidget);
     m_sceneSelectionScrollArea->setWidgetResizable(true);
-    
-    QVBoxLayout* showOptionsLabelsLayout = new QVBoxLayout();
-    WuQtUtilities::setLayoutMargins(showOptionsLabelsLayout, 0);
-    showOptionsLabelsLayout->addWidget(new QLabel(" Show Scene"), 0, Qt::AlignRight);
-    showOptionsLabelsLayout->addWidget(new QLabel("Options"), 0, Qt::AlignHCenter);
     
     /*
      * Layout widgets
@@ -1317,9 +1791,6 @@ SceneDialog::createMainPage()
     gridLayout->addLayout(sceneButtonLayout, row, 2);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3);
-    row++;
-    gridLayout->addLayout(showOptionsLabelsLayout, row, 0, Qt::AlignTop);
-    gridLayout->addWidget(createShowOptionsWidget(), row, 1, 1, 1); //, Qt::AlignTop);
     row++;
     
     return widget;
@@ -1343,15 +1814,45 @@ SceneDialog::createSceneFileWidget()
                                           "Selects an existing scene file\n"
                                           "to which new scenes are added.");
     QObject::connect(m_sceneFileSelectionComboBox, SIGNAL(activated(int)),
-                     this, SLOT(sceneFileSelected()));
+                     this, SLOT(sceneFileSelected(int)));
+    
+    /*
+     * Scene file modified status
+     */
+    QLabel* modifiedLabel = new QLabel("Modified");
+    m_sceneFileModifiedStatusLabel = new QLabel("");
     
     /*
      * New File button
      */
-    QPushButton* newSceneFilePushButton = new QPushButton("New...");
-    newSceneFilePushButton->setToolTip("Create a new scene file");
-    QObject::connect(newSceneFilePushButton, SIGNAL(clicked()),
+    m_newSceneFilePushButton = new QPushButton("New");
+    m_newSceneFilePushButton->setToolTip("Create a new scene file");
+    QObject::connect(m_newSceneFilePushButton, SIGNAL(clicked()),
                      this, SLOT(newSceneFileButtonClicked()));
+    
+    /*
+     * Open File button
+     */
+    m_openSceneFilePushButton = new QPushButton("Open...");
+    m_openSceneFilePushButton->setToolTip("Open an existing scene file");
+    QObject::connect(m_openSceneFilePushButton, SIGNAL(clicked()),
+                     this, SLOT(openSceneFileButtonClicked()));
+    
+    /*
+     * Save File button
+     */
+    m_saveSceneFilePushButton = new QPushButton("Save");
+    m_saveSceneFilePushButton->setToolTip("Save the scene file using its current name");
+    QObject::connect(m_saveSceneFilePushButton, SIGNAL(clicked()),
+                     this, SLOT(saveSceneFileButtonClicked()));
+    
+    /*
+     * Save As File button
+     */
+    m_saveAsSceneFilePushButton = new QPushButton("Save As...");
+    m_saveAsSceneFilePushButton->setToolTip("Display a file selection dialog for saving scene file with a new name");
+    QObject::connect(m_saveAsSceneFilePushButton, SIGNAL(clicked()),
+                     this, SLOT(saveAsSceneFileButtonClicked()));
     
     /*
      * Upload button
@@ -1370,55 +1871,13 @@ SceneDialog::createSceneFileWidget()
                      this, SLOT(zipSceneFileButtonClicked()));
     
     /*
-     * Scene BALSA Study ID
-     */
-    QLabel* studyIDLabel = new QLabel("BALSA Study ID");
-    m_fileBalsaStudyIDLineEdit = new QLineEdit();
-    m_fileBalsaStudyIDLineEdit->setToolTip("Press Edit button to change Study ID for use with BALSA Database");
-    m_fileBalsaStudyIDLineEdit->setReadOnly(true);
-    
-    /*
-     * Edit BALSA Study ID button
-     */
-    m_editBalsaStudyIDPushButton = new QPushButton("Edit...");
-    m_editBalsaStudyIDPushButton->setToolTip("Edit the Scene File's BALSA Study ID");
-    QObject::connect(m_editBalsaStudyIDPushButton, SIGNAL(clicked()),
-                     this, SLOT(editFileBalsaStudyIDButtonClicked()));
-    
-    /*
-     * Base Directory
-     */
-    QLabel* baseDirectoryLabel = new QLabel("Base Directory");
-    m_fileBaseDirectoryLineEdit = new QLineEdit();
-    m_fileBaseDirectoryLineEdit->setToolTip("Press Browse or Edit button to change base directory");
-    m_fileBaseDirectoryLineEdit->setReadOnly(true);
-    m_editBaseDirectoryPushButton = new QPushButton("Edit...");
-    m_editBaseDirectoryPushButton->setToolTip("Edit the base directory in a text edit");
-    QObject::connect(m_editBaseDirectoryPushButton, SIGNAL(clicked()),
-                     this, SLOT(editBaseDirectoryPushButtonClicked()));
-    m_browseBaseDirectoryPushButton = new QPushButton("Browse...");
-    m_browseBaseDirectoryPushButton->setToolTip("Use a file system dialog to choose the base directory");
-    QObject::connect(m_browseBaseDirectoryPushButton, SIGNAL(clicked()),
-                     this, SLOT(browseBaseDirectoryPushButtonClicked()));
-    
-    /*
      * Group for scene file buttons that are only valid when a scene file is available
      */
     m_sceneFileButtonsGroup = new WuQWidgetObjectGroup(this);
+    m_sceneFileButtonsGroup->add(m_saveSceneFilePushButton);
+    m_sceneFileButtonsGroup->add(m_saveAsSceneFilePushButton);
     m_sceneFileButtonsGroup->add(m_uploadSceneFilePushButton);
     m_sceneFileButtonsGroup->add(m_zipSceneFilePushButton);
-    m_sceneFileButtonsGroup->add(m_editBalsaStudyIDPushButton);
-    m_sceneFileButtonsGroup->add(m_editBaseDirectoryPushButton);
-    m_sceneFileButtonsGroup->add(m_browseBaseDirectoryPushButton);
-    
-    /*
-     * Scene file buttons layout
-     */
-    QHBoxLayout* fileButtonsLayout = new QHBoxLayout();
-    fileButtonsLayout->setContentsMargins(0, 0, 0, 0);
-    fileButtonsLayout->addWidget(newSceneFilePushButton);
-    fileButtonsLayout->addWidget(m_uploadSceneFilePushButton);
-    fileButtonsLayout->addWidget(m_zipSceneFilePushButton);
     
     /*
      * Layout widgets
@@ -1434,64 +1893,22 @@ SceneDialog::createSceneFileWidget()
     gridLayout->setColumnStretch(1, 100);
     gridLayout->setColumnStretch(2,   0);
     gridLayout->setColumnStretch(3,   0);
+    gridLayout->setColumnStretch(4,   0);
     int row = 0;
-    gridLayout->addWidget(sceneFileLabel, row, 0, Qt::AlignRight);
-    gridLayout->addWidget(m_sceneFileSelectionComboBox, row, 1);
-    gridLayout->addLayout(fileButtonsLayout, row, 2, 1, 2);
-//    gridLayout->addWidget(newSceneFilePushButton, row, 2);
-//    gridLayout->addWidget(m_uploadSceneFilePushButton, row, 3);
-//    gridLayout->addWidget(m_zipSceneFilePushButton, row, 4);
+    gridLayout->addWidget(sceneFileLabel,                 row, 0, Qt::AlignRight);
+    gridLayout->addWidget(m_sceneFileSelectionComboBox,   row, 1);
+    gridLayout->addWidget(m_newSceneFilePushButton,       row, 2);
+    gridLayout->addWidget(m_saveSceneFilePushButton,      row, 3);
+    gridLayout->addWidget(m_zipSceneFilePushButton,       row, 4);
     row++;
-    gridLayout->addWidget(baseDirectoryLabel, row, 0, Qt::AlignRight);
-    gridLayout->addWidget(m_fileBaseDirectoryLineEdit, row, 1);
-    gridLayout->addWidget(m_editBaseDirectoryPushButton, row, 2);
-    gridLayout->addWidget(m_browseBaseDirectoryPushButton, row, 3);
+    gridLayout->addWidget(modifiedLabel,                  row, 0, Qt::AlignRight);
+    gridLayout->addWidget(m_sceneFileModifiedStatusLabel, row, 1, Qt::AlignLeft);
+    gridLayout->addWidget(m_openSceneFilePushButton,      row, 2);
+    gridLayout->addWidget(m_saveAsSceneFilePushButton,    row, 3);
+    gridLayout->addWidget(m_uploadSceneFilePushButton,    row, 4);
     row++;
-    gridLayout->addWidget(studyIDLabel, row, 0, Qt::AlignRight);
-    gridLayout->addWidget(m_fileBalsaStudyIDLineEdit, row, 1);
-    gridLayout->addWidget(m_editBalsaStudyIDPushButton, row, 2);
     
     return widget;
-}
-
-
-/**
- * @return The show scene options widget.
- */
-QWidget*
-SceneDialog::createShowOptionsWidget()
-{
-    /*
-     * Use colors contained in the scene for background and foreground
-     */
-    const QString colorTip1("Scenes created after 01 May 2016 contain the active background and foreground\n"
-                            "colors.  When this box is checked and the colors are present in the scene loaded,\n"
-                            "they will temporarily override the colors in the Preferences Dialog.  The background\n"
-                            "and foreground colors will revert to those on the Preferences Dialog when any\n"
-                            "of these events occur:\n"
-                            "   * This checkbox is unchecked\n"
-                            "   * A scene without background and foreground colors is loaded\n"
-                            "   * A Spec File and its data files are loaded\n"
-                            "   * File Menu->Close All Files is selected\n"
-                            "   * Any of the colors on the Preferences Dialog are changed\n"
-                            "   * The user quits wb_view");
-
-    m_useSceneColorsCheckBox = new QCheckBox("Use background and foreground colors from scene");
-    m_useSceneColorsCheckBox->setToolTip(colorTip1);
-    m_useSceneColorsCheckBox->setChecked(true);
-    QObject::connect(m_useSceneColorsCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(useSceneColorsCheckBoxClicked(bool)));
-    
-    QFrame* frame = new QFrame();
-    frame->setFrameShape(QFrame::StyledPanel);
-    frame->setFrameShadow(QFrame::Plain);
-    frame->setLineWidth(1);
-    frame->setMidLineWidth(1);
-    QVBoxLayout* layout = new QVBoxLayout(frame);
-    WuQtUtilities::setLayoutMargins(layout, 5);
-    layout->addWidget(m_useSceneColorsCheckBox, 0, Qt::AlignLeft);
-    
-    return frame;
 }
 
 /**
@@ -1643,6 +2060,54 @@ SceneDialog::showSceneButtonClicked()
 }
 
 /**
+ * Display the scene show options dialog
+ */
+void
+SceneDialog::showSceneOptionsButtonClicked()
+{
+    Scene* scene = getSelectedScene();
+    if (scene != NULL) {
+        SceneShowOptionsDialog::Options options(s_useSceneForegroundBackgroundColorsFlag);
+        SceneShowOptionsDialog optionsDialog(options,
+                                             m_showSceneOptionsPushButton);
+        if (optionsDialog.exec() == QDialog::Accepted) {
+            const SceneShowOptionsDialog::Options optionsResult = optionsDialog.getOptions();
+            s_useSceneForegroundBackgroundColorsFlag = optionsResult.isUseSceneColorsSelected();
+
+            if ( ! optionsResult.isUseSceneColorsSelected()) {
+                CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+                prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            }
+        }
+    }
+}
+
+/**
+ * Display the scene show options dialog
+ */
+void
+SceneDialog::createSceneOptionsButtonClicked()
+{
+    Scene* scene = getSelectedScene();
+    if (scene != NULL) {
+        SceneCreateOptionsDialog::Options options(s_useSceneForegroundBackgroundColorsFlag);
+        SceneCreateOptionsDialog optionsDialog(options,
+                                               m_createSceneOptionsPushButton);
+        if (optionsDialog.exec() == QDialog::Accepted) {
+            const SceneCreateOptionsDialog::Options optionsResult = optionsDialog.getOptions();
+            s_useSceneForegroundBackgroundColorsFlag = optionsResult.isUseSceneColorsSelected();
+            
+            if ( ! optionsResult.isUseSceneColorsSelected()) {
+                CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+                prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            }
+        }
+    }
+}
+
+/**
  * Called when show image preview button is clicked.
  */
 void
@@ -1701,6 +2166,7 @@ SceneDialog::showImagePreviewButtonClicked()
             AString descriptionText;
             const int32_t negativeIsUnlimitedNumberOfLines = -1;
             SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
+                                                                             -1,
                                                                              nameText,
                                                                              sceneIdText,
                                                                              descriptionText,
@@ -1845,7 +2311,7 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
     sceneAttributes->setSceneFileName(sceneFileName);
     sceneAttributes->setSceneName(scene->getName());
     sceneAttributes->setWindowRestoreBehaviorInSceneDisplay(SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES);
-    sceneAttributes->setUseSceneForegroundAndBackgroundColors(m_useSceneColorsCheckBox->isChecked());
+    sceneAttributes->setUseSceneForegroundAndBackgroundColors(s_useSceneForegroundBackgroundColorsFlag);
     
     GuiManager::get()->restoreFromScene(sceneAttributes,
                                         guiManagerClass);
@@ -1895,6 +2361,19 @@ SceneDialog::receiveEvent(Event* event)
         updateDialog();
         uiEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_ADD) {
+        EventDataFileAdd* addEvent =
+        dynamic_cast<EventDataFileAdd*>(event);
+        CaretAssert(addEvent);
+        
+        /*
+         * Determine if a scene file was read
+         */
+        CaretDataFile* dataFile = addEvent->getCaretDataFile();
+        if (dataFile != NULL) {
+            lastSceneFileRead = dynamic_cast<SceneFile*>(dataFile);
+        }
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_READ) {
         EventDataFileRead* readEvent =
         dynamic_cast<EventDataFileRead*>(event);
@@ -1937,6 +2416,8 @@ SceneDialog::receiveEvent(Event* event)
         highlightSceneAtIndex(0);
         m_sceneSelectionScrollArea->horizontalScrollBar()->setSliderPosition(0);
     }
+    
+    updateSceneFileModifiedStatusLabel();
 }
 
 /**
@@ -1990,6 +2471,45 @@ SceneDialog::displayNewSceneWarning()
     }
     
     return true;
+}
+
+/**
+ * Update the modified status label.
+ */
+void
+SceneDialog::updateSceneFileModifiedStatusLabel()
+{
+    /*
+     * Modified icons in scene file selection combo box
+     */
+    updateSceneFileComboBoxModifiedIcons();
+    
+    /*
+     * Modified status of selected scene file
+     */
+    AString statusText;
+    
+    /*
+     * Save button is enabled only if:
+     *   (1) The scene file is modified
+     *   (2) The filename is not the untitled file name
+     */
+    bool saveButtonEnabledFlag = false;
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile != NULL) {
+        if (sceneFile->isModified()) {
+            if (sceneFile->exists()) {
+                saveButtonEnabledFlag = true;
+            }
+            statusText = "<html><font color=\"red\">YES</font></html>";
+        }
+        else {
+            statusText = "NO";
+        }
+    }
+    
+    m_sceneFileModifiedStatusLabel->setText(statusText);
+    m_saveSceneFilePushButton->setEnabled(saveButtonEnabledFlag);
 }
 
 
@@ -2099,6 +2619,7 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         AString descriptionText;
         const int32_t numLinesToDisplay = 9;
         SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
+                                                                         sceneIndex,
                                                                          nameText,
                                                                          sceneIdText,
                                                                          descriptionText,
@@ -2200,6 +2721,7 @@ SceneClassInfoWidget::limitToNumberOfLines(AString& textLines,
  */
 void
 SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
+                                                                 const int32_t sceneIndex,
                                                                  AString& nameTextOut,
                                                                  AString& sceneIdTextOut,
                                                                  AString& descriptionTextOut,
@@ -2212,7 +2734,18 @@ SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo
         name = "NAME IS MISSING !!!";
     }
     
-    nameTextOut = ("<html><b>NAME</b>:  "
+    AString indexText;
+    const bool showSceneIndexFlag = false;
+    if (showSceneIndexFlag) {
+        if (sceneIndex >= 0) {
+            indexText = ("(" + AString::number(sceneIndex + 1) + ") ");
+        }
+    }
+    
+    nameTextOut = ("<html>"
+                   + indexText
+                   + "<b>NAME</b>"
+                   + ":  "
                    + name
                    + "</html>");
     

@@ -78,8 +78,8 @@ DataFile::operator=(const DataFile& df)
 void 
 DataFile::copyHelperDataFile(const DataFile& df)
 {
-    this->filename = df.filename;
-    modifiedFlag = false;
+    m_filename = df.m_filename;
+    m_modifiedFlag = false;
 }
 
 /**
@@ -88,8 +88,8 @@ DataFile::copyHelperDataFile(const DataFile& df)
 void 
 DataFile::initializeMembersDataFile()
 {
-    this->filename = "";
-    modifiedFlag = false;
+    m_filename = "";
+    m_modifiedFlag = false;
 }
 
 /**
@@ -107,7 +107,7 @@ DataFile::clear()
 AString 
 DataFile::getFileName() const
 {
-    return this->filename;
+    return m_filename;
 }
 
 /**
@@ -116,12 +116,14 @@ DataFile::getFileName() const
 AString 
 DataFile::getFileNameNoPath() const
 {
-    FileInformation fileInfo(this->filename);
+    FileInformation fileInfo(m_filename);
     return fileInfo.getFileName();
 }
 
 /**
  * Set the name of the data file.
+ * This method is virtual so NEVER call it from
+ * a constructor.  Instead, use setFileNameProtected().
  *
  * @param filename
  *     New name of data file.
@@ -129,8 +131,22 @@ DataFile::getFileNameNoPath() const
 void 
 DataFile::setFileName(const AString& filename)
 {
-    if (this->filename != filename) {
-        this->filename = filename;
+    setFileNameProtected(filename);
+}
+
+/**
+ * Set the name of the data file.
+ * This method is NOT virtual so it may be called
+ * from a constructor.
+ *
+ * @param filename
+ *     New name of data file.
+ */
+void
+DataFile::setFileNameProtected(const AString& filename)
+{
+    if (m_filename != filename) {
+        m_filename = filename;
         this->setModified();
     }
 }
@@ -153,7 +169,7 @@ DataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileIn
 void 
 DataFile::setModified()
 {
-    this->modifiedFlag = true;
+    m_modifiedFlag = true;
 }
 
 /**
@@ -162,7 +178,7 @@ DataFile::setModified()
 void 
 DataFile::clearModified()
 {
-    this->modifiedFlag = false;
+    m_modifiedFlag = false;
 }
 
 /**
@@ -172,7 +188,17 @@ DataFile::clearModified()
 bool 
 DataFile::isModified() const
 {
-    return this->modifiedFlag;
+    return m_modifiedFlag;
+}
+
+/**
+ * @return True if a file with the current file name exists, else false.
+ */
+bool
+DataFile::exists() const
+{
+    FileInformation fileInfo(getFileName());
+    return fileInfo.exists();
 }
 
 /**

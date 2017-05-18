@@ -27,6 +27,7 @@
 class QComboBox;
 class QLabel;
 class QLineEdit;
+class QPushButton;
 
 
 
@@ -39,7 +40,7 @@ namespace caret {
         Q_OBJECT
 
     public:
-        BalsaDatabaseUploadSceneFileDialog(const SceneFile* sceneFile,
+        BalsaDatabaseUploadSceneFileDialog(SceneFile* sceneFile,
                                            QWidget* parent);
         
         virtual ~BalsaDatabaseUploadSceneFileDialog();
@@ -50,6 +51,16 @@ namespace caret {
     private slots:
         void labelHtmlLinkClicked(const QString&);
 
+        void editFileBalsaStudyIDButtonClicked();
+        
+        void editFileBalsaStudyTitleButtonClicked();
+        
+        void editBaseDirectoryPushButtonClicked();
+        
+        void browseBaseDirectoryPushButtonClicked();
+
+        void getBalsaStudyIDPushButtonClicked();
+        
     protected:
         virtual void okButtonClicked();
         
@@ -58,9 +69,11 @@ namespace caret {
 
         BalsaDatabaseUploadSceneFileDialog& operator=(const BalsaDatabaseUploadSceneFileDialog&);
         
+        void loadSceneFileMetaDataWidgets();
+        
         AString getDataBaseURL() const;
         
-        const SceneFile* m_sceneFile;
+        SceneFile* m_sceneFile;
         
         QComboBox* m_databaseComboBox;
         
@@ -71,6 +84,22 @@ namespace caret {
         QLineEdit* m_zipFileNameLineEdit;
         
         QLineEdit* m_extractDirectoryNameLineEdit;
+
+        QPushButton* m_editBalsaStudyIDPushButton;
+        
+        QPushButton* m_getBalsaStudyIDPushButton;
+        
+        QLineEdit* m_fileBalsaStudyIDLineEdit;
+        
+        QLineEdit* m_balsaStudyTitleLineEdit;
+        
+        QPushButton* m_editBalsaStudyTitlePushButton;
+        
+        QPushButton* m_browseBaseDirectoryPushButton;
+        
+        QPushButton* m_editBaseDirectoryPushButton;
+        
+        QLineEdit* m_baseDirectoryLineEdit;
         
         // ADD_NEW_MEMBERS_HERE
 

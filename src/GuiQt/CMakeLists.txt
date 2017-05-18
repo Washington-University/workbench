@@ -147,9 +147,11 @@ ELSE()
         ProgressReportingFromEvent.h
         ProgressReportingWithSlots.h
         RegionOfInterestCreateFromBorderDialog.h
+        SceneCreateOptionsDialog.h
         SceneCreateReplaceDialog.h
         SceneDialog.h
         ScenePreviewDialog.h
+        SceneShowOptionsDialog.h
         SpecFileManagementDialog.h
         SplashScreen.h
         StructureEnumComboBox.h
@@ -352,9 +354,11 @@ ProgressReportingFromEvent.h
 ProgressReportingWithSlots.h
 QGLWidgetTextRenderer.h
 RegionOfInterestCreateFromBorderDialog.h
+SceneCreateOptionsDialog.h
 SceneCreateReplaceDialog.h
 SceneDialog.h
 ScenePreviewDialog.h
+SceneShowOptionsDialog.h
 SceneWindowGeometry.h
 SpecFileManagementDialog.h
 SplashScreen.h
@@ -552,9 +556,11 @@ ProgressReportingFromEvent.cxx
 ProgressReportingWithSlots.cxx
 QGLWidgetTextRenderer.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
+SceneCreateOptionsDialog.cxx
 SceneCreateReplaceDialog.cxx
 SceneDialog.cxx
 ScenePreviewDialog.cxx
+SceneShowOptionsDialog.cxx
 SceneWindowGeometry.cxx
 SpecFileManagementDialog.cxx
 SplashScreen.cxx

@@ -171,8 +171,10 @@ namespace caret {
         enum TestModifiedMode {
             /** Testing when user is exiting Workbench */
             TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT,
-            /** Testing when a scene is added */
-            TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_ADD,
+            /** Testing when a scene is added for modified but not palette modified */
+            TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD,
+            /** Testing when a scene is added for modified palettes only */
+            TEST_FOR_MODIFIED_FILES_PALETTE_ONLY_MODE_FOR_SCENE_ADD,
             /** Testing when a scene is shown */
             TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW
         };

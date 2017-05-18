@@ -22,11 +22,14 @@
 /*LICENSE_END*/
 
 #include <QGroupBox>
+#include <QIcon>
 
 #include "EventListenerInterface.h"
+#include "GuiManager.h"
 #include "WuQDialogNonModal.h"
 
 class QCheckBox;
+class QCloseEvent;
 class QComboBox;
 class QLabel;
 class QLineEdit;
@@ -58,17 +61,28 @@ namespace caret {
         bool displayScene(SceneFile* sceneFile,
                           Scene* scene);
         
+        void createDefaultSceneFile();
+        
         static bool isInformUserAboutScenesOnExit();
 
+        static bool checkForModifiedFiles(const GuiManager::TestModifiedMode testMode,
+                                          QWidget* parent);
+        
     private:
         SceneDialog(const SceneDialog&);
 
         SceneDialog& operator=(const SceneDialog&);
         
     private slots:
-        void sceneFileSelected();
+        void sceneFileSelected(int);
         
         void newSceneFileButtonClicked();
+        
+        void openSceneFileButtonClicked();
+        
+        void saveSceneFileButtonClicked();
+        
+        void saveAsSceneFileButtonClicked();
         
         void uploadSceneFileButtonClicked();
         
@@ -90,6 +104,10 @@ namespace caret {
         
         void showImagePreviewButtonClicked();
         
+        void createSceneOptionsButtonClicked();
+        
+        void showSceneOptionsButtonClicked();
+        
         void validateContentOfCreateSceneDialog(WuQDataEntryDialog*);
         
         void sceneHighlighted(const int32_t sceneIndex);
@@ -98,18 +116,15 @@ namespace caret {
         
         void useSceneColorsCheckBoxClicked(bool checked);
         
-        void editFileBalsaStudyIDButtonClicked();
-        
-        void editBaseDirectoryPushButtonClicked();
-        
-        void browseBaseDirectoryPushButtonClicked();
-        
         void testScenesPushButtonClicked();
         
     public:
 
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        virtual void closeEvent(QCloseEvent* event);
+    
     private:
         SceneFile* getSelectedSceneFile();
         
@@ -117,7 +132,11 @@ namespace caret {
         
         void loadSceneFileComboBox(SceneFile* selectedSceneFileIn);
         
+        void updateSceneFileComboBoxModifiedIcons();
+        
         void loadScenesIntoDialog(Scene* selectedSceneIn);
+        
+        int32_t getNumberOfValidSceneInfoWidgets() const;
         
         void addImageToScene(Scene* scene);
         
@@ -125,9 +144,7 @@ namespace caret {
         
         void highlightScene(const Scene* scene);
         
-        QWidget* createMainPage();
-        
-        QWidget* createShowOptionsWidget();
+        QWidget* createScenesWidget();
         
         QWidget* createSceneFileWidget();
         
@@ -140,19 +157,42 @@ namespace caret {
                                                  const bool showWaitCursor,
                                                  AString& errorMessageOut);
         
-        bool checkForModifiedFiles(const bool creatingSceneFlag);
-        
         bool displayNewSceneWarning();
         
         void enableSceneMoveUpAndDownButtons();
         
-        void loadSceneFileMetaDataWidgets();
+        void updateSceneFileModifiedStatusLabel();
         
         QImage* getQImageFromSceneInfo(const SceneInfo* sceneInfo) const;
         
+        enum class ModifiedWarningType {
+            CLOSE_DIALOG_BUTTON,
+            FILE_COMBO_BOX_CHANGE_FILE,
+            NEW_FILE_BUTTON,
+            OPEN_FILE_BUTTON,
+            UPLOAD_FILE_BUTTON,
+            ZIP_FILE_BUTTON
+        };
+        
+        bool warnIfSceneFileIsModified(const ModifiedWarningType warningType);
+        
+        bool saveSelectedSceneFile();
+        
+        bool saveAsSelectedSceneFile();
+        
         // ADD_NEW_MEMBERS_HERE
 
+        QLabel*    m_sceneFileModifiedStatusLabel;
+        
         QComboBox* m_sceneFileSelectionComboBox;
+        
+        QPushButton* m_newSceneFilePushButton;
+        
+        QPushButton* m_openSceneFilePushButton;
+        
+        QPushButton* m_saveSceneFilePushButton;
+        
+        QPushButton* m_saveAsSceneFilePushButton;
         
         QPushButton* m_uploadSceneFilePushButton;
         
@@ -176,7 +216,9 @@ namespace caret {
         
         QPushButton* m_showSceneImagePreviewPushButton;
         
-        QCheckBox* m_useSceneColorsCheckBox;
+        QPushButton* m_showSceneOptionsPushButton;
+        
+        QPushButton* m_createSceneOptionsPushButton;
         
         QScrollArea* m_sceneSelectionScrollArea;
         
@@ -188,25 +230,21 @@ namespace caret {
         
         int32_t m_selectedSceneClassInfoIndex;
         
-        QPushButton* m_editBalsaStudyIDPushButton;
-        
-        QLineEdit* m_fileBalsaStudyIDLineEdit;
-        
-        QPushButton* m_browseBaseDirectoryPushButton;
-        
-        QPushButton* m_editBaseDirectoryPushButton;
-        
-        QLineEdit* m_fileBaseDirectoryLineEdit;
-        
         WuQWidgetObjectGroup* m_sceneFileButtonsGroup;
         
         AString m_testAllScenesDescription;
+        
+        QIcon m_cautionIcon;
+        
+        bool m_cautionIconValid = false;
         
         static const AString PREFERRED_IMAGE_FORMAT;
         
         static bool s_informUserAboutScenesOnExitFlag;
         
         static bool s_warnUserWhenCreatingSceneFlag;
+        
+        static bool s_useSceneForegroundBackgroundColorsFlag;
     };
     
     class SceneClassInfoWidget : public QGroupBox {
@@ -229,6 +267,7 @@ namespace caret {
         bool isValid() const;
         
         static void getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
+                                                               const int32_t sceneIndex,
                                                                AString& nameTextOut,
                                                                AString& sceneIdTextOut,
                                                                AString& descriptionTextOut,
@@ -281,6 +320,8 @@ namespace caret {
     const AString SceneDialog::PREFERRED_IMAGE_FORMAT = "jpg";
     bool SceneDialog::s_informUserAboutScenesOnExitFlag = true;
     bool SceneDialog::s_warnUserWhenCreatingSceneFlag = true;
+    bool SceneDialog::s_useSceneForegroundBackgroundColorsFlag = true;
+    
 #endif // __SCENE_DIALOG_DECLARE__
 
 } // namespace

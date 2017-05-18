@@ -128,6 +128,9 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
             else if (qName == SceneXmlElements::SCENE_INFO_BALSA_STUDY_ID_TAG) {
                 m_state = STATE_SCENE_INFO_BALSA_STUDY_ID;
             }
+            else if (qName == SceneXmlElements::SCENE_INFO_BALSA_STUDY_TITLE_TAG) {
+                m_state = STATE_SCENE_INFO_BALSA_STUDY_TITLE;
+            }
             else if (qName == SceneXmlElements::SCENE_INFO_BASE_DIRECTORY_TAG) {
                 m_state = STATE_SCENE_INFO_BASE_DIRECTORY;
             }
@@ -141,6 +144,8 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
             }
             break;
         case STATE_SCENE_INFO_BALSA_STUDY_ID:
+            break;
+        case STATE_SCENE_INFO_BALSA_STUDY_TITLE:
             break;
         case STATE_SCENE_INFO_BASE_DIRECTORY:
             break;
@@ -227,6 +232,9 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
             break;
         case STATE_SCENE_INFO_BALSA_STUDY_ID:
             m_sceneFile->setBalsaStudyID(m_elementText);
+            break;
+        case STATE_SCENE_INFO_BALSA_STUDY_TITLE:
+            m_sceneFile->setBalsaStudyTitle(m_elementText);
             break;
         case STATE_SCENE_INFO_BASE_DIRECTORY:
             m_sceneFile->setBaseDirectory(m_elementText);
