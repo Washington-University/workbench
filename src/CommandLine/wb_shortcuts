@@ -119,7 +119,6 @@ function switch_to_func_name ()
 #ADDING FUNCTIONS:
 #the function to call is automatically generated from the command switch (see above functions)
 #the function MUST follow the same naming convention
-#the short description (second argument to create_function) MUST NOT be empty, or it will think the operation doesn't exist, and run a partial match search
 #you can add names of temporary files before they are created by any command, to ensure that no extra files get left behind on failure
 #if the temporaries could be large, feel free to both add them to the list, and delete them manually
 
@@ -133,11 +132,17 @@ function border_file_concatenate ()
         echo "`switch_to_descrip $function_switch`"
         echo "   $global_script_name $function_switch"
         echo "      <output-border-file>"
-        echo "      <input-border-1>"
+        echo "      <input-border-1> | -from-file [-big-text] <text-file>"
         echo "      ..."
         echo
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
+        echo
+        echo "      Any input argument can be replaced with a -from-file option followed by a"
+        echo "      text file.  Each text file must have one data file per line.  The"
+        echo "      -big-text option allows the use of very large text files (>1MB).  This"
+        echo "      is otherwise considered an error, in order to prevent accidentally"
+        echo "      loading a data file into shell memory as a text file."
         echo
         return 0
     fi
@@ -148,7 +153,55 @@ function border_file_concatenate ()
     local -a merge_arg_array
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-border" "${!i}")
+        if [[ "${!i}" == -* ]]
+        then
+            case "${!i}" in
+                (-from-file)
+                    i=$((i + 1))
+                    if ((i > $#))
+                    then
+                        error "-from-file option requires an argument"
+                    fi
+                    local checksize=1
+                    if [[ "${!i}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    local filename="${!i}"
+                    local nexti=$((i + 1))
+                    #allow the option after the filename, too, because that is the easy place to put it
+                    if ((nexti <= $#)) && [[ "${!nexti}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    if ((checksize == 1))
+                    then
+                        local filesize=`wc -c "$filename" | cut -d' ' -f1`
+                        if ((filesize > 1000000))
+                        then
+                            error "file '${!i}' seems too large to be a text file"
+                        fi
+                    fi
+                    local -a filecontents
+                    readarray -t filecontents < "$filename"
+                    for ((j = 0; j < ${#filecontents[@]}; ++j))
+                    do
+                        #ignore empty lines
+                        if [[ "${filecontents[$j]}" != "" ]]
+                        then
+                            merge_arg_array+=("-border" "${filecontents[$j]}")
+                        fi
+                    done
+                    ;;
+                (*)
+                    error "unrecognized option '${!i}'"
+                    ;;
+            esac
+        else
+            merge_arg_array+=("-border" "${!i}")
+        fi
     done
     wb_command -border-merge "$1" "${merge_arg_array[@]}"
 }
@@ -165,13 +218,21 @@ function cifti_concatenate ()
         echo "      [-map <map-number-or-name>] - use only the specified map from each input"
         echo "         file"
         echo "      <output-cifti>"
-        echo "      <input-cifti-1>"
+        echo "      <input-cifti-1> | -from-file [-big-text] <text-file>"
         echo "      ..."
         echo
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
-        echo "      The -map option takes either a 1-based index or a map name, and causes"
-        echo "      the operation to use only one map from each input file."
+        echo
+        echo "      Any input argument can be replaced with a -from-file option followed by a"
+        echo "      text file.  Each text file must have one data file per line.  The"
+        echo "      -big-text option allows the use of very large text files (>1MB).  This"
+        echo "      is otherwise considered an error, in order to prevent accidentally"
+        echo "      loading a data file into shell memory as a text file."
+        echo
+        echo "      The -map option takes either a 1-based"
+        echo "      index or a map name, and causes the"
+        echo "      operation to use only one map from each input file."
         echo
         return 0
     fi
@@ -192,7 +253,59 @@ function cifti_concatenate ()
     local -a merge_arg_array
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-cifti" "${!i}" ${maparg[@]+"${maparg[@]}"})
+        if [[ "${!i}" == -* ]]
+        then
+            case "${!i}" in
+                (-from-file)
+                    i=$((i + 1))
+                    if ((i > $#))
+                    then
+                        error "-from-file option requires an argument"
+                    fi
+                    local checksize=1
+                    if [[ "${!i}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    local filename="${!i}"
+                    local nexti=$((i + 1))
+                    #allow the option after the filename, too, because that is the easy place to put it
+                    if ((nexti <= $#)) && [[ "${!nexti}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    if ((checksize == 1))
+                    then
+                        local filesize=`wc -c "$filename" | cut -d' ' -f1`
+                        if ((filesize > 1000000))
+                        then
+                            error "file '${!i}' seems too large to be a text file"
+                        fi
+                    fi
+                    local -a filecontents
+                    readarray -t filecontents < "$filename"
+                    for ((j = 0; j < ${#filecontents[@]}; ++j))
+                    do
+                        #ignore empty lines
+                        if [[ "${filecontents[$j]}" != "" ]]
+                        then
+                            merge_arg_array+=("-cifti" "${filecontents[$j]}" ${maparg[@]+"${maparg[@]}"})
+                        fi
+                    done
+                    ;;
+                (*)
+                    error "unrecognized option '${!i}'"
+                    ;;
+            esac
+        else
+            #we INTENTIONALLY expand an empty array to 0 elements, but set -u doesn't like this, and there is no simple syntax to tell it to allow it
+            #so, use complicated syntax to tell it to allow it
+            #this syntax is apparently UNDOCUMENTED, but it came from stackoverflow, and it works, so it must be right
+            #http://stackoverflow.com/questions/7577052/bash-empty-array-expansion-with-set-u
+            merge_arg_array+=("-cifti" "${!i}" ${maparg[@]+"${maparg[@]}"})
+        fi
     done
     wb_command -cifti-merge "$1" "${merge_arg_array[@]}"
 }
@@ -475,13 +588,21 @@ function label_concatenate ()
         echo "      [-map <map-number-or-name>] - use only the specified map from each input"
         echo "         file"
         echo "      <output-label>"
-        echo "      <input-label-1>"
+        echo "      <input-label-1> | -from-file [-big-text] <text-file>"
         echo "      ..."
         echo
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
-        echo "      The -map option takes either a 1-based index or a map name, and causes"
-        echo "      the operation to use only one map from each input file."
+        echo
+        echo "      Any input argument can be replaced with a -from-file option followed by a"
+        echo "      text file.  Each text file must have one data file per line.  The"
+        echo "      -big-text option allows the use of very large text files (>1MB).  This"
+        echo "      is otherwise considered an error, in order to prevent accidentally"
+        echo "      loading a data file into shell memory as a text file."
+        echo
+        echo "      The -map option takes either a 1-based"
+        echo "      index or a map name, and causes the"
+        echo "      operation to use only one map from each input file."
         echo
         return 0
     fi
@@ -503,7 +624,55 @@ function label_concatenate ()
     local i
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-label" "${!i}" ${maparg[@]+"${maparg[@]}"})
+        if [[ "${!i}" == -* ]]
+        then
+            case "${!i}" in
+                (-from-file)
+                    i=$((i + 1))
+                    if ((i > $#))
+                    then
+                        error "-from-file option requires an argument"
+                    fi
+                    local checksize=1
+                    if [[ "${!i}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    local filename="${!i}"
+                    local nexti=$((i + 1))
+                    #allow the option after the filename, too, because that is the easy place to put it
+                    if ((nexti <= $#)) && [[ "${!nexti}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    if ((checksize == 1))
+                    then
+                        local filesize=`wc -c "$filename" | cut -d' ' -f1`
+                        if ((filesize > 1000000))
+                        then
+                            error "file '${!i}' seems too large to be a text file"
+                        fi
+                    fi
+                    local -a filecontents
+                    readarray -t filecontents < "$filename"
+                    for ((j = 0; j < ${#filecontents[@]}; ++j))
+                    do
+                        #ignore empty lines
+                        if [[ "${filecontents[$j]}" != "" ]]
+                        then
+                            merge_arg_array+=("-label" "${filecontents[$j]}" ${maparg[@]+"${maparg[@]}"})
+                        fi
+                    done
+                    ;;
+                (*)
+                    error "unrecognized option '${!i}'"
+                    ;;
+            esac
+        else
+            merge_arg_array+=("-label" "${!i}" ${maparg[@]+"${maparg[@]}"})
+        fi
     done
     wb_command -label-merge "$1" "${merge_arg_array[@]}"
 }
@@ -520,13 +689,21 @@ function metric_concatenate ()
         echo "      [-map <map-number-or-name>] - use only the specified map from each input"
         echo "         file"
         echo "      <output-metric>"
-        echo "      <input-metric-1>"
+        echo "      <input-metric-1> | -from-file [-big-text] <text-file>"
         echo "      ..."
         echo
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
-        echo "      The -map option takes either a 1-based index or a map name, and causes"
-        echo "      the operation to use only one map from each input file."
+        echo
+        echo "      Any input argument can be replaced with a -from-file option followed by a"
+        echo "      text file.  Each text file must have one data file per line.  The"
+        echo "      -big-text option allows the use of very large text files (>1MB).  This"
+        echo "      is otherwise considered an error, in order to prevent accidentally"
+        echo "      loading a data file into shell memory as a text file."
+        echo
+        echo "      The -map option takes either a 1-based"
+        echo "      index or a map name, and causes the"
+        echo "      operation to use only one map from each input file."
         echo
         return 0
     fi
@@ -548,7 +725,55 @@ function metric_concatenate ()
     local i
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-metric" "${!i}" ${maparg[@]+"${maparg[@]}"})
+        if [[ "${!i}" == -* ]]
+        then
+            case "${!i}" in
+                (-from-file)
+                    i=$((i + 1))
+                    if ((i > $#))
+                    then
+                        error "-from-file option requires an argument"
+                    fi
+                    local checksize=1
+                    if [[ "${!i}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    local filename="${!i}"
+                    local nexti=$((i + 1))
+                    #allow the option after the filename, too, because that is the easy place to put it
+                    if ((nexti <= $#)) && [[ "${!nexti}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    if ((checksize == 1))
+                    then
+                        local filesize=`wc -c "$filename" | cut -d' ' -f1`
+                        if ((filesize > 1000000))
+                        then
+                            error "file '${!i}' seems too large to be a text file"
+                        fi
+                    fi
+                    local -a filecontents
+                    readarray -t filecontents < "$filename"
+                    for ((j = 0; j < ${#filecontents[@]}; ++j))
+                    do
+                        #ignore empty lines
+                        if [[ "${filecontents[$j]}" != "" ]]
+                        then
+                            merge_arg_array+=("-metric" "${filecontents[$j]}" ${maparg[@]+"${maparg[@]}"})
+                        fi
+                    done
+                    ;;
+                (*)
+                    error "unrecognized option '${!i}'"
+                    ;;
+            esac
+        else
+            merge_arg_array+=("-metric" "${!i}" ${maparg[@]+"${maparg[@]}"})
+        fi
     done
     wb_command -metric-merge "$1" "${merge_arg_array[@]}"
 }
@@ -563,11 +788,17 @@ function scene_file_concatenate ()
         echo "`switch_to_descrip $function_switch`"
         echo "   $global_script_name $function_switch"
         echo "      <output-scene-file>"
-        echo "      <input-scene-file-1>"
+        echo "      <input-scene-file-1> | -from-file [-big-text] <text-file>"
         echo "      ..."
         echo
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
+        echo
+        echo "      Any input argument can be replaced with a -from-file option followed by a"
+        echo "      text file.  Each text file must have one data file per line.  The"
+        echo "      -big-text option allows the use of very large text files (>1MB).  This"
+        echo "      is otherwise considered an error, in order to prevent accidentally"
+        echo "      loading a data file into shell memory as a text file."
         echo
         return 0
     fi
@@ -579,7 +810,55 @@ function scene_file_concatenate ()
     local i
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-scene-file" "${!i}")
+        if [[ "${!i}" == -* ]]
+        then
+            case "${!i}" in
+                (-from-file)
+                    i=$((i + 1))
+                    if ((i > $#))
+                    then
+                        error "-from-file option requires an argument"
+                    fi
+                    local checksize=1
+                    if [[ "${!i}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    local filename="${!i}"
+                    local nexti=$((i + 1))
+                    #allow the option after the filename, too, because that is the easy place to put it
+                    if ((nexti <= $#)) && [[ "${!nexti}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    if ((checksize == 1))
+                    then
+                        local filesize=`wc -c "$filename" | cut -d' ' -f1`
+                        if ((filesize > 1000000))
+                        then
+                            error "file '${!i}' seems too large to be a text file"
+                        fi
+                    fi
+                    local -a filecontents
+                    readarray -t filecontents < "$filename"
+                    for ((j = 0; j < ${#filecontents[@]}; ++j))
+                    do
+                        #ignore empty lines
+                        if [[ "${filecontents[$j]}" != "" ]]
+                        then
+                            merge_arg_array+=("-scene-file" "${filecontents[$j]}")
+                        fi
+                    done
+                    ;;
+                (*)
+                    error "unrecognized option '${!i}'"
+                    ;;
+            esac
+        else
+            merge_arg_array+=("-scene-file" "${!i}")
+        fi
     done
     wb_command -scene-file-merge "$1" "${merge_arg_array[@]}"
 }
@@ -596,13 +875,21 @@ function volume_concatenate ()
         echo "      [-map <map-number-or-name>] - use only the specified map from each input"
         echo "         file"
         echo "      <output-volume>"
-        echo "      <input-volume-1>"
+        echo "      <input-volume-1> | -from-file [-big-text] <text-file>"
         echo "      ..."
         echo
         #wrap guide for 80 columns                                                           |
         echo "      Additional input files may be specified after the mandatory input file."
-        echo "      The -map option takes either a 1-based index or a map name, and causes"
-        echo "      the operation to use only one map from each input file."
+        echo
+        echo "      Any input argument can be replaced with a -from-file option followed by a"
+        echo "      text file.  Each text file must have one data file per line.  The"
+        echo "      -big-text option allows the use of very large text files (>1MB).  This"
+        echo "      is otherwise considered an error, in order to prevent accidentally"
+        echo "      loading a data file into shell memory as a text file."
+        echo
+        echo "      The -map option takes either a 1-based"
+        echo "      index or a map name, and causes the"
+        echo "      operation to use only one map from each input file."
         echo
         return 0
     fi
@@ -622,13 +909,57 @@ function volume_concatenate ()
     fi
     local -a merge_arg_array
     local i
-    #we INTENTIONALLY expand an empty array to 0 elements, but set -u doesn't like this, and there is no simple syntax to tell it to allow it
-    #so, use complicated syntax to tell it to allow it
-    #this syntax is apparently UNDOCUMENTED, but it came from stackoverflow, and it works, so it must be right
-    #http://stackoverflow.com/questions/7577052/bash-empty-array-expansion-with-set-u
     for ((i = 2; i <= $#; ++i))
     do
-        merge_arg_array+=("-volume" "${!i}" ${maparg[@]+"${maparg[@]}"})
+        if [[ "${!i}" == -* ]]
+        then
+            case "${!i}" in
+                (-from-file)
+                    i=$((i + 1))
+                    if ((i > $#))
+                    then
+                        error "-from-file option requires an argument"
+                    fi
+                    local checksize=1
+                    if [[ "${!i}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    local filename="${!i}"
+                    local nexti=$((i + 1))
+                    #allow the option after the filename, too, because that is the easy place to put it
+                    if ((nexti <= $#)) && [[ "${!nexti}" == -big-text ]]
+                    then
+                        checksize=0
+                        i=$((i + 1))
+                    fi
+                    if ((checksize == 1))
+                    then
+                        local filesize=`wc -c "$filename" | cut -d' ' -f1`
+                        if ((filesize > 1000000))
+                        then
+                            error "file '${!i}' seems too large to be a text file"
+                        fi
+                    fi
+                    local -a filecontents
+                    readarray -t filecontents < "$filename"
+                    for ((j = 0; j < ${#filecontents[@]}; ++j))
+                    do
+                        #ignore empty lines
+                        if [[ "${filecontents[$j]}" != "" ]]
+                        then
+                            merge_arg_array+=("-volume" "${filecontents[$j]}" ${maparg[@]+"${maparg[@]}"})
+                        fi
+                    done
+                    ;;
+                (*)
+                    error "unrecognized option '${!i}'"
+                    ;;
+            esac
+        else
+            merge_arg_array+=("-volume" "${!i}" ${maparg[@]+"${maparg[@]}"})
+        fi
     done
     wb_command -volume-merge "$1" "${merge_arg_array[@]}"
 }

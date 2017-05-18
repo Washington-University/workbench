@@ -512,6 +512,9 @@ namespace
         int32_t intent_code = myXML.getIntentInfo(CiftiVersion(), junk);//use default writing version to check file extension, older version is missing some intent codes
         switch (intent_code)
         {
+            default:
+                CaretAssert(0);
+                CaretLogWarning("unhandled cifti type in extension warning check, tell the developers what you just tried to do");
             case 3000://unknown
                 if (!filename.contains(QRegExp("\\.[^.]*\\.nii$")))
                 {
@@ -585,9 +588,6 @@ namespace
                     CaretLogWarning("parcels by parcels by scalar cifti file '" + filename + "' should be saved ending in .pconnscalar.nii, see wb_command -cifti-help");
                 }
                 break;
-            default:
-                CaretAssert(0);
-                throw DataFileException("internal error, tell the developers what you just tried to do");
         }
     }
 }
