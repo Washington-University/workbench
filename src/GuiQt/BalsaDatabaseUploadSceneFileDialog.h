@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <QIcon>
 
 #include "WuQDialogModal.h"
 
@@ -28,8 +29,7 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 class QPushButton;
-
-
+class QRegularExpressionValidator;
 
 namespace caret {
 
@@ -51,20 +51,31 @@ namespace caret {
     private slots:
         void labelHtmlLinkClicked(const QString&);
 
-        void editFileBalsaStudyIDButtonClicked();
-        
-        void editFileBalsaStudyTitleButtonClicked();
-        
-        void editBaseDirectoryPushButtonClicked();
-        
         void browseBaseDirectoryPushButtonClicked();
 
         void getBalsaStudyIDPushButtonClicked();
+        
+        void balsaStudyIDLockPushButtonClicked();
+        
+        void validateData();
+        
+        void selectStudyTitleButtonClicked();
         
     protected:
         virtual void okButtonClicked();
         
     private:
+        enum class LabelName {
+            LABEL_BASE_DIRECTORY,
+            LABEL_DATABASE,
+            LABEL_EXTRACT_DIRECTORY,
+            LABEL_PASSWORD,
+            LABEL_STUDY_ID,
+            LABEL_STUDY_TITLE,
+            LABEL_USERNAME,
+            LABEL_ZIP_FILENAME
+        };
+        
         BalsaDatabaseUploadSceneFileDialog(const BalsaDatabaseUploadSceneFileDialog&);
 
         BalsaDatabaseUploadSceneFileDialog& operator=(const BalsaDatabaseUploadSceneFileDialog&);
@@ -73,33 +84,51 @@ namespace caret {
         
         AString getDataBaseURL() const;
         
+        void updateBalsaStudyIDLockButtonIcon();
+        
+        QRegularExpressionValidator* createValidator(const LabelName labelName);
+        
+        void updateAllLabels();
+        
+        void setLabelText(const LabelName labelName);
+        
         SceneFile* m_sceneFile;
         
+        QLabel* m_databaseLabel;
         QComboBox* m_databaseComboBox;
         
+        QLabel* m_usernameLabel;
         QLineEdit* m_usernameLineEdit;
         
+        QLabel* m_passwordLabel;
         QLineEdit* m_passwordLineEdit;
         
+        QLabel* m_zipFileNameLabel;
         QLineEdit* m_zipFileNameLineEdit;
         
+        QLabel* m_extractDirectoryNameLabel;
         QLineEdit* m_extractDirectoryNameLineEdit;
 
-        QPushButton* m_editBalsaStudyIDPushButton;
-        
         QPushButton* m_getBalsaStudyIDPushButton;
+        QPushButton* m_balsaStudyIDLockPushButton;
         
-        QLineEdit* m_fileBalsaStudyIDLineEdit;
+        QLabel* m_balsaStudyIDLabel;
+        QLineEdit* m_balsaStudyIDLineEdit;
         
+        QLabel* m_balsaStudyTitleLabel;
         QLineEdit* m_balsaStudyTitleLineEdit;
-        
-        QPushButton* m_editBalsaStudyTitlePushButton;
+        QPushButton* m_selectStudyTitlePushButton;
         
         QPushButton* m_browseBaseDirectoryPushButton;
         
-        QPushButton* m_editBaseDirectoryPushButton;
-        
+        QLabel* m_baseDirectoryLabel;
         QLineEdit* m_baseDirectoryLineEdit;
+        
+        QIcon m_lockClosedIcon;
+        bool m_lockClosedIconValid = false;
+        
+        QIcon m_lockOpenIcon;
+        bool m_lockOpenIconValid = false;
         
         // ADD_NEW_MEMBERS_HERE
 

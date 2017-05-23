@@ -96,6 +96,14 @@ namespace caret {
                                               const AString& fileNameWithoutExtension,
                                               const AString& extensionWithoutDot);
         
+        static AString assembleFileComponents(const AString& pathName,
+                                              const AString& fileNameWithExtension);
+        
+        static AString createTemporaryFilePathName(const AString& fileNameWithExtension);
+        
+        static AString replaceExtension(const AString& fileName,
+                                        const AString& newExtension);
+        
         bool remove();
         
         void getRemoteUrlUsernameAndPassword(AString& urlOut,

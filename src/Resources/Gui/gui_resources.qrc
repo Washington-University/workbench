@@ -1,13 +1,14 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 <file>./About/hcp-logo.png</file>
-<file>./Caution/caution.png</file>
+<file>./BalsaUploadDialog/lock-closed.png</file>
+<file>./BalsaUploadDialog/lock-open.png</file>
 <file>./Cursor/pen_eraser.png</file>
-<file>./gui_resources.qrc</file>
 <file>./LayersPanel/colorbar.png</file>
 <file>./LayersPanel/construction.png</file>
 <file>./LayersPanel/wrench.png</file>
 <file>./PaletteSettings/chain_link_icon.png</file>
+<file>./SceneFileDialog/caution.png</file>
 <file>./SpecFileDialog/delete_icon.png</file>
 <file>./SpecFileDialog/load_icon.png</file>
 <file>./SpecFileDialog/options_icon.png</file>

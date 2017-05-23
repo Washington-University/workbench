@@ -565,11 +565,94 @@ FileInformation::assembleFileComponents(const AString& pathName,
     }
     name += fileNameWithoutExtension;
     if ( ! extensionWithoutDot.isEmpty()) {
-        name += ("." + extensionWithoutDot);
+        /*
+         * User might include dot at beginning of extension
+         */
+        if (extensionWithoutDot.startsWith(".")) {
+            name += extensionWithoutDot;
+        }
+        else {
+            name += ("." + extensionWithoutDot);
+        }
     }
 
     return name;
 }
+
+/**
+ * Assemble the file components into a file path and name.
+ *
+ * @param pathName
+ *     Path for file (may be absolute, relative, or empty).
+ * @param fileNameWithExtension
+ *     Name of file with extension.
+ */
+AString
+FileInformation::assembleFileComponents(const AString& pathName,
+                                        const AString& fileNameWithExtension)
+{
+    AString name;
+    if ( ! pathName.isEmpty()) {
+        name += (pathName + "/");
+    }
+    name += fileNameWithExtension;
+    
+    return name;
+}
+
+/**
+ * Create the file path for a file with the given name in the 
+ * computer system's temporary directory.
+ *
+ * @param fileName
+ *     Name of the file with an extension.  Any path in the name is ignored.
+ * @return
+ *     File path in the temporary directory with the given file name.
+ */
+AString
+FileInformation::createTemporaryFilePathName(const AString& fileName)
+{
+    AString nameOut;
+    
+    FileInformation fileInfo(fileName);
+    AString nameNoPath = fileInfo.getFileName();
+    if (nameNoPath.isEmpty()) {
+        nameOut = FileInformation::assembleFileComponents(SystemUtilities::getTempDirectory(), "name_missing.tmp");
+    }
+    else {
+        nameOut = FileInformation::assembleFileComponents(SystemUtilities::getTempDirectory(), nameNoPath);
+    }
+    
+    return nameOut;
+}
+
+/**
+ * Replace the extension in a file name.
+ *
+ * @param fileName
+ *     Name of file
+ * @param newExtension
+ *     New extension that replaces the extension in fileName
+ * @return
+ *     fileName with extension replaced with newExtension.
+ */
+AString
+FileInformation::replaceExtension(const AString& fileName,
+                                  const AString& newExtension)
+{
+    AString thePath, theName, theExtension;
+    
+    FileInformation fileInfo(fileName);
+    fileInfo.getFileComponents(thePath,
+                               theName,
+                               theExtension);
+    
+    const AString nameOut = assembleFileComponents(thePath,
+                                                   theName,
+                                                   newExtension);
+    return nameOut;
+}
+
 
 /**
  * Convert, if needed, the file information to a local, absolute path.

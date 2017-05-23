@@ -19,6 +19,7 @@
  */
 /*LICENSE_END*/
 
+#include <QDir>
 #include <QTextStream>
 
 #include <algorithm>
@@ -774,4 +775,85 @@ SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
         dataFileInformation.addText(sceneNamesText);
     }
 }
+
+/**
+ * @return Name of zip file
+ */
+AString
+SceneFile::getZipFileName() const
+{
+    return m_zipFileName;
+}
+
+/**
+ * Set Name of zip file
+ *
+ * @param zipFileName
+ *    New value for Name of zip file
+ */
+void
+SceneFile::setZipFileName(const AString& zipFileName)
+{
+    if (zipFileName != m_zipFileName) {
+        // not stored in Scene File    setModified();
+        m_zipFileName = zipFileName;
+    }
+}
+
+/**
+ * @return Extract to directory name for zip file
+ */
+AString
+SceneFile::getExtractToDirectoryName() const
+{
+    return m_extractToDirectoryName;
+}
+
+/**
+ * Set Extract to directory name for zip file
+ *
+ * @param extractToDirectoryName
+ *    New value for Extract to directory name for zip file
+ */
+void
+SceneFile::setExtractToDirectoryName(const AString& extractToDirectoryName)
+{
+    if (extractToDirectoryName != m_extractToDirectoryName) {
+        // not stored in Scene File    setModified();
+        m_extractToDirectoryName = extractToDirectoryName;
+    }
+}
+
+/**
+ * @return Default name for a ZIP file containing the scene file and its data files.
+ */
+AString
+SceneFile::getDefaultZipFileName() const
+{
+    return FileInformation::replaceExtension(getFileName(), ".zip");
+}
+
+/**
+ * @return The default extract to directory name (directory containing the scene file, EXCLUDING THE PATH)
+ */
+AString
+SceneFile::getDefaultExtractToDirectoryName() const
+{
+    AString directoryName;
+    
+    FileInformation fileInfo(getFileName());
+    AString sceneFileDirectory = fileInfo.getAbsolutePath();
+    if ( ! sceneFileDirectory.isEmpty()) {
+        QDir dir(sceneFileDirectory);
+        directoryName = dir.dirName();
+    }
+    
+    if (directoryName.isEmpty()) {
+        QDir dir(SystemUtilities::systemCurrentDirectory());
+        directoryName = dir.dirName();
+    }
+    
+    return directoryName;
+}
+
 

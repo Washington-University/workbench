@@ -126,17 +126,11 @@ SceneDialog::SceneDialog(QWidget* parent)
     
     
     /*
-     * Construction Tool Button
+     * Icons
      */
-    m_cautionIconValid = WuQtUtilities::loadIcon(":/Caution/caution.png",
+    m_cautionIconValid = WuQtUtilities::loadIcon(":/SceneFileDialog/caution.png",
                                                  m_cautionIcon);
     
-//    this->constructionAction = WuQtUtilities::createAction("M",
-//                                                           "Add/Move/Remove Overlays",
-//                                                           this);
-//    if (constructionIconValid) {
-//        this->constructionAction->setIcon(constructionIcon);
-//    }
     /*
      * Set the dialog's widget
      */
@@ -716,7 +710,7 @@ SceneDialog::saveSelectedSceneFile()
         return false;
     }
     
-    updateSceneFileModifiedStatusLabel();
+    loadSceneFileComboBox(sceneFile);
     
     return true;
 }
@@ -756,7 +750,7 @@ SceneDialog::saveAsSelectedSceneFile()
         return false;
     }
     
-    updateSceneFileModifiedStatusLabel();
+    loadSceneFileComboBox(sceneFile);
     
     return true;
 }
@@ -1595,7 +1589,7 @@ SceneDialog::createScenesWidget()
     /*
      * Scene controls
      */ 
-    QLabel* sceneLabel = new QLabel("Scenes");
+    QLabel* sceneLabel = new QLabel(" Scenes");
     
     /*
      * Add new scene button
@@ -1750,10 +1744,10 @@ SceneDialog::createScenesWidget()
     sceneButtonLayout->addWidget(showGroupBox);
     sceneButtonLayout->addSpacing(20);
     sceneButtonLayout->addWidget(createGroupBox);
-    sceneButtonLayout->addStretch();
-    sceneButtonLayout->addWidget(testGroupBox);
     sceneButtonLayout->addSpacing(20);
     sceneButtonLayout->addWidget(organizeGroupBox);
+    sceneButtonLayout->addStretch();
+    sceneButtonLayout->addWidget(testGroupBox);
 
     /*
      * Widget and layout containing the scene class info.

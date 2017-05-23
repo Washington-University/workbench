@@ -101,6 +101,18 @@ namespace caret {
         
         Scene* releaseScene(const int32_t& index);
 
+        AString getZipFileName() const;
+        
+        void setZipFileName(const AString& zipFileName);
+
+        AString getDefaultZipFileName() const;
+        
+        AString getExtractToDirectoryName() const;
+        
+        void setExtractToDirectoryName(const AString& extractToDirectoryName);
+
+        AString getDefaultExtractToDirectoryName() const;
+        
         // ADD_NEW_METHODS_HERE
 
         /** Version of file */
@@ -133,6 +145,12 @@ namespace caret {
         
         /** the Base Directory */
         AString m_baseDirectory;
+        
+        /** the ZIP file name */
+        AString m_zipFileName;
+        
+        /** The "extract to" directory name */
+        AString m_extractToDirectoryName;
         
         // ADD_NEW_MEMBERS_HERE
 
