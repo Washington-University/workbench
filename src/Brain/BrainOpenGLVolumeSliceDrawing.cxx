@@ -3560,11 +3560,12 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
     
     /*
      * Process each surface outline
+     * As of 24 May, "zero" is on top so draw in reverse order
      */
     const int32_t numberOfOutlines = outlineSet->getNumberOfDislayedVolumeSurfaceOutlines();
-    for (int io = 0;
-         io < numberOfOutlines;
-         io++) {
+    for (int32_t io = (numberOfOutlines - 1);
+         io >= 0;
+         io--) {
         VolumeSurfaceOutlineModel* outline = outlineSet->getVolumeSurfaceOutlineModel(io);
         if (outline->isDisplayed()) {
             Surface* surface = outline->getSurface();

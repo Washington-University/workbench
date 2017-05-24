@@ -328,8 +328,10 @@ BalsaDatabaseManager::processUploadResponse(const std::map<AString, AString>& re
         contentErrorMessage = "No Content-Type header received from file upload.\n";
     }
     
-    QJsonDocument jsonDocument = QJsonDocument::fromRawData(responseContent.toLatin1().constData(),
-                                                            responseContent.length());
+//    std::cout << std::endl << "RESPONSE CONTENT: " << responseContent << std::endl << std::endl;
+//    
+//    QJsonDocument jsonDocument = QJsonDocument::fromRawData(responseContent.toLatin1().constData(),
+//                                                            responseContent.length());
     
     CaretJsonObject json(responseContent);
     

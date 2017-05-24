@@ -336,7 +336,7 @@ VolumeSurfaceOutlineSetModel::saveToScene(const SceneAttributes* sceneAttributes
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "VolumeSurfaceOutlineSetModel",
-                                            1);
+                                            2);
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
     
@@ -371,6 +371,8 @@ VolumeSurfaceOutlineSetModel::restoreFromScene(const SceneAttributes* sceneAttri
         return;
     }
     
+    const int32_t version = sceneClass->getVersionNumber();
+    
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
     
@@ -381,6 +383,20 @@ VolumeSurfaceOutlineSetModel::restoreFromScene(const SceneAttributes* sceneAttri
         for (int32_t i = 0; i < maxNum; i++) {
             m_outlineModels[i]->restoreFromScene(sceneAttributes,
                                                  outlineModelsArrayClass->getClassAtIndex(i));
+        }
+        
+        /*
+         * In older scenes, last was drawn on top.
+         * Now, zero is drawn on top so need to reverse
+         * the order of the volume surface outlines
+         */
+        if (version < 2) {
+            if (maxNum > 1) {
+                const int32_t numDisplayed = getNumberOfDislayedVolumeSurfaceOutlines();
+                CaretAssertArrayIndex(m_outlineModels, BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES, numDisplayed - 1);
+                std::reverse(m_outlineModels,
+                             m_outlineModels + numDisplayed);
+            }
         }
     }
 }
