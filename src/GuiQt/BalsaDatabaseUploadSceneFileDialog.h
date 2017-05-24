@@ -29,6 +29,7 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 class QPushButton;
+class QRadioButton;
 class QRegularExpressionValidator;
 
 namespace caret {
@@ -61,6 +62,10 @@ namespace caret {
         
         void selectStudyTitleButtonClicked();
         
+        void zipFileDirectoryRadioButtonClicked(int);
+        
+        void browseZipFileCustomDirectoryPushButtonClicked();
+        
     protected:
         virtual void okButtonClicked();
         
@@ -72,13 +77,17 @@ namespace caret {
             LABEL_PASSWORD,
             LABEL_STUDY_ID,
             LABEL_STUDY_TITLE,
-            LABEL_USERNAME,
-            LABEL_ZIP_FILENAME
+            LABEL_USERNAME
+            //LABEL_ZIP_FILE_DIRECTORY
         };
         
         BalsaDatabaseUploadSceneFileDialog(const BalsaDatabaseUploadSceneFileDialog&);
 
         BalsaDatabaseUploadSceneFileDialog& operator=(const BalsaDatabaseUploadSceneFileDialog&);
+        
+        QWidget* createUploadTab();
+        
+        QWidget* createAdvancedTab();
         
         void loadSceneFileMetaDataWidgets();
         
@@ -87,6 +96,10 @@ namespace caret {
         void updateBalsaStudyIDLockButtonIcon();
         
         QRegularExpressionValidator* createValidator(const LabelName labelName);
+        
+        AString getZipFileNameWithPath(AString& errorMessageOut) const;
+        
+        //AString getZipFileDirectory() const;
         
         void updateAllLabels();
         
@@ -103,8 +116,9 @@ namespace caret {
         QLabel* m_passwordLabel;
         QLineEdit* m_passwordLineEdit;
         
-        QLabel* m_zipFileNameLabel;
-        QLineEdit* m_zipFileNameLineEdit;
+        QRadioButton* m_zipFileTemporaryDirectoryRadioButton;
+        QRadioButton* m_zipFileCustomDirectoryRadioButton;
+        QLineEdit* m_zipFileCustomDirectoryLineEdit;
         
         QLabel* m_extractDirectoryNameLabel;
         QLineEdit* m_extractDirectoryNameLineEdit;

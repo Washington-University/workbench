@@ -23,14 +23,19 @@
 #include "BalsaDatabaseUploadSceneFileDialog.h"
 #undef __BALSA_DATABASE_UPLOAD_SCENE_FILE_DIALOG_DECLARE__
 
+#include <QButtonGroup>
 #include <QComboBox>
+#include <QDateTime>
 #include <QDesktopServices>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
+#include <QTabWidget>
 
 #include "BalsaDatabaseManager.h"
 #include "BalsaDatabaseStudyTitleDialog.h"
@@ -76,14 +81,6 @@ m_sceneFile(sceneFile)
 {
     CaretAssert(m_sceneFile);
     
-    QString defaultUserName = "balsaTest";
-    QString defaultPassword = "@2password";
-
-#ifdef NDEBUG
-    defaultUserName = "";
-    defaultPassword = "";
-#endif
-    
     /*
      * Icons
      */
@@ -91,6 +88,41 @@ m_sceneFile(sceneFile)
                                                     m_lockClosedIcon);
     m_lockOpenIconValid = WuQtUtilities::loadIcon(":/BalsaUploadDialog/lock-open.png",
                                                   m_lockOpenIcon);
+    
+    QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(createUploadTab(), "Upload");
+    tabWidget->addTab(createAdvancedTab(), "Advanced");
+    
+    setCentralWidget(tabWidget,
+                     WuQDialogModal::SCROLL_AREA_NEVER);
+    
+    updateBalsaStudyIDLockButtonIcon();
+    validateData();
+    
+    setSizePolicy(sizePolicy().horizontalPolicy(),
+                  QSizePolicy::Fixed);
+}
+
+/**
+ * Destructor.
+ */
+BalsaDatabaseUploadSceneFileDialog::~BalsaDatabaseUploadSceneFileDialog()
+{
+}
+
+/**
+ * @return New instance of the upload tab.
+ */
+QWidget*
+BalsaDatabaseUploadSceneFileDialog::createUploadTab()
+{
+    QString defaultUserName = "balsaTest";
+    QString defaultPassword = "@2password";
+    
+#ifdef NDEBUG
+    defaultUserName = "";
+    defaultPassword = "";
+#endif
     
     /*
      * Database selection
@@ -153,18 +185,6 @@ m_sceneFile(sceneFile)
                                        "</html>");
     QObject::connect(registerLabel, SIGNAL(linkActivated(const QString&)),
                      this, SLOT(labelHtmlLinkClicked(const QString&)));
-
-    /*
-     * Zip file name
-     */
-    const AString defaultZipFileName = m_sceneFile->getDefaultZipFileName();
-    m_zipFileNameLabel = new QLabel("");
-    m_zipFileNameLineEdit = new QLineEdit;
-    m_zipFileNameLineEdit->setText(defaultZipFileName);
-    m_zipFileNameLineEdit->setValidator(createValidator(LabelName::LABEL_ZIP_FILENAME));
-    m_zipFileNameLineEdit->setToolTip("Name of ZIP file that user will download");
-    QObject::connect(m_zipFileNameLineEdit, &QLineEdit::textEdited,
-                     this, [=] { this->validateData(); });
     
     /*
      * Extract to directory
@@ -238,7 +258,7 @@ m_sceneFile(sceneFile)
     m_baseDirectoryLineEdit->setValidator(createValidator(LabelName::LABEL_BASE_DIRECTORY));
     QObject::connect(m_baseDirectoryLineEdit, &QLineEdit::textEdited,
                      this, [=] { this->validateData(); });
-
+    
     /*
      * Browse for base directory
      */
@@ -253,8 +273,8 @@ m_sceneFile(sceneFile)
     const int COLUMN_BUTTON_ONE = columnCounter++;
     const int COLUMN_BUTTON_TWO = columnCounter++;
     
-    QWidget* dialogWidget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(dialogWidget);
+    QWidget* widget = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(widget);
     gridLayout->setSpacing(2);
     gridLayout->setColumnStretch(COLUMN_LABEL, 0);
     gridLayout->setColumnStretch(COLUMN_DATA_WIDGET, 100);
@@ -273,9 +293,6 @@ m_sceneFile(sceneFile)
     gridLayout->addWidget(m_passwordLineEdit, row, COLUMN_DATA_WIDGET);
     gridLayout->addWidget(forgotPasswordLabel, row, COLUMN_BUTTON_ONE, 1, 2);
     row++;
-    gridLayout->addWidget(m_zipFileNameLabel, row, COLUMN_LABEL, Qt::AlignRight);
-    gridLayout->addWidget(m_zipFileNameLineEdit, row, COLUMN_DATA_WIDGET);
-    row++;
     gridLayout->addWidget(m_extractDirectoryNameLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_extractDirectoryNameLineEdit, row, COLUMN_DATA_WIDGET);
     row++;
@@ -293,31 +310,67 @@ m_sceneFile(sceneFile)
     gridLayout->addWidget(m_getBalsaStudyIDPushButton, row, COLUMN_BUTTON_TWO);
     
     
-    setCentralWidget(dialogWidget,
-                     WuQDialogModal::SCROLL_AREA_NEVER);
-    
     m_balsaStudyIDLineEdit->setText(m_sceneFile->getBalsaStudyID());
-    m_baseDirectoryLineEdit->setText(m_sceneFile->getBaseDirectory());
+    m_baseDirectoryLineEdit->setText(m_sceneFile->getBalsaBaseDirectory());
     m_balsaStudyTitleLineEdit->setText(m_sceneFile->getBalsaStudyTitle());
-    m_extractDirectoryNameLineEdit->setText(m_sceneFile->getExtractToDirectoryName());
-    m_zipFileNameLineEdit->setText(m_sceneFile->getZipFileName());
+    m_extractDirectoryNameLineEdit->setText(m_sceneFile->getBalsaExtractToDirectoryName());
     
     if (m_extractDirectoryNameLineEdit->text().trimmed().isEmpty()) {
         m_extractDirectoryNameLineEdit->setText(m_sceneFile->getDefaultExtractToDirectoryName());
     }
-    if (m_zipFileNameLineEdit->text().trimmed().isEmpty()) {
-        m_zipFileNameLineEdit->setText(m_sceneFile->getDefaultZipFileName());
-    }
     
-    updateBalsaStudyIDLockButtonIcon();
-    validateData();
+    return widget;
 }
 
 /**
- * Destructor.
+ * @return New instance of the advanced tab
  */
-BalsaDatabaseUploadSceneFileDialog::~BalsaDatabaseUploadSceneFileDialog()
+QWidget*
+BalsaDatabaseUploadSceneFileDialog::createAdvancedTab()
 {
+    m_zipFileTemporaryDirectoryRadioButton = new QRadioButton("Use System Temporary Directory");
+    m_zipFileCustomDirectoryRadioButton = new QRadioButton("Custom: ");
+    
+    QButtonGroup* buttGroup = new QButtonGroup(this);
+    buttGroup->addButton(m_zipFileTemporaryDirectoryRadioButton);
+    buttGroup->addButton(m_zipFileCustomDirectoryRadioButton);
+    m_zipFileTemporaryDirectoryRadioButton->setChecked(true); // do before signal
+    QObject::connect(buttGroup, static_cast<void(QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked),
+                     [=](int id){ this->zipFileDirectoryRadioButtonClicked(id); });
+    
+    m_zipFileCustomDirectoryLineEdit = new QLineEdit();
+
+    QPushButton* browseCustomDirectoryPushButton = new QPushButton("Browse...");
+    QObject::connect(browseCustomDirectoryPushButton, &QPushButton::clicked,
+                     this, &BalsaDatabaseUploadSceneFileDialog::browseZipFileCustomDirectoryPushButtonClicked);
+    //QObject::connect(m_zipFileDirectoryComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+    //                 this, &BalsaDatabaseUploadSceneFileDialog::zipFileDirectoryComboBoxActivated);
+    //    QObject::connect(m_zipFileDirectoryComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+    //                     this, [=](int) { this->validateData(); });
+    //    QObject::connect(m_zipFileDirectoryComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+    //                     this, [=]{ this->validateData(); });
+    //    QObject::connect(m_zipFileDirectoryComboBox, &QComboBox::activated,
+    //                     this, [=](int) { this->validateData(); });
+    
+    QGroupBox* zipDirectoryGroupBox = new QGroupBox("Zip File Directory");
+    QGridLayout* gridLayout = new QGridLayout(zipDirectoryGroupBox);
+    gridLayout->setSpacing(2);
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 100);
+    gridLayout->setColumnStretch(2, 0);
+    int row = 0;
+    gridLayout->addWidget(m_zipFileTemporaryDirectoryRadioButton, 0, 0, 1, 3);
+    gridLayout->addWidget(m_zipFileCustomDirectoryRadioButton, 1, 0);
+    gridLayout->addWidget(m_zipFileCustomDirectoryLineEdit, 1, 1);
+    gridLayout->addWidget(browseCustomDirectoryPushButton, 1, 2);
+    row++;
+    
+    QWidget* widget = new QWidget;
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addWidget(zipDirectoryGroupBox);
+    layout->addStretch();
+    
+    return widget;
 }
 
 /**
@@ -349,6 +402,89 @@ BalsaDatabaseUploadSceneFileDialog::labelHtmlLinkClicked(const QString& linkPath
     }
 }
 
+/**
+ * Called when a Zip File Directory radio button is clicked
+ */
+void
+BalsaDatabaseUploadSceneFileDialog::zipFileDirectoryRadioButtonClicked(int)
+{
+    validateData();
+}
+
+/**
+ * Get the ZIP file name.
+ *
+ * @param errorMessageOut
+ *    Output if failure to create zip file name.
+ *
+ * @return
+ *    Name of ZIP file.  If empty, check errorMessageOut for explanation.
+ */
+AString
+BalsaDatabaseUploadSceneFileDialog::getZipFileNameWithPath(AString& errorMessageOut) const
+{
+    errorMessageOut = "";
+    
+    AString directoryName;
+    if (m_zipFileTemporaryDirectoryRadioButton->isChecked()) {
+        directoryName = SystemUtilities::getTempDirectory();
+        if ( ! FileInformation(directoryName).exists()) {
+            errorMessageOut = "Default temporary directory is invalid.  Please choose a Custom Zip File Directory on Advanced tab";
+            return "";
+        }
+    }
+    else if (m_zipFileCustomDirectoryRadioButton->isChecked()) {
+        directoryName = m_zipFileCustomDirectoryLineEdit->text().trimmed();
+        if (directoryName.isEmpty()) {
+            errorMessageOut = "Zip File Custom directory is selected but is empty (see Advanced tab).";
+            return "";
+        }
+        if ( ! FileInformation(directoryName).exists()) {
+            errorMessageOut = "Zip File Custom directory is invalid.  Please choose a Custom Zip File Directory on Advanced tab";
+            return "";
+        }
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+    FileInformation zipFileName(directoryName,
+                                "BalsaUpload_" + QString::number(QDateTime::currentMSecsSinceEpoch())+ ".zip");
+
+    return zipFileName.getAbsoluteFilePath();
+}
+
+
+
+///**
+// * @return the ZIP file directory.  Will be empty if the directory is invalid (does not exist).
+// */
+//AString
+//BalsaDatabaseUploadSceneFileDialog::getZipFileDirectory() const
+//{
+//    AString directoryName;
+//    if (m_zipFileTemporaryDirectoryRadioButton->isChecked()) {
+//        directoryName = SystemUtilities::getTempDirectory();
+//    }
+//    else if (m_zipFileCustomDirectoryRadioButton->isChecked()) {
+//        directoryName = m_zipFileCustomDirectoryLineEdit->text().trimmed();
+//    }
+//    else {
+//        CaretAssert(0);
+//    }
+//    
+//    if (directoryName.isEmpty()) {
+//        return "";
+//    }
+//    
+//    FileInformation fileInfo(directoryName);
+//    if (fileInfo.exists()) {
+//        return directoryName;
+//    }
+//    
+//    return "";
+//}
+
 
 /**
  * Gets called when the OK button is clicked.
@@ -360,9 +496,11 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     
     m_sceneFile->setBalsaStudyID(m_balsaStudyIDLineEdit->text().trimmed());
     m_sceneFile->setBalsaStudyTitle(m_balsaStudyTitleLineEdit->text().trimmed());
-    m_sceneFile->setBaseDirectory(m_baseDirectoryLineEdit->text().trimmed());
-    m_sceneFile->setZipFileName(m_zipFileNameLineEdit->text().trimmed());
-    m_sceneFile->setExtractToDirectoryName(m_extractDirectoryNameLineEdit->text().trimmed());
+    m_sceneFile->setBalsaBaseDirectory(m_baseDirectoryLineEdit->text().trimmed());
+    AString zipFileErrorMessage;
+    const AString zipFileName = getZipFileNameWithPath(zipFileErrorMessage);
+    
+    m_sceneFile->setBalsaExtractToDirectoryName(m_extractDirectoryNameLineEdit->text().trimmed());
     
     AString msg;
     if ( ! m_usernameLineEdit->hasAcceptableInput()) {
@@ -372,8 +510,8 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     if ( ! m_passwordLineEdit->hasAcceptableInput()) {
         msg.appendWithNewLine("Password is missing.  If you do not remember your password, press the \"Forgot Password\" link.<p>");
     }
-    if ( ! m_zipFileNameLineEdit->hasAcceptableInput()) {
-        msg.appendWithNewLine("Zip Filename is invalid.  Must end in \".zip\".<p>");
+    if (zipFileName.isEmpty()) {
+        msg.appendWithNewLine(zipFileErrorMessage + "<p>");
     }
     if ( ! m_extractDirectoryNameLineEdit->hasAcceptableInput()) {
         msg.appendWithNewLine("Extract to Directory is invalid.<p>");
@@ -399,7 +537,7 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     
     const AString username = m_usernameLineEdit->text().trimmed();
     const AString password = m_passwordLineEdit->text().trimmed();
-    const AString zipFileName = m_zipFileNameLineEdit->text().trimmed();
+    
     const AString extractToDirectoryName = m_extractDirectoryNameLineEdit->text().trimmed();
     
 //    if (m_sceneFile->getBalsaStudyID().trimmed().isEmpty()) {
@@ -536,8 +674,8 @@ BalsaDatabaseUploadSceneFileDialog::getBalsaStudyIDPushButtonClicked()
     
     const AString username = m_usernameLineEdit->text().trimmed();
     const AString password = m_passwordLineEdit->text().trimmed();
-    const AString zipFileName = m_zipFileNameLineEdit->text().trimmed();
-    const AString extractToDirectoryName = m_extractDirectoryNameLineEdit->text().trimmed();
+    //const AString zipFileName = m_zipFileNameLineEdit->text().trimmed();
+    //const AString extractToDirectoryName = m_extractDirectoryNameLineEdit->text().trimmed();
     
     AString studyID;
     AString errorMessage;
@@ -560,6 +698,47 @@ BalsaDatabaseUploadSceneFileDialog::getBalsaStudyIDPushButtonClicked()
         WuQMessageBox::errorOk(this,
                                errorMessage);
     }
+}
+
+/**
+ * Choose the custom directory
+ */
+void
+BalsaDatabaseUploadSceneFileDialog::browseZipFileCustomDirectoryPushButtonClicked()
+{
+    CaretAssert(m_sceneFile);
+    
+    /*
+     * Let user choose directory path
+     */
+    QString directoryName;
+    FileInformation fileInfo(m_zipFileCustomDirectoryLineEdit->text().trimmed());
+    if (fileInfo.exists()) {
+        if (fileInfo.isDirectory()) {
+            directoryName = fileInfo.getAbsoluteFilePath();
+        }
+    }
+    AString newDirectoryName = CaretFileDialog::getExistingDirectoryDialog(m_browseBaseDirectoryPushButton,
+                                                                           "Choose Custom Zip File Directory",
+                                                                           directoryName);
+    /*
+     * If user cancels,  return
+     */
+    if (newDirectoryName.isEmpty()) {
+        return;
+    }
+    
+    /*
+     * Set name of new scene file and add to brain
+     */
+    m_zipFileCustomDirectoryLineEdit->setText(newDirectoryName);
+    FileInformation newFileInfo(newDirectoryName);
+    if (newFileInfo.exists()
+        && newFileInfo.isDirectory()) {
+        m_zipFileCustomDirectoryRadioButton->setChecked(true);
+    }
+    
+    validateData();
 }
 
 /**
@@ -635,9 +814,9 @@ BalsaDatabaseUploadSceneFileDialog::createValidator(const LabelName labelName)
         case LabelName::LABEL_USERNAME:
             regEx.setPattern(".+");
             break;
-        case LabelName::LABEL_ZIP_FILENAME:
-            regEx.setPattern(".+\\.zip");
-            break;
+//        case LabelName::LABEL_ZIP_FILE_DIRECTORY:
+//            regEx.setPattern(".+\\.zip");
+//            break;
     }
     CaretAssert(regEx.isValid());
     
@@ -669,7 +848,7 @@ BalsaDatabaseUploadSceneFileDialog::updateAllLabels()
     setLabelText(LabelName::LABEL_STUDY_ID);
     setLabelText(LabelName::LABEL_STUDY_TITLE);
     setLabelText(LabelName::LABEL_USERNAME);
-    setLabelText(LabelName::LABEL_ZIP_FILENAME);
+//    setLabelText(LabelName::LABEL_ZIP_FILE_DIRECTORY);
 }
 
 
@@ -723,11 +902,15 @@ BalsaDatabaseUploadSceneFileDialog::setLabelText(const LabelName labelName)
             labelText = "Username";
             validFlag = m_usernameLineEdit->hasAcceptableInput();
            break;
-        case LabelName::LABEL_ZIP_FILENAME:
-            label = m_zipFileNameLabel;
-            labelText = "Zip Filename";
-            validFlag = m_zipFileNameLineEdit->hasAcceptableInput();
-            break;
+//        case LabelName::LABEL_ZIP_FILE_DIRECTORY:
+//        {
+//            label = m_zipFileDirectoryNameLabel;
+//            labelText = "Zip File Directory";
+//            if ( ! getZipFileDirectory().isEmpty()) {
+//                validFlag = true;
+//            }
+//        }
+//            break;
     }
     
     const bool textRedIfInvalid = true;

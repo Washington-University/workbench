@@ -131,8 +131,12 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
             else if (qName == SceneXmlElements::SCENE_INFO_BALSA_STUDY_TITLE_TAG) {
                 m_state = STATE_SCENE_INFO_BALSA_STUDY_TITLE;
             }
-            else if (qName == SceneXmlElements::SCENE_INFO_BASE_DIRECTORY_TAG) {
-                m_state = STATE_SCENE_INFO_BASE_DIRECTORY;
+            else if ((qName == SceneXmlElements::SCENE_INFO_BALSA_BASE_DIRECTORY_TAG)
+                     || (qName == SceneXmlElements::SCENE_INFO_BALSA_BASE_DIRECTORY_TAG_OLD)) {
+                m_state = STATE_SCENE_INFO_BALSA_BASE_DIRECTORY;
+            }
+            else if (qName == SceneXmlElements::SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY_TAG) {
+                m_state = STATE_SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY;
             }
             else {
                 const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::SCENE_INFO_TAG,
@@ -147,7 +151,9 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
             break;
         case STATE_SCENE_INFO_BALSA_STUDY_TITLE:
             break;
-        case STATE_SCENE_INFO_BASE_DIRECTORY:
+        case STATE_SCENE_INFO_BALSA_BASE_DIRECTORY:
+            break;
+        case STATE_SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY:
             break;
         case STATE_SCENE_INFO:
             m_sceneInfoSaxReader->startElement(namespaceURI, localName, qName, attributes);
@@ -236,8 +242,11 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
         case STATE_SCENE_INFO_BALSA_STUDY_TITLE:
             m_sceneFile->setBalsaStudyTitle(m_elementText);
             break;
-        case STATE_SCENE_INFO_BASE_DIRECTORY:
-            m_sceneFile->setBaseDirectory(m_elementText);
+        case STATE_SCENE_INFO_BALSA_BASE_DIRECTORY:
+            m_sceneFile->setBalsaBaseDirectory(m_elementText);
+            break;
+        case STATE_SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY:
+            m_sceneFile->setBalsaExtractToDirectoryName(m_elementText);
             break;
         case STATE_SCENE_INFO:
             CaretAssert(m_sceneInfo);

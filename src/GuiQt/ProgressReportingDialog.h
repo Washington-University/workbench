@@ -44,6 +44,8 @@ namespace caret {
                              QWidget* parent,
                              const AString& title);
         
+        void setEventReceivingEnabled(bool status);
+        
     public:
         virtual ~ProgressReportingDialog();
 

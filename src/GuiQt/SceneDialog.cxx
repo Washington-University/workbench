@@ -21,6 +21,7 @@
 
 #include <cmath>
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFrame>
@@ -1153,10 +1154,6 @@ SceneDialog::testScenesPushButtonClicked()
         return;
     }
     
-    std::vector<AString> sceneNames;
-    std::vector<AString> sceneErrors;
-    std::vector<QImage> sceneImages;
-    std::vector<QImage> newImages;
     
     const int32_t numScenes = sceneFile->getNumberOfScenes();
     if (numScenes == 0) {
@@ -1200,12 +1197,39 @@ SceneDialog::testScenesPushButtonClicked()
         }
     }
     
-    showWaitCursor();
+    //showWaitCursor();
+    ProgressReportingDialog progressDialog("Test All Scenes",
+                                           "Starting...",
+                                           m_testScenesPushButton);
+    progressDialog.setEventReceivingEnabled(false);
+    progressDialog.setMinimumDuration(0);
+    progressDialog.setMinimum(0);
+    progressDialog.setMaximum(numScenes);
+    progressDialog.setValue(1);
+    progressDialog.setLabelText("Starting testing...");
+    progressDialog.repaint();
+    progressDialog.show();
+    QApplication::processEvents();
+    
+    std::vector<AString> sceneNames;
+    std::vector<AString> sceneErrors;
+    std::vector<QImage> sceneImages;
+    std::vector<QImage> newImages;
     
     const int IMAGE_DISPLAY_WIDTH = 500;
     for (int32_t i = 0; i < numScenes; i++) {
+        if (progressDialog.wasCanceled()) {
+            break;
+        }
+        
         Scene* origScene = sceneFile->getSceneAtIndex(i);
         if (origScene != NULL) {
+            progressDialog.setValue(i+1);
+            progressDialog.setLabelText("Testing: " + origScene->getName()
+                                        + "\n\nPressing Cancel will cease testing after the current scene is loaded.");
+            progressDialog.repaint();
+            progressDialog.show();
+            QApplication::processEvents();
             if (origScene->hasFilesWithRemotePaths()) {
                 CaretDataFile::setFileReadingUsernameAndPassword(username,
                                                                  password);
@@ -1250,6 +1274,8 @@ SceneDialog::testScenesPushButtonClicked()
             
         }
     }
+    
+    progressDialog.close();
     
     CaretAssert(sceneNames.size() == sceneErrors.size());
     CaretAssert(sceneNames.size() == sceneImages.size());

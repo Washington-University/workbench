@@ -86,7 +86,9 @@ namespace caret {
             /// processing scene info Balsa Study Title tag
             STATE_SCENE_INFO_BALSA_STUDY_TITLE,
             /// processing scene info Base Directory tag
-            STATE_SCENE_INFO_BASE_DIRECTORY,
+            STATE_SCENE_INFO_BALSA_BASE_DIRECTORY,
+            /// processing scene info Balsa Extract to Directory
+            STATE_SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY,
             /// processing SceneInfo tag
             STATE_SCENE_INFO,
             /// processing Scene tag

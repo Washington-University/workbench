@@ -91,9 +91,9 @@ namespace caret {
         
         void setBalsaStudyTitle(const AString& balsaStudyTitle);
         
-        AString getBaseDirectory() const;
+        AString getBalsaBaseDirectory() const;
         
-        void setBaseDirectory(const AString& baseDirectory);
+        void setBalsaBaseDirectory(const AString& balsaBaseDirectory);
         
         void reorderScenes(std::vector<Scene*>& orderedScenes);
         
@@ -101,15 +101,11 @@ namespace caret {
         
         Scene* releaseScene(const int32_t& index);
 
-        AString getZipFileName() const;
-        
-        void setZipFileName(const AString& zipFileName);
-
         AString getDefaultZipFileName() const;
         
-        AString getExtractToDirectoryName() const;
+        AString getBalsaExtractToDirectoryName() const;
         
-        void setExtractToDirectoryName(const AString& extractToDirectoryName);
+        void setBalsaExtractToDirectoryName(const AString& balsaExtractToDirectoryName);
 
         AString getDefaultExtractToDirectoryName() const;
         
@@ -144,13 +140,10 @@ namespace caret {
         AString m_balsaStudyTitle;
         
         /** the Base Directory */
-        AString m_baseDirectory;
-        
-        /** the ZIP file name */
-        AString m_zipFileName;
+        AString m_balsaBaseDirectory;
         
         /** The "extract to" directory name */
-        AString m_extractToDirectoryName;
+        AString m_balsaExtractToDirectoryName;
         
         // ADD_NEW_MEMBERS_HERE
 

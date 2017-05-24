@@ -65,7 +65,8 @@ SceneFile::SceneFile()
 {
     m_balsaStudyID = "";
     m_balsaStudyTitle = "";
-    m_baseDirectory = "";
+    m_balsaBaseDirectory = "";
+    m_balsaExtractToDirectoryName = "";
     m_metadata = new GiftiMetaData();
 }
 
@@ -96,7 +97,8 @@ SceneFile::clear()
     
     m_balsaStudyID = "";
     m_balsaStudyTitle = "";
-    m_baseDirectory = "";
+    m_balsaBaseDirectory = "";
+    m_balsaExtractToDirectoryName = "";
     
     for (std::vector<Scene*>::iterator iter = m_scenes.begin();
          iter != m_scenes.end();
@@ -520,9 +522,9 @@ SceneFile::setBalsaStudyTitle(const AString& balsaStudyTitle)
  * @return The Base Directory
  */
 AString
-SceneFile::getBaseDirectory() const
+SceneFile::getBalsaBaseDirectory() const
 {
-    return m_baseDirectory;
+    return m_balsaBaseDirectory;
 }
 
 /**
@@ -532,10 +534,10 @@ SceneFile::getBaseDirectory() const
  *     New value for Base Directory.
  */
 void
-SceneFile::setBaseDirectory(const AString& baseDirectory)
+SceneFile::setBalsaBaseDirectory(const AString& balsaBaseDirectory)
 {
-    if (baseDirectory != m_baseDirectory) {
-        m_baseDirectory = baseDirectory;
+    if (balsaBaseDirectory != m_balsaBaseDirectory) {
+        m_balsaBaseDirectory = balsaBaseDirectory;
         setModified();
     }
 }
@@ -675,8 +677,10 @@ SceneFile::writeFile(const AString& filename)
                                     getBalsaStudyID());
         xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_STUDY_TITLE_TAG,
                                     getBalsaStudyTitle());
-        xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BASE_DIRECTORY_TAG,
-                                    getBaseDirectory());
+        xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_BASE_DIRECTORY_TAG,
+                                    getBalsaBaseDirectory());
+        xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY_TAG,
+                                    getBalsaExtractToDirectoryName());
         
         for (int32_t i = 0; i < numScenes; i++) {
             m_scenes[i]->getSceneInfo()->writeSceneInfo(xmlWriter,
@@ -777,36 +781,12 @@ SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
 }
 
 /**
- * @return Name of zip file
- */
-AString
-SceneFile::getZipFileName() const
-{
-    return m_zipFileName;
-}
-
-/**
- * Set Name of zip file
- *
- * @param zipFileName
- *    New value for Name of zip file
- */
-void
-SceneFile::setZipFileName(const AString& zipFileName)
-{
-    if (zipFileName != m_zipFileName) {
-        // not stored in Scene File    setModified();
-        m_zipFileName = zipFileName;
-    }
-}
-
-/**
  * @return Extract to directory name for zip file
  */
 AString
-SceneFile::getExtractToDirectoryName() const
+SceneFile::getBalsaExtractToDirectoryName() const
 {
-    return m_extractToDirectoryName;
+    return m_balsaExtractToDirectoryName;
 }
 
 /**
@@ -816,11 +796,11 @@ SceneFile::getExtractToDirectoryName() const
  *    New value for Extract to directory name for zip file
  */
 void
-SceneFile::setExtractToDirectoryName(const AString& extractToDirectoryName)
+SceneFile::setBalsaExtractToDirectoryName(const AString& extractToDirectoryName)
 {
-    if (extractToDirectoryName != m_extractToDirectoryName) {
-        // not stored in Scene File    setModified();
-        m_extractToDirectoryName = extractToDirectoryName;
+    if (extractToDirectoryName != m_balsaExtractToDirectoryName) {
+        setModified();
+        m_balsaExtractToDirectoryName = extractToDirectoryName;
     }
 }
 

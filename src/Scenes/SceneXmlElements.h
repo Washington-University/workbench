@@ -164,7 +164,13 @@ namespace caret {
         /**
          * XML Tag for Base Directory ID element.
          */
-        static const AString SCENE_INFO_BASE_DIRECTORY_TAG = "BaseDirectory";
+        static const AString SCENE_INFO_BALSA_BASE_DIRECTORY_TAG = "BalsaBaseDirectory";
+        static const AString SCENE_INFO_BALSA_BASE_DIRECTORY_TAG_OLD = "BaseDirectory";
+        
+        /**
+         * XML Tag for Base Directory ID element.
+         */
+        static const AString SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY_TAG = "BalsaExtractToDirectory";
         
     } // namespace SceneXmlElements
     

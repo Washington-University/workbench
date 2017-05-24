@@ -25,6 +25,8 @@
 #include "BalsaDatabaseManager.h"
 #undef __BALSA_DATABASE_MANAGER_DECLARE__
 
+#include <QJsonDocument>
+
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
 #include "CaretJsonObject.h"
@@ -326,6 +328,9 @@ BalsaDatabaseManager::processUploadResponse(const std::map<AString, AString>& re
         contentErrorMessage = "No Content-Type header received from file upload.\n";
     }
     
+    QJsonDocument jsonDocument = QJsonDocument::fromRawData(responseContent.toLatin1().constData(),
+                                                            responseContent.length());
+    
     CaretJsonObject json(responseContent);
     
     if (responseHttpCode != 200) {
@@ -393,9 +398,9 @@ BalsaDatabaseManager::zipSceneAndDataFiles(const SceneFile* sceneFile,
     }
     
     AString baseDirectoryName;
-    if ( ! sceneFile->getBaseDirectory().isEmpty()) {
+    if ( ! sceneFile->getBalsaBaseDirectory().isEmpty()) {
         /* validate ? */
-        baseDirectoryName = sceneFile->getBaseDirectory();
+        baseDirectoryName = sceneFile->getBalsaBaseDirectory();
     }
     
     bool successFlag = false;
