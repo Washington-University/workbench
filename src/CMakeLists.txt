@@ -29,7 +29,7 @@ set (WORKBENCH_QT5_DISABLE_DEPRECATED FALSE CACHE BOOL
      "If TRUE, use of Qt 5 deprecated functionality will cause compiler to fail")
 set (WORKBENCH_USE_CMAKE_AUTOMOC FALSE CACHE BOOL 
      "If TRUE, use CMAKE_AUTOMOC command for generating 'moc' files")
-set (WORKBENCH_USE_QT5 FALSE CACHE BOOL 
+set (WORKBENCH_USE_QT5 TRUE CACHE BOOL 
      "If TRUE, require Qt5, else Qt4.<NEWLINE>Specify as argument to cmake: -DWORKBENCH_USE_QT5=TRUE")
 set (WORKBENCH_USE_QT5_QOPENGL_WIDGET FALSE CACHE BOOL 
      "With Qt5, QOpenGLWidget instead of deprecated QGLWidget")
@@ -122,8 +122,7 @@ ENDIF (NOT MSVC)
 # If GNU compiler, use SIMD-based dot computation, if possible
 #
 SET(SIMD_RESULT "Search for SIMD disabled for compiler on this system.")
-if (CMAKE_COMPILER_IS_GNUCC
-    OR CLANG_FLAG)
+if (CMAKE_COMPILER_IS_GNUCC OR CLANG_FLAG)
     #
     # Define flag to avoid trying to compile SIMD stuff (coded for x86 only)
     #
@@ -149,7 +148,23 @@ if (CMAKE_COMPILER_IS_GNUCC
     ELSE (WORKBENCH_USE_SIMD)
         SET(SIMD_RESULT "Search for SIMD disabled, WORKBENCH_USE_SIMD=FALSE")
     ENDIF (WORKBENCH_USE_SIMD)
-endif()
+endif(CMAKE_COMPILER_IS_GNUCC OR CLANG_FLAG)
+
+#TSC: we require c++11, so it needs to be in the compile flags - in older cmake, this needs to be done manually
+IF (${CMAKE_VERSION} VERSION_LESS "3.1")
+    IF (CMAKE_COMPILER_IS_GNUCC)
+        include(CheckCXXCompilerFlag)
+        CHECK_CXX_COMPILER_FLAG("-std=c++11" GCC_STD11)
+        IF (${GCC_STD11})
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+        ELSE (${GCC_STD11})
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+        ENDIF (${GCC_STD11})
+    ENDIF (CMAKE_COMPILER_IS_GNUCC)
+ELSE (${CMAKE_VERSION} VERSION_LESS "3.1")
+    SET(CMAKE_CXX_STANDARD 11)
+    SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+ENDIF (${CMAKE_VERSION} VERSION_LESS "3.1")
 
 ##########################################################################################
 #

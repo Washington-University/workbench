@@ -73,8 +73,8 @@ BalsaStudyInformation::BalsaStudyInformation(const QJsonObject& jsonObject)
     QJsonObject::const_iterator titleIter = jsonObject.find("title");
     if ((idIter != jsonObject.end())
         && (titleIter != jsonObject.end())) {
-        m_studyID    = idIter->toString();
-        m_studyTitle = titleIter->toString();
+        m_studyID    = (*idIter).toString();
+        m_studyTitle = (*titleIter).toString();
     }
 }
 
