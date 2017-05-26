@@ -156,11 +156,11 @@ BalsaStudySelectionDialog::loadStudyTitleTableWidget(const AString selectedStudy
         
         CaretAssertVectorIndex(m_studyInformation, iRow);
         QTableWidgetItem* idItem = new QTableWidgetItem(m_studyInformation[iRow].getStudyID());
-        idItem->setFlags(idItem->flags().setFlag(Qt::ItemIsEditable, false));
+        idItem->setFlags(idItem->flags() &= (~Qt::ItemIsEditable));
         m_studyTableWidget->setItem(iRow, COLUMN_ID, idItem);
 
         QTableWidgetItem* titleItem = new QTableWidgetItem(studyTitle);
-        titleItem->setFlags(idItem->flags().setFlag(Qt::ItemIsEditable, false));
+        titleItem->setFlags(idItem->flags() &= (~Qt::ItemIsEditable));
         m_studyTableWidget->setItem(iRow, COLUMN_TITLE, titleItem);
     }
     
