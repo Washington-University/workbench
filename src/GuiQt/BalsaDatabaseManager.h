@@ -21,8 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include "BalsaStudyInformation.h"
 #include "CaretObject.h"
-
 #include "EventListenerInterface.h"
 
 namespace caret {
@@ -35,6 +35,12 @@ namespace caret {
         BalsaDatabaseManager();
         
         virtual ~BalsaDatabaseManager();
+        
+        bool getAllStudyInformationForUser(const AString& databaseURL,
+                                           const AString& username,
+                                           const AString& password,
+                                           std::vector<BalsaStudyInformation>& studyInformationOut,
+                                           AString& errorMessageOut);
         
         bool getStudyIDFromStudyTitle(const AString& databaseURL,
                                       const AString& username,

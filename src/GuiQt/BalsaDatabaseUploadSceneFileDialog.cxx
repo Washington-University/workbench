@@ -38,7 +38,7 @@
 #include <QTabWidget>
 
 #include "BalsaDatabaseManager.h"
-#include "BalsaDatabaseStudyTitleDialog.h"
+#include "BalsaStudySelectionDialog.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
@@ -124,6 +124,11 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     defaultPassword = "";
 #endif
     
+    /*
+     * Create the BALSA database manager
+     */
+    m_balsaDatabaseManager = std::unique_ptr<BalsaDatabaseManager>(new BalsaDatabaseManager());
+
     /*
      * Database selection
      */
@@ -214,10 +219,14 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     /*
      * Get BALSA Study ID button
      */
-    m_getBalsaStudyIDPushButton = new QPushButton("Get...");
-    m_getBalsaStudyIDPushButton->setToolTip("Get the BALSA Study ID by sending Study Title to BALSA");
-    QObject::connect(m_getBalsaStudyIDPushButton, &QPushButton::clicked,
-                     this, &BalsaDatabaseUploadSceneFileDialog::getBalsaStudyIDPushButtonClicked);
+    const bool showGetStudyIdButtonFlag = false;
+    m_getBalsaStudyIDPushButton = NULL;
+    if (showGetStudyIdButtonFlag) {
+        m_getBalsaStudyIDPushButton = new QPushButton("Get...");
+        m_getBalsaStudyIDPushButton->setToolTip("Get the BALSA Study ID by sending Study Title to BALSA");
+        QObject::connect(m_getBalsaStudyIDPushButton, &QPushButton::clicked,
+                         this, &BalsaDatabaseUploadSceneFileDialog::getBalsaStudyIDPushButtonClicked);
+    }
     
     /*
      * BALSA Study ID Lock button
@@ -244,8 +253,8 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     /**
      * Select Study Push Button
      */
-    m_selectStudyTitlePushButton = new QPushButton("Select...");
-    m_selectStudyTitlePushButton->setToolTip("Select from user's studies in BALSA Database");
+    m_selectStudyTitlePushButton = new QPushButton("Add/Choose...");
+    m_selectStudyTitlePushButton->setToolTip("Add new study or choose from user's studies in BALSA Database");
     QObject::connect(m_selectStudyTitlePushButton, &QPushButton::clicked,
                      this, &BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked);
     
@@ -307,7 +316,9 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     gridLayout->addWidget(m_balsaStudyIDLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_balsaStudyIDLineEdit, row, COLUMN_DATA_WIDGET);
     gridLayout->addWidget(m_balsaStudyIDLockPushButton, row, COLUMN_BUTTON_ONE);
-    gridLayout->addWidget(m_getBalsaStudyIDPushButton, row, COLUMN_BUTTON_TWO);
+    if (m_getBalsaStudyIDPushButton != NULL) {
+        gridLayout->addWidget(m_getBalsaStudyIDPushButton, row, COLUMN_BUTTON_TWO);
+    }
     
     
     m_balsaStudyIDLineEdit->setText(m_sceneFile->getBalsaStudyID());
@@ -343,14 +354,6 @@ BalsaDatabaseUploadSceneFileDialog::createAdvancedTab()
     QPushButton* browseCustomDirectoryPushButton = new QPushButton("Browse...");
     QObject::connect(browseCustomDirectoryPushButton, &QPushButton::clicked,
                      this, &BalsaDatabaseUploadSceneFileDialog::browseZipFileCustomDirectoryPushButtonClicked);
-    //QObject::connect(m_zipFileDirectoryComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
-    //                 this, &BalsaDatabaseUploadSceneFileDialog::zipFileDirectoryComboBoxActivated);
-    //    QObject::connect(m_zipFileDirectoryComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
-    //                     this, [=](int) { this->validateData(); });
-    //    QObject::connect(m_zipFileDirectoryComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
-    //                     this, [=]{ this->validateData(); });
-    //    QObject::connect(m_zipFileDirectoryComboBox, &QComboBox::activated,
-    //                     this, [=](int) { this->validateData(); });
     
     QGroupBox* zipDirectoryGroupBox = new QGroupBox("Zip File Directory");
     QGridLayout* gridLayout = new QGridLayout(zipDirectoryGroupBox);
@@ -454,38 +457,6 @@ BalsaDatabaseUploadSceneFileDialog::getZipFileNameWithPath(AString& errorMessage
     return zipFileName.getAbsoluteFilePath();
 }
 
-
-
-///**
-// * @return the ZIP file directory.  Will be empty if the directory is invalid (does not exist).
-// */
-//AString
-//BalsaDatabaseUploadSceneFileDialog::getZipFileDirectory() const
-//{
-//    AString directoryName;
-//    if (m_zipFileTemporaryDirectoryRadioButton->isChecked()) {
-//        directoryName = SystemUtilities::getTempDirectory();
-//    }
-//    else if (m_zipFileCustomDirectoryRadioButton->isChecked()) {
-//        directoryName = m_zipFileCustomDirectoryLineEdit->text().trimmed();
-//    }
-//    else {
-//        CaretAssert(0);
-//    }
-//    
-//    if (directoryName.isEmpty()) {
-//        return "";
-//    }
-//    
-//    FileInformation fileInfo(directoryName);
-//    if (fileInfo.exists()) {
-//        return directoryName;
-//    }
-//    
-//    return "";
-//}
-
-
 /**
  * Gets called when the OK button is clicked.
  */
@@ -540,15 +511,6 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     
     const AString extractToDirectoryName = m_extractDirectoryNameLineEdit->text().trimmed();
     
-//    if (m_sceneFile->getBalsaStudyID().trimmed().isEmpty()) {
-//        const QString msg("The BALSA Study ID is missing.  You must either: (1) Go to "
-//                          "<a href=\"https://balsa.wustl.edu\">BALSA Database</a> and get a BALSA Study ID or "
-//                          "(2) Enter a Study Title and press the <B>Get</B> button to request a BALSA Study ID "
-//                          "using the Study Title");
-//        WuQMessageBox::errorOk(this, msg);
-//        return;
-//    }
-    
     if (m_sceneFile->isModified()) {
         const QString msg("The scene file is modified and must be saved before continuing.  Would you like "
                           "to save the scene file using its current name and continue?");
@@ -577,8 +539,7 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     progressDialog.setCancelButton((QPushButton*)0); // no cancel button
     
     AString errorMessage;
-    CaretPointer<BalsaDatabaseManager> balsaDatabaseManager(new BalsaDatabaseManager());
-    const bool successFlag = balsaDatabaseManager->uploadZippedSceneFile(getDataBaseURL(),
+    const bool successFlag = m_balsaDatabaseManager->uploadZippedSceneFile(getDataBaseURL(),
                                                                          username,
                                                                          password,
                                                                          m_sceneFile,
@@ -611,14 +572,42 @@ BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked()
     const AString username = m_usernameLineEdit->text().trimmed();
     const AString password = m_passwordLineEdit->text().trimmed();
     
-    std::vector<AString> studyTitles;
+    std::vector<BalsaStudyInformation> studyInfo;
+    studyInfo.emplace(studyInfo.end(), "AV4H", "Study One");
+    studyInfo.emplace(studyInfo.end(), "BX32", "Study Two");
+    studyInfo.emplace(studyInfo.end(), "CR33", "Study Three");
     
-    BalsaDatabaseStudyTitleDialog dialog(studyTitles,
-                                         username,
-                                         password,
-                                         this);
-    if (dialog.exec() == BalsaDatabaseStudyTitleDialog::Accepted) {
-        m_balsaStudyTitleLineEdit->setText(dialog.getSelectedStudyTitle().trimmed());
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    AString errorMessage;
+    if ( ! m_balsaDatabaseManager->getAllStudyInformationForUser(getDataBaseURL(),
+                                                                 username,
+                                                                 password,
+                                                                 studyInfo,
+                                                                 errorMessage)) {
+        cursor.restoreCursor();
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+        return;
+    }
+    
+    cursor.restoreCursor();
+    
+    const AString selectedStudyName = m_balsaStudyTitleLineEdit->text().trimmed();
+    
+    BalsaStudySelectionDialog dialog(studyInfo,
+                                     selectedStudyName,
+                                     m_balsaDatabaseManager.get(),
+                                     getDataBaseURL(),
+                                     username,
+                                     password,
+                                     this);
+    if (dialog.exec() == BalsaStudySelectionDialog::Accepted) {
+        BalsaStudyInformation bsi = dialog.getSelectedStudyInformation();
+        if ( ! bsi.isEmpty()) {
+            m_balsaStudyIDLineEdit->setText(bsi.getStudyID());
+            m_balsaStudyTitleLineEdit->setText(bsi.getStudyTitle());
+        }
         validateData();
     }
 }
@@ -662,6 +651,8 @@ BalsaDatabaseUploadSceneFileDialog::balsaStudyIDLockPushButtonClicked()
 void
 BalsaDatabaseUploadSceneFileDialog::getBalsaStudyIDPushButtonClicked()
 {
+    CaretAssert(m_getBalsaStudyIDPushButton);
+    
     const AString title = m_balsaStudyTitleLineEdit->text().trimmed();
     if (title.isEmpty()) {
         WuQMessageBox::errorOk(m_getBalsaStudyIDPushButton,
@@ -674,8 +665,6 @@ BalsaDatabaseUploadSceneFileDialog::getBalsaStudyIDPushButtonClicked()
     
     const AString username = m_usernameLineEdit->text().trimmed();
     const AString password = m_passwordLineEdit->text().trimmed();
-    //const AString zipFileName = m_zipFileNameLineEdit->text().trimmed();
-    //const AString extractToDirectoryName = m_extractDirectoryNameLineEdit->text().trimmed();
     
     AString studyID;
     AString errorMessage;
@@ -690,7 +679,6 @@ BalsaDatabaseUploadSceneFileDialog::getBalsaStudyIDPushButtonClicked()
     cursor.restoreCursor();
     
     if (successFlag) {
-        //m_sceneFile->setBalsaStudyID(studyID);
         m_balsaStudyIDLineEdit->setText(studyID);
         validateData();
     }
@@ -772,7 +760,6 @@ BalsaDatabaseUploadSceneFileDialog::browseBaseDirectoryPushButtonClicked()
     /*
      * Set name of new scene file and add to brain
      */
-    //m_sceneFile->setBaseDirectory(newDirectoryName);
     m_baseDirectoryLineEdit->setText(newDirectoryName);
     validateData();
 }
@@ -814,9 +801,6 @@ BalsaDatabaseUploadSceneFileDialog::createValidator(const LabelName labelName)
         case LabelName::LABEL_USERNAME:
             regEx.setPattern(".+");
             break;
-//        case LabelName::LABEL_ZIP_FILE_DIRECTORY:
-//            regEx.setPattern(".+\\.zip");
-//            break;
     }
     CaretAssert(regEx.isValid());
     
@@ -832,7 +816,9 @@ void
 BalsaDatabaseUploadSceneFileDialog::validateData()
 {
     updateAllLabels();
-    m_getBalsaStudyIDPushButton->setEnabled(m_balsaStudyTitleLineEdit->hasAcceptableInput());
+    if (m_getBalsaStudyIDPushButton != NULL) {
+        m_getBalsaStudyIDPushButton->setEnabled(m_balsaStudyTitleLineEdit->hasAcceptableInput());
+    }
 }
 
 /**
@@ -848,7 +834,6 @@ BalsaDatabaseUploadSceneFileDialog::updateAllLabels()
     setLabelText(LabelName::LABEL_STUDY_ID);
     setLabelText(LabelName::LABEL_STUDY_TITLE);
     setLabelText(LabelName::LABEL_USERNAME);
-//    setLabelText(LabelName::LABEL_ZIP_FILE_DIRECTORY);
 }
 
 
@@ -902,15 +887,6 @@ BalsaDatabaseUploadSceneFileDialog::setLabelText(const LabelName labelName)
             labelText = "Username";
             validFlag = m_usernameLineEdit->hasAcceptableInput();
            break;
-//        case LabelName::LABEL_ZIP_FILE_DIRECTORY:
-//        {
-//            label = m_zipFileDirectoryNameLabel;
-//            labelText = "Zip File Directory";
-//            if ( ! getZipFileDirectory().isEmpty()) {
-//                validFlag = true;
-//            }
-//        }
-//            break;
     }
     
     const bool textRedIfInvalid = true;
@@ -943,7 +919,6 @@ BalsaDatabaseUploadSceneFileDialog::setLabelText(const LabelName labelName)
     
     CaretAssert(label);
     label->setText(coloredText);
-    
 }
 
 

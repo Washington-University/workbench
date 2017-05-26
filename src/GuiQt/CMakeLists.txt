@@ -60,8 +60,8 @@ ELSE()
         AnnotationTextEditorWidget.h
         AnnotationTextOrientationWidget.h
         AnnotationWidthHeightWidget.h
-        BalsaDatabaseStudyTitleDialog.h
         BalsaDatabaseUploadSceneFileDialog.h
+        BalsaStudySelectionDialog.h
         BorderEditingSelectionDialog.h
         BorderFileSplitDialog.h
         BorderOptimizeDialog.h
@@ -237,9 +237,10 @@ AnnotationTextEditorWidget.h
 AnnotationTextOrientationWidget.h
 AnnotationWidgetParentEnum.h
 AnnotationWidthHeightWidget.h
-BalsaDatabaseStudyTitleDialog.h
 BalsaDatabaseManager.h
 BalsaDatabaseUploadSceneFileDialog.h
+BalsaStudySelectionDialog.h
+BalsaStudyInformation.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -442,8 +443,9 @@ AnnotationTextOrientationWidget.cxx
 AnnotationWidgetParentEnum.cxx
 AnnotationWidthHeightWidget.cxx
 BalsaDatabaseManager.cxx
-BalsaDatabaseStudyTitleDialog.cxx
 BalsaDatabaseUploadSceneFileDialog.cxx
+BalsaStudyInformation.cxx
+BalsaStudySelectionDialog.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
 BorderOptimizeDialog.cxx

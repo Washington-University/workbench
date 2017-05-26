@@ -19,6 +19,7 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
 #include <iostream>
 
 #define __BALSA_DATABASE_MANAGER_DECLARE__
@@ -328,10 +329,9 @@ BalsaDatabaseManager::processUploadResponse(const std::map<AString, AString>& re
         contentErrorMessage = "No Content-Type header received from file upload.\n";
     }
     
-//    std::cout << std::endl << "RESPONSE CONTENT: " << responseContent << std::endl << std::endl;
-//    
-//    QJsonDocument jsonDocument = QJsonDocument::fromRawData(responseContent.toLatin1().constData(),
-//                                                            responseContent.length());
+    if (m_debugFlag) {
+        std::cout << std::endl << "RESPONSE CONTENT: " << responseContent << std::endl << std::endl;
+    }
     
     CaretJsonObject json(responseContent);
     
@@ -520,6 +520,39 @@ BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
 }
 
 /**
+ * Get the value for the given header name using
+ * a case-insensitive string comparison.
+ *
+ * @param headerName
+ *     The header name.
+ * @return
+ *     Value for header name.  If the header name is
+ *     not found the returned string will be NULL
+ *     (test with .isNull()).
+ */
+static AString getHeaderValue(const CaretHttpResponse& httpResponse,
+                              const AString& headerName)
+{
+    /*
+     * NULL string
+     */
+    AString value;
+    CaretAssert(value.isNull());
+    
+    const QString headerNameLower(headerName.toLower());
+    
+    
+    for (auto iter : httpResponse.m_headers) {
+        if (iter.first.toLower() == headerNameLower) {
+            value = iter.second;
+            break;
+        }
+    }
+    
+    return value;
+}
+
+/**
  * Get the study ID from a study Title
  *
  * @param databaseURL
@@ -544,85 +577,84 @@ BalsaDatabaseManager::requestStudyID(const AString& databaseURL,
 
     errorMessageOut.clear();
     
-    CaretHttpRequest uploadRequest;
-    uploadRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
-    uploadRequest.m_url    = studyIdURL;
-    uploadRequest.m_headers.insert(std::make_pair("Content-Type",
+    CaretHttpRequest caretRequest;
+    caretRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
+    caretRequest.m_url    = studyIdURL;
+    caretRequest.m_headers.insert(std::make_pair("Content-Type",
                                                   "application/x-www-form-urlencoded"));
-    uploadRequest.m_headers.insert(std::make_pair("Cookie",
+    caretRequest.m_headers.insert(std::make_pair("Cookie",
                                                   getJSessionIdCookie()));
-    uploadRequest.m_arguments.push_back(std::make_pair("title",
+    caretRequest.m_arguments.push_back(std::make_pair("title",
                                                   studyTitle));
+    caretRequest.m_arguments.push_back(std::make_pair("type",
+                                                      "json"));
     
-    CaretHttpResponse idResponse;
-    CaretHttpManager::httpRequest(uploadRequest, idResponse);
-    
-    if (m_debugFlag) {
-        std::cout << "Request study ID response Code: " << idResponse.m_responseCode << std::endl;
-    }
-    
-    AString locationFromHeader;
-    for (std::map<AString, AString>::iterator mapIter = idResponse.m_headers.begin();
-         mapIter != idResponse.m_headers.end();
-         mapIter++) {
-        if (m_debugFlag) {
-            std::cout << "   Request study ID Response Header: " << qPrintable(mapIter->first)
-            << " -> " << qPrintable(mapIter->second) << std::endl;
-        }
-        if (mapIter->first.toLower() == "location") {
-            locationFromHeader = mapIter->second;
-        }
-    }
-    
-    idResponse.m_body.push_back('\0');
-    AString responseContent(&idResponse.m_body[0]);
+    CaretHttpResponse studyResponse;
+    CaretHttpManager::httpRequest(caretRequest, studyResponse);
     
     if (m_debugFlag) {
-        std::cout << "Request Study ID reply body:" << responseContent << std::endl;
+        std::cout << "Request study ID response Code: " << studyResponse.m_responseCode << std::endl;
     }
     
-    CaretLogFine("Request Study ID to BALSA reply body: "
-                 + responseContent);
-    
-    if (idResponse.m_responseCode != 200) {
-        errorMessageOut = ("Requesting study ID failed HTTP code: "
-                           + QString::number(idResponse.m_responseCode)
-                           + "\n"
-                           "Could be due failure to agree to data user terms.");
-        
+    if (studyResponse.m_responseCode != 200) {
+        errorMessageOut = ("Requesting study ID failed with HTTP code="
+                           + AString::number(studyResponse.m_responseCode)
+                           + ".  This error may be caused by failure to agree to data use terms.");
         return false;
     }
     
-    if ( ! locationFromHeader.isEmpty()) {
-        const int lastSlashIndex = locationFromHeader.lastIndexOf('/');
-        if (lastSlashIndex >= 0) {
-            studyIDOut = locationFromHeader.mid(lastSlashIndex + 1);
-            if (studyIDOut.isNull()
-                || studyIDOut.isEmpty()) {
-                errorMessageOut = ("Received 'Location' from BALSA but unable to find study ID in the URL: "
-                                   + locationFromHeader);
-                return false;
-            }
-            
-            /*
-             * Have the Study ID
-             */
-            return true;
-        }
-        else {
-            errorMessageOut = ("Received 'Location' from BALSA but unable to find study ID in the URL: "
-                               + locationFromHeader);
-        }
+    AString contentType = getHeaderValue(studyResponse, "Content-Type");
+    //AString contentType = studyResponse.getHeaderValue("Content-Type");
+    if (contentType.isNull()) {
+        errorMessageOut = ("Requesting study ID failed.  Content type returned by BALSA is unknown");
+        return false;
     }
-    else {
-        if (responseContent.indexOf("must be unique") >= 0) {
-            errorMessageOut = ("A study with the title \""
-                               + studyTitle
-                               + "\" already exists and duplicate study titles are not allowed in the BALSA database.");
-        }
-        else {
-            errorMessageOut = "Unable to find 'Location' in response from BALSA.";
-        }
+    
+    if ( ! contentType.toLower().startsWith("application/json")) {
+        errorMessageOut = ("Requesting study ID failed.  Content type return by BALSA should be JSON format but is "
+                           + contentType);
+        return false;
+    }
+
+    studyResponse.m_body.push_back('\0');
+    AString responseContent(&studyResponse.m_body[0]);
+    
+    if (m_debugFlag) {
+        std::cout << "Request study ID body:\n" << responseContent << std::endl << std::endl;
+    }
+    
+    QJsonParseError jsonError;
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toLatin1(),
+                                                         &jsonError);
+    if (jsonDocument.isNull()) {
+        errorMessageOut = ("Requesting study ID failed.  Failed to parse JSON, error:"
+                           + jsonError.errorString());
+        return false;
+    }
+    
+    QByteArray json = jsonDocument.toJson();
+    if (m_debugFlag) {
+        std::cout << "Array?: " << jsonDocument.isArray() << std::endl;
+        std::cout << "Empty?: " << jsonDocument.isEmpty() << std::endl;
+        std::cout << "NULL?: " << jsonDocument.isNull() << std::endl;
+        std::cout << "Object?: " << jsonDocument.isObject() << std::endl;
+        std::cout << "JSON length: " << json.size() << std::endl;
+        AString str(json);
+        std::cout << ("Formatted JSON:\n" + str) << std::endl;
+    }
+    
+    if ( ! jsonDocument.isObject()) {
+        errorMessageOut  = ("Requesting study ID failed.  JSON content is not an object."
+                            "JSON is displayed in terminal if logging level is warning or higher.");
+        CaretLogWarning("Study ID JSON is not Object\n"
+                        + AString(jsonDocument.toJson()));
+        return false;
+    }
+    
+    BalsaStudyInformation bsi(jsonDocument.object());
+    if ( ! bsi.getStudyID().isEmpty()) {
+        studyIDOut = bsi.getStudyID();
+        return true;
     }
     
     return false;
@@ -684,6 +716,160 @@ BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& databaseURL,
     
     return true;
 }
+
+
+/**
+ * Login to BALSA and request a study ID from a study title.
+ *
+ * @param databaseURL
+ *     URL of the database.
+ * @param username
+ *     Username for logging in.
+ * @param password
+ *     Password for logging in.
+ * @param studyInformationOut
+ *     Output containing information for all of the user's studies.
+ * @param errorMessageOut
+ *     Contains description of any error(s).
+ * @return
+ *     True if processing was successful, else false.
+ */
+bool
+BalsaDatabaseManager::getAllStudyInformationForUser(const AString& databaseURL,
+                                   const AString& username,
+                                   const AString& password,
+                                   std::vector<BalsaStudyInformation>& studyInformationOut,
+                                   AString& errorMessageOut)
+{
+    studyInformationOut.clear();
+    errorMessageOut = "";
+    
+    /*
+     * Login
+     */
+    const AString loginURL(databaseURL
+                           + "/j_spring_security_check");
+    if ( ! login(loginURL,
+                 username,
+                 password,
+                 errorMessageOut)) {
+        
+        return false;
+    }
+    
+    if (m_debugFlag) {
+        std::cout << "SESSION ID from BALSA Login: " << getJSessionIdCookie() << std::endl;
+    }
+    else {
+        CaretLogInfo("SESSION ID from BALSA Login: "
+                     + getJSessionIdCookie());
+    }
+    
+    const AString studyIdURL(databaseURL
+                             + "/study/mine");
+    
+    errorMessageOut.clear();
+    
+    CaretHttpRequest caretRequest;
+    caretRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
+    caretRequest.m_url    = studyIdURL;
+    caretRequest.m_headers.insert(std::make_pair("Content-Type",
+                                                  "application/x-www-form-urlencoded"));
+    caretRequest.m_headers.insert(std::make_pair("Cookie",
+                                                  getJSessionIdCookie()));
+    caretRequest.m_arguments.push_back(std::make_pair("type",
+                                                       "json"));
+    
+    CaretHttpResponse idResponse;
+    CaretHttpManager::httpRequest(caretRequest, idResponse);
+    
+    if (m_debugFlag) {
+        std::cout << "Request all studies response Code: " << idResponse.m_responseCode << std::endl;
+    }
+    
+    if (idResponse.m_responseCode != 200) {
+        errorMessageOut = ("Requesting all study information failed with HTTP code="
+                           + AString::number(idResponse.m_responseCode)
+                           + ".  This error may be caused by failure to agree to data use terms.");
+        return false;
+    }
+    
+    AString contentType = getHeaderValue(idResponse, "Content-Type");
+    //AString contentType = idResponse.getHeaderValue("Content-Type");
+    if (contentType.isNull()) {
+        errorMessageOut = ("Requesting all study information failed.  Content type returned by BALSA is unknown");
+        return false;
+    }
+    
+    if ( ! contentType.toLower().startsWith("application/json")) {
+        errorMessageOut = ("Requesting all study information failed.  Content type return by BALSA should be JSON format but is "
+                           + contentType);
+        return false;
+    }
+    
+    idResponse.m_body.push_back('\0');
+    AString responseContent(&idResponse.m_body[0]);
+    
+    if (m_debugFlag) {
+        std::cout << "Request all studies reply body:\n" << responseContent << std::endl << std::endl;
+    }
+    
+    QJsonParseError jsonError;
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toLatin1(),
+                                                         &jsonError);
+    if (jsonDocument.isNull()) {
+        errorMessageOut = ("Requesting all study information failed.  Failed to parse JSON, error:"
+                           + jsonError.errorString());
+        return false;
+    }
+    QByteArray json = jsonDocument.toJson();
+    
+    if (m_debugFlag) {
+        std::cout << "Array?: " << jsonDocument.isArray() << std::endl;
+        std::cout << "Empty?: " << jsonDocument.isEmpty() << std::endl;
+        std::cout << "NULL?: " << jsonDocument.isNull() << std::endl;
+        std::cout << "Object?: " << jsonDocument.isObject() << std::endl;
+        std::cout << "JSON length: " << json.size() << std::endl;
+        AString str(json);
+        std::cout << ("Formatted JSON:\n" + str) << std::endl;
+    }
+
+    if ( ! jsonDocument.isArray()) {
+        errorMessageOut  = ("Requesting all study information failed.  JSON content is not an array."
+                            "JSON is displayed in terminal if logging level is warning or higher.");
+        CaretLogWarning("Study Information JSON is not Array\n"
+                        + AString(jsonDocument.toJson()));
+        return false;
+    }
+    
+    QJsonArray jsonArray = jsonDocument.array();
+    for (QJsonArray::iterator iter = jsonArray.begin();
+         iter != jsonArray.end();
+         iter++) {
+        QJsonValue jsonValue = *iter;
+        if ( ! jsonValue.isNull()) {
+            if (jsonValue.isObject()) {
+                QJsonObject studyInfo = jsonValue.toObject();
+                
+                BalsaStudyInformation bsi(studyInfo);
+                if ( ! bsi.isEmpty()) {
+                    studyInformationOut.push_back(bsi);
+                }
+            }
+        }
+    }
+    
+    if (studyInformationOut.empty()) {
+        errorMessageOut = "No study information was found.";
+        return false;
+    }
+    
+    std::sort(studyInformationOut.begin(),
+              studyInformationOut.end());
+    
+    return true;
+}
+
 
 /**
  * Login to BALSA, zip the scene and data files, and upload the

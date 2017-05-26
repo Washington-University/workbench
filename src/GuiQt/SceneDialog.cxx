@@ -1035,7 +1035,7 @@ SceneDialog::zipSceneFileButtonClicked()
  *     Index of item selected.
  */
 void 
-SceneDialog::sceneFileSelected(int index)
+SceneDialog::sceneFileSelected(int /*index*/)
 {
     loadScenesIntoDialog(NULL);
     

@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include <QIcon>
 
 #include "WuQDialogModal.h"
@@ -33,7 +35,7 @@ class QRadioButton;
 class QRegularExpressionValidator;
 
 namespace caret {
-
+    class BalsaDatabaseManager;
     class SceneFile;
     
     class BalsaDatabaseUploadSceneFileDialog : public WuQDialogModal {
@@ -78,7 +80,6 @@ namespace caret {
             LABEL_STUDY_ID,
             LABEL_STUDY_TITLE,
             LABEL_USERNAME
-            //LABEL_ZIP_FILE_DIRECTORY
         };
         
         BalsaDatabaseUploadSceneFileDialog(const BalsaDatabaseUploadSceneFileDialog&);
@@ -99,13 +100,13 @@ namespace caret {
         
         AString getZipFileNameWithPath(AString& errorMessageOut) const;
         
-        //AString getZipFileDirectory() const;
-        
         void updateAllLabels();
         
         void setLabelText(const LabelName labelName);
         
         SceneFile* m_sceneFile;
+        
+        std::unique_ptr<BalsaDatabaseManager> m_balsaDatabaseManager;
         
         QLabel* m_databaseLabel;
         QComboBox* m_databaseComboBox;
