@@ -322,7 +322,12 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     
     
     m_balsaStudyIDLineEdit->setText(m_sceneFile->getBalsaStudyID());
-    m_baseDirectoryLineEdit->setText(m_sceneFile->getBalsaBaseDirectory());
+    AString baseDirectory = m_sceneFile->getBalsaBaseDirectory();
+    if (baseDirectory.isEmpty()) {
+        FileInformation fileInfo(m_sceneFile->getFileName());
+        baseDirectory = fileInfo.getPathName();
+    }
+    m_baseDirectoryLineEdit->setText(baseDirectory);
     m_balsaStudyTitleLineEdit->setText(m_sceneFile->getBalsaStudyTitle());
     m_extractDirectoryNameLineEdit->setText(m_sceneFile->getBalsaExtractToDirectoryName());
     
