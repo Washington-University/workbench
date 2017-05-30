@@ -722,6 +722,66 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
                                         annotation);
 }
 
+///**
+// * Constructor for information used to create a new annotation.
+// *
+// * @param mouseEvent
+// *     The mouse event.
+// * @param selectedSpace
+// *     The space selected by the user.
+// * @param annotationType
+// *     The annotation type.
+// * @param useBothCoordinatesFromMouseFlag
+// *     Use both coords (X/Y and pressed X/Y)
+// * @param annotationFile
+// *     File to which annotation is added.
+// */
+//AnnotationCreateDialog::NewAnnotationInfo::NewAnnotationInfo(const MouseEvent& mouseEvent,
+//                                                             const AnnotationCoordinateSpaceEnum::Enum selectedSpace,
+//                                                             const AnnotationTypeEnum::Enum annotationType,
+//                                                             const bool useBothCoordinatesFromMouseFlag,
+//                                                             AnnotationFile* annotationFile)
+//: m_mouseEvent(mouseEvent),
+//m_selectedSpace(selectedSpace),
+//m_annotationType(annotationType),
+//m_annotationFile(annotationFile)
+//{
+//    CaretAssert(annotationFile);
+//    
+//    m_validSpaces.clear();
+//    m_coordOneInfo.reset();
+//    m_coordTwoInfo.reset();
+//    m_coordTwoInfoValid = false;
+//    m_percentageWidth  = -1;
+//    m_percentageHeight = -1;
+//    
+//    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+//                                                                       mouseEvent.getX(),
+//                                                                       mouseEvent.getY(),
+//                                                                       m_coordOneInfo);
+//    
+//    if (useBothCoordinatesFromMouseFlag) {
+//        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+//                                                                           mouseEvent.getPressedX(),
+//                                                                           mouseEvent.getPressedY(),
+//                                                                           m_coordTwoInfo);
+//        
+//        AnnotationCoordinateInformation::getValidCoordinateSpaces(&m_coordOneInfo,
+//                                                                  &m_coordTwoInfo,
+//                                                                  m_validSpaces);
+//        
+//        if (isValid()) {
+//            m_coordTwoInfoValid = true;
+//            
+//            processTwoCoordInfo();
+//        }
+//    }
+//    else {
+//        AnnotationCoordinateInformation::getValidCoordinateSpaces(&m_coordOneInfo,
+//                                                                  NULL,
+//                                                                  m_validSpaces);
+//    }
+//}
 /**
  * Constructor for information used to create a new annotation.
  *
@@ -755,16 +815,16 @@ m_annotationFile(annotationFile)
     m_percentageWidth  = -1;
     m_percentageHeight = -1;
     
-    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
-                                                                       mouseEvent.getX(),
-                                                                       mouseEvent.getY(),
-                                                                       m_coordOneInfo);
     
     if (useBothCoordinatesFromMouseFlag) {
         AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+                                                                           mouseEvent.getX(),
+                                                                           mouseEvent.getY(),
+                                                                           m_coordTwoInfo);
+        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
                                                                            mouseEvent.getPressedX(),
                                                                            mouseEvent.getPressedY(),
-                                                                           m_coordTwoInfo);
+                                                                           m_coordOneInfo);
         
         AnnotationCoordinateInformation::getValidCoordinateSpaces(&m_coordOneInfo,
                                                                   &m_coordTwoInfo,
@@ -777,6 +837,11 @@ m_annotationFile(annotationFile)
         }
     }
     else {
+        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+                                                                           mouseEvent.getX(),
+                                                                           mouseEvent.getY(),
+                                                                           m_coordOneInfo);
+        
         AnnotationCoordinateInformation::getValidCoordinateSpaces(&m_coordOneInfo,
                                                                   NULL,
                                                                   m_validSpaces);

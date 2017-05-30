@@ -26,6 +26,7 @@
 #include <QAction>
 #include <QGridLayout>
 #include <QLabel>
+#include <QPainter>
 #include <QToolButton>
 
 #include "AnnotationLine.h"
@@ -59,33 +60,40 @@ m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* label = new QLabel("Line");
     
-    const QSize toolButtonSize(18, 18);
+    const QSize toolButtonSize(24, 24); //(18, 18);
     
-    m_endArrowToolButton = new QToolButton();
-    m_endArrowToolButton->setArrowType(Qt::DownArrow);
-    m_endArrowToolButton->setCheckable(true);
-    m_endArrowToolButton->setToolTip("Show arrow at line's end coordinate");
-    m_endArrowToolButton->setFixedSize(toolButtonSize);
-    QObject::connect(m_endArrowToolButton, SIGNAL(clicked(bool)),
-                     this, SLOT(endArrowTipActionToggled()));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_endArrowToolButton);
     
-    m_startArrowToolButton = new QToolButton();
-    m_startArrowToolButton->setArrowType(Qt::UpArrow);
-    m_startArrowToolButton->setCheckable(true);
-    m_startArrowToolButton->setToolTip("Show arrow at line's start coordinate");
-    m_startArrowToolButton->setFixedSize(toolButtonSize);
-    QObject::connect(m_startArrowToolButton, SIGNAL(clicked(bool)),
-                     this, SLOT(startArrowTipActionToggled()));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_startArrowToolButton);
+    
+    QToolButton* endArrowToolButton = new QToolButton();
+    m_endArrowAction = new QAction(this);
+    m_endArrowAction->setCheckable(true);
+    m_endArrowAction->setToolTip("Show arrow at line's end coordinate");
+    m_endArrowAction->setIcon(QIcon(createArrowPixmap(endArrowToolButton, ArrowType::DOWN)));
+    QObject::connect(m_endArrowAction, &QAction::triggered,
+                     this, &AnnotationLineArrowTipsWidget::endArrowTipActionToggled);
+                     //this, [=] { this->endArrowTipActionToggled(); });
+    endArrowToolButton->setDefaultAction(m_endArrowAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(endArrowToolButton);
+    
+    
+    QToolButton* startArrowToolButton = new QToolButton();
+    m_startArrowAction = new QAction(this);
+    m_startArrowAction->setCheckable(true);
+    m_startArrowAction->setToolTip("Show arrow at line's start coordinate");
+    m_startArrowAction->setIcon(QIcon(createArrowPixmap(startArrowToolButton, ArrowType::UP)));
+    QObject::connect(m_startArrowAction, &QAction::triggered,
+                     this, &AnnotationLineArrowTipsWidget::startArrowTipActionToggled);
+                     //this, [=] { this->startArrowTipActionToggled(); });
+    startArrowToolButton->setDefaultAction(m_startArrowAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(startArrowToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
     gridLayout->addWidget(label,
                           0, 0, Qt::AlignHCenter);
-    gridLayout->addWidget(m_startArrowToolButton,
+    gridLayout->addWidget(startArrowToolButton,
                           1, 0, Qt::AlignHCenter);
-    gridLayout->addWidget(m_endArrowToolButton,
+    gridLayout->addWidget(endArrowToolButton,
                           2, 0, Qt::AlignHCenter);
     
     setSizePolicy(QSizePolicy::Fixed,
@@ -136,14 +144,14 @@ AnnotationLineArrowTipsWidget::updateContent(std::vector<AnnotationLine*>& annot
         allEndOnFlag   = false;
     }
     
-    m_startArrowToolButton->setChecked(allStartOnFlag);
-    m_endArrowToolButton->setChecked(allEndOnFlag);
+    m_startArrowAction->setChecked(allStartOnFlag);
+    m_endArrowAction->setChecked(allEndOnFlag);
     
     if (numLines > 0) {
         setEnabled(true);
         
-        AnnotationLine::setUserDefaultDisplayStartArrow(m_startArrowToolButton->isChecked());
-        AnnotationLine::setUserDefaultDisplayEndArrow(m_endArrowToolButton->isChecked());
+        AnnotationLine::setUserDefaultDisplayStartArrow(m_startArrowAction->isChecked());
+        AnnotationLine::setUserDefaultDisplayEndArrow(m_endArrowAction->isChecked());
     }
     else {
         setEnabled(false);
@@ -158,7 +166,7 @@ void
 AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
 {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeLineArrowStart(m_startArrowToolButton->isChecked(),
+        undoCommand->setModeLineArrowStart(m_startArrowAction->isChecked(),
                                            m_annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     
@@ -171,7 +179,7 @@ AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-        AnnotationLine::setUserDefaultDisplayStartArrow(m_startArrowToolButton->isChecked());
+        AnnotationLine::setUserDefaultDisplayStartArrow(m_startArrowAction->isChecked());
 }
 
 /**
@@ -181,7 +189,7 @@ void
 AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
 {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeLineArrowEnd(m_endArrowToolButton->isChecked(),
+        undoCommand->setModeLineArrowEnd(m_endArrowAction->isChecked(),
                                          m_annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
 
@@ -195,5 +203,138 @@ AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-        AnnotationLine::setUserDefaultDisplayEndArrow(m_endArrowToolButton->isChecked());
+        AnnotationLine::setUserDefaultDisplayEndArrow(m_endArrowAction->isChecked());
 }
+
+/**
+ * Create a pixmap for the given arrow type type.
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @param arrowType
+ *    The arrow type.
+ * @return
+ *    Pixmap with icon for the given arrow type.
+ */
+QPixmap
+AnnotationLineArrowTipsWidget::createArrowPixmap(const QWidget* widget,
+                          const ArrowType arrowType)
+{
+    CaretAssert(widget);
+    
+    /*
+     * Create a small, square pixmap that will contain
+     * the foreground color around the pixmap's perimeter.
+     */
+    const float width  = 24.0;
+    const float height = 24.0;
+    QPixmap pixmap(static_cast<int>(width),
+                   static_cast<int>(height));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(widget, pixmap);
+    
+    const bool fillShapeFlag = false;
+    if (fillShapeFlag) {
+        QBrush brush = painter->brush();
+        brush.setColor(painter->pen().color());
+        brush.setStyle(Qt::SolidPattern);
+        painter->setBrush(brush);
+    }
+    
+    const float percentage = 0.10f;
+    const float left   = width  * percentage;
+    const float right  = width  * (1.0 - percentage);
+    const float bottom = height * percentage;
+    const float top    = height * (1.0 - percentage);
+    const float centerX = width * 0.5;
+    QPolygonF triangle;
+    switch (arrowType) {
+        case ArrowType::DOWN:
+            triangle.push_back(QPointF(right, top));
+            triangle.push_back(QPointF(left, top));
+            triangle.push_back(QPointF(centerX, bottom));
+            break;
+        case ArrowType::UP:
+            triangle.push_back(QPointF(left, bottom));
+            triangle.push_back(QPointF(right, bottom));
+            triangle.push_back(QPointF(centerX, top));
+            break;
+    }
+    painter->drawPolygon(triangle);
+    
+    return pixmap;
+    
+//    switch (annotationType) {
+//        case AnnotationTypeEnum::BOX:
+//            painter->drawRect(1, 1, width - 2, height - 2);
+//            break;
+//        case AnnotationTypeEnum::COLOR_BAR:
+//            CaretAssertMessage(0, "No pixmap for colorbar as user does not create them like other annotations");
+//            break;
+//        case AnnotationTypeEnum::IMAGE:
+//        {
+//            const int blueAsGray = qGray(25,25,255);
+//            QColor skyColor(blueAsGray, blueAsGray, blueAsGray);
+//            
+//            /*
+//             * Background (sky)
+//             */
+//            painter->fillRect(pixmap.rect(), skyColor);
+//            
+//            const int greenAsGray = qGray(0, 255, 0);
+//            QColor terrainColor(greenAsGray, greenAsGray, greenAsGray);
+//            
+//            /*
+//             * Terrain
+//             */
+//            painter->setBrush(terrainColor);
+//            painter->setPen(terrainColor);
+//            const int w14 = width * 0.25;
+//            const int h23 = height * 0.667;
+//            const int h34 = height * 0.75;
+//            QPolygon terrain;
+//            terrain.push_back(QPoint(1, height - 1));
+//            terrain.push_back(QPoint(width - 1, height - 1));
+//            terrain.push_back(QPoint(width - 1, h23));
+//            terrain.push_back(QPoint(w14 * 3, h34));
+//            terrain.push_back(QPoint(w14 * 2, h23));
+//            terrain.push_back(QPoint(w14, h34));
+//            terrain.push_back(QPoint(1, h23));
+//            terrain.push_back(QPoint(1, height - 1));
+//            painter->drawPolygon(terrain);
+//            
+//            const int yellowAsGray = qGray(255, 255, 0);
+//            QColor sunColor(yellowAsGray, yellowAsGray, yellowAsGray);
+//            
+//            /*
+//             * Sun
+//             */
+//            painter->setBrush(sunColor);
+//            painter->setPen(sunColor);
+//            const int radius = width * 0.25;
+//            painter->drawEllipse(width * 0.33, height * 0.33, radius, radius);
+//        }
+//            break;
+//        case AnnotationTypeEnum::LINE:
+//            painter->drawLine(1, height - 1, width - 1, 1);
+//            break;
+//        case AnnotationTypeEnum::OVAL:
+//            painter->drawEllipse(1, 1, width - 1, height - 1);
+//            break;
+//        case AnnotationTypeEnum::TEXT:
+//        {
+//            QFont font = painter->font();
+//            font.setPixelSize(20);
+//            painter->setFont(font);
+//            painter->drawText(pixmap.rect(),
+//                              (Qt::AlignCenter),
+//                              "A");
+//        }
+//            break;
+//    }
+//    
+//    return pixmap;
+//    
+}
+
+

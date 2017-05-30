@@ -26,8 +26,6 @@
 
 #include <QWidget>
 
-class QToolButton;
-
 namespace caret {
 
     class Annotation;
@@ -54,15 +52,24 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        enum class ArrowType {
+            DOWN,
+            UP
+        };
+        
         AnnotationLineArrowTipsWidget(const AnnotationLineArrowTipsWidget&);
 
         AnnotationLineArrowTipsWidget& operator=(const AnnotationLineArrowTipsWidget&);
         
+        QPixmap createArrowPixmap(const QWidget* widget,
+                                  const ArrowType arrowType);
+        
+
         const int32_t m_browserWindowIndex;
         
-        QToolButton* m_startArrowToolButton;
+        QAction* m_startArrowAction;
         
-        QToolButton* m_endArrowToolButton;
+        QAction* m_endArrowAction;
         
         std::vector<Annotation*> m_annotations;
         

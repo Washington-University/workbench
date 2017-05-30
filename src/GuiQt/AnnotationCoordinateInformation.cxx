@@ -493,11 +493,13 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
                     };
                     if (xyz[1] > 50.0) {
                         xyz[1] -= 25.0;
+                        endCoordinate->setXYZ(xyz);
                     }
                     else {
                         xyz[1] += 25.0;
+                        endCoordinate->setXYZ(coordInfoOne->m_tabXYZ);
+                        startCoordinate->setXYZ(xyz);
                     }
-                    endCoordinate->setXYZ(xyz);
                 }
             }
             break;
@@ -524,11 +526,13 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
                     };
                     if (xyz[1] > 50.0) {
                         xyz[1] -= 25.0;
+                        endCoordinate->setXYZ(xyz);
                     }
                     else {
                         xyz[1] += 25.0;
+                        endCoordinate->setXYZ(coordInfoOne->m_windowXYZ);
+                        startCoordinate->setXYZ(xyz);
                     }
-                    endCoordinate->setXYZ(xyz);
                 }
             }
             break;
