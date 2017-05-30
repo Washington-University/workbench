@@ -30,7 +30,6 @@
 
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
-#include "CaretJsonObject.h"
 #include "CaretLogger.h"
 #include "CommandOperationManager.h"
 #include "EventManager.h"
@@ -333,12 +332,51 @@ BalsaDatabaseManager::processUploadResponse(const std::map<AString, AString>& re
         std::cout << std::endl << "RESPONSE CONTENT: " << responseContent << std::endl << std::endl;
     }
     
-    CaretJsonObject json(responseContent);
+    
+    
+    AString statusText;
+    {
+        QJsonParseError jsonError;
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toLatin1(),
+                                                             &jsonError);
+        if (jsonDocument.isNull()) {
+            errorMessageOut = ("Process upload response failed.  Failed to parse JSON, error:"
+                               + jsonError.errorString());
+            return false;
+        }
+        
+        QByteArray json = jsonDocument.toJson();
+        if (m_debugFlag) {
+            std::cout << "Array?: " << jsonDocument.isArray() << std::endl;
+            std::cout << "Empty?: " << jsonDocument.isEmpty() << std::endl;
+            std::cout << "NULL?: " << jsonDocument.isNull() << std::endl;
+            std::cout << "Object?: " << jsonDocument.isObject() << std::endl;
+            std::cout << "JSON length: " << json.size() << std::endl;
+            AString str(json);
+            std::cout << ("Formatted JSON:\n" + str) << std::endl;
+        }
+        
+        if ( ! jsonDocument.isObject()) {
+            errorMessageOut  = ("Process upload response failed.  JSON content is not an object."
+                                "JSON is displayed in terminal if logging level is warning or higher.");
+            CaretLogWarning("Study ID JSON is not Object\n"
+                            + AString(jsonDocument.toJson()));
+            return false;
+        }
+        
+        QJsonObject responseObject = jsonDocument.object();
+        const QJsonValue statusValue = responseObject.value("statusText");
+        if (statusValue.type() == QJsonValue::String) {
+            statusText = statusValue.toString();
+        }
+        if (m_debugFlag) {
+            std::cout << "Status Text: " << statusText << std::endl;
+        }
+    }
     
     if (responseHttpCode != 200) {
-        AString msg = json.value("statusText");
-        if ( ! msg.isEmpty()) {
-            contentErrorMessage.insert(0, msg + "\n");
+        if ( ! statusText.isEmpty()) {
+            contentErrorMessage.insert(0, statusText + "\n");
         }
         
         errorMessageOut = ("Upload failed.  Http Code="
@@ -349,7 +387,7 @@ BalsaDatabaseManager::processUploadResponse(const std::map<AString, AString>& re
     }
     
     if ( ! haveJsonResponseContentFlag) {
-        errorMessageOut = (contentErrorMessage);
+        errorMessageOut = contentErrorMessage;
         return false;
     }
     
@@ -795,7 +833,6 @@ BalsaDatabaseManager::getAllStudyInformationForUser(const AString& databaseURL,
     }
     
     AString contentType = getHeaderValue(idResponse, "Content-Type");
-    //AString contentType = idResponse.getHeaderValue("Content-Type");
     if (contentType.isNull()) {
         errorMessageOut = ("Requesting all study information failed.  Content type returned by BALSA is unknown");
         return false;
