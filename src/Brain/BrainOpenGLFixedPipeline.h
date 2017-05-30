@@ -507,6 +507,10 @@ namespace caret {
         
         void setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& viewportContents);
         
+        void drawTabHighlighting(const float width,
+                                 const float height,
+                                 const float rgb[3]);
+        
         /** Index of window */
         const int32_t m_windowIndex;
         

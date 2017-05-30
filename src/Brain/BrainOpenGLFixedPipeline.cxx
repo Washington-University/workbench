@@ -601,68 +601,9 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
          * in Tile Tabs when user selects a tab.
          */
         if (vpContent->isTabHighlighted()) {
-            glMatrixMode(GL_PROJECTION);
-            glPushMatrix();
-            glLoadIdentity();
-//            const float width = windowViewport[2];
-//            const float height = windowViewport[3];
-            const float width = m_tabViewport[2];
-            const float height = m_tabViewport[3];
-            glOrtho(0.0, width, 0.0, height, -100.0, 100.0);
-            
-            glMatrixMode(GL_MODELVIEW);
-            glPushMatrix();
-            glLoadIdentity();
-            
-            glColor3fv(m_foregroundColorFloat);
-            
-            const float thickness = 10;
-            
-            /*
-             * Left Side
-             */
-            glBegin(GL_QUADS);
-            glVertex3f(0.0, 0.0, 0.0);
-            glVertex3f(thickness, 0.0, 0.0);
-            glVertex3f(thickness, height, 0.0);
-            glVertex3f(0.0, height, 0.0);
-            glEnd();
-            
-            /*
-             * Right Side
-             */
-            glBegin(GL_QUADS);
-            glVertex3f(width - thickness, 0.0, 0.0);
-            glVertex3f(width, 0.0, 0.0);
-            glVertex3f(width, height, 0.0);
-            glVertex3f(width - thickness, height, 0.0);
-            glEnd();
-            
-            /*
-             * Bottom Side
-             */
-            glBegin(GL_QUADS);
-            glVertex3f(0.0, 0.0, 0.0);
-            glVertex3f(width, 0.0, 0.0);
-            glVertex3f(width, thickness, 0.0);
-            glVertex3f(0.0, thickness, 0.0);
-            glEnd();
-            
-            /*
-             * Top Side
-             */
-            glBegin(GL_QUADS);
-            glVertex3f(0.0, height - thickness, 0.0);
-            glVertex3f(width, height - thickness, 0.0);
-            glVertex3f(width, height, 0.0);
-            glVertex3f(0.0, height, 0.0);
-            glEnd();
-            
-            glPopMatrix();
-            glMatrixMode(GL_PROJECTION);
-            glPopMatrix();
-            
-            glMatrixMode(GL_MODELVIEW);
+            drawTabHighlighting(m_tabViewport[2],
+                                m_tabViewport[3],
+                                m_foregroundColorFloat);
         }
     }
     
@@ -705,6 +646,88 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     
     m_brain = NULL;
+}
+
+/**
+ * Draw a box to highlight a selected tab.
+ *
+ * @param width
+ *     Width of tab.
+ * @param height
+ *     Height of tab.
+ * @param rgb
+ *     RGB color components for the 'frame' drawn around the tab.
+ */
+void
+BrainOpenGLFixedPipeline::drawTabHighlighting(const float width,
+                         const float height,
+                         const float rgb[3])
+{
+    const bool depthFlag = glIsEnabled(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
+    
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0.0, width, 0.0, height, -100.0, 100.0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    glColor3fv(rgb);
+    
+    const float thickness = 10;
+    
+    /*
+     * Left Side
+     */
+    glBegin(GL_QUADS);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(thickness, 0.0, 0.0);
+    glVertex3f(thickness, height, 0.0);
+    glVertex3f(0.0, height, 0.0);
+    glEnd();
+    
+    /*
+     * Right Side
+     */
+    glBegin(GL_QUADS);
+    glVertex3f(width - thickness, 0.0, 0.0);
+    glVertex3f(width, 0.0, 0.0);
+    glVertex3f(width, height, 0.0);
+    glVertex3f(width - thickness, height, 0.0);
+    glEnd();
+    
+    /*
+     * Bottom Side
+     */
+    glBegin(GL_QUADS);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(width, 0.0, 0.0);
+    glVertex3f(width, thickness, 0.0);
+    glVertex3f(0.0, thickness, 0.0);
+    glEnd();
+    
+    /*
+     * Top Side
+     */
+    glBegin(GL_QUADS);
+    glVertex3f(0.0, height - thickness, 0.0);
+    glVertex3f(width, height - thickness, 0.0);
+    glVertex3f(width, height, 0.0);
+    glVertex3f(0.0, height, 0.0);
+    glEnd();
+    
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    
+    glMatrixMode(GL_MODELVIEW);
+    
+    if (depthFlag) {
+        glEnable(GL_DEPTH_TEST);
+    }
 }
 
 /**
