@@ -2562,6 +2562,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(DrawnWithOp
                                                                      const int32_t imageWidth,
                                                                      const int32_t imageHeight)
 {
+    /*
+     * Images may be invalid such as when the user is
+     * dragging the mouse to create an annotation image
+     */
+    if ((imageBytesRGBA == NULL)
+        || (imageWidth  <= 0)
+        || (imageHeight <= 0)) {
+        return;
+    }
+    
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At beginning of annotation drawImageBytesWithTexture()"));
     
     /*
