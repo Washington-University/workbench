@@ -146,8 +146,6 @@ public:
         EVENT_MODEL_SURFACE_GET,
         /** Get the color for a node's identification symbol from a chart that contains the node */
         EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS,
-        /** OpenGL Texture related event */
-        EVENT_OPENGL_TEXTURE,
         /** open file request from the operating system (Mac only) for now */
         EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
         /** request display of overlay settings editor */

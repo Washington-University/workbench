@@ -103,9 +103,9 @@ Algorithms
 OperationsBase
 GuiQt
 Brain
-Graphics
 Files
 Annotations
+Graphics
 Cifti
 Gifti
 Nifti
@@ -117,6 +117,9 @@ Xml
 Common
 ${QT5_LINK_LIBS}
 ${QT_LIBRARIES}
+${OSMESA_OFFSCREEN_LIBRARY}
+${OSMESA_GL_LIBRARY}
+${OSMESA_GLU_LIBRARY}
 ${ZLIB_LIBRARIES}
 #${LIBS}
 )

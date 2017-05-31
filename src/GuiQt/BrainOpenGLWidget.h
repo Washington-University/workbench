@@ -46,7 +46,6 @@ namespace caret {
 
     class Border;
     class BrainOpenGL;
-    class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class EventImageCapture;
@@ -138,8 +137,6 @@ namespace caret {
         
     private:
         
-        BrainOpenGLTextRenderInterface* createTextRenderer();
-        
         void clearDrawingViewportContents();
         
         BrainOpenGLViewportContent* getViewportContentAtXY(const int x,
@@ -153,9 +150,6 @@ namespace caret {
         void captureImage(EventImageCapture* imageCaptureEvent);
         
         const int32_t windowIndex;
-        
-        /** Do not own text renderer so DO NOT delete */
-        BrainOpenGLTextRenderInterface* m_textRenderer;
         
         std::vector<BrainOpenGLViewportContent*> drawingViewportContents;
         

@@ -39,7 +39,6 @@
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLShape.h"
-#include "BrainOpenGLTextureManager.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -54,12 +53,10 @@
 #include "EventManager.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
-#include "EventGetBrainOpenGLTextRenderer.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventIdentificationRequest.h"
-#include "EventOpenGLTexture.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FtglFontTextRenderer.h"
 #include "GuiManager.h"
@@ -68,7 +65,6 @@
 #include "Matrix4x4.h"
 #include "Model.h"
 #include "MouseEvent.h"
-#include "QGLWidgetTextRenderer.h"
 #include "SelectionManager.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionItemSurfaceNode.h"
@@ -106,8 +102,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 : QGLWidget(parent,
             shareWidget),
 #endif
-windowIndex(windowIndex),
-m_textRenderer(NULL)
+windowIndex(windowIndex)
 {
     this->borderBeingDrawn = new Border();
     
@@ -150,7 +145,6 @@ m_textRenderer(NULL)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IDENTIFICATION_REQUEST);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -195,9 +189,6 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
 {
     makeCurrent();
     
-    /** DO NOT delete since not owned by this */
-    m_textRenderer = NULL;
-    
     this->clearDrawingViewportContents();
     
     delete this->userInputViewModeProcessor;
@@ -240,19 +231,23 @@ void
 BrainOpenGLWidget::initializeGL()
 {
     if (s_singletonOpenGL == NULL) {
-        s_singletonOpenGL = new BrainOpenGLFixedPipeline(createTextRenderer());
-    }
-    else {
         /*
-         * You would think Qt would need to call initializedGL() only once.
-         * However, if QGLWidget::renderPixmap() is called, it calls
-         * this method since it needs to create a new OpenGL context.
-         * Since the OpenGL context contains textures (and the font
-         * rendering may use textures), The text renderer must be
-         * recreated.  Otherwise, fonts will be garbage in the
-         * image produced by QGLWidget::renderPixmap().
+         * OpenGL drawing will take ownership of the text renderer
+         * and handle deletion of the text renderer.
          */
-        s_singletonOpenGL->setTextRenderer(createTextRenderer());
+        BrainOpenGLTextRenderInterface* textRenderer = new FtglFontTextRenderer();
+        if (! textRenderer->isValid()) {
+            delete textRenderer;
+            textRenderer = NULL;
+            CaretLogWarning("Unable to create FTGL Font Renderer.\n"
+                            "No text will be available in graphics window.");
+        }
+        if (textRenderer == NULL) {
+            textRenderer = new DummyFontTextRenderer();
+        }
+        CaretAssert(textRenderer);
+        
+        s_singletonOpenGL = new BrainOpenGLFixedPipeline(textRenderer);
     }
     
     s_singletonOpenGL->initializeOpenGL();
@@ -402,53 +397,6 @@ BrainOpenGLWidget::getOpenGLInformation()
     info += "\n";
     
     return info;
-}
-
-/**
- * @return A new text renderer.
- */
-BrainOpenGLTextRenderInterface*
-BrainOpenGLWidget::createTextRenderer()
-{
-    BrainOpenGLTextRenderInterface* textRendererOut = NULL;
-    
-    /*
-     * Create a FTGL font renderer
-     */
-    if (textRendererOut == NULL){
-        textRendererOut = new FtglFontTextRenderer();
-        if ( ! textRendererOut->isValid()) {
-            CaretLogWarning("Failed to create FTGL text renderer.");
-            delete textRendererOut;
-            textRendererOut = NULL;
-        }
-    }
-    
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-    /* No Qt Text Renderer in QOpenGLWidget */
-#else
-    /*
-     * Create a Qt text renderer
-     */
-    if (textRendererOut == NULL) {
-        textRendererOut = new QGLWidgetTextRenderer(this);
-        if ( ! textRendererOut->isValid()) {
-            CaretLogWarning("Failed to create Qt text renderer.");
-            delete textRendererOut;
-            textRendererOut = NULL;
-        }
-    }
-#endif
-    
-    if (textRendererOut == NULL) {
-        CaretLogSevere("Unable to create a text renderer for OpenGL.  "
-                       "No text will be drawn (dummy text renderer).");
-        textRendererOut = new DummyFontTextRenderer();
-    }
-    
-    m_textRenderer = textRendererOut;
-    
-    return textRendererOut;
 }
 
 /**
@@ -1480,15 +1428,6 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         
         brainResetEvent->setEventProcessed();
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW) {
-        EventGetBrainOpenGLTextRenderer* textRenderEvent = dynamic_cast<EventGetBrainOpenGLTextRenderer*>(event);
-        CaretAssert(textRenderEvent);
-        
-        if (this->windowIndex == textRenderEvent->getWindowIndex()) {
-            textRenderEvent->setTextRenderer(m_textRenderer);
-            textRenderEvent->setEventProcessed();
-        }
-    }
     else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
         EventGraphicsUpdateAllWindows* updateAllEvent =
             dynamic_cast<EventGraphicsUpdateAllWindows*>(event);
@@ -1708,13 +1647,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
             WuQMessageBox::errorOk(this, "Render PixMap not implemented with Qt5");
 #else
             /*
-             * Note 1: QGLWidget::renderPixmap() creates a new OpenGL
-             * Context which destroys any textures in the existing
-             * OpenGL context.  So, after execution of 
-             * QGLWidget::renderPixmap(), we need to create a
-             * new text renderer.
-             *
-             * Note 2: When the user chooses to exclude regions
+             * When the user chooses to exclude regions
              * caused by locking of tab/window aspect ratio,
              * the pixmap is rendered to the output width and
              * height and in the correct aspect ratio so when
@@ -1722,15 +1655,10 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
              * region caused by aspect locking that needs to 
              * be excluded.
              */
-            BrainOpenGLTextureManager* textureManager = s_singletonOpenGL->getTextureManager();
-            CaretAssert(textureManager);
-            textureManager->deleteAllTexturesForWindow(this->windowIndex);
             
             QPixmap pixmap = this->renderPixmap(outputImageWidth,
                                                 outputImageHeight);
             image = pixmap.toImage();
-            textureManager->deleteAllTexturesForWindow(this->windowIndex);
-            s_singletonOpenGL->setTextRenderer(createTextRenderer());
 #endif
         }
             break;

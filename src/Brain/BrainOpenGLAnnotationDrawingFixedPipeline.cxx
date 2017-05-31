@@ -45,7 +45,6 @@
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLTextRenderInterface.h"
-#include "BrainOpenGLTextureManager.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
@@ -55,7 +54,7 @@
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "GraphicsEngineDataOpenGL.h"
-#include "GraphicsPrimitiveV3fT3F.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -226,24 +225,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                         
                         
                         float offsetUnitVector[3] = { 0.0, 0.0, 0.0 };
-//                        const bool useNormalVectorForOffsetFlag = false;
-//                        if (useNormalVectorForOffsetFlag) {
-//                            const float* normalVector = surfaceDisplayed->getNormalVector(annotationNodeIndex);
-//                            offsetUnitVector[0] = normalVector[0];
-//                            offsetUnitVector[1] = normalVector[1];
-//                            offsetUnitVector[2] = normalVector[2];
-//                        }
-//                        else {
-//                            BoundingBox boundingBox;
-//                            surfaceDisplayed->getBounds(boundingBox);
-//                            float surfaceCenter[3] = { 0.0, 0.0, 0.0 };
-//                            boundingBox.getCenter(surfaceCenter);
-//                            
-//                            MathFunctions::subtractVectors(nodeXYZ,
-//                                                           surfaceCenter,
-//                                                           offsetUnitVector);
-//                            MathFunctions::normalizeVector(offsetUnitVector);
-//                        }
                         
                         /*
                          * For a flat surface, ALWAYS use the normal vector.
@@ -287,30 +268,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
         case AnnotationCoordinateSpaceEnum::TAB:
             viewportToOpenGLWindowCoordinate(annotationXYZ, windowXYZ);
             windowXYZValid = true;
-//        {
-//            GLint viewport[4];
-//            glGetIntegerv(GL_VIEWPORT,
-//                          viewport);
-//            windowXYZ[0] = viewport[2] * (annotationXYZ[0] / 100.0);
-//            windowXYZ[1] = viewport[3] * (annotationXYZ[1] / 100.0);
-////            windowXYZ[2] = annotationXYZ[2] / 100.0;
-//            windowXYZ[2] = toWindowZ(annotationXYZ[2]);
-//            windowXYZValid = true;
-//        }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             viewportToOpenGLWindowCoordinate(annotationXYZ, windowXYZ);
             windowXYZValid = true;
-//        {
-//            GLint viewport[4];
-//            glGetIntegerv(GL_VIEWPORT,
-//                          viewport);
-//            windowXYZ[0] = viewport[2] * (annotationXYZ[0] / 100.0);
-//            windowXYZ[1] = viewport[3] * (annotationXYZ[1] / 100.0);
-////            windowXYZ[2] = annotationXYZ[2] / 100.0;
-//            windowXYZ[2] = toWindowZ(annotationXYZ[2]);
-//            windowXYZValid = true;
-//        }
             break;
     }
     
@@ -407,7 +368,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
                 else {
                     windowXYZOut[2] = -(windowZ + eyeAdjustment);
                 }
-//                std::cout << "Z adjusted for eye/near/far=" << windowXYZOut[2] << std::endl;
             }
         }
         
@@ -443,10 +403,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
 {
     float viewportWidth  = m_modelSpaceViewport[2];
     float viewportHeight = m_modelSpaceViewport[3];
-//    if (annotation2D->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
-//        viewportWidth  = m_inputs->m_tabViewport[2];
-//        viewportHeight = m_inputs->m_tabViewport[3];
-//    }
     
     /*
      * Only use text characters when the text is NOT empty
@@ -649,9 +605,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 case Inputs::WINDOW_DRAWING_YES:
                     break;
             }
-//            if ( ! m_inputs->m_drawWindowAnnotationsFlag) {
-//                drawAnnotationsFromFilesFlag = false;
-//            }
             break;
     }
     
@@ -1296,13 +1249,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                                          windowXYZ)) {
         return;
     }
-    
-//    /*
-//     * NO SELECTION OF COLOR BAR ANNOTATIONS
-//     */
-//    if (m_selectionModeFlag) {
-//        return;
-//    }
     
     float bottomLeft[3];
     float bottomRight[3];
@@ -2496,9 +2442,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                 }
             }
             
-            GraphicsPrimitiveV3fT3F* primitive = image->getGraphicsPrimitive();
+            GraphicsPrimitiveV3fT3f* primitive = image->getGraphicsPrimitive();
             if (primitive != NULL) {
                 if (primitive->isValid()) {
+                    /*
+                     * Replace the primitive's XYZ values here
+                     * Image ALWAYS has four coordinates
+                     */
                     std::vector<float> xyz;
                     xyz.insert(xyz.end(), bottomLeft,  bottomLeft + 3);
                     xyz.insert(xyz.end(), bottomRight, bottomRight + 3);
@@ -2547,178 +2497,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
     
     return drawnFlag;
 }
-
-
-/**
- * Draw image annoation using a textured quad.
- *
- * @param textureInfo
- *     Information for OpenGL texture usage.
- * @param bottomLeft
- *     Bottom left corner of annotation.
- * @param bottomRight
- *     Bottom right corner of annotation.
- * @param topRight
- *     Top right corner of annotation.
- * @param topLeft
- *     Top left corner of annotation.
- * @param imageBytesRGBA
- *     Bytes containing the image data.
- * @param imageWidth
- *     Width of the actual image.
- * @param imageHeight
- *     Height of the image.
- */
-void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytesWithTexture(DrawnWithOpenGLTextureInfo* textureInfo,
-                                                                     const float bottomLeft[3],
-                                                                     const float bottomRight[3],
-                                                                     const float topRight[3],
-                                                                     const float topLeft[3],
-                                                                     const uint8_t* imageBytesRGBA,
-                                                                     const int32_t imageWidth,
-                                                                     const int32_t imageHeight)
-{
-    /*
-     * Images may be invalid such as when the user is
-     * dragging the mouse to create an annotation image
-     */
-    if ((imageBytesRGBA == NULL)
-        || (imageWidth  <= 0)
-        || (imageHeight <= 0)) {
-        return;
-    }
-    
-    m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At beginning of annotation drawImageBytesWithTexture()"));
-    
-    /*
-     * Saves glPixelStore parameters
-     */
-    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-    
-    static bool useMipMapFlag = true;
-
-    BrainOpenGLTextureManager* textureManager = m_brainOpenGLFixedPipeline->getTextureManager();
-    CaretAssert(textureManager);
-    
-    GLuint textureName = 0;
-    bool newTextureNameFlag = false;
-    textureManager->getTextureName(textureInfo,
-                                   textureName,
-                                   newTextureNameFlag);
-    
-    if (newTextureNameFlag) {
-        glBindTexture(GL_TEXTURE_2D, textureName);
-        if (useMipMapFlag) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            const int errorCode = gluBuild2DMipmaps(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
-                                                    GL_RGBA,           // number of components
-                                                    imageWidth,        // width of image
-                                                    imageHeight,       // height of image
-                                                    GL_RGBA,           // format of the pixel data
-                                                    GL_UNSIGNED_BYTE,  // data type of pixel data
-                                                    imageBytesRGBA);    // pointer to image data
-            if (errorCode != 0) {
-                useMipMapFlag = false;
-                
-                const GLubyte* errorChars = gluErrorString(errorCode);
-                if (errorChars != NULL) {
-                    const QString errorText = ("ERROR building mipmaps for annotation image: "
-                                               + AString((char*)errorChars));
-                    CaretLogSevere(errorText);
-                }
-            }
-        }
-        
-        if ( ! useMipMapFlag) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            
-            glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
-                         0,                 // level of detail 0=base, n is nth mipmap reduction
-                         GL_RGBA,           // number of components
-                         imageWidth,        // width of image
-                         imageHeight,       // height of image
-                         0,                 // border
-                         GL_RGBA,           // format of the pixel data
-                         GL_UNSIGNED_BYTE,  // data type of pixel data
-                         imageBytesRGBA);   // pointer to image data
-        }
-    }
-    
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glBindTexture(GL_TEXTURE_2D, textureName);
-    
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0, 0.0);
-    glVertex3fv(bottomLeft);
-    glTexCoord2f(1.0, 0.0);
-    glVertex3fv(bottomRight);
-    glTexCoord2f(1.0, 1.0);
-    glVertex3fv(topRight);
-    glTexCoord2f(0.0, 1.0);
-    glVertex3fv(topLeft);
-    glEnd();
-    
-    /*
-     *
-     */
-    glBindTexture(GL_TEXTURE_2D, 0);
-    
-    glDisable(GL_TEXTURE_2D);
-    
-    glPopClientAttrib();
-    
-    m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At end of annotation drawImageBytesWithTexture()"));
-}
-
-/**
- * Draw an image texture by drawing pixels.
- * DOES NOT WORK IF BOTTOM LEFT CORNER OF IMAGE HAS A NEGATIVE VALUE !!
- */
-void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawImageBytes(const float windowX,
-                                                          const float windowY,
-                                                          const float windowZ,
-                                                          const uint8_t* imageBytesRGBA,
-                                                          const int32_t imageWidth,
-                                                          const int32_t imageHeight)
-{
-    /*
-     * Reset orthographic projection to viewport size
-     */
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    
-    const float drawX = windowX - (imageWidth / 2.0);
-    const float drawY = windowY - (imageHeight / 2.0);
-    
-    /*
-     * Saves glPixelStore parameters
-     */
-    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-    
-    //
-    // Draw image near far clipping plane
-    //
-    glRasterPos3f(drawX, drawY, windowZ); //-500.0); // set Z so image behind surface
-    
-    glDrawPixels(imageWidth, imageHeight,
-                 GL_RGBA, GL_UNSIGNED_BYTE,
-                 (GLvoid*)imageBytesRGBA);
-    
-    glPopClientAttrib();
-    
-    glPopMatrix();
-}
-
 /**
  * Create the coordinates for drawing a line with optional arrows at the end points.
  *

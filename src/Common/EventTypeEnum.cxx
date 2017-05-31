@@ -277,10 +277,6 @@ EventTypeEnum::initialize()
                                      "EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS",
                                      "Get the color for node identification symbols from all charts that contain nodes"));
     
-    enumData.push_back(EventTypeEnum(EVENT_OPENGL_TEXTURE,
-                                     "EVENT_OPENGL_TEXTURE",
-                                     "OpenGL Texture Event"));
-    
     enumData.push_back(EventTypeEnum(EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
                                      "EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE",
                                      "Operating system requests open data file (Mac only)"));

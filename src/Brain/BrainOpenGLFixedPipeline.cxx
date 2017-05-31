@@ -45,7 +45,6 @@
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLChartTwoDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
-#include "BrainOpenGLTextureManager.h"
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
 #include "BrainOpenGLShapeCone.h"
@@ -172,8 +171,7 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     this->initializeMembersBrainOpenGL();
     this->colorIdentification   = new IdentificationWithColor();
     m_annotationDrawing.grabNew(new BrainOpenGLAnnotationDrawingFixedPipeline(this));
-    m_textureManager.grabNew(new BrainOpenGLTextureManager(0)); //m_windowIndex));
-                             
+    
     m_shapeSphere = NULL;
     m_shapeCone   = NULL;
     m_shapeCylinder = NULL;
@@ -993,17 +991,6 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                     + AString::number(et.getElapsedTimeSeconds())
                     + " seconds");
     }
-}
-
-/**
- * @return Get the texture manager.
- */
-BrainOpenGLTextureManager*
-BrainOpenGLFixedPipeline::getTextureManager()
-{
-    BrainOpenGLTextureManager* tm = m_textureManager.getPointer();
-    CaretAssert(tm);
-    return tm;
 }
 
 /**

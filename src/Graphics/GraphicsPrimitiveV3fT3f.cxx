@@ -20,7 +20,7 @@
 /*LICENSE_END*/
 
 #define __GRAPHICS_PRIMITIVE_V3F_T3F_DECLARE__
-#include "GraphicsPrimitiveV3fT3F.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 #undef __GRAPHICS_PRIMITIVE_V3F_T3F_DECLARE__
 
 #include "CaretAssert.h"
@@ -29,7 +29,7 @@ using namespace caret;
 
     
 /**
- * \class caret::GraphicsPrimitiveV3fT3F 
+ * \class caret::GraphicsPrimitiveV3fT3f 
  * \brief Primitive containing XYZ with and texture coordinates applied to all vertices.
  * \ingroup Graphics
  */
@@ -46,7 +46,7 @@ using namespace caret;
  * @param imageHeight
  *     Height of the image.
  */
-GraphicsPrimitiveV3fT3F::GraphicsPrimitiveV3fT3F(const PrimitiveType primitiveType,
+GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveType,
                                                  const uint8_t* imageBytesRGBA,
                                                  const int32_t imageWidth,
                                                  const int32_t imageHeight)
@@ -64,7 +64,7 @@ GraphicsPrimitiveV3fT3F::GraphicsPrimitiveV3fT3F(const PrimitiveType primitiveTy
 /**
  * Destructor.
  */
-GraphicsPrimitiveV3fT3F::~GraphicsPrimitiveV3fT3F()
+GraphicsPrimitiveV3fT3f::~GraphicsPrimitiveV3fT3f()
 {
 }
 
@@ -73,10 +73,10 @@ GraphicsPrimitiveV3fT3F::~GraphicsPrimitiveV3fT3F()
  * @param obj
  *    Object that is copied.
  */
-GraphicsPrimitiveV3fT3F::GraphicsPrimitiveV3fT3F(const GraphicsPrimitiveV3fT3F& obj)
+GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const GraphicsPrimitiveV3fT3f& obj)
 : GraphicsPrimitive(obj)
 {
-    this->copyHelperGraphicsPrimitiveV3fT3F(obj);
+    this->copyHelperGraphicsPrimitiveV3fT3f(obj);
 }
 
 /**
@@ -85,7 +85,7 @@ GraphicsPrimitiveV3fT3F::GraphicsPrimitiveV3fT3F(const GraphicsPrimitiveV3fT3F& 
  *    Object that is copied.
  */
 void 
-GraphicsPrimitiveV3fT3F::copyHelperGraphicsPrimitiveV3fT3F(const GraphicsPrimitiveV3fT3F& /*obj*/)
+GraphicsPrimitiveV3fT3f::copyHelperGraphicsPrimitiveV3fT3f(const GraphicsPrimitiveV3fT3f& /*obj*/)
 {
     
 }
@@ -99,7 +99,7 @@ GraphicsPrimitiveV3fT3F::copyHelperGraphicsPrimitiveV3fT3F(const GraphicsPrimiti
  *     Texture coordinates
  */
 void
-GraphicsPrimitiveV3fT3F::addVertex(const float xyz[3],
+GraphicsPrimitiveV3fT3f::addVertex(const float xyz[3],
                                    const float st[2])
 {
     m_xyz.insert(m_xyz.end(),
@@ -124,7 +124,7 @@ GraphicsPrimitiveV3fT3F::addVertex(const float xyz[3],
  *     T-coordinate of texture
  */
 void
-GraphicsPrimitiveV3fT3F::addVertex(const float x,
+GraphicsPrimitiveV3fT3f::addVertex(const float x,
                                    const float y,
                                    const float z,
                                    const float s,
@@ -151,7 +151,7 @@ GraphicsPrimitiveV3fT3F::addVertex(const float x,
  *     T-coordinate of texture
  */
 void
-GraphicsPrimitiveV3fT3F::addVertex(const float x,
+GraphicsPrimitiveV3fT3f::addVertex(const float x,
                                    const float y,
                                    const float s,
                                    const float t)
@@ -168,9 +168,9 @@ GraphicsPrimitiveV3fT3F::addVertex(const float x,
  * Clone this primitive.
  */
 GraphicsPrimitive*
-GraphicsPrimitiveV3fT3F::clone() const
+GraphicsPrimitiveV3fT3f::clone() const
 {
-    GraphicsPrimitiveV3fT3F* obj = new GraphicsPrimitiveV3fT3F(*this);
+    GraphicsPrimitiveV3fT3f* obj = new GraphicsPrimitiveV3fT3f(*this);
     return obj;
 }
 

@@ -358,143 +358,7 @@ GraphicsEngineDataOpenGL::loadAllBuffers(GraphicsPrimitive* primitive)
     loadCoordinateBuffer(primitive);
     loadNormalVectorBuffer(primitive);
     loadColorBuffer(primitive);
-    loadTextureCoordinateBuffer(primitive);
-    
-//    CaretAssert(primitive);
-//    
-//    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
-//    
-//    GLsizei coordinateCount = 0;
-//    switch (primitive->m_vertexType) {
-//        case GraphicsPrimitive::VertexType::FLOAT_XYZ:
-//            m_coordinateDataType = GL_FLOAT;
-//            m_coordinatesPerVertex = 3; // X, Y, Z
-//            
-//            coordinateCount = primitive->m_xyz.size();
-//            const GLuint xyzSizeBytes = coordinateCount * sizeof(float);
-//            CaretAssert(xyzSizeBytes > 0);
-//            const GLvoid* xyzDataPointer = (const GLvoid*)&primitive->m_xyz[0];
-//            
-//            EventGraphicsOpenGLCreateBufferObject createEvent;
-//            EventManager::get()->sendEvent(createEvent.getPointer());
-//            m_coordinateBufferObject = createEvent.getOpenGLBufferObject();
-//            CaretAssert(m_coordinateBufferObject->getBufferObjectName());
-//            
-//            glBindBuffer(GL_ARRAY_BUFFER,
-//                         m_coordinateBufferObject->getBufferObjectName());
-//            glBufferData(GL_ARRAY_BUFFER,
-//                         xyzSizeBytes,
-//                         xyzDataPointer,
-//                         usageHint);
-//            break;
-//    }
-//    
-//    if (m_coordinatesPerVertex > 0) {
-//        m_arrayIndicesCount = coordinateCount / m_coordinatesPerVertex;
-//    }
-//    else {
-//        m_arrayIndicesCount = 0;
-//    }
-//    
-//    switch (primitive->m_normalVectorType) {
-//        case GraphicsPrimitive::NormalVectorType::NONE:
-//            break;
-//        case GraphicsPrimitive::NormalVectorType::FLOAT_XYZ:
-//        {
-//            m_normalVectorDataType = GL_FLOAT;
-//            const GLuint normalSizeBytes = primitive->m_floatNormalVectorXYZ.size() * sizeof(float);
-//            CaretAssert(normalSizeBytes > 0);
-//            const GLvoid* normalDataPointer = (const GLvoid*)&primitive->m_floatNormalVectorXYZ[0];
-//            
-//            EventGraphicsOpenGLCreateBufferObject createEvent;
-//            EventManager::get()->sendEvent(createEvent.getPointer());
-//            m_normalVectorBufferObject = createEvent.getOpenGLBufferObject();
-//            CaretAssert(m_normalVectorBufferObject->getBufferObjectName());
-//            
-//            glBindBuffer(GL_ARRAY_BUFFER,
-//                         m_normalVectorBufferObject->getBufferObjectName());
-//            glBufferData(GL_ARRAY_BUFFER,
-//                         normalSizeBytes,
-//                         normalDataPointer,
-//                         usageHint);
-//        }
-//            break;
-//    }
-//    
-//    switch (primitive->m_colorType) {
-//        case GraphicsPrimitive::ColorType::NONE:
-//            break;
-//        case GraphicsPrimitive::ColorType::FLOAT_RGBA:
-//        {
-//            EventGraphicsOpenGLCreateBufferObject createEvent;
-//            EventManager::get()->sendEvent(createEvent.getPointer());
-//            m_colorBufferObject = createEvent.getOpenGLBufferObject();
-//            CaretAssert(m_colorBufferObject->getBufferObjectName());
-//            
-//            m_componentsPerColor = 4;
-//            m_colorDataType = GL_FLOAT;
-//            
-//            const GLuint colorSizeBytes = primitive->m_floatRGBA.size() * sizeof(float);
-//            CaretAssert(colorSizeBytes > 0);
-//            const GLvoid* colorDataPointer = (const GLvoid*)&primitive->m_floatRGBA[0];
-//            
-//            glBindBuffer(GL_ARRAY_BUFFER,
-//                         m_colorBufferObject->getBufferObjectName());
-//            glBufferData(GL_ARRAY_BUFFER,
-//                         colorSizeBytes,
-//                         colorDataPointer,
-//                         usageHint);
-//        }
-//            break;
-//        case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
-//        {
-//            EventGraphicsOpenGLCreateBufferObject createEvent;
-//            EventManager::get()->sendEvent(createEvent.getPointer());
-//            m_colorBufferObject = createEvent.getOpenGLBufferObject();
-//            CaretAssert(m_colorBufferObject->getBufferObjectName());
-//            
-//            m_componentsPerColor = 4;
-//            m_colorDataType = GL_UNSIGNED_BYTE;
-//            
-//            const GLuint colorSizeBytes = primitive->m_unsignedByteRGBA.size() * sizeof(uint8_t);
-//            CaretAssert(colorSizeBytes > 0);
-//            const GLvoid* colorDataPointer = (const GLvoid*)&primitive->m_unsignedByteRGBA[0];
-//            
-//            glBindBuffer(GL_ARRAY_BUFFER,
-//                         m_colorBufferObject->getBufferObjectName());
-//            glBufferData(GL_ARRAY_BUFFER,
-//                         colorSizeBytes,
-//                         colorDataPointer,
-//                         usageHint);
-//        }
-//            break;
-//    }
-//    
-//    switch (primitive->m_textureType) {
-//        case GraphicsPrimitive::TextureType::FLOAT_STR:
-//        {
-//            EventGraphicsOpenGLCreateBufferObject createEvent;
-//            EventManager::get()->sendEvent(createEvent.getPointer());
-//            m_textureCoordinatesBufferObject = createEvent.getOpenGLBufferObject();
-//            CaretAssert(m_textureCoordinatesBufferObject->getBufferObjectName());
-//            
-//            m_textureCoordinatesDataType = GL_FLOAT;
-//            const GLuint textureSizeBytes = primitive->m_floatTextureSTR.size() * sizeof(float);
-//            CaretAssert(textureSizeBytes > 0);
-//            const GLvoid* textureDataPointer = (const GLvoid*)&primitive->m_floatTextureSTR[0];
-//            
-//            glBindBuffer(GL_ARRAY_BUFFER,
-//                         m_textureCoordinatesBufferObject->getBufferObjectName());
-//            glBufferData(GL_ARRAY_BUFFER,
-//                         textureSizeBytes,
-//                         textureDataPointer,
-//                         usageHint);
-//            
-//        }
-//            break;
-//        case GraphicsPrimitive::TextureType::NONE:
-//            break;
-//    }
+    loadTextureCoordinateBuffer(primitive);    
 }
 
 /**
@@ -540,13 +404,30 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
             
             glBindTexture(GL_TEXTURE_2D, openGLTextureName);
             
-            
             bool useMipMapFlag = true;
             if (useMipMapFlag) {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                
+                /*
+                 * This code seems to work if OpenGL 3.0 or later and
+                 * replaces gluBuild2DMipmaps()
+                 *
+                 * glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
+                 *            0,                 // level of detail 0=base, n is nth mipmap reduction
+                 *            GL_RGBA,           // number of components
+                 *            imageWidth,        // width of image
+                 *            imageHeight,       // height of image
+                 *            0,                 // border
+                 *            GL_RGBA,           // format of the pixel data
+                 *            GL_UNSIGNED_BYTE,  // data type of pixel data
+                 *            imageBytesRGBA);   // pointer to image data
+                 * glGenerateMipmap(GL_TEXTURE_2D);
+                 */
+                
+                
                 const int errorCode = gluBuild2DMipmaps(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
                                                         GL_RGBA,           // number of components
                                                         imageWidth,        // width of image
@@ -1103,7 +984,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
      */
     if (hasTextureFlag
         && (drawMode == PrivateDrawMode::DRAW_NORMAL)
-        && (openglData->m_textureImageDataName->getTextureName())) {
+        && (openglData->m_textureImageDataName->getTextureName() > 0)) {
             glEnable(GL_TEXTURE_2D);
             glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBindTexture(GL_TEXTURE_2D, openglData->m_textureImageDataName->getTextureName());

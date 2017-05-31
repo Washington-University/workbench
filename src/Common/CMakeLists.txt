@@ -93,8 +93,6 @@ DescriptiveStatistics.h
 DeveloperFlagsEnum.h
 DisplayGroupAndTabItemInterface.h 
 DisplayGroupEnum.h
-DrawnWithOpenGLTextureInfo.h
-DrawnWithOpenGLTextureInterface.h
 ElapsedTimer.h
 Event.h
 EventAlertUser.h
@@ -105,7 +103,6 @@ EventListenerInterface.h
 EventManager.h
 EventPaletteGetByName.h
 EventProgressUpdate.h
-EventOpenGLTexture.h
 EventTypeEnum.h
 FastStatistics.h
 FileAdapter.h
@@ -193,7 +190,6 @@ DescriptiveStatistics.cxx
 DeveloperFlagsEnum.cxx
 DisplayGroupAndTabItemInterface.cxx
 DisplayGroupEnum.cxx
-DrawnWithOpenGLTextureInfo.cxx
 ElapsedTimer.cxx
 Event.cxx
 EventAlertUser.cxx
@@ -203,7 +199,6 @@ EventGetViewportSize.cxx
 EventManager.cxx
 EventPaletteGetByName.cxx
 EventProgressUpdate.cxx
-EventOpenGLTexture.cxx
 EventTypeEnum.cxx
 FastStatistics.cxx
 FileAdapter.cxx

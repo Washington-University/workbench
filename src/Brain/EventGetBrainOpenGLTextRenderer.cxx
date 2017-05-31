@@ -39,9 +39,8 @@ using namespace caret;
 /**
  * Constructor.
  */
-EventGetBrainOpenGLTextRenderer::EventGetBrainOpenGLTextRenderer(const int32_t windowIndex)
-: Event(EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW),
-m_windowIndex(windowIndex)
+EventGetBrainOpenGLTextRenderer::EventGetBrainOpenGLTextRenderer()
+: Event(EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW)
 {
     m_textRenderer = NULL;
 }
@@ -51,15 +50,6 @@ m_windowIndex(windowIndex)
  */
 EventGetBrainOpenGLTextRenderer::~EventGetBrainOpenGLTextRenderer()
 {
-}
-
-/**
- * @return Index of the window.
- */
-int32_t
-EventGetBrainOpenGLTextRenderer::getWindowIndex() const
-{
-    return m_windowIndex;
 }
 
 /**

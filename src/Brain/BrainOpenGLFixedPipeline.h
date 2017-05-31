@@ -52,7 +52,6 @@ namespace caret {
     class BrainOpenGLShapeRing;
     class BrainOpenGLShapeRingOutline;
     class BrainOpenGLShapeSphere;
-    class BrainOpenGLTextureManager;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class CaretMappableDataFile;
@@ -114,8 +113,6 @@ namespace caret {
                                                  const int32_t numberOfSubViewports,
                                                  int32_t& subViewportSizeOut,
                                                  int32_t& gapOut);
-        
-        virtual BrainOpenGLTextureManager* getTextureManager();
         
     protected:
         void drawModelsImplementation(const int32_t windowIndex,
@@ -521,6 +518,10 @@ namespace caret {
         
         void setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& viewportContents);
 
+        void drawTabHighlighting(const float width,
+                                 const float height,
+                                 const float rgb[3]);
+        
         /** Index of window */
         int32_t m_windowIndex = -1;
         
@@ -619,9 +620,6 @@ namespace caret {
         CaretPointer<BrainOpenGLAnnotationDrawingFixedPipeline> m_annotationDrawing;
         
         std::vector<AnnotationColorBar*> m_annotationColorBarsForDrawing;
-        
-        /** The texture manager. */
-        CaretPointer<BrainOpenGLTextureManager> m_textureManager;
         
         static bool s_staticInitialized;
 

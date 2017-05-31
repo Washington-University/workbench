@@ -30,7 +30,7 @@
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
-#include "GraphicsPrimitiveV3fT3F.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 
 using namespace caret;
 
@@ -784,7 +784,7 @@ GraphicsPrimitive::setGraphicsEngineDataForOpenGL(GraphicsEngineDataOpenGL* grap
  *    An event for which this instance is listening.
  */
 void
-GraphicsPrimitive::receiveEvent(Event* event)
+GraphicsPrimitive::receiveEvent(Event* /*event*/)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -854,13 +854,13 @@ GraphicsPrimitive::newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType pr
     return primitive;
 }
 
-GraphicsPrimitiveV3fT3F*
-GraphicsPrimitive::newPrimitiveV3fT3F(const GraphicsPrimitive::PrimitiveType primitiveType,
+GraphicsPrimitiveV3fT3f*
+GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
                                                    const uint8_t* imageBytesRGBA,
                                                    const int32_t imageWidth,
                                                    const int32_t imageHeight)
 {
-    GraphicsPrimitiveV3fT3F* primitive = new GraphicsPrimitiveV3fT3F(primitiveType,
+    GraphicsPrimitiveV3fT3f* primitive = new GraphicsPrimitiveV3fT3f(primitiveType,
                                                                      imageBytesRGBA,
                                                                      imageWidth,
                                                                      imageHeight);

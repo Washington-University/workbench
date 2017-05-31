@@ -36,7 +36,7 @@ namespace caret {
     class GraphicsPrimitiveV3f;
     class GraphicsPrimitiveV3fC4f;
     class GraphicsPrimitiveV3fC4ub;
-    class GraphicsPrimitiveV3fT3F;
+    class GraphicsPrimitiveV3fT3f;
     
     class GraphicsPrimitive : public CaretObject, public EventListenerInterface {
         
@@ -188,7 +188,7 @@ namespace caret {
         
         static GraphicsPrimitiveV3fC4ub* newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType primitiveType);
         
-        static GraphicsPrimitiveV3fT3F* newPrimitiveV3fT3F(const GraphicsPrimitive::PrimitiveType primitiveType,
+        static GraphicsPrimitiveV3fT3f* newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
                                                            const uint8_t* imageBytesRGBA,
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight);

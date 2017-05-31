@@ -31,17 +31,17 @@
 
 namespace caret {
 
-    class GraphicsPrimitiveV3fT3F : public GraphicsPrimitive {
+    class GraphicsPrimitiveV3fT3f : public GraphicsPrimitive {
         
     public:
-        GraphicsPrimitiveV3fT3F(const PrimitiveType primitiveType,
+        GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveType,
                                 const uint8_t* imageBytesRGBA,
                                 const int32_t imageWidth,
                                 const int32_t imageHeight);
         
-        virtual ~GraphicsPrimitiveV3fT3F();
+        virtual ~GraphicsPrimitiveV3fT3f();
         
-        GraphicsPrimitiveV3fT3F(const GraphicsPrimitiveV3fT3F& obj);
+        GraphicsPrimitiveV3fT3f(const GraphicsPrimitiveV3fT3f& obj);
 
         void addVertex(const float xyz[3],
                        const float st[2]);
@@ -62,9 +62,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        GraphicsPrimitiveV3fT3F& operator=(const GraphicsPrimitiveV3fT3F& obj);
+        GraphicsPrimitiveV3fT3f& operator=(const GraphicsPrimitiveV3fT3f& obj);
         
-        void copyHelperGraphicsPrimitiveV3fT3F(const GraphicsPrimitiveV3fT3F& obj);
+        void copyHelperGraphicsPrimitiveV3fT3f(const GraphicsPrimitiveV3fT3f& obj);
 
         // ADD_NEW_MEMBERS_HERE
 

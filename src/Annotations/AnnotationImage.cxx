@@ -25,8 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "DrawnWithOpenGLTextureInfo.h"
-#include "GraphicsPrimitiveV3fT3F.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -48,8 +47,7 @@ using namespace caret;
  */
 AnnotationImage::AnnotationImage(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
 : AnnotationTwoDimensionalShape(AnnotationTypeEnum::IMAGE,
-                                attributeDefaultType),
-DrawnWithOpenGLTextureInterface()
+                                attributeDefaultType)
 {
     initializeMembersAnnotationImage();
     
@@ -69,8 +67,7 @@ AnnotationImage::~AnnotationImage()
  *    Object that is copied.
  */
 AnnotationImage::AnnotationImage(const AnnotationImage& obj)
-: AnnotationTwoDimensionalShape(obj),
-DrawnWithOpenGLTextureInterface()
+: AnnotationTwoDimensionalShape(obj)
 {
     initializeMembersAnnotationImage();
     this->copyHelperAnnotationImage(obj);
@@ -104,7 +101,6 @@ AnnotationImage::copyHelperAnnotationImage(const AnnotationImage& obj)
     m_imageBytesRGBA         = obj.m_imageBytesRGBA;
     m_imageWidth             = obj.m_imageWidth;
     m_imageHeight            = obj.m_imageHeight;
-    m_drawnWithOpenGLTextureInfo = obj.m_drawnWithOpenGLTextureInfo;
 }
 
 /**
@@ -190,9 +186,6 @@ AnnotationImage::initializeMembersAnnotationImage()
     m_imageHeight = 0;
     
     m_sceneAssistant = new SceneClassAssistant();
-    
-    /* Texture info not saved to scenes */
-    m_drawnWithOpenGLTextureInfo.grabNew(new DrawnWithOpenGLTextureInfo);
 }
 
 /**
@@ -253,44 +246,27 @@ AnnotationImage::getFixedAspectRatio() const
 }
 
 /**
- * @return The OpenGL texture information used for managing
- * texture resources.
- */
-DrawnWithOpenGLTextureInfo*
-AnnotationImage::getDrawWithOpenGLTextureInfo()
-{
-    return m_drawnWithOpenGLTextureInfo;
-}
-
-/**
- * @return The OpenGL texture information used for managing
- * texture resources (const method)
- */
-const DrawnWithOpenGLTextureInfo*
-AnnotationImage::getDrawWithOpenGLTextureInfo() const
-{
-    return m_drawnWithOpenGLTextureInfo;
-}
-
-/**
  * @return The graphics primitive for drawing the image as a texture.
  */
-GraphicsPrimitiveV3fT3F*
+GraphicsPrimitiveV3fT3f*
 AnnotationImage::getGraphicsPrimitive() const
 {
     if (m_graphicsPrimitive == NULL) {
         if ( ! m_imageBytesRGBA.empty()) {
-            GraphicsPrimitiveV3fT3F* primitive = GraphicsPrimitive::newPrimitiveV3fT3F(GraphicsPrimitive::PrimitiveType::QUADS,
+            GraphicsPrimitiveV3fT3f* primitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::QUADS,
                                                                                        &m_imageBytesRGBA[0],
                                                                                        m_imageWidth,
                                                                                        m_imageHeight);
+            /*
+             * Four coordinates are needed but XY values do not mattter.
+             * These XY values are replaced when the image is drawn.
+             * The texture (S, T) do matter.
+             */
             primitive->addVertex(50, 50, 0.0, 0.0);
             primitive->addVertex(250, 50, 1.0, 0.0);
             primitive->addVertex(250, 250, 1.0, 1.0);
             primitive->addVertex(50, 250, 0.0, 1.0);
             m_graphicsPrimitive.reset(primitive);
-            
-            CaretLogWarning("Need to be able to override coordinates");
         }
     }
     

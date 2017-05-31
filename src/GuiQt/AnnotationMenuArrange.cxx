@@ -247,7 +247,7 @@ AnnotationMenuArrange::menuActionTriggered(QAction* action)
 void
 AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignment)
 {
-    EventGetBrainOpenGLTextRenderer textRendererEvent(m_browserWindowIndex);
+    EventGetBrainOpenGLTextRenderer textRendererEvent;
     EventManager::get()->sendEvent(textRendererEvent.getPointer());
     BrainOpenGLTextRenderInterface* textRenderer = textRendererEvent.getTextRenderer();
     if (textRenderer == NULL) {
@@ -281,7 +281,7 @@ AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignm
 void
 AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum distribute)
 {
-    EventGetBrainOpenGLTextRenderer textRendererEvent(m_browserWindowIndex);
+    EventGetBrainOpenGLTextRenderer textRendererEvent;
     EventManager::get()->sendEvent(textRendererEvent.getPointer());
     BrainOpenGLTextRenderInterface* textRenderer = textRendererEvent.getTextRenderer();
     if (textRenderer == NULL) {

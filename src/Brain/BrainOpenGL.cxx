@@ -32,6 +32,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "DummyFontTextRenderer.h"
+#include "EventGetBrainOpenGLTextRenderer.h"
 #include "EventGraphicsOpenGLCreateBufferObject.h"
 #include "EventGraphicsOpenGLCreateTextureName.h"
 #include "EventGraphicsOpenGLDeleteBufferObject.h"
@@ -60,6 +61,7 @@ BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
     this->borderBeingDrawn = NULL;
     m_drawHighlightedEndPoints = false;
     
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT);
@@ -175,6 +177,13 @@ BrainOpenGL::receiveEvent(Event* event)
         }
         
         deleteTextureEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW) {
+        EventGetBrainOpenGLTextRenderer* textRenderEvent = dynamic_cast<EventGetBrainOpenGLTextRenderer*>(event);
+        CaretAssert(textRenderEvent);
+        
+        textRenderEvent->setTextRenderer(m_textRenderer);
+        textRenderEvent->setEventProcessed();
     }
 }
 
@@ -384,30 +393,6 @@ BrainOpenGLTextRenderInterface*
 BrainOpenGL::getTextRenderer()
 {
     return m_textRenderer;
-}
-
-/**
- * Set the text renderer.  The existing text renderer will
- * be destroyed.  This instance will take ownership of
- * the text renderer passed in and destory it at the
- * proper time.
- *
- * @param textRenderer
- *   The text renderer is used for text rendering.
- *   This parameter MUST NOT be NULL.  It must be
- *   a pointer to a text renderer.
- */
-void
-BrainOpenGL::setTextRenderer(BrainOpenGLTextRenderInterface* textRenderer)
-{
-    CaretAssert(textRenderer);
-    
-    if (m_textRenderer != NULL) {
-        delete m_textRenderer;
-        m_textRenderer = NULL;
-    }
-    
-    m_textRenderer = textRenderer;
 }
 
 /**

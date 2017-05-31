@@ -33,11 +33,9 @@ namespace caret {
     class EventGetBrainOpenGLTextRenderer : public Event {
         
     public:
-        EventGetBrainOpenGLTextRenderer(const int32_t windowIndex);
+        EventGetBrainOpenGLTextRenderer();
         
         virtual ~EventGetBrainOpenGLTextRenderer();
-        
-        int32_t getWindowIndex() const;
         
         BrainOpenGLTextRenderInterface* getTextRenderer() const;
 
@@ -49,8 +47,6 @@ namespace caret {
         EventGetBrainOpenGLTextRenderer(const EventGetBrainOpenGLTextRenderer&);
 
         EventGetBrainOpenGLTextRenderer& operator=(const EventGetBrainOpenGLTextRenderer&);
-        
-        const int32_t m_windowIndex;
         
         BrainOpenGLTextRenderInterface* m_textRenderer;
         

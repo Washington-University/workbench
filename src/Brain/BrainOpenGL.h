@@ -67,7 +67,6 @@ namespace caret {
     class Border;
     class Brain;
     class BrainOpenGLTextRenderInterface;
-    class BrainOpenGLTextureManager;
     class BrainOpenGLViewportContent;
     class Model;
     class SurfaceProjectedItem;
@@ -102,8 +101,6 @@ namespace caret {
         
         BrainOpenGLTextRenderInterface* getTextRenderer();
         
-        void setTextRenderer(BrainOpenGLTextRenderInterface* textRenderer);
-        
         void drawModels(const int32_t windowIndex,
                         Brain* brain,
                         void* contextSharingGroupPointer,
@@ -124,8 +121,6 @@ namespace caret {
                             const int32_t mouseX,
                             const int32_t mouseY,
                             SurfaceProjectedItem& projectionOut);
-        
-        virtual BrainOpenGLTextureManager* getTextureManager() = 0;
         
         /**
          * @return Half-size of the model window height.
