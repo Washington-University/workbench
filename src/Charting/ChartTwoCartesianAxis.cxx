@@ -60,6 +60,8 @@ m_axisLocation(axisLocation)
     m_rangeMaximumValue =  std::numeric_limits<float>::max();
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_sceneAssistant->add("m_displayedByUser",
+                          &m_displayedByUser);
     m_sceneAssistant->add("m_userScaleMinimumValue",
                           &m_userScaleMinimumValue);
     m_sceneAssistant->add("m_userScaleMaximumValue",
@@ -81,8 +83,8 @@ m_axisLocation(axisLocation)
                           &m_userNumberOfSubdivisions);
     m_sceneAssistant->add("m_axisTitle",
                           &m_axisTitle);
-    m_sceneAssistant->add("m_visible",
-                          &m_visible);
+    m_sceneAssistant->add("m_enabledByChart",
+                          &m_enabledByChart);
     m_sceneAssistant->add("m_showTickmarks",
                           &m_showTickmarks);
 }
@@ -134,6 +136,7 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
 {
     CaretAssert(m_axisLocation == obj.m_axisLocation);
     
+    m_displayedByUser             = obj.m_displayedByUser;
     m_rangeMinimumValue     = obj.m_rangeMinimumValue;
     m_rangeMaximumValue     = obj.m_rangeMaximumValue;
     m_userScaleMinimumValue = obj.m_userScaleMinimumValue;
@@ -146,7 +149,7 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_autoSubdivisionsEnabled = obj.m_autoSubdivisionsEnabled;
     m_userNumberOfSubdivisions  = obj.m_userNumberOfSubdivisions;
     m_axisTitle             = obj.m_axisTitle;
-    m_visible               = obj.m_visible;
+    m_enabledByChart        = obj.m_enabledByChart;
     m_showTickmarks         = obj.m_showTickmarks;
     limitUserScaleMinMaxToValidRange();
 }
@@ -160,6 +163,25 @@ ChartTwoCartesianAxis::getAxisLocation() const
     return m_axisLocation;
 }
 
+/**
+ * @return display the axis selected by user
+ */
+bool
+ChartTwoCartesianAxis::isDisplayedByUser() const
+{
+    return m_displayedByUser;
+}
+
+/**
+ * Set display the axis by user
+ * @param displayedByUser
+ *    New value for display the axis
+ */
+void
+ChartTwoCartesianAxis::setDisplayedByUser(const bool displayedByUser)
+{
+    m_displayedByUser = displayedByUser;
+}
 /**
  * Get the range of values allowed.
  *
@@ -313,24 +335,24 @@ ChartTwoCartesianAxis::setUserScaleMinimumValue(const float userScaleMinimumValu
 }
 
 /**
- * @return Is the axis visible
+ * @return Is the axis enabled because a chart is using it
  */
 bool
-ChartTwoCartesianAxis::isVisible() const
+ChartTwoCartesianAxis::isEnabledByChart() const
 {
-    return m_visible;
+    return m_enabledByChart;
 }
 
 /**
- * Set visibility for the axis
+ * Set the axis enabled because a chart is using it
  *
- * @param visible
- *    New value for axis visibility
+ * @param enabled
+ *    New enabled status
  */
 void
-ChartTwoCartesianAxis::setVisible(const bool visible)
+ChartTwoCartesianAxis::setEnabledByChart(const bool enabled)
 {
-    m_visible = visible;
+    m_enabledByChart = enabled;
 }
 
 /**
@@ -493,6 +515,9 @@ ChartTwoCartesianAxis::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (sceneClass == NULL) {
         return;
     }
+    
+    // may not be in older scenes
+    m_displayedByUser = true;
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    

@@ -1095,10 +1095,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
     if (cartesianAxis == NULL) {
         return;
     }
-    if ( ! cartesianAxis->isVisible()) {
+    if ( ! cartesianAxis->isEnabledByChart()) {
         return;
     }
-    
     /*
      * The length of the axis does not matter here.
      * We are just estimating the width and height of the axes text labels.
@@ -1114,6 +1113,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
                                    maximumValue,
                                    scaleValueOffsetInPixels,
                                    scaleValuesText);
+
+    if ( ! cartesianAxis->isDisplayedByUser()) {
+        return;
+    }
+    
     for (std::vector<AString>::iterator iter = scaleValuesText.begin();
          iter != scaleValuesText.end();
          iter++) {
@@ -1308,10 +1312,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
     if (axis == NULL) {
         return false;
     }
-    if ( ! axis->isVisible()) {
+    if ( ! axis->isEnabledByChart()) {
         return false;
     }
-    
     
     int32_t axisVpX      = 0;
     int32_t axisVpY      = 0;
@@ -1365,6 +1368,20 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
                                                            scaleValuesText);
     if ( ! validAxisFlag) {
         return false;
+    }
+    
+    /*
+     * If user has disabled display of axis no further action is needed
+     * as the axisMinimumOut and axisMaximumOut have been calculated
+     */
+    if ( ! axis->isDisplayedByUser()) {
+        /*
+         * Even though axis is not displayed, declare the axis as valid
+         * so that axisMinimumOut and axisMaximumOut are used by caller
+         * of this method.  Otherwise, height of chart will 'jump' as
+         * axis is turned on/off
+         */
+        return true;
     }
     
     const float rgba[4] = {

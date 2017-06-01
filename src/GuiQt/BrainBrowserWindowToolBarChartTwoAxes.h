@@ -82,6 +82,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
         
+        QCheckBox* m_axisDisplayedByUserCheckBox;
+        
         EnumComboBoxTemplate* m_axisComboBox;
         
         QToolButton* m_axisNameToolButton;

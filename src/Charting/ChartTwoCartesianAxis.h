@@ -47,6 +47,10 @@ namespace caret {
         
         ChartAxisLocationEnum::Enum getAxisLocation() const;
         
+        bool isDisplayedByUser() const;
+        
+        void setDisplayedByUser(const bool displayed);
+        
         void getRange(float& rangeMinimumOut,
                       float& rangeMaximumOut) const;
         
@@ -85,9 +89,9 @@ namespace caret {
         
         void setUserNumberOfSubdivisions(const int32_t numberOfSubdivisions);
         
-        bool isVisible() const;
+        bool isEnabledByChart() const;
         
-        void setVisible(const bool visible);
+        void setEnabledByChart(const bool enabled);
 
         bool isShowTickmarks() const;
 
@@ -170,9 +174,12 @@ namespace caret {
         
         AString m_axisTitle;
 
-        bool m_visible = false;
+        bool m_enabledByChart = false;
 
         bool m_showTickmarks = true;
+        
+        /** user display the axis*/
+        bool m_displayedByUser = true;
         
         // ADD_NEW_MEMBERS_HERE
 

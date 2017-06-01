@@ -71,15 +71,15 @@ m_tabIndex(tabIndex)
     m_chartAxisRight  = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT));
     m_chartAxisBottom = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
     
-    m_chartAxisLeft->setVisible(false);
-    m_chartAxisRight->setVisible(false);
-    m_chartAxisBottom->setVisible(false);
+    m_chartAxisLeft->setEnabledByChart(false);
+    m_chartAxisRight->setEnabledByChart(false);
+    m_chartAxisBottom->setEnabledByChart(false);
     switch (m_chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
         {
-            m_chartAxisLeft->setVisible(true);
+            m_chartAxisLeft->setEnabledByChart(true);
             m_chartAxisLeft->setAxisTitle("Counts");
             m_chartAxisLeft->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             float rangeMin = 0.0, rangeMax = 0.0;
@@ -87,21 +87,21 @@ m_tabIndex(tabIndex)
             rangeMin = 0.0;
             m_chartAxisLeft->setRange(rangeMin, rangeMax);
             
-            m_chartAxisRight->setVisible(false);
+            m_chartAxisRight->setEnabledByChart(false);
             m_chartAxisRight->setAxisTitle("Counts");
             m_chartAxisRight->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             m_chartAxisRight->getRange(rangeMin, rangeMax);
             rangeMin = 0.0;
             m_chartAxisRight->setRange(rangeMin, rangeMax);
             
-            m_chartAxisBottom->setVisible(true);
+            m_chartAxisBottom->setEnabledByChart(true);
             m_chartAxisBottom->setAxisTitle("Data");
             m_chartAxisBottom->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-            m_chartAxisLeft->setVisible(true);
-            m_chartAxisBottom->setVisible(true);
+            m_chartAxisLeft->setEnabledByChart(true);
+            m_chartAxisBottom->setEnabledByChart(true);
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
             break;
@@ -659,17 +659,17 @@ ChartTwoOverlaySet::getDisplayedChartAxes() const
         }
     }
     
-    m_chartAxisBottom->setVisible(showBottomFlag);
-    m_chartAxisLeft->setVisible(showLeftFlag);
-    m_chartAxisRight->setVisible(showRightFlag);
+    m_chartAxisBottom->setEnabledByChart(showBottomFlag);
+    m_chartAxisLeft->setEnabledByChart(showLeftFlag);
+    m_chartAxisRight->setEnabledByChart(showRightFlag);
     
-    if (m_chartAxisBottom->isVisible()) {
+    if (m_chartAxisBottom->isEnabledByChart()) {
         axes.push_back(m_chartAxisBottom.get());
     }
-    if (m_chartAxisLeft->isVisible()) {
+    if (m_chartAxisLeft->isEnabledByChart()) {
         axes.push_back(m_chartAxisLeft.get());
     }
-    if (m_chartAxisRight->isVisible()) {
+    if (m_chartAxisRight->isEnabledByChart()) {
         axes.push_back(m_chartAxisRight.get());
     }
     

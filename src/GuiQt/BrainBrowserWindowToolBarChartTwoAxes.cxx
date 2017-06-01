@@ -67,6 +67,11 @@ using namespace caret;
 BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(BrainBrowserWindowToolBar* parentToolBar)
 : BrainBrowserWindowToolBarComponent(parentToolBar)
 {
+    m_axisDisplayedByUserCheckBox = new QCheckBox("Axis");
+    m_axisDisplayedByUserCheckBox->setToolTip("Show/Hide the axis");
+    QObject::connect(m_axisDisplayedByUserCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
+
     /*
      * Axes selection
      */
@@ -133,6 +138,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      * Group widgets for blocking signals
      */
     m_widgetGroup = new WuQWidgetObjectGroup(this);
+    m_widgetGroup->add(m_axisDisplayedByUserCheckBox);
     m_widgetGroup->add(m_axisNameToolButton);
     m_widgetGroup->add(m_autoUserRangeComboBox->getWidget());
     m_widgetGroup->add(m_userMinimumValueSpinBox);
@@ -155,7 +161,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QGridLayout* layout = new QGridLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 0);
     int leftRow = 0;
-    layout->addWidget(new QLabel("Axis"), leftRow, COLUMN_ONE, Qt::AlignLeft);
+    layout->addWidget(m_axisDisplayedByUserCheckBox, leftRow, COLUMN_ONE, Qt::AlignLeft);
     layout->addWidget(m_axisComboBox->getWidget(), leftRow, COLUMN_TWO);
     leftRow++;
     layout->addWidget(new QLabel("Range"), leftRow, COLUMN_ONE, Qt::AlignLeft);
@@ -348,6 +354,7 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoCartesianAxis* cha
     
     if (m_chartAxis != NULL) {
         m_widgetGroup->blockAllSignals(true);
+        m_axisDisplayedByUserCheckBox->setChecked(chartAxis->isDisplayedByUser());
         //m_axisNameToolButton->setText(m_chartAxis->getLabelText());
         m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(m_chartAxis->getScaleRangeMode());
         float rangeMin(0.0), rangeMax(0.0);
@@ -377,6 +384,7 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
 {
     CaretAssert(m_chartAxis);
     if (m_chartAxis != NULL) {
+        m_chartAxis->setDisplayedByUser(m_axisDisplayedByUserCheckBox->isChecked());
         m_chartAxis->setScaleRangeMode(m_autoUserRangeComboBox->getSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>());
         m_chartAxis->setUserScaleMinimumValue(m_userMinimumValueSpinBox->value());
         m_chartAxis->setUserScaleMaximumValue(m_userMaximumValueSpinBox->value());
