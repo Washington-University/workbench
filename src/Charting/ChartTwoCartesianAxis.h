@@ -27,6 +27,7 @@
 #include "ChartAxisLocationEnum.h"
 #include "ChartAxisUnitsEnum.h"
 #include "ChartTwoAxisScaleRangeModeEnum.h"
+#include "ChartTwoNumericSubdivisionsModeEnum.h"
 #include "NumericFormatModeEnum.h"
 #include "SceneableInterface.h"
 
@@ -81,9 +82,9 @@ namespace caret {
         
         void setUserNumericFormat(const NumericFormatModeEnum::Enum numericFormat);
         
-        bool isAutoSubdivisionsEnabled() const;
+        ChartTwoNumericSubdivisionsModeEnum::Enum getNumericSubdivsionsMode() const;
         
-        void setAutoSubdivisionsEnabled(const bool autoSubdivisionsEnabled);
+        void setNumericSubdivsionsMode(const ChartTwoNumericSubdivisionsModeEnum::Enum numericSubdivsionsMode);
         
         int32_t getUserNumberOfSubdivisions() const;
         
@@ -168,7 +169,8 @@ namespace caret {
         
         NumericFormatModeEnum::Enum m_userNumericFormat = NumericFormatModeEnum::AUTO;
         
-        bool m_autoSubdivisionsEnabled = true;
+        /** numeric subdivisions mode*/
+        ChartTwoNumericSubdivisionsModeEnum::Enum m_numericSubdivsionsMode = ChartTwoNumericSubdivisionsModeEnum::AUTO;
 
         int32_t m_userNumberOfSubdivisions = 2;
         

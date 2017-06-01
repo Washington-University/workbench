@@ -77,8 +77,8 @@ m_axisLocation(axisLocation)
                                                                        &m_units);
     m_sceneAssistant->add<NumericFormatModeEnum,NumericFormatModeEnum::Enum>("m_userNumericFormat",
                                                                              &m_userNumericFormat);
-    m_sceneAssistant->add("m_autoSubdivisionsEnabled",
-                          &m_autoSubdivisionsEnabled);
+    m_sceneAssistant->add<ChartTwoNumericSubdivisionsModeEnum,ChartTwoNumericSubdivisionsModeEnum::Enum>("m_numericSubdivsionsMode",
+                                                                             &m_numericSubdivsionsMode);
     m_sceneAssistant->add("m_userNumberOfSubdivisions",
                           &m_userNumberOfSubdivisions);
     m_sceneAssistant->add("m_axisTitle",
@@ -146,7 +146,7 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_scaleRangeMode        = obj.m_scaleRangeMode;
     m_units                 = obj.m_units;
     m_userNumericFormat         = obj.m_userNumericFormat;
-    m_autoSubdivisionsEnabled = obj.m_autoSubdivisionsEnabled;
+    m_numericSubdivsionsMode = obj.m_numericSubdivsionsMode;
     m_userNumberOfSubdivisions  = obj.m_userNumberOfSubdivisions;
     m_axisTitle             = obj.m_axisTitle;
     m_enabledByChart        = obj.m_enabledByChart;
@@ -272,24 +272,24 @@ ChartTwoCartesianAxis::setUserNumberOfSubdivisions(const int32_t numberOfSubdivi
 }
 
 /**
- * @return auto subdivisions enabled
+ * @return numeric subdivisions mode
  */
-bool
-ChartTwoCartesianAxis::isAutoSubdivisionsEnabled() const
+ChartTwoNumericSubdivisionsModeEnum::Enum
+ChartTwoCartesianAxis::getNumericSubdivsionsMode() const
 {
-    return m_autoSubdivisionsEnabled;
+    return m_numericSubdivsionsMode;
 }
 
 /**
- * Set auto subdivisions enabled
+ * Set numeric subdivisions mode
  *
- * @param autoSubdivisionsEnabled
- *    New value for auto subdivisions enabled
+ * @param numericSubdivsionsMode
+ *     New value for numeric subdivisions mode
  */
 void
-ChartTwoCartesianAxis::setAutoSubdivisionsEnabled(const bool autoSubdivisionsEnabled)
+ChartTwoCartesianAxis::setNumericSubdivsionsMode(const ChartTwoNumericSubdivisionsModeEnum::Enum numericSubdivsionsMode)
 {
-    m_autoSubdivisionsEnabled = autoSubdivisionsEnabled;
+    m_numericSubdivsionsMode = numericSubdivsionsMode;
 }
 
 /**
@@ -687,13 +687,19 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float dataBoundsIn[4],
             break;
     }
     
-    if ( ! m_autoSubdivisionsEnabled) {
-        const float labelsRange = labelsEnd - labelsStart;
-        if (labelsRange <= 0.0) {
-            return false;
+    switch (m_numericSubdivsionsMode) {
+        case ChartTwoNumericSubdivisionsModeEnum::AUTO:
+            break;
+        case ChartTwoNumericSubdivisionsModeEnum::USER:
+        {
+            const float labelsRange = labelsEnd - labelsStart;
+            if (labelsRange <= 0.0) {
+                return false;
+            }
+            const float dividend = (1.0 + m_userNumberOfSubdivisions);
+            labelsStep = labelsRange / dividend;
         }
-        const float dividend = (1.0 + m_userNumberOfSubdivisions);
-        labelsStep = labelsRange / dividend;
+            break;
     }
     
     minimumOut = labelsStart;

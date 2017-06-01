@@ -100,7 +100,7 @@ namespace caret {
         
         QSpinBox* m_userDigitsRightOfDecimalSpinBox;
         
-        QCheckBox* m_autoSubdivisionsCheckBox;
+        EnumComboBoxTemplate* m_numericSubdivisionsModeComboBox;
         
         QSpinBox* m_userSubdivisionsSpinBox;
         

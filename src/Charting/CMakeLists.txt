@@ -51,6 +51,7 @@ ChartTwoMatrixContentTypeEnum.h
 ChartTwoMatrixDisplayProperties.h
 ChartTwoMatrixLoadingDimensionEnum.h
 ChartTwoMatrixTriangularViewingModeEnum.h
+ChartTwoNumericSubdivisionsModeEnum.h
 
 ChartTwoAxisScaleRangeModeEnum.cxx
 ChartAxis.cxx
@@ -88,6 +89,7 @@ ChartTwoMatrixContentTypeEnum.cxx
 ChartTwoMatrixDisplayProperties.cxx
 ChartTwoMatrixLoadingDimensionEnum.cxx
 ChartTwoMatrixTriangularViewingModeEnum.cxx
+ChartTwoNumericSubdivisionsModeEnum.cxx
 )
 
 TARGET_LINK_LIBRARIES(Charting ${CARET_QT5_LINK})

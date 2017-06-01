@@ -23,6 +23,7 @@
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QToolButton>
@@ -85,7 +86,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      * Controls for axis parameters
      */
     m_axisNameToolButton = new QToolButton();
-    m_axisNameToolButton->setText("Edit Axis Title");
+    m_axisNameToolButton->setText("Edit Title");
     QObject::connect(m_axisNameToolButton, &QToolButton::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisNameToolButtonClicked);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_axisNameToolButton);
@@ -124,10 +125,11 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
     m_userDigitsRightOfDecimalSpinBox->setToolTip("Set digits right of decimal for\ndecimal or scientific format");
     
-    m_autoSubdivisionsCheckBox = new QCheckBox("Auto");
-    QObject::connect(m_autoSubdivisionsCheckBox, &QCheckBox::clicked,
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
-    m_autoSubdivisionsCheckBox->setToolTip("Enable auto subdivisions");
+    m_numericSubdivisionsModeComboBox = new EnumComboBoxTemplate(this);
+    m_numericSubdivisionsModeComboBox->setup<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>();
+    QObject::connect(m_numericSubdivisionsModeComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
+    m_numericSubdivisionsModeComboBox->getWidget()->setToolTip("Numeric subdivisions mode");
     
     m_userSubdivisionsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 100, 1);
     QObject::connect(m_userSubdivisionsSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
@@ -146,54 +148,123 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_widgetGroup->add(m_showTickMarksCheckBox);
     m_widgetGroup->add(m_userNumericFormatComboBox->getWidget());
     m_widgetGroup->add(m_userDigitsRightOfDecimalSpinBox);
-    m_widgetGroup->add(m_autoSubdivisionsCheckBox);
+    m_widgetGroup->add(m_numericSubdivisionsModeComboBox->getWidget());
     m_widgetGroup->add(m_userSubdivisionsSpinBox);
     
-    const int COLUMN_ONE   = 0;
-    const int COLUMN_TWO   = 1;
-    const int COLUMN_THREE = 2;
-    const int COLUMN_FOUR  = 3;
-    const int COLUMN_FIVE  = 4;
-    const int COLUMN_SIX   = 5;
     /*
      * Layouts
      */
-    QGridLayout* layout = new QGridLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 0);
-    int leftRow = 0;
-    layout->addWidget(m_axisDisplayedByUserCheckBox, leftRow, COLUMN_ONE, Qt::AlignLeft);
-    layout->addWidget(m_axisComboBox->getWidget(), leftRow, COLUMN_TWO);
-    leftRow++;
-    layout->addWidget(new QLabel("Range"), leftRow, COLUMN_ONE, Qt::AlignLeft);
-    layout->addWidget(m_autoUserRangeComboBox->getWidget(), leftRow, COLUMN_TWO);
-    leftRow++;
-    layout->addWidget(new QLabel("Maximum"), leftRow, COLUMN_ONE, Qt::AlignLeft);
-    layout->addWidget(m_userMaximumValueSpinBox, leftRow, COLUMN_TWO);
-    leftRow++;
-    layout->addWidget(new QLabel("Minimum"), leftRow, COLUMN_ONE, Qt::AlignLeft);
-    layout->addWidget(m_userMinimumValueSpinBox, leftRow, COLUMN_TWO);
-    leftRow++;
+    QLayout* widgetsLayout = NULL;
     
-    layout->setColumnMinimumWidth(COLUMN_THREE, 7);
-    
-    int rightRow = 0;
-    layout->addWidget(m_axisNameToolButton, rightRow, COLUMN_FOUR, Qt::AlignLeft);
-    layout->addWidget(m_showTickMarksCheckBox, rightRow, COLUMN_FIVE, 1, 2);
-    rightRow++;
-    layout->addWidget(new QLabel("Format"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
-    layout->addWidget(m_userNumericFormatComboBox->getWidget(), rightRow, COLUMN_FIVE, 1, 2);
-    rightRow++;
-    layout->addWidget(new QLabel("Decimals"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
-    layout->addWidget(m_userDigitsRightOfDecimalSpinBox, rightRow, COLUMN_FIVE, 1, 2);
-    rightRow++;
-    layout->addWidget(new QLabel("Subdivisions"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
-    layout->addWidget(m_autoSubdivisionsCheckBox, rightRow, COLUMN_FIVE, Qt::AlignHCenter);
-    layout->addWidget(m_userSubdivisionsSpinBox, rightRow, COLUMN_SIX, Qt::AlignRight);
-    rightRow++;
+    const int layoutStyle = 0;
+    if (layoutStyle == 0) {
+        QWidget* rangeWidget = new QWidget();
+        {
+            QGridLayout* rangeLayout = new QGridLayout(rangeWidget);
+            WuQtUtilities::setLayoutSpacingAndMargins(rangeLayout, 3, 0);
+            int row = 0;
+            rangeLayout->addWidget(new QLabel("Range Mode"), row, 0);
+            m_autoUserRangeComboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
+            rangeLayout->addWidget(m_autoUserRangeComboBox->getWidget(), row, 1);
+            row++;
+            m_userMinimumValueSpinBox->setFixedWidth(90);
+            m_userMaximumValueSpinBox->setFixedWidth(90);
+            rangeLayout->addWidget(new QLabel("User Max"), row, 0);
+            rangeLayout->addWidget(m_userMaximumValueSpinBox, row, 1);
+            row++;
+            rangeLayout->addWidget(new QLabel("User Min"), row, 0);
+            rangeLayout->addWidget(m_userMinimumValueSpinBox, row, 1);
+        }
+        
+        QWidget* numericsWidget = new QWidget();
+        {
+            QGridLayout* numericsLayout = new QGridLayout(numericsWidget);
+            WuQtUtilities::setLayoutSpacingAndMargins(numericsLayout, 3, 0);
+            int COLUMN_ONE = 0;
+            int COLUMN_TWO = 1;
+            int COLUMN_THREE = 2;
+            int row = 0;
+            numericsLayout->addWidget(new QLabel("Format"), row, COLUMN_ONE);
+            numericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), row, COLUMN_TWO, 1, 2);
+            row++;
+            numericsLayout->addWidget(new QLabel("Decimals"), row, COLUMN_ONE);
+            numericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, row, COLUMN_TWO, 1, 2);
+            row++;
+            numericsLayout->addWidget(new QLabel("Subdivisions"), row, COLUMN_ONE);
+            numericsLayout->addWidget(m_numericSubdivisionsModeComboBox->getWidget(), row, COLUMN_TWO);
+            numericsLayout->addWidget(m_userSubdivisionsSpinBox, row, COLUMN_THREE);
+        }
+        
+        QHBoxLayout* axisLayout = new QHBoxLayout();
+        WuQtUtilities::setLayoutSpacingAndMargins(axisLayout, 3, 0);
+        axisLayout->addWidget(new QLabel("Axis "));
+        axisLayout->addWidget(m_axisComboBox->getWidget());
+        axisLayout->addSpacing(5);
+        axisLayout->addStretch();
+        m_axisDisplayedByUserCheckBox->setText("Show Axis");
+        axisLayout->addWidget(m_axisDisplayedByUserCheckBox);
+        axisLayout->addSpacing(10);
+        axisLayout->addWidget(m_showTickMarksCheckBox);
+        axisLayout->addSpacing(5);
+        axisLayout->addStretch();
+        axisLayout->addWidget(m_axisNameToolButton);
+        
+        QGridLayout* gridLayout = new QGridLayout();
+        WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 3, 0);
+        gridLayout->addLayout(axisLayout, 0, 0, 1, 3);
+        gridLayout->addWidget(rangeWidget, 1, 0); //, Qt::AlignHCenter | Qt::AlignTop);
+        gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 1);
+        gridLayout->addWidget(numericsWidget, 1, 2);
+        
+        widgetsLayout = gridLayout;
+    }
+    else {
+        const int COLUMN_ONE   = 0;
+        const int COLUMN_TWO   = 1;
+        const int COLUMN_THREE = 2;
+        const int COLUMN_FOUR  = 3;
+        const int COLUMN_FIVE  = 4;
+        const int COLUMN_SIX   = 5;
+        
+        QGridLayout* layout = new QGridLayout();
+        WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 0);
+        int leftRow = 0;
+        layout->addWidget(m_axisDisplayedByUserCheckBox, leftRow, COLUMN_ONE, Qt::AlignLeft);
+        layout->addWidget(m_axisComboBox->getWidget(), leftRow, COLUMN_TWO);
+        leftRow++;
+        layout->addWidget(new QLabel("Range"), leftRow, COLUMN_ONE, Qt::AlignLeft);
+        layout->addWidget(m_autoUserRangeComboBox->getWidget(), leftRow, COLUMN_TWO);
+        leftRow++;
+        layout->addWidget(new QLabel("Maximum"), leftRow, COLUMN_ONE, Qt::AlignLeft);
+        layout->addWidget(m_userMaximumValueSpinBox, leftRow, COLUMN_TWO);
+        leftRow++;
+        layout->addWidget(new QLabel("Minimum"), leftRow, COLUMN_ONE, Qt::AlignLeft);
+        layout->addWidget(m_userMinimumValueSpinBox, leftRow, COLUMN_TWO);
+        leftRow++;
+        
+        layout->setColumnMinimumWidth(COLUMN_THREE, 7);
+        
+        int rightRow = 0;
+        layout->addWidget(m_axisNameToolButton, rightRow, COLUMN_FOUR, Qt::AlignLeft);
+        layout->addWidget(m_showTickMarksCheckBox, rightRow, COLUMN_FIVE, 1, 2);
+        rightRow++;
+        layout->addWidget(new QLabel("Format"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
+        layout->addWidget(m_userNumericFormatComboBox->getWidget(), rightRow, COLUMN_FIVE, 1, 2);
+        rightRow++;
+        layout->addWidget(new QLabel("Decimals"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
+        layout->addWidget(m_userDigitsRightOfDecimalSpinBox, rightRow, COLUMN_FIVE, 1, 2);
+        rightRow++;
+        layout->addWidget(new QLabel("Subdivisions"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
+        layout->addWidget(m_numericSubdivisionsModeComboBox->getWidget(), rightRow, COLUMN_FIVE, Qt::AlignHCenter);
+        layout->addWidget(m_userSubdivisionsSpinBox, rightRow, COLUMN_SIX, Qt::AlignRight);
+        rightRow++;
+        
+        widgetsLayout = layout;
+    }
 
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(dialogLayout, 0, 2);
-    dialogLayout->addLayout(layout);
+    dialogLayout->addLayout(widgetsLayout);
     dialogLayout->addStretch();
 
     EventManager::get()->addEventListener(this,
@@ -368,9 +439,9 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoCartesianAxis* cha
         m_userNumericFormatComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(numericFormat);
         m_userDigitsRightOfDecimalSpinBox->setValue(m_chartAxis->getUserDigitsRightOfDecimal());
         m_userDigitsRightOfDecimalSpinBox->setEnabled(numericFormat != NumericFormatModeEnum::AUTO);
-        m_autoSubdivisionsCheckBox->setChecked(m_chartAxis->isAutoSubdivisionsEnabled());
+        m_numericSubdivisionsModeComboBox->setSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>(m_chartAxis->getNumericSubdivsionsMode());
         m_userSubdivisionsSpinBox->setValue(m_chartAxis->getUserNumberOfSubdivisions());
-        m_userSubdivisionsSpinBox->setEnabled( ! m_chartAxis->isAutoSubdivisionsEnabled());
+        m_userSubdivisionsSpinBox->setEnabled( m_chartAxis->getNumericSubdivsionsMode() == ChartTwoNumericSubdivisionsModeEnum::USER);
         
         m_widgetGroup->blockAllSignals(false);
     }
@@ -391,7 +462,7 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
         m_chartAxis->setShowTickmarks(m_showTickMarksCheckBox->isChecked());
         m_chartAxis->setUserNumericFormat(m_userNumericFormatComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());
         m_chartAxis->setUserDigitsRightOfDecimal(m_userDigitsRightOfDecimalSpinBox->value());
-        m_chartAxis->setAutoSubdivisionsEnabled(m_autoSubdivisionsCheckBox->isChecked());
+        m_chartAxis->setNumericSubdivsionsMode(m_numericSubdivisionsModeComboBox->getSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>());
         m_chartAxis->setUserNumberOfSubdivisions(m_userSubdivisionsSpinBox->value());
     }
 
