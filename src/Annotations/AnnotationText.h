@@ -42,7 +42,8 @@ namespace caret {
 
         AnnotationText& operator=(const AnnotationText& obj);
         
-        AString getFontRenderingEncodedName(const float drawingViewportHeight) const;
+        AString getFontRenderingEncodedName(const float drawingViewportWidth,
+                                            const float drawingViewportHeight) const;
         
         AString getText() const;
         
@@ -68,7 +69,8 @@ namespace caret {
         
         void setOrientation(const AnnotationTextOrientationEnum::Enum orientation);
         
-        int32_t getFontSizeForDrawing(const int32_t drawingViewportHeight) const;
+        int32_t getFontSizeForDrawing(const int32_t drawingViewportWidth,
+                                      const int32_t drawingViewportHeight) const;
         
         AnnotationTextFontSizeTypeEnum::Enum getFontSizeType() const;
         
@@ -154,6 +156,10 @@ namespace caret {
           
     protected: 
         AnnotationText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
+                       const AnnotationTextFontSizeTypeEnum::Enum fontSizeType);
+        
+        AnnotationText(const AnnotationTypeEnum::Enum type,
+                       const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
                        const AnnotationTextFontSizeTypeEnum::Enum fontSizeType);
         
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,

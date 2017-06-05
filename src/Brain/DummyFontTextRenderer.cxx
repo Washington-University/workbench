@@ -149,6 +149,8 @@ DummyFontTextRenderer::drawTextAtModelCoords(const double /*modelX*/,
  *    Viewport Y-coordinate.
  * @param viewportZ
  *    Viewport Z-coordinate.
+ * @param viewportWidth
+ *    Height of the viewport needed for percentage height text.
  * @param viewportHeight
  *    Height of the viewport needed for percentage height text.
  * @param bottomLeftOut
@@ -165,7 +167,7 @@ DummyFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& /*
                                                         const double /*viewportX*/,
                                                         const double /*viewportY*/,
                                                         const double /*viewportZ*/,
-                                                        const double /*viewportHeight*/,
+                                                        const double /*viewportWidth*/,                                                        const double /*viewportHeight*/,
                                                         double* /*bottomLeftOut[3]*/,
                                                         double* /*bottomRightOut[3]*/,
                                                         double* /*topRightOut[3]*/,
@@ -191,6 +193,7 @@ DummyFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& /*
  */
 void
 DummyFontTextRenderer::getTextWidthHeightInPixels(const AnnotationText& /*annotationText*/,
+                                                  const double /*viewportWidth*/,
                                                   const double /*viewportHeight*/,
                                                   double& /*widthOut*/,
                                                   double& /*heightOut*/)

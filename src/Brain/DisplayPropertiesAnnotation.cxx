@@ -95,6 +95,8 @@ DisplayPropertiesAnnotation::updateForNewAnnotation(const Annotation* annotation
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             setDisplayWindowAnnotationsInSingleTabViews(annotation->getWindowIndex(),
                                                         true);
@@ -457,6 +459,9 @@ DisplayPropertiesAnnotation::restoreVersionOne(const SceneClass* sceneClass)
                                                 triStatus);
                 }
             }
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssert(0);
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
             if (numWindowStatus) {

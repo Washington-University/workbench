@@ -33,7 +33,10 @@ namespace caret {
     public:
         AnnotationPercentSizeText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
-        virtual ~AnnotationPercentSizeText();
+        AnnotationPercentSizeText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
+                                  const AnnotationTextFontSizeTypeEnum::Enum textFontSizeType);
+        
+       virtual ~AnnotationPercentSizeText();
         
         AnnotationPercentSizeText(const AnnotationPercentSizeText& obj);
 
@@ -45,6 +48,11 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        AnnotationPercentSizeText(const AnnotationTypeEnum::Enum type,
+                                  const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
+                                  const AnnotationTextFontSizeTypeEnum::Enum textFontSizeType);
+        
     private:
         void copyHelperAnnotationPercentSizeText(const AnnotationPercentSizeText& obj);
 

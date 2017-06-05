@@ -93,6 +93,9 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
+        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+            enableWindowSpaceFlag = false;
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;
         case AnnotationTypeEnum::IMAGE:
@@ -502,6 +505,9 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
         case AnnotationCoordinateSpaceEnum::TAB:
             oldViewportHeight = m_coordInfo.m_tabHeight;
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssertToDoFatal();
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             oldViewportHeight = m_coordInfo.m_windowHeight;
             break;
@@ -531,6 +537,9 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
                 diffXyzValid = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssertToDoFatal();
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 diffXyzValid = true;
@@ -586,6 +595,9 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                 }
                 newViewportHeight = m_coordInfo.m_tabHeight;
             }
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssertToDoFatal();
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if (m_coordInfo.m_windowIndex >= 0) {
@@ -770,6 +782,9 @@ AnnotationCoordinateSelectionWidget::setWidthAndHeightForImage(AnnotationImage* 
             vpWidth  = m_coordInfo.m_tabWidth;
             vpHeight = m_coordInfo.m_tabHeight;
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssertToDoFatal();
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             vpWidth  = m_coordInfo.m_windowWidth;
             vpHeight = m_coordInfo.m_windowHeight;
@@ -836,6 +851,9 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssertToDoFatal();
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             dpa->setDisplayWindowAnnotationsInSingleTabViews(annotation->getWindowIndex(),

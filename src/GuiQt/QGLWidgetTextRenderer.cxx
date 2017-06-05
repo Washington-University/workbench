@@ -346,7 +346,7 @@ QGLWidgetTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     const AString text = annotationText.getText();
     
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
-    getBoundsForTextAtViewportCoords(annotationText, windowX, windowY, 0.0, viewport[3], bottomLeft, bottomRight, topRight, topLeft);
+    getBoundsForTextAtViewportCoords(annotationText, windowX, windowY, 0.0, viewport[2], viewport[3], bottomLeft, bottomRight, topRight, topLeft);
     
     double left   = bottomLeft[0];
     double right  = bottomRight[0];
@@ -678,6 +678,8 @@ QGLWidgetTextRenderer::applyForegroundColoring(const AnnotationText& annotationT
  *
  * @param annotationText
  *   Text for width and height estimation.
+ * @param viewportWidth
+ *    Height of the viewport needed for percentage height text.
  * @param viewportHeight
  *    Height of the viewport needed for percentage height text.
  * @param widthOut
@@ -687,6 +689,7 @@ QGLWidgetTextRenderer::applyForegroundColoring(const AnnotationText& annotationT
  */
 void
 QGLWidgetTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                  const double viewportWidth,
                                                   const double viewportHeight,
                                                  double& widthOut,
                                                  double& heightOut)
@@ -703,6 +706,7 @@ QGLWidgetTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotati
                                      0.0,
                                      0.0,
                                      0.0,
+                                     viewportWidth,
                                      viewportHeight,
                                      bottomLeft,
                                      bottomRight,
@@ -727,6 +731,8 @@ QGLWidgetTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotati
  *    Viewport Y-coordinate.
  * @param viewportZ
  *    Viewport Z-coordinate.
+ * @param viewportWidth
+ *    Height of the viewport needed for percentage height text.
  * @param viewportHeight
  *    Height of the viewport needed for percentage height text.
  * @param bottomLeftOut
@@ -743,6 +749,7 @@ QGLWidgetTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& an
                                               const double viewportX,
                                               const double viewportY,
                                               const double viewportZ,
+                                                        const double /*viewportWidth*/,
                                                         const double /*viewportHeight*/,
                                                        double bottomLeftOut[3],
                                                        double bottomRightOut[3],
@@ -942,6 +949,7 @@ QGLWidgetTextRenderer::setViewportHeight()
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
     
+    m_viewportWidth  = viewport[2];
     m_viewportHeight = viewport[3];
 }
 
@@ -958,7 +966,8 @@ QGLWidgetTextRenderer::findFont(const AnnotationText& annotationText,
                                         const bool creatingDefaultFontFlag)
 
 {
-    const AString fontName = annotationText.getFontRenderingEncodedName(m_viewportHeight);
+    const AString fontName = annotationText.getFontRenderingEncodedName(m_viewportWidth,
+                                                                        m_viewportHeight);
     
     /*
      * Has the font already has been created?
@@ -974,6 +983,7 @@ QGLWidgetTextRenderer::findFont(const AnnotationText& annotationText,
      * Create and save the font
      */
     FontData* fontData = new FontData(annotationText,
+                                      m_viewportWidth,
                                       m_viewportHeight);
     if (fontData->m_valid) {
         /*
@@ -1057,6 +1067,7 @@ QGLWidgetTextRenderer::FontData::FontData()
  *   Height of viewport.
  */
 QGLWidgetTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
+                                          const int32_t viewportWidth,
                                           const int32_t viewportHeight)
 {
     m_valid    = false;
@@ -1094,7 +1105,8 @@ QGLWidgetTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
     m_font = new QFont(fontName);
     CaretAssert(m_font);
     
-    const int32_t fontSizePoints = annotationText.getFontSizeForDrawing(viewportHeight);
+    const int32_t fontSizePoints = annotationText.getFontSizeForDrawing(viewportWidth,
+                                                                        viewportHeight);
     
     m_font->setPointSize(fontSizePoints);
     m_font->setBold(annotationText.isBoldStyleEnabled());

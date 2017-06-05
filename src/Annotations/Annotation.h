@@ -83,6 +83,10 @@ namespace caret {
         
         void setWindowIndex(const int32_t windowIndex);
         
+        void getViewportCoordinateSpaceViewport(int viewportOut[4]) const;
+        
+        void setViewportCoordinateSpaceViewport(const int viewport[4]);
+        
         CaretColorEnum::Enum getLineColor() const;
 
         void setLineColor(const CaretColorEnum::Enum color);
@@ -278,6 +282,8 @@ namespace caret {
         int32_t m_tabIndex;
         
         int32_t m_windowIndex;
+        
+        int32_t m_viewportCoordinateSpaceViewport[4];
         
         CaretColorEnum::Enum m_colorLine;
         

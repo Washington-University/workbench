@@ -308,6 +308,8 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                     break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                    break;
                 case  AnnotationCoordinateSpaceEnum::WINDOW:
                     break;
             }

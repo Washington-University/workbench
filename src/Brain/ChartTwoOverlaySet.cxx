@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "AnnotationChartTwoAxisLabel.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
 #include "EventManager.h"
@@ -80,7 +81,7 @@ m_tabIndex(tabIndex)
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
         {
             m_chartAxisLeft->setEnabledByChart(true);
-            m_chartAxisLeft->setAxisTitle("Counts");
+            m_chartAxisLeft->getAnnotationAxisLabel()->setText("Counts");
             m_chartAxisLeft->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             float rangeMin = 0.0, rangeMax = 0.0;
             m_chartAxisLeft->getRange(rangeMin, rangeMax);
@@ -88,14 +89,14 @@ m_tabIndex(tabIndex)
             m_chartAxisLeft->setRange(rangeMin, rangeMax);
             
             m_chartAxisRight->setEnabledByChart(false);
-            m_chartAxisRight->setAxisTitle("Counts");
+            m_chartAxisRight->getAnnotationAxisLabel()->setText("Counts");
             m_chartAxisRight->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             m_chartAxisRight->getRange(rangeMin, rangeMax);
             rangeMin = 0.0;
             m_chartAxisRight->setRange(rangeMin, rangeMax);
             
             m_chartAxisBottom->setEnabledByChart(true);
-            m_chartAxisBottom->setAxisTitle("Data");
+            m_chartAxisBottom->getAnnotationAxisLabel()->setText("Data");
             m_chartAxisBottom->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
         }
             break;

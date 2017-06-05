@@ -319,6 +319,7 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
     bool tabWindowFlag   = false;
     bool stereotaxicFlag = false;
     bool surfaceFlag     = false;
+    bool viewportFlag    = false;
     
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -332,6 +333,9 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             tabWindowFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            viewportFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             tabWindowFlag = true;
@@ -683,6 +687,8 @@ AnnotationOneDimensionalShape::applySpatialModification(const AnnotationSpatialM
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             return applySpatialModificationTabOrWindowSpace(spatialModification);
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             return applySpatialModificationTabOrWindowSpace(spatialModification);

@@ -25,7 +25,10 @@
 
 #include <algorithm>
 
+#include "AnnotationChartTwoAxisLabel.h"
+#include "AnnotationCoordinate.h"
 #include "AnnotationColorBar.h"
+#include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
@@ -55,6 +58,7 @@
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
 #include "SessionManager.h"
+#include "SelectionItemAnnotation.h"
 #include "SelectionItemChartTwoHistogram.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
@@ -99,6 +103,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  *     Selected data type.
  * @param viewport
  *     Viewport for the chart.
+ * @param annotationChartTwoAxisLabelsOut
+ *     Output containing annotation chart axis labels that will be drawn 
+ *     by the Annotation OpenGL Drawing.
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
@@ -106,8 +113,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                                                              ModelChartTwo* chartTwoModel,
                                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                              const SelectionItemDataTypeEnum::Enum selectionItemDataType,
-                                                             const int32_t viewport[4])
+                                                             const int32_t viewport[4],
+                                                             std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsOut)
 {
+    annotationChartTwoAxisLabelsOut.clear();
+    m_annotationDrawingChartTwoAxisLabels.clear();
+    
     CaretAssert(brain);
     CaretAssert(browserTabContent);
     CaretAssert(chartTwoModel);
@@ -129,6 +140,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     m_viewport[2] = viewport[2];
     m_viewport[3] = viewport[3];
 
+    m_selectionItemAnnotation = m_brain->getSelectionManager()->getAnnotationIdentification();
     m_selectionItemHistogram  = m_brain->getSelectionManager()->getChartTwoHistogramIdentification();
     m_selectionItemLineSeries = m_brain->getSelectionManager()->getChartTwoLineSeriesIdentification();
     m_selectionItemMatrix     = m_brain->getSelectionManager()->getChartTwoMatrixIdentification();
@@ -155,6 +167,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                     useItFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
                     break;
                 case AnnotationCoordinateSpaceEnum::WINDOW:
                     break;
@@ -194,13 +208,16 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if ( ! m_selectionItemHistogram->isEnabledForSelection()) {
+            if ( (! m_selectionItemHistogram->isEnabledForSelection())
+                && (! m_selectionItemAnnotation->isEnabledForSelection()) ){
                 drawHistogramFlag = false;
             }
-            if ( ! m_selectionItemLineSeries->isEnabledForSelection()) {
+            if ( (! m_selectionItemLineSeries->isEnabledForSelection())
+                  && (! m_selectionItemAnnotation->isEnabledForSelection()) ) {
                 drawLineSeriesFlag = false;
             }
-            if ( ! m_selectionItemMatrix->isEnabledForSelection()) {
+            if ( (! m_selectionItemMatrix->isEnabledForSelection())
+                  && (! m_selectionItemAnnotation->isEnabledForSelection()) ) {
                 drawMatrixFlag = false;
             }
             if (drawHistogramFlag
@@ -257,6 +274,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     }
     
     restoreStateOfOpenGL();
+    
+    annotationChartTwoAxisLabelsOut = m_annotationDrawingChartTwoAxisLabels;
 }
 
 /**
@@ -391,13 +410,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
         const float boundsRight[4] = { xMin, xMax, yMinRight, yMaxRight };
         double width = 0.0, height = 0.0;
         
-        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpHeight, leftAxis, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, leftAxis, width, height);
         margins.m_left = std::max(margins.m_left, width);
-        estimateCartesianChartAxisLegendsWidthHeight(boundsRight, vpHeight, rightAxis, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(boundsRight, vpWidth, vpHeight, rightAxis, width, height);
         margins.m_right = std::max(margins.m_right, width);
-        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpHeight, topAxis, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, topAxis, width, height);
         margins.m_top = std::max(margins.m_top, height);
-        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpHeight, bottomAxis, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, bottomAxis, width, height);
         margins.m_bottom = std::max(margins.m_bottom, height);
         
         if (margins.m_left > marginSize) margins.m_left += 10;
@@ -1073,6 +1092,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::processLineSeriesIdentification(const C
  *
  * @param dataBounds
  *     Bounds of data [minX, maxX, minY, maxY].
+ * @param viewportWidth
+ *     Widgth of viewport.
  * @param viewportHeight
  *     Height of viewport.
  * @param cartesianAxis
@@ -1084,6 +1105,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::processLineSeriesIdentification(const C
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeight(const float dataBounds[4],
+                                                                                      const float viewportWidth,
                                                                                       const float viewportHeight,
                                                                                       ChartTwoCartesianAxis* cartesianAxis,
                                                                                       double& widthOut,
@@ -1127,7 +1149,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
             annotationText.setText(text);
             double textWidth = 0.0;
             double textHeight = 0.0;
-            m_textRenderer->getTextWidthHeightInPixels(annotationText, viewportHeight, textWidth, textHeight);
+            m_textRenderer->getTextWidthHeightInPixels(annotationText, viewportWidth, viewportHeight, textWidth, textHeight);
             
             widthOut  = std::max(widthOut,  textWidth);
             heightOut = std::max(heightOut, textHeight);
@@ -1149,7 +1171,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
             break;
     }
     
-    const AString axisTitle = cartesianAxis->getAxisTitle();
+    const AnnotationChartTwoAxisLabel* chartAxisLabel = cartesianAxis->getAnnotationAxisLabel();
+    const AString axisTitle = chartAxisLabel->getText();
     if ( ! axisTitle.isEmpty()) {
         AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setText(axisTitle);
@@ -1172,7 +1195,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
         
         double textWidth = 0.0;
         double textHeight = 0.0;
-        m_textRenderer->getTextWidthHeightInPixels(annotationText, viewportHeight, textWidth, textHeight);
+        m_textRenderer->getTextWidthHeightInPixels(annotationText, viewportWidth, viewportHeight, textWidth, textHeight);
         
         /*
          * Note: Text on left and right is rotated but we need the width
@@ -1561,7 +1584,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
             drawPrimitivePrivate(ticksData.get());
         }
         
-        const AString axisTitle = axis->getAxisTitle();
+        const AString axisTitle = axis->getAnnotationAxisLabel()->getText();
         if ( ! axisTitle.isEmpty()) {
             annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
             annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
@@ -1594,23 +1617,53 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
                     drawAxisTextVerticalFlag = true;
                     break;
             }
-            if (drawAxisTextVerticalFlag) {
-                annotationText.setRotationAngle(-90.0);
-                annotationText.setText(axisTitle);
-                m_textRenderer->drawTextAtViewportCoords(axisTextCenterX,
-                                                         axisTextCenterY,
-                                                         0.0,
-                                                         annotationText);
-                annotationText.setRotationAngle(0.0);
+            
+            if ((axisVpWidth > 0.0)
+                && (axisVpHeight > 0.0)) {
+//                const float labelPercentX = 100.0f * (axisTextCenterX / axisVpWidth);
+//                const float labelPercentY = 100.0f * (axisTextCenterY / axisVpHeight);
+                AnnotationChartTwoAxisLabel* chartLabel = axis->getAnnotationAxisLabel();
+                chartLabel->setCustomTextColor(rgba);
+                chartLabel->setTextColor(CaretColorEnum::CUSTOM);
+                chartLabel->setTabIndex(m_tabIndex);
+                chartLabel->setViewportCoordinateSpaceViewport(axisViewport);
+//                chartLabel->setAxisViewport(axisViewport);
+                chartLabel->getCoordinate()->setXYZ(axisTextCenterX,
+                                                    axisTextCenterY,
+                                                    0.0f);
+//                chartLabel->getCoordinate()->setXYZ(labelPercentX,
+//                                                    labelPercentY,
+//                                                    0.0f);
+                
+                m_annotationDrawingChartTwoAxisLabels.push_back(chartLabel);
             }
-            else {
-                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
-                annotationText.setText(axisTitle);
-                m_textRenderer->drawTextAtViewportCoords(axisTextCenterX,
-                                                         axisTextCenterY,
-                                                         0.0,
-                                                         annotationText);
-            }
+            
+//            /*
+//             * REMOVE THIS WHEN AXIS LABELS ARE DRAWN BY ANNOTATION CODE
+//             */
+//            m_textRenderer->drawTextAtViewportCoords(axisTextCenterX,
+//                                                     axisTextCenterY,
+//                                                     0.0,
+//                                                     *axis->getAnnotationAxisLabel());
+
+            
+//            if (drawAxisTextVerticalFlag) {
+//                annotationText.setRotationAngle(-90.0);
+//                annotationText.setText(axisTitle);
+//                m_textRenderer->drawTextAtViewportCoords(axisTextCenterX,
+//                                                         axisTextCenterY,
+//                                                         0.0,
+//                                                         annotationText);
+//                annotationText.setRotationAngle(0.0);
+//            }
+//            else {
+//                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
+//                annotationText.setText(axisTitle);
+//                m_textRenderer->drawTextAtViewportCoords(axisTextCenterX,
+//                                                         axisTextCenterY,
+//                                                         0.0,
+//                                                         annotationText);
+//            }
         }
     }
     

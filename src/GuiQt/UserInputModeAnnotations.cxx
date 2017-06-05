@@ -415,6 +415,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                         changeCoordFlag  = true;
                         moveOnePixelFlag = true;
                         break;
+                    case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                        break;
                     case AnnotationCoordinateSpaceEnum::WINDOW:
                         changeCoordFlag  = true;
                         moveOnePixelFlag = true;
@@ -473,6 +475,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                     surfaceFlag = true;
                                     break;
                                 case AnnotationCoordinateSpaceEnum::TAB:
+                                    break;
+                                case AnnotationCoordinateSpaceEnum::VIEWPORT:
                                     break;
                                 case AnnotationCoordinateSpaceEnum::WINDOW:
                                     break;
@@ -698,6 +702,9 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 spaceWidth   = viewport[2];
                 spaceHeight  = viewport[3];
             }
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssertToDoFatal();
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
             {

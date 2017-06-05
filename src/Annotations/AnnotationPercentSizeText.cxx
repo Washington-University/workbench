@@ -24,6 +24,8 @@
 #undef __ANNOTATION_PERCENT_SIZE_TEXT_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+
 using namespace caret;
 
 
@@ -33,6 +35,60 @@ using namespace caret;
  * \brief Text annotation with font height a percentage of viewport height.
  * \ingroup Annotations
  */
+
+/**
+ * Constructor.
+ *
+ * @param attributeDefaultType
+ *    Type for attribute defaults
+ * @param textFontSizeType
+ *    Type of font sizing must be percentage height/width
+ */
+AnnotationPercentSizeText::AnnotationPercentSizeText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
+                                                     const AnnotationTextFontSizeTypeEnum::Enum textFontSizeType)
+: AnnotationText(attributeDefaultType,
+                 textFontSizeType)
+{
+    switch (textFontSizeType) {
+        case AnnotationTextFontSizeTypeEnum::POINTS:
+            CaretAssertMessage(0, "POINTS font size type not allowed for AnnotationPercentSizeText");
+            CaretLogSevere("POINTS font size type not allowed for AnnotationPercentSizeText");
+            break;
+        case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH:
+            break;
+        case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
+            break;
+    }
+}
+
+/**
+ * Constructor for subclass.
+ *
+ * @param type
+ *    Type of annotation.
+ * @param attributeDefaultType
+ *    Type for attribute defaults
+ * @param textFontSizeType
+ *    Type of font sizing must be percentage height/width
+ */
+AnnotationPercentSizeText::AnnotationPercentSizeText(const AnnotationTypeEnum::Enum type,
+                                                     const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
+                                                     const AnnotationTextFontSizeTypeEnum::Enum textFontSizeType)
+: AnnotationText(type,
+                 attributeDefaultType,
+                 textFontSizeType)
+{
+    switch (textFontSizeType) {
+        case AnnotationTextFontSizeTypeEnum::POINTS:
+            CaretAssertMessage(0, "POINTS font size type not allowed for AnnotationPercentSizeText");
+            CaretLogSevere("POINTS font size type not allowed for AnnotationPercentSizeText");
+            break;
+        case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH:
+            break;
+        case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
+            break;
+    }
+}
 
 /**
  * Constructor.

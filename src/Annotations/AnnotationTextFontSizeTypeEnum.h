@@ -35,10 +35,12 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Sized in Points */
         POINTS,
-        /** */
-        PERCENTAGE_OF_VIEWPORT_HEIGHT
+        /** Sized as percentage of viewport height */
+        PERCENTAGE_OF_VIEWPORT_HEIGHT,
+        /** Sized as percentage of viewport width */
+        PERCENTAGE_OF_VIEWPORT_WIDTH
     };
 
 

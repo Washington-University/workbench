@@ -137,6 +137,8 @@ AnnotationChangeCoordinateDialog::createCurrentCoordinateWidget()
         case AnnotationCoordinateSpaceEnum::TAB:
             spaceText += (AString::number(m_annotation->getTabIndex() + 1) + " ");
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             spaceText += (AString::number(m_annotation->getWindowIndex() + 1) + " ");
             break;

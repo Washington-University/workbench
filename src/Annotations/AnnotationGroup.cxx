@@ -104,6 +104,9 @@ SceneableInterface()
             CaretAssert((tabOrWindowIndex >= 0)
                         && (tabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssert(0);
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             CaretAssert((tabOrWindowIndex >= 0)
                         && (tabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
@@ -270,6 +273,9 @@ AnnotationGroup::getName() const
                 spaceName.append(" "
                                  + AString::number(getTabOrWindowIndex() + 1));
                 break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssertMessage(0, "Should never be viewport");
+                break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 spaceName.append(" "
                                  + AString::number(getTabOrWindowIndex() + 1));
@@ -431,6 +437,8 @@ AnnotationGroup::validateAddedAnnotation(const Annotation* annotation)
                 CaretAssert(0);
                 return false;
             }
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if (m_tabOrWindowIndex != annotation->getWindowIndex()) {

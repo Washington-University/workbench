@@ -56,6 +56,7 @@ namespace caret {
                                            const AnnotationText& annotationText);
         
         virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                const double viewportWidth,
                                                 const double viewportHeight,
                                                 double& widthOut,
                                                 double& heightOut);
@@ -65,6 +66,7 @@ namespace caret {
                                                       const double viewportX,
                                                       const double viewportY,
                                                       const double viewportZ,
+                                                      const double viewportWidth,
                                                       const double viewportHeight,
                                                       double bottomLeftOut[3],
                                                       double bottomRightOut[3],
@@ -119,6 +121,7 @@ namespace caret {
             FontData();
             
             FontData(const AnnotationText&  annotationText,
+                     const int32_t viewportWidth,
                      const int32_t viewportHeight);
             
             ~FontData();
@@ -315,6 +318,9 @@ namespace caret {
         
         /** Depth testing enabled status */
         DepthTestEnum m_depthTestingStatus;
+        
+        /** Width of the viewport */
+        int32_t m_viewportWidth;
         
         /** Height of the viewport */
         int32_t m_viewportHeight;

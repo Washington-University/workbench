@@ -148,6 +148,8 @@ namespace caret {
         
         static const QString ELEMENT_PERCENT_SIZE_TEXT;
         
+        static const QString ELEMENT_PERCENT_WIDTH_SIZE_TEXT;
+        
         static const QString ELEMENT_POINT_SIZE_TEXT;
         
         static const QString ELEMENT_TEXT_OBSOLETE;
@@ -263,6 +265,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ELEMENT_OVAL = "oval";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_PERCENT_SIZE_TEXT = "percentSizeText";
+    
+    const QString AnnotationFileXmlFormatBase::ELEMENT_PERCENT_WIDTH_SIZE_TEXT = "percentWidthSizeText";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_POINT_SIZE_TEXT = "pointSizeText";
     

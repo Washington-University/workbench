@@ -255,6 +255,9 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
             case AnnotationTypeEnum::BOX:
                 writeBox(dynamic_cast<const AnnotationBox*>(annotation));
                 break;
+            case AnnotationTypeEnum::CHART_AXIS_LABEL:
+                CaretAssertMessage(0, "Axis label is NEVER written to an annotation file");
+                break;
             case AnnotationTypeEnum::COLOR_BAR:
                 CaretAssertMessage(0, "Color bar is NEVER written to an annotation file");
                 break;
@@ -426,6 +429,9 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     switch (text->getFontSizeType()) {
         case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
             annotationElementName = ELEMENT_PERCENT_SIZE_TEXT;
+            break;
+        case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH:
+            annotationElementName = ELEMENT_PERCENT_WIDTH_SIZE_TEXT;
             break;
         case AnnotationTextFontSizeTypeEnum::POINTS:
             annotationElementName = ELEMENT_POINT_SIZE_TEXT;

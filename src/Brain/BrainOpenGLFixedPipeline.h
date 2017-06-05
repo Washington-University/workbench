@@ -42,6 +42,7 @@
 
 namespace caret {
     
+    class AnnotationChartTwoAxisLabel;
     class AnnotationText;
     class BoundingBox;
     class Brain;
@@ -621,6 +622,8 @@ namespace caret {
         
         std::vector<AnnotationColorBar*> m_annotationColorBarsForDrawing;
         
+        std::vector<AnnotationChartTwoAxisLabel*> m_annotationChartTwoAxisLabelsForDrawing;
+
         static bool s_staticInitialized;
 
         static const float s_gluLookAtCenterFromEyeOffsetDistance;

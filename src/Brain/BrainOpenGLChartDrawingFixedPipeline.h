@@ -119,6 +119,7 @@ namespace caret {
                                     const float rgb[3]);
         
         void estimateCartesianChartAxisLegendsWidthHeight(BrainOpenGLTextRenderInterface* textRenderer,
+                                                          const float viewportWidth,
                                                           const float viewportHeight,
                                                           ChartAxis* axis,
                                                           double& widthOut,

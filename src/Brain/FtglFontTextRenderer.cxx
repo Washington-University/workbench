@@ -179,7 +179,31 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
                               const bool creatingDefaultFontFlag)
 {
 #ifdef HAVE_FREETYPE
-    const AString fontName = annotationText.getFontRenderingEncodedName(m_viewportHeight);
+    int32_t viewportWidth  = m_viewportWidth;
+    int32_t viewportHeight = m_viewportHeight;
+    
+    switch (annotationText.getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+        {
+            int32_t vp[4];
+            annotationText.getViewportCoordinateSpaceViewport(vp);
+            viewportWidth  = vp[2];
+            viewportHeight = vp[3];
+        }
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    const AString fontName = annotationText.getFontRenderingEncodedName(viewportWidth,
+                                                                        viewportHeight);
     
     /*
      * Has the font already has been created?
@@ -195,7 +219,8 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
      * Create and save the font
      */
     FontData* fontData = new FontData(annotationText,
-                                      m_viewportHeight);
+                                      viewportWidth,
+                                      viewportHeight);
     if (fontData->m_valid) {
         /*
          * Request font is valid.
@@ -734,6 +759,8 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
  *    Viewport Y-coordinate.
  * @param viewportZ
  *    Viewport Z-coordinate.
+ * @param viewportWidth
+ *    Width of the viewport needed for percentage height text.
  * @param viewportHeight
  *    Height of the viewport needed for percentage height text.
  * @param bottomLeftOut
@@ -750,6 +777,7 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                                        const double viewportX,
                                                        const double viewportY,
                                                        const double viewportZ,
+                                                       const double viewportWidth,
                                                        const double viewportHeight,
                                                        double bottomLeftOut[3],
                                                        double bottomRightOut[3],
@@ -757,6 +785,7 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                                        double topLeftOut[3])
 {
     setViewportHeight();
+    m_viewportWidth  = viewportWidth;
     m_viewportHeight = viewportHeight;
     
     FTFont* font = getFont(annotationText, false);
@@ -850,6 +879,7 @@ FtglFontTextRenderer::setViewportHeight()
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
     
+    m_viewportWidth = viewport[2];
     m_viewportHeight = viewport[3];
 }
 
@@ -861,6 +891,8 @@ FtglFontTextRenderer::setViewportHeight()
  *
  * @param annotationText
  *   Text for width and height estimation.
+ * @param viewportWidth
+ *    Width of the viewport needed for percentage height text.
  * @param viewportHeight
  *    Height of the viewport needed for percentage height text.
  * @param widthOut
@@ -870,11 +902,13 @@ FtglFontTextRenderer::setViewportHeight()
  */
 void
 FtglFontTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                 const double viewportWidth,
                                                  const double viewportHeight,
                                                  double& widthOut,
                                                  double& heightOut)
 {
     setViewportHeight();
+    m_viewportWidth  = viewportWidth;
     m_viewportHeight = viewportHeight;
     
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
@@ -889,11 +923,11 @@ FtglFontTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotatio
         CaretAssert(textCopy);
         textCopy->setRotationAngle(0.0);
         getBoundsForTextAtViewportCoords(*textCopy, 0.0, 0.0, 0.0,
-                                         viewportHeight, bottomLeft, bottomRight, topRight, topLeft);
+                                         viewportWidth, viewportHeight, bottomLeft, bottomRight, topRight, topLeft);
     }
     else {
         getBoundsForTextAtViewportCoords(annotationText, 0.0, 0.0, 0.0,
-                                         viewportHeight, bottomLeft, bottomRight, topRight, topLeft);
+                                         viewportWidth, viewportHeight, bottomLeft, bottomRight, topRight, topLeft);
     }
     
     widthOut  = MathFunctions::distance3D(bottomLeft, bottomRight);
@@ -1028,10 +1062,13 @@ FtglFontTextRenderer::FontData::FontData()
  *
  * @param annotationText
  *   Annotation Text that is to be drawn.
+ * @param viewportWidth
+ *    Width of the viewport in which text is drawn.
  * @param viewportHeight
  *    Height of the viewport in which text is drawn.
  */
 FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
+                                         const int32_t viewportWidth,
                                          const int32_t viewportHeight)
 {
     m_valid    = false;
@@ -1082,7 +1119,7 @@ FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
                 /*
                  * Font size successful ?
                  */
-                const int32_t fontSizePoints = annotationText.getFontSizeForDrawing(viewportHeight);
+                const int32_t fontSizePoints = annotationText.getFontSizeForDrawing(viewportWidth, viewportHeight);
                 if (m_font->FaceSize(fontSizePoints)) {
                     m_valid = true;
                     

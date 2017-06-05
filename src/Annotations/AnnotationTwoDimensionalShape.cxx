@@ -332,6 +332,7 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
     bool tabWindowFlag   = false;
     bool stereotaxicFlag = false;
     bool surfaceFlag     = false;
+    bool viewportFlag    = false;
     
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -345,6 +346,9 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             tabWindowFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            viewportFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             tabWindowFlag = true;
@@ -362,6 +366,11 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             allowsCornerResizingFlag = true;
             allowsSideResizingFlag = true;
             allowsRotationFlag = true;
+            break;
+        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+            allowsMovingFlag   = true;
+            allowsCornerResizingFlag = true;
+            allowsSideResizingFlag = true;
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             allowsMovingFlag   = true;
@@ -390,7 +399,8 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
     
     bool validFlag = false;
     
-    if ( ! pixelsFlag) {
+    if ( (! pixelsFlag)
+        && (! viewportFlag)) {
         switch (sizingHandle) {
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
                 if (allowsSideResizingFlag) {
@@ -482,6 +492,9 @@ AnnotationTwoDimensionalShape::applySpatialModificationSurfaceOrStereotaxicSpace
             surfaceSpaceFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
+            badSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
             badSpaceFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
@@ -1123,6 +1136,8 @@ AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialM
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             return applySpatialModificationTabOrWindowSpace(spatialModification);
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             return applySpatialModificationTabOrWindowSpace(spatialModification);

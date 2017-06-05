@@ -305,6 +305,8 @@ AnnotationPasteDialog::pasteOneDimensionalShape(AnnotationOneDimensionalShape* o
         case AnnotationCoordinateSpaceEnum::TAB:
             tabFlag = true;
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             windowFlag = true;
             break;

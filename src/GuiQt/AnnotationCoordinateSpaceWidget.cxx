@@ -141,6 +141,9 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
                     text.append(tabString);
                 }
                     break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                    CaretAssertToDoFatal();
+                    break;
                 case AnnotationCoordinateSpaceEnum::WINDOW:
                     break;
             }

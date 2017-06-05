@@ -35,6 +35,7 @@ namespace caret {
 
     class Annotation;
     class AnnotationBox;
+    class AnnotationChartTwoAxisLabel;
     class AnnotationColorBar;
     class AnnotationCoordinate;
     class AnnotationFile;
@@ -116,6 +117,7 @@ namespace caret {
         void drawAnnotations(Inputs* inputs,
                              const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                              std::vector<AnnotationColorBar*>& colorBars,
+                             std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsForDrawing,
                              const Surface* surfaceDisplayed);
 
         void drawModelSpaceAnnotationsOnVolumeSlice(Inputs* inputs,
@@ -165,17 +167,32 @@ namespace caret {
             float m_rgba[4];
         };
         
+        /**
+         * Used to save viewport, model view, projection
+         */
+        class TransformationInfo {
+        public:
+            void save();
+            void restore();
+            
+            GLint m_viewport[4];
+            GLdouble m_modelViewMatrix[16];
+            GLdouble m_projectionMatrix[16];
+            bool m_valid = false;
+        };
+        
         BrainOpenGLAnnotationDrawingFixedPipeline(const BrainOpenGLAnnotationDrawingFixedPipeline&);
 
         BrainOpenGLAnnotationDrawingFixedPipeline& operator=(const BrainOpenGLAnnotationDrawingFixedPipeline&);
         
         void drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                      std::vector<AnnotationColorBar*>& colorBars,
+                                     std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsForDrawing,
                                      const Surface* surfaceDisplayed,
                                      const float sliceThickness);
         
-        bool getAnnotationWindowCoordinate(const AnnotationCoordinate* coordinate,
-                                           const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace,
+        bool getAnnotationWindowCoordinate(const Annotation* annotation,
+                                           const AnnotationCoordinate* coordinate,
                                             const Surface* surfaceDisplayed,
                                             float windowXYZOut[3]) const;
         
@@ -197,12 +214,15 @@ namespace caret {
                             Annotation* annotation,
                             const Surface* surfaceDisplayed);
         
+        void drawColorBar(AnnotationFile* annotationFile,
+                          AnnotationColorBar* colorBar);
+        
         bool drawBox(AnnotationFile* annotationFile,
                      AnnotationBox* box,
                        const Surface* surfaceDisplayed);
         
-        void drawColorBar(AnnotationFile* annotationFile,
-                          AnnotationColorBar* colorBar);
+        void drawChartTwoAxisLabel(AnnotationFile* annotationFile,
+                                   AnnotationChartTwoAxisLabel* chartTwoAxisLabel);
         
         bool drawImage(AnnotationFile* annotationFile,
                        AnnotationImage* image,
@@ -306,6 +326,9 @@ namespace caret {
         
         void endOpenGLForDrawing(GLint savedShadeModel,
                                  GLboolean savedLightingEnabled);
+        
+        void setupViewportSpaceDrawing(const Annotation* annotation,
+                                       TransformationInfo& transformationInfo);
         
         void clipLineAtTextBox(const float bottomLeft[3],
                                const float bottomRight[3],

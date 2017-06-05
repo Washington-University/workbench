@@ -190,6 +190,9 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
     switch (annotationType) {
         case AnnotationTypeEnum::BOX:
             break;
+        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+            CaretAssertMessage(0, "Axis Labels do not get created !!!");
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
             CaretAssertMessage(0, "Colorbars do not get created !!!");
             break;
@@ -274,6 +277,9 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                 adjustTextPctSizeFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssertToDoFatal();
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 break;
@@ -867,6 +873,9 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
             case AnnotationTypeEnum::BOX:
                 useAverageFlag = true;
                 break;
+            case AnnotationTypeEnum::CHART_AXIS_LABEL:
+                useAverageFlag = true;
+                break;
             case AnnotationTypeEnum::COLOR_BAR:
                 useAverageFlag = true;
                 break;
@@ -944,6 +953,9 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                             viewportWidth = viewport[2];
                             viewportHeight = viewport[3];
                         }
+                            break;
+                        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                            CaretAssertToDoFatal();
                             break;
                         case AnnotationCoordinateSpaceEnum::WINDOW:
                         {

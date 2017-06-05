@@ -35,7 +35,7 @@ namespace caret {
         AnnotationFontAttributesInterface() { }
         
         virtual ~AnnotationFontAttributesInterface() { }
-        
+                
         virtual AnnotationTextFontNameEnum::Enum getFont() const = 0;
         
         virtual void setFont(const AnnotationTextFontNameEnum::Enum font) = 0;

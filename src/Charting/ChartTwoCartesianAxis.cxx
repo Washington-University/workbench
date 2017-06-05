@@ -23,6 +23,7 @@
 #include "ChartTwoCartesianAxis.h"
 #undef __CHART_TWO_CARTESIAN_AXIS_DECLARE__
 
+#include "AnnotationChartTwoAxisLabel.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartScaleAutoRanging.h"
@@ -52,6 +53,22 @@ ChartTwoCartesianAxis::ChartTwoCartesianAxis(const ChartAxisLocationEnum::Enum a
 SceneableInterface(),
 m_axisLocation(axisLocation)
 {
+    AnnotationTextFontSizeTypeEnum::Enum fontSizeType = AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT;
+    switch (m_axisLocation) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+            fontSizeType = AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH;
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+            fontSizeType = AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH;
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            break;
+    }
+    m_annotationAxisLabel = std::unique_ptr<AnnotationChartTwoAxisLabel>(new AnnotationChartTwoAxisLabel(AnnotationAttributesDefaultTypeEnum::NORMAL,
+                                                                                                         fontSizeType));
+    
     /*
      * Allowable range minimum and maximum
      * NOT SAVED TO SCENE 
@@ -81,12 +98,40 @@ m_axisLocation(axisLocation)
                                                                              &m_numericSubdivsionsMode);
     m_sceneAssistant->add("m_userNumberOfSubdivisions",
                           &m_userNumberOfSubdivisions);
-    m_sceneAssistant->add("m_axisTitle",
-                          &m_axisTitle);
     m_sceneAssistant->add("m_enabledByChart",
                           &m_enabledByChart);
     m_sceneAssistant->add("m_showTickmarks",
                           &m_showTickmarks);
+    m_sceneAssistant->add("m_annotationAxisLabel",
+                          "AnnotationChartTwoAxisLabel",
+                          m_annotationAxisLabel.get());
+    
+    m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+    m_annotationAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+    //m_annotationAxisLabel->setBackgroundColor(CaretColorEnum::NONE);
+    m_annotationAxisLabel->setFontPercentViewportSize(40.0);
+    switch (m_axisLocation) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+            m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            m_annotationAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+            m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            m_annotationAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+            m_annotationAxisLabel->setRotationAngle(-90.0);
+            m_annotationAxisLabel->setFontPercentViewportSize(25.0);
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+            m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            m_annotationAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+            m_annotationAxisLabel->setRotationAngle(-90.0);
+            m_annotationAxisLabel->setFontPercentViewportSize(25.0);
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            m_annotationAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+            break;
+    }
 }
 
 /**
@@ -136,6 +181,7 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
 {
     CaretAssert(m_axisLocation == obj.m_axisLocation);
     
+    *m_annotationAxisLabel        = *obj.m_annotationAxisLabel;
     m_displayedByUser             = obj.m_displayedByUser;
     m_rangeMinimumValue     = obj.m_rangeMinimumValue;
     m_rangeMaximumValue     = obj.m_rangeMaximumValue;
@@ -148,7 +194,6 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_userNumericFormat         = obj.m_userNumericFormat;
     m_numericSubdivsionsMode = obj.m_numericSubdivsionsMode;
     m_userNumberOfSubdivisions  = obj.m_userNumberOfSubdivisions;
-    m_axisTitle             = obj.m_axisTitle;
     m_enabledByChart        = obj.m_enabledByChart;
     m_showTickmarks         = obj.m_showTickmarks;
     limitUserScaleMinMaxToValidRange();
@@ -449,24 +494,21 @@ ChartTwoCartesianAxis::toString() const
 }
 
 /**
- * @return Title for axis
+ * @return Annotation used for drawing axis label and tick mark numeric values
  */
-AString
-ChartTwoCartesianAxis::getAxisTitle() const
+const AnnotationChartTwoAxisLabel*
+ChartTwoCartesianAxis::getAnnotationAxisLabel() const
 {
-    return m_axisTitle;
+    return m_annotationAxisLabel.get();
 }
 
 /**
- * Set title for axis
- *
- * @param axisTitle
- *    New value for axis title
+ * @return Annotation used for drawing axis label and tick mark numeric values
  */
-void
-ChartTwoCartesianAxis::setAxisTitle(const AString& axisTitle)
+AnnotationChartTwoAxisLabel*
+ChartTwoCartesianAxis::getAnnotationAxisLabel()
 {
-    m_axisTitle = axisTitle;
+    return m_annotationAxisLabel.get();
 }
 
 /**
@@ -522,6 +564,10 @@ ChartTwoCartesianAxis::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
+    const AString oldSceneAxisTitle = sceneClass->getStringValue("m_axisTitle");
+    if ( ! oldSceneAxisTitle.isEmpty()) {
+        m_annotationAxisLabel->setText(oldSceneAxisTitle);
+    }
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);

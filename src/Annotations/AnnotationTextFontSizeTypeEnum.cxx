@@ -31,9 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::AnnotationTextFontSizeTypeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \brief Enumerated type for font sizing
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -110,12 +108,15 @@ AnnotationTextFontSizeTypeEnum::initialize()
 
     enumData.push_back(AnnotationTextFontSizeTypeEnum(POINTS, 
                                     "POINTS", 
-                                    ""));
+                                    "Points"));
     
     enumData.push_back(AnnotationTextFontSizeTypeEnum(PERCENTAGE_OF_VIEWPORT_HEIGHT, 
                                     "PERCENTAGE_OF_VIEWPORT_HEIGHT", 
-                                    ""));
+                                    "Percentage of Viewport Height"));
     
+    enumData.push_back(AnnotationTextFontSizeTypeEnum(PERCENTAGE_OF_VIEWPORT_WIDTH,
+                                                      "PERCENTAGE_OF_VIEWPORT_WIDTH",
+                                                      "Percentage of Viewport Width"));
 }
 
 /**

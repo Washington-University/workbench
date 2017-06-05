@@ -115,6 +115,8 @@ m_newAnnotationCreatedByContextMenu(NULL)
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
                 break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 break;
         }

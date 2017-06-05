@@ -37,6 +37,7 @@
 #include "CaretDataFile.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFile.h"
+#include "AnnotationChartTwoAxisLabel.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlaySet.h"
 #include "EnumComboBoxTemplate.h"
@@ -583,10 +584,10 @@ BrainBrowserWindowToolBarChartTwoAxes::axisNameToolButtonClicked(bool)
         WuQDataEntryDialog newNameDialog("Axis Title",
                                          m_axisNameToolButton);
         QLineEdit* lineEdit = newNameDialog.addLineEditWidget("Axis Name");
-        lineEdit->setText(m_chartAxis->getAxisTitle());
+        lineEdit->setText(m_chartAxis->getAnnotationAxisLabel()->getText());
         if (newNameDialog.exec() == WuQDataEntryDialog::Accepted) {
             const AString name = lineEdit->text().trimmed();
-            m_chartAxis->setAxisTitle(name);
+            m_chartAxis->getAnnotationAxisLabel()->setText(name);
             valueChanged();
         }
     }

@@ -28,6 +28,7 @@
 
 namespace caret {
 
+    class AnnotationChartTwoAxisLabel;
     class Brain;
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLTextRenderInterface;
@@ -56,13 +57,17 @@ namespace caret {
          *     Selected data type.
          * @param viewport
          *     Viewport for the chart.
+         * @param annotationChartTwoAxisLabelsOut
+         *     Output containing annotation chart axis labels that will be drawn
+         *     by the Annotation OpenGL Drawing.
          */
         virtual void drawChartOverlaySet(Brain* brain,
                                          BrowserTabContent* browserTabContent,
                                          ModelChartTwo* chartTwoModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
-                                         const int32_t viewport[4]) = 0;
+                                         const int32_t viewport[4],
+                                         std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsOut) = 0;
 
 
         // ADD_NEW_METHODS_HERE

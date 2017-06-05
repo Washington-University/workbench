@@ -130,6 +130,11 @@ AnnotationCoordinateSpaceEnum::initialize()
                                                      "Tab",
                                                      "T"));
     
+    enumData.push_back(AnnotationCoordinateSpaceEnum(VIEWPORT,
+                                                     "VIEWPORT",
+                                                     "Viewport",
+                                                     "V"));
+    
     enumData.push_back(AnnotationCoordinateSpaceEnum(WINDOW,
                                                      "WINDOW",
                                                      "Window",
@@ -310,6 +315,9 @@ AnnotationCoordinateSpaceEnum::toToolTip(Enum enumValue)
             break;
         case TAB:
             text = "New annotation is drawn at an XY coordinate in the tab";
+            break;
+        case VIEWPORT:
+            text = "New annotation is drawn at an XY coordinate in the viewport";
             break;
         case WINDOW:
             text = "New annotation is drawn at an XY coordinate in the window";

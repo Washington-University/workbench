@@ -132,6 +132,8 @@ namespace caret {
          *
          * @param annotationText
          *   Text for width and height estimation.
+         * @param viewportWidth
+         *    Width of the viewport needed for percentage height text.
          * @param viewportHeight
          *    Height of the viewport needed for percentage height text.
          * @param widthOut
@@ -140,6 +142,7 @@ namespace caret {
          *    Estimated height of text.
          */
         virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                const double viewportWidth,
                                                 const double viewportHeight,
                                                 double& widthOut,
                                                 double& heightOut) = 0;
@@ -158,6 +161,8 @@ namespace caret {
          *    Viewport Y-coordinate.
          * @param viewportZ
          *    Viewport Z-coordinate.
+         * @param viewportWidth
+         *    Width of the viewport needed for percentage height text.
          * @param viewportHeight
          *    Height of the viewport needed for percentage height text.
          * @param bottomLeftOut
@@ -173,6 +178,7 @@ namespace caret {
                                                       const double viewportX,
                                                       const double viewportY,
                                                       const double viewportZ,
+                                                      const double viewportWidth,
                                                       const double viewportHeight,
                                                       double bottomLeftOut[3],
                                                       double bottomRightOut[3],
@@ -193,6 +199,8 @@ namespace caret {
          *    Viewport Y-coordinate.
          * @param viewportZ
          *    Viewport Z-coordinate.
+         * @param viewportWidth
+         *    Width of the viewport needed for percentage height text.
          * @param viewportHeight
          *    Height of the viewport needed for percentage height text.
          * @param bottomLeftOut
@@ -208,6 +216,7 @@ namespace caret {
                                               const float viewportX,
                                               const float viewportY,
                                               const float viewportZ,
+                                              const float viewportWidth,
                                               const float viewportHeight,
                                               float bottomLeftOut[3],
                                               float bottomRightOut[3],

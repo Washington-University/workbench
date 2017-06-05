@@ -43,6 +43,8 @@ public:
         SURFACE,
         /** Annotation in tab space */
         TAB,
+        /** Annotation in viewport space */
+        VIEWPORT,
         /** Annotation in window space */
         WINDOW
     };

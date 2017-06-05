@@ -288,6 +288,9 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
             case AnnotationCoordinateSpaceEnum::TAB:
                 zMin = 0.0;
                 break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssertToDoFatal();
+                break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 zMin = 0.0;
                 break;
@@ -372,6 +375,9 @@ AnnotationCoordinateWidget::valueChanged()
                 surfaceFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssertToDoFatal();
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 break;

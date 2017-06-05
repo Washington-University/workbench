@@ -941,10 +941,12 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
                     displayedFlag = true;
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
-                            displayedFlag = true;
+                    displayedFlag = true;
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                     displayedFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
                     break;
                 case AnnotationCoordinateSpaceEnum::WINDOW:
                     displayedFlag = true;

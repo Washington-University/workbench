@@ -24,6 +24,7 @@
 #undef __ANNOTATION_DECLARE__
 
 #include "AnnotationBox.h"
+#include "AnnotationChartTwoAxisLabel.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationGroup.h"
 #include "AnnotationImage.h"
@@ -124,6 +125,10 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_coordinateSpace     = obj.m_coordinateSpace;
     m_tabIndex            = obj.m_tabIndex;
     m_windowIndex         = obj.m_windowIndex;
+    m_viewportCoordinateSpaceViewport[0] = obj.m_viewportCoordinateSpaceViewport[0];
+    m_viewportCoordinateSpaceViewport[1] = obj.m_viewportCoordinateSpaceViewport[1];
+    m_viewportCoordinateSpaceViewport[2] = obj.m_viewportCoordinateSpaceViewport[2];
+    m_viewportCoordinateSpaceViewport[3] = obj.m_viewportCoordinateSpaceViewport[3];
     m_lineWidth = obj.m_lineWidth;
     m_colorLine           = obj.m_colorLine;
     m_colorBackground     = obj.m_colorBackground;
@@ -169,6 +174,13 @@ Annotation::clone() const
             myClone = new AnnotationBox(*box);
         }
             break;
+        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+        {
+            const AnnotationChartTwoAxisLabel* axisLabel = dynamic_cast<const AnnotationChartTwoAxisLabel*>(this);
+            CaretAssert(axisLabel);
+            myClone = new AnnotationChartTwoAxisLabel(*axisLabel);
+        }
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
         {
             const AnnotationColorBar* colorBar = dynamic_cast<const AnnotationColorBar*>(this);
@@ -204,6 +216,13 @@ Annotation::clone() const
             
             switch (text->getFontSizeType()) {
                 case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
+                {
+                    const AnnotationPercentSizeText* pctText = dynamic_cast<const AnnotationPercentSizeText*>(text);
+                    CaretAssert(pctText);
+                    myClone = new AnnotationPercentSizeText(*pctText);
+                }
+                    break;
+                case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH:
                 {
                     const AnnotationPercentSizeText* pctText = dynamic_cast<const AnnotationPercentSizeText*>(text);
                     CaretAssert(pctText);
@@ -327,6 +346,10 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
         case AnnotationTypeEnum::BOX:
             annotation = new AnnotationBox(attributeDefaultType);
             break;
+        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+            annotation = new AnnotationChartTwoAxisLabel(attributeDefaultType,
+                                                         AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
             annotation = new AnnotationColorBar(attributeDefaultType);
             break;
@@ -366,6 +389,10 @@ Annotation::initializeAnnotationMembers()
     
     m_tabIndex    = -1;
     m_windowIndex = -1;
+    m_viewportCoordinateSpaceViewport[0] = 0;
+    m_viewportCoordinateSpaceViewport[1] = 0;
+    m_viewportCoordinateSpaceViewport[2] = 0;
+    m_viewportCoordinateSpaceViewport[3] = 0;
     
     m_displayGroupAndTabItemHelper = new DisplayGroupAndTabItemHelper();
     
@@ -390,6 +417,9 @@ Annotation::initializeAnnotationMembers()
             
             switch (m_type) {
                 case AnnotationTypeEnum::BOX:
+                    break;
+                case AnnotationTypeEnum::CHART_AXIS_LABEL:
+                    m_colorBackground = CaretColorEnum::BLACK;
                     break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     m_colorBackground = CaretColorEnum::BLACK;
@@ -442,6 +472,8 @@ Annotation::initializeAnnotationMembers()
                         m_colorBackground = defaultColor;
                     }
                     break;
+                case AnnotationTypeEnum::CHART_AXIS_LABEL:
+                    break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     break;
                 case AnnotationTypeEnum::IMAGE:
@@ -486,6 +518,8 @@ Annotation::initializeAnnotationMembers()
     bool disallowLineColorNoneFlag = false;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::CHART_AXIS_LABEL:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             disallowLineColorNoneFlag = true;
@@ -574,6 +608,8 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
     AString typeName = AnnotationTypeEnum::toGuiName(m_type);
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::CHART_AXIS_LABEL:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;
@@ -676,6 +712,41 @@ Annotation::setWindowIndex(const int32_t windowIndex)
     if (windowIndex != m_windowIndex) {
         m_windowIndex = windowIndex;
         setModified();
+    }
+}
+
+/**
+ * Get the viewport used by an annotation in viewport coordinate space.
+ *
+ * @param viewportOut
+ *     Ouput with the viewport.
+ */
+void
+Annotation::getViewportCoordinateSpaceViewport(int viewportOut[4]) const
+{
+    viewportOut[0] = m_viewportCoordinateSpaceViewport[0];
+    viewportOut[1] = m_viewportCoordinateSpaceViewport[1];
+    viewportOut[2] = m_viewportCoordinateSpaceViewport[2];
+    viewportOut[3] = m_viewportCoordinateSpaceViewport[3];
+}
+
+/**
+ * Set the viewport used by an annotation in viewport coordinate space.
+ *
+ * @param viewport
+ *     Input with the viewport.
+ */
+void
+Annotation::setViewportCoordinateSpaceViewport(const int viewport[4])
+{
+    if ((m_viewportCoordinateSpaceViewport[0] != viewport[0])
+        || (m_viewportCoordinateSpaceViewport[1] != viewport[1])
+        || (m_viewportCoordinateSpaceViewport[2] != viewport[2])
+        || (m_viewportCoordinateSpaceViewport[3] != viewport[3])) {
+        m_viewportCoordinateSpaceViewport[0] = viewport[0];
+        m_viewportCoordinateSpaceViewport[1] = viewport[1];
+        m_viewportCoordinateSpaceViewport[2] = viewport[2];
+        m_viewportCoordinateSpaceViewport[3] = viewport[3];
     }
 }
 
@@ -1153,6 +1224,8 @@ Annotation::textAnnotationResetName()
     AString suffixName;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::CHART_AXIS_LABEL:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;

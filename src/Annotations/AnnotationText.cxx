@@ -70,6 +70,27 @@ m_fontSizeType(fontSizeType)
 }
 
 /**
+ * Constructor for subclass.
+ *
+ * @param type
+ *    Type of annotation.
+ * @param attributeDefaultType
+ *    Type for attribute defaults
+ * @param fontSizeType
+ *    Type of font sizing.
+ */
+AnnotationText::AnnotationText(const AnnotationTypeEnum::Enum type,
+                               const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
+                               const AnnotationTextFontSizeTypeEnum::Enum fontSizeType)
+: AnnotationTwoDimensionalShape(type,
+                                attributeDefaultType),
+AnnotationFontAttributesInterface(),
+m_fontSizeType(fontSizeType)
+{
+    initializeAnnotationTextMembers();
+}
+
+/**
  * Destructor.
  */
 AnnotationText::~AnnotationText()
@@ -173,23 +194,44 @@ AnnotationText::initializeAnnotationTextMembers()
  * scale while drawing the text (using glScale()), the
  * quality is poor.
  *
+ * @param drawingViewportWidth
+ *      Width of the viewport that may be used to scale the font height.
  * @param drawingViewportHeight
  *      Height of the viewport that may be used to scale the font height.
  * @return
  *      Encoded name for font.
  */
 AString
-AnnotationText::getFontRenderingEncodedName(const float drawingViewportHeight) const
+AnnotationText::getFontRenderingEncodedName(const float drawingViewportWidth,
+                                            const float drawingViewportHeight) const
 {
     AString fontSizeID = AnnotationTextFontPointSizeEnum::toName(m_fontPointSize);
     
-    if (m_fontPercentViewportSize > 0.0) {
-        if (drawingViewportHeight> 0.0) {
-            const int32_t fontSizeInt = getFontSizeForDrawing(drawingViewportHeight);
-            if (fontSizeInt > 0) {
-                fontSizeID = "SIZE" + AString::number(fontSizeInt);
+    switch (m_fontSizeType) {
+        case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
+            if (m_fontPercentViewportSize > 0.0) {
+                if (drawingViewportHeight > 0.0) {
+                    const int32_t fontSizeInt = getFontSizeForDrawing(drawingViewportWidth,
+                                                                      drawingViewportHeight);
+                    if (fontSizeInt > 0) {
+                        fontSizeID = "SIZE" + AString::number(fontSizeInt);
+                    }
+                }
             }
-        }
+            break;
+        case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH:
+            if (m_fontPercentViewportSize > 0.0) {
+                if (drawingViewportWidth > 0.0) {
+                    const int32_t fontSizeInt = getFontSizeForDrawing(drawingViewportWidth,
+                                                                      drawingViewportHeight);
+                    if (fontSizeInt > 0) {
+                        fontSizeID = "SIZE" + AString::number(fontSizeInt);
+                    }
+                }
+            }
+            break;
+        case AnnotationTextFontSizeTypeEnum::POINTS:
+            break;
     }
     
     AString encodedName;
@@ -362,17 +404,23 @@ AnnotationText::setFont(const AnnotationTextFontNameEnum::Enum font)
  * "percent size" of the viewport height in a range from zero to 
  * one where one equivalent to the viewport's height.
  *
+ * @param drawingViewportWidth
+ *      Width of the viewport that may be used to scale the font height.
  * @param drawingViewportHeight
  *      Height of the viewport that may be used to scale the font height.
  * @return
  *     Size of the font.
  */
 int32_t
-AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportHeight) const
+AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportWidth,
+                                      const int32_t drawingViewportHeight) const
 {
     float sizeForDrawing = AnnotationTextFontPointSizeEnum::toSizeNumeric(AnnotationTextFontPointSizeEnum::SIZE14);
     
     switch (m_fontSizeType) {
+        case AnnotationTextFontSizeTypeEnum::POINTS:
+            sizeForDrawing = AnnotationTextFontPointSizeEnum::toSizeNumeric(m_fontPointSize);
+            break;
         case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
         {
             /*
@@ -382,8 +430,14 @@ AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportHeight) const
             sizeForDrawing = pixelSize;
         }
             break;
-        case AnnotationTextFontSizeTypeEnum::POINTS:
-            sizeForDrawing = AnnotationTextFontPointSizeEnum::toSizeNumeric(m_fontPointSize);
+        case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH:
+        {
+            /*
+             * May need pixel to points conversion if not 72 DPI
+             */
+            const float pixelSize = drawingViewportWidth * (m_fontPercentViewportSize / 100.0);
+            sizeForDrawing = pixelSize;
+        }
             break;
     }
     

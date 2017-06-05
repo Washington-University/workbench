@@ -119,6 +119,8 @@ AnnotationRotationWidget::getValidOneDimAnnotation(Annotation* annotation)
             case AnnotationCoordinateSpaceEnum::TAB:
                 validSpaceFlag = true;
                 break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 validSpaceFlag = true;
                 break;
@@ -183,6 +185,8 @@ AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
                                 viewportValidFlag = true;
                             }
                         }
+                            break;
+                        case AnnotationCoordinateSpaceEnum::VIEWPORT:
                             break;
                         case AnnotationCoordinateSpaceEnum::WINDOW:
                         {

@@ -29,6 +29,7 @@
 #undef __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
 
 #include "AnnotationBox.h"
+#include "AnnotationChartTwoAxisLabel.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationColorBarSection.h"
 #include "AnnotationColorBarNumericText.h"
@@ -138,8 +139,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::viewportToOpenGLWindowCoordinate(cons
 /**
  * Get the window coordinate for display of the annotation.
  *
+ * @param annotation
+ *     The annotation.
  * @param coordinate
  *     The annotation coordinate whose window coordinate is computed.
+ * @param annotationCoordSpace
+ *     The annotation coordinate space.
  * @param surfaceDisplayed
  *     Surface that is displayed (may be NULL !)
  * @param windowXYZOut
@@ -148,11 +153,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::viewportToOpenGLWindowCoordinate(cons
  *     True if the window coordinate is valid, else false.
  */
 bool
-BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const AnnotationCoordinate* coordinate,
-                                                                         const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace,
+BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const Annotation* annotation,
+                                                                         const AnnotationCoordinate* coordinate,
                                                                           const Surface* surfaceDisplayed,
                                                                           float windowXYZOut[3]) const
 {
+    const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace = annotation->getCoordinateSpace();
+    
     float stereotaxicXYZ[3]  = { 0.0, 0.0, 0.0 };
     bool stereotaxicXYZValid = false;
     
@@ -268,6 +275,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
         case AnnotationCoordinateSpaceEnum::TAB:
             viewportToOpenGLWindowCoordinate(annotationXYZ, windowXYZ);
             windowXYZValid = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+        {
+            int32_t annotationViewport[4];
+            annotation->getViewportCoordinateSpaceViewport(annotationViewport);
+            windowXYZ[0] = annotationXYZ[0] + annotationViewport[0];
+            windowXYZ[1] = annotationXYZ[1] + annotationViewport[1];
+            windowXYZ[2] = annotationXYZ[2];
+            windowXYZValid = true;
+        }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             viewportToOpenGLWindowCoordinate(annotationXYZ, windowXYZ);
@@ -419,7 +436,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
     if (textFlag) {
         m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*textAnnotation,
                                                                                    windowXYZ[0], windowXYZ[1], windowXYZ[2],
-                                                                                        viewportHeight,
+                                                                                    viewportWidth, viewportHeight,
                                                                                    bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
         
         boundsValid = true;
@@ -494,9 +511,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
         m_volumeSpacePlane = plane;
         m_volumeSpacePlaneValid = true;
         
-        std::vector<AnnotationColorBar*> colorBars;
+        std::vector<AnnotationColorBar*> dummyColorBars;
+        std::vector<AnnotationChartTwoAxisLabel*> dummyAnnotationChartTwoAxisLabelsForDrawing;
         drawAnnotationsInternal(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
-                                colorBars,
+                                dummyColorBars,
+                                dummyAnnotationChartTwoAxisLabelsForDrawing,
                                 NULL,
                                 sliceThickness);
     }
@@ -514,6 +533,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
  *     Coordinate space of annotation that are drawn.
  * @param colorbars
  *     Colorbars that will be drawn.
+ * @param annotationChartTwoAxisLabelsForDrawing
+ *     Annotation chart two labels that will be drawn.
  * @param surfaceDisplayed
  *     In not NULL, surface no which annotations are drawn.
  */
@@ -521,6 +542,7 @@ void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
                                                            const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                            std::vector<AnnotationColorBar*>& colorBars,
+                                                           std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsForDrawing,
                                                            const Surface* surfaceDisplayed)
 {
     CaretAssert(inputs);
@@ -531,6 +553,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
     const float sliceThickness      = 0.0;
     drawAnnotationsInternal(drawingCoordinateSpace,
                             colorBars,
+                            annotationChartTwoAxisLabelsForDrawing,
                             surfaceDisplayed,
                             sliceThickness);
     
@@ -546,16 +569,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
  *     Surface that is displayed.  May be NULL in some instances.
  * @param colorbars
  *     Colorbars that will be drawn.
+ * @param annotationChartTwoAxisLabelsForDrawing
+ *     Annotation chart two labels that will be drawn.
  * @param surfaceDisplayed
  *     In not NULL, surface no which annotations are drawn.
  * @param sliceThickness
  *     Thickness of volume slice
- * @param centerToEyeDistance
- *     Distance from center to eye using in gluLookAt().
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                                    std::vector<AnnotationColorBar*>& colorBars,
+                                                                   std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsForDrawing,
                                                                    const Surface* surfaceDisplayed,
                                                                    const float sliceThickness)
 {
@@ -596,6 +620,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
         case AnnotationCoordinateSpaceEnum::SURFACE:
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             switch (m_inputs->m_windowDrawingMode) {
@@ -675,7 +701,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     
     /*
      * Draw annotations from all files.
-     * NOTE: iFile == numAnnFiles, the annotation colorbars are drawn
+     * NOTE: iFile == numAnnFiles, the annotation colorbars 
+     * and annotation chart labels are drawn
      */
     const int32_t numAnnFiles = static_cast<int32_t>(allAnnotationFiles.size());
     for (int32_t iFile = 0; iFile <= numAnnFiles; iFile++) {
@@ -694,6 +721,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 case AnnotationCoordinateSpaceEnum::PIXELS:
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
+                    break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                    annotationsFromFile.insert(annotationsFromFile.end(),
+                                               annotationChartTwoAxisLabelsForDrawing.begin(),
+                                               annotationChartTwoAxisLabelsForDrawing.end());
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                 case AnnotationCoordinateSpaceEnum::WINDOW:
@@ -748,6 +780,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                                                    colorBars.begin(),
                                                    colorBars.end());
                     }
+                    
+//                    if (drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::VIEWPORT) {
+//                        annotationsFromFile.insert(annotationsFromFile.end(),
+//                                                   annotationChartTwoAxisLabelsForDrawing.begin(),
+//                                                   annotationChartTwoAxisLabelsForDrawing.end());
+//                    }
                 }
                     break;
             }
@@ -1016,6 +1054,43 @@ BrainOpenGLAnnotationDrawingFixedPipeline::endOpenGLForDrawing(GLint savedShadeM
     glPopMatrix();
 }
 
+///**
+// * Setup to drawn an annotation in viewport space.
+// *
+// * @param annotation
+// *     Annotation in viewport space.
+// * @param transformationInfo
+// *     Transformation info that is saved.
+// */
+//void
+//BrainOpenGLAnnotationDrawingFixedPipeline::setupViewportSpaceDrawing(const Annotation* annotation,
+//                                                                     TransformationInfo& transformationInfo)
+//{
+//    CaretAssert(annotation->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::VIEWPORT);
+//    
+//    transformationInfo.save();
+//    
+//    GLdouble depthRange[2];
+//    glGetDoublev(GL_DEPTH_RANGE,
+//                 depthRange);
+//    
+//    GLint annotationViewport[4];
+//    annotation->getViewportCoordinateSpaceViewport(annotationViewport);
+//    /*
+//     * All drawing is in window space
+//     */
+//    glMatrixMode(GL_PROJECTION);
+//    glPushMatrix();
+//    glLoadIdentity();
+//    glOrtho(0.0, annotationViewport[2],
+//            0.0, annotationViewport[3],
+//            depthRange[0], depthRange[1]);
+//    glMatrixMode(GL_MODELVIEW);
+//    glPushMatrix();
+//    glLoadIdentity();
+//}
+
+
 /**
  * Get color used for identification when drawing an annotation.
  *
@@ -1050,12 +1125,31 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
     
     bool drawnFlag = false;
     
+    switch (annotation->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    
     switch (annotation->getType()) {
         case AnnotationTypeEnum::BOX:
             drawnFlag = drawBox(annotationFile,
                                 dynamic_cast<AnnotationBox*>(annotation),
                                 surfaceDisplayed);
             break;
+        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+            drawChartTwoAxisLabel(annotationFile,
+                                  dynamic_cast<AnnotationChartTwoAxisLabel*>(annotation));
+            break;;
         case AnnotationTypeEnum::COLOR_BAR:
             drawColorBar(annotationFile,
                          dynamic_cast<AnnotationColorBar*>(annotation));
@@ -1109,8 +1203,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     CaretAssert(box->getType() == AnnotationTypeEnum::BOX);
     
     float windowXYZ[3];
-    if ( ! getAnnotationWindowCoordinate(box->getCoordinate(),
-                                         box->getCoordinateSpace(),
+    if ( ! getAnnotationWindowCoordinate(box,
+                                         box->getCoordinate(),
                                          surfaceDisplayed,
                                          windowXYZ)) {
         return false;
@@ -1228,6 +1322,57 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
 }
 
 /**
+ * Draw an annotation chart two axis label
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param chartTwoAxisLabel
+ *    Axis label to draw.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawChartTwoAxisLabel(AnnotationFile* annotationFile,
+                                                                 AnnotationChartTwoAxisLabel* chartTwoAxisLabel)
+{
+    CaretAssert(chartTwoAxisLabel);
+    CaretAssert(chartTwoAxisLabel->getType() == AnnotationTypeEnum::CHART_AXIS_LABEL);
+    
+//    const GLint savedModelSpaceViewport[4] = {
+//        m_modelSpaceModelMatrix[0],
+//        m_modelSpaceModelMatrix[1],
+//        m_modelSpaceModelMatrix[2],
+//        m_modelSpaceModelMatrix[3]
+//    };
+//    
+//    glPushAttrib(GL_VIEWPORT_BIT);
+    
+//    GLint viewportSave[4];
+//    glGetIntegerv(GL_VIEWPORT, viewportSave);
+    
+//    int32_t labelViewport[4];
+//    chartTwoAxisLabel->getAxisViewport(labelViewport);
+//    glViewport(labelViewport[0], labelViewport[1], labelViewport[2], labelViewport[3]);
+    
+//    m_modelSpaceViewport[0] = labelViewport[0];
+//    m_modelSpaceViewport[1] = labelViewport[1];
+//    m_modelSpaceViewport[2] = labelViewport[2];
+//    m_modelSpaceViewport[3] = labelViewport[3];
+    
+    drawText(annotationFile,
+             chartTwoAxisLabel,
+             NULL);
+    
+//    glPopAttrib();
+    
+//    m_modelSpaceViewport[0] = savedModelSpaceViewport[0];
+//    m_modelSpaceViewport[1] = savedModelSpaceViewport[1];
+//    m_modelSpaceViewport[2] = savedModelSpaceViewport[2];
+//    m_modelSpaceViewport[3] = savedModelSpaceViewport[3];
+    
+//    glViewport(viewportSave[0], viewportSave[1], viewportSave[2], viewportSave[3]);
+}
+
+
+/**
  * Draw an annotation box.
  *
  * @param annotationFile
@@ -1243,8 +1388,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
     CaretAssert(colorBar->getType() == AnnotationTypeEnum::COLOR_BAR);
     
     float windowXYZ[3];
-    if ( ! getAnnotationWindowCoordinate(colorBar->getCoordinate(),
-                                         colorBar->getCoordinateSpace(),
+    if ( ! getAnnotationWindowCoordinate(colorBar,
+                                         colorBar->getCoordinate(),
                                          NULL,
                                          windowXYZ)) {
         return;
@@ -1829,8 +1974,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     
     float windowXYZ[3];
     
-    if ( ! getAnnotationWindowCoordinate(oval->getCoordinate(),
-                                         oval->getCoordinateSpace(),
+    if ( ! getAnnotationWindowCoordinate(oval,
+                                         oval->getCoordinate(),
                                          surfaceDisplayed,
                                          windowXYZ)) {
         return false;
@@ -2006,13 +2151,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                                               AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX);
                 
                 float brainordinateXYZ[3];
-                if (getAnnotationWindowCoordinate(&noOffsetCoord,
-                                                  text->getCoordinateSpace(),
+                if (getAnnotationWindowCoordinate(text,
+                                                  &noOffsetCoord,
                                                   surfaceDisplayed,
                                                   brainordinateXYZ)) {
                     float windowXYZ[3];
-                    if (getAnnotationWindowCoordinate(coord,
-                                                      text->getCoordinateSpace(),
+                    if (getAnnotationWindowCoordinate(text,
+                                                      coord,
                                                       surfaceDisplayed,
                                                       windowXYZ)) {
                         
@@ -2136,17 +2281,21 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                     AnnotationText* text,
                                                     const Surface* surfaceDisplayed)
 {
+    CaretAssert(text);
+    CaretAssert((text->getType() == AnnotationTypeEnum::TEXT)
+                || (text->getType() == AnnotationTypeEnum::CHART_AXIS_LABEL));
+    
     DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
-    if ( ! dpa->isDisplayTextAnnotations()) {
-        return false;
+    if (text->getType() == AnnotationTypeEnum::TEXT) {
+        if ( ! dpa->isDisplayTextAnnotations()) {
+            return false;
+        }
     }
     
-    CaretAssert(text);
-    CaretAssert(text->getType() == AnnotationTypeEnum::TEXT);
 
     float windowXYZ[3];
-    if ( ! getAnnotationWindowCoordinate(text->getCoordinate(),
-                                         text->getCoordinateSpace(),
+    if ( ! getAnnotationWindowCoordinate(text,
+                                         text->getCoordinate(),
                                          surfaceDisplayed,
                                          windowXYZ)) {
         return false;
@@ -2194,7 +2343,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*text,
                                                                                     windowXYZ[0], windowXYZ[1], windowXYZ[2],
                                                                                     //textDrawingViewportHeight,
-                                                                                    m_modelSpaceViewport[3],
+                                                                                    m_modelSpaceViewport[2], m_modelSpaceViewport[3],
                                                                                     bottomLeft, bottomRight, topRight, topLeft);
     
     std::vector<float> coords;
@@ -2377,8 +2526,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
 
     float windowXYZ[3];
     
-    if ( ! getAnnotationWindowCoordinate(image->getCoordinate(),
-                                         image->getCoordinateSpace(),
+    if ( ! getAnnotationWindowCoordinate(image,
+                                         image->getCoordinate(),
                                          surfaceDisplayed,
                                          windowXYZ)) {
         return false;
@@ -2639,14 +2788,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     float lineHeadXYZ[3];
     float lineTailXYZ[3];
     
-    if ( ! getAnnotationWindowCoordinate(line->getStartCoordinate(),
-                                         line->getCoordinateSpace(),
+    if ( ! getAnnotationWindowCoordinate(line,
+                                         line->getStartCoordinate(),
                                          surfaceDisplayed,
                                          lineHeadXYZ)) {
         return false;
     }
-    if ( ! getAnnotationWindowCoordinate(line->getEndCoordinate(),
-                                         line->getCoordinateSpace(),
+    if ( ! getAnnotationWindowCoordinate(line,
+                                         line->getEndCoordinate(),
                                          surfaceDisplayed,
                                          lineTailXYZ)) {
         return false;
@@ -3284,5 +3433,37 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setDepthTestingStatus(const bool newD
     return (savedStatus == GL_TRUE);
 }
 
+/* ====================================================================================== */
 
-
+///**
+// * Save the transformation matrix (viewport, model view, projection)
+// */
+//void
+//BrainOpenGLAnnotationDrawingFixedPipeline::TransformationInfo::save()
+//{
+//    glGetIntegerv(GL_VIEWPORT, m_viewport);
+//    glGetDoublev(GL_MODELVIEW_MATRIX, m_modelViewMatrix);
+//    glGetDoublev(GL_PROJECTION_MATRIX, m_projectionMatrix);
+//    
+//}
+//
+///**
+// * Restore the transformation matrix (viewport, model view, projection)
+// */
+//void
+//BrainOpenGLAnnotationDrawingFixedPipeline::TransformationInfo::restore()
+//{
+//    CaretAssertMessage(0, "Trying to restore info that has not been saved");
+//    if ( ! m_valid) {
+//        return;
+//    }
+//    
+//    GLboolean savedMatrixMode;
+//    glGetBooleanv(GL_MATRIX_MODE, &savedMatrixMode);
+//    glViewport(m_viewport[0], m_viewport[1], m_viewport[2], m_viewport[3]);
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadMatrixd(m_projectionMatrix);
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadMatrixd(m_modelViewMatrix);
+//    glMatrixMode(savedMatrixMode);
+//}

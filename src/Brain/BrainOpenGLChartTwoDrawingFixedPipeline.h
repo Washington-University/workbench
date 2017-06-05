@@ -36,6 +36,7 @@ namespace caret {
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
     class GraphicsPrimitive;
+    class SelectionItemAnnotation;
     class SelectionItemChartTwoHistogram;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
@@ -52,7 +53,8 @@ namespace caret {
                                          ModelChartTwo* chartTwoModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
-                                         const int32_t viewport[4]) override;
+                                         const int32_t viewport[4],
+                                         std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsOut) override;
 
         // ADD_NEW_METHODS_HERE
 
@@ -133,6 +135,7 @@ namespace caret {
                                     float& axisMaximumOut);
         
         void estimateCartesianChartAxisLegendsWidthHeight(const float dataBounds[4],
+                                                          const float viewportWidth,
                                                           const float viewportHeight,
                                                           ChartTwoCartesianAxis* cartesianAxis,
                                                           double& widthOut,
@@ -162,6 +165,8 @@ namespace caret {
         
         CaretPreferences* m_preferences;
         
+        SelectionItemAnnotation* m_selectionItemAnnotation;
+        
         SelectionItemChartTwoHistogram* m_selectionItemHistogram;
         
         SelectionItemChartTwoLineSeries* m_selectionItemLineSeries;
@@ -171,6 +176,8 @@ namespace caret {
         const float GRID_LINE_WIDTH = 2.0;
         
         bool m_identificationModeFlag;
+        
+        std::vector<AnnotationChartTwoAxisLabel*> m_annotationDrawingChartTwoAxisLabels;
         
         static const int32_t IDENTIFICATION_INDICES_PER_HISTOGRAM      = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;

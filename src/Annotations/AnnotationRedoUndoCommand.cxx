@@ -1380,6 +1380,8 @@ AnnotationRedoUndoCommand::setModeRotationAngle(const float newRotationAngle,
                     }
                 }
                     break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                    break;
                 case AnnotationCoordinateSpaceEnum::WINDOW:
                 {
                     const int windowIndex = oneDimAnn->getWindowIndex();
@@ -1862,6 +1864,8 @@ AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercent
                     percentSize *= surfaceSpaceRowCount;
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
+                    break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
                     break;
                 case  AnnotationCoordinateSpaceEnum::WINDOW:
                     break;

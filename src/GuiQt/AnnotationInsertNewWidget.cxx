@@ -411,6 +411,9 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
         case AnnotationTypeEnum::BOX:
             painter->drawRect(1, 1, width - 2, height - 2);
             break;
+        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+            CaretAssertMessage(0, "No pixmap for axis label as user does not create them like other annotations");
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
             CaretAssertMessage(0, "No pixmap for colorbar as user does not create them like other annotations");
             break;
@@ -501,6 +504,9 @@ AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpace
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssertMessage(0, "Annotations in viewport space not supported.");
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             break;
     }
@@ -576,6 +582,9 @@ AnnotationInsertNewWidget::createSpacePixmap(const QWidget* widget,
         case AnnotationCoordinateSpaceEnum::SURFACE:
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssertMessage(0, "Annotations in viewport space not supported.");
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             break;

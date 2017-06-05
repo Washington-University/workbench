@@ -37,6 +37,8 @@ public:
     enum Enum {
         /** Box */
         BOX,
+        /** Chart axis label */
+        CHART_AXIS_LABEL,
         /** Colorbar */
         COLOR_BAR,
         /** Image */

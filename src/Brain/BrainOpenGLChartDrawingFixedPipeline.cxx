@@ -180,13 +180,13 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
     Margins margins(marginSize);
     
     double width, height;
-    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getLeftAxis(), width, height);
+    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpWidth, vpHeight, cartesianChart->getLeftAxis(), width, height);
     margins.m_left = std::max(margins.m_left, width);
-    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getRightAxis(), width, height);
+    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpWidth, vpHeight, cartesianChart->getRightAxis(), width, height);
     margins.m_right = std::max(margins.m_right, width);
-    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getTopAxis(), width, height);
+    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpWidth, vpHeight, cartesianChart->getTopAxis(), width, height);
     margins.m_top = std::max(margins.m_top, height);
-    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpHeight, cartesianChart->getBottomAxis(), width, height);
+    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, vpWidth, vpHeight, cartesianChart->getBottomAxis(), width, height);
     margins.m_bottom = std::max(margins.m_bottom, height);
     
     if (margins.m_left > marginSize) margins.m_left += 10;
@@ -658,6 +658,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
  *     Text rendering.
  * @param viewportHeight
  *     Height of viewport.
+ * @param viewportHeight
+ *     Height of viewport.
  * @param axis
  *    The axis.
  * @param widthOut
@@ -667,6 +669,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
  */
 void
 BrainOpenGLChartDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeight(BrainOpenGLTextRenderInterface* textRenderer,
+                                                                                   const float viewportWidth,
                                                                                    const float viewportHeight,
                                                                                    ChartAxis* axis,
                                                                                    double& widthOut,
@@ -702,7 +705,7 @@ BrainOpenGLChartDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeig
             annotationText.setText(text);
             double textWidth = 0.0;
             double textHeight = 0.0;
-            textRenderer->getTextWidthHeightInPixels(annotationText, viewportHeight, textWidth, textHeight);
+            textRenderer->getTextWidthHeightInPixels(annotationText, viewportWidth, viewportHeight, textWidth, textHeight);
             
             widthOut  = std::max(widthOut,  textWidth);
             heightOut = std::max(heightOut, textHeight);

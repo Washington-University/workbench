@@ -64,6 +64,8 @@ BrainOpenGLTextRenderInterface::~BrainOpenGLTextRenderInterface()
  *    Viewport Y-coordinate.
  * @param viewportZ
  *    Viewport Z-coordinate.
+ * @param viewportWidth
+ *    Widgth of the viewport needed for percentage height text.
  * @param viewportHeight
  *    Height of the viewport needed for percentage height text.
  * @param bottomLeftOut
@@ -80,6 +82,7 @@ BrainOpenGLTextRenderInterface::getBoundsForTextAtViewportCoords(const Annotatio
                                                                  const float viewportX,
                                                                  const float viewportY,
                                                                  const float viewportZ,
+                                                                 const float viewportWidth,
                                                                  const float viewportHeight,
                                                                  float bottomLeftOut[3],
                                                                  float bottomRightOut[3],
@@ -95,6 +98,7 @@ BrainOpenGLTextRenderInterface::getBoundsForTextAtViewportCoords(const Annotatio
                                      viewportX,
                                      viewportY,
                                      viewportZ,
+                                     viewportWidth,
                                      viewportHeight,
                                      bottomLeft,
                                      bottomRight,

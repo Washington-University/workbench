@@ -244,6 +244,8 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
         case AnnotationCoordinateSpaceEnum::TAB:
             annotationTabOrWindowIndex = annotation->getTabIndex();
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             annotationTabOrWindowIndex = annotation->getWindowIndex();
             break;
@@ -262,6 +264,9 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
                     case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     case AnnotationCoordinateSpaceEnum::SURFACE:
                         return group;
+                        break;
+                    case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                        CaretAssert(0);
                         break;
                     case AnnotationCoordinateSpaceEnum::TAB:
                     case AnnotationCoordinateSpaceEnum::WINDOW:
@@ -284,6 +289,9 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
         case AnnotationCoordinateSpaceEnum::TAB:
             CaretAssert((annotationTabOrWindowIndex >= 0)
                         && (annotationTabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             CaretAssert((annotationTabOrWindowIndex >= 0)
@@ -614,6 +622,9 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            throw DataFileException("VIEWPORT coordinate space is not allowed for group while annotation file.");
+            break;
         case AnnotationCoordinateSpaceEnum::TAB:
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if ((tabOrWindowIndex < 0)
@@ -670,6 +681,9 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                                         + AString::number(tabOrWindowIndex)
                                                         + ".  Only one space group for each space is allowed.");
                             }
+                            break;
+                        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                            CaretAssert(0);
                             break;
                         case AnnotationCoordinateSpaceEnum::WINDOW:
                             if (tabOrWindowIndex == group->getTabOrWindowIndex()) {

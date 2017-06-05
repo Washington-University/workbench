@@ -625,6 +625,9 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
                 getTabViewport(annotation->getTabIndex(),
                                annViewport);
                 break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssert(0);
+                break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 annViewport[0] = m_windowViewport[0];
                 annViewport[1] = m_windowViewport[1];
@@ -698,6 +701,7 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
                                                                                  viewportPixelOneXYZ[0],
                                                                                  viewportPixelOneXYZ[1],
                                                                                  viewportPixelOneXYZ[2],
+                                                                                 annViewport[2],
                                                                                  annViewport[3],
                                                                                  bottomLeft,
                                                                                  bottomRight,

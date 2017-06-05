@@ -488,6 +488,8 @@ AnnotationColorWidget::isBothColorsSetToNoneAllowed(QWidget* widget,
                 case AnnotationTypeEnum::BOX:
                     allowBothColorsNoneFlag = false;
                     break;
+                case AnnotationTypeEnum::CHART_AXIS_LABEL:
+                    break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     break;
                 case AnnotationTypeEnum::IMAGE:

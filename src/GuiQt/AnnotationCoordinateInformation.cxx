@@ -120,6 +120,9 @@ AnnotationCoordinateInformation::isCoordinateSpaceValid(const AnnotationCoordina
         case AnnotationCoordinateSpaceEnum::TAB:
             validSpaceFlag = (m_tabIndex >= 0);
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssertMessage(0, "Should not create/move viewport annotations");
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             validSpaceFlag = (m_windowIndex >= 0);
             break;
@@ -159,6 +162,8 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
         switch (space) {
             case AnnotationCoordinateSpaceEnum::PIXELS:
                 break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             case AnnotationCoordinateSpaceEnum::SURFACE:
             case AnnotationCoordinateSpaceEnum::TAB:
@@ -176,6 +181,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                         
                         switch (space) {
                             case AnnotationCoordinateSpaceEnum::PIXELS:
+                                break;
                             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                                 /*
                                  * Both coord info's must be in the SAME TAB
@@ -198,6 +204,11 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                                 if (coordInfoOne->m_tabIndex != coordInfoTwo->m_tabIndex) {
                                     addItFlag = false;
                                 }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+//                                if (coordInfoOne->m_windowIndex != coordInfoTwo->m_windowIndex) {
+//                                    addItFlag = false;
+//                                }
                                 break;
                             case AnnotationCoordinateSpaceEnum::WINDOW:
                                 if (coordInfoOne->m_windowIndex != coordInfoTwo->m_windowIndex) {
@@ -503,6 +514,9 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
                 }
             }
             break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssertToDoFatal();
+            break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if (coordInfoOne->m_windowIndex >= 0) {
                 startCoordinate->setXYZ(coordInfoOne->m_windowXYZ);
@@ -661,6 +675,9 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
                     }
                 }
             }
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssertToDoFatal();
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if (coordInfoOne->m_windowIndex >= 0) {
