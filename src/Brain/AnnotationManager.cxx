@@ -29,6 +29,7 @@
 
 #include "Annotation.h"
 #include "AnnotationArrangerExecutor.h"
+#include "AnnotationChartTwoAxisLabel.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationFile.h"
 #include "AnnotationGroup.h"
@@ -41,6 +42,7 @@
 #include "CaretLogger.h"
 #include "CaretUndoStack.h"
 #include "DisplayPropertiesAnnotation.h"
+#include "EventAnnotationChartLabelGet.h"
 #include "EventAnnotationColorBarGet.h"
 #include "EventAnnotationGroupGetWithKey.h"
 #include "EventGetDisplayedDataFiles.h"
@@ -201,6 +203,14 @@ AnnotationManager::deselectAllAnnotationsForEditing(const int32_t windowIndex)
         AnnotationColorBar* cb = *iter;
         cb->setSelectedForEditing(windowIndex,
                                   false);
+    }
+    
+    EventAnnotationChartLabelGet chartLabelEvent;
+    EventManager::get()->sendEvent(chartLabelEvent.getPointer());
+    std::vector<AnnotationChartTwoAxisLabel*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
+    for (auto label : chartLabels) {
+        label->setSelectedForEditing(windowIndex,
+                                     false);
     }
 }
 
@@ -483,6 +493,13 @@ AnnotationManager::getAllAnnotations() const
         allAnnotations.push_back(*iter);
     }
 
+    EventAnnotationChartLabelGet chartLabelEvent;
+    EventManager::get()->sendEvent(chartLabelEvent.getPointer());
+    std::vector<AnnotationChartTwoAxisLabel*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
+    allAnnotations.insert(allAnnotations.end(),
+                          chartLabels.begin(),
+                          chartLabels.end());
+    
     return allAnnotations;
 }
 

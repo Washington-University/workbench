@@ -25,6 +25,7 @@
 
 #include <cmath>
 
+#include "AnnotationChartTwoAxisLabel.h"
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationLine.h"
 #include "AnnotationPercentSizeText.h"
@@ -1588,9 +1589,32 @@ AnnotationRedoUndoCommand::setModeTextCharacters(const AString& text,
         Annotation* annotation = *iter;
         CaretAssert(annotation);
         
-        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
-            CaretAssert(redoAnnotation);
+        AnnotationText* redoAnnotation = NULL;
+        switch (annotation->getType()) {
+            case AnnotationTypeEnum::BOX:
+                break;
+            case AnnotationTypeEnum::CHART_AXIS_LABEL:
+                redoAnnotation = dynamic_cast<AnnotationChartTwoAxisLabel*>(annotation->clone());
+                break;
+            case AnnotationTypeEnum::COLOR_BAR:
+                break;
+            case AnnotationTypeEnum::IMAGE:
+                break;
+            case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::OVAL:
+                break;
+            case AnnotationTypeEnum::TEXT:
+                redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
+                break;
+        }
+        
+        /*
+         * This method should only get call for text-type annotations.
+         */
+        CaretAssert(redoAnnotation);
+        
+        if (redoAnnotation != NULL) {
             redoAnnotation->setText(text);
             
             Annotation* undoAnnotation = annotation->clone();

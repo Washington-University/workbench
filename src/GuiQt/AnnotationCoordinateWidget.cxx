@@ -265,18 +265,26 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
     bool surfaceFlag    = false;
     
     if (coordinate != NULL) {
-        double xyMin =  0.0;
-        double xyMax =  100.0;
+        float xyz[3];
+        coordinate->getXYZ(xyz);
+        
+        bool viewportSpaceFlag = false;
+        double xMin =  0.0;
+        double xMax =  100.0;
+        double yMin =  0.0;
+        double yMax =  100.0;
         double zMin  = -100.0;
         double zMax  =  100.0;
         double xyzStep = 0.1;
         QString suffix("%");
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                xyMax = 10000.0;
-                xyMin = -xyMax;
-                zMin = xyMin;
-                zMax = xyMax;
+                xMax = 10000.0;
+                xMin = -xMax;
+                yMax = 10000.0;
+                yMin = -yMax;
+                zMin = xMin;
+                zMax = xMax;
                 xyzStep = 1.0;
                 suffix.clear();
                 break;
@@ -289,27 +297,30 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 zMin = 0.0;
                 break;
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                CaretAssertToDoFatal();
+                xMin = xyz[0];
+                xMax = xyz[0];
+                yMin = xyz[1];
+                yMax = xyz[1];
+                zMin = xyz[2];
+                zMax = xyz[2];
+                viewportSpaceFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 zMin = 0.0;
                 break;
         }
         
-        float xyz[3];
-        coordinate->getXYZ(xyz);
-        
         m_xCoordSpinBox->blockSignals(true);
-        m_xCoordSpinBox->setRange(xyMin,
-                                  xyMax);
+        m_xCoordSpinBox->setRange(xMin,
+                                  xMax);
         m_xCoordSpinBox->setSingleStep(xyzStep);
         m_xCoordSpinBox->setSuffix(suffix);
         m_xCoordSpinBox->setValue(xyz[0]);
         m_xCoordSpinBox->blockSignals(false);
         
         m_yCoordSpinBox->blockSignals(true);
-        m_yCoordSpinBox->setRange(xyMin,
-                                  xyMax);
+        m_yCoordSpinBox->setRange(yMin,
+                                  yMax);
         m_yCoordSpinBox->setSingleStep(xyzStep);
         m_yCoordSpinBox->setSuffix(suffix);
         m_yCoordSpinBox->setValue(xyz[1]);
@@ -346,7 +357,12 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
             m_surfaceOffsetLengthSpinBox->blockSignals(false);
         }
         
-        setEnabled(true);
+        if (viewportSpaceFlag) {
+            setEnabled(false);
+        }
+        else {
+            setEnabled(true);
+        }
     }
     else {
         setEnabled(false);
@@ -377,7 +393,6 @@ AnnotationCoordinateWidget::valueChanged()
             case AnnotationCoordinateSpaceEnum::TAB:
                 break;
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                CaretAssertToDoFatal();
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 break;

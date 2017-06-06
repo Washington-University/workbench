@@ -73,7 +73,11 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE,
                                      "EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE",
                                      "Event to add or remove an annotation from a file"));
-
+    
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_CHART_LABEL_GET,
+                                     "EVENT_ANNOTATION_CHART_LABEL_GET",
+                                     "Event to get annotation chart labels"));
+    
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_COLOR_BAR_GET,
                                      "EVENT_ANNOTATION_COLOR_BAR_GET",
                                      "Event to get annotation color bars from tab(s)"));

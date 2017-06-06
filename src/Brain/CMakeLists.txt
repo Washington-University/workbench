@@ -99,6 +99,7 @@ DisplayPropertyDataBoolean.h
 DisplayPropertyDataEnum.h
 DisplayPropertyDataFloat.h
 DummyFontTextRenderer.h
+EventAnnotationChartLabelGet.h
 EventAnnotationColorBarGet.h
 EventBrainReset.h
 EventBrainStructureGetAll.h
@@ -244,6 +245,7 @@ DisplayPropertiesVolume.cxx
 DisplayPropertyDataBoolean.cxx
 DisplayPropertyDataFloat.cxx
 DummyFontTextRenderer.cxx
+EventAnnotationChartLabelGet.cxx
 EventAnnotationColorBarGet.cxx
 EventBrainReset.cxx
 EventBrainStructureGetAll.cxx

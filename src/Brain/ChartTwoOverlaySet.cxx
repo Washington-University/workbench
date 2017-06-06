@@ -28,6 +28,7 @@
 #include "AnnotationChartTwoAxisLabel.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
+#include "EventAnnotationChartLabelGet.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventMapYokingValidation.h"
@@ -126,6 +127,8 @@ m_tabIndex(tabIndex)
                                          m_chartDataType,
                                          i);
     }
+
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
 }
@@ -478,7 +481,19 @@ ChartTwoOverlaySet::toString() const
 void
 ChartTwoOverlaySet::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET) {
+        /*
+         * The events intended for overlays are received here so that
+         * only DISPLAYED overlays are updated.
+         */
+        EventAnnotationChartLabelGet* chartLabelEvent = dynamic_cast<EventAnnotationChartLabelGet*>(event);
+        CaretAssert(chartLabelEvent);
+        
+        chartLabelEvent->addAnnotationChartLabel(m_chartAxisBottom->getAnnotationAxisLabel());
+        chartLabelEvent->addAnnotationChartLabel(m_chartAxisLeft->getAnnotationAxisLabel());
+        chartLabelEvent->addAnnotationChartLabel(m_chartAxisRight->getAnnotationAxisLabel());
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
         /*
          * The events intended for overlays are received here so that
          * only DISPLAYED overlays are updated.
