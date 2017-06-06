@@ -25,7 +25,7 @@
 
 #include <cmath>
 
-#include "AnnotationChartTwoAxisLabel.h"
+#include "AnnotationGraphicsLabel.h"
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationLine.h"
 #include "AnnotationPercentSizeText.h"
@@ -1593,8 +1593,8 @@ AnnotationRedoUndoCommand::setModeTextCharacters(const AString& text,
         switch (annotation->getType()) {
             case AnnotationTypeEnum::BOX:
                 break;
-            case AnnotationTypeEnum::CHART_AXIS_LABEL:
-                redoAnnotation = dynamic_cast<AnnotationChartTwoAxisLabel*>(annotation->clone());
+            case AnnotationTypeEnum::GRAPHICS_LABEL:
+                redoAnnotation = dynamic_cast<AnnotationGraphicsLabel*>(annotation->clone());
                 break;
             case AnnotationTypeEnum::COLOR_BAR:
                 break;

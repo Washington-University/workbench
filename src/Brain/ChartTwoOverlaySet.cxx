@@ -25,7 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
-#include "AnnotationChartTwoAxisLabel.h"
+#include "AnnotationGraphicsLabel.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
 #include "EventAnnotationChartLabelGet.h"

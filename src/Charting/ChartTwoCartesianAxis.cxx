@@ -23,7 +23,7 @@
 #include "ChartTwoCartesianAxis.h"
 #undef __CHART_TWO_CARTESIAN_AXIS_DECLARE__
 
-#include "AnnotationChartTwoAxisLabel.h"
+#include "AnnotationGraphicsLabel.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartScaleAutoRanging.h"
@@ -66,7 +66,7 @@ m_axisLocation(axisLocation)
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
             break;
     }
-    m_annotationAxisLabel = std::unique_ptr<AnnotationChartTwoAxisLabel>(new AnnotationChartTwoAxisLabel(AnnotationAttributesDefaultTypeEnum::NORMAL,
+    m_annotationAxisLabel = std::unique_ptr<AnnotationGraphicsLabel>(new AnnotationGraphicsLabel(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                                                          fontSizeType));
     
     /*
@@ -103,7 +103,7 @@ m_axisLocation(axisLocation)
     m_sceneAssistant->add("m_showTickmarks",
                           &m_showTickmarks);
     m_sceneAssistant->add("m_annotationAxisLabel",
-                          "AnnotationChartTwoAxisLabel",
+                          "AnnotationGraphicsLabel",
                           m_annotationAxisLabel.get());
     
     m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
@@ -496,7 +496,7 @@ ChartTwoCartesianAxis::toString() const
 /**
  * @return Annotation used for drawing axis label and tick mark numeric values
  */
-const AnnotationChartTwoAxisLabel*
+const AnnotationGraphicsLabel*
 ChartTwoCartesianAxis::getAnnotationAxisLabel() const
 {
     return m_annotationAxisLabel.get();
@@ -505,7 +505,7 @@ ChartTwoCartesianAxis::getAnnotationAxisLabel() const
 /**
  * @return Annotation used for drawing axis label and tick mark numeric values
  */
-AnnotationChartTwoAxisLabel*
+AnnotationGraphicsLabel*
 ChartTwoCartesianAxis::getAnnotationAxisLabel()
 {
     return m_annotationAxisLabel.get();

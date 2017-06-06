@@ -35,7 +35,7 @@ namespace caret {
 
     class Annotation;
     class AnnotationBox;
-    class AnnotationChartTwoAxisLabel;
+    class AnnotationGraphicsLabel;
     class AnnotationColorBar;
     class AnnotationCoordinate;
     class AnnotationFile;
@@ -117,7 +117,7 @@ namespace caret {
         void drawAnnotations(Inputs* inputs,
                              const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                              std::vector<AnnotationColorBar*>& colorBars,
-                             std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsForDrawing,
+                             std::vector<AnnotationGraphicsLabel*>& annotationChartGraphicsLabelsForDrawing,
                              const Surface* surfaceDisplayed);
 
         void drawModelSpaceAnnotationsOnVolumeSlice(Inputs* inputs,
@@ -187,7 +187,7 @@ namespace caret {
         
         void drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                      std::vector<AnnotationColorBar*>& colorBars,
-                                     std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsForDrawing,
+                                     std::vector<AnnotationGraphicsLabel*>& annotationChartGraphicsLabelsForDrawing,
                                      const Surface* surfaceDisplayed,
                                      const float sliceThickness);
         
@@ -221,8 +221,8 @@ namespace caret {
                      AnnotationBox* box,
                        const Surface* surfaceDisplayed);
         
-        void drawChartTwoAxisLabel(AnnotationFile* annotationFile,
-                                   AnnotationChartTwoAxisLabel* chartTwoAxisLabel);
+        void drawChartGraphicsLabel(AnnotationFile* annotationFile,
+                                   AnnotationGraphicsLabel* chartGraphicsLabel);
         
         bool drawImage(AnnotationFile* annotationFile,
                        AnnotationImage* image,

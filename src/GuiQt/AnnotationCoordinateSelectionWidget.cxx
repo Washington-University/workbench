@@ -93,7 +93,7 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
-        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+        case AnnotationTypeEnum::GRAPHICS_LABEL:
             enableWindowSpaceFlag = false;
             break;
         case AnnotationTypeEnum::COLOR_BAR:

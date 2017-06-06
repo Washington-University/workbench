@@ -42,7 +42,7 @@
 
 namespace caret {
     
-    class AnnotationChartTwoAxisLabel;
+    class AnnotationGraphicsLabel;
     class AnnotationText;
     class BoundingBox;
     class Brain;
@@ -622,7 +622,7 @@ namespace caret {
         
         std::vector<AnnotationColorBar*> m_annotationColorBarsForDrawing;
         
-        std::vector<AnnotationChartTwoAxisLabel*> m_annotationChartTwoAxisLabelsForDrawing;
+        std::vector<AnnotationGraphicsLabel*> m_annotationChartGraphicsLabelsForDrawing;
 
         static bool s_staticInitialized;
 

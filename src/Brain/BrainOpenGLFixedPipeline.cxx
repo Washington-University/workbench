@@ -275,7 +275,7 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
     
     setTabViewport(viewportContent);
     
-    m_annotationChartTwoAxisLabelsForDrawing.clear();
+    m_annotationChartGraphicsLabelsForDrawing.clear();
     
     std::vector<BrainOpenGLViewportContent*> viewportContentsVector;
     viewportContentsVector.push_back(viewportContent);
@@ -358,7 +358,7 @@ BrainOpenGLFixedPipeline::projectToModelImplementation(const int32_t windowIndex
     
     m_clippingPlaneGroup = NULL;
     
-    m_annotationChartTwoAxisLabelsForDrawing.clear();
+    m_annotationChartGraphicsLabelsForDrawing.clear();
     m_brain->getSelectionManager()->reset();
     
     this->modeProjectionData = &projectionOut;
@@ -527,7 +527,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     
     setTabViewport(NULL);
     
-    m_annotationChartTwoAxisLabelsForDrawing.clear();
+    m_annotationChartGraphicsLabelsForDrawing.clear();
     setAnnotationColorBarsForDrawing(viewportContents);
     
     m_tileTabsActiveFlag = (viewportContents.size() > 1);
@@ -801,13 +801,13 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabCont
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
-                                         m_annotationChartTwoAxisLabelsForDrawing,
+                                         m_annotationChartGraphicsLabelsForDrawing,
                                          NULL);
     
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::VIEWPORT,
                                          m_annotationColorBarsForDrawing,
-                                         m_annotationChartTwoAxisLabelsForDrawing,
+                                         m_annotationChartGraphicsLabelsForDrawing,
                                          NULL);
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
@@ -876,11 +876,11 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
                                                              windowDrawingMode);
     
-    std::vector<AnnotationChartTwoAxisLabel*> emptyAnnotationChartTwoAxisLabelsForDrawing;
+    std::vector<AnnotationGraphicsLabel*> emptyAnnotationGraphicsLabelsForDrawing;
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::WINDOW,
                                          m_annotationColorBarsForDrawing,
-                                         emptyAnnotationChartTwoAxisLabelsForDrawing,
+                                         emptyAnnotationGraphicsLabelsForDrawing,
                                          NULL);
     
     glPopMatrix();
@@ -985,7 +985,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                 m_annotationDrawing->drawAnnotations(&inputs,
                                                      AnnotationCoordinateSpaceEnum::TAB,
                                                      m_annotationColorBarsForDrawing,
-                                                     m_annotationChartTwoAxisLabelsForDrawing,
+                                                     m_annotationChartGraphicsLabelsForDrawing,
                                                      NULL);
             }
         }
@@ -1823,17 +1823,17 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT,
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
             std::vector<AnnotationColorBar*> emptyColorBars;
-            std::vector<AnnotationChartTwoAxisLabel*> emptyAnnotationChartTwoAxisLabelsForDrawing;
+            std::vector<AnnotationGraphicsLabel*> emptyAnnotationGraphicsLabelsForDrawing;
             m_annotationDrawing->drawAnnotations(&inputs,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,
                                                  emptyColorBars,
-                                                 emptyAnnotationChartTwoAxisLabelsForDrawing,
+                                                 emptyAnnotationGraphicsLabelsForDrawing,
                                                  surface);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(&inputs,
                                                      AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      emptyColorBars,
-                                                     emptyAnnotationChartTwoAxisLabelsForDrawing,
+                                                     emptyAnnotationGraphicsLabelsForDrawing,
                                                      NULL);
             }
         }
@@ -1873,17 +1873,17 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT,
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
             std::vector<AnnotationColorBar*> emptyColorBars;
-            std::vector<AnnotationChartTwoAxisLabel*> emptyAnnotationChartTwoAxisLabelsForDrawing;
+            std::vector<AnnotationGraphicsLabel*> emptyAnnotationGraphicsLabelsForDrawing;
             m_annotationDrawing->drawAnnotations(&inputs,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,
                                                  emptyColorBars,
-                                                 emptyAnnotationChartTwoAxisLabelsForDrawing,
+                                                 emptyAnnotationGraphicsLabelsForDrawing,
                                                  surface);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(&inputs,
                                                      AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      emptyColorBars,
-                                                     emptyAnnotationChartTwoAxisLabelsForDrawing,
+                                                     emptyAnnotationGraphicsLabelsForDrawing,
                                                      NULL);
             }
             
@@ -5404,7 +5404,7 @@ BrainOpenGLFixedPipeline::drawChartTwoData(BrowserTabContent* browserTabContent,
     CaretAssert(browserTabContent);
     CaretAssert(chartModel);
 
-    m_annotationChartTwoAxisLabelsForDrawing.clear();
+    m_annotationChartGraphicsLabelsForDrawing.clear();
     
     BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
     chartDrawing.drawChartOverlaySet(m_brain,
@@ -5413,7 +5413,7 @@ BrainOpenGLFixedPipeline::drawChartTwoData(BrowserTabContent* browserTabContent,
                                      this,
                                      SelectionItemDataTypeEnum::CHART_DATA_SERIES,
                                      viewport,
-                                     m_annotationChartTwoAxisLabelsForDrawing);
+                                     m_annotationChartGraphicsLabelsForDrawing);
 }
 
 /**

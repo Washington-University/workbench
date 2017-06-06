@@ -29,7 +29,7 @@
 #undef __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
 
 #include "AnnotationBox.h"
-#include "AnnotationChartTwoAxisLabel.h"
+#include "AnnotationGraphicsLabel.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationColorBarSection.h"
 #include "AnnotationColorBarNumericText.h"
@@ -512,10 +512,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
         m_volumeSpacePlaneValid = true;
         
         std::vector<AnnotationColorBar*> dummyColorBars;
-        std::vector<AnnotationChartTwoAxisLabel*> dummyAnnotationChartTwoAxisLabelsForDrawing;
+        std::vector<AnnotationGraphicsLabel*> dummyAnnotationGraphicsLabelsForDrawing;
         drawAnnotationsInternal(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                 dummyColorBars,
-                                dummyAnnotationChartTwoAxisLabelsForDrawing,
+                                dummyAnnotationGraphicsLabelsForDrawing,
                                 NULL,
                                 sliceThickness);
     }
@@ -533,7 +533,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
  *     Coordinate space of annotation that are drawn.
  * @param colorbars
  *     Colorbars that will be drawn.
- * @param annotationChartTwoAxisLabelsForDrawing
+ * @param annotationChartGraphicsLabelsForDrawing
  *     Annotation chart two labels that will be drawn.
  * @param surfaceDisplayed
  *     In not NULL, surface no which annotations are drawn.
@@ -542,7 +542,7 @@ void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
                                                            const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                            std::vector<AnnotationColorBar*>& colorBars,
-                                                           std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsForDrawing,
+                                                           std::vector<AnnotationGraphicsLabel*>& annotationChartGraphicsLabelsForDrawing,
                                                            const Surface* surfaceDisplayed)
 {
     CaretAssert(inputs);
@@ -553,7 +553,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
     const float sliceThickness      = 0.0;
     drawAnnotationsInternal(drawingCoordinateSpace,
                             colorBars,
-                            annotationChartTwoAxisLabelsForDrawing,
+                            annotationChartGraphicsLabelsForDrawing,
                             surfaceDisplayed,
                             sliceThickness);
     
@@ -569,7 +569,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
  *     Surface that is displayed.  May be NULL in some instances.
  * @param colorbars
  *     Colorbars that will be drawn.
- * @param annotationChartTwoAxisLabelsForDrawing
+ * @param annotationChartGraphicsLabelsForDrawing
  *     Annotation chart two labels that will be drawn.
  * @param surfaceDisplayed
  *     In not NULL, surface no which annotations are drawn.
@@ -579,7 +579,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                                    std::vector<AnnotationColorBar*>& colorBars,
-                                                                   std::vector<AnnotationChartTwoAxisLabel*>& annotationChartTwoAxisLabelsForDrawing,
+                                                                   std::vector<AnnotationGraphicsLabel*>& annotationChartGraphicsLabelsForDrawing,
                                                                    const Surface* surfaceDisplayed,
                                                                    const float sliceThickness)
 {
@@ -724,8 +724,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                     break;
                 case AnnotationCoordinateSpaceEnum::VIEWPORT:
                     annotationsFromFile.insert(annotationsFromFile.end(),
-                                               annotationChartTwoAxisLabelsForDrawing.begin(),
-                                               annotationChartTwoAxisLabelsForDrawing.end());
+                                               annotationChartGraphicsLabelsForDrawing.begin(),
+                                               annotationChartGraphicsLabelsForDrawing.end());
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                 case AnnotationCoordinateSpaceEnum::WINDOW:
@@ -783,8 +783,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                     
 //                    if (drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::VIEWPORT) {
 //                        annotationsFromFile.insert(annotationsFromFile.end(),
-//                                                   annotationChartTwoAxisLabelsForDrawing.begin(),
-//                                                   annotationChartTwoAxisLabelsForDrawing.end());
+//                                                   annotationChartGraphicsLabelsForDrawing.begin(),
+//                                                   annotationChartGraphicsLabelsForDrawing.end());
 //                    }
                 }
                     break;
@@ -1146,9 +1146,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
                                 dynamic_cast<AnnotationBox*>(annotation),
                                 surfaceDisplayed);
             break;
-        case AnnotationTypeEnum::CHART_AXIS_LABEL:
-            drawChartTwoAxisLabel(annotationFile,
-                                  dynamic_cast<AnnotationChartTwoAxisLabel*>(annotation));
+        case AnnotationTypeEnum::GRAPHICS_LABEL:
+            drawChartGraphicsLabel(annotationFile,
+                                  dynamic_cast<AnnotationGraphicsLabel*>(annotation));
             break;;
         case AnnotationTypeEnum::COLOR_BAR:
             drawColorBar(annotationFile,
@@ -1326,15 +1326,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
  *
  * @param annotationFile
  *    File containing the annotation.
- * @param chartTwoAxisLabel
+ * @param chartGraphicsLabel
  *    Axis label to draw.
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawChartTwoAxisLabel(AnnotationFile* annotationFile,
-                                                                 AnnotationChartTwoAxisLabel* chartTwoAxisLabel)
+BrainOpenGLAnnotationDrawingFixedPipeline::drawChartGraphicsLabel(AnnotationFile* annotationFile,
+                                                                 AnnotationGraphicsLabel* chartGraphicsLabel)
 {
-    CaretAssert(chartTwoAxisLabel);
-    CaretAssert(chartTwoAxisLabel->getType() == AnnotationTypeEnum::CHART_AXIS_LABEL);
+    CaretAssert(chartGraphicsLabel);
+    CaretAssert(chartGraphicsLabel->getType() == AnnotationTypeEnum::GRAPHICS_LABEL);
     
 //    const GLint savedModelSpaceViewport[4] = {
 //        m_modelSpaceModelMatrix[0],
@@ -1358,7 +1358,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawChartTwoAxisLabel(AnnotationFile*
 //    m_modelSpaceViewport[3] = labelViewport[3];
     
     drawText(annotationFile,
-             chartTwoAxisLabel,
+             chartGraphicsLabel,
              NULL);
     
 //    glPopAttrib();
@@ -2283,7 +2283,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
 {
     CaretAssert(text);
     CaretAssert((text->getType() == AnnotationTypeEnum::TEXT)
-                || (text->getType() == AnnotationTypeEnum::CHART_AXIS_LABEL));
+                || (text->getType() == AnnotationTypeEnum::GRAPHICS_LABEL));
     
     DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
     if (text->getType() == AnnotationTypeEnum::TEXT) {

@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_CHART_TWO_AXIS_LABEL_H__
-#define __ANNOTATION_CHART_TWO_AXIS_LABEL_H__
+#ifndef __ANNOTATION_GRAPHICS_LABEL_H__
+#define __ANNOTATION_GRAPHICS_LABEL_H__
 
 /*LICENSE_START*/
 /*
@@ -28,17 +28,17 @@
 
 namespace caret {
 
-    class AnnotationChartTwoAxisLabel : public AnnotationPercentSizeText {
+    class AnnotationGraphicsLabel : public AnnotationPercentSizeText {
         
     public:
-        AnnotationChartTwoAxisLabel(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
+        AnnotationGraphicsLabel(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
                                     const AnnotationTextFontSizeTypeEnum::Enum fontSizeType);
         
-        virtual ~AnnotationChartTwoAxisLabel();
+        virtual ~AnnotationGraphicsLabel();
         
-        AnnotationChartTwoAxisLabel(const AnnotationChartTwoAxisLabel& obj);
+        AnnotationGraphicsLabel(const AnnotationGraphicsLabel& obj);
 
-        AnnotationChartTwoAxisLabel& operator=(const AnnotationChartTwoAxisLabel& obj);
+        AnnotationGraphicsLabel& operator=(const AnnotationGraphicsLabel& obj);
         
 //        void setAxisViewport(const int32_t axisViewport[4]);
 //        
@@ -47,16 +47,16 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        void copyHelperAnnotationChartTwoAxisLabel(const AnnotationChartTwoAxisLabel& obj);
+        void copyHelperAnnotationGraphicsLabel(const AnnotationGraphicsLabel& obj);
 
         // ADD_NEW_MEMBERS_HERE
 
 //        int32_t m_axisViewport[4] = { 0, 0, 0, 0 };
     };
     
-#ifdef __ANNOTATION_CHART_TWO_AXIS_LABEL_DECLARE__
+#ifdef __ANNOTATION_GRAPHICS_LABEL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_CHART_TWO_AXIS_LABEL_DECLARE__
+#endif // __ANNOTATION_GRAPHICS_LABEL_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_CHART_TWO_AXIS_LABEL_H__
+#endif  //__ANNOTATION_GRAPHICS_LABEL_H__

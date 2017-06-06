@@ -190,7 +190,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
     switch (annotationType) {
         case AnnotationTypeEnum::BOX:
             break;
-        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+        case AnnotationTypeEnum::GRAPHICS_LABEL:
             CaretAssertMessage(0, "Axis Labels do not get created !!!");
             break;
         case AnnotationTypeEnum::COLOR_BAR:
@@ -873,7 +873,7 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
             case AnnotationTypeEnum::BOX:
                 useAverageFlag = true;
                 break;
-            case AnnotationTypeEnum::CHART_AXIS_LABEL:
+            case AnnotationTypeEnum::GRAPHICS_LABEL:
                 useAverageFlag = true;
                 break;
             case AnnotationTypeEnum::COLOR_BAR:

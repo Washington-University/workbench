@@ -37,7 +37,7 @@
 #include "CaretDataFile.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFile.h"
-#include "AnnotationChartTwoAxisLabel.h"
+#include "AnnotationGraphicsLabel.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlaySet.h"
 #include "EnumComboBoxTemplate.h"

@@ -24,7 +24,7 @@
 #undef __ANNOTATION_DECLARE__
 
 #include "AnnotationBox.h"
-#include "AnnotationChartTwoAxisLabel.h"
+#include "AnnotationGraphicsLabel.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationGroup.h"
 #include "AnnotationImage.h"
@@ -174,11 +174,11 @@ Annotation::clone() const
             myClone = new AnnotationBox(*box);
         }
             break;
-        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+        case AnnotationTypeEnum::GRAPHICS_LABEL:
         {
-            const AnnotationChartTwoAxisLabel* axisLabel = dynamic_cast<const AnnotationChartTwoAxisLabel*>(this);
+            const AnnotationGraphicsLabel* axisLabel = dynamic_cast<const AnnotationGraphicsLabel*>(this);
             CaretAssert(axisLabel);
-            myClone = new AnnotationChartTwoAxisLabel(*axisLabel);
+            myClone = new AnnotationGraphicsLabel(*axisLabel);
         }
             break;
         case AnnotationTypeEnum::COLOR_BAR:
@@ -346,8 +346,8 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
         case AnnotationTypeEnum::BOX:
             annotation = new AnnotationBox(attributeDefaultType);
             break;
-        case AnnotationTypeEnum::CHART_AXIS_LABEL:
-            annotation = new AnnotationChartTwoAxisLabel(attributeDefaultType,
+        case AnnotationTypeEnum::GRAPHICS_LABEL:
+            annotation = new AnnotationGraphicsLabel(attributeDefaultType,
                                                          AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
             break;
         case AnnotationTypeEnum::COLOR_BAR:
@@ -418,7 +418,7 @@ Annotation::initializeAnnotationMembers()
             switch (m_type) {
                 case AnnotationTypeEnum::BOX:
                     break;
-                case AnnotationTypeEnum::CHART_AXIS_LABEL:
+                case AnnotationTypeEnum::GRAPHICS_LABEL:
                     m_colorBackground = CaretColorEnum::BLACK;
                     break;
                 case AnnotationTypeEnum::COLOR_BAR:
@@ -472,7 +472,7 @@ Annotation::initializeAnnotationMembers()
                         m_colorBackground = defaultColor;
                     }
                     break;
-                case AnnotationTypeEnum::CHART_AXIS_LABEL:
+                case AnnotationTypeEnum::GRAPHICS_LABEL:
                     break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     break;
@@ -519,7 +519,7 @@ Annotation::initializeAnnotationMembers()
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
             break;
-        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+        case AnnotationTypeEnum::GRAPHICS_LABEL:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             disallowLineColorNoneFlag = true;
@@ -609,7 +609,7 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
             break;
-        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+        case AnnotationTypeEnum::GRAPHICS_LABEL:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;
@@ -1225,7 +1225,7 @@ Annotation::textAnnotationResetName()
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
             break;
-        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+        case AnnotationTypeEnum::GRAPHICS_LABEL:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;

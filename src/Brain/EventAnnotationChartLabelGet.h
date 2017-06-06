@@ -31,7 +31,7 @@
 
 namespace caret {
 
-    class AnnotationChartTwoAxisLabel;
+    class AnnotationGraphicsLabel;
     
     class EventAnnotationChartLabelGet : public Event {
         
@@ -40,9 +40,9 @@ namespace caret {
         
         virtual ~EventAnnotationChartLabelGet();
 
-        void addAnnotationChartLabel(AnnotationChartTwoAxisLabel* annotationChartLabel);
+        void addAnnotationChartLabel(AnnotationGraphicsLabel* annotationChartLabel);
 
-        std::vector<AnnotationChartTwoAxisLabel*> getAnnotationChartLabels();
+        std::vector<AnnotationGraphicsLabel*> getAnnotationChartLabels();
         
         // ADD_NEW_METHODS_HERE
 
@@ -51,7 +51,7 @@ namespace caret {
 
         EventAnnotationChartLabelGet& operator=(const EventAnnotationChartLabelGet&);
         
-        std::vector<AnnotationChartTwoAxisLabel*> m_annotationChartLabels;
+        std::vector<AnnotationGraphicsLabel*> m_annotationChartLabels;
         
         // ADD_NEW_MEMBERS_HERE
 

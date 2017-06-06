@@ -110,13 +110,13 @@ AnnotationTypeEnum::initialize()
                                           "BOX",
                                           "Box"));
     
-    enumData.push_back(AnnotationTypeEnum(CHART_AXIS_LABEL,
-                                          "CHART_AXIS_LABEL",
-                                          "Chart Axis Label"));
-
     enumData.push_back(AnnotationTypeEnum(COLOR_BAR,
                                           "COLOR_BAR",
                                           "Color Bar"));
+    
+    enumData.push_back(AnnotationTypeEnum(GRAPHICS_LABEL,
+                                          "GRAPHICS_LABEL",
+                                          "Graphics Text Label"));
     
     enumData.push_back(AnnotationTypeEnum(IMAGE,
                                           "IMAGE",

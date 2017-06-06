@@ -29,7 +29,7 @@
 
 #include "Annotation.h"
 #include "AnnotationArrangerExecutor.h"
-#include "AnnotationChartTwoAxisLabel.h"
+#include "AnnotationGraphicsLabel.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationFile.h"
 #include "AnnotationGroup.h"
@@ -207,7 +207,7 @@ AnnotationManager::deselectAllAnnotationsForEditing(const int32_t windowIndex)
     
     EventAnnotationChartLabelGet chartLabelEvent;
     EventManager::get()->sendEvent(chartLabelEvent.getPointer());
-    std::vector<AnnotationChartTwoAxisLabel*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
+    std::vector<AnnotationGraphicsLabel*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
     for (auto label : chartLabels) {
         label->setSelectedForEditing(windowIndex,
                                      false);
@@ -495,7 +495,7 @@ AnnotationManager::getAllAnnotations() const
 
     EventAnnotationChartLabelGet chartLabelEvent;
     EventManager::get()->sendEvent(chartLabelEvent.getPointer());
-    std::vector<AnnotationChartTwoAxisLabel*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
+    std::vector<AnnotationGraphicsLabel*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
     allAnnotations.insert(allAnnotations.end(),
                           chartLabels.begin(),
                           chartLabels.end());

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __ANNOTATION_CHART_TWO_AXIS_LABEL_DECLARE__
-#include "AnnotationChartTwoAxisLabel.h"
-#undef __ANNOTATION_CHART_TWO_AXIS_LABEL_DECLARE__
+#define __ANNOTATION_GRAPHICS_LABEL_DECLARE__
+#include "AnnotationGraphicsLabel.h"
+#undef __ANNOTATION_GRAPHICS_LABEL_DECLARE__
 
 #include "AnnotationCoordinate.h"
 #include "CaretAssert.h"
@@ -31,7 +31,7 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationChartTwoAxisLabel 
+ * \class caret::AnnotationGraphicsLabel 
  * \brief Contains text for a chart two axis label
  * \ingroup Annotations
  */
@@ -44,9 +44,9 @@ using namespace caret;
  * @param fontSizeType
  *     Type of font sizing (percent width or height)
  */
-AnnotationChartTwoAxisLabel::AnnotationChartTwoAxisLabel(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
+AnnotationGraphicsLabel::AnnotationGraphicsLabel(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
                                                          const AnnotationTextFontSizeTypeEnum::Enum fontSizeType)
-: AnnotationPercentSizeText(AnnotationTypeEnum::CHART_AXIS_LABEL,
+: AnnotationPercentSizeText(AnnotationTypeEnum::GRAPHICS_LABEL,
                             attributeDefaultType,
                             fontSizeType)
 {
@@ -59,7 +59,7 @@ AnnotationChartTwoAxisLabel::AnnotationChartTwoAxisLabel(const AnnotationAttribu
 /**
  * Destructor.
  */
-AnnotationChartTwoAxisLabel::~AnnotationChartTwoAxisLabel()
+AnnotationGraphicsLabel::~AnnotationGraphicsLabel()
 {
 }
 
@@ -68,10 +68,10 @@ AnnotationChartTwoAxisLabel::~AnnotationChartTwoAxisLabel()
  * @param obj
  *    Object that is copied.
  */
-AnnotationChartTwoAxisLabel::AnnotationChartTwoAxisLabel(const AnnotationChartTwoAxisLabel& obj)
+AnnotationGraphicsLabel::AnnotationGraphicsLabel(const AnnotationGraphicsLabel& obj)
 : AnnotationPercentSizeText(obj)
 {
-    this->copyHelperAnnotationChartTwoAxisLabel(obj);
+    this->copyHelperAnnotationGraphicsLabel(obj);
 }
 
 /**
@@ -81,12 +81,12 @@ AnnotationChartTwoAxisLabel::AnnotationChartTwoAxisLabel(const AnnotationChartTw
  * @return 
  *    Reference to this object.
  */
-AnnotationChartTwoAxisLabel&
-AnnotationChartTwoAxisLabel::operator=(const AnnotationChartTwoAxisLabel& obj)
+AnnotationGraphicsLabel&
+AnnotationGraphicsLabel::operator=(const AnnotationGraphicsLabel& obj)
 {
     if (this != &obj) {
         AnnotationPercentSizeText::operator=(obj);
-        this->copyHelperAnnotationChartTwoAxisLabel(obj);
+        this->copyHelperAnnotationGraphicsLabel(obj);
     }
     return *this;    
 }
@@ -97,7 +97,7 @@ AnnotationChartTwoAxisLabel::operator=(const AnnotationChartTwoAxisLabel& obj)
  *    Object that is copied.
  */
 void 
-AnnotationChartTwoAxisLabel::copyHelperAnnotationChartTwoAxisLabel(const AnnotationChartTwoAxisLabel& obj)
+AnnotationGraphicsLabel::copyHelperAnnotationGraphicsLabel(const AnnotationGraphicsLabel& obj)
 {
 //    m_axisViewport[0] = obj.m_axisViewport[0];
 //    m_axisViewport[1] = obj.m_axisViewport[1];
@@ -112,7 +112,7 @@ AnnotationChartTwoAxisLabel::copyHelperAnnotationChartTwoAxisLabel(const Annotat
 // *     Values for viewport.
 // */
 //void
-//AnnotationChartTwoAxisLabel::setAxisViewport(const int32_t axisViewport[4])
+//AnnotationGraphicsLabel::setAxisViewport(const int32_t axisViewport[4])
 //{
 //    m_axisViewport[0] = axisViewport[0];
 //    m_axisViewport[1] = axisViewport[1];
@@ -127,7 +127,7 @@ AnnotationChartTwoAxisLabel::copyHelperAnnotationChartTwoAxisLabel(const Annotat
 // *     Output with the axis viewport.
 // */
 //void
-//AnnotationChartTwoAxisLabel::getAxisViewport(int32_t axisViewportOut[4]) const
+//AnnotationGraphicsLabel::getAxisViewport(int32_t axisViewportOut[4]) const
 //{
 //    axisViewportOut[0] = m_axisViewport[0];
 //    axisViewportOut[1] = m_axisViewport[1];

@@ -411,7 +411,7 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
         case AnnotationTypeEnum::BOX:
             painter->drawRect(1, 1, width - 2, height - 2);
             break;
-        case AnnotationTypeEnum::CHART_AXIS_LABEL:
+        case AnnotationTypeEnum::GRAPHICS_LABEL:
             CaretAssertMessage(0, "No pixmap for axis label as user does not create them like other annotations");
             break;
         case AnnotationTypeEnum::COLOR_BAR:
