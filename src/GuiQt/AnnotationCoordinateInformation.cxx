@@ -505,7 +505,7 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
             }
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            CaretAssertToDoFatal();
+            CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if (coordInfoOne->m_windowIndex >= 0) {
@@ -664,7 +664,7 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
             }
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            CaretAssertToDoFatal();
+            CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if (coordInfoOne->m_windowIndex >= 0) {

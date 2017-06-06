@@ -277,7 +277,7 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
             case AnnotationCoordinateSpaceEnum::TAB:
                 break;
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                CaretAssertToDoFatal();
+                CaretAssert(0);
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 break;
@@ -951,7 +951,7 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                         }
                             break;
                         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                            CaretAssertToDoFatal();
+                            CaretAssert(0);
                             break;
                         case AnnotationCoordinateSpaceEnum::WINDOW:
                         {

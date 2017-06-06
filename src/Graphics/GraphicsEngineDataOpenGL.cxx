@@ -448,7 +448,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
             }
             
             if ( ! useMipMapFlag) {
-                CaretAssertToDoFatal(); // image must be 2^N by 2^M
+                CaretAssert(0);   // image must be 2^N by 2^M
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

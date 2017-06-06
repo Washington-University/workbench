@@ -690,7 +690,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             }
                 break;
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                CaretAssertToDoFatal();
+                CaretAssert(0);
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
             {

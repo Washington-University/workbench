@@ -503,7 +503,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             oldViewportHeight = m_coordInfo.m_tabHeight;
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            CaretAssertToDoFatal();
+            CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             oldViewportHeight = m_coordInfo.m_windowHeight;
@@ -533,7 +533,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                 diffXyzValid = true;
                 break;
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                CaretAssertToDoFatal();
+                CaretAssert(0);
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 diffXyzValid = true;
@@ -588,7 +588,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             }
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            CaretAssertToDoFatal();
+            CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if (m_coordInfo.m_windowIndex >= 0) {
@@ -771,7 +771,7 @@ AnnotationCoordinateSelectionWidget::setWidthAndHeightForImage(AnnotationImage* 
             vpHeight = m_coordInfo.m_tabHeight;
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            CaretAssertToDoFatal();
+            CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             vpWidth  = m_coordInfo.m_windowWidth;
@@ -838,7 +838,7 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            CaretAssertToDoFatal();
+            CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             dpa->setDisplayWindowAnnotationsInSingleTabViews(annotation->getWindowIndex(),
