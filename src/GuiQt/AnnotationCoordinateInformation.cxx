@@ -108,9 +108,6 @@ AnnotationCoordinateInformation::isCoordinateSpaceValid(const AnnotationCoordina
     bool validSpaceFlag = false;
     
     switch (space) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssertMessage(0, "Space should never be pixels");
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             validSpaceFlag = m_modelXYZValid;
             break;
@@ -160,8 +157,6 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
         const AnnotationCoordinateSpaceEnum::Enum space = *spaceIter;
         
         switch (space) {
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-                break;
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -180,8 +175,6 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                         addItFlag = coordInfoTwo->isCoordinateSpaceValid(space);
                         
                         switch (space) {
-                            case AnnotationCoordinateSpaceEnum::PIXELS:
-                                break;
                             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                                 /*
                                  * Both coord info's must be in the SAME TAB
@@ -450,9 +443,6 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
                 }
             }
             break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssert(0);
-            break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (coordInfoOne->m_surfaceNodeValid) {
                 const float surfaceOffsetLength = startCoordinate->getSurfaceOffsetLength();
@@ -606,9 +596,6 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
                     }
                 }
             }
-            break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (coordInfoOne->m_surfaceNodeValid) {

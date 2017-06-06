@@ -268,8 +268,6 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
          */
         bool adjustTextPctSizeFlag = false;
         switch (annotationSpace) {
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 adjustTextPctSizeFlag = true;
                 break;
@@ -921,8 +919,6 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                     float viewportWidth  = 0.0;
                     float viewportHeight = 0.0;
                     switch (m_selectedSpace) {
-                        case AnnotationCoordinateSpaceEnum::PIXELS:
-                            break;
                         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                         case AnnotationCoordinateSpaceEnum::SURFACE:
                         {

@@ -110,11 +110,6 @@ AnnotationCoordinateSpaceEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationCoordinateSpaceEnum(PIXELS,
-                                                     "PIXELS",
-                                                     "Pixels",
-                                                     "P"));
-    
     enumData.push_back(AnnotationCoordinateSpaceEnum(STEREOTAXIC,
                                                      "STEREOTAXIC",
                                                      "Stereotaxic",
@@ -304,9 +299,6 @@ AnnotationCoordinateSpaceEnum::toToolTip(Enum enumValue)
     AString text;
     
     switch (enumValue) {
-        case PIXELS:
-            text = "New annotation is drawn at an XY pixel coordinate";
-            break;
         case STEREOTAXIC:
             text = "New annotation is drawn at a surface/volume XYZ coordinate";
             break;

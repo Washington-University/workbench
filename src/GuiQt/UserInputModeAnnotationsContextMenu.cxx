@@ -105,8 +105,6 @@ m_newAnnotationCreatedByContextMenu(NULL)
         
         bool stereoOrSurfaceSpaceFlag = false;
         switch (ann->getCoordinateSpace()) {
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 stereoOrSurfaceSpaceFlag = true;
                 break;

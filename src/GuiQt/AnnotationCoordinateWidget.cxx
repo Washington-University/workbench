@@ -288,8 +288,6 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 xyzStep = 1.0;
                 suffix.clear();
                 break;
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-                break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
                 surfaceFlag = true;
                 break;
@@ -384,8 +382,6 @@ AnnotationCoordinateWidget::valueChanged()
         bool surfaceFlag = false;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                break;
-            case AnnotationCoordinateSpaceEnum::PIXELS:
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
                 surfaceFlag = true;

@@ -353,7 +353,6 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
     const AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::TAB;
     switch (space) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-        case AnnotationCoordinateSpaceEnum::PIXELS:
         case AnnotationCoordinateSpaceEnum::SURFACE:
         case AnnotationCoordinateSpaceEnum::TAB:
         case AnnotationCoordinateSpaceEnum::WINDOW:
@@ -433,7 +432,7 @@ AnnotationCoordinateSpaceEnum::Enum
 AnnotationCoordinateSelectionWidget::getSelectedCoordinateSpace(bool& validOut) const
 {
     validOut = false;
-    AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::PIXELS;
+    AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::VIEWPORT;
     
     QAbstractButton* button = m_spaceButtonGroup->checkedButton();
     if (button == NULL) {
@@ -497,8 +496,6 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             oldViewportHeight = m_coordInfo.m_tabHeight;
             break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             oldViewportHeight = m_coordInfo.m_tabHeight;
             break;
@@ -530,9 +527,6 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
         switch (oldSpace) {
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 break;
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-                CaretAssert(0);
-                break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
@@ -562,9 +556,6 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
                 newViewportHeight = m_coordInfo.m_tabHeight;
             }
-            break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (m_coordInfo.m_surfaceNodeValid) {
@@ -771,9 +762,6 @@ AnnotationCoordinateSelectionWidget::setWidthAndHeightForImage(AnnotationImage* 
             vpWidth  = m_coordInfo.m_tabWidth;
             vpHeight = m_coordInfo.m_tabHeight;
             break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssert(0);
-            break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             vpWidth  = m_coordInfo.m_tabWidth;
             vpHeight = m_coordInfo.m_tabHeight;
@@ -842,9 +830,6 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (m_coordInfo.m_tabIndex >= 0) {
             }
-            break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (m_coordInfo.m_tabIndex >= 0) {

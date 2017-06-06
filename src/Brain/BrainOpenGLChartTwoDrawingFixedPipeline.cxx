@@ -159,8 +159,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
         for (auto cb : colorBars) {
             bool useItFlag = false;
             switch (cb->getCoordinateSpace()) {
-                case AnnotationCoordinateSpaceEnum::PIXELS:
-                    break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:

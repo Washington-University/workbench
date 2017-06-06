@@ -35,8 +35,6 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Annotation in pixels (origin is bottom, left corner). */
-        PIXELS,
         /** Annotation in stereotaxic (3D) space */
         STEREOTAXIC,
         /** Annotation on surface node */

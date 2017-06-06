@@ -328,16 +328,12 @@ AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
 bool
 AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const
 {
-    bool pixelsFlag      = false;
     bool tabWindowFlag   = false;
     bool stereotaxicFlag = false;
     bool surfaceFlag     = false;
     bool viewportFlag    = false;
     
     switch (getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            pixelsFlag = true;
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             stereotaxicFlag = true;
             break;
@@ -396,8 +392,7 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
     
     bool validFlag = false;
     
-    if ( (! pixelsFlag)
-        && (! viewportFlag)) {
+    if (! viewportFlag) {
         switch (sizingHandle) {
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
                 if (allowsSideResizingFlag) {
@@ -479,9 +474,6 @@ AnnotationTwoDimensionalShape::applySpatialModificationSurfaceOrStereotaxicSpace
     bool surfaceSpaceFlag = false;
     
     switch (coordinateSpace) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            badSpaceFlag = true;
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             stereoSpaceFlag = true;
             break;
@@ -1121,8 +1113,6 @@ AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialM
     
     const AnnotationCoordinateSpaceEnum::Enum space = getCoordinateSpace();
     switch (space) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             return applySpatialModificationSurfaceOrStereotaxicSpace(spatialModification,
                                                                      space);

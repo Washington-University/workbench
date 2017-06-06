@@ -94,7 +94,7 @@ m_annotationBeingDragged(NULL)
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     
     m_modeNewAnnotationFileSpaceAndType.grabNew(new NewAnnotationFileSpaceAndType(NULL,
-                                                                                  AnnotationCoordinateSpaceEnum::PIXELS,
+                                                                                  AnnotationCoordinateSpaceEnum::VIEWPORT,
                                                                                   AnnotationTypeEnum::LINE));
     m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
     
@@ -407,8 +407,6 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                         changeCoordFlag = true;
                         break;
-                    case AnnotationCoordinateSpaceEnum::PIXELS:
-                        break;
                     case AnnotationCoordinateSpaceEnum::SURFACE:
                         break;
                     case AnnotationCoordinateSpaceEnum::TAB:
@@ -468,8 +466,6 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             bool surfaceFlag = false;
                             switch (selectedAnnotation->getCoordinateSpace()) {
                                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                                    break;
-                                case AnnotationCoordinateSpaceEnum::PIXELS:
                                     break;
                                 case AnnotationCoordinateSpaceEnum::SURFACE:
                                     surfaceFlag = true;
@@ -589,7 +585,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             break;
     }
     
-    AnnotationCoordinateSpaceEnum::Enum draggingCoordinateSpace = AnnotationCoordinateSpaceEnum::PIXELS;
+    AnnotationCoordinateSpaceEnum::Enum draggingCoordinateSpace = AnnotationCoordinateSpaceEnum::VIEWPORT;
     
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
     const int32_t numSelectedAnnotations = static_cast<int32_t>(selectedAnnotations.size());
@@ -649,16 +645,6 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 spaceOriginY = montVP[1];
                 spaceWidth   = montVP[2];
                 spaceHeight  = montVP[3];
-            }
-                break;
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-            {
-                int viewport[4];
-                vpContent->getWindowViewport(viewport);
-                spaceOriginX = viewport[0];
-                spaceOriginY = viewport[1];
-                spaceWidth   = viewport[2];
-                spaceHeight  = viewport[3];
             }
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:

@@ -495,9 +495,6 @@ AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpace
                                                  QActionGroup* actionGroup)
 {
     switch (annotationSpace) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssertMessage(0, "Annotations in pixel space not supported.");
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -574,9 +571,6 @@ AnnotationInsertNewWidget::createSpacePixmap(const QWidget* widget,
      * NOTE: ORIGIN is in TOP LEFT corner of pixmap.
      */
     switch (annotationSpace) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssertMessage(0, "Annotations in pixel space not supported.");
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:

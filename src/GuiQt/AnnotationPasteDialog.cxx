@@ -296,8 +296,6 @@ AnnotationPasteDialog::pasteOneDimensionalShape(AnnotationOneDimensionalShape* o
     bool windowFlag = false;
     
     switch (oneDimShape->getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:

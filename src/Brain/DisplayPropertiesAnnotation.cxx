@@ -87,8 +87,6 @@ DisplayPropertiesAnnotation::updateForNewAnnotation(const Annotation* annotation
     CaretAssert(annotation);
     
     switch (annotation->getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -416,9 +414,6 @@ DisplayPropertiesAnnotation::restoreVersionOne(const SceneClass* sceneClass)
          annIter++) {
         Annotation* ann = *annIter;
         switch (ann->getCoordinateSpace()) {
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-                CaretAssert(0);
-                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (stereoAnnDisplay != NULL) {
                 for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {

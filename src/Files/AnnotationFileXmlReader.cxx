@@ -619,7 +619,7 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
     /*
      * Coordinate space
      */
-    AnnotationCoordinateSpaceEnum::Enum coordSpace = AnnotationCoordinateSpaceEnum::PIXELS;
+    AnnotationCoordinateSpaceEnum::Enum coordSpace = AnnotationCoordinateSpaceEnum::VIEWPORT;
     {
         const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                                     ELEMENT_GROUP,

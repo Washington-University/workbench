@@ -185,8 +185,6 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
     switch (annotationText.getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             break;
         case AnnotationCoordinateSpaceEnum::TAB:

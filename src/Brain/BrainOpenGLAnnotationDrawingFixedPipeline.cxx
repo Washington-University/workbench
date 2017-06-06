@@ -197,12 +197,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                 }
             }
             break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            windowXYZ[0] = annotationXYZ[0];
-            windowXYZ[1] = annotationXYZ[1];
-            windowXYZ[2] = annotationXYZ[2];
-            windowXYZValid = true;
-            break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (surfaceDisplayed != NULL) {
                 StructureEnum::Enum annotationStructure = StructureEnum::INVALID;
@@ -613,10 +607,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     switch (drawingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssertMessage(0, "Never draw annotations in pixel space.");
-            return;
-            break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
@@ -717,8 +707,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             
             switch (drawingCoordinateSpace) {
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                    break;
-                case AnnotationCoordinateSpaceEnum::PIXELS:
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
                     break;
@@ -1127,8 +1115,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
     
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             break;
@@ -3397,8 +3383,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotat
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             depthTestFlag = true;
-            break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             depthTestFlag = true;

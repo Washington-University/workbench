@@ -70,7 +70,7 @@ SceneableInterface()
     CaretAssert(annotationFile);
     CaretAssert(groupType != AnnotationGroupTypeEnum::INVALID);
     CaretAssert(uniqueKey > 0);
-    CaretAssert(coordinateSpace != AnnotationCoordinateSpaceEnum::PIXELS);
+    CaretAssert(coordinateSpace != AnnotationCoordinateSpaceEnum::VIEWPORT);
     
     initializeInstance();
     
@@ -93,9 +93,6 @@ SceneableInterface()
     m_tabOrWindowIndex = tabOrWindowIndex;
     
     switch (m_coordinateSpace) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssert(0);
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -182,7 +179,7 @@ void
 AnnotationGroup::initializeInstance()
 {
     m_groupKey.reset();
-    m_coordinateSpace  = AnnotationCoordinateSpaceEnum::PIXELS;
+    m_coordinateSpace  = AnnotationCoordinateSpaceEnum::VIEWPORT;
     m_name             = "";
     m_tabOrWindowIndex = -1;
     
@@ -262,9 +259,6 @@ AnnotationGroup::getName() const
         
         AString spaceName = AnnotationCoordinateSpaceEnum::toGuiName(m_coordinateSpace);
         switch (m_coordinateSpace) {
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-                CaretAssertMessage(0, "Should never be pixels");
-                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -425,8 +419,6 @@ AnnotationGroup::validateAddedAnnotation(const Annotation* annotation)
     }
     
     switch (space) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:

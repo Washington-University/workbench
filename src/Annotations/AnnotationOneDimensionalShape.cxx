@@ -315,16 +315,12 @@ AnnotationOneDimensionalShape::setRotationAngle(const float viewportWidth,
 bool
 AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const
 {
-    bool pixelsFlag      = false;
     bool tabWindowFlag   = false;
     bool stereotaxicFlag = false;
     bool surfaceFlag     = false;
     bool viewportFlag    = false;
     
     switch (getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            pixelsFlag = true;
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             stereotaxicFlag = true;
             break;
@@ -344,7 +340,7 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
     
     bool validFlag = false;
     
-    if ( ! pixelsFlag) {
+//    if ( ! pixelsFlag) {
         switch (sizingHandle) {
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
                 break;
@@ -379,7 +375,7 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
                 }
                 break;
         }
-    }
+//    }
     
     return validFlag;
 }
@@ -677,8 +673,6 @@ AnnotationOneDimensionalShape::applySpatialModification(const AnnotationSpatialM
     }
     
     switch (getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             return applySpatialModificationStereotaxicSpace(spatialModification);
             break;

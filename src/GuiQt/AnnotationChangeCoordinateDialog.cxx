@@ -117,8 +117,6 @@ AnnotationChangeCoordinateDialog::createCurrentCoordinateWidget()
     switch (m_annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
         {
             useXyzFlag = false;

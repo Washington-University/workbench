@@ -298,8 +298,6 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
             Annotation* ann = dynamic_cast<Annotation*>(annText);
             CaretAssert(ann);
             switch (ann->getCoordinateSpace()) {
-                case AnnotationCoordinateSpaceEnum::PIXELS:
-                    break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     sizeValue /= surfaceMontageRowCount;
                     break;
