@@ -2304,31 +2304,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     float savedFontPercentViewportHeight = -1.0;
     const bool modifiedStatus = text->isModified();
     
-    const bool allowDifferentHeightModesFlag = false;
-    if (allowDifferentHeightModesFlag) {
-        switch (m_inputs->m_textHeightMode) {
-            case Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT:
-                break;
-            case Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT:
-                if (m_inputs->m_tabViewport[3] != m_modelSpaceViewport[3]) {
-                    percentSizeText = dynamic_cast<AnnotationPercentSizeText*>(text);
-                    if (percentSizeText != NULL) {
-                        savedFontPercentViewportHeight = percentSizeText->getFontPercentViewportSize();
-                        if (savedFontPercentViewportHeight > 0.0) {
-                            CaretAssert(m_modelSpaceViewport[3]);
-                            const float heightScaling = m_inputs->m_tabViewport[3] / m_modelSpaceViewport[3];
-                            percentSizeText->setFontPercentViewportSize(savedFontPercentViewportHeight
-                                                                        * heightScaling);
-                        }
-                    }
-                }
-                break;
-        }
-    }
-    
     m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*text,
                                                                                     windowXYZ[0], windowXYZ[1], windowXYZ[2],
-                                                                                    //textDrawingViewportHeight,
                                                                                     m_modelSpaceViewport[2], m_modelSpaceViewport[3],
                                                                                     bottomLeft, bottomRight, topRight, topLeft);
     
@@ -2389,12 +2366,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                 BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
                                                        textColorRGBA,
                                                        text->getLineWidth());
-            }
-            
-            if (drawBackgroundFlag) {
-                BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                         dummyNormals,
-                                                         backgroundRGBA);
             }
             
             if (drawTextFlag) {
