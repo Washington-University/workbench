@@ -687,6 +687,15 @@ AnnotationText::setCustomTextColor(const uint8_t rgba[4])
 }
 
 /**
+ * @return True if the font color is editable in the GUI.
+ */
+bool
+AnnotationText::isFontColorGuiEditable() const
+{
+    return true;
+}
+
+/**
  * Are font styles (Bold, Italic, Underline) supported?
  */
 bool

@@ -92,6 +92,26 @@ AnnotationGraphicsLabel::operator=(const AnnotationGraphicsLabel& obj)
 }
 
 /**
+ * @return Is this annotation deletable?  This method may be overridden
+ * by annotations (such as colorbars) that cannot be deleted.
+ */
+bool
+AnnotationGraphicsLabel::isDeletable() const
+{
+    return false;
+}
+
+/**
+ * @return True if the font color is editable in the GUI.
+ */
+bool
+AnnotationGraphicsLabel::isFontColorGuiEditable() const
+{
+    return false;
+}
+
+
+/**
  * Helps with copying an object of this type.
  * @param obj
  *    Object that is copied.

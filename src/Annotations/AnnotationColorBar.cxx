@@ -227,6 +227,15 @@ AnnotationColorBar::setFontPercentViewportSize(const float fontPercentViewportHe
 }
 
 /**
+ * @return True if the font color is editable in the GUI.
+ */
+bool
+AnnotationColorBar::isFontColorGuiEditable() const
+{
+    return true;
+}
+
+/**
  * Are font styles (Bold, Italic, Underline) supported?
  */
 bool

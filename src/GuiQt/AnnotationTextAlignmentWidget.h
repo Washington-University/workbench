@@ -76,7 +76,7 @@ namespace caret {
         
         QActionGroup* m_verticalAlignActionGroup;
         
-        std::vector<Annotation*> m_annotations;
+        std::vector<AnnotationText*> m_annotations;
         
         bool m_smallLayoutFlag;
         

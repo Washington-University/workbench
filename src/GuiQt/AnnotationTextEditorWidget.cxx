@@ -122,9 +122,9 @@ AnnotationTextEditorWidget::updateContent(std::vector<AnnotationText*>& annotati
     
     QString text;
     
+    m_annotationTextConnectTypeEnumComboBox->getComboBox()->setEnabled(false);
     if (m_annotationText != NULL) {
         setEnabled(true);
-        
         if (m_annotationText->isConnectToBrainordinateValid()) {
             m_annotationTextConnectTypeEnumComboBox->getComboBox()->setEnabled(true);
         }

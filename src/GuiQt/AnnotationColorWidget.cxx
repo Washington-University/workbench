@@ -224,7 +224,12 @@ AnnotationColorWidget::~AnnotationColorWidget()
 void
 AnnotationColorWidget::updateContent(std::vector<Annotation*>& annotations)
 {
-    m_annotations = annotations;
+    m_annotations.clear();
+    for (auto a : annotations) {
+        if (a->getType() != AnnotationTypeEnum::GRAPHICS_LABEL) {
+            m_annotations.push_back(a);
+        }
+    }
     
     if ( ! m_annotations.empty()) {
         setEnabled(true);

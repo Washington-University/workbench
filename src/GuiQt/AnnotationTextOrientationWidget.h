@@ -64,7 +64,7 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        std::vector<Annotation*> m_annotations;
+        std::vector<AnnotationText*> m_annotations;
         
         QActionGroup* m_orientationActionGroup;
         

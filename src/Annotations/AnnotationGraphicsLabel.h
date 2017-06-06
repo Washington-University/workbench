@@ -40,6 +40,10 @@ namespace caret {
 
         AnnotationGraphicsLabel& operator=(const AnnotationGraphicsLabel& obj);
         
+        virtual bool isDeletable() const;
+        
+        virtual bool isFontColorGuiEditable() const;
+        
 //        void setAxisViewport(const int32_t axisViewport[4]);
 //        
 //        void getAxisViewport(int32_t axisViewportOut[4]) const;

@@ -498,6 +498,10 @@ AnnotationFontWidget::updateTextColorButton()
                 bool allSameColorFlag = true;
                 
                 for (int32_t i = 0; i < numAnnotations; i++) {
+                    if ( ! m_annotationsFontStyle[i]->isFontColorGuiEditable()) {
+                        continue;
+                    }
+                    
                     if (firstColorSupportFlag) {
                         m_annotationsFontStyle[i]->getTextColorRGBA(rgba);
                         firstColorSupportFlag = false;
@@ -551,6 +555,7 @@ AnnotationFontWidget::updateTextColorButton()
     m_textColorAction->setIcon(QIcon(pm));
     m_textColorMenu->setSelectedColor(colorEnum);
     
+    m_textColorToolButton->setEnabled(colorButtonValidFlag);
     if (colorButtonValidFlag) {
         
     }

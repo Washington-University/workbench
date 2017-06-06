@@ -97,12 +97,18 @@ AnnotationTextOrientationWidget::~AnnotationTextOrientationWidget()
  * @param annotation.
  */
 void
-AnnotationTextOrientationWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
+AnnotationTextOrientationWidget::updateContent(std::vector<AnnotationText*>& annotationTextsIn)
 {
+//    m_annotations.clear();
+//    m_annotations.insert(m_annotations.end(),
+//                         annotationTexts.begin(),
+//                         annotationTexts.end());
     m_annotations.clear();
-    m_annotations.insert(m_annotations.end(),
-                         annotationTexts.begin(),
-                         annotationTexts.end());
+    for (auto a : annotationTextsIn) {
+        if (a->getType() != AnnotationTypeEnum::GRAPHICS_LABEL) {
+            m_annotations.push_back(a);
+        }
+    }
     
     {
         /*
@@ -114,8 +120,8 @@ AnnotationTextOrientationWidget::updateContent(std::vector<AnnotationText*>& ann
          * If multiple annotations are selected, the may have different orientation.
          */
         std::set<AnnotationTextOrientationEnum::Enum> selectedOrientations;
-        for (std::vector<AnnotationText*>::iterator iter = annotationTexts.begin();
-             iter != annotationTexts.end();
+        for (std::vector<AnnotationText*>::iterator iter = m_annotations.begin();
+             iter != m_annotations.end();
              iter++) {
             const AnnotationText* annText = *iter;
             CaretAssert(annText);
@@ -161,7 +167,7 @@ AnnotationTextOrientationWidget::updateContent(std::vector<AnnotationText*>& ann
         m_orientationActionGroup->blockSignals(false);
     }
     
-    setEnabled( ! annotationTexts.empty());
+    setEnabled( ! m_annotations.empty());
 }
 
 /**
@@ -180,8 +186,10 @@ AnnotationTextOrientationWidget::orientationActionSelected(QAction* action)
                                                                                                          &valid);
     if (valid) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        std::vector<Annotation*> annotations(m_annotations.begin(),
+                                             m_annotations.end());
         undoCommand->setModeTextOrientation(actionOrientation,
-                                            m_annotations);
+                                            annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AString errorMessage;
         if ( ! annMan->applyCommand(undoCommand,

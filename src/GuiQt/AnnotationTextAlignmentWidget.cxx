@@ -159,10 +159,16 @@ AnnotationTextAlignmentWidget::~AnnotationTextAlignmentWidget()
 void
 AnnotationTextAlignmentWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
 {
+//    m_annotations.clear();
+//    m_annotations.insert(m_annotations.end(),
+//                         annotationTexts.begin(),
+//                         annotationTexts.end());
     m_annotations.clear();
-    m_annotations.insert(m_annotations.end(),
-                         annotationTexts.begin(),
-                         annotationTexts.end());
+    for (auto a : annotationTexts) {
+        if (a->getType() != AnnotationTypeEnum::GRAPHICS_LABEL) {
+            m_annotations.push_back(a);
+        }
+    }
     
     {
         /*
@@ -174,8 +180,8 @@ AnnotationTextAlignmentWidget::updateContent(std::vector<AnnotationText*>& annot
          * If multiple annotations are selected, the may have different alignments.
          */
         std::set<AnnotationTextAlignHorizontalEnum::Enum> selectedAlignments;
-        for (std::vector<AnnotationText*>::iterator iter = annotationTexts.begin();
-             iter != annotationTexts.end();
+        for (std::vector<AnnotationText*>::iterator iter = m_annotations.begin();
+             iter != m_annotations.end();
              iter++) {
             const AnnotationText* annText = *iter;
             CaretAssert(annText);
@@ -230,8 +236,8 @@ AnnotationTextAlignmentWidget::updateContent(std::vector<AnnotationText*>& annot
          * If multiple annotations are selected, the may have different alignments.
          */
         std::set<AnnotationTextAlignVerticalEnum::Enum> selectedAlignments;
-        for (std::vector<AnnotationText*>::iterator iter = annotationTexts.begin();
-             iter != annotationTexts.end();
+        for (std::vector<AnnotationText*>::iterator iter = m_annotations.begin();
+             iter != m_annotations.end();
              iter++) {
             const AnnotationText* annText = *iter;
             CaretAssert(annText);
@@ -277,7 +283,7 @@ AnnotationTextAlignmentWidget::updateContent(std::vector<AnnotationText*>& annot
         m_verticalAlignActionGroup->blockSignals(false);
     }
     
-    setEnabled( ! annotationTexts.empty());
+    setEnabled( ! m_annotations.empty());
 }
 
 /**
@@ -296,8 +302,10 @@ AnnotationTextAlignmentWidget::horizontalAlignmentActionSelected(QAction* action
                                                                                                              &valid);
     if (valid) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        std::vector<Annotation*> annotations(m_annotations.begin(),
+                                             m_annotations.end());
         undoCommand->setModeTextAlignmentHorizontal(actionAlign,
-                                                    m_annotations);
+                                                    annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AString errorMessage;
         if ( ! annMan->applyCommand(undoCommand,
@@ -328,8 +336,10 @@ AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
                                                                                                              &valid);
     if (valid) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        std::vector<Annotation*> annotations(m_annotations.begin(),
+                                             m_annotations.end());
         undoCommand->setModeTextAlignmentVertical(actionAlign,
-                                                  m_annotations);
+                                                  annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AString errorMessage;
         if ( ! annMan->applyCommand(undoCommand,

@@ -90,6 +90,8 @@ namespace caret {
         
         virtual void setCustomTextColor(const uint8_t rgba[4]);
         
+        virtual bool isFontColorGuiEditable() const;
+        
         virtual bool isStylesSupported() const;
         
         virtual bool isBoldStyleEnabled() const;
