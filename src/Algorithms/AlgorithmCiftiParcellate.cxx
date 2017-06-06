@@ -82,9 +82,16 @@ OperationParameters* AlgorithmCiftiParcellate::getParameters()
     
     ret->createOptionalParameter(9, "-only-numeric", "exclude non-numeric values");
     
+    OptionalParameter* emptyOpt = ret->createOptionalParameter(10, "-include-empty", "create parcels for labels that have no vertices or voxels");
+    OptionalParameter* emptyValOpt = emptyOpt->createOptionalParameter(1, "-fill-value", "specify value to use in empty parcels (default 0)");
+    emptyValOpt->addDoubleParameter(1, "value", "the value to fill empty parcels with");
+    OptionalParameter* emptyRoiOpt = emptyOpt->createOptionalParameter(2, "-nonempty-mask-out", "output a matching pscalar file that has 0s in empty parcels, and 1s elsewhere");
+    emptyRoiOpt->addCiftiOutputParameter(1, "mask-out", "the output mask file");
+    
     ret->setHelpText(
-        AString("Each label in the cifti label file will be treated as a parcel, and all rows or columns within the parcel are averaged together to form the output ") +
+        AString("Each non-empty label (other than the unlabeled key) in the cifti label file will be treated as a parcel, and all rows or columns within the parcel are averaged together to form the output ") +
         "row or column.  " +
+        "If -include-empty is specified, empty labels will be treated as parcels with no elements, and filled with a constant value.  " +
         CiftiXML::directionFromStringExplanation() + "  " +
         "For dtseries or dscalar, use COLUMN.  " +
         "If you are parcellating a dconn in both directions, parcellating by ROW first will use much less memory.\n\n" +
@@ -130,6 +137,23 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
         excludeLow = (float)excludeOpt->getDouble(1);
         excludeHigh = (float)excludeOpt->getDouble(2);
         if (!(excludeLow > 0.0f && excludeHigh > 0.0f)) throw AlgorithmException("exclusion sigmas must be positive");
+    }
+    OptionalParameter* emptyOpt = myParams->getOptionalParameter(10);
+    bool includeEmpty = emptyOpt->m_present;
+    float emptyFillValue = 0.0f;
+    CiftiFile* emptyMaskOut = NULL;
+    if (includeEmpty)
+    {
+        OptionalParameter* emptyValOpt = emptyOpt->getOptionalParameter(1);
+        if (emptyValOpt->m_present)
+        {
+            emptyFillValue = emptyValOpt->getDouble(1);
+        }
+        OptionalParameter* emptyRoiOpt = emptyOpt->getOptionalParameter(2);
+        if (emptyRoiOpt->m_present)
+        {
+            emptyMaskOut = emptyRoiOpt->getOutputCifti(1);
+        }
     }
     OptionalParameter* spatialWeightOpt = myParams->getOptionalParameter(5);
     OptionalParameter* ciftiWeightOpt = myParams->getOptionalParameter(6);
@@ -194,19 +218,28 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
                 *thisWeights = thisStore;
             }
         }
-        AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut, leftWeights, rightWeights, cerebWeights, method, excludeLow, excludeHigh, onlyNumeric);
+        AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut,
+                                 leftWeights, rightWeights, cerebWeights,
+                                 method, excludeLow, excludeHigh, onlyNumeric,
+                                 includeEmpty, emptyFillValue, emptyMaskOut);
         return;
     }
     if (ciftiWeightOpt->m_present)
     {
-        AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut, ciftiWeightOpt->getCifti(1), method, excludeLow, excludeHigh, onlyNumeric);
+        AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut,
+                                 ciftiWeightOpt->getCifti(1),
+                                 method, excludeLow, excludeHigh, onlyNumeric,
+                                 includeEmpty, emptyFillValue, emptyMaskOut);
         return;
     }
-    AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut, method, excludeLow, excludeHigh, onlyNumeric);
+    AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut,
+                             method, excludeLow, excludeHigh, onlyNumeric,
+                             includeEmpty, emptyFillValue, emptyMaskOut);
 }
 
 AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
-                                                   const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric) : AbstractAlgorithm(myProgObj)
+                                                   const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric,
+                                                   const bool& includeEmpty, const float& emptyFillVal, CiftiFile* emptyMaskOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CaretAssert(direction >= 0);
@@ -235,7 +268,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     }
     vector<int> indexToParcel;
     CiftiXML myOutXML = myInputXML;
-    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel);
+    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel, includeEmpty);
     int numParcels = outParcelMap.getLength();
     if (numParcels < 1)
     {
@@ -254,6 +287,26 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
         {
             ++parcelCounts[parcel];
         }
+    }
+    if (emptyMaskOut != NULL)
+    {
+        CiftiXML maskOutXML;
+        maskOutXML.setNumberOfDimensions(2);
+        maskOutXML.setMap(CiftiXML::ALONG_COLUMN, outParcelMap);
+        CiftiScalarsMap maskNameMap;
+        maskNameMap.setLength(1);
+        maskNameMap.setMapName(0, "parcel not empty");
+        maskOutXML.setMap(CiftiXML::ALONG_ROW, maskNameMap);
+        emptyMaskOut->setCiftiXML(maskOutXML);
+        vector<float> emptyMaskData(numParcels, 1.0f);
+        for (int i = 0; i < numParcels; ++i)
+        {
+            if (parcelCounts[i] == 0)
+            {
+                emptyMaskData[i] = 0.0f;
+            }
+        }
+        emptyMaskOut->setColumn(emptyMaskData.data(), 0);
     }
     bool isLabel = false;
     int labelDir = -1;
@@ -319,7 +372,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
                     {
                         scratchOutRow[j] = myOutXML.getLabelsMap(labelDir).getMapLabelTable((*iter)[labelDir - 1])->getUnassignedLabelKey();
                     } else {
-                        scratchOutRow[j] = 0.0f;
+                        scratchOutRow[j] = emptyFillVal;//odd corner case, but probably fine: with nonzero empty fill value and SAMPSTDEV, parcels with only one element get the fill value, but aren't technically empty
                     }
                 }
             }
@@ -411,7 +464,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
                                 scratchOutRow[j] = myOutXML.getLabelsMap(labelDir).getMapLabelTable(indices[labelDir - 1])->getUnassignedLabelKey();
                             }
                         } else {
-                            scratchOutRow[j] = 0.0f;
+                            scratchOutRow[j] = emptyFillVal;
                         }
                     }
                 }
@@ -424,7 +477,8 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
 namespace
 {
     void doWeightedParcellation(const CiftiFile* myCiftiIn, const int& direction, CiftiFile* myCiftiOut, const vector<int>& indexToParcel,
-                                const vector<vector<float> >& parcelWeights, const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric)
+                                const vector<vector<float> >& parcelWeights, const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric,
+                                const float& emptyFillVal, CiftiFile* emptyMaskOut)
     {
         const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
         const CiftiXML& myOutXML = myCiftiOut->getCiftiXML();
@@ -445,7 +499,27 @@ namespace
         {
             CaretLogWarning(ReductionEnum::toName(method) + " reduction requested while parcellating label data");
         }
-        int numParcels = myCiftiOut->getCiftiXML().getDimensionLength(direction);
+        int numParcels = myOutXML.getDimensionLength(direction);
+        if (emptyMaskOut != NULL)
+        {
+            CiftiXML maskOutXML;
+            maskOutXML.setNumberOfDimensions(2);
+            maskOutXML.setMap(CiftiXML::ALONG_COLUMN, myOutXML.getParcelsMap(direction));
+            CiftiScalarsMap maskNameMap;
+            maskNameMap.setLength(1);
+            maskNameMap.setMapName(0, "parcel not empty");
+            maskOutXML.setMap(CiftiXML::ALONG_ROW, maskNameMap);
+            emptyMaskOut->setCiftiXML(maskOutXML);
+            vector<float> emptyMaskData(numParcels, 1.0f);
+            for (int i = 0; i < numParcels; ++i)
+            {
+                if (parcelWeights[i].size() == 0)
+                {
+                    emptyMaskData[i] = 0.0f;
+                }
+            }
+            emptyMaskOut->setColumn(emptyMaskData.data(), 0);
+        }
         int64_t numCols = myInputXML.getDimensionLength(CiftiXML::ALONG_ROW);
         vector<float> scratchRow(numCols);
         if (direction == CiftiXML::ALONG_ROW)
@@ -497,7 +571,7 @@ namespace
                         {
                             scratchOutRow[j] = myOutXML.getLabelsMap(labelDir).getMapLabelTable((*iter)[labelDir - 1])->getUnassignedLabelKey();
                         } else {
-                            scratchOutRow[j] = 0.0f;
+                            scratchOutRow[j] = emptyFillVal;
                         }
                     }
                 }
@@ -589,7 +663,7 @@ namespace
                                     scratchOutRow[j] = myOutXML.getLabelsMap(labelDir).getMapLabelTable(indices[labelDir - 1])->getUnassignedLabelKey();
                                 }
                             } else {
-                                scratchOutRow[j] = 0.0f;
+                                scratchOutRow[j] = emptyFillVal;
                             }
                         }
                     }
@@ -602,7 +676,8 @@ namespace
 
 AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
                                                    const MetricFile* leftWeights, const MetricFile* rightWeights, const MetricFile* cerebWeights, const ReductionEnum::Enum& method,
-                                                   const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric): AbstractAlgorithm(myProgObj)
+                                                   const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric,
+                                                   const bool& includeEmpty, const float& emptyFillVal, CiftiFile* emptyMaskOut): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CaretAssert(direction >= 0);
@@ -660,7 +735,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     }
     vector<int> indexToParcel;
     CiftiXML myOutXML = myInputXML;
-    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel);
+    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel, includeEmpty);
     int numParcels = outParcelMap.getLength();
     if (numParcels < 1)
     {
@@ -698,11 +773,12 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
             }
         }
     }
-    doWeightedParcellation(myCiftiIn, direction, myCiftiOut, indexToParcel, parcelWeights, method, excludeLow, excludeHigh, onlyNumeric);
+    doWeightedParcellation(myCiftiIn, direction, myCiftiOut, indexToParcel, parcelWeights, method, excludeLow, excludeHigh, onlyNumeric, emptyFillVal, emptyMaskOut);
 }
 
 AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
-                                                   const CiftiFile* ciftiWeights, const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric): AbstractAlgorithm(myProgObj)
+                                                   const CiftiFile* ciftiWeights, const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric,
+                                                   const bool& includeEmpty, const float& emptyFillVal, CiftiFile* emptyMaskOut): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CaretAssert(direction >= 0);
@@ -740,7 +816,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     }
     vector<int> indexToParcel;
     CiftiXML myOutXML = myInputXML;
-    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel);
+    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel, includeEmpty);
     int numParcels = outParcelMap.getLength();
     if (numParcels < 1)
     {
@@ -759,10 +835,10 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
             parcelWeights[parcel].push_back(weightCol[j]);//we already tested that the dense mappings matched
         }
     }
-    doWeightedParcellation(myCiftiIn, direction, myCiftiOut, indexToParcel, parcelWeights, method, excludeLow, excludeHigh, onlyNumeric);
+    doWeightedParcellation(myCiftiIn, direction, myCiftiOut, indexToParcel, parcelWeights, method, excludeLow, excludeHigh, onlyNumeric, emptyFillVal, emptyMaskOut);
 }
 
-CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, vector<int>& indexToParcelOut)
+CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, vector<int>& indexToParcelOut, const bool& includeEmpty)
 {
     const CiftiXML& myLabelXML = myCiftiLabel->getCiftiXML();
     if (myLabelXML.getNumberOfDimensions() != 2 ||
@@ -772,11 +848,11 @@ CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myC
         throw AlgorithmException("AlgorithmCiftiParcellate::parcellateMapping requires a cifti dlabel file as input");
     }
     const CiftiLabelsMap& myLabelsMap = myLabelXML.getLabelsMap(CiftiXML::ALONG_ROW);
-    const CiftiBrainModelsMap& myDenseMap = myLabelXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    const CiftiBrainModelsMap& labelDenseMap = myLabelXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
     CiftiParcelsMap ret;
-    if (toParcellate.hasVolumeData() && myDenseMap.hasVolumeData())
+    if (toParcellate.hasVolumeData() && labelDenseMap.hasVolumeData())
     {
-        if(!toParcellate.getVolumeSpace().matches(myDenseMap.getVolumeSpace()))
+        if(!toParcellate.getVolumeSpace().matches(labelDenseMap.getVolumeSpace()))
         {
             throw AlgorithmException("AlgorithmCiftiParcellate::parcellateMapping requires matching volume space between dlabel and dense mapping to parcellate");
         }
@@ -786,102 +862,167 @@ CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myC
     vector<float> labelData(myLabelXML.getDimensionLength(CiftiXML::ALONG_COLUMN));
     int unusedKey = myLabelTable->getUnassignedLabelKey();
     myCiftiLabel->getColumn(labelData.data(), 0);
-    map<int, pair<CiftiParcelsMap::Parcel, int> > usedKeys;//the keys from the label table that actually overlap with data in the input file
     indexToParcelOut.clear();
     indexToParcelOut.resize(toParcellate.getLength(), -1);
     vector<StructureEnum::Enum> surfList = toParcellate.getSurfaceStructureList();
-    vector<StructureEnum::Enum> volList = toParcellate.getVolumeStructureList();
-    for (int i = 0; i < (int)surfList.size(); ++i)
-    {
-        StructureEnum::Enum myStruct = surfList[i];
-        if (myDenseMap.hasSurfaceData(myStruct) && toParcellate.hasSurfaceData(myStruct))
+    if (includeEmpty)
+    {//if we include empty, then the dlabel file by itself determines the entire parcel map, ignoring the data map
+        const vector<StructureEnum::Enum> labelSurfList = labelDenseMap.getSurfaceStructureList();
+        const set<int32_t> allLabelKeys = myLabelTable->getKeys();
+        map<int32_t, int32_t> keyToParcel;
+        int32_t count = 0;
+        vector<CiftiParcelsMap::Parcel> parcelList;
+        for (set<int32_t>::const_iterator iter = allLabelKeys.begin(); iter != allLabelKeys.end(); ++iter)
         {
-            if (myDenseMap.getSurfaceNumberOfNodes(myStruct) != toParcellate.getSurfaceNumberOfNodes(myStruct))
+            if (*iter != unusedKey)
             {
-                throw AlgorithmException("mismatch in number of surface vertices between input and dlabel for structure " + StructureEnum::toName(myStruct));
+                keyToParcel[*iter] = count;
+                parcelList.push_back(CiftiParcelsMap::Parcel());
+                parcelList.back().m_name = myLabelTable->getLabelName(*iter);
+                ++count;
             }
-            ret.addSurface(toParcellate.getSurfaceNumberOfNodes(myStruct), myStruct);
-            vector<CiftiBrainModelsMap::SurfaceMap> surfMap = toParcellate.getSurfaceMap(myStruct);
-            int64_t mapSize = (int64_t)surfMap.size();
-            for (int64_t j = 0; j < mapSize; ++j)
-            {
-                int64_t labelIndex = myDenseMap.getIndexForNode(surfMap[j].m_surfaceNode, myStruct);
-                if (labelIndex != -1)
+        }
+        for (int i = 0; i < (int)labelSurfList.size(); ++i)
+        {
+            StructureEnum::Enum myStruct = labelSurfList[i];
+            if (labelDenseMap.hasSurfaceData(myStruct) && toParcellate.hasSurfaceData(myStruct))
+            {//if they don't match in vertex count but one is empty, don't error?
+                if (labelDenseMap.getSurfaceNumberOfNodes(myStruct) != toParcellate.getSurfaceNumberOfNodes(myStruct))
                 {
-                    int labelKey = (int)floor(labelData[labelIndex] + 0.5f);
-                    if (labelKey != unusedKey)
+                    throw AlgorithmException("mismatch in number of surface vertices between input and dlabel for structure " + StructureEnum::toName(myStruct));
+                }
+            }
+            ret.addSurface(labelDenseMap.getSurfaceNumberOfNodes(myStruct), myStruct);
+            vector<CiftiBrainModelsMap::SurfaceMap> labelSurfMap = labelDenseMap.getSurfaceMap(myStruct);
+            for (int64_t j = 0; j < (int64_t)labelSurfMap.size(); ++j)
+            {
+                int labelKey = (int)floor(labelData[labelSurfMap[j].m_ciftiIndex] + 0.5f);
+                map<int32_t, int32_t>::iterator found = keyToParcel.find(labelKey);//could be unlabeled, or wild key value
+                if (found != keyToParcel.end())
+                {
+                    int32_t whichParcel = found->second;
+                    parcelList[whichParcel].m_surfaceNodes[myStruct].insert(labelSurfMap[j].m_surfaceNode);
+                    int64_t dataIndex = toParcellate.getIndexForNode(labelSurfMap[j].m_surfaceNode, myStruct);
+                    if (dataIndex != -1)
                     {
-                        int tempVal = -1;
-                        map<int, pair<CiftiParcelsMap::Parcel, int> >::iterator iter = usedKeys.find(labelKey);
-                        if (iter == usedKeys.end())
+                        indexToParcelOut[dataIndex] = whichParcel;
+                    }
+                }
+            }
+        }
+        const vector<CiftiBrainModelsMap::VolumeMap> labelVolMap = labelDenseMap.getFullVolumeMap();
+        for (int64_t i = 0; i < (int64_t)labelVolMap.size(); ++i)
+        {
+            int labelKey = (int)floor(labelData[labelVolMap[i].m_ciftiIndex] + 0.5f);
+            map<int32_t, int32_t>::iterator found = keyToParcel.find(labelKey);//could be unlabeled, or wild key value
+            if (found != keyToParcel.end())
+            {
+                int32_t whichParcel = found->second;
+                parcelList[whichParcel].m_voxelIndices.insert(labelVolMap[i].m_ijk);
+                int64_t dataIndex = toParcellate.getIndexForVoxel(labelVolMap[i].m_ijk);
+                if (dataIndex != -1)
+                {
+                    indexToParcelOut[dataIndex] = whichParcel;
+                }
+            }
+        }
+        for (int i = 0; i < (int)parcelList.size(); ++i)
+        {
+            ret.addParcel(parcelList[i]);
+        }
+    } else {
+        map<int, pair<CiftiParcelsMap::Parcel, int> > usedKeys;//the keys from the label table that actually overlap with data in the input file
+        for (int i = 0; i < (int)surfList.size(); ++i)
+        {
+            StructureEnum::Enum myStruct = surfList[i];
+            if (labelDenseMap.hasSurfaceData(myStruct) && toParcellate.hasSurfaceData(myStruct))
+            {
+                if (labelDenseMap.getSurfaceNumberOfNodes(myStruct) != toParcellate.getSurfaceNumberOfNodes(myStruct))
+                {
+                    throw AlgorithmException("mismatch in number of surface vertices between input and dlabel for structure " + StructureEnum::toName(myStruct));
+                }
+                ret.addSurface(toParcellate.getSurfaceNumberOfNodes(myStruct), myStruct);
+                vector<CiftiBrainModelsMap::SurfaceMap> surfMap = toParcellate.getSurfaceMap(myStruct);
+                int64_t mapSize = (int64_t)surfMap.size();
+                for (int64_t j = 0; j < mapSize; ++j)
+                {
+                    int64_t labelIndex = labelDenseMap.getIndexForNode(surfMap[j].m_surfaceNode, myStruct);
+                    if (labelIndex != -1)
+                    {
+                        int labelKey = (int)floor(labelData[labelIndex] + 0.5f);
+                        if (labelKey != unusedKey)
                         {
-                            const GiftiLabel* myLabel = myLabelTable->getLabel(labelKey);
-                            if (myLabel != NULL)//ignore values that aren't in the label table
+                            int tempVal = -1;
+                            map<int, pair<CiftiParcelsMap::Parcel, int> >::iterator iter = usedKeys.find(labelKey);
+                            if (iter == usedKeys.end())
                             {
-                                tempVal = usedKeys.size();
-                                CiftiParcelsMap::Parcel tempParcel;
-                                tempParcel.m_name = myLabel->getName();
+                                const GiftiLabel* myLabel = myLabelTable->getLabel(labelKey);
+                                if (myLabel != NULL)//ignore values that aren't in the label table
+                                {
+                                    tempVal = usedKeys.size();
+                                    CiftiParcelsMap::Parcel tempParcel;
+                                    tempParcel.m_name = myLabel->getName();
+                                    tempParcel.m_surfaceNodes[myStruct].insert(surfMap[j].m_surfaceNode);
+                                    usedKeys[labelKey] = pair<CiftiParcelsMap::Parcel, int>(tempParcel, tempVal);
+                                }
+                            } else {
+                                tempVal = iter->second.second;
+                                CiftiParcelsMap::Parcel& tempParcel = iter->second.first;
                                 tempParcel.m_surfaceNodes[myStruct].insert(surfMap[j].m_surfaceNode);
-                                usedKeys[labelKey] = pair<CiftiParcelsMap::Parcel, int>(tempParcel, tempVal);
                             }
-                        } else {
-                            tempVal = iter->second.second;
-                            CiftiParcelsMap::Parcel& tempParcel = iter->second.first;
-                            tempParcel.m_surfaceNodes[myStruct].insert(surfMap[j].m_surfaceNode);
+                            indexToParcelOut[surfMap[j].m_ciftiIndex] = tempVal;//we will remap these to be in order of label keys later
                         }
-                        indexToParcelOut[surfMap[j].m_ciftiIndex] = tempVal;//we will remap these to be in order of label keys later
                     }
                 }
             }
         }
-    }
-    vector<CiftiBrainModelsMap::VolumeMap> volMap = toParcellate.getFullVolumeMap();
-    int64_t mapSize = (int64_t)volMap.size();
-    for (int64_t i = 0; i < mapSize; ++i)
-    {
-        int64_t labelIndex = myDenseMap.getIndexForVoxel(volMap[i].m_ijk);
-        if (labelIndex != -1)
+        vector<CiftiBrainModelsMap::VolumeMap> volMap = toParcellate.getFullVolumeMap();
+        for (int64_t i = 0; i < (int64_t)volMap.size(); ++i)
         {
-            int labelKey = (int)floor(labelData[labelIndex] + 0.5f);
-            if (labelKey != unusedKey)
+            int64_t labelIndex = labelDenseMap.getIndexForVoxel(volMap[i].m_ijk);
+            if (labelIndex != -1)
             {
-                int tempVal = -1;
-                map<int, pair<CiftiParcelsMap::Parcel, int> >::iterator iter = usedKeys.find(labelKey);
-                if (iter == usedKeys.end())
+                int labelKey = (int)floor(labelData[labelIndex] + 0.5f);
+                if (labelKey != unusedKey)
                 {
-                    const GiftiLabel* myLabel = myLabelTable->getLabel(labelKey);
-                    if (myLabel != NULL)//ignore values that aren't in the label table
+                    int tempVal = -1;
+                    map<int, pair<CiftiParcelsMap::Parcel, int> >::iterator iter = usedKeys.find(labelKey);
+                    if (iter == usedKeys.end())
                     {
-                        tempVal = usedKeys.size();
-                        CiftiParcelsMap::Parcel tempParcel;
-                        tempParcel.m_name = myLabel->getName();
+                        const GiftiLabel* myLabel = myLabelTable->getLabel(labelKey);
+                        if (myLabel != NULL)//ignore values that aren't in the label table
+                        {
+                            tempVal = usedKeys.size();
+                            CiftiParcelsMap::Parcel tempParcel;
+                            tempParcel.m_name = myLabel->getName();
+                            tempParcel.m_voxelIndices.insert(VoxelIJK(volMap[i].m_ijk));
+                            usedKeys[labelKey] = pair<CiftiParcelsMap::Parcel, int>(tempParcel, tempVal);
+                        }
+                    } else {
+                        tempVal = iter->second.second;
+                        CiftiParcelsMap::Parcel& tempParcel = iter->second.first;
                         tempParcel.m_voxelIndices.insert(VoxelIJK(volMap[i].m_ijk));
-                        usedKeys[labelKey] = pair<CiftiParcelsMap::Parcel, int>(tempParcel, tempVal);
                     }
-                } else {
-                    tempVal = iter->second.second;
-                    CiftiParcelsMap::Parcel& tempParcel = iter->second.first;
-                    tempParcel.m_voxelIndices.insert(VoxelIJK(volMap[i].m_ijk));
+                    indexToParcelOut[volMap[i].m_ciftiIndex] = tempVal;//we will remap these to be in order of label keys later
                 }
-                indexToParcelOut[volMap[i].m_ciftiIndex] = tempVal;//we will remap these to be in order of label keys later
             }
         }
-    }
-    int numParcels = (int)usedKeys.size();
-    vector<int> valRemap(numParcels, -1);
-    int count = 0;
-    for (map<int, pair<CiftiParcelsMap::Parcel, int> >::const_iterator iter = usedKeys.begin(); iter != usedKeys.end(); ++iter)
-    {
-        valRemap[iter->second.second] = count;//build a lookup from temp values to label key rank
-        ret.addParcel(iter->second.first);
-        ++count;
-    }
-    int64_t lookupSize = (int64_t)indexToParcelOut.size();
-    for (int64_t i = 0; i < lookupSize; ++i)//finally, remap the temporary values to the key order of the labels
-    {
-        if (indexToParcelOut[i] != -1)
+        int numParcels = (int)usedKeys.size();
+        vector<int> valRemap(numParcels, -1);
+        int count = 0;
+        for (map<int, pair<CiftiParcelsMap::Parcel, int> >::const_iterator iter = usedKeys.begin(); iter != usedKeys.end(); ++iter)
         {
-            indexToParcelOut[i] = valRemap[indexToParcelOut[i]];
+            valRemap[iter->second.second] = count;//build a lookup from temp values to label key rank
+            ret.addParcel(iter->second.first);
+            ++count;
+        }
+        int64_t lookupSize = (int64_t)indexToParcelOut.size();
+        for (int64_t i = 0; i < lookupSize; ++i)//finally, remap the temporary values to the key order of the labels
+        {
+            if (indexToParcelOut[i] != -1)
+            {
+                indexToParcelOut[i] = valRemap[indexToParcelOut[i]];
+            }
         }
     }
     return ret;

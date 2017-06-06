@@ -38,15 +38,18 @@ namespace caret {
     public:
         AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
                                  const ReductionEnum::Enum& method = ReductionEnum::MEAN,
-                                 const float& excludeLow = -1.0f, const float& excludeHigh = -1.0f, const bool& onlyNumeric = false);
+                                 const float& excludeLow = -1.0f, const float& excludeHigh = -1.0f, const bool& onlyNumeric = false,
+                                 const bool& includeEmpty = false, const float& emptyFillVal = 0.0f, CiftiFile* emptyMaskOut = NULL);
         AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
                                  const MetricFile* leftWeights, const MetricFile* rightWeights = NULL, const MetricFile* cerebWeights = NULL,
                                  const ReductionEnum::Enum& method = ReductionEnum::MEAN,
-                                 const float& excludeLow = -1.0f, const float& excludeHigh = -1.0f, const bool& onlyNumeric = false);
+                                 const float& excludeLow = -1.0f, const float& excludeHigh = -1.0f, const bool& onlyNumeric = false,
+                                 const bool& includeEmpty = false, const float& emptyFillVal = 0.0f, CiftiFile* emptyMaskOut = NULL);
         AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
                                  const CiftiFile* ciftiWeights, const ReductionEnum::Enum& method = ReductionEnum::MEAN,
-                                 const float& excludeLow = -1.0f, const float& excludeHigh = -1.0f, const bool& onlyNumeric = false);
-        static CiftiParcelsMap parcellateMapping(const CiftiFile* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, std::vector<int>& indexToParcelOut);
+                                 const float& excludeLow = -1.0f, const float& excludeHigh = -1.0f, const bool& onlyNumeric = false,
+                                 const bool& includeEmpty = false, const float& emptyFillVal = 0.0f, CiftiFile* emptyMaskOut = NULL);
+        static CiftiParcelsMap parcellateMapping(const CiftiFile* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, std::vector<int>& indexToParcelOut, const bool& includeEmpty = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
