@@ -90,11 +90,13 @@ m_newAnnotationCreatedByContextMenu(NULL)
     const int32_t browserWindexIndex = m_mouseEvent.getBrowserWindowIndex();
     std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->getAnnotationsSelectedForEditing(browserWindexIndex,
-                                              selectedAnnotations);
+    annotationManager->getAnnotationsSelectedForEditingIncludingLabels(browserWindexIndex,
+                                                                       selectedAnnotations);
     
     m_annotationFile = NULL;
     m_annotation     = NULL;
+    
+    bool allSelectedAnnotationsDeletableFlag = true;
     
     m_stereotaxicAndSurfaceAnnotations.clear();
     for (std::vector<std::pair<Annotation*, AnnotationFile*> >::iterator iter = selectedAnnotations.begin();
@@ -121,15 +123,23 @@ m_newAnnotationCreatedByContextMenu(NULL)
         if (stereoOrSurfaceSpaceFlag) {
             m_stereotaxicAndSurfaceAnnotations.push_back(ann);
         }
+        
+        if ( ! ann->isDeletable()) {
+            allSelectedAnnotationsDeletableFlag = false;
+        }
     }
     const bool haveStereotaxicAnnotationsFlag = ( ! m_stereotaxicAndSurfaceAnnotations.empty());
 
     bool oneAnnotationSelectedFlag = false;
+    bool oneDeletableAnnotationSelectedFlag = false;
     if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
         m_annotationFile = selectedAnnotations[0].second;
         m_annotation     = selectedAnnotations[0].first;
         oneAnnotationSelectedFlag = true;
+        if (m_annotation->isDeletable()) {
+            oneDeletableAnnotationSelectedFlag = true;
+        }
     }
     
     m_textAnnotation = NULL;
@@ -153,21 +163,21 @@ m_newAnnotationCreatedByContextMenu(NULL)
      */
     QAction* cutAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::CUT),
                                    this, SLOT(cutAnnnotation()));
-    cutAction->setEnabled(oneAnnotationSelectedFlag);
+    cutAction->setEnabled(oneDeletableAnnotationSelectedFlag);
     
     /*
      * Copy
      */
     QAction* copyAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::COPY),
                                     this, SLOT(copyAnnotationToAnnotationClipboard()));
-    copyAction->setEnabled(oneAnnotationSelectedFlag);
+    copyAction->setEnabled(oneDeletableAnnotationSelectedFlag);
 
     /*
      * Delete
      */
     QAction* deleteAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::DELETER),
                                       this, SLOT(deleteAnnotations()));
-    deleteAction->setEnabled( ! selectedAnnotations.empty());
+    deleteAction->setEnabled(allSelectedAnnotationsDeletableFlag);
     
     /*
      * Paste

@@ -621,6 +621,34 @@ AnnotationManager::getAnnotationsSelectedForEditing(const int32_t windowIndex,
             }
         }
     }
+    
+}
+
+/**
+ * Get the selected annotations for editing and the files that contain them.
+ * INCLUDES chart labels.
+ *
+ * @param windowIndex
+ *     Index of window for annotation selection.
+ * @param annotationsAndFileOut
+ *    A 'pair' containing a selected annotation and the file that contains the annotation.
+ */
+void
+AnnotationManager::getAnnotationsSelectedForEditingIncludingLabels(const int32_t windowIndex,
+                                                     std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const
+{
+    getAnnotationsSelectedForEditing(windowIndex,
+                                     annotationsAndFileOut);
+    
+    EventAnnotationChartLabelGet chartLabelEvent;
+    EventManager::get()->sendEvent(chartLabelEvent.getPointer());
+    std::vector<AnnotationGraphicsLabel*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
+    AnnotationFile* nullFile = NULL;
+    for (auto cl : chartLabels) {
+        if (cl->isSelectedForEditing(windowIndex)) {
+            annotationsAndFileOut.push_back(std::make_pair(cl, nullFile));
+        }
+    }
 }
 
 /**
