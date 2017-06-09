@@ -1,5 +1,5 @@
-#ifndef __CHART_TWO_DATA_CARTESIAN_HISTORY_H__
-#define __CHART_TWO_DATA_CARTESIAN_HISTORY_H__
+#ifndef __CHART_TWO_LINE_SERIES_HISTORY_H__
+#define __CHART_TWO_LINE_SERIES_HISTORY_H__
 
 /*LICENSE_START*/
 /*
@@ -34,27 +34,30 @@ namespace caret {
     class ChartTwoDataCartesian;
     class SceneClassAssistant;
 
-    class ChartTwoDataCartesianHistory : public CaretObjectTracksModification, public SceneableInterface {
+    class ChartTwoLineSeriesHistory : public CaretObjectTracksModification, public SceneableInterface {
         
     public:
-        ChartTwoDataCartesianHistory();
+        ChartTwoLineSeriesHistory();
         
-        virtual ~ChartTwoDataCartesianHistory();
+        virtual ~ChartTwoLineSeriesHistory();
         
-        ChartTwoDataCartesianHistory(const ChartTwoDataCartesianHistory& obj);
+        ChartTwoLineSeriesHistory(const ChartTwoLineSeriesHistory& obj);
 
-        ChartTwoDataCartesianHistory& operator=(const ChartTwoDataCartesianHistory& obj);
+        ChartTwoLineSeriesHistory& operator=(const ChartTwoLineSeriesHistory& obj);
 
+        bool isLoadingEnabled() const;
+        
+        void setLoadingEnabled(const bool enabled);
+        
         CaretColorEnum::Enum getDefaultColor() const;
         
         void setDefaultColor(const CaretColorEnum::Enum defaultColor);
         
-        int32_t getDisplayCountInTab(const int32_t tabIndex) const;
+        int32_t getDisplayCount() const;
         
-        void setDisplayCountInTab(const int32_t tabIndex,
-                                  const int count);
+        void setDisplayCount(const int32_t count);
         
-        int32_t getHistoryCount();
+        int32_t getHistoryCount() const;
 
         void addHistoryItem(ChartTwoDataCartesian* historyItem);
         
@@ -92,9 +95,11 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        void copyHelperChartTwoDataCartesianHistory(const ChartTwoDataCartesianHistory& obj);
+        void copyHelperChartTwoLineSeriesHistory(const ChartTwoLineSeriesHistory& obj);
 
         void initializeInstance();
+        
+        bool m_loadingEnabled = false;
         
         SceneClassAssistant* m_sceneAssistant = NULL;
 
@@ -102,15 +107,15 @@ namespace caret {
         
         CaretColorEnum::Enum m_defaultColor = CaretColorEnum::BLUE;
         
-        int32_t m_displayCountInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        int32_t m_displayCount;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHART_TWO_DATA_CARTESIAN_HISTORY_DECLARE__
+#ifdef __CHART_TWO_LINE_SERIES_HISTORY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_TWO_DATA_CARTESIAN_HISTORY_DECLARE__
+#endif // __CHART_TWO_LINE_SERIES_HISTORY_DECLARE__
 
 } // namespace
-#endif  //__CHART_TWO_DATA_CARTESIAN_HISTORY_H__
+#endif  //__CHART_TWO_LINE_SERIES_HISTORY_H__

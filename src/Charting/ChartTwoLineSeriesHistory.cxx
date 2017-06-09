@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __CHART_TWO_DATA_CARTESIAN_HISTORY_DECLARE__
-#include "ChartTwoDataCartesianHistory.h"
-#undef __CHART_TWO_DATA_CARTESIAN_HISTORY_DECLARE__
+#define __CHART_TWO_LINE_SERIES_HISTORY_DECLARE__
+#include "ChartTwoLineSeriesHistory.h"
+#undef __CHART_TWO_LINE_SERIES_HISTORY_DECLARE__
 
 #include "CaretAssert.h"
 #include "ChartTwoDataCartesian.h"
@@ -34,15 +34,15 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartTwoDataCartesianHistory 
- * \brief Contains history of Cartesian Charts
+ * \class caret::ChartTwoLineSeriesHistory 
+ * \brief Contains history of line series chart for a tab.
  * \ingroup Charting
  */
 
 /**
  * Constructor.
  */
-ChartTwoDataCartesianHistory::ChartTwoDataCartesianHistory()
+ChartTwoLineSeriesHistory::ChartTwoLineSeriesHistory()
 : CaretObjectTracksModification(),
 SceneableInterface()
 {
@@ -52,7 +52,7 @@ SceneableInterface()
 /**
  * Destructor.
  */
-ChartTwoDataCartesianHistory::~ChartTwoDataCartesianHistory()
+ChartTwoLineSeriesHistory::~ChartTwoLineSeriesHistory()
 {
     clearHistory();
     delete m_sceneAssistant;
@@ -63,12 +63,12 @@ ChartTwoDataCartesianHistory::~ChartTwoDataCartesianHistory()
  * @param obj
  *    Object that is copied.
  */
-ChartTwoDataCartesianHistory::ChartTwoDataCartesianHistory(const ChartTwoDataCartesianHistory& obj)
+ChartTwoLineSeriesHistory::ChartTwoLineSeriesHistory(const ChartTwoLineSeriesHistory& obj)
 : CaretObjectTracksModification(obj),
 SceneableInterface(obj)
 {
     initializeInstance();
-    this->copyHelperChartTwoDataCartesianHistory(obj);
+    this->copyHelperChartTwoLineSeriesHistory(obj);
 }
 
 /**
@@ -78,32 +78,52 @@ SceneableInterface(obj)
  * @return 
  *    Reference to this object.
  */
-ChartTwoDataCartesianHistory&
-ChartTwoDataCartesianHistory::operator=(const ChartTwoDataCartesianHistory& obj)
+ChartTwoLineSeriesHistory&
+ChartTwoLineSeriesHistory::operator=(const ChartTwoLineSeriesHistory& obj)
 {
     if (this != &obj) {
         CaretObjectTracksModification::operator=(obj);
-        this->copyHelperChartTwoDataCartesianHistory(obj);
+        this->copyHelperChartTwoLineSeriesHistory(obj);
     }
     return *this;    
+}
+
+bool
+ChartTwoLineSeriesHistory::isLoadingEnabled() const
+{
+    return m_loadingEnabled;
+}
+
+/**
+ * Set loading line series charts enabled
+ *
+ * @param loadingEnabled
+ *    New value for loading line series charts enabled
+ */
+void
+ChartTwoLineSeriesHistory::setLoadingEnabled(const bool loadingEnabled)
+{
+    m_loadingEnabled = loadingEnabled;
 }
 
 /**
  * Initialize an instance of this class.
  */
 void
-ChartTwoDataCartesianHistory::initializeInstance()
+ChartTwoLineSeriesHistory::initializeInstance()
 {
     const int32_t defaultHistoryCount = 5;
+    m_loadingEnabled = false;
     
     m_sceneAssistant = new SceneClassAssistant();
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_displayCountInTab[i] = defaultHistoryCount;
-    }
+    m_displayCount = defaultHistoryCount;
     
+    m_sceneAssistant->add("m_loadingEnabled",
+                          &m_loadingEnabled);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_defaultColor",
                                                                 &m_defaultColor);
-    m_sceneAssistant->addTabIndexedIntegerArray("m_displayCountInTab", m_displayCountInTab);
+    m_sceneAssistant->add("m_displayCount",
+                          &m_displayCount);
 }
 
 
@@ -113,8 +133,9 @@ ChartTwoDataCartesianHistory::initializeInstance()
  *    Object that is copied.
  */
 void 
-ChartTwoDataCartesianHistory::copyHelperChartTwoDataCartesianHistory(const ChartTwoDataCartesianHistory& obj)
-{
+ChartTwoLineSeriesHistory::copyHelperChartTwoLineSeriesHistory(const ChartTwoLineSeriesHistory& obj)
+{    m_loadingEnabled = obj.m_loadingEnabled;
+    
     clearHistory();
     
     for (const auto item : m_chartHistory) {
@@ -126,16 +147,14 @@ ChartTwoDataCartesianHistory::copyHelperChartTwoDataCartesianHistory(const Chart
     }
     
     m_defaultColor = obj.m_defaultColor;
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_displayCountInTab[i] = obj.m_displayCountInTab[i];
-    }
+    m_displayCount = obj.m_displayCount;
 }
 
 /**
  * @return The default color.
  */
 CaretColorEnum::Enum
-ChartTwoDataCartesianHistory::getDefaultColor() const
+ChartTwoLineSeriesHistory::getDefaultColor() const
 {
     return m_defaultColor;
 }
@@ -146,42 +165,38 @@ ChartTwoDataCartesianHistory::getDefaultColor() const
  * @param defaultColor New value for default color.
  */
 void
-ChartTwoDataCartesianHistory::setDefaultColor(const CaretColorEnum::Enum defaultColor)
+ChartTwoLineSeriesHistory::setDefaultColor(const CaretColorEnum::Enum defaultColor)
 {
     if (defaultColor != m_defaultColor) {
         m_defaultColor = defaultColor;
         setModified();
     }
+    
+    for (auto chartData : m_chartHistory) {
+        chartData->setColor(defaultColor);
+    }
 }
 
 /**
- * @return Count of items for display in tab.
- *
- * @param tabIndex
- *     Index of tab.
+ * @return Count of items for display.
  */
 int32_t
-ChartTwoDataCartesianHistory::getDisplayCountInTab(const int32_t tabIndex) const
+ChartTwoLineSeriesHistory::getDisplayCount() const
 {
-    CaretAssertArrayIndex(m_displayCountInTab, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    return m_displayCountInTab[tabIndex];
+    return m_displayCount;
 }
 
 /**
- * Set count of items for display in tab.
+ * Set count of items for display.
  *
- * @param tabIndex
- *     Index of tab.
  * @param count
  *     New value for count.
  */
 void
-ChartTwoDataCartesianHistory::setDisplayCountInTab(const int32_t tabIndex,
-                                                   const int count)
+ChartTwoLineSeriesHistory::setDisplayCount(const int32_t count)
 {
-    CaretAssertArrayIndex(m_displayCountInTab, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    if (count != m_displayCountInTab[tabIndex]) {
-        m_displayCountInTab[tabIndex] = count;
+    if (count != m_displayCount) {
+        m_displayCount = count;
         setModified();
     }
 }
@@ -189,7 +204,7 @@ ChartTwoDataCartesianHistory::setDisplayCountInTab(const int32_t tabIndex,
 /**
  * @return Count of items in history.
  */
-int32_t ChartTwoDataCartesianHistory::getHistoryCount()
+int32_t ChartTwoLineSeriesHistory::getHistoryCount() const
 {
     return m_chartHistory.size();
 }
@@ -202,7 +217,7 @@ int32_t ChartTwoDataCartesianHistory::getHistoryCount()
  *     Added to history.
  */
 void
-ChartTwoDataCartesianHistory::addHistoryItem(ChartTwoDataCartesian* historyItem)
+ChartTwoLineSeriesHistory::addHistoryItem(ChartTwoDataCartesian* historyItem)
 {
     CaretAssert(historyItem);
     historyItem->setColor(m_defaultColor);
@@ -216,7 +231,7 @@ ChartTwoDataCartesianHistory::addHistoryItem(ChartTwoDataCartesian* historyItem)
  *      Index of the item.
  */
 ChartTwoDataCartesian*
-ChartTwoDataCartesianHistory::getHistoryItem(const int32_t index)
+ChartTwoLineSeriesHistory::getHistoryItem(const int32_t index)
 {
     CaretAssertVectorIndex(m_chartHistory, index);
     return m_chartHistory[index];
@@ -229,7 +244,7 @@ ChartTwoDataCartesianHistory::getHistoryItem(const int32_t index)
  *      Index of the item.
  */
 const ChartTwoDataCartesian*
-ChartTwoDataCartesianHistory::getHistoryItem(const int32_t index) const
+ChartTwoLineSeriesHistory::getHistoryItem(const int32_t index) const
 {
     CaretAssertVectorIndex(m_chartHistory, index);
     return m_chartHistory[index];
@@ -239,7 +254,7 @@ ChartTwoDataCartesianHistory::getHistoryItem(const int32_t index) const
  * @return Clear the history.
  */
 void
-ChartTwoDataCartesianHistory::clearHistory()
+ChartTwoLineSeriesHistory::clearHistory()
 {
     for (auto item : m_chartHistory) {
         delete item;
@@ -253,16 +268,16 @@ ChartTwoDataCartesianHistory::clearHistory()
  * @return String describing this object's content.
  */
 AString
-ChartTwoDataCartesianHistory::toString() const
+ChartTwoLineSeriesHistory::toString() const
 {
-    return "ChartTwoDataCartesianHistory";
+    return "ChartTwoLineSeriesHistory";
 }
 
 /**
  * @return Is this instance modified?
  */
 bool
-ChartTwoDataCartesianHistory::isModified() const
+ChartTwoLineSeriesHistory::isModified() const
 {
     if (CaretObjectTracksModification::isModified()) {
         return true;
@@ -281,7 +296,7 @@ ChartTwoDataCartesianHistory::isModified() const
  * Clear modified status for this instance.
  */
 void
-ChartTwoDataCartesianHistory::clearModified()
+ChartTwoLineSeriesHistory::clearModified()
 {
     for (const auto item : m_chartHistory) {
         item->clearModified();
@@ -300,11 +315,11 @@ ChartTwoDataCartesianHistory::clearModified()
  *    Name of instance in the scene.
  */
 SceneClass*
-ChartTwoDataCartesianHistory::saveToScene(const SceneAttributes* sceneAttributes,
+ChartTwoLineSeriesHistory::saveToScene(const SceneAttributes* sceneAttributes,
                                           const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "ChartTwoDataCartesianHistory",
+                                            "ChartTwoLineSeriesHistory",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -344,7 +359,7 @@ ChartTwoDataCartesianHistory::saveToScene(const SceneAttributes* sceneAttributes
  *     sceneClass from which model specific information is obtained.
  */
 void
-ChartTwoDataCartesianHistory::restoreFromScene(const SceneAttributes* sceneAttributes,
+ChartTwoLineSeriesHistory::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
@@ -367,7 +382,8 @@ ChartTwoDataCartesianHistory::restoreFromScene(const SceneAttributes* sceneAttri
             const SceneClass* historyClass = chartHistoryMap->classValue(i);
             ChartTwoDataCartesian* historyItem = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                            ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+                                                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                                                           GraphicsPrimitive::PrimitiveType::LINES);
             historyItem->restoreFromScene(sceneAttributes,
                                           historyClass);
             addHistoryItem(historyItem);

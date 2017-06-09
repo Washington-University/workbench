@@ -55,6 +55,7 @@
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "Histogram.h"
+#include "MapFileDataSelector.h"
 #include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
@@ -95,8 +96,8 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
     
     m_containsSurfaceData = false;
     m_containsVolumeData = false;
-    m_mappingTimeStart = 0.0;
-    m_mappingTimeStep = 0.0;
+    m_mappingTimeStart = 0.0f;
+    m_mappingTimeStep  = 1.0f;
     m_mappingTimeUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
     
     m_dataReadingAccessMethod      = DATA_ACCESS_METHOD_INVALID;
@@ -464,8 +465,8 @@ CiftiMappableDataFile::clearPrivate()
     m_containsSurfaceData = false;
     m_containsVolumeData = false;
 
-    m_mappingTimeStart = 0.0;
-    m_mappingTimeStep = 0.0;
+    m_mappingTimeStart = 0.0f;
+    m_mappingTimeStep  = 1.0f;
     m_mappingTimeUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
 }
 
@@ -1014,6 +1015,10 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
         m_mappingTimeStep  = map.getStep();
     }
 
+    if (m_mappingTimeStep <= 0.0) {
+        m_mappingTimeStep = 1.0f;
+    }
+    
     /*
      * May not have mappings to voxels
      */
@@ -6838,6 +6843,54 @@ CiftiMappableDataFile::helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRo
     }
     
     return false;
+}
+
+/**
+ * Get data from the file as requested in the given map file data selector.
+ *
+ * @param mapFileDataSelector
+ *     Specifies selection of data.
+ * @param dataOut
+ *     Output with data.  Will be empty if data does not support the map file data selector.
+ */
+void
+CiftiMappableDataFile::getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
+                                          std::vector<float>& dataOut) const
+{
+    dataOut.clear();
+    
+    switch (mapFileDataSelector.getDataSelectionType()) {
+        case MapFileDataSelector::DataSelectionType::INVALID:
+            break;
+        case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
+            try {
+                StructureEnum::Enum structure = StructureEnum::INVALID;
+                int32_t numberOfVertices = -1;
+                int32_t vertexIndex = -1;
+                mapFileDataSelector.getSurfaceVertex(structure,
+                                                     numberOfVertices,
+                                                     vertexIndex);
+                
+                if (getMappingSurfaceNumberOfNodes(structure) == numberOfVertices) {
+                    if ( ! getSeriesDataForSurfaceNode(structure,
+                                                    vertexIndex,
+                                                    dataOut)) {
+                        dataOut.clear();
+                    }
+                }
+            }
+            catch (const DataFileException& dfe) {
+                CaretLogWarning("Exeception: "
+                                + dfe.whatString());
+                dataOut.clear();
+            }
+            break;
+        case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+            break;
+        case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
+            break;
+    }
+    
 }
 
 

@@ -362,6 +362,9 @@ namespace caret {
         
         virtual void getSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
+        virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
+                                        std::vector<float>& dataOut) const override;
+        
     };
 
 }

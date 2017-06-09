@@ -31,6 +31,7 @@
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
+#include "ChartTwoLineSeriesHistory.h"
 #include "ChartTwoOverlaySet.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventChartOverlayValidate.h"
@@ -254,6 +255,45 @@ void
 ChartTwoOverlay::setEnabled(const bool enabled)
 {
     m_enabled = enabled;
+}
+
+/**
+ * @return line-series loading enabled
+ */
+bool
+ChartTwoOverlay::isLineSeriesLoadingEnabled() const
+{
+    CaretMappableDataFile* mapFile = NULL;
+    SelectedIndexType indexType = SelectedIndexType::INVALID;
+    int32_t mapIndex = -1;
+    getSelectionData(mapFile,
+                     indexType,
+                     mapIndex);
+    
+    const ChartableTwoFileLineSeriesChart* lineSeriesChart = mapFile->getChartingDelegate()->getLineSeriesCharting();
+    const ChartTwoLineSeriesHistory* lineSeriesHistory = lineSeriesChart->getHistory();
+    return lineSeriesHistory->isLoadingEnabled();
+}
+
+/**
+ * Set line-series loading enabled
+ *
+ * @param lineSeriesLoadingEnabled
+ *    New value for line-series loading enabled
+ */
+void
+ChartTwoOverlay::setLineSeriesLoadingEnabled(const bool lineSeriesLoadingEnabled)
+{
+    CaretMappableDataFile* mapFile = NULL;
+    SelectedIndexType indexType = SelectedIndexType::INVALID;
+    int32_t mapIndex = -1;
+    getSelectionData(mapFile,
+                     indexType,
+                     mapIndex);
+    
+    ChartableTwoFileLineSeriesChart* lineSeriesChart = mapFile->getChartingDelegate()->getLineSeriesCharting();
+    ChartTwoLineSeriesHistory* lineSeriesHistory = lineSeriesChart->getHistory();
+    lineSeriesHistory->setLoadingEnabled(lineSeriesLoadingEnabled);
 }
 
 /**

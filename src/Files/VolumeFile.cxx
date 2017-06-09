@@ -2231,4 +2231,18 @@ VolumeFile::loadLineSeriesChartDataForVoxelAtCoordinate(const float xyz[3])
     return chartData;
 }
 
+/**
+ * Get data from the file as requested in the given map file data selector.
+ *
+ * @param mapFileDataSelector
+ *     Specifies selection of data.
+ * @param dataOut
+ *     Output with data.  Will be empty if data does not support the map file data selector.
+ */
+void
+VolumeFile::getDataForSelector(const MapFileDataSelector& /*mapFileDataSelector*/,
+                               std::vector<float>& dataOut) const
+{
+    dataOut.clear();
+}
 

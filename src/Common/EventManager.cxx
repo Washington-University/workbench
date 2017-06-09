@@ -492,6 +492,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_CARET_PREFERENCES_GET:
         case EventTypeEnum::EVENT_CHART_MATRIX_YOKING_VALIDATION:
         case EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE:
+        case EventTypeEnum::EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA:
         case EventTypeEnum::EVENT_DATA_FILE_ADD:
         case EventTypeEnum::EVENT_DATA_FILE_DELETE:
         case EventTypeEnum::EVENT_DATA_FILE_READ:

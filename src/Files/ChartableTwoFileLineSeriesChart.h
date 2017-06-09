@@ -23,13 +23,15 @@
 
 #include <memory>
 
+#include "BrainConstants.h"
 #include "ChartableTwoFileBaseChart.h"
 #include "ChartTwoLineSeriesContentTypeEnum.h"
 
 
 namespace caret {
 
-    class ChartTwoDataCartesianHistory;
+    class ChartTwoLineSeriesHistory;
+    class EventChartTwoLoadLineSeriesData;
     
     class ChartableTwoFileLineSeriesChart : public ChartableTwoFileBaseChart {
         
@@ -41,13 +43,15 @@ namespace caret {
         
         ChartTwoLineSeriesContentTypeEnum::Enum getLineSeriesContentType() const;
         
-        ChartTwoDataCartesianHistory* getHistory();
+        ChartTwoLineSeriesHistory* getHistory();
         
-        const ChartTwoDataCartesianHistory* getHistory() const;
+        const ChartTwoLineSeriesHistory* getHistory() const;
         
         virtual bool isValid() const override;
         
         virtual bool isEmpty() const override;
+        
+        virtual void receiveEvent(Event* event) override;
         
 
         // ADD_NEW_METHODS_HERE
@@ -65,15 +69,20 @@ namespace caret {
                                                   const SceneClass* sceneClass) override;
 
     private:
+        void loadLineCharts(const std::vector<int32_t>& tabIndicesForLoading,
+                            const EventChartTwoLoadLineSeriesData* lineSeriesDataEvent);
+        
         ChartableTwoFileLineSeriesChart(const ChartableTwoFileLineSeriesChart&);
 
         ChartableTwoFileLineSeriesChart& operator=(const ChartableTwoFileLineSeriesChart&);
+        
+        std::vector<int32_t> getTabIndicesForLoadingData(const std::vector<int32_t>& validTabIndices) const;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         ChartTwoLineSeriesContentTypeEnum::Enum m_lineSeriesContentType;
         
-        std::unique_ptr<ChartTwoDataCartesianHistory> m_lineChartHistory;
+        std::unique_ptr<ChartTwoLineSeriesHistory> m_lineChartHistory;
         
         // ADD_NEW_MEMBERS_HERE
 

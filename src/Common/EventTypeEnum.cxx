@@ -185,6 +185,10 @@ EventTypeEnum::initialize()
                                      "EVENT_CHART_OVERLAY_VALIDATE",
                                      "Validate a chart overlay for validity (it exists)"));
     
+    enumData.push_back(EventTypeEnum(EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
+                                     "EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA",
+                                     "Load line series data for chart two implementation"));
+    
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_ADD,
                                      "EVENT_DATA_FILE_ADD",
                                      "Add a data file to the Brain"));

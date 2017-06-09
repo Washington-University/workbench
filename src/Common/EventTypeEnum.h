@@ -92,6 +92,8 @@ public:
         EVENT_CHART_MATRIX_YOKING_VALIDATION,
         /** Validate that chart overlay is valid (it exists). */
         EVENT_CHART_OVERLAY_VALIDATE,
+        /** Load chart two line series data */
+        EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
         /** Add a data file into the Brain*/
         EVENT_DATA_FILE_ADD,
         /** Delete a data file from the brain */

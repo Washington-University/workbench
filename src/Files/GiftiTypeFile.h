@@ -165,6 +165,10 @@ namespace caret {
         
         virtual void updateScalarColoringForMap(const int32_t mapIndex,
                                              const PaletteFile* paletteFile);
+        
+        virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
+                                        std::vector<float>& dataOut) const override;
+        
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);
         

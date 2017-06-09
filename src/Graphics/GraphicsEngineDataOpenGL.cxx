@@ -120,6 +120,16 @@ GraphicsEngineDataOpenGL::invalidateCoordinates()
 }
 
 /**
+ * Invalidate the colors after they have
+ * changed in the graphics primitive.
+ */
+void
+GraphicsEngineDataOpenGL::invalidateColors()
+{
+    m_reloadColorsFlag = true;
+}
+
+/**
  * Get the OpenGL Buffer Usage Hint from the primitive.
  *
  * @param primitive
@@ -304,6 +314,8 @@ GraphicsEngineDataOpenGL::loadColorBuffer(GraphicsPrimitive* primitive)
         }
             break;
     }
+    
+    m_reloadColorsFlag = false;
 }
 
 /**
@@ -810,6 +822,13 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
          */
         if (openglData->m_reloadCoordinatesFlag) {
             openglData->loadCoordinateBuffer(primitive);
+        }
+        
+        /*
+         * Colors may get updated
+         */
+        if (openglData->m_reloadColorsFlag) {
+            openglData->loadColorBuffer(primitive);
         }
     }
     

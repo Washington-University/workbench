@@ -43,7 +43,9 @@
 #include "CiftiMappableDataFile.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventBrowserTabIndicesGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
+#include "EventChartTwoLoadLineSeriesData.h"
 #include "EventManager.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
 #include "ModelChart.h"
@@ -583,6 +585,18 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                   chartData);
         }
     }
+    
+    std::vector<int32_t> tabIndices;
+    EventBrowserTabIndicesGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    
+    MapFileDataSelector mapFileDataSelector;
+    mapFileDataSelector.setSurfaceVertex(structure,
+                                         surfaceNumberOfNodes,
+                                         nodeIndex);
+    EventChartTwoLoadLineSeriesData chartTwoLineSeriesEvent(tabIndicesEvent.getAllBrowserTabIndices(),
+                                                            mapFileDataSelector);
+    EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
 }
 
 /**

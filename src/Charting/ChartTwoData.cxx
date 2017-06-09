@@ -160,7 +160,8 @@ ChartTwoData::newChartTwoDataForChartTwoDataType(const ChartTwoDataTypeEnum::Enu
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             chartData = new ChartTwoDataCartesian(chartDataType,
                                                ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                               GraphicsPrimitive::PrimitiveType::LINES);
             break;
     }
     

@@ -174,7 +174,9 @@ namespace caret {
         bool hasCiftiXML() const;
         
         const CiftiXML getCiftiXML() const;
-        
+
+        virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
+                                        std::vector<float>& dataOut) const override;
         // ADD_NEW_METHODS_HERE
         
     private:

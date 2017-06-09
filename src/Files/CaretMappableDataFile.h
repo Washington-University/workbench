@@ -39,6 +39,7 @@ namespace caret {
     class GiftiLabelTable;
     class Histogram;
     class LabelDrawingProperties;
+    class MapFileDataSelector;
     class PaletteColorMapping;
     class PaletteFile;
     
@@ -471,6 +472,9 @@ namespace caret {
         ChartableTwoFileDelegate* getChartingDelegate();
         
         const ChartableTwoFileDelegate* getChartingDelegate() const;
+        
+        virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
+                                        std::vector<float>& dataOut) const = 0;
         
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);

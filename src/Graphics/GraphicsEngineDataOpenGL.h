@@ -65,6 +65,8 @@ namespace caret {
         
         void invalidateCoordinates();
         
+        void invalidateColors();
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -116,6 +118,8 @@ namespace caret {
         GLint m_coordinatesPerVertex = 0;
 
         bool m_reloadCoordinatesFlag = false;
+        
+        bool m_reloadColorsFlag = false;
         
         GraphicsOpenGLBufferObject* m_normalVectorBufferObject = NULL;
         

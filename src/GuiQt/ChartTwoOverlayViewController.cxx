@@ -100,11 +100,20 @@ m_chartOverlay(NULL)
     /*
      * Enabled Check Box
      */
-    const QString checkboxText = ((orientation == Qt::Horizontal) ? " " : " ");
-    m_enabledCheckBox = new QCheckBox(checkboxText);
+    const QString enabledCheckboxText = ((orientation == Qt::Horizontal) ? " " : "On");
+    m_enabledCheckBox = new QCheckBox(enabledCheckboxText);
     QObject::connect(m_enabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(enabledCheckBoxClicked(bool)));
     m_enabledCheckBox->setToolTip("Enables display of this layer");
+    
+    /*
+     * Line Series Enabled Check Box
+     */
+    const QString loadingCheckboxText = ((orientation == Qt::Horizontal) ? " " : "Load");
+    m_lineSeriesLoadingEnabledCheckBox = new QCheckBox(loadingCheckboxText);
+    QObject::connect(m_lineSeriesLoadingEnabledCheckBox, &QCheckBox::clicked,
+                     this, &ChartTwoOverlayViewController::lineSeriesLoadingEnabledCheckBoxClicked);
+    m_lineSeriesLoadingEnabledCheckBox->setToolTip("Enabled loading of line charts for this overlay");
     
     /*
      * Settings Tool Button
@@ -452,6 +461,22 @@ ChartTwoOverlayViewController::enabledCheckBoxClicked(bool checked)
 }
 
 /**
+ * Called when line-series loading enabled checkbox status is changed
+ * @parm checked
+ *    Checked status
+ */
+void
+ChartTwoOverlayViewController::lineSeriesLoadingEnabledCheckBoxClicked(bool checked)
+{
+    if (m_chartOverlay == NULL) {
+        return;
+    }
+    m_chartOverlay->setLineSeriesLoadingEnabled(checked);
+    
+    this->updateUserInterfaceAndGraphicsWindow();
+}
+
+/**
  * Called when colorbar toolbutton is toggled.
  * @param status
  *    New status.
@@ -717,6 +742,16 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
         m_enabledCheckBox->setChecked(m_chartOverlay->isEnabled());
     }
     
+    /*
+     * Update lines series loading checkbox
+     */
+    m_lineSeriesLoadingEnabledCheckBox->setEnabled(false);
+    m_lineSeriesLoadingEnabledCheckBox->setEnabled(false);
+    if ((validOverlayAndFileFlag)
+        && (m_chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES)) {
+        m_lineSeriesLoadingEnabledCheckBox->setEnabled(true);
+        m_lineSeriesLoadingEnabledCheckBox->setChecked(m_chartOverlay->isLineSeriesLoadingEnabled());
+    }
     
     /*
      * Update yoking

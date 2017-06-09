@@ -43,7 +43,6 @@ ChartTwoCartesianAxis.h
 ChartTwoCompoundDataType.h
 ChartTwoData.h
 ChartTwoDataCartesian.h
-ChartTwoDataCartesianHistory.h
 ChartTwoDataTypeEnum.h
 ChartTwoHistogramContentTypeEnum.h
 ChartTwoLineSeriesContentTypeEnum.h
@@ -52,6 +51,9 @@ ChartTwoMatrixDisplayProperties.h
 ChartTwoMatrixLoadingDimensionEnum.h
 ChartTwoMatrixTriangularViewingModeEnum.h
 ChartTwoNumericSubdivisionsModeEnum.h
+ChartTwoLineSeriesHistory.h
+EventChartTwoLoadLineSeriesData.h
+MapFileDataSelector.h
 
 ChartTwoAxisScaleRangeModeEnum.cxx
 ChartAxis.cxx
@@ -81,7 +83,6 @@ ChartTwoCartesianAxis.cxx
 ChartTwoCompoundDataType.cxx
 ChartTwoData.cxx
 ChartTwoDataCartesian.cxx
-ChartTwoDataCartesianHistory.cxx
 ChartTwoDataTypeEnum.cxx
 ChartTwoHistogramContentTypeEnum.cxx
 ChartTwoLineSeriesContentTypeEnum.cxx
@@ -90,6 +91,9 @@ ChartTwoMatrixDisplayProperties.cxx
 ChartTwoMatrixLoadingDimensionEnum.cxx
 ChartTwoMatrixTriangularViewingModeEnum.cxx
 ChartTwoNumericSubdivisionsModeEnum.cxx
+ChartTwoLineSeriesHistory.cxx
+EventChartTwoLoadLineSeriesData.cxx
+MapFileDataSelector.cxx
 )
 
 TARGET_LINK_LIBRARIES(Charting ${CARET_QT5_LINK})
@@ -101,6 +105,7 @@ INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Annotations
 ${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/Common
+${CMAKE_SOURCE_DIR}/Graphics
 ${CMAKE_SOURCE_DIR}/Scenes
 )
 

@@ -58,6 +58,8 @@ namespace caret {
         
         virtual GraphicsPrimitive* clone() const;
         
+        void replaceColoring(const float rgba[4]);
+        
         // ADD_NEW_METHODS_HERE
 
     private:

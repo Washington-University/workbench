@@ -24,8 +24,11 @@
 #undef __CHARTABLE_TWO_FILE_LINE_SERIES_CHART_DECLARE__
 
 #include "CaretAssert.h"
-#include "ChartTwoDataCartesianHistory.h"
+#include "ChartTwoDataCartesian.h"
+#include "ChartTwoLineSeriesHistory.h"
 #include "CiftiMappableDataFile.h"
+#include "EventChartTwoLoadLineSeriesData.h"
+#include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -126,9 +129,9 @@ m_lineSeriesContentType(lineSeriesContentType)
         }            break;
     }
 
-    m_lineChartHistory = std::unique_ptr<ChartTwoDataCartesianHistory>(new ChartTwoDataCartesianHistory());
+    m_lineChartHistory = std::unique_ptr<ChartTwoLineSeriesHistory>(new ChartTwoLineSeriesHistory());
     m_sceneAssistant->add("m_lineChartHistory",
-                           "ChartTwoDataCartesianHistory",
+                           "ChartTwoLineSeriesHistory",
                             m_lineChartHistory.get());
 
     /*
@@ -140,6 +143,11 @@ m_lineSeriesContentType(lineSeriesContentType)
     
     updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForLineSeries(xAxisUnits,
                                                                                                    xAxisNumberOfElements));
+    
+    if (m_lineSeriesContentType != ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED) {
+        EventManager::get()->addEventListener(this,
+                                              EventTypeEnum::EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA);
+    }
 }
 
 /**
@@ -148,6 +156,129 @@ m_lineSeriesContentType(lineSeriesContentType)
 ChartableTwoFileLineSeriesChart::~ChartableTwoFileLineSeriesChart()
 {
 }
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *    An event for which this instance is listening.
+ */
+void
+ChartableTwoFileLineSeriesChart::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA) {
+        const EventChartTwoLoadLineSeriesData* lineSeriesDataEvent = dynamic_cast<EventChartTwoLoadLineSeriesData*>(event);
+        CaretAssert(lineSeriesDataEvent);
+        
+        if (m_lineSeriesContentType != ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED) {
+            const std::vector<int32_t> tabIndicesForLoading = getTabIndicesForLoadingData(lineSeriesDataEvent->getValidTabIndices());
+            if ( ! tabIndicesForLoading.empty()) {
+                
+                loadLineCharts(tabIndicesForLoading,
+                               lineSeriesDataEvent);
+            }
+        }
+        
+        event->setEventProcessed();
+    }
+    else {
+        ChartableTwoFileBaseChart::receiveEvent(event);
+    }
+}
+
+/**
+ * @param tabIndicesForLoading
+ *     Tab indices for loading data.
+ * @param lineSeriesDataEvent
+ *     Event indicating data for loading.
+ */
+void
+ChartableTwoFileLineSeriesChart::loadLineCharts(const std::vector<int32_t>& tabIndicesForLoading,
+                                                const EventChartTwoLoadLineSeriesData* lineSeriesDataEvent)
+{
+    const MapFileDataSelector mapFileDataSelector = lineSeriesDataEvent->getMapFileDataSelector();
+    
+    bool loadDataFlag = false;
+    switch (m_lineSeriesContentType) {
+        case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED:
+            return;
+            break;
+        case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA:
+            switch (mapFileDataSelector.getDataSelectionType()) {
+                case MapFileDataSelector::DataSelectionType::INVALID:
+                    break;
+                case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
+                case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+                case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
+                    loadDataFlag = true;
+                    break;
+            }
+            break;
+        case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_ROW_SCALAR_DATA:
+            break;
+    }
+    
+    if (loadDataFlag) {
+        std::vector<float> data;
+        getCaretMappableDataFile()->getDataForSelector(mapFileDataSelector,
+                                                       data);
+        if ( ! data.empty()) {
+            std::cout << "Loaded data for file " << getCaretMappableDataFile()->getFileNameNoPath() << std::endl;
+            
+            const ChartAxisUnitsEnum::Enum xUnits = getChartTwoCompoundDataType().getLineChartUnitsAxisX();
+            CaretAssert(getChartTwoCompoundDataType().getLineChartNumberOfElementsAxisX() == static_cast<int32_t>(data.size()));
+            ChartTwoDataCartesian* cartesianData = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
+                                                                             xUnits,
+                                                                             ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                                                             GraphicsPrimitive::PrimitiveType::LINES);
+            
+            float x = 0.0f;
+            float xStep = 0.0f;
+            getCaretMappableDataFile()->getMapIntervalStartAndStep(x, xStep);
+            
+            /*
+             * Note: Start at index one since line segments are used
+             */
+            const int32_t numData = static_cast<int32_t>(data.size());
+            for (int32_t i = 1; i < numData; i++) {
+                CaretAssertVectorIndex(data, i - 1);
+                cartesianData->addPoint(x, data[i - 1]);
+                x += xStep;
+                CaretAssertVectorIndex(data, i);
+                cartesianData->addPoint(x, data[i]);
+            }
+//            for (float d : data) {
+//                cartesianData->addPoint(x, d);
+//                x += xStep;
+//            }
+            
+            m_lineChartHistory->addHistoryItem(cartesianData);
+        }
+    }
+}
+
+/**
+ * Find tab indices for which user has loading of data enabled in the given valid tab indices.
+ *
+ * @param validTabIndices
+ *     All tabs that are valid.
+ * @return 
+ *     Tab indices for which data should be loaded.
+ */
+std::vector<int32_t>
+ChartableTwoFileLineSeriesChart::getTabIndicesForLoadingData(const std::vector<int32_t>& validTabIndices) const
+{
+    std::vector<int32_t> tabIndicesOut;
+    
+    if ( ! validTabIndices.empty()) {
+        if (m_lineChartHistory->isLoadingEnabled()) {
+            tabIndicesOut = validTabIndices;
+        }
+    }
+    
+    return tabIndicesOut;
+}
+
 
 /**
  * @return Content type of the line series data.
@@ -161,7 +292,7 @@ ChartableTwoFileLineSeriesChart::getLineSeriesContentType() const
 /**
  * @return History of line charts.
  */
-ChartTwoDataCartesianHistory*
+ChartTwoLineSeriesHistory*
 ChartableTwoFileLineSeriesChart::getHistory()
 {
     return m_lineChartHistory.get();
@@ -170,7 +301,7 @@ ChartableTwoFileLineSeriesChart::getHistory()
 /**
  * @return History of line charts (const method)
  */
-const ChartTwoDataCartesianHistory*
+const ChartTwoLineSeriesHistory*
 ChartableTwoFileLineSeriesChart::getHistory() const
 {
     return m_lineChartHistory.get();

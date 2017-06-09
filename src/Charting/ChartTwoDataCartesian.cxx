@@ -29,6 +29,7 @@
 
 #include "CaretAssert.h"
 #include "ChartPoint.h"
+#include "GraphicsPrimitiveV3f.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -51,13 +52,17 @@ using namespace caret;
  *   Data units for X-axis.
  * @param dataAxisUnitsY
  *   Data units for Y-axis.
+ * @param graphicsPrimitiveType
+ *   Primitive type for graphics primitive drawing.
  */
 ChartTwoDataCartesian::ChartTwoDataCartesian(const ChartTwoDataTypeEnum::Enum chartDataType,
-                                                 const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
-                                                 const ChartAxisUnitsEnum::Enum dataAxisUnitsY)
+                                             const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
+                                             const ChartAxisUnitsEnum::Enum dataAxisUnitsY,
+                                             const GraphicsPrimitive::PrimitiveType graphicsPrimitiveType)
 : ChartTwoData(chartDataType),
 m_dataAxisUnitsX(dataAxisUnitsX),
-m_dataAxisUnitsY(dataAxisUnitsY)
+m_dataAxisUnitsY(dataAxisUnitsY),
+m_graphicsPrimitiveType(graphicsPrimitiveType)
 {
     initializeMembersChartTwoDataCartesian();
     
@@ -66,6 +71,7 @@ m_dataAxisUnitsY(dataAxisUnitsY)
             CaretAssert(0);
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            CaretAssert(0);
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             break;
@@ -95,6 +101,8 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
     m_color             = CaretColorEnum::RED;
     m_timeStartInSecondsAxisX = 0.0;
     m_timeStepInSecondsAxisX  = 1.0;
+    
+    m_graphicsPrimitive = createGraphicsPrimitive();
     
     std::vector<CaretColorEnum::Enum> colorEnums;
     CaretColorEnum::getColorEnums(colorEnums);
@@ -134,11 +142,29 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
 }
 
 /**
+ * @return A new instance of the graphics primitive.
+ */
+std::unique_ptr<GraphicsPrimitiveV3f>
+ChartTwoDataCartesian::createGraphicsPrimitive()
+{
+    float rgba[4];
+    CaretColorEnum::toRGBAFloat(m_color, rgba);
+    
+    /*
+     * Note: LINES (line segments) are used so that individual segments can be identified.
+     * Cannot use line strip since it is identified as a single item.
+     */
+    return std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(m_graphicsPrimitiveType,
+                                                                                    rgba));
+}
+/**
  * Remove all points in the model.
  */
 void
 ChartTwoDataCartesian::removeAllPoints()
 {
+    m_graphicsPrimitive = createGraphicsPrimitive();
+
     for (std::vector<ChartPoint*>::const_iterator iter = m_points.begin();
          iter != m_points.end();
          iter++) {
@@ -173,7 +199,8 @@ ChartTwoDataCartesian::clone() const
 ChartTwoDataCartesian::ChartTwoDataCartesian(const ChartTwoDataCartesian& obj)
 : ChartTwoData(obj),
 m_dataAxisUnitsX(obj.m_dataAxisUnitsX),
-m_dataAxisUnitsY(obj.m_dataAxisUnitsY)
+m_dataAxisUnitsY(obj.m_dataAxisUnitsY),
+m_graphicsPrimitiveType(obj.m_graphicsPrimitiveType)
 {
     initializeMembersChartTwoDataCartesian();
     this->copyHelperChartTwoDataCartesian(obj);
@@ -217,11 +244,22 @@ ChartTwoDataCartesian::copyHelperChartTwoDataCartesian(const ChartTwoDataCartesi
         m_points.push_back(new ChartPoint(*cp));
     }
 
+    
     m_boundsValid       = false;
     m_color             = obj.m_color;
     m_timeStartInSecondsAxisX = obj.m_timeStartInSecondsAxisX;
     m_timeStepInSecondsAxisX  = obj.m_timeStepInSecondsAxisX;
 }
+
+/**
+ * @return Graphics primitive for drawing cartesian data.
+ */
+GraphicsPrimitiveV3f*
+ChartTwoDataCartesian::getGraphicsPrimitive() const
+{
+    return m_graphicsPrimitive.get();
+}
+
 
 /**
  * Add a point.
@@ -235,6 +273,7 @@ void
 ChartTwoDataCartesian::addPoint(const float x,
                                   const float y)
 {
+    m_graphicsPrimitive->addVertex(x, y);
     m_points.push_back(new ChartPoint(x, y));
     m_boundsValid = false;
 }
@@ -404,6 +443,12 @@ void
 ChartTwoDataCartesian::setColor(const CaretColorEnum::Enum color)
 {
     m_color = color;
+    
+    if (m_graphicsPrimitive != NULL) {
+        float rgba[4];
+        CaretColorEnum::toRGBAFloat(m_color, rgba);
+        m_graphicsPrimitive->replaceColoring(rgba);
+    }
 }
 
 /**

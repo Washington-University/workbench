@@ -856,7 +856,21 @@ IdentificationTextGenerator::generateChartTwoLineSeriesIdentificationText(Identi
                                                   const SelectionItemChartTwoLineSeries* idChartTwoLineSeries) const
 {
     if (idChartTwoLineSeries->isValid()) {
-        CaretAssertToDoWarning();
+        ChartableTwoFileLineSeriesChart* fileLineSeriesChart = idChartTwoLineSeries->getFileLineSeriesChart();
+        CaretAssert(fileLineSeriesChart);
+        CaretMappableDataFile* mapFile = fileLineSeriesChart->getCaretMappableDataFile();
+        CaretAssert(mapFile);
+        
+        const int32_t primitiveIndex = idChartTwoLineSeries->getLineSegmentIndex();
+        
+        AString boldText("Line Chart");
+        idText.addLine(false,
+                       boldText,
+                       mapFile->getFileNameNoPath());
+        
+        idText.addLine(true,
+                       "Line Segment Index",
+                       (AString::number(primitiveIndex)));
     }
 }
 

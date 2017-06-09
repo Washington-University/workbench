@@ -71,6 +71,10 @@ namespace caret {
         
         void setEnabled(const bool enabled);
         
+        bool isLineSeriesLoadingEnabled() const;
+        
+        void setLineSeriesLoadingEnabled(const bool lineSeriesLoadingEnabled);
+        
         void copyData(const ChartTwoOverlay* overlay);
         
         void swapData(ChartTwoOverlay* overlay);

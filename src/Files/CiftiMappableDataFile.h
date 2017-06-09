@@ -467,6 +467,9 @@ namespace caret {
          */
         static inline int32_t getCiftiFileRowColumnIndexBaseForGUI() { return CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI; }
 
+        virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
+                                        std::vector<float>& dataOut) const override;
+        
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);

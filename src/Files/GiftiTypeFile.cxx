@@ -984,4 +984,18 @@ GiftiTypeFile::addToDataFileContentInformation(DataFileContentInformation& dataF
                                         getNumberOfNodes());
 }
 
+/**
+ * Get data from the file as requested in the given map file data selector.
+ *
+ * @param mapFileDataSelector
+ *     Specifies selection of data.
+ * @param dataOut
+ *     Output with data.  Will be empty if data does not support the map file data selector.
+ */
+void
+GiftiTypeFile::getDataForSelector(const MapFileDataSelector& /*mapFileDataSelector*/,
+                                  std::vector<float>& dataOut) const
+{
+    dataOut.clear();
+}
 

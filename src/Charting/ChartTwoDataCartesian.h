@@ -24,19 +24,21 @@
 #include "CaretColorEnum.h"
 #include "ChartAxisUnitsEnum.h"
 #include "ChartTwoData.h"
-
+#include "GraphicsPrimitive.h"
 
 
 namespace caret {
 
     class ChartPoint;
+    class GraphicsPrimitiveV3f;
     
     class ChartTwoDataCartesian : public ChartTwoData {
         
     public:
         ChartTwoDataCartesian(const ChartTwoDataTypeEnum::Enum chartDataType,
-                                const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
-                                const ChartAxisUnitsEnum::Enum dataAxisUnitsY);
+                              const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
+                              const ChartAxisUnitsEnum::Enum dataAxisUnitsY,
+                              const GraphicsPrimitive::PrimitiveType graphicsPrimitiveType);
         
         virtual ~ChartTwoDataCartesian();
         
@@ -53,6 +55,8 @@ namespace caret {
                        float& xMaximumOut,
                        float& yMinimumOut,
                        float& yMaximumOut) const;
+        
+        GraphicsPrimitiveV3f* getGraphicsPrimitive() const;
         
         ChartAxisUnitsEnum::Enum getDataAxisUnitsX();
         
@@ -91,7 +95,11 @@ namespace caret {
         
         void removeAllPoints();
         
+        std::unique_ptr<GraphicsPrimitiveV3f> createGraphicsPrimitive();
+        
         std::vector<ChartPoint*> m_points;
+        
+        std::unique_ptr<GraphicsPrimitiveV3f> m_graphicsPrimitive;
         
         mutable float m_bounds[6];
         
@@ -100,6 +108,8 @@ namespace caret {
         ChartAxisUnitsEnum::Enum m_dataAxisUnitsX;
         
         ChartAxisUnitsEnum::Enum m_dataAxisUnitsY;
+        
+        const GraphicsPrimitive::PrimitiveType m_graphicsPrimitiveType;
         
         CaretColorEnum::Enum m_color;
         

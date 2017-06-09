@@ -24,6 +24,9 @@
 #undef __GRAPHICS_PRIMITIVE_V3F_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "GraphicsEngineDataOpenGL.h"
+
 using namespace caret;
 
 
@@ -232,4 +235,37 @@ GraphicsPrimitiveV3f::clone() const
     GraphicsPrimitiveV3f* obj = new GraphicsPrimitiveV3f(*this);
     return obj;
 }
+
+/**
+ * Replace the coloring in the primitive with float data.
+ * When primitive was constructed it must have used the
+ * constructor that accepts float data.
+ *
+ * @param rgba
+ *      Replacement color RGBA components.
+ */
+void
+GraphicsPrimitiveV3f::replaceColoring(const float rgba[4])
+{
+    CaretAssert(m_colorType == ColorType::FLOAT_RGBA);
+    if (m_colorType == ColorType::FLOAT_RGBA) {
+        const int32_t numVertices = static_cast<int32_t>(m_floatRGBA.size() / 4);
+        for (int32_t i = 0; i < numVertices; i++) {
+            const int32_t i4 = i * 4;
+            CaretAssertVectorIndex(m_floatRGBA, i4+3);
+            m_floatRGBA[i4]   = rgba[0];
+            m_floatRGBA[i4+1] = rgba[1];
+            m_floatRGBA[i4+2] = rgba[2];
+            m_floatRGBA[i4+3] = rgba[3];
+            
+            if (m_graphicsEngineDataForOpenGL != NULL) {
+                m_graphicsEngineDataForOpenGL->invalidateColors();
+            }
+        }
+    }
+    else {
+        CaretLogSevere("Replacement coloring is wrong data type (Float)");
+    }
+}
+
 

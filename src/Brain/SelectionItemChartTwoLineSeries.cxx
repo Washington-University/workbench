@@ -40,7 +40,8 @@ using namespace caret;
 SelectionItemChartTwoLineSeries::SelectionItemChartTwoLineSeries()
 : SelectionItem(SelectionItemDataTypeEnum::CHART_TWO_LINE_SERIES)
 {
-    
+    m_fileLineSeriesChart = NULL;
+    m_lineSegmentIndex    = -1;
 }
 
 /**
@@ -79,6 +80,40 @@ SelectionItemChartTwoLineSeries::operator=(const SelectionItemChartTwoLineSeries
 }
 
 /**
+ * @return The File line series chart.
+ */
+ChartableTwoFileLineSeriesChart*
+SelectionItemChartTwoLineSeries::getFileLineSeriesChart() const
+{
+    return m_fileLineSeriesChart;
+}
+
+/**
+ * @return The line segment index.
+ */
+int32_t
+SelectionItemChartTwoLineSeries::getLineSegmentIndex() const
+{
+    return m_lineSegmentIndex;
+}
+
+/**
+ * Set selection.
+ *
+ * @param fileLineSeriesChart
+ *     The line series chart.
+ * @param lineSegmentIndex
+ *     Index of the line segment.
+ */
+void
+SelectionItemChartTwoLineSeries::setLineSeriesChart(ChartableTwoFileLineSeriesChart* fileLineSeriesChart,
+                                                    const int32_t lineSegmentIndex)
+{
+    m_fileLineSeriesChart = fileLineSeriesChart;
+    m_lineSegmentIndex    = lineSegmentIndex;
+}
+
+/**
  * Helps with copying an object of this type.
  * @param obj
  *    Object that is copied.
@@ -86,7 +121,8 @@ SelectionItemChartTwoLineSeries::operator=(const SelectionItemChartTwoLineSeries
 void 
 SelectionItemChartTwoLineSeries::copyHelperSelectionItemChartTwoLineSeries(const SelectionItemChartTwoLineSeries& obj)
 {
-    
+    m_fileLineSeriesChart = obj.m_fileLineSeriesChart;
+    m_lineSegmentIndex    = obj.m_lineSegmentIndex;
 }
 
 /**
@@ -95,7 +131,8 @@ SelectionItemChartTwoLineSeries::copyHelperSelectionItemChartTwoLineSeries(const
 bool
 SelectionItemChartTwoLineSeries::isValid() const
 {
-    return false;
+    return ((m_fileLineSeriesChart != NULL)
+            && (m_lineSegmentIndex >= 0));
 }
 
 /**
@@ -104,5 +141,7 @@ SelectionItemChartTwoLineSeries::isValid() const
 void
 SelectionItemChartTwoLineSeries::reset()
 {
+    m_fileLineSeriesChart = NULL;
+    m_lineSegmentIndex    = -1;
 }
 

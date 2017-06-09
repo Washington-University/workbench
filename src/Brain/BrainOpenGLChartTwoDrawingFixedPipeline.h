@@ -25,12 +25,14 @@
 #include "BrainOpenGLChartTwoDrawingInterface.h"
 #include "CaretColorEnum.h"
 #include "ChartAxisLocationEnum.h"
+#include "ChartTwoDataTypeEnum.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"
 
 namespace caret {
 
     class CaretPreferences;
     class ChartTwoCartesianAxis;
+    class ChartTwoDataCartesian;
     class ChartTwoOverlaySet;
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
@@ -72,6 +74,20 @@ namespace caret {
             const bool m_allMapsSelected;
             
             ~HistogramChartDrawingInfo();
+        };
+        
+        class LineSeriesChartDrawingInfo {
+        public:
+            LineSeriesChartDrawingInfo(const ChartableTwoFileLineSeriesChart* lineSeriesChart,
+                                       const ChartTwoDataCartesian* chartTwoCartesianData,
+                                       const ChartAxisLocationEnum::Enum verticalAxisLocation)
+            : m_lineSeriesChart(lineSeriesChart),
+            m_chartTwoCartesianData(chartTwoCartesianData),
+            m_verticalAxisLocation(verticalAxisLocation) { }
+            
+            const ChartableTwoFileLineSeriesChart* m_lineSeriesChart;
+            const ChartTwoDataCartesian* m_chartTwoCartesianData;
+            const ChartAxisLocationEnum::Enum m_verticalAxisLocation;
         };
         
         class Margins {
@@ -116,6 +132,8 @@ namespace caret {
                                  const float zooming);
         
         void drawHistogramChart();
+        
+        void drawHistogramOrLineSeriesChart(const ChartTwoDataTypeEnum::Enum chartDataType);
         
         void drawChartGraphicsBoxAndSetViewport(const float vpX,
                                                 const float vpY,

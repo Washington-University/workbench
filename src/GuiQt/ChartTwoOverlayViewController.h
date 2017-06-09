@@ -76,6 +76,8 @@ namespace caret {
         
         void enabledCheckBoxClicked(bool);
         
+        void lineSeriesLoadingEnabledCheckBoxClicked(bool);
+        
         void colorBarActionTriggered(bool);
         
         void settingsActionTriggered();
@@ -148,6 +150,8 @@ namespace caret {
         ChartTwoOverlay* m_chartOverlay;
         
         QCheckBox* m_enabledCheckBox;
+        
+        QCheckBox* m_lineSeriesLoadingEnabledCheckBox;
         
         QToolButton* m_settingsToolButton;
         
