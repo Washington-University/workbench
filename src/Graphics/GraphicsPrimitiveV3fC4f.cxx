@@ -91,8 +91,7 @@ void
 GraphicsPrimitiveV3fC4f::addVertex(const float xyz[3],
                                    const float rgba[4])
 {
-    m_xyz.insert(m_xyz.end(),
-                 xyz, xyz + 3);
+    addVertexProtected(xyz);
     m_floatRGBA.insert(m_floatRGBA.end(),
                        rgba, rgba + 4);
 }
@@ -115,9 +114,7 @@ GraphicsPrimitiveV3fC4f::addVertex(const float x,
                                    const float z,
                                    const float rgba[4])
 {
-    m_xyz.push_back(x);
-    m_xyz.push_back(y);
-    m_xyz.push_back(z);
+    addVertexProtected(x, y, z);
     m_floatRGBA.insert(m_floatRGBA.end(),
                        rgba, rgba + 4);
 }
@@ -137,9 +134,7 @@ GraphicsPrimitiveV3fC4f::addVertex(const float x,
                                    const float y,
                                    const float rgba[4])
 {
-    m_xyz.push_back(x);
-    m_xyz.push_back(y);
-    m_xyz.push_back(0.0);
+    addVertexProtected(x, y, 0.0f);
     m_floatRGBA.insert(m_floatRGBA.end(),
                        rgba, rgba + 4);
 }

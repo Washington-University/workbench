@@ -102,8 +102,7 @@ void
 GraphicsPrimitiveV3fT3f::addVertex(const float xyz[3],
                                    const float st[2])
 {
-    m_xyz.insert(m_xyz.end(),
-                 xyz, xyz + 3);
+    addVertexProtected(xyz);
     m_floatTextureSTR.push_back(st[0]);
     m_floatTextureSTR.push_back(st[1]);
     m_floatTextureSTR.push_back(0.0f);
@@ -130,9 +129,7 @@ GraphicsPrimitiveV3fT3f::addVertex(const float x,
                                    const float s,
                                    const float t)
 {
-    m_xyz.push_back(x);
-    m_xyz.push_back(y);
-    m_xyz.push_back(z);
+    addVertexProtected(x, y, z);
     m_floatTextureSTR.push_back(s);
     m_floatTextureSTR.push_back(t);
     m_floatTextureSTR.push_back(0.0f);
@@ -156,9 +153,7 @@ GraphicsPrimitiveV3fT3f::addVertex(const float x,
                                    const float s,
                                    const float t)
 {
-    m_xyz.push_back(x);
-    m_xyz.push_back(y);
-    m_xyz.push_back(0.0f);
+    addVertexProtected(x, y, 0.0f);
     m_floatTextureSTR.push_back(s);
     m_floatTextureSTR.push_back(t);
     m_floatTextureSTR.push_back(0.0f);

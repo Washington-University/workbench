@@ -125,8 +125,7 @@ GraphicsPrimitiveV3f::copyHelperGraphicsPrimitiveV3f(const GraphicsPrimitiveV3f&
 void
 GraphicsPrimitiveV3f::addVertex(const float xyz[3])
 {
-    m_xyz.insert(m_xyz.end(),
-                 xyz, xyz + 3);
+    addVertexProtected(xyz);
     
     switch (m_colorType) {
         case GraphicsPrimitive::ColorType::NONE:
@@ -158,9 +157,7 @@ GraphicsPrimitiveV3f::addVertex(const float x,
                                    const float y,
                                    const float z)
 {
-    m_xyz.push_back(x);
-    m_xyz.push_back(y);
-    m_xyz.push_back(z);
+    addVertexProtected(x, y, z);
     switch (m_colorType) {
         case GraphicsPrimitive::ColorType::NONE:
             CaretAssert(0);
@@ -190,9 +187,7 @@ void
 GraphicsPrimitiveV3f::addVertex(const float x,
                                    const float y)
 {
-    m_xyz.push_back(x);
-    m_xyz.push_back(y);
-    m_xyz.push_back(0.0);
+    addVertexProtected(x, y, 0.0f);
     switch (m_colorType) {
         case GraphicsPrimitive::ColorType::NONE:
             CaretAssert(0);

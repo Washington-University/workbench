@@ -27,6 +27,7 @@
 
 #include <QTextStream>
 
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "ChartPoint.h"
 #include "GraphicsPrimitiveV3f.h"
@@ -87,8 +88,6 @@ m_graphicsPrimitiveType(graphicsPrimitiveType)
  */
 ChartTwoDataCartesian::~ChartTwoDataCartesian()
 {
-    removeAllPoints();
-    
     delete m_sceneAssistant;
 }
 
@@ -100,7 +99,6 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
 {
     m_mapFileDataSelector = std::unique_ptr<MapFileDataSelector>(new MapFileDataSelector());
     
-    m_boundsValid       = false;
     m_color             = CaretColorEnum::RED;
     m_timeStartInSecondsAxisX = 0.0;
     m_timeStepInSecondsAxisX  = 1.0;
@@ -183,24 +181,6 @@ ChartTwoDataCartesian::setMapFileDataSelector(const MapFileDataSelector& mapFile
 }
 
 /**
- * Remove all points in the model.
- */
-void
-ChartTwoDataCartesian::removeAllPoints()
-{
-    m_graphicsPrimitive = createGraphicsPrimitive();
-
-    for (std::vector<ChartPoint*>::const_iterator iter = m_points.begin();
-         iter != m_points.end();
-         iter++) {
-        delete *iter;
-    }
-    m_points.clear();
-    
-    m_boundsValid = false;
-}
-
-/**
  * At times a copy of chart data will be needed BUT it must be
  * the proper subclass so copy constructor and assignment operator
  * will no function when this abstract, base class is used.  Each
@@ -261,18 +241,9 @@ ChartTwoDataCartesian::copyHelperChartTwoDataCartesian(const ChartTwoDataCartesi
     *m_mapFileDataSelector = *obj.m_mapFileDataSelector;
     m_dataAxisUnitsX = obj.m_dataAxisUnitsX;
     m_dataAxisUnitsY = obj.m_dataAxisUnitsY;
-    
-    removeAllPoints();
 
-    for (std::vector<ChartPoint*>::const_iterator iter = obj.m_points.begin();
-         iter != obj.m_points.end();
-         iter++) {
-        const ChartPoint* cp = *iter;
-        m_points.push_back(new ChartPoint(*cp));
-    }
-
+    m_graphicsPrimitive.reset(dynamic_cast<GraphicsPrimitiveV3f*>(obj.m_graphicsPrimitive->clone()));
     
-    m_boundsValid       = false;
     m_color             = obj.m_color;
     m_timeStartInSecondsAxisX = obj.m_timeStartInSecondsAxisX;
     m_timeStepInSecondsAxisX  = obj.m_timeStepInSecondsAxisX;
@@ -301,90 +272,20 @@ ChartTwoDataCartesian::addPoint(const float x,
                                   const float y)
 {
     m_graphicsPrimitive->addVertex(x, y);
-    m_points.push_back(new ChartPoint(x, y));
-    m_boundsValid = false;
 }
 
 /**
- * @return Number of points.
- */
-int32_t
-ChartTwoDataCartesian::getNumberOfPoints() const
-{
-    return m_points.size();
-}
-
-/**
- * Get the point at the given index.
+ * Get a bounds box for the cartesian data.
  *
- * @param pointIndex
- *    Index of point.
+ * @param boundingBoxOut
+ *     Output bounding box.
  * @return
- *    Point at the given index.
+ *     True if bounding box is valid, else false.
  */
-const ChartPoint*
-ChartTwoDataCartesian::getPointAtIndex(const int32_t pointIndex) const
+bool
+ChartTwoDataCartesian::getBounds(BoundingBox& boundingBoxOut) const
 {
-    CaretAssertVectorIndex(m_points, pointIndex);
-    return m_points[pointIndex];
-}
-
-/**
- * Get the bounds of all of the points.
- *
- * @param xMinimumOut
- *     Minimum X-coordinate of all points.
- * @param xMaximumOut
- *     Maximum X-coordinate of all points.
- * @param yMinimumOut
- *     Minimum Y-coordinate of all points.
- * @param yMaximumOut
- *     Maximum Y-coordinate of all points.
- */
-void
-ChartTwoDataCartesian::getBounds(float& xMinimumOut,
-                                   float& xMaximumOut,
-                                   float& yMinimumOut,
-                                   float& yMaximumOut) const
-{
-    if (! m_boundsValid) {
-        float xMin = 0.0;
-        float xMax = 0.0;
-        float yMin = 0.0;
-        float yMax = 0.0;
-        float zMin = 0.0;
-        float zMax = 0.0;
-        const int32_t numPoints = getNumberOfPoints();
-        if (numPoints > 0) {
-            xMin = std::numeric_limits<float>::max();
-            xMax = -std::numeric_limits<float>::max();
-            yMin = std::numeric_limits<float>::max();
-            yMax = -std::numeric_limits<float>::max();
-            for (int32_t i = 0; i < numPoints; i++) {
-                const float* xy = getPointAtIndex(i)->getXY();
-                const float x = xy[0];
-                const float y = xy[1];
-                if (x < xMin) xMin = x;
-                if (x > xMax) xMax = x;
-                if (y < yMin) yMin = y;
-                if (y > yMax) yMax = y;
-            }
-            
-            m_boundsValid = true;
-        }
-        
-        m_bounds[0] = xMin;
-        m_bounds[1] = xMax;
-        m_bounds[2] = yMin;
-        m_bounds[3] = yMax;
-        m_bounds[4] = zMin;
-        m_bounds[5] = zMax;
-    }
-    
-    xMinimumOut = m_bounds[0];
-    xMaximumOut = m_bounds[1];
-    yMinimumOut = m_bounds[2];
-    yMaximumOut = m_bounds[3];
+    return m_graphicsPrimitive->getVertexBounds(boundingBoxOut);
 }
 
 /**
@@ -500,25 +401,9 @@ ChartTwoDataCartesian::saveSubClassDataToScene(const SceneAttributes* sceneAttri
     
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   chartDataCartesian);
-    
-    const int32_t numPoints2D = getNumberOfPoints();
-    if (numPoints2D > 0) {
-        chartDataCartesian->addInteger("numberOfPoints2D",
-                                       numPoints2D);
-        
-        AString pointString;
-        pointString.reserve(numPoints2D * 2 * 10);
-        QTextStream textStream(&pointString,
-                               QIODevice::WriteOnly);
-        
-        for (int32_t i = 0; i < numPoints2D; i++) {
-            const float* xy = m_points[i]->getXY();
-            textStream << xy[0] << " " << xy[1] << " ";
-        }
-        
-        chartDataCartesian->addString("points2D",
-                                      pointString);
-    }
+
+    sceneClass->addClass(m_mapFileDataSelector->saveToScene(sceneAttributes,
+                                                            "m_mapFileDataSelector"));
     
     sceneClass->addClass(chartDataCartesian);
 }
@@ -539,7 +424,7 @@ void
 ChartTwoDataCartesian::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                           const SceneClass* sceneClass)
 {
-    removeAllPoints();
+    m_graphicsPrimitive = createGraphicsPrimitive();
     
     const SceneClass* chartDataCartesian = sceneClass->getClass("chartDataCartesian");
     if (chartDataCartesian == NULL) {
@@ -548,30 +433,6 @@ ChartTwoDataCartesian::restoreSubClassDataFromScene(const SceneAttributes* scene
     
     m_sceneAssistant->restoreMembers(sceneAttributes, chartDataCartesian);
     
-    const int32_t numPoints2D = chartDataCartesian->getIntegerValue("numberOfPoints2D",
-                                                                  -1);
-    
-    if (numPoints2D > 0) {
-        AString pointString = chartDataCartesian->getStringValue("points2D",
-                                                                       "");
-        if ( ! pointString.isEmpty()) {
-            float x, y;
-            QTextStream textStream(&pointString,
-                                   QIODevice::ReadOnly);
-            for (int32_t i = 0; i < numPoints2D; i++) {
-                if (textStream.atEnd()) {
-                    sceneAttributes->addToErrorMessage("Tried to read "
-                                                       + AString::number(numPoints2D)
-                                                       + " but only got "
-                                                       + AString::number(i));
-                    break;
-                }
-                
-                textStream >> x;
-                textStream >> y;
-                m_points.push_back(new ChartPoint(x, y));
-            }
-        }
-    }
+    m_mapFileDataSelector->restoreFromScene(sceneAttributes, sceneClass->getClass("m_mapFileDataSelector"));
 }
 

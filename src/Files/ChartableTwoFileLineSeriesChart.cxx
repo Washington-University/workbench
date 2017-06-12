@@ -218,15 +218,11 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const std::vector<int32_t>& tabI
             break;
     }
     
-    std::cout << "Load data requested for file " << getCaretMappableDataFile()->getFileNameNoPath() << std::endl;
-    
     if (loadDataFlag) {
         std::vector<float> data;
         getCaretMappableDataFile()->getDataForSelector(mapFileDataSelector,
                                                        data);
         if ( ! data.empty()) {
-            std::cout << "Loaded data for file " << getCaretMappableDataFile()->getFileNameNoPath() << std::endl;
-            
             const ChartAxisUnitsEnum::Enum xUnits = getChartTwoCompoundDataType().getLineChartUnitsAxisX();
             CaretAssert(getChartTwoCompoundDataType().getLineChartNumberOfElementsAxisX() == static_cast<int32_t>(data.size()));
             ChartTwoDataCartesian* cartesianData = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,

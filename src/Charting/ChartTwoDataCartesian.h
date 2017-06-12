@@ -48,14 +48,7 @@ namespace caret {
         void addPoint(const float x,
                       const float y);
         
-        int32_t getNumberOfPoints() const;
-        
-        const ChartPoint* getPointAtIndex(const int32_t pointIndex) const;
-        
-        void getBounds(float& xMinimumOut,
-                       float& xMaximumOut,
-                       float& yMinimumOut,
-                       float& yMaximumOut) const;
+        bool getBounds(BoundingBox& boundingBoxOut) const;
         
         GraphicsPrimitiveV3f* getGraphicsPrimitive() const;
         
@@ -98,19 +91,11 @@ namespace caret {
 
         void initializeMembersChartTwoDataCartesian();
         
-        void removeAllPoints();
-        
         std::unique_ptr<GraphicsPrimitiveV3f> createGraphicsPrimitive();
         
         std::unique_ptr<MapFileDataSelector> m_mapFileDataSelector;
         
-        std::vector<ChartPoint*> m_points;
-        
         std::unique_ptr<GraphicsPrimitiveV3f> m_graphicsPrimitive;
-        
-        mutable float m_bounds[6];
-        
-        mutable bool m_boundsValid;
         
         ChartAxisUnitsEnum::Enum m_dataAxisUnitsX;
         

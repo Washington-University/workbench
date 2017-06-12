@@ -91,8 +91,7 @@ void
 GraphicsPrimitiveV3fC4ub::addVertex(const float xyz[3],
                                    const uint8_t rgba[4])
 {
-    m_xyz.insert(m_xyz.end(),
-                 xyz, xyz + 3);
+    addVertexProtected(xyz);
     m_unsignedByteRGBA.insert(m_unsignedByteRGBA.end(),
                               rgba, rgba + 4);
 }
@@ -115,9 +114,7 @@ GraphicsPrimitiveV3fC4ub::addVertex(const float x,
                                    const float z,
                                    const uint8_t rgba[4])
 {
-    m_xyz.push_back(x);
-    m_xyz.push_back(y);
-    m_xyz.push_back(z);
+    addVertexProtected(x, y, z);
     m_unsignedByteRGBA.insert(m_unsignedByteRGBA.end(),
                               rgba, rgba + 4);
 }

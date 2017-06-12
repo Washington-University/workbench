@@ -758,26 +758,22 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
             for (int32_t iHistory = 0; iHistory < numHistory; iHistory++) {
                 const ChartTwoDataCartesian* data = lineSeriesHistory->getHistoryItem(iHistory);
                 CaretAssert(data);
-                float boundsMinX = 0.0f;
-                float boundsMaxX = 0.0f;
-                float boundsMinY = 0.0f;
-                float boundsMaxY = 0.0f;
-                data->getBounds(boundsMinX, boundsMaxX, boundsMinY, boundsMaxY);
-                if (boundsMaxX > boundsMinX) {
-                    xMin = std::min(xMin, boundsMinX);
-                    xMax = std::max(xMax, boundsMaxX);
+                BoundingBox boundingBox;
+                if (data->getBounds(boundingBox)) {
+                    xMin = std::min(xMin, boundingBox.getMinX());
+                    xMax = std::max(xMax, boundingBox.getMaxX());
                     
                     switch (chartOverlay->getCartesianVerticalAxisLocation()) {
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                             CaretAssertMessage(0, "TOP axis not allowed for vertical axis");
                             break;
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                            yMinRight = std::min(yMinRight, boundsMinY);
-                            yMaxRight = std::max(yMaxRight, boundsMaxY);
+                            yMinRight = std::min(yMinRight, boundingBox.getMinY());
+                            yMaxRight = std::max(yMaxRight, boundingBox.getMaxY());
                             break;
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                            yMinLeft = std::min(yMinLeft, boundsMinY);
-                            yMaxLeft = std::max(yMaxLeft, boundsMaxY);
+                            yMinLeft = std::min(yMinLeft, boundingBox.getMinY());
+                            yMaxLeft = std::max(yMaxLeft, boundingBox.getMaxY());
                             break;
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                             CaretAssertMessage(0, "BOTTOM axis not allowed for vertical axis");

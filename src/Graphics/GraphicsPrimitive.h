@@ -26,12 +26,12 @@
 #include <memory>
 
 #include "CaretObject.h"
-
 #include "EventListenerInterface.h"
 
 
 namespace caret {
 
+    class BoundingBox;
     class GraphicsEngineDataOpenGL;
     class GraphicsPrimitiveV3f;
     class GraphicsPrimitiveV3fC4f;
@@ -239,6 +239,8 @@ namespace caret {
         
         void replaceFloatXYZ(const std::vector<float>& xyz);
         
+        bool getVertexBounds(BoundingBox& boundingBoxOut) const;
+        
         GraphicsEngineDataOpenGL* getGraphicsEngineDataForOpenGL();
         
         void setGraphicsEngineDataForOpenGL(GraphicsEngineDataOpenGL* graphicsEngineDataForOpenGL);
@@ -273,6 +275,12 @@ namespace caret {
                              const int32_t imageWidth,
                              const int32_t imageHeight);
         
+        void addVertexProtected(const float xyz[3]);
+        
+        void addVertexProtected(const float x,
+                                const float y,
+                                const float z);
+        
         const VertexType  m_vertexType;
         
         const NormalVectorType m_normalVectorType;
@@ -283,11 +291,11 @@ namespace caret {
         
         const PrimitiveType m_primitiveType;
 
+        mutable bool m_boundingBoxValid = false;
+        
         UsageType m_usageType = UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES;
         
         std::unique_ptr<GraphicsEngineDataOpenGL> m_graphicsEngineDataForOpenGL;
-        
-        std::vector<float> m_xyz;
         
         std::vector<float> m_floatNormalVectorXYZ;
         
@@ -307,7 +315,11 @@ namespace caret {
         
         int32_t m_textureImageHeight = -1;
         
+        mutable std::unique_ptr<BoundingBox> m_boundingBox;
+        
     private:
+        std::vector<float> m_xyz;
+        
         void copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj);
 
         friend class GraphicsEngineDataOpenGL;

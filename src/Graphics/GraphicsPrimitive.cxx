@@ -23,6 +23,7 @@
 #include "GraphicsPrimitive.h"
 #undef __GRAPHICS_PRIMITIVE_DECLARE__
 
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventManager.h"
@@ -68,7 +69,8 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexType       vertexType,
  m_normalVectorType(normalVectorType),
  m_colorType(colorType),
  m_textureType(textureType),
- m_primitiveType(primitiveType)
+ m_primitiveType(primitiveType),
+ m_boundingBoxValid(false)
 {
     
 }
@@ -92,8 +94,9 @@ GraphicsPrimitive::GraphicsPrimitive(const GraphicsPrimitive& obj)
  m_vertexType(obj.m_vertexType),
  m_normalVectorType(obj.m_normalVectorType),
  m_colorType(obj.m_colorType),
-m_textureType(obj.m_textureType),
-m_primitiveType(obj.m_primitiveType)
+ m_textureType(obj.m_textureType),
+ m_primitiveType(obj.m_primitiveType),
+ m_boundingBoxValid(false)
 {
     this->copyHelperGraphicsPrimitive(obj);
 }
@@ -106,6 +109,7 @@ m_primitiveType(obj.m_primitiveType)
 void 
 GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
 {
+    m_boundingBoxValid            = false;
     m_xyz                         = obj.m_xyz;
     m_floatNormalVectorXYZ        = obj.m_floatNormalVectorXYZ;
     m_floatRGBA                   = obj.m_floatRGBA;
@@ -165,6 +169,8 @@ GraphicsPrimitive::reserveForNumberOfVertices(const int32_t numberOfVertices)
             m_floatTextureSTR.reserve(numberOfVertices * 3);
             break;
     }
+    
+    m_boundingBoxValid = false;
 }
 
 /**
@@ -569,6 +575,42 @@ GraphicsPrimitive::isAlternativeUnsignedByteRGBAValidProtected(const int32_t ide
 }
 
 /**
+ * Add a vertex.
+ *
+ * @param xyz
+ *     Coordinate of vertex.
+ */
+void
+GraphicsPrimitive::addVertexProtected(const float xyz[3])
+{
+    m_xyz.insert(m_xyz.end(),
+                 xyz, xyz + 3);
+    m_boundingBoxValid = false;
+}
+
+/**
+ * Add a vertex.
+ *
+ * @param x
+ *     X-coordinate of vertex.
+ * @param y
+ *     Y-coordinate of vertex.
+ * @param z
+ *     Z-coordinate of vertex.
+ */
+void
+GraphicsPrimitive::addVertexProtected(const float x,
+                                      const float y,
+                                      const float z)
+{
+    m_xyz.push_back(x);
+    m_xyz.push_back(y);
+    m_xyz.push_back(z);
+    m_boundingBoxValid = false;
+}
+
+
+/**
  * Replace the existing XYZ coordinates with the given
  * XYZ coordinates.  The existing and new coordinates
  * MUST BE the same size.
@@ -591,6 +633,39 @@ GraphicsPrimitive::replaceFloatXYZ(const std::vector<float>& xyz)
         CaretLogWarning(msg);
         CaretAssertMessage(0, msg);
     }
+    
+    m_boundingBoxValid = false;
+}
+
+/**
+ * Get a bounds box for the vertex coordinates.
+ *
+ * @param boundingBoxOut
+ *     Output bounding box.
+ * @return
+ *     True if bounding box is valid, else false.
+ */
+bool
+GraphicsPrimitive::getVertexBounds(BoundingBox& boundingBoxOut) const
+{
+    if ( ! m_boundingBoxValid) {
+        if (m_boundingBox == NULL) {
+            m_boundingBox.reset(new BoundingBox());
+        }
+        m_boundingBox->resetForUpdate();
+        
+        const int32_t numberOfVertices = static_cast<int32_t>(m_xyz.size() / 3);
+        for (int32_t i = 0; i < numberOfVertices; i++) {
+            const int32_t i3 = i * 3;
+            CaretAssertVectorIndex(m_xyz, i3 + 2);
+            m_boundingBox->update(&m_xyz[i3]);
+        }
+        
+        m_boundingBoxValid = true;
+    }
+    
+    boundingBoxOut = *m_boundingBox;
+    return m_boundingBoxValid;
 }
 
 
