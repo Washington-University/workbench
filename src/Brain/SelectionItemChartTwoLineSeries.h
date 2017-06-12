@@ -28,6 +28,7 @@
 
 namespace caret {
 
+    class ChartTwoDataCartesian;
     class ChartableTwoFileLineSeriesChart;
     
     class SelectionItemChartTwoLineSeries : public SelectionItem {
@@ -45,11 +46,14 @@ namespace caret {
         
         virtual void reset() override;
         
-        ChartableTwoFileLineSeriesChart* getFileLineSeriesChart() const;
+        const ChartableTwoFileLineSeriesChart* getFileLineSeriesChart() const;
+        
+        const ChartTwoDataCartesian* getChartTwoCartesianData() const;
         
         int32_t getLineSegmentIndex() const;
         
         void setLineSeriesChart(ChartableTwoFileLineSeriesChart* fileLineSeriesChart,
+                                ChartTwoDataCartesian* chartTwoCartesianData,
                                 const int32_t lineSegmentIndex);
 
         // ADD_NEW_METHODS_HERE
@@ -58,6 +62,8 @@ namespace caret {
         void copyHelperSelectionItemChartTwoLineSeries(const SelectionItemChartTwoLineSeries& obj);
 
         ChartableTwoFileLineSeriesChart* m_fileLineSeriesChart;
+        
+        ChartTwoDataCartesian* m_chartTwoCartesianData;
         
         int32_t m_lineSegmentIndex;
         

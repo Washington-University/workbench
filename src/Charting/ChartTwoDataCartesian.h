@@ -31,6 +31,7 @@ namespace caret {
 
     class ChartPoint;
     class GraphicsPrimitiveV3f;
+    class MapFileDataSelector;
     
     class ChartTwoDataCartesian : public ChartTwoData {
         
@@ -57,6 +58,10 @@ namespace caret {
                        float& yMaximumOut) const;
         
         GraphicsPrimitiveV3f* getGraphicsPrimitive() const;
+        
+        const MapFileDataSelector* getMapFileDataSelector() const;
+        
+        void setMapFileDataSelector(const MapFileDataSelector& mapFileDataSelector);
         
         ChartAxisUnitsEnum::Enum getDataAxisUnitsX();
         
@@ -96,6 +101,8 @@ namespace caret {
         void removeAllPoints();
         
         std::unique_ptr<GraphicsPrimitiveV3f> createGraphicsPrimitive();
+        
+        std::unique_ptr<MapFileDataSelector> m_mapFileDataSelector;
         
         std::vector<ChartPoint*> m_points;
         

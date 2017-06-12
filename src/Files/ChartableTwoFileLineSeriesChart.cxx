@@ -218,6 +218,8 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const std::vector<int32_t>& tabI
             break;
     }
     
+    std::cout << "Load data requested for file " << getCaretMappableDataFile()->getFileNameNoPath() << std::endl;
+    
     if (loadDataFlag) {
         std::vector<float> data;
         getCaretMappableDataFile()->getDataForSelector(mapFileDataSelector,
@@ -231,6 +233,7 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const std::vector<int32_t>& tabI
                                                                              xUnits,
                                                                              ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
                                                                              GraphicsPrimitive::PrimitiveType::LINES);
+            cartesianData->setMapFileDataSelector(mapFileDataSelector);
             
             float x = 0.0f;
             float xStep = 0.0f;

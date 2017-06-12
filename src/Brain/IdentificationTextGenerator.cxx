@@ -32,6 +32,7 @@
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
 #include "ChartModelDataSeries.h"
+#include "ChartTwoDataCartesian.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
@@ -48,6 +49,7 @@
 #include "GiftiLabel.h"
 #include "Histogram.h"
 #include "ImageFile.h"
+#include "MapFileDataSelector.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
@@ -856,10 +858,14 @@ IdentificationTextGenerator::generateChartTwoLineSeriesIdentificationText(Identi
                                                   const SelectionItemChartTwoLineSeries* idChartTwoLineSeries) const
 {
     if (idChartTwoLineSeries->isValid()) {
-        ChartableTwoFileLineSeriesChart* fileLineSeriesChart = idChartTwoLineSeries->getFileLineSeriesChart();
+        const ChartableTwoFileLineSeriesChart* fileLineSeriesChart = idChartTwoLineSeries->getFileLineSeriesChart();
         CaretAssert(fileLineSeriesChart);
-        CaretMappableDataFile* mapFile = fileLineSeriesChart->getCaretMappableDataFile();
+        const CaretMappableDataFile* mapFile = fileLineSeriesChart->getCaretMappableDataFile();
         CaretAssert(mapFile);
+        const ChartTwoDataCartesian* cartesianData = idChartTwoLineSeries->getChartTwoCartesianData();
+        CaretAssert(cartesianData);
+        const MapFileDataSelector* mapFileDataSelector = cartesianData->getMapFileDataSelector();
+        CaretAssert(mapFileDataSelector);
         
         const int32_t primitiveIndex = idChartTwoLineSeries->getLineSegmentIndex();
         
@@ -871,6 +877,9 @@ IdentificationTextGenerator::generateChartTwoLineSeriesIdentificationText(Identi
         idText.addLine(true,
                        "Line Segment Index",
                        (AString::number(primitiveIndex)));
+        
+        generateMapFileSelectorText(idText,
+                                    mapFileDataSelector);
     }
 }
 
@@ -1064,6 +1073,73 @@ IdentificationTextGenerator::generateChartDataSourceText(IdentificationStringBui
     }
 }
 
+/**
+ * Generate text for a map file data selector.
+ * @param idText
+ *     String builder for identification text.
+ * @param mapFileDataSelector
+ *     The map file data selector.
+ */
+void
+IdentificationTextGenerator::generateMapFileSelectorText(IdentificationStringBuilder& idText,
+                                 const MapFileDataSelector* mapFileDataSelector) const
+{
+    
+    switch (mapFileDataSelector->getDataSelectionType()) {
+        case MapFileDataSelector::DataSelectionType::INVALID:
+            break;
+        case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
+        {
+            StructureEnum::Enum structure = StructureEnum::INVALID;
+            int32_t numberOfVertices = 0;
+            int32_t vertexIndex = -1;
+            mapFileDataSelector->getSurfaceVertex(structure,
+                                                  numberOfVertices,
+                                                  vertexIndex);
+            
+            if ((structure != StructureEnum::INVALID)
+                && (vertexIndex >= 0)) {
+                idText.addLine(true,
+                               "Structure",
+                               StructureEnum::toGuiName(structure));
+                idText.addLine(true,
+                               "Vertex Index",
+                               AString::number(vertexIndex));
+            }
+        }
+            break;
+        case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+        {
+            StructureEnum::Enum structure = StructureEnum::INVALID;
+            int32_t numberOfVertices = 0;
+            std::vector<int32_t> vertexIndices;
+            mapFileDataSelector->getSurfaceVertexAverage(structure,
+                                                         numberOfVertices,
+                                                         vertexIndices);
+           
+            const int32_t averageCount = static_cast<int32_t>(vertexIndices.size());
+            if ((structure != StructureEnum::INVALID)
+                && (averageCount > 0)) {
+                idText.addLine(true,
+                               "Structure",
+                               StructureEnum::toGuiName(structure));
+                idText.addLine(true,
+                               "Vertex Average Count",
+                               AString::number(averageCount));
+            }
+        }
+            break;
+        case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
+        {
+            float voxelXYZ[3];
+            mapFileDataSelector->getVolumeVoxelXYZ(voxelXYZ);
+            idText.addLine(true,
+                           "Voxel XYZ",
+                           AString::fromNumbers(voxelXYZ, 3, ","));
+        }
+            break;
+    }
+}
 
 /**
  * Generate identification text for a time series chart.

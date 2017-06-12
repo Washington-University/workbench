@@ -92,6 +92,10 @@ namespace caret {
         
         virtual void getSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
+        void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
+                                std::vector<float>& dataOut) const;
+        
+        
         //override writeFile in order to check filename against type of file
         virtual void writeFile(const AString& filename);
 

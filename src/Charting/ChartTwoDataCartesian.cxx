@@ -30,6 +30,7 @@
 #include "CaretAssert.h"
 #include "ChartPoint.h"
 #include "GraphicsPrimitiveV3f.h"
+#include "MapFileDataSelector.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -97,6 +98,8 @@ ChartTwoDataCartesian::~ChartTwoDataCartesian()
 void
 ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
 {
+    m_mapFileDataSelector = std::unique_ptr<MapFileDataSelector>(new MapFileDataSelector());
+    
     m_boundsValid       = false;
     m_color             = CaretColorEnum::RED;
     m_timeStartInSecondsAxisX = 0.0;
@@ -139,6 +142,9 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
                           &m_timeStartInSecondsAxisX);
     m_sceneAssistant->add("m_timeStepInSecondsAxisX",
                           &m_timeStepInSecondsAxisX);
+    m_sceneAssistant->add("m_mapFileDataSelector",
+                          "MapFileDataSelector",
+                          m_mapFileDataSelector.get());
 }
 
 /**
@@ -157,6 +163,25 @@ ChartTwoDataCartesian::createGraphicsPrimitive()
     return std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(m_graphicsPrimitiveType,
                                                                                     rgba));
 }
+
+/**
+ * @return The map file data selector that will indicate the source of data for this data.
+ */
+const MapFileDataSelector*
+ChartTwoDataCartesian::getMapFileDataSelector() const
+{
+    return m_mapFileDataSelector.get();
+}
+
+/**
+ * @param
+ */
+void
+ChartTwoDataCartesian::setMapFileDataSelector(const MapFileDataSelector& mapFileDataSelector)
+{
+    *m_mapFileDataSelector = mapFileDataSelector;
+}
+
 /**
  * Remove all points in the model.
  */
@@ -232,6 +257,8 @@ void
 ChartTwoDataCartesian::copyHelperChartTwoDataCartesian(const ChartTwoDataCartesian& obj)
 {
     CaretAssert(0);
+    
+    *m_mapFileDataSelector = *obj.m_mapFileDataSelector;
     m_dataAxisUnitsX = obj.m_dataAxisUnitsX;
     m_dataAxisUnitsY = obj.m_dataAxisUnitsY;
     

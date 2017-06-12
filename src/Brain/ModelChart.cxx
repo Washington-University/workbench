@@ -205,7 +205,19 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
             addChartToChartModels(tabIndices,
                                   chartData);
         }
-    }    
+    }
+    
+    std::vector<int32_t> tabIndices;
+    EventBrowserTabIndicesGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    
+    MapFileDataSelector mapFileDataSelector;
+    mapFileDataSelector.setSurfaceVertexAverage(structure,
+                                         surfaceNumberOfNodes,
+                                         nodeIndices);
+    EventChartTwoLoadLineSeriesData chartTwoLineSeriesEvent(tabIndicesEvent.getAllBrowserTabIndices(),
+                                                            mapFileDataSelector);
+    EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
 }
 
 /**
@@ -239,6 +251,16 @@ ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3])
                                   chartData);
         }
     }
+    
+    std::vector<int32_t> tabIndices;
+    EventBrowserTabIndicesGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    
+    MapFileDataSelector mapFileDataSelector;
+    mapFileDataSelector.setVolumeVoxelXYZ(xyz);
+    EventChartTwoLoadLineSeriesData chartTwoLineSeriesEvent(tabIndicesEvent.getAllBrowserTabIndices(),
+                                                            mapFileDataSelector);
+    EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
 }
 
 /**

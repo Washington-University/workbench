@@ -6886,11 +6886,74 @@ CiftiMappableDataFile::getDataForSelector(const MapFileDataSelector& mapFileData
             }
             break;
         case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+        {
+            try {
+                StructureEnum::Enum structure = StructureEnum::INVALID;
+                int32_t surfaceNumberOfVertices = -1;
+                std::vector<int32_t> vertexIndices;
+                mapFileDataSelector.getSurfaceVertexAverage(structure,
+                                                            surfaceNumberOfVertices,
+                                                            vertexIndices);
+                
+                if (getMappingSurfaceNumberOfNodes(structure) == surfaceNumberOfVertices) {
+                    const int32_t numberOfVertices = static_cast<int32_t>(vertexIndices.size());
+                    if (numberOfVertices > 0) {
+                        std::vector<double> dataSum;
+                        int32_t dataSumSize = 0;
+                        int32_t dataAverageCount = 0;
+                        
+                        std::vector<float> data;
+                        bool firstNodeFlag = true;
+                        
+                        for (int32_t i = 0; i < numberOfVertices; i++) {
+                            if (getSeriesDataForSurfaceNode(structure,
+                                                            vertexIndices[i],
+                                                            data)) {
+                                if (firstNodeFlag) {
+                                    firstNodeFlag = false;
+                                    
+                                    dataSumSize = static_cast<int32_t>(data.size());
+                                    if (dataSumSize > 0) {
+                                        dataSum.resize(dataSumSize,
+                                                       0.0);
+                                    }
+                                }
+                                
+                                CaretAssert(dataSumSize == static_cast<int32_t>(data.size()));
+                                
+                                for (int32_t j = 0; j < dataSumSize; j++) {
+                                    dataSum[j] += data[j];
+                                }
+                                dataAverageCount++;
+                            }
+                        }
+                        
+                        if ((dataAverageCount > 0)
+                            && (dataSumSize > 0)) {
+                            dataOut.resize(dataSumSize);
+                            for (int32_t k = 0; k < dataSumSize; k++) {
+                                dataOut[k] = dataSum[k] / dataAverageCount;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (const DataFileException& dfe) {
+                CaretLogWarning("Exeception: "
+                                + dfe.whatString());
+                dataOut.clear();
+            }
+        }
             break;
         case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
+        {
+            float xyz[3];
+            mapFileDataSelector.getVolumeVoxelXYZ(xyz);
+            getSeriesDataForVoxelAtCoordinate(xyz,
+                                              dataOut);
+        }
             break;
     }
-    
 }
 
 

@@ -36,6 +36,7 @@
 #include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
+#include "MapFileDataSelector.h"
 #include "MultiDimIterator.h"
 #include "NiftiIO.h"
 #include "Palette.h"
@@ -2240,9 +2241,37 @@ VolumeFile::loadLineSeriesChartDataForVoxelAtCoordinate(const float xyz[3])
  *     Output with data.  Will be empty if data does not support the map file data selector.
  */
 void
-VolumeFile::getDataForSelector(const MapFileDataSelector& /*mapFileDataSelector*/,
+VolumeFile::getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                std::vector<float>& dataOut) const
 {
     dataOut.clear();
+    
+    switch (mapFileDataSelector.getDataSelectionType()) {
+        case MapFileDataSelector::DataSelectionType::INVALID:
+            break;
+        case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
+            break;
+        case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+            break;
+        case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
+        {
+             if (isMappedWithPalette()) {
+                 float xyz[3];
+                 mapFileDataSelector.getVolumeVoxelXYZ(xyz);
+                 
+                int64_t ijk[3];
+                enclosingVoxel(xyz,
+                               ijk);
+                
+                if (indexValid(ijk)) {
+                    const int32_t numMaps = getNumberOfMaps();
+                    for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                        dataOut.push_back(getValue(ijk, iMap));
+                    }
+                }
+            }
+        }
+            break;
+    }
 }
 

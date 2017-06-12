@@ -993,7 +993,7 @@ GiftiTypeFile::addToDataFileContentInformation(DataFileContentInformation& dataF
  *     Output with data.  Will be empty if data does not support the map file data selector.
  */
 void
-GiftiTypeFile::getDataForSelector(const MapFileDataSelector& /*mapFileDataSelector*/,
+GiftiTypeFile::getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                   std::vector<float>& dataOut) const
 {
     dataOut.clear();

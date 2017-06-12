@@ -25,6 +25,7 @@
 #include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
+#include "MapFileDataSelector.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
 #include "NiftiEnums.h"
@@ -616,6 +617,101 @@ MetricFile::loadLineSeriesChartDataForVoxelAtCoordinate(const float * /*xyz[3]*/
     ChartDataCartesian* chartData = NULL; //helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;
 }
+
+/**
+ * Get data from the file as requested in the given map file data selector.
+ *
+ * @param mapFileDataSelector
+ *     Specifies selection of data.
+ * @param dataOut
+ *     Output with data.  Will be empty if data does not support the map file data selector.
+ */
+void
+MetricFile::getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
+                                  std::vector<float>& dataOut) const
+{
+    dataOut.clear();
+    
+    switch (mapFileDataSelector.getDataSelectionType()) {
+        case MapFileDataSelector::DataSelectionType::INVALID:
+            break;
+        case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
+            try {
+                StructureEnum::Enum structure = StructureEnum::INVALID;
+                int32_t surfaceNumberOfVertices = -1;
+                int32_t vertexIndex = -1;
+                mapFileDataSelector.getSurfaceVertex(structure,
+                                                     surfaceNumberOfVertices,
+                                                     vertexIndex);
+                
+                if ((structure == getStructure())
+                     && (surfaceNumberOfVertices == getNumberOfNodes())) {
+                    const int32_t numMaps = getNumberOfMaps();
+                    
+                    for (int64_t iMap = 0; iMap < numMaps; iMap++) {
+                        dataOut.push_back(getValue(vertexIndex,
+                                                   iMap));
+                    }
+                }
+            }
+            catch (const DataFileException& dfe) {
+                CaretLogWarning("Exeception: "
+                                + dfe.whatString());
+                dataOut.clear();
+            }
+            break;
+        case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+        {
+            try {
+                StructureEnum::Enum structure = StructureEnum::INVALID;
+                int32_t surfaceNumberOfVertices = -1;
+                std::vector<int32_t> vertexIndices;
+                mapFileDataSelector.getSurfaceVertexAverage(structure,
+                                                            surfaceNumberOfVertices,
+                                                            vertexIndices);
+                
+                if ((structure == getStructure())
+                     && (surfaceNumberOfVertices == getNumberOfNodes())) {
+                         const int32_t numberOfVertexIndices = static_cast<int32_t>(vertexIndices.size());
+                         const int32_t numberOfMaps  = getNumberOfMaps();
+                         
+                         if ((numberOfVertexIndices > 0)
+                             && (numberOfMaps > 0)) {
+                             
+                             std::vector<double> dataSum(numberOfMaps, 0.0);
+                             
+                             for (int32_t iMap = 0; iMap < numberOfMaps; iMap++) {
+                                 CaretAssertVectorIndex(dataSum, iMap);
+                                 
+                                 for (int32_t iNode = 0; iNode < numberOfVertexIndices; iNode++) {
+                                     const int32_t nodeIndex = vertexIndices[iNode];
+                                     dataSum[iMap] += getValue(nodeIndex,
+                                                               iMap);
+                                 }
+                             }
+                             
+                             dataOut.resize(numberOfMaps);
+                             for (int32_t iMap = 0; iMap < numberOfMaps; iMap++) {
+                                 CaretAssertVectorIndex(dataSum, iMap);
+                                 
+                                 const float mapAverageValue = dataSum[iMap] / numberOfVertexIndices;
+                                 dataOut[iMap] = mapAverageValue;
+                             }
+                         }
+                }
+            }
+            catch (const DataFileException& dfe) {
+                CaretLogWarning("Exeception: "
+                                + dfe.whatString());
+                dataOut.clear();
+            }
+        }
+            break;
+        case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
+            break;
+    }
+}
+
 
 /**
  * Save file data from the scene.  For subclasses that need to

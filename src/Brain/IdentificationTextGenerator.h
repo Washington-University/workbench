@@ -30,6 +30,7 @@ namespace caret {
     class BrowserTabContent;
     class CaretMappableDataFile;
     class ChartDataSource;
+    class MapFileDataSelector;
     class SelectionItemBorderSurface;
     class SelectionItemChartDataSeries;
     class SelectionItemChartFrequencySeries;
@@ -116,6 +117,9 @@ namespace caret {
         void generateChartDataSourceText(IdentificationStringBuilder& idText,
                                          const AString& typeOfChartText,
                                          const ChartDataSource* chartDataSource) const;
+        
+        void generateMapFileSelectorText(IdentificationStringBuilder& idText,
+                                         const MapFileDataSelector* mapFileDataSelector) const;
     };
     
 #ifdef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__

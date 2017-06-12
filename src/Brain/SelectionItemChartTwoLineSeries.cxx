@@ -41,6 +41,7 @@ SelectionItemChartTwoLineSeries::SelectionItemChartTwoLineSeries()
 : SelectionItem(SelectionItemDataTypeEnum::CHART_TWO_LINE_SERIES)
 {
     m_fileLineSeriesChart = NULL;
+    m_chartTwoCartesianData = NULL;
     m_lineSegmentIndex    = -1;
 }
 
@@ -82,10 +83,19 @@ SelectionItemChartTwoLineSeries::operator=(const SelectionItemChartTwoLineSeries
 /**
  * @return The File line series chart.
  */
-ChartableTwoFileLineSeriesChart*
+const ChartableTwoFileLineSeriesChart*
 SelectionItemChartTwoLineSeries::getFileLineSeriesChart() const
 {
     return m_fileLineSeriesChart;
+}
+
+/**
+ * @return The cartesian data.
+ */
+const ChartTwoDataCartesian*
+SelectionItemChartTwoLineSeries::getChartTwoCartesianData() const
+{
+    return m_chartTwoCartesianData;
 }
 
 /**
@@ -102,14 +112,18 @@ SelectionItemChartTwoLineSeries::getLineSegmentIndex() const
  *
  * @param fileLineSeriesChart
  *     The line series chart.
+ * @param chartTwoCartesianData
+ *     The cartesian data.
  * @param lineSegmentIndex
  *     Index of the line segment.
  */
 void
 SelectionItemChartTwoLineSeries::setLineSeriesChart(ChartableTwoFileLineSeriesChart* fileLineSeriesChart,
+                                                    ChartTwoDataCartesian* chartTwoCartesianData,
                                                     const int32_t lineSegmentIndex)
 {
     m_fileLineSeriesChart = fileLineSeriesChart;
+    m_chartTwoCartesianData = chartTwoCartesianData;
     m_lineSegmentIndex    = lineSegmentIndex;
 }
 
@@ -122,6 +136,7 @@ void
 SelectionItemChartTwoLineSeries::copyHelperSelectionItemChartTwoLineSeries(const SelectionItemChartTwoLineSeries& obj)
 {
     m_fileLineSeriesChart = obj.m_fileLineSeriesChart;
+    m_chartTwoCartesianData = obj.m_chartTwoCartesianData;
     m_lineSegmentIndex    = obj.m_lineSegmentIndex;
 }
 
@@ -132,6 +147,7 @@ bool
 SelectionItemChartTwoLineSeries::isValid() const
 {
     return ((m_fileLineSeriesChart != NULL)
+            && (m_chartTwoCartesianData != NULL)
             && (m_lineSegmentIndex >= 0));
 }
 
@@ -142,6 +158,7 @@ void
 SelectionItemChartTwoLineSeries::reset()
 {
     m_fileLineSeriesChart = NULL;
+    m_chartTwoCartesianData = NULL;
     m_lineSegmentIndex    = -1;
 }
 
