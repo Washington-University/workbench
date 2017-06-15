@@ -51,6 +51,7 @@ namespace
         bool isSwapped() const { return m_nifti.getHeader().isSwapped(); }
         void setRow(const float* dataIn, const std::vector<int64_t>& indexSelect);
         void setColumn(const float* dataIn, const int64_t& index);
+        void close();
     };
     
     class CiftiMemoryImpl : public CiftiFile::WriteImplInterface
@@ -115,9 +116,7 @@ CiftiFile::CiftiFile(const QString& fileName)
 
 void CiftiFile::openFile(const QString& fileName)
 {
-    m_writingImpl.grabNew(NULL);
-    m_readingImpl.grabNew(NULL);//to make sure it closes everything first, even if the open throws
-    m_dims.clear();
+    close();//to make sure it closes everything first, even if the open throws
     CaretPointer<CiftiOnDiskImpl> newRead(new CiftiOnDiskImpl(FileInformation(fileName).getAbsoluteFilePath()));//this constructor opens existing file read-only
     m_readingImpl = newRead;//it should be noted that if the constructor throws (if the file isn't readable), new guarantees the memory allocated for the object will be freed
     m_xml = newRead->getCiftiXML();
@@ -128,9 +127,7 @@ void CiftiFile::openFile(const QString& fileName)
 
 void CiftiFile::openURL(const QString& url, const QString& user, const QString& pass)
 {
-    m_writingImpl.grabNew(NULL);
-    m_readingImpl.grabNew(NULL);//to make sure it closes everything first, even if the open throws
-    m_dims.clear();
+    close();//to make sure it closes everything first, even if the open throws
     CaretPointer<CiftiXnatImpl> newRead(new CiftiXnatImpl(url, user, pass));
     m_readingImpl = newRead;
     m_xml = newRead->getCiftiXML();
@@ -140,9 +137,7 @@ void CiftiFile::openURL(const QString& url, const QString& user, const QString& 
 
 void CiftiFile::openURL(const QString& url)
 {
-    m_writingImpl.grabNew(NULL);
-    m_readingImpl.grabNew(NULL);//to make sure it closes everything first, even if the open throws
-    m_dims.clear();
+    close();//to make sure it closes everything first, even if the open throws
     CaretPointer<CiftiXnatImpl> newRead(new CiftiXnatImpl(url));
     m_readingImpl = newRead;
     m_xml = newRead->getCiftiXML();
@@ -207,6 +202,23 @@ void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVe
         }
     }
     m_xml.clearMutablesModified();
+}
+
+void CiftiFile::close()
+{
+    if (m_writingImpl != NULL)
+    {
+        m_writingImpl->close();//only writing implementations should ever throw errors on close, and specifically only on-disk
+    }
+    m_writingImpl.grabNew(NULL);
+    m_readingImpl.grabNew(NULL);
+    m_dims.clear();
+    m_xml = CiftiXML();
+    m_writingFile = "";
+    m_fileName = "";
+    m_onDiskVersion = CiftiVersion();//for completeness, it gets reset on open anyway
+    m_endianPref = NATIVE;//reset things to defaults
+    setWritingDataTypeNoScaling();//default argument is float32
 }
 
 void CiftiFile::convertToInMemory()
@@ -639,6 +651,12 @@ CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename, const CiftiXML& xml, c
     }
     m_xml = xml;
 }
+
+void CiftiOnDiskImpl::close()
+{
+    m_nifti.close();//lets this throw when there is a writing problem
+}//don't bother resetting m_xml, this instance is about to be destroyed
+
 
 void CiftiOnDiskImpl::getRow(float* dataOut, const vector<int64_t>& indexSelect, const bool& tolerateShortRead) const
 {

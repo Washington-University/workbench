@@ -349,6 +349,7 @@ VolumeFile::writeFile(const AString& filename)
     {
         myIO.writeData(getFrame(getBrickIndexFromNonSpatialIndexes(*myiter)), 3, *myiter);//NOTE: does not deal with multi-component volumes
     }
+    myIO.close();//call close explicitly to get a throw rather than a severe log when there is a problem
     m_header.grabNew(new NiftiHeader(outHeader));//update header to last written version, end nifti-specific code
     
     m_volumeFileEditorDelegate->clear();

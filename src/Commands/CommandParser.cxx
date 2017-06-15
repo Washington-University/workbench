@@ -1000,6 +1000,7 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
             {
                 CiftiFile* myFile = ((CiftiParameter*)myParam)->m_parameter;//we can't set metadata here because the XML is already on disk, see provenanceForOnDiskOutputs
                 myFile->writeFile(outAssociation[i].m_fileName);//this is basically a noop unless outputs and inputs collide, we opened ON_DISK and set cache file to this name back in makeOnDiskOutputs
+                myFile->close();//if there is a problem flushing the file, let it throw here instead of doing a severe log message
                 break;
             }
             case OperationParametersEnum::DOUBLE:

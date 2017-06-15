@@ -57,6 +57,7 @@ namespace caret
         void openURL(const QString& url);//same, without user/pass (or curently, reusing existing auth if the server matches
         void setWritingFile(const QString& fileName, const CiftiVersion& writingVersion = CiftiVersion(), const ENDIAN& endian = NATIVE);//starts on-disk writing
         void writeFile(const QString& fileName, const CiftiVersion& writingVersion = CiftiVersion(), const ENDIAN& endian = ANY);//leaves current state as-is, rewrites if already writing to that filename and version mismatch
+        void close();//closes the underlying file to flush it, so that exceptions can be thrown
         void convertToInMemory();
         QString getFileName() const { return m_fileName; }
         
@@ -99,6 +100,7 @@ namespace caret
         public:
             virtual void setRow(const float* dataIn, const std::vector<int64_t>& indexSelect) = 0;
             virtual void setColumn(const float* dataIn, const int64_t& index) = 0;
+            virtual void close() {}
             virtual ~WriteImplInterface();
         };
     private:
