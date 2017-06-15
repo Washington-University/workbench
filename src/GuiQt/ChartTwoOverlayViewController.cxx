@@ -45,6 +45,7 @@ using namespace caret;
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
+#include "EventChartTwoShowLineSeriesHistoryDialog.h"
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -305,6 +306,15 @@ ChartTwoOverlayViewController::updateOverlaySettingsEditor()
                                                      selectedIndexType,
                                                      selectedIndex);
         EventManager::get()->sendEvent(pcme.getPointer());
+    }
+    
+    if (mapFile != NULL) {
+        if (m_chartOverlay->isHistorySupported()) {
+            EventChartTwoShowLineSeriesHistoryDialog lshd(EventChartTwoShowLineSeriesHistoryDialog::Mode::CHART_OVERLAY_CHANGED,
+                                                          m_browserWindowIndex,
+                                                          m_chartOverlay);
+            EventManager::get()->sendEvent(lshd.getPointer());
+        }
     }
 }
 
@@ -593,18 +603,12 @@ ChartTwoOverlayViewController::historyActionTriggered(bool)
                                      selectedIndexType,
                                      selectedIndex);
     
-    std::cout << "History button clicked.  Enabled="
-    << qPrintable(AString::fromBool(m_chartOverlay->isHistorySupported())) << std::endl;
-    
-    CaretAssertToDoWarning();
-//    if (mapFile != NULL) {
-//        EventOverlaySettingsEditorDialogRequest pcme(EventOverlaySettingsEditorDialogRequest::MODE_SHOW_EDITOR,
-//                                                     m_browserWindowIndex,
-//                                                     m_chartOverlay,
-//                                                     mapFile,
-//                                                     mapIndex);
-//        EventManager::get()->sendEvent(pcme.getPointer());
-//    }
+    if (mapFile != NULL) {
+        EventChartTwoShowLineSeriesHistoryDialog lshd(EventChartTwoShowLineSeriesHistoryDialog::Mode::SHOW_DIALOG,
+                                                      m_browserWindowIndex,
+                                                      m_chartOverlay);
+        EventManager::get()->sendEvent(lshd.getPointer());
+    }
 }
 
 
@@ -780,7 +784,21 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     /*
      * Update settings (wrench) button
      */
-    m_settingsAction->setEnabled(validOverlayAndFileFlag);
+    bool enableSettingsActionFlag = validOverlayAndFileFlag;
+    switch (m_chartOverlay->getChartTwoDataType()) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            enableSettingsActionFlag = false;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            enableSettingsActionFlag = false;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
+    
+    m_settingsAction->setEnabled(enableSettingsActionFlag);
     
     /*
      * Update color bar button

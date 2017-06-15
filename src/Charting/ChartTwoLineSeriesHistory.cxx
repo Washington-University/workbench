@@ -24,6 +24,7 @@
 #undef __CHART_TWO_LINE_SERIES_HISTORY_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "ChartTwoDataCartesian.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -107,11 +108,40 @@ ChartTwoLineSeriesHistory::setLoadingEnabled(const bool loadingEnabled)
 }
 
 /**
+ * Generate the default color.
+ */
+CaretColorEnum::Enum
+ChartTwoLineSeriesHistory::generateDefaultColor()
+{
+    CaretColorEnum::Enum color = CaretColorEnum::BLACK;
+    
+    bool validFlag = false;
+    color = CaretColorEnum::fromIntegerCode(s_defaultColorIndexGenerator,
+                                            &validFlag);
+    
+    if ( ! validFlag) {
+        s_defaultColorIndexGenerator = 0;
+        color = CaretColorEnum::fromIntegerCode(s_defaultColorIndexGenerator,
+                                                &validFlag);
+        if ( ! validFlag) {
+            color = CaretColorEnum::BLACK;
+            CaretLogWarning("Generation of default color failed");
+        }
+    }
+   
+    ++s_defaultColorIndexGenerator;
+    
+    return color;
+}
+
+/**
  * Initialize an instance of this class.
  */
 void
 ChartTwoLineSeriesHistory::initializeInstance()
 {
+    m_defaultColor = ChartTwoLineSeriesHistory::generateDefaultColor();
+    
     const int32_t defaultHistoryCount = 5;
     m_loadingEnabled = false;
     
@@ -172,9 +202,9 @@ ChartTwoLineSeriesHistory::setDefaultColor(const CaretColorEnum::Enum defaultCol
         setModified();
     }
     
-    for (auto chartData : m_chartHistory) {
-        chartData->setColor(defaultColor);
-    }
+//    for (auto chartData : m_chartHistory) {
+//        chartData->setColor(defaultColor);
+//    }
 }
 
 /**
@@ -197,7 +227,26 @@ ChartTwoLineSeriesHistory::setDisplayCount(const int32_t count)
 {
     if (count != m_displayCount) {
         m_displayCount = count;
+        updateDisplayedHistoryItems();
         setModified();
+    }
+}
+
+/**
+ * Update the number of displayed history items.
+ */
+void ChartTwoLineSeriesHistory::updateDisplayedHistoryItems()
+{
+    int32_t itemsDisplayedCount = 0;
+    const int32_t numItems = getHistoryCount();
+    for (int32_t i = 0; i < numItems; i++) {
+        ChartTwoDataCartesian* item = getHistoryItem(i);
+        if (item->isSelected()) {
+            itemsDisplayedCount++;
+            if (itemsDisplayedCount > m_displayCount) {
+                item->setSelected(false);
+            }
+        }
     }
 }
 
@@ -222,6 +271,7 @@ ChartTwoLineSeriesHistory::addHistoryItem(ChartTwoDataCartesian* historyItem)
     CaretAssert(historyItem);
     historyItem->setColor(m_defaultColor);
     m_chartHistory.push_front(historyItem);
+    updateDisplayedHistoryItems();
 }
 
 /**
@@ -248,6 +298,14 @@ ChartTwoLineSeriesHistory::getHistoryItem(const int32_t index) const
 {
     CaretAssertVectorIndex(m_chartHistory, index);
     return m_chartHistory[index];
+}
+
+void
+ChartTwoLineSeriesHistory::removeHistoryItem(const int32_t index)
+{
+    CaretAssertVectorIndex(m_chartHistory, index);
+    delete m_chartHistory[index];
+    m_chartHistory.erase(m_chartHistory.begin() + index);
 }
 
 /**
@@ -386,7 +444,14 @@ ChartTwoLineSeriesHistory::restoreFromScene(const SceneAttributes* sceneAttribut
                                                                            GraphicsPrimitive::PrimitiveType::LINES);
             historyItem->restoreFromScene(sceneAttributes,
                                           historyClass);
+            
+            /*
+             * Note: addHistoryItem() assigns the default color so
+             * need to update color
+             */
+            const CaretColorEnum::Enum color = historyItem->getColor();
             addHistoryItem(historyItem);
+            historyItem->setColor(color);
         }
     }
 

@@ -46,6 +46,7 @@
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "ChartingDataManager.h"
+#include "ChartTwoLineSeriesHistoryDialog.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
@@ -63,6 +64,7 @@
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"
+#include "EventChartTwoShowLineSeriesHistoryDialog.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventHelpViewerDisplay.h"
@@ -173,6 +175,7 @@ GuiManager::initializeGuiManager()
     this->connectomeDatabaseWebView = NULL;
     m_helpViewerDialog = NULL;
     m_paletteColorMappingEditor = NULL;
+    m_chartTwoLineSeriesHistoryDialog = NULL;
     this->sceneDialog = NULL;
     m_surfacePropertiesEditorDialog = NULL;
     m_tileTabsConfigurationDialog = NULL;
@@ -286,6 +289,9 @@ GuiManager::initializeGuiManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ALERT_USER);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_SHOW_LINE_SERIES_HISTORY_DIALOG);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAC_DOCK_MENU_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW);
@@ -1283,6 +1289,58 @@ GuiManager::receiveEvent(Event* event)
         bbw->resize(w, h);
         
         EventManager::get()->sendEvent(EventMacDockMenuUpdate().getPointer());
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_SHOW_LINE_SERIES_HISTORY_DIALOG) {
+        EventChartTwoShowLineSeriesHistoryDialog* historyDialogEvent = dynamic_cast<EventChartTwoShowLineSeriesHistoryDialog*>(event);
+        CaretAssert(historyDialogEvent);
+        
+        const EventChartTwoShowLineSeriesHistoryDialog::Mode mode = historyDialogEvent->getMode();
+        const int32_t browserWindowIndex = historyDialogEvent->getBrowserWindowIndex();
+        ChartTwoOverlay* chartOverlay = historyDialogEvent->getChartOverlay();
+        
+        CaretAssertVectorIndex(m_brainBrowserWindows, browserWindowIndex);
+        BrainBrowserWindow* browserWindow = m_brainBrowserWindows[browserWindowIndex];
+        CaretAssert(browserWindow);
+        
+        switch (mode) {
+            case EventChartTwoShowLineSeriesHistoryDialog::Mode::CHART_OVERLAY_CHANGED:
+                if (m_chartTwoLineSeriesHistoryDialog != NULL) {
+                    m_chartTwoLineSeriesHistoryDialog->updateIfThisChartOverlayIsInDialog(chartOverlay);
+                }
+                break;
+            case EventChartTwoShowLineSeriesHistoryDialog::Mode::SHOW_DIALOG:
+            {
+                bool placeInDefaultLocation = false;
+                if (m_chartTwoLineSeriesHistoryDialog == NULL) {
+                    m_chartTwoLineSeriesHistoryDialog = new ChartTwoLineSeriesHistoryDialog(browserWindow);
+                    addNonModalDialog(m_chartTwoLineSeriesHistoryDialog);
+                    placeInDefaultLocation = true;
+                }
+                else if (m_chartTwoLineSeriesHistoryDialog->isHidden()) {
+                    placeInDefaultLocation = true;
+                }
+                
+                m_chartTwoLineSeriesHistoryDialog->updateDialogContent(chartOverlay);
+
+                m_chartTwoLineSeriesHistoryDialog->show();
+                m_chartTwoLineSeriesHistoryDialog->raise();
+                m_chartTwoLineSeriesHistoryDialog->activateWindow();
+                if (placeInDefaultLocation) {
+                    WuQtUtilities::moveWindowToSideOfParent(browserWindow,
+                                                            m_chartTwoLineSeriesHistoryDialog);
+                }
+                
+            }
+                break;
+        }
+        
+        historyDialogEvent->setEventProcessed();
+    }
+    else if ((event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS)
+             || (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW)) {
+        if (m_chartTwoLineSeriesHistoryDialog != NULL) {
+            m_chartTwoLineSeriesHistoryDialog->updateDialog();
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MAC_DOCK_MENU_UPDATE) {
         EventMacDockMenuUpdate* macDockMenuEvent = dynamic_cast<EventMacDockMenuUpdate*>(event);

@@ -239,7 +239,30 @@ MapFileDataSelector::setVolumeVoxelXYZ(const float voxelXYZ[3])
 AString 
 MapFileDataSelector::toString() const
 {
-    return "MapFileDataSelector";
+    AString s;
+    
+    switch (m_dataSelectionType) {
+        case DataSelectionType::INVALID:
+            break;
+        case DataSelectionType::SURFACE_VERTEX:
+            s = ("Vertex "
+                 + StructureEnum::toGuiName(m_surfaceStructure)
+                 + " "
+                 + AString::number(m_surfaceVertexIndex + 1));
+            break;
+        case DataSelectionType::SURFACE_VERTICES_AVERAGE:
+            s = ("Vertex Average"
+                 + StructureEnum::toGuiName(m_surfaceStructure)
+                 + " count="
+                 + AString::number(m_surfaceVertexAverageIndices.size()));
+            break;
+        case DataSelectionType::VOLUME_XYZ:
+            s = ("Voxel "
+                 + AString::fromNumbers(m_voxelXYZ, 3, ","));
+            break;
+    }
+    
+    return s;
 }
 
 /**

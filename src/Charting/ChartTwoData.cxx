@@ -70,17 +70,15 @@ void
 ChartTwoData::initializeMembersChartTwoData()
 {
     m_chartDataSource = new ChartDataSource();
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_selectionStatus[i] = true;
-    }
+    m_selectionStatus = true;
     m_uniqueIdentifier = SystemUtilities::createUniqueID();
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_chartDataSource",
                           "ChartDataSource",
                           m_chartDataSource);
-    m_sceneAssistant->addTabIndexedBooleanArray("m_selectionStatus",
-                                                m_selectionStatus);
+    m_sceneAssistant->add("m_selectionStatus",
+                          &m_selectionStatus);
     m_sceneAssistant->add("m_uniqueIdentifier",
                           &m_uniqueIdentifier);
 }
@@ -129,9 +127,7 @@ ChartTwoData::copyHelperChartTwoData(const ChartTwoData& obj)
     CaretAssert(0);
     m_chartDataType    = obj.m_chartDataType;
     *m_chartDataSource = *obj.m_chartDataSource;
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_selectionStatus[i] = obj.m_selectionStatus[i];
-    }
+    m_selectionStatus  = obj.m_selectionStatus;
 }
 
 /**
@@ -250,15 +246,12 @@ ChartTwoData::getChartDataSource()
 }
 
 /**
- * @return The selection status in the given tab
- * @param tabIndex
- *    Index of the tab.
+ * @return The selection status
  */
 bool
-ChartTwoData::isSelected(const int32_t tabIndex) const
+ChartTwoData::isSelected() const
 {
-    CaretAssertArrayIndex(m_selectionStatus, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    return m_selectionStatus[tabIndex];
+    return m_selectionStatus;
 }
 
 /**
@@ -268,11 +261,9 @@ ChartTwoData::isSelected(const int32_t tabIndex) const
  *    New selection status.
  */
 void
-ChartTwoData::setSelected(const int32_t tabIndex,
-                       const bool selectionStatus)
+ChartTwoData::setSelected(const bool selectionStatus)
 {
-    CaretAssertArrayIndex(m_selectionStatus, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    m_selectionStatus[tabIndex] = selectionStatus;
+    m_selectionStatus = selectionStatus;
     
     /*
      * When selection status is true,
@@ -291,13 +282,11 @@ ChartTwoData::setSelected(const int32_t tabIndex,
  * @param copyFrom
  *     Chart data from which selection status is copied.
  */
-void
-ChartTwoData::copySelectionStatusForAllTabs(const ChartTwoData* copyFrom)
-{
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_selectionStatus[i] = copyFrom->m_selectionStatus[i];
-    }
-}
+//void
+//ChartTwoData::copySelectionStatusForAllTabs(const ChartTwoData* copyFrom)
+//{
+//        m_selectionStatus = copyFrom->m_selectionStatus;
+//}
 
 
 /**

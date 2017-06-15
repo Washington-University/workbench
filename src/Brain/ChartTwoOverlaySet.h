@@ -49,6 +49,8 @@ namespace caret {
         
         ChartTwoOverlay* getPrimaryOverlay();
         
+        const ChartTwoOverlay* getPrimaryOverlay() const;
+        
         ChartTwoOverlay* getOverlay(const int32_t overlayNumber);
         
         const ChartTwoOverlay* getOverlay(const int32_t overlayNumber) const;
@@ -61,17 +63,17 @@ namespace caret {
         
         ChartTwoOverlay* getDisplayedOverlayContainingDataFile(const CaretMappableDataFile* mapFile);
         
-        ChartTwoCartesianAxis* getChartAxisLeft();
-        
-        const ChartTwoCartesianAxis* getChartAxisLeft() const;
-        
-        ChartTwoCartesianAxis* getChartAxisRight();
-        
-        const ChartTwoCartesianAxis* getChartAxisRight() const;
-        
-        ChartTwoCartesianAxis* getChartAxisBottom();
-        
-        const ChartTwoCartesianAxis* getChartAxisBottom() const;
+//        ChartTwoCartesianAxis* getChartAxisLeft();
+//        
+//        const ChartTwoCartesianAxis* getChartAxisLeft() const;
+//        
+//        ChartTwoCartesianAxis* getChartAxisRight();
+//        
+//        const ChartTwoCartesianAxis* getChartAxisRight() const;
+//        
+//        ChartTwoCartesianAxis* getChartAxisBottom();
+//        
+//        const ChartTwoCartesianAxis* getChartAxisBottom() const;
         
         std::vector<ChartTwoCartesianAxis*> getDisplayedChartAxes() const;
         

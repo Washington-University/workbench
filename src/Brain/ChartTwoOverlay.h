@@ -50,8 +50,9 @@ namespace caret {
         };
         
         ChartTwoOverlay(ChartTwoOverlaySet* parentChartTwoOverlaySet,
-                     const ChartTwoDataTypeEnum::Enum chartDataType,
-                     const int32_t overlayIndex);
+                        const ChartTwoDataTypeEnum::Enum chartDataType,
+                        const int32_t tabIndex,
+                        const int32_t overlayIndex);
         
         virtual ~ChartTwoOverlay();
         
@@ -61,7 +62,9 @@ namespace caret {
         
         void setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType);
         
-        AString getName() const;
+        int32_t getTabIndex() const;
+        
+        //AString getName() const;
         
         virtual AString toString() const;
         
@@ -167,6 +170,8 @@ namespace caret {
         
         /** Enumerated Type of charts allowed in this overlay */
         const ChartTwoDataTypeEnum::Enum m_chartDataType;
+        
+        const int32_t m_tabIndex;
         
         /** Index of this overlay (DO NOT COPY)*/
         const int32_t m_overlayIndex;

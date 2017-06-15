@@ -65,6 +65,8 @@ namespace caret {
         
         const ChartTwoDataCartesian* getHistoryItem(const int32_t index) const;
         
+        void removeHistoryItem(const int32_t index);
+        
         void clearHistory();
         
         // ADD_NEW_METHODS_HERE
@@ -98,6 +100,10 @@ namespace caret {
         void copyHelperChartTwoLineSeriesHistory(const ChartTwoLineSeriesHistory& obj);
 
         void initializeInstance();
+
+        void updateDisplayedHistoryItems();
+        
+        static CaretColorEnum::Enum generateDefaultColor();
         
         bool m_loadingEnabled = false;
         
@@ -109,12 +115,14 @@ namespace caret {
         
         int32_t m_displayCount;
         
+        static int32_t s_defaultColorIndexGenerator;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __CHART_TWO_LINE_SERIES_HISTORY_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    int32_t ChartTwoLineSeriesHistory::s_defaultColorIndexGenerator = 0;
 #endif // __CHART_TWO_LINE_SERIES_HISTORY_DECLARE__
 
 } // namespace

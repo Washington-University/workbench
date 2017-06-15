@@ -189,6 +189,10 @@ EventTypeEnum::initialize()
                                      "EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA",
                                      "Load line series data for chart two implementation"));
     
+    enumData.push_back(EventTypeEnum(EVENT_CHART_TWO_SHOW_LINE_SERIES_HISTORY_DIALOG,
+                                     "EVENT_CHART_TWO_SHOW_LINE_SERIES_HISTORY_DIALOG",
+                                     "Show the Chart Two Line Series History Dialog"));
+    
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_ADD,
                                      "EVENT_DATA_FILE_ADD",
                                      "Add a data file to the Brain"));

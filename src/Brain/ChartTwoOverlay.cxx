@@ -61,11 +61,13 @@ using namespace caret;
  *     Index of this overlay.
  */
 ChartTwoOverlay::ChartTwoOverlay(ChartTwoOverlaySet* parentChartTwoOverlaySet,
-                           const ChartTwoDataTypeEnum::Enum chartDataType,
-                           const int32_t overlayIndex)
+                                 const ChartTwoDataTypeEnum::Enum chartDataType,
+                                 const int32_t tabIndex,
+                                 const int32_t overlayIndex)
 : CaretObject(),
 m_parentChartTwoOverlaySet(parentChartTwoOverlaySet),
 m_chartDataType(chartDataType),
+m_tabIndex(tabIndex),
 m_overlayIndex(overlayIndex)
 {
     CaretAssert(m_parentChartTwoOverlaySet);
@@ -238,6 +240,15 @@ ChartTwoOverlay::setChartTwoCompoundDataType(const ChartTwoCompoundDataType& cha
 }
 
 /**
+ * @return The tab index.
+ */
+int32_t
+ChartTwoOverlay::getTabIndex() const
+{
+    return m_tabIndex;
+}
+
+/**
  * @return Enabled status for this surface overlay.
  */
 bool
@@ -337,8 +348,9 @@ void
 ChartTwoOverlay::swapData(ChartTwoOverlay* overlay)
 {
     std::unique_ptr<ChartTwoOverlay> swapOverlay = std::unique_ptr<ChartTwoOverlay>(new ChartTwoOverlay(m_parentChartTwoOverlaySet,
-                                                                                               overlay->m_chartDataType,
-                                                                                               overlay->m_overlayIndex));
+                                                                                                        overlay->m_chartDataType,
+                                                                                                        overlay->m_tabIndex,
+                                                                                                        overlay->m_overlayIndex));
     swapOverlay->copyData(overlay);
     
     overlay->copyData(this);

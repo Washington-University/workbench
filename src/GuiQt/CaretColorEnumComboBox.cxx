@@ -184,6 +184,15 @@ CaretColorEnumComboBox::getWidget()
 }
 
 /**
+ * @return The actual combo box encapsulated in this instance.
+ */
+QComboBox*
+CaretColorEnumComboBox::getComboBox()
+{
+    return this->colorComboBox;
+}
+
+/**
  * @return The selected color.
  */
 CaretColorEnum::Enum 

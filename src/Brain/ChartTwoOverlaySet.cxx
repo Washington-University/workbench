@@ -102,8 +102,26 @@ m_tabIndex(tabIndex)
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+        {
             m_chartAxisLeft->setEnabledByChart(true);
+            m_chartAxisLeft->getAnnotationAxisLabel()->setText("Value");
+            m_chartAxisLeft->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            float rangeMin = 0.0, rangeMax = 0.0;
+            m_chartAxisLeft->getRange(rangeMin, rangeMax);
+            rangeMin = 0.0;
+            m_chartAxisLeft->setRange(rangeMin, rangeMax);
+            
+            m_chartAxisRight->setEnabledByChart(false);
+            m_chartAxisRight->getAnnotationAxisLabel()->setText("Value");
+            m_chartAxisRight->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            m_chartAxisRight->getRange(rangeMin, rangeMax);
+            rangeMin = 0.0;
+            m_chartAxisRight->setRange(rangeMin, rangeMax);
+            
             m_chartAxisBottom->setEnabledByChart(true);
+            m_chartAxisBottom->getAnnotationAxisLabel()->setText("Data");
+            m_chartAxisBottom->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+        }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
             break;
@@ -124,8 +142,9 @@ m_tabIndex(tabIndex)
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         m_overlays[i] = new ChartTwoOverlay(this,
-                                         m_chartDataType,
-                                         i);
+                                            m_chartDataType,
+                                            m_tabIndex,
+                                            i);
     }
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
@@ -169,6 +188,15 @@ ChartTwoOverlaySet::copyOverlaySet(const ChartTwoOverlaySet* overlaySet)
  */
 ChartTwoOverlay*
 ChartTwoOverlaySet::getPrimaryOverlay()
+{
+    return m_overlays[0];
+}
+
+/**
+ * @return Returns the top-most overlay regardless of its enabled status.
+ */
+const ChartTwoOverlay*
+ChartTwoOverlaySet::getPrimaryOverlay() const
 {
     return m_overlays[0];
 }
@@ -577,55 +605,69 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
     }
 }
 
-/**
- * @return The chart left-axis.
- */
-ChartTwoCartesianAxis*
-ChartTwoOverlaySet::getChartAxisLeft()
-{
-    return m_chartAxisLeft.get();
-}
+///**
+// * @return The chart left-axis.
+// */
+//ChartTwoCartesianAxis*
+//ChartTwoOverlaySet::getChartAxisLeft()
+//{
+//    return m_chartAxisLeft.get();
+//}
+//
+///**
+// * @return The chart left-axis (const method)
+// */
+//const ChartTwoCartesianAxis*
+//ChartTwoOverlaySet::getChartAxisLeft() const
+//{
+//    return m_chartAxisLeft.get();
+//}
+//
+///**
+// * @return The chart right-axis.
+// */
+//ChartTwoCartesianAxis*
+//ChartTwoOverlaySet::getChartAxisRight()
+//{
+//    return m_chartAxisRight.get();
+//}
+//
+///**
+// * @return The chart right-axis (const method)
+// */
+//const ChartTwoCartesianAxis*
+//ChartTwoOverlaySet::getChartAxisRight() const
+//{
+//    return m_chartAxisRight.get();
+//}
+//
+///**
+// * @return The chart bottom-axis.
+// */
+//ChartTwoCartesianAxis*
+//ChartTwoOverlaySet::getChartAxisBottom()
+//{
+//    return m_chartAxisBottom.get();
+//}
+//
+///**
+// * @return The chart bottom-axis (const method)
+// */
+//const ChartTwoCartesianAxis*
+//ChartTwoOverlaySet::getChartAxisBottom() const
+//{
+//    return m_chartAxisBottom.get();
+//}
 
 /**
- * @return The chart left-axis (const method)
+ * Get the displayed chart axes.
  */
-const ChartTwoCartesianAxis*
-ChartTwoOverlaySet::getChartAxisLeft() const
-{
-    return m_chartAxisLeft.get();
-}
-
-/**
- * @return The chart right-axis.
- */
-ChartTwoCartesianAxis*
-ChartTwoOverlaySet::getChartAxisRight()
-{
-    return m_chartAxisRight.get();
-}
-
-/**
- * @return The chart right-axis (const method)
- */
-const ChartTwoCartesianAxis*
-ChartTwoOverlaySet::getChartAxisRight() const
-{
-    return m_chartAxisRight.get();
-}
-
-/**
- * @return The chart bottom-axis.
- */
-ChartTwoCartesianAxis*
-ChartTwoOverlaySet::getChartAxisBottom()
-{
-    return m_chartAxisBottom.get();
-}
-
 std::vector<ChartTwoCartesianAxis*>
 ChartTwoOverlaySet::getDisplayedChartAxes() const
 {
     std::vector<ChartTwoCartesianAxis*> axes;
+    
+    AString lineSeriesDataTypeName;
     
     bool showAxesFlag = false;
     switch (m_chartDataType) {
@@ -635,6 +677,38 @@ ChartTwoOverlaySet::getDisplayedChartAxes() const
             showAxesFlag = true;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+        {
+            const ChartTwoOverlay* primaryOverlay = getPrimaryOverlay();
+            if (primaryOverlay != NULL) {
+                CaretMappableDataFile* mapFile = NULL;
+                ChartTwoOverlay::SelectedIndexType indexType;
+                int32_t mapIndex;
+                primaryOverlay->getSelectionData(mapFile, indexType, mapIndex);
+                if (mapFile != NULL) {
+                    const NiftiTimeUnitsEnum::Enum units = mapFile->getMapIntervalUnits();
+                    switch (units) {
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+                            lineSeriesDataTypeName = "Hertz";
+                            break;
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+                            lineSeriesDataTypeName = "milliseconds";
+                            break;
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+                            lineSeriesDataTypeName = "parts per million";
+                            break;
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+                            lineSeriesDataTypeName = "seconds";
+                            break;
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+                            lineSeriesDataTypeName = "data";
+                            break;
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+                            lineSeriesDataTypeName = "microseconds";
+                            break;
+                    }
+                }
+            }
+        }
             showAxesFlag = true;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -680,6 +754,9 @@ ChartTwoOverlaySet::getDisplayedChartAxes() const
     m_chartAxisRight->setEnabledByChart(showRightFlag);
     
     if (m_chartAxisBottom->isEnabledByChart()) {
+        if ( ! lineSeriesDataTypeName.isEmpty()) {
+            m_chartAxisBottom->getAnnotationAxisLabel()->setText(lineSeriesDataTypeName);
+        }
         axes.push_back(m_chartAxisBottom.get());
     }
     if (m_chartAxisLeft->isEnabledByChart()) {
@@ -692,15 +769,6 @@ ChartTwoOverlaySet::getDisplayedChartAxes() const
     return axes;
 }
 
-
-/**
- * @return The chart bottom-axis (const method)
- */
-const ChartTwoCartesianAxis*
-ChartTwoOverlaySet::getChartAxisBottom() const
-{
-    return m_chartAxisBottom.get();
-}
 
 /**
  * Save information specific to this type of model to the scene.

@@ -131,7 +131,7 @@ namespace caret {
                                  const float cellHeight,
                                  const float zooming);
         
-        void drawHistogramChart();
+        //void drawHistogramChart();
         
         void drawHistogramOrLineSeriesChart(const ChartTwoDataTypeEnum::Enum chartDataType);
         

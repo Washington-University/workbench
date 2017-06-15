@@ -99,6 +99,7 @@ ELSE()
         ChartLinesSelectionViewController.h
         ChartMatrixParcelSelectionViewController.h
         ChartMatrixSeriesSelectionViewController.h
+        ChartTwoLineSeriesHistoryDialog.h
         ChartTwoOverlaySetViewController.h
         ChartTwoOverlayViewController.h
         ChartSelectionViewController.h
@@ -286,6 +287,7 @@ ChartHistoryViewController.h
 ChartLinesSelectionViewController.h
 ChartMatrixParcelSelectionViewController.h
 ChartMatrixSeriesSelectionViewController.h
+ChartTwoLineSeriesHistoryDialog.h
 ChartTwoOverlaySetViewController.h
 ChartTwoOverlayViewController.h
 ChartSelectionViewController.h
@@ -309,6 +311,7 @@ EventBrowserWindowContentGet.h
 EventBrowserWindowCreateTabs.h
 EventBrowserWindowGraphicsRedrawn.h
 EventBrowserWindowNew.h
+EventChartTwoShowLineSeriesHistoryDialog.h
 EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
@@ -497,6 +500,7 @@ ChartHistoryViewController.cxx
 ChartLinesSelectionViewController.cxx
 ChartMatrixParcelSelectionViewController.cxx
 ChartMatrixSeriesSelectionViewController.cxx
+ChartTwoLineSeriesHistoryDialog.cxx
 ChartTwoOverlaySetViewController.cxx
 ChartTwoOverlayViewController.cxx
 ChartSelectionViewController.cxx
@@ -519,6 +523,7 @@ EventBrowserWindowContentGet.cxx
 EventBrowserWindowCreateTabs.cxx
 EventBrowserWindowGraphicsRedrawn.cxx
 EventBrowserWindowNew.cxx
+EventChartTwoShowLineSeriesHistoryDialog.cxx
 EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx

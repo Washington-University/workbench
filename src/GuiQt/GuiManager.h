@@ -45,6 +45,7 @@ namespace caret {
     class BrainBrowserWindow;
     class BrowserTabContent;
     class BugReportDialog;
+    class ChartTwoLineSeriesHistoryDialog;
     class ClippingPlanesDialog;
     class CursorManager;
     class CustomViewDialog;
@@ -247,6 +248,8 @@ namespace caret {
         
         /** Editor for palette color mapping editing */
         PaletteColorMappingEditorDialog* m_paletteColorMappingEditor;
+        
+        ChartTwoLineSeriesHistoryDialog* m_chartTwoLineSeriesHistoryDialog;
         
         TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;
         

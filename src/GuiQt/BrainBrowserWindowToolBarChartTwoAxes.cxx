@@ -331,6 +331,7 @@ BrainBrowserWindowToolBarChartTwoAxes::updateContent(BrowserTabContent* browserT
                     chartOverlaySet = modelChartTwo->getChartTwoOverlaySet(tabIndex);
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                    chartOverlaySet = modelChartTwo->getChartTwoOverlaySet(tabIndex);
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                     break;

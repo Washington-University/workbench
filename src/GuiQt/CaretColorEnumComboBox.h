@@ -51,6 +51,8 @@ namespace caret {
         
         QWidget* getWidget();
         
+        QComboBox* getComboBox();
+        
     signals:
         void colorSelected(const CaretColorEnum::Enum);
         

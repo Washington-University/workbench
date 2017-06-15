@@ -34,6 +34,7 @@
 #include "MapFileDataSelector.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "ScenePrimitiveArray.h"
 
 using namespace caret;
 
@@ -402,8 +403,16 @@ ChartTwoDataCartesian::saveSubClassDataToScene(const SceneAttributes* sceneAttri
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   chartDataCartesian);
 
-    sceneClass->addClass(m_mapFileDataSelector->saveToScene(sceneAttributes,
-                                                            "m_mapFileDataSelector"));
+//    chartDataCartesian->addClass(m_mapFileDataSelector->saveToScene(sceneAttributes,
+//                                                            "m_mapFileDataSelector"));
+    
+    const std::vector<float>& xyz = m_graphicsPrimitive->getFloatXYZ();
+    const int32_t numXYZ = static_cast<int32_t>(xyz.size());
+    if (numXYZ > 0) {
+        chartDataCartesian->addFloatArray("xyz",
+                                          &xyz[0],
+                                          numXYZ);
+    }
     
     sceneClass->addClass(chartDataCartesian);
 }
@@ -433,6 +442,23 @@ ChartTwoDataCartesian::restoreSubClassDataFromScene(const SceneAttributes* scene
     
     m_sceneAssistant->restoreMembers(sceneAttributes, chartDataCartesian);
     
-    m_mapFileDataSelector->restoreFromScene(sceneAttributes, sceneClass->getClass("m_mapFileDataSelector"));
+//    m_mapFileDataSelector->restoreFromScene(sceneAttributes, chartDataCartesian->getClass("m_mapFileDataSelector"));
+    
+    const ScenePrimitiveArray* xyzArray = chartDataCartesian->getPrimitiveArray("xyz");
+    if (xyzArray != NULL) {
+        const int32_t numElements = xyzArray->getNumberOfArrayElements();
+        if (numElements > 0) {
+            std::vector<float> data(numElements);
+            xyzArray->floatValues(&data[0],
+                                  numElements,
+                                  0.0f);
+            const int32_t numXYZ = (numElements / 3);
+            for (int32_t i = 0; i < numXYZ; i++) {
+                const int32_t i3 = i * 3;
+                CaretAssertVectorIndex(data, i3+2);
+                addPoint(data[i3], data[i3+1]);
+            }
+        }
+    }
 }
 
