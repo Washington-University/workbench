@@ -322,9 +322,9 @@ ChartableTwoFileLineSeriesChart::isValid() const
 bool
 ChartableTwoFileLineSeriesChart::isEmpty() const
 {
-    CaretAssertToDoWarning();   // use history???
-    return false;
+    return (m_lineChartHistory->getHistoryCount() <= 0);
 }
+
 /**
  * Save subclass data to the scene.
  *

@@ -62,14 +62,14 @@ ChartTwoDataCartesian::ChartTwoDataCartesian(const ChartTwoDataTypeEnum::Enum ch
                                              const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
                                              const ChartAxisUnitsEnum::Enum dataAxisUnitsY,
                                              const GraphicsPrimitive::PrimitiveType graphicsPrimitiveType)
-: ChartTwoData(chartDataType),
+: CaretObjectTracksModification(),
 m_dataAxisUnitsX(dataAxisUnitsX),
 m_dataAxisUnitsY(dataAxisUnitsY),
 m_graphicsPrimitiveType(graphicsPrimitiveType)
 {
     initializeMembersChartTwoDataCartesian();
     
-    switch (getChartTwoDataType()) {
+    switch (chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             CaretAssert(0);
             break;
@@ -100,6 +100,7 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
 {
     m_mapFileDataSelector = std::unique_ptr<MapFileDataSelector>(new MapFileDataSelector());
     
+    m_selectionStatus   = true;
     m_color             = CaretColorEnum::RED;
     m_timeStartInSecondsAxisX = 0.0;
     m_timeStepInSecondsAxisX  = 1.0;
@@ -131,6 +132,8 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
     
     m_sceneAssistant = new SceneClassAssistant();
     
+    m_sceneAssistant->add("m_selectionStatus",
+                          &m_selectionStatus);
     m_sceneAssistant->add<ChartAxisUnitsEnum, ChartAxisUnitsEnum::Enum>("m_dataAxisUnitsX",
                                                                 &m_dataAxisUnitsX);
     m_sceneAssistant->add<ChartAxisUnitsEnum, ChartAxisUnitsEnum::Enum>("m_dataAxisUnitsY",
@@ -190,7 +193,7 @@ ChartTwoDataCartesian::setMapFileDataSelector(const MapFileDataSelector& mapFile
  *
  * @return Copy of this instance that is the actual subclass.
  */
-ChartTwoData*
+ChartTwoDataCartesian*
 ChartTwoDataCartesian::clone() const
 {
     ChartTwoDataCartesian* cloneCopy = new ChartTwoDataCartesian(*this);
@@ -203,7 +206,7 @@ ChartTwoDataCartesian::clone() const
  *    Object that is copied.
  */
 ChartTwoDataCartesian::ChartTwoDataCartesian(const ChartTwoDataCartesian& obj)
-: ChartTwoData(obj),
+: CaretObjectTracksModification(obj),
 m_dataAxisUnitsX(obj.m_dataAxisUnitsX),
 m_dataAxisUnitsY(obj.m_dataAxisUnitsY),
 m_graphicsPrimitiveType(obj.m_graphicsPrimitiveType)
@@ -223,7 +226,7 @@ ChartTwoDataCartesian&
 ChartTwoDataCartesian::operator=(const ChartTwoDataCartesian& obj)
 {
     if (this != &obj) {
-        ChartTwoData::operator=(obj);
+        CaretObjectTracksModification::operator=(obj);
         this->copyHelperChartTwoDataCartesian(obj);
     }
     return *this;    
@@ -237,8 +240,7 @@ ChartTwoDataCartesian::operator=(const ChartTwoDataCartesian& obj)
 void 
 ChartTwoDataCartesian::copyHelperChartTwoDataCartesian(const ChartTwoDataCartesian& obj)
 {
-    CaretAssert(0);
-    
+    m_selectionStatus = obj.m_selectionStatus;
     *m_mapFileDataSelector = *obj.m_mapFileDataSelector;
     m_dataAxisUnitsX = obj.m_dataAxisUnitsX;
     m_dataAxisUnitsY = obj.m_dataAxisUnitsY;
@@ -257,6 +259,37 @@ GraphicsPrimitiveV3f*
 ChartTwoDataCartesian::getGraphicsPrimitive() const
 {
     return m_graphicsPrimitive.get();
+}
+
+/**
+ * @return The selection status
+ */
+bool
+ChartTwoDataCartesian::isSelected() const
+{
+    return m_selectionStatus;
+}
+
+/**
+ * Set the selection status.
+ *
+ * @param selectionStatus
+ *    New selection status.
+ */
+void
+ChartTwoDataCartesian::setSelected(const bool selectionStatus)
+{
+    m_selectionStatus = selectionStatus;
+    
+    /*
+     * When selection status is true,
+     * notify parent.
+     */
+    //    if (m_selectionStatus[tabIndex]) {
+    //        if (m_parentChartModel != NULL) {
+    //            m_parentChartModel->childChartTwoDataSelectionChanged(this);
+    //        }
+    //    }
 }
 
 
@@ -381,44 +414,42 @@ ChartTwoDataCartesian::setColor(const CaretColorEnum::Enum color)
 }
 
 /**
- * Save subclass data to the scene.
+ * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
  *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
+ *    saving the scene.
  *
- * @param sceneClass
- *     sceneClass to which data members should be added.  Will always
- *     be valid (non-NULL).
+ * @param instanceName
+ *    Name of instance in the scene.
  */
-void
-ChartTwoDataCartesian::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-                                     SceneClass* sceneClass)
+SceneClass*
+ChartTwoDataCartesian::saveToScene(const SceneAttributes* sceneAttributes,
+                          const AString& instanceName)
 {
-    SceneClass* chartDataCartesian = new SceneClass("chartDataCartesian",
-                                               "ChartTwoDataCartesian",
-                                               1);
-    
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ChartTwoDataCartesian",
+                                            1);
     m_sceneAssistant->saveMembers(sceneAttributes,
-                                  chartDataCartesian);
-
+                                  sceneClass);
+    
 //    chartDataCartesian->addClass(m_mapFileDataSelector->saveToScene(sceneAttributes,
 //                                                            "m_mapFileDataSelector"));
     
     const std::vector<float>& xyz = m_graphicsPrimitive->getFloatXYZ();
     const int32_t numXYZ = static_cast<int32_t>(xyz.size());
     if (numXYZ > 0) {
-        chartDataCartesian->addFloatArray("xyz",
-                                          &xyz[0],
-                                          numXYZ);
+        sceneClass->addFloatArray("xyz",
+                                  &xyz[0],
+                                  numXYZ);
     }
-    
-    sceneClass->addClass(chartDataCartesian);
+
+    return sceneClass;
 }
 
 /**
- * Restore file data from the scene.
+ * Restore information specific to the type of model from the scene.
  *
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
@@ -426,25 +457,22 @@ ChartTwoDataCartesian::saveSubClassDataToScene(const SceneAttributes* sceneAttri
  *    restoring the scene.
  *
  * @param sceneClass
- *     sceneClass for the instance of a class that implements
- *     this interface.  Will NEVER be NULL.
+ *     sceneClass from which model specific information is obtained.
  */
 void
-ChartTwoDataCartesian::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-                                          const SceneClass* sceneClass)
+ChartTwoDataCartesian::restoreFromScene(const SceneAttributes* sceneAttributes,
+                               const SceneClass* sceneClass)
 {
-    m_graphicsPrimitive = createGraphicsPrimitive();
-    
-    const SceneClass* chartDataCartesian = sceneClass->getClass("chartDataCartesian");
-    if (chartDataCartesian == NULL) {
+    if (sceneClass == NULL) {
         return;
     }
+    m_graphicsPrimitive = createGraphicsPrimitive();
     
-    m_sceneAssistant->restoreMembers(sceneAttributes, chartDataCartesian);
+    m_sceneAssistant->restoreMembers(sceneAttributes, sceneClass);
     
 //    m_mapFileDataSelector->restoreFromScene(sceneAttributes, chartDataCartesian->getClass("m_mapFileDataSelector"));
     
-    const ScenePrimitiveArray* xyzArray = chartDataCartesian->getPrimitiveArray("xyz");
+    const ScenePrimitiveArray* xyzArray = sceneClass->getPrimitiveArray("xyz");
     if (xyzArray != NULL) {
         const int32_t numElements = xyzArray->getNumberOfArrayElements();
         if (numElements > 0) {

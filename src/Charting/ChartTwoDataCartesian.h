@@ -22,9 +22,11 @@
 /*LICENSE_END*/
 
 #include "CaretColorEnum.h"
+#include "CaretObjectTracksModification.h"
 #include "ChartAxisUnitsEnum.h"
-#include "ChartTwoData.h"
+#include "ChartTwoDataTypeEnum.h"
 #include "GraphicsPrimitive.h"
+#include "SceneableInterface.h"
 
 
 namespace caret {
@@ -32,8 +34,9 @@ namespace caret {
     class ChartPoint;
     class GraphicsPrimitiveV3f;
     class MapFileDataSelector;
+    class SceneClassAssistant;
     
-    class ChartTwoDataCartesian : public ChartTwoData {
+    class ChartTwoDataCartesian : public CaretObjectTracksModification, public SceneableInterface {
         
     public:
         ChartTwoDataCartesian(const ChartTwoDataTypeEnum::Enum chartDataType,
@@ -43,7 +46,11 @@ namespace caret {
         
         virtual ~ChartTwoDataCartesian();
         
-        virtual ChartTwoData* clone() const;
+        virtual ChartTwoDataCartesian* clone() const;
+        
+        bool isSelected() const;
+        
+        void setSelected(const bool selectionStatus);
         
         void addPoint(const float x,
                       const float y);
@@ -74,12 +81,18 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-    protected:
-        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-                                             SceneClass* sceneClass);
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
         
-        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-                                                  const SceneClass* sceneClass);
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
+    protected:
+//        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+//                                             SceneClass* sceneClass);
+//        
+//        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+//                                                  const SceneClass* sceneClass);
         
         
     private:
@@ -102,6 +115,8 @@ namespace caret {
         ChartAxisUnitsEnum::Enum m_dataAxisUnitsY;
         
         const GraphicsPrimitive::PrimitiveType m_graphicsPrimitiveType;
+        
+        bool m_selectionStatus;
         
         CaretColorEnum::Enum m_color;
         

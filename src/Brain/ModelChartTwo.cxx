@@ -83,9 +83,6 @@ ModelChartTwo::ModelChartTwo(Brain* brain)
                                                                                                      "Line Series Chart Overlays"));
 
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        //m_chartableMatrixFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface(m_brain);
-        //m_chartableMatrixSeriesFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(m_brain,
-        //                                                                               DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES);
         m_chartTwoMatrixDisplayProperties[i] = new ChartTwoMatrixDisplayProperties();
     }
     
@@ -119,12 +116,6 @@ ModelChartTwo::~ModelChartTwo()
     removeAllCharts();    
 
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        //delete m_chartableMatrixFileSelectionModel[i];
-        //m_chartableMatrixFileSelectionModel[i] = NULL;
-        
-        //delete m_chartableMatrixSeriesFileSelectionModel[i];
-        //m_chartableMatrixSeriesFileSelectionModel[i] = NULL;
-        
         delete m_chartTwoMatrixDisplayProperties[i];
         m_chartTwoMatrixDisplayProperties[i] = NULL;
     }
@@ -157,81 +148,6 @@ ModelChartTwo::removeAllCharts()
 {
 }
 
-/**
- * Load chart data for an average of surface nodes.
- *
- * @param structure
- *     The surface structure
- * @param surfaceNumberOfNodes
- *     Number of nodes in surface.
- * @param nodeIndices
- *     Indices of node.
- * @throws
- *     DataFileException if there is an error loading data.
- */
-void
-ModelChartTwo::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                         const int32_t surfaceNumberOfNodes,
-                                         const std::vector<int32_t>& nodeIndices)
-{
-    CaretAssertToDoWarning();
-//    std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
-//    getTabsAndBrainordinateChartFilesForLineChartLoading(chartFileEnabledTabs);
-//    
-//    for (std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
-//         fileTabIter != chartFileEnabledTabs.end();
-//         fileTabIter++) {
-//        ChartableLineSeriesBrainordinateInterface* chartFile = fileTabIter->first;
-//        const std::vector<int32_t>  tabIndices = fileTabIter->second;
-//        
-//        CaretAssert(chartFile);
-//        ChartData* chartData = chartFile->loadAverageLineSeriesChartDataForSurfaceNodes(structure,
-//                                                                              nodeIndices);
-//        if (chartData != NULL) {
-//            ChartDataSource* dataSource = chartData->getChartDataSource();
-//            dataSource->setSurfaceNodeAverage(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
-//                                              StructureEnum::toName(structure),
-//                                              surfaceNumberOfNodes, nodeIndices);
-//            
-//            addChartToChartModels(tabIndices,
-//                                  chartData);
-//        }
-//    }    
-}
-
-/**
- * Load chart data for voxel at the given coordinate.
- *
- * @param xyz
- *     Coordinate of voxel.
- * @throws
- *     DataFileException if there is an error loading data.
- */
-void
-ModelChartTwo::loadChartDataForVoxelAtCoordinate(const float xyz[3])
-{
-    CaretAssertToDoWarning();
-//    std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
-//    getTabsAndBrainordinateChartFilesForLineChartLoading(chartFileEnabledTabs);
-//    
-//    for (std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
-//         fileTabIter != chartFileEnabledTabs.end();
-//         fileTabIter++) {
-//        ChartableLineSeriesBrainordinateInterface* chartFile = fileTabIter->first;
-//        const std::vector<int32_t>  tabIndices = fileTabIter->second;
-//        
-//        CaretAssert(chartFile);
-//        ChartData* chartData = chartFile->loadLineSeriesChartDataForVoxelAtCoordinate(xyz);
-//        if (chartData != NULL) {
-//            ChartDataSource* dataSource = chartData->getChartDataSource();
-//            dataSource->setVolumeVoxel(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
-//                                       xyz);
-//            
-//            addChartToChartModels(tabIndices,
-//                                  chartData);
-//        }
-//    }
-}
 
 /**
  * Load chart data for CIFTI Map files yoked to the given yoking group.
@@ -326,144 +242,6 @@ ModelChartTwo::loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* cifti
 //        }
 //    }
 }
-
-///**
-// * Get tabs and brainordinate chart files for loading chart data.
-// *
-// * @param chartBrainordinateFileEnabledTabsOut
-// *    Map with first being a chartable file and the second being
-// *    tabs for which that chartable file is enabled.
-// */
-//void
-//ModelChartTwo::getTabsAndBrainordinateChartFilesForLineChartLoading(std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >& chartBrainordinateFileEnabledTabsOut) const
-//{
-//    chartBrainordinateFileEnabledTabsOut.clear();
-//    
-//    std::map<ChartableLineSeriesInterface*, std::vector<int32_t> > chartFileEnabledTabs;
-//    getTabsAndLineSeriesChartFilesForLineChartLoading(chartFileEnabledTabs);
-//    
-//    for (std::map<ChartableLineSeriesInterface*, std::vector<int32_t> >::iterator iter = chartFileEnabledTabs.begin();
-//         iter != chartFileEnabledTabs.end();
-//         iter++) {
-//        ChartableLineSeriesBrainordinateInterface* brainChartFile = dynamic_cast<ChartableLineSeriesBrainordinateInterface*>(iter->first);
-//        if (brainChartFile != NULL) {
-//            chartBrainordinateFileEnabledTabsOut.insert(std::make_pair(brainChartFile,
-//                                                                       iter->second));
-//        }
-//    }
-//}
-
-
-///**
-// * Get tabs and row column chart files for loading chart data.
-// *
-// * @param chartRowColumnFilesEnabledTabsOut
-// *    Map with first being a chartable file and the second being
-// *    tabs for which that chartable file is enabled.
-// */
-//void
-//ModelChartTwo::getTabsAndRowColumnChartFilesForLineChartLoading(std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> >& chartRowColumnFilesEnabledTabsOut) const
-//{
-//    chartRowColumnFilesEnabledTabsOut.clear();
-//    
-//    std::map<ChartableLineSeriesInterface*, std::vector<int32_t> > chartFileEnabledTabs;
-//    getTabsAndLineSeriesChartFilesForLineChartLoading(chartFileEnabledTabs);
-//    
-//    for (std::map<ChartableLineSeriesInterface*, std::vector<int32_t> >::iterator iter = chartFileEnabledTabs.begin();
-//         iter != chartFileEnabledTabs.end();
-//         iter++) {
-//        ChartableLineSeriesRowColumnInterface* rowColChartFile = dynamic_cast<ChartableLineSeriesRowColumnInterface*>(iter->first);
-//        if (rowColChartFile != NULL) {
-//            chartRowColumnFilesEnabledTabsOut.insert(std::make_pair(rowColChartFile,
-//                                                                       iter->second));
-//        }
-//    }
-//}
-
-///**
-// * Get line series chart files for loading chart data.
-// *
-// * @param chartFileEnabledTabsOut
-// *    Map with first being a chartable file and the second being
-// *    tabs for which that chartable file is enabled.
-// */
-//void
-//ModelChartTwo::getTabsAndLineSeriesChartFilesForLineChartLoading(std::map<ChartableLineSeriesInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const
-//{
-//    chartFileEnabledTabsOut.clear();
-//    
-//    EventBrowserTabGetAll allTabsEvent;
-//    EventManager::get()->sendEvent(allTabsEvent.getPointer());
-//    std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
-//    
-//    std::vector<ChartableLineSeriesInterface*> chartFiles;
-//    m_brain->getAllChartableLineSeriesDataFiles(chartFiles);
-//    
-//    for (std::vector<ChartableLineSeriesInterface*>::iterator iter = chartFiles.begin();
-//         iter != chartFiles.end();
-//         iter++) {
-//        ChartableLineSeriesInterface* cf = *iter;
-//        std::vector<int32_t> chartFileTabIndices;
-//        
-//        for (std::vector<int32_t>::iterator tabIter = validTabIndices.begin();
-//             tabIter != validTabIndices.end();
-//             tabIter++) {
-//            const int32_t tabIndex = *tabIter;
-//            if (cf->isLineSeriesChartingEnabled(tabIndex)) {
-//                chartFileTabIndices.push_back(tabIndex);
-//            }
-//        }
-//        
-//        if ( ! chartFileTabIndices.empty()) {
-//            chartFileEnabledTabsOut.insert(std::make_pair(cf, chartFileTabIndices));
-//        }
-//    }
-//}
-
-/**
- * Load chart data for a surface node.
- *
- * @param structure
- *     The surface structure
- * @param surfaceNumberOfNodes
- *     Number of nodes in surface.
- * @param nodeIndex
- *     Index of node.
- * @throws
- *     DataFileException if there is an error loading data.
- */
-void
-ModelChartTwo::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                        const int32_t surfaceNumberOfNodes,
-                                        const int32_t nodeIndex)
-{
-    CaretAssertToDoWarning();
-    
-//    std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
-//    getTabsAndBrainordinateChartFilesForLineChartLoading(chartFileEnabledTabs);
-//    
-//    for (std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
-//         fileTabIter != chartFileEnabledTabs.end();
-//         fileTabIter++) {
-//        ChartableLineSeriesBrainordinateInterface* chartFile = fileTabIter->first;
-//        const std::vector<int32_t>  tabIndices = fileTabIter->second;
-//
-//        CaretAssert(chartFile);
-//        ChartData* chartData = chartFile->loadLineSeriesChartDataForSurfaceNode(structure,
-//                                               nodeIndex);
-//        if (chartData != NULL) {
-//            ChartDataSource* dataSource = chartData->getChartDataSource();
-//            dataSource->setSurfaceNode(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
-//                                       StructureEnum::toName(structure),
-//                                       surfaceNumberOfNodes,
-//                                       nodeIndex);
-//            
-//            addChartToChartModels(tabIndices,
-//                                  chartData);
-//        }
-//    }
-}
-
 /**
  * Receive an event.
  * 

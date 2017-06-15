@@ -41,7 +41,6 @@ ChartingVersionEnum.h
 ChartTwoAxisScaleRangeModeEnum.h
 ChartTwoCartesianAxis.h
 ChartTwoCompoundDataType.h
-ChartTwoData.h
 ChartTwoDataCartesian.h
 ChartTwoDataTypeEnum.h
 ChartTwoHistogramContentTypeEnum.h
@@ -81,7 +80,6 @@ ChartingVersionEnum.cxx
 
 ChartTwoCartesianAxis.cxx
 ChartTwoCompoundDataType.cxx
-ChartTwoData.cxx
 ChartTwoDataCartesian.cxx
 ChartTwoDataTypeEnum.cxx
 ChartTwoHistogramContentTypeEnum.cxx

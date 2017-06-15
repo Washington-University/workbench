@@ -169,8 +169,7 @@ ChartTwoLineSeriesHistory::copyHelperChartTwoLineSeriesHistory(const ChartTwoLin
     clearHistory();
     
     for (const auto item : m_chartHistory) {
-        ChartTwoData* chartData = item->clone();
-        ChartTwoDataCartesian* cartData = dynamic_cast<ChartTwoDataCartesian*>(chartData);
+        ChartTwoDataCartesian* cartData = item->clone();
         CaretAssert(cartData);
         
         addHistoryItem(cartData);
