@@ -307,6 +307,13 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
          * longer added to scenes since the palette normalization is a file 
          * property stored in the file's metadata.
          */
+        /*
+         * WB-690 request normalization mode be saved to scenes
+         * so adding it back in.
+         */
+        sceneClass->addEnumeratedType<PaletteNormalizationModeEnum,
+            PaletteNormalizationModeEnum::Enum>("m_paletteNormalizationMode",
+                                                getPaletteNormalizationMode());
         
         if (sceneAttributes->isModifiedPaletteSettingsSavedToScene()) {
             std::vector<SceneClass*> pcmClassVector;
