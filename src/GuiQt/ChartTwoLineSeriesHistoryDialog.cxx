@@ -134,6 +134,7 @@ ChartTwoLineSeriesHistoryDialog::ChartTwoLineSeriesHistoryDialog(QWidget* parent
  */
 ChartTwoLineSeriesHistoryDialog::~ChartTwoLineSeriesHistoryDialog()
 {
+    std::cout << "CLOSING CHART LINE SERIES HISTORY" << std::endl;
 }
 
 /**
@@ -142,8 +143,26 @@ ChartTwoLineSeriesHistoryDialog::~ChartTwoLineSeriesHistoryDialog()
 void
 ChartTwoLineSeriesHistoryDialog::updateDialog()
 {
-    updateDialogContent(m_chartOverlay);
+    updateDialogContentPrivate();
 }
+
+/**
+ * @return The chart overlay in this dialog (May be NULL !)
+ */
+ChartTwoOverlay*
+ChartTwoLineSeriesHistoryDialog::getChartOverlay()
+{
+    ChartTwoOverlay* chartOverlay = NULL;
+    if (m_chartOverlayWeakPointer.expired()) {
+        m_chartOverlayWeakPointer.reset();
+    }
+    else {
+        chartOverlay = m_chartOverlayWeakPointer.lock().get();
+    }
+    
+    return chartOverlay;
+}
+
 
 /**
  * Update dialog if the given chart overlay is in the dialog.
@@ -155,9 +174,15 @@ ChartTwoLineSeriesHistoryDialog::updateDialog()
 void
 ChartTwoLineSeriesHistoryDialog::updateIfThisChartOverlayIsInDialog(const ChartTwoOverlay* chartOverlay)
 {
-    if (m_chartOverlay == chartOverlay) {
-        updateDialogContent(m_chartOverlay);
+    ChartTwoOverlay* currentChartOverlay = getChartOverlay();
+    
+    if (currentChartOverlay != NULL) {
+        if (chartOverlay != currentChartOverlay) {
+            return;
+        }
     }
+    
+    updateDialogContentPrivate();
 }
 
 /**
@@ -169,7 +194,20 @@ ChartTwoLineSeriesHistoryDialog::updateIfThisChartOverlayIsInDialog(const ChartT
 void
 ChartTwoLineSeriesHistoryDialog::updateDialogContent(ChartTwoOverlay* chartOverlay)
 {
-    m_chartOverlay = chartOverlay;
+    CaretAssert(chartOverlay);
+    m_chartOverlayWeakPointer = chartOverlay->getWeakPointerToSelf();
+    updateDialogContentPrivate();
+}
+
+void
+ChartTwoLineSeriesHistoryDialog::updateDialogContentPrivate()
+{
+    ChartTwoOverlay* chartOverlay = getChartOverlay();
+    if (chartOverlay == NULL) {
+        close();
+        return;
+    }
+    
     ChartTwoLineSeriesHistory* lineSeriesHistory = getLineSeriesHistory();
     
     if (lineSeriesHistory != NULL) {
@@ -191,6 +229,7 @@ ChartTwoLineSeriesHistoryDialog::updateDialogContent(ChartTwoOverlay* chartOverl
     }
 }
 
+
 /**
  * @return Map file in the dialog.
  */
@@ -198,11 +237,12 @@ CaretMappableDataFile*
 ChartTwoLineSeriesHistoryDialog::getMapFile()
 {
     CaretMappableDataFile* mapFile = NULL;
-    if (m_chartOverlay != NULL) {
-        if (m_chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES) {
+    ChartTwoOverlay* chartOverlay = getChartOverlay();
+    if (chartOverlay != NULL) {
+        if (chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES) {
             ChartTwoOverlay::SelectedIndexType indexType = ChartTwoOverlay::SelectedIndexType::INVALID;
             int32_t mapIndex = -1;
-            m_chartOverlay->getSelectionData(mapFile, indexType, mapIndex);
+            chartOverlay->getSelectionData(mapFile, indexType, mapIndex);
         }
     }
     
@@ -275,12 +315,8 @@ ChartTwoLineSeriesHistoryDialog::loadHistoryIntoTableWidget(ChartTwoLineSeriesHi
                 m_tableWidget->setCellWidget(iRow,
                                              COLUMN_REMOVE,
                                              removeHistoryLabel);
-//                flags = (Qt::ItemIsEnabled);
-//                         //| Qt::ItemIsSelectable);
             }
             else if (j == COLUMN_COLOR) {
-//                flags = (Qt::ItemIsEnabled
-//                         | Qt::ItemIsSelectable);
                 CaretColorEnumComboBox* caretColorComboBox = new CaretColorEnumComboBox(this);
                 QObject::connect(caretColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                                  m_colorItemSignalMapper, SLOT(map()));

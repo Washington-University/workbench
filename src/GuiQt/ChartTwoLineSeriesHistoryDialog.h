@@ -77,13 +77,17 @@ namespace caret {
 
         ChartTwoLineSeriesHistoryDialog& operator=(const ChartTwoLineSeriesHistoryDialog&);
         
+        void updateDialogContentPrivate();
+        
         void loadHistoryIntoTableWidget(ChartTwoLineSeriesHistory* lineSeriesHistory);
+        
+        ChartTwoOverlay* getChartOverlay();
         
         ChartTwoLineSeriesHistory* getLineSeriesHistory();
         
         CaretMappableDataFile* getMapFile();
         
-        ChartTwoOverlay* m_chartOverlay = NULL;
+        std::weak_ptr<ChartTwoOverlay> m_chartOverlayWeakPointer;
         
         QTableWidget* m_tableWidget;
         

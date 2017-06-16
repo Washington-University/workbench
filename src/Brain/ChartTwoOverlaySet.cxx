@@ -141,10 +141,12 @@ m_tabIndex(tabIndex)
                           &m_numberOfDisplayedOverlays);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        m_overlays[i] = new ChartTwoOverlay(this,
-                                            m_chartDataType,
-                                            m_tabIndex,
-                                            i);
+        m_overlays.push_back(std::make_shared<ChartTwoOverlay>(this,
+                                                                    m_chartDataType,
+                                                                    m_tabIndex,
+                                                                    i));
+        CaretAssertVectorIndex(m_overlays, i);
+        m_overlays[i]->setWeakPointerToSelf(m_overlays[i]);
     }
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
@@ -158,9 +160,7 @@ m_tabIndex(tabIndex)
 ChartTwoOverlaySet::~ChartTwoOverlaySet()
 {
     EventManager::get()->removeAllEventsFromListener(this);
-    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        delete m_overlays[i];
-    }
+    m_overlays.clear();
     delete m_sceneAssistant;
 }
 
@@ -189,7 +189,7 @@ ChartTwoOverlaySet::copyOverlaySet(const ChartTwoOverlaySet* overlaySet)
 ChartTwoOverlay*
 ChartTwoOverlaySet::getPrimaryOverlay()
 {
-    return m_overlays[0];
+    return m_overlays[0].get();
 }
 
 /**
@@ -198,11 +198,15 @@ ChartTwoOverlaySet::getPrimaryOverlay()
 const ChartTwoOverlay*
 ChartTwoOverlaySet::getPrimaryOverlay() const
 {
-    return m_overlays[0];
+    return m_overlays[0].get();
 }
 
 /**
- * Get the overlay at the specified index.
+ * Get the overlay at the specified index.  If caller needs
+ * to store the pointer there is a risk that the overlay 
+ * may be destroyed.  Consider using getOverlayWeakPointer()
+ * instead.
+ *
  * @param overlayNumber
  *   Index of the overlay.
  * @return Overlay at the given index.
@@ -213,11 +217,15 @@ ChartTwoOverlaySet::getOverlay(const int32_t overlayNumber) const
     CaretAssertArrayIndex(m_overlays,
                           BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS,
                           overlayNumber);
-    return m_overlays[overlayNumber];
+    return m_overlays[overlayNumber].get();
 }
 
 /**
- * Get the overlay at the specified index.
+ * Get the overlay at the specified index.  If caller needs
+ * to store the pointer there is a risk that the overlay
+ * may be destroyed.  Consider using getOverlayWeakPointer()
+ * instead.
+ *
  * @param overlayNumber
  *   Index of the overlay.
  * @return Overlay at the given index.
@@ -228,8 +236,27 @@ ChartTwoOverlaySet::getOverlay(const int32_t overlayNumber)
     CaretAssertArrayIndex(m_overlays,
                           BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS,
                           overlayNumber);
+    return m_overlays[overlayNumber].get();
+}
+
+/**
+ * Get the a "weak pointer" to the chart overlay at the given
+ * index.  Caller can store this pointer and test to see
+ * if the chart overlay is still valid.
+ *
+ * @param overlayNumber
+ *   Index of the overlay.
+ * @return Weak pointer to chart verlay at the given index.
+ */
+std::weak_ptr<ChartTwoOverlay>
+ChartTwoOverlaySet::getOverlayWeakPointer(const int32_t overlayNumber)
+{
+    CaretAssertArrayIndex(m_overlays,
+                          BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS,
+                          overlayNumber);
     return m_overlays[overlayNumber];
 }
+
 
 /**
  * Get a text description of the window's content.
@@ -314,36 +341,6 @@ ChartTwoOverlaySet::getNumberOfDisplayedOverlays() const
 }
 
 /**
- * Sets the number of displayed overlays.
- * @param numberOfDisplayedOverlays
- *   Number of overlays for display.
- */
-void
-ChartTwoOverlaySet::setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays)
-{
-    const int32_t oldNumberOfDisplayedOverlays = m_numberOfDisplayedOverlays;
-    m_numberOfDisplayedOverlays = numberOfDisplayedOverlays;
-    if (m_numberOfDisplayedOverlays < BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
-        m_numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
-    }
-    if (m_numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
-        m_numberOfDisplayedOverlays = BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS;
-    }
-    
-    /*
-     * If one overlay added (probably through GUI),
-     * shift all overlays down one position so that
-     * new overlay appears at the top
-     */
-    const int32_t numberOfOverlaysAdded = m_numberOfDisplayedOverlays - oldNumberOfDisplayedOverlays;
-    if (numberOfOverlaysAdded == 1) {
-        for (int32_t i = (m_numberOfDisplayedOverlays - 1); i >= 0; i--) {
-            moveDisplayedOverlayDown(i);
-        }
-    }
-}
-
-/**
  * Insert an overlay below this overlay
  * @param overlayIndex
  *     Index of overlay for which an overlay is added below
@@ -398,7 +395,7 @@ ChartTwoOverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
         m_numberOfDisplayedOverlays--;
         for (int32_t i = overlayIndex; i < m_numberOfDisplayedOverlays; i++) {
             CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i+1);
-            m_overlays[i]->copyData(m_overlays[i+1]);
+            m_overlays[i]->copyData(m_overlays[i+1].get());
         }
     }
 }
@@ -416,7 +413,7 @@ ChartTwoOverlaySet::moveDisplayedOverlayUp(const int32_t overlayIndex)
 {
     if (overlayIndex > 0) {
         CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex);
-        m_overlays[overlayIndex]->swapData(m_overlays[overlayIndex - 1]);
+        m_overlays[overlayIndex]->swapData(m_overlays[overlayIndex - 1].get());
     }
 }
 
@@ -434,7 +431,7 @@ ChartTwoOverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
     const int32_t nextOverlayIndex = overlayIndex + 1;
     if (nextOverlayIndex < m_numberOfDisplayedOverlays) {
         CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, nextOverlayIndex);
-        m_overlays[overlayIndex]->swapData(m_overlays[nextOverlayIndex]);
+        m_overlays[overlayIndex]->swapData(m_overlays[nextOverlayIndex].get());
     }
 }
 
@@ -604,60 +601,6 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
         }
     }
 }
-
-///**
-// * @return The chart left-axis.
-// */
-//ChartTwoCartesianAxis*
-//ChartTwoOverlaySet::getChartAxisLeft()
-//{
-//    return m_chartAxisLeft.get();
-//}
-//
-///**
-// * @return The chart left-axis (const method)
-// */
-//const ChartTwoCartesianAxis*
-//ChartTwoOverlaySet::getChartAxisLeft() const
-//{
-//    return m_chartAxisLeft.get();
-//}
-//
-///**
-// * @return The chart right-axis.
-// */
-//ChartTwoCartesianAxis*
-//ChartTwoOverlaySet::getChartAxisRight()
-//{
-//    return m_chartAxisRight.get();
-//}
-//
-///**
-// * @return The chart right-axis (const method)
-// */
-//const ChartTwoCartesianAxis*
-//ChartTwoOverlaySet::getChartAxisRight() const
-//{
-//    return m_chartAxisRight.get();
-//}
-//
-///**
-// * @return The chart bottom-axis.
-// */
-//ChartTwoCartesianAxis*
-//ChartTwoOverlaySet::getChartAxisBottom()
-//{
-//    return m_chartAxisBottom.get();
-//}
-//
-///**
-// * @return The chart bottom-axis (const method)
-// */
-//const ChartTwoCartesianAxis*
-//ChartTwoOverlaySet::getChartAxisBottom() const
-//{
-//    return m_chartAxisBottom.get();
-//}
 
 /**
  * Get the displayed chart axes.

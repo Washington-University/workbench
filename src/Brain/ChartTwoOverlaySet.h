@@ -55,25 +55,13 @@ namespace caret {
         
         const ChartTwoOverlay* getOverlay(const int32_t overlayNumber) const;
         
-        void addDisplayedOverlay();
+        std::weak_ptr<ChartTwoOverlay> getOverlayWeakPointer(const int32_t overlayNumber);
         
-        void setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays);
+        void addDisplayedOverlay();
         
         int32_t getNumberOfDisplayedOverlays() const;
         
         ChartTwoOverlay* getDisplayedOverlayContainingDataFile(const CaretMappableDataFile* mapFile);
-        
-//        ChartTwoCartesianAxis* getChartAxisLeft();
-//        
-//        const ChartTwoCartesianAxis* getChartAxisLeft() const;
-//        
-//        ChartTwoCartesianAxis* getChartAxisRight();
-//        
-//        const ChartTwoCartesianAxis* getChartAxisRight() const;
-//        
-//        ChartTwoCartesianAxis* getChartAxisBottom();
-//        
-//        const ChartTwoCartesianAxis* getChartAxisBottom() const;
         
         std::vector<ChartTwoCartesianAxis*> getDisplayedChartAxes() const;
         
@@ -129,7 +117,9 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
 
-        ChartTwoOverlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
+        //ChartTwoOverlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
+        
+        std::vector<std::shared_ptr<ChartTwoOverlay>> m_overlays;
         
         const ChartTwoDataTypeEnum::Enum m_chartDataType;
         

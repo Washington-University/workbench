@@ -110,6 +110,31 @@ ChartTwoOverlay::~ChartTwoOverlay()
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
+/**
+ * @return Weak pointer to instance.
+ * This weak pointer stored by classes (such as those in the GUI)
+ * safely test if an instance is still valid and can be safely accessed.
+ */
+std::weak_ptr<ChartTwoOverlay>
+ChartTwoOverlay::getWeakPointerToSelf()
+{
+    return m_weakPointerToSelf;
+}
+
+/**
+ * Set the weak pointer for this instance.
+ * This is called by the parent ChartTwoOverlaySet.
+ *
+ * @param weakPointerToSelf
+ *     Weak pointer to this instance.
+ */
+void
+ChartTwoOverlay::setWeakPointerToSelf(std::weak_ptr<ChartTwoOverlay> weakPointerToSelf)
+{
+    m_weakPointerToSelf = weakPointerToSelf;
+    CaretAssert( ! m_weakPointerToSelf.expired());
+    CaretAssert(m_weakPointerToSelf.lock().get() == this);
+}
 
 /**
  * Receive an event.
@@ -728,8 +753,6 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                             if (selectedFileMapNamesOut != NULL) {
                                 for (int32_t i = 0; i < numMaps; i++) {
                                     selectedFileMapNamesOut->push_back(matrixChart->getColumnName(i));
-                                    //                                const AString namePrefix = "Column ";
-                                    //                                selectedFileMapNamesOut->push_back(namePrefix + QString::number(i));
                                 }
                             }
                         }
@@ -744,8 +767,6 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                             if (selectedFileMapNamesOut != NULL) {
                                 for (int32_t i = 0; i < numMaps; i++) {
                                     selectedFileMapNamesOut->push_back(matrixChart->getRowName(i));
-                                    //                                const AString namePrefix = "Row ";
-                                    //                                selectedFileMapNamesOut->push_back(namePrefix + QString::number(i));
                                 }
                             }
                         }

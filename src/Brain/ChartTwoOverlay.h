@@ -56,6 +56,8 @@ namespace caret {
         
         virtual ~ChartTwoOverlay();
         
+        std::weak_ptr<ChartTwoOverlay> getWeakPointerToSelf();
+        
         ChartTwoDataTypeEnum::Enum getChartTwoDataType() const;
         
         ChartTwoCompoundDataType getChartTwoCompoundDataType() const;
@@ -155,6 +157,8 @@ namespace caret {
 
         ChartTwoOverlay& operator=(const ChartTwoOverlay&);
         
+        void setWeakPointerToSelf(std::weak_ptr<ChartTwoOverlay> weakPointerToSelf);
+        
         void getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& mapFilesOut,
                                      CaretMappableDataFile* &selectedMapFileOut,
                                      std::vector<AString>* selectedFileMapNamesOut,
@@ -206,8 +210,12 @@ namespace caret {
         /** Location of vertical cartesian axis*/
         mutable ChartAxisLocationEnum::Enum m_cartesianVerticalAxisLocation;
         
+        /** A weak pointer to 'self' so that can be stored to safely test instance is valid and can be accessed */
+        std::weak_ptr<ChartTwoOverlay> m_weakPointerToSelf;
+        
         // ADD_NEW_MEMBERS_HERE
 
+        friend class ChartTwoOverlaySet;
     };
     
 #ifdef __CHART_TWO_OVERLAY_DECLARE__
