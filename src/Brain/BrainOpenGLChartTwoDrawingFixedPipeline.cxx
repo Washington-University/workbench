@@ -680,7 +680,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
     }
     
     std::vector<std::unique_ptr<HistogramChartDrawingInfo>> histogramDrawingInfo;
-    std::vector<LineSeriesChartDrawingInfo> lineSeriesChartsToDraw;
+    std::deque<LineSeriesChartDrawingInfo> lineSeriesChartsToDraw;
     
     /*
      * Get the histogram drawing information and overall extent
@@ -780,7 +780,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                 break;
                         }
                         
-                        lineSeriesChartsToDraw.push_back(LineSeriesChartDrawingInfo(lineSeriesChart,
+                        lineSeriesChartsToDraw.push_front(LineSeriesChartDrawingInfo(lineSeriesChart,
                                                                                     data,
                                                                                     chartOverlay->getCartesianVerticalAxisLocation()));
                     }
