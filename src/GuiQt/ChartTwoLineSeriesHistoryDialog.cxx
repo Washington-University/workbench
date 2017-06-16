@@ -134,7 +134,6 @@ ChartTwoLineSeriesHistoryDialog::ChartTwoLineSeriesHistoryDialog(QWidget* parent
  */
 ChartTwoLineSeriesHistoryDialog::~ChartTwoLineSeriesHistoryDialog()
 {
-    std::cout << "CLOSING CHART LINE SERIES HISTORY" << std::endl;
 }
 
 /**
