@@ -152,11 +152,6 @@
 
 using namespace caret;
 
-/*
- * When true,
- */
-static bool drawTabAnnotationsAfterTabContentFlag = true;
-
 /**
  * Constructor.
  *
@@ -300,16 +295,13 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
     this->drawModelInternal(MODE_IDENTIFICATION,
                             viewportContent);
 
-    if (drawTabAnnotationsAfterTabContentFlag) {
-        /*
-         * Clear depth buffer since tab and window
-         * annotations ALWAYS are on top of
-         * everything else.
-         */
-        glClear(GL_DEPTH_BUFFER_BIT);
-        drawTabAnnotations(viewportContent); //,
-//                           m_tabViewport);
-    }
+    /*
+     * Clear depth buffer since tab and window
+     * annotations ALWAYS are on top of
+     * everything else.
+     */
+    glClear(GL_DEPTH_BUFFER_BIT);
+    drawTabAnnotations(viewportContent); //,
     
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
@@ -632,31 +624,28 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     }
     
     if ( ! viewportContents.empty()) {
-        if (drawTabAnnotationsAfterTabContentFlag) {
-            /*
-             * Clear depth buffer since tab and window
-             * annotations ALWAYS are on top of
-             * everything else.
-             */
-            glClear(GL_DEPTH_BUFFER_BIT);
-            
-            for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
-                /*
-                 * Viewport of window.
-                 */
-                BrainOpenGLViewportContent* vpContent = viewportContents[i];
-                setTabViewport(vpContent);
-                
-                /*
-                 * Update foreground and background colors for model
-                 */
-                updateForegroundAndBackgroundColors(vpContent);
-                
-                drawTabAnnotations(vpContent);
-                                   //m_tabViewport);
-            }
-        }
+        /*
+         * Clear depth buffer since tab and window
+         * annotations ALWAYS are on top of
+         * everything else.
+         */
+        glClear(GL_DEPTH_BUFFER_BIT);
         
+        for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+            /*
+             * Viewport of window.
+             */
+            BrainOpenGLViewportContent* vpContent = viewportContents[i];
+            setTabViewport(vpContent);
+            
+            /*
+             * Update foreground and background colors for model
+             */
+            updateForegroundAndBackgroundColors(vpContent);
+            
+            drawTabAnnotations(vpContent);
+            //m_tabViewport);
+        }        
         
         /*
          * Draw window viewport annotations
@@ -798,17 +787,13 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabCont
                                                              this->windowTabIndex,
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
+    std::vector<AnnotationGraphicsLabel*> emptyAnnotationChartGraphicsLabelsForDrawing;
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
-                                         m_annotationChartGraphicsLabelsForDrawing,
+                                         emptyAnnotationChartGraphicsLabelsForDrawing,
                                          NULL);
     
-    m_annotationDrawing->drawAnnotations(&inputs,
-                                         AnnotationCoordinateSpaceEnum::VIEWPORT,
-                                         m_annotationColorBarsForDrawing,
-                                         m_annotationChartGraphicsLabelsForDrawing,
-                                         NULL);
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -882,6 +867,20 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
                                          m_annotationColorBarsForDrawing,
                                          emptyAnnotationGraphicsLabelsForDrawing,
                                          NULL);
+    
+    
+    
+    
+    std::vector<AnnotationColorBar*> emptyColorBars;
+    m_annotationDrawing->drawAnnotations(&inputs,
+                                         AnnotationCoordinateSpaceEnum::VIEWPORT,
+                                         emptyColorBars,
+                                         m_annotationChartGraphicsLabelsForDrawing,
+                                         NULL);
+    m_annotationChartGraphicsLabelsForDrawing.clear();
+    
+    
+    
     
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
@@ -981,13 +980,6 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                                                                      this->windowTabIndex,
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
-            if ( ! drawTabAnnotationsAfterTabContentFlag) {
-                m_annotationDrawing->drawAnnotations(&inputs,
-                                                     AnnotationCoordinateSpaceEnum::TAB,
-                                                     m_annotationColorBarsForDrawing,
-                                                     m_annotationChartGraphicsLabelsForDrawing,
-                                                     NULL);
-            }
         }
     }
     

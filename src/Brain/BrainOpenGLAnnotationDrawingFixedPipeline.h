@@ -187,14 +187,14 @@ namespace caret {
         
         void drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                      std::vector<AnnotationColorBar*>& colorBars,
-                                     std::vector<AnnotationGraphicsLabel*>& annotationChartGraphicsLabelsForDrawing,
+                                     AnnotationGraphicsLabel* annotationChartGraphicsLabelsForDrawing,
                                      const Surface* surfaceDisplayed,
                                      const float sliceThickness);
         
-        bool getAnnotationWindowCoordinate(const Annotation* annotation,
-                                           const AnnotationCoordinate* coordinate,
-                                            const Surface* surfaceDisplayed,
-                                            float windowXYZOut[3]) const;
+        bool getAnnotationDrawingSpaceCoordinate(const Annotation* annotation,
+                                                 const AnnotationCoordinate* coordinate,
+                                                 const Surface* surfaceDisplayed,
+                                                 float xyzOut[3]) const;
         
         bool getAnnotationTwoDimShapeBounds(const AnnotationTwoDimensionalShape* annotation2D,
                                  const float windowXYZ[3],
@@ -327,9 +327,6 @@ namespace caret {
         void endOpenGLForDrawing(GLint savedShadeModel,
                                  GLboolean savedLightingEnabled);
         
-        void setupViewportSpaceDrawing(const Annotation* annotation,
-                                       TransformationInfo& transformationInfo);
-        
         void clipLineAtTextBox(const float bottomLeft[3],
                                const float bottomRight[3],
                                const float topRight[3],
@@ -362,9 +359,6 @@ namespace caret {
         
         /** OpenGL Viewport */
         GLint m_modelSpaceViewport[4];
-        
-        /** Browser tab's viewport */
-        //GLint m_tabViewport[4];
         
         /** volume space plane */
         Plane m_volumeSpacePlane;
