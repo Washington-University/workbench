@@ -33,7 +33,7 @@
 
 
 namespace caret {
-    class AnnotationGraphicsLabel;
+    class AnnotationPercentSizeText;
     class SceneClassAssistant;
 
     class ChartTwoCartesianAxis : public CaretObject, public SceneableInterface {
@@ -106,9 +106,9 @@ namespace caret {
                                    std::vector<float>& scaleValuesOffsetInPixelsOut,
                                    std::vector<AString>& scaleValuesOut) const;
         
-        const AnnotationGraphicsLabel* getAnnotationAxisLabel() const;
+        const AnnotationPercentSizeText* getAnnotationAxisLabel() const;
         
-        AnnotationGraphicsLabel* getAnnotationAxisLabel();
+        AnnotationPercentSizeText* getAnnotationAxisLabel();
         
         // ADD_NEW_METHODS_HERE
 
@@ -165,7 +165,7 @@ namespace caret {
         int32_t m_userDigitsRightOfDecimal = 1;
         
         /** Annotation used for drawing axis label and tick mark numeric values*/
-        std::unique_ptr<AnnotationGraphicsLabel> m_annotationAxisLabel;
+        std::unique_ptr<AnnotationPercentSizeText> m_annotationAxisLabel;
         
         ChartTwoAxisScaleRangeModeEnum::Enum m_scaleRangeMode = ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO;
         

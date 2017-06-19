@@ -28,7 +28,7 @@
 
 namespace caret {
 
-    class AnnotationGraphicsLabel;
+    class Annotation;
     class Brain;
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLTextRenderInterface;
@@ -67,7 +67,7 @@ namespace caret {
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                          const int32_t viewport[4],
-                                         std::vector<AnnotationGraphicsLabel*>& annotationChartGraphicsLabelsOut) = 0;
+                                         std::vector<Annotation*>& annotationChartGraphicsLabelsOut) = 0;
 
 
         // ADD_NEW_METHODS_HERE

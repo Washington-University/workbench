@@ -66,8 +66,12 @@ m_axisLocation(axisLocation)
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
             break;
     }
-    m_annotationAxisLabel = std::unique_ptr<AnnotationGraphicsLabel>(new AnnotationGraphicsLabel(AnnotationAttributesDefaultTypeEnum::NORMAL,
+    m_annotationAxisLabel = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                                                          fontSizeType));
+    m_annotationAxisLabel->setCoordinateSpace(AnnotationCoordinateSpaceEnum::VIEWPORT);
+    m_annotationAxisLabel->setTextColor(CaretColorEnum::RED);
+    m_annotationAxisLabel->setLineColor(CaretColorEnum::NONE);
+    m_annotationAxisLabel->setBackgroundColor(CaretColorEnum::NONE);
     
     /*
      * Allowable range minimum and maximum
@@ -103,7 +107,7 @@ m_axisLocation(axisLocation)
     m_sceneAssistant->add("m_showTickmarks",
                           &m_showTickmarks);
     m_sceneAssistant->add("m_annotationAxisLabel",
-                          "AnnotationGraphicsLabel",
+                          "AnnotationPercentSizeText",
                           m_annotationAxisLabel.get());
     
     m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
@@ -496,7 +500,7 @@ ChartTwoCartesianAxis::toString() const
 /**
  * @return Annotation used for drawing axis label and tick mark numeric values
  */
-const AnnotationGraphicsLabel*
+const AnnotationPercentSizeText*
 ChartTwoCartesianAxis::getAnnotationAxisLabel() const
 {
     return m_annotationAxisLabel.get();
@@ -505,7 +509,7 @@ ChartTwoCartesianAxis::getAnnotationAxisLabel() const
 /**
  * @return Annotation used for drawing axis label and tick mark numeric values
  */
-AnnotationGraphicsLabel*
+AnnotationPercentSizeText*
 ChartTwoCartesianAxis::getAnnotationAxisLabel()
 {
     return m_annotationAxisLabel.get();

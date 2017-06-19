@@ -30,6 +30,7 @@
 
 namespace caret {
 
+    class Annotation;
     class CaretPreferences;
     class ChartTwoCartesianAxis;
     class ChartTwoDataCartesian;
@@ -56,7 +57,7 @@ namespace caret {
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                          const int32_t viewport[4],
-                                         std::vector<AnnotationGraphicsLabel*>& annotationChartGraphicsLabelsOut) override;
+                                         std::vector<Annotation*>& viewportSpaceAnnotationsOut) override;
 
         // ADD_NEW_METHODS_HERE
 
@@ -195,7 +196,7 @@ namespace caret {
         
         bool m_identificationModeFlag;
         
-        std::vector<AnnotationGraphicsLabel*> m_annotationDrawingChartGraphicsLabels;
+        std::vector<Annotation*> m_viewportSpaceAnnotationsOut;
         
         static const int32_t IDENTIFICATION_INDICES_PER_HISTOGRAM      = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;

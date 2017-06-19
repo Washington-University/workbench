@@ -105,9 +105,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  *     Selected data type.
  * @param viewport
  *     Viewport for the chart.
- * @param annotationChartGraphicsLabelsOut
+ * @param viewportSpaceAnnotationsOut
  *     Output containing annotation chart axis labels that will be drawn 
- *     by the Annotation OpenGL Drawing.
+ *     by the Annotation OpenGL Drawing in viewport space.
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
@@ -116,10 +116,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                              const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                                              const int32_t viewport[4],
-                                                             std::vector<AnnotationGraphicsLabel*>& annotationChartGraphicsLabelsOut)
+                                                             std::vector<Annotation*>& viewportSpaceAnnotationsOut)
 {
-    annotationChartGraphicsLabelsOut.clear();
-    m_annotationDrawingChartGraphicsLabels.clear();
+    viewportSpaceAnnotationsOut.clear();
+    m_viewportSpaceAnnotationsOut.clear();
     
     CaretAssert(brain);
     CaretAssert(browserTabContent);
@@ -275,7 +275,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     
     restoreStateOfOpenGL();
     
-    annotationChartGraphicsLabelsOut = m_annotationDrawingChartGraphicsLabels;
+    viewportSpaceAnnotationsOut = m_viewportSpaceAnnotationsOut;
 }
 
 ///**
@@ -1678,7 +1678,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
             break;
     }
     
-    const AnnotationGraphicsLabel* chartAxisLabel = cartesianAxis->getAnnotationAxisLabel();
+    const AnnotationPercentSizeText* chartAxisLabel = cartesianAxis->getAnnotationAxisLabel();
     const AString axisTitle = chartAxisLabel->getText();
     if ( ! axisTitle.isEmpty()) {
         AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
@@ -2129,7 +2129,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
                 && (axisVpHeight > 0.0)) {
 //                const float labelPercentX = 100.0f * (axisTextCenterX / axisVpWidth);
 //                const float labelPercentY = 100.0f * (axisTextCenterY / axisVpHeight);
-                AnnotationGraphicsLabel* chartLabel = axis->getAnnotationAxisLabel();
+                AnnotationPercentSizeText* chartLabel = axis->getAnnotationAxisLabel();
                 chartLabel->setCustomTextColor(rgba);
                 chartLabel->setTextColor(CaretColorEnum::CUSTOM);
                 chartLabel->setTabIndex(m_tabIndex);
@@ -2142,7 +2142,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
 //                                                    labelPercentY,
 //                                                    0.0f);
                 
-                m_annotationDrawingChartGraphicsLabels.push_back(chartLabel);
+                m_viewportSpaceAnnotationsOut.push_back(chartLabel);
             }
             
 //            /*

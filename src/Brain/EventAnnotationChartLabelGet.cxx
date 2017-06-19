@@ -58,7 +58,7 @@ EventAnnotationChartLabelGet::~EventAnnotationChartLabelGet()
  * @param annotationChartLabel
  */
 void
-EventAnnotationChartLabelGet::addAnnotationChartLabel(AnnotationGraphicsLabel* annotationChartLabel)
+EventAnnotationChartLabelGet::addAnnotationChartLabel(Annotation* annotationChartLabel)
 {
     m_annotationChartLabels.push_back(annotationChartLabel);
 }
@@ -66,7 +66,7 @@ EventAnnotationChartLabelGet::addAnnotationChartLabel(AnnotationGraphicsLabel* a
 /**
  * @return The annotation chart labels.
  */
-std::vector<AnnotationGraphicsLabel*>
+std::vector<Annotation*>
 EventAnnotationChartLabelGet::getAnnotationChartLabels()
 {
     return m_annotationChartLabels;

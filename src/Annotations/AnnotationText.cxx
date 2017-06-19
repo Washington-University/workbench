@@ -692,6 +692,23 @@ AnnotationText::setCustomTextColor(const uint8_t rgba[4])
 bool
 AnnotationText::isFontColorGuiEditable() const
 {
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            /*
+             * Viewport annotations do not allow changing of font color
+             */
+            return false;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    
     return true;
 }
 

@@ -542,8 +542,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
  *     Coordinate space of annotation that are drawn.
  * @param colorbars
  *     Colorbars that will be drawn.
- * @param annotationChartGraphicsLabelsForDrawing
- *     Annotation chart two labels that will be drawn.
+ * @param viewportAnnotations
+ *     Annotation for drawing in viewport space
  * @param surfaceDisplayed
  *     In not NULL, surface no which annotations are drawn.
  */
@@ -551,7 +551,7 @@ void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
                                                            const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                            std::vector<AnnotationColorBar*>& colorBars,
-                                                           std::vector<AnnotationGraphicsLabel*>& annotationChartGraphicsLabelsForDrawing,
+                                                           std::vector<Annotation*>& viewportAnnotations,
                                                            const Surface* surfaceDisplayed)
 {
     CaretAssert(inputs);
@@ -568,7 +568,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
         
         std::vector<AnnotationColorBar*> emptyColorBars;
         
-        for (auto graphicsLabel : annotationChartGraphicsLabelsForDrawing) {
+        for (auto graphicsLabel : viewportAnnotations) {
             CaretAssert(graphicsLabel);
             
             int32_t viewport[4];
@@ -610,8 +610,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
  *     Surface that is displayed.  May be NULL in some instances.
  * @param colorbars
  *     Colorbars that will be drawn.
- * @param annotationGraphicsLabel
- *     Annotation graphics label that will be drawn.
+ * @param viewportAnnotationForDrawing
+ *     Viewport space label that will be drawn.
  * @param surfaceDisplayed
  *     In not NULL, surface no which annotations are drawn.
  * @param sliceThickness
@@ -620,7 +620,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                                    std::vector<AnnotationColorBar*>& colorBars,
-                                                                   AnnotationGraphicsLabel* annotationGraphicsLabel,
+                                                                   Annotation* viewportAnnotationForDrawing,
                                                                    const Surface* surfaceDisplayed,
                                                                    const float sliceThickness)
 {
@@ -660,7 +660,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            CaretAssert(annotationGraphicsLabel);
+            CaretAssert(viewportAnnotationForDrawing);
             haveDisplayGroupFlag = false;
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
@@ -762,7 +762,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 case AnnotationCoordinateSpaceEnum::SURFACE:
                     break;
                 case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                    annotationsFromFile.push_back(annotationGraphicsLabel);
+                    annotationsFromFile.push_back(viewportAnnotationForDrawing);
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                 case AnnotationCoordinateSpaceEnum::WINDOW:

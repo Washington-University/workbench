@@ -277,6 +277,24 @@ Annotation::replaceWithCopyOfAnnotation(const Annotation* annotation)
 bool
 Annotation::isDeletable() const
 {
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            /*
+             * Viewport annotations are not in annotation files
+             * so not deletable
+             */
+            return false;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    
     return true;
 }
 

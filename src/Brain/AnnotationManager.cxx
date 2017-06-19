@@ -207,7 +207,7 @@ AnnotationManager::deselectAllAnnotationsForEditing(const int32_t windowIndex)
     
     EventAnnotationChartLabelGet chartLabelEvent;
     EventManager::get()->sendEvent(chartLabelEvent.getPointer());
-    std::vector<AnnotationGraphicsLabel*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
+    std::vector<Annotation*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
     for (auto label : chartLabels) {
         label->setSelectedForEditing(windowIndex,
                                      false);
@@ -495,7 +495,7 @@ AnnotationManager::getAllAnnotations() const
 
     EventAnnotationChartLabelGet chartLabelEvent;
     EventManager::get()->sendEvent(chartLabelEvent.getPointer());
-    std::vector<AnnotationGraphicsLabel*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
+    std::vector<Annotation*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
     allAnnotations.insert(allAnnotations.end(),
                           chartLabels.begin(),
                           chartLabels.end());
@@ -642,7 +642,7 @@ AnnotationManager::getAnnotationsSelectedForEditingIncludingLabels(const int32_t
     
     EventAnnotationChartLabelGet chartLabelEvent;
     EventManager::get()->sendEvent(chartLabelEvent.getPointer());
-    std::vector<AnnotationGraphicsLabel*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
+    std::vector<Annotation*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
     AnnotationFile* nullFile = NULL;
     for (auto cl : chartLabels) {
         if (cl->isSelectedForEditing(windowIndex)) {
