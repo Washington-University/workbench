@@ -94,21 +94,15 @@ AnnotationTextOrientationWidget::~AnnotationTextOrientationWidget()
 /**
  * Update with the given annotation.
  *
- * @param annotation.
+ * @param annotationTextsIn.
  */
 void
 AnnotationTextOrientationWidget::updateContent(std::vector<AnnotationText*>& annotationTextsIn)
 {
-//    m_annotations.clear();
-//    m_annotations.insert(m_annotations.end(),
-//                         annotationTexts.begin(),
-//                         annotationTexts.end());
     m_annotations.clear();
-    for (auto a : annotationTextsIn) {
-        if (a->getType() != AnnotationTypeEnum::GRAPHICS_LABEL) {
-            m_annotations.push_back(a);
-        }
-    }
+    m_annotations.insert(m_annotations.end(),
+                         annotationTextsIn.begin(),
+                         annotationTextsIn.end());
     
     {
         /*

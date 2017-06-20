@@ -226,9 +226,7 @@ AnnotationColorWidget::updateContent(std::vector<Annotation*>& annotations)
 {
     m_annotations.clear();
     for (auto a : annotations) {
-        if (a->getType() != AnnotationTypeEnum::GRAPHICS_LABEL) {
-            m_annotations.push_back(a);
-        }
+        m_annotations.push_back(a);
     }
     
     if ( ! m_annotations.empty()) {
@@ -492,8 +490,6 @@ AnnotationColorWidget::isBothColorsSetToNoneAllowed(QWidget* widget,
             switch (ann->getType()) {
                 case AnnotationTypeEnum::BOX:
                     allowBothColorsNoneFlag = false;
-                    break;
-                case AnnotationTypeEnum::GRAPHICS_LABEL:
                     break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     break;

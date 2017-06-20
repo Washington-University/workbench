@@ -114,10 +114,6 @@ AnnotationTypeEnum::initialize()
                                           "COLOR_BAR",
                                           "Color Bar"));
     
-    enumData.push_back(AnnotationTypeEnum(GRAPHICS_LABEL,
-                                          "GRAPHICS_LABEL",
-                                          "Graphics Text Label"));
-    
     enumData.push_back(AnnotationTypeEnum(IMAGE,
                                           "IMAGE",
                                           "Image"));

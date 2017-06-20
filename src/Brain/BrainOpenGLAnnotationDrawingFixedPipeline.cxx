@@ -29,7 +29,6 @@
 #undef __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
 
 #include "AnnotationBox.h"
-#include "AnnotationGraphicsLabel.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationColorBarSection.h"
 #include "AnnotationColorBarNumericText.h"
@@ -1138,10 +1137,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
                                 dynamic_cast<AnnotationBox*>(annotation),
                                 surfaceDisplayed);
             break;
-        case AnnotationTypeEnum::GRAPHICS_LABEL:
-            drawChartGraphicsLabel(annotationFile,
-                                  dynamic_cast<AnnotationGraphicsLabel*>(annotation));
-            break;;
         case AnnotationTypeEnum::COLOR_BAR:
             drawColorBar(annotationFile,
                          dynamic_cast<AnnotationColorBar*>(annotation));
@@ -1312,27 +1307,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     
     return drawnFlag;
 }
-
-/**
- * Draw an annotation chart two axis label
- *
- * @param annotationFile
- *    File containing the annotation.
- * @param chartGraphicsLabel
- *    Axis label to draw.
- */
-void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawChartGraphicsLabel(AnnotationFile* annotationFile,
-                                                                 AnnotationGraphicsLabel* chartGraphicsLabel)
-{
-    CaretAssert(chartGraphicsLabel);
-    CaretAssert(chartGraphicsLabel->getType() == AnnotationTypeEnum::GRAPHICS_LABEL);
-    
-    drawText(annotationFile,
-             chartGraphicsLabel,
-             NULL);
-}
-
 
 /**
  * Draw an annotation box.
@@ -2244,8 +2218,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                     const Surface* surfaceDisplayed)
 {
     CaretAssert(text);
-    CaretAssert((text->getType() == AnnotationTypeEnum::TEXT)
-                || (text->getType() == AnnotationTypeEnum::GRAPHICS_LABEL));
+    CaretAssert(text->getType() == AnnotationTypeEnum::TEXT);
     
     DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
     if (text->getType() == AnnotationTypeEnum::TEXT) {

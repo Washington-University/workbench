@@ -23,9 +23,9 @@
 #include "ChartTwoOverlaySet.h"
 #undef __CHART_TWO_OVERLAY_SET_DECLARE__
 
+#include "AnnotationPercentSizeText.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
-#include "AnnotationGraphicsLabel.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
 #include "EventAnnotationChartLabelGet.h"

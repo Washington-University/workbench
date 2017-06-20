@@ -23,7 +23,7 @@
 #include "ChartTwoCartesianAxis.h"
 #undef __CHART_TWO_CARTESIAN_AXIS_DECLARE__
 
-#include "AnnotationGraphicsLabel.h"
+#include "AnnotationPercentSizeText.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartScaleAutoRanging.h"

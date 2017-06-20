@@ -29,7 +29,6 @@
 
 #include "Annotation.h"
 #include "AnnotationArrangerExecutor.h"
-#include "AnnotationGraphicsLabel.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationFile.h"
 #include "AnnotationGroup.h"

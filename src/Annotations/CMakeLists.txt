@@ -27,7 +27,6 @@ Annotation.h
 AnnotationAlignmentEnum.h
 AnnotationAttributesDefaultTypeEnum.h
 AnnotationBox.h
-AnnotationGraphicsLabel.h
 AnnotationColorBar.h
 AnnotationColorBarNumericText.h
 AnnotationColorBarPositionModeEnum.h
@@ -70,7 +69,6 @@ Annotation.cxx
 AnnotationAlignmentEnum.cxx
 AnnotationAttributesDefaultTypeEnum.cxx
 AnnotationBox.cxx
-AnnotationGraphicsLabel.cxx
 AnnotationColorBar.cxx
 AnnotationColorBarNumericText.cxx
 AnnotationColorBarPositionModeEnum.cxx

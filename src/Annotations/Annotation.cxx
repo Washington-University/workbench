@@ -24,7 +24,6 @@
 #undef __ANNOTATION_DECLARE__
 
 #include "AnnotationBox.h"
-#include "AnnotationGraphicsLabel.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationGroup.h"
 #include "AnnotationImage.h"
@@ -172,13 +171,6 @@ Annotation::clone() const
             const AnnotationBox* box = dynamic_cast<const AnnotationBox*>(this);
             CaretAssert(box);
             myClone = new AnnotationBox(*box);
-        }
-            break;
-        case AnnotationTypeEnum::GRAPHICS_LABEL:
-        {
-            const AnnotationGraphicsLabel* axisLabel = dynamic_cast<const AnnotationGraphicsLabel*>(this);
-            CaretAssert(axisLabel);
-            myClone = new AnnotationGraphicsLabel(*axisLabel);
         }
             break;
         case AnnotationTypeEnum::COLOR_BAR:
@@ -364,10 +356,6 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
         case AnnotationTypeEnum::BOX:
             annotation = new AnnotationBox(attributeDefaultType);
             break;
-        case AnnotationTypeEnum::GRAPHICS_LABEL:
-            annotation = new AnnotationGraphicsLabel(attributeDefaultType,
-                                                         AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
-            break;
         case AnnotationTypeEnum::COLOR_BAR:
             annotation = new AnnotationColorBar(attributeDefaultType);
             break;
@@ -436,9 +424,6 @@ Annotation::initializeAnnotationMembers()
             switch (m_type) {
                 case AnnotationTypeEnum::BOX:
                     break;
-                case AnnotationTypeEnum::GRAPHICS_LABEL:
-                    m_colorBackground = CaretColorEnum::BLACK;
-                    break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     m_colorBackground = CaretColorEnum::BLACK;
                     break;
@@ -490,8 +475,6 @@ Annotation::initializeAnnotationMembers()
                         m_colorBackground = defaultColor;
                     }
                     break;
-                case AnnotationTypeEnum::GRAPHICS_LABEL:
-                    break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     break;
                 case AnnotationTypeEnum::IMAGE:
@@ -536,8 +519,6 @@ Annotation::initializeAnnotationMembers()
     bool disallowLineColorNoneFlag = false;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
-            break;
-        case AnnotationTypeEnum::GRAPHICS_LABEL:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             disallowLineColorNoneFlag = true;
@@ -626,8 +607,6 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
     AString typeName = AnnotationTypeEnum::toGuiName(m_type);
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
-            break;
-        case AnnotationTypeEnum::GRAPHICS_LABEL:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;
@@ -1242,8 +1221,6 @@ Annotation::textAnnotationResetName()
     AString suffixName;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
-            break;
-        case AnnotationTypeEnum::GRAPHICS_LABEL:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;

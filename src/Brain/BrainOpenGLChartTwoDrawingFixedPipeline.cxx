@@ -25,7 +25,6 @@
 
 #include <algorithm>
 
-#include "AnnotationGraphicsLabel.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationPercentSizeText.h"

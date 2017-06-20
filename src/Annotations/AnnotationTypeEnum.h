@@ -39,8 +39,6 @@ public:
         BOX,
         /** Colorbar */
         COLOR_BAR,
-        /** Text label in graphics region */
-        GRAPHICS_LABEL,
         /** Image */
         IMAGE,
         /** Line */

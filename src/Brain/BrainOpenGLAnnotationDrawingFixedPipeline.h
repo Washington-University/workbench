@@ -35,7 +35,6 @@ namespace caret {
 
     class Annotation;
     class AnnotationBox;
-    class AnnotationGraphicsLabel;
     class AnnotationColorBar;
     class AnnotationCoordinate;
     class AnnotationFile;
@@ -220,9 +219,6 @@ namespace caret {
         bool drawBox(AnnotationFile* annotationFile,
                      AnnotationBox* box,
                        const Surface* surfaceDisplayed);
-        
-        void drawChartGraphicsLabel(AnnotationFile* annotationFile,
-                                   AnnotationGraphicsLabel* chartGraphicsLabel);
         
         bool drawImage(AnnotationFile* annotationFile,
                        AnnotationImage* image,

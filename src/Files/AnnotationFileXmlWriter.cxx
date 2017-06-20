@@ -255,9 +255,6 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
             case AnnotationTypeEnum::BOX:
                 writeBox(dynamic_cast<const AnnotationBox*>(annotation));
                 break;
-            case AnnotationTypeEnum::GRAPHICS_LABEL:
-                CaretAssertMessage(0, "Axis label is NEVER written to an annotation file");
-                break;
             case AnnotationTypeEnum::COLOR_BAR:
                 CaretAssertMessage(0, "Color bar is NEVER written to an annotation file");
                 break;

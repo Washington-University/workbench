@@ -32,12 +32,12 @@
 #include "BrainBrowserWindowToolBarChartTwoAxes.h"
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_AXES_DECLARE__
 
+#include "AnnotationPercentSizeText.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFile.h"
-#include "AnnotationGraphicsLabel.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlaySet.h"
 #include "EnumComboBoxTemplate.h"

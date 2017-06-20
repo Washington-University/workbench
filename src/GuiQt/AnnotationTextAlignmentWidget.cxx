@@ -159,16 +159,10 @@ AnnotationTextAlignmentWidget::~AnnotationTextAlignmentWidget()
 void
 AnnotationTextAlignmentWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
 {
-//    m_annotations.clear();
-//    m_annotations.insert(m_annotations.end(),
-//                         annotationTexts.begin(),
-//                         annotationTexts.end());
     m_annotations.clear();
-    for (auto a : annotationTexts) {
-        if (a->getType() != AnnotationTypeEnum::GRAPHICS_LABEL) {
-            m_annotations.push_back(a);
-        }
-    }
+    m_annotations.insert(m_annotations.end(),
+                         annotationTexts.begin(),
+                         annotationTexts.end());
     
     {
         /*

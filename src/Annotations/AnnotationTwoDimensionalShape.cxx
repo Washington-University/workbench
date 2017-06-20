@@ -363,8 +363,6 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             allowsSideResizingFlag = true;
             allowsRotationFlag = true;
             break;
-        case AnnotationTypeEnum::GRAPHICS_LABEL:
-            break;
         case AnnotationTypeEnum::COLOR_BAR:
             allowsMovingFlag   = true;
             allowsCornerResizingFlag = true;
