@@ -612,6 +612,23 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
         }
     }
     
+    switch (draggingCoordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            /*
+             * No dragging in viewport space
+             */
+            draggingValid = false;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    
     if (draggingValid) {
         BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
         if (vpContent == NULL) {
