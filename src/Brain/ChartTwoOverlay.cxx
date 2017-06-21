@@ -1023,6 +1023,7 @@ ChartTwoOverlay::isCartesianVerticalAxisLocationSupported() const
             return true;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            return true;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
             break;
