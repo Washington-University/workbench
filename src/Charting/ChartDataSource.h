@@ -41,6 +41,10 @@ namespace caret {
         
         ChartDataSource& operator=(const ChartDataSource&);
         
+        bool operator==(const ChartDataSource&) const;
+        
+        bool operator<(const ChartDataSource&) const;
+        
         void copy(const ChartDataSource* copyFrom);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,

@@ -123,6 +123,8 @@ namespace caret {
         void restoreMatrixChartFromChartOneModel(ModelChart* modelChartOne,
                                                  const int32_t tabIndex);
         
+        void restoreLineSeriesChartFromChartOneModel(ModelChart* modelChartOne);
+        
         virtual void saveVersionTwoModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                                    SceneClass* sceneClass);
         

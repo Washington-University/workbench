@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <set>
 
 #include "AnnotationColorBar.h"
 #include "Brain.h"
@@ -30,11 +31,20 @@
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
+#include "ChartData.h"
+#include "ChartDataCartesian.h"
+#include "ChartDataSource.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableMatrixParcelInterface.h"
 #include "ChartableMatrixSeriesInterface.h"
 #include "ChartMatrixDisplayProperties.h"
+#include "ChartModelDataSeries.h"
+#include "ChartModelFrequencySeries.h"
+#include "ChartModelTimeSeries.h"
+#include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileMatrixChart.h"
+#include "ChartableTwoFileLineSeriesChart.h"
+#include "ChartTwoLineSeriesHistory.h"
 #include "ChartTwoMatrixDisplayProperties.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
@@ -47,8 +57,10 @@
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
+#include "EventChartTwoLoadLineSeriesData.h"
 #include "EventManager.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
+#include "MapFileDataSelector.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
 #include "OverlaySet.h"
@@ -521,6 +533,8 @@ ModelChartTwo::restoreSceneFromChartOneModel(ModelChart* modelChartOne)
     EventManager::get()->sendEvent(allTabsEvent.getPointer());
     std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
     
+    bool haveLineSeriesModelsFlag = true;
+    
     for (auto tabIndex : validTabIndices) {
         switch (modelChartOne->getSelectedChartOneDataType(tabIndex)) {
             case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
@@ -528,7 +542,9 @@ ModelChartTwo::restoreSceneFromChartOneModel(ModelChart* modelChartOne)
             case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
             case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
             case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-                setSelectedChartTwoDataType(tabIndex, ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES);
+                setSelectedChartTwoDataType(tabIndex,
+                                            ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES);
+                haveLineSeriesModelsFlag = true;
                 break;
             case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 setSelectedChartTwoDataType(tabIndex,
@@ -542,6 +558,196 @@ ModelChartTwo::restoreSceneFromChartOneModel(ModelChart* modelChartOne)
                 restoreMatrixChartFromChartOneModel(modelChartOne,
                                                     tabIndex);
                 break;
+        }
+    }
+    
+    if (haveLineSeriesModelsFlag) {
+        restoreLineSeriesChartFromChartOneModel(modelChartOne);
+    }
+}
+
+/**
+ * Attempt to restore line series data from a chart version one scene.
+ *
+ * @param modelChartOne
+ *     The chart one model.
+ */
+void
+ModelChartTwo::restoreLineSeriesChartFromChartOneModel(ModelChart* modelChartOne)
+{
+    CaretAssert(modelChartOne);
+    
+    std::set<ChartDataSource> dataSources;
+    
+    int32_t maxDisplayCount = 0;
+    
+    std::vector<int32_t> validTabIndices;
+    std::map<AString, CaretColorEnum::Enum> dataFileNamesAndColors;
+    
+    /*
+     * Loop through all tabs to find those containing line-series style charts
+     */
+    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+        ChartModelCartesian* cartesianModel = NULL;
+        switch (modelChartOne->getSelectedChartOneDataType(iTab)) {
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                cartesianModel = modelChartOne->getSelectedDataSeriesChartModel(iTab);
+                break;
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                cartesianModel = modelChartOne->getSelectedFrequencySeriesChartModel(iTab);
+                break;
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                cartesianModel = modelChartOne->getSelectedTimeSeriesChartModel(iTab);
+                break;
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                break;
+            case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                break;
+        }
+        
+        if (cartesianModel != NULL) {
+            validTabIndices.push_back(iTab);
+            
+            maxDisplayCount = std::max(maxDisplayCount,
+                                       cartesianModel->getMaximumNumberOfChartDatasToDisplay());
+            
+            /*
+             * Examine all lines in the tab
+             */
+            const int32_t numChartLines   = cartesianModel->getNumberOfChartData();
+            for (int32_t i = (numChartLines - 1); i >= 0; i--) {
+                const ChartData* chartData = cartesianModel->getChartDataAtIndex(i);
+                if (chartData != NULL) {
+                    const ChartDataSource* chartDataSource = chartData->getChartDataSource();
+                    if (chartData->isSelected(iTab)) {
+                        ChartDataSource dataSourceCopy(*chartDataSource);
+                        dataSources.insert(dataSourceCopy);
+                        const ChartDataCartesian* cartesianData = dynamic_cast<const ChartDataCartesian*>(chartData);
+                        CaretColorEnum::Enum color = CaretColorEnum::RED;
+                        if (cartesianData != NULL) {
+                            color = cartesianData->getColor();
+                        }
+                        dataFileNamesAndColors.insert(std::make_pair(chartDataSource->getChartableFileName(),
+                                                                     color));
+                    }
+                }
+            }
+        }
+    }
+
+    std::vector<CaretMappableDataFile*> allDataFiles;
+    EventCaretMappableDataFilesGet eventGetMapDataFiles;
+    EventManager::get()->sendEvent(eventGetMapDataFiles.getPointer());
+    eventGetMapDataFiles.getAllFiles(allDataFiles);
+    
+    //std::set<ChartTwoDataTypeEnum::Enum> chartTypeSet;
+    
+    /*
+     * Find the data files and setup for loading of
+     * lines series data.
+     */
+    for (const auto filenameAndColor : dataFileNamesAndColors) {
+        const AString filename = filenameAndColor.first;
+        CaretColorEnum::Enum color = filenameAndColor.second;
+        CaretMappableDataFile* mapFileFullPath = NULL;
+        CaretMappableDataFile* mapFileNoPath   = NULL;
+        for (auto mapFile : allDataFiles) {
+            if (filename == mapFile->getFileName()) {
+                mapFileFullPath = mapFile;
+            }
+            if (mapFile->getFileName().endsWith(filename)) {
+                mapFileNoPath = mapFile;
+            }
+        }
+        
+        ChartTwoLineSeriesHistory* lineSeriesHistory = NULL;
+        if (mapFileFullPath != NULL) {
+            lineSeriesHistory = mapFileFullPath->getChartingDelegate()->getLineSeriesCharting()->getHistory();
+        }
+        else if (mapFileNoPath != NULL) {
+            lineSeriesHistory = mapFileNoPath->getChartingDelegate()->getLineSeriesCharting()->getHistory();
+        }
+        else {
+            CaretLogWarning("Unable to find data file with name: "
+                            + filename);
+        }
+        if (lineSeriesHistory != NULL) {
+            lineSeriesHistory->setLoadingEnabled(true);
+            if (maxDisplayCount <= 0) {
+                maxDisplayCount = 1;
+            }
+            lineSeriesHistory->setDisplayCount(maxDisplayCount);
+            lineSeriesHistory->setDefaultColor(color);
+        }
+    }
+    
+    std::cout << "Restoring " << dataSources.size() << " chart lines" << std::endl;
+
+    /*
+     * Send events to load line charts for the brainordinates
+     * found in the older charts
+     */
+    for (const auto& ds : dataSources) {
+        MapFileDataSelector mapFileDataSelector;
+        switch (ds.getDataSourceMode()) {
+            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_FILE_ROW:
+                break;
+            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
+                break;
+            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
+            {
+                int32_t surfaceNumberOfVertices = -1;
+                int32_t vertexIndex = -1;
+                AString structureName;
+                ds.getSurfaceNode(structureName, surfaceNumberOfVertices, vertexIndex);
+                bool validFlag = false;
+                const StructureEnum::Enum structure = StructureEnum::fromName(structureName,
+                                                                              &validFlag);
+                if (validFlag) {
+                    mapFileDataSelector.setSurfaceVertex(structure,
+                                                         surfaceNumberOfVertices,
+                                                         vertexIndex);
+                }
+                else {
+                    CaretLogWarning("Unrecogized structure name :"
+                                    + structureName);
+                }
+            }
+                break;
+            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE:
+            {
+                int32_t surfaceNumberOfVertices = -1;
+                AString structureName;
+                std::vector<int32_t> vertices;
+                ds.getSurfaceNodeAverage(structureName, surfaceNumberOfVertices, vertices);
+                bool validFlag = false;
+                const StructureEnum::Enum structure = StructureEnum::fromName(structureName,
+                                                                              &validFlag);
+                if (validFlag) {
+                    mapFileDataSelector.setSurfaceVertexAverage(structure,
+                                                                surfaceNumberOfVertices,
+                                                                vertices);
+                }
+                else {
+                    CaretLogWarning("Unrecogized structure name :"
+                                    + structureName);
+                }
+            }
+                break;
+            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
+            {
+                float xyz[3];
+                ds.getVolumeVoxel(xyz);
+                mapFileDataSelector.setVolumeVoxelXYZ(xyz);
+            }
+                break;
+        }
+        
+        if (mapFileDataSelector.getDataSelectionType() != MapFileDataSelector::DataSelectionType::INVALID) {
+            EventChartTwoLoadLineSeriesData loadLineDataEvent(validTabIndices,
+                                                              mapFileDataSelector);
+            EventManager::get()->sendEvent(loadLineDataEvent.getPointer());
         }
     }
 }

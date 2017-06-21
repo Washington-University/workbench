@@ -121,6 +121,137 @@ ChartDataSource::operator=(const ChartDataSource& obj)
 }
 
 /**
+ * Equality operator.
+ *
+ * @param rhs
+ *     Other item for comparison.
+ */
+bool
+ChartDataSource::operator==(const ChartDataSource& rhs) const
+{
+    if (this == &rhs) {
+        return true;
+    }
+    
+    if (m_chartableFileName != rhs.m_chartableFileName) {
+        return false;
+    }
+    
+    switch (m_dataSourceMode) {
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_FILE_ROW:
+            if (m_fileRowIndex == rhs.m_fileRowIndex) {
+                return true;
+            }
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
+            if ((m_surfaceStructureName == rhs.m_surfaceStructureName)
+                && (m_surfaceNumberOfNodes == rhs.m_surfaceNumberOfNodes)
+                && (m_nodeIndex == rhs.m_nodeIndex)) {
+                return true;
+            }
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE:
+            if ((m_surfaceStructureName == rhs.m_surfaceStructureName)
+                && (m_surfaceNumberOfNodes == rhs.m_surfaceNumberOfNodes)
+                && (m_nodeIndicesAverage == rhs.m_nodeIndicesAverage)) {
+                return true;
+            }
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
+            if ((m_voxelXYZ[0] == rhs.m_voxelXYZ[0])
+                && (m_voxelXYZ[1] == rhs.m_voxelXYZ[1])
+                && (m_voxelXYZ[2] == rhs.m_voxelXYZ[2])) {
+                return true;
+            }
+            break;
+    }
+    
+    return false;
+}
+
+/**
+ * Equality operator.
+ *
+ * @param rhs
+ *     Other item for comparison.
+ */
+bool
+ChartDataSource::operator<(const ChartDataSource& rhs) const
+{
+    if (this == &rhs) {
+        return false;
+    }
+    
+    if (m_chartableFileName != rhs.m_chartableFileName) {
+        return false;
+    }
+    
+    switch (m_dataSourceMode) {
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_FILE_ROW:
+            return  (m_fileRowIndex < rhs.m_fileRowIndex);
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
+            if (m_surfaceStructureName < rhs.m_surfaceStructureName) {
+                return true;
+            }
+            if (m_surfaceNumberOfNodes < rhs.m_surfaceNumberOfNodes) {
+                return true;
+            }
+            if (m_nodeIndex < rhs.m_nodeIndex) {
+                return true;
+            }
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE:
+            if (m_surfaceStructureName < rhs.m_surfaceStructureName) {
+                return true;
+            }
+            if (m_surfaceNumberOfNodes < rhs.m_surfaceNumberOfNodes) {
+                return true;
+            }
+            if (m_nodeIndicesAverage.size() < rhs.m_nodeIndicesAverage.size()) {
+                return true;
+            }
+            else if (m_nodeIndicesAverage.size() > rhs.m_nodeIndicesAverage.size()) {
+                return false;
+            }
+            else if (m_nodeIndicesAverage.size() == rhs.m_nodeIndicesAverage.size()) {
+                std::vector<int32_t> copyMe = m_nodeIndicesAverage;
+                std::sort(copyMe.begin(), copyMe.end());
+                std::vector<int32_t> copyRhs = rhs.m_nodeIndicesAverage;
+                std::sort(copyRhs.begin(), copyRhs.end());
+                
+                const int32_t numItems = static_cast<int32_t>(copyMe.size());
+                for (int32_t i = 0; i < numItems; i++) {
+                    CaretAssertVectorIndex(copyMe, i);
+                    CaretAssertVectorIndex(copyRhs, i);
+                    if (copyMe[i] < copyRhs[i]) {
+                        return true;
+                    }
+                    else if (copyMe[i] > copyRhs[i]) {
+                        return false;
+                    }
+                }
+            }
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
+            if (m_voxelXYZ[0] < rhs.m_voxelXYZ[0]) {
+                return true;
+            }
+            if (m_voxelXYZ[1] < rhs.m_voxelXYZ[1]) {
+                return true;
+            }
+            if (m_voxelXYZ[2] < rhs.m_voxelXYZ[2]) {
+                return true;
+            }
+            break;
+    }
+    
+    return false;
+}
+
+/**
  * Copy the given data source to me.
  * 
  * @param copyFrom
