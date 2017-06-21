@@ -207,14 +207,54 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const std::vector<int32_t>& tabI
             switch (mapFileDataSelector.getDataSelectionType()) {
                 case MapFileDataSelector::DataSelectionType::INVALID:
                     break;
+                case MapFileDataSelector::DataSelectionType::COLUMN_DATA:
+                    break;
+                case MapFileDataSelector::DataSelectionType::ROW_DATA:
+                    break;
                 case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
+                    loadDataFlag = true;
+                    break;
                 case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+                    loadDataFlag = true;
+                    break;
                 case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
                     loadDataFlag = true;
                     break;
             }
             break;
         case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_ROW_SCALAR_DATA:
+            switch (mapFileDataSelector.getDataSelectionType()) {
+                case MapFileDataSelector::DataSelectionType::INVALID:
+                    break;
+                case MapFileDataSelector::DataSelectionType::COLUMN_DATA:
+                {
+                    CaretMappableDataFile* mapFile = NULL;
+                    AString mapFileName;
+                    int32_t columnIndex = -1;
+                    mapFileDataSelector.getColumnIndex(mapFile, mapFileName, columnIndex);
+                    if (mapFile == getCaretMappableDataFile()) {
+                        loadDataFlag = true;
+                    }
+                }
+                    break;
+                case MapFileDataSelector::DataSelectionType::ROW_DATA:
+                {
+                    CaretMappableDataFile* mapFile = NULL;
+                    AString mapFileName;
+                    int32_t rowIndex = -1;
+                    mapFileDataSelector.getRowIndex(mapFile, mapFileName, rowIndex);
+                    if (mapFile == getCaretMappableDataFile()) {
+                        loadDataFlag = true;
+                    }
+                }
+                    break;
+                case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
+                    break;
+                case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+                    break;
+                case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
+                    break;
+            }
             break;
     }
     
@@ -246,10 +286,6 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const std::vector<int32_t>& tabI
                 CaretAssertVectorIndex(data, i);
                 cartesianData->addPoint(x, data[i]);
             }
-//            for (float d : data) {
-//                cartesianData->addPoint(x, d);
-//                x += xStep;
-//            }
             
             m_lineChartHistory->addHistoryItem(cartesianData);
         }

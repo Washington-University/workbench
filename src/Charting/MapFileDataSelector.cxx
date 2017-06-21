@@ -54,6 +54,14 @@ MapFileDataSelector::MapFileDataSelector()
     m_sceneAssistant->add("m_surfaceVertexIndex",
                           &m_surfaceVertexIndex);
     m_sceneAssistant->addArray("m_voxelXYZ", m_voxelXYZ, 3, 0.0f);
+    m_sceneAssistant->add("m_columnIndex",
+                          &m_columnIndex);
+    m_sceneAssistant->add("m_columnMapFileName",
+                          &m_columnMapFileName);
+    m_sceneAssistant->add("m_rowIndex",
+                          &m_rowIndex);
+    m_sceneAssistant->add("m_rowMapFileName",
+                          &m_rowMapFileName);
 }
 
 /**
@@ -107,6 +115,12 @@ MapFileDataSelector::copyHelperMapFileDataSelector(const MapFileDataSelector& ob
     m_voxelXYZ[0] = obj.m_voxelXYZ[0];
     m_voxelXYZ[1] = obj.m_voxelXYZ[1];
     m_voxelXYZ[2] = obj.m_voxelXYZ[2];
+    m_columnIndex = obj.m_columnIndex;
+    m_columnMapFile = obj.m_columnMapFile;
+    m_columnMapFileName = obj.m_columnMapFileName;
+    m_rowIndex    = obj.m_rowIndex;
+    m_rowMapFile = obj.m_rowMapFile;
+    m_rowMapFileName = obj.m_rowMapFileName;
 }
 
 /**
@@ -116,6 +130,41 @@ MapFileDataSelector::DataSelectionType
 MapFileDataSelector::getDataSelectionType() const
 {
     return m_dataSelectionType;
+}
+
+/**
+ * @return Name of the data selection type.
+ *
+ * @param dataSelectionType
+ *     The data selection type.
+ */
+AString
+MapFileDataSelector::getDataSelectionTypeName(const DataSelectionType dataSelectionType)
+{
+    AString dataSelectionTypeName;
+    switch (dataSelectionType) {
+        case DataSelectionType::INVALID:
+            dataSelectionTypeName = "INVALID";
+            break;
+        case DataSelectionType::COLUMN_DATA:
+            dataSelectionTypeName = "COLUMN_DATA";
+            break;
+        case DataSelectionType::ROW_DATA:
+            dataSelectionTypeName = "ROW_DATA";
+            break;
+        case DataSelectionType::SURFACE_VERTEX:
+            dataSelectionTypeName = "SURFACE_VERTEX";
+            break;
+        case DataSelectionType::SURFACE_VERTICES_AVERAGE:
+            dataSelectionTypeName = "SURFACE_VERTICES_AVERAGE";
+            break;
+        case DataSelectionType::VOLUME_XYZ:
+            dataSelectionTypeName = "VOLUME_XYZ";
+            break;
+    }
+    CaretAssert( ! dataSelectionTypeName.isEmpty());
+    
+    return dataSelectionTypeName;
 }
 
 /**
@@ -233,6 +282,90 @@ MapFileDataSelector::setVolumeVoxelXYZ(const float voxelXYZ[3])
 }
 
 /**
+ * Get the column index.
+ *
+ * @param columnMapFile
+ *     Data file for column loading.  Could be an invalid pointer or NULL !!!
+ * @param columnMapFileName
+ *     Name of column map file.
+ * @param columnIndex
+ *     The column index.
+ */
+void
+MapFileDataSelector::getColumnIndex(CaretMappableDataFile* &columnMapFile,
+                                    AString& columnMapFileName,
+                                    int32_t &columnIndex) const
+{
+    columnMapFile = m_columnMapFile;
+    columnMapFileName = m_columnMapFileName;
+    columnIndex   = m_columnIndex;
+}
+
+/**
+ * Set the column index.
+ *
+ * @param columnMapFile
+ *     Data file for column loading.
+ * @param columnMapFileName
+ *     Name of column map file.
+ * @param columnIndex
+ *     The column index.
+ */
+void
+MapFileDataSelector::setColumnIndex(CaretMappableDataFile* columnMapFile,
+                                    const AString& columnMapFileName,
+                                    const int32_t columnIndex)
+{
+    reset();
+    m_dataSelectionType = DataSelectionType::COLUMN_DATA;
+    m_columnMapFile = columnMapFile;
+    m_columnMapFileName = columnMapFileName;
+    m_columnIndex   = columnIndex;
+}
+
+/**
+ * Get the row index.
+ *
+ * @param rowMapFile
+ *     Data file for row loading.  Could be an invalid pointer or NULL !!!
+ * @param rowMapFileName
+ *     Name of row map file.
+ * @param rowIndex
+ *     The row index.
+ */
+void
+MapFileDataSelector::getRowIndex(CaretMappableDataFile* &rowMapFile,
+                                 AString& rowMapFileName,
+                                 int32_t &rowIndex) const
+{
+    rowIndex = m_rowIndex;
+    rowMapFile = m_rowMapFile;
+    rowMapFileName = m_rowMapFileName;
+}
+
+/**
+ * Set the row index.
+ *
+ * @param rowMapFile
+ *     Data file for row loading.
+ * @param rowMapFileName
+ *     Name of row map file.
+ * @param rowIndex
+ *     The row index.
+ */
+void
+MapFileDataSelector::setRowIndex(CaretMappableDataFile* rowMapFile,
+                                 const AString& rowMapFileName,
+                                 const int32_t rowIndex)
+{
+    reset();
+    m_dataSelectionType = DataSelectionType::ROW_DATA;
+    m_rowMapFile = rowMapFile;
+    m_rowMapFileName = rowMapFileName;
+    m_rowIndex   = rowIndex;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -243,6 +376,14 @@ MapFileDataSelector::toString() const
     
     switch (m_dataSelectionType) {
         case DataSelectionType::INVALID:
+            break;
+        case DataSelectionType::COLUMN_DATA:
+            s = ("Column "
+                 + AString::number(m_columnIndex));
+            break;
+        case DataSelectionType::ROW_DATA:
+            s = ("Row "
+                 + AString::number(m_rowIndex));
             break;
         case DataSelectionType::SURFACE_VERTEX:
             s = ("Vertex "
@@ -271,7 +412,7 @@ MapFileDataSelector::toString() const
 void
 MapFileDataSelector::reset()
 {
-    m_dataSelectionType       = DataSelectionType::SURFACE_VERTEX;
+    m_dataSelectionType       = DataSelectionType::INVALID;
     m_surfaceStructure        = StructureEnum::INVALID;
     m_surfaceNumberOfVertices = -1;
     m_surfaceVertexIndex      = -1;
@@ -279,6 +420,12 @@ MapFileDataSelector::reset()
     m_voxelXYZ[0] = 0.0f;
     m_voxelXYZ[1] = 0.0f;
     m_voxelXYZ[2] = 0.0f;
+    m_columnIndex = -1;
+    m_columnMapFile = NULL;
+    m_columnMapFileName = "";
+    m_rowIndex    = -1;
+    m_rowMapFile = NULL;
+    m_rowMapFileName = "";
 }
 
 /**
@@ -302,25 +449,8 @@ MapFileDataSelector::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    AString dataSelectionTypeName;
-    switch (m_dataSelectionType) {
-        case DataSelectionType::INVALID:
-            dataSelectionTypeName = "INVALID";
-            break;
-        case DataSelectionType::SURFACE_VERTEX:
-            dataSelectionTypeName = "SURFACE_VERTEX";
-            break;
-        case DataSelectionType::SURFACE_VERTICES_AVERAGE:
-            dataSelectionTypeName = "SURFACE_VERTICES_AVERAGE";
-            break;
-        case DataSelectionType::VOLUME_XYZ:
-            dataSelectionTypeName = "VOLUME_XYZ";
-            break;
-    }
-    CaretAssert( ! dataSelectionTypeName.isEmpty());
-    
     sceneClass->addString("m_dataSelectionType",
-                          dataSelectionTypeName);
+                          getDataSelectionTypeName(m_dataSelectionType));
 
     const int32_t numVertices = static_cast<int32_t>(m_surfaceVertexAverageIndices.size());
     if (numVertices > 0) {
@@ -355,22 +485,30 @@ MapFileDataSelector::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    reset();
+    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
     m_dataSelectionType = DataSelectionType::INVALID;
     const AString dataSelectionTypeName = sceneClass->getStringValue("m_dataSelectionType",
                                                                      "INVALID");
-    if (dataSelectionTypeName == "INVALID") {
+    if (dataSelectionTypeName == getDataSelectionTypeName(DataSelectionType::INVALID)) {
         m_dataSelectionType = DataSelectionType::INVALID;
     }
-    else if (dataSelectionTypeName == "SURFACE_VERTEX") {
+    else if (dataSelectionTypeName == getDataSelectionTypeName(DataSelectionType::COLUMN_DATA)) {
+        m_dataSelectionType = DataSelectionType::COLUMN_DATA;
+    }
+    else if (dataSelectionTypeName == getDataSelectionTypeName(DataSelectionType::ROW_DATA)) {
+        m_dataSelectionType = DataSelectionType::ROW_DATA;
+    }
+    else if (dataSelectionTypeName == getDataSelectionTypeName(DataSelectionType::SURFACE_VERTEX)) {
         m_dataSelectionType = DataSelectionType::SURFACE_VERTEX;
     }
-    else if (dataSelectionTypeName == "SURFACE_VERTICES_AVERAGE") {
+    else if (dataSelectionTypeName == getDataSelectionTypeName(DataSelectionType::SURFACE_VERTICES_AVERAGE)) {
         m_dataSelectionType = DataSelectionType::SURFACE_VERTICES_AVERAGE;
     }
-    else if (dataSelectionTypeName == "VOLUME_XYZ") {
+    else if (dataSelectionTypeName ==getDataSelectionTypeName(DataSelectionType::VOLUME_XYZ)) {
         m_dataSelectionType = DataSelectionType::VOLUME_XYZ;
     }
     else {

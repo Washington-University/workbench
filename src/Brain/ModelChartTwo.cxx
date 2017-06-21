@@ -56,6 +56,7 @@
 #include "CiftiScalarDataSeriesFile.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventBrowserTabIndicesGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventChartTwoLoadLineSeriesData.h"
 #include "EventManager.h"
@@ -160,6 +161,87 @@ ModelChartTwo::removeAllCharts()
 {
 }
 
+/**
+ * Load chart data for a surface node.
+ *
+ * @param structure
+ *     The surface structure
+ * @param surfaceNumberOfNodes
+ *     Number of nodes in surface.
+ * @param nodeIndex
+ *     Index of node.
+ * @throws
+ *     DataFileException if there is an error loading data.
+ */
+void
+ModelChartTwo::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                        const int32_t surfaceNumberOfNodes,
+                                        const int32_t nodeIndex)
+{
+    std::vector<int32_t> tabIndices;
+    EventBrowserTabIndicesGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    
+    MapFileDataSelector mapFileDataSelector;
+    mapFileDataSelector.setSurfaceVertex(structure,
+                                         surfaceNumberOfNodes,
+                                         nodeIndex);
+    EventChartTwoLoadLineSeriesData chartTwoLineSeriesEvent(tabIndicesEvent.getAllBrowserTabIndices(),
+                                                            mapFileDataSelector);
+    EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
+}
+
+/**
+ * Load chart data for an average of surface nodes.
+ *
+ * @param structure
+ *     The surface structure
+ * @param surfaceNumberOfNodes
+ *     Number of nodes in surface.
+ * @param nodeIndices
+ *     Indices of node.
+ * @throws
+ *     DataFileException if there is an error loading data.
+ */
+void
+ModelChartTwo::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                                const int32_t surfaceNumberOfNodes,
+                                                const std::vector<int32_t>& nodeIndices)
+{
+    std::vector<int32_t> tabIndices;
+    EventBrowserTabIndicesGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    
+    MapFileDataSelector mapFileDataSelector;
+    mapFileDataSelector.setSurfaceVertexAverage(structure,
+                                                surfaceNumberOfNodes,
+                                                nodeIndices);
+    EventChartTwoLoadLineSeriesData chartTwoLineSeriesEvent(tabIndicesEvent.getAllBrowserTabIndices(),
+                                                            mapFileDataSelector);
+    EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
+}
+
+/**
+ * Load chart data for voxel at the given coordinate.
+ *
+ * @param xyz
+ *     Coordinate of voxel.
+ * @throws
+ *     DataFileException if there is an error loading data.
+ */
+void
+ModelChartTwo::loadChartDataForVoxelAtCoordinate(const float xyz[3])
+{
+    std::vector<int32_t> tabIndices;
+    EventBrowserTabIndicesGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    
+    MapFileDataSelector mapFileDataSelector;
+    mapFileDataSelector.setVolumeVoxelXYZ(xyz);
+    EventChartTwoLoadLineSeriesData chartTwoLineSeriesEvent(tabIndicesEvent.getAllBrowserTabIndices(),
+                                                            mapFileDataSelector);
+    EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
+}
 
 /**
  * Load chart data for CIFTI Map files yoked to the given yoking group.
@@ -229,30 +311,19 @@ void
 ModelChartTwo::loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMapFile,
                                                  const int32_t rowIndex)
 {
-//    CaretAssert(ciftiMapFile);
-//
-//    std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> > chartFileEnabledTabs;
-//    getTabsAndRowColumnChartFilesForLineChartLoading(chartFileEnabledTabs);
-//    
-//    for (std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
-//         fileTabIter != chartFileEnabledTabs.end();
-//         fileTabIter++) {
-//        ChartableLineSeriesRowColumnInterface* chartFile = fileTabIter->first;
-//        if (ciftiMapFile == dynamic_cast<CiftiMappableDataFile*>(chartFile)) {
-//            const std::vector<int32_t>  tabIndices = fileTabIter->second;
-//            
-//            CaretAssert(chartFile);
-//            ChartData* chartData = chartFile->loadLineSeriesChartDataForRow(rowIndex);
-//            if (chartData != NULL) {
-//                ChartDataSource* dataSource = chartData->getChartDataSource();
-//                dataSource->setFileRow(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
-//                                       rowIndex);
-//                
-//                addChartToChartModels(tabIndices,
-//                                      chartData);
-//            }
-//        }
-//    }
+    CaretAssert(ciftiMapFile);
+    
+    std::vector<int32_t> tabIndices;
+    EventBrowserTabIndicesGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    
+    MapFileDataSelector mapFileDataSelector;
+    mapFileDataSelector.setRowIndex(ciftiMapFile,
+                                    ciftiMapFile->getFileName(),
+                                    rowIndex);
+    EventChartTwoLoadLineSeriesData chartTwoLineSeriesEvent(tabIndicesEvent.getAllBrowserTabIndices(),
+                                                            mapFileDataSelector);
+    EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
 }
 /**
  * Receive an event.
@@ -641,8 +712,6 @@ ModelChartTwo::restoreLineSeriesChartFromChartOneModel(ModelChart* modelChartOne
     EventManager::get()->sendEvent(eventGetMapDataFiles.getPointer());
     eventGetMapDataFiles.getAllFiles(allDataFiles);
     
-    //std::set<ChartTwoDataTypeEnum::Enum> chartTypeSet;
-    
     /*
      * Find the data files and setup for loading of
      * lines series data.
@@ -682,8 +751,6 @@ ModelChartTwo::restoreLineSeriesChartFromChartOneModel(ModelChart* modelChartOne
         }
     }
     
-    std::cout << "Restoring " << dataSources.size() << " chart lines" << std::endl;
-
     /*
      * Send events to load line charts for the brainordinates
      * found in the older charts

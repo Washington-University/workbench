@@ -635,6 +635,10 @@ MetricFile::getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
     switch (mapFileDataSelector.getDataSelectionType()) {
         case MapFileDataSelector::DataSelectionType::INVALID:
             break;
+        case MapFileDataSelector::DataSelectionType::COLUMN_DATA:
+            break;
+        case MapFileDataSelector::DataSelectionType::ROW_DATA:
+            break;
         case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
             try {
                 StructureEnum::Enum structure = StructureEnum::INVALID;

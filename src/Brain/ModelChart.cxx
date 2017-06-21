@@ -45,7 +45,6 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabIndicesGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
-#include "EventChartTwoLoadLineSeriesData.h"
 #include "EventManager.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
 #include "ModelChart.h"
@@ -206,18 +205,6 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
                                   chartData);
         }
     }
-    
-    std::vector<int32_t> tabIndices;
-    EventBrowserTabIndicesGetAll tabIndicesEvent;
-    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
-    
-    MapFileDataSelector mapFileDataSelector;
-    mapFileDataSelector.setSurfaceVertexAverage(structure,
-                                         surfaceNumberOfNodes,
-                                         nodeIndices);
-    EventChartTwoLoadLineSeriesData chartTwoLineSeriesEvent(tabIndicesEvent.getAllBrowserTabIndices(),
-                                                            mapFileDataSelector);
-    EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
 }
 
 /**
@@ -251,16 +238,6 @@ ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3])
                                   chartData);
         }
     }
-    
-    std::vector<int32_t> tabIndices;
-    EventBrowserTabIndicesGetAll tabIndicesEvent;
-    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
-    
-    MapFileDataSelector mapFileDataSelector;
-    mapFileDataSelector.setVolumeVoxelXYZ(xyz);
-    EventChartTwoLoadLineSeriesData chartTwoLineSeriesEvent(tabIndicesEvent.getAllBrowserTabIndices(),
-                                                            mapFileDataSelector);
-    EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
 }
 
 /**
@@ -353,22 +330,6 @@ ModelChart::loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMap
             }
         }
     }
-
-//    if (ciftiMapFile != NULL) {
-//        ChartableLineSeriesRowColumnInterface* chartableLineFile = dynamic_cast<ChartableLineSeriesRowColumnInterface*>(ciftiMapFile);
-//        if (chartableLineFile != NULL) {
-//            ChartData* chartData = chartableLineFile->loadLineSeriesChartDataForRow(rowIndex);
-//            if (chartData != NULL) {
-//            }
-//        }
-//        else {
-//            CaretLogSevere("Loading row charts from file type "
-//                           + DataFileTypeEnum::toGuiName(ciftiMapFile->getDataFileType())
-//                           + " name "
-//                           + ciftiMapFile->getFileName()
-//                           + " is not supported.");
-//        }
-//    }
 }
 
 /**
@@ -454,36 +415,6 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
 void
 ModelChart::getTabsAndBrainordinateChartFilesForLineChartLoading(std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >& chartBrainordinateFileEnabledTabsOut) const
 {
-//    chartFileEnabledTabsOut.clear();
-//    
-//    EventBrowserTabGetAll allTabsEvent;
-//    EventManager::get()->sendEvent(allTabsEvent.getPointer());
-//    std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
-//    
-//    std::vector<ChartableLineSeriesBrainordinateInterface*> chartFiles;
-//    m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
-//    
-//    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator iter = chartFiles.begin();
-//         iter != chartFiles.end();
-//         iter++) {
-//        ChartableLineSeriesBrainordinateInterface* cf = *iter;
-//        std::vector<int32_t> chartFileTabIndices;
-//        
-//        for (std::vector<int32_t>::iterator tabIter = validTabIndices.begin();
-//             tabIter != validTabIndices.end();
-//             tabIter++) {
-//            const int32_t tabIndex = *tabIter;
-//            if (cf->isLineSeriesChartingEnabled(tabIndex)) {
-//                chartFileTabIndices.push_back(tabIndex);
-//            }
-//        }
-//        
-//        if ( ! chartFileTabIndices.empty()) {
-//            chartFileEnabledTabsOut.insert(std::make_pair(cf, chartFileTabIndices));
-//        }
-//    }
-
-
     chartBrainordinateFileEnabledTabsOut.clear();
     
     std::map<ChartableLineSeriesInterface*, std::vector<int32_t> > chartFileEnabledTabs;
@@ -607,18 +538,6 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                   chartData);
         }
     }
-    
-    std::vector<int32_t> tabIndices;
-    EventBrowserTabIndicesGetAll tabIndicesEvent;
-    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
-    
-    MapFileDataSelector mapFileDataSelector;
-    mapFileDataSelector.setSurfaceVertex(structure,
-                                         surfaceNumberOfNodes,
-                                         nodeIndex);
-    EventChartTwoLoadLineSeriesData chartTwoLineSeriesEvent(tabIndicesEvent.getAllBrowserTabIndices(),
-                                                            mapFileDataSelector);
-    EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
 }
 
 /**
@@ -1571,42 +1490,6 @@ ModelChart::getValidChartOneDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& v
             }
         }
     }
-
-    
-//    std::vector<ChartableLineSeriesBrainordinateInterface*> allBrainordinateChartableFiles;
-//    m_brain->getAllChartableBrainordinateDataFiles(allBrainordinateChartableFiles);
-//
-//    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator fileIter = allBrainordinateChartableFiles.begin();
-//         fileIter != allBrainordinateChartableFiles.end();
-//         fileIter++) {
-//        ChartableLineSeriesBrainordinateInterface* chartFile = *fileIter;
-//        
-//        std::vector<ChartOneDataTypeEnum::Enum> chartDataTypes;
-//        chartFile->getSupportedLineSeriesChartDataTypes(chartDataTypes);
-//        
-//        for (std::vector<ChartOneDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
-//             typeIter != chartDataTypes.end();
-//             typeIter++) {
-//            const ChartOneDataTypeEnum::Enum cdt = *typeIter;
-//            switch (cdt) {
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
-//                    haveDataSeries = true;
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
-//                    haveFrequencySeries = true;
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-//                    haveTimeSeries = true;
-//                    break;
-//            }
-//        }
-//    }
     
     std::vector<ChartableMatrixInterface*> allMatrixChartableFiles;
     m_brain->getAllChartableMatrixDataFiles(allMatrixChartableFiles);

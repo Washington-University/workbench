@@ -31,6 +31,7 @@
 #include "StructureEnum.h"
 
 namespace caret {
+    class CaretMappableDataFile;
     class SceneClassAssistant;
 
     class MapFileDataSelector : public CaretObject, public SceneableInterface {
@@ -38,6 +39,8 @@ namespace caret {
     public:
         enum class DataSelectionType {
             INVALID,
+            COLUMN_DATA,
+            ROW_DATA,
             SURFACE_VERTEX,
             SURFACE_VERTICES_AVERAGE,
             VOLUME_XYZ
@@ -52,6 +55,8 @@ namespace caret {
         MapFileDataSelector& operator=(const MapFileDataSelector& obj);
         
         DataSelectionType getDataSelectionType() const;
+        
+        static AString getDataSelectionTypeName(const DataSelectionType dataSelectionType);
         
         std::vector<int32_t> getValidTabIndices() const;
         
@@ -74,6 +79,22 @@ namespace caret {
         void getVolumeVoxelXYZ(float xyz[3]) const;
         
         void setVolumeVoxelXYZ(const float xyz[3]);
+        
+        void getColumnIndex(CaretMappableDataFile* &columnMapFile,
+                            AString& columnMapFileName,
+                            int32_t &columnIndex) const;
+        
+        void setColumnIndex(CaretMappableDataFile* columnMapFile,
+                            const AString& columnMapFileName,
+                            const int32_t columnIndex);
+        
+        void getRowIndex(CaretMappableDataFile* &rowMapFile,
+                         AString& rowMapFileName,
+                         int32_t &rowIndex) const;
+        
+        void setRowIndex(CaretMappableDataFile* rowMapFile,
+                         const AString& rowMapFileName,
+                         const int32_t rowIndex);
         
         void reset();
 
@@ -118,6 +139,18 @@ namespace caret {
         int32_t m_surfaceVertexIndex = -1;
         
         float m_voxelXYZ[3];
+        
+        int32_t m_columnIndex = -1;
+        
+        int32_t m_rowIndex = -1;
+        
+        CaretMappableDataFile* m_rowMapFile;
+        
+        CaretMappableDataFile* m_columnMapFile;
+        
+        AString m_rowMapFileName;
+        
+        AString m_columnMapFileName;
         
         // ADD_NEW_MEMBERS_HERE
 

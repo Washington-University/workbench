@@ -2951,6 +2951,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
                             }
                             updateGraphicsFlag = true;
                             foundChartOverlayFlag = true;
+                            chartingDataManager->loadChartForCiftiMappableFileRow(matrixChart->getCiftiMappableDataFile(),
+                                                                                  rowIndex);
                         }
                     }
                 }

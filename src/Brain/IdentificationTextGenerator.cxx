@@ -403,14 +403,6 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
                             getMapIndicesOfFileUsedInOverlays(ciftiFile,
                                                               mapIndices);
                         }
-//                        /*
-//                         * Limit dense scalar and data series to maps selected in the overlay.
-//                         */
-//                        if ((ciftiFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
-//                            || (ciftiFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES)) {
-//                            getMapIndicesOfFileUsedInOverlays(ciftiFile,
-//                                                              mapIndices);
-//                        }
                         
                         AString textValue;
                         int64_t voxelIJK[3];
@@ -475,26 +467,6 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
         const BrainStructure* brainStructure = surface->getBrainStructure();
         CaretAssert(brainStructure);
         
-//        std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
-//        brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
-//        for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
-//             ciftiMapIter != allCiftiMappableDataFiles.end();
-//             ciftiMapIter++) {
-//            const CiftiMappableDataFile* cmdf = *ciftiMapIter;
-//            if (cmdf->isEmpty() == false) {
-//                const int numMaps = cmdf->getNumberOfMaps();
-//                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-//                    AString textValue;
-//                    if (cmdf->getMapSurfaceNodeValue(iMap, surface->getStructure(), nodeNumber, surface->getNumberOfNodes(), textValue)) {
-//                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
-//                                            + " "
-//                                            + cmdf->getFileNameNoPath());
-//                        idText.addLine(true, boldText, textValue);
-//                    }
-//                }
-//            }
-//        }
-
         std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
         brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
         for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
@@ -593,37 +565,6 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                                boldText,
                                textValue);
             }
-            
-//            const CiftiMappableConnectivityMatrixDataFile* connCifti = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(cmdf);
-//            if (cmdf->isEmpty() == false) {
-//                const int numMaps = cmdf->getNumberOfMaps();
-//                if (numMaps > 0) {
-//                    if (connCifti != NULL) {
-//                        AString textValue;
-//                        const int32_t mapIndex = 0;
-//                        if (cmdf->getMapSurfaceNodeValue(mapIndex, surface->getStructure(), nodeNumber, surface->getNumberOfNodes(), textValue)) {
-//                            AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
-//                                                + " "
-//                                                + cmdf->getFileNameNoPath());
-//                            idText.addLine(true, boldText, textValue);
-//                        }
-//                    }
-//                    else {
-//                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
-//                                            + " "
-//                                            + cmdf->getFileNameNoPath());
-//                        std::vector<float> nodeData;
-//                        if (cmdf->getSeriesDataForSurfaceNode(surface->getStructure(),
-//                                                              nodeNumber,
-//                                                              nodeData)) {
-//                            for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-//                                AString textValue = AString::number(nodeData[iMap]);
-//                                idText.addLine(true, boldText, textValue);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
         }
         
         
@@ -716,7 +657,6 @@ IdentificationTextGenerator::generateChartDataSeriesIdentificationText(Identific
                                                                        const SelectionItemChartDataSeries* idChartDataSeries) const
 {
     if (idChartDataSeries->isValid()) {
-        //const ChartModelDataSeries* chartModelDataSeries = idChartDataSeries->getChartModelDataSeries();
         const ChartDataCartesian* chartDataCartesian = idChartDataSeries->getChartDataCartesian();
         
         const ChartDataSource* chartDataSource = chartDataCartesian->getChartDataSource();
@@ -1088,6 +1028,40 @@ IdentificationTextGenerator::generateMapFileSelectorText(IdentificationStringBui
     switch (mapFileDataSelector->getDataSelectionType()) {
         case MapFileDataSelector::DataSelectionType::INVALID:
             break;
+        case MapFileDataSelector::DataSelectionType::COLUMN_DATA:
+        {
+            CaretMappableDataFile* mapFile = NULL;
+            AString mapFileName;
+            int32_t columnIndex = -1;
+            mapFileDataSelector->getColumnIndex(mapFile,
+                                                mapFileName,
+                                                columnIndex);
+
+            idText.addLine(true,
+                           "Column File",
+                           mapFileName);
+            idText.addLine(true,
+                           "Column Index",
+                           AString::number(columnIndex));
+        }
+            break;
+        case MapFileDataSelector::DataSelectionType::ROW_DATA:
+        {
+            CaretMappableDataFile* mapFile = NULL;
+            AString mapFileName;
+            int32_t rowIndex = -1;
+            mapFileDataSelector->getRowIndex(mapFile,
+                                                mapFileName,
+                                                rowIndex);
+            
+            idText.addLine(true,
+                           "Row File",
+                           mapFileName);
+            idText.addLine(true,
+                           "Row Index",
+                           AString::number(rowIndex));
+        }
+            break;
         case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
         {
             StructureEnum::Enum structure = StructureEnum::INVALID;
@@ -1153,7 +1127,6 @@ IdentificationTextGenerator::generateChartTimeSeriesIdentificationText(Identific
                                                                        const SelectionItemChartTimeSeries* idChartTimeSeries) const
 {
     if (idChartTimeSeries->isValid()) {
-        //const ChartModelDataSeries* chartModelDataSeries = idChartDataSeries->getChartModelDataSeries();
         const ChartDataCartesian* chartDataCartesian = idChartTimeSeries->getChartDataCartesian();
         
         const ChartDataSource* chartDataSource = chartDataCartesian->getChartDataSource();

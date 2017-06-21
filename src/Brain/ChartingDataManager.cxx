@@ -28,6 +28,7 @@
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "ModelChart.h"
+#include "ModelChartTwo.h"
 #include "SurfaceFile.h"
 
 using namespace caret;
@@ -104,6 +105,13 @@ ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceF
                                                         surfaceFile->getNumberOfNodes(),
                                                         nodeIndices);
     }
+    
+    ModelChartTwo* modelChartTwo = m_brain->getChartTwoModel();
+    if (modelChartTwo != NULL) {
+        modelChartTwo->loadAverageChartDataForSurfaceNodes(surfaceFile->getStructure(),
+                                                           surfaceFile->getNumberOfNodes(),
+                                                           nodeIndices);
+    }
 }
 
 /**
@@ -123,6 +131,13 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
     ModelChart* modelChart = m_brain->getChartModel();
     if (modelChart != NULL) {
         modelChart->loadChartDataForSurfaceNode(surfaceFile->getStructure(),
+                                                surfaceFile->getNumberOfNodes(),
+                                                nodeIndex);
+    }
+    
+    ModelChartTwo* modelChartTwo = m_brain->getChartTwoModel();
+    if (modelChartTwo != NULL) {
+        modelChartTwo->loadChartDataForSurfaceNode(surfaceFile->getStructure(),
                                                 surfaceFile->getNumberOfNodes(),
                                                 nodeIndex);
     }
@@ -147,6 +162,12 @@ ChartingDataManager::loadChartForCiftiMappableFileRow(CiftiMappableDataFile* cif
         modelChart->loadChartDataForCiftiMappableFileRow(ciftiMapFile,
                                                          rowIndex);
     }
+    
+    ModelChartTwo* modelChartTwo = m_brain->getChartTwoModel();
+    if (modelChartTwo != NULL) {
+        modelChartTwo->loadChartDataForCiftiMappableFileRow(ciftiMapFile,
+                                                         rowIndex);
+    }
 }
 
 
@@ -162,6 +183,11 @@ ChartingDataManager::loadChartForVoxelAtCoordinate(const float xyz[3]) const
     ModelChart* modelChart = m_brain->getChartModel();
     if (modelChart != NULL) {
         modelChart->loadChartDataForVoxelAtCoordinate(xyz);
+    }
+    
+    ModelChartTwo* modelChartTwo = m_brain->getChartTwoModel();
+    if (modelChartTwo != NULL) {
+        modelChartTwo->loadChartDataForVoxelAtCoordinate(xyz);
     }
 }
 

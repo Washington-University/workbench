@@ -62,6 +62,16 @@ namespace caret {
         
         virtual AString getNameForBrowserTab() const override;
         
+        void loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                         const int32_t surfaceNumberOfNodes,
+                                         const int32_t nodeIndex);
+        
+        void loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                                 const int32_t surfaceNumberOfNodes,
+                                                 const std::vector<int32_t>& nodeIndices);
+        
+        void loadChartDataForVoxelAtCoordinate(const float xyz[3]);
+        
         void loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMapFile,
                                                   const int32_t rowIndex);
         
