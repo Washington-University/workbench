@@ -43,6 +43,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class CaretDataFile;
     class CaretMappableDataFile;
+    class ChartTwoMatrixDisplayProperties;
     class ChartTwoOverlaySet;
     class ClippingPlaneGroup;
     class Matrix4x4;
@@ -285,6 +286,10 @@ namespace caret {
         
         void setTransformationsFromModelTransform(const ModelTransform& modelTransform);
         
+        ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties();
+
+        const ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties() const;
+        
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
         
         void setSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
@@ -502,6 +507,9 @@ namespace caret {
 
         /** Transformation for matrix chart two viewing */
         ViewingTransformations* m_chartTwoMatrixViewingTranformation;
+        
+        /** Display properties for chart two matrix */
+        ChartTwoMatrixDisplayProperties* m_chartTwoMatrixDisplayProperties;
         
         /** Volume slice settings for volume slices */
         VolumeSliceSettings* m_volumeSliceSettings;

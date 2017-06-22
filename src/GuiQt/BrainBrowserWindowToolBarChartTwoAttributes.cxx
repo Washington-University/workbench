@@ -187,8 +187,7 @@ BrainBrowserWindowToolBarChartTwoAttributes::getChartableTwoMatrixDisplayPropert
 
     BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
     if (browserTabContent != NULL) {
-        ModelChartTwo* modelChartTwo = browserTabContent->getDisplayedChartTwoModel();
-        matrixDisplayProperties = modelChartTwo->getChartTwoMatrixDisplayProperties(browserTabContent->getTabNumber());
+        matrixDisplayProperties = browserTabContent->getChartTwoMatrixDisplayProperties();
 //
 //        if (modelChart != NULL) {
 //            const int32_t tabIndex = browserTabContent->getTabNumber();
@@ -462,20 +461,24 @@ MatrixChartTwoAttributesWidget::valueChanged()
         matrixDisplayProperties->setSelectedRowColumnHighlighted(m_highlightSelectionCheckBox->isChecked());
         matrixDisplayProperties->setGridLinesDisplayed(m_displayGridLinesCheckBox->isChecked());
 
-        const BrowserTabContent* tabContent = m_brainBrowserWindowToolBarChartAttributes->getTabContentFromSelectedTab();
+        BrowserTabContent* tabContent = m_brainBrowserWindowToolBarChartAttributes->getTabContentFromSelectedTab();
         CaretAssert(tabContent);
         
-        const YokingGroupEnum::Enum yokingGroup = tabContent->getYokingGroup();
-        if (yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
-            const ModelChartTwo* modelChartTwo = tabContent->getDisplayedChartTwoModel();
-            CaretAssert(modelChartTwo);
-            EventChartTwoAttributesChanged attributesEvent;
-            attributesEvent.setMatrixPropertiesChanged(yokingGroup,
-                                                       matrixDisplayProperties);
-            EventManager::get()->sendEvent(attributesEvent.getPointer());
-            m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
-            EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
-        }
+        tabContent->updateYokedBrowserTabs();
+        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+        
+//        const YokingGroupEnum::Enum yokingGroup = tabContent->getYokingGroup();
+//        if (yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
+//            const ModelChartTwo* modelChartTwo = tabContent->getDisplayedChartTwoModel();
+//            CaretAssert(modelChartTwo);
+//            EventChartTwoAttributesChanged attributesEvent;
+//            attributesEvent.setMatrixPropertiesChanged(yokingGroup,
+//                                                       matrixDisplayProperties);
+//            EventManager::get()->sendEvent(attributesEvent.getPointer());
+//            m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
+//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+//        }
     }
 }
 

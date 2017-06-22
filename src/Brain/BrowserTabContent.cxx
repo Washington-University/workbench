@@ -40,6 +40,7 @@
 #include "CaretPreferences.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
+#include "ChartTwoMatrixDisplayProperties.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
@@ -129,6 +130,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_viewingTransformation            = new ViewingTransformations();
     m_volumeSliceViewingTransformation = new ViewingTransformationsVolume();
     m_chartTwoMatrixViewingTranformation  = new ViewingTransformations();
+    m_chartTwoMatrixDisplayProperties = new ChartTwoMatrixDisplayProperties();
     
     m_wholeBrainSurfaceSettings        = new WholeBrainSurfaceSettings();
     
@@ -176,6 +178,10 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_chartTwoMatrixViewingTranformation",
                                "ViewingTransformations",
                                m_chartTwoMatrixViewingTranformation);
+    
+    m_sceneClassAssistant->add("m_chartTwoMatrixDisplayProperties",
+                               "ChartTwoMatrixDisplayProperties",
+                               m_chartTwoMatrixDisplayProperties);
     
     m_sceneClassAssistant->add("m_volumeSliceSettings",
                                "VolumeSliceSettings",
@@ -228,6 +234,7 @@ BrowserTabContent::~BrowserTabContent()
     delete m_viewingTransformation;
     delete m_volumeSliceViewingTransformation;
     delete m_chartTwoMatrixViewingTranformation;
+    delete m_chartTwoMatrixDisplayProperties;
     delete m_obliqueVolumeRotationMatrix;
     
     delete m_surfaceModelSelector;
@@ -283,6 +290,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_viewingTransformation = *tabToClone->m_viewingTransformation;
     *m_volumeSliceViewingTransformation = *tabToClone->m_volumeSliceViewingTransformation;
     *m_chartTwoMatrixViewingTranformation = *tabToClone->m_chartTwoMatrixViewingTranformation;
+    *m_chartTwoMatrixDisplayProperties = *tabToClone->m_chartTwoMatrixDisplayProperties;
     *m_volumeSliceSettings = *tabToClone->m_volumeSliceSettings;
     *m_wholeBrainSurfaceSettings = *tabToClone->m_wholeBrainSurfaceSettings;
     
@@ -946,6 +954,24 @@ BrowserTabContent::getChartTwoOverlaySet() const
 //        return model->getChartTwoOverlaySet(m_tabNumber);
 //    }
 //    return NULL;
+}
+
+/**
+ * @return Chart two matrix display properties.
+ */
+ChartTwoMatrixDisplayProperties*
+BrowserTabContent::getChartTwoMatrixDisplayProperties()
+{
+    return m_chartTwoMatrixDisplayProperties;
+}
+
+/**
+ * @return Chart two matrix display properties (const method)
+ */
+const ChartTwoMatrixDisplayProperties*
+BrowserTabContent::getChartTwoMatrixDisplayProperties() const
+{
+    return m_chartTwoMatrixDisplayProperties;
 }
 
 /**
@@ -4252,6 +4278,7 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
                 *m_cerebellumViewingTransformation = *btc->m_cerebellumViewingTransformation;
                 *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
                 *m_chartTwoMatrixViewingTranformation = *btc->m_chartTwoMatrixViewingTranformation;
+                *m_chartTwoMatrixDisplayProperties = *btc->m_chartTwoMatrixDisplayProperties;
                 *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
                 *m_obliqueVolumeRotationMatrix = *btc->m_obliqueVolumeRotationMatrix;
                 *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
@@ -4303,6 +4330,7 @@ BrowserTabContent::updateYokedBrowserTabs()
                 *btc->m_cerebellumViewingTransformation = *m_cerebellumViewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
                 *btc->m_chartTwoMatrixViewingTranformation = *m_chartTwoMatrixViewingTranformation;
+                *btc->m_chartTwoMatrixDisplayProperties = *m_chartTwoMatrixDisplayProperties;
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;

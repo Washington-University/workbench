@@ -45,7 +45,6 @@
 #include "ChartableTwoFileMatrixChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartTwoLineSeriesHistory.h"
-#include "ChartTwoMatrixDisplayProperties.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "ChartTwoOverlaySetArray.h"
@@ -58,7 +57,6 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabIndicesGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
-#include "EventChartTwoAttributesChanged.h"
 #include "EventChartTwoLoadLineSeriesData.h"
 #include "EventManager.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
@@ -95,10 +93,6 @@ ModelChartTwo::ModelChartTwo(Brain* brain)
                                                                                                      "Matrix Chart Overlays"));
     m_lineSeriesChartOverlaySetArray = std::unique_ptr<ChartTwoOverlaySetArray>(new ChartTwoOverlaySetArray(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                                                      "Line Series Chart Overlays"));
-
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartTwoMatrixDisplayProperties[i] = new ChartTwoMatrixDisplayProperties();
-    }
     
     initializeCharts();
     
@@ -116,8 +110,6 @@ ModelChartTwo::ModelChartTwo(Brain* brain)
                           m_lineSeriesChartOverlaySetArray.get());
     
     EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED);
-    EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS);
 }
 
@@ -129,12 +121,7 @@ ModelChartTwo::~ModelChartTwo()
     delete m_overlaySetArray;
     EventManager::get()->removeAllEventsFromListener(this);
     
-    removeAllCharts();    
-
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete m_chartTwoMatrixDisplayProperties[i];
-        m_chartTwoMatrixDisplayProperties[i] = NULL;
-    }
+    removeAllCharts();
 }
 
 void
@@ -409,44 +396,6 @@ ModelChartTwo::receiveEvent(Event* event)
 
         nodeChartID->setEventProcessed();
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED) {
-        EventChartTwoAttributesChanged* attributeEvent = dynamic_cast<EventChartTwoAttributesChanged*>(event);
-        CaretAssert(attributeEvent);
-        
-        switch (attributeEvent->getMode()) {
-            case EventChartTwoAttributesChanged::Mode::INVALID:
-                break;
-            case EventChartTwoAttributesChanged::Mode::CARTESIAN_AXIS:
-                break;
-            case EventChartTwoAttributesChanged::Mode::MATRIX_PROPERTIES:
-            {
-                YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
-                ChartTwoMatrixDisplayProperties *matrixDisplayProperties = NULL;
-                attributeEvent->getMatrixPropertiesChanged(yokingGroup,
-                                                           matrixDisplayProperties);
-                
-
-                if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
-                    && (matrixDisplayProperties != NULL)) {
-                    
-                    EventBrowserTabGetAll allTabsEvent;
-                    EventManager::get()->sendEvent(allTabsEvent.getPointer());
-                    std::vector<BrowserTabContent*> allTabContent = allTabsEvent.getAllBrowserTabs();
-                    
-                    for (auto btc : allTabContent) {
-                        CaretAssert(btc);
-                        if (btc->getYokingGroup() == yokingGroup) {
-                            const int32_t tabIndex = btc->getTabNumber();
-                            *m_chartTwoMatrixDisplayProperties[tabIndex] = *matrixDisplayProperties;
-                        }
-                    }
-                }
-            }
-                break;
-        }
-        
-        attributeEvent->setEventProcessed();
-    }
 }
 
 /**
@@ -531,19 +480,6 @@ void
 ModelChartTwo::saveVersionTwoModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                            SceneClass* sceneClass)
 {
-    std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
-   
-    /*
-     * Save matrix properties.
-     */
-    SceneObjectMapIntegerKey* matrixPropsMap = new SceneObjectMapIntegerKey("m_chartTwoMatrixDisplayPropertiesMAP",
-                                                                            SceneObjectDataTypeEnum::SCENE_CLASS);
-    
-    for (int32_t tabIndex : tabIndices) {
-        matrixPropsMap->addClass(tabIndex, m_chartTwoMatrixDisplayProperties[tabIndex]->saveToScene(sceneAttributes,
-                                                                                                      "m_chartTwoMatrixDisplayProperties"));
-    }
-    sceneClass->addChild(matrixPropsMap);
 }
 
 /**
@@ -606,19 +542,7 @@ ModelChartTwo::restoreModelSpecificInformationFromScene(const SceneAttributes* s
 void
 ModelChartTwo::restoreVersionTwoModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                                const SceneClass* sceneClass)
-{    /*
-      * Restore matrix chart series models from scene.
-      */
-    const SceneObjectMapIntegerKey* matrixPropsMap = sceneClass->getMapIntegerKey("m_chartTwoMatrixDisplayPropertiesMAP");
-    if (matrixPropsMap != NULL) {
-        const std::vector<int32_t> tabIndices = matrixPropsMap->getKeys();
-        for (const int32_t tabIndex : tabIndices) {
-            const SceneClass* sceneClass = matrixPropsMap->classValue(tabIndex);
-            m_chartTwoMatrixDisplayProperties[tabIndex]->restoreFromScene(sceneAttributes,
-                                                                          sceneClass);
-        }
-    }
-
+{
     /*
      * Restore the chart models
      */
@@ -953,11 +877,11 @@ ModelChartTwo::restoreMatrixChartFromChartOneModel(ModelChart* modelChartOne,
     
     
     CaretAssert(chartOneMatrixDisplayProperties);
-    ChartTwoMatrixDisplayProperties* chartTwoMatrixDisplayProperties = getChartTwoMatrixDisplayProperties(tabIndex);
-    CaretAssert(chartTwoMatrixDisplayProperties);
-    chartTwoMatrixDisplayProperties->resetPropertiesToDefault();
-    chartTwoMatrixDisplayProperties->setGridLinesDisplayed(chartOneMatrixDisplayProperties->isGridLinesDisplayed());
-    chartTwoMatrixDisplayProperties->setSelectedRowColumnHighlighted(chartOneMatrixDisplayProperties->isSelectedRowColumnHighlighted());
+//    ChartTwoMatrixDisplayProperties* chartTwoMatrixDisplayProperties = getChartTwoMatrixDisplayProperties(tabIndex);
+//    CaretAssert(chartTwoMatrixDisplayProperties);
+//    chartTwoMatrixDisplayProperties->resetPropertiesToDefault();
+//    chartTwoMatrixDisplayProperties->setGridLinesDisplayed(chartOneMatrixDisplayProperties->isGridLinesDisplayed());
+//    chartTwoMatrixDisplayProperties->setSelectedRowColumnHighlighted(chartOneMatrixDisplayProperties->isSelectedRowColumnHighlighted());
     AnnotationColorBar* chartOneColorBar = chartOneMatrixDisplayProperties->getColorBar();
     
     EventBrowserTabGet getTabEvent(tabIndex);
@@ -1117,7 +1041,6 @@ ModelChartTwo::copyTabContent(const int32_t sourceTabIndex,
                                                          destinationTabIndex);
     m_matrixChartOverlaySetArray->copyChartOverlaySet(sourceTabIndex,
                                                          destinationTabIndex);
-    *m_chartTwoMatrixDisplayProperties[destinationTabIndex] = *m_chartTwoMatrixDisplayProperties[sourceTabIndex];
 }
 
 
@@ -1236,36 +1159,6 @@ ModelChartTwo::updateChartOverlaySets(const int32_t tabIndex)
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
             break;
     }
-}
-
-/**
- * @return The chart matrix display properties for the given tab.
- *
- * @param tabIndex
- *     The tab index.
- */
-ChartTwoMatrixDisplayProperties*
-ModelChartTwo::getChartTwoMatrixDisplayProperties(const int32_t tabIndex)
-{
-    CaretAssertArrayIndex(m_chartTwoMatrixDisplayProperties,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          tabIndex);
-    return m_chartTwoMatrixDisplayProperties[tabIndex];
-}
-
-/**
- * @return The chart matrix display properties for the given tab.
- *
- * @param tabIndex
- *     The tab index.
- */
-const ChartTwoMatrixDisplayProperties*
-ModelChartTwo::getChartTwoMatrixDisplayProperties(const int32_t tabIndex) const
-{
-    CaretAssertArrayIndex(m_chartTwoMatrixDisplayProperties,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          tabIndex);
-    return m_chartTwoMatrixDisplayProperties[tabIndex];
 }
 
 /**

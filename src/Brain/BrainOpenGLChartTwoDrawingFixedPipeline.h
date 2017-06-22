@@ -31,6 +31,7 @@
 namespace caret {
 
     class Annotation;
+    class BrowserTabContent;
     class CaretPreferences;
     class ChartTwoCartesianAxis;
     class ChartTwoDataCartesian;
@@ -163,6 +164,8 @@ namespace caret {
         void drawPrimitivePrivate(GraphicsPrimitive* primitive);
         
         Brain* m_brain;
+        
+        BrowserTabContent* m_browserTabContent;
         
         ModelChartTwo* m_chartTwoModel;
         

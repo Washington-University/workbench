@@ -128,12 +128,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     m_chartTwoModel = chartTwoModel;
     m_fixedPipelineDrawing = fixedPipelineDrawing;
     m_textRenderer = fixedPipelineDrawing->getTextRenderer();
+    m_browserTabContent = browserTabContent;
     m_translation[0] = 0.0;
     m_translation[1] = 0.0;
     m_translation[2] = 0.0;
-    browserTabContent->getTranslation(m_translation);
-    m_tabIndex = browserTabContent->getTabNumber();
-    m_zooming        = browserTabContent->getScaling();
+    m_browserTabContent->getTranslation(m_translation);
+    m_tabIndex = m_browserTabContent->getTabNumber();
+    m_zooming        = m_browserTabContent->getScaling();
     m_chartOverlaySet = m_chartTwoModel->getChartTwoOverlaySet(m_tabIndex);
     m_selectionItemDataType = selectionItemDataType;
     m_viewport[0] = viewport[0];
@@ -153,7 +154,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
      * viewport so chart is above color bars.
      */
     std::vector<AnnotationColorBar*> colorBars;
-    browserTabContent->getAnnotationColorBars(colorBars);
+    m_browserTabContent->getAnnotationColorBars(colorBars);
     if ( ! colorBars.empty()) {
         int heightOfAllColorBars = 0;
         
@@ -1184,7 +1185,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
     /*
      * Set the width and neight of each matrix cell.
      */
-    const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartTwoModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
+    const ChartTwoMatrixDisplayProperties* matrixProperties = m_browserTabContent->getChartTwoMatrixDisplayProperties(); //   //m_chartTwoModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
     CaretAssert(matrixProperties);
     const float cellWidthZoom  = matrixProperties->getCellPercentageZoomWidth()  / 100.0;
     const float cellHeightZoom = matrixProperties->getCellPercentageZoomHeight() / 100.0;
@@ -1336,7 +1337,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
     else {
         drawPrimitivePrivate(matrixPrimitive);
         
-        const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartTwoModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
+        const ChartTwoMatrixDisplayProperties* matrixProperties = m_browserTabContent->getChartTwoMatrixDisplayProperties();
+//        const ChartTwoMatrixDisplayProperties* matrixProperties = m_chartTwoModel->getChartTwoMatrixDisplayProperties(m_tabIndex);
         CaretAssert(matrixProperties);
         
         if (matrixProperties->isGridLinesDisplayed()) {

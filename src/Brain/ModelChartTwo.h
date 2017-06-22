@@ -40,7 +40,6 @@
 namespace caret {
 
     class CaretDataFileSelectionModel;
-    class ChartTwoMatrixDisplayProperties;
     class ChartTwoOverlaySetArray;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiMappableDataFile;
@@ -81,10 +80,6 @@ namespace caret {
         virtual OverlaySet* getOverlaySet(const int tabIndex) override;
         
         virtual const OverlaySet* getOverlaySet(const int tabIndex) const override;
-        
-        ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties(const int32_t tabIndex);
-        
-        const ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties(const int32_t tabIndex) const;
         
         virtual ChartTwoOverlaySet* getChartTwoOverlaySet(const int tabIndex) override;
         
@@ -155,8 +150,6 @@ namespace caret {
         /** Chart Overlay sets for XX data type */
         std::unique_ptr<ChartTwoOverlaySetArray> m_matrixChartOverlaySetArray;
         
-        ChartTwoMatrixDisplayProperties* m_chartTwoMatrixDisplayProperties[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
     };
 
