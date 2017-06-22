@@ -105,6 +105,8 @@ BrainBrowserWindowToolBarChartTwoAttributes::updateContent(BrowserTabContent* br
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                    m_stackedWidget->setCurrentWidget(m_cartesianChartAttributesWidget);
+                    m_cartesianChartAttributesWidget->updateContent();
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                     m_stackedWidget->setCurrentWidget(m_matrixChartTwoAttributesWidget);

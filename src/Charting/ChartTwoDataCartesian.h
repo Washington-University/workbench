@@ -71,6 +71,10 @@ namespace caret {
         
         void setColor(const CaretColorEnum::Enum color);
         
+        float getLineWidth() const;
+        
+        void setLineWidth(const float lineWidth);
+        
         float getTimeStartInSecondsAxisX() const;
         
         void setTimeStartInSecondsAxisX(const float timeStart);
@@ -119,6 +123,8 @@ namespace caret {
         bool m_selectionStatus;
         
         CaretColorEnum::Enum m_color;
+        
+        float m_lineWidth;
         
         float m_timeStartInSecondsAxisX;
         

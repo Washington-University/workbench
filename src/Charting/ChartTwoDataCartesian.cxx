@@ -102,6 +102,7 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
     
     m_selectionStatus   = true;
     m_color             = CaretColorEnum::RED;
+    m_lineWidth         = 1.0;
     m_timeStartInSecondsAxisX = 0.0;
     m_timeStepInSecondsAxisX  = 1.0;
     
@@ -140,6 +141,8 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
                                                                 &m_dataAxisUnitsY);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_color",
                                                                 &m_color);
+    m_sceneAssistant->add("m_lineWidth",
+                          &m_lineWidth);
     m_sceneAssistant->add("m_timeStartInSecondsAxisX",
                           &m_timeStartInSecondsAxisX);
     m_sceneAssistant->add("m_timeStepInSecondsAxisX",
@@ -248,6 +251,7 @@ ChartTwoDataCartesian::copyHelperChartTwoDataCartesian(const ChartTwoDataCartesi
     m_graphicsPrimitive.reset(dynamic_cast<GraphicsPrimitiveV3f*>(obj.m_graphicsPrimitive->clone()));
     
     m_color             = obj.m_color;
+    m_lineWidth         = obj.m_lineWidth;
     m_timeStartInSecondsAxisX = obj.m_timeStartInSecondsAxisX;
     m_timeStepInSecondsAxisX  = obj.m_timeStepInSecondsAxisX;
 }
@@ -411,6 +415,27 @@ ChartTwoDataCartesian::setColor(const CaretColorEnum::Enum color)
         CaretColorEnum::toRGBAFloat(m_color, rgba);
         m_graphicsPrimitive->replaceColoring(rgba);
     }
+}
+
+/**
+ * @return The line width.
+ */
+float
+ChartTwoDataCartesian::getLineWidth() const
+{
+    return m_lineWidth;
+}
+
+/**
+ * Set line width.
+ *
+ * @param lineWidth
+ *     New value for line width.
+ */
+void
+ChartTwoDataCartesian::setLineWidth(const float lineWidth)
+{
+    m_lineWidth = lineWidth;
 }
 
 /**

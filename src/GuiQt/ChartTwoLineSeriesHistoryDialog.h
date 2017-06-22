@@ -28,6 +28,7 @@
 #include "CaretColorEnum.h"
 #include "WuQDialogNonModal.h"
 
+class QDoubleSpinBox;
 class QLabel;
 class QIcon;
 class QSignalMapper;
@@ -65,6 +66,8 @@ namespace caret {
         
         void colorItemSelected(int rowIndex);
         
+        void lineWidthItemSelected(int rowIndex);
+        
         void removeAllHistoryButtonClicked();
         
         void defaultColorSelected(const CaretColorEnum::Enum color);
@@ -97,7 +100,11 @@ namespace caret {
         
         QSignalMapper* m_colorItemSignalMapper;
         
+        QSignalMapper* m_lineWidthItemSignalMapper;
+        
         std::vector<CaretColorEnumComboBox*> m_colorComboBoxes;
+        
+        std::vector<QDoubleSpinBox*> m_lineWidthSpinBoxes;
         
         QLabel* m_filenameLabel;
         
@@ -108,8 +115,9 @@ namespace caret {
         static const int32_t COLUMN_VIEW   = 0;
         static const int32_t COLUMN_REMOVE = 1;
         static const int32_t COLUMN_COLOR  = 2;
-        static const int32_t COLUMN_DESCRIPTION = 3;
-        static const int32_t COLUMN_COUNT  = 4;
+        static const int32_t COLUMN_LINE_WIDTH = 3;
+        static const int32_t COLUMN_DESCRIPTION = 4;
+        static const int32_t COLUMN_COUNT  = 5;
         
         // ADD_NEW_MEMBERS_HERE
 

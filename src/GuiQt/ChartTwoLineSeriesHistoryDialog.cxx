@@ -24,6 +24,7 @@
 #undef __CHART_TWO_LINE_SERIES_HISTORY_DIALOG_DECLARE__
 
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QLabel>
 #include <QSignalMapper>
 #include <QSpinBox>
@@ -100,6 +101,10 @@ ChartTwoLineSeriesHistoryDialog::ChartTwoLineSeriesHistoryDialog(QWidget* parent
     m_colorItemSignalMapper = new QSignalMapper(this);
     QObject::connect(m_colorItemSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(colorItemSelected(int)));
+    
+    m_lineWidthItemSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_lineWidthItemSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(lineWidthItemSelected(int)));
     
     m_tableWidget = new QTableWidget();
     m_tableWidget->setSelectionBehavior(QTableWidget::SelectItems);
@@ -325,6 +330,18 @@ ChartTwoLineSeriesHistoryDialog::loadHistoryIntoTableWidget(ChartTwoLineSeriesHi
                                              caretColorComboBox->getWidget());
                 m_colorComboBoxes.push_back(caretColorComboBox);
             }
+            else if (j == COLUMN_LINE_WIDTH) {
+                QDoubleSpinBox* lineWidthSpinBox = new QDoubleSpinBox();
+                lineWidthSpinBox->setRange(1.0, 10.0);
+                lineWidthSpinBox->setSingleStep(1.0);
+                QObject::connect(lineWidthSpinBox, SIGNAL(valueChanged(double)),
+                                 m_lineWidthItemSignalMapper, SLOT(map()));
+                m_lineWidthItemSignalMapper->setMapping(lineWidthSpinBox, iRow);
+                m_tableWidget->setCellWidget(iRow,
+                                             COLUMN_LINE_WIDTH,
+                                             lineWidthSpinBox);
+                m_lineWidthSpinBoxes.push_back(lineWidthSpinBox);
+            }
             else if (j == COLUMN_DESCRIPTION) {
                 QTableWidgetItem* item = new QTableWidgetItem("");
                 item->setFlags(Qt::ItemIsEnabled
@@ -351,6 +368,8 @@ ChartTwoLineSeriesHistoryDialog::loadHistoryIntoTableWidget(ChartTwoLineSeriesHi
         CaretAssertVectorIndex(m_colorComboBoxes, iRow);
         m_colorComboBoxes[iRow]->setSelectedColor(data->getColor());
         
+        m_lineWidthSpinBoxes[iRow]->setValue(data->getLineWidth());
+        
         QTableWidgetItem* item = m_tableWidget->item(iRow, COLUMN_DESCRIPTION);
         item->setText(mapFileDataSelector->toString());
     }
@@ -367,12 +386,15 @@ ChartTwoLineSeriesHistoryDialog::loadHistoryIntoTableWidget(ChartTwoLineSeriesHi
                                                new QTableWidgetItem("Remove"));
         m_tableWidget->setHorizontalHeaderItem(COLUMN_COLOR,
                                                new QTableWidgetItem("Color"));
+        m_tableWidget->setHorizontalHeaderItem(COLUMN_LINE_WIDTH,
+                                               new QTableWidgetItem("Line Width"));
         m_tableWidget->setHorizontalHeaderItem(COLUMN_DESCRIPTION,
                                                new QTableWidgetItem("Description"));
         
         m_tableWidget->resizeColumnToContents(COLUMN_VIEW);
         m_tableWidget->resizeColumnToContents(COLUMN_REMOVE);
         m_tableWidget->resizeColumnToContents(COLUMN_COLOR);
+        m_tableWidget->resizeColumnToContents(COLUMN_LINE_WIDTH);
         m_tableWidget->setColumnWidth(COLUMN_DESCRIPTION,
                                       350);
         
@@ -445,6 +467,28 @@ ChartTwoLineSeriesHistoryDialog::colorItemSelected(int rowIndex)
         ChartTwoDataCartesian* data = lineSeriesHistory->getHistoryItem(rowIndex);
         CaretAssert(data);
         data->setColor(m_colorComboBoxes[rowIndex]->getSelectedColor());
+        
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+/**
+ * line width item selected
+ *
+ * @param rowIndex
+ *     Row index of item.
+ */
+void
+ChartTwoLineSeriesHistoryDialog::lineWidthItemSelected(int rowIndex)
+{
+    CaretAssertVectorIndex(m_lineWidthSpinBoxes, rowIndex);
+    CaretAssert(m_lineWidthSpinBoxes[rowIndex]);
+    
+    ChartTwoLineSeriesHistory* lineSeriesHistory = getLineSeriesHistory();
+    if (lineSeriesHistory != NULL) {
+        ChartTwoDataCartesian* data = lineSeriesHistory->getHistoryItem(rowIndex);
+        CaretAssert(data);
+        data->setLineWidth(m_lineWidthSpinBoxes[rowIndex]->value());
         
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }

@@ -1117,10 +1117,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                 }
                 else {
                     /*
-                     * Note: do anti-aliasing here since it will mess up drawing when identifying
+                     * Note: Anti-aliasing is only enabled when drawing the line.
+                     * Anti-aliasing cannot be enabled during identification since
+                     * identification encodes information in the colors (anti-aliasing
+                     * will alter the colors during drawing).
                      */
                     m_fixedPipelineDrawing->enableLineAntiAliasing();
-                    glLineWidth(LINE_SERIES_LINE_WIDTH);
+                    glLineWidth(lineChart.m_chartTwoCartesianData->getLineWidth());
                     GraphicsEngineDataOpenGL::draw(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
                                                lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
                     m_fixedPipelineDrawing->disableLineAntiAliasing();
