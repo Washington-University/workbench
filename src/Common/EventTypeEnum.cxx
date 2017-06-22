@@ -181,9 +181,14 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME,
                                      "EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME",
                                      "Delete an OpenGL Texture Name for an OpenGL Context"));
+
     enumData.push_back(EventTypeEnum(EVENT_CHART_OVERLAY_VALIDATE,
                                      "EVENT_CHART_OVERLAY_VALIDATE",
                                      "Validate a chart overlay for validity (it exists)"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_CHART_TWO_ATTRIBUTES_CHANGED,
+                                     "EVENT_CHART_TWO_ATTRIBUTES_CHANGED",
+                                     "GUI notification of the change in chart two atttributes"));
     
     enumData.push_back(EventTypeEnum(EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
                                      "EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA",

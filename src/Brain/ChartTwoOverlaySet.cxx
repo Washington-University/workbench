@@ -24,11 +24,14 @@
 #undef __CHART_TWO_OVERLAY_SET_DECLARE__
 
 #include "AnnotationPercentSizeText.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
 #include "EventAnnotationChartLabelGet.h"
+#include "EventBrowserTabGet.h"
+#include "EventChartTwoAttributesChanged.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventMapYokingValidation.h"
@@ -149,6 +152,7 @@ m_tabIndex(tabIndex)
         m_overlays[i]->setWeakPointerToSelf(m_overlays[i]);
     }
 
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
@@ -517,6 +521,58 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
         chartLabelEvent->addAnnotationChartLabel(m_chartAxisBottom->getAnnotationAxisLabel());
         chartLabelEvent->addAnnotationChartLabel(m_chartAxisLeft->getAnnotationAxisLabel());
         chartLabelEvent->addAnnotationChartLabel(m_chartAxisRight->getAnnotationAxisLabel());
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED) {
+        EventChartTwoAttributesChanged* attributeEvent = dynamic_cast<EventChartTwoAttributesChanged*>(event);
+        CaretAssert(attributeEvent);
+        
+        switch (attributeEvent->getMode()) {
+            case EventChartTwoAttributesChanged::Mode::INVALID:
+                break;
+            case EventChartTwoAttributesChanged::Mode::CARTESIAN_AXIS:
+            {
+                YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+                ChartTwoDataTypeEnum::Enum chartTwoDataType = ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID;
+                ChartTwoCartesianAxis* cartesianAxis = NULL;
+                attributeEvent->getCartesianAxisChanged(yokingGroup,
+                                                        chartTwoDataType,
+                                                        cartesianAxis);
+                
+                /*
+                 * Only tabs in the windows are valid
+                 */
+                EventBrowserTabGet tabEvent(m_tabIndex);
+                EventManager::get()->sendEvent(tabEvent.getPointer());
+                const BrowserTabContent* btc = tabEvent.getBrowserTab();
+                if (btc != NULL) {
+                    const YokingGroupEnum::Enum tabYoking = btc->getYokingGroup();
+                    
+                    if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
+                        && (yokingGroup == tabYoking)
+                        && (m_chartDataType == chartTwoDataType)) {
+                        switch (cartesianAxis->getAxisLocation()) {
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                                *m_chartAxisBottom = *cartesianAxis;
+                                break;
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                                *m_chartAxisLeft = *cartesianAxis;
+                                break;
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                                *m_chartAxisRight = *cartesianAxis;
+                                break;
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                                CaretAssert(0);
+                                break;
+                        }
+                    }
+                }
+            }
+                break;
+            case EventChartTwoAttributesChanged::Mode::MATRIX_PROPERTIES:
+                break;
+        }
+        
+        attributeEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
         /*

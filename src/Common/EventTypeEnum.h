@@ -92,6 +92,8 @@ public:
         EVENT_CHART_MATRIX_YOKING_VALIDATION,
         /** Validate that chart overlay is valid (it exists). */
         EVENT_CHART_OVERLAY_VALIDATE,
+        /** GUI notification of the change in chart two atttributes */
+        EVENT_CHART_TWO_ATTRIBUTES_CHANGED,
         /** Load chart two line series data */
         EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
         /** Show the chart two line series history dialog */

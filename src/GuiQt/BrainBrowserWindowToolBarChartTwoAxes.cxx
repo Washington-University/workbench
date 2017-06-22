@@ -42,6 +42,7 @@
 #include "ChartTwoOverlaySet.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
+#include "EventChartTwoAttributesChanged.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "ModelChartTwo.h"
@@ -466,6 +467,21 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
         m_chartAxis->setUserDigitsRightOfDecimal(m_userDigitsRightOfDecimalSpinBox->value());
         m_chartAxis->setNumericSubdivsionsMode(m_numericSubdivisionsModeComboBox->getSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>());
         m_chartAxis->setUserNumberOfSubdivisions(m_userSubdivisionsSpinBox->value());
+        
+        const BrowserTabContent* tabContent = getTabContentFromSelectedTab();
+        CaretAssert(tabContent);
+        
+        const YokingGroupEnum::Enum yokingGroup = tabContent->getYokingGroup();
+        if (yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
+            const ModelChartTwo* modelChartTwo = tabContent->getDisplayedChartTwoModel();
+            CaretAssert(modelChartTwo);
+            const int32_t tabIndex = tabContent->getTabNumber();
+            EventChartTwoAttributesChanged attributesEvent;
+            attributesEvent.setCartesianAxisChanged(yokingGroup,
+                                                    modelChartTwo->getSelectedChartTwoDataType(tabIndex),
+                                                    m_chartAxis);
+            EventManager::get()->sendEvent(attributesEvent.getPointer());
+        }
     }
 
     updateGraphics();

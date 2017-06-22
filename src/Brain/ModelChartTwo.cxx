@@ -58,6 +58,7 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabIndicesGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
+#include "EventChartTwoAttributesChanged.h"
 #include "EventChartTwoLoadLineSeriesData.h"
 #include "EventManager.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
@@ -114,6 +115,8 @@ ModelChartTwo::ModelChartTwo(Brain* brain)
                           "ChartTwoOverlaySetArray",
                           m_lineSeriesChartOverlaySetArray.get());
     
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS);
 }
@@ -405,6 +408,44 @@ ModelChartTwo::receiveEvent(Event* event)
 //        }
 
         nodeChartID->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED) {
+        EventChartTwoAttributesChanged* attributeEvent = dynamic_cast<EventChartTwoAttributesChanged*>(event);
+        CaretAssert(attributeEvent);
+        
+        switch (attributeEvent->getMode()) {
+            case EventChartTwoAttributesChanged::Mode::INVALID:
+                break;
+            case EventChartTwoAttributesChanged::Mode::CARTESIAN_AXIS:
+                break;
+            case EventChartTwoAttributesChanged::Mode::MATRIX_PROPERTIES:
+            {
+                YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+                ChartTwoMatrixDisplayProperties *matrixDisplayProperties = NULL;
+                attributeEvent->getMatrixPropertiesChanged(yokingGroup,
+                                                           matrixDisplayProperties);
+                
+
+                if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
+                    && (matrixDisplayProperties != NULL)) {
+                    
+                    EventBrowserTabGetAll allTabsEvent;
+                    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+                    std::vector<BrowserTabContent*> allTabContent = allTabsEvent.getAllBrowserTabs();
+                    
+                    for (auto btc : allTabContent) {
+                        CaretAssert(btc);
+                        if (btc->getYokingGroup() == yokingGroup) {
+                            const int32_t tabIndex = btc->getTabNumber();
+                            *m_chartTwoMatrixDisplayProperties[tabIndex] = *matrixDisplayProperties;
+                        }
+                    }
+                }
+            }
+                break;
+        }
+        
+        attributeEvent->setEventProcessed();
     }
 }
 

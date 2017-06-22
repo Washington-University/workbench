@@ -39,8 +39,10 @@
 #include "CaretMappableDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartTwoMatrixDisplayProperties.h"
+#include "EventChartTwoAttributesChanged.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "ModelChartTwo.h"
 #include "WuQFactory.h"
 #include "WuQWidgetObjectGroup.h"
@@ -351,7 +353,7 @@ EventListenerInterface()
                                                                                         1.0,
                                                                                         1,
                                                                                         this,
-                                                                                        SLOT(cellWidthPercentageSpinBoxValueChanged(double)));
+                                                                                        SLOT(valueChanged()));
     m_cellWidthPercentageSpinBox->setKeyboardTracking(true);
     m_cellWidthPercentageSpinBox->setSuffix("%");
     
@@ -361,7 +363,7 @@ EventListenerInterface()
                                                                                          1.0,
                                                                                          1,
                                                                                          this,
-                                                                                         SLOT(cellHeightPercentageSpinBoxValueChanged(double)));
+                                                                                         SLOT(valueChanged()));
     m_cellHeightPercentageSpinBox->setKeyboardTracking(true);
     m_cellHeightPercentageSpinBox->setSuffix("%");
     
@@ -370,11 +372,11 @@ EventListenerInterface()
     
     m_highlightSelectionCheckBox = new QCheckBox("Highlight Selection");
     QObject::connect(m_highlightSelectionCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(highlightSelectionCheckBoxClicked(bool)));
+                     this, SLOT(valueChanged()));
     
     m_displayGridLinesCheckBox = new QCheckBox("Show Grid Outline");
     QObject::connect(m_displayGridLinesCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(displayGridLinesCheckBoxClicked(bool)));
+                     this, SLOT(valueChanged()));
     
     m_manualWidgetsGroup = new WuQWidgetObjectGroup(this);
     m_manualWidgetsGroup->add(m_cellWidthPercentageSpinBox);
@@ -448,67 +450,98 @@ MatrixChartTwoAttributesWidget::updateContent()
 }
 
 /**
- * Called when the cell width spin box value is changed.
- *
- * @param value
- *    New value for cell width.
+ * Gets called when user changes value of a user-interface component.
  */
 void
-MatrixChartTwoAttributesWidget::cellWidthPercentageSpinBoxValueChanged(double value)
+MatrixChartTwoAttributesWidget::valueChanged()
 {
     ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
     if (matrixDisplayProperties != NULL) {
-        matrixDisplayProperties->setCellPercentageZoomWidth(value);
-        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
+        matrixDisplayProperties->setCellPercentageZoomWidth(m_cellWidthPercentageSpinBox->value());
+        matrixDisplayProperties->setCellPercentageZoomHeight(m_cellHeightPercentageSpinBox->value());
+        matrixDisplayProperties->setSelectedRowColumnHighlighted(m_highlightSelectionCheckBox->isChecked());
+        matrixDisplayProperties->setGridLinesDisplayed(m_displayGridLinesCheckBox->isChecked());
+
+        const BrowserTabContent* tabContent = m_brainBrowserWindowToolBarChartAttributes->getTabContentFromSelectedTab();
+        CaretAssert(tabContent);
+        
+        const YokingGroupEnum::Enum yokingGroup = tabContent->getYokingGroup();
+        if (yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
+            const ModelChartTwo* modelChartTwo = tabContent->getDisplayedChartTwoModel();
+            CaretAssert(modelChartTwo);
+            EventChartTwoAttributesChanged attributesEvent;
+            attributesEvent.setMatrixPropertiesChanged(yokingGroup,
+                                                       matrixDisplayProperties);
+            EventManager::get()->sendEvent(attributesEvent.getPointer());
+            m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+        }
     }
 }
 
-/**
- * Called when the cell height spin box value is changed.
- *
- * @param value
- *    New value for cell height.
- */
-void
-MatrixChartTwoAttributesWidget::cellHeightPercentageSpinBoxValueChanged(double value)
-{
-    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
-    if (matrixDisplayProperties != NULL) {
-        matrixDisplayProperties->setCellPercentageZoomHeight(value);
-        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
-    }
-}
 
-/**
- * Called when the show selection check box is checked.
- *
- * @param checked
- *    New checked status.
- */
-void
-MatrixChartTwoAttributesWidget::highlightSelectionCheckBoxClicked(bool checked)
-{
-    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
-    if (matrixDisplayProperties != NULL) {
-        matrixDisplayProperties->setSelectedRowColumnHighlighted(checked);
-        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
-    }
-}
-
-/**
- * Called when the display grid lines check box is checked.
- *
- * @param checked
- *    New checked status.
- */
-void
-MatrixChartTwoAttributesWidget::displayGridLinesCheckBoxClicked(bool checked)
-{
-    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
-    if (matrixDisplayProperties != NULL) {
-        matrixDisplayProperties->setGridLinesDisplayed(checked);
-        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
-    }
-}
+///**
+// * Called when the cell width spin box value is changed.
+// *
+// * @param value
+// *    New value for cell width.
+// */
+//void
+//MatrixChartTwoAttributesWidget::cellWidthPercentageSpinBoxValueChanged(double value)
+//{
+//    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
+//    if (matrixDisplayProperties != NULL) {
+//        matrixDisplayProperties->setCellPercentageZoomWidth(value);
+//        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
+//    }
+//}
+//
+///**
+// * Called when the cell height spin box value is changed.
+// *
+// * @param value
+// *    New value for cell height.
+// */
+//void
+//MatrixChartTwoAttributesWidget::cellHeightPercentageSpinBoxValueChanged(double value)
+//{
+//    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
+//    if (matrixDisplayProperties != NULL) {
+//        matrixDisplayProperties->setCellPercentageZoomHeight(value);
+//        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
+//    }
+//}
+//
+///**
+// * Called when the show selection check box is checked.
+// *
+// * @param checked
+// *    New checked status.
+// */
+//void
+//MatrixChartTwoAttributesWidget::highlightSelectionCheckBoxClicked(bool checked)
+//{
+//    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
+//    if (matrixDisplayProperties != NULL) {
+//        matrixDisplayProperties->setSelectedRowColumnHighlighted(checked);
+//        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
+//    }
+//}
+//
+///**
+// * Called when the display grid lines check box is checked.
+// *
+// * @param checked
+// *    New checked status.
+// */
+//void
+//MatrixChartTwoAttributesWidget::displayGridLinesCheckBoxClicked(bool checked)
+//{
+//    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
+//    if (matrixDisplayProperties != NULL) {
+//        matrixDisplayProperties->setGridLinesDisplayed(checked);
+//        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
+//    }
+//}
 
 
