@@ -190,7 +190,6 @@ ChartTwoOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut)
                 if (mapFile->hasMapAttributes()) {
                     switch (indexType) {
                         case SelectedIndexType::INVALID:
-                            descriptionOut.addLine("Invalid selection type (none of map, row, column)");
                             break;
                         case SelectedIndexType::COLUMN:
                             descriptionOut.addLine("Column "

@@ -196,7 +196,7 @@ ChartTwoOverlaySetArray::copyChartOverlaySetCartesianAxes(const int32_t sourceTa
     const ChartTwoOverlaySet* sourceChartOverlaySet =m_chartOverlaySets[sourceTabIndex];
     ChartTwoOverlaySet* destinationChartOverlaySet =m_chartOverlaySets[destinationTabIndex];
     
-    destinationChartOverlaySet->copyCartesianAxes(sourceChartOverlaySet);    
+    destinationChartOverlaySet->copyCartesianAxes(sourceChartOverlaySet);
 }
 
 /**
