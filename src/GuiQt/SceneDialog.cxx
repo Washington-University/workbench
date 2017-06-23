@@ -207,19 +207,6 @@ SceneDialog::closeEvent(QCloseEvent* event)
         return;
     }
     
-//    const SceneFile* sceneFile = getSelectedSceneFile();
-//    
-//    if ((numberOfModifiedSceneFiles == 1)
-//        && sceneFile->isModified()) {
-//        const bool successFlag = warnIfSceneFileIsModified(ModifiedWarningType::CLOSE_DIALOG_BUTTON);
-//        if (successFlag) {
-//            return;
-//        }
-//        event->ignore();
-//        WuQDialogNonModal::closeEvent(event);
-//        return;
-//    }
-    
     const AString msg("<html>There are modified scene file(s).  You can save modified scene files using File Menu->Save/Manage Files "
                       "or by selecting them on the Scene Dialog and using the Save/Save As buttons.<p>"
                       "Continue closing this Scene Dialog?");
@@ -1015,17 +1002,7 @@ SceneDialog::zipSceneFileButtonClicked()
     }
     
     SceneFile* sceneFile = getSelectedSceneFile();
-//    if (sceneFile == NULL) {
-//        WuQMessageBox::errorOk(m_zipSceneFilePushButton,
-//                               "No Scene File is selected.");
-//        return;
-//    }
-//    if (sceneFile->isModified()) {
-//        WuQMessageBox::errorOk(m_zipSceneFilePushButton,
-//                               "Selected Scene File is modified and must be saved prior to zipping.");
-//        return;
-//    }
-    
+
     ZipSceneFileDialog zipDialog(sceneFile,
                                  this);
     zipDialog.exec();
@@ -1439,7 +1416,6 @@ SceneDialog::testScenesPushButtonClicked()
         }
     }
     
-    //showWaitCursor();
     ProgressReportingDialog progressDialog("Test All Scenes",
                                            "Starting...",
                                            m_testScenesPushButton);
@@ -1683,89 +1659,6 @@ SceneDialog::replaceSceneButtonClicked()
     }
 }
 
-///**
-// * Add an image to the scene.
-// * 
-// * @param scene
-// *    Scene to which image is added.
-// */
-//void
-//SceneDialog::addImageToScene(Scene* scene)
-//{
-//    AString errorMessage;
-//    
-//    CaretAssert(scene);
-//    
-//    uint8_t backgroundColor[3] = { 0, 0, 0 };
-//    bool backgroundColorValid = false;
-//    
-//    /*
-//     * Capture an image of each window
-//     */
-//    std::vector<ImageFile*> imageFiles;
-//    std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
-//    for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
-//         iter != windows.end();
-//         iter++) {
-//        BrainBrowserWindow* bbw = *iter;
-//        const int32_t browserWindowIndex = bbw->getBrowserWindowIndex();
-//        
-//        EventImageCapture imageCaptureEvent(browserWindowIndex);
-//        EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
-//        
-//        if (imageCaptureEvent.getEventProcessCount() > 0) {
-//            if (imageCaptureEvent.isError()) {
-//                errorMessage.appendWithNewLine(imageCaptureEvent.getErrorMessage());
-//            }
-//            else {
-//                imageFiles.push_back(new ImageFile(imageCaptureEvent.getImage()));
-//                if ( ! backgroundColorValid) {
-//                    imageCaptureEvent.getBackgroundColor(backgroundColor);
-//                    backgroundColorValid = true;
-//                }
-//            }
-//        }
-//    }
-//    
-//    /*
-//     * Assemble images of each window into a single image
-//     * and add it to the scene.  Use one image per row
-//     * since the images are limited in horizontal space
-//     * when shown in the listing of scenes.
-//     */
-//    if ( ! imageFiles.empty()) {
-//        try {
-//            const int32_t numImagesPerRow = 1;
-//            ImageFile compositeImageFile;
-//            compositeImageFile.combinePreservingAspectAndFillIfNeeded(imageFiles,
-//                                                                      numImagesPerRow,
-//                                                                      backgroundColor);
-//            
-//            compositeImageFile.resizeToMaximumWidth(512);
-//            
-//            QByteArray byteArray;
-//            compositeImageFile.getImageInByteArray(byteArray,
-//                                                   SceneDialog::PREFERRED_IMAGE_FORMAT);
-//            
-//            scene->getSceneInfo()->setImageBytes(byteArray,
-//                                                          SceneDialog::PREFERRED_IMAGE_FORMAT);
-//        }
-//        catch (const DataFileException& dfe) {
-//            WuQMessageBox::errorOk(m_addNewScenePushButton,
-//                                   dfe.whatString());
-//        }
-//    }
-//    
-//    /*
-//     * Free memory from the image files.
-//     */
-//    for (std::vector<ImageFile*>::iterator iter = imageFiles.begin();
-//         iter != imageFiles.end();
-//         iter++) {
-//        delete *iter;
-//    }
-//}
-
 /**
  * Check to see if there are modified files.  If there are
  * allow the user to continue or cancel creation of the scene.
@@ -1806,10 +1699,6 @@ SceneDialog::checkForModifiedFiles(const GuiManager::TestModifiedMode testMode,
     
     AString dialogMessage;
     AString modifiedFilesMessage;
-//    GuiManager::TestModifiedMode testMode = GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW;
-//    if (creatingSceneFlag) {
-//        testMode = GuiManager::TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD;
-//    }
     const bool haveModifiedFilesFlag = GuiManager::get()->testForModifiedFiles(testMode,
                                                                                dialogMessage,
                                                                                modifiedFilesMessage);
@@ -2565,12 +2454,13 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
         return false;
     }
     
+    bool debugLoggingFlag = true;
     std::vector<SceneObject*> allSceneObjects;
-    if (m_checkForUnrestoredItemsCheckBox->isChecked()) {
+    if (debugLoggingFlag) {
         allSceneObjects = scene->getDescendants();
     }
     
-    SceneClass::setDebugLoggingEnabled(m_checkForUnrestoredItemsCheckBox->isChecked());
+    SceneClass::setDebugLoggingEnabled(debugLoggingFlag);
     
     /*
      * Show the wait cursor
@@ -2953,13 +2843,6 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         else {
             m_previewImageLabel->setText("<html>No preview<br>image</html>");
         }
-        
-//        const int32_t maxHeight = 150;
-//        const int32_t maxSizeHintHeight = std::max(m_leftSideWidget->sizeHint().height(),
-//                                                   m_rightSideWidget->sizeHint().height());
-//        const int32_t fixedHeight = std::min(maxSizeHintHeight,
-//                                             maxHeight);
-//        setFixedHeight(fixedHeight);
     }
 }
 

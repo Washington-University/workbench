@@ -531,15 +531,6 @@ namespace caret {
                                                    const std::vector<int32_t>& rowIndicesIn,
                                                    std::vector<float>& rgbaOut) const;
         
-//        bool helpLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
-//                                         int32_t& numberOfColumnsOut,
-//                                         std::vector<float>& rgbaOut) const;
-//
-//        bool helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numberOfRowsOut,
-//                                                        int32_t& numberOfColumnsOut,
-//                                                        const std::vector<int32_t>& rowIndices,
-//                                                        std::vector<float>& rgbaOut) const;
-        
     private:
         class MapContent : public CaretObjectTracksModification {
             
@@ -789,8 +780,6 @@ namespace caret {
     private:
         friend class ChartableTwoFileDelegate;
         friend class ChartableTwoFileMatrixChart;
-        
-//        std::vector<int64_t> m_ciftiDimensions;
         
         // ADD_NEW_MEMBERS_HERE
         

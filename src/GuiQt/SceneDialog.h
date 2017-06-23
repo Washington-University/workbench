@@ -224,8 +224,6 @@ namespace caret {
         
         QPushButton* m_createSceneOptionsPushButton;
         
-        QCheckBox* m_checkForUnrestoredItemsCheckBox;
-        
         QScrollArea* m_sceneSelectionScrollArea;
         
         QWidget* m_sceneSelectionWidget;

@@ -815,16 +815,13 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
      * User may want window annotations only when in tile tabs view.
      */
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WindowDrawingMode windowDrawingMode = BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO;
-//    bool drawWindowAnnotationsFlag = false;
     if (m_tileTabsActiveFlag) {
-//        drawWindowAnnotationsFlag = true;
         windowDrawingMode = BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_YES;
     }
     else {
         const DisplayPropertiesAnnotation* dpa = m_brain->getDisplayPropertiesAnnotation();
         if (dpa->isDisplayWindowAnnotationsInSingleTabViews(m_windowIndex)) {
             windowDrawingMode = BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_YES;
-//            drawWindowAnnotationsFlag = true;
         }
     }
     
@@ -913,8 +910,6 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
     Model* model = NULL;
     
     this->mode = mode;
-    
-//    drawBackgroundImage(viewportContent);
     
     if (this->browserTabContent != NULL) {
         m_clippingPlaneGroup = const_cast<ClippingPlaneGroup*>(this->browserTabContent->getClippingPlaneGroup());
@@ -1339,16 +1334,6 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
                  translation[1],
                  translation[2]);
     
-//    if (rightCortexFlatFlag) {
-//        /*
-//         * When drawing right flat, the translation is "left translation"
-//         * so need to flip sign of X-offset.
-//         */
-//        float rightFlatOffsetX, rightFlatOffsetY;
-//        browserTabContent->getRightCortexFlatMapOffset(rightFlatOffsetX, rightFlatOffsetY);
-//        glTranslatef(-rightFlatOffsetX, rightFlatOffsetY, 0.0);
-//    }
-    
     glMultMatrixd(rotationMatrixElements);
     
     /*
@@ -1771,8 +1756,6 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                     const DisplayPropertiesBorders* dpb = m_brain->getDisplayPropertiesBorders();
                     const float borderAboveSurfaceOffset = dpb->getAboveSurfaceOffset();
                     if (borderAboveSurfaceOffset != 0.0) {
-//                        const float factor = borderAboveSurfaceOffset * 1.0 + 1.0;
-//                        const float units  = borderAboveSurfaceOffset * 1.0 + 1.0;
                         const float factor = borderAboveSurfaceOffset;// + 0.5;
                         const float units  = 1.0;// + 0.5;
                         glEnable(GL_POLYGON_OFFSET_FILL);
@@ -5231,60 +5214,6 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
             glPopMatrix();
         }
     }
-//    /*
-//     * Draw surfaces last so that opacity works.
-//     */
-//    const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
-//    for (int32_t i = 0; i < numberOfBrainStructures; i++) {
-//        BrainStructure* brainStructure = brain->getBrainStructure(i);
-//        const StructureEnum::Enum structure = brainStructure->getStructure();
-//        Surface* surface = wholeBrainModel->getSelectedSurface(structure,
-//                                                                    tabNumberIndex);
-//        if (surface != NULL) {
-//            float dx = 0.0;
-//            float dy = 0.0;
-//            float dz = 0.0;
-//            
-//            bool drawIt = false;
-//            switch (structure) {
-//                case StructureEnum::CORTEX_LEFT:
-//                    drawIt = browserTabContent->isWholeBrainLeftEnabled();
-//                    dx = -browserTabContent->getWholeBrainLeftRightSeparation();
-//                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
-//                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
-//                        dx -= surface->getBoundingBox()->getMaxX();
-//                    }
-//                    break;
-//                case StructureEnum::CORTEX_RIGHT:
-//                    drawIt = browserTabContent->isWholeBrainRightEnabled();
-//                    dx = browserTabContent->getWholeBrainLeftRightSeparation();
-//                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
-//                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
-//                        dx -= surface->getBoundingBox()->getMinX();
-//                    }
-//                    break;
-//                case StructureEnum::CEREBELLUM:
-//                    drawIt = browserTabContent->isWholeBrainCerebellumEnabled();
-//                    dz = browserTabContent->getWholeBrainCerebellumSeparation();
-//                    break;
-//                default:
-//                    CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
-//                    break;
-//            }
-//            
-//            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(wholeBrainModel,
-//                                                                                         surface,
-//                                                                                         this->windowTabIndex);
-//            
-//            if (drawIt) {
-//                glPushMatrix();
-//                glTranslatef(dx, dy, dz);
-//                this->drawSurface(surface,
-//                                  nodeColoringRGBA);
-//                glPopMatrix();
-//            }
-//        }
-//    }
 }
 
 /**
@@ -5492,7 +5421,6 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
     if (windowVerticalSize != 0.0) {
         modelHalfHeight = windowVerticalSize / 2.0;
         
-//        const float yDiff = boundingBox->getDifferenceY();
         if ((windowHorizontalSize > 0.0)
             && (viewport[2] > 0.0)) {
             /*
@@ -5647,60 +5575,7 @@ BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* model,
     BrainOpenGL::testForOpenGLError(msgIn,
                                     model,
                                     this->m_windowIndex,
-                                    this->windowTabIndex);
-    
-//    GLenum errorCode = glGetError();
-//    if (errorCode != GL_NO_ERROR) {
-//        AString msg;
-//        if (msgIn.isEmpty() == false) {
-//            msg += (msgIn + "\n");
-//        }
-//        msg += ("OpenGL Error: " + AString((char*)gluErrorString(errorCode)) + "\n");
-//        msg += ("OpenGL Version: " + AString((char*)glGetString(GL_VERSION)) + "\n");
-//        msg += ("OpenGL Vendor:  " + AString((char*)glGetString(GL_VENDOR)) + "\n");
-//        if (model != NULL) {
-//            msg += ("While drawing brain model " + model->getNameForGUI(true) + "\n");
-//        }
-//        msg += ("In tab number " + AString::number(this->windowTabIndex) + "\n");
-//        
-//        GLint maxNameStackDepth, maxModelStackDepth, maxProjStackDepth;
-//        glGetIntegerv(GL_MAX_PROJECTION_STACK_DEPTH,
-//                      &maxProjStackDepth);
-//        glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH,
-//                      &maxModelStackDepth);
-//        glGetIntegerv(GL_MAX_NAME_STACK_DEPTH,
-//                      &maxNameStackDepth);
-//        
-//        GLint nameStackDepth, modelStackDepth, projStackDepth;
-//        glGetIntegerv(GL_PROJECTION_STACK_DEPTH,
-//                      &projStackDepth);
-//        glGetIntegerv(GL_MODELVIEW_STACK_DEPTH,
-//                      &modelStackDepth);
-//        glGetIntegerv(GL_NAME_STACK_DEPTH,
-//                      &nameStackDepth);
-//        
-//        msg += ("Projection Matrix Stack Depth "
-//                + AString::number(projStackDepth)
-//                + "  Max Depth "
-//                + AString::number(maxProjStackDepth)
-//                + "\n");
-//        msg += ("Model Matrix Stack Depth "
-//                + AString::number(modelStackDepth)
-//                + "  Max Depth "
-//                + AString::number(maxModelStackDepth)
-//                + "\n");
-//        msg += ("Name Matrix Stack Depth "
-//                + AString::number(nameStackDepth)
-//                + "  Max Depth "
-//                + AString::number(maxNameStackDepth)
-//                + "\n");
-//        SystemBacktrace myBacktrace;
-//        SystemUtilities::getBackTrace(myBacktrace);
-//        msg += ("Backtrace:\n"
-//                + myBacktrace.toSymbolString()
-//                + "\n");
-//        CaretLogSevere(msg);
-//    }
+                                    this->windowTabIndex);    
 }
 
 /**

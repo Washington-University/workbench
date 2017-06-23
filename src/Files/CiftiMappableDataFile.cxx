@@ -1121,43 +1121,6 @@ CiftiMappableDataFile::writeFile(const AString& ciftiMapFileName)
     clearModified();
 }
 
-///**
-// * @return The string name of the CIFTI index type.
-// * @param ciftiIndexType
-// */
-//AString
-//CiftiMappableDataFile::ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType)
-//{
-//    AString name = "Invalid";
-//    
-//    switch (ciftiIndexType) {
-//        case CIFTI_INDEX_TYPE_BRAIN_MODELS:
-//            name = "CIFTI_INDEX_TYPE_BRAIN_MODELS";
-//            break;
-//        case CIFTI_INDEX_TYPE_FIBERS:
-//            name = "CIFTI_INDEX_TYPE_FIBERS";
-//            break;
-//        case CIFTI_INDEX_TYPE_INVALID:
-//            name = "CIFTI_INDEX_TYPE_INVALID";
-//            break;
-//        case CIFTI_INDEX_TYPE_LABELS:
-//            name = "CIFTI_INDEX_TYPE_LABELS";
-//            break;
-//        case CIFTI_INDEX_TYPE_PARCELS:
-//            name = "CIFTI_INDEX_TYPE_PARCELS";
-//            break;
-//        case CIFTI_INDEX_TYPE_SCALARS:
-//            name = "CIFTI_INDEX_TYPE_SCALARS";
-//            break;
-//        case CIFTI_INDEX_TYPE_TIME_POINTS:
-//            name = "CIFTI_INDEX_TYPE_TIME_POINTS";
-//            break;
-//    }
-//    
-//    return name;
-//}
-//
-//
 /**
  * @return Is the data mappable to a surface?
  */
@@ -4244,11 +4207,6 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
                     
                     std::vector<float> mapData;
                     getMapData(mapIndex, mapData);
-                    
-//                    if (parcelIndex < static_cast<int32_t>(mapData.size())) {
-//                        textValueOut += (" "
-//                                         + AString::number(mapData[parcelIndex]));
-//                    }
                 }
             }
             
@@ -4710,24 +4668,6 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             textOut += " ";
             validID = true;
         }
-//        for (int32_t i = 0; i < numberOfMapIndices; i++) {
-//            const int32_t mapIndex = mapIndices[i];
-//            
-//            float numericalValue;
-//            AString textValue;
-//            bool numericalValueValid;
-//            if (getMapSurfaceNodeValue(mapIndex,
-//                                       structure,
-//                                       nodeIndex,
-//                                       numberOfNodes,
-//                                       numericalValue,
-//                                       numericalValueValid,
-//                                       textValue)) {
-//                textOut += textValue;
-//                textOut += " ";
-//                validID = true;
-//            }
-//        }
     }
     else if (useSeriesData) {
         /*
@@ -5215,14 +5155,6 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                             CaretAssertVectorIndex(parcels,
                                                    parcelMapIndex);
                             textValueOut = parcels[parcelMapIndex].m_name;
-
-//                            std::vector<float> mapData;
-//                            getMapData(mapIndex, mapData);
-//                            
-//                            if (parcelMapIndex < static_cast<int32_t>(mapData.size())) {
-//                                textValueOut += (" "
-//                                                 + AString::number(mapData[parcelMapIndex]));
-//                            }
                         }
                         
                         if (parcelMapIndex >= 0) {
@@ -5381,14 +5313,7 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
                     textValueOut += (getMapName(*mapIter)
                                      + " ");
                 }
-//                const AString networkName = getMapName(mapIndex);
-//                
-//                textValueOut = ("Area: "
-//                                + areaName
-//                                + ", Network: "
-//                                + networkName);
                 return true;
-                
             }
             else {
                 switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
@@ -5716,23 +5641,6 @@ CiftiMappableDataFile::getVolumeVoxelIdentificationForMaps(const std::vector<int
                                 textValue)) {
         textOut = textValue;
     }
-    
-//    for (int32_t i = 0; i < numberOfMapIndices; i++) {
-//        const int32_t mapIndex = mapIndices[i];
-//        
-//        float numericalValue;
-//        AString textValue;
-//        bool numericalValueValid;
-//        if (getMapVolumeVoxelValue(mapIndex,
-//                                   xyz,
-//                                   ijkOut,
-//                                   numericalValue,
-//                                   numericalValueValid,
-//                                   textValue)) {
-//            textOut += textValue;
-//            textOut += " ";
-//        }
-//    }
     
     if (textOut.isEmpty() == false) {
         return true;
@@ -7580,11 +7488,6 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
                       0);
         }
     }
-//    else {
-//        const AString msg("NULL palette for coloring scalar data.");
-//        CaretAssertMessage(0, msg);
-//        CaretLogSevere(msg);
-//    }
     
     m_rgbaValid = true;
 }
