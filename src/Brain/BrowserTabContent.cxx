@@ -4260,6 +4260,8 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
         return;
     }
     
+    int32_t copyFromTabIndex = -1;
+    
     /*
      * Find another browser tab using the same yoking as 'me' and copy
      * yoked data from the other browser tab.
@@ -4270,6 +4272,7 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
         BrowserTabContent* btc = *iter;
         if (btc != this) {
             if (btc->getYokingGroup() == m_yokingGroup) {
+                copyFromTabIndex = btc->getTabNumber();
                 /*
                  * If anything is added, also need to update updateYokedBrowserTabs()
                  */
@@ -4285,6 +4288,16 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
                 m_identificationUpdatesVolumeSlices = btc->m_identificationUpdatesVolumeSlices;
                 break;
             }
+        }
+    }
+    
+    if (copyFromTabIndex >= 0) {
+        /*
+         * Maybe NULL when restoring scenes
+         */
+        if (m_chartTwoModel != NULL) {
+            m_chartTwoModel->copyChartTwoCartesianAxes(copyFromTabIndex,
+                                                       m_tabNumber);
         }
     }
 }

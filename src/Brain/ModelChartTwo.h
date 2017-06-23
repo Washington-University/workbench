@@ -104,6 +104,9 @@ namespace caret {
         
         void restoreSceneFromChartOneModel(ModelChart* modelChartOne);
         
+        void copyChartTwoCartesianAxes(const int32_t sourceTabIndex,
+                                            const int32_t destinationTabIndex);
+    
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass) override;

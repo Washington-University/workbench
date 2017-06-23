@@ -151,10 +151,10 @@ namespace caret {
         const ChartAxisLocationEnum::Enum m_axisLocation;
         
         /** Allowable range minimum NOT SAVED TO SCENE */
-        float m_rangeMinimumValue = 0.0;
+        mutable float m_rangeMinimumValue = 0.0;
         
         /** Allowable range maximum NOT SAVED TO SCENE */
-        float m_rangeMaximumValue = 1.0;
+        mutable float m_rangeMaximumValue = 1.0;
         
         mutable float m_userScaleMinimumValue = -100.0;
         

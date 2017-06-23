@@ -188,6 +188,23 @@ ChartTwoOverlaySet::copyOverlaySet(const ChartTwoOverlaySet* overlaySet)
 }
 
 /**
+ * Copy the cartesian axes from the given overlay set to this overlay set.
+ *
+ * @param overlaySet
+ *     Overlay from which axes are copied.
+ */
+void
+ChartTwoOverlaySet::copyCartesianAxes(const ChartTwoOverlaySet* overlaySet)
+{
+    CaretAssert(m_chartDataType == overlaySet->m_chartDataType);
+    
+    *m_chartAxisLeft   = *overlaySet->m_chartAxisLeft;
+    *m_chartAxisRight  = *overlaySet->m_chartAxisRight;
+    *m_chartAxisBottom = *overlaySet->m_chartAxisBottom;
+}
+
+
+/**
  * @return Returns the top-most overlay regardless of its enabled status.
  */
 ChartTwoOverlay*
@@ -567,8 +584,6 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
                     }
                 }
             }
-                break;
-            case EventChartTwoAttributesChanged::Mode::MATRIX_PROPERTIES:
                 break;
         }
         

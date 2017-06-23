@@ -417,7 +417,7 @@ MatrixChartTwoAttributesWidget::~MatrixChartTwoAttributesWidget()
  *    The event.
  */
 void
-MatrixChartTwoAttributesWidget::receiveEvent(Event* event)
+MatrixChartTwoAttributesWidget::receiveEvent(Event* /*event*/)
 {
 }
 
@@ -467,84 +467,7 @@ MatrixChartTwoAttributesWidget::valueChanged()
         tabContent->updateYokedBrowserTabs();
         m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
-        
-//        const YokingGroupEnum::Enum yokingGroup = tabContent->getYokingGroup();
-//        if (yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
-//            const ModelChartTwo* modelChartTwo = tabContent->getDisplayedChartTwoModel();
-//            CaretAssert(modelChartTwo);
-//            EventChartTwoAttributesChanged attributesEvent;
-//            attributesEvent.setMatrixPropertiesChanged(yokingGroup,
-//                                                       matrixDisplayProperties);
-//            EventManager::get()->sendEvent(attributesEvent.getPointer());
-//            m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
-//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
-//        }
     }
 }
-
-
-///**
-// * Called when the cell width spin box value is changed.
-// *
-// * @param value
-// *    New value for cell width.
-// */
-//void
-//MatrixChartTwoAttributesWidget::cellWidthPercentageSpinBoxValueChanged(double value)
-//{
-//    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
-//    if (matrixDisplayProperties != NULL) {
-//        matrixDisplayProperties->setCellPercentageZoomWidth(value);
-//        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
-//    }
-//}
-//
-///**
-// * Called when the cell height spin box value is changed.
-// *
-// * @param value
-// *    New value for cell height.
-// */
-//void
-//MatrixChartTwoAttributesWidget::cellHeightPercentageSpinBoxValueChanged(double value)
-//{
-//    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
-//    if (matrixDisplayProperties != NULL) {
-//        matrixDisplayProperties->setCellPercentageZoomHeight(value);
-//        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
-//    }
-//}
-//
-///**
-// * Called when the show selection check box is checked.
-// *
-// * @param checked
-// *    New checked status.
-// */
-//void
-//MatrixChartTwoAttributesWidget::highlightSelectionCheckBoxClicked(bool checked)
-//{
-//    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
-//    if (matrixDisplayProperties != NULL) {
-//        matrixDisplayProperties->setSelectedRowColumnHighlighted(checked);
-//        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
-//    }
-//}
-//
-///**
-// * Called when the display grid lines check box is checked.
-// *
-// * @param checked
-// *    New checked status.
-// */
-//void
-//MatrixChartTwoAttributesWidget::displayGridLinesCheckBoxClicked(bool checked)
-//{
-//    ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
-//    if (matrixDisplayProperties != NULL) {
-//        matrixDisplayProperties->setGridLinesDisplayed(checked);
-//        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
-//    }
-//}
 
 

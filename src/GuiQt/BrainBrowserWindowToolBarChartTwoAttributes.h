@@ -115,14 +115,6 @@ namespace caret {
     private slots:
         void valueChanged();
         
-//        void cellWidthPercentageSpinBoxValueChanged(double value);
-//        
-//        void cellHeightPercentageSpinBoxValueChanged(double value);
-//        
-//        void highlightSelectionCheckBoxClicked(bool checked);
-//        
-//        void displayGridLinesCheckBoxClicked(bool checked);
-        
     private:
         BrainBrowserWindowToolBarChartTwoAttributes* m_brainBrowserWindowToolBarChartAttributes;
         

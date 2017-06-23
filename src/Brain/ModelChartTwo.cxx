@@ -1043,6 +1043,26 @@ ModelChartTwo::copyTabContent(const int32_t sourceTabIndex,
                                                          destinationTabIndex);
 }
 
+/**
+ * Copy cartesian axes from one tab to another.
+ *
+ * @param sourceTabIndex
+ *    Source from which tab content is copied.
+ * @param destinationTabIndex
+ *    Destination to which tab content is copied.
+ */
+void
+ModelChartTwo::copyChartTwoCartesianAxes(const int32_t sourceTabIndex,
+                                         const int32_t destinationTabIndex)
+{
+    CaretAssertArrayIndex(m_histogramChartOverlaySetArray, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, sourceTabIndex);
+    CaretAssertArrayIndex(m_lineSeriesChartOverlaySetArray, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, destinationTabIndex);
+
+    m_histogramChartOverlaySetArray->copyChartOverlaySetCartesianAxes(sourceTabIndex,
+                                                                      destinationTabIndex);
+    m_lineSeriesChartOverlaySetArray->copyChartOverlaySetCartesianAxes(sourceTabIndex,
+                                                                       destinationTabIndex);
+}
 
 /**
  * Set the type of chart selected in the given tab.

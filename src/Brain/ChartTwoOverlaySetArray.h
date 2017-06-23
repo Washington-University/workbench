@@ -45,7 +45,10 @@ namespace caret {
         void initializeOverlaySelections();
         
         void copyChartOverlaySet(const int32_t sourceTabIndex,
-                            const int32_t destinationTabIndex);
+                                 const int32_t destinationTabIndex);
+        
+        void copyChartOverlaySetCartesianAxes(const int32_t sourceTabIndex,
+                                              const int32_t destinationTabIndex);
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);

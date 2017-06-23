@@ -178,6 +178,28 @@ ChartTwoOverlaySetArray::copyChartOverlaySet(const int32_t sourceTabIndex,
 }
 
 /**
+ * Copy the chart overlay set cartesian axes from the source tab index to the
+ * destination tab index.
+ *
+ * @param sourceTabIndex
+ *    Source from which tab content is copied.
+ * @param destinationTabIndex
+ *    Destination to which tab content is copied.
+ */
+void
+ChartTwoOverlaySetArray::copyChartOverlaySetCartesianAxes(const int32_t sourceTabIndex,
+                                                          const int32_t destinationTabIndex)
+{
+    CaretAssertVectorIndex(m_chartOverlaySets, sourceTabIndex);
+    CaretAssertVectorIndex(m_chartOverlaySets, destinationTabIndex);
+    
+    const ChartTwoOverlaySet* sourceChartOverlaySet =m_chartOverlaySets[sourceTabIndex];
+    ChartTwoOverlaySet* destinationChartOverlaySet =m_chartOverlaySets[destinationTabIndex];
+    
+    destinationChartOverlaySet->copyCartesianAxes(sourceChartOverlaySet);    
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes

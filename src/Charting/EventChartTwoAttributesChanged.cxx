@@ -104,38 +104,3 @@ EventChartTwoAttributesChanged::getCartesianAxisChanged(YokingGroupEnum::Enum &y
 }
 
 
-/**
- * Set for a change in matrix properties.
- *
- * @param yokingGroup
- *     Selected yoking group.
- * @param matrixDisplayProperties
- *     The matrix properties.
- */
-void
-EventChartTwoAttributesChanged::setMatrixPropertiesChanged(const YokingGroupEnum::Enum yokingGroup,
-                                const ChartTwoMatrixDisplayProperties* matrixDisplayProperties)
-{
-    m_mode        = Mode::MATRIX_PROPERTIES;
-    m_yokingGroup = yokingGroup;
-    m_matrixDisplayProperties = const_cast<ChartTwoMatrixDisplayProperties*>(matrixDisplayProperties);
-}
-
-/**
- * Get for a change in matrix properties.
- *
- * @param yokingGroupOut
- *     Selected yoking group.
- * @param matrixDisplayPropertiesOut
- *     The matrix properties.
- */
-void
-EventChartTwoAttributesChanged::getMatrixPropertiesChanged(YokingGroupEnum::Enum &yokingGroupOut,
-                                ChartTwoMatrixDisplayProperties* &matrixDisplayPropertiesOut)
-{
-    CaretAssert(m_mode == Mode::MATRIX_PROPERTIES);
-    yokingGroupOut = m_yokingGroup;
-    matrixDisplayPropertiesOut = m_matrixDisplayProperties;
-}
-
-

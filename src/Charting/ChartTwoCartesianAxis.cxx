@@ -623,6 +623,9 @@ ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float dataBounds[4],
             break;
     }
     
+    m_rangeMinimumValue = 0.0;
+    m_rangeMaximumValue = 0.0;
+    
     if (maxValue > minValue) {
         double scaleStep = 0.0;
         double scaleMin  = 0.0;
@@ -639,6 +642,9 @@ ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float dataBounds[4],
         maximumOut   = scaleMax;
         stepValueOut = scaleStep;
         digitsRightOfDecimalOut   = digitsRightOfDecimal;
+        
+        m_rangeMinimumValue = minimumOut;
+        m_rangeMaximumValue = maximumOut;
         
         return true;
     }

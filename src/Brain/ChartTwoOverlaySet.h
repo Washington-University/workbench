@@ -47,6 +47,8 @@ namespace caret {
         
         void copyOverlaySet(const ChartTwoOverlaySet* overlaySet);
         
+        void copyCartesianAxes(const ChartTwoOverlaySet* overlaySet);
+        
         ChartTwoOverlay* getPrimaryOverlay();
         
         const ChartTwoOverlay* getPrimaryOverlay() const;
