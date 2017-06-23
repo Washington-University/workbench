@@ -82,6 +82,15 @@ CiftiParcelReorderingModel::~CiftiParcelReorderingModel()
 {
     delete m_sceneAssistant;
     
+    clearCiftiParcelReordering();
+}
+
+/**
+ * Clear all parcel reordering.
+ */
+void
+CiftiParcelReorderingModel::clearCiftiParcelReordering()
+{
     for (std::vector<CiftiParcelReordering*>::iterator iter = m_parcelReordering.begin();
          iter != m_parcelReordering.end();
          iter++) {
@@ -89,6 +98,7 @@ CiftiParcelReorderingModel::~CiftiParcelReorderingModel()
     }
     m_parcelReordering.clear();
 }
+
 
 /**
  * Copy constructor.
@@ -515,7 +525,7 @@ CiftiParcelReorderingModel::restoreFromScene(const SceneAttributes* sceneAttribu
                                      sceneClass);    
     
     m_selectedParcelLabelFile = NULL;
-    m_parcelReordering.clear();
+    clearCiftiParcelReordering();
     
     const AString parcelLabelFileName = sceneClass->getPathNameValue("m_selectedParcelLabelFile");
     if ( ! parcelLabelFileName.isEmpty()) {

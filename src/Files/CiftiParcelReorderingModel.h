@@ -97,6 +97,8 @@ namespace caret {
         
         std::vector<CiftiParcelLabelFile*> getParcelLabelFiles() const;
         
+        void clearCiftiParcelReordering();
+        
         mutable std::map<CiftiParcelLabelFile*, bool> m_parcelLabelFileCompatibilityStatus;
         
         const CiftiMappableDataFile* m_parentCiftiMappableDataFile;
