@@ -1130,7 +1130,7 @@ SceneDialog::replaceAllScenesPushButtonClicked()
 {
     SceneFile* sceneFile = getSelectedSceneFile();
     if (sceneFile == NULL) {
-        WuQMessageBox::errorOk(m_testScenesPushButton, "No scene file is loaded.");
+        WuQMessageBox::errorOk(m_replaceAllScenesPushButton, "No scene file is loaded.");
         return;
     }
     
@@ -1444,7 +1444,7 @@ SceneDialog::testScenesPushButtonClicked()
         if (origScene != NULL) {
             progressDialog.setValue(i+1);
             progressDialog.setLabelText("Testing: " + origScene->getName()
-                                        + "\n\nPressing Cancel will cease testing after the current scene is loaded.");
+                                        + "\n\nPressing the Cancel button will stop testing after the next scene finishes loading.");
             progressDialog.repaint();
             progressDialog.show();
             QApplication::processEvents();
@@ -1454,29 +1454,27 @@ SceneDialog::testScenesPushButtonClicked()
             }
             
             AString errorMessage;
-            const bool successFlag = displayScenePrivateWithErrorMessage(sceneFile,
-                                                                         origScene,
-                                                                         false,
-                                                                         errorMessage);
-            if (successFlag) {
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-                
-                QImage image;
-                AString imageErrorMessage;
-                const bool validImage = SceneCreateReplaceDialog::createSceneImage(image,
-                                                                                   imageErrorMessage);
-                if (validImage) {
-                    newImages.push_back(image.scaledToWidth(IMAGE_DISPLAY_WIDTH));
-                }
-                else {
-                    newImages.push_back(QImage());
-                }
+            displayScenePrivateWithErrorMessage(sceneFile,
+                                                origScene,
+                                                false,
+                                                errorMessage);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        
+            /*
+             * Always generate an image, even if the scene fails and failure may 
+             * be a very minor error.
+             */
+            QImage image;
+            AString imageErrorMessage;
+            const bool validImage = SceneCreateReplaceDialog::createSceneImage(image,
+                                                                               imageErrorMessage);
+            if (validImage) {
+                newImages.push_back(image.scaledToWidth(IMAGE_DISPLAY_WIDTH));
             }
             else {
                 newImages.push_back(QImage());
+                errorMessage.appendWithNewLine("Generate image error: " + imageErrorMessage);
             }
-            
-
             
             sceneNames.push_back(origScene->getName());
             const QImage* imageFromScene = getQImageFromSceneInfo(origScene->getSceneInfo());
@@ -1489,7 +1487,6 @@ SceneDialog::testScenesPushButtonClicked()
             }
             
             sceneErrors.push_back(errorMessage);
-            
         }
     }
     
@@ -1875,7 +1872,7 @@ SceneDialog::createScenesWidget()
     createGroupLayout->addWidget(m_addNewScenePushButton);
     createGroupLayout->addWidget(m_insertNewScenePushButton);
     createGroupLayout->addWidget(m_replaceScenePushButton);
-    if (m_createSceneOptionsPushButton) {
+    if (m_createSceneOptionsPushButton != NULL) {
         createGroupLayout->addWidget(m_createSceneOptionsPushButton);
     }
 
@@ -1887,6 +1884,9 @@ SceneDialog::createScenesWidget()
     testGroupBox->setSizePolicy(testGroupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     QVBoxLayout* testGroupLayout = new QVBoxLayout(testGroupBox);
     WuQtUtilities::setLayoutSpacingAndMargins(testGroupLayout, 2, 2);
+    if (m_replaceAllScenesPushButton != NULL) {
+        testGroupLayout->addWidget(m_replaceAllScenesPushButton);
+    }
     testGroupLayout->addWidget(m_testScenesPushButton);
     
     /*
