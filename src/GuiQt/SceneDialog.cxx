@@ -2489,10 +2489,12 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
                                         guiManagerClass);
     guiManagerClass->setRestored(true);
     
+#ifndef NDEBUG
     if ( ! allSceneObjects.empty()) {
         SceneObject::logObjectsFailedRestore(scene->getName(),
                                              allSceneObjects);
     }
+#endif // NDEBUG
     
     SceneClass::setDebugLoggingEnabled(false);
     
