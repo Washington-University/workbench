@@ -104,8 +104,6 @@ namespace caret {
         
         void showImagePreviewButtonClicked();
         
-        void createSceneOptionsButtonClicked();
-        
         void showSceneOptionsButtonClicked();
         
         void validateContentOfCreateSceneDialog(WuQDataEntryDialog*);
@@ -221,8 +219,6 @@ namespace caret {
         QPushButton* m_showSceneImagePreviewPushButton;
         
         QPushButton* m_showSceneOptionsPushButton;
-        
-        QPushButton* m_createSceneOptionsPushButton;
         
         QScrollArea* m_sceneSelectionScrollArea;
         

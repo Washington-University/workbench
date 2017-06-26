@@ -72,7 +72,6 @@
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
-#include "SceneCreateOptionsDialog.h"
 #include "SceneCreateReplaceDialog.h"
 #include "SceneFile.h"
 #include "SceneInfo.h"
@@ -1835,21 +1834,6 @@ SceneDialog::createScenesWidget()
                      this, &SceneDialog::showSceneOptionsButtonClicked);
     
     /*
-     * Create scene options button
-     */
-    m_createSceneOptionsPushButton = NULL;
-    bool haveCreateOptionsFlag = false;
-    if (haveCreateOptionsFlag) {
-        m_createSceneOptionsPushButton = new QPushButton("Options...");
-        m_createSceneOptionsPushButton->setToolTip("Display a dialog for create scene options");
-        QObject::connect(m_createSceneOptionsPushButton, &QPushButton::clicked,
-                         this, &SceneDialog::createSceneOptionsButtonClicked);
-    }
-    
-    /*
-     * Margins/spacing for button groups
-     */
-    /*
      * Group for show buttons
      */
     QGroupBox* showGroupBox = new QGroupBox("Show Scene");
@@ -1872,9 +1856,6 @@ SceneDialog::createScenesWidget()
     createGroupLayout->addWidget(m_addNewScenePushButton);
     createGroupLayout->addWidget(m_insertNewScenePushButton);
     createGroupLayout->addWidget(m_replaceScenePushButton);
-    if (m_createSceneOptionsPushButton != NULL) {
-        createGroupLayout->addWidget(m_createSceneOptionsPushButton);
-    }
 
     /*
      * Group for test buttons
@@ -2233,30 +2214,6 @@ SceneDialog::showSceneOptionsButtonClicked()
             const SceneShowOptionsDialog::Options optionsResult = optionsDialog.getOptions();
             s_useSceneForegroundBackgroundColorsFlag = optionsResult.isUseSceneColorsSelected();
 
-            if ( ! optionsResult.isUseSceneColorsSelected()) {
-                CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-                prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-            }
-        }
-    }
-}
-
-/**
- * Display the scene show options dialog
- */
-void
-SceneDialog::createSceneOptionsButtonClicked()
-{
-    Scene* scene = getSelectedScene();
-    if (scene != NULL) {
-        SceneCreateOptionsDialog::Options options(s_useSceneForegroundBackgroundColorsFlag);
-        SceneCreateOptionsDialog optionsDialog(options,
-                                               m_createSceneOptionsPushButton);
-        if (optionsDialog.exec() == QDialog::Accepted) {
-            const SceneCreateOptionsDialog::Options optionsResult = optionsDialog.getOptions();
-            s_useSceneForegroundBackgroundColorsFlag = optionsResult.isUseSceneColorsSelected();
-            
             if ( ! optionsResult.isUseSceneColorsSelected()) {
                 CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
                 prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);

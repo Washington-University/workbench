@@ -155,7 +155,6 @@ ELSE()
         ProgressReportingFromEvent.h
         ProgressReportingWithSlots.h
         RegionOfInterestCreateFromBorderDialog.h
-        SceneCreateOptionsDialog.h
         SceneCreateReplaceDialog.h
         SceneDialog.h
         ScenePreviewDialog.h
@@ -372,7 +371,6 @@ ProgressReportingFromEvent.h
 ProgressReportingWithSlots.h
 QGLWidgetTextRenderer.h
 RegionOfInterestCreateFromBorderDialog.h
-SceneCreateOptionsDialog.h
 SceneCreateReplaceDialog.h
 SceneDialog.h
 ScenePreviewDialog.h
@@ -584,7 +582,6 @@ ProgressReportingFromEvent.cxx
 ProgressReportingWithSlots.cxx
 QGLWidgetTextRenderer.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
-SceneCreateOptionsDialog.cxx
 SceneCreateReplaceDialog.cxx
 SceneDialog.cxx
 ScenePreviewDialog.cxx
