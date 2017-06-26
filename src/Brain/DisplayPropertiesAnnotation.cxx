@@ -456,7 +456,10 @@ DisplayPropertiesAnnotation::restoreVersionOne(const SceneClass* sceneClass)
             }
                 break;
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                CaretAssert(0);
+                /*
+                 * Ignore annotations in viewport space.  These are usually text annotations
+                 * in the graphics region such as chart labels.
+                 */
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
             if (numWindowStatus) {
