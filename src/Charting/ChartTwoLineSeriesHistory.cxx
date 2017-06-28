@@ -115,23 +115,54 @@ ChartTwoLineSeriesHistory::generateDefaultColor()
 {
     CaretColorEnum::Enum color = CaretColorEnum::BLACK;
     
-    bool validFlag = false;
-    color = CaretColorEnum::fromIntegerCode(s_defaultColorIndexGenerator,
-                                            &validFlag);
+    std::vector<CaretColorEnum::Enum> colors;
+    CaretColorEnum::getColorEnums(colors);
     
-    if ( ! validFlag) {
+    const int32_t numColors = static_cast<int32_t>(colors.size());
+    CaretAssert(numColors > 0);
+    if (s_defaultColorIndexGenerator < 0) {
         s_defaultColorIndexGenerator = 0;
-        color = CaretColorEnum::fromIntegerCode(s_defaultColorIndexGenerator,
-                                                &validFlag);
-        if ( ! validFlag) {
-            color = CaretColorEnum::BLACK;
-            CaretLogWarning("Generation of default color failed");
-        }
     }
-   
+    else if (s_defaultColorIndexGenerator >= numColors) {
+        s_defaultColorIndexGenerator = 0;
+    }
+    
+    CaretAssertVectorIndex(colors, s_defaultColorIndexGenerator);
+    color = colors[s_defaultColorIndexGenerator];
+
+    /* move to next color */
     ++s_defaultColorIndexGenerator;
     
     return color;
+}
+
+/**
+ * Validate the default color.
+ */
+void
+ChartTwoLineSeriesHistory::validateDefaultColor()
+{
+    std::vector<CaretColorEnum::Enum> allEnums;
+    CaretColorEnum::getColorAndOptionalEnums(allEnums, (CaretColorEnum::ColorOptions::OPTION_INCLUDE_CUSTOM_COLOR
+                                                        || CaretColorEnum::CaretColorEnum::OPTION_INCLUDE_NONE_COLOR));
+    if (std::find(allEnums.begin(),
+                  allEnums.end(),
+                  m_defaultColor) == allEnums.end()) {
+        const AString msg("Default color enum is invalid.  Integer value: " + AString::number((int)m_defaultColor));
+        CaretLogSevere(msg);
+        m_defaultColor = CaretColorEnum::RED;
+    }
+    
+    if (m_defaultColor == CaretColorEnum::CUSTOM) {
+        const AString msg("Default color CUSTOM is not allowed");
+        CaretLogSevere(msg);
+        m_defaultColor = CaretColorEnum::RED;
+    }
+    else if (m_defaultColor == CaretColorEnum::NONE) {
+        const AString msg("Default color NONE is not allowed");
+        CaretLogSevere(msg);
+        m_defaultColor = CaretColorEnum::RED;
+    }
 }
 
 /**
@@ -141,6 +172,7 @@ void
 ChartTwoLineSeriesHistory::initializeInstance()
 {
     m_defaultColor = ChartTwoLineSeriesHistory::generateDefaultColor();
+    validateDefaultColor();
     
     const int32_t defaultHistoryCount = 5;
     m_loadingEnabled = false;
@@ -177,6 +209,7 @@ ChartTwoLineSeriesHistory::copyHelperChartTwoLineSeriesHistory(const ChartTwoLin
     
     m_defaultColor = obj.m_defaultColor;
     m_displayCount = obj.m_displayCount;
+    validateDefaultColor();
 }
 
 /**
@@ -198,6 +231,7 @@ ChartTwoLineSeriesHistory::setDefaultColor(const CaretColorEnum::Enum defaultCol
 {
     if (defaultColor != m_defaultColor) {
         m_defaultColor = defaultColor;
+        validateDefaultColor();
         setModified();
     }
     
@@ -427,6 +461,7 @@ ChartTwoLineSeriesHistory::restoreFromScene(const SceneAttributes* sceneAttribut
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
+    validateDefaultColor();
     
     /*
      * Restore chart matrix properties

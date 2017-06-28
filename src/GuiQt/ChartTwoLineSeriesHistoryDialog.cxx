@@ -26,6 +26,7 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
+#include <QSignalBlocker>
 #include <QSignalMapper>
 #include <QSpinBox>
 #include <QTableWidget>
@@ -282,30 +283,29 @@ ChartTwoLineSeriesHistoryDialog::loadHistoryIntoTableWidget(ChartTwoLineSeriesHi
 {
     CaretAssert(lineSeriesHistory);
     
-    m_tableWidget->blockSignals(true);
+    /*
+     * NOTE: We never remove items from a table due to issues
+     * with widget ownership (and destruction) and the signal mappers.
+     *
+     * When new rows are needed, they are added.
+     * When there are two many rows, they are hidden.
+     */
     
-    const int32_t preNumRows = m_tableWidget->rowCount();
+    const QSignalBlocker tableSignalBlocker(m_tableWidget);
+    
+    const int32_t oldRowCount = m_tableWidget->rowCount();
     const int32_t numHistory = lineSeriesHistory->getHistoryCount();
     
     /*
      * Setup table dimensions
      */
-    m_tableWidget->setRowCount(numHistory);
+    m_tableWidget->setRowCount(std::max(numHistory, oldRowCount));
     m_tableWidget->setColumnCount(COLUMN_COUNT);
-    
-    /*
-     * May need to reduce color combo boxes
-     * Note that calling setRowCount() on the table widget
-     * will destroy the widgets that were added.
-     */
-    const int32_t validWidgetCount = std::min(preNumRows, numHistory);
-    m_colorComboBoxes.resize(validWidgetCount);
-    m_lineWidthSpinBoxes.resize(validWidgetCount);
     
     /*
      * If needed, add cells
      */
-    for (int32_t iRow = preNumRows; iRow < numHistory; iRow++) {
+    for (int32_t iRow = oldRowCount; iRow < numHistory; iRow++) {
         for (int32_t j = 0; j < COLUMN_COUNT; j++) {
             if (j == COLUMN_VIEW) {
                 QTableWidgetItem* item = new QTableWidgetItem("");
@@ -361,30 +361,41 @@ ChartTwoLineSeriesHistoryDialog::loadHistoryIntoTableWidget(ChartTwoLineSeriesHi
     CaretAssert(m_lineWidthSpinBoxes.size() == m_colorComboBoxes.size());
     
     /*
+     * Hide rows not needed
+     */
+    for (int32_t iRow = numHistory; iRow < oldRowCount; iRow++) {
+        m_tableWidget->setRowHidden(iRow, true);
+    }
+    
+    /*
      * Load cells
      */
+    CaretAssert(numHistory <= m_tableWidget->rowCount());
     for (int32_t iRow = 0; iRow < numHistory; iRow++) {
-        ChartTwoDataCartesian* data = lineSeriesHistory->getHistoryItem(iRow);
-        const MapFileDataSelector* mapFileDataSelector = data->getMapFileDataSelector();
+        ChartTwoDataCartesian* historyData = lineSeriesHistory->getHistoryItem(iRow);
+        const MapFileDataSelector* mapFileDataSelector = historyData->getMapFileDataSelector();
         
-        m_tableWidget->item(iRow, COLUMN_VIEW)->setCheckState(data->isSelected()
+        m_tableWidget->item(iRow, COLUMN_VIEW)->setCheckState(historyData->isSelected()
                                                            ? Qt::Checked
                                                            : Qt::Unchecked);
         
         CaretAssertVectorIndex(m_colorComboBoxes, iRow);
-        m_colorComboBoxes[iRow]->setSelectedColor(data->getColor());
+        m_colorComboBoxes[iRow]->setSelectedColor(historyData->getColor());
         
-        m_lineWidthSpinBoxes[iRow]->setValue(data->getLineWidth());
+        CaretAssertVectorIndex(m_lineWidthSpinBoxes, iRow);
+        m_lineWidthSpinBoxes[iRow]->setValue(historyData->getLineWidth());
         
         QTableWidgetItem* item = m_tableWidget->item(iRow, COLUMN_DESCRIPTION);
         item->setText(mapFileDataSelector->toString());
+
+        m_tableWidget->setRowHidden(iRow, false);
     }
     
     /*
      * If table was empty, add column titles
      * and adjust column widths
      */
-    if ((preNumRows == 0)
+    if ((oldRowCount == 0)
         && (numHistory > 0)) {
         m_tableWidget->setHorizontalHeaderItem(COLUMN_VIEW,
                                                new QTableWidgetItem("View"));
@@ -410,8 +421,6 @@ ChartTwoLineSeriesHistoryDialog::loadHistoryIntoTableWidget(ChartTwoLineSeriesHi
                                     tableSize.width() + 30,
                                     sizeHint().height());
     }
-    
-    m_tableWidget->blockSignals(false);
 }
 
 /**

@@ -105,6 +105,8 @@ namespace caret {
         
         static CaretColorEnum::Enum generateDefaultColor();
         
+        void validateDefaultColor();
+
         bool m_loadingEnabled = false;
         
         SceneClassAssistant* m_sceneAssistant = NULL;
