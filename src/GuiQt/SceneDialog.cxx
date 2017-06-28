@@ -186,13 +186,20 @@ SceneDialog::~SceneDialog()
 void
 SceneDialog::closeEvent(QCloseEvent* event)
 {
+      WuQDialogNonModal::closeEvent(event);
+}
+
+/**
+ * Called when the close button is clicked.
+ */
+void
+SceneDialog::closeButtonClicked()
+{
+    /*
+     * If there are any modified scene files, inform the user
+     */
     Brain* brain = GuiManager::get()->getBrain();
     const int32_t numSceneFiles = brain->getNumberOfSceneFiles();
-    if (numSceneFiles <= 0) {
-        WuQDialogNonModal::closeEvent(event);
-        return;
-    }
-
     int32_t numberOfModifiedSceneFiles = 0;
     for (int32_t i = 0; i < numSceneFiles; i++) {
         const SceneFile* sceneFile = brain->getSceneFile(i);
@@ -201,21 +208,20 @@ SceneDialog::closeEvent(QCloseEvent* event)
         }
     }
     
-    if (numberOfModifiedSceneFiles <= 0) {
-        WuQDialogNonModal::closeEvent(event);
-        return;
+    bool allowToCloseFlag = true;
+    
+    if (numberOfModifiedSceneFiles > 0) {
+        const AString msg("<html>There are modified scene file(s).  You can save modified scene files using File Menu->Save/Manage Files "
+                          "or by selecting them on the Scene Dialog and using the Save/Save As buttons.<p>"
+                          "Continue closing this Scene Dialog?");
+        if ( ! WuQMessageBox::warningOkCancel(this, msg)) {
+            allowToCloseFlag = false;
+        }
     }
     
-    const AString msg("<html>There are modified scene file(s).  You can save modified scene files using File Menu->Save/Manage Files "
-                      "or by selecting them on the Scene Dialog and using the Save/Save As buttons.<p>"
-                      "Continue closing this Scene Dialog?");
-    if (WuQMessageBox::warningOkCancel(this, msg)) {
-        WuQDialogNonModal::closeEvent(event);
-        return;
+    if (allowToCloseFlag) {
+        WuQDialogNonModal::closeButtonClicked();
     }
-    
-    event->ignore();
-    WuQDialogNonModal::closeEvent(event);
 }
 
 /**

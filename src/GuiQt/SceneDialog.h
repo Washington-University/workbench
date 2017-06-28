@@ -74,6 +74,8 @@ namespace caret {
         SceneDialog& operator=(const SceneDialog&);
         
     private slots:
+        virtual void closeButtonClicked();
+        
         void sceneFileSelected(int);
         
         void newSceneFileButtonClicked();
