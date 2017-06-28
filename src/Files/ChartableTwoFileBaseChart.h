@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include "ChartAxisLocationEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "ChartTwoCompoundDataType.h"
