@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "ChartAxisLocationEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "ChartTwoCompoundDataType.h"
 #include "EventListenerInterface.h"
@@ -28,6 +29,7 @@
 
 
 namespace caret {
+    class AnnotationPercentSizeText;
     class CaretMappableDataFile;
     class CiftiMappableDataFile;
     class SceneClassAssistant;
@@ -63,6 +65,14 @@ namespace caret {
         
         ChartTwoCompoundDataType getChartTwoCompoundDataType() const;
         
+        const AnnotationPercentSizeText* getBottomAxisTitle() const;
+        
+        AnnotationPercentSizeText* getBottomAxisTitle();
+        
+        const AnnotationPercentSizeText* getLeftRightAxisTitle() const;
+        
+        AnnotationPercentSizeText* getLeftRightAxisTitle();
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const override;
@@ -96,6 +106,9 @@ namespace caret {
 
         ChartableTwoFileBaseChart& operator=(const ChartableTwoFileBaseChart&);
         
+        void initializeAxisTitle(AnnotationPercentSizeText* title,
+                                 const ChartAxisLocationEnum::Enum axisLocation);
+                                 
         const ChartTwoDataTypeEnum::Enum m_chartType;
         
         CaretMappableDataFile* m_parentCaretMappableDataFile;
@@ -105,6 +118,10 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
         
         ChartTwoCompoundDataType m_compoundChartDataType;
+        
+        std::unique_ptr<AnnotationPercentSizeText> m_bottomAxisTitle;
+        
+        std::unique_ptr<AnnotationPercentSizeText> m_leftRightAxisTitle;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -21,6 +21,7 @@
 
 #include <QAction>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -39,7 +40,12 @@
 #include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFile.h"
 #include "ChartTwoCartesianAxis.h"
+#include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
+#include "ChartableTwoFileBaseChart.h"
+#include "ChartableTwoFileDelegate.h"
+#include "ChartableTwoFileHistogramChart.h"
+#include "ChartableTwoFileLineSeriesChart.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventChartTwoAttributesChanged.h"
@@ -70,7 +76,7 @@ using namespace caret;
 BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(BrainBrowserWindowToolBar* parentToolBar)
 : BrainBrowserWindowToolBarComponent(parentToolBar)
 {
-    m_axisDisplayedByUserCheckBox = new QCheckBox("Axis");
+    m_axisDisplayedByUserCheckBox = new QCheckBox("Show Axis");
     m_axisDisplayedByUserCheckBox->setToolTip("Show/Hide the axis");
     QObject::connect(m_axisDisplayedByUserCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
@@ -88,7 +94,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      * Controls for axis parameters
      */
     m_axisNameToolButton = new QToolButton();
-    m_axisNameToolButton->setText("Edit Title");
+    m_axisNameToolButton->setText("Edit Title...");
     QObject::connect(m_axisNameToolButton, &QToolButton::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisNameToolButtonClicked);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_axisNameToolButton);
@@ -116,6 +122,11 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
     m_showTickMarksCheckBox->setToolTip("Show ticks along the axis");
     
+    QLabel* axisTitleFromOverlayLabel = new QLabel("Title From File In");
+    m_axisTitleFromOverlayComboBox = new QComboBox();
+    QObject::connect(m_axisTitleFromOverlayComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
+    
     m_userNumericFormatComboBox = new EnumComboBoxTemplate(this);
     m_userNumericFormatComboBox->setup<NumericFormatModeEnum, NumericFormatModeEnum::Enum>();
     QObject::connect(m_userNumericFormatComboBox, &EnumComboBoxTemplate::itemActivated,
@@ -142,131 +153,100 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      * Group widgets for blocking signals
      */
     m_widgetGroup = new WuQWidgetObjectGroup(this);
+    m_widgetGroup->add(m_axisComboBox);
     m_widgetGroup->add(m_axisDisplayedByUserCheckBox);
     m_widgetGroup->add(m_axisNameToolButton);
     m_widgetGroup->add(m_autoUserRangeComboBox->getWidget());
     m_widgetGroup->add(m_userMinimumValueSpinBox);
     m_widgetGroup->add(m_userMaximumValueSpinBox);
     m_widgetGroup->add(m_showTickMarksCheckBox);
+    m_widgetGroup->add(m_axisTitleFromOverlayComboBox);
     m_widgetGroup->add(m_userNumericFormatComboBox->getWidget());
     m_widgetGroup->add(m_userDigitsRightOfDecimalSpinBox);
     m_widgetGroup->add(m_numericSubdivisionsModeComboBox->getWidget());
     m_widgetGroup->add(m_userSubdivisionsSpinBox);
     
     /*
-     * Layouts
+     * Show widgets layout
      */
-    QLayout* widgetsLayout = NULL;
+    QWidget* showWidget = new QWidget();
+    QGridLayout* showLayout = new QGridLayout(showWidget);
+    int32_t axisRow = 0;
+    showLayout->addWidget(m_axisDisplayedByUserCheckBox, axisRow, 0);
+    axisRow++;
+    showLayout->addWidget(m_showTickMarksCheckBox, axisRow, 0);
+    axisRow++;
+    showWidget->setSizePolicy(showWidget->sizePolicy().horizontalPolicy(),
+                              QSizePolicy::Fixed);
     
-    const int layoutStyle = 0;
-    if (layoutStyle == 0) {
-        QWidget* rangeWidget = new QWidget();
-        {
-            QGridLayout* rangeLayout = new QGridLayout(rangeWidget);
-            WuQtUtilities::setLayoutSpacingAndMargins(rangeLayout, 3, 0);
-            int row = 0;
-            rangeLayout->addWidget(new QLabel("Range Mode"), row, 0);
-            m_autoUserRangeComboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
-            rangeLayout->addWidget(m_autoUserRangeComboBox->getWidget(), row, 1);
-            row++;
-            m_userMinimumValueSpinBox->setFixedWidth(90);
-            m_userMaximumValueSpinBox->setFixedWidth(90);
-            rangeLayout->addWidget(new QLabel("User Max"), row, 0);
-            rangeLayout->addWidget(m_userMaximumValueSpinBox, row, 1);
-            row++;
-            rangeLayout->addWidget(new QLabel("User Min"), row, 0);
-            rangeLayout->addWidget(m_userMinimumValueSpinBox, row, 1);
-        }
-        
-        QWidget* numericsWidget = new QWidget();
-        {
-            QGridLayout* numericsLayout = new QGridLayout(numericsWidget);
-            WuQtUtilities::setLayoutSpacingAndMargins(numericsLayout, 3, 0);
-            int COLUMN_ONE = 0;
-            int COLUMN_TWO = 1;
-            int COLUMN_THREE = 2;
-            int row = 0;
-            numericsLayout->addWidget(new QLabel("Format"), row, COLUMN_ONE);
-            numericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), row, COLUMN_TWO, 1, 2);
-            row++;
-            numericsLayout->addWidget(new QLabel("Decimals"), row, COLUMN_ONE);
-            numericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, row, COLUMN_TWO, 1, 2);
-            row++;
-            numericsLayout->addWidget(new QLabel("Subdivisions"), row, COLUMN_ONE);
-            numericsLayout->addWidget(m_numericSubdivisionsModeComboBox->getWidget(), row, COLUMN_TWO);
-            numericsLayout->addWidget(m_userSubdivisionsSpinBox, row, COLUMN_THREE);
-        }
-        
-        QHBoxLayout* axisLayout = new QHBoxLayout();
-        WuQtUtilities::setLayoutSpacingAndMargins(axisLayout, 3, 0);
-        axisLayout->addWidget(new QLabel("Axis "));
-        axisLayout->addWidget(m_axisComboBox->getWidget());
-        axisLayout->addSpacing(5);
-        axisLayout->addStretch();
-        m_axisDisplayedByUserCheckBox->setText("Show Axis");
-        axisLayout->addWidget(m_axisDisplayedByUserCheckBox);
-        axisLayout->addSpacing(10);
-        axisLayout->addWidget(m_showTickMarksCheckBox);
-        axisLayout->addSpacing(5);
-        axisLayout->addStretch();
-        axisLayout->addWidget(m_axisNameToolButton);
-        
-        QGridLayout* gridLayout = new QGridLayout();
-        WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 3, 0);
-        gridLayout->addLayout(axisLayout, 0, 0, 1, 3);
-        gridLayout->addWidget(rangeWidget, 1, 0); //, Qt::AlignHCenter | Qt::AlignTop);
-        gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 1);
-        gridLayout->addWidget(numericsWidget, 1, 2);
-        
-        widgetsLayout = gridLayout;
-    }
-    else {
-        const int COLUMN_ONE   = 0;
-        const int COLUMN_TWO   = 1;
-        const int COLUMN_THREE = 2;
-        const int COLUMN_FOUR  = 3;
-        const int COLUMN_FIVE  = 4;
-        const int COLUMN_SIX   = 5;
-        
-        QGridLayout* layout = new QGridLayout();
-        WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 0);
-        int leftRow = 0;
-        layout->addWidget(m_axisDisplayedByUserCheckBox, leftRow, COLUMN_ONE, Qt::AlignLeft);
-        layout->addWidget(m_axisComboBox->getWidget(), leftRow, COLUMN_TWO);
-        leftRow++;
-        layout->addWidget(new QLabel("Range"), leftRow, COLUMN_ONE, Qt::AlignLeft);
-        layout->addWidget(m_autoUserRangeComboBox->getWidget(), leftRow, COLUMN_TWO);
-        leftRow++;
-        layout->addWidget(new QLabel("Maximum"), leftRow, COLUMN_ONE, Qt::AlignLeft);
-        layout->addWidget(m_userMaximumValueSpinBox, leftRow, COLUMN_TWO);
-        leftRow++;
-        layout->addWidget(new QLabel("Minimum"), leftRow, COLUMN_ONE, Qt::AlignLeft);
-        layout->addWidget(m_userMinimumValueSpinBox, leftRow, COLUMN_TWO);
-        leftRow++;
-        
-        layout->setColumnMinimumWidth(COLUMN_THREE, 7);
-        
-        int rightRow = 0;
-        layout->addWidget(m_axisNameToolButton, rightRow, COLUMN_FOUR, Qt::AlignLeft);
-        layout->addWidget(m_showTickMarksCheckBox, rightRow, COLUMN_FIVE, 1, 2);
-        rightRow++;
-        layout->addWidget(new QLabel("Format"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
-        layout->addWidget(m_userNumericFormatComboBox->getWidget(), rightRow, COLUMN_FIVE, 1, 2);
-        rightRow++;
-        layout->addWidget(new QLabel("Decimals"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
-        layout->addWidget(m_userDigitsRightOfDecimalSpinBox, rightRow, COLUMN_FIVE, 1, 2);
-        rightRow++;
-        layout->addWidget(new QLabel("Subdivisions"), rightRow, COLUMN_FOUR, Qt::AlignLeft);
-        layout->addWidget(m_numericSubdivisionsModeComboBox->getWidget(), rightRow, COLUMN_FIVE, Qt::AlignHCenter);
-        layout->addWidget(m_userSubdivisionsSpinBox, rightRow, COLUMN_SIX, Qt::AlignRight);
-        rightRow++;
-        
-        widgetsLayout = layout;
-    }
-
+    /*
+     * Range widgets layout
+     */
+    QWidget* rangeWidget = new QWidget();
+    QGridLayout* rangeLayout = new QGridLayout(rangeWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(rangeLayout, 3, 0);
+    int rangeRow = 0;
+    rangeLayout->addWidget(new QLabel("Range Mode"), rangeRow, 0);
+    m_autoUserRangeComboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
+    rangeLayout->addWidget(m_autoUserRangeComboBox->getWidget(), rangeRow, 1);
+    rangeRow++;
+    m_userMinimumValueSpinBox->setFixedWidth(90);
+    m_userMaximumValueSpinBox->setFixedWidth(90);
+    rangeLayout->addWidget(new QLabel("User Max"), rangeRow, 0);
+    rangeLayout->addWidget(m_userMaximumValueSpinBox, rangeRow, 1);
+    rangeRow++;
+    rangeLayout->addWidget(new QLabel("User Min"), rangeRow, 0);
+    rangeLayout->addWidget(m_userMinimumValueSpinBox, rangeRow, 1);
+    
+    /*
+     * Numerics widgets layout
+     */
+    QWidget* numericsWidget = new QWidget();
+    QGridLayout* numericsLayout = new QGridLayout(numericsWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(numericsLayout, 3, 0);
+    int COLUMN_ONE = 0;
+    int COLUMN_TWO = 1;
+    int COLUMN_THREE = 2;
+    int numericsRow = 0;
+    numericsLayout->addWidget(new QLabel("Format"), numericsRow, COLUMN_ONE);
+    numericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), numericsRow, COLUMN_TWO, 1, 2);
+    numericsRow++;
+    numericsLayout->addWidget(new QLabel("Decimals"), numericsRow, COLUMN_ONE);
+    numericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, numericsRow, COLUMN_TWO, 1, 2);
+    numericsRow++;
+    numericsLayout->addWidget(new QLabel("Subdivisions"), numericsRow, COLUMN_ONE);
+    numericsLayout->addWidget(m_numericSubdivisionsModeComboBox->getWidget(), numericsRow, COLUMN_TWO);
+    numericsLayout->addWidget(m_userSubdivisionsSpinBox, numericsRow, COLUMN_THREE);
+    
+    /*
+     * Top layout
+     */
+    QHBoxLayout* topLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(topLayout, 3, 0);
+    topLayout->addWidget(new QLabel("Edit Axis "));
+    topLayout->addWidget(m_axisComboBox->getWidget());
+    topLayout->addSpacing(10);
+    topLayout->addStretch();
+    topLayout->addWidget(axisTitleFromOverlayLabel);
+    topLayout->addWidget(m_axisTitleFromOverlayComboBox);
+    topLayout->addSpacing(10);
+    topLayout->addWidget(m_axisNameToolButton);
+    
+    /*
+     * Grid layout containing layouts
+     */
+    QGridLayout* gridLayout = new QGridLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 3, 0);
+    gridLayout->addLayout(topLayout, 0, 0, 1, 5);
+    gridLayout->addWidget(showWidget, 1, 0, Qt::AlignTop);
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 1);
+    gridLayout->addWidget(rangeWidget, 1, 2);
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 3);
+    gridLayout->addWidget(numericsWidget, 1, 4);
+    
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(dialogLayout, 0, 2);
-    dialogLayout->addLayout(widgetsLayout);
+    dialogLayout->addLayout(gridLayout);
     dialogLayout->addStretch();
 
     EventManager::get()->addEventListener(this,
@@ -313,14 +293,41 @@ BrainBrowserWindowToolBarChartTwoAxes::updateContent(BrowserTabContent* browserT
         return;
     }
     
-    ChartTwoCartesianAxis* selectedAxis = NULL;
+    updateControls(browserTabContent);
+}
+
+/**
+ * Get the selection data.
+ *
+ * @param browserTabContent
+ *     The tab content.
+ * @param chartOverlaySetOut
+ *     The chart overlay set (may be NULL)
+ * @param validAxesLocationsOut
+ *     The valid axes locations.
+ * @param selectedAxisOut
+ *     Output with selected axis (may be NULL)
+ * @param axisLabelOut
+ *     Output with the axis text label.
+ */
+void
+BrainBrowserWindowToolBarChartTwoAxes::getSelectionData(BrowserTabContent* browserTabContent,
+                                                        ChartTwoOverlaySet* &chartOverlaySetOut,
+                                                        std::vector<ChartAxisLocationEnum::Enum>& validAxesLocationsOut,
+                                                        ChartTwoCartesianAxis* &selectedAxisOut,
+                                                        AnnotationPercentSizeText* &axisLabelOut) const
+{
+    chartOverlaySetOut = NULL;
+    validAxesLocationsOut.clear();
+    selectedAxisOut = NULL;
+    axisLabelOut = NULL;
+    
+    if (browserTabContent == NULL) {
+        return;
+    }
     
     const ChartAxisLocationEnum::Enum lastSelectedAxis = getSelectedAxisLocation();
-
-    m_axisComboBox->blockSignals(true);
-    m_axisComboBox->getComboBox()->clear();
     
-    ChartTwoOverlaySet* chartOverlaySet = NULL;
     if (browserTabContent != NULL) {
         ModelChartTwo* modelChartTwo = browserTabContent->getDisplayedChartTwoModel();
         const int32_t tabIndex = browserTabContent->getTabNumber();
@@ -329,29 +336,35 @@ BrainBrowserWindowToolBarChartTwoAxes::updateContent(BrowserTabContent* browserT
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-                    chartOverlaySet = modelChartTwo->getChartTwoOverlaySet(tabIndex);
+                    chartOverlaySetOut = modelChartTwo->getChartTwoOverlaySet(tabIndex);
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-                    chartOverlaySet = modelChartTwo->getChartTwoOverlaySet(tabIndex);
+                    chartOverlaySetOut = modelChartTwo->getChartTwoOverlaySet(tabIndex);
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                     break;
             }
             
-            if (chartOverlaySet != NULL) {
+            if (chartOverlaySetOut != NULL) {
                 int32_t defaultAxisIndex = -1;
                 
-                std::vector<ChartAxisLocationEnum::Enum> validAxesLocations;
-                std::vector<ChartTwoCartesianAxis*> axes = chartOverlaySet->getDisplayedChartAxes();
+                std::vector<ChartTwoCartesianAxis*> axes;
+                AnnotationPercentSizeText* leftAxisLabel   = NULL;
+                AnnotationPercentSizeText* rightAxisLabel  = NULL;
+                AnnotationPercentSizeText* bottomAxisLabel = NULL;
+                chartOverlaySetOut->getDisplayedChartAxes(axes,
+                                                       leftAxisLabel,
+                                                       rightAxisLabel,
+                                                       bottomAxisLabel);
                 const int32_t numAxes = static_cast<int32_t>(axes.size());
                 for (int32_t i = 0; i < numAxes; i++) {
                     const ChartAxisLocationEnum::Enum axisLocation = axes[i]->getAxisLocation();
                     if (lastSelectedAxis == axisLocation) {
                         defaultAxisIndex = i;
                     }
-                    validAxesLocations.push_back(axisLocation);
+                    validAxesLocationsOut.push_back(axisLocation);
                 }
-                CaretAssert(validAxesLocations.size() == axes.size());
+                CaretAssert(validAxesLocationsOut.size() == axes.size());
                 
                 if (defaultAxisIndex < 0) {
                     /*
@@ -371,22 +384,17 @@ BrainBrowserWindowToolBarChartTwoAxes::updateContent(BrowserTabContent* browserT
                     if (defaultAxisIndex < 0) {
                         defaultAxisIndex = 0;
                     }
-                    CaretAssertVectorIndex(validAxesLocations, defaultAxisIndex);
-                    const ChartAxisLocationEnum::Enum axisLocation = validAxesLocations[defaultAxisIndex];
-                    m_axisComboBox->setupWithItems<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>(validAxesLocations);
-                    m_axisComboBox->setSelectedItem<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>(axisLocation);
-                    
                     CaretAssertVectorIndex(axes, defaultAxisIndex);
-                    selectedAxis = axes[defaultAxisIndex];
+                    selectedAxisOut = axes[defaultAxisIndex];
+                }
+                
+                if (selectedAxisOut != NULL) {
+                    axisLabelOut = chartOverlaySetOut->getAxisLabel(selectedAxisOut);
                 }
             }
         }
     }
-    m_axisComboBox->blockSignals(false);
-
-    updateControls(selectedAxis);
     
-    setEnabled(selectedAxis != NULL);
 }
 
 /**
@@ -414,22 +422,29 @@ BrainBrowserWindowToolBarChartTwoAxes::getSelectedAxisLocation() const
 }
 
 
-
-/**
- * Update the content with the given axis.
- *
- * @param chartAxis
- *     New chart axis content.
- */
 void
-BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoCartesianAxis* chartAxis)
+BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browserTabContent)
 {
-    m_chartAxis = chartAxis;
+    ChartTwoOverlaySet* chartOverlaySet = NULL;
+    std::vector<ChartAxisLocationEnum::Enum> validAxesLocations;
+    ChartTwoCartesianAxis* selectedAxis = NULL;
+    AnnotationPercentSizeText* axisLabel = NULL;
     
-    if (m_chartAxis != NULL) {
-        m_widgetGroup->blockAllSignals(true);
-        m_axisDisplayedByUserCheckBox->setChecked(chartAxis->isDisplayedByUser());
-        //m_axisNameToolButton->setText(m_chartAxis->getLabelText());
+    getSelectionData(browserTabContent,
+                     chartOverlaySet,
+                     validAxesLocations,
+                     selectedAxis,
+                     axisLabel);
+    
+    m_widgetGroup->blockAllSignals(true);
+    
+    m_chartAxis = selectedAxis;
+    if ((chartOverlaySet != NULL)
+        && (m_chartAxis != NULL)) {
+        m_axisComboBox->setupWithItems<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>(validAxesLocations);
+        m_axisComboBox->setSelectedItem<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>(m_chartAxis->getAxisLocation());
+        
+        m_axisDisplayedByUserCheckBox->setChecked(m_chartAxis->isDisplayedByUser());
         m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(m_chartAxis->getScaleRangeMode());
         float rangeMin(0.0), rangeMax(0.0);
         m_chartAxis->getRange(rangeMin, rangeMax);
@@ -446,6 +461,82 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoCartesianAxis* cha
         m_userSubdivisionsSpinBox->setValue(m_chartAxis->getUserNumberOfSubdivisions());
         m_userSubdivisionsSpinBox->setEnabled( m_chartAxis->getNumericSubdivsionsMode() == ChartTwoNumericSubdivisionsModeEnum::USER);
         
+        const int32_t overlayCount = chartOverlaySet->getNumberOfDisplayedOverlays();
+        int32_t selectedOverlayIndex = m_chartAxis->getTitleOverlayIndex(overlayCount);
+        const int32_t comboBoxCount = m_axisTitleFromOverlayComboBox->count();
+        if (overlayCount < comboBoxCount) {
+            m_axisTitleFromOverlayComboBox->setMaxCount(overlayCount);
+        }
+        else if (overlayCount > comboBoxCount) {
+            for (int32_t j = comboBoxCount; j < overlayCount; j++) {
+                m_axisTitleFromOverlayComboBox->addItem("Overlay " + AString::number(j + 1));
+            }
+        }
+        
+        if ((selectedOverlayIndex >= 0)
+            && (selectedOverlayIndex < m_axisTitleFromOverlayComboBox->count())) {
+            m_axisTitleFromOverlayComboBox->setCurrentIndex(selectedOverlayIndex);
+        }
+        setEnabled(true);
+    }
+    else {
+        setEnabled(false);
+    }
+    
+    m_widgetGroup->blockAllSignals(false);
+}
+
+/**
+ * Update the content with the given axis.
+ *
+ * @param chartOverlaySet
+ *     Chart overlay set containing axis.
+ * @param chartAxis
+ *     New chart axis content.
+ */
+void
+BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoOverlaySet* chartOverlaySet,
+                                                      ChartTwoCartesianAxis* chartAxis)
+{
+    m_chartAxis = chartAxis;
+    
+    if ((chartOverlaySet != NULL)
+        && (m_chartAxis != NULL)) {
+        m_widgetGroup->blockAllSignals(true);
+        m_axisDisplayedByUserCheckBox->setChecked(chartAxis->isDisplayedByUser());
+        m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(m_chartAxis->getScaleRangeMode());
+        float rangeMin(0.0), rangeMax(0.0);
+        m_chartAxis->getRange(rangeMin, rangeMax);
+        m_userMinimumValueSpinBox->setRange(rangeMin, rangeMax);
+        m_userMinimumValueSpinBox->setValue(m_chartAxis->getUserScaleMinimumValue());
+        m_userMaximumValueSpinBox->setRange(rangeMin, rangeMax);
+        m_userMaximumValueSpinBox->setValue(m_chartAxis->getUserScaleMaximumValue());
+        m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
+        const NumericFormatModeEnum::Enum numericFormat = m_chartAxis->getUserNumericFormat();
+        m_userNumericFormatComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(numericFormat);
+        m_userDigitsRightOfDecimalSpinBox->setValue(m_chartAxis->getUserDigitsRightOfDecimal());
+        m_userDigitsRightOfDecimalSpinBox->setEnabled(numericFormat != NumericFormatModeEnum::AUTO);
+        m_numericSubdivisionsModeComboBox->setSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>(m_chartAxis->getNumericSubdivsionsMode());
+        m_userSubdivisionsSpinBox->setValue(m_chartAxis->getUserNumberOfSubdivisions());
+        m_userSubdivisionsSpinBox->setEnabled( m_chartAxis->getNumericSubdivsionsMode() == ChartTwoNumericSubdivisionsModeEnum::USER);
+        
+        const int32_t overlayCount = chartOverlaySet->getNumberOfDisplayedOverlays();
+        int32_t selectedOverlayIndex = m_chartAxis->getTitleOverlayIndex(overlayCount);
+        const int32_t comboBoxCount = m_axisTitleFromOverlayComboBox->count();
+        if (overlayCount < comboBoxCount) {
+            m_axisTitleFromOverlayComboBox->setMaxCount(overlayCount);
+        }
+        else if (overlayCount > comboBoxCount) {
+            for (int32_t j = comboBoxCount; j < overlayCount; j++) {
+                m_axisTitleFromOverlayComboBox->addItem("Overlay " + AString::number(j + 1));
+            }
+        }
+        
+        if ((selectedOverlayIndex >= 0)
+            && (selectedOverlayIndex < m_axisTitleFromOverlayComboBox->count())) {
+            m_axisTitleFromOverlayComboBox->setCurrentIndex(selectedOverlayIndex);
+        }
+        
         m_widgetGroup->blockAllSignals(false);
     }
 }
@@ -458,6 +549,7 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
 {
     CaretAssert(m_chartAxis);
     if (m_chartAxis != NULL) {
+        m_chartAxis->setTitleOverlayIndex(m_axisTitleFromOverlayComboBox->currentIndex());
         m_chartAxis->setDisplayedByUser(m_axisDisplayedByUserCheckBox->isChecked());
         m_chartAxis->setScaleRangeMode(m_autoUserRangeComboBox->getSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>());
         m_chartAxis->setUserScaleMinimumValue(m_userMinimumValueSpinBox->value());
@@ -596,15 +688,25 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt(int)
 void
 BrainBrowserWindowToolBarChartTwoAxes::axisNameToolButtonClicked(bool)
 {
-    CaretAssert(m_chartAxis);
-    if (m_chartAxis != NULL) {
+    ChartTwoOverlaySet* chartOverlaySet = NULL;
+    std::vector<ChartAxisLocationEnum::Enum> validAxesLocations;
+    ChartTwoCartesianAxis* selectedAxis = NULL;
+    AnnotationPercentSizeText* axisLabel = NULL;
+    
+    getSelectionData(getTabContentFromSelectedTab(),
+                     chartOverlaySet,
+                     validAxesLocations,
+                     selectedAxis,
+                     axisLabel);
+    
+    if (axisLabel != NULL) {
         WuQDataEntryDialog newNameDialog("Axis Title",
                                          m_axisNameToolButton);
         QLineEdit* lineEdit = newNameDialog.addLineEditWidget("Axis Name");
-        lineEdit->setText(m_chartAxis->getAnnotationAxisLabel()->getText());
+        lineEdit->setText(axisLabel->getText());
         if (newNameDialog.exec() == WuQDataEntryDialog::Accepted) {
             const AString name = lineEdit->text().trimmed();
-            m_chartAxis->getAnnotationAxisLabel()->setText(name);
+            axisLabel->setText(name);
             valueChanged();
         }
     }

@@ -278,352 +278,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     viewportSpaceAnnotationsOut = m_viewportSpaceAnnotationsOut;
 }
 
-///**
-// * Draw histogram charts.
-// */
-//void
-//BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramChart()
-//{
-//    const int32_t vpX      = m_viewport[0];
-//    const int32_t vpY      = m_viewport[1];
-//    const int32_t vpWidth  = m_viewport[2];
-//    const int32_t vpHeight = m_viewport[3];
-//    
-//    int32_t chartGraphicsDrawingViewport[4] = {
-//        vpX,
-//        vpY,
-//        vpWidth,
-//        vpHeight
-//    };
-//    
-//    const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
-//    CaretAssert(numberOfOverlays > 0);
-//    const ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
-//    const ChartTwoCompoundDataType cdt = topOverlay->getChartTwoCompoundDataType();
-//    CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
-//    
-//    std::vector<std::unique_ptr<HistogramChartDrawingInfo>> drawingInfo;
-//    
-//    /*
-//     * Get the histogram drawing information and overall extent
-//     */
-//    float xMin = std::numeric_limits<float>::max();
-//    float xMax = -std::numeric_limits<float>::max();
-//    float yMinLeft  = std::numeric_limits<float>::max();
-//    float yMaxLeft  = -std::numeric_limits<float>::max();
-//    float yMinRight = std::numeric_limits<float>::max();
-//    float yMaxRight = -std::numeric_limits<float>::max();
-//    for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
-//        ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
-//        if ( ! chartOverlay->isEnabled()) {
-//            continue;
-//        }
-//        
-//        CaretMappableDataFile* mapFile = NULL;
-//        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
-//        int32_t selectedIndex = -1;
-//        chartOverlay->getSelectionData(mapFile,
-//                                       selectedIndexType,
-//                                       selectedIndex);
-//        if (mapFile == NULL) {
-//            continue;
-//        }
-//        
-//        ChartableTwoFileDelegate* chartDelegate        = mapFile->getChartingDelegate();
-//        ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
-//        
-//        if (histogramChart->isValid()) {
-//            CaretAssert(selectedIndexType == ChartTwoOverlay::SelectedIndexType::MAP);
-//            AString errorMessage;
-//            drawingInfo.push_back(std::unique_ptr<HistogramChartDrawingInfo>(new HistogramChartDrawingInfo(histogramChart,
-//                                                                                                           selectedIndex,
-//                                                                                                           chartOverlay->getCartesianVerticalAxisLocation(),
-//                                                                                                           (chartOverlay->isAllMapsSupported()
-//                                                                                                            && chartOverlay->isAllMapsSelected()))));
-//            const Histogram* histogram = histogramChart->getHistogramForChartDrawing(selectedIndex,
-//                                                                                     (chartOverlay->isAllMapsSupported()
-//                                                                                      && chartOverlay->isAllMapsSelected()));
-//            CaretAssert(histogram);
-//            float histogramMinX = 0.0, histogramMaxX = 0.0, histogramMaxY = 0.0;
-//            histogram->getRangeAndMaxDisplayHeight(histogramMinX, histogramMaxX, histogramMaxY);
-//            if (histogramMaxX > histogramMinX) {
-//                xMin = std::min(xMin, histogramMinX);
-//                xMax = std::max(xMax, histogramMaxX);
-//                
-//                switch (chartOverlay->getCartesianVerticalAxisLocation()) {
-//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//                        CaretAssertMessage(0, "TOP axis not allowed for vertical axis");
-//                        break;
-//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//                        yMinRight = std::min(yMinRight, 0.0f);
-//                        yMaxRight = std::max(yMaxRight, histogramMaxY);
-//                        break;
-//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//                        yMinLeft = std::min(yMinLeft, 0.0f);
-//                        yMaxLeft = std::max(yMaxLeft, histogramMaxY);
-//                        break;
-//                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//                        CaretAssertMessage(0, "BOTTOM axis not allowed for vertical axis");
-//                        break;
-//                }
-//            }
-//        }
-//    }
-//    
-//    /*
-//     * Bounds valid?
-//     */
-//    if ((xMin < xMax)
-//        && ((yMinLeft < yMaxLeft) || (yMinRight < yMaxRight))) {
-//        /*
-//         * Margin is region around the chart in which
-//         * the axes legends, values, and ticks are drawn.
-//         */
-//        const double marginSize = 10;
-//        Margins margins(marginSize);
-//        
-//        ChartTwoCartesianAxis* leftAxis   = NULL;
-//        ChartTwoCartesianAxis* rightAxis  = NULL;
-//        ChartTwoCartesianAxis* bottomAxis = NULL;
-//        ChartTwoCartesianAxis* topAxis    = NULL;
-//        
-//        std::vector<ChartTwoCartesianAxis*> displayedAxes = m_chartOverlaySet->getDisplayedChartAxes();
-//        for (auto axis : displayedAxes) {
-//            CaretAssert(axis);
-//            switch (axis->getAxisLocation()) {
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//                    bottomAxis = axis;
-//                    break;
-//                case  ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//                    leftAxis = axis;
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//                    rightAxis = axis;
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//                    topAxis = axis;
-//                    break;
-//            }
-//        }
-//        
-//        const float boundsLeftBottomTop[4] = { xMin, xMax, yMinLeft, yMaxLeft };
-//        const float boundsRight[4] = { xMin, xMax, yMinRight, yMaxRight };
-//        double width = 0.0, height = 0.0;
-//        
-//        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, leftAxis, width, height);
-//        margins.m_left = std::max(margins.m_left, width);
-//        estimateCartesianChartAxisLegendsWidthHeight(boundsRight, vpWidth, vpHeight, rightAxis, width, height);
-//        margins.m_right = std::max(margins.m_right, width);
-//        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, topAxis, width, height);
-//        margins.m_top = std::max(margins.m_top, height);
-//        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, bottomAxis, width, height);
-//        margins.m_bottom = std::max(margins.m_bottom, height);
-//        
-//        if (margins.m_left > marginSize) margins.m_left += 10;
-//        if (margins.m_right > marginSize) margins.m_right += 10;
-//        
-//        /*
-//         * Ensure that there is sufficient space for the axes data display.
-//         */
-//        if ((vpWidth > (marginSize * 3))
-//            && (vpHeight > (marginSize * 3))) {
-//            
-//            float axisMinimumValue = 0.0;
-//            float axisMaximumValue = 0.0;
-//            
-//            /* Draw legends and grids */
-//            if (drawChartAxisCartesian(boundsLeftBottomTop,
-//                                       vpX,
-//                                       vpY,
-//                                       vpWidth,
-//                                       vpHeight,
-//                                       margins,
-//                                       leftAxis,
-//                                       axisMinimumValue,
-//                                       axisMaximumValue)) {
-//                yMinLeft = axisMinimumValue;
-//                yMaxLeft = axisMaximumValue;
-//            }
-//            
-//            if (drawChartAxisCartesian(boundsRight,
-//                                       vpX,
-//                                       vpY,
-//                                       vpWidth,
-//                                       vpHeight,
-//                                       margins,
-//                                       rightAxis,
-//                                       axisMinimumValue,
-//                                       axisMaximumValue)) {
-//                yMinRight = axisMinimumValue;
-//                yMaxRight = axisMaximumValue;
-//            }
-//            if (drawChartAxisCartesian(boundsLeftBottomTop,
-//                                       vpX,
-//                                       vpY,
-//                                       vpWidth,
-//                                       vpHeight,
-//                                       margins,
-//                                       bottomAxis,
-//                                       axisMinimumValue,
-//                                       axisMaximumValue)) {
-//                xMin = axisMinimumValue;
-//                xMax = axisMaximumValue;
-//            }
-//            
-//            drawChartAxisCartesian(boundsLeftBottomTop,
-//                                   vpX,
-//                                   vpY,
-//                                   vpWidth,
-//                                   vpHeight,
-//                                   margins,
-//                                   topAxis,
-//                                   axisMinimumValue,
-//                                   axisMaximumValue);
-//            
-//            drawChartGraphicsBoxAndSetViewport(vpX,
-//                                               vpY,
-//                                               vpWidth,
-//                                               vpHeight,
-//                                               margins,
-//                                               chartGraphicsDrawingViewport);
-//        }
-//        
-//        glViewport(chartGraphicsDrawingViewport[0],
-//                   chartGraphicsDrawingViewport[1],
-//                   chartGraphicsDrawingViewport[2],
-//                   chartGraphicsDrawingViewport[3]);
-//        
-//        
-//        /*
-//         * Draw the bars for all histogram and then draw the envelopes
-//         * so the envelopes are not obscured by the bars
-//         */
-//        for (auto& drawInfo : drawingInfo) {
-//            if (drawInfo->m_histogramChart->isValid()) {
-//                const CaretMappableDataFile* cmdf = drawInfo->m_histogramChart->getCaretMappableDataFile();
-//                CaretAssert(cmdf);
-//                const PaletteColorMapping* paletteColorMapping = cmdf->getMapPaletteColorMapping(drawInfo->m_mapIndex);
-//                const bool drawBarsFlag     = paletteColorMapping->isHistogramBarsVisible();
-//                const bool drawEnvelopeFlag = paletteColorMapping->isHistogramEnvelopeVisible();
-//                
-//                if (drawBarsFlag
-//                    || drawEnvelopeFlag) {
-//                    bool leftVerticalAxisFlag = true;
-//                    switch (drawInfo->m_verticalAxisLocation) {
-//                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//                            break;
-//                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//                            break;
-//                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//                            leftVerticalAxisFlag = false;
-//                            break;
-//                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//                            break;
-//                    }
-//                    
-//                    glMatrixMode(GL_PROJECTION);
-//                    glLoadIdentity();
-//                    if (leftVerticalAxisFlag) {
-//                        glOrtho(xMin, xMax,
-//                                yMinLeft, yMaxLeft,
-//                                -10.0, 10.0);
-//                    }
-//                    else {
-//                        glOrtho(xMin, xMax,
-//                                yMinRight, yMaxRight,
-//                                -10.0, 10.0);
-//                    }
-//                    
-//                    glMatrixMode(GL_MODELVIEW);
-//                    glLoadIdentity();
-//                    
-//                    bool applyTransformationsFlag = false;
-//                    if (applyTransformationsFlag) {
-//                        glTranslatef(m_translation[0],
-//                                     m_translation[1],
-//                                     0.0);
-//                        
-//                        const float chartWidth  = chartGraphicsDrawingViewport[2];
-//                        const float chartHeight = chartGraphicsDrawingViewport[3];
-//                        const float halfWidth   = chartWidth  / 2.0;
-//                        const float halfHeight  = chartHeight / 2.0;
-//                        glTranslatef(halfWidth,
-//                                     halfHeight,
-//                                     0.0);
-//                        glScalef(m_zooming,
-//                                 m_zooming,
-//                                 1.0);
-//                        glTranslatef(-halfWidth,
-//                                     -halfHeight,
-//                                     0.0);
-//                    }
-//                    
-//                    ChartableTwoFileHistogramChart::HistogramPrimitives* histogramPrimitives =
-//                    drawInfo->m_histogramChart->getMapHistogramDrawingPrimitives(drawInfo->m_mapIndex,
-//                                                                                 drawInfo->m_allMapsSelected);
-//                    if (histogramPrimitives != NULL) {
-//                        const float ENVELOPE_LINE_WIDTH = 1.0;
-//                        
-//                        if (m_identificationModeFlag) {
-//                            int32_t primitiveIndex = -1;
-//                            float   primitiveDepth = 0.0;
-//                            
-//                            if (drawBarsFlag) {
-//                                /*
-//                                 * Scale histogram bars in Y-axis so that identification
-//                                 * will function when mouse is above a bar.  This is helpful
-//                                 * for identification of bars with a very small height.
-//                                 */
-//                                glPushMatrix();
-//                                glScalef(1.0, 1000.0, 1.0);
-//                                GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-//                                                                            histogramPrimitives->getBarsPrimitive(),
-//                                                                            m_fixedPipelineDrawing->mouseX,
-//                                                                            m_fixedPipelineDrawing->mouseY,
-//                                                                            primitiveIndex,
-//                                                                            primitiveDepth);
-//                                glPopMatrix();
-//                            }
-//                            else if (drawEnvelopeFlag) {
-//                                /*
-//                                 * Increase line width for identification
-//                                 */
-//                                glLineWidth(ENVELOPE_LINE_WIDTH * 3.0f);
-//                                GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-//                                                                            histogramPrimitives->getEnvelopePrimitive(),
-//                                                                            m_fixedPipelineDrawing->mouseX,
-//                                                                            m_fixedPipelineDrawing->mouseY,
-//                                                                            primitiveIndex,
-//                                                                            primitiveDepth);
-//                            }
-//                            
-//                            if (primitiveIndex >= 0) {
-//                                if (m_selectionItemHistogram->isOtherScreenDepthCloserToViewer(primitiveDepth)) {
-//                                    m_selectionItemHistogram->setHistogramChart(const_cast<ChartableTwoFileHistogramChart*>(drawInfo->m_histogramChart),
-//                                                                                drawInfo->m_mapIndex,
-//                                                                                primitiveIndex,
-//                                                                                drawInfo->m_allMapsSelected);
-//                                }
-//                            }
-//                        }
-//                        else {
-//                            drawPrimitivePrivate(histogramPrimitives->getThresholdPrimitive());
-//                            if (drawBarsFlag) {
-//                                drawPrimitivePrivate(histogramPrimitives->getBarsPrimitive());
-//                            }
-//                            if (drawEnvelopeFlag) {
-//                                glLineWidth(ENVELOPE_LINE_WIDTH);
-//                                m_fixedPipelineDrawing->enableLineAntiAliasing();
-//                                drawPrimitivePrivate(histogramPrimitives->getEnvelopePrimitive());
-//                                m_fixedPipelineDrawing->disableLineAntiAliasing();
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
 
 /**
  * Draw a histogram or line series chart.
@@ -754,7 +408,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
             const ChartableTwoFileLineSeriesChart* lineSeriesChart = chartDelegate->getLineSeriesCharting();
             const ChartTwoLineSeriesHistory* lineSeriesHistory = lineSeriesChart->getHistory();
             const int32_t numHistory = lineSeriesHistory->getHistoryCount();
-            for (int32_t iHistory = 0; iHistory < numHistory; iHistory++) {
+            for (int32_t iHistory = (numHistory - 1); iHistory >= 0; iHistory--) {
+            //for (int32_t iHistory = 0; iHistory < numHistory; iHistory++) {
                 const ChartTwoDataCartesian* data = lineSeriesHistory->getHistoryItem(iHistory);
                 CaretAssert(data);
                 if (data->isSelected()) {
@@ -780,7 +435,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                 break;
                         }
                         
-                        lineSeriesChartsToDraw.push_front(LineSeriesChartDrawingInfo(lineSeriesChart,
+                        lineSeriesChartsToDraw.push_back(LineSeriesChartDrawingInfo(lineSeriesChart,
                                                                                     data,
                                                                                     chartOverlay->getCartesianVerticalAxisLocation()));
                     }
@@ -806,7 +461,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
         ChartTwoCartesianAxis* bottomAxis = NULL;
         ChartTwoCartesianAxis* topAxis    = NULL;
         
-        std::vector<ChartTwoCartesianAxis*> displayedAxes = m_chartOverlaySet->getDisplayedChartAxes();
+        std::vector<ChartTwoCartesianAxis*> displayedAxes;
+        AnnotationPercentSizeText* leftAxisLabel   = NULL;
+        AnnotationPercentSizeText* rightAxisLabel  = NULL;
+        AnnotationPercentSizeText* bottomAxisLabel = NULL;
+        m_chartOverlaySet->getDisplayedChartAxes(displayedAxes,
+                                                 leftAxisLabel,
+                                                 rightAxisLabel,
+                                                 bottomAxisLabel);
         for (auto axis : displayedAxes) {
             CaretAssert(axis);
             switch (axis->getAxisLocation()) {
@@ -829,13 +491,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
         const float boundsRight[4] = { xMin, xMax, yMinRight, yMaxRight };
         double width = 0.0, height = 0.0;
         
-        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, leftAxis, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, leftAxis, leftAxisLabel, width, height);
         margins.m_left = std::max(margins.m_left, width);
-        estimateCartesianChartAxisLegendsWidthHeight(boundsRight, vpWidth, vpHeight, rightAxis, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(boundsRight, vpWidth, vpHeight, rightAxis, rightAxisLabel, width, height);
         margins.m_right = std::max(margins.m_right, width);
-        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, topAxis, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, topAxis, NULL, width, height);
         margins.m_top = std::max(margins.m_top, height);
-        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, bottomAxis, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, vpWidth, vpHeight, bottomAxis, bottomAxisLabel, width, height);
         margins.m_bottom = std::max(margins.m_bottom, height);
         
         if (margins.m_left > marginSize) margins.m_left += 10;
@@ -858,6 +520,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                        vpHeight,
                                        margins,
                                        leftAxis,
+                                       leftAxisLabel,
                                        axisMinimumValue,
                                        axisMaximumValue)) {
                 yMinLeft = axisMinimumValue;
@@ -871,6 +534,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                        vpHeight,
                                        margins,
                                        rightAxis,
+                                       rightAxisLabel,
                                        axisMinimumValue,
                                        axisMaximumValue)) {
                 yMinRight = axisMinimumValue;
@@ -883,6 +547,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                        vpHeight,
                                        margins,
                                        bottomAxis,
+                                       bottomAxisLabel,
                                        axisMinimumValue,
                                        axisMaximumValue)) {
                 xMin = axisMinimumValue;
@@ -896,6 +561,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                    vpHeight,
                                    margins,
                                    topAxis,
+                                   NULL,
                                    axisMinimumValue,
                                    axisMaximumValue);
             
@@ -1488,117 +1154,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::restoreStateOfOpenGL()
 }
 
 /**
- * Process identification for line-series.
- *
- * @param lineSeriesChart
- *     The line-series chart.
- */
-void
-BrainOpenGLChartTwoDrawingFixedPipeline::processLineSeriesIdentification(const ChartableTwoFileLineSeriesChart* lineSeriesChart)
-{
-    //    int32_t identifiedItemIndex;
-    //    float depth = -1.0;
-    //
-    //    if (m_chartModelDataSeriesBeingDrawnForIdentification != NULL) {
-    //        m_fixedPipelineDrawing->getIndexFromColorSelection(m_chartCartesianSelectionTypeForIdentification,
-    //                                                           m_fixedPipelineDrawing->mouseX,
-    //                                                           m_fixedPipelineDrawing->mouseY,
-    //                                                           identifiedItemIndex,
-    //                                                           depth);
-    //        if (identifiedItemIndex >= 0) {
-    //            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
-    //            const int32_t chartDataIndex = m_identificationIndices[idIndex];
-    //            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
-    //
-    //            SelectionItemChartDataSeries* chartDataSeriesID = m_brain->getSelectionManager()->getChartDataSeriesIdentification();
-    //            if (chartDataSeriesID->isOtherScreenDepthCloserToViewer(depth)) {
-    //                ChartDataCartesian* chartDataCartesian =
-    //                dynamic_cast<ChartDataCartesian*>(m_chartModelDataSeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
-    //                CaretAssert(chartDataCartesian);
-    //                chartDataSeriesID->setChart(m_chartModelDataSeriesBeingDrawnForIdentification,
-    //                                            chartDataCartesian,
-    //                                            chartLineIndex);
-    //
-    //                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
-    //                const float lineXYZ[3] = {
-    //                    chartPoint->getX(),
-    //                    chartPoint->getY(),
-    //                    0.0
-    //                };
-    //
-    //                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartDataSeriesID,
-    //                                                                 lineXYZ);
-    //            }
-    //        }
-    //    }
-    //    else if (m_chartModelFrequencySeriesBeingDrawnForIdentification != NULL) {
-    //        m_fixedPipelineDrawing->getIndexFromColorSelection(m_chartCartesianSelectionTypeForIdentification,
-    //                                                           m_fixedPipelineDrawing->mouseX,
-    //                                                           m_fixedPipelineDrawing->mouseY,
-    //                                                           identifiedItemIndex,
-    //                                                           depth);
-    //        if (identifiedItemIndex >= 0) {
-    //            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
-    //            const int32_t chartDataIndex = m_identificationIndices[idIndex];
-    //            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
-    //
-    //            SelectionItemChartFrequencySeries* chartFrequencySeriesID = m_brain->getSelectionManager()->getChartFrequencySeriesIdentification();
-    //            if (chartFrequencySeriesID->isOtherScreenDepthCloserToViewer(depth)) {
-    //                ChartDataCartesian* chartDataCartesian =
-    //                dynamic_cast<ChartDataCartesian*>(m_chartModelFrequencySeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
-    //                CaretAssert(chartDataCartesian);
-    //                chartFrequencySeriesID->setChart(m_chartModelFrequencySeriesBeingDrawnForIdentification,
-    //                                                 chartDataCartesian,
-    //                                                 chartLineIndex);
-    //
-    //                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
-    //                const float lineXYZ[3] = {
-    //                    chartPoint->getX(),
-    //                    chartPoint->getY(),
-    //                    0.0
-    //                };
-    //
-    //                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartFrequencySeriesID,
-    //                                                                 lineXYZ);
-    //            }
-    //        }
-    //    }
-    //    else if (m_chartModelTimeSeriesBeingDrawnForIdentification != NULL) {
-    //        m_fixedPipelineDrawing->getIndexFromColorSelection(m_chartCartesianSelectionTypeForIdentification,
-    //                                                           m_fixedPipelineDrawing->mouseX,
-    //                                                           m_fixedPipelineDrawing->mouseY,
-    //                                                           identifiedItemIndex,
-    //                                                           depth);
-    //        if (identifiedItemIndex >= 0) {
-    //            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
-    //            const int32_t chartDataIndex = m_identificationIndices[idIndex];
-    //            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
-    //
-    //            SelectionItemChartTimeSeries* chartTimeSeriesID = m_brain->getSelectionManager()->getChartTimeSeriesIdentification();
-    //            if (chartTimeSeriesID->isOtherScreenDepthCloserToViewer(depth)) {
-    //                ChartDataCartesian* chartDataCartesian =
-    //                dynamic_cast<ChartDataCartesian*>(m_chartModelTimeSeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
-    //                CaretAssert(chartDataCartesian);
-    //                chartTimeSeriesID->setChart(m_chartModelTimeSeriesBeingDrawnForIdentification,
-    //                                            chartDataCartesian,
-    //                                            chartLineIndex);
-    //
-    //                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
-    //                const float lineXYZ[3] = {
-    //                    chartPoint->getX(),
-    //                    chartPoint->getY(),
-    //                    0.0
-    //                };
-    //                
-    //                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartTimeSeriesID,
-    //                                                                 lineXYZ);
-    //            }
-    //        }
-    //    }
-    
-}
-
-/**
  * Estimate the size of the axis' text.
  *
  * @param dataBounds
@@ -1609,6 +1164,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::processLineSeriesIdentification(const C
  *     Height of viewport.
  * @param cartesianAxis
  *    The axis.
+ * @param chartAxisLabel
+ *    Label for the axis.
  * @param widthOut
  *    Width of text out.
  * @param heightOut
@@ -1619,6 +1176,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
                                                                                       const float viewportWidth,
                                                                                       const float viewportHeight,
                                                                                       ChartTwoCartesianAxis* cartesianAxis,
+                                                                                      const AnnotationPercentSizeText* chartAxisLabel,
                                                                                       double& widthOut,
                                                                                       double& heightOut)
 {
@@ -1682,51 +1240,53 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
             break;
     }
     
-    const AnnotationPercentSizeText* chartAxisLabel = cartesianAxis->getAnnotationAxisLabel();
-    const AString axisTitle = chartAxisLabel->getText();
-    if ( ! axisTitle.isEmpty()) {
-        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        annotationText.setText(axisTitle);
-        switch (cartesianAxis->getAxisLocation()) {
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
-                annotationText.setRotationAngle(-90.0);
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
-                annotationText.setRotationAngle(-90.0);
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
-                break;
-        }
-        
-        double textWidth = 0.0;
-        double textHeight = 0.0;
-        m_textRenderer->getTextWidthHeightInPixels(annotationText, viewportWidth, viewportHeight, textWidth, textHeight);
-        
-        /*
-         * Note: Text on left and right is rotated but we need the width
-         * and height after rotation so swap the width and height of the text
-         */
-        switch (cartesianAxis->getAxisLocation()) {
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                heightOut += textHeight;
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                std::swap(textWidth, textHeight);
-                widthOut += textWidth;
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                std::swap(textWidth, textHeight);
-                widthOut += textWidth;
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                heightOut += textHeight;
-                break;
+    //const AnnotationPercentSizeText* chartAxisLabel = cartesianAxis->getAnnotationAxisLabel();
+    if (chartAxisLabel != NULL) {
+        const AString axisTitle = chartAxisLabel->getText();
+        if ( ! axisTitle.isEmpty()) {
+            AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+            annotationText.setText(axisTitle);
+            switch (cartesianAxis->getAxisLocation()) {
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                    annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                    annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
+                    annotationText.setRotationAngle(-90.0);
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                    annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
+                    annotationText.setRotationAngle(-90.0);
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                    annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
+                    break;
+            }
+            
+            double textWidth = 0.0;
+            double textHeight = 0.0;
+            m_textRenderer->getTextWidthHeightInPixels(annotationText, viewportWidth, viewportHeight, textWidth, textHeight);
+            
+            /*
+             * Note: Text on left and right is rotated but we need the width
+             * and height after rotation so swap the width and height of the text
+             */
+            switch (cartesianAxis->getAxisLocation()) {
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                    heightOut += textHeight;
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                    std::swap(textWidth, textHeight);
+                    widthOut += textWidth;
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                    std::swap(textWidth, textHeight);
+                    widthOut += textWidth;
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                    heightOut += textHeight;
+                    break;
+            }
         }
     }
 }
@@ -1825,6 +1385,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
  *     (and not cut off).
  * @param axis
  *     Axis that is drawn.
+ * @param chartAxisLabel
+ *     Axis label.
  * @param axisMinimumOut
  *     Minimum value along the axis.
  * @param axisMaximumOut
@@ -1840,6 +1402,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
                                                                 const float vpHeight,
                                                                 const Margins& margins,
                                                                 ChartTwoCartesianAxis* axis,
+                                                                AnnotationPercentSizeText* chartAxisLabel,
                                                                 float& axisMinimumOut,
                                                                 float& axisMaximumOut)
 {
@@ -2095,86 +1658,56 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
             drawPrimitivePrivate(ticksData.get());
         }
         
-        const AString axisTitle = axis->getAnnotationAxisLabel()->getText();
-        if ( ! axisTitle.isEmpty()) {
-            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-            
-            bool drawAxisTextVerticalFlag = false;
-            float axisTextCenterX = axisVpWidth / 2.0;
-            float axisTextCenterY = axisVpHeight / 2.0;
-            const float textMarginOffset = 5.0;
-            switch (axis->getAxisLocation()) {
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                    axisTextCenterX = (axisVpWidth / 2.0);
-                    axisTextCenterY = textMarginOffset;
-                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                    axisTextCenterX = (axisVpWidth / 2.0);
-                    axisTextCenterY = axisVpHeight - textMarginOffset;
-                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                    axisTextCenterX = textMarginOffset;
-                    axisTextCenterY = (axisVpHeight / 2.0);
-                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-                    drawAxisTextVerticalFlag = true;
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                    axisTextCenterX = axisVpWidth - textMarginOffset;
-                    axisTextCenterY = (axisVpHeight / 2.0);
-                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                    drawAxisTextVerticalFlag = true;
-                    break;
-            }
-            
-            if ((axisVpWidth > 0.0)
-                && (axisVpHeight > 0.0)) {
-//                const float labelPercentX = 100.0f * (axisTextCenterX / axisVpWidth);
-//                const float labelPercentY = 100.0f * (axisTextCenterY / axisVpHeight);
-                AnnotationPercentSizeText* chartLabel = axis->getAnnotationAxisLabel();
-                chartLabel->setCustomTextColor(rgba);
-                chartLabel->setTextColor(CaretColorEnum::CUSTOM);
-                chartLabel->setTabIndex(m_tabIndex);
-                chartLabel->setViewportCoordinateSpaceViewport(axisViewport);
-//                chartLabel->setAxisViewport(axisViewport);
-                chartLabel->getCoordinate()->setXYZ(axisTextCenterX,
-                                                    axisTextCenterY,
-                                                    0.0f);
-//                chartLabel->getCoordinate()->setXYZ(labelPercentX,
-//                                                    labelPercentY,
-//                                                    0.0f);
+        if (chartAxisLabel != NULL) {
+            const AString axisTitle = chartAxisLabel->getText();
+            if ( ! axisTitle.isEmpty()) {
+                annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
                 
-                m_viewportSpaceAnnotationsOut.push_back(chartLabel);
+                bool drawAxisTextVerticalFlag = false;
+                float axisTextCenterX = axisVpWidth / 2.0;
+                float axisTextCenterY = axisVpHeight / 2.0;
+                const float textMarginOffset = 5.0;
+                switch (axis->getAxisLocation()) {
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                        axisTextCenterX = (axisVpWidth / 2.0);
+                        axisTextCenterY = textMarginOffset;
+                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                        axisTextCenterX = (axisVpWidth / 2.0);
+                        axisTextCenterY = axisVpHeight - textMarginOffset;
+                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                        axisTextCenterX = textMarginOffset;
+                        axisTextCenterY = (axisVpHeight / 2.0);
+                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                        drawAxisTextVerticalFlag = true;
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                        axisTextCenterX = axisVpWidth - textMarginOffset;
+                        axisTextCenterY = (axisVpHeight / 2.0);
+                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                        drawAxisTextVerticalFlag = true;
+                        break;
+                }
+                
+                if ((axisVpWidth > 0.0)
+                    && (axisVpHeight > 0.0)) {
+                    //AnnotationPercentSizeText* chartLabel = axis->getAnnotationAxisLabel();
+                    chartAxisLabel->setCustomTextColor(rgba);
+                    chartAxisLabel->setTextColor(CaretColorEnum::CUSTOM);
+                    chartAxisLabel->setTabIndex(m_tabIndex);
+                    chartAxisLabel->setViewportCoordinateSpaceViewport(axisViewport);
+                    chartAxisLabel->getCoordinate()->setXYZ(axisTextCenterX,
+                                                        axisTextCenterY,
+                                                        0.0f);
+                    
+                    m_viewportSpaceAnnotationsOut.push_back(chartAxisLabel);
+                }
+                
             }
-            
-//            /*
-//             * REMOVE THIS WHEN AXIS LABELS ARE DRAWN BY ANNOTATION CODE
-//             */
-//            m_textRenderer->drawTextAtViewportCoords(axisTextCenterX,
-//                                                     axisTextCenterY,
-//                                                     0.0,
-//                                                     *axis->getAnnotationAxisLabel());
-
-            
-//            if (drawAxisTextVerticalFlag) {
-//                annotationText.setRotationAngle(-90.0);
-//                annotationText.setText(axisTitle);
-//                m_textRenderer->drawTextAtViewportCoords(axisTextCenterX,
-//                                                         axisTextCenterY,
-//                                                         0.0,
-//                                                         annotationText);
-//                annotationText.setRotationAngle(0.0);
-//            }
-//            else {
-//                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
-//                annotationText.setText(axisTitle);
-//                m_textRenderer->drawTextAtViewportCoords(axisTextCenterX,
-//                                                         axisTextCenterY,
-//                                                         0.0,
-//                                                         annotationText);
-//            }
         }
     }
     

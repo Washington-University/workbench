@@ -506,6 +506,24 @@ ChartTwoOverlay::getColorBar() const
 }
 
 /**
+ * @return The selected map file (NULL if not map file available)
+ */
+CaretMappableDataFile*
+ChartTwoOverlay::getSelectedMapFile() const
+{
+    std::vector<CaretMappableDataFile*> mapFiles;
+    CaretMappableDataFile* selectedMapFile = NULL;
+    SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
+    getSelectionData(mapFiles,
+                     selectedMapFile,
+                     selectedIndexType,
+                     selectedIndex);
+    
+    return selectedMapFile;
+}
+
+/**
  * Return the selection information.  This method is typically
  * called to update the user-interface.
  *

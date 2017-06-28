@@ -594,6 +594,9 @@ void
 CiftiScalarDataSeriesFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                                              SceneClass* sceneClass)
 {
+    CiftiMappableDataFile::saveFileDataToScene(sceneAttributes,
+                                               sceneClass);
+    
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     /*
@@ -632,6 +635,9 @@ void
 CiftiScalarDataSeriesFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                                   const SceneClass* sceneClass)
 {
+    CiftiMappableDataFile::restoreFileDataFromScene(sceneAttributes,
+                                                    sceneClass);
+    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     

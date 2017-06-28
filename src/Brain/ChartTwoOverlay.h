@@ -66,8 +66,6 @@ namespace caret {
         
         int32_t getTabIndex() const;
         
-        //AString getName() const;
-        
         virtual AString toString() const;
         
         virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
@@ -107,6 +105,8 @@ namespace caret {
         void setCartesianVerticalAxisLocation(const ChartAxisLocationEnum::Enum cartesianVerticalAxisLocation);
         
         bool isCartesianVerticalAxisLocationSupported() const;
+        
+        CaretMappableDataFile* getSelectedMapFile() const;
         
         void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,

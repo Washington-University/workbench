@@ -29,7 +29,9 @@
 #include "CaretMappableDataFile.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
-#include "EventAnnotationChartLabelGet.h"
+#include "ChartableTwoFileDelegate.h"
+#include "ChartableTwoFileHistogramChart.h"
+#include "ChartableTwoFileLineSeriesChart.h"
 #include "EventBrowserTabGet.h"
 #include "EventChartTwoAttributesChanged.h"
 #include "EventManager.h"
@@ -85,7 +87,6 @@ m_tabIndex(tabIndex)
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
         {
             m_chartAxisLeft->setEnabledByChart(true);
-            m_chartAxisLeft->getAnnotationAxisLabel()->setText("Counts");
             m_chartAxisLeft->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             float rangeMin = 0.0, rangeMax = 0.0;
             m_chartAxisLeft->getRange(rangeMin, rangeMax);
@@ -93,21 +94,18 @@ m_tabIndex(tabIndex)
             m_chartAxisLeft->setRange(rangeMin, rangeMax);
             
             m_chartAxisRight->setEnabledByChart(false);
-            m_chartAxisRight->getAnnotationAxisLabel()->setText("Counts");
             m_chartAxisRight->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             m_chartAxisRight->getRange(rangeMin, rangeMax);
             rangeMin = 0.0;
             m_chartAxisRight->setRange(rangeMin, rangeMax);
             
             m_chartAxisBottom->setEnabledByChart(true);
-            m_chartAxisBottom->getAnnotationAxisLabel()->setText("Data");
             m_chartAxisBottom->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
         {
             m_chartAxisLeft->setEnabledByChart(true);
-            m_chartAxisLeft->getAnnotationAxisLabel()->setText("Value");
             m_chartAxisLeft->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             float rangeMin = 0.0, rangeMax = 0.0;
             m_chartAxisLeft->getRange(rangeMin, rangeMax);
@@ -115,14 +113,12 @@ m_tabIndex(tabIndex)
             m_chartAxisLeft->setRange(rangeMin, rangeMax);
             
             m_chartAxisRight->setEnabledByChart(false);
-            m_chartAxisRight->getAnnotationAxisLabel()->setText("Value");
             m_chartAxisRight->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
             m_chartAxisRight->getRange(rangeMin, rangeMax);
             rangeMin = 0.0;
             m_chartAxisRight->setRange(rangeMin, rangeMax);
             
             m_chartAxisBottom->setEnabledByChart(true);
-            m_chartAxisBottom->getAnnotationAxisLabel()->setText("Data");
             m_chartAxisBottom->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
         }
             break;
@@ -153,7 +149,6 @@ m_tabIndex(tabIndex)
     }
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
 }
@@ -527,19 +522,7 @@ ChartTwoOverlaySet::toString() const
 void
 ChartTwoOverlaySet::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET) {
-        /*
-         * The events intended for overlays are received here so that
-         * only DISPLAYED overlays are updated.
-         */
-        EventAnnotationChartLabelGet* chartLabelEvent = dynamic_cast<EventAnnotationChartLabelGet*>(event);
-        CaretAssert(chartLabelEvent);
-        
-        chartLabelEvent->addAnnotationChartLabel(m_chartAxisBottom->getAnnotationAxisLabel());
-        chartLabelEvent->addAnnotationChartLabel(m_chartAxisLeft->getAnnotationAxisLabel());
-        chartLabelEvent->addAnnotationChartLabel(m_chartAxisRight->getAnnotationAxisLabel());
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED) {
+    if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED) {
         EventChartTwoAttributesChanged* attributeEvent = dynamic_cast<EventChartTwoAttributesChanged*>(event);
         CaretAssert(attributeEvent);
         
@@ -675,11 +658,26 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
 
 /**
  * Get the displayed chart axes.
+ *
+ * @param axesOut
+ *     Output containing the displayed axes.
+ * @param leftAxisLabelOut
+ *     Label for left axis (may be NULL if axis not displayed).
+ * @param rightAxisLabelOut
+ *     Label for right axis (may be NULL if axis not displayed).
+ * @param bottomAxisLabelOut
+ *     Label for bottom axis (may be NULL if axis not displayed).
  */
-std::vector<ChartTwoCartesianAxis*>
-ChartTwoOverlaySet::getDisplayedChartAxes() const
+void
+ChartTwoOverlaySet::getDisplayedChartAxes(std::vector<ChartTwoCartesianAxis*>& axesOut,
+                                          AnnotationPercentSizeText* &leftAxisLabelOut,
+                                          AnnotationPercentSizeText* &rightAxisLabelOut,
+                                          AnnotationPercentSizeText* &bottomAxisLabelOut) const
 {
-    std::vector<ChartTwoCartesianAxis*> axes;
+    axesOut.clear();
+    leftAxisLabelOut   = NULL;
+    rightAxisLabelOut  = NULL;
+    bottomAxisLabelOut = NULL;
     
     AString lineSeriesDataTypeName;
     
@@ -768,21 +766,80 @@ ChartTwoOverlaySet::getDisplayedChartAxes() const
     m_chartAxisRight->setEnabledByChart(showRightFlag);
     
     if (m_chartAxisBottom->isEnabledByChart()) {
-        if ( ! lineSeriesDataTypeName.isEmpty()) {
-            m_chartAxisBottom->getAnnotationAxisLabel()->setText(lineSeriesDataTypeName);
-        }
-        axes.push_back(m_chartAxisBottom.get());
+        axesOut.push_back(m_chartAxisBottom.get());
+        
+        bottomAxisLabelOut = getAxisLabel(m_chartAxisBottom.get());
     }
     if (m_chartAxisLeft->isEnabledByChart()) {
-        axes.push_back(m_chartAxisLeft.get());
+        axesOut.push_back(m_chartAxisLeft.get());
+        
+        leftAxisLabelOut = getAxisLabel(m_chartAxisLeft.get());
     }
     if (m_chartAxisRight->isEnabledByChart()) {
-        axes.push_back(m_chartAxisRight.get());
+        axesOut.push_back(m_chartAxisRight.get());
+        
+        rightAxisLabelOut = getAxisLabel(m_chartAxisRight.get());
     }
-    
-    return axes;
 }
 
+/**
+ * Get the annotation for the axis label.
+ *
+ * @param axis
+ *     The cartesian axis.
+ * @return 
+ *     Pointer to annotation containing label or NULL if invalid.
+ */
+AnnotationPercentSizeText*
+ChartTwoOverlaySet::getAxisLabel(const ChartTwoCartesianAxis* axis) const
+{
+    AnnotationPercentSizeText* label = NULL;
+    
+    const int32_t overlayTitleIndex = axis->getTitleOverlayIndex(m_numberOfDisplayedOverlays);
+    const ChartTwoOverlay* chartOverlay = getOverlay(overlayTitleIndex);
+    CaretMappableDataFile* mapFile = chartOverlay->getSelectedMapFile();
+    if (mapFile != NULL) {
+        switch (m_chartDataType) {
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                switch (axis->getAxisLocation()) {
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                        label = mapFile->getChartingDelegate()->getHistogramCharting()->getBottomAxisTitle();
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                        label = mapFile->getChartingDelegate()->getHistogramCharting()->getLeftRightAxisTitle();
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                        label = mapFile->getChartingDelegate()->getHistogramCharting()->getLeftRightAxisTitle();
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                        CaretAssert(0);
+                        break;
+                }
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                switch (axis->getAxisLocation()) {
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                        label = mapFile->getChartingDelegate()->getLineSeriesCharting()->getBottomAxisTitle();
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                        label = mapFile->getChartingDelegate()->getLineSeriesCharting()->getLeftRightAxisTitle();
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                        label = mapFile->getChartingDelegate()->getLineSeriesCharting()->getLeftRightAxisTitle();
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                        CaretAssert(0);
+                        break;
+                }
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                break;
+        }
+    }
+    return label;
+}
 
 /**
  * Save information specific to this type of model to the scene.

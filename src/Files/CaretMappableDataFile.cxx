@@ -330,6 +330,11 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
     sceneClass->addClass(m_labelDrawingProperties->saveToScene(sceneAttributes,
                                                                "m_labelDrawingProperties"));
     
+    
+    //m_chartingDelegate->updateAfterFileChanged();
+    sceneClass->addClass(m_chartingDelegate->saveToScene(sceneAttributes,
+                                                             "m_chartingDelegate"));
+    
     if (isMappedWithPalette()) {
         /*
          * 03 March 2017

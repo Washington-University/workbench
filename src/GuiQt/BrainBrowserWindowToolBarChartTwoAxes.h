@@ -26,6 +26,7 @@
 #include "ChartAxisLocationEnum.h"
 
 class QCheckBox;
+class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
 class QSpinBox;
@@ -33,8 +34,10 @@ class QToolButton;
 
 namespace caret {
 
+    class AnnotationPercentSizeText;
     class ChartTwoCartesianAxis;
     class ChartTwoCartesianAxisWidget;
+    class ChartTwoOverlaySet;
     class EnumComboBoxTemplate;
     class WuQWidgetObjectGroup;
     
@@ -76,7 +79,16 @@ namespace caret {
         
         ChartAxisLocationEnum::Enum getSelectedAxisLocation() const;
         
-        void updateControls(ChartTwoCartesianAxis* chartAxis);
+        void getSelectionData(BrowserTabContent* browserTabContent,
+                              ChartTwoOverlaySet* &chartOverlaySetOut,
+                              std::vector<ChartAxisLocationEnum::Enum>& validAxesLocationsOut,
+                              ChartTwoCartesianAxis* &selectedAxisOut,
+                              AnnotationPercentSizeText* &axisLabelOut) const;
+        
+        void updateControls(ChartTwoOverlaySet* chartOverlaySet,
+                            ChartTwoCartesianAxis* chartAxis);
+        
+        void updateControls(BrowserTabContent* browserTabContent);
         
         void updateGraphics();
         
@@ -87,6 +99,8 @@ namespace caret {
         EnumComboBoxTemplate* m_axisComboBox;
         
         QToolButton* m_axisNameToolButton;
+        
+        QComboBox* m_axisTitleFromOverlayComboBox;
         
         EnumComboBoxTemplate* m_autoUserRangeComboBox;
         

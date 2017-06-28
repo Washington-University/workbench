@@ -30,6 +30,7 @@
 
 
 namespace caret {
+    class AnnotationPercentSizeText;
     class CaretMappableDataFile;
     class ChartTwoCartesianAxis;
     class ChartTwoOverlay;
@@ -65,7 +66,12 @@ namespace caret {
         
         ChartTwoOverlay* getDisplayedOverlayContainingDataFile(const CaretMappableDataFile* mapFile);
         
-        std::vector<ChartTwoCartesianAxis*> getDisplayedChartAxes() const;
+        void getDisplayedChartAxes(std::vector<ChartTwoCartesianAxis*>& axesOut,
+                                   AnnotationPercentSizeText* &leftAxisLabelOut,
+                                   AnnotationPercentSizeText* &rightAxisLabelOut,
+                                   AnnotationPercentSizeText* &bottomAxisLabelOut) const;
+        
+        AnnotationPercentSizeText* getAxisLabel(const ChartTwoCartesianAxis* axis) const;
         
         void insertOverlayAbove(const int32_t overlayIndex);
         
@@ -119,8 +125,6 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
 
-        //ChartTwoOverlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
-        
         std::vector<std::shared_ptr<ChartTwoOverlay>> m_overlays;
         
         const ChartTwoDataTypeEnum::Enum m_chartDataType;

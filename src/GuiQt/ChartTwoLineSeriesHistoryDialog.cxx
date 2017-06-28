@@ -295,8 +295,12 @@ ChartTwoLineSeriesHistoryDialog::loadHistoryIntoTableWidget(ChartTwoLineSeriesHi
     
     /*
      * May need to reduce color combo boxes
+     * Note that calling setRowCount() on the table widget
+     * will destroy the widgets that were added.
      */
-    m_colorComboBoxes.resize(preNumRows);
+    const int32_t validWidgetCount = std::min(preNumRows, numHistory);
+    m_colorComboBoxes.resize(validWidgetCount);
+    m_lineWidthSpinBoxes.resize(validWidgetCount);
     
     /*
      * If needed, add cells
@@ -353,6 +357,8 @@ ChartTwoLineSeriesHistoryDialog::loadHistoryIntoTableWidget(ChartTwoLineSeriesHi
             }
         }
     }
+    
+    CaretAssert(m_lineWidthSpinBoxes.size() == m_colorComboBoxes.size());
     
     /*
      * Load cells

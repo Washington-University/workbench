@@ -23,7 +23,6 @@
 #include "ChartTwoCartesianAxis.h"
 #undef __CHART_TWO_CARTESIAN_AXIS_DECLARE__
 
-#include "AnnotationPercentSizeText.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartScaleAutoRanging.h"
@@ -53,26 +52,6 @@ ChartTwoCartesianAxis::ChartTwoCartesianAxis(const ChartAxisLocationEnum::Enum a
 SceneableInterface(),
 m_axisLocation(axisLocation)
 {
-    AnnotationTextFontSizeTypeEnum::Enum fontSizeType = AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT;
-    switch (m_axisLocation) {
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-            fontSizeType = AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH;
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-            fontSizeType = AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH;
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            break;
-    }
-    m_annotationAxisLabel = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
-                                                                                                         fontSizeType));
-    m_annotationAxisLabel->setCoordinateSpace(AnnotationCoordinateSpaceEnum::VIEWPORT);
-    m_annotationAxisLabel->setTextColor(CaretColorEnum::RED);
-    m_annotationAxisLabel->setLineColor(CaretColorEnum::NONE);
-    m_annotationAxisLabel->setBackgroundColor(CaretColorEnum::NONE);
-    
     /*
      * Allowable range minimum and maximum
      * NOT SAVED TO SCENE 
@@ -106,36 +85,8 @@ m_axisLocation(axisLocation)
                           &m_enabledByChart);
     m_sceneAssistant->add("m_showTickmarks",
                           &m_showTickmarks);
-    m_sceneAssistant->add("m_annotationAxisLabel",
-                          "AnnotationPercentSizeText",
-                          m_annotationAxisLabel.get());
-    
-    m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-    m_annotationAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-    //m_annotationAxisLabel->setBackgroundColor(CaretColorEnum::NONE);
-    m_annotationAxisLabel->setFontPercentViewportSize(40.0);
-    switch (m_axisLocation) {
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-            m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            m_annotationAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-            m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            m_annotationAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-            m_annotationAxisLabel->setRotationAngle(-90.0);
-            m_annotationAxisLabel->setFontPercentViewportSize(25.0);
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-            m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            m_annotationAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-            m_annotationAxisLabel->setRotationAngle(-90.0);
-            m_annotationAxisLabel->setFontPercentViewportSize(25.0);
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            m_annotationAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            m_annotationAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-            break;
-    }
+    m_sceneAssistant->add("m_titleOverlayIndex",
+                          &m_titleOverlayIndex);
 }
 
 /**
@@ -185,21 +136,21 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
 {
     CaretAssert(m_axisLocation == obj.m_axisLocation);
     
-    *m_annotationAxisLabel        = *obj.m_annotationAxisLabel;
-    m_displayedByUser             = obj.m_displayedByUser;
-    m_rangeMinimumValue     = obj.m_rangeMinimumValue;
-    m_rangeMaximumValue     = obj.m_rangeMaximumValue;
-    m_userScaleMinimumValue = obj.m_userScaleMinimumValue;
-    m_userScaleMaximumValue = obj.m_userScaleMaximumValue;
-    m_axisLabelsStepValue   = obj.m_axisLabelsStepValue;
-    m_userDigitsRightOfDecimal = obj.m_userDigitsRightOfDecimal;
-    m_scaleRangeMode        = obj.m_scaleRangeMode;
-    m_units                 = obj.m_units;
+    m_titleOverlayIndex         = obj.m_titleOverlayIndex;
+    m_displayedByUser           = obj.m_displayedByUser;
+    m_rangeMinimumValue         = obj.m_rangeMinimumValue;
+    m_rangeMaximumValue         = obj.m_rangeMaximumValue;
+    m_userScaleMinimumValue     = obj.m_userScaleMinimumValue;
+    m_userScaleMaximumValue     = obj.m_userScaleMaximumValue;
+    m_axisLabelsStepValue       = obj.m_axisLabelsStepValue;
+    m_userDigitsRightOfDecimal  = obj.m_userDigitsRightOfDecimal;
+    m_scaleRangeMode            = obj.m_scaleRangeMode;
+    m_units                     = obj.m_units;
     m_userNumericFormat         = obj.m_userNumericFormat;
-    m_numericSubdivsionsMode = obj.m_numericSubdivsionsMode;
+    m_numericSubdivsionsMode    = obj.m_numericSubdivsionsMode;
     m_userNumberOfSubdivisions  = obj.m_userNumberOfSubdivisions;
-    m_enabledByChart        = obj.m_enabledByChart;
-    m_showTickmarks         = obj.m_showTickmarks;
+    m_enabledByChart            = obj.m_enabledByChart;
+    m_showTickmarks             = obj.m_showTickmarks;
     limitUserScaleMinMaxToValidRange();
 }
 
@@ -498,21 +449,34 @@ ChartTwoCartesianAxis::toString() const
 }
 
 /**
- * @return Annotation used for drawing axis label and tick mark numeric values
+ * @return Index of overlay that supplies the title.
+ *
+ * @param maximumNumberOfOverlays
+ *     Maximum number of allowable overlays.
  */
-const AnnotationPercentSizeText*
-ChartTwoCartesianAxis::getAnnotationAxisLabel() const
+int32_t
+ChartTwoCartesianAxis::getTitleOverlayIndex(const int32_t maximumNumberOfOverlays) const
 {
-    return m_annotationAxisLabel.get();
+    if (m_titleOverlayIndex < 0) {
+        m_titleOverlayIndex = 0;
+    }
+    else if (m_titleOverlayIndex >= maximumNumberOfOverlays) {
+        m_titleOverlayIndex = 0;
+    }
+    
+    return m_titleOverlayIndex;
 }
 
 /**
- * @return Annotation used for drawing axis label and tick mark numeric values
+ * Set the index of the overlay that supplies the title.
+ * 
+ * @param titleOverlayIndex
+ *     New value for title overlay index.
  */
-AnnotationPercentSizeText*
-ChartTwoCartesianAxis::getAnnotationAxisLabel()
+void
+ChartTwoCartesianAxis::setTitleOverlayIndex(const int32_t titleOverlayIndex)
 {
-    return m_annotationAxisLabel.get();
+    m_titleOverlayIndex = titleOverlayIndex;
 }
 
 /**
@@ -568,10 +532,6 @@ ChartTwoCartesianAxis::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
-    const AString oldSceneAxisTitle = sceneClass->getStringValue("m_axisTitle");
-    if ( ! oldSceneAxisTitle.isEmpty()) {
-        m_annotationAxisLabel->setText(oldSceneAxisTitle);
-    }
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);

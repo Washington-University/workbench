@@ -31,6 +31,7 @@
 namespace caret {
 
     class Annotation;
+    class AnnotationPercentSizeText;
     class BrowserTabContent;
     class CaretPreferences;
     class ChartTwoCartesianAxis;
@@ -123,8 +124,6 @@ namespace caret {
         
         void saveStateOfOpenGL();
         
-        void processLineSeriesIdentification(const ChartableTwoFileLineSeriesChart* lineSeriesChart);
-        
         void drawMatrixChart();
         
         void drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
@@ -132,8 +131,6 @@ namespace caret {
                                  const float cellWidth,
                                  const float cellHeight,
                                  const float zooming);
-        
-        //void drawHistogramChart();
         
         void drawHistogramOrLineSeriesChart(const ChartTwoDataTypeEnum::Enum chartDataType);
         
@@ -151,6 +148,7 @@ namespace caret {
                                     const float vpHeight,
                                     const Margins& margins,
                                     ChartTwoCartesianAxis* axis,
+                                    AnnotationPercentSizeText* chartAxisLabel,
                                     float& axisMinimumOut,
                                     float& axisMaximumOut);
         
@@ -158,6 +156,7 @@ namespace caret {
                                                           const float viewportWidth,
                                                           const float viewportHeight,
                                                           ChartTwoCartesianAxis* cartesianAxis,
+                                                          const AnnotationPercentSizeText* chartAxisLabel,
                                                           double& widthOut,
                                                           double& heightOut);
         
