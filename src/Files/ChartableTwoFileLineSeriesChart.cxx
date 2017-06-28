@@ -379,8 +379,6 @@ ChartableTwoFileLineSeriesChart::saveSubClassDataToScene(const SceneAttributes* 
 {
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
-    
-    std::cout << "Saved " << getCaretMappableDataFile()->getFileNameNoPath() << " loading is " << m_lineChartHistory->isLoadingEnabled() << std::endl;
 }
 
 /**
@@ -401,6 +399,5 @@ ChartableTwoFileLineSeriesChart::restoreSubClassDataFromScene(const SceneAttribu
 {
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
-    std::cout << "Restored " << getCaretMappableDataFile()->getFileNameNoPath() << " loading is " << m_lineChartHistory->isLoadingEnabled() << std::endl;
 }
 
