@@ -160,15 +160,20 @@ void ChartableTwoFileBaseChart::initializeAxisTitle(AnnotationPercentSizeText* t
                     title = "Data";
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                    title = CaretUnitsTypeEnum::toGuiName(m_compoundChartDataType.getLineChartUnitsAxisX());
                     switch (m_compoundChartDataType.getLineChartUnitsAxisX()) {
-                        case ChartAxisUnitsEnum::CHART_AXIS_UNITS_FREQUENCY_HERTZ:
-                            title = "Hertz";
-                            break;
-                        case ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE:
+                        case CaretUnitsTypeEnum::NONE:
                             title = "Data";
                             break;
-                        case ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS:
-                            title = "Seconds";
+                        case CaretUnitsTypeEnum::HERTZ:
+                            break;
+                        case CaretUnitsTypeEnum::METERS:
+                            break;
+                        case CaretUnitsTypeEnum::PARTS_PER_MILLION:
+                            break;
+                        case CaretUnitsTypeEnum::RADIANS:
+                            break;
+                        case CaretUnitsTypeEnum::SECONDS:
                             break;
                     }
                     break;

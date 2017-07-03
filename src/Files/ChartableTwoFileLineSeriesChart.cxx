@@ -56,7 +56,7 @@ m_lineSeriesContentType(lineSeriesContentType)
 {
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-    ChartAxisUnitsEnum::Enum xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
+    CaretUnitsTypeEnum::Enum xAxisUnits = CaretUnitsTypeEnum::NONE;
     int32_t xAxisNumberOfElements = 0;
     
     CaretMappableDataFile* cmdf = getCaretMappableDataFile();
@@ -68,22 +68,22 @@ m_lineSeriesContentType(lineSeriesContentType)
         case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA:
             if (cmdf->getNumberOfMaps() > 1) {
                 const NiftiTimeUnitsEnum::Enum mapUnits = cmdf->getMapIntervalUnits();
-                xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
+                xAxisUnits = CaretUnitsTypeEnum::NONE;
                 switch (mapUnits) {
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
-                        xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_FREQUENCY_HERTZ;
+                        xAxisUnits = CaretUnitsTypeEnum::HERTZ;
                         break;
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
-                        xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
                         break;
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
-                        CaretAssert(0);
+                        xAxisUnits = CaretUnitsTypeEnum::PARTS_PER_MILLION;
                         break;
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
-                        xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
                         break;
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
-                        xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
                         break;
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
                         break;
@@ -104,22 +104,22 @@ m_lineSeriesContentType(lineSeriesContentType)
             if ((numRows > 0)
                 && (numCols > 1)) {
                 const NiftiTimeUnitsEnum::Enum mapUnits = ciftiMapFile->getMapIntervalUnits();
-                xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
+                xAxisUnits = CaretUnitsTypeEnum::NONE;
                 switch (mapUnits) {
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
-                        xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_FREQUENCY_HERTZ;
+                        xAxisUnits = CaretUnitsTypeEnum::HERTZ;
                         break;
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
-                        xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
                         break;
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
-                        CaretAssert(0);
+                        xAxisUnits = CaretUnitsTypeEnum::PARTS_PER_MILLION;
                         break;
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
-                        xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
                         break;
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
-                        xAxisUnits = ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS;
+                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
                         break;
                     case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
                         break;
@@ -261,11 +261,11 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
         getCaretMappableDataFile()->getDataForSelector(mapFileDataSelector,
                                                        data);
         if ( ! data.empty()) {
-            const ChartAxisUnitsEnum::Enum xUnits = getChartTwoCompoundDataType().getLineChartUnitsAxisX();
+            const CaretUnitsTypeEnum::Enum xUnits = getChartTwoCompoundDataType().getLineChartUnitsAxisX();
             CaretAssert(getChartTwoCompoundDataType().getLineChartNumberOfElementsAxisX() == static_cast<int32_t>(data.size()));
             ChartTwoDataCartesian* cartesianData = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                              xUnits,
-                                                                             ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                                                             CaretUnitsTypeEnum::NONE,
                                                                              GraphicsPrimitive::PrimitiveType::LINES);
             cartesianData->setMapFileDataSelector(mapFileDataSelector);
             

@@ -186,6 +186,7 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
             case MatrixDataFileType::SCALAR_DATA_SERIES:
                 m_scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(ciftiMapFile);
                 CaretAssert(m_scalarDataSeriesFile);
+                m_hasRowSelectionFlag = true;
                 break;
         }
         

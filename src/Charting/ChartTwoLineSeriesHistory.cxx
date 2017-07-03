@@ -470,11 +470,11 @@ ChartTwoLineSeriesHistory::restoreFromScene(const SceneAttributes* sceneAttribut
     if (chartHistoryMap != NULL) {
         const std::vector<int32_t> indices = chartHistoryMap->getKeys();
         const int32_t numIndices = static_cast<int32_t>(indices.size());
-        for (int32_t i = 0; i < numIndices; i++) {
+        for (int32_t i = (numIndices - 1); i >= 0; i--) {
             const SceneClass* historyClass = chartHistoryMap->classValue(i);
             ChartTwoDataCartesian* historyItem = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
-                                                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                                                           CaretUnitsTypeEnum::NONE,
+                                                                           CaretUnitsTypeEnum::NONE,
                                                                            GraphicsPrimitive::PrimitiveType::LINES);
             historyItem->restoreFromScene(sceneAttributes,
                                           historyClass);

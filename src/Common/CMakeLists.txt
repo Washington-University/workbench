@@ -80,6 +80,7 @@ CaretPreferences.h
 CaretTemporaryFile.h
 CaretUndoCommand.h
 CaretUndoStack.h
+CaretUnitsTypeEnum.h
 CubicSpline.h
 DataCompressZLib.h
 DataFile.h
@@ -179,6 +180,7 @@ CaretPreferences.cxx
 CaretTemporaryFile.cxx
 CaretUndoCommand.cxx
 CaretUndoStack.cxx
+CaretUnitsTypeEnum.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx
 DataFile.cxx

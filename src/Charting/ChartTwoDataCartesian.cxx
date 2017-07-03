@@ -59,8 +59,8 @@ using namespace caret;
  *   Primitive type for graphics primitive drawing.
  */
 ChartTwoDataCartesian::ChartTwoDataCartesian(const ChartTwoDataTypeEnum::Enum chartDataType,
-                                             const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
-                                             const ChartAxisUnitsEnum::Enum dataAxisUnitsY,
+                                             const CaretUnitsTypeEnum::Enum dataAxisUnitsX,
+                                             const CaretUnitsTypeEnum::Enum dataAxisUnitsY,
                                              const GraphicsPrimitive::PrimitiveType graphicsPrimitiveType)
 : CaretObjectTracksModification(),
 m_dataAxisUnitsX(dataAxisUnitsX),
@@ -135,9 +135,9 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
     
     m_sceneAssistant->add("m_selectionStatus",
                           &m_selectionStatus);
-    m_sceneAssistant->add<ChartAxisUnitsEnum, ChartAxisUnitsEnum::Enum>("m_dataAxisUnitsX",
+    m_sceneAssistant->add<CaretUnitsTypeEnum, CaretUnitsTypeEnum::Enum>("m_dataAxisUnitsX",
                                                                 &m_dataAxisUnitsX);
-    m_sceneAssistant->add<ChartAxisUnitsEnum, ChartAxisUnitsEnum::Enum>("m_dataAxisUnitsY",
+    m_sceneAssistant->add<CaretUnitsTypeEnum, CaretUnitsTypeEnum::Enum>("m_dataAxisUnitsY",
                                                                 &m_dataAxisUnitsY);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_color",
                                                                 &m_color);
@@ -375,7 +375,7 @@ ChartTwoDataCartesian::setTimeStepInSecondsAxisX(const float timeStepInSecondsAx
 /**
  * @return Data units for X axis
  */
-ChartAxisUnitsEnum::Enum
+CaretUnitsTypeEnum::Enum
 ChartTwoDataCartesian::getDataAxisUnitsX()
 {
     return m_dataAxisUnitsX;
@@ -384,7 +384,7 @@ ChartTwoDataCartesian::getDataAxisUnitsX()
 /**
  * @return Data units for Y axis
  */
-ChartAxisUnitsEnum::Enum
+CaretUnitsTypeEnum::Enum
 ChartTwoDataCartesian::getDataAxisUnitsY()
 {
     return m_dataAxisUnitsY;

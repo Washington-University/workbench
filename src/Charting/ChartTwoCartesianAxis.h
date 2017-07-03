@@ -25,7 +25,7 @@
 
 #include "CaretObject.h"
 #include "ChartAxisLocationEnum.h"
-#include "ChartAxisUnitsEnum.h"
+#include "CaretUnitsTypeEnum.h"
 #include "ChartTwoAxisScaleRangeModeEnum.h"
 #include "ChartTwoNumericSubdivisionsModeEnum.h"
 #include "NumericFormatModeEnum.h"
@@ -74,9 +74,9 @@ namespace caret {
         
         void setScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode);
         
-        ChartAxisUnitsEnum::Enum getUnits() const;
+        CaretUnitsTypeEnum::Enum getUnits() const;
         
-        void setUnits(ChartAxisUnitsEnum::Enum units);
+        void setUnits(CaretUnitsTypeEnum::Enum units);
         
         NumericFormatModeEnum::Enum getUserNumericFormat() const;
         
@@ -167,7 +167,7 @@ namespace caret {
         
         ChartTwoAxisScaleRangeModeEnum::Enum m_scaleRangeMode = ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO;
         
-        ChartAxisUnitsEnum::Enum m_units = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
+        CaretUnitsTypeEnum::Enum m_units = CaretUnitsTypeEnum::NONE;
         
         NumericFormatModeEnum::Enum m_userNumericFormat = NumericFormatModeEnum::AUTO;
         

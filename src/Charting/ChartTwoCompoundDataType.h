@@ -23,7 +23,7 @@
 
 
 #include "CaretObject.h"
-#include "ChartAxisUnitsEnum.h"
+#include "CaretUnitsTypeEnum.h"
 #include "ChartTwoDataTypeEnum.h"
 #include "SceneableInterface.h"
 
@@ -38,14 +38,14 @@ namespace caret {
         
         ChartTwoCompoundDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
                                  const int32_t histogramNumberOfBuckets,
-                                 const ChartAxisUnitsEnum::Enum lineChartUnitsAxisX,
+                                 const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
                                  const int32_t lineChartNumberOfElementsAxisX,
                                  const int32_t matrixNumberOfRows,
                                  const int32_t matrixNumberOfColumns);
         
         static ChartTwoCompoundDataType newInstanceForHistogram(const int32_t histogramNumberOfBuckets);
         
-        static ChartTwoCompoundDataType newInstanceForLineSeries(const ChartAxisUnitsEnum::Enum lineChartUnitsAxisX,
+        static ChartTwoCompoundDataType newInstanceForLineSeries(const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
                                                               const int32_t lineChartNumberOfElementsAxisX);
         
         static ChartTwoCompoundDataType newInstanceForMatrix(const int32_t matrixNumberOfRows,
@@ -64,7 +64,7 @@ namespace caret {
         
         int32_t getHistogramNumberOfBuckets() const;
         
-        ChartAxisUnitsEnum::Enum getLineChartUnitsAxisX() const;
+        CaretUnitsTypeEnum::Enum getLineChartUnitsAxisX() const;
         
         int32_t getLineChartNumberOfElementsAxisX() const;
         
@@ -108,7 +108,7 @@ namespace caret {
         
         int32_t m_histogramNumberOfBuckets;
         
-        ChartAxisUnitsEnum::Enum m_lineChartUnitsAxisX;
+        CaretUnitsTypeEnum::Enum m_lineChartUnitsAxisX;
         
         int32_t m_lineChartNumberOfElementsAxisX;
         

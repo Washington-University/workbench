@@ -73,7 +73,7 @@ m_axisLocation(axisLocation)
     
     m_sceneAssistant->add<ChartTwoAxisScaleRangeModeEnum,ChartTwoAxisScaleRangeModeEnum::Enum>("m_scaleRangeMode",
                                                                                                &m_scaleRangeMode);
-    m_sceneAssistant->add<ChartAxisUnitsEnum,ChartAxisUnitsEnum::Enum>("m_units",
+    m_sceneAssistant->add<CaretUnitsTypeEnum,CaretUnitsTypeEnum::Enum>("m_units",
                                                                        &m_units);
     m_sceneAssistant->add<NumericFormatModeEnum,NumericFormatModeEnum::Enum>("m_userNumericFormat",
                                                                              &m_userNumericFormat);
@@ -399,7 +399,7 @@ ChartTwoCartesianAxis::setScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::E
 /**
  * @return Axis units
  */
-ChartAxisUnitsEnum::Enum
+CaretUnitsTypeEnum::Enum
 ChartTwoCartesianAxis::getUnits() const
 {
     return m_units;
@@ -412,7 +412,7 @@ ChartTwoCartesianAxis::getUnits() const
  *    New value for Axis units
  */
 void
-ChartTwoCartesianAxis::setUnits(const ChartAxisUnitsEnum::Enum units)
+ChartTwoCartesianAxis::setUnits(const CaretUnitsTypeEnum::Enum units)
 {
     m_units = units;
 }

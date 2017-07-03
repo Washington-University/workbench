@@ -87,39 +87,39 @@ m_tabIndex(tabIndex)
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
         {
             m_chartAxisLeft->setEnabledByChart(true);
-            m_chartAxisLeft->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            m_chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
             float rangeMin = 0.0, rangeMax = 0.0;
             m_chartAxisLeft->getRange(rangeMin, rangeMax);
             rangeMin = 0.0;
             m_chartAxisLeft->setRange(rangeMin, rangeMax);
             
             m_chartAxisRight->setEnabledByChart(false);
-            m_chartAxisRight->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            m_chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
             m_chartAxisRight->getRange(rangeMin, rangeMax);
             rangeMin = 0.0;
             m_chartAxisRight->setRange(rangeMin, rangeMax);
             
             m_chartAxisBottom->setEnabledByChart(true);
-            m_chartAxisBottom->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
         {
             m_chartAxisLeft->setEnabledByChart(true);
-            m_chartAxisLeft->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            m_chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
             float rangeMin = 0.0, rangeMax = 0.0;
             m_chartAxisLeft->getRange(rangeMin, rangeMax);
             rangeMin = 0.0;
             m_chartAxisLeft->setRange(rangeMin, rangeMax);
             
             m_chartAxisRight->setEnabledByChart(false);
-            m_chartAxisRight->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            m_chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
             m_chartAxisRight->getRange(rangeMin, rangeMax);
             rangeMin = 0.0;
             m_chartAxisRight->setRange(rangeMin, rangeMax);
             
             m_chartAxisBottom->setEnabledByChart(true);
-            m_chartAxisBottom->setUnits(ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:

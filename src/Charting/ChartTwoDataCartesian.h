@@ -23,7 +23,7 @@
 
 #include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
-#include "ChartAxisUnitsEnum.h"
+#include "CaretUnitsTypeEnum.h"
 #include "ChartTwoDataTypeEnum.h"
 #include "GraphicsPrimitive.h"
 #include "SceneableInterface.h"
@@ -40,8 +40,8 @@ namespace caret {
         
     public:
         ChartTwoDataCartesian(const ChartTwoDataTypeEnum::Enum chartDataType,
-                              const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
-                              const ChartAxisUnitsEnum::Enum dataAxisUnitsY,
+                              const CaretUnitsTypeEnum::Enum dataAxisUnitsX,
+                              const CaretUnitsTypeEnum::Enum dataAxisUnitsY,
                               const GraphicsPrimitive::PrimitiveType graphicsPrimitiveType);
         
         virtual ~ChartTwoDataCartesian();
@@ -63,9 +63,9 @@ namespace caret {
         
         void setMapFileDataSelector(const MapFileDataSelector& mapFileDataSelector);
         
-        ChartAxisUnitsEnum::Enum getDataAxisUnitsX();
+        CaretUnitsTypeEnum::Enum getDataAxisUnitsX();
         
-        ChartAxisUnitsEnum::Enum getDataAxisUnitsY();
+        CaretUnitsTypeEnum::Enum getDataAxisUnitsY();
         
         CaretColorEnum::Enum getColor() const;
         
@@ -114,9 +114,9 @@ namespace caret {
         
         std::unique_ptr<GraphicsPrimitiveV3f> m_graphicsPrimitive;
         
-        ChartAxisUnitsEnum::Enum m_dataAxisUnitsX;
+        CaretUnitsTypeEnum::Enum m_dataAxisUnitsX;
         
-        ChartAxisUnitsEnum::Enum m_dataAxisUnitsY;
+        CaretUnitsTypeEnum::Enum m_dataAxisUnitsY;
         
         const GraphicsPrimitive::PrimitiveType m_graphicsPrimitiveType;
         
