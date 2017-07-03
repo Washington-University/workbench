@@ -77,7 +77,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
 : BrainBrowserWindowToolBarComponent(parentToolBar)
 {
     m_axisDisplayedByUserCheckBox = new QCheckBox("Show Axis");
-    m_axisDisplayedByUserCheckBox->setToolTip("Show/Hide the axis");
+    m_axisDisplayedByUserCheckBox->setToolTip("Show/hide the axis");
     QObject::connect(m_axisDisplayedByUserCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
 
@@ -98,13 +98,13 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QObject::connect(m_axisNameToolButton, &QToolButton::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisNameToolButtonClicked);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_axisNameToolButton);
-    m_axisNameToolButton->setToolTip("Edit name lable displayed in axis");
+    m_axisNameToolButton->setToolTip("Edit the axis name for the file in the selected overlay");
     
     m_autoUserRangeComboBox = new EnumComboBoxTemplate(this);
     m_autoUserRangeComboBox->setup<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>();
     QObject::connect(m_autoUserRangeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
-    m_autoUserRangeComboBox->getWidget()->setToolTip("Choose auto or user axis scaling");
+    m_autoUserRangeComboBox->getWidget()->setToolTip("Choose auto or user axis range scaling");
     
     const double bigValue = 999999.0;
     m_userMinimumValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigValue, bigValue, 1.0, 1);
@@ -124,6 +124,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     
     QLabel* axisTitleFromOverlayLabel = new QLabel("Title From File In");
     m_axisTitleFromOverlayComboBox = new QComboBox();
+    m_axisTitleFromOverlayComboBox->setToolTip("Title for axis is from file in selected layer");
     QObject::connect(m_axisTitleFromOverlayComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
     
@@ -469,7 +470,7 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
         }
         else if (overlayCount > comboBoxCount) {
             for (int32_t j = comboBoxCount; j < overlayCount; j++) {
-                m_axisTitleFromOverlayComboBox->addItem("Overlay " + AString::number(j + 1));
+                m_axisTitleFromOverlayComboBox->addItem("Layer " + AString::number(j + 1));
             }
         }
         

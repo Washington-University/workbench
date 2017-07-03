@@ -309,11 +309,6 @@ CiftiScalarDataSeriesFile::getMatrixCellAttributes(const int32_t rowIndex,
         columnNameOut = (AString::number(time, 'f', 3)
                          + " "
                          + timeUnitsString);
-//        columnNameOut = (AString::number(time, 'f', 3)
-//                         + " "
-//                         + NiftiTimeUnitsEnum::toGuiName(getMapIntervalUnits())
-//                         + " Map Name: "
-//                         + getMapName(columnIndex));
         
         const int32_t numberOfElementsInRow = m_ciftiFile->getNumberOfColumns();
         std::vector<float> rowData(numberOfElementsInRow);

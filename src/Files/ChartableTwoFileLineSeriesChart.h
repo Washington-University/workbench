@@ -69,8 +69,7 @@ namespace caret {
                                                   const SceneClass* sceneClass) override;
 
     private:
-        void loadLineCharts(const std::vector<int32_t>& tabIndicesForLoading,
-                            const EventChartTwoLoadLineSeriesData* lineSeriesDataEvent);
+        void loadLineCharts(const EventChartTwoLoadLineSeriesData* lineSeriesDataEvent);
         
         ChartableTwoFileLineSeriesChart(const ChartableTwoFileLineSeriesChart&);
 

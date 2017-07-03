@@ -174,8 +174,7 @@ ChartableTwoFileLineSeriesChart::receiveEvent(Event* event)
             const std::vector<int32_t> tabIndicesForLoading = getTabIndicesForLoadingData(lineSeriesDataEvent->getValidTabIndices());
             if ( ! tabIndicesForLoading.empty()) {
                 
-                loadLineCharts(tabIndicesForLoading,
-                               lineSeriesDataEvent);
+                loadLineCharts(lineSeriesDataEvent);
             }
         }
         
@@ -187,14 +186,13 @@ ChartableTwoFileLineSeriesChart::receiveEvent(Event* event)
 }
 
 /**
- * @param tabIndicesForLoading
- *     Tab indices for loading data.
+ * Load line-series charts.
+ *
  * @param lineSeriesDataEvent
  *     Event indicating data for loading.
  */
 void
-ChartableTwoFileLineSeriesChart::loadLineCharts(const std::vector<int32_t>& tabIndicesForLoading,
-                                                const EventChartTwoLoadLineSeriesData* lineSeriesDataEvent)
+ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSeriesData* lineSeriesDataEvent)
 {
     const MapFileDataSelector mapFileDataSelector = lineSeriesDataEvent->getMapFileDataSelector();
     

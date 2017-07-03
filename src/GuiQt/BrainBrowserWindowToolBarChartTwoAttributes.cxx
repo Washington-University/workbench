@@ -117,64 +117,7 @@ BrainBrowserWindowToolBarChartTwoAttributes::updateContent(BrowserTabContent* br
             }
         }
     }
-    
-//    ChartModelCartesian* cartesianChart = getCartesianChart();
-//    ChartTwoMatrixDisplayProperties* matrixProperties = getChartableMatrixDisplayProperties();
-//    
-//    if (cartesianChart != NULL) {
-//        m_stackedWidget->setCurrentWidget(m_cartesianChartAttributesWidget);
-//        m_cartesianChartAttributesWidget->updateContent();
-//        m_stackedWidget->setEnabled(true);
-//    }
-//    else if (matrixProperties) {
-//        m_stackedWidget->setCurrentWidget(m_matrixChartAttributesWidget);
-//        m_matrixChartAttributesWidget->updateContent();
-//        m_stackedWidget->setEnabled(true);
-//    }
-//    else {
-//        m_stackedWidget->setEnabled(false);
-//    }
 }
-
-///**
-// * @return Cartesian chart in this widget.  Returned value will
-// * be NULL if the chart (or no chart) is not a Cartesian Chart.
-// */
-//ChartModelCartesian*
-//BrainBrowserWindowToolBarChartTwoAttributes::getCartesianChart()
-//{
-//    ChartModelCartesian* cartesianChart = NULL;
-//    
-//    BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
-//    if (browserTabContent != NULL) {
-//        ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
-//        
-//        if (modelChart != NULL) {
-//            const int32_t tabIndex = browserTabContent->getTabNumber();
-//            const ChartOneDataTypeEnum::Enum chartType = modelChart->getSelectedChartOneDataType(tabIndex);
-//            
-//            switch (chartType) {
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
-//                    cartesianChart = modelChart->getSelectedDataSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
-//                    cartesianChart = modelChart->getSelectedFrequencySeriesChartModel(tabIndex);
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-//                    cartesianChart = modelChart->getSelectedTimeSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
-//                    break;
-//            }
-//        }
-//    }
-//    
-//    return cartesianChart;
-//}
 
 /**
  * @return Matrix chart interface in this widget.  Returned value will
@@ -188,42 +131,6 @@ BrainBrowserWindowToolBarChartTwoAttributes::getChartableTwoMatrixDisplayPropert
     BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
     if (browserTabContent != NULL) {
         matrixDisplayProperties = browserTabContent->getChartTwoMatrixDisplayProperties();
-//
-//        if (modelChart != NULL) {
-//            const int32_t tabIndex = browserTabContent->getTabNumber();
-//            const ChartOneDataTypeEnum::Enum chartType = modelChart->getSelectedChartOneDataType(tabIndex);
-//            
-//            switch (chartType) {
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-//                {
-//                    ChartableMatrixInterface* matrixInterface = modelChart->getChartableMatrixParcelFileSelectionModel(tabIndex)->getSelectedFileOfType<ChartableMatrixInterface>();
-//                    if (matrixInterface != NULL) {
-//                        matrixDisplayProperties = matrixInterface->getChartTwoMatrixDisplayProperties(tabIndex);
-//                    }
-//                }
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-//                {
-//                    CaretDataFileSelectionModel* fileModel = modelChart->getChartableMatrixSeriesFileSelectionModel(tabIndex);
-//                    CaretDataFile* caretFile = fileModel->getSelectedFile();
-//                    if (caretFile != NULL) {
-//                        ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(caretFile);
-//                        if (matrixInterface != NULL) {
-//                            matrixDisplayProperties = matrixInterface->getChartTwoMatrixDisplayProperties(tabIndex);
-//                        }
-//                    }
-//                }
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
-//                    break;
-//                case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-//                    break;
-//            }
-//        }
     }
     
     return matrixDisplayProperties;
@@ -294,12 +201,6 @@ CartesianChartTwoAttributesWidget::~CartesianChartTwoAttributesWidget()
 void
 CartesianChartTwoAttributesWidget::updateContent()
 {
-//    ChartModelCartesian* chart = m_brainBrowserWindowToolBarChartAttributes->getCartesianChart();
-//    if (chart != NULL) {
-//        m_cartesianLineWidthDoubleSpinBox->blockSignals(true);
-//        m_cartesianLineWidthDoubleSpinBox->setValue(chart->getLineWidth());
-//        m_cartesianLineWidthDoubleSpinBox->blockSignals(false);
-//    }
 }
 
 /**
@@ -309,14 +210,8 @@ CartesianChartTwoAttributesWidget::updateContent()
  *    New value for line width.
  */
 void
-CartesianChartTwoAttributesWidget::cartesianLineWidthValueChanged(double value)
+CartesianChartTwoAttributesWidget::cartesianLineWidthValueChanged(double /*value*/)
 {
-//    ChartModelCartesian* chart = m_brainBrowserWindowToolBarChartAttributes->getCartesianChart();
-//    if (chart != NULL) {
-//        chart->setLineWidth(value);
-//        
-//        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
-//    }
 }
 
 
@@ -353,7 +248,8 @@ EventListenerInterface()
                                                                                         1,
                                                                                         this,
                                                                                         SLOT(valueChanged()));
-    m_cellWidthPercentageSpinBox->setKeyboardTracking(true);
+    m_cellWidthPercentageSpinBox->setToolTip("Percentage of tab width filled with matrix");
+    m_cellWidthPercentageSpinBox->setKeyboardTracking(false);
     m_cellWidthPercentageSpinBox->setSuffix("%");
     
     QLabel* cellHeightLabel = new QLabel("Cell Height");
@@ -363,19 +259,22 @@ EventListenerInterface()
                                                                                          1,
                                                                                          this,
                                                                                          SLOT(valueChanged()));
-    m_cellHeightPercentageSpinBox->setKeyboardTracking(true);
+    m_cellHeightPercentageSpinBox->setToolTip("Percentage of tab height filled with matrix");
+    m_cellHeightPercentageSpinBox->setKeyboardTracking(false);
     m_cellHeightPercentageSpinBox->setSuffix("%");
     
     WuQtUtilities::matchWidgetWidths(m_cellHeightPercentageSpinBox,
                                      m_cellWidthPercentageSpinBox);
     
     m_highlightSelectionCheckBox = new QCheckBox("Highlight Selection");
+    m_highlightSelectionCheckBox->setToolTip("Highlight selected row/column in the matrix");
     QObject::connect(m_highlightSelectionCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(valueChanged()));
     
     m_displayGridLinesCheckBox = new QCheckBox("Show Grid Outline");
     QObject::connect(m_displayGridLinesCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(valueChanged()));
+    m_displayGridLinesCheckBox->setToolTip("Outline cells in the matrix");
     
     m_manualWidgetsGroup = new WuQWidgetObjectGroup(this);
     m_manualWidgetsGroup->add(m_cellWidthPercentageSpinBox);

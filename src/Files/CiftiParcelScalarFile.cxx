@@ -164,41 +164,6 @@ CiftiParcelScalarFile::loadLineSeriesChartDataForSurfaceNode(const StructureEnum
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNode(structure,
                                                            nodeIndex);
     return chartData;
-    
-//    ChartDataCartesian* chartData = NULL;
-//    
-//    try {
-//        std::vector<float> data;
-//        if (getSeriesDataForSurfaceNode(structure,
-//                                        nodeIndex,
-//                                        data)) {
-//            const int64_t numData = static_cast<int64_t>(data.size());
-//            
-//            chartData = new ChartDataCartesian(ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
-//                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-//                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-//            for (int64_t i = 0; i < numData; i++) {
-//                float xValue = i;
-//                chartData->addPoint(xValue,
-//                                    data[i]);
-//            }
-//            
-//            const AString description = (getFileNameNoPath()
-//                                         + " node "
-//                                         + AString::number(nodeIndex));
-//            chartData->setDescription(description);
-//        }
-//    }
-//    catch (const DataFileException& dfe) {
-//        if (chartData != NULL) {
-//            delete chartData;
-//            chartData = NULL;
-//        }
-//        
-//        throw dfe;
-//    }
-//    
-//    return chartData;
 }
 
 /**

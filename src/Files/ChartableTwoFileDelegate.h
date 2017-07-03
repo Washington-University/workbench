@@ -31,11 +31,9 @@
 namespace caret {
 
     class CaretMappableDataFile;
-    //class ChartTwoDataCartesianHistory;
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
-    class CiftiMappableDataFile;
     
     class ChartableTwoFileDelegate : public CaretObjectTracksModification, public SceneableInterface {
         
@@ -89,47 +87,6 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass) override;
         
-        /* IMPLEMENT ABOVE NON-VIRTUAL METHODS USING THE VIRTUAL METHODS */
-        
-        /* METHODS NO LONGER NEEDED ??? */
-        
-//        CiftiMappableDataFile* getAsCiftiMappableDataFile();
-//        
-//        const CiftiMappableDataFile* getAsCiftiMappableDataFile() const;
-//        
-//        
-//        ChartTwoHistogramContentTypeEnum::Enum getHistogramContentType() const;
-//        
-//        ChartTwoLineSeriesContentTypeEnum::Enum getLineSeriesContentType() const;
-//        
-//        ChartTwoMatrixContentTypeEnum::Enum getMatrixContentType() const;
-//        
-//        void getTwoMatrixDimensions(int32_t& numberOfRowsOut,
-//                                    int32_t& numberOfColumnsOut) const;
-//        
-//        bool getTwoMatrixDataRGBA(int32_t& numberOfRowsOut,
-//                                  int32_t& numberOfColumnsOut,
-//                                  std::vector<float>& rgbaOut) const;
-        
-//        /**
-//         * @return Is line series charting enabled for this file in the given tab?
-//         */
-//        virtual bool isLineSeriesChartingEnabled(const int32_t tabIndex) const = 0;
-//        
-//        /**
-//         * Set charting enabled for this file in the given tab
-//         *
-//         * @param enabled
-//         *    New status for charting enabled.
-//         */
-//        virtual void setLineSeriesChartingEnabled(const int32_t tabIndex,
-//                                                  const bool enabled) = 0;
-        
-        /**
-         * @return Charting history if this file charts to lines.
-         */
-        //virtual ChartTwoDataCartesianHistory* getLineSeriesChartingHistory() = 0;
-        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -148,11 +105,6 @@ namespace caret {
         
         std::unique_ptr<ChartableTwoFileMatrixChart> m_matrixCharting;
         
-//        const ChartTwoHistogramContentTypeEnum::Enum m_histogramContentType;
-//        
-//        const ChartTwoLineSeriesContentTypeEnum::Enum m_lineSeriesContentType;
-//
-//        const ChartTwoMatrixContentTypeEnum::Enum m_matrixContentType;
         // ADD_NEW_MEMBERS_HERE
 
     };

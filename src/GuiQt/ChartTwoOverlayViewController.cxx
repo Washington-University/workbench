@@ -105,7 +105,7 @@ m_chartOverlay(NULL)
     m_enabledCheckBox = new QCheckBox(enabledCheckboxText);
     QObject::connect(m_enabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(enabledCheckBoxClicked(bool)));
-    m_enabledCheckBox->setToolTip("Enables display of this layer");
+    m_enabledCheckBox->setToolTip("Display line charts from the selected file");
     
     /*
      * Line Series Enabled Check Box
@@ -114,7 +114,7 @@ m_chartOverlay(NULL)
     m_lineSeriesLoadingEnabledCheckBox = new QCheckBox(loadingCheckboxText);
     QObject::connect(m_lineSeriesLoadingEnabledCheckBox, &QCheckBox::clicked,
                      this, &ChartTwoOverlayViewController::lineSeriesLoadingEnabledCheckBoxClicked);
-    m_lineSeriesLoadingEnabledCheckBox->setToolTip("Enabled loading of line charts for this overlay");
+    m_lineSeriesLoadingEnabledCheckBox->setToolTip("Enable loading of line charts for the selected file");
     
     /*
      * Settings Tool Button
@@ -175,7 +175,7 @@ m_chartOverlay(NULL)
      */
     m_historyToolButton = new QToolButton();
     m_historyAction = WuQtUtilities::createAction("H",
-                                                  "Show history for line chart file",
+                                                  "Show history of line charts loaded from selected file",
                                                   this,
                                                   this,
                                                   SLOT(historyActionTriggered(bool)));
@@ -187,7 +187,7 @@ m_chartOverlay(NULL)
      * Matrix triangular view mode button
      */
     m_matrixTriangularViewModeAction = WuQtUtilities::createAction("M",
-                                                       "Matrix triangular view",
+                                                       "Select a triangular view of the matrix",
                                                        this);
     m_matrixTriangularViewModeToolButton = new QToolButton();
     QMenu* matrixTriangularViewModeMenu = createMatrixTriangularViewModeMenu(m_matrixTriangularViewModeToolButton);
@@ -200,7 +200,7 @@ m_chartOverlay(NULL)
      * Axis location button
      */
     m_axisLocationAction = WuQtUtilities::createAction("A",
-                                                       "Vertical Axis Location",
+                                                       "Select location of vertical axis for the selected file",
                                                        this);
     m_axisLocationToolButton = new QToolButton();
     QMenu* axisLocationMenu = createAxisLocationMenu(m_axisLocationToolButton);
