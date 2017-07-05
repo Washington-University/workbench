@@ -150,6 +150,8 @@ public:
         EVENT_MODEL_DELETE,
         /** model - get all*/
         EVENT_MODEL_GET_ALL,
+        /** model - get all displayed */
+        EVENT_MODEL_GET_ALL_DISPLAYED,
         /** model surface - get */
         EVENT_MODEL_SURFACE_GET,
         /** Get the color for a node's identification symbol from a chart that contains the node */

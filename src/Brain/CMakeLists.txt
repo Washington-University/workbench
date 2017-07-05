@@ -117,6 +117,7 @@ EventIdentificationHighlightLocation.h
 EventModelAdd.h
 EventModelDelete.h
 EventModelGetAll.h
+EventModelGetAllDisplayed.h
 EventModelSurfaceGet.h
 EventNodeDataFilesGet.h
 EventNodeIdentificationColorsGetFromCharts.h
@@ -262,6 +263,7 @@ EventIdentificationHighlightLocation.cxx
 EventModelAdd.cxx
 EventModelDelete.cxx
 EventModelGetAll.cxx
+EventModelGetAllDisplayed.cxx
 EventModelSurfaceGet.cxx
 EventNodeDataFilesGet.cxx
 EventNodeIdentificationColorsGetFromCharts.cxx

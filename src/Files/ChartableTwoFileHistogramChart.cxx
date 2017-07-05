@@ -120,7 +120,11 @@ ChartableTwoFileHistogramChart::isValid() const
 bool
 ChartableTwoFileHistogramChart::isEmpty() const
 {
-    return false;
+    if ( ! isValid()) {
+        return true;
+    }
+    
+    return m_mapHistogramPrimitives.empty();
 }
 
 /**
@@ -129,7 +133,7 @@ ChartableTwoFileHistogramChart::isEmpty() const
 void
 ChartableTwoFileHistogramChart::invalidateAllColoring()
 {
-    m_mapHistogramBarsPrimitive.clear();
+    m_mapHistogramPrimitives.clear();
     //std::cout << "Invalidating histograms..." << std::endl;
 }
 
@@ -321,8 +325,8 @@ ChartableTwoFileHistogramChart::HistogramPrimitives*
 ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t mapIndex,
                                                              const bool useDataFromAllMapsFlag)
 {
-    MapIndexPrimitiveContainer::iterator iter = m_mapHistogramBarsPrimitive.find(mapIndex);
-    if (iter != m_mapHistogramBarsPrimitive.end()) {
+    MapIndexPrimitiveContainer::iterator iter = m_mapHistogramPrimitives.find(mapIndex);
+    if (iter != m_mapHistogramPrimitives.end()) {
         HistogramPrimitives* histogramPrimitives = iter->second.get();
         if (histogramPrimitives != NULL) {
             return histogramPrimitives;
@@ -608,7 +612,7 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
                                                                             barsPrimitive,
                                                                             envelopePrimitive);
         
-        m_mapHistogramBarsPrimitive.insert(std::make_pair(mapIndex,
+        m_mapHistogramPrimitives.insert(std::make_pair(mapIndex,
                                                           std::unique_ptr<HistogramPrimitives>(histogramPrimitives)));
         
         return histogramPrimitives;

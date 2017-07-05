@@ -99,15 +99,15 @@ ModelChartTwo::ModelChartTwo(Brain* brain)
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<ChartTwoDataTypeEnum, ChartTwoDataTypeEnum::Enum>("m_selectedChartTwoDataType",
                                                                                                          m_selectedChartTwoDataType);
-    m_sceneAssistant->add("m_histogramChartOverlaySetArray",
-                          "ChartTwoOverlaySetArray",
-                          m_histogramChartOverlaySetArray.get());
-    m_sceneAssistant->add("m_matrixChartOverlaySetArray",
-                          "ChartTwoOverlaySetArray",
-                          m_matrixChartOverlaySetArray.get());
-    m_sceneAssistant->add("m_lineSeriesChartOverlaySetArray",
-                          "ChartTwoOverlaySetArray",
-                          m_lineSeriesChartOverlaySetArray.get());
+//    m_sceneAssistant->add("m_histogramChartOverlaySetArray",
+//                          "ChartTwoOverlaySetArray",
+//                          m_histogramChartOverlaySetArray.get());
+//    m_sceneAssistant->add("m_matrixChartOverlaySetArray",
+//                          "ChartTwoOverlaySetArray",
+//                          m_matrixChartOverlaySetArray.get());
+//    m_sceneAssistant->add("m_lineSeriesChartOverlaySetArray",
+//                          "ChartTwoOverlaySetArray",
+//                          m_lineSeriesChartOverlaySetArray.get());
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS);
@@ -424,8 +424,65 @@ void
 ModelChartTwo::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                    SceneClass* sceneClass)
 {
+    const std::vector<int32_t> validTabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    
+    std::vector<int32_t> histogramChartTabIndices;
+    std::vector<int32_t> lineSeriesChartTabIndices;
+    std::vector<int32_t> matrixChartTabIndices;
+    for (auto tabIndex : validTabIndices) {
+        switch (m_selectedChartTwoDataType[tabIndex]) {
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                histogramChartTabIndices.push_back(tabIndex);
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                lineSeriesChartTabIndices.push_back(tabIndex);
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                matrixChartTabIndices.push_back(tabIndex);
+                break;
+        }
+    }
+    
+    if ( ! histogramChartTabIndices.empty()) {
+        SceneClass* histogramClass = m_histogramChartOverlaySetArray->saveTabIndicesToScene(histogramChartTabIndices,
+                                                                                            sceneAttributes,
+                                                                                            "m_histogramChartOverlaySetArray");
+        if (histogramClass != NULL) {
+            sceneClass->addClass(histogramClass);
+        }
+    }
+
+    if ( ! lineSeriesChartTabIndices.empty()) {
+        SceneClass* lineSeriesClass = m_lineSeriesChartOverlaySetArray->saveTabIndicesToScene(lineSeriesChartTabIndices,
+                                                                                              sceneAttributes,
+                                                                                              "m_lineSeriesChartOverlaySetArray");
+        if (lineSeriesClass != NULL) {
+            sceneClass->addClass(lineSeriesClass);
+        }
+    }
+    
+    if ( ! matrixChartTabIndices.empty()) {
+        SceneClass* matrixClass = m_matrixChartOverlaySetArray->saveTabIndicesToScene(matrixChartTabIndices,
+                                                                                      sceneAttributes,
+                                                                                      "m_matrixChartOverlaySetArray");
+        if (matrixClass != NULL) {
+            sceneClass->addClass(matrixClass);
+        }
+    }
+    
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
+    //    m_sceneAssistant->add("m_histogramChartOverlaySetArray",
+    //                          "ChartTwoOverlaySetArray",
+    //                          m_histogramChartOverlaySetArray.get());
+    //    m_sceneAssistant->add("m_matrixChartOverlaySetArray",
+    //                          "ChartTwoOverlaySetArray",
+    //                          m_matrixChartOverlaySetArray.get());
+    //    m_sceneAssistant->add("m_lineSeriesChartOverlaySetArray",
+    //                          "ChartTwoOverlaySetArray",
+    //                          m_lineSeriesChartOverlaySetArray.get());
 }
 
 /**
@@ -447,6 +504,13 @@ ModelChartTwo::restoreModelSpecificInformationFromScene(const SceneAttributes* s
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    m_histogramChartOverlaySetArray->restoreFromScene(sceneAttributes,
+                                                      sceneClass->getClass("m_histogramChartOverlaySetArray"));
+    m_lineSeriesChartOverlaySetArray->restoreFromScene(sceneAttributes,
+                                                      sceneClass->getClass("m_lineSeriesChartOverlaySetArray"));
+    m_matrixChartOverlaySetArray->restoreFromScene(sceneAttributes,
+                                                      sceneClass->getClass("m_matrixChartOverlaySetArray"));
 }
 
 /**

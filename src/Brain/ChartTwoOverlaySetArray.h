@@ -25,12 +25,13 @@
 #include "CaretObject.h"
 #include "ChartTwoDataTypeEnum.h"
 #include "EventListenerInterface.h"
-#include "SceneableInterface.h"
 
 namespace caret {
     class ChartTwoOverlaySet;
+    class SceneAttributes;
+    class SceneClass;
     
-    class ChartTwoOverlaySetArray : public CaretObject, public EventListenerInterface, public SceneableInterface {
+    class ChartTwoOverlaySetArray : public CaretObject, public EventListenerInterface {
         
     public:
         ChartTwoOverlaySetArray(const ChartTwoDataTypeEnum::Enum chartDataType,
@@ -50,8 +51,9 @@ namespace caret {
         void copyChartOverlaySetCartesianAxes(const int32_t sourceTabIndex,
                                               const int32_t destinationTabIndex);
 
-        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName);
+        virtual SceneClass* saveTabIndicesToScene(const std::vector<int32_t>& tabIndices,
+                                                  const SceneAttributes* sceneAttributes,
+                                                  const AString& instanceName);
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);

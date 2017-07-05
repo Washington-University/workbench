@@ -45,6 +45,7 @@
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
+#include "EventModelGetAllDisplayed.h"
 #include "EventProgressUpdate.h"
 #include "ImageCaptureSettings.h"
 #include "LogManager.h"
@@ -86,6 +87,7 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL_DISPLAYED);
     
     Brain* brain = new Brain();
     m_brains.push_back(brain);
@@ -389,6 +391,19 @@ SessionManager::receiveEvent(Event* event)
         getModelsEvent->setEventProcessed();
         
         getModelsEvent->addModels(m_models);
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_GET_ALL_DISPLAYED) {
+        EventModelGetAllDisplayed* getDisplayedModelsEvent =
+        dynamic_cast<EventModelGetAllDisplayed*>(event);
+        CaretAssert(getDisplayedModelsEvent);
+        
+        for (const auto tab : m_browserTabs) {
+            if (tab != NULL) {
+                getDisplayedModelsEvent->addModel(tab->getModelForDisplay());
+            }
+        }
+        
+        getDisplayedModelsEvent->setEventProcessed();
     }
 }
 

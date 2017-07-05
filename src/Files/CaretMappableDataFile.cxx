@@ -263,7 +263,7 @@ CaretMappableDataFile::isPaletteColorMappingEqualForAllMaps() const
 void
 CaretMappableDataFile::invalidateHistogramChartColoring()
 {
-    m_chartingDelegate->getHistogramCharting()->invalidateAllColoring();
+    getChartingDelegate()->getHistogramCharting()->invalidateAllColoring();
 }
 
 // note: method is documented in header file
@@ -332,8 +332,14 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
     
     
     //m_chartingDelegate->updateAfterFileChanged();
-    sceneClass->addClass(m_chartingDelegate->saveToScene(sceneAttributes,
-                                                             "m_chartingDelegate"));
+    if (m_chartingDelegate) {
+        SceneClass* chartDelegateScene = m_chartingDelegate->saveToScene(sceneAttributes,
+                                                                         "m_chartingDelegate");
+        if (chartDelegateScene != NULL) {
+            sceneClass->addClass(m_chartingDelegate->saveToScene(sceneAttributes,
+                                                                 "m_chartingDelegate"));
+        }
+    }
     
     if (isMappedWithPalette()) {
         /*
@@ -422,6 +428,7 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     const SceneClass* chartingDelegateClass = sceneClass->getClass("m_chartingDelegate");
     m_chartingDelegate->updateAfterFileChanged();
     if (chartingDelegateClass != NULL) {
+        CaretAssert(m_chartingDelegate);
         m_chartingDelegate->restoreFromScene(sceneAttributes,
                                              chartingDelegateClass);
     }
@@ -922,7 +929,7 @@ CaretMappableDataFile::clearModified()
 {
     CaretDataFile::clearModified();
     
-    if (m_chartingDelegate != NULL) {
+    if (m_chartingDelegate) {
         m_chartingDelegate->clearModified();
     }
 }

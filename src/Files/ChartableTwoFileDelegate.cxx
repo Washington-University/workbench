@@ -455,6 +455,10 @@ SceneClass*
 ChartableTwoFileDelegate::saveToScene(const SceneAttributes* sceneAttributes,
                                                const AString& instanceName)
 {
+    if ( ! isChartingTwoSupported()) {
+        return NULL;
+    }
+    
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ChartableTwoFileDelegate",
                                             1);

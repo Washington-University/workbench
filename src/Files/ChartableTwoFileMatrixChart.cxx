@@ -325,6 +325,10 @@ ChartableTwoFileMatrixChart::isValid() const
 bool
 ChartableTwoFileMatrixChart::isEmpty() const
 {
+    if ( ! isValid()) {
+        return true;
+    }
+    
     int32_t numRows = 0;
     int32_t numCols = 0;
     getMatrixDimensions(numRows,

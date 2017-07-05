@@ -356,6 +356,10 @@ ChartableTwoFileLineSeriesChart::isValid() const
 bool
 ChartableTwoFileLineSeriesChart::isEmpty() const
 {
+    if ( ! isValid()) {
+        return true;
+    }
+    
     return (m_lineChartHistory->getHistoryCount() <= 0);
 }
 

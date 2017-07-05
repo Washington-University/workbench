@@ -111,9 +111,7 @@ namespace caret {
         
         typedef std::map<int32_t, std::unique_ptr<HistogramPrimitives>> MapIndexPrimitiveContainer;
         
-        MapIndexPrimitiveContainer m_mapHistogramBarsPrimitive;
-        
-        MapIndexPrimitiveContainer m_mapHistogramThresholdPrimitive;
+        MapIndexPrimitiveContainer m_mapHistogramPrimitives;
         
         // ADD_NEW_MEMBERS_HERE
 

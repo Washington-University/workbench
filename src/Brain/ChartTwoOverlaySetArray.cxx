@@ -54,7 +54,6 @@ ChartTwoOverlaySetArray::ChartTwoOverlaySetArray(const ChartTwoDataTypeEnum::Enu
                                            const AString& name)
 : CaretObject(),
 EventListenerInterface(),
-SceneableInterface(),
 m_name(name)
 {
     m_chartOverlaySets.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
@@ -202,6 +201,8 @@ ChartTwoOverlaySetArray::copyChartOverlaySetCartesianAxes(const int32_t sourceTa
 /**
  * Save information specific to this type of model to the scene.
  *
+ * @param tabIndices
+ *    Tab indices that are valid.
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
  *    (full, generic, etc) and the attributes should be checked when
@@ -211,14 +212,13 @@ ChartTwoOverlaySetArray::copyChartOverlaySetCartesianAxes(const int32_t sourceTa
  *    Name of instance in the scene.
  */
 SceneClass*
-ChartTwoOverlaySetArray::saveToScene(const SceneAttributes* sceneAttributes,
-                             const AString& instanceName)
+ChartTwoOverlaySetArray::saveTabIndicesToScene(const std::vector<int32_t>& tabIndices,
+                                               const SceneAttributes* sceneAttributes,
+                                               const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ChartTwoOverlaySetArray",
                                             1);
-    
-    std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
     
     /*
      * Save overlay sets for tabs

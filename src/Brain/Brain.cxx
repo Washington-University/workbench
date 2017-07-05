@@ -73,6 +73,7 @@
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
+#include "EventModelGetAllDisplayed.h"
 #include "EventPaletteGetByName.h"
 #include "EventProgressUpdate.h"
 #include "EventSpecFileReadDataFiles.h"
@@ -6988,16 +6989,13 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAnnotationFile->clearModified();
     
     /*
-     * Save all models
+     * Save all DISPLAYED models
      */
     std::vector<SceneClass*> modelClassVector;
-    EventModelGetAll getAllModels;
+    EventModelGetAllDisplayed getAllModels;
     EventManager::get()->sendEvent(getAllModels.getPointer());
-    std::vector<Model*> allModels = getAllModels.getModels();
-    for (std::vector<Model*>::iterator iter = allModels.begin();
-         iter != allModels.end();
-         iter++) {
-        Model* mdc = *iter;
+    std::set<Model*> allModels = getAllModels.getModels();
+    for (auto mdc : allModels) {
         modelClassVector.push_back(mdc->saveToScene(sceneAttributes,
                                                     "models"));
     }

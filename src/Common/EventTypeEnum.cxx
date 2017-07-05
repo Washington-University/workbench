@@ -286,7 +286,11 @@ EventTypeEnum::initialize()
                                     "EVENT_MODEL_GET_ALL", 
                                     "Get all models"));
 
-    enumData.push_back(EventTypeEnum(EVENT_MODEL_SURFACE_GET, 
+    enumData.push_back(EventTypeEnum(EVENT_MODEL_GET_ALL_DISPLAYED,
+                                     "EVENT_MODEL_GET_ALL_DISPLAYED",
+                                     "Get all displayed models"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_MODEL_SURFACE_GET,
                                      "EVENT_MODEL_SURFACE_GET", 
                                      "Get a specific model surface"));
     
