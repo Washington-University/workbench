@@ -576,6 +576,8 @@ ModelChartTwo::restoreLineSeriesChartFromChartOneModel(ModelChart* modelChartOne
     EventManager::get()->sendEvent(eventGetMapDataFiles.getPointer());
     eventGetMapDataFiles.getAllFiles(allDataFiles);
     
+    std::vector<CaretMappableDataFile*> overlayMapFiles;
+    
     /*
      * Find the data files and setup for loading of
      * lines series data.
@@ -597,9 +599,11 @@ ModelChartTwo::restoreLineSeriesChartFromChartOneModel(ModelChart* modelChartOne
         ChartTwoLineSeriesHistory* lineSeriesHistory = NULL;
         if (mapFileFullPath != NULL) {
             lineSeriesHistory = mapFileFullPath->getChartingDelegate()->getLineSeriesCharting()->getHistory();
+            overlayMapFiles.push_back(mapFileFullPath);
         }
         else if (mapFileNoPath != NULL) {
             lineSeriesHistory = mapFileNoPath->getChartingDelegate()->getLineSeriesCharting()->getHistory();
+            overlayMapFiles.push_back(mapFileNoPath);
         }
         else {
             CaretLogWarning("Unable to find data file with name: "
@@ -679,6 +683,18 @@ ModelChartTwo::restoreLineSeriesChartFromChartOneModel(ModelChart* modelChartOne
             EventChartTwoLoadLineSeriesData loadLineDataEvent(validTabIndices,
                                                               mapFileDataSelector);
             EventManager::get()->sendEvent(loadLineDataEvent.getPointer());
+        }
+    }
+    
+    /*
+     * Put line-series chart files into chart overlays
+     */
+    const int32_t maxChartOverlays = 3;
+    const int32_t numChartOverlayMapFiles = std::min(maxChartOverlays, static_cast<int32_t>(overlayMapFiles.size()));
+    for (auto tabIndex : validTabIndices) {
+        for (int32_t i = 0; i < numChartOverlayMapFiles; i++) {
+            CaretAssertVectorIndex(overlayMapFiles, i);
+            getChartTwoOverlaySet(tabIndex)->getOverlay(i)->setSelectionData(overlayMapFiles[i], 0);
         }
     }
 }
