@@ -1209,13 +1209,13 @@ SceneDialog::replaceAllScenesPushButtonClicked()
              * Display the scene
              */
             AString errorMessage;
-            const bool successFlag = displayScenePrivateWithErrorMessage(sceneFile,
-                                                                         origScene,
-                                                                         false,
-                                                                         errorMessage);
+            displayScenePrivateWithErrorMessage(sceneFile,
+                                                origScene,
+                                                false,
+                                                errorMessage);
             sceneNames.push_back(origScene->getName());
             
-            /* 
+            /*
              * Assume scene loads correctly 
              */
             Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);

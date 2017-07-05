@@ -1027,10 +1027,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             uint8_t highlightRGBByte[3];
             m_preferences->getBackgroundAndForegroundColors()->getColorForegroundChartView(highlightRGBByte);
             const float highlightRGBA[4] = {
-                highlightRGBByte[0] / 255.0,
-                highlightRGBByte[1] / 255.0,
-                highlightRGBByte[2] / 255.0,
-                1.0
+                highlightRGBByte[0] / 255.0f,
+                highlightRGBByte[1] / 255.0f,
+                highlightRGBByte[2] / 255.0f,
+                1.0f
             };
             
             std::vector<int32_t> selectedColumnIndices;

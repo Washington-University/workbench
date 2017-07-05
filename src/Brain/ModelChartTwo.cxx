@@ -234,62 +234,6 @@ ModelChartTwo::loadChartDataForVoxelAtCoordinate(const float xyz[3])
 }
 
 /**
- * Load chart data for CIFTI Map files yoked to the given yoking group.
- *
- * @param mapYokingGroup
- *     The map yoking group.
- * @param mapIndex
- *     The map index.
- */
-void
-ModelChartTwo::loadChartDataForYokedCiftiMappableFiles(const MapYokingGroupEnum::Enum mapYokingGroup,
-                                                    const int32_t mapIndex)
-{
-    if (mapYokingGroup == MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-        return;
-    }
-    
-    CaretAssertToDoWarning();
-    
-//    std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> > chartFileEnabledTabs;
-//    getTabsAndRowColumnChartFilesForLineChartLoading(chartFileEnabledTabs);
-//    
-//    for (std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
-//         fileTabIter != chartFileEnabledTabs.end();
-//         fileTabIter++) {
-//        ChartableLineSeriesRowColumnInterface* chartFile = fileTabIter->first;
-//        CaretAssert(chartFile);
-//        CiftiScalarDataSeriesFile* csdsf = dynamic_cast<CiftiScalarDataSeriesFile*>(chartFile);
-//        if (csdsf != NULL) {
-//            
-//            std::vector<int32_t> matchedTabIndices;
-//            const std::vector<int32_t>  tabIndices = fileTabIter->second;
-//            for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
-//                 tabIter != tabIndices.end();
-//                 tabIter++) {
-//                const int32_t tabIndex = *tabIter;
-//                if (csdsf->getMatrixRowColumnMapYokingGroup(tabIndex) == mapYokingGroup) {
-//                    matchedTabIndices.push_back(tabIndex);
-//                }
-//            }
-//            
-//            if ( ! matchedTabIndices.empty()) {
-//                ChartData* chartData = chartFile->loadLineSeriesChartDataForRow(mapIndex);
-//                if (chartData != NULL) {
-//                    ChartDataSource* dataSource = chartData->getChartDataSource();
-//                    dataSource->setFileRow(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
-//                                           mapIndex);
-//                    
-//                    addChartToChartModels(matchedTabIndices,
-//                                          chartData);
-//                }
-//            }
-//        }
-//    }
-}
-
-
-/**
  * Load chart data from given file at the given row.
  *
  * @param ciftiMapFile
@@ -466,23 +410,6 @@ ModelChartTwo::initializeOverlays()
 }
 
 /**
- * Save version two charting information specific to this type of model to the scene.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    saving the scene.
- *
- * @param sceneClass
- *    SceneClass to which model specific information is added.
- */
-void
-ModelChartTwo::saveVersionTwoModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
-                                                           SceneClass* sceneClass)
-{
-}
-
-/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -493,15 +420,12 @@ ModelChartTwo::saveVersionTwoModelSpecificInformationToScene(const SceneAttribut
  * @param sceneClass
  *    SceneClass to which model specific information is added.
  */
-void 
+void
 ModelChartTwo::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
-                                                      SceneClass* sceneClass)
+                                                   SceneClass* sceneClass)
 {
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
-    
-    saveVersionTwoModelSpecificInformationToScene(sceneAttributes,
-                                                  sceneClass);
 }
 
 /**
@@ -523,31 +447,6 @@ ModelChartTwo::restoreModelSpecificInformationFromScene(const SceneAttributes* s
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
-    
-    restoreVersionTwoModelSpecificInformationFromScene(sceneAttributes,
-                                                       sceneClass);
-}
-
-/**
- * Restore information specific to the type of model from VERSION TWO scene.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
- *
- * @param sceneClass
- *     sceneClass from which model specific information is obtained.
- */
-void
-ModelChartTwo::restoreVersionTwoModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
-                                                               const SceneClass* sceneClass)
-{
-    /*
-     * Restore the chart models
-     */
-    restoreVersionTwoChartModelsFromScene(sceneAttributes,
-                                          sceneClass);
 }
 
 /**
@@ -912,105 +811,6 @@ ModelChartTwo::restoreMatrixChartFromChartOneModel(ModelChart* modelChartOne,
             }
         }
     }
-}
-
-/**
- * Restore the chart models from a VERSION TWO scene.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
- *
- * @param sceneClass
- *     sceneClass from which model specific information is obtained.
- */
-void
-ModelChartTwo::restoreVersionTwoChartModelsFromScene(const SceneAttributes* sceneAttributes,
-                                                  const SceneClass* sceneClass)
-{
-    /* Probably nothing to do here */
-}
-
-
-/**
- * Get a text description of the window's content.
- *
- * @param tabIndex
- *    Index of the tab for content description.
- * @param descriptionOut
- *    Description of the window's content.
- */
-void
-ModelChartTwo::getDescriptionOfContent(const int32_t tabIndex,
-                                    PlainTextStringBuilder& descriptionOut) const
-{
-//    ChartModel* chartModel = NULL;
-//    switch (getSelectedChartOneDataType(tabIndex)) {
-//        case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
-//            break;
-//        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-//        {
-//            CaretDataFileSelectionModel* sm = m_chartableMatrixFileSelectionModel[tabIndex];
-//            const CaretDataFile* caretFile = sm->getSelectedFile();
-//            if (caretFile != NULL) {
-//                descriptionOut.addLine("Matrix (layer) chart for: "
-//                                       + caretFile->getFileNameNoPath());
-//                return;
-//            }
-//        }
-//            break;
-//        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-//        {
-//            CaretDataFileSelectionModel* sm = m_chartableMatrixSeriesFileSelectionModel[tabIndex];
-//            const CaretDataFile* caretFile = sm->getSelectedFile();
-//            if (caretFile != NULL) {
-//                descriptionOut.addLine("Matrix (series) chart for: "
-//                                       + caretFile->getFileNameNoPath());
-//                return;
-//            }
-//        }
-//            break;
-//        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
-//            chartModel = const_cast<ChartModelDataSeries*>(getSelectedDataSeriesChartModel(tabIndex));
-//            break;
-//        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
-//            chartModel = const_cast<ChartModelFrequencySeries*>(getSelectedFrequencySeriesChartModel(tabIndex));
-//            break;
-//        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-//            chartModel = const_cast<ChartModelTimeSeries*>(getSelectedTimeSeriesChartModel(tabIndex));
-//            break;
-//    }
-//
-//    const ChartModel* chartModelConst = chartModel;
-//    
-//    if (chartModel != NULL) {
-//        descriptionOut.addLine("Chart Type: "
-//                               + ChartOneDataTypeEnum::toGuiName(chartModel->getChartDataType()));
-//
-//        descriptionOut.pushIndentation();
-//        
-//        const std::vector<const ChartData*> cdVec = chartModelConst->getAllChartDatas();
-//        for (std::vector<const ChartData*>::const_iterator iter = cdVec.begin();
-//             iter != cdVec.end();
-//             iter++) {
-//            const ChartData* cd = *iter;
-//            if (cd->isSelected(tabIndex)) {
-//                descriptionOut.addLine(cd->getChartDataSource()->getDescription());
-//            }
-//        }
-//        
-//        if (chartModel->isAverageChartDisplaySupported()) {
-//            if (chartModel->isAverageChartDisplaySelected()) {
-//                descriptionOut.addLine("Average Chart Displayed");
-//            }
-//        }
-//        
-//        descriptionOut.popIndentation();
-//    }
-//    else {
-//        descriptionOut.addLine("No charts to display");
-//    }
 }
 
 /**

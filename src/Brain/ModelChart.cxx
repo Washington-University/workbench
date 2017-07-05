@@ -1662,7 +1662,7 @@ ModelChart::getSelectedChartOneDataType(const int32_t tabIndex) const
  *     Index of the tab.
  */
 void
-ModelChart::updateChartOverlaySets(const int32_t tabIndex)
+ModelChart::updateChartOverlaySets(const int32_t /*tabIndex*/)
 {
 }
 

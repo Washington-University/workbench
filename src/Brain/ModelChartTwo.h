@@ -74,9 +74,6 @@ namespace caret {
         void loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMapFile,
                                                   const int32_t rowIndex);
         
-        void loadChartDataForYokedCiftiMappableFiles(const MapYokingGroupEnum::Enum mapYokingGroup,
-                                                     const int32_t mapIndex);
-        
         virtual OverlaySet* getOverlaySet(const int tabIndex) override;
         
         virtual const OverlaySet* getOverlaySet(const int tabIndex) const override;
@@ -93,9 +90,6 @@ namespace caret {
         
         void setSelectedChartTwoDataType(const int32_t tabIndex,
                                          const ChartTwoDataTypeEnum::Enum dataType);
-        
-        virtual void getDescriptionOfContent(const int32_t tabIndex,
-                                             PlainTextStringBuilder& descriptionOut) const override;
         
         virtual void copyTabContent(const int32_t sourceTabIndex,
                                     const int32_t destinationTabIndex) override;
@@ -125,19 +119,10 @@ namespace caret {
         
         void updateChartOverlaySets(const int32_t tabIndex);
         
-        void restoreVersionTwoChartModelsFromScene(const SceneAttributes* sceneAttributes,
-                                                   const SceneClass* sceneClass);
-        
         void restoreMatrixChartFromChartOneModel(ModelChart* modelChartOne,
                                                  const int32_t tabIndex);
         
         void restoreLineSeriesChartFromChartOneModel(ModelChart* modelChartOne);
-        
-        virtual void saveVersionTwoModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
-                                                                   SceneClass* sceneClass);
-        
-        void restoreVersionTwoModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
-                                                                        const SceneClass* sceneClass);
         
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;

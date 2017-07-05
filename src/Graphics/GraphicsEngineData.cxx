@@ -70,7 +70,7 @@ GraphicsEngineData::toString() const
  *    An event for which this instance is listening.
  */
 void
-GraphicsEngineData::receiveEvent(Event* event)
+GraphicsEngineData::receiveEvent(Event* /*event*/)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);

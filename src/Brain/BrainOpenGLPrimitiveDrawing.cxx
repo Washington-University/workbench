@@ -1187,9 +1187,9 @@ BrainOpenGLPrimitiveDrawing::drawRectangleOutline(const float bottomLeft[3],
     const float height = MathFunctions::distance3D(bottomLeft, topLeft);
     
     const float center[3] = {
-        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
-        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
-        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
+        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0f,
+        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0f,
+        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
     };
     
     float normalVector[3];
