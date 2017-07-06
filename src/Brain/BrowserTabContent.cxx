@@ -265,6 +265,8 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_clippingPlaneGroup = *tabToClone->m_clippingPlaneGroup;
     
     m_yokingGroup = tabToClone->m_yokingGroup;
+    m_aspectRatio = tabToClone->m_aspectRatio;
+    m_aspectRatioLocked = tabToClone->m_aspectRatioLocked;
     
     *m_cerebellumViewingTransformation = *tabToClone->m_cerebellumViewingTransformation;
     *m_flatSurfaceViewingTransformation = *tabToClone->m_flatSurfaceViewingTransformation;
