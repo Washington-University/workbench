@@ -265,7 +265,12 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     sessionManager->restoreFromScene(&sceneAttributes,
                                      guiManagerClass->getClass("m_sessionManager"));
     
-    
+    /*
+     * Get the error message but continue processing since the error
+     * may not affect the scene.  Print error message later.
+     */    
+    const AString sceneErrorMessage = sceneAttributes.getErrorMessage();
+
     if (sessionManager->getNumberOfBrains() <= 0) {
         throw OperationException("Scene loading failure, SessionManager contains no Brains");
     }
@@ -551,6 +556,14 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             delete[] imageBuffer;
             OSMesaDestroyContext(mesaContext);
         }
+    }
+
+    /*
+     * Print error messages
+     */
+    if ( ! sceneErrorMessage.isEmpty()) {
+        std::cerr << "ERRORS loading scene, output image may be incorrect." << std::endl;
+        std::cerr << sceneErrorMessage << std::endl;
     }
 }
 
