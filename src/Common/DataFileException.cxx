@@ -81,14 +81,13 @@ DataFileException::DataFileException(const AString& dataFileName,
     
     AString msg = s;
     if ( ! dataFileName.isEmpty()) {
-        msg += "\n";
         FileInformation fileInfo(dataFileName);
         const AString pathName = fileInfo.getPathName();
         
-        msg.appendWithNewLine("File: " + fileInfo.getFileName());
+        msg.appendWithNewLine("   Name: " + fileInfo.getFileName());
         if ( ! pathName.isEmpty()) {
             if (pathName != ".") {
-                msg.appendWithNewLine("Path: " + pathName);
+                msg.appendWithNewLine("   Path: " + pathName);
             }
         }
     }
