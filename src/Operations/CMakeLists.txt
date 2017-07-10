@@ -90,6 +90,7 @@ OperationSurfaceGeodesicDistance.h
 OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
 OperationSurfaceNormals.h
+OperationSurfaceSetCoordinates.h
 OperationSurfaceVertexAreas.h
 OperationVolumeCapturePlane.h
 OperationVolumeCopyExtensions.h
@@ -178,6 +179,7 @@ OperationSurfaceGeodesicDistance.cxx
 OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx
 OperationSurfaceNormals.cxx
+OperationSurfaceSetCoordinates.cxx
 OperationSurfaceVertexAreas.cxx
 OperationVolumeCapturePlane.cxx
 OperationVolumeCopyExtensions.cxx
