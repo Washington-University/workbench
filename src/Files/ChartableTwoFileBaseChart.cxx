@@ -78,7 +78,7 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
     m_bottomAxisTitle = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                                                  AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
     m_leftRightAxisTitle = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
-                                                                                                    AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH));
+                                                                                                    AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_bottomAxisTitle",
@@ -116,14 +116,15 @@ void ChartableTwoFileBaseChart::initializeAxisTitle(AnnotationPercentSizeText* t
 {
     CaretAssert(titleAnnotation);
 
-    titleAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::VIEWPORT);
+    titleAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+    titleAnnotation->setTabIndex(0);
     titleAnnotation->setTextColor(CaretColorEnum::RED);
     titleAnnotation->setLineColor(CaretColorEnum::NONE);
     titleAnnotation->setBackgroundColor(CaretColorEnum::NONE);
     
     titleAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
     titleAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-    titleAnnotation->setFontPercentViewportSize(40.0);
+    titleAnnotation->setFontPercentViewportSize(s_defaultFontPercentViewportSize);
     
     AString title;
     
@@ -136,13 +137,11 @@ void ChartableTwoFileBaseChart::initializeAxisTitle(AnnotationPercentSizeText* t
             titleAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
             titleAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
             titleAnnotation->setRotationAngle(-90.0);
-            titleAnnotation->setFontPercentViewportSize(25.0);
             break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
             titleAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            titleAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-            titleAnnotation->setRotationAngle(-90.0);
-            titleAnnotation->setFontPercentViewportSize(25.0);
+            titleAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+            titleAnnotation->setRotationAngle(90.0);
             break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
             titleAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
@@ -365,7 +364,7 @@ ChartableTwoFileBaseChart::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ChartableTwoFileBaseChart",
-                                            1);
+                                            2);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -400,5 +399,9 @@ ChartableTwoFileBaseChart::restoreFromScene(const SceneAttributes* sceneAttribut
     restoreSubClassDataFromScene(sceneAttributes,
                                  sceneClass);
     
+    if (sceneClass->getVersionNumber() <= 1) {
+        m_bottomAxisTitle->setFontPercentViewportSize(s_defaultFontPercentViewportSize);
+        m_leftRightAxisTitle->setFontPercentViewportSize(s_defaultFontPercentViewportSize);
+    }
 }
 

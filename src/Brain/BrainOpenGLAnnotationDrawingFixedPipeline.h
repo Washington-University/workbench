@@ -186,6 +186,7 @@ namespace caret {
         
         void drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                      std::vector<AnnotationColorBar*>& colorBars,
+                                     std::vector<Annotation*>& viewportAnnotations,
                                      Annotation* viewportAnnotationForDrawing,
                                      const Surface* surfaceDisplayed,
                                      const float sliceThickness);

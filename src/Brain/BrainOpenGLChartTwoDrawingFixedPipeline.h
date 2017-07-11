@@ -142,10 +142,10 @@ namespace caret {
                                                 int32_t chartGraphicsDrawingViewportOut[4]);
         
         bool drawChartAxisCartesian(const float dataBounds[4],
-                                     const float vpX,
-                                    const float vpY,
-                                    const float vpWidth,
-                                    const float vpHeight,
+                                    const float tabViewportX,
+                                    const float tabViewportY,
+                                    const float tabViewportWidth,
+                                    const float tabViewportHeight,
                                     const Margins& margins,
                                     ChartTwoCartesianAxis* axis,
                                     AnnotationPercentSizeText* chartAxisLabel,
@@ -156,7 +156,7 @@ namespace caret {
                                                           const float viewportWidth,
                                                           const float viewportHeight,
                                                           ChartTwoCartesianAxis* cartesianAxis,
-                                                          const AnnotationPercentSizeText* chartAxisLabel,
+                                                          AnnotationPercentSizeText* chartAxisLabel,
                                                           double& widthOut,
                                                           double& heightOut);
         

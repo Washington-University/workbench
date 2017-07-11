@@ -656,6 +656,8 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
         drawWindowAnnotations(windowViewport);
     }
     
+    m_viewportSpaceAnnotations.clear();
+    
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     
     m_brain = NULL;
@@ -787,12 +789,13 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabCont
                                                              this->windowTabIndex,
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
-    std::vector<Annotation*> emptyViewportAnnotations;
+    //std::vector<Annotation*> emptyViewportAnnotations;
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
-                                         emptyViewportAnnotations,
+                                         m_viewportSpaceAnnotations,
                                          NULL);
+    //m_viewportSpaceAnnotations.clear();
     
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
@@ -868,13 +871,13 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
     
     
     
-    std::vector<AnnotationColorBar*> emptyColorBars;
-    m_annotationDrawing->drawAnnotations(&inputs,
-                                         AnnotationCoordinateSpaceEnum::VIEWPORT,
-                                         emptyColorBars,
-                                         m_viewportSpaceAnnotations,
-                                         NULL);
-    m_viewportSpaceAnnotations.clear();
+//    std::vector<AnnotationColorBar*> emptyColorBars;
+//    m_annotationDrawing->drawAnnotations(&inputs,
+//                                         AnnotationCoordinateSpaceEnum::VIEWPORT,
+//                                         emptyColorBars,
+//                                         m_viewportSpaceAnnotations,
+//                                         NULL);
+//    m_viewportSpaceAnnotations.clear();
     
     
     
@@ -963,18 +966,18 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             }
             
             
-            int viewport[4];
-            viewportContent->getModelViewport(viewport);
-            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-            
-            BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
-                                                                     this->mode,
-                                                                     BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                                                                     m_tabViewport,
-                                                                     m_windowIndex,
-                                                                     this->windowTabIndex,
-                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
-                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
+//            int viewport[4];
+//            viewportContent->getModelViewport(viewport);
+//            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+//            
+//            BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+//                                                                     this->mode,
+//                                                                     BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+//                                                                     m_tabViewport,
+//                                                                     m_windowIndex,
+//                                                                     this->windowTabIndex,
+//                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
+//                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
         }
     }
     
@@ -5325,7 +5328,7 @@ BrainOpenGLFixedPipeline::drawChartTwoData(BrowserTabContent* browserTabContent,
     CaretAssert(browserTabContent);
     CaretAssert(chartModel);
 
-    m_viewportSpaceAnnotations.clear();
+    //m_viewportSpaceAnnotations.clear();
     
     BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
     chartDrawing.drawChartOverlaySet(m_brain,

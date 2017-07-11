@@ -521,8 +521,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
         m_volumeSpacePlaneValid = true;
         
         std::vector<AnnotationColorBar*> dummyColorBars;
+        std::vector<Annotation*> dummyViewportAnnotations;
         drawAnnotationsInternal(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                 dummyColorBars,
+                                dummyViewportAnnotations,
                                 NULL,
                                 NULL,
                                 sliceThickness);
@@ -577,8 +579,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
                        viewport[2],
                        viewport[3]);
             
+            std::vector<Annotation*> emptyViewportAnnotations;
             drawAnnotationsInternal(drawingCoordinateSpace,
                                     emptyColorBars,
+                                    emptyViewportAnnotations,
                                     graphicsLabel,
                                     surfaceDisplayed,
                                     sliceThickness);
@@ -592,6 +596,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
     else {
         drawAnnotationsInternal(drawingCoordinateSpace,
                                 colorBars,
+                                viewportAnnotations,
                                 NULL,
                                 surfaceDisplayed,
                                 sliceThickness);
@@ -619,6 +624,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                                    std::vector<AnnotationColorBar*>& colorBars,
+                                                                   std::vector<Annotation*>& viewportAnnotations,
                                                                    Annotation* viewportAnnotationForDrawing,
                                                                    const Surface* surfaceDisplayed,
                                                                    const float sliceThickness)
@@ -819,6 +825,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 }
                     break;
             }
+            
+            annotationsFromFile.insert(annotationsFromFile.end(),
+                                       viewportAnnotations.begin(),
+                                       viewportAnnotations.end());
         }
         else {
             CaretAssertVectorIndex(allAnnotationFiles, iFile);

@@ -125,6 +125,8 @@ namespace caret {
         
         std::unique_ptr<AnnotationPercentSizeText> m_leftRightAxisTitle;
         
+        static float constexpr s_defaultFontPercentViewportSize = 5.0;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
