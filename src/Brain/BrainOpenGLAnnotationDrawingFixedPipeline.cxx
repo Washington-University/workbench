@@ -520,12 +520,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
         m_volumeSpacePlane = plane;
         m_volumeSpacePlaneValid = true;
         
-        std::vector<AnnotationColorBar*> dummyColorBars;
-        std::vector<Annotation*> dummyViewportAnnotations;
+        std::vector<AnnotationColorBar*> emptyColorBars;
+        std::vector<Annotation*> emptyNotInFileAnnotations;
         drawAnnotationsInternal(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
-                                dummyColorBars,
-                                dummyViewportAnnotations,
-                                NULL,
+                                emptyColorBars,
+                                emptyNotInFileAnnotations,
                                 NULL,
                                 sliceThickness);
     }
@@ -543,8 +542,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
  *     Coordinate space of annotation that are drawn.
  * @param colorbars
  *     Colorbars that will be drawn.
- * @param viewportAnnotations
- *     Annotation for drawing in viewport space
+ * @param notInFileAnnotations
+ *     Annotations that are not in a file but need to be drawn.
  * @param surfaceDisplayed
  *     In not NULL, surface no which annotations are drawn.
  */
@@ -552,7 +551,7 @@ void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
                                                            const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                            std::vector<AnnotationColorBar*>& colorBars,
-                                                           std::vector<Annotation*>& viewportAnnotations,
+                                                           std::vector<Annotation*>& notInFileAnnotations,
                                                            const Surface* surfaceDisplayed)
 {
     CaretAssert(inputs);
@@ -562,45 +561,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
     
     const float sliceThickness = 0.0;
     
-    if (drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::VIEWPORT) {
-        GLint savedViewport[4];
-        glGetIntegerv(GL_VIEWPORT,
-                      savedViewport);
-        
-        std::vector<AnnotationColorBar*> emptyColorBars;
-        
-        for (auto graphicsLabel : viewportAnnotations) {
-            CaretAssert(graphicsLabel);
-            
-            int32_t viewport[4];
-            graphicsLabel->getViewportCoordinateSpaceViewport(viewport);
-            glViewport(viewport[0],
-                       viewport[1],
-                       viewport[2],
-                       viewport[3]);
-            
-            std::vector<Annotation*> emptyViewportAnnotations;
-            drawAnnotationsInternal(drawingCoordinateSpace,
-                                    emptyColorBars,
-                                    emptyViewportAnnotations,
-                                    graphicsLabel,
-                                    surfaceDisplayed,
-                                    sliceThickness);
-        }
-        
-        glViewport(savedViewport[0],
-                   savedViewport[1],
-                   savedViewport[2],
-                   savedViewport[3]);
-    }
-    else {
-        drawAnnotationsInternal(drawingCoordinateSpace,
-                                colorBars,
-                                viewportAnnotations,
-                                NULL,
-                                surfaceDisplayed,
-                                sliceThickness);
-    }
+    drawAnnotationsInternal(drawingCoordinateSpace,
+                            colorBars,
+                            notInFileAnnotations,
+                            surfaceDisplayed,
+                            sliceThickness);
     
     m_inputs = NULL;
 }
@@ -610,12 +575,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
  *
  * @param drawingCoordinateSpace
  *     Coordinate space of annotation that are drawn.
- * @param surfaceDisplayed
- *     Surface that is displayed.  May be NULL in some instances.
  * @param colorbars
  *     Colorbars that will be drawn.
- * @param viewportAnnotationForDrawing
- *     Viewport space label that will be drawn.
+ * @param notInFileAnnotations
+ *     Annotations that are not in a file but need to be drawn.
+ * @param surfaceDisplayed
+ *     Surface that is displayed.  May be NULL in some instances.
  * @param surfaceDisplayed
  *     In not NULL, surface no which annotations are drawn.
  * @param sliceThickness
@@ -624,8 +589,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                                    std::vector<AnnotationColorBar*>& colorBars,
-                                                                   std::vector<Annotation*>& viewportAnnotations,
-                                                                   Annotation* viewportAnnotationForDrawing,
+                                                                   std::vector<Annotation*>& notInFileAnnotations,
                                                                    const Surface* surfaceDisplayed,
                                                                    const float sliceThickness)
 {
@@ -665,8 +629,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            CaretAssert(viewportAnnotationForDrawing);
-            haveDisplayGroupFlag = false;
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             haveDisplayGroupFlag = false;
@@ -767,7 +729,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 case AnnotationCoordinateSpaceEnum::SURFACE:
                     break;
                 case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                    annotationsFromFile.push_back(viewportAnnotationForDrawing);
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                 case AnnotationCoordinateSpaceEnum::WINDOW:
@@ -827,8 +788,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             }
             
             annotationsFromFile.insert(annotationsFromFile.end(),
-                                       viewportAnnotations.begin(),
-                                       viewportAnnotations.end());
+                                       notInFileAnnotations.begin(),
+                                       notInFileAnnotations.end());
         }
         else {
             CaretAssertVectorIndex(allAnnotationFiles, iFile);
