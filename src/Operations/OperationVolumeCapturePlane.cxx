@@ -141,6 +141,11 @@ void OperationVolumeCapturePlane::useParameters(OperationParameters* myParams, P
     {
         CaretLogWarning("corner points describe non-orthogonal directions, image will be skewed");
     }
+    float aspectRatio = (rightTraverse.length() / width) / (upTraverse.length() / height);
+    if (aspectRatio > 1.001f || aspectRatio < 0.999f)
+    {
+        CaretLogWarning("corner points and image dimensions are different aspect ratios, image will be stretched");
+    }
     vector<uint8_t> imageData(width * height * 4);
     for (int h = 0; h < height; ++h)
     {
