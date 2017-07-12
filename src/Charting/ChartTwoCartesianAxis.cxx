@@ -541,8 +541,10 @@ ChartTwoCartesianAxis::restoreFromScene(const SceneAttributes* sceneAttributes,
 /**
  * Given the bounds of the data, determine the auto range minimum and maximum values.
  *
- * @param dataBounds
- *     Bounds of the data.
+ * @param minimumValue
+ *     Minimum data value
+ * @param maximumValue
+ *     Maximum data value
  * @param minimumOut
  *     Output minimum value for autoranging.
  * @param maximumOut
@@ -555,33 +557,15 @@ ChartTwoCartesianAxis::restoreFromScene(const SceneAttributes* sceneAttributes,
  *     True if output values are valid, else false.
  */
 bool
-ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float dataBounds[4],
+ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float minimumValue,
+                                                     const float maximumValue,
                                                      float& minimumOut,
                                                      float& maximumOut,
                                                      float& stepValueOut,
                                                      int32_t& digitsRightOfDecimalOut) const
 {
-    float minValue =  1.0;
-    float maxValue = -1.0;
-    
-    switch (m_axisLocation) {
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-            minValue = dataBounds[0];
-            maxValue = dataBounds[1];
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-            minValue = dataBounds[2];
-            maxValue = dataBounds[3];
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-            minValue = dataBounds[2];
-            maxValue = dataBounds[3];
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            minValue = dataBounds[0];
-            maxValue = dataBounds[1];
-            break;
-    }
+    float minValue = minimumValue;
+    float maxValue = maximumValue;
     
     m_rangeMinimumValue = 0.0;
     m_rangeMaximumValue = 0.0;
@@ -615,8 +599,10 @@ ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float dataBounds[4],
 /**
  * Get the axis scale text values and their positions for drawing the scale.
  *
- * @param dataBoundsIn
- *     Bounds of data [minX, maxX, minY, maxY].
+ * @param minimumDataValue
+ *     Minimum data value
+ * @param maximumDataValue
+ *     Maximum data value
  * @param axisLengthInPixels
  *     Length of axis in pixels.
  * @param minimumOut
@@ -631,19 +617,16 @@ ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float dataBounds[4],
  *     True if output data is valid, else false.
  */
 bool
-ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float dataBoundsIn[4],
+ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float minimumDataValue,
+                                                const float maximumDataValue,
                                                 const float axisLengthInPixels,
                                                 float& minimumOut,
                                                 float& maximumOut,
                                                 std::vector<float>& scaleValuesOffsetInPixelsOut,
                                                 std::vector<AString>& scaleValuesOut) const
 {
-    float dataBounds[4] = {
-        dataBoundsIn[0],
-        dataBoundsIn[1],
-        dataBoundsIn[2],
-        dataBoundsIn[3],
-    };
+    float minimumValue = minimumDataValue;
+    float maximumValue = maximumDataValue;
     
     minimumOut = 0.0;
     maximumOut = 0.0;
@@ -665,26 +648,27 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float dataBoundsIn[4],
         case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER:
             switch (m_axisLocation) {
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                    dataBounds[0] = m_userScaleMinimumValue;
-                    dataBounds[1] = m_userScaleMaximumValue;
+                    minimumValue = m_userScaleMinimumValue;
+                    maximumValue = m_userScaleMaximumValue;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                    dataBounds[2] = m_userScaleMinimumValue;
-                    dataBounds[3] = m_userScaleMaximumValue;
+                    minimumValue = m_userScaleMinimumValue;
+                    maximumValue = m_userScaleMaximumValue;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                    dataBounds[2] = m_userScaleMinimumValue;
-                    dataBounds[3] = m_userScaleMaximumValue;
+                    minimumValue = m_userScaleMinimumValue;
+                    maximumValue = m_userScaleMaximumValue;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                    dataBounds[0] = m_userScaleMinimumValue;
-                    dataBounds[1] = m_userScaleMaximumValue;
+                    minimumValue = m_userScaleMinimumValue;
+                    maximumValue = m_userScaleMaximumValue;
                     break;
             }
             break;
     }
 
-    if ( ! getAutoRangeMinimumAndMaximum(dataBounds,
+    if ( ! getAutoRangeMinimumAndMaximum(minimumValue,
+                                         maximumValue,
                                          labelsStart,
                                          labelsEnd,
                                          labelsStep,
@@ -815,9 +799,6 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float dataBoundsIn[4],
             const float labelPixelsPosition = axisLengthInPixels * labelParametricValue;
             labelNumericValues.push_back(labelValueForText);
             scaleValuesOffsetInPixelsOut.push_back(labelPixelsPosition);
-            
-//            const AString labelText = AString::number(labelValueForText, 'f', labelsDigitsRightOfDecimal);
-//            labelTextOut.push_back(labelText);
         }
         else {
             //            std::cout << "Label value=" << labelValue << " parametric=" << labelParametricValue << " failed." << std::endl;

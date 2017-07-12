@@ -486,8 +486,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
             }
         }
         
-        const float boundsLeftBottomTop[4] = { xMin, xMax, yMinLeft, yMaxLeft };
-        const float boundsRight[4] = { xMin, xMax, yMinRight, yMaxRight };
         double width = 0.0, height = 0.0;
         
         GLint vp[4];
@@ -505,17 +503,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         
-        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, tabViewportWidth, tabViewportHeight, leftAxis, leftAxisLabel, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(yMinLeft, yMaxLeft, tabViewportWidth, tabViewportHeight, leftAxis, leftAxisLabel, width, height);
         margins.m_left = std::max(margins.m_left, width);
-        estimateCartesianChartAxisLegendsWidthHeight(boundsRight, tabViewportWidth, tabViewportHeight, rightAxis, rightAxisLabel, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(yMinRight, yMaxRight, tabViewportWidth, tabViewportHeight, rightAxis, rightAxisLabel, width, height);
         margins.m_right = std::max(margins.m_right, width);
-        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, tabViewportWidth, tabViewportHeight, topAxis, NULL, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(xMin, xMax, tabViewportWidth, tabViewportHeight, topAxis, NULL, width, height);
         margins.m_top = std::max(margins.m_top, height);
-        estimateCartesianChartAxisLegendsWidthHeight(boundsLeftBottomTop, tabViewportWidth, tabViewportHeight, bottomAxis, bottomAxisLabel, width, height);
+        estimateCartesianChartAxisLegendsWidthHeight(xMin, xMax, tabViewportWidth, tabViewportHeight, bottomAxis, bottomAxisLabel, width, height);
         margins.m_bottom = std::max(margins.m_bottom, height);
-        
-        if (margins.m_left > marginSize) margins.m_left += 10;
-        if (margins.m_right > marginSize) margins.m_right += 10;
         
         /*
          * Ensure that there is sufficient space for the axes data display.
@@ -527,7 +522,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
             float axisMaximumValue = 0.0;
             
             /* Draw legends and grids */
-            if (drawChartAxisCartesian(boundsLeftBottomTop,
+            if (drawChartAxisCartesian(yMinLeft,
+                                       yMaxLeft,
                                        tabViewportX,
                                        tabViewportY,
                                        tabViewportWidth,
@@ -541,7 +537,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                 yMaxLeft = axisMaximumValue;
             }
             
-            if (drawChartAxisCartesian(boundsRight,
+            if (drawChartAxisCartesian(yMinRight,
+                                       yMaxRight,
                                        tabViewportX,
                                        tabViewportY,
                                        tabViewportWidth,
@@ -554,7 +551,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                 yMinRight = axisMinimumValue;
                 yMaxRight = axisMaximumValue;
             }
-            if (drawChartAxisCartesian(boundsLeftBottomTop,
+            if (drawChartAxisCartesian(xMin,
+                                       xMax,
                                        tabViewportX,
                                        tabViewportY,
                                        tabViewportWidth,
@@ -568,7 +566,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                 xMax = axisMaximumValue;
             }
             
-            drawChartAxisCartesian(boundsLeftBottomTop,
+            drawChartAxisCartesian(xMin,
+                                   xMax,
                                    tabViewportX,
                                    tabViewportY,
                                    tabViewportWidth,
@@ -1167,8 +1166,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::restoreStateOfOpenGL()
 /**
  * Estimate the size of the axis' text.
  *
- * @param dataBounds
- *     Bounds of data [minX, maxX, minY, maxY].
+ * @param minimumDataValue
+ *     Minimum data value
+ * @param maximumDataValue
+ *     Maximum data value
  * @param viewportWidth
  *     Widgth of viewport.
  * @param viewportHeight
@@ -1183,7 +1184,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::restoreStateOfOpenGL()
  *    Height of text out.
  */
 void
-BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeight(const float dataBounds[4],
+BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeight(const float minimumDataValue,
+                                                                                      const float maximumDataValue,
                                                                                       const float viewportWidth,
                                                                                       const float viewportHeight,
                                                                                       ChartTwoCartesianAxis* cartesianAxis,
@@ -1220,7 +1222,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
     float maximumValue = 0.0;
     std::vector<float> scaleValueOffsetInPixels;
     std::vector<AString> scaleValuesText;
-    cartesianAxis->getScaleValuesAndOffsets(dataBounds,
+    cartesianAxis->getScaleValuesAndOffsets(minimumDataValue,
+                                            maximumDataValue,
                                             axisLength,
                                             minimumValue,
                                             maximumValue,
@@ -1370,6 +1373,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
 /**
  * Draw the chart axes grid/box
  *
+ * @param minimumDataValue
+ *     Minimum data value
+ * @param maximumDataValue
+ *     Maximum data value
  * @param tabViewportX
  *     Viewport X for all chart content
  * @param tabViewportY
@@ -1394,7 +1401,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
  *     True if the axis is valid and was drawn, else false.
  */
 bool
-BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float dataBounds[4],
+BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float minimumDataValue,
+                                                                const float maximumDataValue,
                                                                 const float tabViewportX,
                                                                 const float tabViewportY,
                                                                 const float tabViewportWidth,
@@ -1450,7 +1458,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float data
     
     std::vector<float> scaleValueOffsetInPixels;
     std::vector<AString> scaleValuesText;
-    const bool validAxisFlag = axis->getScaleValuesAndOffsets(dataBounds,
+    const bool validAxisFlag = axis->getScaleValuesAndOffsets(minimumDataValue,
+                                                              maximumDataValue,
                                                               axisLength,
                                                               axisMinimumOut,
                                                               axisMaximumOut,

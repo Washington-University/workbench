@@ -141,7 +141,8 @@ namespace caret {
                                                 const Margins& margins,
                                                 int32_t chartGraphicsDrawingViewportOut[4]);
         
-        bool drawChartAxisCartesian(const float dataBounds[4],
+        bool drawChartAxisCartesian(const float minimumDataValue,
+                                    const float maximumDataValue,
                                     const float tabViewportX,
                                     const float tabViewportY,
                                     const float tabViewportWidth,
@@ -152,7 +153,8 @@ namespace caret {
                                     float& axisMinimumOut,
                                     float& axisMaximumOut);
         
-        void estimateCartesianChartAxisLegendsWidthHeight(const float dataBounds[4],
+        void estimateCartesianChartAxisLegendsWidthHeight(const float minimumDataValue,
+                                                          const float maximumDataValue,
                                                           const float viewportWidth,
                                                           const float viewportHeight,
                                                           ChartTwoCartesianAxis* cartesianAxis,

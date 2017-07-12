@@ -98,12 +98,13 @@ namespace caret {
 
         void setShowTickmarks(const bool showTickmarks);
         
-        bool getScaleValuesAndOffsets(const float dataBoundsIn[4],
-                                   const float axisLengthInPixels,
-                                   float& minimumOut,
-                                   float& maximumOut,
-                                   std::vector<float>& scaleValuesOffsetInPixelsOut,
-                                   std::vector<AString>& scaleValuesOut) const;
+        bool getScaleValuesAndOffsets(const float minimumDataValue,
+                                      const float maximumDataValue,
+                                      const float axisLengthInPixels,
+                                      float& minimumOut,
+                                      float& maximumOut,
+                                      std::vector<float>& scaleValuesOffsetInPixelsOut,
+                                      std::vector<AString>& scaleValuesOut) const;
         
         int32_t getTitleOverlayIndex(const int32_t maximumNumberOfOverlays) const;
         
@@ -137,7 +138,8 @@ namespace caret {
     private:
         void copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAxis& obj);
 
-        bool getAutoRangeMinimumAndMaximum(const float dataBounds[4],
+        bool getAutoRangeMinimumAndMaximum(const float minimumValue,
+                                           const float maximumValue,
                                            float& minimumOut,
                                            float& maximumOut,
                                            float& stepValueOut,
