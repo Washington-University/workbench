@@ -791,6 +791,12 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
         return;
     }
     
+    GLenum errorCode = glGetError();
+    if (errorCode != GL_NO_ERROR) {
+        CaretLogWarning("OpenGL Error at begininng of FtglFontTextRenderer::getBoundsForTextAtViewportCoords(): "
+                        + AString((char*)gluErrorString(errorCode)));
+    }
+    
     TextStringGroup textStringGroup(annotationText,
                                     font,
                                     viewportX,
@@ -805,6 +811,44 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                       topRightOut,
                                       topLeftOut,
                                       rotationPointXYZ);
+    
+    errorCode = glGetError();
+    if (errorCode != GL_NO_ERROR) {
+        AString sizeMessage;
+        switch (annotationText.getFontSizeType()) {
+            case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
+            {
+                const float percentSize = annotationText.getFontPercentViewportSize();
+                const float fontHeight  = (percentSize / 100.0f) * viewportHeight;
+                sizeMessage = ("Percent of viewport height="
+                               + AString::number(percentSize, 'f', 2)
+                               + "%, viewport height=" + AString::number(viewportHeight)
+                               + " approximage font height=" + AString::number(fontHeight, 'f', 2));
+            }
+                break;
+            case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH:
+            {
+                const float percentSize = annotationText.getFontPercentViewportSize();
+                const float fontHeight  = (percentSize / 100.0f) * viewportWidth;
+                sizeMessage = ("Percent of viewport width="
+                               + AString::number(percentSize, 'f', 2)
+                               + "%, viewport width=" + AString::number(viewportWidth)
+                               + " approximage font height=" + AString::number(fontHeight, 'f', 2));
+            }
+                break;
+            case AnnotationTextFontSizeTypeEnum::POINTS:
+                sizeMessage = ("Font Size="
+                               + AnnotationTextFontNameEnum::toGuiName(annotationText.getFont()));
+                break;
+        }
+        
+        CaretLogWarning("OpenGL error at end of FtglFontTextRenderer::getBoundsForTextAtViewportCoords(), "
+                        "error may be caused by font size that is too small.  Error may also occur with "
+                        "particular characters in a font.\n"
+                        "   Rendering text: " + annotationText.getText() + "\n"
+                        "   " + sizeMessage + "\n"
+                        "   OpenGL Error=" + AString((char*)gluErrorString(errorCode)));
+    }
 }
 
 

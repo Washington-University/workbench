@@ -442,9 +442,19 @@ AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportWidth,
 {
     float sizeForDrawing = AnnotationTextFontPointSizeEnum::toSizeNumeric(AnnotationTextFontPointSizeEnum::SIZE14);
     
+    /*
+     * Minimum pixel size for text that is sized as a percent of height (tab/window).
+     * Note that some characters in a font may cause an OpenGL error and this
+     * error may unique to the underlying OpenGL implementation.
+     */
+    const float minimumPixelSizeForPercentageText = 1.0;
+    
     switch (m_fontSizeType) {
         case AnnotationTextFontSizeTypeEnum::POINTS:
             sizeForDrawing = AnnotationTextFontPointSizeEnum::toSizeNumeric(m_fontPointSize);
+            if (sizeForDrawing < AnnotationTextFontPointSizeEnum::getMinimumSizeNumeric()) {
+                sizeForDrawing = AnnotationTextFontPointSizeEnum::getMinimumSizeNumeric();
+            }
             break;
         case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
         {
@@ -453,6 +463,9 @@ AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportWidth,
              */
             const float pixelSize = drawingViewportHeight * (m_fontPercentViewportSize / 100.0);
             sizeForDrawing = pixelSize;
+            if (sizeForDrawing < minimumPixelSizeForPercentageText) {
+                sizeForDrawing = minimumPixelSizeForPercentageText;
+            }
         }
             break;
         case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH:
@@ -462,13 +475,13 @@ AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportWidth,
              */
             const float pixelSize = drawingViewportWidth * (m_fontPercentViewportSize / 100.0);
             sizeForDrawing = pixelSize;
+            if (sizeForDrawing < minimumPixelSizeForPercentageText) {
+                sizeForDrawing = minimumPixelSizeForPercentageText;
+            }
         }
             break;
     }
     
-    if (sizeForDrawing < AnnotationTextFontPointSizeEnum::getMinimumSizeNumeric()) {
-        sizeForDrawing = AnnotationTextFontPointSizeEnum::getMinimumSizeNumeric();
-    }
     
     const int32_t sizeInt = static_cast<int32_t>(MathFunctions::round(sizeForDrawing));
     return sizeInt;
