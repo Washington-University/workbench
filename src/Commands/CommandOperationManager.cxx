@@ -1103,11 +1103,11 @@ void CommandOperationManager::printCiftiHelp()
     cout << "   The CIFTI format is a new data file format intended to make it easier to" << endl;
     cout << "   work with data from multiple disjoint structures at the same time - often" << endl;
     cout << "   this means both hemispheres of cortex as surface data, and other structures" << endl;
-    cout << "   as voxel data (amygdala, thalamus, hippocampus, etc).  Additionally, it" << endl;
-    cout << "   can exclude locations that are uninteresting for the task at hand (medial" << endl;
-    cout << "   wall, white matter, csf), preventing them from taking up room in the data of" << endl;
-    cout << "   the file.  The set of structures and the locations in them that are used in" << endl;
-    cout << "   a cifti file is referred to as 'brainordinates', or for the specific case of" << endl;
+    cout << "   as voxel data (amygdala, thalamus, putamen, etc).  Additionally, it can" << endl;
+    cout << "   exclude locations that are uninteresting for the task at hand (medial wall," << endl;
+    cout << "   white matter, csf), preventing them from taking up room in the data of the" << endl;
+    cout << "   file.  The set of structures and the locations in them that are used in a" << endl;
+    cout << "   cifti file are referred to as 'brainordinates', or for the specific case of" << endl;
     cout << "   'all gray matter locations', 'grayordinates'." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   However, to explain the cifti format, it is easiest to work from the" << endl;
@@ -1115,17 +1115,18 @@ void CommandOperationManager::printCiftiHelp()
     cout << "   single rectangular data matrix (usually 2 dimensions, but supports 3, and" << endl;
     cout << "   may support more in the future), where each dimension is labeled with what" << endl;
     cout << "   we call a 'mapping', each of which uses one of (currently) five possible" << endl;
-    cout << "   'mapping types'.  It is these mapping types that give rise to the diverse" << endl;
-    cout << "   types of cifti files.  A single mapping of type 'brain models' (also known" << endl;
-    cout << "   as 'dense') can represent both hemispheres and all subcortical structures" << endl;
-    cout << "   simultaneously, meaning that only a single dimension is used to represent" << endl;
-    cout << "   over a dozen structures, both surface-based and voxel-based.  The mapping" << endl;
-    cout << "   contains all information needed to figure out what every index along the" << endl;
-    cout << "   dimension means.  By putting a dense mapping along both dimensions in a 2D" << endl;
-    cout << "   cifti file, you get a brainordinates by brainordinates matrix, frequently" << endl;
-    cout << "   used for connectivity measures.  Notably, even if two dimensions use the" << endl;
-    cout << "   same mapping *type*, they can have different information in them, for" << endl;
-    cout << "   example a connectivity matrix between two different parcellations." << endl;
+    cout << "   'mapping types'.  It is the combinations of these mapping types that give" << endl;
+    cout << "   rise to the diverse types of cifti files.  A single mapping of type 'brain" << endl;
+    cout << "   models' (also known as 'dense') can represent both hemispheres and all" << endl;
+    cout << "   subcortical structures simultaneously, meaning that only a single matrix" << endl;
+    cout << "   dimension is used to represent over a dozen structures, both surface-based" << endl;
+    cout << "   and voxel-based.  Each mapping contains all information needed to figure out" << endl;
+    cout << "   what every index along the matrix dimension means.  By putting a dense" << endl;
+    cout << "   mapping along both dimensions in a 2D cifti file, you get a brainordinates" << endl;
+    cout << "   by brainordinates matrix, which is used for connectivity measures.  Notably," << endl;
+    cout << "   even if two dimensions use the same mapping *type*, they can have different" << endl;
+    cout << "   information in them, for example a connectivity matrix between two different" << endl;
+    cout << "   parcellations." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   The other mapping types that currently may be used in a cifti file are:" << endl;
     cout << "      Parcels: each index refers to a named subset of the brainordinates (i.e." << endl;
