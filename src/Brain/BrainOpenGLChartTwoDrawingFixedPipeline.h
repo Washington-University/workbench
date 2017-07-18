@@ -54,7 +54,7 @@ namespace caret {
         virtual ~BrainOpenGLChartTwoDrawingFixedPipeline();
         
         virtual void drawChartOverlaySet(Brain* brain,
-                                         BrowserTabContent* browserTabContent,
+                                         BrainOpenGLViewportContent* viewportContent,
                                          ModelChartTwo* chartTwoModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
@@ -164,7 +164,11 @@ namespace caret {
         
         void drawPrimitivePrivate(GraphicsPrimitive* primitive);
         
+        void updateViewportContentForCharting(const int32_t viewport[4]);
+        
         Brain* m_brain;
+        
+        BrainOpenGLViewportContent* m_viewportContent;
         
         BrowserTabContent* m_browserTabContent;
         

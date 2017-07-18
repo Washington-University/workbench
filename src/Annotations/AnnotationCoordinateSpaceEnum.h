@@ -35,6 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Chart space */
+        CHART,
         /** Annotation in stereotaxic (3D) space */
         STEREOTAXIC,
         /** Annotation on surface node */

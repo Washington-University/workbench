@@ -315,12 +315,16 @@ AnnotationOneDimensionalShape::setRotationAngle(const float viewportWidth,
 bool
 AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const
 {
+    bool chartFlag       = false;
     bool tabWindowFlag   = false;
     bool stereotaxicFlag = false;
     bool surfaceFlag     = false;
     bool viewportFlag    = false;
     
     switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            chartFlag = true;
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             stereotaxicFlag = true;
             break;
@@ -340,42 +344,41 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
     
     bool validFlag = false;
     
-//    if ( ! pixelsFlag) {
-        switch (sizingHandle) {
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+    switch (sizingHandle) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            validFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            validFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            if (chartFlag
+                || tabWindowFlag) {
                 validFlag = true;
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            if (tabWindowFlag) {
                 validFlag = true;
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-                if (tabWindowFlag) {
-                    validFlag = true;
-                }
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
-                if (tabWindowFlag) {
-                    validFlag = true;
-                }
-                break;
-        }
-//    }
+            }
+            break;
+    }
     
     return validFlag;
 }
@@ -603,6 +606,71 @@ AnnotationOneDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
 }
 
 /**
+ * Apply a spatial modification to an annotation in chart space.
+ *
+ * @param spatialModification
+ *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
+ */
+bool
+AnnotationOneDimensionalShape::applySpatialModificationChartSpace(const AnnotationSpatialModification& spatialModification)
+{
+    bool validFlag = false;
+    
+    switch (spatialModification.m_sizingHandleType) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            if (spatialModification.m_chartCoordAtMouseXY.m_chartXYZValid) {
+                m_endCoordinate->setXYZ(spatialModification.m_chartCoordAtMouseXY.m_chartXYZ);
+                validFlag = true;
+            }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            if (spatialModification.m_chartCoordAtMouseXY.m_chartXYZValid) {
+                m_startCoordinate->setXYZ(spatialModification.m_chartCoordAtMouseXY.m_chartXYZ);
+                validFlag = true;
+            }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            if (spatialModification.m_chartCoordAtMouseXY.m_chartXYZValid
+                && spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZValid) {
+                const float dx = spatialModification.m_chartCoordAtMouseXY.m_chartXYZ[0] - spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZ[0];
+                const float dy = spatialModification.m_chartCoordAtMouseXY.m_chartXYZ[1] - spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZ[1];
+                const float dz = spatialModification.m_chartCoordAtMouseXY.m_chartXYZ[2] - spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZ[2];
+                
+                m_startCoordinate->addToXYZ(dx, dy, dz);
+                m_endCoordinate->addToXYZ(dx, dy, dz);
+                validFlag = true;
+            }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            break;
+    }
+    
+    if (validFlag) {
+        setModified();
+    }
+    
+    return validFlag;
+}
+
+/**
  * Apply a spatial modification to an annotation in stereotaxic space.
  *
  * @param spatialModification
@@ -673,6 +741,9 @@ AnnotationOneDimensionalShape::applySpatialModification(const AnnotationSpatialM
     }
     
     switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            return applySpatialModificationChartSpace(spatialModification);
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             return applySpatialModificationStereotaxicSpace(spatialModification);
             break;

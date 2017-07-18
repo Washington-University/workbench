@@ -612,6 +612,9 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
          */
         int32_t annViewport[4] = { 0, 0, 0, 0 };
         switch (annotation->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                CaretAssert(0);
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 CaretAssert(0);
                 break;

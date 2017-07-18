@@ -93,6 +93,8 @@ SceneableInterface()
     m_tabOrWindowIndex = tabOrWindowIndex;
     
     switch (m_coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -259,6 +261,8 @@ AnnotationGroup::getName() const
         
         AString spaceName = AnnotationCoordinateSpaceEnum::toGuiName(m_coordinateSpace);
         switch (m_coordinateSpace) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -419,6 +423,8 @@ AnnotationGroup::validateAddedAnnotation(const Annotation* annotation)
     }
     
     switch (space) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:

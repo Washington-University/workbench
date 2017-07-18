@@ -100,6 +100,10 @@ AnnotationCoordinateInformation::reset() {
     m_windowPixelXYZ[0] = 0.0;
     m_windowPixelXYZ[1] = 0.0;
     m_windowPixelXYZ[2] = 0.0;
+    m_chartXYZ[0] = 0.0;
+    m_chartXYZ[1] = 0.0;
+    m_chartXYZ[2] = 0.0;
+    m_chartXYZValid = false;
 }
 
 bool
@@ -108,6 +112,9 @@ AnnotationCoordinateInformation::isCoordinateSpaceValid(const AnnotationCoordina
     bool validSpaceFlag = false;
     
     switch (space) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            validSpaceFlag = m_chartXYZValid;
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             validSpaceFlag = m_modelXYZValid;
             break;
@@ -159,6 +166,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
         switch (space) {
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 break;
+            case AnnotationCoordinateSpaceEnum::CHART:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             case AnnotationCoordinateSpaceEnum::SURFACE:
             case AnnotationCoordinateSpaceEnum::TAB:
@@ -175,6 +183,13 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                         addItFlag = coordInfoTwo->isCoordinateSpaceValid(space);
                         
                         switch (space) {
+                            case AnnotationCoordinateSpaceEnum::CHART:
+                                /*
+                                 * Both coord info's must be in the SAME TAB
+                                 */
+                                if (coordInfoOne->m_tabIndex != coordInfoTwo->m_tabIndex) {
+                                    addItFlag = false;
+                                }
                             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                                 /*
                                  * Both coord info's must be in the SAME TAB
@@ -340,6 +355,37 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         }
     }
     
+    if (tabContent != NULL) {
+        Matrix4x4 projectionMatrix;
+        Matrix4x4 modelviewMatrix;
+        int viewport[4];
+        if (viewportContent->getChartDataMatricesAndViewport(projectionMatrix,
+                                                             modelviewMatrix,
+                                                             viewport)) {
+            if ((windowX >= viewport[0])
+                && (windowX < (viewport[0] + viewport[2]))
+                && (windowY >= viewport[1])
+                && (windowY < (viewport[1] + viewport[3]))) {
+                double projectionArray[16];
+                projectionMatrix.getMatrixForOpenGL(projectionArray);
+                double modelviewArray[16];
+                modelviewMatrix.getMatrixForOpenGL(modelviewArray);
+                
+                double chartX = 0.0;
+                double chartY = 0.0;
+                double chartZ = 0.0;
+                if (gluUnProject(windowX, windowY, 0.0,
+                                 modelviewArray, projectionArray, viewport,
+                                 &chartX, &chartY, &chartZ) == GL_TRUE) {
+                    coordInfoOut.m_chartXYZ[0] = static_cast<float>(chartX);
+                    coordInfoOut.m_chartXYZ[1] = static_cast<float>(chartY);
+                    coordInfoOut.m_chartXYZ[2] = static_cast<float>(chartZ);
+                    coordInfoOut.m_chartXYZValid = true;
+                }
+            }
+        }
+    }
+    
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
     coordInfoOut.m_windowPixelXYZ[0] = windowX - windowViewport[0];
@@ -427,6 +473,22 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
     CaretAssert(endCoordinate);
     
     switch (coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            if (coordInfoOne->m_chartXYZValid) {
+                startCoordinate->setXYZ(coordInfoOne->m_chartXYZ);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::CHART);
+                
+                validCoordinateFlag = true;
+                
+                if (coordInfoTwo != NULL) {
+                    if (coordInfoTwo->m_chartXYZValid) {
+                        if (endCoordinate != NULL) {
+                            endCoordinate->setXYZ(coordInfoTwo->m_chartXYZ);
+                        }
+                    }
+                }
+            }
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (coordInfoOne->m_modelXYZValid) {
                 startCoordinate->setXYZ(coordInfoOne->m_modelXYZ);
@@ -577,6 +639,26 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
     AnnotationCoordinate* coordinate = annotation->getCoordinate();
     
     switch (coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            if (coordInfoOne->m_chartXYZValid) {
+                coordinate->setXYZ(coordInfoOne->m_chartXYZ);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::CHART);
+                
+                validCoordinateFlag = true;
+                
+                if (optionalCoordInfoTwo != NULL) {
+                    if (optionalCoordInfoTwo->m_chartXYZValid) {
+                        float centerXYZ[3] = {
+                            (coordInfoOne->m_modelXYZ[0] + optionalCoordInfoTwo->m_modelXYZ[0]) / 2.0f,
+                            (coordInfoOne->m_modelXYZ[1] + optionalCoordInfoTwo->m_modelXYZ[1]) / 2.0f,
+                            (coordInfoOne->m_modelXYZ[2] + optionalCoordInfoTwo->m_modelXYZ[2]) / 2.0f
+                        };
+                        coordinate->setXYZ(centerXYZ);
+                        setWidthHeightWithTabCoordsFlag = true;
+                    }
+                }
+            }
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (coordInfoOne->m_modelXYZValid) {
                 coordinate->setXYZ(coordInfoOne->m_modelXYZ);

@@ -98,20 +98,23 @@ m_newAnnotationCreatedByContextMenu(NULL)
     
     bool allSelectedAnnotationsDeletableFlag = true;
     
-    m_stereotaxicAndSurfaceAnnotations.clear();
+    m_threeDimCoordAnnotations.clear();
     for (std::vector<std::pair<Annotation*, AnnotationFile*> >::iterator iter = selectedAnnotations.begin();
          iter != selectedAnnotations.end();
          iter++) {
         Annotation* ann = iter->first;
         CaretAssert(ann);
         
-        bool stereoOrSurfaceSpaceFlag = false;
+        bool threeDimCoordFlag = false;
         switch (ann->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                threeDimCoordFlag = true;
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                stereoOrSurfaceSpaceFlag = true;
+                threeDimCoordFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
-                stereoOrSurfaceSpaceFlag = true;
+                threeDimCoordFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
                 break;
@@ -120,15 +123,15 @@ m_newAnnotationCreatedByContextMenu(NULL)
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 break;
         }
-        if (stereoOrSurfaceSpaceFlag) {
-            m_stereotaxicAndSurfaceAnnotations.push_back(ann);
+        if (threeDimCoordFlag) {
+            m_threeDimCoordAnnotations.push_back(ann);
         }
         
         if ( ! ann->isDeletable()) {
             allSelectedAnnotationsDeletableFlag = false;
         }
     }
-    const bool haveStereotaxicAnnotationsFlag = ( ! m_stereotaxicAndSurfaceAnnotations.empty());
+    const bool haveThreeDimCoordAnnotationsFlag = ( ! m_threeDimCoordAnnotations.empty());
 
     bool oneAnnotationSelectedFlag = false;
     bool oneDeletableAnnotationSelectedFlag = false;
@@ -225,21 +228,21 @@ m_newAnnotationCreatedByContextMenu(NULL)
     /*
      * Turn on/off display in tabs
      */
-    QAction* turnOffTabDisplayAction = addAction("Turn Off Stereotaxic/Surface Annotation Display in Other Tabs",
+    QAction* turnOffTabDisplayAction = addAction("Turn Off Chart/Stereotaxic/Surface Annotation Display in Other Tabs",
                                               this, SLOT(turnOffDisplayInOtherTabs()));
-    QAction* turnOnTabDisplayAction = addAction("Turn On Stereotaxic/Surface Annotation Display in All Tabs",
+    QAction* turnOnTabDisplayAction = addAction("Turn On Chart/Stereotaxic/Surface Annotation Display in All Tabs",
                                               this, SLOT(turnOnDisplayInAllTabs()));
-    turnOffTabDisplayAction->setEnabled(haveStereotaxicAnnotationsFlag);
-    turnOnTabDisplayAction->setEnabled(haveStereotaxicAnnotationsFlag);
+    turnOffTabDisplayAction->setEnabled(haveThreeDimCoordAnnotationsFlag);
+    turnOnTabDisplayAction->setEnabled(haveThreeDimCoordAnnotationsFlag);
     
     /*
      * Turn on/off display in groups
      */
-    QAction* turnOnGroupDisplayAction = addAction("Turn On Stereotaxic/Surface Annotation Display in All Groups",
+    QAction* turnOnGroupDisplayAction = addAction("Turn On Chart/Stereotaxic/Surface Annotation Display in All Groups",
                                                 this, SLOT(turnOnDisplayInAllGroups()));
-    turnOnGroupDisplayAction->setEnabled(haveStereotaxicAnnotationsFlag);
+    turnOnGroupDisplayAction->setEnabled(haveThreeDimCoordAnnotationsFlag);
     QMenu* turnOnInDisplayGroupMenu = createTurnOnInDisplayGroupMenu();
-    turnOnInDisplayGroupMenu->setEnabled(haveStereotaxicAnnotationsFlag);
+    turnOnInDisplayGroupMenu->setEnabled(haveThreeDimCoordAnnotationsFlag);
     addMenu(turnOnInDisplayGroupMenu);
 
     /*
@@ -389,8 +392,8 @@ UserInputModeAnnotationsContextMenu::setAnnotationText()
 void
 UserInputModeAnnotationsContextMenu::turnOffDisplayInOtherTabs()
 {
-    for (std::vector<Annotation*>::iterator iter = m_stereotaxicAndSurfaceAnnotations.begin();
-         iter != m_stereotaxicAndSurfaceAnnotations.end();
+    for (std::vector<Annotation*>::iterator iter = m_threeDimCoordAnnotations.begin();
+         iter != m_threeDimCoordAnnotations.end();
          iter++) {
         (*iter)->setItemDisplaySelectedInOneTab(m_browserTabContent->getTabNumber());
     }
@@ -405,8 +408,8 @@ UserInputModeAnnotationsContextMenu::turnOffDisplayInOtherTabs()
 void
 UserInputModeAnnotationsContextMenu::turnOnDisplayInAllTabs()
 {
-    for (std::vector<Annotation*>::iterator iter = m_stereotaxicAndSurfaceAnnotations.begin();
-         iter != m_stereotaxicAndSurfaceAnnotations.end();
+    for (std::vector<Annotation*>::iterator iter = m_threeDimCoordAnnotations.begin();
+         iter != m_threeDimCoordAnnotations.end();
          iter++) {
         (*iter)->setItemDisplaySelectedInAllTabs();
     }
@@ -421,8 +424,8 @@ UserInputModeAnnotationsContextMenu::turnOnDisplayInAllTabs()
 void
 UserInputModeAnnotationsContextMenu::turnOnDisplayInAllGroups()
 {
-    for (std::vector<Annotation*>::iterator iter = m_stereotaxicAndSurfaceAnnotations.begin();
-         iter != m_stereotaxicAndSurfaceAnnotations.end();
+    for (std::vector<Annotation*>::iterator iter = m_threeDimCoordAnnotations.begin();
+         iter != m_threeDimCoordAnnotations.end();
          iter++) {
         (*iter)->setItemDisplaySelectedInAllGroups();
     }
@@ -454,8 +457,8 @@ UserInputModeAnnotationsContextMenu::turnOnDisplayInGroup(QAction* action)
         return;
     }
     
-    for (std::vector<Annotation*>::iterator iter = m_stereotaxicAndSurfaceAnnotations.begin();
-         iter != m_stereotaxicAndSurfaceAnnotations.end();
+    for (std::vector<Annotation*>::iterator iter = m_threeDimCoordAnnotations.begin();
+         iter != m_threeDimCoordAnnotations.end();
          iter++) {
         (*iter)->setItemDisplaySelectedInOneGroup(displayGroup);
     }
@@ -467,7 +470,7 @@ UserInputModeAnnotationsContextMenu::turnOnDisplayInGroup(QAction* action)
 QMenu*
 UserInputModeAnnotationsContextMenu::createTurnOnInDisplayGroupMenu()
 {
-    QMenu* menu = new QMenu("Turn On Stereotaxic/Surface Annotation Only in Group");
+    QMenu* menu = new QMenu("Turn On Chart/Stereotaxic/Surface Annotation Only in Group");
     QObject::connect(menu, SIGNAL(triggered(QAction*)),
                      this, SLOT(turnOnDisplayInGroup(QAction*)));
     

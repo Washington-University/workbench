@@ -1362,6 +1362,8 @@ AnnotationRedoUndoCommand::setModeRotationAngle(const float newRotationAngle,
             int32_t viewport[4] = { 0, 0, 0, 0 };
             bool viewportValid = false;
             switch (oneDimAnn->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     break;
                 case  AnnotationCoordinateSpaceEnum::SURFACE:
@@ -1873,6 +1875,8 @@ AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercent
             
             float percentSize = newFontPercentSize;
             switch (redoAnnotation->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     percentSize *= surfaceSpaceRowCount;
                     break;

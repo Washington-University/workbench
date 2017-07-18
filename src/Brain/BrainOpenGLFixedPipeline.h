@@ -187,7 +187,7 @@ namespace caret {
                               ModelChart* chartData,
                               const int32_t viewport[4]);
         
-        void drawChartTwoData(BrowserTabContent* browserTabContent,
+        void drawChartTwoData(BrainOpenGLViewportContent* viewportContent,
                               ModelChartTwo* chartData,
                               const int32_t viewport[4]);
         
@@ -462,6 +462,8 @@ namespace caret {
         void drawWindowAnnotations(const int windowViewport[4]);
         
         void drawTabAnnotations(BrainOpenGLViewportContent* tabContent);
+        
+        void drawChartCoordinateSpaceAnnotations(BrainOpenGLViewportContent* viewportContent);
         
         void drawBackgroundImage(BrainOpenGLViewportContent* vpContent);
         

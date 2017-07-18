@@ -140,6 +140,22 @@ DisplayGroupAndTabItemInterface::setItemDisplaySelectedInAllGroups()
 }
 
 /**
+ * Set the display status to UNSELECTED for all groups (except TAB).
+ */
+void
+DisplayGroupAndTabItemInterface::setItemDisplaySelectedInNoDisplayGroups()
+{
+    std::vector<DisplayGroupEnum::Enum> groupEnums;
+    DisplayGroupEnum::getAllEnumsExceptTab(groupEnums);
+    
+    for (auto group : groupEnums) {
+        setItemDisplaySelected(group,
+                               0,
+                               TriStateSelectionStatusEnum::UNSELECTED);
+    }
+}
+
+/**
  * Set the display status to SELECTED for the given group (not TAB) and
  * UNSELECTED for all other groups (not TAB).
  *

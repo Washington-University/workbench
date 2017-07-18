@@ -92,6 +92,9 @@ namespace caret {
         AnnotationSurfaceOffsetVectorTypeEnum::Enum m_surfaceNodeVector;
         bool m_surfaceNodeValid;
         
+        
+        float m_chartXYZ[3];
+        bool  m_chartXYZValid;
     private:
         AnnotationCoordinateInformation(const AnnotationCoordinateInformation&);
 

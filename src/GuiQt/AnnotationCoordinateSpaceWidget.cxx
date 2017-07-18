@@ -117,6 +117,8 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
         else {
             text = AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(space);
             switch (space) {
+                case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:

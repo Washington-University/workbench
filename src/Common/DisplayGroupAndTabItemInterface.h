@@ -158,6 +158,8 @@ namespace caret {
         
         virtual void setItemDisplaySelectedInAllGroups();
         
+        virtual void setItemDisplaySelectedInNoDisplayGroups();
+        
         virtual void setItemDisplaySelectedInOneGroup(const DisplayGroupEnum::Enum displayGroup);
         
         /**

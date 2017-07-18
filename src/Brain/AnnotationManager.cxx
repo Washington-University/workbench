@@ -979,6 +979,9 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
 
             bool displayedFlag = false;
             switch (ann->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::CHART:
+                    displayedFlag = true;
+                    break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     displayedFlag = true;
                     break;

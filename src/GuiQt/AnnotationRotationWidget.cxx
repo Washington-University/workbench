@@ -110,6 +110,8 @@ AnnotationRotationWidget::getValidOneDimAnnotation(Annotation* annotation)
     if (oneDimAnn != NULL) {
         bool validSpaceFlag = false;
         switch (oneDimAnn->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -166,6 +168,8 @@ AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
                     int32_t viewport[4] = { 0, 0, 0, 0 };
                     bool viewportValidFlag = false;
                     switch (oneDimAnn->getCoordinateSpace()) {
+                        case AnnotationCoordinateSpaceEnum::CHART:
+                            break;
                         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                             break;
                         case  AnnotationCoordinateSpaceEnum::SURFACE:

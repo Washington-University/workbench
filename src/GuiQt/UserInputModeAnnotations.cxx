@@ -404,6 +404,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                 bool changeCoordFlag  = false;
                 bool moveOnePixelFlag = false;
                 switch (selectedAnnotation->getCoordinateSpace()) {
+                    case AnnotationCoordinateSpaceEnum::CHART:
+                        changeCoordFlag = true;
+                        break;
                     case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                         changeCoordFlag = true;
                         break;
@@ -465,6 +468,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     {
                             bool surfaceFlag = false;
                             switch (selectedAnnotation->getCoordinateSpace()) {
+                                case AnnotationCoordinateSpaceEnum::CHART:
+                                    break;
                                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                                     break;
                                 case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -613,6 +618,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
     }
     
     switch (draggingCoordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -649,6 +656,24 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
         float spaceHeight = 0.0;
         
         switch (draggingCoordinateSpace) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+            {
+                /*
+                 * Want viewport within montage that contains the surface
+                 */
+                Matrix4x4 projectionMatrix;
+                Matrix4x4 modelviewMatrix;
+                int32_t chartVP[4];
+                if (vpContent->getChartDataMatricesAndViewport(projectionMatrix,
+                                                               modelviewMatrix,
+                                                               chartVP)) {
+                    spaceOriginX = chartVP[0];
+                    spaceOriginY = chartVP[1];
+                    spaceWidth   = chartVP[2];
+                    spaceHeight  = chartVP[3];
+                }
+            }
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             {
                 /*
@@ -753,7 +778,26 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                                 coordInfo.m_modelXYZ[2]);
             }
             
+            if (coordInfo.m_chartXYZValid) {
+                annSpatialMod.setChartCoordinateAtMouseXY(coordInfo.m_chartXYZ[0],
+                                                          coordInfo.m_chartXYZ[1],
+                                                          coordInfo.m_chartXYZ[2]);
+            }
             
+            if ((dx != 0.0)
+                || (dy != 0.0)) {
+                AnnotationCoordinateInformation previousMouseXYCoordInfo;
+                AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
+                                                                                   mouseEvent.getViewportContent(),
+                                                                                   mouseEvent.getX() - dx,
+                                                                                   mouseEvent.getY() - dy,
+                                                                                   previousMouseXYCoordInfo);
+                if (previousMouseXYCoordInfo.m_chartXYZValid) {
+                    annSpatialMod.setChartCoordinateAtPreviousMouseXY(previousMouseXYCoordInfo.m_chartXYZ[0],
+                                                                      previousMouseXYCoordInfo.m_chartXYZ[1],
+                                                                      previousMouseXYCoordInfo.m_chartXYZ[2]);
+                }
+            }
             
             std::vector<Annotation*> annotationsBeforeMoveAndResize;
             std::vector<Annotation*> annotationsAfterMoveAndResize;

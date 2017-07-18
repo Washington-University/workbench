@@ -110,6 +110,11 @@ AnnotationCoordinateSpaceEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(AnnotationCoordinateSpaceEnum(CHART,
+                                                     "CHART",
+                                                     "Chart",
+                                                     "Ch"));
+    
     enumData.push_back(AnnotationCoordinateSpaceEnum(STEREOTAXIC,
                                                      "STEREOTAXIC",
                                                      "Stereotaxic",
@@ -299,6 +304,9 @@ AnnotationCoordinateSpaceEnum::toToolTip(Enum enumValue)
     AString text;
     
     switch (enumValue) {
+        case CHART:
+            text = "New annotation is drawn at a chart data XYZ coordinate";
+            break;
         case STEREOTAXIC:
             text = "New annotation is drawn at a surface/volume XYZ coordinate";
             break;

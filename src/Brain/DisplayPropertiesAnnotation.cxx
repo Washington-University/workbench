@@ -87,6 +87,8 @@ DisplayPropertiesAnnotation::updateForNewAnnotation(const Annotation* annotation
     CaretAssert(annotation);
     
     switch (annotation->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -414,6 +416,9 @@ DisplayPropertiesAnnotation::restoreVersionOne(const SceneClass* sceneClass)
          annIter++) {
         Annotation* ann = *annIter;
         switch (ann->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                CaretAssertMessage(0, "This should never happen as CHART SPACE was never available in a version one scene");
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (stereoAnnDisplay != NULL) {
                 for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {

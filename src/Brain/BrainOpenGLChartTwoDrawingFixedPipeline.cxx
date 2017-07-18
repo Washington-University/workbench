@@ -30,8 +30,10 @@
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "Brain.h"
+#include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLTextRenderInterface.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -94,8 +96,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  *
  * @param brain
  *     Brain.
- * @param browserTabContent
- *     Content of the browser tab.
+ * @param viewportContent
+ *     Content of the viewport
  * @param chartTwoModel
  *     The chart two model.
  * @param fixedPipelineDrawing
@@ -110,7 +112,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
-                                                             BrowserTabContent* browserTabContent,
+                                                             BrainOpenGLViewportContent* viewportContent,
                                                              ModelChartTwo* chartTwoModel,
                                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                              const SelectionItemDataTypeEnum::Enum selectionItemDataType,
@@ -120,11 +122,15 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     viewportSpaceAnnotationsOut.clear();
     m_viewportSpaceAnnotationsOut.clear();
     
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    CaretAssert(browserTabContent);
     CaretAssert(brain);
     CaretAssert(browserTabContent);
     CaretAssert(chartTwoModel);
     CaretAssert(fixedPipelineDrawing);
+    
     m_brain = brain;
+    m_viewportContent = viewportContent;
     m_chartTwoModel = chartTwoModel;
     m_fixedPipelineDrawing = fixedPipelineDrawing;
     m_textRenderer = fixedPipelineDrawing->getTextRenderer();
@@ -161,6 +167,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
         for (auto cb : colorBars) {
             bool useItFlag = false;
             switch (cb->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -248,28 +256,47 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
             topOverlay->getSelectionData(mapFile,
                                       selectedIndexType,
                                       selectedIndex);
-                if (mapFile != NULL) {
-                    const ChartTwoDataTypeEnum::Enum chartDataType = topOverlay->getChartTwoDataType();
-                    switch (chartDataType) {
-                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                            break;
-                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-                            if (drawHistogramFlag) {
-                                drawHistogramOrLineSeriesChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
-                            }
-                            break;
-                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-                            if (drawLineSeriesFlag) {
-                                drawHistogramOrLineSeriesChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES);
-                            }
-                            break;
-                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                            if (drawMatrixFlag) {
-                                drawMatrixChart();
-                            }
-                            break;
-                    }
+            if (mapFile != NULL) {
+                const ChartTwoDataTypeEnum::Enum chartDataType = topOverlay->getChartTwoDataType();
+                switch (chartDataType) {
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                        if (drawHistogramFlag) {
+                            drawHistogramOrLineSeriesChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
+                        }
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                        if (drawLineSeriesFlag) {
+                            drawHistogramOrLineSeriesChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES);
+                        }
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                        if (drawMatrixFlag) {
+                            drawMatrixChart();
+                        }
+                        break;
                 }
+                
+                /*
+                 * Draw annotations for the chart.
+                 */
+                BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(m_fixedPipelineDrawing->m_brain,
+                                                                         m_fixedPipelineDrawing->mode,
+                                                                         BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                                         m_fixedPipelineDrawing->m_tabViewport,
+                                                                         m_fixedPipelineDrawing->m_windowIndex,
+                                                                         m_fixedPipelineDrawing->windowTabIndex,
+                                                                         BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT,
+                                                                         BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
+                std::vector<AnnotationColorBar*> emptyColorBars;
+                std::vector<Annotation*> emptyViewportAnnotations;
+                m_fixedPipelineDrawing->m_annotationDrawing->drawAnnotations(&inputs,
+                                                         AnnotationCoordinateSpaceEnum::STEREOTAXIC,
+                                                         emptyColorBars,
+                                                         emptyViewportAnnotations,
+                                                         NULL);
+            }
         }
     }
     
@@ -657,9 +684,18 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                          0.0);
                         }
                         
+                        /*
+                         * Save the transformation matrices and the viewport
+                         * If there is more than one line chart, this code will be executed
+                         * several times but since the top overlay is drawn last, the contents
+                         * of the top overlay will be used.
+                         */
+                        updateViewportContentForCharting(chartGraphicsDrawingViewport);
+                        
                         ChartableTwoFileHistogramChart::HistogramPrimitives* histogramPrimitives =
                         drawInfo->m_histogramChart->getMapHistogramDrawingPrimitives(drawInfo->m_mapIndex,
                                                                                      drawInfo->m_allMapsSelected);
+                        
                         if (histogramPrimitives != NULL) {
                             const float ENVELOPE_LINE_WIDTH = 1.0;
                             
@@ -808,6 +844,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                                lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
                     m_fixedPipelineDrawing->disableLineAntiAliasing();
                 }
+                
+                /*
+                 * Save the transformation matrices and the viewport
+                 * If there is more than one line chart, this code will be executed
+                 * several times but since the top overlay is drawn last, the contents
+                 * of the top overlay will be used.
+                 */
+                updateViewportContentForCharting(chartGraphicsDrawingViewport);
             }
         }
     }
@@ -911,6 +955,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
                      0.0);
     }
 
+    /*
+     * Save the transformation matrices and the viewport
+     * If there is more than one line chart, this code will be executed
+     * several times but since the top overlay is drawn last, the contents
+     * of the top overlay will be used.
+     */
+    updateViewportContentForCharting(m_viewport);
+    
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
         ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
         if ( ! chartOverlay->isEnabled()) {
@@ -1679,6 +1731,25 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float mini
     }
     
     return false;
+}
+
+/** 
+ * Update the viewport content with charting viewport and matrices.
+ */
+void
+BrainOpenGLChartTwoDrawingFixedPipeline::updateViewportContentForCharting(const int32_t viewport[4])
+{
+    GLfloat modelviewArray[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, modelviewArray);
+    GLfloat projectionArray[16];
+    glGetFloatv(GL_PROJECTION_MATRIX, projectionArray);
+    Matrix4x4 modelviewMatrix;
+    modelviewMatrix.setMatrixFromOpenGL(modelviewArray);
+    Matrix4x4 projectionMatrix;
+    projectionMatrix.setMatrixFromOpenGL(projectionArray);
+    m_viewportContent->setChartDataMatricesAndViewport(projectionMatrix,
+                                                       modelviewMatrix,
+                                                       viewport);
 }
 
 /**

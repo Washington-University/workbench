@@ -107,7 +107,7 @@ namespace caret {
         
         AnnotationFile* m_annotationFile;
         
-        std::vector<Annotation*> m_stereotaxicAndSurfaceAnnotations;
+        std::vector<Annotation*> m_threeDimCoordAnnotations;
         
         Annotation* m_annotation;
         

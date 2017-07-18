@@ -134,11 +134,13 @@ namespace caret {
         void invalidateImage();
         
         static Annotation* createAnnotation(NewAnnotationInfo& newAnnotationInfo,
-                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace);
+                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                            AString& errorMessageOut);
         
         static void finishAnnotationCreation(AnnotationFile* annotationFile,
                                              Annotation* annotation,
-                                             const int32_t browswerWindowIndex);
+                                             const int32_t browswerWindowIndex,
+                                             const int32_t tabIndex);
         
         const Mode m_mode;
         

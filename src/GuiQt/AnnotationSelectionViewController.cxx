@@ -266,6 +266,7 @@ AnnotationSelectionViewController::displayGroupSelected(const DisplayGroupEnum::
     dpa->setDisplayGroupForTab(browserTabIndex, displayGroup);
     
     updateAnnotationSelections();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 

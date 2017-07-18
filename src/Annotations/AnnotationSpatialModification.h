@@ -52,6 +52,14 @@ namespace caret {
                                                const float stereotaxicY,
                                                const float stereotaxicZ);
         
+        void setChartCoordinateAtMouseXY(const float chartX,
+                                         const float chartY,
+                                         const float chartZ);
+        
+        void setChartCoordinateAtPreviousMouseXY(const float chartX,
+                                                 const float chartY,
+                                                 const float chartZ);
+        
         virtual ~AnnotationSpatialModification();
         
 
@@ -75,6 +83,21 @@ namespace caret {
             int32_t m_surfaceNodeIndex;
             
             bool m_surfaceNodeValid;
+        };
+        
+        class ChartCoord {
+        public:
+            ChartCoord() {
+                m_chartXYZ[0] = 0.0;
+                m_chartXYZ[1] = 0.0;
+                m_chartXYZ[2] = 0.0;
+                
+                m_chartXYZValid = false;
+            }
+            
+            float m_chartXYZ[3];
+            
+            bool m_chartXYZValid;
         };
         
         
@@ -116,6 +139,10 @@ namespace caret {
         const float m_mouseDY;
         
         const bool  m_startOfDraggingFlag;
+        
+        ChartCoord m_chartCoordAtMouseXY;
+        
+        ChartCoord m_chartCoordAtPreviousMouseXY;
         
         SurfaceCoord m_surfaceCoordinateAtMouseXY;
         

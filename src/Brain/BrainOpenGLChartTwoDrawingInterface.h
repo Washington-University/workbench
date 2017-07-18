@@ -32,7 +32,7 @@ namespace caret {
     class Brain;
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLTextRenderInterface;
-    class BrowserTabContent;
+    class BrainOpenGLViewportContent;
     class ModelChartTwo;
     
     class BrainOpenGLChartTwoDrawingInterface {
@@ -62,7 +62,7 @@ namespace caret {
          *     by the Annotation OpenGL Drawing.
          */
         virtual void drawChartOverlaySet(Brain* brain,
-                                         BrowserTabContent* browserTabContent,
+                                         BrainOpenGLViewportContent* viewportContent,
                                          ModelChartTwo* chartTwoModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,

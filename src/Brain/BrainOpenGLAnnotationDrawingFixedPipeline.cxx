@@ -160,8 +160,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
 {
     const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace = annotation->getCoordinateSpace();
     
-    float stereotaxicXYZ[3]  = { 0.0, 0.0, 0.0 };
-    bool stereotaxicXYZValid = false;
+    float modelXYZ[3]  = { 0.0, 0.0, 0.0 };
+    bool modelXYZValid = false;
     
     float drawingSpaceXYZ[3] = { 0.0, 0.0, 0.0 };
     bool drawingSpaceXYZValid = false;
@@ -170,30 +170,36 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
     coordinate->getXYZ(annotationXYZ);
     
     switch (annotationCoordSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            modelXYZ[0] = annotationXYZ[0];
+            modelXYZ[1] = annotationXYZ[1];
+            modelXYZ[2] = annotationXYZ[2];
+            modelXYZValid = true;
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            stereotaxicXYZ[0] = annotationXYZ[0];
-            stereotaxicXYZ[1] = annotationXYZ[1];
-            stereotaxicXYZ[2] = annotationXYZ[2];
-            stereotaxicXYZValid = true;
+            modelXYZ[0] = annotationXYZ[0];
+            modelXYZ[1] = annotationXYZ[1];
+            modelXYZ[2] = annotationXYZ[2];
+            modelXYZValid = true;
             
             if (m_volumeSpacePlaneValid) {
                 float xyzFloat[3] = {
-                    stereotaxicXYZ[0],
-                    stereotaxicXYZ[1],
-                    stereotaxicXYZ[2]
+                    modelXYZ[0],
+                    modelXYZ[1],
+                    modelXYZ[2]
                 };
                 const float distToPlaneAbs = std::fabs(m_volumeSpacePlane.signedDistanceToPlane(xyzFloat));
                 const float halfSliceThickness = ((m_volumeSliceThickness > 0.0)
                                                   ? (m_volumeSliceThickness / 2.0)
                                                   : 1.0);
                 if (distToPlaneAbs < halfSliceThickness) { //1.5) {
-                    stereotaxicXYZValid = true;
+                    modelXYZValid = true;
                     
                     float projectedPoint[3];
-                    m_volumeSpacePlane.projectPointToPlane(stereotaxicXYZ, projectedPoint);
+                    m_volumeSpacePlane.projectPointToPlane(modelXYZ, projectedPoint);
                 }
                 else {
-                    stereotaxicXYZValid = false;
+                    modelXYZValid = false;
                 }
             }
             break;
@@ -219,9 +225,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                         float nodeXYZ[3];
                         surfaceDisplayed->getCoordinate(annotationNodeIndex,
                                                         nodeXYZ);
-                        stereotaxicXYZ[0] = nodeXYZ[0];
-                        stereotaxicXYZ[1] = nodeXYZ[1];
-                        stereotaxicXYZ[2] = nodeXYZ[2];
+                        modelXYZ[0] = nodeXYZ[0];
+                        modelXYZ[1] = nodeXYZ[1];
+                        modelXYZ[2] = nodeXYZ[2];
                         
                         
                         
@@ -258,10 +264,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                                 break;
                         }
                         
-                        stereotaxicXYZ[0] += (offsetUnitVector[0] * annotationOffsetLength);
-                        stereotaxicXYZ[1] += (offsetUnitVector[1] * annotationOffsetLength);
-                        stereotaxicXYZ[2] += (offsetUnitVector[2] * annotationOffsetLength);
-                        stereotaxicXYZValid = true;
+                        modelXYZ[0] += (offsetUnitVector[0] * annotationOffsetLength);
+                        modelXYZ[1] += (offsetUnitVector[1] * annotationOffsetLength);
+                        modelXYZ[2] += (offsetUnitVector[2] * annotationOffsetLength);
+                        modelXYZValid = true;
                     }
                 }
             }
@@ -301,14 +307,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
             break;
     }
     
-    if (stereotaxicXYZValid) {
+    if (modelXYZValid) {
         /*
          * Convert model space coordinates to window coordinates
          * as all annotations are drawn in window coordinates.
          */
         
-        if (convertModelToWindowCoordinate(stereotaxicXYZ, drawingSpaceXYZ)) {
-            stereotaxicXYZValid  = false;
+        if (convertModelToWindowCoordinate(modelXYZ, drawingSpaceXYZ)) {
+            modelXYZValid  = false;
             drawingSpaceXYZValid = true;
         }
         else {
@@ -622,6 +628,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     
     bool haveDisplayGroupFlag = true;
     switch (drawingCoordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -724,6 +732,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             annotationFile = m_dummyAnnotationFile;
             
             switch (drawingCoordinateSpace) {
+                case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -1090,6 +1100,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
     bool drawnFlag = false;
     
     switch (annotation->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -2354,6 +2366,27 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                               topLeft,
                                               outlineWidth,
                                               text->getRotationAngle());
+            
+            /*
+             * Cross can be used to show the text annotation's coordinate
+             * to assist with placement of the annotation
+             */
+            const bool drawCrossFlag = false;
+            if (drawCrossFlag) {
+                const float redRGBA[4] = { 1.0f, 0.0, 0.0, 1.0f };
+                std::unique_ptr<GraphicsPrimitiveV3f> crossShape = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
+                                                                                                                                            redRGBA));
+                crossShape->addVertex(annXYZ[0],
+                                      annXYZ[1] - 10);
+                crossShape->addVertex(annXYZ[0],
+                                      annXYZ[1] + 10);
+                crossShape->addVertex(annXYZ[0] - 10,
+                                      annXYZ[1]);
+                crossShape->addVertex(annXYZ[0] + 10,
+                                      annXYZ[1]);
+                GraphicsEngineDataOpenGL::draw(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                               crossShape.get());
+            }
         }
     }
 

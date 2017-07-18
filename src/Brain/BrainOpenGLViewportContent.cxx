@@ -92,6 +92,14 @@ m_browserTabContent(browserTabContent)
     m_modelY      = modelViewport[1];
     m_modelWidth  = modelViewport[2];
     m_modelHeight = modelViewport[3];
+    
+    m_chartDataProjectionMatrix.identity();
+    m_chartDataModelViewMatrix.identity();
+    m_chartDataX = 0;
+    m_chartDataY = 0;
+    m_chartDataWidth = 0;
+    m_chartDataHeight = 0;
+    m_chartDataViewportValidFlag = false;
 }
 
 /**
@@ -139,6 +147,13 @@ BrainOpenGLViewportContent::operator=(const BrainOpenGLViewportContent& obj)
 void
 BrainOpenGLViewportContent::initializeMembersBrainOpenGLViewportContent()
 {
+    m_chartDataProjectionMatrix.identity();
+    m_chartDataModelViewMatrix.identity();
+    m_chartDataX      = 0;
+    m_chartDataY      = 0;
+    m_chartDataWidth  = 0;
+    m_chartDataHeight = 0;
+    m_chartDataViewportValidFlag = false;
     m_modelX       = 0;
     m_modelY       = 0;
     m_modelWidth   = 0;
@@ -161,6 +176,13 @@ BrainOpenGLViewportContent::initializeMembersBrainOpenGLViewportContent()
 void
 BrainOpenGLViewportContent::copyHelperBrainOpenGLViewportContent(const BrainOpenGLViewportContent& obj)
 {
+    m_chartDataProjectionMatrix = obj.m_chartDataProjectionMatrix;
+    m_chartDataModelViewMatrix  = obj.m_chartDataModelViewMatrix;
+    m_chartDataX      = obj.m_chartDataX;
+    m_chartDataY      = obj.m_chartDataY;
+    m_chartDataWidth  = obj.m_chartDataWidth;
+    m_chartDataHeight = obj.m_chartDataHeight;
+    m_chartDataViewportValidFlag = obj.m_chartDataViewportValidFlag;
     m_modelX       = obj.m_modelX;
     m_modelY       = obj.m_modelY;
     m_modelWidth   = obj.m_modelWidth;
@@ -282,6 +304,58 @@ BrainOpenGLViewportContent::isTabHighlighted() const
 }
 
 /**
+ * Get the data bounds and viewport for drawing the chart data.
+ *
+ * @param chartDataProjectionMatrixOut
+ *    Output into which projection matrix for drawing chart data loaded.
+ * @param chartDataModelViewMatrixOut
+ *    Output into which model viewing matrix for drawing chart data loaded.
+ * @param chartViewportOut
+ *    Output into which viewport is loaded.
+ *    (x, y, width, height)
+ * @return 
+ *    True if the chart data viewport is valid.
+ */
+bool
+BrainOpenGLViewportContent::getChartDataMatricesAndViewport(Matrix4x4& chartDataProjectionMatrixOut,
+                                                         Matrix4x4& chartDataModelViewMatrixOut,
+                                                         int chartViewportOut[4]) const
+{
+    chartDataProjectionMatrixOut = m_chartDataProjectionMatrix;
+    chartDataModelViewMatrixOut  = m_chartDataModelViewMatrix;
+    chartViewportOut[0] = m_chartDataX;
+    chartViewportOut[1] = m_chartDataY;
+    chartViewportOut[2] = m_chartDataWidth;
+    chartViewportOut[3] = m_chartDataHeight;
+    return m_chartDataViewportValidFlag;
+}
+
+/**
+ * Set the viewport for drawing the chart data.
+ *
+ * @param chartDataProjectionMatrix
+ *    Pojection matrix for drawing chart data.
+ * @param chartDataModelViewMatrix
+ *    Viewing matrix for drawing chart data.
+ * @param chartDataViewport
+ *    Viewport (x, y, width, height).
+ */
+void
+BrainOpenGLViewportContent::setChartDataMatricesAndViewport(const Matrix4x4& chartDataProjectionMatrix,
+                                                         const Matrix4x4& chartDataModelViewMatrix,
+                                                         const int chartViewport[4])
+{
+    m_chartDataProjectionMatrix = chartDataProjectionMatrix;
+    m_chartDataModelViewMatrix  = chartDataModelViewMatrix;
+    m_chartDataX = chartViewport[0];
+    m_chartDataY = chartViewport[1];
+    m_chartDataWidth = chartViewport[2];
+    m_chartDataHeight = chartViewport[3];
+    m_chartDataViewportValidFlag = true;
+}
+
+
+/**
  * Get the viewport for drawing the model (has been reduced
  * from tab viewport by applying the margin).
  *
@@ -373,7 +447,19 @@ BrainOpenGLViewportContent::toString() const
     const QString tabMsg    = QString("   Tab    x=%1 y=%2 w=%3 h=%4").arg(m_tabX).arg(m_tabY).arg(m_tabWidth).arg(m_tabHeight);
     const QString modelMsg  = QString("   Model  x=%1 y=%2 w=%3 h=%4").arg(m_modelX).arg(m_modelY).arg(m_modelWidth).arg(m_modelHeight);
     
-    AString msgOut(windowMsg);
+    AString msgOut;
+    if (m_chartDataViewportValidFlag) {
+        const QString chartProjectionMsg = QString("   Chart Projection=" + m_chartDataProjectionMatrix.toFormattedString("      "));
+        const QString chartModelMsg = QString("   Chart Model View=" + m_chartDataModelViewMatrix.toFormattedString("      "));
+        const QString chartViewportMsg = QString("   Chart x=%1 y=%2 w=%3 h=%4").arg(m_chartDataX).arg(m_chartDataY).arg(m_chartDataWidth).arg(m_chartDataHeight);
+        msgOut.appendWithNewLine(chartProjectionMsg);
+        msgOut.appendWithNewLine(chartModelMsg);
+        msgOut.appendWithNewLine(chartViewportMsg);
+    }
+    else {
+        msgOut.appendWithNewLine("   Chart Invalid.");
+    }
+    msgOut.appendWithNewLine(windowMsg);
     msgOut.appendWithNewLine(tabMsg);
     msgOut.appendWithNewLine(modelMsg);
     

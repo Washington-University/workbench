@@ -53,6 +53,10 @@ namespace caret {
                     const float y,
                     const float z);
         
+        void addToXYZ(const float dx,
+                      const float dy,
+                      const float dz);
+        
         void setXYZFromViewportXYZ(const float viewportWidth,
                                    const float viewportHeight,
                                    const float viewportX,

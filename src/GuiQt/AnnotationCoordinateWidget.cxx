@@ -278,6 +278,16 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         double xyzStep = 0.1;
         QString suffix("%");
         switch (m_annotation->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                xMax = 1000000.0;
+                xMin = -xMax;
+                yMax = 1000000.0;
+                yMin = -yMax;
+                zMin = xMin;
+                zMax = xMax;
+                xyzStep = 1.0;
+                suffix.clear();
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 xMax = 10000.0;
                 xMin = -xMax;
@@ -381,6 +391,8 @@ AnnotationCoordinateWidget::valueChanged()
         && (coordinate != NULL)) {
         bool surfaceFlag = false;
         switch (m_annotation->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:

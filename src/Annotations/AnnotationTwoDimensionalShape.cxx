@@ -328,12 +328,16 @@ AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
 bool
 AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const
 {
+    bool chartFlag       = false;
     bool tabWindowFlag   = false;
     bool stereotaxicFlag = false;
     bool surfaceFlag     = false;
     bool viewportFlag    = false;
     
     switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            chartFlag = true;
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             stereotaxicFlag = true;
             break;
@@ -453,6 +457,198 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
 }
 
 /**
+ * Apply a spatial modification to an annotation in chart space.
+ *
+ * @param spatialModification
+ *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
+ */
+bool
+AnnotationTwoDimensionalShape::applySpatialModificationChartSpace(const AnnotationSpatialModification& spatialModification)
+{
+    bool validFlag = false;
+    
+    const float rotationRadians = MathFunctions::toRadians(m_rotationAngle);
+    float dx = (spatialModification.m_mouseDX * std::cos(rotationRadians)
+                - spatialModification.m_mouseDY * std::sin(rotationRadians));
+    float dy = (spatialModification.m_mouseDX * std::sin(rotationRadians)
+                + spatialModification.m_mouseDY * std::cos(rotationRadians));
+    
+    
+    if (spatialModification.m_viewportWidth > 0) {
+        dx = (dx / spatialModification.m_viewportWidth) * 100.0;
+    }
+    else {
+        dx = 0.0;
+    }
+    if (spatialModification.m_viewportHeight > 0) {
+        dy = (dy / spatialModification.m_viewportHeight) * 100.0;
+    }
+    else {
+        dy = 0.0;
+    }
+    
+    bool validDxyFlag = false;
+    
+    switch (spatialModification.m_sizingHandleType) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+            dx = 0.0;
+            dy = -dy;
+            validDxyFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            dx = -dx;
+            dy = -dy;
+            validDxyFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            dy = -dy;
+            validDxyFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            dx = -dx;
+            dy = 0.0;
+            validDxyFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            dy = 0.0;
+            validDxyFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            dx = 0.0;
+            validDxyFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            dx = -dx;
+            validDxyFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            validDxyFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            if (spatialModification.m_chartCoordAtMouseXY.m_chartXYZValid) {
+                m_coordinate->setXYZ(spatialModification.m_chartCoordAtMouseXY.m_chartXYZ);
+                validFlag = true;
+            }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+        {
+            static float centerX = 0.0;
+            static float centerY = 0.0;
+            
+            /*
+             * Stereotaxic and surface rotations may be displayed in
+             * multiple locations if more that one surface is dislayed
+             * when surface montage is viewed and/or tile tabs is enabled.
+             *
+             * We don't have the window location of the annotation but
+             * we can estimate it as it is in the center of the annotation.
+             * Once we have approximated the center we can use the center
+             * as the rotation point and so that the rotation handle points
+             * to the mouse.  During rotation, the center will not change
+             * so set its position when the user starts to drag the mouse.
+             */
+            if (spatialModification.m_startOfDraggingFlag) {
+                const float height = ((m_height / 100.0) * spatialModification.m_viewportHeight);
+                const float halfHeight = height / 2.0;
+                
+                const float handleOffsetHeight = 15.0;
+                const float centerAngleRadians = MathFunctions::toRadians(m_rotationAngle - 90);
+                const float centerOffsetY =  (halfHeight  + handleOffsetHeight) * std::sin(centerAngleRadians);
+                const float centerOffsetX = -halfHeight * std::cos(centerAngleRadians);
+                centerX = spatialModification.m_mousePressX + centerOffsetX;
+                centerY = spatialModification.m_mousePressY + centerOffsetY;
+            }
+            
+            /*
+             * Rotation angle is a formed by the triangle
+             * (Mouse XY, Annotation XY, Positive X-axis).
+             */
+            const float dy = (spatialModification.m_mouseY
+                              - centerY);
+            const float dx = (spatialModification.m_mouseX
+                              - centerX);
+            
+            const float angleRadians = std::atan2(dy, dx);
+            const float angleDegrees = MathFunctions::toDegrees(angleRadians);
+            m_rotationAngle = 90.0 - angleDegrees;
+            if (m_rotationAngle > 360.0) {
+                m_rotationAngle -= 360.0;
+            }
+            else if (m_rotationAngle < 0.0) {
+                m_rotationAngle += 360.0;
+            }
+            
+            validFlag = true;
+        }
+            break;
+    }
+    
+    if (validDxyFlag) {
+        if (isFixedAspectRatio()) {
+            switch (spatialModification.m_sizingHandleType) {
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+                    if (std::fabs(dx) > std::fabs(dy)) {
+                        /*
+                         * For fixed aspect ratio, the width percentage is not a percentage
+                         * of window width but of the window's height since the annotation
+                         * is sized by its height (width = height / aspect).
+                         *
+                         * So when width is changed, need to set height.
+                         */
+                        const float aspectRatio = getFixedAspectRatio();
+                        const float newHeight = MathFunctions::limitRange(getHeight() + dx * aspectRatio, 0.0f, 100.0f);
+                        setHeight(newHeight);
+                        validFlag = true;
+                    }
+                    else if (std::fabs(dx) < std::fabs(dy)) {
+                        const float newHeight = MathFunctions::limitRange(getHeight() + dy, 0.0f, 100.0f);
+                        setHeight(newHeight);
+                        validFlag = true;
+                    }
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                    break;
+            }
+        }
+        else {
+            if (dx != 0.0) {
+                m_width += dx;
+                m_width = MathFunctions::limitRange(m_width, 1.0f, 100.0f);
+                validFlag = true;
+            }
+            if (dy != 0.0) {
+                m_height += dy;
+                m_height = MathFunctions::limitRange(m_height, 1.0f, 100.0f);
+                validFlag = true;
+            }
+        }
+    }
+    
+    if (validFlag) {
+        setModified();
+    }
+    
+    return validFlag;
+}
+
+/**
  * Apply a spatial modification to an annotation in surface 
  * or stereotaxic space.
  *
@@ -472,6 +668,9 @@ AnnotationTwoDimensionalShape::applySpatialModificationSurfaceOrStereotaxicSpace
     bool surfaceSpaceFlag = false;
     
     switch (coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            badSpaceFlag = true;
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             stereoSpaceFlag = true;
             break;
@@ -1111,6 +1310,9 @@ AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialM
     
     const AnnotationCoordinateSpaceEnum::Enum space = getCoordinateSpace();
     switch (space) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            return applySpatialModificationChartSpace(spatialModification);
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             return applySpatialModificationSurfaceOrStereotaxicSpace(spatialModification,
                                                                      space);

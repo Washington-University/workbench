@@ -21,8 +21,8 @@
  */
 /*LICENSE_END*/
 
-
 #include "CaretObject.h"
+#include "Matrix4x4.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
 
@@ -40,6 +40,14 @@ namespace caret {
         BrainOpenGLViewportContent(const BrainOpenGLViewportContent& obj);
         
         BrainOpenGLViewportContent& operator=(const BrainOpenGLViewportContent& obj);
+        
+        bool getChartDataMatricesAndViewport(Matrix4x4& chartDataProjectionMatrixOut,
+                                          Matrix4x4& chartDataModelViewMatrixOut,
+                                          int chartViewportOut[4]) const;
+        
+        void setChartDataMatricesAndViewport(const Matrix4x4& chartDataProjectionMatrix,
+                                          const Matrix4x4& chartDataModelViewMatrix,
+                                          const int chartViewport[4]);
         
         void getModelViewport(int modelViewportOut[4]) const;
         
@@ -146,6 +154,21 @@ namespace caret {
         int m_tabWidth;
         /** Tab viewport's Height */
         int m_tabHeight;
+        
+        /** Chart data viewport's X-coordinate */
+        int m_chartDataX;
+        /** Chart data viewport's Y-coordinate */
+        int m_chartDataY;
+        /** Chart data viewport's Width */
+        int m_chartDataWidth;
+        /** Chart data viewport's Height */
+        int m_chartDataHeight;
+        /** Chart data viewport's validity */
+        bool m_chartDataViewportValidFlag = false;
+        /** Chart data transformation matrix */
+        Matrix4x4 m_chartDataModelViewMatrix;
+        /** Chart data transformation matrix */
+        Matrix4x4 m_chartDataProjectionMatrix;
         
         /** Model viewport's X-coordinate */
         int m_modelX;

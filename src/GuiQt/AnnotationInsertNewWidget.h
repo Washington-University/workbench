@@ -72,6 +72,8 @@ namespace caret {
         
         QToolButton* createFileSelectionToolButton();
         
+        void enableDisableSpaceActions();
+        
         const int32_t m_browserWindowIndex;
         
         QActionGroup* m_spaceActionGroup;

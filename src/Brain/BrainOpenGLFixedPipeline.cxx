@@ -747,14 +747,80 @@ BrainOpenGLFixedPipeline::drawTabHighlighting(const float width,
 }
 
 /**
+ * Draw the chart coordinate space annotations.
+ *
+ * @param tabContent
+ *    Viewport content
+ */
+void
+BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(BrainOpenGLViewportContent* viewportContent)
+{
+    glPushAttrib(GL_VIEWPORT_BIT);
+    
+    Matrix4x4 projectionMatrix;
+    Matrix4x4 modelviewMatrix;
+    int viewport[4];
+    if (viewportContent->getChartDataMatricesAndViewport(projectionMatrix,
+                                                         modelviewMatrix,
+                                                         viewport)) {
+        
+        glViewport(viewport[0],
+                   viewport[1],
+                   viewport[2],
+                   viewport[3]);
+        
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        float projectionArray[16];
+        projectionMatrix.getMatrixForOpenGL(projectionArray);
+        glLoadMatrixf(projectionArray);
+        
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        float modelviewArray[16];
+        modelviewMatrix.getMatrixForOpenGL(modelviewArray);
+        glLoadMatrixf(modelviewArray);
+        
+        /*
+         * Draw annotations for this surface and maybe draw
+         * the model annotations.
+         */
+        BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                                 this->mode,
+                                                                 BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                                 m_tabViewport,
+                                                                 m_windowIndex,
+                                                                 this->windowTabIndex,
+                                                                 BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT,
+                                                                 BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
+        std::vector<AnnotationColorBar*> emptyColorBars;
+        std::vector<Annotation*> emptyViewportAnnotations;
+        m_annotationDrawing->drawAnnotations(&inputs,
+                                             AnnotationCoordinateSpaceEnum::CHART,
+                                             emptyColorBars,
+                                             emptyViewportAnnotations,
+                                             NULL);
+        
+        
+        
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+    }
+    
+    glPopAttrib();
+}
+
+
+/**
  * Draw the tab annotations.
  *
- * @param windowViewport
- *    Viewport (x, y, w, h).
+ * @param tabContent
+ *    Viewport content
  */
 void
 BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabContent)
-//                                             const int tabViewport[4])
 {
     if (tabContent->getBrowserTabContent() == NULL) {
         return;
@@ -941,7 +1007,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                 drawChartOneData(browserTabContent, modelChart, viewport);
             }
             else if (modelTwoChart != NULL) {
-                drawChartTwoData(browserTabContent, modelTwoChart, viewport);
+                drawChartTwoData(viewportContent, modelTwoChart, viewport);
             }
             else if (surfaceModel != NULL) {
                 m_mirroredClippingEnabled = true;
@@ -5312,15 +5378,15 @@ BrainOpenGLFixedPipeline::drawChartOneData(BrowserTabContent* browserTabContent,
 /**
  * Draw a chart two model.
  *
- * @param browserTabContent
- *    Content of browser tab.
+ * @param viewportContent
+ *    Content of the viewport
  * @param chartModel
  *    The chart model.
  * @param viewport
  *    The viewport (x, y, width, height)
  */
 void
-BrainOpenGLFixedPipeline::drawChartTwoData(BrowserTabContent* browserTabContent,
+BrainOpenGLFixedPipeline::drawChartTwoData(BrainOpenGLViewportContent* viewportContent,
                                            ModelChartTwo* chartModel,
                                            const int32_t viewport[4])
 {
@@ -5332,12 +5398,14 @@ BrainOpenGLFixedPipeline::drawChartTwoData(BrowserTabContent* browserTabContent,
     
     BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
     chartDrawing.drawChartOverlaySet(m_brain,
-                                     browserTabContent,
+                                     viewportContent,
                                      chartModel,
                                      this,
                                      SelectionItemDataTypeEnum::CHART_DATA_SERIES,
                                      viewport,
                                      m_viewportSpaceAnnotations);
+    
+    drawChartCoordinateSpaceAnnotations(viewportContent);
 }
 
 /**

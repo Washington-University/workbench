@@ -221,6 +221,27 @@ AnnotationCoordinate::setXYZ(const float x,
 }
 
 /**
+ * Add to the annotation's XYZ coordinate.
+ *
+ * @param dx
+ *     Change in X-coordinate for the annotation.
+ * @param dy
+ *     Change in Y-coordinate for the annotation.
+ * @param dz
+ *     Change in Z-coordinate for the annotation.
+ */
+void
+AnnotationCoordinate::addToXYZ(const float dx,
+                               const float dy,
+                               const float dz)
+{
+    setXYZ(m_xyz[0] + dx,
+           m_xyz[1] + dy,
+           m_xyz[2] + dz);
+}
+
+
+/**
  * Set the window or tab XYZ from viewport X, Y.
  *
  * @param viewportWidth

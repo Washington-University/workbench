@@ -119,9 +119,9 @@ namespace caret {
         bool applySpatialModificationSurfaceOrStereotaxicSpace(const AnnotationSpatialModification& spatialModification,
                                                                const AnnotationCoordinateSpaceEnum::Enum coordinateSpace);
         
-//        bool applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification);
-        
         bool applySpatialModificationTabOrWindowSpace(const AnnotationSpatialModification& spatialModification);
+        
+        bool applySpatialModificationChartSpace(const AnnotationSpatialModification& spatialModification);
         
         bool rotationAngleTest(const float previousMouseXYZ[3],
                                const float shapeXYZ[3],

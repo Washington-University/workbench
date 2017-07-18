@@ -270,6 +270,8 @@ bool
 Annotation::isDeletable() const
 {
     switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:

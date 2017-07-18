@@ -235,6 +235,8 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
     const AnnotationCoordinateSpaceEnum::Enum annotationSpace = annotation->getCoordinateSpace();
     int32_t annotationTabOrWindowIndex = -1;
     switch (annotationSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -256,6 +258,7 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
         if (group->getGroupType() == AnnotationGroupTypeEnum::SPACE) {
             if (group->getCoordinateSpace() == annotationSpace) {
                 switch (annotationSpace) {
+                    case AnnotationCoordinateSpaceEnum::CHART:
                     case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     case AnnotationCoordinateSpaceEnum::SURFACE:
                         return group;
@@ -275,6 +278,7 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
     }
     
     switch (annotationSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
         case AnnotationCoordinateSpaceEnum::SURFACE:
             break;
@@ -607,6 +611,8 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
     }
     
     switch (coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -653,6 +659,7 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
             if (groupType == AnnotationGroupTypeEnum::SPACE) {
                 if (group->getCoordinateSpace() == coordinateSpace) {
                     switch (coordinateSpace) {
+                        case AnnotationCoordinateSpaceEnum::CHART:
                         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                         case AnnotationCoordinateSpaceEnum::SURFACE:
                             throw DataFileException("There is more than one annotation space group with space "

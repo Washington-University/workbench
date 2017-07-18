@@ -80,6 +80,10 @@ m_mouseDX(mouseDX),
 m_mouseDY(mouseDY),
 m_startOfDraggingFlag(startOfDraggingFlag)
 {
+    m_chartCoordAtMouseXY.m_chartXYZValid  = false;
+    m_chartCoordAtPreviousMouseXY.m_chartXYZValid = false;
+    m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid  = false;
+    m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid = false;
 }
 
 /**
@@ -136,6 +140,49 @@ AnnotationSpatialModification::setStereotaxicCoordinateAtMouseXY(const float ste
     m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[2] = stereotaxicZ;
     m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid  = true;
 }
+
+/**
+ * Set the chart coordinate at mouse X/Y
+ *
+ * @param chartX
+ *     chart X-coordinate.
+ * @param chartY
+ *     chart Y-coordinate.
+ * @param chartZ
+ *     chart Z-coordinate.
+ */
+void
+AnnotationSpatialModification::setChartCoordinateAtMouseXY(const float chartX,
+                                                                 const float chartY,
+                                                                 const float chartZ)
+{
+    m_chartCoordAtMouseXY.m_chartXYZ[0] = chartX;
+    m_chartCoordAtMouseXY.m_chartXYZ[1] = chartY;
+    m_chartCoordAtMouseXY.m_chartXYZ[2] = chartZ;
+    m_chartCoordAtMouseXY.m_chartXYZValid  = true;
+}
+
+/**
+ * Set the chart coordinate at previous mouse X/Y
+ *
+ * @param chartX
+ *     chart X-coordinate.
+ * @param chartY
+ *     chart Y-coordinate.
+ * @param chartZ
+ *     chart Z-coordinate.
+ */
+void
+AnnotationSpatialModification::setChartCoordinateAtPreviousMouseXY(const float chartX,
+                                                                   const float chartY,
+                                                                   const float chartZ)
+{
+    m_chartCoordAtPreviousMouseXY.m_chartXYZ[0] = chartX;
+    m_chartCoordAtPreviousMouseXY.m_chartXYZ[1] = chartY;
+    m_chartCoordAtPreviousMouseXY.m_chartXYZ[2] = chartZ;
+    m_chartCoordAtPreviousMouseXY.m_chartXYZValid  = true;
+}
+
 
 /**
  * Get a description of this object's content.

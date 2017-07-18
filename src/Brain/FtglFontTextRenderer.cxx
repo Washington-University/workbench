@@ -183,6 +183,8 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
     int32_t viewportHeight = m_viewportHeight;
     
     switch (annotationText.getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
