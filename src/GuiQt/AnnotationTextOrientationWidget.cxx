@@ -100,9 +100,12 @@ void
 AnnotationTextOrientationWidget::updateContent(std::vector<AnnotationText*>& annotationTextsIn)
 {
     m_annotations.clear();
-    m_annotations.insert(m_annotations.end(),
-                         annotationTextsIn.begin(),
-                         annotationTextsIn.end());
+    m_annotations.reserve(annotationTextsIn.size());
+    for (auto a : annotationTextsIn) {
+        if (a->testProperty(Annotation::Property::TEXT_ORIENTATION)) {
+            m_annotations.push_back(a);
+        }
+    }
     
     {
         /*

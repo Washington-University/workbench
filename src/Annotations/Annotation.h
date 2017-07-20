@@ -42,6 +42,56 @@ namespace caret {
     class Annotation : public CaretObjectTracksModification, public DisplayGroupAndTabItemInterface, public SceneableInterface {
         
     public:
+        /**
+         * Properties supported by an annotation
+         */
+        enum class Property : int32_t {
+            /** Invalid (for internal use only) */
+            INVALID,
+            /** Annotation can be arranged by user */
+            ARRANGE,
+            /** Annotation can be moved by user */
+            COORDINATE,
+            /** Annotation allows cut, copy, and paste by user*/
+            COPY_CUT_PASTE,
+            /** Annotation may be deleted by user */
+            DELETE,
+            /** Annotation display controlled by Display Group and Tab */
+            DISPLAY_GROUP,
+            /** Annotation has fill (background) color */
+            FILL_COLOR,
+            /** Annotation can be grouped by user */
+            GROUP,
+            /** Annotation has arrows at its line endpoints */
+            LINE_ARROWS,
+            /** Annotation has a line color */
+            LINE_COLOR,
+            /** Annotation has line thickness */
+            LINE_THICKNESS,
+            /** Annotation can be rotated by user */
+            ROTATION,
+            /** Annotation is selectable */
+            SELECT,
+            /** Annotation has alignment of text */
+            TEXT_ALIGNMENT,
+            /** Annotation allows connection to brainordinate */
+            TEXT_CONNECT_TO_BRAINORDINATE,
+            /** Annotation allows editing of its text by user */
+            TEXT_EDIT,
+            /** Annotation has text color */
+            TEXT_COLOR,
+            /** Annotation has font name */
+            TEXT_FONT_NAME,
+            /** Annotation has font size*/
+            TEXT_FONT_SIZE,
+            /** Annotation has font style */
+            TEXT_FONT_STYLE,
+            /** Annotation has orientation of text */
+            TEXT_ORIENTATION,
+            /** Count of properties MUST BE LAST */
+            COUNT_FOR_BITSET
+        };
+        
         Annotation(const AnnotationTypeEnum::Enum type,
                    const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
@@ -55,6 +105,21 @@ namespace caret {
                                                const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         Annotation* clone() const;
+        
+        bool testProperty(const Property property) const;
+        
+        bool testPropertiesAny(const Property propertyOne,
+                               const Property propertyTwo,
+                               const Property propertyThree = Property::INVALID,
+                               const Property propertyFour  = Property::INVALID,
+                               const Property propertyFive  = Property::INVALID) const;
+        
+        void setProperty(const Property property,
+                         const bool value = true);
+        
+        void resetProperty(const Property property);
+        
+        void setPropertiesForChartAxisTitle();
         
         AnnotationGroupKey getAnnotationGroupKey() const;
         
@@ -123,10 +188,6 @@ namespace caret {
         
         void setLineWidth(const float lineWidth);
         
-        virtual bool isLineWidthSupported() const;
-        
-        virtual bool isBackgroundColorSupported() const;
-        
         bool isSelectedForEditing(const int32_t windowIndex) const;
         
         static void setUserDefaultLineColor(const CaretColorEnum::Enum color);
@@ -142,8 +203,6 @@ namespace caret {
         static void setUserDefaultCustomBackgroundColor(const float rgba[4]);
         
         static void setUserDefaultLineWidth(const float lineWidth);
-        
-        virtual bool isDeletable() const;
         
         virtual bool isFixedAspectRatio() const;
         
@@ -248,6 +307,10 @@ namespace caret {
 
         void initializeAnnotationMembers();
         
+        void initializeProperties();
+        
+        void initializePropertiesForViewportSpaceAnnotation();
+        
         // private - AnnotationManager handles selection and allowing
         // public access to this method could cause improper selection status
         void setSelectedForEditing(const int32_t windowIndex,
@@ -307,11 +370,15 @@ namespace caret {
          * Selection (NOT DISPLAY) status in each window.
          *
          * Number of elements must be same as Constants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS
-         * An assertion will fail in the if number of elements differs.
+         * An assertion will fail in cxx file the if number of elements differs.
          */
         mutable std::bitset<10> m_selectedForEditingInWindowFlag;
         
-        // defaults
+        /**
+         * Contains annotation properties.  In the cxx file, an assertion will fail
+         * if the number of elements is insufficient.
+         */
+        std::bitset<32> m_properties;
         
         static CaretColorEnum::Enum s_userDefaultColorLine;
         

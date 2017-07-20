@@ -19,10 +19,6 @@
  */
 /*LICENSE_END*/
 
-//#include <algorithm>
-//#include <limits>
-//#include <numeric>
-
 #define __ANNOTATION_MANAGER_DECLARE__
 #include "AnnotationManager.h"
 #undef __ANNOTATION_MANAGER_DECLARE__
@@ -213,51 +209,6 @@ AnnotationManager::deselectAllAnnotationsForEditing(const int32_t windowIndex)
     }
 }
 
-///**
-// * Get the files containing the given annotations.  If a file is not found
-// * for an annotation NULL is selected for the file.
-// *
-// * @param annotations
-// *     Annotations for which file is found.
-// * @return
-// *     Files containing the annotations (NULL entry if file not found).  The
-// *     size of this vector will ALWAYS be the same as the size of the 
-// *     input vector.
-// */
-//std::vector<AnnotationFile*>
-//AnnotationManager::getFilesContainingAnnotations(const std::vector<Annotation*> annotations) const
-//{
-//    CaretAssertMessage(0, "Use annotation's getAnnotationFile() method.");
-////    std::vector<AnnotationFile*> allFiles;
-////    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allFiles);
-//    
-//    std::vector<AnnotationFile*> filesOut;
-//    
-////    for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
-////         annIter != annotations.end();
-////         annIter++) {
-////        Annotation* ann = *annIter;
-////        
-////        AnnotationFile* file = NULL;
-////        for (std::vector<AnnotationFile*>::const_iterator fileIter = allFiles.begin();
-////             fileIter != allFiles.end();
-////             fileIter++) {
-////            AnnotationFile* annFile = *fileIter;
-////            if (annFile->containsAnnotation(ann)) {
-////                file = annFile;
-////                break;
-////            }
-////        }
-////        
-////        filesOut.push_back(file);
-////    }
-//
-//    
-//    CaretAssert(filesOut.size() == annotations.size());
-//    return filesOut;
-//}
-
-
 /**
  * Select the given annotation for editing using the given mode.
  *
@@ -445,7 +396,7 @@ AnnotationManager::isAnnotationSelectedForEditingDeletable(const int32_t windowI
              iter != selectedAnnotations.end();
              iter++) {
             const Annotation* ann = *iter;
-            if ( ! ann->isDeletable()) {
+            if ( ! ann->testProperty(Annotation::Property::DELETE)) {
                 selectedAnnotationsDeletableFlag = false;
                 break;
             }
@@ -960,7 +911,6 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
     
     const std::vector<int32_t> tabIndices = displayedFilesEvent->getTabIndices();
     
-//    const DisplayPropertiesAnnotation* annProps = m_brain->getDisplayPropertiesAnnotation();
     std::vector<AnnotationFile*> annotationFiles;
     m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
     

@@ -77,7 +77,7 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* rightAlignToolButton  = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::RIGHT);
     
     m_horizontalAlignActionGroup = new QActionGroup(this);
-    m_horizontalAlignActionGroup->setExclusive(false); // not exclusive as may need to turn all off
+    m_horizontalAlignActionGroup->setExclusive(false); /**  not exclusive as may need to turn all off */
     m_horizontalAlignActionGroup->addAction(leftAlignToolButton->defaultAction());
     m_horizontalAlignActionGroup->addAction(centerAlignToolButton->defaultAction());
     m_horizontalAlignActionGroup->addAction(rightAlignToolButton->defaultAction());
@@ -90,7 +90,7 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* bottomAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::BOTTOM);
     
     m_verticalAlignActionGroup = new QActionGroup(this);
-    m_verticalAlignActionGroup->setExclusive(false); // not exclusive as may need to turn all off
+    m_verticalAlignActionGroup->setExclusive(false); /** not exclusive as may need to turn all off */
     m_verticalAlignActionGroup->addAction(topAlignToolButton->defaultAction());
     m_verticalAlignActionGroup->addAction(middleAlignToolButton->defaultAction());
     m_verticalAlignActionGroup->addAction(bottomAlignToolButton->defaultAction());
@@ -160,9 +160,12 @@ void
 AnnotationTextAlignmentWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
 {
     m_annotations.clear();
-    m_annotations.insert(m_annotations.end(),
-                         annotationTexts.begin(),
-                         annotationTexts.end());
+    m_annotations.reserve(annotationTexts.size());
+    for (auto a : annotationTexts) {
+        if (a->testProperty(Annotation::Property::TEXT_ORIENTATION)) {
+            m_annotations.push_back(a);
+        }
+    }
     
     {
         /*
@@ -467,7 +470,7 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* wi
     const qreal margin          = width * 0.05;
     const qreal longLineLength  = width - (margin * 2.0);
     const qreal shortLineLength = width / 2.0;
-    const qreal yStep = MathFunctions::round(height / (numLines + 1));  //6.0);
+    const qreal yStep = MathFunctions::round(height / (numLines + 1));
     
     for (int32_t i = 1; i <= numLines; i++) {
         const qreal lineLength = (((i % 2) == 0)

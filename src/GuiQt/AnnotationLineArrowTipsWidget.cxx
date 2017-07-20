@@ -60,7 +60,7 @@ m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* label = new QLabel("Line");
     
-    const QSize toolButtonSize(24, 24); //(18, 18);
+    const QSize toolButtonSize(24, 24);
     
     
     
@@ -71,7 +71,6 @@ m_browserWindowIndex(browserWindowIndex)
     m_endArrowAction->setIcon(QIcon(createArrowPixmap(endArrowToolButton, ArrowType::DOWN)));
     QObject::connect(m_endArrowAction, &QAction::triggered,
                      this, &AnnotationLineArrowTipsWidget::endArrowTipActionToggled);
-                     //this, [=] { this->endArrowTipActionToggled(); });
     endArrowToolButton->setDefaultAction(m_endArrowAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(endArrowToolButton);
     
@@ -83,7 +82,6 @@ m_browserWindowIndex(browserWindowIndex)
     m_startArrowAction->setIcon(QIcon(createArrowPixmap(startArrowToolButton, ArrowType::UP)));
     QObject::connect(m_startArrowAction, &QAction::triggered,
                      this, &AnnotationLineArrowTipsWidget::startArrowTipActionToggled);
-                     //this, [=] { this->startArrowTipActionToggled(); });
     startArrowToolButton->setDefaultAction(m_startArrowAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(startArrowToolButton);
     
@@ -116,9 +114,12 @@ void
 AnnotationLineArrowTipsWidget::updateContent(std::vector<AnnotationLine*>& annotationLines)
 {
     m_annotations.clear();
-    m_annotations.insert(m_annotations.end(),
-                         annotationLines.begin(),
-                         annotationLines.end());
+    m_annotations.reserve(annotationLines.size());
+    for (auto a : annotationLines) {
+        if (a->testProperty(Annotation::Property::LINE_ARROWS)) {
+            m_annotations.push_back(a);
+        }
+    }
     
     AnnotationLine* line = NULL;
     if ( ! annotationLines.empty()) {
@@ -263,78 +264,6 @@ AnnotationLineArrowTipsWidget::createArrowPixmap(const QWidget* widget,
     painter->drawPolygon(triangle);
     
     return pixmap;
-    
-//    switch (annotationType) {
-//        case AnnotationTypeEnum::BOX:
-//            painter->drawRect(1, 1, width - 2, height - 2);
-//            break;
-//        case AnnotationTypeEnum::COLOR_BAR:
-//            CaretAssertMessage(0, "No pixmap for colorbar as user does not create them like other annotations");
-//            break;
-//        case AnnotationTypeEnum::IMAGE:
-//        {
-//            const int blueAsGray = qGray(25,25,255);
-//            QColor skyColor(blueAsGray, blueAsGray, blueAsGray);
-//            
-//            /*
-//             * Background (sky)
-//             */
-//            painter->fillRect(pixmap.rect(), skyColor);
-//            
-//            const int greenAsGray = qGray(0, 255, 0);
-//            QColor terrainColor(greenAsGray, greenAsGray, greenAsGray);
-//            
-//            /*
-//             * Terrain
-//             */
-//            painter->setBrush(terrainColor);
-//            painter->setPen(terrainColor);
-//            const int w14 = width * 0.25;
-//            const int h23 = height * 0.667;
-//            const int h34 = height * 0.75;
-//            QPolygon terrain;
-//            terrain.push_back(QPoint(1, height - 1));
-//            terrain.push_back(QPoint(width - 1, height - 1));
-//            terrain.push_back(QPoint(width - 1, h23));
-//            terrain.push_back(QPoint(w14 * 3, h34));
-//            terrain.push_back(QPoint(w14 * 2, h23));
-//            terrain.push_back(QPoint(w14, h34));
-//            terrain.push_back(QPoint(1, h23));
-//            terrain.push_back(QPoint(1, height - 1));
-//            painter->drawPolygon(terrain);
-//            
-//            const int yellowAsGray = qGray(255, 255, 0);
-//            QColor sunColor(yellowAsGray, yellowAsGray, yellowAsGray);
-//            
-//            /*
-//             * Sun
-//             */
-//            painter->setBrush(sunColor);
-//            painter->setPen(sunColor);
-//            const int radius = width * 0.25;
-//            painter->drawEllipse(width * 0.33, height * 0.33, radius, radius);
-//        }
-//            break;
-//        case AnnotationTypeEnum::LINE:
-//            painter->drawLine(1, height - 1, width - 1, 1);
-//            break;
-//        case AnnotationTypeEnum::OVAL:
-//            painter->drawEllipse(1, 1, width - 1, height - 1);
-//            break;
-//        case AnnotationTypeEnum::TEXT:
-//        {
-//            QFont font = painter->font();
-//            font.setPixelSize(20);
-//            painter->setFont(font);
-//            painter->drawText(pixmap.rect(),
-//                              (Qt::AlignCenter),
-//                              "A");
-//        }
-//            break;
-//    }
-//    
-//    return pixmap;
-//    
 }
 
 

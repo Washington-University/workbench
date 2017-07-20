@@ -90,10 +90,6 @@ namespace caret {
         
         virtual void setCustomTextColor(const uint8_t rgba[4]);
         
-        virtual bool isFontColorGuiEditable() const;
-        
-        virtual bool isStylesSupported() const;
-        
         virtual bool isBoldStyleEnabled() const;
         
         virtual void setBoldStyleEnabled(const bool enabled);
@@ -111,8 +107,6 @@ namespace caret {
         void setConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate);
         
         bool isConnectToBrainordinateValid() const;
-        
-        virtual bool isLineWidthSupported() const;
         
         virtual bool applySpatialModification(const AnnotationSpatialModification& spatialModification);
         

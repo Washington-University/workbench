@@ -40,10 +40,6 @@ namespace caret {
         
         AnnotationImage& operator=(const AnnotationImage& obj);
         
-        virtual bool isLineWidthSupported() const;
-        
-        virtual bool isBackgroundColorSupported() const;
-        
         virtual bool isFixedAspectRatio() const;
         
         virtual float getFixedAspectRatio() const;

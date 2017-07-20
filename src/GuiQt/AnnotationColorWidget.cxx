@@ -76,15 +76,8 @@ m_browserWindowIndex(browserWindowIndex)
     QLabel* foreLineLabel      = new QLabel("Line");
     QLabel* foreLineColorLabel = new QLabel("Color");
     
-    QLabel* lineWidthLabel = NULL;
-    switch (m_parentWidgetType) {
-        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-            lineWidthLabel = new QLabel("Width");
-            break;
-        case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
-            CaretAssert(0);
-            break;
-    }
+    QLabel* lineLabel = new QLabel("Line");
+    QLabel* lineWidthLabel = new QLabel("Width");
     
     
     const QSize toolButtonSize(16, 16);
@@ -112,10 +105,10 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Widget/object group for background widgets
      */
-    m_backgroundWidgetGroup = new WuQWidgetObjectGroup(this);
-    m_backgroundWidgetGroup->add(backFillLabel);
-    m_backgroundWidgetGroup->add(backFillColorLabel);
-    m_backgroundWidgetGroup->add(m_backgroundToolButton);
+    m_backgroundColorWidgetGroup = new WuQWidgetObjectGroup(this);
+    m_backgroundColorWidgetGroup->add(backFillLabel);
+    m_backgroundColorWidgetGroup->add(backFillColorLabel);
+    m_backgroundColorWidgetGroup->add(m_backgroundToolButton);
     
     /*
      * Line color menu
@@ -137,29 +130,38 @@ m_browserWindowIndex(browserWindowIndex)
     m_lineToolButton->setIconSize(toolButtonSize);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_lineToolButton);
     
+    m_lineColorWidgetGroup = new WuQWidgetObjectGroup(this);
+    m_lineColorWidgetGroup->add(foreLineLabel);
+    m_lineColorWidgetGroup->add(foreLineColorLabel);
+    m_lineColorWidgetGroup->add(m_lineColorMenu);
+    m_lineColorWidgetGroup->add(m_lineToolButton);
+    
     /*
      * Line thickness
      */
     float minimumLineWidth = 0.0;
     float maximumLineWidth = 1.0;
+    BrainOpenGL::getMinMaxLineWidth(minimumLineWidth,
+                                    maximumLineWidth);
+    minimumLineWidth = std::max(minimumLineWidth, 1.0f);
+    m_lineThicknessWidgetGroup = new WuQWidgetObjectGroup(this);
+    m_lineThicknessSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minimumLineWidth,
+                                                                                            maximumLineWidth,
+                                                                                            1.0,
+                                                                                            0,
+                                                                                            this,
+                                                                                            SLOT(lineThicknessSpinBoxValueChanged(double)));
+    WuQtUtilities::setWordWrappedToolTip(m_lineThicknessSpinBox,
+                                         "Adjust the line thickness");
+    m_lineThicknessSpinBox->setFixedWidth(45);
     
-    m_lineThicknessSpinBox = NULL;
-    if (lineWidthLabel != NULL) {
-        BrainOpenGL::getMinMaxLineWidth(minimumLineWidth,
-                                        maximumLineWidth);
-        minimumLineWidth = std::max(minimumLineWidth, 1.0f);
-        m_lineThicknessSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minimumLineWidth,
-                                                                                                      maximumLineWidth,
-                                                                                                      1.0,
-                                                                                                      0,
-                                                                                                      this,
-                                                                                                      SLOT(lineThicknessSpinBoxValueChanged(double)));
-        WuQtUtilities::setWordWrappedToolTip(m_lineThicknessSpinBox,
-                                             "Adjust the line thickness");
-        m_lineThicknessSpinBox->setFixedWidth(45);
-    }
-    
+    m_lineThicknessWidgetGroup->add(lineLabel);
+    m_lineThicknessWidgetGroup->add(lineWidthLabel);
+    m_lineThicknessWidgetGroup->add(m_lineThicknessSpinBox);
 
+    /*
+     * Layout
+     */
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
     
@@ -167,12 +169,14 @@ m_browserWindowIndex(browserWindowIndex)
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
         {
             CaretAssert(lineWidthLabel);
-            gridLayout->addWidget(foreLineLabel,
+            gridLayout->addWidget(lineLabel,
                                   0, 0,
-                                  1, 2,
                                   Qt::AlignHCenter);
             gridLayout->addWidget(lineWidthLabel,
                                   1, 0,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(foreLineLabel,
+                                  0, 1,
                                   Qt::AlignHCenter);
             gridLayout->addWidget(foreLineColorLabel,
                                   1, 1,
@@ -224,17 +228,31 @@ AnnotationColorWidget::~AnnotationColorWidget()
 void
 AnnotationColorWidget::updateContent(std::vector<Annotation*>& annotations)
 {
-    m_annotations.clear();
+    m_lineColorAnnotations.clear();
+    m_lineColorAnnotations.reserve(annotations.size());
+    
+    m_lineThicknessAnnotations.clear();
+    m_lineThicknessAnnotations.reserve(annotations.size());
+
+    m_backgroundColorAnnotations.clear();
+    m_backgroundColorAnnotations.reserve(annotations.size());
+    
+    bool haveAnnotationsFlag = false;
     for (auto a : annotations) {
-        m_annotations.push_back(a);
+        if (a->testProperty(Annotation::Property::FILL_COLOR)) {
+            m_backgroundColorAnnotations.push_back(a);
+        }
+        if (a->testProperty(Annotation::Property::LINE_COLOR)) {
+            m_lineColorAnnotations.push_back(a);
+        }
+        if (a->testProperty(Annotation::Property::LINE_THICKNESS)) {
+            m_lineThicknessAnnotations.push_back(a);
+        }
+        
+        haveAnnotationsFlag = true;
     }
     
-    if ( ! m_annotations.empty()) {
-        setEnabled(true);
-    }
-    else {
-        setEnabled(false);
-    }
+    setEnabled(haveAnnotationsFlag);
     
     updateBackgroundColorButton();
     updateLineColorButton();
@@ -250,9 +268,9 @@ AnnotationColorWidget::updateContent(std::vector<Annotation*>& annotations)
 void
 AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretColor)
 {
-    if (! m_annotations.empty()) {
+    if (! m_backgroundColorAnnotations.empty()) {
         float rgba[4];
-        m_annotations[0]->getCustomBackgroundColor(rgba);
+        m_backgroundColorAnnotations[0]->getCustomBackgroundColor(rgba);
         
         if (caretColor == CaretColorEnum::CUSTOM) {
             QColor color;
@@ -281,14 +299,14 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
         if ( ! isBothColorsSetToNoneAllowed(this,
                                             caretColor,
                                             m_lineColorMenu->getSelectedColor(),
-                                            m_annotations)) {
+                                            m_backgroundColorAnnotations)) {
             return;
         }
         
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeColorBackground(caretColor,
                                             rgba,
-                                            m_annotations);
+                                            m_backgroundColorAnnotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         
         AString errorMessage;
@@ -317,42 +335,40 @@ AnnotationColorWidget::updateBackgroundColorButton()
     CaretColorEnum::toRGBAFloat(colorEnum, rgba);
     rgba[3] = 1.0;
     
-    const int32_t numAnnotations = static_cast<int32_t>(m_annotations.size());
+    bool enableBackgroundFlag = false;
+    const int32_t numAnnotations = static_cast<int32_t>(m_backgroundColorAnnotations.size());
     if (numAnnotations > 0) {
         bool firstColorSupportFlag = true;
-        bool enableBackgroundFlag = false;
         bool allSameColorFlag = true;
         
         for (int32_t i = 0; i < numAnnotations; i++) {
-            if (m_annotations[0]->isBackgroundColorSupported()) {
-                if (firstColorSupportFlag) {
-                    m_annotations[i]->getBackgroundColorRGBA(rgba);
-                    firstColorSupportFlag = false;
-                    enableBackgroundFlag = true;
-                }
-                else {
-                    float colorRGBA[4];
-                    m_annotations[i]->getBackgroundColorRGBA(colorRGBA);
-                    for (int32_t iColor = 0; iColor < 4; iColor++) {
-                        if (rgba[iColor] != colorRGBA[iColor]) {
-                            allSameColorFlag = false;
-                            break;
-                        }
-                    }
-                    
-                    if ( ! allSameColorFlag) {
+            if (firstColorSupportFlag) {
+                m_backgroundColorAnnotations[i]->getBackgroundColorRGBA(rgba);
+                firstColorSupportFlag = false;
+                enableBackgroundFlag = true;
+            }
+            else {
+                float colorRGBA[4];
+                m_backgroundColorAnnotations[i]->getBackgroundColorRGBA(colorRGBA);
+                for (int32_t iColor = 0; iColor < 4; iColor++) {
+                    if (rgba[iColor] != colorRGBA[iColor]) {
+                        allSameColorFlag = false;
                         break;
                     }
+                }
+                
+                if ( ! allSameColorFlag) {
+                    break;
                 }
             }
         }
         
         if (allSameColorFlag) {
-            colorEnum = m_annotations[0]->getBackgroundColor();
-            m_annotations[0]->getBackgroundColorRGBA(rgba);
+            colorEnum = m_backgroundColorAnnotations[0]->getBackgroundColor();
+            m_backgroundColorAnnotations[0]->getBackgroundColorRGBA(rgba);
             
             float customRGBA[4];
-            m_annotations[0]->getCustomBackgroundColor(customRGBA);
+            m_backgroundColorAnnotations[0]->getCustomBackgroundColor(customRGBA);
             m_backgroundColorMenu->setCustomIconColor(customRGBA);
             
             switch (m_parentWidgetType) {
@@ -367,12 +383,13 @@ AnnotationColorWidget::updateBackgroundColorButton()
         }
         
         
-        m_backgroundWidgetGroup->setEnabled(enableBackgroundFlag);
-        if ( ! enableBackgroundFlag) {
-            colorEnum = CaretColorEnum::NONE;
-        }
     }
     
+    m_backgroundColorWidgetGroup->setEnabled(enableBackgroundFlag);
+    if ( ! enableBackgroundFlag) {
+        colorEnum = CaretColorEnum::NONE;
+    }
+
     QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_backgroundToolButton,
                                                            24, 24,
                                                            colorEnum,
@@ -396,21 +413,21 @@ AnnotationColorWidget::updateLineColorButton()
     CaretColorEnum::toRGBAFloat(colorEnum, rgba);
     rgba[3] = 1.0;
     
-    const int32_t numAnnotations = static_cast<int32_t>(m_annotations.size());
+    const int32_t numAnnotations = static_cast<int32_t>(m_lineColorAnnotations.size());
+    bool enableLineFlag = false;
     if (numAnnotations > 0) {
         bool firstColorSupportFlag = true;
-        bool enableLineFlag = false;
         bool allSameColorFlag = true;
         
         for (int32_t i = 0; i < numAnnotations; i++) {
                 if (firstColorSupportFlag) {
-                    m_annotations[i]->getLineColorRGBA(rgba);
+                    m_lineColorAnnotations[i]->getLineColorRGBA(rgba);
                     firstColorSupportFlag = false;
                     enableLineFlag = true;
                 }
                 else {
                     float colorRGBA[4];
-                    m_annotations[i]->getLineColorRGBA(colorRGBA);
+                    m_lineColorAnnotations[i]->getLineColorRGBA(colorRGBA);
                     for (int32_t iColor = 0; iColor < 4; iColor++) {
                         if (rgba[iColor] != colorRGBA[iColor]) {
                             allSameColorFlag = false;
@@ -425,11 +442,11 @@ AnnotationColorWidget::updateLineColorButton()
         }
         
         if (allSameColorFlag) {
-            colorEnum = m_annotations[0]->getLineColor();
-            m_annotations[0]->getLineColorRGBA(rgba);
+            colorEnum = m_lineColorAnnotations[0]->getLineColor();
+            m_lineColorAnnotations[0]->getLineColorRGBA(rgba);
             
             float customRGBA[4];
-            m_annotations[0]->getCustomLineColor(customRGBA);
+            m_lineColorAnnotations[0]->getCustomLineColor(customRGBA);
             m_lineColorMenu->setCustomIconColor(customRGBA);
 
             switch (m_parentWidgetType) {
@@ -443,11 +460,12 @@ AnnotationColorWidget::updateLineColorButton()
             }
             
         }
-        
-        
-        if ( ! enableLineFlag) {
-            colorEnum = CaretColorEnum::NONE;
-        }
+    }
+
+    m_lineColorWidgetGroup->setEnabled(enableLineFlag);
+    
+    if ( ! enableLineFlag) {
+        colorEnum = CaretColorEnum::NONE;
     }
     
     QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_lineToolButton, 24, 24, colorEnum, rgba, true);
@@ -527,11 +545,11 @@ AnnotationColorWidget::isBothColorsSetToNoneAllowed(QWidget* widget,
 void
 AnnotationColorWidget::lineColorSelected(const CaretColorEnum::Enum caretColor)
 {
-    if ( ! m_annotations.empty()) {
-        CaretAssertVectorIndex(m_annotations, 0);
+    if ( ! m_lineColorAnnotations.empty()) {
+        CaretAssertVectorIndex(m_lineColorAnnotations, 0);
         
         float rgba[4];
-        m_annotations[0]->getCustomLineColor(rgba);
+        m_lineColorAnnotations[0]->getCustomLineColor(rgba);
         
         if (caretColor == CaretColorEnum::CUSTOM) {
             QColor color;
@@ -550,14 +568,14 @@ AnnotationColorWidget::lineColorSelected(const CaretColorEnum::Enum caretColor)
         if ( ! isBothColorsSetToNoneAllowed(this,
                                             caretColor,
                                             m_backgroundColorMenu->getSelectedColor(),
-                                            m_annotations)) {
+                                            m_lineColorAnnotations)) {
             return;
         }
         
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeColorLine(caretColor,
                                       rgba,
-                                      m_annotations);
+                                      m_lineColorAnnotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         
         AString errorMessage;
@@ -595,12 +613,12 @@ void
 AnnotationColorWidget::setUserDefaultLineColor(const CaretColorEnum::Enum caretColor,
                                                const float customRGBA[4])
 {
-    if ( ! m_annotations.empty()) {
+    if ( ! m_lineColorAnnotations.empty()) {
         bool allTextFlag  = true;
         bool someTextFlag = false;
         
-        for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
-             iter != m_annotations.end();
+        for (std::vector<Annotation*>::iterator iter = m_lineColorAnnotations.begin();
+             iter != m_lineColorAnnotations.end();
              iter++) {
             const Annotation* ann = *iter;
             if (ann->getType() == AnnotationTypeEnum::TEXT) {
@@ -658,7 +676,7 @@ AnnotationColorWidget::lineThicknessSpinBoxValueChanged(double value)
     
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     undoCommand->setModeLineWidth(value,
-                                  m_annotations);
+                                  m_lineThicknessAnnotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     
     AString errorMessage;
@@ -688,22 +706,20 @@ AnnotationColorWidget::updateLineThicknessSpinBox()
     bool  lineWidthValid = false;
     bool  haveMultipleLineWidthValues = false;
     
-    const int32_t numAnnotations = static_cast<int32_t>(m_annotations.size());
+    const int32_t numAnnotations = static_cast<int32_t>(m_lineThicknessAnnotations.size());
     if (numAnnotations > 0) {
         for (int32_t i = 0; i < numAnnotations; i++) {
-            if (m_annotations[i]->isLineWidthSupported()) {
-                const float annLineWidth = m_annotations[i]->getLineWidth();
-                if (lineWidthValid) {
-                    if (annLineWidth != lineWidthValue) {
-                        haveMultipleLineWidthValues = true;
-                    }
-                    lineWidthValue = std::min(lineWidthValue,
-                                              annLineWidth);
+            const float annLineWidth = m_lineThicknessAnnotations[i]->getLineWidth();
+            if (lineWidthValid) {
+                if (annLineWidth != lineWidthValue) {
+                    haveMultipleLineWidthValues = true;
                 }
-                else {
-                    lineWidthValue = annLineWidth;
-                    lineWidthValid = true;
-                }
+                lineWidthValue = std::min(lineWidthValue,
+                                          annLineWidth);
+            }
+            else {
+                lineWidthValue = annLineWidth;
+                lineWidthValid = true;
             }
         }
         
@@ -734,5 +750,7 @@ AnnotationColorWidget::updateLineThicknessSpinBox()
         m_lineThicknessSpinBox->setSuffix("");
     }
     m_lineThicknessSpinBox->blockSignals(false);
+    
+    m_lineThicknessWidgetGroup->setEnabled(numAnnotations > 0);
 }
 

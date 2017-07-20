@@ -78,7 +78,15 @@ namespace caret {
         
         void updateTextColorButton();
         
+        void updateFontNameControls();
+        
+        void updateFontSizeControls();
+        
+        void updateFontStyleControls();
+        
         float getSurfaceMontageRowCount() const;
+        
+        static std::vector<Annotation*> convertToAnnotations(const std::vector<AnnotationFontAttributesInterface*>& fontInterfaces);
         
         const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
         
@@ -100,11 +108,17 @@ namespace caret {
         
         QAction* m_underlineFontAction;
         
-        /** Contains annotations */
-        std::vector<Annotation*> m_annotations;
+        /** Contains annotations supporting font name */
+        std::vector<AnnotationFontAttributesInterface*> m_annotationsFontName;
         
-        /** Contains annotations with type as font style */
+        /** Contains annotations supporting font style */
+        std::vector<AnnotationFontAttributesInterface*> m_annotationsFontSize;
+        
+        /** Contains annotations supporting font style */
         std::vector<AnnotationFontAttributesInterface*> m_annotationsFontStyle;
+        
+        /** Contains annotations supporting font color */
+        std::vector<AnnotationFontAttributesInterface*> m_annotationsFontColor;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -150,7 +150,7 @@ m_browserWindowIndex(browserWindowIndex)
             /*
              * Bold Font
              */
-            m_boldFontAction = WuQtUtilities::createAction("B", //boldFontText.toStringWithHtmlBody(),
+            m_boldFontAction = WuQtUtilities::createAction("B",
                                                            "Enable/disable bold styling",
                                                            this, this, SLOT(fontBoldChanged()));
             m_boldFontAction->setCheckable(true);
@@ -217,7 +217,6 @@ m_browserWindowIndex(browserWindowIndex)
             
             QHBoxLayout* stylesLayout = new QHBoxLayout();
             WuQtUtilities::setLayoutSpacingAndMargins(stylesLayout, 0, 0);
-            //stylesLayout->addStretch();
             stylesLayout->addWidget(boldFontToolButton);
             stylesLayout->addWidget(italicFontToolButton);
             stylesLayout->addWidget(underlineFontToolButton);
@@ -267,31 +266,91 @@ AnnotationFontWidget::~AnnotationFontWidget()
 void
 AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterface*>& annotations)
 {
-    m_annotationsFontStyle = annotations;
-    m_annotations.clear();
+    m_annotationsFontColor.clear();
+    m_annotationsFontColor.reserve(annotations.size());
+    m_annotationsFontName.clear();
+    m_annotationsFontName.reserve(annotations.size());
+    m_annotationsFontSize.clear();
+    m_annotationsFontSize.reserve(annotations.size());
+    m_annotationsFontStyle.clear();
+    m_annotationsFontStyle.reserve(annotations.size());
+
+    for (auto a : annotations) {
+        Annotation* ann = dynamic_cast<Annotation*>(a);
+        if (ann->testProperty(Annotation::Property::TEXT_FONT_NAME)) {
+            m_annotationsFontName.push_back(a);
+        }
+        if (ann->testProperty(Annotation::Property::TEXT_FONT_SIZE)) {
+            m_annotationsFontSize.push_back(a);
+        }
+        if (ann->testProperty(Annotation::Property::TEXT_FONT_STYLE)) {
+            m_annotationsFontStyle.push_back(a);
+        }
+        if (ann->testProperty(Annotation::Property::TEXT_COLOR)) {
+            m_annotationsFontColor.push_back(a);
+        }
+    }
     
-    if ( ! m_annotationsFontStyle.empty()) {
-        bool boldOnFlag        = true;
-        bool italicOnFlag      = true;
-        bool underlineOnFlag   = true;
-        int32_t stylesEnabledCount = 0;
-        
+    updateFontNameControls();
+    updateFontSizeControls();
+    updateFontStyleControls();
+    updateTextColorButton();
+    
+    setEnabled((m_annotationsFontColor.size()
+                + m_annotationsFontName.size()
+                + m_annotationsFontSize.size()
+                + m_annotationsFontStyle.size()) > 0);
+}
+
+/**
+ * Update the font name controls.
+ */
+void
+AnnotationFontWidget::updateFontNameControls()
+{
+    if ( ! m_annotationsFontName.empty()) {
         AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::VERA;
         bool fontNameValid = true;
+        
+        const int32_t numAnn = static_cast<int32_t>(m_annotationsFontName.size());
+        for (int32_t i = 0; i < numAnn; i++) {
+            CaretAssertVectorIndex(m_annotationsFontName, i);
+            AnnotationFontAttributesInterface* annText = m_annotationsFontName[i];
+            CaretAssert(annText);
+            
+            if (i == 0) {
+                fontName = annText->getFont();
+            }
+            else {
+                if (annText->getFont() != fontName) {
+                    fontNameValid = false;
+                }
+            }
+        }
+        
+        m_fontNameComboBox->setSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>(fontName);
+        
+        AnnotationText::setUserDefaultFont(fontName);
+    }
+}
+
+/**
+ * Update the font size controls.
+ */
+void
+AnnotationFontWidget::updateFontSizeControls()
+{
+    if ( ! m_annotationsFontSize.empty()) {
         float fontSizeValue = 5.0;
         bool haveMultipleFontSizeValues = false;
         
         const float surfaceMontageRowCount = getSurfaceMontageRowCount();
         
-        const int32_t numAnn = static_cast<int32_t>(m_annotationsFontStyle.size());
+        const int32_t numAnn = static_cast<int32_t>(m_annotationsFontSize.size());
         for (int32_t i = 0; i < numAnn; i++) {
-            CaretAssertVectorIndex(m_annotationsFontStyle, i);
-            AnnotationFontAttributesInterface* annText = m_annotationsFontStyle[i];
+            CaretAssertVectorIndex(m_annotationsFontSize, i);
+            AnnotationFontAttributesInterface* annText = m_annotationsFontSize[i];
             CaretAssert(annText);
-            
-            Annotation* annotation = dynamic_cast<Annotation*>(annText);
-            CaretAssert(annotation);
-            m_annotations.push_back(annotation);
             
             float sizeValue = annText->getFontPercentViewportSize();
             
@@ -315,21 +374,45 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
             }
             
             if (i == 0) {
-                fontName = annText->getFont();
                 fontSizeValue = sizeValue;
             }
             else {
-                if (annText->getFont() != fontName) {
-                    fontNameValid = false;
-                }
                 if (fontSizeValue != sizeValue) {
                     haveMultipleFontSizeValues = true;
                     fontSizeValue = std::min(fontSizeValue,
                                              sizeValue);
                 }
             }
+        }
+        
+        updateFontSizeSpinBox(fontSizeValue,
+                              haveMultipleFontSizeValues);
+        
+        AnnotationText::setUserDefaultFontPercentViewportSize(fontSizeValue);
+    }
+}
+
+/**
+ * Update the font style controls.
+ */
+void
+AnnotationFontWidget::updateFontStyleControls()
+{
+    if ( ! m_annotationsFontStyle.empty()) {
+        bool boldOnFlag        = true;
+        bool italicOnFlag      = true;
+        bool underlineOnFlag   = true;
+        int32_t stylesEnabledCount = 0;
+        
+        const int32_t numAnn = static_cast<int32_t>(m_annotationsFontStyle.size());
+        for (int32_t i = 0; i < numAnn; i++) {
+            CaretAssertVectorIndex(m_annotationsFontStyle, i);
+            AnnotationFontAttributesInterface* annText = m_annotationsFontStyle[i];
+            CaretAssert(annText);
             
-            if (annText->isStylesSupported()) {
+            Annotation* annotation = dynamic_cast<Annotation*>(annText);
+            CaretAssert(annotation);
+            if (annotation->testProperty(Annotation::Property::TEXT_FONT_STYLE)) {
                 if ( ! annText->isBoldStyleEnabled()) {
                     boldOnFlag = false;
                 }
@@ -344,11 +427,6 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
             }
         }
         
-        m_fontNameComboBox->setSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>(fontName);
-        
-        updateFontSizeSpinBox(fontSizeValue,
-                              haveMultipleFontSizeValues);
-        
         /*
          * Font styles are ON only if all selected
          * text annotations have the style enabled
@@ -357,28 +435,21 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
         
         m_boldFontAction->setEnabled(stylesEnabledFlag);
         m_boldFontAction->setChecked(boldOnFlag && stylesEnabledFlag);
-
+        
         m_italicFontAction->setEnabled(stylesEnabledFlag);
         m_italicFontAction->setChecked(italicOnFlag && stylesEnabledFlag);
         
         m_underlineFontAction->setEnabled(stylesEnabledFlag);
         m_underlineFontAction->setChecked(underlineOnFlag && stylesEnabledFlag);
         
-        AnnotationText::setUserDefaultFont(fontName);
-        AnnotationText::setUserDefaultFontPercentViewportSize(fontSizeValue);
         if (stylesEnabledFlag) {
             AnnotationText::setUserDefaultBoldEnabled(boldOnFlag);
             AnnotationText::setUserDefaultItalicEnabled(italicOnFlag);
             AnnotationText::setUserDefaultUnderlineEnabled(underlineOnFlag);
         }
     }
-    
-    CaretAssert(m_annotations.size() == m_annotationsFontStyle.size());
-    
-    updateTextColorButton();
-    
-    setEnabled( ! m_annotations.empty());
 }
+
 
 /**
  * Update the font size spin box.
@@ -412,9 +483,9 @@ AnnotationFontWidget::updateFontSizeSpinBox(const float value,
 void
 AnnotationFontWidget::textColorSelected(const CaretColorEnum::Enum caretColor)
 {
-    if ( ! m_annotationsFontStyle.empty()) {
+    if ( ! m_annotationsFontColor.empty()) {
         float rgba[4];
-        m_annotationsFontStyle[0]->getTextColorRGBA(rgba);
+        m_annotationsFontColor[0]->getTextColorRGBA(rgba);
         
         if (caretColor == CaretColorEnum::CUSTOM) {
             QColor color;
@@ -447,7 +518,7 @@ AnnotationFontWidget::textColorSelected(const CaretColorEnum::Enum caretColor)
                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
                 undoCommand->setModeTextColor(caretColor,
                                               rgba,
-                                              m_annotations);
+                                              convertToAnnotations(m_annotationsFontColor));
                 AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
                 AString errorMessage;
                 if ( ! annMan->applyCommand(undoCommand,
@@ -494,24 +565,20 @@ AnnotationFontWidget::updateTextColorButton()
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
         {
-            const int32_t numAnnotations = static_cast<int32_t>(m_annotationsFontStyle.size());
+            const int32_t numAnnotations = static_cast<int32_t>(m_annotationsFontColor.size());
             if (numAnnotations > 0) {
                 bool firstColorSupportFlag = true;
                 bool allSameColorFlag = true;
                 
                 for (int32_t i = 0; i < numAnnotations; i++) {
-                    if ( ! m_annotationsFontStyle[i]->isFontColorGuiEditable()) {
-                        continue;
-                    }
-                    
                     if (firstColorSupportFlag) {
-                        m_annotationsFontStyle[i]->getTextColorRGBA(rgba);
+                        m_annotationsFontColor[i]->getTextColorRGBA(rgba);
                         firstColorSupportFlag = false;
                         colorButtonValidFlag = true;
                     }
                     else {
                         float colorRGBA[4];
-                        m_annotationsFontStyle[i]->getTextColorRGBA(colorRGBA);
+                        m_annotationsFontColor[i]->getTextColorRGBA(colorRGBA);
                         for (int32_t iColor = 0; iColor < 4; iColor++) {
                             if (rgba[iColor] != colorRGBA[iColor]) {
                                 allSameColorFlag = false;
@@ -526,11 +593,11 @@ AnnotationFontWidget::updateTextColorButton()
                 }
                 
                 if (allSameColorFlag) {
-                    colorEnum = m_annotationsFontStyle[0]->getTextColor();
-                    m_annotationsFontStyle[0]->getTextColorRGBA(rgba);
+                    colorEnum = m_annotationsFontColor[0]->getTextColor();
+                    m_annotationsFontColor[0]->getTextColorRGBA(rgba);
                     
                     float customRGBA[4];
-                    m_annotationsFontStyle[0]->getCustomTextColor(customRGBA);
+                    m_annotationsFontColor[0]->getCustomTextColor(customRGBA);
                     m_textColorMenu->setCustomIconColor(customRGBA);
                     
                     switch (m_parentWidgetType) {
@@ -571,7 +638,7 @@ AnnotationFontWidget::fontBoldChanged()
 {
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontBold(m_boldFontAction->isChecked(),
-                                 m_annotations);
+                                 convertToAnnotations(m_annotationsFontStyle));
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
     if ( ! annMan->applyCommand(command,
@@ -599,7 +666,7 @@ AnnotationFontWidget::fontItalicChanged()
 {
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontItalic(m_italicFontAction->isChecked(),
-                                   m_annotations);
+                                   convertToAnnotations(m_annotationsFontStyle));
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
     if ( ! annMan->applyCommand(command,
@@ -629,7 +696,7 @@ AnnotationFontWidget::fontNameChanged()
     
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontName(fontName,
-                                 m_annotations);
+                                 convertToAnnotations(m_annotationsFontName));
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
     if ( ! annMan->applyCommand(command,
@@ -661,7 +728,7 @@ AnnotationFontWidget::fontSizeChanged()
     
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontPercentSize(fontPercentSize,
-                                        m_annotations,
+                                        convertToAnnotations(m_annotationsFontSize),
                                         getSurfaceMontageRowCount());
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
@@ -717,7 +784,7 @@ AnnotationFontWidget::fontUnderlineChanged()
 {
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontUnderline(m_underlineFontAction->isChecked(),
-                                      m_annotations);
+                                      convertToAnnotations(m_annotationsFontStyle));
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
     if ( ! annMan->applyCommand(command,
@@ -737,4 +804,27 @@ AnnotationFontWidget::fontUnderlineChanged()
             break;
     }
 }
+
+/**
+ * Convert the font style interfade annotations to annotations
+ *
+ * @param fontInterfaces
+ *     Input font interface annotations.
+ * @return
+ *     Vector with input converted to Annotation class.
+ */
+std::vector<Annotation*>
+AnnotationFontWidget::convertToAnnotations(const std::vector<AnnotationFontAttributesInterface*>& fontInterfaces)
+{
+    std::vector<Annotation*> annotationsOut;
+    
+    for (auto f : fontInterfaces) {
+        Annotation* a = dynamic_cast<Annotation*>(f);
+        CaretAssert(a);
+        annotationsOut.push_back(a);
+    }
+    
+    return annotationsOut;
+}
+
 

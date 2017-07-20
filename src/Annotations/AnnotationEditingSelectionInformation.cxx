@@ -147,11 +147,18 @@ AnnotationEditingSelectionInformation::update(const std::vector<Annotation*>& se
     
     m_annotations = selectedAnnotations;
     
+    bool allAnnotationsGroupableFlag = false;
     std::set<AnnotationGroupKey> groupKeysSet;
-    for (std::vector<Annotation*>::iterator annIter = m_annotations.begin();
-         annIter != m_annotations.end();
-         annIter++) {
-        groupKeysSet.insert((*annIter)->getAnnotationGroupKey());
+    if ( ! m_annotations.empty()) {
+        allAnnotationsGroupableFlag = true;
+        for (auto ann : m_annotations) {
+            if (ann->testProperty(Annotation::Property::GROUP)) {
+                groupKeysSet.insert(ann->getAnnotationGroupKey());
+            }
+            else {
+                allAnnotationsGroupableFlag = false;
+            }
+        }
     }
     
 //    std::set<const AnnotationGroup*> groupSet;
@@ -163,38 +170,40 @@ AnnotationEditingSelectionInformation::update(const std::vector<Annotation*>& se
 //        groupSet.insert(annGroup);
 //    }
     
-    m_annotationGroupKeys.insert(m_annotationGroupKeys.end(),
-                              groupKeysSet.begin(),
-                              groupKeysSet.end());
+    if (allAnnotationsGroupableFlag) {
+        m_annotationGroupKeys.insert(m_annotationGroupKeys.end(),
+                                     groupKeysSet.begin(),
+                                     groupKeysSet.end());
+    }
     
     const int32_t numGroups = static_cast<int32_t>(m_annotationGroupKeys.size());
     
     /*
      * Are TWO or more annotations selected
      */
-    if (m_annotations.size() > 1) {
-        if (numGroups == 1) {
-            CaretAssertVectorIndex(m_annotationGroupKeys, 0);
-            const AnnotationGroupKey& groupKey = m_annotationGroupKeys[0];
-            
-            switch (groupKey.getGroupType()) {
-                case AnnotationGroupTypeEnum::INVALID:
-                    break;
-                case AnnotationGroupTypeEnum::SPACE:
-                    /*
-                     * All annotations in a space group, allow creating a user group
-                     */
-                    m_groupingValid = true;
-                    break;
-                case AnnotationGroupTypeEnum::USER:
-                    /*
-                     * All annotations in a user group, allow ungrouping to a space group
-                     */
-                    m_ungroupValid = true;
-                    break;
+        if (m_annotations.size() > 1) {
+            if (numGroups == 1) {
+                CaretAssertVectorIndex(m_annotationGroupKeys, 0);
+                const AnnotationGroupKey& groupKey = m_annotationGroupKeys[0];
+                
+                switch (groupKey.getGroupType()) {
+                    case AnnotationGroupTypeEnum::INVALID:
+                        break;
+                    case AnnotationGroupTypeEnum::SPACE:
+                        /*
+                         * All annotations in a space group, allow creating a user group
+                         */
+                        m_groupingValid = true;
+                        break;
+                    case AnnotationGroupTypeEnum::USER:
+                        /*
+                         * All annotations in a user group, allow ungrouping to a space group
+                         */
+                        m_ungroupValid = true;
+                        break;
+                }
             }
         }
-    }
     
     /*
      * Is ANY annotation selected
@@ -276,6 +285,14 @@ AnnotationEditingSelectionInformation::getAnnotationsSelectedForEditing(std::vec
     annotationsOut = m_annotations;
 }
 
+/**
+ * Is the given grouping mode valid?
+ *
+ * @param groupingMode
+ *     The grouping mode.
+ * @return
+ *     True if the grouping mode is valid, else false.
+ */
 bool
 AnnotationEditingSelectionInformation::isGroupingModeValid(const AnnotationGroupingModeEnum::Enum groupingMode) const
 {

@@ -149,9 +149,16 @@ AnnotationDeleteWidget::deleteActionTriggered()
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
-    if ( ! selectedAnnotations.empty()) {
+    std::vector<Annotation*> deleteAnnotations;
+    for (auto a : selectedAnnotations) {
+        if (a->testProperty(Annotation::Property::DELETE)) {
+            deleteAnnotations.push_back(a);
+        }
+    }
+    
+    if ( ! deleteAnnotations.empty()) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeDeleteAnnotations(selectedAnnotations);
+        undoCommand->setModeDeleteAnnotations(deleteAnnotations);
 
         AString errorMessage;
         if ( ! annotationManager->applyCommand(undoCommand,

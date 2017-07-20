@@ -98,9 +98,17 @@ namespace caret {
         
         QDoubleSpinBox* m_lineThicknessSpinBox;
         
-        WuQWidgetObjectGroup* m_backgroundWidgetGroup;
+        WuQWidgetObjectGroup* m_backgroundColorWidgetGroup;
         
-        std::vector<Annotation*> m_annotations;
+        WuQWidgetObjectGroup* m_lineColorWidgetGroup;
+        
+        WuQWidgetObjectGroup* m_lineThicknessWidgetGroup;
+        
+        std::vector<Annotation*> m_lineColorAnnotations;
+        
+        std::vector<Annotation*> m_lineThicknessAnnotations;
+        
+        std::vector<Annotation*> m_backgroundColorAnnotations;
         
         // ADD_NEW_MEMBERS_HERE
 

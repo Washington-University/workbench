@@ -109,8 +109,11 @@ void
 AnnotationTextEditorWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
 {
     m_annotationText = NULL;
-    if (annotationTexts.size() == 1) {
-        m_annotationText = annotationTexts[0];
+    for (auto a : annotationTexts) {
+        if (a->testProperty(Annotation::Property::TEXT_EDIT)) {
+            m_annotationText = a;
+            break;
+        }
     }
 
     

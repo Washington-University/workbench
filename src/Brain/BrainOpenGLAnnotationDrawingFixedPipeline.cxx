@@ -192,7 +192,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                 const float halfSliceThickness = ((m_volumeSliceThickness > 0.0)
                                                   ? (m_volumeSliceThickness / 2.0)
                                                   : 1.0);
-                if (distToPlaneAbs < halfSliceThickness) { //1.5) {
+                if (distToPlaneAbs < halfSliceThickness) {
                     modelXYZValid = true;
                     
                     float projectedPoint[3];
@@ -374,8 +374,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
              */
             float nearValue   =  (1.0f + m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
             float farValue    = -(1.0f - m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
-            //GLfloat bottom =  (1.0f - m_modelSpaceProjectionMatrix[13]) / m_modelSpaceProjectionMatrix[5];
-            //GLfloat top    = -(1.0f + m_modelSpaceProjectionMatrix[13]) / m_modelSpaceProjectionMatrix[5];
             float left   = -(1.0f + m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
             float right  =  (1.0f - m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
 
@@ -814,22 +812,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             CaretAssert(annotation);
             
             bool drawItFlag = false;
-            if (annotation->getType() == AnnotationTypeEnum::COLOR_BAR) {
-                AnnotationColorBar* colorBar = dynamic_cast<AnnotationColorBar*>(annotation);
-                CaretAssert(colorBar);
-                drawItFlag = colorBar->isDisplayed();
-            }
-            else {
-                switch (annotation->getItemDisplaySelected(displayGroup, m_inputs->m_tabIndex)) {
-                    case TriStateSelectionStatusEnum::PARTIALLY_SELECTED:
-                        CaretAssertMessage(0, "An annotation should never be partially selected");
-                        break;
-                    case TriStateSelectionStatusEnum::SELECTED:
-                        drawItFlag = true;
-                        break;
-                    case TriStateSelectionStatusEnum::UNSELECTED:
-                        break;
-                }
+            switch (annotation->getItemDisplaySelected(displayGroup, m_inputs->m_tabIndex)) {
+                case TriStateSelectionStatusEnum::PARTIALLY_SELECTED:
+                    CaretAssertMessage(0, "An annotation should never be partially selected");
+                    break;
+                case TriStateSelectionStatusEnum::SELECTED:
+                    drawItFlag = true;
+                    break;
+                case TriStateSelectionStatusEnum::UNSELECTED:
+                    break;
             }
             
             if ( ! drawItFlag) {
@@ -1268,7 +1259,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                 else {
                     const float tempRGBA[4] = { 1.0, 1.0, 0.0, 1.0 };
                     BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                              tempRGBA, //foregroundRGBA,
+                                                              tempRGBA,
                                                               outlineWidth);
                 }
                 drawnFlag = true;
@@ -1824,7 +1815,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
     AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
     annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
     annText.setFont(colorBar->getFont());
-    annText.setFontPercentViewportSize(textPercentageHeight); //colorBar->getFontPercentViewportSize());
+    annText.setFontPercentViewportSize(textPercentageHeight);
     annText.setTextColor(CaretColorEnum::CUSTOM);
     float rgba[4];
     colorBar->getTextColorRGBA(rgba);

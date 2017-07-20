@@ -41,16 +41,6 @@ using namespace caret;
  * \ingroup Annotations
  */
 
-///**
-// * Constructor for a text annotation.
-// */
-//AnnotationText::AnnotationText()
-//: AnnotationTwoDimensionalShape(AnnotationTypeEnum::TEXT),
-//m_fontSizeType(AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT)
-//{
-//    initializeAnnotationTextMembers();
-//}
-
 /**
  * Constructor for subclass.
  *
@@ -273,15 +263,6 @@ AnnotationText::getFontRenderingEncodedName(const float drawingViewportWidth,
     if (m_italicEnabled) {
         encodedName.append("_I");
     }
-
-//  Underline and outline are not drawn by font rendering
-//    if (m_underlineEnabled) {
-//        encodedName.append("_U");
-//    }
-//    
-//    if (m_outlineEnabled) {
-//        encodedName.append("_O");
-//    }
     
     return encodedName;
 }
@@ -725,43 +706,6 @@ AnnotationText::setCustomTextColor(const uint8_t rgba[4])
 }
 
 /**
- * @return True if the font color is editable in the GUI.
- */
-bool
-AnnotationText::isFontColorGuiEditable() const
-{
-    switch (getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::CHART:
-            break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            break;
-        case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            /*
-             * Viewport annotations do not allow changing of font color
-             */
-            return false;
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            break;
-    }
-    
-    return true;
-}
-
-/**
- * Are font styles (Bold, Italic, Underline) supported?
- */
-bool
-AnnotationText::isStylesSupported() const
-{
-    return true;
-}
-
-/**
  * @return
  *    Is bold enabled ?
  */
@@ -820,19 +764,6 @@ AnnotationText::isUnderlineStyleEnabled() const
 {
     return m_underlineEnabled;
 }
-
-/**
- * @return Is foreground line width supported?
- * Most annotations support a foreground line width.
- * Annotations that do not support a foreground line width
- * must override this method and return a value of false.
- */
-bool
-AnnotationText::isLineWidthSupported() const
-{
-    return true;
-}
-
 
 /**
  * Set underline enabled.

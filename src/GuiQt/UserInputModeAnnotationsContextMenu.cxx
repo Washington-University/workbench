@@ -97,6 +97,9 @@ m_newAnnotationCreatedByContextMenu(NULL)
     m_annotation     = NULL;
     
     bool allSelectedAnnotationsDeletableFlag = true;
+    if (selectedAnnotations.empty()) {
+        allSelectedAnnotationsDeletableFlag = false;
+    }
     
     m_threeDimCoordAnnotations.clear();
     for (std::vector<std::pair<Annotation*, AnnotationFile*> >::iterator iter = selectedAnnotations.begin();
@@ -127,7 +130,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
             m_threeDimCoordAnnotations.push_back(ann);
         }
         
-        if ( ! ann->isDeletable()) {
+        if ( ! ann->testProperty(Annotation::Property::DELETE)) {
             allSelectedAnnotationsDeletableFlag = false;
         }
     }
@@ -140,7 +143,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
         m_annotationFile = selectedAnnotations[0].second;
         m_annotation     = selectedAnnotations[0].first;
         oneAnnotationSelectedFlag = true;
-        if (m_annotation->isDeletable()) {
+        if (m_annotation->testProperty(Annotation::Property::DELETE)) {
             oneDeletableAnnotationSelectedFlag = true;
         }
     }

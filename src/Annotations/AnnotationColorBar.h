@@ -74,10 +74,6 @@ namespace caret {
         
         virtual void setCustomTextColor(const uint8_t rgba[4]);
         
-        virtual bool isFontColorGuiEditable() const;
-        
-        virtual bool isStylesSupported() const;
-        
         virtual bool isBoldStyleEnabled() const;
         
         virtual void setBoldStyleEnabled(const bool enabled);
@@ -93,8 +89,6 @@ namespace caret {
         virtual bool isOutlineStyleEnabled() const;
         
         virtual void setOutlineStyleEnabled(const bool enabled);
-        
-        virtual bool isLineWidthSupported() const;
         
         bool isDisplayed() const;
         
@@ -128,8 +122,6 @@ namespace caret {
         bool isShowTickMarksSelected() const;
         
         void setShowTickMarksSelected(const bool selected);
-        
-        virtual bool isDeletable() const;
         
         // ADD_NEW_METHODS_HERE
 

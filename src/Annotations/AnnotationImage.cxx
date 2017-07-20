@@ -189,30 +189,6 @@ AnnotationImage::initializeMembersAnnotationImage()
 }
 
 /**
- * @return Is foreground line width supported?
- * Most annotations support a foreground line width.
- * Annotations that do not support a foreground line width
- * must override this method and return a value of false.
- */
-bool
-AnnotationImage::isLineWidthSupported() const
-{
-    return true;
-}
-
-/**
- * @return Is background color supported?
- * Most annotations support a background color.
- * Annotations that do not support a background color
- * must override this method and return a value of false.
- */
-bool
-AnnotationImage::isBackgroundColorSupported() const
-{
-    return false;
-}
-
-/**
  * @return Is this annotation requiring that it be kept in a fixed
  * aspect ratio?  By default, this is false.  This method may be
  * overridden by annotations that require a fixed aspect ratio

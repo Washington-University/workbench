@@ -160,7 +160,7 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* setCoordinateToolButton = NULL;
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-            // disabled as change space cause grouping problems.   setCoordinateToolButton = new QToolButton();
+            /** disabled as change space cause grouping problems.   setCoordinateToolButton = new QToolButton(); */
             break;
         case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
             CaretAssert(0);
@@ -256,7 +256,12 @@ AnnotationCoordinateWidget::getCoordinate()
 void
 AnnotationCoordinateWidget::updateContent(Annotation* annotation)
 {
-    m_annotation = annotation;
+    m_annotation = NULL;
+    if (annotation != NULL) {
+        if (annotation->testProperty(Annotation::Property::COORDINATE)) {
+            m_annotation = annotation;
+        }
+    }
     
     m_surfaceStructureComboBox->listOnlyValidStructures();
     

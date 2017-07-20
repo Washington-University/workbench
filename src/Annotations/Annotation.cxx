@@ -263,36 +263,6 @@ Annotation::replaceWithCopyOfAnnotation(const Annotation* annotation)
 }
 
 /**
- * @return Is this annotation deletable?  This method may be overridden
- * by annotations (such as colorbars) that cannot be deleted.
- */
-bool
-Annotation::isDeletable() const
-{
-    switch (getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::CHART:
-            break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            break;
-        case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            /*
-             * Viewport annotations are not in annotation files
-             * so not deletable
-             */
-            return false;
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            break;
-    }
-    
-    return true;
-}
-
-/**
  * @return Is this annotation requiring that it be kept in a fixed 
  * aspect ratio?  By default, this is false.  This method may be 
  * overridden by annotations that require a fixed aspect ratio
@@ -569,6 +539,12 @@ Annotation::initializeAnnotationMembers()
                                                                     &m_colorLine);
         m_sceneAssistant->addArray("m_customColorLine", m_customColorLine, 4, 0.0);
     }
+    
+    initializeProperties();
+    
+    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::VIEWPORT) {
+        initializePropertiesForViewportSpaceAnnotation();
+    }
 }
 
 
@@ -664,6 +640,8 @@ Annotation::setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordin
 {
     if (m_coordinateSpace != coordinateSpace) {
         m_coordinateSpace = coordinateSpace;
+        CaretAssertMessage((m_coordinateSpace != AnnotationCoordinateSpaceEnum::VIEWPORT),
+                           "Annotation coordinate space should never change to VIEWPORT space.");
         setModified();
     }
 }
@@ -792,31 +770,6 @@ Annotation::setLineWidth(const float lineWidth)
         setModified();
     }
 }
-
-/**
- * @return Is line width supported?
- * Most annotations support a line width.
- * Annotations that do not support a line width
- * must override this method and return a value of false.
- */
-bool
-Annotation::isLineWidthSupported() const
-{
-    return true;
-}
-
-/**
- * @return Is background color supported?
- * Most annotations support a background color.
- * Annotations that do not support a background color
- * must override this method and return a value of false.
- */
-bool
-Annotation::isBackgroundColorSupported() const
-{
-    return true;
-}
-
 
 /**
  * @return The line color.
@@ -1121,6 +1074,231 @@ Annotation::setCustomBackgroundColor(const uint8_t rgba[4])
         }
     }
 }
+
+/**
+ * Initialize properties.
+ */
+void
+Annotation::initializeProperties()
+{
+    /*
+     * Initialize all properties on/supported
+     */
+    const int32_t propertyCount = static_cast<std::underlying_type<Property>::type>(Property::COUNT_FOR_BITSET);
+    CaretAssert(m_properties.size() >= propertyCount);
+    m_properties.set();
+    
+    bool colorBarFlag = false;
+    bool fillColorFlag = true;
+    bool lineArrowsFlag = false;
+    bool textFlag = false;
+    switch (m_type) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            colorBarFlag = true;
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            fillColorFlag = false;
+            break;
+        case AnnotationTypeEnum::LINE:
+            fillColorFlag = false;
+            lineArrowsFlag = true;
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            textFlag = true;
+            break;
+    }
+    
+    setProperty(Property::FILL_COLOR, fillColorFlag);
+    setProperty(Property::LINE_ARROWS, lineArrowsFlag);
+    setProperty(Property::TEXT_ALIGNMENT, textFlag);
+    setProperty(Property::TEXT_EDIT, textFlag);
+    setProperty(Property::TEXT_COLOR, textFlag);
+    setProperty(Property::TEXT_FONT_NAME, colorBarFlag | textFlag);
+    setProperty(Property::TEXT_FONT_SIZE, colorBarFlag | textFlag);
+    setProperty(Property::TEXT_FONT_STYLE, textFlag);
+    setProperty(Property::TEXT_ORIENTATION, textFlag);
+    
+    /*
+     * These are not valid properties 
+     */
+    resetProperty(Property::INVALID);
+    resetProperty(Property::COUNT_FOR_BITSET);
+    
+    if (colorBarFlag) {
+        resetProperty(Property::ARRANGE);
+        resetProperty(Property::COPY_CUT_PASTE);
+        resetProperty(Property::DELETE);
+        resetProperty(Property::DISPLAY_GROUP);
+        resetProperty(Property::GROUP);
+        resetProperty(Property::LINE_COLOR);
+        resetProperty(Property::LINE_THICKNESS);
+        resetProperty(Property::ROTATION);
+        resetProperty(Property::TEXT_COLOR);
+        resetProperty(Property::TEXT_EDIT);
+    }
+    
+}
+
+/**
+ * Set the properties for a chart axis label.
+ * Chart axis labels are text annotations but have limited editing and other properties.
+ */
+void
+Annotation::setPropertiesForChartAxisTitle()
+{
+    initializeProperties();
+    
+    resetProperty(Property::ARRANGE);
+    resetProperty(Property::COORDINATE);
+    resetProperty(Property::COPY_CUT_PASTE);
+    resetProperty(Property::DELETE);
+    resetProperty(Property::DISPLAY_GROUP);
+    resetProperty(Property::GROUP);
+    resetProperty(Property::LINE_COLOR);
+    resetProperty(Property::LINE_THICKNESS);
+    resetProperty(Property::ROTATION);
+    resetProperty(Property::TEXT_ALIGNMENT);
+    resetProperty(Property::TEXT_COLOR);
+    resetProperty(Property::TEXT_ORIENTATION);
+}
+
+/**
+ * Set the properties for an annotation in viewport coordinate space.
+ */
+void
+Annotation::initializePropertiesForViewportSpaceAnnotation()
+{
+    initializeProperties();
+
+    resetProperty(Property::ARRANGE);
+    resetProperty(Property::COORDINATE);
+    resetProperty(Property::COPY_CUT_PASTE);
+    resetProperty(Property::DELETE);
+    resetProperty(Property::DISPLAY_GROUP);
+    resetProperty(Property::GROUP);
+    resetProperty(Property::ROTATION);
+}
+
+
+/**
+ * Test a property.
+ * 
+ * @param property
+ *     Property for testing.
+ * @return
+ *     True if property is on, else false.
+ */
+bool
+Annotation::testProperty(const Property property) const
+{
+    /*
+     * Text connect to brainordiante property is valid only
+     * for a a text annotation in surface space
+    
+     */
+    if (property == Property::TEXT_CONNECT_TO_BRAINORDINATE) {
+        if (m_type == AnnotationTypeEnum::TEXT) {
+            if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::SURFACE) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+//    if (property == Property::TEXT_COLOR) {
+//        if (m_type == AnnotationTypeEnum::TEXT) {
+//            return false;
+//        }
+//    }
+
+    const int32_t propertyIndex = static_cast<std::underlying_type<Property>::type>(property);
+    return m_properties.test(propertyIndex);
+    
+}
+
+/**
+ * Test for any of the properties are set.
+ *
+ * @param propertyOne
+ *     First property for testing.
+ * @param propertyTwo
+ *     Two property for testing.
+ * @param propertyThree
+ *     Three property for testing.
+ * @param propertyFour
+ *     Four property for testing.
+ * @param propertyFive
+ *     Five property for testing.
+ * @return
+ *     True if property is on, else false.
+ */
+bool
+Annotation::testPropertiesAny(const Property propertyOne,
+                       const Property propertyTwo,
+                       const Property propertyThree,
+                       const Property propertyFour,
+                       const Property propertyFive) const
+{
+    if (testProperty(propertyOne)) {
+        return true;
+    }
+    if (testProperty(propertyTwo)) {
+        return true;
+    }
+    if (propertyThree != Property::INVALID) {
+        if (testProperty(propertyThree)) {
+            return true;
+        }
+    }
+    if (propertyFour != Property::INVALID) {
+        if (testProperty(propertyFour)) {
+            return true;
+        }
+    }
+    if (propertyFive != Property::INVALID) {
+        if (testProperty(propertyFive)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+
+/**
+ * Set a property.
+ *
+ * @param property
+ *     Property for testing.
+ * @param value
+ *     New on/off status for property (optional argument defaults to true).
+ */
+void
+Annotation::setProperty(const Property property,
+                        const bool value)
+{
+    const int32_t propertyIndex = static_cast<std::underlying_type<Property>::type>(property);
+    m_properties.set(propertyIndex,
+                     value);
+}
+
+/**
+ * Reset (turn off) a property.
+ *
+ * @param property
+ *     Property for testing.
+ */
+void
+Annotation::resetProperty(const Property property)
+{
+    const int32_t propertyIndex = static_cast<std::underlying_type<Property>::type>(property);
+    m_properties.reset(propertyIndex);
+}
+
 
 /**
  * @return The key to the annotation group that owns this annotation.
@@ -1703,12 +1881,19 @@ TriStateSelectionStatusEnum::Enum
 Annotation::getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex) const
 {
-    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
-        return m_displayGroupAndTabItemHelper->getSelectedInWindow(m_windowIndex);
+    if (testProperty(Annotation::Property::DISPLAY_GROUP)) {
+        if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+            return m_displayGroupAndTabItemHelper->getSelectedInWindow(m_windowIndex);
+        }
+        
+        return m_displayGroupAndTabItemHelper->getSelected(displayGroup,
+                                                           tabIndex);
     }
     
-    return m_displayGroupAndTabItemHelper->getSelected(displayGroup,
-                                                       tabIndex);
+    /*
+     * Annotations that do not support a "display group" are always displayed
+     */
+    return TriStateSelectionStatusEnum::SELECTED;
 }
 
 /**

@@ -91,6 +91,9 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
     initializeAxisTitle(m_bottomAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
     initializeAxisTitle(m_leftRightAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
     
+    m_bottomAxisTitle->setPropertiesForChartAxisTitle();
+    m_leftRightAxisTitle->setPropertiesForChartAxisTitle();
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
 }
 

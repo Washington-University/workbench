@@ -1380,7 +1380,7 @@ UserInputModeAnnotations::showContextMenu(const MouseEvent& mouseEvent,
     
     UserInputModeAnnotationsContextMenu contextMenu(this,
                                                     mouseEvent,
-                                                    NULL, //idManager,
+                                                    NULL,
                                                     tabContent,
                                                     openGLWidget);
     if (contextMenu.actions().size() > 0) {
@@ -1620,30 +1620,40 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
         /*
          * Copy, Cut, and Delete disabled if ANY colorbar is selected.
          */
-        bool noColorBarsSelectedFlag = true;
+        bool allAllowCopyCutPasteFlag = true;
+        bool allAllowDeleteFlag       = true;
+        bool allAllowSelectFlag       = true;
         for (std::vector<Annotation*>::const_iterator iter = allSelectedAnnotations.begin();
              iter != allSelectedAnnotations.end();
              iter++) {
             const Annotation* ann = *iter;
-            if (ann->getType() == AnnotationTypeEnum::COLOR_BAR) {
-                noColorBarsSelectedFlag = false;
+            if ( ! ann->testProperty(Annotation::Property::COPY_CUT_PASTE)) {
+                allAllowCopyCutPasteFlag = false;
+            }
+            if ( ! ann->testProperty(Annotation::Property::DELETE)) {
+                allAllowDeleteFlag = false;
             }
         }
         
-        if (noColorBarsSelectedFlag) {
-            const bool anySelectedFlag = ( ! allSelectedAnnotations.empty());
-            const bool oneSelectedFlag = (allSelectedAnnotations.size() == 1);
-            
+        const bool anySelectedFlag = ( ! allSelectedAnnotations.empty());
+        const bool oneSelectedFlag = (allSelectedAnnotations.size() == 1);
+        if (allAllowCopyCutPasteFlag) {
             if (oneSelectedFlag) {
                 enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::COPY);
                 enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::CUT);
             }
-            
+        }
+        
+        if (allAllowDeleteFlag) {
             if (anySelectedFlag) {
                 enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::DELETER);
             }
-            
-            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
+        }
+        
+        if (allAllowSelectFlag) {
+            if (anySelectedFlag) {
+                enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
+            }
         }
         
         if (annotationManager->isAnnotationOnClipboardValid()) {

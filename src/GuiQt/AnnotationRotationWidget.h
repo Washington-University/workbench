@@ -45,8 +45,6 @@ namespace caret {
         
 
         // ADD_NEW_METHODS_HERE
-
-//        void updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotation2D);
         
         void updateContent(std::vector<Annotation*>& annotations);
         

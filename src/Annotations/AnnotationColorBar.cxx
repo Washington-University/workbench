@@ -227,24 +227,6 @@ AnnotationColorBar::setFontPercentViewportSize(const float fontPercentViewportHe
 }
 
 /**
- * @return True if the font color is editable in the GUI.
- */
-bool
-AnnotationColorBar::isFontColorGuiEditable() const
-{
-    return true;
-}
-
-/**
- * Are font styles (Bold, Italic, Underline) supported?
- */
-bool
-AnnotationColorBar::isStylesSupported() const
-{
-    return false;
-}
-
-/**
  * @return The foreground color.
  */
 CaretColorEnum::Enum
@@ -480,19 +462,6 @@ AnnotationColorBar::setOutlineStyleEnabled(const bool /*enabled*/)
 }
 
 /**
- * @return Is foreground line width supported?
- * Most annotations support a foreground line width.
- * Annotations that do not support a foreground line width
- * must override this method and return a value of false.
- */
-bool
-AnnotationColorBar::isLineWidthSupported() const
-{
-    return false;
-}
-
-
-/**
  * @return The position mode for the colorbar annotation.
  */
 AnnotationColorBarPositionModeEnum::Enum
@@ -546,17 +515,6 @@ AnnotationColorBar::setDisplayed(const bool displayed)
         setModified();
     }
 }
-
-/**
- * @return Is this annotation deletable?  This method may be overridden
- * by annotations (such as colorbars) that cannot be deleted.
- */
-bool
-AnnotationColorBar::isDeletable() const
-{
-    return false;
-}
-
 
 /**
  * Save subclass data to the scene.

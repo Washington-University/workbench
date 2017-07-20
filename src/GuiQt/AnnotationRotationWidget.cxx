@@ -154,81 +154,83 @@ AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
         for (int32_t i = 0; i < numAnns; i++) {
             CaretAssertVectorIndex(annotations, i);
             Annotation* ann = annotations[i];
-            if (ann->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
-                AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
-                AnnotationOneDimensionalShape* oneDimAnn = getValidOneDimAnnotation(ann);
-                
-                float angle = 0.0;
-                float angleValid = false;
-                if (twoDimAnn != NULL) {
-                    angle = twoDimAnn->getRotationAngle();
-                    angleValid = true;
-                }
-                else if (oneDimAnn != NULL) {
-                    int32_t viewport[4] = { 0, 0, 0, 0 };
-                    bool viewportValidFlag = false;
-                    switch (oneDimAnn->getCoordinateSpace()) {
-                        case AnnotationCoordinateSpaceEnum::CHART:
-                            break;
-                        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                            break;
-                        case  AnnotationCoordinateSpaceEnum::SURFACE:
-                            break;
-                        case AnnotationCoordinateSpaceEnum::TAB:
-                        {
-                            const int tabIndex = oneDimAnn->getTabIndex();
-                            EventGetViewportSize vpSizeEvent(EventGetViewportSize::MODE_TAB_AFTER_MARGINS_INDEX,
-                                                             tabIndex);
-                            EventManager::get()->sendEvent(vpSizeEvent.getPointer());
-                            if (vpSizeEvent.isViewportSizeValid()) {
-                                vpSizeEvent.getViewportSize(viewport);
-                                viewportValidFlag = true;
-                            }
-                        }
-                            break;
-                        case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                            break;
-                        case AnnotationCoordinateSpaceEnum::WINDOW:
-                        {
-                            const int windowIndex = oneDimAnn->getWindowIndex();
-                            EventGetViewportSize vpSizeEvent(EventGetViewportSize::MODE_WINDOW_INDEX,
-                                                             windowIndex);
-                            EventManager::get()->sendEvent(vpSizeEvent.getPointer());
-                            if (vpSizeEvent.isViewportSizeValid()) {
-                                vpSizeEvent.getViewportSize(viewport);
-                                viewportValidFlag = true;
-                            }
-                        }
-                            break;
-                    }
+            if (ann->testProperty(Annotation::Property::ROTATION)) {
+                if (ann->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
+                    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
+                    AnnotationOneDimensionalShape* oneDimAnn = getValidOneDimAnnotation(ann);
                     
-                    if (viewportValidFlag) {
-                        angle = oneDimAnn->getRotationAngle(viewport[2], viewport[3]);
+                    float angle = 0.0;
+                    float angleValid = false;
+                    if (twoDimAnn != NULL) {
+                        angle = twoDimAnn->getRotationAngle();
                         angleValid = true;
                     }
-                }
-                
-                if (angleValid) {
-                    if (angle < 0.0) {
-                        angle += 360.0;
-                    }
-                    else if (angle > 360.0) {
-                        angle -= 360.0;
-                    }
-                    
-                    if (rotationAngleValid) {
-                        if (rotationAngle != angle) {
-                            haveMultipleRotationAnglesFlag = true;
+                    else if (oneDimAnn != NULL) {
+                        int32_t viewport[4] = { 0, 0, 0, 0 };
+                        bool viewportValidFlag = false;
+                        switch (oneDimAnn->getCoordinateSpace()) {
+                            case AnnotationCoordinateSpaceEnum::CHART:
+                                break;
+                            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                                break;
+                            case  AnnotationCoordinateSpaceEnum::SURFACE:
+                                break;
+                            case AnnotationCoordinateSpaceEnum::TAB:
+                            {
+                                const int tabIndex = oneDimAnn->getTabIndex();
+                                EventGetViewportSize vpSizeEvent(EventGetViewportSize::MODE_TAB_AFTER_MARGINS_INDEX,
+                                                                 tabIndex);
+                                EventManager::get()->sendEvent(vpSizeEvent.getPointer());
+                                if (vpSizeEvent.isViewportSizeValid()) {
+                                    vpSizeEvent.getViewportSize(viewport);
+                                    viewportValidFlag = true;
+                                }
+                            }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                                break;
+                            case AnnotationCoordinateSpaceEnum::WINDOW:
+                            {
+                                const int windowIndex = oneDimAnn->getWindowIndex();
+                                EventGetViewportSize vpSizeEvent(EventGetViewportSize::MODE_WINDOW_INDEX,
+                                                                 windowIndex);
+                                EventManager::get()->sendEvent(vpSizeEvent.getPointer());
+                                if (vpSizeEvent.isViewportSizeValid()) {
+                                    vpSizeEvent.getViewportSize(viewport);
+                                    viewportValidFlag = true;
+                                }
+                            }
+                                break;
                         }
-                        rotationAngle = std::min(rotationAngle,
-                                                 angle);
-                    }
-                    else {
-                        rotationAngle = angle;
-                        rotationAngleValid = true;
+                        
+                        if (viewportValidFlag) {
+                            angle = oneDimAnn->getRotationAngle(viewport[2], viewport[3]);
+                            angleValid = true;
+                        }
                     }
                     
-                    m_annotations.push_back(ann);
+                    if (angleValid) {
+                        if (angle < 0.0) {
+                            angle += 360.0;
+                        }
+                        else if (angle > 360.0) {
+                            angle -= 360.0;
+                        }
+                        
+                        if (rotationAngleValid) {
+                            if (rotationAngle != angle) {
+                                haveMultipleRotationAnglesFlag = true;
+                            }
+                            rotationAngle = std::min(rotationAngle,
+                                                     angle);
+                        }
+                        else {
+                            rotationAngle = angle;
+                            rotationAngleValid = true;
+                        }
+                        
+                        m_annotations.push_back(ann);
+                    }
                 }
             }
         }
@@ -261,22 +263,6 @@ AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
 void
 AnnotationRotationWidget::rotationValueChanged(double value)
 {
-//    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-//    std::vector<Annotation*> annotations = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex);
-//    
-//    std::vector<Annotation*> rotateAnnotations;
-//    const int32_t numAnns = static_cast<int32_t>(annotations.size());
-//    for (int32_t i = 0; i < numAnns; i++) {
-//        CaretAssertVectorIndex(annotations, i);
-//        Annotation* ann = annotations[i];
-//        AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
-//        AnnotationOneDimensionalShape* oneDimAnn = getValidOneDimAnnotation(ann);
-//        if ((oneDimAnn != NULL)
-//            || (twoDimAnn != NULL)) {
-//            rotateAnnotations.push_back(ann);
-//        }
-//    }
-    
     if ( ! m_annotations.empty()) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeRotationAngle(value,
@@ -291,13 +277,4 @@ AnnotationRotationWidget::rotationValueChanged(double value)
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
-    
-//    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-//    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-//    undoCommand->setModeRotationAngle(value,
-//                                      annMan->getAnnotationsSelectedForEditing());
-//    annMan->applyCommand(undoCommand);
-//    
-//    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
