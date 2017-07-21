@@ -95,6 +95,8 @@ m_volumeSliceThickness(0.0)
                                                       0.7,
                                                       1.0);
 
+    BrainOpenGL::getMinMaxLineWidth(m_lineWidthMinimum,
+                                    m_lineWidthMaximum);
 }
 
 /**
@@ -1186,7 +1188,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
         (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
     };
     
-    const float outlineWidth = box->getLineWidth();
+    const float outlineWidth = getLineWidthFromPercentageHeight(box->getLineWidth());
     
     const bool depthTestFlag = isDrawnWithDepthTesting(box);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
@@ -1272,7 +1274,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                                               bottomRight,
                                               topRight,
                                               topLeft,
-                                              outlineWidth,
+                                              s_sizingHandleLineWidthInPixels,
                                               box->getRotationAngle());
         }
     }
@@ -1319,8 +1321,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
         (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
         (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
     };
-    
-    const float outlineWidth = colorBar->getLineWidth();
     
     const bool depthTestFlag = isDrawnWithDepthTesting(colorBar);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
@@ -1458,7 +1458,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                                           bottomRight,
                                           topRight,
                                           topLeft,
-                                          outlineWidth,
+                                          s_sizingHandleLineWidthInPixels,
                                           colorBar->getRotationAngle());
     }
     
@@ -1903,7 +1903,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     const float majorAxis     = ((oval->getWidth()  / 100.0) * (m_modelSpaceViewport[2] / 2.0));
     const float minorAxis     = ((oval->getHeight() / 100.0) * (m_modelSpaceViewport[3] / 2.0));
     const float rotationAngle = oval->getRotationAngle();
-    const float outlineWidth  = oval->getLineWidth();
+    const float outlineWidth  = getLineWidthFromPercentageHeight(oval->getLineWidth());
     
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
@@ -1988,7 +1988,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
                                               bottomRight,
                                               topRight,
                                               topLeft,
-                                              outlineWidth,
+                                              s_sizingHandleLineWidthInPixels,
                                               oval->getRotationAngle());
         }
     }
@@ -2083,7 +2083,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                         
                         createLineCoordinates(annXYZ,
                                               brainordinateXYZ,
-                                              text->getLineWidth(),
+                                              getLineWidthFromPercentageHeight(text->getLineWidth()),
                                               false,
                                               showArrowFlag,
                                               lineCoordinatesOut);
@@ -2288,7 +2288,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             if ( ! connectLineCoordinates.empty()) {
                 BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
                                                        textColorRGBA,
-                                                       text->getLineWidth());
+                                                       getLineWidthFromPercentageHeight(text->getLineWidth()));
             }
             
             if (drawTextFlag) {
@@ -2330,9 +2330,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                         boxCoords.insert(boxCoords.end(), tl, tl + 3);
                         
                         if (boxCoords.size() == 12) {
+                            const float lineWidthPixelsForDrawingNewTextAnnotation = 2.0f;
                             BrainOpenGLPrimitiveDrawing::drawLineLoop(boxCoords,
                                                                       foregroundRGBA,
-                                                                      text->getLineWidth());
+                                                                      lineWidthPixelsForDrawingNewTextAnnotation);
                         }
                     }
                     else {
@@ -2348,14 +2349,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
         }
         
         if (text->isSelectedForEditing(m_inputs->m_windowIndex)) {
-            const float outlineWidth = 2.0;
             drawAnnotationTwoDimSizingHandles(annotationFile,
                                               text,
                                               bottomLeft,
                                               bottomRight,
                                               topRight,
                                               topLeft,
-                                              outlineWidth,
+                                              s_sizingHandleLineWidthInPixels,
                                               text->getRotationAngle());
             
             /*
@@ -2515,21 +2515,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
             if (drawForegroundFlag) {
                 BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
                                                           foregroundRGBA,
-                                                          image->getLineWidth());
+                                                          getLineWidthFromPercentageHeight(image->getLineWidth()));
             }
             
             setDepthTestingStatus(depthTestFlag);
         }
         
         if (image->isSelectedForEditing(m_inputs->m_windowIndex)) {
-            const float outlineWidth = 2.0;
             drawAnnotationTwoDimSizingHandles(annotationFile,
                                               image,
                                               bottomLeft,
                                               bottomRight,
                                               topRight,
                                               topLeft,
-                                              outlineWidth,
+                                              s_sizingHandleLineWidthInPixels,
                                               image->getRotationAngle());
         }
     }
@@ -2692,7 +2691,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                                          lineTailXYZ)) {
         return false;
     }
-    const float lineWidth = line->getLineWidth();
+    const float lineWidth = getLineWidthFromPercentageHeight(line->getLineWidth());
     const float backgroundLineWidth = lineWidth + 4;
     
     const float selectionCenterXYZ[3] = {
@@ -2707,7 +2706,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     std::vector<float> coords;
     createLineCoordinates(lineHeadXYZ,
                           lineTailXYZ,
-                          line->getLineWidth(),
+                          lineWidth,
                           line->isDisplayStartArrow(),
                           line->isDisplayEndArrow(),
                           coords);
@@ -2745,7 +2744,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                                               line,
                                               lineHeadXYZ,
                                               lineTailXYZ,
-                                              lineWidth);
+                                              s_sizingHandleLineWidthInPixels);
         }
     }
     
@@ -3322,4 +3321,28 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setDepthTestingStatus(const bool newD
     
     return (savedStatus == GL_TRUE);
 }
+
+/**
+ * Convert a percentage height to a line width in pixels
+ *
+ * @param percentageHeight
+ *     Percentage of viewport height.
+ * @return
+ *     Line width in pixels clamped to valid range
+ */
+float
+BrainOpenGLAnnotationDrawingFixedPipeline::getLineWidthFromPercentageHeight(const float percentageHeight) const
+{
+    float widthPixels = (percentageHeight / 100.0f) * m_modelSpaceViewport[3];
+    
+    if (widthPixels < m_lineWidthMinimum) {
+        widthPixels = m_lineWidthMinimum;
+    }
+    else if (widthPixels > m_lineWidthMaximum) {
+        widthPixels = m_lineWidthMaximum;
+    }
+    
+    return widthPixels;
+}
+
 

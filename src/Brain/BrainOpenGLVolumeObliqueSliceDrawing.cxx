@@ -850,10 +850,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const Volume
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              m_fixedPipelineDrawing->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                                                             m_fixedPipelineDrawing->m_tabViewport,
                                                              m_fixedPipelineDrawing->m_windowIndex,
                                                              m_fixedPipelineDrawing->windowTabIndex,
-                                                             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
     m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
                                                                                         slicePlane,

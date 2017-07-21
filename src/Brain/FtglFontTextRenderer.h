@@ -116,6 +116,9 @@ namespace caret {
                               const float extraSpaceX,
                               const float extraSpaceY);
         
+        double getLineWidthFromPercentageHeight(const double percentageHeight) const;
+        
+        
         class FontData {
         public:
             FontData();
@@ -224,11 +227,12 @@ namespace caret {
         class TextStringGroup {
         public:
             TextStringGroup(const AnnotationText& annotationText,
-                          FTFont* font,
-                          const double viewportX,
-                          const double viewportY,
-                          const double viewportZ,
-                          const double rotationAngle);
+                            FTFont* font,
+                            const double viewportX,
+                            const double viewportY,
+                            const double viewportZ,
+                            const double rotationAngle,
+                            const double lineThicknessForViewportHeight);
             
             ~TextStringGroup();
             
@@ -254,6 +258,8 @@ namespace caret {
             const double m_viewportZ;
             
             const double m_rotationAngle;
+            
+            const double m_lineThicknessForViewportHeight;
             
             double m_underlineThickness;
             
@@ -324,6 +330,10 @@ namespace caret {
         
         /** Height of the viewport */
         int32_t m_viewportHeight;
+        
+        float m_lineWidthMinimum = 1.0f;
+        
+        float m_lineWidthMaximum = 5.0f;
         
         static const double s_textMarginSize;
     };

@@ -139,21 +139,20 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Line thickness
      */
-    float minimumLineWidth = 0.0;
-    float maximumLineWidth = 1.0;
-    BrainOpenGL::getMinMaxLineWidth(minimumLineWidth,
-                                    maximumLineWidth);
-    minimumLineWidth = std::max(minimumLineWidth, 1.0f);
+    float minimumLineWidthPercentage = 0.1;
+    float maximumLineWidthPercentage = 100.0;
+    float lineWidthStep = 0.1;
     m_lineThicknessWidgetGroup = new WuQWidgetObjectGroup(this);
-    m_lineThicknessSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minimumLineWidth,
-                                                                                            maximumLineWidth,
-                                                                                            1.0,
-                                                                                            0,
+    m_lineThicknessSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minimumLineWidthPercentage,
+                                                                                            maximumLineWidthPercentage,
+                                                                                            lineWidthStep,
+                                                                                            1,
                                                                                             this,
                                                                                             SLOT(lineThicknessSpinBoxValueChanged(double)));
     WuQtUtilities::setWordWrappedToolTip(m_lineThicknessSpinBox,
                                          "Adjust the line thickness");
-    m_lineThicknessSpinBox->setFixedWidth(45);
+    //m_lineThicknessSpinBox->setFixedWidth(45);
+    m_lineThicknessSpinBox->setSuffix("%");
     
     m_lineThicknessWidgetGroup->add(lineLabel);
     m_lineThicknessWidgetGroup->add(lineWidthLabel);
@@ -744,10 +743,10 @@ AnnotationColorWidget::updateLineThicknessSpinBox()
     m_lineThicknessSpinBox->setValue(lineWidthValue);
     m_lineThicknessSpinBox->setEnabled(lineWidthValid);
     if (haveMultipleLineWidthValues) {
-        m_lineThicknessSpinBox->setSuffix("+");
+        m_lineThicknessSpinBox->setSuffix("%+");
     }
     else {
-        m_lineThicknessSpinBox->setSuffix("");
+        m_lineThicknessSpinBox->setSuffix("%");
     }
     m_lineThicknessSpinBox->blockSignals(false);
     

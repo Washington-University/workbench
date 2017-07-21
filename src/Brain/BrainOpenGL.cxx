@@ -790,7 +790,7 @@ BrainOpenGL::initializeOpenGL()
     glGetFloatv(GL_POINT_SIZE_RANGE, sizes);
     s_minPointSize = sizes[0];
     s_maxPointSize = sizes[1];
-    glGetFloatv(GL_LINE_WIDTH_RANGE, sizes);
+    glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, sizes);
     s_minLineWidth = sizes[0];
     s_maxLineWidth = sizes[1];
 

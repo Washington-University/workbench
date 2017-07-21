@@ -130,6 +130,8 @@ FtglFontTextRenderer::FtglFontTextRenderer()
                             true);
 #endif // HAVE_FREETYPE
     m_depthTestingStatus = DEPTH_TEST_NO;
+    BrainOpenGL::getMinMaxLineWidth(m_lineWidthMinimum,
+                                    m_lineWidthMaximum);
 }
 
 /**
@@ -269,8 +271,28 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
 #endif // HAVE_FREETYPE
 }
 
-
-
+/**
+ * Convert a percentage height to a line width in pixels
+ *
+ * @param percentageHeight
+ *     Percentage of viewport height.
+ * @return
+ *     Line width in pixels clamped to valid range
+ */
+double
+FtglFontTextRenderer::getLineWidthFromPercentageHeight(const double percentageHeight) const
+{
+    float widthPixels = (percentageHeight / 100.0) * m_viewportHeight;
+    
+    if (widthPixels < m_lineWidthMinimum) {
+        widthPixels = m_lineWidthMinimum;
+    }
+    else if (widthPixels > m_lineWidthMaximum) {
+        widthPixels = m_lineWidthMaximum;
+    }
+    
+    return widthPixels;
+}
 
 /**
  * Draw the text piceces at their assigned viewport coordinates.
@@ -732,12 +754,15 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
     
     m_depthTestingStatus = depthTesting;
     
+    const double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidth());
+    
     TextStringGroup tsg(annotationText,
                         font,
                         viewportX,
                         viewportY,
                         viewportZ,
-                        annotationText.getRotationAngle());
+                        annotationText.getRotationAngle(),
+                        lineThicknessForViewportHeight);
     //tsg.print();
     drawTextAtViewportCoordinatesInternal(annotationText,
                                           tsg);
@@ -799,12 +824,15 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                         + AString((char*)gluErrorString(errorCode)));
     }
     
+    double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidth());
+    
     TextStringGroup textStringGroup(annotationText,
                                     font,
                                     viewportX,
                                     viewportY,
                                     viewportZ,
-                                    annotationText.getRotationAngle());
+                                    annotationText.getRotationAngle(),
+                                    lineThicknessForViewportHeight);
     
     double rotationPointXYZ[3];
     textStringGroup.getViewportBounds(s_textMarginSize,
@@ -1673,19 +1701,23 @@ FtglFontTextRenderer::TextString::getTextBoundsInViewportCoordinates(double& vie
  *    Z-coordinate in the viewport.
  * @param rotationAngle
  *    Rotation angle for the text.
+ * @param lineThicknessForViewportHeight
+ *    Line thickness adjusted for viewport height.
  */
 FtglFontTextRenderer::TextStringGroup::TextStringGroup(const AnnotationText& annotationText,
                                                        FTFont* font,
                                                        const double viewportX,
                                                        const double viewportY,
                                                        const double viewportZ,
-                                                       const double rotationAngle)
+                                                       const double rotationAngle,
+                                                       const double lineThicknessForViewportHeight)
 : m_annotationText(annotationText),
 m_font(font),
 m_viewportX(viewportX),
 m_viewportY(viewportY),
 m_viewportZ(viewportZ),
 m_rotationAngle(rotationAngle),
+m_lineThicknessForViewportHeight(lineThicknessForViewportHeight),
 m_underlineThickness(0.0),
 m_outlineThickness(0.0),
 m_viewportBoundsMinX(0.0),
@@ -1714,7 +1746,11 @@ m_viewportBoundsMaxY(0.0)
      */
     if (annotationText.getLineColor() != CaretColorEnum::NONE) {
         if (annotationText.getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
-            m_outlineThickness = m_annotationText.getLineWidth();
+            const double outlineThickness = m_annotationText.getLineWidth();
+            if (outlineThickness > 0.0) {
+                m_outlineThickness = m_lineThicknessForViewportHeight;
+            }
+            //m_outlineThickness = m_annotationText.getLineWidth();
         }
     }
     

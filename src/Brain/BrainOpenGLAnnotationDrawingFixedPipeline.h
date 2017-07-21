@@ -54,25 +54,6 @@ namespace caret {
     public:
         class Inputs {
         public:
-            /**
-             * Viewport height used for setting text height
-             */
-            enum TextHeightMode {
-                /** 
-                 * Use the viewport height from OpenGL drawing (last set by call to glViewport()).
-                 * This is the viewport that is active when annotation drawing is executed and in
-                 * which the model is drawn.
-                 */
-                TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
-                /**
-                 * Use the tab viewport height from the "Inputs".
-                 * This mode is primarily used when drawing a surface montage and results in
-                 * the same text height for a stereotaxic or surface annotation in both 
-                 * surface montage and single surface mode.
-                 */
-                TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT
-            };
-            
             enum WindowDrawingMode {
                 WINDOW_DRAWING_NO,
                 WINDOW_DRAWING_YES
@@ -81,31 +62,22 @@ namespace caret {
             Inputs(Brain* brain,
                    const BrainOpenGLFixedPipeline::Mode drawingMode,
                    const float centerToEyeDistance,
-                   const int32_t tabViewport[4],
                    const int32_t windowIndex,
                    const int32_t tabIndex,
-                   const TextHeightMode textHeightMode,
                    const WindowDrawingMode windowDrawingMode)
             : m_brain(brain),
             m_drawingMode(drawingMode),
             m_centerToEyeDistance(centerToEyeDistance),
             m_windowIndex(windowIndex),
             m_tabIndex(tabIndex),
-            m_textHeightMode(textHeightMode),
             m_windowDrawingMode(windowDrawingMode) {
-                m_tabViewport[0] = tabViewport[0];
-                m_tabViewport[1] = tabViewport[1];
-                m_tabViewport[2] = tabViewport[2];
-                m_tabViewport[3] = tabViewport[3];
             }
             
             Brain* m_brain;
             const BrainOpenGLFixedPipeline::Mode m_drawingMode;
             const float m_centerToEyeDistance;
-            int32_t m_tabViewport[4];
             const int32_t m_windowIndex;
             const int32_t m_tabIndex;
-            const TextHeightMode m_textHeightMode;
             const WindowDrawingMode m_windowDrawingMode;
         };
         
@@ -330,6 +302,8 @@ namespace caret {
                                const float startXYZ[3],
                                float endXYZ[3]) const;
         
+        float getLineWidthFromPercentageHeight(const float percentageHeight) const;
+        
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
         
         Inputs* m_inputs;
@@ -370,6 +344,12 @@ namespace caret {
         
         /** Used for rotation hanlde circle */
         BrainOpenGLShapeRing* m_rotationHandleCircle;
+        
+        float m_lineWidthMinimum = 1.0f;
+        
+        float m_lineWidthMaximum = 5.0f;
+        
+        static constexpr float s_sizingHandleLineWidthInPixels = 2.0f;
         
         // ADD_NEW_MEMBERS_HERE
 

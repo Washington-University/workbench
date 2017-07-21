@@ -788,10 +788,8 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(BrainOpenGLViewpor
         BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                  this->mode,
                                                                  BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                                                                 m_tabViewport,
                                                                  m_windowIndex,
                                                                  this->windowTabIndex,
-                                                                 BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT,
                                                                  BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
         std::vector<AnnotationColorBar*> emptyColorBars;
         std::vector<Annotation*> emptyViewportAnnotations;
@@ -850,10 +848,8 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabCont
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                                                             tabViewport,
                                                              m_windowIndex,
                                                              this->windowTabIndex,
-                                                             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
     //std::vector<Annotation*> emptyViewportAnnotations;
     m_annotationDrawing->drawAnnotations(&inputs,
@@ -921,10 +917,8 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                                                             windowViewport,
                                                              m_windowIndex,
                                                              this->windowTabIndex,
-                                                             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
                                                              windowDrawingMode);
     
     std::vector<Annotation*> emptyViewportAnnotations;
@@ -1861,10 +1855,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                                                                     m_tabViewport,
                                                                      m_windowIndex,
                                                                      this->windowTabIndex,
-                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT,
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;
@@ -1911,10 +1903,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                                                                     m_tabViewport,
                                                                      m_windowIndex,
                                                                      this->windowTabIndex,
-                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_TAB_VIEWPORT_HEIGHT,
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;
