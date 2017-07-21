@@ -21,40 +21,6 @@
  */
 /*LICENSE_END*/
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings in plain text mode (not "whole word only"):
-
-OperationSurfaceSetCoordinates     : operation name, in CamelCase, with initial capital, same as what you saved the header file to
-OPERATION_SURFACE_SET_COORDINATES    : uppercase of operation name, with underscore between words, used in #ifdef guards
-
-next, make OperationSurfaceSetCoordinates.cxx from OperationTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationSurfaceSetCoordinates/g' > OperationSurfaceSetCoordinates.cxx
-cat Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationSurfaceSetCoordinates/g' > Operations/OperationSurfaceSetCoordinates.cxx
-cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationSurfaceSetCoordinates/g' > src/Operations/OperationSurfaceSetCoordinates.cxx
-
-or manually copy and replace
-
-next, implement its functions
-
-add these to Operations/CMakeLists.txt:
-
-OperationSurfaceSetCoordinates.h
-OperationSurfaceSetCoordinates.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "OperationSurfaceSetCoordinates.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceSetCoordinates()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractOperation.h"
 
 namespace caret {
