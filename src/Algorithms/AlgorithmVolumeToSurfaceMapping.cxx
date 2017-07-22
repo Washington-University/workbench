@@ -199,7 +199,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                     throw AlgorithmException("invalid number of subdivisions specified");
                 }
             }
-            bool thinColumns = ribbonOpt->getOptionalParameter(7);
+            bool thinColumns = ribbonOpt->getOptionalParameter(7)->m_present;
             int weightsOutVertex = -1;
             VolumeFile* weightsOut = NULL;
             OptionalParameter* ribbonWeights = ribbonOpt->getOptionalParameter(5);
