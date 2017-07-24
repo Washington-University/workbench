@@ -59,7 +59,7 @@ namespace caret {
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                          const int32_t viewport[4],
-                                         std::vector<Annotation*>& viewportSpaceAnnotationsOut) override;
+                                         std::vector<Annotation*>& annotationsOut) override;
 
         // ADD_NEW_METHODS_HERE
 
@@ -204,7 +204,8 @@ namespace caret {
         
         bool m_identificationModeFlag;
         
-        std::vector<Annotation*> m_viewportSpaceAnnotationsOut;
+        /** These annotations will be drawn by the annotation drawing code */
+        std::vector<Annotation*> m_annotationsForDrawingOutput;
         
         static const int32_t IDENTIFICATION_INDICES_PER_HISTOGRAM      = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;

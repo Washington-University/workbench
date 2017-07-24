@@ -622,7 +622,8 @@ namespace caret {
         
         std::vector<AnnotationColorBar*> m_annotationColorBarsForDrawing;
         
-        std::vector<Annotation*> m_viewportSpaceAnnotations;
+        /** Some graphics using annotations for some elements so user can select and edit them */
+        std::vector<Annotation*> m_specialCaseGraphicsAnnotations;
 
         static bool s_staticInitialized;
 

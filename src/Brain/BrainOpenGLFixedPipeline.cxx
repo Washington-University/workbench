@@ -270,7 +270,7 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
     
     setTabViewport(viewportContent);
     
-    m_viewportSpaceAnnotations.clear();
+    m_specialCaseGraphicsAnnotations.clear();
     
     std::vector<BrainOpenGLViewportContent*> viewportContentsVector;
     viewportContentsVector.push_back(viewportContent);
@@ -301,7 +301,7 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
      * everything else.
      */
     glClear(GL_DEPTH_BUFFER_BIT);
-    drawTabAnnotations(viewportContent); //,
+    drawTabAnnotations(viewportContent);
     
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
@@ -350,7 +350,7 @@ BrainOpenGLFixedPipeline::projectToModelImplementation(const int32_t windowIndex
     
     m_clippingPlaneGroup = NULL;
     
-    m_viewportSpaceAnnotations.clear();
+    m_specialCaseGraphicsAnnotations.clear();
     m_brain->getSelectionManager()->reset();
     
     this->modeProjectionData = &projectionOut;
@@ -472,26 +472,13 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(std::vector<BrainOpen
 {
     m_annotationColorBarsForDrawing.clear();
     
-//    std::vector<int32_t> tabIndices;
-//    for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
-//        /*
-//         * Viewport of window.
-//         */
-//        BrainOpenGLViewportContent* vpContent = viewportContents[i];
-//        if (vpContent != NULL) {
-//            BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
-//            if (tabContent != NULL) {
-//                tabIndices.push_back(tabContent->getTabNumber());
-//            }
-//        }
-//    }
     /*
      * When in tile tabs, a tab may have a color bar in window
      * space that appears in a different tab.  So, we need to 
      * get all color bars.  Otherwise, the user will not be able
      * to select a color when it is displayed in a different tab.
      */
-    EventAnnotationColorBarGet colorBarEvent;  //tabIndices);
+    EventAnnotationColorBarGet colorBarEvent;
     EventManager::get()->sendEvent(colorBarEvent.getPointer());
     m_annotationColorBarsForDrawing = colorBarEvent.getAnnotationColorBars();
 }
@@ -519,7 +506,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     
     setTabViewport(NULL);
     
-    m_viewportSpaceAnnotations.clear();
+    m_specialCaseGraphicsAnnotations.clear();
     setAnnotationColorBarsForDrawing(viewportContents);
     
     m_tileTabsActiveFlag = (viewportContents.size() > 1);
@@ -644,8 +631,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
             updateForegroundAndBackgroundColors(vpContent);
             
             drawTabAnnotations(vpContent);
-            //m_tabViewport);
-        }        
+        }
         
         /*
          * Draw window viewport annotations
@@ -656,7 +642,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
         drawWindowAnnotations(windowViewport);
     }
     
-    m_viewportSpaceAnnotations.clear();
+    m_specialCaseGraphicsAnnotations.clear();
     
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     
@@ -851,13 +837,11 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabCont
                                                              m_windowIndex,
                                                              this->windowTabIndex,
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
-    //std::vector<Annotation*> emptyViewportAnnotations;
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
-                                         m_viewportSpaceAnnotations,
+                                         m_specialCaseGraphicsAnnotations,
                                          NULL);
-    //m_viewportSpaceAnnotations.clear();
     
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
@@ -921,27 +905,12 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
                                                              this->windowTabIndex,
                                                              windowDrawingMode);
     
-    std::vector<Annotation*> emptyViewportAnnotations;
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::WINDOW,
                                          m_annotationColorBarsForDrawing,
-                                         emptyViewportAnnotations,
+                                         m_specialCaseGraphicsAnnotations,
                                          NULL);
-    
-    
-    
-    
-//    std::vector<AnnotationColorBar*> emptyColorBars;
-//    m_annotationDrawing->drawAnnotations(&inputs,
-//                                         AnnotationCoordinateSpaceEnum::VIEWPORT,
-//                                         emptyColorBars,
-//                                         m_viewportSpaceAnnotations,
-//                                         NULL);
-//    m_viewportSpaceAnnotations.clear();
-    
-    
-    
-    
+
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -1024,20 +993,6 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             else {
                 CaretAssertMessage(0, "Unknown type of model for drawing");
             }
-            
-            
-//            int viewport[4];
-//            viewportContent->getModelViewport(viewport);
-//            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-//            
-//            BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
-//                                                                     this->mode,
-//                                                                     BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-//                                                                     m_tabViewport,
-//                                                                     m_windowIndex,
-//                                                                     this->windowTabIndex,
-//                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::TEXT_HEIGHT_USE_OPENGL_VIEWPORT_HEIGHT,
-//                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
         }
     }
     
@@ -1346,12 +1301,12 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
-            eyeZ = BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance; //5.0;
+            eyeZ = BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance;
             upY  = 1.0;
             useGluLookAt = true;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
-            eyeZ = BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance; //5.0;
+            eyeZ = BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance;
             upY  = 1.0;
             useGluLookAt = true;
             break;
@@ -1517,10 +1472,10 @@ BrainOpenGLFixedPipeline::getVolumeFitToWindowScalingAndTranslation(const Volume
             
             float temp;
             float scaleWindowX = (orthoExtentX / xExtent);
-            temp = (orthoExtentX / yExtent);//parasaggital y is screen x
+            temp = (orthoExtentX / yExtent);/* parasaggital y is screen x */
             if (temp < scaleWindowX) scaleWindowX = temp;
             float scaleWindowY = (orthoExtentY / zExtent);
-            temp = (orthoExtentY / yExtent);//axial y is screen y
+            temp = (orthoExtentY / yExtent);/* axial y is screen y */
             if (temp < scaleWindowY) scaleWindowY = temp;
             scalingOut = std::min(scaleWindowX,
                                           scaleWindowY);
@@ -1819,8 +1774,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                     const DisplayPropertiesBorders* dpb = m_brain->getDisplayPropertiesBorders();
                     const float borderAboveSurfaceOffset = dpb->getAboveSurfaceOffset();
                     if (borderAboveSurfaceOffset != 0.0) {
-                        const float factor = borderAboveSurfaceOffset;// + 0.5;
-                        const float units  = 1.0;// + 0.5;
+                        const float factor = borderAboveSurfaceOffset;
+                        const float units  = 1.0;
                         glEnable(GL_POLYGON_OFFSET_FILL);
                         glPolygonOffset(factor, units);
                     }
@@ -3231,9 +3186,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                             uint8_t idRGBA[4];
                             this->colorIdentification->addItem(idRGBA,
                                                                SelectionItemDataTypeEnum::FOCUS_SURFACE, 
-                                                               i, // file index
-                                                               j, // focus index
-                                                               k);// projection index
+                                                               i, /* file index */
+                                                               j, /* focus index */
+                                                               k);/* projection index */
                             idRGBA[3] = 255;
                             if (drawAsSpheres) {
                                 this->drawSphereWithDiameter(idRGBA,
@@ -3549,7 +3504,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                     statistics = const_cast<FastStatistics*>(mapFile->getMapFastStatistics(mapIndex));
                                     break;
                             }
-                            //CaretAssert(statistics);
                             
                             PaletteColorMapping* paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
                             Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
@@ -4300,7 +4254,7 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                             {
                                 const int32_t indx = j % 3;
                                 switch (indx) {
-                                    case 0: // use RED
+                                    case 0: /* use RED */
                                         glColor4f(BrainOpenGLFixedPipeline::COLOR_RED[0],
                                                   BrainOpenGLFixedPipeline::COLOR_RED[1],
                                                   BrainOpenGLFixedPipeline::COLOR_RED[2],
@@ -4310,7 +4264,7 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                                         fiberRGBA[2] = BrainOpenGLFixedPipeline::COLOR_RED[2];
                                         fiberRGBA[3] = alpha;
                                         break;
-                                    case 1: // use BLUE
+                                    case 1: /* use BLUE */
                                         glColor4f(BrainOpenGLFixedPipeline::COLOR_BLUE[0],
                                                   BrainOpenGLFixedPipeline::COLOR_BLUE[1],
                                                   BrainOpenGLFixedPipeline::COLOR_BLUE[2],
@@ -4320,7 +4274,7 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                                         fiberRGBA[2] = BrainOpenGLFixedPipeline::COLOR_BLUE[2];
                                         fiberRGBA[3] = alpha;
                                         break;
-                                    case 2: // use GREEN
+                                    case 2: /* use GREEN */
                                         glColor4f(BrainOpenGLFixedPipeline::COLOR_GREEN[0],
                                                   BrainOpenGLFixedPipeline::COLOR_GREEN[1],
                                                   BrainOpenGLFixedPipeline::COLOR_GREEN[2],
@@ -4737,11 +4691,11 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float rgba[4],
     double zero = 1.0e-3;
     
     if (std::abs(vz) < zero) {
-        ax = 57.2957795*std::acos( vx/z ); // rotation angle in x-y plane
+        ax = 57.2957795*std::acos( vx/z ); /* rotation angle in x-y plane */
         if ( vx <= 0.0f ) ax = -ax;
     }
     else {
-        ax = 57.2957795*std::acos( vz/z ); // rotation angle
+        ax = 57.2957795*std::acos( vz/z ); /* rotation angle */
         if ( vz <= 0.0f ) ax = -ax;
     }
     
@@ -4758,11 +4712,11 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float rgba[4],
     }
     
     if (std::abs(vz) < zero)  {
-        glRotated(90.0, 0.0, 1.0, 0.0); // Rotate & align with x axis
-        glRotated(ax, -1.0, 0.0, 0.0); // Rotate to point 2 in x-y plane
+        glRotated(90.0, 0.0, 1.0, 0.0); /* Rotate & align with x axis */
+        glRotated(ax, -1.0, 0.0, 0.0); /* Rotate to point 2 in x-y plane */
     }
     else {
-        glRotated(ax, rx, ry, 0.0); // Rotate about rotation vector
+        glRotated(ax, rx, ry, 0.0); /* Rotate about rotation vector */
     }
     
     glPushMatrix();
@@ -4822,11 +4776,11 @@ BrainOpenGLFixedPipeline::drawCylinder(const float rgba[4],
     double zero = 1.0e-3;
     
     if (std::abs(vz) < zero) {
-        ax = 57.2957795*std::acos( vx/z ); // rotation angle in x-y plane
+        ax = 57.2957795*std::acos( vx/z ); /* rotation angle in x-y plane */
         if ( vx <= 0.0f ) ax = -ax;
     }
     else {
-        ax = 57.2957795*std::acos( vz/z ); // rotation angle
+        ax = 57.2957795*std::acos( vz/z ); /* rotation angle */
         if ( vz <= 0.0f ) ax = -ax;
     }
     
@@ -4843,11 +4797,11 @@ BrainOpenGLFixedPipeline::drawCylinder(const float rgba[4],
     }
     
     if (std::abs(vz) < zero)  {
-        glRotated(90.0, 0.0, 1.0, 0.0); // Rotate & align with x axis
-        glRotated(ax, -1.0, 0.0, 0.0); // Rotate to point 2 in x-y plane
+        glRotated(90.0, 0.0, 1.0, 0.0); /* Rotate & align with x axis */
+        glRotated(ax, -1.0, 0.0, 0.0); /* Rotate to point 2 in x-y plane */
     }
     else {
-        glRotated(ax, rx, ry, 0.0); // Rotate about rotation vector
+        glRotated(ax, rx, ry, 0.0); /* Rotate about rotation vector */
     }
     
     glPushMatrix();
@@ -5179,7 +5133,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                 BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
                 volumeSliceDrawing.draw(this,
                                         browserTabContent,
-                                        twoDimSliceDrawVolumeDrawInfo, //volumeDrawInfo,
+                                        twoDimSliceDrawVolumeDrawInfo,
                                         sliceDrawingType,
                                         sliceProjectionType,
                                         viewport);
@@ -5384,8 +5338,7 @@ BrainOpenGLFixedPipeline::drawChartTwoData(BrainOpenGLViewportContent* viewportC
     CaretAssert(browserTabContent);
     CaretAssert(chartModel);
 
-    //m_viewportSpaceAnnotations.clear();
-    
+    std::vector<Annotation*> annotationFromChartDrawing;
     BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
     chartDrawing.drawChartOverlaySet(m_brain,
                                      viewportContent,
@@ -5393,7 +5346,11 @@ BrainOpenGLFixedPipeline::drawChartTwoData(BrainOpenGLViewportContent* viewportC
                                      this,
                                      SelectionItemDataTypeEnum::CHART_DATA_SERIES,
                                      viewport,
-                                     m_viewportSpaceAnnotations);
+                                     annotationFromChartDrawing);
+    
+    m_specialCaseGraphicsAnnotations.insert(m_specialCaseGraphicsAnnotations.end(),
+                                            annotationFromChartDrawing.begin(),
+                                            annotationFromChartDrawing.end());
     
     drawChartCoordinateSpaceAnnotations(viewportContent);
 }
@@ -5478,7 +5435,6 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
      * See also BrowserTabContent::restoreFromScene() that tries to make
      * old scenes compatible with this new scaling.
      */
-    //const float zDiff = boundingBox->getDifferenceZ();
     if (windowVerticalSize != 0.0) {
         modelHalfHeight = windowVerticalSize / 2.0;
         
@@ -5536,8 +5492,8 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t view
     this->orthographicLeft   =   -halfWindowHeight * aspectRatio;
     this->orthographicTop    =    halfWindowHeight;
     this->orthographicBottom =   -halfWindowHeight;
-    this->orthographicNear   = -1000.0; //-500.0; //-10000.0;
-    this->orthographicFar    =  1000.0; //500.0; // 10000.0;
+    this->orthographicNear   = -1000.0;
+    this->orthographicFar    =  1000.0;
     
     switch (projectionType) {
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
@@ -5588,12 +5544,12 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithWidth(const int32_t viewp
     double width = viewport[2];
     double height = viewport[3];
     double aspectRatio = (width / height);
-    this->orthographicRight  =    halfWindowWidth;  //  halfWindowHeight * aspectRatio;
-    this->orthographicLeft   =   -halfWindowWidth;  // -halfWindowHeight * aspectRatio;
-    this->orthographicTop    =    halfWindowWidth / aspectRatio;  // halfWindowHeight;
-    this->orthographicBottom =   -halfWindowWidth / aspectRatio;  //-halfWindowHeight;
-    this->orthographicNear   = -1000.0; //-500.0; //-10000.0;
-    this->orthographicFar    =  1000.0; //500.0; // 10000.0;
+    this->orthographicRight  =    halfWindowWidth;
+    this->orthographicLeft   =   -halfWindowWidth;
+    this->orthographicTop    =    halfWindowWidth / aspectRatio;
+    this->orthographicBottom =   -halfWindowWidth / aspectRatio;
+    this->orthographicNear   = -1000.0;
+    this->orthographicFar    =  1000.0;
     
     switch (projectionType) {
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
@@ -5701,7 +5657,7 @@ BrainOpenGLFixedPipeline::getPixelDepthAndRGBA(const int32_t pixelX,
 #endif
     glPixelStorei(GL_PACK_SKIP_ROWS, 0);
     glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
-    glPixelStorei(GL_PACK_ALIGNMENT, 4); // float is 4 bytes
+    glPixelStorei(GL_PACK_ALIGNMENT, 4); /* float is 4 bytes */
     glReadPixels(pixelX,
                  pixelY,
                  1,
@@ -6514,7 +6470,7 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
         for (int32_t i = 0; i < numberOfPixels; i++) {
             const int32_t i4 = i * 4;
             CaretAssertVectorIndex(imageBytesRGBA, i4 + 3);
-            uint8_t pixelAlpha = 255; //imageBytesRGBA[i4 + 3];
+            uint8_t pixelAlpha = 255;
             
             if (testThresholdFlag) {
                 if ((imageBytesRGBA[i4] < minimumThreshold)
@@ -6623,8 +6579,8 @@ BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
                 if (isSelectImageControlPoint) {
                     this->colorIdentification->addItem(rgba,
                                                        SelectionItemDataTypeEnum::IMAGE_CONTROL_POINT,
-                                                       0,    // file index
-                                                       icp); // index in file
+                                                       0,    /* file index */
+                                                       icp); /* index in file */
                     rgba[3] = 255;
                 }
                 drawSphereWithDiameter(rgba, 10);
@@ -6868,7 +6824,7 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
 
 
 
-//============================================================================
+/* ============================================================================ */
 /**
  * Constructor.
  */

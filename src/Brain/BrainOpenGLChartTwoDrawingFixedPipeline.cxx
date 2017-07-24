@@ -30,7 +30,6 @@
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "Brain.h"
-#include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "BrainOpenGLViewportContent.h"
@@ -106,9 +105,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  *     Selected data type.
  * @param viewport
  *     Viewport for the chart.
- * @param viewportSpaceAnnotationsOut
- *     Output containing annotation chart axis labels that will be drawn 
- *     by the Annotation OpenGL Drawing in viewport space.
+ * @param annotationsOut
+ *     Output containing annotations that will be drawing by annotation drawing code.
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
@@ -117,10 +115,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                              const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                                              const int32_t viewport[4],
-                                                             std::vector<Annotation*>& viewportSpaceAnnotationsOut)
+                                                             std::vector<Annotation*>& annotationsOut)
 {
-    viewportSpaceAnnotationsOut.clear();
-    m_viewportSpaceAnnotationsOut.clear();
+    annotationsOut.clear();
+    m_annotationsForDrawingOutput.clear();
     
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
     CaretAssert(browserTabContent);
@@ -277,30 +275,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                         }
                         break;
                 }
-                
-                /*
-                 * Draw annotations for the chart.
-                 */
-                BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(m_fixedPipelineDrawing->m_brain,
-                                                                         m_fixedPipelineDrawing->mode,
-                                                                         BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                                                                         m_fixedPipelineDrawing->m_windowIndex,
-                                                                         m_fixedPipelineDrawing->windowTabIndex,
-                                                                         BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
-                std::vector<AnnotationColorBar*> emptyColorBars;
-                std::vector<Annotation*> emptyViewportAnnotations;
-                m_fixedPipelineDrawing->m_annotationDrawing->drawAnnotations(&inputs,
-                                                         AnnotationCoordinateSpaceEnum::STEREOTAXIC,
-                                                         emptyColorBars,
-                                                         emptyViewportAnnotations,
-                                                         NULL);
             }
         }
     }
     
     restoreStateOfOpenGL();
     
-    viewportSpaceAnnotationsOut = m_viewportSpaceAnnotationsOut;
+    annotationsOut = m_annotationsForDrawingOutput;
 }
 
 
@@ -1719,7 +1700,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float mini
                                                             tabPercentageY,
                                                             0.0f);
                     
-                    m_viewportSpaceAnnotationsOut.push_back(chartAxisLabel);
+                    m_annotationsForDrawingOutput.push_back(chartAxisLabel);
                 }
                 
             }
