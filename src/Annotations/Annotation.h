@@ -70,6 +70,12 @@ namespace caret {
             LINE_THICKNESS,
             /** Annotation can be rotated by user */
             ROTATION,
+            /** 
+             * Annotation's attributes are saved to and restored from scene.
+             * Typically used for special annotation that are saved to a scene
+             * and NOT saved in a file.
+             */
+            SCENE_CONTAINS_ATTRIBUTES,
             /** Annotation is selectable */
             SELECT,
             /** Annotation has alignment of text */

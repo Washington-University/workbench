@@ -183,7 +183,7 @@ namespace caret {
         /* Not saved to scene since it is set by sub-class constructor. */
         const AnnotationTextFontSizeTypeEnum::Enum m_fontSizeType;
         
-        CaretPointer<SceneClassAssistant> m_sceneAssistant;
+        CaretPointer<SceneClassAssistant> m_attributesAssistant;
 
         AString m_text;
         

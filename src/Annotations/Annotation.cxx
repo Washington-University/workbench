@@ -140,6 +140,8 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_customColorLine[2]  = obj.m_customColorLine[2];
     m_customColorLine[3]  = obj.m_customColorLine[3];
 
+    m_properties = obj.m_properties;
+    
     *m_displayGroupAndTabItemHelper = *obj.m_displayGroupAndTabItemHelper;
     
     /*
@@ -515,6 +517,12 @@ Annotation::initializeAnnotationMembers()
         }
     }
     
+    initializeProperties();
+    
+    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::VIEWPORT) {
+        initializePropertiesForViewportSpaceAnnotation();
+    }
+    
     /*
      * Note: The 'const' members are not saved to the scene as they 
      * are set by constructor.
@@ -528,7 +536,7 @@ Annotation::initializeAnnotationMembers()
     m_sceneAssistant->add("m_displayGroupAndTabItemHelper",
                           "DisplayGroupAndTabItemHelper",
                           m_displayGroupAndTabItemHelper);
-    if (m_type == AnnotationTypeEnum::COLOR_BAR) {
+    if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
         m_sceneAssistant->add<AnnotationCoordinateSpaceEnum, AnnotationCoordinateSpaceEnum::Enum>("m_coordinateSpace",
                                                                                                   &m_coordinateSpace);
         m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_colorBackground",
@@ -538,12 +546,6 @@ Annotation::initializeAnnotationMembers()
         m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_colorLine",
                                                                     &m_colorLine);
         m_sceneAssistant->addArray("m_customColorLine", m_customColorLine, 4, 0.0);
-    }
-    
-    initializeProperties();
-    
-    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::VIEWPORT) {
-        initializePropertiesForViewportSpaceAnnotation();
     }
 }
 
@@ -1122,6 +1124,8 @@ Annotation::initializeProperties()
     setProperty(Property::TEXT_FONT_STYLE, textFlag);
     setProperty(Property::TEXT_ORIENTATION, textFlag);
     
+    resetProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
+    
     /*
      * These are not valid properties 
      */
@@ -1139,8 +1143,9 @@ Annotation::initializeProperties()
         resetProperty(Property::ROTATION);
         resetProperty(Property::TEXT_COLOR);
         resetProperty(Property::TEXT_EDIT);
+        
+        setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
     }
-    
 }
 
 /**
@@ -1164,6 +1169,8 @@ Annotation::setPropertiesForChartAxisTitle()
     resetProperty(Property::TEXT_ALIGNMENT);
     resetProperty(Property::TEXT_COLOR);
     resetProperty(Property::TEXT_ORIENTATION);
+
+    setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
 }
 
 /**
@@ -1181,6 +1188,8 @@ Annotation::initializePropertiesForViewportSpaceAnnotation()
     resetProperty(Property::DISPLAY_GROUP);
     resetProperty(Property::GROUP);
     resetProperty(Property::ROTATION);
+    
+    setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
 }
 
 
@@ -1209,12 +1218,6 @@ Annotation::testProperty(const Property property) const
         return false;
     }
     
-//    if (property == Property::TEXT_COLOR) {
-//        if (m_type == AnnotationTypeEnum::TEXT) {
-//            return false;
-//        }
-//    }
-
     const int32_t propertyIndex = static_cast<std::underlying_type<Property>::type>(property);
     return m_properties.test(propertyIndex);
     

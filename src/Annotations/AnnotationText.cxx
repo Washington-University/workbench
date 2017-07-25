@@ -163,32 +163,35 @@ AnnotationText::initializeAnnotationTextMembers()
     
     m_text = "";
     
-    m_sceneAssistant.grabNew(new SceneClassAssistant());
-    m_sceneAssistant->add<AnnotationTextAlignHorizontalEnum, AnnotationTextAlignHorizontalEnum::Enum>("m_alignmentHorizontal",
-                                                                                                      &m_alignmentHorizontal);
-    m_sceneAssistant->add<AnnotationTextAlignVerticalEnum, AnnotationTextAlignVerticalEnum::Enum>("m_alignmentVertical",
-                                                                                                  &m_alignmentVertical);
-    m_sceneAssistant->add<AnnotationTextFontNameEnum, AnnotationTextFontNameEnum::Enum>("m_font",
-                                                                                        &m_font);
-    m_sceneAssistant->add<AnnotationTextFontPointSizeEnum, AnnotationTextFontPointSizeEnum::Enum>("m_fontPointSize",
-                                                                                                  &m_fontPointSize);
-    m_sceneAssistant->add<AnnotationTextOrientationEnum, AnnotationTextOrientationEnum::Enum>("m_orientation",
-                                                                                              &m_orientation);
-    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_colorText",
-                                                                &m_colorText);
-    m_sceneAssistant->addArray("m_customColorText", m_customColorText, 4, 1.0);
-    m_sceneAssistant->add("m_boldEnabled",
-                          &m_boldEnabled);
-    m_sceneAssistant->add("m_italicEnabled",
-                          &m_italicEnabled);
-    m_sceneAssistant->add("m_underlineEnabled",
-                          &m_underlineEnabled);
-    m_sceneAssistant->add<AnnotationTextConnectTypeEnum, AnnotationTextConnectTypeEnum::Enum>("m_connectToBrainordinate",
-                                                                                              &m_connectToBrainordinate);
-    m_sceneAssistant->add("m_fontPercentViewportSize",
-                          &m_fontPercentViewportSize);
-    m_sceneAssistant->add("m_text",
-                          &m_text);
+    /*
+     * Assists with attributes that may be saved to scene (controlled by annotation property).
+     */
+    m_attributesAssistant.grabNew(new SceneClassAssistant());
+    m_attributesAssistant->add<AnnotationTextAlignHorizontalEnum, AnnotationTextAlignHorizontalEnum::Enum>("m_alignmentHorizontal",
+                                                                                                           &m_alignmentHorizontal);
+    m_attributesAssistant->add<AnnotationTextAlignVerticalEnum, AnnotationTextAlignVerticalEnum::Enum>("m_alignmentVertical",
+                                                                                                       &m_alignmentVertical);
+    m_attributesAssistant->add<AnnotationTextFontNameEnum, AnnotationTextFontNameEnum::Enum>("m_font",
+                                                                                             &m_font);
+    m_attributesAssistant->add<AnnotationTextFontPointSizeEnum, AnnotationTextFontPointSizeEnum::Enum>("m_fontPointSize",
+                                                                                                       &m_fontPointSize);
+    m_attributesAssistant->add<AnnotationTextOrientationEnum, AnnotationTextOrientationEnum::Enum>("m_orientation",
+                                                                                                   &m_orientation);
+    m_attributesAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_colorText",
+                                                                     &m_colorText);
+    m_attributesAssistant->addArray("m_customColorText", m_customColorText, 4, 1.0);
+    m_attributesAssistant->add("m_boldEnabled",
+                               &m_boldEnabled);
+    m_attributesAssistant->add("m_italicEnabled",
+                               &m_italicEnabled);
+    m_attributesAssistant->add("m_underlineEnabled",
+                               &m_underlineEnabled);
+    m_attributesAssistant->add<AnnotationTextConnectTypeEnum, AnnotationTextConnectTypeEnum::Enum>("m_connectToBrainordinate",
+                                                                                                   &m_connectToBrainordinate);
+    m_attributesAssistant->add("m_fontPercentViewportSize",
+                               &m_fontPercentViewportSize);
+    m_attributesAssistant->add("m_text",
+                               &m_text);
 }
 
 /**
@@ -946,8 +949,11 @@ AnnotationText::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
 {
     AnnotationTwoDimensionalShape::saveSubClassDataToScene(sceneAttributes,
                                                            sceneClass);
-    m_sceneAssistant->saveMembers(sceneAttributes,
-                                  sceneClass);
+    if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
+        sceneClass->addBoolean("hasAttributesFlag", true);
+        m_attributesAssistant->saveMembers(sceneAttributes,
+                                           sceneClass);
+    }
 }
 
 /**
@@ -968,8 +974,18 @@ AnnotationText::restoreSubClassDataFromScene(const SceneAttributes* sceneAttribu
 {
     AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
                                                                 sceneClass);
-    m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);
+    if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
+        /*
+         * This flag will tell us if the scene has attributes.
+         * If this test was not performed and attributes were not in scene
+         * members in the atttributes assistant would overwrite initialized
+         * values with invalid values.
+         */
+        if (sceneClass->getBooleanValue("hasAttributesFlag")) {
+            m_attributesAssistant->restoreMembers(sceneAttributes,
+                                                  sceneClass);
+        }
+    }
 }
 
 /**

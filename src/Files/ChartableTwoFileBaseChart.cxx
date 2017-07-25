@@ -77,8 +77,13 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
     
     m_bottomAxisTitle = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                                                  AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
+    m_bottomAxisTitle->setPropertiesForChartAxisTitle();
     m_leftRightAxisTitle = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                                                     AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
+    m_leftRightAxisTitle->setPropertiesForChartAxisTitle();
+    
+    initializeAxisTitle(m_bottomAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
+    initializeAxisTitle(m_leftRightAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_bottomAxisTitle",
@@ -87,12 +92,6 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
     m_sceneAssistant->add("m_leftRightAxisTitle",
                           "AnnotationPercentSizeText",
                           m_leftRightAxisTitle.get());
-    
-    initializeAxisTitle(m_bottomAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
-    initializeAxisTitle(m_leftRightAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
-    
-    m_bottomAxisTitle->setPropertiesForChartAxisTitle();
-    m_leftRightAxisTitle->setPropertiesForChartAxisTitle();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
 }
@@ -185,6 +184,7 @@ void ChartableTwoFileBaseChart::initializeAxisTitle(AnnotationPercentSizeText* t
             break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+        {
             switch (m_chartType) {
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
@@ -197,6 +197,7 @@ void ChartableTwoFileBaseChart::initializeAxisTitle(AnnotationPercentSizeText* t
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                     break;
             }
+        }
             break;
     }
 

@@ -135,7 +135,7 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
     
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
-    if (getType() == AnnotationTypeEnum::COLOR_BAR) {
+    if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
         /*
          * Saves/restores color bar manual position and size mode.
          */

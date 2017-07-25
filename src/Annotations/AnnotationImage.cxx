@@ -186,6 +186,8 @@ AnnotationImage::initializeMembersAnnotationImage()
     m_imageHeight = 0;
     
     m_sceneAssistant = new SceneClassAssistant();
+    if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
+    }
 }
 
 /**

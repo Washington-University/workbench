@@ -93,6 +93,10 @@ void
 AnnotationBox::initializeMembersAnnotationBox()
 {
     m_sceneAssistant.grabNew(new SceneClassAssistant());
+    
+    if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
+        
+    }
 }
 
 /**

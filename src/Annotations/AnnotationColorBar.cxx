@@ -54,21 +54,23 @@ AnnotationFontAttributesInterface()
     reset();
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
-    m_sceneAssistant->add<AnnotationTextFontNameEnum, AnnotationTextFontNameEnum::Enum>("m_fontName",
-                                                                                        &m_fontName);
-    m_sceneAssistant->add("m_fontPercentViewportHeight",
-                          &m_fontPercentViewportHeight);
-    m_sceneAssistant->add<AnnotationColorBarPositionModeEnum, AnnotationColorBarPositionModeEnum::Enum>("m_positionMode",
-                                                                                                        &m_positionMode);
-    m_sceneAssistant->add("m_displayedFlag",
-                          &m_displayedFlag);
-    
-    m_sceneAssistant->add("m_showTickMarksSelected",
-                          &m_showTickMarksSelected);
-    m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorText",
-                                                               &m_colorText);
-    m_sceneAssistant->addArray("m_customColorText",
-                               m_customColorText, 4, 1.0);
+    if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
+        m_sceneAssistant->add<AnnotationTextFontNameEnum, AnnotationTextFontNameEnum::Enum>("m_fontName",
+                                                                                            &m_fontName);
+        m_sceneAssistant->add("m_fontPercentViewportHeight",
+                              &m_fontPercentViewportHeight);
+        m_sceneAssistant->add<AnnotationColorBarPositionModeEnum, AnnotationColorBarPositionModeEnum::Enum>("m_positionMode",
+                                                                                                            &m_positionMode);
+        m_sceneAssistant->add("m_displayedFlag",
+                              &m_displayedFlag);
+        
+        m_sceneAssistant->add("m_showTickMarksSelected",
+                              &m_showTickMarksSelected);
+        m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorText",
+                                                                   &m_colorText);
+        m_sceneAssistant->addArray("m_customColorText",
+                                   m_customColorText, 4, 1.0);
+    }
 }
 
 /**
