@@ -428,37 +428,45 @@ SurfaceSelectionModel::restoreFromScene(const SceneAttributes* /*sceneAttributes
      * computers the full path may change the parts of the path nearest the 
      * name of the file will match.
      */
-    Surface* nameMatchSurface = NULL;
-    int32_t nameMatchLength = 0;
+    Surface* pathNameMatchSurface = NULL;
+    int32_t pathNameMatchLength = 0;
     if ( ! surfaceFileNameFullPath.isEmpty()) {
         for (auto surface : allSurfaces) {
             const AString name = surface->getFileName();
             const int32_t numMatch = name.countMatchingCharactersFromEnd(surfaceFileNameFullPath);
-            if (numMatch > nameMatchLength) {
-                nameMatchLength  = numMatch;
+            if (numMatch > pathNameMatchLength) {
+                pathNameMatchLength  = numMatch;
+                pathNameMatchSurface = surface;
+            }
+        }
+    }
+    
+    /*
+     * Match name of file with NO path
+     * Always restore this so that the object is marked as restored
+     * (within the 'get' method).  Otherwise if compiled debug, this
+     * object will get logged as 'not restored'.
+     */
+    Surface* nameMatchSurface = NULL;
+    const AString& surfaceFileName = sceneClass->getStringValue("m_selectedSurface",
+                                                                "");
+    if ( ! surfaceFileName.isEmpty()) {
+        for (auto surface : allSurfaces) {
+            if (surface->getFileNameNoPath() == surfaceFileName) {
                 nameMatchSurface = surface;
+                break;
             }
         }
     }
     
-    if (nameMatchSurface == NULL) {
-        /*
-         * Match name of file with NO path
-         */
-        const AString& surfaceFileName = sceneClass->getStringValue("m_selectedSurface",
-                                                                    "");
-        if ( ! surfaceFileName.isEmpty()) {
-            for (auto surface : allSurfaces) {
-                if (surface->getFileNameNoPath() == surfaceFileName) {
-                    nameMatchSurface = surface;
-                    break;
-                }
-            }
-        }
+    if (pathNameMatchSurface != NULL) {
+        setSurface(pathNameMatchSurface);
     }
-    
-    if (nameMatchSurface != NULL) {
+    else if (nameMatchSurface != NULL) {
         setSurface(nameMatchSurface);
+    }
+    else {
+        setSurface(NULL);
     }
 }
 

@@ -2417,13 +2417,20 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
         return false;
     }
     
-    bool debugLoggingFlag = true;
+    /*
+     * When compiled in debug mode, log any SceneObject and 
+     * subclasses that fail to restore
+     */
+    bool logObjectFailedToRestoreFlag = true;
+#ifdef NDEBUG
+    logObjectFailedToRestoreFlag = false;
+#endif // NDEBUG
     std::vector<SceneObject*> allSceneObjects;
-    if (debugLoggingFlag) {
+    if (logObjectFailedToRestoreFlag) {
         allSceneObjects = scene->getDescendants();
     }
     
-    SceneClass::setDebugLoggingEnabled(debugLoggingFlag);
+    SceneClass::setDebugLoggingEnabled(logObjectFailedToRestoreFlag);
     
     /*
      * Show the wait cursor
@@ -2452,12 +2459,10 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
                                         guiManagerClass);
     guiManagerClass->setRestored(true);
     
-#ifndef NDEBUG
     if ( ! allSceneObjects.empty()) {
         SceneObject::logObjectsFailedRestore(scene->getName(),
                                              allSceneObjects);
     }
-#endif // NDEBUG
     
     SceneClass::setDebugLoggingEnabled(false);
     
