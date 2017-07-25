@@ -77,10 +77,12 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
     
     m_bottomAxisTitle = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                                                  AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
-    m_bottomAxisTitle->setPropertiesForChartAxisTitle();
+    m_bottomAxisTitle->setPropertiesForSpecializedUsage(Annotation::PropertiesSpecializedUsage::CHART_LABEL);
+
     m_leftRightAxisTitle = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                                                     AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
-    m_leftRightAxisTitle->setPropertiesForChartAxisTitle();
+    m_leftRightAxisTitle->setPropertiesForSpecializedUsage(Annotation::PropertiesSpecializedUsage::CHART_LABEL);
+
     
     initializeAxisTitle(m_bottomAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
     initializeAxisTitle(m_leftRightAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);

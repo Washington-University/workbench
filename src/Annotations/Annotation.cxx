@@ -520,7 +520,7 @@ Annotation::initializeAnnotationMembers()
     initializeProperties();
     
     if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::VIEWPORT) {
-        initializePropertiesForViewportSpaceAnnotation();
+        setPropertiesForSpecializedUsage(PropertiesSpecializedUsage::VIEWPORT_ANNOTATION);
     }
     
     /*
@@ -1149,49 +1149,61 @@ Annotation::initializeProperties()
 }
 
 /**
- * Set the properties for a chart axis label.
- * Chart axis labels are text annotations but have limited editing and other properties.
+ * Set the properties for specialized usage of annotations.  This is typically used
+ * for annotations that are not stored in an annotation file but instead are a 
+ * property of some entity (such as chart labels).
+ *
+ * @param specializedUsage
+ *     The specialized usage.
  */
 void
-Annotation::setPropertiesForChartAxisTitle()
-{
-    initializeProperties();
-    
-    resetProperty(Property::ARRANGE);
-    resetProperty(Property::COORDINATE);
-    resetProperty(Property::COPY_CUT_PASTE);
-    resetProperty(Property::DELETE);
-    resetProperty(Property::DISPLAY_GROUP);
-    resetProperty(Property::GROUP);
-    resetProperty(Property::LINE_COLOR);
-    resetProperty(Property::LINE_THICKNESS);
-    resetProperty(Property::ROTATION);
-    resetProperty(Property::TEXT_ALIGNMENT);
-    resetProperty(Property::TEXT_COLOR);
-    resetProperty(Property::TEXT_ORIENTATION);
-
-    setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
-}
-
-/**
- * Set the properties for an annotation in viewport coordinate space.
- */
-void
-Annotation::initializePropertiesForViewportSpaceAnnotation()
+Annotation::setPropertiesForSpecializedUsage(const PropertiesSpecializedUsage specializedUsage)
 {
     initializeProperties();
 
-    resetProperty(Property::ARRANGE);
-    resetProperty(Property::COORDINATE);
-    resetProperty(Property::COPY_CUT_PASTE);
-    resetProperty(Property::DELETE);
-    resetProperty(Property::DISPLAY_GROUP);
-    resetProperty(Property::GROUP);
-    resetProperty(Property::ROTATION);
-    
-    setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
-}
+    bool chartLabelTitleFlag = false;
+    bool viewportFlag = false;
+    switch (specializedUsage) {
+        case PropertiesSpecializedUsage::CHART_LABEL:
+            chartLabelTitleFlag = true;
+            break;
+        case PropertiesSpecializedUsage::CHART_TITLE:
+            chartLabelTitleFlag = true;
+            break;
+        case PropertiesSpecializedUsage::VIEWPORT_ANNOTATION:
+            viewportFlag = true;
+            break;
+    }
 
+    if (chartLabelTitleFlag) {
+        resetProperty(Property::ARRANGE);
+        resetProperty(Property::COORDINATE);
+        resetProperty(Property::COPY_CUT_PASTE);
+        resetProperty(Property::DELETE);
+        resetProperty(Property::DISPLAY_GROUP);
+        resetProperty(Property::GROUP);
+        resetProperty(Property::LINE_COLOR);
+        resetProperty(Property::LINE_THICKNESS);
+        resetProperty(Property::ROTATION);
+        resetProperty(Property::TEXT_ALIGNMENT);
+        resetProperty(Property::TEXT_COLOR);
+        resetProperty(Property::TEXT_ORIENTATION);
+        
+        setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
+    }
+    
+    if (viewportFlag) {
+        resetProperty(Property::ARRANGE);
+        resetProperty(Property::COORDINATE);
+        resetProperty(Property::COPY_CUT_PASTE);
+        resetProperty(Property::DELETE);
+        resetProperty(Property::DISPLAY_GROUP);
+        resetProperty(Property::GROUP);
+        resetProperty(Property::ROTATION);
+        
+        setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
+    }
+}
 
 /**
  * Test a property.

@@ -98,6 +98,13 @@ namespace caret {
             COUNT_FOR_BITSET
         };
         
+        /** Identifies properities for specialized uses of annotations */
+        enum class PropertiesSpecializedUsage  {
+            CHART_LABEL,
+            CHART_TITLE,
+            VIEWPORT_ANNOTATION
+        };
+        
         Annotation(const AnnotationTypeEnum::Enum type,
                    const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
@@ -125,7 +132,7 @@ namespace caret {
         
         void resetProperty(const Property property);
         
-        void setPropertiesForChartAxisTitle();
+        void setPropertiesForSpecializedUsage(const PropertiesSpecializedUsage specializedUsage);
         
         AnnotationGroupKey getAnnotationGroupKey() const;
         
@@ -314,8 +321,6 @@ namespace caret {
         void initializeAnnotationMembers();
         
         void initializeProperties();
-        
-        void initializePropertiesForViewportSpaceAnnotation();
         
         // private - AnnotationManager handles selection and allowing
         // public access to this method could cause improper selection status
