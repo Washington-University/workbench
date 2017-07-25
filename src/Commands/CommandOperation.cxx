@@ -37,6 +37,7 @@ CommandOperation::CommandOperation(const AString& commandLineSwitch,
 {
     this->commandLineSwitch = commandLineSwitch;
     this->operationShortDescription = operationShortDescription;
+    CaretAssert(commandLineSwitch != "-command-switch");//catch failure to change things in the command template
     for (int i = 0; i < commandLineSwitch.length(); ++i)//release build should optimize out empty loops
     {
         CaretAssert(commandLineSwitch[i].unicode() < 128);

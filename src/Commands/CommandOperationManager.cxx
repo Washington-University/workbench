@@ -134,6 +134,7 @@
 #include "AlgorithmVolumeTFCE.h"
 #include "AlgorithmVolumeToSurfaceMapping.h"
 #include "AlgorithmVolumeVectorOperation.h"
+#include "AlgorithmVolumeWarpfieldAffineRegression.h"
 #include "AlgorithmVolumeWarpfieldResample.h"
 
 #include "OperationAddToSpecFile.h"
@@ -393,6 +394,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeTFCE()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeVectorOperation()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldAffineRegression()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));
     
     this->commandOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));

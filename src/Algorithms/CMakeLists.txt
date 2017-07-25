@@ -135,6 +135,7 @@ AlgorithmVolumeSmoothing.h
 AlgorithmVolumeTFCE.h
 AlgorithmVolumeToSurfaceMapping.h
 AlgorithmVolumeVectorOperation.h
+AlgorithmVolumeWarpfieldAffineRegression.h
 AlgorithmVolumeWarpfieldResample.h
 OverlapLogicEnum.h
 
@@ -251,6 +252,7 @@ AlgorithmVolumeSmoothing.cxx
 AlgorithmVolumeTFCE.cxx
 AlgorithmVolumeToSurfaceMapping.cxx
 AlgorithmVolumeVectorOperation.cxx
+AlgorithmVolumeWarpfieldAffineRegression.cxx
 AlgorithmVolumeWarpfieldResample.cxx
 OverlapLogicEnum.cxx
 )
