@@ -356,6 +356,15 @@ VolumeFile::writeFile(const AString& filename)
     m_volumeFileEditorDelegate->updateIfVolumeFileChangedNumberOfMaps();
 }
 
+bool VolumeFile::hasGoodSpatialInformation() const
+{
+    if (m_header != NULL)
+    {
+        return m_header->hasGoodSpatialInformation();
+    }
+    return true;
+}
+
 float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
 {
     return interpolateValue(coordIn[0], coordIn[1], coordIn[2], interp, validOut, brickIndex, component);

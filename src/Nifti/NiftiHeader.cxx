@@ -265,7 +265,7 @@ vector<vector<float> > NiftiHeader::getSForm() const
             ret[1][3] = m_header.qoffset_y;
             ret[2][3] = m_header.qoffset_z;
         } else {
-            CaretLogWarning("found quaternion with length greater than 1 in nifti header");
+            CaretLogWarning("found quaternion with length greater than 1 in nifti header, using ANALYZE coordinates!");
             ret[0][0] = m_header.pixdim[1];
             ret[1][1] = m_header.pixdim[2];
             ret[2][2] = m_header.pixdim[3];
@@ -608,6 +608,11 @@ int NiftiHeader::getNumComponents() const
             CaretAssert(0);
             throw CaretException("internal error, report what you did to the developers");
     }
+}
+
+bool NiftiHeader::hasGoodSpatialInformation() const
+{
+    return (m_header.sform_code != 0 || m_header.qform_code != 0);
 }
 
 void NiftiHeader::read(CaretBinaryFile& inFile)

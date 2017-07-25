@@ -33,6 +33,8 @@ namespace caret {
 
     struct AbstractHeader
     {
+        virtual bool hasGoodSpatialInformation() const = 0;
+        
         enum HeaderType
         {
             NIFTI

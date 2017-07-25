@@ -185,6 +185,8 @@ namespace caret {
 
         bool isEmpty() const { return VolumeBase::isEmpty(); }
         
+        bool hasGoodSpatialInformation() const;
+        
         virtual void setModified();
         
         virtual void clearModified();
