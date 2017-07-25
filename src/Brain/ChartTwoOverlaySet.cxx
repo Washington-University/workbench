@@ -795,7 +795,7 @@ ChartTwoOverlaySet::getAxisLabel(const ChartTwoCartesianAxis* axis) const
 {
     AnnotationPercentSizeText* label = NULL;
     
-    const int32_t overlayTitleIndex = axis->getTitleOverlayIndex(m_numberOfDisplayedOverlays);
+    const int32_t overlayTitleIndex = axis->getLabelOverlayIndex(m_numberOfDisplayedOverlays);
     const ChartTwoOverlay* chartOverlay = getOverlay(overlayTitleIndex);
     CaretMappableDataFile* mapFile = chartOverlay->getSelectedMapFile();
     if (mapFile != NULL) {

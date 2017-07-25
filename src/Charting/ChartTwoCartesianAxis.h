@@ -98,6 +98,10 @@ namespace caret {
 
         void setShowTickmarks(const bool showTickmarks);
         
+        bool isShowLabel() const;
+        
+        void setShowLabel(const bool showLabel);
+        
         bool getScaleValuesAndOffsets(const float minimumDataValue,
                                       const float maximumDataValue,
                                       const float axisLengthInPixels,
@@ -106,9 +110,9 @@ namespace caret {
                                       std::vector<float>& scaleValuesOffsetInPixelsOut,
                                       std::vector<AString>& scaleValuesOut) const;
         
-        int32_t getTitleOverlayIndex(const int32_t maximumNumberOfOverlays) const;
+        int32_t getLabelOverlayIndex(const int32_t maximumNumberOfOverlays) const;
         
-        void setTitleOverlayIndex(const int32_t titleOverlayIndex);
+        void setLabelOverlayIndex(const int32_t labelOverlayIndex);
         
         // ADD_NEW_METHODS_HERE
 
@@ -181,6 +185,9 @@ namespace caret {
         bool m_enabledByChart = false;
 
         bool m_showTickmarks = true;
+        
+        /** show axis label*/
+        bool m_showLabel;
         
         /** user display the axis*/
         bool m_displayedByUser = true;

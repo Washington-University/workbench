@@ -59,6 +59,9 @@ m_axisLocation(axisLocation)
     m_rangeMinimumValue = -std::numeric_limits<float>::max();
     m_rangeMaximumValue =  std::numeric_limits<float>::max();
     
+    m_showTickmarks = true;
+    m_showLabel     = true;
+    
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_displayedByUser",
                           &m_displayedByUser);
@@ -85,6 +88,8 @@ m_axisLocation(axisLocation)
                           &m_enabledByChart);
     m_sceneAssistant->add("m_showTickmarks",
                           &m_showTickmarks);
+    m_sceneAssistant->add("m_showLabel",
+                          &m_showLabel);
     m_sceneAssistant->add("m_titleOverlayIndex",
                           &m_titleOverlayIndex);
 }
@@ -151,6 +156,7 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_userNumberOfSubdivisions  = obj.m_userNumberOfSubdivisions;
     m_enabledByChart            = obj.m_enabledByChart;
     m_showTickmarks             = obj.m_showTickmarks;
+    m_showLabel                 = obj.m_showLabel;
     limitUserScaleMinMaxToValidRange();
 }
 
@@ -376,6 +382,26 @@ ChartTwoCartesianAxis::setShowTickmarks(const bool showTickmarks)
 }
 
 /**
+ * @return show axis label
+ */
+bool
+ChartTwoCartesianAxis::isShowLabel() const
+{
+    return m_showLabel;
+}
+
+/**
+ * Set show axis label
+ * @param showLabel
+ *    New value for show axis label
+ */
+void
+ChartTwoCartesianAxis::setShowLabel(const bool showLabel)
+{
+    m_showLabel = showLabel;
+}
+
+/**
  * @return Scale Range Mode
  */
 ChartTwoAxisScaleRangeModeEnum::Enum
@@ -449,13 +475,13 @@ ChartTwoCartesianAxis::toString() const
 }
 
 /**
- * @return Index of overlay that supplies the title.
+ * @return Index of overlay that supplies the label.
  *
  * @param maximumNumberOfOverlays
  *     Maximum number of allowable overlays.
  */
 int32_t
-ChartTwoCartesianAxis::getTitleOverlayIndex(const int32_t maximumNumberOfOverlays) const
+ChartTwoCartesianAxis::getLabelOverlayIndex(const int32_t maximumNumberOfOverlays) const
 {
     if (m_titleOverlayIndex < 0) {
         m_titleOverlayIndex = 0;
@@ -470,13 +496,13 @@ ChartTwoCartesianAxis::getTitleOverlayIndex(const int32_t maximumNumberOfOverlay
 /**
  * Set the index of the overlay that supplies the title.
  * 
- * @param titleOverlayIndex
- *     New value for title overlay index.
+ * @param labelOverlayIndex
+ *     New value for label overlay index.
  */
 void
-ChartTwoCartesianAxis::setTitleOverlayIndex(const int32_t titleOverlayIndex)
+ChartTwoCartesianAxis::setLabelOverlayIndex(const int32_t labelOverlayIndex)
 {
-    m_titleOverlayIndex = titleOverlayIndex;
+    m_titleOverlayIndex = labelOverlayIndex;
 }
 
 /**

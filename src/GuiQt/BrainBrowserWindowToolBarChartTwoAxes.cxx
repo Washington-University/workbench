@@ -93,12 +93,12 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     /*
      * Controls for axis parameters
      */
-    m_axisNameToolButton = new QToolButton();
-    m_axisNameToolButton->setText("Edit Title...");
-    QObject::connect(m_axisNameToolButton, &QToolButton::clicked,
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::axisNameToolButtonClicked);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_axisNameToolButton);
-    m_axisNameToolButton->setToolTip("Edit the axis name for the file in the selected overlay");
+    m_axisLabelToolButton = new QToolButton();
+    m_axisLabelToolButton->setText("Edit Label...");
+    QObject::connect(m_axisLabelToolButton, &QToolButton::clicked,
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::axisLabelToolButtonClicked);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_axisLabelToolButton);
+    m_axisLabelToolButton->setToolTip("Edit the axis name for the file in the selected overlay");
     
     m_autoUserRangeComboBox = new EnumComboBoxTemplate(this);
     m_autoUserRangeComboBox->setup<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>();
@@ -122,10 +122,15 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
     m_showTickMarksCheckBox->setToolTip("Show ticks along the axis");
     
-    QLabel* axisTitleFromOverlayLabel = new QLabel("Title From File In");
-    m_axisTitleFromOverlayComboBox = new QComboBox();
-    m_axisTitleFromOverlayComboBox->setToolTip("Title for axis is from file in selected layer");
-    QObject::connect(m_axisTitleFromOverlayComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+    m_showLabelCheckBox = new QCheckBox("Show Label");
+    QObject::connect(m_showLabelCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
+    m_showLabelCheckBox->setToolTip("Show label on axis");
+    
+    QLabel* axisLabelFromOverlayLabel = new QLabel("Label From File In");
+    m_axisLabelFromOverlayComboBox = new QComboBox();
+    m_axisLabelFromOverlayComboBox->setToolTip("Label for axis is from file in selected layer");
+    QObject::connect(m_axisLabelFromOverlayComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
     
     m_userNumericFormatComboBox = new EnumComboBoxTemplate(this);
@@ -156,12 +161,13 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_widgetGroup = new WuQWidgetObjectGroup(this);
     m_widgetGroup->add(m_axisComboBox);
     m_widgetGroup->add(m_axisDisplayedByUserCheckBox);
-    m_widgetGroup->add(m_axisNameToolButton);
+    m_widgetGroup->add(m_axisLabelToolButton);
     m_widgetGroup->add(m_autoUserRangeComboBox->getWidget());
     m_widgetGroup->add(m_userMinimumValueSpinBox);
     m_widgetGroup->add(m_userMaximumValueSpinBox);
     m_widgetGroup->add(m_showTickMarksCheckBox);
-    m_widgetGroup->add(m_axisTitleFromOverlayComboBox);
+    m_widgetGroup->add(m_showLabelCheckBox);
+    m_widgetGroup->add(m_axisLabelFromOverlayComboBox);
     m_widgetGroup->add(m_userNumericFormatComboBox->getWidget());
     m_widgetGroup->add(m_userDigitsRightOfDecimalSpinBox);
     m_widgetGroup->add(m_numericSubdivisionsModeComboBox->getWidget());
@@ -174,6 +180,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QGridLayout* showLayout = new QGridLayout(showWidget);
     int32_t axisRow = 0;
     showLayout->addWidget(m_axisDisplayedByUserCheckBox, axisRow, 0);
+    axisRow++;
+    showLayout->addWidget(m_showLabelCheckBox, axisRow, 0);
     axisRow++;
     showLayout->addWidget(m_showTickMarksCheckBox, axisRow, 0);
     axisRow++;
@@ -228,10 +236,10 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     topLayout->addWidget(m_axisComboBox->getWidget());
     topLayout->addSpacing(10);
     topLayout->addStretch();
-    topLayout->addWidget(axisTitleFromOverlayLabel);
-    topLayout->addWidget(m_axisTitleFromOverlayComboBox);
+    topLayout->addWidget(axisLabelFromOverlayLabel);
+    topLayout->addWidget(m_axisLabelFromOverlayComboBox);
     topLayout->addSpacing(10);
-    topLayout->addWidget(m_axisNameToolButton);
+    topLayout->addWidget(m_axisLabelToolButton);
     
     /*
      * Grid layout containing layouts
@@ -454,6 +462,7 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
         m_userMaximumValueSpinBox->setRange(rangeMin, rangeMax);
         m_userMaximumValueSpinBox->setValue(m_chartAxis->getUserScaleMaximumValue());
         m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
+        m_showLabelCheckBox->setChecked(m_chartAxis->isShowLabel());
         const NumericFormatModeEnum::Enum numericFormat = m_chartAxis->getUserNumericFormat();
         m_userNumericFormatComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(numericFormat);
         m_userDigitsRightOfDecimalSpinBox->setValue(m_chartAxis->getUserDigitsRightOfDecimal());
@@ -463,20 +472,20 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
         m_userSubdivisionsSpinBox->setEnabled( m_chartAxis->getNumericSubdivsionsMode() == ChartTwoNumericSubdivisionsModeEnum::USER);
         
         const int32_t overlayCount = chartOverlaySet->getNumberOfDisplayedOverlays();
-        int32_t selectedOverlayIndex = m_chartAxis->getTitleOverlayIndex(overlayCount);
-        const int32_t comboBoxCount = m_axisTitleFromOverlayComboBox->count();
+        int32_t selectedOverlayIndex = m_chartAxis->getLabelOverlayIndex(overlayCount);
+        const int32_t comboBoxCount = m_axisLabelFromOverlayComboBox->count();
         if (overlayCount < comboBoxCount) {
-            m_axisTitleFromOverlayComboBox->setMaxCount(overlayCount);
+            m_axisLabelFromOverlayComboBox->setMaxCount(overlayCount);
         }
         else if (overlayCount > comboBoxCount) {
             for (int32_t j = comboBoxCount; j < overlayCount; j++) {
-                m_axisTitleFromOverlayComboBox->addItem("Layer " + AString::number(j + 1));
+                m_axisLabelFromOverlayComboBox->addItem("Layer " + AString::number(j + 1));
             }
         }
         
         if ((selectedOverlayIndex >= 0)
-            && (selectedOverlayIndex < m_axisTitleFromOverlayComboBox->count())) {
-            m_axisTitleFromOverlayComboBox->setCurrentIndex(selectedOverlayIndex);
+            && (selectedOverlayIndex < m_axisLabelFromOverlayComboBox->count())) {
+            m_axisLabelFromOverlayComboBox->setCurrentIndex(selectedOverlayIndex);
         }
         setEnabled(true);
     }
@@ -513,6 +522,7 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoOverlaySet* chartO
         m_userMaximumValueSpinBox->setRange(rangeMin, rangeMax);
         m_userMaximumValueSpinBox->setValue(m_chartAxis->getUserScaleMaximumValue());
         m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
+        m_showLabelCheckBox->setChecked(m_chartAxis->isShowLabel());
         const NumericFormatModeEnum::Enum numericFormat = m_chartAxis->getUserNumericFormat();
         m_userNumericFormatComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(numericFormat);
         m_userDigitsRightOfDecimalSpinBox->setValue(m_chartAxis->getUserDigitsRightOfDecimal());
@@ -522,20 +532,20 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoOverlaySet* chartO
         m_userSubdivisionsSpinBox->setEnabled( m_chartAxis->getNumericSubdivsionsMode() == ChartTwoNumericSubdivisionsModeEnum::USER);
         
         const int32_t overlayCount = chartOverlaySet->getNumberOfDisplayedOverlays();
-        int32_t selectedOverlayIndex = m_chartAxis->getTitleOverlayIndex(overlayCount);
-        const int32_t comboBoxCount = m_axisTitleFromOverlayComboBox->count();
+        int32_t selectedOverlayIndex = m_chartAxis->getLabelOverlayIndex(overlayCount);
+        const int32_t comboBoxCount = m_axisLabelFromOverlayComboBox->count();
         if (overlayCount < comboBoxCount) {
-            m_axisTitleFromOverlayComboBox->setMaxCount(overlayCount);
+            m_axisLabelFromOverlayComboBox->setMaxCount(overlayCount);
         }
         else if (overlayCount > comboBoxCount) {
             for (int32_t j = comboBoxCount; j < overlayCount; j++) {
-                m_axisTitleFromOverlayComboBox->addItem("Overlay " + AString::number(j + 1));
+                m_axisLabelFromOverlayComboBox->addItem("Overlay " + AString::number(j + 1));
             }
         }
         
         if ((selectedOverlayIndex >= 0)
-            && (selectedOverlayIndex < m_axisTitleFromOverlayComboBox->count())) {
-            m_axisTitleFromOverlayComboBox->setCurrentIndex(selectedOverlayIndex);
+            && (selectedOverlayIndex < m_axisLabelFromOverlayComboBox->count())) {
+            m_axisLabelFromOverlayComboBox->setCurrentIndex(selectedOverlayIndex);
         }
         
         m_widgetGroup->blockAllSignals(false);
@@ -550,12 +560,13 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
 {
     CaretAssert(m_chartAxis);
     if (m_chartAxis != NULL) {
-        m_chartAxis->setTitleOverlayIndex(m_axisTitleFromOverlayComboBox->currentIndex());
+        m_chartAxis->setLabelOverlayIndex(m_axisLabelFromOverlayComboBox->currentIndex());
         m_chartAxis->setDisplayedByUser(m_axisDisplayedByUserCheckBox->isChecked());
         m_chartAxis->setScaleRangeMode(m_autoUserRangeComboBox->getSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>());
         m_chartAxis->setUserScaleMinimumValue(m_userMinimumValueSpinBox->value());
         m_chartAxis->setUserScaleMaximumValue(m_userMaximumValueSpinBox->value());
         m_chartAxis->setShowTickmarks(m_showTickMarksCheckBox->isChecked());
+        m_chartAxis->setShowLabel(m_showLabelCheckBox->isChecked());
         m_chartAxis->setUserNumericFormat(m_userNumericFormatComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());
         m_chartAxis->setUserDigitsRightOfDecimal(m_userDigitsRightOfDecimalSpinBox->value());
         m_chartAxis->setNumericSubdivsionsMode(m_numericSubdivisionsModeComboBox->getSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>());
@@ -684,10 +695,10 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt(int)
 }
 
 /**
- * Called when name toolbutton is clicked to change axis name.
+ * Called when name toolbutton is clicked to change axis label.
  */
 void
-BrainBrowserWindowToolBarChartTwoAxes::axisNameToolButtonClicked(bool)
+BrainBrowserWindowToolBarChartTwoAxes::axisLabelToolButtonClicked(bool)
 {
     ChartTwoOverlaySet* chartOverlaySet = NULL;
     std::vector<ChartAxisLocationEnum::Enum> validAxesLocations;
@@ -701,9 +712,9 @@ BrainBrowserWindowToolBarChartTwoAxes::axisNameToolButtonClicked(bool)
                      axisLabel);
     
     if (axisLabel != NULL) {
-        WuQDataEntryDialog newNameDialog("Axis Title",
-                                         m_axisNameToolButton);
-        QLineEdit* lineEdit = newNameDialog.addLineEditWidget("Axis Name");
+        WuQDataEntryDialog newNameDialog("Axis Label",
+                                         m_axisLabelToolButton);
+        QLineEdit* lineEdit = newNameDialog.addLineEditWidget("Label");
         lineEdit->setText(axisLabel->getText());
         if (newNameDialog.exec() == WuQDataEntryDialog::Accepted) {
             const AString name = lineEdit->text().trimmed();

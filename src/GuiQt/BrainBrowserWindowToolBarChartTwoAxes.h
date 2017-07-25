@@ -70,7 +70,7 @@ namespace caret {
         
         void axisMaximumValueChanged(double);
         
-        void axisNameToolButtonClicked(bool);
+        void axisLabelToolButtonClicked(bool);
         
     private:
         BrainBrowserWindowToolBarChartTwoAxes(const BrainBrowserWindowToolBarChartTwoAxes&);
@@ -98,9 +98,9 @@ namespace caret {
         
         EnumComboBoxTemplate* m_axisComboBox;
         
-        QToolButton* m_axisNameToolButton;
+        QToolButton* m_axisLabelToolButton;
         
-        QComboBox* m_axisTitleFromOverlayComboBox;
+        QComboBox* m_axisLabelFromOverlayComboBox;
         
         EnumComboBoxTemplate* m_autoUserRangeComboBox;
         
@@ -109,6 +109,8 @@ namespace caret {
         QDoubleSpinBox* m_userMaximumValueSpinBox;
         
         QCheckBox* m_showTickMarksCheckBox;
+        
+        QCheckBox* m_showLabelCheckBox;
         
         EnumComboBoxTemplate* m_userNumericFormatComboBox;
         

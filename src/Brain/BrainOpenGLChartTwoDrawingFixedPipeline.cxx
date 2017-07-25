@@ -1302,25 +1302,27 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
             break;
     }
     
-    double labelWidth  = 0.0;
-    double labelHeight = 0.0;
-    m_textRenderer->getTextWidthHeightInPixels(*chartAxisLabel, viewportWidth, viewportHeight, labelWidth, labelHeight);
-    
-    switch (cartesianAxis->getAxisLocation()) {
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-            heightOut += labelHeight;
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-            /** Text is rotated 90 degrees so use HEIGHT */
-            widthOut += labelHeight;
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-            /** Text is rotated 90 degrees so use HEIGHT */
-            widthOut += labelHeight;
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            heightOut += labelHeight;
-            break;
+    if (cartesianAxis->isShowLabel()) {
+        double labelWidth  = 0.0;
+        double labelHeight = 0.0;
+        m_textRenderer->getTextWidthHeightInPixels(*chartAxisLabel, viewportWidth, viewportHeight, labelWidth, labelHeight);
+        
+        switch (cartesianAxis->getAxisLocation()) {
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                heightOut += labelHeight;
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                /** Text is rotated 90 degrees so use HEIGHT */
+                widthOut += labelHeight;
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                /** Text is rotated 90 degrees so use HEIGHT */
+                widthOut += labelHeight;
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                heightOut += labelHeight;
+                break;
+        }
     }
 }
 
@@ -1648,61 +1650,63 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float mini
         drawPrimitivePrivate(ticksData.get());
         
         
-        if (chartAxisLabel != NULL) {
-            const AString axisTitle = chartAxisLabel->getText();
-            if ( ! axisTitle.isEmpty()) {
-                chartAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-                chartAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-                
-                float labelTabX = axisVpWidth / 2.0;
-                float labelTabY = axisVpHeight / 2.0;
-                const float textMarginOffset = 5.0;
-                switch (axis->getAxisLocation()) {
-                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                        labelTabX = (axisVpWidth / 2.0) + margins.m_left;
-                        labelTabY = textMarginOffset;
-                        chartAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-                        chartAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                        chartAxisLabel->setRotationAngle(0.0);
-                        break;
-                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                        labelTabX = (axisVpWidth / 2.0) + margins.m_left;
-                        labelTabY = tabViewportHeight - textMarginOffset;
-                        chartAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-                        chartAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-                        chartAxisLabel->setRotationAngle(0.0);
-                        break;
-                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                        labelTabX = textMarginOffset;
-                        labelTabY = (axisVpHeight / 2.0) + margins.m_bottom;
-                        chartAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-                        chartAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-                        chartAxisLabel->setRotationAngle(-90.0);
-                        break;
-                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                        labelTabX = tabViewportWidth - textMarginOffset;
-                        labelTabY = (axisVpHeight / 2.0) + margins.m_bottom;
-                        chartAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-                        chartAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-                        chartAxisLabel->setRotationAngle(90.0);
-                        break;
-                }
-                
-                if ((axisVpWidth > 0.0)
-                    && (axisVpHeight > 0.0)) {
-                    chartAxisLabel->setCustomTextColor(rgba);
-                    chartAxisLabel->setTextColor(CaretColorEnum::CUSTOM);
-                    chartAxisLabel->setTabIndex(m_tabIndex);
-                    chartAxisLabel->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-                    const float tabPercentageX = (labelTabX / tabViewportWidth)  * 100.0f;
-                    const float tabPercentageY = (labelTabY / tabViewportHeight) * 100.0f;
-                    chartAxisLabel->getCoordinate()->setXYZ(tabPercentageX,
-                                                            tabPercentageY,
-                                                            0.0f);
+        if (axis->isShowLabel()) {
+            if (chartAxisLabel != NULL) {
+                const AString axisTitle = chartAxisLabel->getText();
+                if ( ! axisTitle.isEmpty()) {
+                    chartAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                    chartAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
                     
-                    m_annotationsForDrawingOutput.push_back(chartAxisLabel);
+                    float labelTabX = axisVpWidth / 2.0;
+                    float labelTabY = axisVpHeight / 2.0;
+                    const float textMarginOffset = 5.0;
+                    switch (axis->getAxisLocation()) {
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                            labelTabX = (axisVpWidth / 2.0) + margins.m_left;
+                            labelTabY = textMarginOffset;
+                            chartAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                            chartAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                            chartAxisLabel->setRotationAngle(0.0);
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                            labelTabX = (axisVpWidth / 2.0) + margins.m_left;
+                            labelTabY = tabViewportHeight - textMarginOffset;
+                            chartAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                            chartAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                            chartAxisLabel->setRotationAngle(0.0);
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                            labelTabX = textMarginOffset;
+                            labelTabY = (axisVpHeight / 2.0) + margins.m_bottom;
+                            chartAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                            chartAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                            chartAxisLabel->setRotationAngle(-90.0);
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                            labelTabX = tabViewportWidth - textMarginOffset;
+                            labelTabY = (axisVpHeight / 2.0) + margins.m_bottom;
+                            chartAxisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                            chartAxisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                            chartAxisLabel->setRotationAngle(90.0);
+                            break;
+                    }
+                    
+                    if ((axisVpWidth > 0.0)
+                        && (axisVpHeight > 0.0)) {
+                        chartAxisLabel->setCustomTextColor(rgba);
+                        chartAxisLabel->setTextColor(CaretColorEnum::CUSTOM);
+                        chartAxisLabel->setTabIndex(m_tabIndex);
+                        chartAxisLabel->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+                        const float tabPercentageX = (labelTabX / tabViewportWidth)  * 100.0f;
+                        const float tabPercentageY = (labelTabY / tabViewportHeight) * 100.0f;
+                        chartAxisLabel->getCoordinate()->setXYZ(tabPercentageX,
+                                                                tabPercentageY,
+                                                                0.0f);
+                        
+                        m_annotationsForDrawingOutput.push_back(chartAxisLabel);
+                    }
+                    
                 }
-                
             }
         }
         
