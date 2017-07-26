@@ -2075,7 +2075,6 @@ Annotation::setUserDefaultLineWidthPixels(const float lineWidthPixels)
 {
     s_userDefaultLineWidthPixels = lineWidthPixels;
 }
-static void setUserDefaultLineWidthPercentage(const float lineWidthPercentage);
 
 /**
  * Set the default value for line width percentage

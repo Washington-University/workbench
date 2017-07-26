@@ -143,6 +143,11 @@ m_browserWindowIndex(browserWindowIndex)
                                          "         0.0% => Toward's viewer\n"
                                          "       100.0% => Away from viewer\n");
 
+    const float spinBoxMaximumWidth = 80.0f;
+    m_xCoordSpinBox->setMaximumWidth(spinBoxMaximumWidth);
+    m_yCoordSpinBox->setMaximumWidth(spinBoxMaximumWidth);
+    m_zCoordSpinBox->setMaximumWidth(spinBoxMaximumWidth);
+    
     m_surfaceOffsetVectorTypeComboBox = new EnumComboBoxTemplate(this);
     m_surfaceOffsetVectorTypeComboBox->setup<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>();
     QObject::connect(m_surfaceOffsetVectorTypeComboBox, SIGNAL(itemActivated()),
@@ -274,42 +279,55 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         coordinate->getXYZ(xyz);
         
         bool viewportSpaceFlag = false;
+        const double percentageMinimum =   0.0;
+        const double percentageMaximum = 100.0;
+        const double zDepthMinimum =       0.0;
+        const double zDepthMaximum =     100.0;
+        const double coordinateMinimum = -std::numeric_limits<float>::max();
+        const double coordinateMaximum =  std::numeric_limits<float>::max();
         double xMin =  0.0;
-        double xMax =  100.0;
+        double xMax =  0.0;
         double yMin =  0.0;
-        double yMax =  100.0;
-        double zMin  = -100.0;
-        double zMax  =  100.0;
+        double yMax =  0.0;
+        double zMin  = 0.0;
+        double zMax  = 0.0;
         double xyzStep = 0.1;
-        QString suffix("%");
+        QString suffix;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
-                xMax = 1000000.0;
-                xMin = -xMax;
-                yMax = 1000000.0;
-                yMin = -yMax;
-                zMin = xMin;
-                zMax = xMax;
+                xMin = coordinateMinimum;
+                xMax = coordinateMaximum;
+                yMin = coordinateMinimum;
+                yMax = coordinateMaximum;
+                zMin = coordinateMinimum;
+                zMax = coordinateMaximum;
                 xyzStep = 1.0;
-                suffix.clear();
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                xMax = 10000.0;
-                xMin = -xMax;
-                yMax = 10000.0;
-                yMin = -yMax;
-                zMin = xMin;
-                zMax = xMax;
+                xMin = coordinateMinimum;
+                xMax = coordinateMaximum;
+                yMin = coordinateMinimum;
+                yMax = coordinateMaximum;
+                zMin = coordinateMinimum;
+                zMax = coordinateMaximum;
                 xyzStep = 1.0;
-                suffix.clear();
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
                 surfaceFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
-                zMin = 0.0;
+                xMin = percentageMinimum;
+                xMax = percentageMaximum;
+                yMin = percentageMinimum;
+                yMax = percentageMaximum;
+                zMin = zDepthMinimum;
+                zMax = zDepthMaximum;
+                suffix = "%";
                 break;
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                /*
+                 * Cannot move
+                 */
                 xMin = xyz[0];
                 xMax = xyz[0];
                 yMin = xyz[1];
@@ -319,7 +337,13 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 viewportSpaceFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
-                zMin = 0.0;
+                xMin = percentageMinimum;
+                xMax = percentageMaximum;
+                yMin = percentageMinimum;
+                yMax = percentageMaximum;
+                zMin = zDepthMinimum;
+                zMax = zDepthMaximum;
+                suffix = "%";
                 break;
         }
         
