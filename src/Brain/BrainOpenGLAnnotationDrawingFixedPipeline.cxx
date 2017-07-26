@@ -603,11 +603,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
         return;
     }
     
-    const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
-    if ( ! dpa->isDisplayAnnotations()) {
-        return;
-    }
-    
     m_volumeSliceThickness  = sliceThickness;
     
     setSelectionBoxColor();
@@ -648,6 +643,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                     break;
             }
             break;
+    }
+    
+    /*
+     * User may turn off display of all annotations.
+     * Color bars and other annotations not in a file are always
+     * drawn so continue processing.
+     */
+    const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
+    if ( ! dpa->isDisplayAnnotations()) {
+        drawAnnotationsFromFilesFlag = false;
     }
     
     /*
@@ -1805,11 +1810,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
                                                             const float textHeightInPixels,
                                                             const float offsetFromTopInPixels)
 {
-    DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
-    if ( ! dpa->isDisplayTextAnnotations()) {
-        return;
-    }
-    
     const float textPercentageHeight = (textHeightInPixels / m_modelSpaceViewport[3]) * 100.0;
     
     AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
@@ -2194,8 +2194,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     CaretAssert(text);
     CaretAssert(text->getType() == AnnotationTypeEnum::TEXT);
     
+    /*
+     * Annotations with "DISPLAY_GROUP" propery may be turned on/off by user.
+     */
     DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
-    if (text->getType() == AnnotationTypeEnum::TEXT) {
+    if (text->testProperty(Annotation::Property::DISPLAY_GROUP)) {
         if ( ! dpa->isDisplayTextAnnotations()) {
             return false;
         }
