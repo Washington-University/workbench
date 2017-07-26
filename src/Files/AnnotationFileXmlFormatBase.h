@@ -74,7 +74,9 @@ namespace caret {
         
         static const QString ATTRIBUTE_FOREGROUND_CUSTOM_RGBA;
         
-        static const QString ATTRIBUTE_FOREGROUND_LINE_WIDTH;
+        static const QString ATTRIBUTE_FOREGROUND_LINE_WIDTH_PIXELS;
+        
+        static const QString ATTRIBUTE_FOREGROUND_LINE_WIDTH_PERCENTAGE;
         
         static const QString ATTRIBUTE_GROUP_TYPE;
         
@@ -192,7 +194,9 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_CUSTOM_RGBA = "foregroundCustomRGBA";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_LINE_WIDTH = "foregroundLineWidth";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_LINE_WIDTH_PIXELS = "foregroundLineWidth";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_LINE_WIDTH_PERCENTAGE = "foregroundLineWidthPercentage";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_GROUP_TYPE = "groupType";
     

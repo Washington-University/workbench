@@ -128,7 +128,8 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_viewportCoordinateSpaceViewport[1] = obj.m_viewportCoordinateSpaceViewport[1];
     m_viewportCoordinateSpaceViewport[2] = obj.m_viewportCoordinateSpaceViewport[2];
     m_viewportCoordinateSpaceViewport[3] = obj.m_viewportCoordinateSpaceViewport[3];
-    m_lineWidth = obj.m_lineWidth;
+    m_lineWidthPixels = obj.m_lineWidthPixels;
+    m_lineWidthPercentage = obj.m_lineWidthPercentage;
     m_colorLine           = obj.m_colorLine;
     m_colorBackground     = obj.m_colorBackground;
     m_customColorBackground[0]  = obj.m_customColorBackground[0];
@@ -302,7 +303,8 @@ Annotation::applyColoringFromOther(const Annotation* otherAnnotation)
 
     m_colorBackground     = otherAnnotation->m_colorBackground;
     m_colorLine     = otherAnnotation->m_colorLine;
-    m_lineWidth = otherAnnotation->m_lineWidth;
+    m_lineWidthPixels = otherAnnotation->m_lineWidthPixels;
+    m_lineWidthPercentage = otherAnnotation->m_lineWidthPercentage;
     
     for (int32_t i = 0; i < 4; i++) {
         m_customColorBackground[i] = otherAnnotation->m_customColorBackground[i];
@@ -390,7 +392,8 @@ Annotation::initializeAnnotationMembers()
     
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
-            m_lineWidth = 3.0;
+            m_lineWidthPixels = 3.0;
+            m_lineWidthPercentage = 1.0;
             
             m_colorBackground = CaretColorEnum::NONE;
             m_colorLine = CaretColorEnum::WHITE;
@@ -425,7 +428,8 @@ Annotation::initializeAnnotationMembers()
             break;
         case AnnotationAttributesDefaultTypeEnum::USER:
         {
-            m_lineWidth = s_userDefaultLineWidth;
+            m_lineWidthPixels = s_userDefaultLineWidthPixels;
+            m_lineWidthPercentage = s_userDefaultLineWidthPercentage;
             
             m_colorBackground = s_userDefaultColorBackground;
             m_colorLine = s_userDefaultColorLine;
@@ -750,25 +754,49 @@ Annotation::toString() const
 }
 
 /**
- * @return The line width.
+ * @return The line width in pixels.
  */
 float
-Annotation::getLineWidth() const
+Annotation::getLineWidthPixelsObsolete() const
 {
-    return m_lineWidth;
+    return m_lineWidthPixels;
 }
 
 /**
- * Set the line width.
+ * Set the line width in pixels.
  *
  * @param lineWidth
  *    New value for line width.
  */
 void
-Annotation::setLineWidth(const float lineWidth)
+Annotation::setLineWidthPixelsObsolete(const float lineWidth)
 {
-    if (lineWidth != m_lineWidth) {
-        m_lineWidth = lineWidth;
+    if (lineWidth != m_lineWidthPixels) {
+        m_lineWidthPixels = lineWidth;
+        setModified();
+    }
+}
+
+/**
+ * @return The line width percentage.
+ */
+float
+Annotation::getLineWidthPercentage() const
+{
+    return m_lineWidthPercentage;
+}
+
+/**
+ * Set the line width percentage.
+ *
+ * @param lineWidthPercentage
+ *    New value for line width percentage.
+ */
+void
+Annotation::setLineWidthPercentage(const float lineWidthPercentage)
+{
+    if (lineWidthPercentage != m_lineWidthPercentage) {
+        m_lineWidthPercentage = lineWidthPercentage;
         setModified();
     }
 }
@@ -2037,13 +2065,27 @@ Annotation::setUserDefaultCustomBackgroundColor(const float rgba[4])
 }
 
 /**
- * Set the default value for line width
+ * Set the default value for line width pixels
  *
- * @param lineWidth
+ * @param lineWidthPixels
  *     Default for newly created annotations.
  */
 void
-Annotation::setUserDefaultLineWidth(const float lineWidth)
+Annotation::setUserDefaultLineWidthPixels(const float lineWidthPixels)
 {
-    s_userDefaultLineWidth = lineWidth;
+    s_userDefaultLineWidthPixels = lineWidthPixels;
 }
+static void setUserDefaultLineWidthPercentage(const float lineWidthPercentage);
+
+/**
+ * Set the default value for line width percentage
+ *
+ * @param lineWidthPercentage
+ *     Default for newly created annotations.
+ */
+void
+Annotation::setUserDefaultLineWidthPercentage(const float lineWidthPercentage)
+{
+    s_userDefaultLineWidthPercentage = lineWidthPercentage;
+}
+

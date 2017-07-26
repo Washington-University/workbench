@@ -738,7 +738,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
     
     m_depthTestingStatus = depthTesting;
     
-    const double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidth());
+    const double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidthPixelsObsolete());
     
     TextStringGroup tsg(annotationText,
                         font,
@@ -808,7 +808,7 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                         + AString((char*)gluErrorString(errorCode)));
     }
     
-    double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidth());
+    double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidthPixelsObsolete());
     
     TextStringGroup textStringGroup(annotationText,
                                     font,
@@ -1734,7 +1734,7 @@ m_viewportBoundsMaxY(0.0)
      */
     if (annotationText.getLineColor() != CaretColorEnum::NONE) {
         if (annotationText.getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
-            const double outlineThickness = m_annotationText.getLineWidth();
+            const double outlineThickness = m_annotationText.getLineWidthPixelsObsolete();
             if (outlineThickness > 0.0) {
                 m_outlineThickness = m_lineThicknessForViewportHeight;
             }

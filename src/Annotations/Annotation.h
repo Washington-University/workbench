@@ -197,9 +197,13 @@ namespace caret {
         
         void setCustomBackgroundColor(const uint8_t rgba[4]);
         
-        float getLineWidth() const;
+        float getLineWidthPixelsObsolete() const;
         
-        void setLineWidth(const float lineWidth);
+        void setLineWidthPixelsObsolete(const float lineWidthPixels);
+        
+        float getLineWidthPercentage() const;
+        
+        void setLineWidthPercentage(const float lineWidthPercentage);
         
         bool isSelectedForEditing(const int32_t windowIndex) const;
         
@@ -215,7 +219,9 @@ namespace caret {
         
         static void setUserDefaultCustomBackgroundColor(const float rgba[4]);
         
-        static void setUserDefaultLineWidth(const float lineWidth);
+        static void setUserDefaultLineWidthPixels(const float lineWidthPixels);
+        
+        static void setUserDefaultLineWidthPercentage(const float lineWidthPercentage);
         
         virtual bool isFixedAspectRatio() const;
         
@@ -367,8 +373,10 @@ namespace caret {
         
         float m_customColorBackground[4];
         
-        float m_lineWidth;
+        float m_lineWidthPixels;
 
+        float m_lineWidthPercentage = -1.0f;
+        
         AString m_name;
         
         int32_t m_uniqueKey;
@@ -403,7 +411,9 @@ namespace caret {
         
         static float s_userDefaultCustomColorBackground[4];
         
-        static float s_userDefaultLineWidth;
+        static float s_userDefaultLineWidthPixels;
+        
+        static float s_userDefaultLineWidthPercentage;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -426,7 +436,9 @@ namespace caret {
     
     float Annotation::s_userDefaultCustomColorBackground[4] = { 0.0, 0.0, 0.0, 1.0 };
     
-    float Annotation::s_userDefaultLineWidth = 3.0;
+    float Annotation::s_userDefaultLineWidthPixels = 3.0f;
+    
+    float Annotation::s_userDefaultLineWidthPercentage = 1.0f;
 #endif // __ANNOTATION_DECLARE__
 
 } // namespace

@@ -220,7 +220,7 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::LINE_WIDTH_FOREGROUND:
             if (annotation->testProperty(Annotation::Property::LINE_THICKNESS)) {
-                annotation->setLineWidth(annotationValue->getLineWidth());
+                annotation->setLineWidthPixelsObsolete(annotationValue->getLineWidthPixelsObsolete());
             }
             break;
         case AnnotationRedoUndoCommandModeEnum::LOCATION_AND_SIZE:
@@ -1039,7 +1039,7 @@ AnnotationRedoUndoCommand::setModeLineWidth(const float newLineWidth,
         CaretAssert(annotation);
         
         Annotation* redoAnnotation = annotation->clone();
-        redoAnnotation->setLineWidth(newLineWidth);
+        redoAnnotation->setLineWidthPixelsObsolete(newLineWidth);
         Annotation* undoAnnotation = annotation->clone();
         
         AnnotationMemento* am = new AnnotationMemento(annotation,

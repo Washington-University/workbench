@@ -1193,7 +1193,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
         (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
     };
     
-    const float outlineWidth = getLineWidthFromPercentageHeight(box->getLineWidth());
+    const float outlineWidth = getLineWidthFromPercentageHeight(box->getLineWidthPixelsObsolete());
     
     const bool depthTestFlag = isDrawnWithDepthTesting(box);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
@@ -1903,7 +1903,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     const float majorAxis     = ((oval->getWidth()  / 100.0) * (m_modelSpaceViewport[2] / 2.0));
     const float minorAxis     = ((oval->getHeight() / 100.0) * (m_modelSpaceViewport[3] / 2.0));
     const float rotationAngle = oval->getRotationAngle();
-    const float outlineWidth  = getLineWidthFromPercentageHeight(oval->getLineWidth());
+    const float outlineWidth  = getLineWidthFromPercentageHeight(oval->getLineWidthPixelsObsolete());
     
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
@@ -2083,7 +2083,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                         
                         createLineCoordinates(annXYZ,
                                               brainordinateXYZ,
-                                              getLineWidthFromPercentageHeight(text->getLineWidth()),
+                                              getLineWidthFromPercentageHeight(text->getLineWidthPixelsObsolete()),
                                               false,
                                               showArrowFlag,
                                               lineCoordinatesOut);
@@ -2291,7 +2291,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             if ( ! connectLineCoordinates.empty()) {
                 BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
                                                        textColorRGBA,
-                                                       getLineWidthFromPercentageHeight(text->getLineWidth()));
+                                                       getLineWidthFromPercentageHeight(text->getLineWidthPixelsObsolete()));
             }
             
             if (drawTextFlag) {
@@ -2518,7 +2518,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
             if (drawForegroundFlag) {
                 BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
                                                           foregroundRGBA,
-                                                          getLineWidthFromPercentageHeight(image->getLineWidth()));
+                                                          getLineWidthFromPercentageHeight(image->getLineWidthPixelsObsolete()));
             }
             
             setDepthTestingStatus(depthTestFlag);
@@ -2694,7 +2694,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                                          lineTailXYZ)) {
         return false;
     }
-    const float lineWidth = getLineWidthFromPercentageHeight(line->getLineWidth());
+    const float lineWidth = getLineWidthFromPercentageHeight(line->getLineWidthPixelsObsolete());
     const float backgroundLineWidth = lineWidth + 4;
     
     const float selectionCenterXYZ[3] = {

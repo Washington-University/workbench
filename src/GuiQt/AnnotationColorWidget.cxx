@@ -686,7 +686,7 @@ AnnotationColorWidget::lineThicknessSpinBoxValueChanged(double value)
     }
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    Annotation::setUserDefaultLineWidth(value);
+    Annotation::setUserDefaultLineWidthPixels(value);
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -708,7 +708,7 @@ AnnotationColorWidget::updateLineThicknessSpinBox()
     const int32_t numAnnotations = static_cast<int32_t>(m_lineThicknessAnnotations.size());
     if (numAnnotations > 0) {
         for (int32_t i = 0; i < numAnnotations; i++) {
-            const float annLineWidth = m_lineThicknessAnnotations[i]->getLineWidth();
+            const float annLineWidth = m_lineThicknessAnnotations[i]->getLineWidthPixelsObsolete();
             if (lineWidthValid) {
                 if (annLineWidth != lineWidthValue) {
                     haveMultipleLineWidthValues = true;
@@ -725,7 +725,7 @@ AnnotationColorWidget::updateLineThicknessSpinBox()
         if (lineWidthValid) {
             switch (m_parentWidgetType) {
                 case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-                    Annotation::setUserDefaultLineWidth(lineWidthValue);
+                    Annotation::setUserDefaultLineWidthPixels(lineWidthValue);
                     break;
                 case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
                     CaretAssert(0);

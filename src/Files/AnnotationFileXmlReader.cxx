@@ -541,9 +541,20 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
     /*
      * Foreground line width
      */
-    annotation->setLineWidth(m_streamHelper->getRequiredAttributeFloatValue(attributes,
+    annotation->setLineWidthPixelsObsolete(m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                                       annotationElementName,
-                                                                      ATTRIBUTE_FOREGROUND_LINE_WIDTH));
+                                                                      ATTRIBUTE_FOREGROUND_LINE_WIDTH_PIXELS));
+
+    /*
+     * Line width percentage added on July 26, 2017.
+     * A "negative value" indicates it is missing and the percentage width
+     * may be set by graphics code that attempts to set the percentage using
+     * the obsolete pixel width and viewport height.
+     */
+    annotation->setLineWidthPercentage(m_streamHelper->getOptionalAttributeIntValue(attributes,
+                                                                                    annotationElementName,
+                                                                                    ATTRIBUTE_FOREGROUND_LINE_WIDTH_PERCENTAGE,
+                                                                                    -1.0f));
     /*
      * Tab Index
      */

@@ -488,8 +488,11 @@ AnnotationFileXmlWriter::getAnnotationPropertiesAsAttributes(const Annotation* a
     attributes.append(ATTRIBUTE_FOREGROUND_CUSTOM_RGBA,
                       realArrayToString(rgba, 4));
     
-    attributes.append(ATTRIBUTE_FOREGROUND_LINE_WIDTH,
-                      QString::number(annotation->getLineWidth()));
+    attributes.append(ATTRIBUTE_FOREGROUND_LINE_WIDTH_PIXELS,
+                      QString::number(annotation->getLineWidthPixelsObsolete()));
+    
+    attributes.append(ATTRIBUTE_FOREGROUND_LINE_WIDTH_PERCENTAGE,
+                      QString::number(annotation->getLineWidthPercentage()));
     
     attributes.append(ATTRIBUTE_TAB_INDEX,
                       QString::number(annotation->getTabIndex()));
