@@ -73,6 +73,14 @@ namespace caret {
         
         AnnotationPercentSizeText* getAxisLabel(const ChartTwoCartesianAxis* axis) const;
         
+        AnnotationPercentSizeText* getChartTitle();
+        
+        const AnnotationPercentSizeText* getChartTitle() const;
+        
+        bool isChartTitleDisplayed() const;
+        
+        void setChartTitleDislayed(const bool status);
+        
         void insertOverlayAbove(const int32_t overlayIndex);
         
         void insertOverlayBelow(const int32_t overlayIndex);
@@ -123,6 +131,8 @@ namespace caret {
         
         void firstOverlaySelectionChanged();
         
+        std::unique_ptr<AnnotationPercentSizeText> createChartTitle();
+        
         SceneClassAssistant* m_sceneAssistant;
 
         std::vector<std::shared_ptr<ChartTwoOverlay>> m_overlays;
@@ -139,6 +149,10 @@ namespace caret {
         
         const int32_t m_tabIndex;
         
+        std::unique_ptr<AnnotationPercentSizeText> m_chartTitle;
+        
+        bool m_chartTitleDisplayedFlag = false;
+
         int32_t m_numberOfDisplayedOverlays;
         
         bool m_inFirstOverlayChangedMethodFlag = false;

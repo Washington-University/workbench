@@ -32,6 +32,7 @@
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
+#include "EventAnnotationChartLabelGet.h"
 #include "EventBrowserTabGet.h"
 #include "EventChartTwoAttributesChanged.h"
 #include "EventManager.h"
@@ -126,6 +127,10 @@ m_tabIndex(tabIndex)
             break;
     }
     
+    m_chartTitle = createChartTitle();
+    
+    m_chartTitleDisplayedFlag = true;
+
     m_sceneAssistant  = new SceneClassAssistant();
     m_sceneAssistant->add("m_chartAxisLeft",
                           "ChartTwoCartesianAxis",
@@ -136,6 +141,13 @@ m_tabIndex(tabIndex)
     m_sceneAssistant->add("m_chartAxisBottom",
                           "ChartTwoCartesianAxis",
                           m_chartAxisBottom.get());
+    
+    m_sceneAssistant->add("m_chartTitle",
+                          "AnnotationPercentSizeText",
+                          m_chartTitle.get());
+    m_sceneAssistant->add("m_chartTitleDisplayedFlag",
+                          &m_chartTitleDisplayedFlag);
+    
     m_sceneAssistant->add("m_numberOfDisplayedOverlays",
                           &m_numberOfDisplayedOverlays);
     
@@ -148,6 +160,7 @@ m_tabIndex(tabIndex)
         m_overlays[i]->setWeakPointerToSelf(m_overlays[i]);
     }
 
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
@@ -178,6 +191,8 @@ ChartTwoOverlaySet::copyOverlaySet(const ChartTwoOverlaySet* overlaySet)
     *m_chartAxisLeft   = *overlaySet->m_chartAxisLeft;
     *m_chartAxisRight  = *overlaySet->m_chartAxisRight;
     *m_chartAxisBottom = *overlaySet->m_chartAxisBottom;
+    *m_chartTitle      = *overlaySet->m_chartTitle;
+    m_chartTitleDisplayedFlag = overlaySet->m_chartTitleDisplayedFlag;
     
     m_numberOfDisplayedOverlays = overlaySet->m_numberOfDisplayedOverlays;
 }
@@ -196,6 +211,31 @@ ChartTwoOverlaySet::copyCartesianAxes(const ChartTwoOverlaySet* overlaySet)
     *m_chartAxisLeft   = *overlaySet->m_chartAxisLeft;
     *m_chartAxisRight  = *overlaySet->m_chartAxisRight;
     *m_chartAxisBottom = *overlaySet->m_chartAxisBottom;
+}
+
+/**
+ * @return A new instance for the chart title.
+ */
+std::unique_ptr<AnnotationPercentSizeText>
+ChartTwoOverlaySet::createChartTitle()
+{
+    std::unique_ptr<AnnotationPercentSizeText> title = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
+                                                                                            AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
+    title->setPropertiesForSpecializedUsage(Annotation::PropertiesSpecializedUsage::CHART_LABEL);
+    
+    title->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+    title->setTabIndex(0);
+    title->setTextColor(CaretColorEnum::RED);
+    title->setLineColor(CaretColorEnum::NONE);
+    title->setBackgroundColor(CaretColorEnum::NONE);
+    
+    title->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+    title->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+    title->setFontPercentViewportSize(5.0f);
+    
+    title->setText("");
+    
+    return title;
 }
 
 
@@ -284,6 +324,9 @@ void
 ChartTwoOverlaySet::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
 {
     descriptionOut.addLine("Overlay Set");
+    descriptionOut.pushIndentation();
+    descriptionOut.addLine("    Title: " +  (m_chartTitleDisplayedFlag ? m_chartTitle->getText() : "Disabled by user"));
+    descriptionOut.popIndentation();
     
     const int numOverlays = getNumberOfDisplayedOverlays();
     for (int32_t i = 0; i < numOverlays; i++) {
@@ -654,6 +697,16 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
             selectMapEvent->setEventProcessed();
         }
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET) {
+        /*
+         * The events intended for overlays are received here so that
+         * only DISPLAYED overlays are updated.
+         */
+        EventAnnotationChartLabelGet* chartLabelEvent = dynamic_cast<EventAnnotationChartLabelGet*>(event);
+        CaretAssert(chartLabelEvent);
+        
+        chartLabelEvent->addAnnotationChartLabel(m_chartTitle.get());
+    }
 }
 
 /**
@@ -842,6 +895,44 @@ ChartTwoOverlaySet::getAxisLabel(const ChartTwoCartesianAxis* axis) const
 }
 
 /**
+ * @return The chart title.
+ */
+AnnotationPercentSizeText*
+ChartTwoOverlaySet::getChartTitle()
+{
+    return m_chartTitle.get();
+}
+
+/**
+ * @return The chart title.
+ */
+const AnnotationPercentSizeText*
+ChartTwoOverlaySet::getChartTitle() const
+{
+    return m_chartTitle.get();
+}
+
+/**
+ * @return True if chart title displayed, else false.
+ */
+bool ChartTwoOverlaySet::isChartTitleDisplayed() const
+{
+    return m_chartTitleDisplayedFlag;
+}
+
+/**
+ * Set chart title displayed
+ *
+ * @param status
+ *     New status.
+ */
+void
+ChartTwoOverlaySet::setChartTitleDislayed(const bool status)
+{
+    m_chartTitleDisplayedFlag = status;
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -898,6 +989,9 @@ ChartTwoOverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (sceneClass == NULL) {
         return;
     }
+    
+    m_chartTitle->setText("");
+    m_chartTitleDisplayedFlag = false;
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    

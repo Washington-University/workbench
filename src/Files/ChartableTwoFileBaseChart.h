@@ -108,7 +108,7 @@ namespace caret {
 
         ChartableTwoFileBaseChart& operator=(const ChartableTwoFileBaseChart&);
         
-        void initializeAxisTitle(AnnotationPercentSizeText* title,
+        void initializeAxisLabel(AnnotationPercentSizeText* axisLabel,
                                  const ChartAxisLocationEnum::Enum axisLocation);
                                  
         const ChartTwoDataTypeEnum::Enum m_chartType;

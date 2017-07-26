@@ -492,6 +492,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
             }
         }
         
+        AnnotationPercentSizeText* chartTitle = m_chartOverlaySet->getChartTitle();
+        
         double width = 0.0, height = 0.0;
         
         GLint vp[4];
@@ -509,12 +511,23 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         
+        bool allowTopAxisFlag = false;
+        
+        if (m_chartOverlaySet->isChartTitleDisplayed()) {
+            double titleHeight = 0.0;
+            estimateChartTitleHeight(tabViewportWidth, tabViewportHeight, chartTitle, titleHeight);
+            margins.m_top = std::max(margins.m_top, titleHeight);
+        }
+        
         estimateCartesianChartAxisLegendsWidthHeight(yMinLeft, yMaxLeft, tabViewportWidth, tabViewportHeight, leftAxis, leftAxisLabel, width, height);
         margins.m_left = std::max(margins.m_left, width);
         estimateCartesianChartAxisLegendsWidthHeight(yMinRight, yMaxRight, tabViewportWidth, tabViewportHeight, rightAxis, rightAxisLabel, width, height);
         margins.m_right = std::max(margins.m_right, width);
-        estimateCartesianChartAxisLegendsWidthHeight(xMin, xMax, tabViewportWidth, tabViewportHeight, topAxis, NULL, width, height);
-        margins.m_top = std::max(margins.m_top, height);
+        if (allowTopAxisFlag) {
+            CaretAssertMessage(0, "For top axis, will need to make space for chart title");
+            estimateCartesianChartAxisLegendsWidthHeight(xMin, xMax, tabViewportWidth, tabViewportHeight, topAxis, NULL, width, height);
+            margins.m_top = std::max(margins.m_top, height);
+        }
         estimateCartesianChartAxisLegendsWidthHeight(xMin, xMax, tabViewportWidth, tabViewportHeight, bottomAxis, bottomAxisLabel, width, height);
         margins.m_bottom = std::max(margins.m_bottom, height);
         
@@ -572,23 +585,35 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                 xMax = axisMaximumValue;
             }
             
-            drawChartAxisCartesian(xMin,
-                                   xMax,
-                                   tabViewportX,
-                                   tabViewportY,
-                                   tabViewportWidth,
-                                   tabViewportHeight,
-                                   margins,
-                                   topAxis,
-                                   NULL,
-                                   axisMinimumValue,
-                                   axisMaximumValue);
+            if (allowTopAxisFlag) {
+                drawChartAxisCartesian(xMin,
+                                       xMax,
+                                       tabViewportX,
+                                       tabViewportY,
+                                       tabViewportWidth,
+                                       tabViewportHeight,
+                                       margins,
+                                       topAxis,
+                                       NULL,
+                                       axisMinimumValue,
+                                       axisMaximumValue);
+            }
+            
+            if (m_chartOverlaySet->isChartTitleDisplayed()) {
+                drawChartTitle(tabViewportX,
+                               tabViewportY,
+                               tabViewportWidth,
+                               tabViewportHeight,
+                               margins,
+                               chartTitle);
+            }
             
             drawChartGraphicsBoxAndSetViewport(tabViewportX,
                                                tabViewportY,
                                                tabViewportWidth,
                                                tabViewportHeight,
                                                margins,
+                                               true, /* draw the box */
                                                chartGraphicsDrawingViewport);
         }
         
@@ -837,16 +862,202 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
 }
 
 
+///**
+// * Draw a matrix chart.
+// */
+//void
+//BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
+//{
+//    glViewport(m_viewport[0],
+//               m_viewport[1],
+//               m_viewport[2],
+//               m_viewport[3]);
+//    
+//    bool applyTransformationsFlag = true;
+//    float cellWidth = 1.0;
+//    float cellHeight = 1.0;
+//    
+//    /*
+//     * Setup width/height of area in which matrix is drawn with a
+//     * small margin along all of the edges
+//     */
+//    float margin = 10.0;
+//    if ((m_viewport[2] < (margin * 3.0))
+//        || (m_viewport[3] < (margin * 3.0))) {
+//        margin = 0.0;
+//    }
+//    const float graphicsWidth  = m_viewport[2] - (margin * 2.0);
+//    const float graphicsHeight = m_viewport[3] - (margin * 2.0);
+//
+//    /*
+//     * First overlay is ALWAYS ON and since all matrices must have 
+//     * same number of rows/columns, use first matrix for rows/columns
+//     */
+//    const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
+//    CaretAssert(numberOfOverlays > 0);
+//    const ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
+//    const ChartTwoCompoundDataType cdt = topOverlay->getChartTwoCompoundDataType();
+//    CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+//    const int32_t numberOfRows = cdt.getMatrixNumberOfRows();
+//    const int32_t numberOfCols = cdt.getMatrixNumberOfColumns();
+//    if ((numberOfRows > 0)
+//        && (numberOfCols > 0)) {
+//        cellWidth  = graphicsWidth  / numberOfCols;
+//        cellHeight = graphicsHeight / numberOfRows;
+//    }
+//    else {
+//        return;
+//    }
+//    
+//    /*
+//     * Set the width and neight of each matrix cell.
+//     */
+//    const ChartTwoMatrixDisplayProperties* matrixProperties = m_browserTabContent->getChartTwoMatrixDisplayProperties();
+//    CaretAssert(matrixProperties);
+//    const float cellWidthZoom  = matrixProperties->getCellPercentageZoomWidth()  / 100.0;
+//    const float cellHeightZoom = matrixProperties->getCellPercentageZoomHeight() / 100.0;
+//    if ((cellWidthZoom > 0.0)
+//        && (cellHeightZoom > 0.0)) {
+//        cellWidth  *= cellWidthZoom;
+//        cellHeight *= cellHeightZoom;
+//    }
+//    
+//    /*
+//     * Set the coordinates for the area in which the matrix is drawn.
+//     */
+//    const float xMin = -margin;
+//    const float xMax = graphicsWidth + margin;
+//    const float yMin = -margin;
+//    const float yMax = graphicsHeight + margin;
+//    
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadIdentity();
+//    glOrtho(xMin, xMax,
+//            yMin, yMax,
+//            -1.0, 1.0);
+//    
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+//    
+//    if (applyTransformationsFlag) {
+//        glTranslatef(m_translation[0],
+//                     m_translation[1],
+//                     0.0);
+//        
+//        const float chartWidth  = cellWidth  * numberOfCols;
+//        const float chartHeight = cellHeight * numberOfRows;
+//        const float halfWidth   = chartWidth  / 2.0;
+//        const float halfHeight  = chartHeight / 2.0;
+//        glTranslatef(halfWidth,
+//                     halfHeight,
+//                     0.0);
+//        glScalef(m_zooming,
+//                 m_zooming,
+//                 1.0);
+//        glTranslatef(-halfWidth,
+//                     -halfHeight,
+//                     0.0);
+//    }
+//
+//    /*
+//     * Save the transformation matrices and the viewport
+//     * If there is more than one line chart, this code will be executed
+//     * several times but since the top overlay is drawn last, the contents
+//     * of the top overlay will be used.
+//     */
+//    updateViewportContentForCharting(m_viewport);
+//    
+//    for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
+//        ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
+//        if ( ! chartOverlay->isEnabled()) {
+//            continue;
+//        }
+//        
+//        CaretMappableDataFile* mapFile = NULL;
+//        ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+//        int32_t selectedIndex = -1;
+//        chartOverlay->getSelectionData(mapFile,
+//                                       selectedIndexType,
+//                                       selectedIndex);
+//        if (mapFile == NULL) {
+//            continue;
+//        }
+//        
+//        const ChartableTwoFileMatrixChart* matrixChart = mapFile->getChartingDelegate()->getMatrixCharting();
+//        int32_t overlayRows = 0;
+//        int32_t overlayColumns = 0;
+//        matrixChart->getMatrixDimensions(overlayRows,
+//                                         overlayColumns);
+//        
+//        /*
+//         * All matrices must have same rows/columns
+//         */
+//        if ((overlayRows == numberOfRows)
+//            && (overlayColumns == numberOfCols)) {
+//            drawMatrixChartContent(matrixChart,
+//                                   chartOverlay->getMatrixTriangularViewingMode(),
+//                                cellWidth,
+//                                cellHeight,
+//                                m_zooming);
+//        }
+//    }
+//}
+
 /**
  * Draw a matrix chart.
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
 {
-    glViewport(m_viewport[0],
-               m_viewport[1],
-               m_viewport[2],
-               m_viewport[3]);
+    const int32_t tabViewportX = m_viewport[0];
+    const int32_t tabViewportY = m_viewport[1];
+    const int32_t tabViewportWidth  = m_viewport[2];
+    const int32_t tabViewportHeight = m_viewport[3];
+    
+    int32_t chartGraphicsDrawingViewport[4] = {
+        tabViewportX,
+        tabViewportY,
+        tabViewportWidth,
+        tabViewportHeight
+    };
+    
+    Margins margins(3);
+    
+    AnnotationPercentSizeText* chartTitle = m_chartOverlaySet->getChartTitle();
+    if (m_chartOverlaySet->isChartTitleDisplayed()) {
+        double titleHeight = 0.0;
+        estimateChartTitleHeight(tabViewportWidth, tabViewportHeight, chartTitle, titleHeight);
+        if (titleHeight > 0.0) {
+            margins.m_top = std::max(margins.m_top, titleHeight + 2);
+        }
+    }
+    
+    glViewport(tabViewportX,
+               tabViewportY,
+               tabViewportWidth,
+               tabViewportHeight);
+    
+    if (m_chartOverlaySet->isChartTitleDisplayed()) {
+        drawChartTitle(tabViewportX,
+                       tabViewportY,
+                       tabViewportWidth,
+                       tabViewportHeight,
+                       margins,
+                       chartTitle);
+    }
+    
+    drawChartGraphicsBoxAndSetViewport(tabViewportX,
+                                       tabViewportY,
+                                       tabViewportWidth,
+                                       tabViewportHeight,
+                                       margins,
+                                       false, /* do not draw box */
+                                       chartGraphicsDrawingViewport);
+    
+    glViewport(chartGraphicsDrawingViewport[0],
+               chartGraphicsDrawingViewport[1],
+               chartGraphicsDrawingViewport[2],
+               chartGraphicsDrawingViewport[3]);
     
     bool applyTransformationsFlag = true;
     float cellWidth = 1.0;
@@ -861,11 +1072,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
         || (m_viewport[3] < (margin * 3.0))) {
         margin = 0.0;
     }
-    const float graphicsWidth  = m_viewport[2] - (margin * 2.0);
-    const float graphicsHeight = m_viewport[3] - (margin * 2.0);
-
+    const float graphicsWidth  = chartGraphicsDrawingViewport[2];
+    const float graphicsHeight = chartGraphicsDrawingViewport[3];
+    
     /*
-     * First overlay is ALWAYS ON and since all matrices must have 
+     * First overlay is ALWAYS ON and since all matrices must have
      * same number of rows/columns, use first matrix for rows/columns
      */
     const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
@@ -900,6 +1111,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
     /*
      * Set the coordinates for the area in which the matrix is drawn.
      */
+    margin = 0.0;
     const float xMin = -margin;
     const float xMax = graphicsWidth + margin;
     const float yMin = -margin;
@@ -933,14 +1145,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
                      -halfHeight,
                      0.0);
     }
-
+    
     /*
      * Save the transformation matrices and the viewport
      * If there is more than one line chart, this code will be executed
      * several times but since the top overlay is drawn last, the contents
      * of the top overlay will be used.
      */
-    updateViewportContentForCharting(m_viewport);
+    updateViewportContentForCharting(chartGraphicsDrawingViewport);
     
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
         ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
@@ -971,15 +1183,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
             && (overlayColumns == numberOfCols)) {
             drawMatrixChartContent(matrixChart,
                                    chartOverlay->getMatrixTriangularViewingMode(),
-                                cellWidth,
-                                cellHeight,
-                                m_zooming);
+                                   cellWidth,
+                                   cellHeight,
+                                   m_zooming);
         }
     }
 }
-
 /*
- * Draw a matrix chart.
+ * Draw a matrix chart content.
  *
  * @param matrixChart
  *     Matrix chart that is drawn.
@@ -1195,6 +1406,43 @@ BrainOpenGLChartTwoDrawingFixedPipeline::restoreStateOfOpenGL()
 }
 
 /**
+ * Estimate the size of the chart title
+ *
+ * @param viewportWidth
+ *     Widgth of viewport.
+ * @param viewportHeight
+ *     Height of viewport.
+ * @param chartTitle
+ *     Title for the chart.
+ * @param heightOut
+ *     Height of text out.
+ */
+void
+BrainOpenGLChartTwoDrawingFixedPipeline::estimateChartTitleHeight(const float viewportWidth,
+                                                                  const float viewportHeight,
+                                                                  AnnotationPercentSizeText* chartTitle,
+                                                                  double& heightOut)
+{
+    CaretAssert(chartTitle);
+    
+    heightOut = 0;
+    
+    if (chartTitle->getText().trimmed().isEmpty()) {
+        return;
+    }
+    
+    /*
+     * The percentage height from the label is also used
+     * by the axis numeric values.
+     */
+    chartTitle->setTabIndex(m_tabIndex);
+    
+    
+    double dummyWidth  = 0.0;
+    m_textRenderer->getTextWidthHeightInPixels(*chartTitle, viewportWidth, viewportHeight, dummyWidth, heightOut);
+}
+
+/**
  * Estimate the size of the axis' text.
  *
  * @param minimumDataValue
@@ -1339,17 +1587,20 @@ BrainOpenGLChartTwoDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthH
  *     Viewport height
  * @param marginSize
  *     Margin around grid/box
+ * @param drawBoxFlag
+ *     Controls drawing of box.
  * @param chartGraphicsDrawingViewportOut
  *     Output containing viewport for drawing chart graphics within
  *     the box/grid that is adjusted for the box's line thickness.
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(const float vpX,
-                                                                         const float vpY,
-                                                                         const float vpWidth,
-                                                                         const float vpHeight,
-                                                                         const Margins& margins,
-                                                                         int32_t chartGraphicsDrawingViewportOut[4])
+                                                                            const float vpY,
+                                                                            const float vpWidth,
+                                                                            const float vpHeight,
+                                                                            const Margins& margins,
+                                                                            const bool drawBoxFlag,
+                                                                            int32_t chartGraphicsDrawingViewportOut[4])
 {
     const float halfGridLineWidth = GRID_LINE_WIDTH / 2.0;
     
@@ -1363,29 +1614,31 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
                vpWidth,
                vpHeight);
     
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(vpX, (vpX + vpWidth),
-            vpY, (vpY + vpHeight),
-            -1.0, 1.0);
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    std::unique_ptr<GraphicsPrimitiveV3f> gridData
-    = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
-                                                                               m_fixedPipelineDrawing->m_foregroundColorFloat));
-    gridData->reserveForNumberOfVertices(8);
-    gridData->addVertex(gridLeft,  gridBottom + halfGridLineWidth);
-    gridData->addVertex(gridRight, gridBottom + halfGridLineWidth);
-    gridData->addVertex(gridRight - halfGridLineWidth, gridBottom);
-    gridData->addVertex(gridRight - halfGridLineWidth, gridTop);
-    gridData->addVertex(gridRight, gridTop - halfGridLineWidth);
-    gridData->addVertex(gridLeft,  gridTop - halfGridLineWidth);
-    gridData->addVertex(gridLeft + halfGridLineWidth, gridTop);
-    gridData->addVertex(gridLeft + halfGridLineWidth, gridBottom);
-    glLineWidth(GRID_LINE_WIDTH);
-    drawPrimitivePrivate(gridData.get());
+    if (drawBoxFlag) {
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(vpX, (vpX + vpWidth),
+                vpY, (vpY + vpHeight),
+                -1.0, 1.0);
+        
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        
+        std::unique_ptr<GraphicsPrimitiveV3f> gridData
+        = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
+                                                                                   m_fixedPipelineDrawing->m_foregroundColorFloat));
+        gridData->reserveForNumberOfVertices(8);
+        gridData->addVertex(gridLeft,  gridBottom + halfGridLineWidth);
+        gridData->addVertex(gridRight, gridBottom + halfGridLineWidth);
+        gridData->addVertex(gridRight - halfGridLineWidth, gridBottom);
+        gridData->addVertex(gridRight - halfGridLineWidth, gridTop);
+        gridData->addVertex(gridRight, gridTop - halfGridLineWidth);
+        gridData->addVertex(gridLeft,  gridTop - halfGridLineWidth);
+        gridData->addVertex(gridLeft + halfGridLineWidth, gridTop);
+        gridData->addVertex(gridLeft + halfGridLineWidth, gridBottom);
+        glLineWidth(GRID_LINE_WIDTH);
+        drawPrimitivePrivate(gridData.get());
+    }
     
     /*
      * Region inside the grid's box
@@ -1716,7 +1969,89 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartAxisCartesian(const float mini
     return false;
 }
 
-/** 
+/**
+ * Draw the chart axes grid/box
+ *
+ * @param tabViewportX
+ *     Viewport X for all chart content
+ * @param tabViewportY
+ *     Viewport Y for all chart content
+ * @param tabViewportWidth
+ *     Viewport width for all chart content
+ * @param tabViewportHeight
+ *     Viewport height for all chart content
+ * @param margins
+ *     Margin around graphics region.  The margin corresponding to the
+ *     axis may be changed so that all text in the axis is visible
+ *     (and not cut off).
+ * @param chartTitle
+ *     The chart title annotation.
+ */
+void
+BrainOpenGLChartTwoDrawingFixedPipeline::drawChartTitle(const float tabViewportX,
+                                                        const float tabViewportY,
+                                                        const float tabViewportWidth,
+                                                        const float tabViewportHeight,
+                                                        const Margins& margins,
+                                                        AnnotationPercentSizeText* chartTitle)
+{
+    if (chartTitle == NULL) {
+        return;
+    }
+    
+    const AString text = chartTitle->getText().trimmed();
+    if (text.isEmpty()) {
+        return;
+    }
+    
+    int32_t axisVpX      = 0;
+    int32_t axisVpY      = 0;
+    int32_t axisVpWidth  = 0;
+    int32_t axisVpHeight = 0;
+    float axisLength = 0.0;
+    axisVpX      = tabViewportX + margins.m_left;
+    axisVpY      = tabViewportY + tabViewportHeight - margins.m_top;
+    axisVpWidth  = tabViewportWidth - (margins.m_left + margins.m_right);
+    axisVpHeight = margins.m_top;
+    axisLength   = axisVpWidth;
+    
+    const float rgba[4] = {
+        m_fixedPipelineDrawing->m_foregroundColorFloat[0],
+        m_fixedPipelineDrawing->m_foregroundColorFloat[1],
+        m_fixedPipelineDrawing->m_foregroundColorFloat[2],
+        1.0
+    };
+    
+    chartTitle->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+    chartTitle->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+    
+    float labelTabX = axisVpWidth / 2.0;
+    float labelTabY = axisVpHeight / 2.0;
+    const float textMarginOffset = 5.0;
+    labelTabX = (axisVpWidth / 2.0) + margins.m_left;
+    labelTabY = tabViewportHeight - textMarginOffset;
+    chartTitle->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+    chartTitle->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+    chartTitle->setRotationAngle(0.0);
+    
+    if ((axisVpWidth > 0.0)
+        && (axisVpHeight > 0.0)) {
+        chartTitle->setCustomTextColor(rgba);
+        chartTitle->setTextColor(CaretColorEnum::CUSTOM);
+        chartTitle->setTabIndex(m_tabIndex);
+        chartTitle->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+        const float tabPercentageX = (labelTabX / tabViewportWidth)  * 100.0f;
+        const float tabPercentageY = (labelTabY / tabViewportHeight) * 100.0f;
+        chartTitle->getCoordinate()->setXYZ(tabPercentageX,
+                                            tabPercentageY,
+                                            0.0f);
+        
+        m_annotationsForDrawingOutput.push_back(chartTitle);
+    }
+}
+
+
+/**
  * Update the viewport content with charting viewport and matrices.
  */
 void

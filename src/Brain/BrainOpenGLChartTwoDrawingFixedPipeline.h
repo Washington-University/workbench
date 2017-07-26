@@ -139,6 +139,7 @@ namespace caret {
                                                 const float vpWidth,
                                                 const float vpHeight,
                                                 const Margins& margins,
+                                                const bool drawBoxFlag,
                                                 int32_t chartGraphicsDrawingViewportOut[4]);
         
         bool drawChartAxisCartesian(const float minimumDataValue,
@@ -153,6 +154,13 @@ namespace caret {
                                     float& axisMinimumOut,
                                     float& axisMaximumOut);
         
+        void drawChartTitle(const float tabViewportX,
+                            const float tabViewportY,
+                            const float tabViewportWidth,
+                            const float tabViewportHeight,
+                            const Margins& margins,
+                            AnnotationPercentSizeText* chartTitle);
+        
         void estimateCartesianChartAxisLegendsWidthHeight(const float minimumDataValue,
                                                           const float maximumDataValue,
                                                           const float viewportWidth,
@@ -161,6 +169,11 @@ namespace caret {
                                                           AnnotationPercentSizeText* chartAxisLabel,
                                                           double& widthOut,
                                                           double& heightOut);
+        
+        void estimateChartTitleHeight(const float viewportWidth,
+                                      const float viewportHeight,
+                                      AnnotationPercentSizeText* chartTitle,
+                                      double& heightOut);
         
         void drawPrimitivePrivate(GraphicsPrimitive* primitive);
         

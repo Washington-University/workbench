@@ -84,8 +84,8 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
     m_leftRightAxisTitle->setPropertiesForSpecializedUsage(Annotation::PropertiesSpecializedUsage::CHART_LABEL);
 
     
-    initializeAxisTitle(m_bottomAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
-    initializeAxisTitle(m_leftRightAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
+    initializeAxisLabel(m_bottomAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
+    initializeAxisLabel(m_leftRightAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_bottomAxisTitle",
@@ -108,48 +108,48 @@ ChartableTwoFileBaseChart::~ChartableTwoFileBaseChart()
 }
 
 /**
- * Initialize an axis titlel
+ * Initialize an axis' label
  *
- * @param titleAnnotation
- *     Annotation containing title.
+ * @param axisLabel
+ *     Annotation containing label.
  * @param axisLocation
  *     Location of axis.
  */
-void ChartableTwoFileBaseChart::initializeAxisTitle(AnnotationPercentSizeText* titleAnnotation,
+void ChartableTwoFileBaseChart::initializeAxisLabel(AnnotationPercentSizeText* axisLabel,
                                                     const ChartAxisLocationEnum::Enum axisLocation)
 {
-    CaretAssert(titleAnnotation);
+    CaretAssert(axisLabel);
 
-    titleAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-    titleAnnotation->setTabIndex(0);
-    titleAnnotation->setTextColor(CaretColorEnum::RED);
-    titleAnnotation->setLineColor(CaretColorEnum::NONE);
-    titleAnnotation->setBackgroundColor(CaretColorEnum::NONE);
+    axisLabel->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+    axisLabel->setTabIndex(0);
+    axisLabel->setTextColor(CaretColorEnum::RED);
+    axisLabel->setLineColor(CaretColorEnum::NONE);
+    axisLabel->setBackgroundColor(CaretColorEnum::NONE);
     
-    titleAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-    titleAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-    titleAnnotation->setFontPercentViewportSize(s_defaultFontPercentViewportSize);
+    axisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+    axisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+    axisLabel->setFontPercentViewportSize(s_defaultFontPercentViewportSize);
     
     AString title;
     
     switch (axisLocation) {
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-            titleAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            titleAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+            axisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            axisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
             break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-            titleAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            titleAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-            titleAnnotation->setRotationAngle(-90.0);
+            axisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            axisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+            axisLabel->setRotationAngle(-90.0);
             break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-            titleAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            titleAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-            titleAnnotation->setRotationAngle(90.0);
+            axisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            axisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+            axisLabel->setRotationAngle(90.0);
             break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            titleAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            titleAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+            axisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            axisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
             break;
     }
 
@@ -203,7 +203,7 @@ void ChartableTwoFileBaseChart::initializeAxisTitle(AnnotationPercentSizeText* t
             break;
     }
 
-    titleAnnotation->setText(title);
+    axisLabel->setText(title);
 }
 
 
@@ -313,8 +313,8 @@ ChartableTwoFileBaseChart::updateChartTwoCompoundDataTypeAfterFileChanges(const 
     
     m_compoundChartDataType = compoundChartDataType;
 
-    initializeAxisTitle(m_bottomAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
-    initializeAxisTitle(m_leftRightAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
+    initializeAxisLabel(m_bottomAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
+    initializeAxisLabel(m_leftRightAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
 }
 
 /**

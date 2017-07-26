@@ -58,6 +58,7 @@
 #include "BrainBrowserWindowToolBarChartTwoAttributes.h"
 #include "BrainBrowserWindowToolBarChartTwoAxes.h"
 #include "BrainBrowserWindowToolBarChartTwoOrientation.h"
+#include "BrainBrowserWindowToolBarChartTwoTitle.h"
 #include "BrainBrowserWindowToolBarChartTwoType.h"
 #include "BrainBrowserWindowToolBarChartType.h"
 #include "BrainBrowserWindowToolBarClipping.h"
@@ -338,6 +339,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->chartTwoOrientationWidget = createChartTwoOrientationWidget();
     this->chartTwoAttributesWidget = createChartTwoAttributesWidget();
     this->chartTwoAxesWidget = createChartTwoAxesWidget();
+    this->chartTwoTitleWidget = createChartTwoTitleWidget();
     this->chartTypeWidget = createChartTypeWidget();
     this->chartTypeTwoWidget = createChartTypeTwoWidget();
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
@@ -385,6 +387,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolbarWidgetLayout->addWidget(this->chartTwoAttributesWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->chartTwoAxesWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->chartTwoTitleWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->chartAttributesWidget, 0, Qt::AlignLeft);
     
@@ -1405,6 +1409,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showChartTwoOrientationWidget = false;
     bool showChartTwoAttributesWidget = false;
     bool showChartTwoAxesWidget = false;
+    bool showChartTwoTitleWidget = false;
     
     bool showModeWidget = true;
     bool showWindowWidget = true;
@@ -1473,14 +1478,16 @@ BrainBrowserWindowToolBar::updateToolBar()
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                         showChartTwoAxesWidget = true;
+                        showChartTwoTitleWidget = true;
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                         showChartTwoAxesWidget = true;
-                        //showChartTwoAttributesWidget  = true;
+                        showChartTwoTitleWidget = true;
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                         showChartTwoOrientationWidget = true;
                         showChartTwoAttributesWidget  = true;
+                        showChartTwoTitleWidget = true;
                         break;
                 }
                 
@@ -1507,6 +1514,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->chartTwoOrientationWidget->setVisible(false);
     this->chartTwoAttributesWidget->setVisible(false);
     this->chartTwoAxesWidget->setVisible(false);
+    this->chartTwoTitleWidget->setVisible(false);
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
     this->volumeMontageWidget->setVisible(false);
@@ -1525,6 +1533,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->chartTwoOrientationWidget->setVisible(showChartTwoOrientationWidget);
     this->chartTwoAttributesWidget->setVisible(showChartTwoAttributesWidget);
     this->chartTwoAxesWidget->setVisible(showChartTwoAxesWidget);
+    this->chartTwoTitleWidget->setVisible(showChartTwoTitleWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
@@ -1589,6 +1598,7 @@ BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTab
         this->updateChartTwoOrientationWidget(browserTabContent);
         this->updateChartTwoAttributesWidget(browserTabContent);
         this->updateChartTwoAxesWidget(browserTabContent);
+        this->updateChartTwoTitleWidget(browserTabContent);
         this->updateVolumeMontageWidget(browserTabContent);
         this->updateVolumePlaneWidget(browserTabContent);
         this->updateModeWidget(browserTabContent);
@@ -2732,12 +2742,46 @@ BrainBrowserWindowToolBar::updateChartTypeWidget(BrowserTabContent* browserTabCo
     m_chartTypeToolBarComponent->updateContent(browserTabContent);
 }
 
+/**
+ * Create the chart two title widget.
+ *
+ * @return
+ *    Widget containing the chart title.
+ */
+QWidget*
+BrainBrowserWindowToolBar::createChartTwoTitleWidget()
+{
+    m_chartTwoTitleToolBarComponent = new BrainBrowserWindowToolBarChartTwoTitle(this);
+    QWidget* w = this->createToolWidget("Chart Title",
+                                        m_chartTwoTitleToolBarComponent,
+                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_TOP,
+                                        100);
+    w->setVisible(false);
+    return w;
+}
+/**
+ * Update the chart title widget.
+ *
+ * @param browserTabContent
+ *   The active tab content.
+ */
+void
+BrainBrowserWindowToolBar::updateChartTwoTitleWidget(BrowserTabContent* browserTabContent)
+{
+    if (this->chartTwoTitleWidget->isHidden()) {
+        return;
+    }
+    
+    m_chartTwoTitleToolBarComponent->updateContent(browserTabContent);
+}
+
 
 /**
  * Create the chart type two widget.
  *
  * @return
- *    Widget containing the chart options.
+ *    Widget containing the chart type.
  */
 QWidget*
 BrainBrowserWindowToolBar::createChartTypeTwoWidget()

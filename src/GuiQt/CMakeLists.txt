@@ -76,6 +76,7 @@ ELSE()
         BrainBrowserWindowToolBarChartTwoAttributes.h
         BrainBrowserWindowToolBarChartTwoAxes.h
         BrainBrowserWindowToolBarChartTwoOrientation.h
+        BrainBrowserWindowToolBarChartTwoTitle.h
         BrainBrowserWindowToolBarChartTwoType.h
         BrainBrowserWindowToolBarChartType.h
         BrainBrowserWindowToolBarClipping.h
@@ -263,6 +264,7 @@ BrainBrowserWindowToolBarChartAxes.h
 BrainBrowserWindowToolBarChartTwoAttributes.h
 BrainBrowserWindowToolBarChartTwoAxes.h
 BrainBrowserWindowToolBarChartTwoOrientation.h
+BrainBrowserWindowToolBarChartTwoTitle.h
 BrainBrowserWindowToolBarChartTwoType.h
 BrainBrowserWindowToolBarChartType.h
 BrainBrowserWindowToolBarClipping.h
@@ -475,6 +477,7 @@ BrainBrowserWindowToolBarChartAxes.cxx
 BrainBrowserWindowToolBarChartTwoAttributes.cxx
 BrainBrowserWindowToolBarChartTwoAxes.cxx
 BrainBrowserWindowToolBarChartTwoOrientation.cxx
+BrainBrowserWindowToolBarChartTwoTitle.cxx
 BrainBrowserWindowToolBarChartTwoType.cxx
 BrainBrowserWindowToolBarChartType.cxx
 BrainBrowserWindowToolBarClipping.cxx
