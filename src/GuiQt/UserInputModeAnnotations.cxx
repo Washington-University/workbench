@@ -1651,9 +1651,7 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
         }
         
         if (allAllowSelectFlag) {
-            if (anySelectedFlag) {
-                enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
-            }
+            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
         }
         
         if (annotationManager->isAnnotationOnClipboardValid()) {
