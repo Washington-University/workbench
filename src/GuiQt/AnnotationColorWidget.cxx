@@ -150,8 +150,7 @@ m_browserWindowIndex(browserWindowIndex)
                                                                                             this,
                                                                                             SLOT(lineThicknessSpinBoxValueChanged(double)));
     WuQtUtilities::setWordWrappedToolTip(m_lineThicknessSpinBox,
-                                         "Adjust the line thickness");
-    //m_lineThicknessSpinBox->setFixedWidth(45);
+                                         "Adjust the line thickness as percentage of tab/window height");
     m_lineThicknessSpinBox->setSuffix("%");
     
     m_lineThicknessWidgetGroup->add(lineLabel);
@@ -686,7 +685,7 @@ AnnotationColorWidget::lineThicknessSpinBoxValueChanged(double value)
     }
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    Annotation::setUserDefaultLineWidthPixels(value);
+    Annotation::setUserDefaultLineWidthPercentage(value);
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -708,7 +707,7 @@ AnnotationColorWidget::updateLineThicknessSpinBox()
     const int32_t numAnnotations = static_cast<int32_t>(m_lineThicknessAnnotations.size());
     if (numAnnotations > 0) {
         for (int32_t i = 0; i < numAnnotations; i++) {
-            const float annLineWidth = m_lineThicknessAnnotations[i]->getLineWidthPixelsObsolete();
+            const float annLineWidth = m_lineThicknessAnnotations[i]->getLineWidthPercentage();
             if (lineWidthValid) {
                 if (annLineWidth != lineWidthValue) {
                     haveMultipleLineWidthValues = true;
@@ -725,7 +724,7 @@ AnnotationColorWidget::updateLineThicknessSpinBox()
         if (lineWidthValid) {
             switch (m_parentWidgetType) {
                 case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-                    Annotation::setUserDefaultLineWidthPixels(lineWidthValue);
+                    Annotation::setUserDefaultLineWidthPercentage(lineWidthValue);
                     break;
                 case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
                     CaretAssert(0);

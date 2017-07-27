@@ -302,6 +302,8 @@ namespace caret {
                                const float startXYZ[3],
                                float endXYZ[3]) const;
         
+        void convertObsoleteLineWidthPixelsToPercentageWidth(const Annotation* annotation) const;
+        
         float getLineWidthFromPercentageHeight(const float percentageHeight) const;
         
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;

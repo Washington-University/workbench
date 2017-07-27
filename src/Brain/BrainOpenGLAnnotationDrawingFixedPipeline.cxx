@@ -1193,7 +1193,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
         (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
     };
     
-    const float outlineWidth = getLineWidthFromPercentageHeight(box->getLineWidthPixelsObsolete());
+    if (box->getLineWidthPercentage() <= 0.0) {
+        convertObsoleteLineWidthPixelsToPercentageWidth(box);
+    }
+    const float outlineWidth = getLineWidthFromPercentageHeight(box->getLineWidthPercentage());
     
     const bool depthTestFlag = isDrawnWithDepthTesting(box);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
@@ -1903,7 +1906,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     const float majorAxis     = ((oval->getWidth()  / 100.0) * (m_modelSpaceViewport[2] / 2.0));
     const float minorAxis     = ((oval->getHeight() / 100.0) * (m_modelSpaceViewport[3] / 2.0));
     const float rotationAngle = oval->getRotationAngle();
-    const float outlineWidth  = getLineWidthFromPercentageHeight(oval->getLineWidthPixelsObsolete());
+    
+    if (oval->getLineWidthPercentage() <= 0.0) {
+        convertObsoleteLineWidthPixelsToPercentageWidth(oval);
+    }
+    const float outlineWidth = getLineWidthFromPercentageHeight(oval->getLineWidthPercentage());
     
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
@@ -2081,9 +2088,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                                               annXYZ);
                         }
                         
+                        if (text->getLineWidthPercentage() <= 0.0) {
+                            convertObsoleteLineWidthPixelsToPercentageWidth(text);
+                        }
+                        const float lineWidth = getLineWidthFromPercentageHeight(text->getLineWidthPercentage());
                         createLineCoordinates(annXYZ,
                                               brainordinateXYZ,
-                                              getLineWidthFromPercentageHeight(text->getLineWidthPixelsObsolete()),
+                                              lineWidth,
                                               false,
                                               showArrowFlag,
                                               lineCoordinatesOut);
@@ -2289,9 +2300,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                       connectLineCoordinates);
             
             if ( ! connectLineCoordinates.empty()) {
+                if (text->getLineWidthPercentage() <= 0.0) {
+                    convertObsoleteLineWidthPixelsToPercentageWidth(text);
+                }
+                const float lineWidth = getLineWidthFromPercentageHeight(text->getLineWidthPercentage());
                 BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
                                                        textColorRGBA,
-                                                       getLineWidthFromPercentageHeight(text->getLineWidthPixelsObsolete()));
+                                                       lineWidth);
             }
             
             if (drawTextFlag) {
@@ -2516,9 +2531,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
             }
 
             if (drawForegroundFlag) {
+                if (image->getLineWidthPercentage() <= 0.0) {
+                    convertObsoleteLineWidthPixelsToPercentageWidth(image);
+                }
+                const float lineWidth = getLineWidthFromPercentageHeight(image->getLineWidthPercentage());
                 BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
                                                           foregroundRGBA,
-                                                          getLineWidthFromPercentageHeight(image->getLineWidthPixelsObsolete()));
+                                                          lineWidth);
             }
             
             setDepthTestingStatus(depthTestFlag);
@@ -2694,7 +2713,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                                          lineTailXYZ)) {
         return false;
     }
-    const float lineWidth = getLineWidthFromPercentageHeight(line->getLineWidthPixelsObsolete());
+    
+    if (line->getLineWidthPercentage() <= 0.0) {
+        convertObsoleteLineWidthPixelsToPercentageWidth(line);
+    }
+    const float lineWidth = getLineWidthFromPercentageHeight(line->getLineWidthPercentage());
     const float backgroundLineWidth = lineWidth + 4;
     
     const float selectionCenterXYZ[3] = {
@@ -3347,5 +3370,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getLineWidthFromPercentageHeight(cons
     
     return widthPixels;
 }
+
+/**
+ * Convert the annotation's obsolete line width that was in pixels to a percentage of viewport height.
+ * Prior to late July, 2017, a line was specified in pixels.
+ * 
+ * First, the annotation's percentage width is examined.  If it is valid (greater than zero), then
+ * no conversion is needed.  Otherwise, use the viewport height to convert the pixel width to a 
+ * percentage and set the annotation's percentage line width.
+ * 
+ * @param annotation
+ *     The annotation.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::convertObsoleteLineWidthPixelsToPercentageWidth(const Annotation* annotation) const
+{
+    annotation->convertObsoleteLineWidthPixelsToPercentageWidth(m_modelSpaceViewport[3]);
+}
+
 
 

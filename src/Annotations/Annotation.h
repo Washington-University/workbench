@@ -197,6 +197,8 @@ namespace caret {
         
         void setCustomBackgroundColor(const uint8_t rgba[4]);
         
+        void convertObsoleteLineWidthPixelsToPercentageWidth(const float viewportHeight) const;
+        
         float getLineWidthPixelsObsolete() const;
         
         void setLineWidthPixelsObsolete(const float lineWidthPixels);
@@ -218,8 +220,6 @@ namespace caret {
         static void setUserDefaultBackgroundColor(const CaretColorEnum::Enum color);
         
         static void setUserDefaultCustomBackgroundColor(const float rgba[4]);
-        
-        static void setUserDefaultLineWidthPixels(const float lineWidthPixels);
         
         static void setUserDefaultLineWidthPercentage(const float lineWidthPercentage);
         
@@ -411,7 +411,7 @@ namespace caret {
         
         static float s_userDefaultCustomColorBackground[4];
         
-        static float s_userDefaultLineWidthPixels;
+        static float s_userDefaultLineWidthPixelsObsolete;
         
         static float s_userDefaultLineWidthPercentage;
         
@@ -436,7 +436,7 @@ namespace caret {
     
     float Annotation::s_userDefaultCustomColorBackground[4] = { 0.0, 0.0, 0.0, 1.0 };
     
-    float Annotation::s_userDefaultLineWidthPixels = 3.0f;
+    float Annotation::s_userDefaultLineWidthPixelsObsolete = 3.0f;
     
     float Annotation::s_userDefaultLineWidthPercentage = 1.0f;
 #endif // __ANNOTATION_DECLARE__

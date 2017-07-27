@@ -428,7 +428,7 @@ Annotation::initializeAnnotationMembers()
             break;
         case AnnotationAttributesDefaultTypeEnum::USER:
         {
-            m_lineWidthPixels = s_userDefaultLineWidthPixels;
+            m_lineWidthPixels = s_userDefaultLineWidthPixelsObsolete;
             m_lineWidthPercentage = s_userDefaultLineWidthPercentage;
             
             m_colorBackground = s_userDefaultColorBackground;
@@ -752,6 +752,36 @@ Annotation::toString() const
     }
     return msg;
 }
+
+/**
+ * Convert the annotation's obsolete line width that was in pixels to a percentage of viewport height.
+ * Prior to late July, 2017, a line was specified in pixels.
+ *
+ * First, the annotation's percentage width is examined.  If it is valid (greater than zero), then
+ * no conversion is needed.  Otherwise, use the viewport height to convert the pixel width to a
+ * percentage and set the annotation's percentage line width.
+ *
+ * Note that even though this method is 'const' it may cause the modification status to change
+ * to modified.
+ *
+ * @param viewportHeight
+ *     The height of the viewport in pixels.
+ */
+void
+Annotation::convertObsoleteLineWidthPixelsToPercentageWidth(const float viewportHeight) const
+{
+    if (m_lineWidthPercentage > 0.0f) {
+        return;
+    }
+    
+    float percentWidth = 1.0f;
+    if (viewportHeight > 0.0f) {
+        percentWidth = (m_lineWidthPixels / viewportHeight) * 100.0f;
+    }
+    
+    const_cast<Annotation*>(this)->setLineWidthPercentage(percentWidth);
+}
+
 
 /**
  * @return The line width in pixels.
@@ -2062,18 +2092,6 @@ Annotation::setUserDefaultCustomBackgroundColor(const float rgba[4])
     s_userDefaultCustomColorBackground[1] = rgba[1];
     s_userDefaultCustomColorBackground[2] = rgba[2];
     s_userDefaultCustomColorBackground[3] = rgba[3];
-}
-
-/**
- * Set the default value for line width pixels
- *
- * @param lineWidthPixels
- *     Default for newly created annotations.
- */
-void
-Annotation::setUserDefaultLineWidthPixels(const float lineWidthPixels)
-{
-    s_userDefaultLineWidthPixels = lineWidthPixels;
 }
 
 /**

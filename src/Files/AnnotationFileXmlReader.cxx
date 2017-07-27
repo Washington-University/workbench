@@ -551,7 +551,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
      * may be set by graphics code that attempts to set the percentage using
      * the obsolete pixel width and viewport height.
      */
-    annotation->setLineWidthPercentage(m_streamHelper->getOptionalAttributeIntValue(attributes,
+    annotation->setLineWidthPercentage(m_streamHelper->getOptionalAttributeFloatValue(attributes,
                                                                                     annotationElementName,
                                                                                     ATTRIBUTE_FOREGROUND_LINE_WIDTH_PERCENTAGE,
                                                                                     -1.0f));
