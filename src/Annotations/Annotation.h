@@ -199,10 +199,6 @@ namespace caret {
         
         void convertObsoleteLineWidthPixelsToPercentageWidth(const float viewportHeight) const;
         
-        float getLineWidthPixelsObsolete() const;
-        
-        void setLineWidthPixelsObsolete(const float lineWidthPixels);
-        
         float getLineWidthPercentage() const;
         
         void setLineWidthPercentage(const float lineWidthPercentage);
@@ -347,6 +343,10 @@ namespace caret {
         void clearDrawnInWindowStatusForAllWindows();
         
     private:
+        float getLineWidthPixelsObsolete() const;
+        
+        void setLineWidthPixelsObsolete(const float lineWidthPixels);
+        
         void setAnnotationGroupKey(const AnnotationGroupKey& annotationGroupKey);
 
         void invalidateAnnotationGroupKey();
@@ -419,6 +419,7 @@ namespace caret {
 
         friend class AnnotationFile;
         friend class AnnotationFileXmlReader;
+        friend class AnnotationFileXmlWriter;
         friend class AnnotationGroup;
         friend class AnnotationManager;
     };

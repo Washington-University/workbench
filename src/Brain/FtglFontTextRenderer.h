@@ -259,11 +259,7 @@ namespace caret {
             
             const double m_rotationAngle;
             
-            const double m_lineThicknessForViewportHeight;
-            
             double m_underlineThickness;
-            
-            double m_outlineThickness;
             
             /*
              * Bounds relative to origin of first character

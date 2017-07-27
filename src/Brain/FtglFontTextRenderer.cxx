@@ -453,7 +453,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
                           ts->m_stringGlyphsMaxX,
                           underlineY,
                           z,
-                          textStringGroup.m_underlineThickness,
+                          ts->m_underlineThickness,
                           foregroundRgba);
             
             glPopMatrix();
@@ -470,7 +470,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
                         ts->m_stringGlyphsMinY,
                         ts->m_stringGlyphsMaxY,
                         z,
-                        textStringGroup.m_outlineThickness,
+                        ts->m_outlineThickness,
                         foregroundRgba);
             
             glPopMatrix();
@@ -738,7 +738,10 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
     
     m_depthTestingStatus = depthTesting;
     
-    const double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidthPixelsObsolete());
+    if (annotationText.getLineWidthPercentage() <= 0.0f) {
+        annotationText.convertObsoleteLineWidthPixelsToPercentageWidth(m_viewportHeight);
+    }
+    const double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidthPercentage());
     
     TextStringGroup tsg(annotationText,
                         font,
@@ -808,7 +811,10 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                         + AString((char*)gluErrorString(errorCode)));
     }
     
-    double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidthPixelsObsolete());
+    if (annotationText.getLineWidthPercentage() <= 0.0f) {
+        annotationText.convertObsoleteLineWidthPixelsToPercentageWidth(m_viewportHeight);
+    }
+    double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidthPercentage());
     
     TextStringGroup textStringGroup(annotationText,
                                     font,
@@ -1697,9 +1703,7 @@ m_viewportX(viewportX),
 m_viewportY(viewportY),
 m_viewportZ(viewportZ),
 m_rotationAngle(rotationAngle),
-m_lineThicknessForViewportHeight(lineThicknessForViewportHeight),
 m_underlineThickness(0.0),
-m_outlineThickness(0.0),
 m_viewportBoundsMinX(0.0),
 m_viewportBoundsMaxX(0.0),
 m_viewportBoundsMinY(0.0),
@@ -1732,13 +1736,9 @@ m_viewportBoundsMaxY(0.0)
      * Outline is drawn anytime thickness is greater than zero
      * and is drawn using the foreground color
      */
+    float outlineThickness = 0.0;
     if (annotationText.getLineColor() != CaretColorEnum::NONE) {
-        if (annotationText.getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
-            const double outlineThickness = m_annotationText.getLineWidthPixelsObsolete();
-            if (outlineThickness > 0.0) {
-                m_outlineThickness = m_lineThicknessForViewportHeight;
-            }
-        }
+                outlineThickness = lineThicknessForViewportHeight;
     }
     
     /*
@@ -1753,7 +1753,7 @@ m_viewportBoundsMaxY(0.0)
         TextString* ts = new TextString(textList.at(i),
                                         annotationText.getOrientation(),
                                         m_underlineThickness,
-                                        m_outlineThickness,
+                                        outlineThickness,
                                         font);
         m_textStrings.push_back(ts);
     }
