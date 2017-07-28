@@ -1630,7 +1630,7 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
             if ( ! ann->testProperty(Annotation::Property::COPY_CUT_PASTE)) {
                 allAllowCopyCutPasteFlag = false;
             }
-            if ( ! ann->testProperty(Annotation::Property::DELETE)) {
+            if ( ! ann->testProperty(Annotation::Property::DELETION)) {
                 allAllowDeleteFlag = false;
             }
         }

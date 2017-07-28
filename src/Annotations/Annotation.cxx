@@ -1193,7 +1193,7 @@ Annotation::initializeProperties()
     if (colorBarFlag) {
         resetProperty(Property::ARRANGE);
         resetProperty(Property::COPY_CUT_PASTE);
-        resetProperty(Property::DELETE);
+        resetProperty(Property::DELETION);
         resetProperty(Property::DISPLAY_GROUP);
         resetProperty(Property::GROUP);
         resetProperty(Property::LINE_COLOR);
@@ -1237,7 +1237,7 @@ Annotation::setPropertiesForSpecializedUsage(const PropertiesSpecializedUsage sp
         resetProperty(Property::ARRANGE);
         resetProperty(Property::COORDINATE);
         resetProperty(Property::COPY_CUT_PASTE);
-        resetProperty(Property::DELETE);
+        resetProperty(Property::DELETION);
         resetProperty(Property::DISPLAY_GROUP);
         resetProperty(Property::GROUP);
         resetProperty(Property::LINE_COLOR);
@@ -1254,7 +1254,7 @@ Annotation::setPropertiesForSpecializedUsage(const PropertiesSpecializedUsage sp
         resetProperty(Property::ARRANGE);
         resetProperty(Property::COORDINATE);
         resetProperty(Property::COPY_CUT_PASTE);
-        resetProperty(Property::DELETE);
+        resetProperty(Property::DELETION);
         resetProperty(Property::DISPLAY_GROUP);
         resetProperty(Property::GROUP);
         resetProperty(Property::ROTATION);

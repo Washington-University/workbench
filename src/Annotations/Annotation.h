@@ -54,8 +54,8 @@ namespace caret {
             COORDINATE,
             /** Annotation allows cut, copy, and paste by user*/
             COPY_CUT_PASTE,
-            /** Annotation may be deleted by user */
-            DELETE,
+            /** Annotation may be deleted by user (note 'DELETE' will not compile on windows) */
+            DELETION,
             /** Annotation display controlled by Display Group and Tab */
             DISPLAY_GROUP,
             /** Annotation has fill (background) color */

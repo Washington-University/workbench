@@ -151,7 +151,7 @@ AnnotationDeleteWidget::deleteActionTriggered()
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
     std::vector<Annotation*> deleteAnnotations;
     for (auto a : selectedAnnotations) {
-        if (a->testProperty(Annotation::Property::DELETE)) {
+        if (a->testProperty(Annotation::Property::DELETION)) {
             deleteAnnotations.push_back(a);
         }
     }

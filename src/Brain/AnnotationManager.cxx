@@ -396,7 +396,7 @@ AnnotationManager::isAnnotationSelectedForEditingDeletable(const int32_t windowI
              iter != selectedAnnotations.end();
              iter++) {
             const Annotation* ann = *iter;
-            if ( ! ann->testProperty(Annotation::Property::DELETE)) {
+            if ( ! ann->testProperty(Annotation::Property::DELETION)) {
                 selectedAnnotationsDeletableFlag = false;
                 break;
             }

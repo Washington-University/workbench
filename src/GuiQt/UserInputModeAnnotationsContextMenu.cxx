@@ -130,7 +130,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
             m_threeDimCoordAnnotations.push_back(ann);
         }
         
-        if ( ! ann->testProperty(Annotation::Property::DELETE)) {
+        if ( ! ann->testProperty(Annotation::Property::DELETION)) {
             allSelectedAnnotationsDeletableFlag = false;
         }
     }
@@ -143,7 +143,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
         m_annotationFile = selectedAnnotations[0].second;
         m_annotation     = selectedAnnotations[0].first;
         oneAnnotationSelectedFlag = true;
-        if (m_annotation->testProperty(Annotation::Property::DELETE)) {
+        if (m_annotation->testProperty(Annotation::Property::DELETION)) {
             oneDeletableAnnotationSelectedFlag = true;
         }
     }
