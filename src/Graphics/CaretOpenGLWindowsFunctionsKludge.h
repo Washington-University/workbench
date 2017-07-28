@@ -76,6 +76,8 @@ extern "C" {
 #define GL_ARRAY_BUFFER 0x8892
 #define GL_ELEMENT_ARRAY_BUFFER 0x8893
 
+typedef ptrdiff_t GLsizeiptr;
+
 GLAPI void APIENTRY glDeleteBuffers (GLsizei n, const GLuint *buffers);
 GLAPI void APIENTRY glGenBuffers (GLsizei n, GLuint *buffers);
 GLAPI GLboolean APIENTRY glIsBuffer (GLuint buffer);
