@@ -70,6 +70,11 @@ extern "C" {
  * Extensions removed: _nomatch_^
  */
 #define GL_ALIASED_LINE_WIDTH_RANGE       0x846E
+#define GL_STREAM_DRAW 0x88E0
+#define GL_STATIC_DRAW 0x88E4
+#define GL_DYNAMIC_DRAW 0x88E8
+#define GL_ARRAY_BUFFER 0x8892
+#define GL_ELEMENT_ARRAY_BUFFER 0x8893
 
 GLAPI void APIENTRY glDeleteBuffers (GLsizei n, const GLuint *buffers);
 GLAPI void APIENTRY glGenBuffers (GLsizei n, GLuint *buffers);
