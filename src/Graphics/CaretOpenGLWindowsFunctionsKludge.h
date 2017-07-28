@@ -79,6 +79,8 @@ extern "C" {
 GLAPI void APIENTRY glDeleteBuffers (GLsizei n, const GLuint *buffers);
 GLAPI void APIENTRY glGenBuffers (GLsizei n, GLuint *buffers);
 GLAPI GLboolean APIENTRY glIsBuffer (GLuint buffer);
+GLAPI void APIENTRY glBindBuffer (GLenum target, GLuint buffer);
+GLAPI void APIENTRY glBufferData (GLenum target, GLsizeiptr size, const void *data, GLenum usage);
 
  
 #ifdef __cplusplus
