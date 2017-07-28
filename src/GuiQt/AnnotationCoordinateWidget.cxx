@@ -293,6 +293,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         double zMax  = 0.0;
         double xyzStep = 0.1;
         QString suffix;
+        int32_t digitsRightOfDecimal = 1;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 xMin = coordinateMinimum;
@@ -301,6 +302,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 yMax = coordinateMaximum;
                 zMin = coordinateMinimum;
                 zMax = coordinateMaximum;
+                digitsRightOfDecimal = 3;
                 xyzStep = 1.0;
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -354,6 +356,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_xCoordSpinBox->setSuffix(suffix);
         m_xCoordSpinBox->setValue(xyz[0]);
         m_xCoordSpinBox->blockSignals(false);
+        m_xCoordSpinBox->setDecimals(digitsRightOfDecimal);
         
         m_yCoordSpinBox->blockSignals(true);
         m_yCoordSpinBox->setRange(yMin,
@@ -362,6 +365,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_yCoordSpinBox->setSuffix(suffix);
         m_yCoordSpinBox->setValue(xyz[1]);
         m_yCoordSpinBox->blockSignals(false);
+        m_yCoordSpinBox->setDecimals(digitsRightOfDecimal);
         
         m_zCoordSpinBox->blockSignals(true);
         m_zCoordSpinBox->setRange(zMin,
@@ -370,6 +374,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_zCoordSpinBox->setSuffix(suffix);
         m_zCoordSpinBox->setValue(xyz[2]);
         m_zCoordSpinBox->blockSignals(false);
+        m_zCoordSpinBox->setDecimals(digitsRightOfDecimal);
         
         if (surfaceFlag) {
             StructureEnum::Enum structure = StructureEnum::INVALID;
