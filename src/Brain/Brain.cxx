@@ -38,6 +38,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "ChartingDataManager.h"
+#include "ChartableTwoFileDelegate.h"
 #include "ChartableLineSeriesBrainordinateInterface.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiBrainordinateLabelFile.h"
@@ -4718,13 +4719,43 @@ Brain::updateChartModel()
         }
     }
     
-    if (m_modelChartTwo == NULL) {
-        m_modelChartTwo = new ModelChartTwo(this);
-        EventModelAdd eventAddModel(m_modelChartTwo);
-        EventManager::get()->sendEvent(eventAddModel.getPointer());
-        
-        if (m_isSpecFileBeingRead == false) {
-            m_modelChartTwo->initializeOverlays();
+    /*
+     * For Chart Two, test for any files that report a valid charting data type
+     * and then update (add/remove charting two model)
+     */
+    EventCaretMappableDataFilesGet allMapFilesEvent;
+    EventManager::get()->sendEvent(allMapFilesEvent.getPointer());
+    std::vector<CaretMappableDataFile*> allMapFiles;
+    allMapFilesEvent.getAllFiles(allMapFiles);
+    
+    bool haveChartableFileFlag = false;
+    for (auto mapFile : allMapFiles) {
+        CaretAssert(mapFile);
+        std::vector<ChartTwoDataTypeEnum::Enum> chartDataTypes;
+        mapFile->getChartingDelegate()->getSupportedChartTwoDataTypes(chartDataTypes);
+        if ( ! chartDataTypes.empty()) {
+            haveChartableFileFlag = true;
+            break;
+        }
+    }
+
+    if (haveChartableFileFlag) {
+        if (m_modelChartTwo == NULL) {
+            m_modelChartTwo = new ModelChartTwo(this);
+            EventModelAdd eventAddModel(m_modelChartTwo);
+            EventManager::get()->sendEvent(eventAddModel.getPointer());
+            
+            if (m_isSpecFileBeingRead == false) {
+                m_modelChartTwo->initializeOverlays();
+            }
+        }
+    }
+    else {
+        if (m_modelChartTwo != NULL) {
+            EventModelDelete eventDeleteModel(m_modelChartTwo);
+            EventManager::get()->sendEvent(eventDeleteModel.getPointer());
+            delete m_modelChartTwo;
+            m_modelChartTwo = NULL;
         }
     }
 }
@@ -5259,10 +5290,10 @@ void
 Brain::updateAfterFilesAddedOrRemoved()
 {
     updateBrainStructures();
-    updateChartModel();
+    updateSurfaceMontageModel();
     updateVolumeSliceModel();
     updateWholeBrainModel();
-    updateSurfaceMontageModel();
+    updateChartModel();
     
     updateFiberTrajectoryMatchingFiberOrientationFiles();
 }

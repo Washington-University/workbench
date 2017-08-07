@@ -1692,6 +1692,14 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
         this->viewModeChartOneRadioButton->setEnabled(browserTabContent->isChartOneModelValid());
         this->viewModeChartTwoRadioButton->setEnabled(browserTabContent->isChartTwoModelValid());
     }
+    else {
+        this->viewModeSurfaceRadioButton->setEnabled(false);
+        this->viewModeSurfaceMontageRadioButton->setEnabled(false);
+        this->viewModeVolumeRadioButton->setEnabled(false);
+        this->viewModeWholeBrainRadioButton->setEnabled(false);
+        this->viewModeChartOneRadioButton->setEnabled(false);
+        this->viewModeChartTwoRadioButton->setEnabled(false);
+    }
     
     switch (modelType) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:

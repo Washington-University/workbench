@@ -930,14 +930,12 @@ BrowserTabContent::getOverlaySet() const
 ChartTwoOverlaySet*
 BrowserTabContent::getChartTwoOverlaySet()
 {
+    if (m_chartTwoModel == NULL) {
+        return NULL;
+    }
+    
     CaretAssert(m_chartTwoModel);
     return m_chartTwoModel->getChartTwoOverlaySet(m_tabNumber);
-    
-//    Model* model = getModelForDisplay();
-//    if (model != NULL) {
-//        return model->getChartTwoOverlaySet(m_tabNumber);
-//    }
-//    return NULL;
 }
 
 /**
@@ -946,14 +944,11 @@ BrowserTabContent::getChartTwoOverlaySet()
 const ChartTwoOverlaySet*
 BrowserTabContent::getChartTwoOverlaySet() const
 {
+    if (m_chartTwoModel == NULL) {
+        return NULL;
+    }
     CaretAssert(m_chartTwoModel);
     return m_chartTwoModel->getChartTwoOverlaySet(m_tabNumber);
-
-//    const Model* model = getModelForDisplay();
-//    if (model != NULL) {
-//        return model->getChartTwoOverlaySet(m_tabNumber);
-//    }
-//    return NULL;
 }
 
 /**
