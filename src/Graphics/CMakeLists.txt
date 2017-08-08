@@ -33,7 +33,6 @@ ENDIF (OPENGL_FOUND)
 #
 ADD_LIBRARY(Graphics
 CaretOpenGLInclude.h
-CaretOpenGLWindowsFunctionsKludge.h
 EventGraphicsOpenGLCreateBufferObject.h
 EventGraphicsOpenGLCreateTextureName.h
 EventGraphicsOpenGLDeleteBufferObject.h

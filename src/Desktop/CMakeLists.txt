@@ -34,13 +34,6 @@ IF (UNIX)
     IF (NOT APPLE)
         FIND_PACKAGE(OpenGL)
     ENDIF (NOT APPLE)
-ELSE (UNIX)
-    FIND_PACKAGE(OpenGL)
-    #INCLUDE(${OPENGL_INCLUDE_DIR})
-
-   MESSAGE("OpenGL Include Dir: ${OPENGL_INCLUDE_DIR}")
-   MESSAGE("OpenGL Libraries: ${OPENGL_LIBRARIES}")
-   MESSAGE("OpenGL Library path ${OPENGL_gl_LIBRARY}")
 ENDIF (UNIX)
 
 #

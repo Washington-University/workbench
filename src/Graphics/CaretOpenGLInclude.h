@@ -29,7 +29,6 @@
 
 #ifdef CARET_OS_WINDOWS
 #include <Windows.h>
-#include "CaretOpenGLWindowsFunctionsKludge.h"
 #endif
 #ifdef CARET_OS_MACOSX
 #include <OpenGL/gl.h>
