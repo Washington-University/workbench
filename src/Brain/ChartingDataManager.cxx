@@ -82,6 +82,11 @@ ChartingDataManager::receiveEvent(Event* event)
             modelChart->loadChartDataForYokedCiftiMappableFiles(yokeMapEvent->getMapYokingGroup(),
                                                                 yokeMapEvent->getMapIndex());
         }
+        ModelChartTwo* modelChartTwo = m_brain->getChartTwoModel();
+        if (modelChartTwo != NULL) {
+            modelChartTwo->loadChartDataForYokedScalarDataSeriesFiles(yokeMapEvent->getMapYokingGroup(),
+                                                                      yokeMapEvent->getMapIndex());
+        }
     }
 }
 

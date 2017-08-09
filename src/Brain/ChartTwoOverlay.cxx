@@ -435,32 +435,35 @@ ChartTwoOverlay::isMapYokingSupported() const
 bool
 ChartTwoOverlay::isMapYokingSupportedPrivate(const CaretMappableDataFile* mapFile) const
 {
+    if (mapFile == NULL) {
+        return false;
+    }
+    
+    if (mapFile->getNumberOfMaps() < 2) {
+        return false;
+    }
+    
     bool supportedFlag = false;
     
     switch (m_chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-            supportedFlag = true;
+            if (mapFile->isSurfaceMappable()
+                || mapFile->isVolumeMappable()) {
+                supportedFlag = true;
+            }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
+                supportedFlag = true;
+            }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-            supportedFlag = true;
-            break;
-    }
-    
-    if (supportedFlag) {
-        supportedFlag = false;
-        
-        if (mapFile != NULL) {
-            if (mapFile->getNumberOfMaps() > 1) {
-                if (mapFile->isSurfaceMappable()
-                    || mapFile->isVolumeMappable()) {
-                    supportedFlag = true;
-                }
+            if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
+                supportedFlag = true;
             }
-        }
+            break;
     }
     
     return supportedFlag;

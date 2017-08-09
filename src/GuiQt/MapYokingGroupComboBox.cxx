@@ -216,8 +216,12 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
     bool selectionStatus = chartOverlay->isEnabled();
     
     if ((mapFile != NULL)
-        && (chartOverlay->isMapYokingSupported())
-        && (selectedIndex >= 0)) {
+        && chartOverlay->isMapYokingSupported()) {
+        if (mapFile->getNumberOfMaps() > 0) {
+            if (selectedIndex < 0) {
+                selectedIndex = 0;
+            }
+        }
         const YokeValidationResult result = validateYoking(mapFile,
                                                            selectedIndex,
                                                            selectionStatus);

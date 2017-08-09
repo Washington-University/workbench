@@ -680,9 +680,20 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
                         
                         if (mapFile != NULL) {
                             if (overlay->isMapYokingSupported()) {
-                                if (yokingGroupMapIndex < mapFile->getNumberOfMaps()) {
-                                    overlay->setSelectionData(mapFile,
-                                                              yokingGroupMapIndex);
+                                
+                                switch (m_chartDataType) {
+                                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                                        break;
+                                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                                        if (yokingGroupMapIndex < mapFile->getNumberOfMaps()) {
+                                            overlay->setSelectionData(mapFile,
+                                                                      yokingGroupMapIndex);
+                                        }
+                                        break;
+                                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                                        break;
+                                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                                        break;
                                 }
                                 
                                 if (mapFile == eventMapFile) {

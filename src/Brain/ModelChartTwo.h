@@ -74,6 +74,9 @@ namespace caret {
         void loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMapFile,
                                                   const int32_t rowIndex);
         
+        void loadChartDataForYokedScalarDataSeriesFiles(const MapYokingGroupEnum::Enum mapYokingGroup,
+                                                        const int32_t mapIndex);
+        
         virtual OverlaySet* getOverlaySet(const int tabIndex) override;
         
         virtual const OverlaySet* getOverlaySet(const int tabIndex) const override;

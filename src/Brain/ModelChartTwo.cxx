@@ -99,16 +99,6 @@ ModelChartTwo::ModelChartTwo(Brain* brain)
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<ChartTwoDataTypeEnum, ChartTwoDataTypeEnum::Enum>("m_selectedChartTwoDataType",
                                                                                                          m_selectedChartTwoDataType);
-//    m_sceneAssistant->add("m_histogramChartOverlaySetArray",
-//                          "ChartTwoOverlaySetArray",
-//                          m_histogramChartOverlaySetArray.get());
-//    m_sceneAssistant->add("m_matrixChartOverlaySetArray",
-//                          "ChartTwoOverlaySetArray",
-//                          m_matrixChartOverlaySetArray.get());
-//    m_sceneAssistant->add("m_lineSeriesChartOverlaySetArray",
-//                          "ChartTwoOverlaySetArray",
-//                          m_lineSeriesChartOverlaySetArray.get());
-    
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS);
 }
@@ -247,7 +237,7 @@ ModelChartTwo::loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* cifti
 {
     CaretAssert(ciftiMapFile);
     
-    std::vector<int32_t> tabIndices;
+    //std::vector<int32_t> tabIndices;
     EventBrowserTabIndicesGetAll tabIndicesEvent;
     EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
     
@@ -259,6 +249,65 @@ ModelChartTwo::loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* cifti
                                                             mapFileDataSelector);
     EventManager::get()->sendEvent(chartTwoLineSeriesEvent.getPointer());
 }
+
+/**
+ * Load line chart data for yoked CIFTI scalar data series files
+ *
+ * @param mapYokingGroup
+ *     The map yoking group.
+ * @param mapIndex
+ *     The map index.
+ */
+void
+ModelChartTwo::loadChartDataForYokedScalarDataSeriesFiles(const MapYokingGroupEnum::Enum mapYokingGroup,
+                                                          const int32_t mapIndex)
+{
+    if (mapYokingGroup == MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    EventBrowserTabIndicesGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    const std::vector<int32_t> tabIndices = tabIndicesEvent.getAllBrowserTabIndices();
+    
+    /*
+     * Find Cifti Scalar Data Series Files in valid Chart Overlays that
+     * have chart line series data loading enabled
+     */
+    std::set<CiftiScalarDataSeriesFile*> dataSeriesFiles;
+    for (auto tabIndex : tabIndices) {
+        CaretAssertArrayIndex(m_selectedChartTwoDataType, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+        if (m_selectedChartTwoDataType[tabIndex] == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES) {
+            const ChartTwoOverlaySet* overlaySet = m_lineSeriesChartOverlaySetArray->getChartTwoOverlaySet(tabIndex);
+            CaretAssert(overlaySet);
+            
+            const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+            for (int32_t iOverlay = 0; iOverlay < numOverlays; iOverlay++) {
+                const ChartTwoOverlay* overlay = overlaySet->getOverlay(iOverlay);
+                CaretAssert(overlay);
+                
+                if (overlay->isEnabled()
+                    && overlay->isLineSeriesLoadingEnabled()) {
+                    if (overlay->getMapYokingGroup() == mapYokingGroup) {
+                        CaretMappableDataFile* mapFile = overlay->getSelectedMapFile();
+                        if (mapFile != NULL) {
+                            if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
+                                CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(mapFile);
+                                CaretAssert(scalarDataSeriesFile);
+                                dataSeriesFiles.insert(scalarDataSeriesFile);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    for (auto seriesFile : dataSeriesFiles) {
+        loadChartDataForCiftiMappableFileRow(seriesFile, mapIndex);
+    }
+}
+
 /**
  * Receive an event.
  * 
@@ -474,15 +523,6 @@ ModelChartTwo::saveModelSpecificInformationToScene(const SceneAttributes* sceneA
     
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
-    //    m_sceneAssistant->add("m_histogramChartOverlaySetArray",
-    //                          "ChartTwoOverlaySetArray",
-    //                          m_histogramChartOverlaySetArray.get());
-    //    m_sceneAssistant->add("m_matrixChartOverlaySetArray",
-    //                          "ChartTwoOverlaySetArray",
-    //                          m_matrixChartOverlaySetArray.get());
-    //    m_sceneAssistant->add("m_lineSeriesChartOverlaySetArray",
-    //                          "ChartTwoOverlaySetArray",
-    //                          m_lineSeriesChartOverlaySetArray.get());
 }
 
 /**
@@ -856,11 +896,6 @@ ModelChartTwo::restoreMatrixChartFromChartOneModel(ModelChart* modelChartOne,
     
     
     CaretAssert(chartOneMatrixDisplayProperties);
-//    ChartTwoMatrixDisplayProperties* chartTwoMatrixDisplayProperties = getChartTwoMatrixDisplayProperties(tabIndex);
-//    CaretAssert(chartTwoMatrixDisplayProperties);
-//    chartTwoMatrixDisplayProperties->resetPropertiesToDefault();
-//    chartTwoMatrixDisplayProperties->setGridLinesDisplayed(chartOneMatrixDisplayProperties->isGridLinesDisplayed());
-//    chartTwoMatrixDisplayProperties->setSelectedRowColumnHighlighted(chartOneMatrixDisplayProperties->isSelectedRowColumnHighlighted());
     AnnotationColorBar* chartOneColorBar = chartOneMatrixDisplayProperties->getColorBar();
     
     EventBrowserTabGet getTabEvent(tabIndex);
