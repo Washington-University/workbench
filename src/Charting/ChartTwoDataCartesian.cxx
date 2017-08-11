@@ -513,5 +513,7 @@ ChartTwoDataCartesian::restoreFromScene(const SceneAttributes* sceneAttributes,
             }
         }
     }
+    
+    setColor(getColor());
 }
 

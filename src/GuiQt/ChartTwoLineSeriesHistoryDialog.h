@@ -72,6 +72,8 @@ namespace caret {
         
         void defaultColorSelected(const CaretColorEnum::Enum color);
         
+        void defaultLineWidthChanged(double);
+        
         void viewedMaximumSpinBoxValueChanged(int);
         
     private:
@@ -109,6 +111,8 @@ namespace caret {
         QLabel* m_filenameLabel;
         
         CaretColorEnumComboBox* m_defaultColorComboBox;
+        
+        QDoubleSpinBox* m_defaultLineWidthSpinBox;
         
         QSpinBox* m_viewedMaximumCountSpinBox;
         

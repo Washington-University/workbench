@@ -174,6 +174,8 @@ ChartTwoLineSeriesHistory::initializeInstance()
     m_defaultColor = ChartTwoLineSeriesHistory::generateDefaultColor();
     validateDefaultColor();
     
+    m_defaultLineWidth = 1.0f;
+    
     const int32_t defaultHistoryCount = 5;
     m_loadingEnabled = false;
     
@@ -184,6 +186,8 @@ ChartTwoLineSeriesHistory::initializeInstance()
                           &m_loadingEnabled);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_defaultColor",
                                                                 &m_defaultColor);
+    m_sceneAssistant->add("m_defaultLineWidth",
+                          &m_defaultLineWidth);
     m_sceneAssistant->add("m_displayCount",
                           &m_displayCount);
 }
@@ -204,10 +208,11 @@ ChartTwoLineSeriesHistory::copyHelperChartTwoLineSeriesHistory(const ChartTwoLin
         ChartTwoDataCartesian* cartData = item->clone();
         CaretAssert(cartData);
         
-        addHistoryItem(cartData);
+        addHistoryItemNoDefaults(cartData);
     }
     
     m_defaultColor = obj.m_defaultColor;
+    m_defaultLineWidth = obj.m_defaultLineWidth;
     m_displayCount = obj.m_displayCount;
     validateDefaultColor();
 }
@@ -238,6 +243,30 @@ ChartTwoLineSeriesHistory::setDefaultColor(const CaretColorEnum::Enum defaultCol
 //    for (auto chartData : m_chartHistory) {
 //        chartData->setColor(defaultColor);
 //    }
+}
+
+/**
+ * @return Default width of lines
+ */
+float
+ChartTwoLineSeriesHistory::getDefaultLineWidth() const
+{
+    return m_defaultLineWidth;
+}
+
+/**
+ * Set Default width of lines
+ *
+ * @param defaultLineWidth
+ *    New value for Default width of lines
+ */
+void
+ChartTwoLineSeriesHistory::setDefaultLineWidth(const float defaultLineWidth)
+{
+    if (defaultLineWidth != m_defaultLineWidth) {
+        m_defaultLineWidth = defaultLineWidth;
+        setModified();
+    }
 }
 
 /**
@@ -293,7 +322,7 @@ int32_t ChartTwoLineSeriesHistory::getHistoryCount() const
 
 /**
  * Add a history item.  This instance takes ownership of the item
- * and will delete it.  Default color is assigned to item.
+ * and will delete it.  Defaults such as line color and width assigned to item.
  *
  * @param historyItem
  *     Added to history.
@@ -303,6 +332,20 @@ ChartTwoLineSeriesHistory::addHistoryItem(ChartTwoDataCartesian* historyItem)
 {
     CaretAssert(historyItem);
     historyItem->setColor(m_defaultColor);
+    historyItem->setLineWidth(m_defaultLineWidth);
+    addHistoryItemNoDefaults(historyItem);
+}
+
+/**
+ * Add a history item.  No defaults are applied to the history items.
+ *
+ * @param historyItem
+ *     Added to history.
+ */
+void
+ChartTwoLineSeriesHistory::addHistoryItemNoDefaults(ChartTwoDataCartesian* historyItem)
+{
+    CaretAssert(historyItem);
     m_chartHistory.push_front(historyItem);
     updateDisplayedHistoryItems();
 }
@@ -479,13 +522,7 @@ ChartTwoLineSeriesHistory::restoreFromScene(const SceneAttributes* sceneAttribut
             historyItem->restoreFromScene(sceneAttributes,
                                           historyClass);
             
-            /*
-             * Note: addHistoryItem() assigns the default color so
-             * need to update color
-             */
-            const CaretColorEnum::Enum color = historyItem->getColor();
-            addHistoryItem(historyItem);
-            historyItem->setColor(color);
+            addHistoryItemNoDefaults(historyItem);
         }
     }
 

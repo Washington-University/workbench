@@ -82,6 +82,16 @@ ChartTwoLineSeriesHistoryDialog::ChartTwoLineSeriesHistoryDialog(QWidget* parent
     QObject::connect(m_defaultColorComboBox, &CaretColorEnumComboBox::colorSelected,
                      this, &ChartTwoLineSeriesHistoryDialog::defaultColorSelected);
     
+    QLabel* defaultLineWidthLabel = new QLabel("Default Line Width: ");
+    m_defaultLineWidthSpinBox = new QDoubleSpinBox();
+    m_defaultLineWidthSpinBox->setRange(0.0, 100000.0);
+    m_defaultLineWidthSpinBox->setDecimals(2);
+    m_defaultLineWidthSpinBox->setSingleStep(0.1);
+    m_defaultLineWidthSpinBox->setToolTip("Default width of new chart lines");
+    defaultLineWidthLabel->setToolTip(m_defaultLineWidthSpinBox->toolTip());
+    QObject::connect(m_defaultLineWidthSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &ChartTwoLineSeriesHistoryDialog::defaultLineWidthChanged);
+    
     QToolButton* removeAllHistoryToolButton = new QToolButton();
     removeAllHistoryToolButton->setText("Remove All History...");
     QObject::connect(removeAllHistoryToolButton, &QToolButton::clicked,
@@ -118,12 +128,17 @@ ChartTwoLineSeriesHistoryDialog::ChartTwoLineSeriesHistoryDialog(QWidget* parent
     topLayout->setColumnStretch(1, 0);
     topLayout->setColumnStretch(2, 0);
     topLayout->setColumnStretch(3, 100);
-    topLayout->addWidget(defaultColorLabel, 0, 0);
-    topLayout->addWidget(m_defaultColorComboBox->getWidget(), 0, 1);
-    topLayout->addWidget(m_filenameLabel, 0, 2, 1, 2, Qt::AlignLeft);
-    topLayout->addWidget(viewedMaximumLabel, 1, 0);
-    topLayout->addWidget(m_viewedMaximumCountSpinBox, 1, 1);
-    topLayout->addWidget(removeAllHistoryToolButton, 1, 2);
+    int gridRow = 0;
+    topLayout->addWidget(defaultLineWidthLabel, gridRow, 0);
+    topLayout->addWidget(m_defaultLineWidthSpinBox, gridRow, 1);
+    gridRow++;
+    topLayout->addWidget(defaultColorLabel, gridRow, 0);
+    topLayout->addWidget(m_defaultColorComboBox->getWidget(), gridRow, 1);
+    topLayout->addWidget(m_filenameLabel, gridRow, 2, 1, 2, Qt::AlignLeft);
+    gridRow++;
+    topLayout->addWidget(viewedMaximumLabel, gridRow, 0);
+    topLayout->addWidget(m_viewedMaximumCountSpinBox, gridRow, 1);
+    topLayout->addWidget(removeAllHistoryToolButton, gridRow, 2);
     
     QWidget* dialogWidget = new QWidget;
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
@@ -222,6 +237,9 @@ ChartTwoLineSeriesHistoryDialog::updateDialogContentPrivate()
             m_filenameLabel->setToolTip(mapFile->getFileName());
         }
         m_defaultColorComboBox->setSelectedColor(lineSeriesHistory->getDefaultColor());
+        m_defaultLineWidthSpinBox->blockSignals(true);
+        m_defaultLineWidthSpinBox->setValue(lineSeriesHistory->getDefaultLineWidth());
+        m_defaultLineWidthSpinBox->blockSignals(false);
         
         m_viewedMaximumCountSpinBox->blockSignals(true);
         m_viewedMaximumCountSpinBox->setValue(lineSeriesHistory->getDisplayCount());
@@ -537,6 +555,21 @@ ChartTwoLineSeriesHistoryDialog::defaultColorSelected(const CaretColorEnum::Enum
     ChartTwoLineSeriesHistory* lineSeriesHistory = getLineSeriesHistory();
     if (lineSeriesHistory != NULL) {
         lineSeriesHistory->setDefaultColor(color);
+    }
+}
+
+/**
+ * Called when line width is changed
+ *
+ * @param defaultLineWidth
+ *    New default line width.
+ */
+void
+ChartTwoLineSeriesHistoryDialog::defaultLineWidthChanged(double defaultLineWidth)
+{
+    ChartTwoLineSeriesHistory* lineSeriesHistory = getLineSeriesHistory();
+    if (lineSeriesHistory != NULL) {
+        lineSeriesHistory->setDefaultLineWidth(defaultLineWidth);
     }
 }
 

@@ -53,6 +53,10 @@ namespace caret {
         
         void setDefaultColor(const CaretColorEnum::Enum defaultColor);
         
+        float getDefaultLineWidth() const;
+        
+        void setDefaultLineWidth(const float defaultLineWidth);
+        
         int32_t getDisplayCount() const;
         
         void setDisplayCount(const int32_t count);
@@ -103,6 +107,8 @@ namespace caret {
 
         void updateDisplayedHistoryItems();
         
+        void addHistoryItemNoDefaults(ChartTwoDataCartesian* historyItem);
+        
         static CaretColorEnum::Enum generateDefaultColor();
         
         void validateDefaultColor();
@@ -114,6 +120,8 @@ namespace caret {
         std::deque<ChartTwoDataCartesian*> m_chartHistory;
         
         CaretColorEnum::Enum m_defaultColor = CaretColorEnum::BLUE;
+        
+        float m_defaultLineWidth = 1.0f;
         
         int32_t m_displayCount;
         
