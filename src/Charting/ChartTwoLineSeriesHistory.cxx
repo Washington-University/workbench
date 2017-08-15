@@ -176,7 +176,7 @@ ChartTwoLineSeriesHistory::initializeInstance()
     
     m_defaultLineWidth = 1.0f;
     
-    const int32_t defaultHistoryCount = 5;
+    const int32_t defaultHistoryCount = 1;
     m_loadingEnabled = false;
     
     m_sceneAssistant = new SceneClassAssistant();
