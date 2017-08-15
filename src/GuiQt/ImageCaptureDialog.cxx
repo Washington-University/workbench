@@ -1206,7 +1206,7 @@ ImageCaptureDialog::applyButtonClicked()
         CaretAssert(parent);
         
         WuQTimedMessageDisplay::show(parent,
-                                     2.0,
+                                     0.5,
                                      "Image captured");
     }
     
