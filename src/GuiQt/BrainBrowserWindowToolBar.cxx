@@ -1243,10 +1243,6 @@ void
 BrainBrowserWindowToolBar::closeSelectedTab()
 {
     tabCloseSelected(this->tabBar->currentIndex());
-//    const int tabIndex = this->tabBar->currentIndex();
-//    if (this->tabBar->count() > 1) {
-//        this->tabClosed(tabIndex);
-//    }
 }
 
 /**
@@ -1272,13 +1268,26 @@ BrainBrowserWindowToolBar::selectedTabChanged(int indx)
                 /*
                  * Short timer that will reset the tab highlighting
                  */
+                if (m_tileTabsHighlightingTimer == NULL) {
+                    m_tileTabsHighlightingTimer = new QTimer(this);
+                    QObject::connect(m_tileTabsHighlightingTimer, &QTimer::timeout,
+                                     this, &BrainBrowserWindowToolBar::resetTabIndexForTileTabsHighlighting);
+                }
+                
+                /*
+                 * Note: There is no need to 'stop' the timer if it is running
+                 * as the start() method will stop and restart the timer
+                 */
                 const int timeInMilliseconds = 750;
-                QTimer::singleShot(timeInMilliseconds,
-                                   this, SLOT(resetTabIndexForTileTabsHighlighting()));
+                m_tileTabsHighlightingTimer->setSingleShot(true);
+                m_tileTabsHighlightingTimer->start(timeInMilliseconds);
             }
         }
     }
-    
+
+    /*
+     * Graphics must be updated so border is visible around the selected tab
+     */
     this->updateGraphicsWindow();
 }
 
@@ -1338,7 +1347,7 @@ BrainBrowserWindowToolBar::tabClosed(int tabIndex)
 void
 BrainBrowserWindowToolBar::tabMoved(int /*from*/, int /*to*/)
 {
-    this->updateGraphicsWindow();
+    /* No need to redraw as the selectedTabChanged() is also called when a tab is moved */
 }
 
 /**

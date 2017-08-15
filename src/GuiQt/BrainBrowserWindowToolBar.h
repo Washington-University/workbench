@@ -434,6 +434,7 @@ namespace caret {
          * box around it.
          */
         int32_t m_tabIndexForTileTabsHighlighting;
+        QTimer* m_tileTabsHighlightingTimer = NULL;
         
         bool isContructorFinished;
         bool isDestructionInProgress;
