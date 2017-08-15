@@ -123,6 +123,8 @@ namespace caret {
         
         virtual SceneObject* clone() const;
         
+        bool isEmpty() const;
+        
     private:
         typedef std::map<int32_t, SceneObject*> DATA_MAP;
         

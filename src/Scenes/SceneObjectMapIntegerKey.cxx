@@ -79,6 +79,15 @@ SceneObjectMapIntegerKey::~SceneObjectMapIntegerKey()
 }
 
 /**
+ * @return True if this map's content is empty, else false.
+ */
+bool
+SceneObjectMapIntegerKey::isEmpty() const
+{
+    return m_dataMap.empty();
+}
+
+/**
  * @return All descendant SceneClasses (children, grandchildren, etc.) of this instance.
  */
 std::vector<SceneObject*>
