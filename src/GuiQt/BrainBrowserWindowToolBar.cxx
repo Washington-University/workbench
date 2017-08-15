@@ -1624,8 +1624,8 @@ BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTab
 QWidget* 
 BrainBrowserWindowToolBar::createViewWidget()
 {
-    this->viewModeChartOneRadioButton = new QRadioButton("Chart");
-    this->viewModeChartTwoRadioButton = new QRadioButton("Chart Two");
+    this->viewModeChartOneRadioButton = new QRadioButton("Chart Old");
+    this->viewModeChartTwoRadioButton = new QRadioButton("Chart");
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
     this->viewModeSurfaceMontageRadioButton = new QRadioButton("Montage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
