@@ -66,9 +66,12 @@ ChartTwoLineSeriesHistoryDialog::ChartTwoLineSeriesHistoryDialog(QWidget* parent
 : WuQDialogNonModal("Line-Series History",
                     parent)
 {
+    const AString maxHistoryString(AString::number(ChartTwoLineSeriesHistory::getMaximumRetainedHistoryCount()));
     const AString defaultColorToolTip("Color assigned to newly added line-series items");
     const AString displayMaximumToolTip("Maximum number of line-series items enabled for viewing\n"
-                                        "As new items are added, older items are disabled for viewing");
+                                        "As new items are added, older items are disabled for viewing\n"
+                                        "The number of history items retained (including those not\n"
+                                        "displayed) is limited to this value or " + maxHistoryString + ", whichever is larger.");
     
     m_removeAllHistoryIcon = WuQtUtilities::loadIcon(":/SpecFileDialog/delete_icon.png");
     
@@ -127,18 +130,19 @@ ChartTwoLineSeriesHistoryDialog::ChartTwoLineSeriesHistoryDialog(QWidget* parent
     topLayout->setColumnStretch(0, 0);
     topLayout->setColumnStretch(1, 0);
     topLayout->setColumnStretch(2, 0);
-    topLayout->setColumnStretch(3, 100);
+    topLayout->setColumnStretch(3, 0);
+    topLayout->setColumnStretch(4, 100);
     int gridRow = 0;
+    topLayout->addWidget(m_filenameLabel, gridRow, 0, 1, 5, Qt::AlignLeft);
+    gridRow++;
     topLayout->addWidget(defaultLineWidthLabel, gridRow, 0);
     topLayout->addWidget(m_defaultLineWidthSpinBox, gridRow, 1);
-    gridRow++;
-    topLayout->addWidget(defaultColorLabel, gridRow, 0);
-    topLayout->addWidget(m_defaultColorComboBox->getWidget(), gridRow, 1);
-    topLayout->addWidget(m_filenameLabel, gridRow, 2, 1, 2, Qt::AlignLeft);
+    topLayout->addWidget(defaultColorLabel, gridRow, 2);
+    topLayout->addWidget(m_defaultColorComboBox->getWidget(), gridRow, 3);
     gridRow++;
     topLayout->addWidget(viewedMaximumLabel, gridRow, 0);
     topLayout->addWidget(m_viewedMaximumCountSpinBox, gridRow, 1);
-    topLayout->addWidget(removeAllHistoryToolButton, gridRow, 2);
+    topLayout->addWidget(removeAllHistoryToolButton, gridRow, 2, 1, 2, Qt::AlignLeft);
     
     QWidget* dialogWidget = new QWidget;
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);

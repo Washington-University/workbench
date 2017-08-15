@@ -239,10 +239,6 @@ ChartTwoLineSeriesHistory::setDefaultColor(const CaretColorEnum::Enum defaultCol
         validateDefaultColor();
         setModified();
     }
-    
-//    for (auto chartData : m_chartHistory) {
-//        chartData->setColor(defaultColor);
-//    }
 }
 
 /**
@@ -300,8 +296,8 @@ ChartTwoLineSeriesHistory::setDisplayCount(const int32_t count)
 void ChartTwoLineSeriesHistory::updateDisplayedHistoryItems()
 {
     int32_t itemsDisplayedCount = 0;
-    const int32_t numItems = getHistoryCount();
-    for (int32_t i = 0; i < numItems; i++) {
+    const int32_t historyCount = getHistoryCount();
+    for (int32_t i = 0; i < historyCount; i++) {
         ChartTwoDataCartesian* item = getHistoryItem(i);
         if (item->isSelected()) {
             itemsDisplayedCount++;
@@ -310,12 +306,41 @@ void ChartTwoLineSeriesHistory::updateDisplayedHistoryItems()
             }
         }
     }
+    
+    /*
+     * Limit the number of history items to 
+     * avoid excessive memory usage
+     */
+    const int32_t maximumItems = std::max(m_displayCount,
+                                          s_maximumRetainedHistoryCount);
+    if (historyCount > maximumItems) {
+        for (int32_t i = maximumItems; i < historyCount; i++) {
+            CaretAssertVectorIndex(m_chartHistory, i);
+            CaretAssert(m_chartHistory[i]);
+            delete m_chartHistory[i];
+            m_chartHistory[i]= NULL;
+        }
+        
+        m_chartHistory.resize(maximumItems);
+    }
 }
+
+/**
+ * @return The maximum number of history items that are 
+ * retained.
+ */
+int32_t
+ChartTwoLineSeriesHistory::getMaximumRetainedHistoryCount()
+{
+    return s_maximumRetainedHistoryCount;
+}
+
 
 /**
  * @return Count of items in history.
  */
-int32_t ChartTwoLineSeriesHistory::getHistoryCount() const
+int32_t
+ChartTwoLineSeriesHistory::getHistoryCount() const
 {
     return m_chartHistory.size();
 }
@@ -334,6 +359,7 @@ ChartTwoLineSeriesHistory::addHistoryItem(ChartTwoDataCartesian* historyItem)
     historyItem->setColor(m_defaultColor);
     historyItem->setLineWidth(m_defaultLineWidth);
     addHistoryItemNoDefaults(historyItem);
+    updateDisplayedHistoryItems();
 }
 
 /**
@@ -346,8 +372,7 @@ void
 ChartTwoLineSeriesHistory::addHistoryItemNoDefaults(ChartTwoDataCartesian* historyItem)
 {
     CaretAssert(historyItem);
-    m_chartHistory.push_front(historyItem);
-    updateDisplayedHistoryItems();
+    m_chartHistory.push_front(historyItem);    
 }
 
 /**
@@ -459,7 +484,7 @@ ChartTwoLineSeriesHistory::saveToScene(const SceneAttributes* sceneAttributes,
                                   sceneClass);
     
     /*
-     * Save chart history
+     * Save chart history but only the displayed items
      */
     const int32_t numHistory = static_cast<int32_t>(m_chartHistory.size());
     if (numHistory > 0) {
@@ -467,11 +492,20 @@ ChartTwoLineSeriesHistory::saveToScene(const SceneAttributes* sceneAttributes,
                                                                                  SceneObjectDataTypeEnum::SCENE_CLASS);
         for (int32_t i = 0; i < numHistory; i++) {
             CaretAssertVectorIndex(m_chartHistory, i);
-            chartHistoryMap->addClass(i,
-                                      m_chartHistory[i]->saveToScene(sceneAttributes,
-                                                                            "m_chartHistory"));
+            if (m_chartHistory[i]->isSelected()) {
+                chartHistoryMap->addClass(i,
+                                          m_chartHistory[i]->saveToScene(sceneAttributes,
+                                                                         "m_chartHistory"));
+            }
         }
-        sceneClass->addChild(chartHistoryMap);
+        
+        if (chartHistoryMap->isEmpty()) {
+            delete chartHistoryMap;
+            chartHistoryMap = NULL;
+        }
+        else {
+            sceneClass->addChild(chartHistoryMap);
+        }
     }
 
     // Uncomment if sub-classes must save to scene
@@ -508,13 +542,14 @@ ChartTwoLineSeriesHistory::restoreFromScene(const SceneAttributes* sceneAttribut
     
     /*
      * Restore chart matrix properties
+     * Need to reverse keys since items are added on at beginning
      */
     const SceneObjectMapIntegerKey* chartHistoryMap = sceneClass->getMapIntegerKey("m_chartHistoryMap");
     if (chartHistoryMap != NULL) {
-        const std::vector<int32_t> indices = chartHistoryMap->getKeys();
-        const int32_t numIndices = static_cast<int32_t>(indices.size());
-        for (int32_t i = (numIndices - 1); i >= 0; i--) {
-            const SceneClass* historyClass = chartHistoryMap->classValue(i);
+        std::vector<int32_t> indices = chartHistoryMap->getKeys();
+        std::reverse(indices.begin(), indices.end());
+        for (auto itemIndex : indices) {
+            const SceneClass* historyClass = chartHistoryMap->classValue(itemIndex);
             ChartTwoDataCartesian* historyItem = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                            CaretUnitsTypeEnum::NONE,
                                                                            CaretUnitsTypeEnum::NONE,

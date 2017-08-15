@@ -87,7 +87,7 @@ namespace caret {
         
         virtual void clearModified() override;
           
-          
+        static int32_t getMaximumRetainedHistoryCount();
           
           
 // If there will be sub-classes of this class that need to save
@@ -127,12 +127,15 @@ namespace caret {
         
         static int32_t s_defaultColorIndexGenerator;
         
+        static const int32_t s_maximumRetainedHistoryCount;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __CHART_TWO_LINE_SERIES_HISTORY_DECLARE__
     int32_t ChartTwoLineSeriesHistory::s_defaultColorIndexGenerator = 0;
+    const int32_t ChartTwoLineSeriesHistory::s_maximumRetainedHistoryCount = 20;
 #endif // __CHART_TWO_LINE_SERIES_HISTORY_DECLARE__
 
 } // namespace
