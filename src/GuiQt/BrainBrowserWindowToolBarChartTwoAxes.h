@@ -72,6 +72,14 @@ namespace caret {
         
         void axisLabelToolButtonClicked(bool);
         
+//        void labelSizeValueChanged(double);
+//        
+//        void numericsSizeValueChanged(double);
+//        
+//        void linesTicksSizeValueChanged(double);
+//        
+//        void paddingSizeValueChanged(double);
+//        
     private:
         BrainBrowserWindowToolBarChartTwoAxes(const BrainBrowserWindowToolBarChartTwoAxes&);
 
@@ -85,8 +93,8 @@ namespace caret {
                               ChartTwoCartesianAxis* &selectedAxisOut,
                               AnnotationPercentSizeText* &axisLabelOut) const;
         
-        void updateControls(ChartTwoOverlaySet* chartOverlaySet,
-                            ChartTwoCartesianAxis* chartAxis);
+//        void updateControls(ChartTwoOverlaySet* chartOverlaySet,
+//                            ChartTwoCartesianAxis* chartAxis);
         
         void updateControls(BrowserTabContent* browserTabContent);
         
@@ -119,6 +127,16 @@ namespace caret {
         EnumComboBoxTemplate* m_numericSubdivisionsModeComboBox;
         
         QSpinBox* m_userSubdivisionsSpinBox;
+        
+        QDoubleSpinBox* m_labelSizeSpinBox;
+        
+        QDoubleSpinBox* m_numericsSizeSpinBox;
+        
+        QDoubleSpinBox* m_linesTicksSizeSpinBox;
+        
+        QDoubleSpinBox* m_paddingSizeSpinBox;
+        
+        ChartTwoOverlaySet* m_chartOverlaySet;
         
         ChartTwoCartesianAxis* m_chartAxis;
         

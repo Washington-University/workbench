@@ -95,6 +95,10 @@ namespace caret {
         
         void resetOverlayYokingToOff();
 
+        float getAxisLineThickness() const;
+        
+        void setAxisLineThickness(const float axisLineThickness);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -156,6 +160,9 @@ namespace caret {
         int32_t m_numberOfDisplayedOverlays;
         
         bool m_inFirstOverlayChangedMethodFlag = false;
+        
+        /** Thickness of box around chart and tick marks on axes*/
+        float m_axisLineThickness = 1.0;
         
         // ADD_NEW_MEMBERS_HERE
         

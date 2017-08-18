@@ -115,6 +115,114 @@ namespace caret {
             int32_t m_min =  9999999;
             int32_t m_max = -9999999;
         };
+        
+        class AxisDrawingInfo {
+        public:
+            AxisDrawingInfo(BrainOpenGLTextRenderInterface* textRenderer,
+                            const int32_t tabViewport[4],
+                            const float dataMinX,
+                            const float dataMaxX,
+                            const float dataMinY,
+                            const float dataMaxY,
+                            const ChartAxisLocationEnum::Enum axisLocation,
+                            const ChartTwoCartesianAxis* axis,
+                            const AString& labelText,
+                            const float lineWidthPercentage);
+            
+            void setAxisViewport(const float bottomAxisHeight,
+                                 const float topAxisHeight,
+                                 const float leftAxisWidth,
+                                 const float rightAxisWidth);
+
+            void setLabelAndNumericsCoordinates(const float foregroundFloatRGBA[4]);
+            
+            void drawAxis(BrainOpenGLChartTwoDrawingFixedPipeline* chartDrawing,
+                          const float foregroundFloatRGBA[4],
+                          float& axisMinimumValueOut,
+                          float& axisMaximumValueOut);
+            
+            std::unique_ptr<AnnotationPercentSizeText> m_labelText;
+            
+            std::vector<std::unique_ptr<AnnotationPercentSizeText>> m_numericsText;
+
+            float m_axisWidth = 0.0f;
+            float m_axisHeight = 0.0f;
+            
+            /** Axis minimum value is produced by the axis scaling user/auto */
+            float m_axisMinimumValue = 0.0f;
+            float m_axisMaximumValue = 0.0f;
+            
+            float m_labelPaddingSizePixels    = 0.0f;
+            float m_numericsPaddingSizePixels = 0.0f;
+            bool m_axisValid = false;
+            bool m_axisDisplayedFlag = false;
+            
+            int32_t m_axisViewport[4];
+            
+        private:
+            const ChartAxisLocationEnum::Enum m_axisLocation;
+            const ChartTwoCartesianAxis* m_axis;
+            BrainOpenGLTextRenderInterface* m_textRenderer;
+            const float m_tabViewportX = 0.0f;
+            const float m_tabViewportY = 0.0f;
+            const float m_tabViewportWidth = 0.0f;
+            const float m_tabViewportHeight = 0.0f;
+            float m_lineDrawingWidth = 1.0f;
+            float m_tickLength = 0.0f;
+            
+            void initializeNumericText(const float dataMinimumDataValue,
+                                       const float dataMaximumDataValue,
+                                       float& maxWidthOut,
+                                       float& maxHeightOut);
+            
+            void initializeLabel(const AString& labelText,
+                                       float& widthOut,
+                                       float& heightOut);
+            
+        };
+        
+        class AxisSizeInfo {
+        public:
+            AxisSizeInfo()
+            : m_width(0.0),
+            m_height(0.0),
+            m_paddingSize(0.0),
+            m_linesWidth(0.0),
+            m_tickLength(0.0),
+            m_axisSize(0.0),
+            m_labelOffset(0.0),
+            m_numericsOffset(0.0) { }
+            
+            AxisSizeInfo(const double width,
+                         const double height,
+                         const double paddingSize,
+                         const double linesWidth,
+                         const double tickLength,
+                         const double labelHeight,
+                         const double numericsWidthOrHeight)
+            : m_width(width),
+            m_height(height),
+            m_paddingSize(paddingSize),
+            m_linesWidth(linesWidth),
+            m_tickLength(tickLength) {
+                m_labelOffset = m_paddingSize;
+                m_axisSize = (m_paddingSize
+                              + labelHeight
+                              + numericsWidthOrHeight
+                              + tickLength);
+                m_numericsOffset = m_axisSize - tickLength;
+            }
+            
+            double m_width;
+            double m_height;
+            double m_paddingSize;
+            double m_linesWidth;
+            double m_tickLength;
+            
+            double m_axisSize;
+            double m_labelOffset;
+            double m_numericsOffset;
+        };
 
         BrainOpenGLChartTwoDrawingFixedPipeline(const BrainOpenGLChartTwoDrawingFixedPipeline&);
 
@@ -138,8 +246,20 @@ namespace caret {
                                                 const float vpY,
                                                 const float vpWidth,
                                                 const float vpHeight,
+                                                const float lineThickness,
                                                 const Margins& margins,
                                                 const bool drawBoxFlag,
+                                                int32_t chartGraphicsDrawingViewportOut[4]);
+        
+        void drawChartGraphicsBoxAndSetViewport(const float vpX,
+                                                const float vpY,
+                                                const float vpWidth,
+                                                const float vpHeight,
+                                                const float lineThicknessPercentage,
+                                                const float bottomAxisHeight,
+                                                const float topAxisHeight,
+                                                const float leftAxisWidth,
+                                                const float rightAxisWidth,                                              const bool drawBoxFlag,
                                                 int32_t chartGraphicsDrawingViewportOut[4]);
         
         bool drawChartAxisCartesian(const float minimumDataValue,
@@ -149,6 +269,7 @@ namespace caret {
                                     const float tabViewportWidth,
                                     const float tabViewportHeight,
                                     const Margins& margins,
+                                    const AxisSizeInfo& axisSizeInfo,
                                     ChartTwoCartesianAxis* axis,
                                     AnnotationPercentSizeText* chartAxisLabel,
                                     float& axisMinimumOut,
@@ -165,10 +286,10 @@ namespace caret {
                                                           const float maximumDataValue,
                                                           const float viewportWidth,
                                                           const float viewportHeight,
+                                                          const float lineWidthPercentage,
                                                           ChartTwoCartesianAxis* cartesianAxis,
                                                           AnnotationPercentSizeText* chartAxisLabel,
-                                                          double& widthOut,
-                                                          double& heightOut);
+                                                          AxisSizeInfo& axisSizeInfoOut);
         
         void estimateChartTitleHeight(const float viewportWidth,
                                       const float viewportHeight,
@@ -178,6 +299,9 @@ namespace caret {
         void drawPrimitivePrivate(GraphicsPrimitive* primitive);
         
         void updateViewportContentForCharting(const int32_t viewport[4]);
+        
+        static float convertPercentageOfViewportToPixels(const float percentageWidthOrHeight,
+                                                         const float viewportWidthOrHeight);
         
         Brain* m_brain;
         
@@ -224,7 +348,7 @@ namespace caret {
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT = 2;
         
-        static constexpr float s_tickLength = 5.0;
+        static constexpr float s_tickLengthPixels = 5.0;
 
         
         // ADD_NEW_MEMBERS_HERE

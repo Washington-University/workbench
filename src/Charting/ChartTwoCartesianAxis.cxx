@@ -92,6 +92,12 @@ m_axisLocation(axisLocation)
                           &m_showLabel);
     m_sceneAssistant->add("m_titleOverlayIndex",
                           &m_titleOverlayIndex);
+    m_sceneAssistant->add("m_labelTextSize",
+                          &m_labelTextSize);
+    m_sceneAssistant->add("m_numericsTextSize",
+                          &m_numericsTextSize);
+    m_sceneAssistant->add("m_paddingSize",
+                          &m_paddingSize);
 }
 
 /**
@@ -157,6 +163,9 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_enabledByChart            = obj.m_enabledByChart;
     m_showTickmarks             = obj.m_showTickmarks;
     m_showLabel                 = obj.m_showLabel;
+    m_labelTextSize             = obj.m_labelTextSize;
+    m_numericsTextSize          = obj.m_numericsTextSize;
+    m_paddingSize               = obj.m_paddingSize;
     limitUserScaleMinMaxToValidRange();
 }
 
@@ -506,6 +515,69 @@ ChartTwoCartesianAxis::setLabelOverlayIndex(const int32_t labelOverlayIndex)
 }
 
 /**
+ * @return size of label text
+ */
+float
+ChartTwoCartesianAxis::getLabelTextSize() const
+{
+    return m_labelTextSize;
+}
+
+/**
+ * Set size of label text
+ *
+ * @param labelTextSize
+ *    New value for size of label text
+ */
+void
+ChartTwoCartesianAxis::setLabelTextSize(const float labelTextSize)
+{
+    m_labelTextSize = labelTextSize;
+}
+
+/**
+ * @return size of numerics text
+ */
+float
+ChartTwoCartesianAxis::getNumericsTextSize() const
+{
+    return m_numericsTextSize;
+}
+
+/**
+ * Set size of numerics text
+ *
+ * @param numericsTextSize
+ *    New value for size of numerics text
+ */
+void
+ChartTwoCartesianAxis::setNumericsTextSize(const float numericsTextSize)
+{
+    m_numericsTextSize = numericsTextSize;
+}
+
+/**
+ * @return size of padding
+ */
+float
+ChartTwoCartesianAxis::getPaddingSize() const
+{
+    return m_paddingSize;
+}
+
+/**
+ * Set size of padding
+ *
+ * @param paddingSize
+ *    New value for size of padding
+ */
+void
+ChartTwoCartesianAxis::setPaddingSize(const float paddingSize)
+{
+    m_paddingSize = paddingSize;
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -629,8 +701,8 @@ ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float minimumValue,
  *     Minimum data value
  * @param maximumDataValue
  *     Maximum data value
- * @param axisLengthInPixels
- *     Length of axis in pixels.
+ * @param axisLength
+ *     Length of axis (no specific unit type is assumed)
  * @param minimumOut
  *     Output minimum value for autoranging.
  * @param maximumOut
@@ -645,7 +717,7 @@ ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float minimumValue,
 bool
 ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float minimumDataValue,
                                                 const float maximumDataValue,
-                                                const float axisLengthInPixels,
+                                                const float axisLength,
                                                 float& minimumOut,
                                                 float& maximumOut,
                                                 std::vector<float>& scaleValuesOffsetInPixelsOut,
@@ -659,7 +731,8 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float minimumDataValue,
     scaleValuesOffsetInPixelsOut.clear();
     scaleValuesOut.clear();
     
-    if (axisLengthInPixels < 25.0) {
+    if (axisLength <= 0.0) {
+        CaretAssert(0);
         return false;
     }
     
@@ -822,7 +895,7 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float minimumDataValue,
         
         if ((labelParametricValue >= 0.0)
             && (labelParametricValue <= 1.0)) {
-            const float labelPixelsPosition = axisLengthInPixels * labelParametricValue;
+            const float labelPixelsPosition = axisLength * labelParametricValue;
             labelNumericValues.push_back(labelValueForText);
             scaleValuesOffsetInPixelsOut.push_back(labelPixelsPosition);
         }

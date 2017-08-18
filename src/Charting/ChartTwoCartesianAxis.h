@@ -102,9 +102,21 @@ namespace caret {
         
         void setShowLabel(const bool showLabel);
         
+        float getLabelTextSize() const;
+        
+        void setLabelTextSize(const float labelTextSize);
+        
+        float getNumericsTextSize() const;
+        
+        void setNumericsTextSize(const float numericsTextSize);
+        
+        float getPaddingSize() const;
+        
+        void setPaddingSize(const float paddingSize);
+        
         bool getScaleValuesAndOffsets(const float minimumDataValue,
                                       const float maximumDataValue,
-                                      const float axisLengthInPixels,
+                                      const float axisLength,
                                       float& minimumOut,
                                       float& maximumOut,
                                       std::vector<float>& scaleValuesOffsetInPixelsOut,
@@ -156,16 +168,16 @@ namespace caret {
         const ChartAxisLocationEnum::Enum m_axisLocation;
         
         /** Allowable range minimum NOT SAVED TO SCENE */
-        mutable float m_rangeMinimumValue = 0.0;
+        mutable float m_rangeMinimumValue = 0.0f;
         
         /** Allowable range maximum NOT SAVED TO SCENE */
-        mutable float m_rangeMaximumValue = 1.0;
+        mutable float m_rangeMaximumValue = 1.0f;
         
-        mutable float m_userScaleMinimumValue = -100.0;
+        mutable float m_userScaleMinimumValue = -100.0f;
         
-        mutable float m_userScaleMaximumValue = 100.0;
+        mutable float m_userScaleMaximumValue = 100.0f;
         
-        float m_axisLabelsStepValue = 1.0;
+        float m_axisLabelsStepValue = 1.0f;
         
         int32_t m_userDigitsRightOfDecimal = 1;
         
@@ -181,6 +193,15 @@ namespace caret {
         ChartTwoNumericSubdivisionsModeEnum::Enum m_numericSubdivsionsMode = ChartTwoNumericSubdivisionsModeEnum::AUTO;
 
         int32_t m_userNumberOfSubdivisions = 2;
+        
+        /** size of label text*/
+        float m_labelTextSize = 5.0f;
+        
+        /** size of numerics text*/
+        float m_numericsTextSize = 5.0f;
+        
+        /** size of padding*/
+        float m_paddingSize = 0.0f;
         
         bool m_enabledByChart = false;
 

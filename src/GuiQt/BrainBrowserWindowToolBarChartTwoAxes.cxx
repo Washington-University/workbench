@@ -76,6 +76,9 @@ using namespace caret;
 BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(BrainBrowserWindowToolBar* parentToolBar)
 : BrainBrowserWindowToolBarComponent(parentToolBar)
 {
+    m_chartOverlaySet = NULL;
+    m_chartAxis = NULL;
+    
     m_axisDisplayedByUserCheckBox = new QCheckBox("Show Axis");
     m_axisDisplayedByUserCheckBox->setToolTip("Show/hide the axis");
     QObject::connect(m_axisDisplayedByUserCheckBox, &QCheckBox::clicked,
@@ -156,6 +159,33 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_userSubdivisionsSpinBox->setToolTip("Set subdivisions on the axis when Auto is not checked");
     
     /*
+     * Size spin boxes
+     */
+    m_labelSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
+    m_labelSizeSpinBox->setSuffix("%");
+    QObject::connect(m_labelSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
+    m_labelSizeSpinBox->setToolTip("Set height of label as percentage of tab height");
+    
+    m_numericsSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
+    m_numericsSizeSpinBox->setSuffix("%");
+    QObject::connect(m_numericsSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
+    m_numericsSizeSpinBox->setToolTip("Set height of numeric values as percentage of tab height");
+    
+    m_linesTicksSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
+    m_linesTicksSizeSpinBox->setSuffix("%");
+    QObject::connect(m_linesTicksSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
+    m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines and ticks as percentage of tab height");
+    
+    m_paddingSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
+    m_paddingSizeSpinBox->setSuffix("%");
+    QObject::connect(m_paddingSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
+    m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height");
+    
+    /*
      * Group widgets for blocking signals
      */
     m_widgetGroup = new WuQWidgetObjectGroup(this);
@@ -172,12 +202,37 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_widgetGroup->add(m_userDigitsRightOfDecimalSpinBox);
     m_widgetGroup->add(m_numericSubdivisionsModeComboBox->getWidget());
     m_widgetGroup->add(m_userSubdivisionsSpinBox);
+    m_widgetGroup->add(m_labelSizeSpinBox);
+    m_widgetGroup->add(m_numericsSizeSpinBox);
+    m_widgetGroup->add(m_linesTicksSizeSpinBox);
+    m_widgetGroup->add(m_paddingSizeSpinBox);
+    
+    /*
+     * Size layout
+     */
+    QWidget* sizesWidget = new QWidget();
+    QGridLayout* sizesLayout = new QGridLayout(sizesWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(sizesLayout, 3, 0);
+    int32_t sizesRow = 0;
+    sizesLayout->addWidget(new QLabel("Label"), sizesRow, 0);
+    sizesLayout->addWidget(m_labelSizeSpinBox, sizesRow, 1);
+    sizesRow++;
+    sizesLayout->addWidget(new QLabel("Numerics"), sizesRow, 0);
+    sizesLayout->addWidget(m_numericsSizeSpinBox, sizesRow, 1);
+    sizesRow++;
+    sizesLayout->addWidget(new QLabel("Lines/Ticks"), sizesRow, 0);
+    sizesLayout->addWidget(m_linesTicksSizeSpinBox, sizesRow, 1);
+    sizesRow++;
+    sizesLayout->addWidget(new QLabel("Padding"), sizesRow, 0);
+    sizesLayout->addWidget(m_paddingSizeSpinBox, sizesRow, 1);
+    sizesRow++;
     
     /*
      * Show widgets layout
      */
     QWidget* showWidget = new QWidget();
     QGridLayout* showLayout = new QGridLayout(showWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(showLayout, 8, 0);
     int32_t axisRow = 0;
     showLayout->addWidget(m_axisDisplayedByUserCheckBox, axisRow, 0);
     axisRow++;
@@ -246,12 +301,14 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      */
     QGridLayout* gridLayout = new QGridLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 3, 0);
-    gridLayout->addLayout(topLayout, 0, 0, 1, 5);
+    gridLayout->addLayout(topLayout, 0, 0, 1, 7);
     gridLayout->addWidget(showWidget, 1, 0, Qt::AlignTop);
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 1);
-    gridLayout->addWidget(rangeWidget, 1, 2);
+    gridLayout->addWidget(sizesWidget, 1, 2, Qt::AlignTop);
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 3);
-    gridLayout->addWidget(numericsWidget, 1, 4);
+    gridLayout->addWidget(rangeWidget, 1, 4, Qt::AlignTop);
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 5);
+    gridLayout->addWidget(numericsWidget, 1, 6, Qt::AlignTop);
     
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(dialogLayout, 0, 2);
@@ -434,13 +491,13 @@ BrainBrowserWindowToolBarChartTwoAxes::getSelectedAxisLocation() const
 void
 BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browserTabContent)
 {
-    ChartTwoOverlaySet* chartOverlaySet = NULL;
+    m_chartOverlaySet = NULL;
     std::vector<ChartAxisLocationEnum::Enum> validAxesLocations;
     ChartTwoCartesianAxis* selectedAxis = NULL;
     AnnotationPercentSizeText* axisLabel = NULL;
     
     getSelectionData(browserTabContent,
-                     chartOverlaySet,
+                     m_chartOverlaySet,
                      validAxesLocations,
                      selectedAxis,
                      axisLabel);
@@ -448,7 +505,7 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
     m_widgetGroup->blockAllSignals(true);
     
     m_chartAxis = selectedAxis;
-    if ((chartOverlaySet != NULL)
+    if ((m_chartOverlaySet != NULL)
         && (m_chartAxis != NULL)) {
         m_axisComboBox->setupWithItems<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>(validAxesLocations);
         m_axisComboBox->setSelectedItem<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>(m_chartAxis->getAxisLocation());
@@ -471,7 +528,12 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
         m_userSubdivisionsSpinBox->setValue(m_chartAxis->getUserNumberOfSubdivisions());
         m_userSubdivisionsSpinBox->setEnabled( m_chartAxis->getNumericSubdivsionsMode() == ChartTwoNumericSubdivisionsModeEnum::USER);
         
-        const int32_t overlayCount = chartOverlaySet->getNumberOfDisplayedOverlays();
+        m_labelSizeSpinBox->setValue(m_chartAxis->getLabelTextSize());
+        m_numericsSizeSpinBox->setValue(m_chartAxis->getNumericsTextSize());
+        m_linesTicksSizeSpinBox->setValue(m_chartOverlaySet->getAxisLineThickness());
+        m_paddingSizeSpinBox->setValue(m_chartAxis->getPaddingSize());
+        
+        const int32_t overlayCount = m_chartOverlaySet->getNumberOfDisplayedOverlays();
         int32_t selectedOverlayIndex = m_chartAxis->getLabelOverlayIndex(overlayCount);
         const int32_t comboBoxCount = m_axisLabelFromOverlayComboBox->count();
         if (overlayCount < comboBoxCount) {
@@ -496,61 +558,61 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
     m_widgetGroup->blockAllSignals(false);
 }
 
-/**
- * Update the content with the given axis.
- *
- * @param chartOverlaySet
- *     Chart overlay set containing axis.
- * @param chartAxis
- *     New chart axis content.
- */
-void
-BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoOverlaySet* chartOverlaySet,
-                                                      ChartTwoCartesianAxis* chartAxis)
-{
-    m_chartAxis = chartAxis;
-    
-    if ((chartOverlaySet != NULL)
-        && (m_chartAxis != NULL)) {
-        m_widgetGroup->blockAllSignals(true);
-        m_axisDisplayedByUserCheckBox->setChecked(chartAxis->isDisplayedByUser());
-        m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(m_chartAxis->getScaleRangeMode());
-        float rangeMin(0.0), rangeMax(0.0);
-        m_chartAxis->getRange(rangeMin, rangeMax);
-        m_userMinimumValueSpinBox->setRange(rangeMin, rangeMax);
-        m_userMinimumValueSpinBox->setValue(m_chartAxis->getUserScaleMinimumValue());
-        m_userMaximumValueSpinBox->setRange(rangeMin, rangeMax);
-        m_userMaximumValueSpinBox->setValue(m_chartAxis->getUserScaleMaximumValue());
-        m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
-        m_showLabelCheckBox->setChecked(m_chartAxis->isShowLabel());
-        const NumericFormatModeEnum::Enum numericFormat = m_chartAxis->getUserNumericFormat();
-        m_userNumericFormatComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(numericFormat);
-        m_userDigitsRightOfDecimalSpinBox->setValue(m_chartAxis->getUserDigitsRightOfDecimal());
-        m_userDigitsRightOfDecimalSpinBox->setEnabled(numericFormat != NumericFormatModeEnum::AUTO);
-        m_numericSubdivisionsModeComboBox->setSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>(m_chartAxis->getNumericSubdivsionsMode());
-        m_userSubdivisionsSpinBox->setValue(m_chartAxis->getUserNumberOfSubdivisions());
-        m_userSubdivisionsSpinBox->setEnabled( m_chartAxis->getNumericSubdivsionsMode() == ChartTwoNumericSubdivisionsModeEnum::USER);
-        
-        const int32_t overlayCount = chartOverlaySet->getNumberOfDisplayedOverlays();
-        int32_t selectedOverlayIndex = m_chartAxis->getLabelOverlayIndex(overlayCount);
-        const int32_t comboBoxCount = m_axisLabelFromOverlayComboBox->count();
-        if (overlayCount < comboBoxCount) {
-            m_axisLabelFromOverlayComboBox->setMaxCount(overlayCount);
-        }
-        else if (overlayCount > comboBoxCount) {
-            for (int32_t j = comboBoxCount; j < overlayCount; j++) {
-                m_axisLabelFromOverlayComboBox->addItem("Overlay " + AString::number(j + 1));
-            }
-        }
-        
-        if ((selectedOverlayIndex >= 0)
-            && (selectedOverlayIndex < m_axisLabelFromOverlayComboBox->count())) {
-            m_axisLabelFromOverlayComboBox->setCurrentIndex(selectedOverlayIndex);
-        }
-        
-        m_widgetGroup->blockAllSignals(false);
-    }
-}
+///**
+// * Update the content with the given axis.
+// *
+// * @param chartOverlaySet
+// *     Chart overlay set containing axis.
+// * @param chartAxis
+// *     New chart axis content.
+// */
+//void
+//BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoOverlaySet* chartOverlaySet,
+//                                                      ChartTwoCartesianAxis* chartAxis)
+//{
+//    m_chartAxis = chartAxis;
+//    
+//    if ((chartOverlaySet != NULL)
+//        && (m_chartAxis != NULL)) {
+//        m_widgetGroup->blockAllSignals(true);
+//        m_axisDisplayedByUserCheckBox->setChecked(chartAxis->isDisplayedByUser());
+//        m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(m_chartAxis->getScaleRangeMode());
+//        float rangeMin(0.0), rangeMax(0.0);
+//        m_chartAxis->getRange(rangeMin, rangeMax);
+//        m_userMinimumValueSpinBox->setRange(rangeMin, rangeMax);
+//        m_userMinimumValueSpinBox->setValue(m_chartAxis->getUserScaleMinimumValue());
+//        m_userMaximumValueSpinBox->setRange(rangeMin, rangeMax);
+//        m_userMaximumValueSpinBox->setValue(m_chartAxis->getUserScaleMaximumValue());
+//        m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
+//        m_showLabelCheckBox->setChecked(m_chartAxis->isShowLabel());
+//        const NumericFormatModeEnum::Enum numericFormat = m_chartAxis->getUserNumericFormat();
+//        m_userNumericFormatComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(numericFormat);
+//        m_userDigitsRightOfDecimalSpinBox->setValue(m_chartAxis->getUserDigitsRightOfDecimal());
+//        m_userDigitsRightOfDecimalSpinBox->setEnabled(numericFormat != NumericFormatModeEnum::AUTO);
+//        m_numericSubdivisionsModeComboBox->setSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>(m_chartAxis->getNumericSubdivsionsMode());
+//        m_userSubdivisionsSpinBox->setValue(m_chartAxis->getUserNumberOfSubdivisions());
+//        m_userSubdivisionsSpinBox->setEnabled( m_chartAxis->getNumericSubdivsionsMode() == ChartTwoNumericSubdivisionsModeEnum::USER);
+//        
+//        const int32_t overlayCount = chartOverlaySet->getNumberOfDisplayedOverlays();
+//        int32_t selectedOverlayIndex = m_chartAxis->getLabelOverlayIndex(overlayCount);
+//        const int32_t comboBoxCount = m_axisLabelFromOverlayComboBox->count();
+//        if (overlayCount < comboBoxCount) {
+//            m_axisLabelFromOverlayComboBox->setMaxCount(overlayCount);
+//        }
+//        else if (overlayCount > comboBoxCount) {
+//            for (int32_t j = comboBoxCount; j < overlayCount; j++) {
+//                m_axisLabelFromOverlayComboBox->addItem("Overlay " + AString::number(j + 1));
+//            }
+//        }
+//        
+//        if ((selectedOverlayIndex >= 0)
+//            && (selectedOverlayIndex < m_axisLabelFromOverlayComboBox->count())) {
+//            m_axisLabelFromOverlayComboBox->setCurrentIndex(selectedOverlayIndex);
+//        }
+//        
+//        m_widgetGroup->blockAllSignals(false);
+//    }
+//}
 
 /**
  * Called when a widget is changed by the user.
@@ -571,6 +633,11 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
         m_chartAxis->setUserDigitsRightOfDecimal(m_userDigitsRightOfDecimalSpinBox->value());
         m_chartAxis->setNumericSubdivsionsMode(m_numericSubdivisionsModeComboBox->getSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>());
         m_chartAxis->setUserNumberOfSubdivisions(m_userSubdivisionsSpinBox->value());
+        
+        m_chartAxis->setLabelTextSize(m_labelSizeSpinBox->value());
+        m_chartOverlaySet->setAxisLineThickness(m_linesTicksSizeSpinBox->value());
+        m_chartAxis->setNumericsTextSize(m_numericsSizeSpinBox->value());
+        m_chartAxis->setPaddingSize(m_paddingSizeSpinBox->value());
         
         const BrowserTabContent* tabContent = getTabContentFromSelectedTab();
         CaretAssert(tabContent);
@@ -663,6 +730,53 @@ BrainBrowserWindowToolBarChartTwoAxes::axisMaximumValueChanged(double maximumVal
         valueChanged();
     }
 }
+
+///**
+// * Called when the label size value is changed.
+// *
+// * @param value
+// *     New value.
+// */
+//void
+//BrainBrowserWindowToolBarChartTwoAxes::labelSizeValueChanged(double value)
+//{
+//}
+//
+///**
+// * Called when the numerics size value is changed.
+// *
+// * @param value
+// *     New value.
+// */
+//void
+//BrainBrowserWindowToolBarChartTwoAxes::numericsSizeValueChanged(double)
+//{
+//    
+//}
+//
+///**
+// * Called when the lines/ticks size value is changed.
+// *
+// * @param value
+// *     New value.
+// */
+//void
+//BrainBrowserWindowToolBarChartTwoAxes::linesTicksSizeValueChanged(double)
+//{
+//    
+//}
+//
+///**
+// * Called when the padding size value is changed.
+// *
+// * @param value
+// *     New value.
+// */
+//void
+//BrainBrowserWindowToolBarChartTwoAxes::paddingSizeValueChanged(double)
+//{
+//    
+//}
 
 /**
  * Called when a widget is changed by a slot using a bool parameter.

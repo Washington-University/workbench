@@ -130,7 +130,8 @@ m_tabIndex(tabIndex)
     m_chartTitle = createChartTitle();
     
     m_chartTitleDisplayedFlag = true;
-
+    m_axisLineThickness = 1.0f;
+    
     m_sceneAssistant  = new SceneClassAssistant();
     m_sceneAssistant->add("m_chartAxisLeft",
                           "ChartTwoCartesianAxis",
@@ -150,6 +151,8 @@ m_tabIndex(tabIndex)
     
     m_sceneAssistant->add("m_numberOfDisplayedOverlays",
                           &m_numberOfDisplayedOverlays);
+    m_sceneAssistant->add("m_axisLineThickness",
+                          &m_axisLineThickness);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         m_overlays.push_back(std::make_shared<ChartTwoOverlay>(this,
@@ -193,6 +196,7 @@ ChartTwoOverlaySet::copyOverlaySet(const ChartTwoOverlaySet* overlaySet)
     *m_chartAxisBottom = *overlaySet->m_chartAxisBottom;
     *m_chartTitle      = *overlaySet->m_chartTitle;
     m_chartTitleDisplayedFlag = overlaySet->m_chartTitleDisplayedFlag;
+    m_axisLineThickness = overlaySet->m_axisLineThickness;
     
     m_numberOfDisplayedOverlays = overlaySet->m_numberOfDisplayedOverlays;
 }
@@ -211,6 +215,7 @@ ChartTwoOverlaySet::copyCartesianAxes(const ChartTwoOverlaySet* overlaySet)
     *m_chartAxisLeft   = *overlaySet->m_chartAxisLeft;
     *m_chartAxisRight  = *overlaySet->m_chartAxisRight;
     *m_chartAxisBottom = *overlaySet->m_chartAxisBottom;
+    m_axisLineThickness = overlaySet->m_axisLineThickness;
 }
 
 /**
@@ -941,6 +946,27 @@ void
 ChartTwoOverlaySet::setChartTitleDislayed(const bool status)
 {
     m_chartTitleDisplayedFlag = status;
+}
+
+/**
+ * @return Thickness of box around chart and tick marks on axes
+ */
+float
+ChartTwoOverlaySet::getAxisLineThickness() const
+{
+    return m_axisLineThickness;
+}
+
+/**
+ * Set Thickness of box around chart and tick marks on axes
+ *
+ * @param axisLineThickness
+ *    New value for Thickness of box around chart and tick marks on axes
+ */
+void
+ChartTwoOverlaySet::setAxisLineThickness(const float axisLineThickness)
+{
+    m_axisLineThickness = axisLineThickness;
 }
 
 /**
