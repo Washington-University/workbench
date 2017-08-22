@@ -31,7 +31,6 @@
 
 
 namespace caret {
-    class AnnotationPercentSizeText;
     class CaretMappableDataFile;
     class CiftiMappableDataFile;
     class SceneClassAssistant;
@@ -67,13 +66,13 @@ namespace caret {
         
         ChartTwoCompoundDataType getChartTwoCompoundDataType() const;
         
-        const AnnotationPercentSizeText* getBottomAxisTitle() const;
+        AString getBottomAxisTitle() const;
         
-        AnnotationPercentSizeText* getBottomAxisTitle();
+        void setBottomAxisTitle(const AString& title);
         
-        const AnnotationPercentSizeText* getLeftRightAxisTitle() const;
+        AString getLeftRightAxisTitle() const;
         
-        AnnotationPercentSizeText* getLeftRightAxisTitle();
+        void setLeftRightAxisTitle(const AString& title);
         
         // ADD_NEW_METHODS_HERE
 
@@ -108,9 +107,10 @@ namespace caret {
 
         ChartableTwoFileBaseChart& operator=(const ChartableTwoFileBaseChart&);
         
-        void initializeAxisLabel(AnnotationPercentSizeText* axisLabel,
-                                 const ChartAxisLocationEnum::Enum axisLocation);
-                                 
+        void setDefaultAxisTitles();
+        
+        AString setDefaultAxisTitle(const ChartAxisLocationEnum::Enum axisLocation);
+        
         const ChartTwoDataTypeEnum::Enum m_chartType;
         
         CaretMappableDataFile* m_parentCaretMappableDataFile;
@@ -121,9 +121,9 @@ namespace caret {
         
         ChartTwoCompoundDataType m_compoundChartDataType;
         
-        std::unique_ptr<AnnotationPercentSizeText> m_bottomAxisTitle;
+        AString m_bottomAxisTitleText;
         
-        std::unique_ptr<AnnotationPercentSizeText> m_leftRightAxisTitle;
+        AString m_leftRightAxisTitleText;
         
         static float constexpr s_defaultFontPercentViewportSize = 5.0;
         

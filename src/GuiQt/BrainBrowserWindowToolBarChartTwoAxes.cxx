@@ -373,20 +373,16 @@ BrainBrowserWindowToolBarChartTwoAxes::updateContent(BrowserTabContent* browserT
  *     The valid axes locations.
  * @param selectedAxisOut
  *     Output with selected axis (may be NULL)
- * @param axisLabelOut
- *     Output with the axis text label.
  */
 void
 BrainBrowserWindowToolBarChartTwoAxes::getSelectionData(BrowserTabContent* browserTabContent,
                                                         ChartTwoOverlaySet* &chartOverlaySetOut,
                                                         std::vector<ChartAxisLocationEnum::Enum>& validAxesLocationsOut,
-                                                        ChartTwoCartesianAxis* &selectedAxisOut,
-                                                        AnnotationPercentSizeText* &axisLabelOut) const
+                                                        ChartTwoCartesianAxis* &selectedAxisOut) const
 {
     chartOverlaySetOut = NULL;
     validAxesLocationsOut.clear();
     selectedAxisOut = NULL;
-    axisLabelOut = NULL;
     
     if (browserTabContent == NULL) {
         return;
@@ -415,13 +411,7 @@ BrainBrowserWindowToolBarChartTwoAxes::getSelectionData(BrowserTabContent* brows
                 int32_t defaultAxisIndex = -1;
                 
                 std::vector<ChartTwoCartesianAxis*> axes;
-                AnnotationPercentSizeText* leftAxisLabel   = NULL;
-                AnnotationPercentSizeText* rightAxisLabel  = NULL;
-                AnnotationPercentSizeText* bottomAxisLabel = NULL;
-                chartOverlaySetOut->getDisplayedChartAxes(axes,
-                                                       leftAxisLabel,
-                                                       rightAxisLabel,
-                                                       bottomAxisLabel);
+                chartOverlaySetOut->getDisplayedChartAxes(axes);
                 const int32_t numAxes = static_cast<int32_t>(axes.size());
                 for (int32_t i = 0; i < numAxes; i++) {
                     const ChartAxisLocationEnum::Enum axisLocation = axes[i]->getAxisLocation();
@@ -453,14 +443,9 @@ BrainBrowserWindowToolBarChartTwoAxes::getSelectionData(BrowserTabContent* brows
                     CaretAssertVectorIndex(axes, defaultAxisIndex);
                     selectedAxisOut = axes[defaultAxisIndex];
                 }
-                
-                if (selectedAxisOut != NULL) {
-                    axisLabelOut = chartOverlaySetOut->getAxisLabel(selectedAxisOut);
-                }
             }
         }
     }
-    
 }
 
 /**
@@ -494,13 +479,11 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
     m_chartOverlaySet = NULL;
     std::vector<ChartAxisLocationEnum::Enum> validAxesLocations;
     ChartTwoCartesianAxis* selectedAxis = NULL;
-    AnnotationPercentSizeText* axisLabel = NULL;
     
     getSelectionData(browserTabContent,
                      m_chartOverlaySet,
                      validAxesLocations,
-                     selectedAxis,
-                     axisLabel);
+                     selectedAxis);
     
     m_widgetGroup->blockAllSignals(true);
     
@@ -557,62 +540,6 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
     
     m_widgetGroup->blockAllSignals(false);
 }
-
-///**
-// * Update the content with the given axis.
-// *
-// * @param chartOverlaySet
-// *     Chart overlay set containing axis.
-// * @param chartAxis
-// *     New chart axis content.
-// */
-//void
-//BrainBrowserWindowToolBarChartTwoAxes::updateControls(ChartTwoOverlaySet* chartOverlaySet,
-//                                                      ChartTwoCartesianAxis* chartAxis)
-//{
-//    m_chartAxis = chartAxis;
-//    
-//    if ((chartOverlaySet != NULL)
-//        && (m_chartAxis != NULL)) {
-//        m_widgetGroup->blockAllSignals(true);
-//        m_axisDisplayedByUserCheckBox->setChecked(chartAxis->isDisplayedByUser());
-//        m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(m_chartAxis->getScaleRangeMode());
-//        float rangeMin(0.0), rangeMax(0.0);
-//        m_chartAxis->getRange(rangeMin, rangeMax);
-//        m_userMinimumValueSpinBox->setRange(rangeMin, rangeMax);
-//        m_userMinimumValueSpinBox->setValue(m_chartAxis->getUserScaleMinimumValue());
-//        m_userMaximumValueSpinBox->setRange(rangeMin, rangeMax);
-//        m_userMaximumValueSpinBox->setValue(m_chartAxis->getUserScaleMaximumValue());
-//        m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
-//        m_showLabelCheckBox->setChecked(m_chartAxis->isShowLabel());
-//        const NumericFormatModeEnum::Enum numericFormat = m_chartAxis->getUserNumericFormat();
-//        m_userNumericFormatComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(numericFormat);
-//        m_userDigitsRightOfDecimalSpinBox->setValue(m_chartAxis->getUserDigitsRightOfDecimal());
-//        m_userDigitsRightOfDecimalSpinBox->setEnabled(numericFormat != NumericFormatModeEnum::AUTO);
-//        m_numericSubdivisionsModeComboBox->setSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>(m_chartAxis->getNumericSubdivsionsMode());
-//        m_userSubdivisionsSpinBox->setValue(m_chartAxis->getUserNumberOfSubdivisions());
-//        m_userSubdivisionsSpinBox->setEnabled( m_chartAxis->getNumericSubdivsionsMode() == ChartTwoNumericSubdivisionsModeEnum::USER);
-//        
-//        const int32_t overlayCount = chartOverlaySet->getNumberOfDisplayedOverlays();
-//        int32_t selectedOverlayIndex = m_chartAxis->getLabelOverlayIndex(overlayCount);
-//        const int32_t comboBoxCount = m_axisLabelFromOverlayComboBox->count();
-//        if (overlayCount < comboBoxCount) {
-//            m_axisLabelFromOverlayComboBox->setMaxCount(overlayCount);
-//        }
-//        else if (overlayCount > comboBoxCount) {
-//            for (int32_t j = comboBoxCount; j < overlayCount; j++) {
-//                m_axisLabelFromOverlayComboBox->addItem("Overlay " + AString::number(j + 1));
-//            }
-//        }
-//        
-//        if ((selectedOverlayIndex >= 0)
-//            && (selectedOverlayIndex < m_axisLabelFromOverlayComboBox->count())) {
-//            m_axisLabelFromOverlayComboBox->setCurrentIndex(selectedOverlayIndex);
-//        }
-//        
-//        m_widgetGroup->blockAllSignals(false);
-//    }
-//}
 
 /**
  * Called when a widget is changed by the user.
@@ -731,53 +658,6 @@ BrainBrowserWindowToolBarChartTwoAxes::axisMaximumValueChanged(double maximumVal
     }
 }
 
-///**
-// * Called when the label size value is changed.
-// *
-// * @param value
-// *     New value.
-// */
-//void
-//BrainBrowserWindowToolBarChartTwoAxes::labelSizeValueChanged(double value)
-//{
-//}
-//
-///**
-// * Called when the numerics size value is changed.
-// *
-// * @param value
-// *     New value.
-// */
-//void
-//BrainBrowserWindowToolBarChartTwoAxes::numericsSizeValueChanged(double)
-//{
-//    
-//}
-//
-///**
-// * Called when the lines/ticks size value is changed.
-// *
-// * @param value
-// *     New value.
-// */
-//void
-//BrainBrowserWindowToolBarChartTwoAxes::linesTicksSizeValueChanged(double)
-//{
-//    
-//}
-//
-///**
-// * Called when the padding size value is changed.
-// *
-// * @param value
-// *     New value.
-// */
-//void
-//BrainBrowserWindowToolBarChartTwoAxes::paddingSizeValueChanged(double)
-//{
-//    
-//}
-
 /**
  * Called when a widget is changed by a slot using a bool parameter.
  * Parameters must match when using function pointers.
@@ -817,22 +697,21 @@ BrainBrowserWindowToolBarChartTwoAxes::axisLabelToolButtonClicked(bool)
     ChartTwoOverlaySet* chartOverlaySet = NULL;
     std::vector<ChartAxisLocationEnum::Enum> validAxesLocations;
     ChartTwoCartesianAxis* selectedAxis = NULL;
-    AnnotationPercentSizeText* axisLabel = NULL;
     
     getSelectionData(getTabContentFromSelectedTab(),
                      chartOverlaySet,
                      validAxesLocations,
-                     selectedAxis,
-                     axisLabel);
+                     selectedAxis);
     
-    if (axisLabel != NULL) {
+    if ((chartOverlaySet != NULL)
+        && (selectedAxis != NULL)) {
         WuQDataEntryDialog newNameDialog("Axis Label",
                                          m_axisLabelToolButton);
         QLineEdit* lineEdit = newNameDialog.addLineEditWidget("Label");
-        lineEdit->setText(axisLabel->getText());
+        lineEdit->setText(chartOverlaySet->getAxisLabel(selectedAxis));
         if (newNameDialog.exec() == WuQDataEntryDialog::Accepted) {
             const AString name = lineEdit->text().trimmed();
-            axisLabel->setText(name);
+            chartOverlaySet->setAxisLabel(selectedAxis, name);
             valueChanged();
         }
     }

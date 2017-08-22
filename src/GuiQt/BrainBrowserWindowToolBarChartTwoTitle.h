@@ -25,6 +25,7 @@
 #include "BrainBrowserWindowToolBarComponent.h"
 
 class QCheckBox;
+class QDoubleSpinBox;
 
 namespace caret {
 
@@ -47,6 +48,8 @@ namespace caret {
         
         void showTitleCheckBoxToggled(bool);
         
+        void sizeSpinBoxValueChanged(double);
+        
     private:
         BrainBrowserWindowToolBarChartTwoTitle(const BrainBrowserWindowToolBarChartTwoTitle&);
 
@@ -54,6 +57,11 @@ namespace caret {
         
         QCheckBox* m_showTitleCheckBox;
         
+        QDoubleSpinBox* m_titleSizeSpinBox;
+        
+        QDoubleSpinBox* m_paddingSizeSpinBox;
+        
+
         ChartTwoOverlaySet* m_chartOverlaySet;
         
         // ADD_NEW_MEMBERS_HERE

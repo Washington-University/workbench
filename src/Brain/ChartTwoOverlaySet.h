@@ -34,6 +34,7 @@ namespace caret {
     class CaretMappableDataFile;
     class ChartTwoCartesianAxis;
     class ChartTwoOverlay;
+    class ChartTwoTitle;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
 
@@ -66,20 +67,16 @@ namespace caret {
         
         ChartTwoOverlay* getDisplayedOverlayContainingDataFile(const CaretMappableDataFile* mapFile);
         
-        void getDisplayedChartAxes(std::vector<ChartTwoCartesianAxis*>& axesOut,
-                                   AnnotationPercentSizeText* &leftAxisLabelOut,
-                                   AnnotationPercentSizeText* &rightAxisLabelOut,
-                                   AnnotationPercentSizeText* &bottomAxisLabelOut) const;
+        void getDisplayedChartAxes(std::vector<ChartTwoCartesianAxis*>& axesOut) const;
         
-        AnnotationPercentSizeText* getAxisLabel(const ChartTwoCartesianAxis* axis) const;
+        AString getAxisLabel(const ChartTwoCartesianAxis* axis) const;
         
-        AnnotationPercentSizeText* getChartTitle();
+        void setAxisLabel(const ChartTwoCartesianAxis* axis,
+                          const AString& label);
         
-        const AnnotationPercentSizeText* getChartTitle() const;
+        ChartTwoTitle* getChartTitle();
         
-        bool isChartTitleDisplayed() const;
-        
-        void setChartTitleDislayed(const bool status);
+        const ChartTwoTitle* getChartTitle() const;
         
         void insertOverlayAbove(const int32_t overlayIndex);
         
@@ -135,8 +132,6 @@ namespace caret {
         
         void firstOverlaySelectionChanged();
         
-        std::unique_ptr<AnnotationPercentSizeText> createChartTitle();
-        
         SceneClassAssistant* m_sceneAssistant;
 
         std::vector<std::shared_ptr<ChartTwoOverlay>> m_overlays;
@@ -153,10 +148,8 @@ namespace caret {
         
         const int32_t m_tabIndex;
         
-        std::unique_ptr<AnnotationPercentSizeText> m_chartTitle;
+        std::unique_ptr<ChartTwoTitle> m_title;
         
-        bool m_chartTitleDisplayedFlag = false;
-
         int32_t m_numberOfDisplayedOverlays;
         
         bool m_inFirstOverlayChangedMethodFlag = false;

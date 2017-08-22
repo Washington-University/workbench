@@ -25,6 +25,8 @@
 
 #include "AnnotationPercentSizeText.h"
 #include "CaretAssert.h"
+#include "CaretMappableDataFile.h"
+#include "CiftiMappableDataFile.h"
 #include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -50,10 +52,6 @@ using namespace caret;
  * to support loading of older scenes.
  */
 
-#include "CaretMappableDataFile.h"
-#include "CiftiMappableDataFile.h"
-#include "EventAnnotationChartLabelGet.h"
-#include "SceneClassAssistant.h"
 
 /**
  * Constructor.
@@ -75,25 +73,13 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
     /* will be NULL if file is not a cifti mappable file */
     m_parentCiftiMappableDataFile = dynamic_cast<CiftiMappableDataFile*>(m_parentCaretMappableDataFile);
     
-    m_bottomAxisTitle = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
-                                                                                                 AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
-    m_bottomAxisTitle->setPropertiesForSpecializedUsage(Annotation::PropertiesSpecializedUsage::CHART_LABEL);
-
-    m_leftRightAxisTitle = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
-                                                                                                    AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
-    m_leftRightAxisTitle->setPropertiesForSpecializedUsage(Annotation::PropertiesSpecializedUsage::CHART_LABEL);
-
-    
-    initializeAxisLabel(m_bottomAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
-    initializeAxisLabel(m_leftRightAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
+    setDefaultAxisTitles();
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_bottomAxisTitle",
-                          "AnnotationPercentSizeText",
-                          m_bottomAxisTitle.get());
-    m_sceneAssistant->add("m_leftRightAxisTitle",
-                          "AnnotationPercentSizeText",
-                          m_leftRightAxisTitle.get());
+    m_sceneAssistant->add("m_bottomAxisTitleText",
+                          &m_bottomAxisTitleText);
+    m_sceneAssistant->add("m_leftRightAxisTitleText",
+                          &m_leftRightAxisTitleText);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
 }
@@ -108,51 +94,26 @@ ChartableTwoFileBaseChart::~ChartableTwoFileBaseChart()
 }
 
 /**
- * Initialize an axis' label
- *
- * @param axisLabel
- *     Annotation containing label.
- * @param axisLocation
- *     Location of axis.
+ * Set the default titles for the axes.
  */
-void ChartableTwoFileBaseChart::initializeAxisLabel(AnnotationPercentSizeText* axisLabel,
-                                                    const ChartAxisLocationEnum::Enum axisLocation)
+void
+ChartableTwoFileBaseChart::setDefaultAxisTitles()
 {
-    CaretAssert(axisLabel);
+    m_bottomAxisTitleText    = setDefaultAxisTitle(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
+    m_leftRightAxisTitleText = setDefaultAxisTitle(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
+}
 
-    axisLabel->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-    axisLabel->setTabIndex(0);
-    axisLabel->setTextColor(CaretColorEnum::RED);
-    axisLabel->setLineColor(CaretColorEnum::NONE);
-    axisLabel->setBackgroundColor(CaretColorEnum::NONE);
-    
-    axisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-    axisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-    axisLabel->setFontPercentViewportSize(s_defaultFontPercentViewportSize);
-    
+/**
+ * Set the default axis title.
+ *
+ * @param axisLocation
+ *     Location of the axis.
+ */
+AString
+ChartableTwoFileBaseChart::setDefaultAxisTitle(const ChartAxisLocationEnum::Enum axisLocation)
+{
     AString title;
     
-    switch (axisLocation) {
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-            axisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            axisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-            axisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            axisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-            axisLabel->setRotationAngle(-90.0);
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-            axisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            axisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-            axisLabel->setRotationAngle(90.0);
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            axisLabel->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            axisLabel->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-            break;
-    }
-
     switch (axisLocation) {
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
@@ -202,8 +163,8 @@ void ChartableTwoFileBaseChart::initializeAxisLabel(AnnotationPercentSizeText* a
         }
             break;
     }
-
-    axisLabel->setText(title);
+    
+    return title;
 }
 
 
@@ -224,19 +185,8 @@ ChartableTwoFileBaseChart::toString() const
  *    An event for which this instance is listening.
  */
 void
-ChartableTwoFileBaseChart::receiveEvent(Event* event)
+ChartableTwoFileBaseChart::receiveEvent(Event* /*event*/)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET) {
-        /*
-         * The events intended for overlays are received here so that
-         * only DISPLAYED overlays are updated.
-         */
-        EventAnnotationChartLabelGet* chartLabelEvent = dynamic_cast<EventAnnotationChartLabelGet*>(event);
-        CaretAssert(chartLabelEvent);
-        
-        chartLabelEvent->addAnnotationChartLabel(m_bottomAxisTitle.get());
-        chartLabelEvent->addAnnotationChartLabel(m_leftRightAxisTitle.get());
-    }
 }
 
 /**
@@ -313,45 +263,57 @@ ChartableTwoFileBaseChart::updateChartTwoCompoundDataTypeAfterFileChanges(const 
     
     m_compoundChartDataType = compoundChartDataType;
 
-    initializeAxisLabel(m_bottomAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
-    initializeAxisLabel(m_leftRightAxisTitle.get(), ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
+    setDefaultAxisTitles();
 }
 
 /**
- * @return Annotation for the bottom axis title.
+ * @return Annotation for the bottom axis title (const method)
  */
-const AnnotationPercentSizeText*
+AString
 ChartableTwoFileBaseChart::getBottomAxisTitle() const
 {
-    return m_bottomAxisTitle.get();
+    return m_bottomAxisTitleText;
+}
+
+/**
+ * Set the bottom axis title.
+ *
+ * @param title
+ *     New bottom axis title.
+ */
+void
+ChartableTwoFileBaseChart::setBottomAxisTitle(const AString& title)
+{
+    if (title != m_bottomAxisTitleText) {
+        m_bottomAxisTitleText = title;
+        setModified();
+    }
 }
 
 /**
  * @return Annotation for the bottom axis title (const method)
  */
-AnnotationPercentSizeText*
-ChartableTwoFileBaseChart::getBottomAxisTitle()
-{
-    return m_bottomAxisTitle.get();
-}
-
-/**
- * @return Annotation for the bottom axis title.
- */
-const AnnotationPercentSizeText*
+AString
 ChartableTwoFileBaseChart::getLeftRightAxisTitle() const
 {
-    return m_leftRightAxisTitle.get();
+    return m_leftRightAxisTitleText;
 }
 
 /**
- * @return Annotation for the bottom axis title (const method)
+ * Set the left/right axis title.
+ *
+ * @param title
+ *     New left/right axis title.
  */
-AnnotationPercentSizeText*
-ChartableTwoFileBaseChart::getLeftRightAxisTitle()
+void
+ChartableTwoFileBaseChart::setLeftRightAxisTitle(const AString& title)
 {
-    return m_leftRightAxisTitle.get();
+    if (title != m_leftRightAxisTitleText) {
+        m_leftRightAxisTitleText = title;
+        setModified();
+    }
 }
+
 
 /**
  * Save information specific to this type of model to the scene.
@@ -370,7 +332,7 @@ ChartableTwoFileBaseChart::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ChartableTwoFileBaseChart",
-                                            2);
+                                            3);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -399,15 +361,30 @@ ChartableTwoFileBaseChart::restoreFromScene(const SceneAttributes* sceneAttribut
         return;
     }
     
+    setDefaultAxisTitles();
+    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
     restoreSubClassDataFromScene(sceneAttributes,
                                  sceneClass);
     
-    if (sceneClass->getVersionNumber() <= 1) {
-        m_bottomAxisTitle->setFontPercentViewportSize(s_defaultFontPercentViewportSize);
-        m_leftRightAxisTitle->setFontPercentViewportSize(s_defaultFontPercentViewportSize);
+    if (sceneClass->getVersionNumber() <= 2) {
+        AnnotationPercentSizeText bottomTitle(AnnotationAttributesDefaultTypeEnum::NORMAL,
+                                         AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
+        bottomTitle.restoreFromScene(sceneAttributes,
+                                     sceneClass->getClass("m_bottomAxisTitle"));
+        if ( ! bottomTitle.getText().isEmpty()) {
+            m_bottomAxisTitleText = bottomTitle.getText();
+        }
+        
+        AnnotationPercentSizeText leftRightTitle(AnnotationAttributesDefaultTypeEnum::NORMAL,
+                                              AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
+        leftRightTitle.restoreFromScene(sceneAttributes,
+                                        sceneClass->getClass("m_leftRightAxisTitle"));
+        if ( ! leftRightTitle.getText().isEmpty()) {
+            m_leftRightAxisTitleText = leftRightTitle.getText();
+        }
     }
 }
 

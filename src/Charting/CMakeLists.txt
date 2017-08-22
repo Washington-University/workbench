@@ -51,6 +51,7 @@ ChartTwoMatrixLoadingDimensionEnum.h
 ChartTwoMatrixTriangularViewingModeEnum.h
 ChartTwoNumericSubdivisionsModeEnum.h
 ChartTwoLineSeriesHistory.h
+ChartTwoTitle.h
 EventChartTwoAttributesChanged.h
 EventChartTwoLoadLineSeriesData.h
 MapFileDataSelector.h
@@ -91,6 +92,7 @@ ChartTwoMatrixLoadingDimensionEnum.cxx
 ChartTwoMatrixTriangularViewingModeEnum.cxx
 ChartTwoNumericSubdivisionsModeEnum.cxx
 ChartTwoLineSeriesHistory.cxx
+ChartTwoTitle.cxx
 EventChartTwoAttributesChanged.cxx
 EventChartTwoLoadLineSeriesData.cxx
 MapFileDataSelector.cxx

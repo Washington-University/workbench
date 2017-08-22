@@ -24,6 +24,9 @@
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_TITLE_DECLARE__
 
 #include <QCheckBox>
+#include <QDoubleSpinBox>
+#include <QGridLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -33,6 +36,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "ChartTwoOverlaySet.h"
+#include "ChartTwoTitle.h"
 #include "ModelChartTwo.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
@@ -67,10 +71,26 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     WuQtUtilities::setToolButtonStyleForQt5Mac(editTitleToolButton);
     editTitleToolButton->setDefaultAction(editTitleAction);
     
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    m_titleSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
+    m_titleSizeSpinBox->setSuffix("%");
+    QObject::connect(m_titleSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
+    m_titleSizeSpinBox->setToolTip("Set height of title as percentage of tab height");
+    
+    m_paddingSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
+    m_paddingSizeSpinBox->setSuffix("%");
+    QObject::connect(m_paddingSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
+    
+    m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height");
+    QGridLayout* layout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
-    layout->addWidget(m_showTitleCheckBox, 0, Qt::AlignHCenter);
-    layout->addWidget(editTitleToolButton, 0, Qt::AlignHCenter);
+    layout->addWidget(m_showTitleCheckBox, 0, 0, 1, 2, Qt::AlignHCenter);
+    layout->addWidget(new QLabel("Size"), 1, 0);
+    layout->addWidget(m_titleSizeSpinBox, 1, 1);
+    layout->addWidget(new QLabel("Padding"), 2, 0);
+    layout->addWidget(m_paddingSizeSpinBox, 2, 1);
+    layout->addWidget(editTitleToolButton, 3, 0, 1, 2, Qt::AlignHCenter);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -104,7 +124,16 @@ BrainBrowserWindowToolBarChartTwoTitle::updateContent(BrowserTabContent* browser
     
     if (m_chartOverlaySet != NULL) {
         setEnabled(true);
-        m_showTitleCheckBox->setChecked(m_chartOverlaySet->isChartTitleDisplayed());
+        const ChartTwoTitle* chartTitle = m_chartOverlaySet->getChartTitle();
+        m_showTitleCheckBox->setChecked(chartTitle->isDisplayed());
+        
+        m_titleSizeSpinBox->blockSignals(true);
+        m_titleSizeSpinBox->setValue(chartTitle->getTextSize());
+        m_titleSizeSpinBox->blockSignals(false);
+        
+        m_paddingSizeSpinBox->blockSignals(true);
+        m_paddingSizeSpinBox->setValue(chartTitle->getPaddingSize());
+        m_paddingSizeSpinBox->blockSignals(false);
     }
     else {
         setEnabled(false);
@@ -121,7 +150,23 @@ void
 BrainBrowserWindowToolBarChartTwoTitle::showTitleCheckBoxToggled(bool checked)
 {
     if (m_chartOverlaySet != NULL) {
-        m_chartOverlaySet->setChartTitleDislayed(checked);
+        ChartTwoTitle* chartTitle = m_chartOverlaySet->getChartTitle();
+        chartTitle->setDisplayed(checked);
+        this->updateGraphicsWindow();
+        this->updateOtherYokedWindows();
+    }
+}
+
+/**
+ * Called when a size spin box value is changed
+ */
+void
+BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged(double)
+{
+    if (m_chartOverlaySet != NULL) {
+        ChartTwoTitle* chartTitle = m_chartOverlaySet->getChartTitle();
+        chartTitle->setTextSize(m_titleSizeSpinBox->value());
+        chartTitle->setPaddingSize(m_paddingSizeSpinBox->value());
         this->updateGraphicsWindow();
         this->updateOtherYokedWindows();
     }

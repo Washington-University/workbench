@@ -72,14 +72,6 @@ namespace caret {
         
         void axisLabelToolButtonClicked(bool);
         
-//        void labelSizeValueChanged(double);
-//        
-//        void numericsSizeValueChanged(double);
-//        
-//        void linesTicksSizeValueChanged(double);
-//        
-//        void paddingSizeValueChanged(double);
-//        
     private:
         BrainBrowserWindowToolBarChartTwoAxes(const BrainBrowserWindowToolBarChartTwoAxes&);
 
@@ -90,11 +82,7 @@ namespace caret {
         void getSelectionData(BrowserTabContent* browserTabContent,
                               ChartTwoOverlaySet* &chartOverlaySetOut,
                               std::vector<ChartAxisLocationEnum::Enum>& validAxesLocationsOut,
-                              ChartTwoCartesianAxis* &selectedAxisOut,
-                              AnnotationPercentSizeText* &axisLabelOut) const;
-        
-//        void updateControls(ChartTwoOverlaySet* chartOverlaySet,
-//                            ChartTwoCartesianAxis* chartAxis);
+                              ChartTwoCartesianAxis* &selectedAxisOut) const;
         
         void updateControls(BrowserTabContent* browserTabContent);
         
