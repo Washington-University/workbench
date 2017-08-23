@@ -288,14 +288,15 @@ namespace caret
     template<typename TO, typename FROM>
     TO NiftiIO::clamp(const FROM& in)
     {
-        std::numeric_limits<TO> mylimits;
-        if (mylimits.max() < in) return mylimits.max();
-        if (mylimits.is_integer)//c++11 can use lowest() instead of this mess
+        typedef std::numeric_limits<TO> mylimits;
+        if (mylimits::max() < in) return mylimits::max();
+        if (mylimits::lowest() > in) return mylimits::lowest();
+        /*if (mylimits::is_integer)//here is a c++03 solution to missing ::lowest
         {
-            if (mylimits.min() > in) return mylimits.min();
+            if (mylimits::min() > in) return mylimits::min();
         } else {
-            if (-mylimits.max() > in) return -mylimits.max();
-        }
+            if (-mylimits::max() > in) return -mylimits::max();
+        }//*/
         return (TO)in;
     }
 }

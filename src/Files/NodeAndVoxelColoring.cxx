@@ -38,7 +38,7 @@
 #include "GroupAndNameHierarchyItem.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
-#include "CaretOMP.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 
@@ -237,11 +237,18 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
                 continue;
             }
         }
-        else {
+        else if (MathFunctions::isNaN(scalar)) {
+            continue;//TSC: never color NaN
+        } else {
             /*
              * May be very near zero so force to zero.
+             * 
+             * TSC: that seems wrong, leave the normalized value alone
+             *  if the data value is near zero, that doesn't mean the palette settings aren't also near zero
+             *  therefore, normalized value may not be near zero, which is important
+             * 
              */
-            normalizedValues[i] = 0.0;
+            //normalizedValues[i] = 0.0;
             if (hideZeroValues) {
                 continue;
             }
