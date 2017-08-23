@@ -84,13 +84,18 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height");
     QGridLayout* layout = new QGridLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
-    layout->addWidget(m_showTitleCheckBox, 0, 0, 1, 2, Qt::AlignHCenter);
-    layout->addWidget(new QLabel("Size"), 1, 0);
-    layout->addWidget(m_titleSizeSpinBox, 1, 1);
-    layout->addWidget(new QLabel("Padding"), 2, 0);
-    layout->addWidget(m_paddingSizeSpinBox, 2, 1);
-    layout->addWidget(editTitleToolButton, 3, 0, 1, 2, Qt::AlignHCenter);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 0); //4, 5);
+    int row = 0;
+    layout->addWidget(m_showTitleCheckBox, row, 0, 1, 2, Qt::AlignHCenter);
+    row++;
+    layout->addWidget(new QLabel("Size"), row, 0);
+    layout->addWidget(m_titleSizeSpinBox, row, 1);
+    row++;
+    layout->addWidget(new QLabel("Pad"), row, 0);
+    layout->addWidget(m_paddingSizeSpinBox, row, 1);
+    row++;
+    layout->addWidget(editTitleToolButton, row, 0, 1, 2, Qt::AlignHCenter);
+    row++;
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);

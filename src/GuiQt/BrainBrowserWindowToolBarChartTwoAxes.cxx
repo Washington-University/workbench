@@ -79,11 +79,24 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_chartOverlaySet = NULL;
     m_chartAxis = NULL;
     
-    m_axisDisplayedByUserCheckBox = new QCheckBox("Show Axis");
+    /*
+     * 'Show' checkboxes
+     */
+    m_axisDisplayedByUserCheckBox = new QCheckBox("Axis");
     m_axisDisplayedByUserCheckBox->setToolTip("Show/hide the axis");
     QObject::connect(m_axisDisplayedByUserCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
 
+    m_showTickMarksCheckBox = new QCheckBox("Ticks");
+    QObject::connect(m_showTickMarksCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
+    m_showTickMarksCheckBox->setToolTip("Show ticks along the axis");
+    
+    m_showLabelCheckBox = new QCheckBox("Label");
+    QObject::connect(m_showLabelCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
+    m_showLabelCheckBox->setToolTip("Show label on axis");
+    
     /*
      * Axes selection
      */
@@ -94,7 +107,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_axisComboBox->getWidget()->setToolTip("Choose axis for editing");
     
     /*
-     * Controls for axis parameters
+     * Controls for layer selection and label editing
      */
     m_axisLabelToolButton = new QToolButton();
     m_axisLabelToolButton->setText("Edit Label...");
@@ -103,6 +116,15 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_axisLabelToolButton);
     m_axisLabelToolButton->setToolTip("Edit the axis name for the file in the selected overlay");
     
+    QLabel* axisLabelFromOverlayLabel = new QLabel("Label From File In");
+    m_axisLabelFromOverlayComboBox = new QComboBox();
+    m_axisLabelFromOverlayComboBox->setToolTip("Label for axis is from file in selected layer");
+    QObject::connect(m_axisLabelFromOverlayComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
+    
+    /*
+     * Range controls
+     */
     m_autoUserRangeComboBox = new EnumComboBoxTemplate(this);
     m_autoUserRangeComboBox->setup<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>();
     QObject::connect(m_autoUserRangeComboBox, &EnumComboBoxTemplate::itemActivated,
@@ -120,22 +142,9 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisMaximumValueChanged);
     m_userMaximumValueSpinBox->setToolTip("Set user scaling axis maximum value");
     
-    m_showTickMarksCheckBox = new QCheckBox("Show Ticks");
-    QObject::connect(m_showTickMarksCheckBox, &QCheckBox::clicked,
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
-    m_showTickMarksCheckBox->setToolTip("Show ticks along the axis");
-    
-    m_showLabelCheckBox = new QCheckBox("Show Label");
-    QObject::connect(m_showLabelCheckBox, &QCheckBox::clicked,
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
-    m_showLabelCheckBox->setToolTip("Show label on axis");
-    
-    QLabel* axisLabelFromOverlayLabel = new QLabel("Label From File In");
-    m_axisLabelFromOverlayComboBox = new QComboBox();
-    m_axisLabelFromOverlayComboBox->setToolTip("Label for axis is from file in selected layer");
-    QObject::connect(m_axisLabelFromOverlayComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
-    
+    /*
+     * Format controls
+     */
     m_userNumericFormatComboBox = new EnumComboBoxTemplate(this);
     m_userNumericFormatComboBox->setup<NumericFormatModeEnum, NumericFormatModeEnum::Enum>();
     QObject::connect(m_userNumericFormatComboBox, &EnumComboBoxTemplate::itemActivated,
@@ -165,25 +174,25 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_labelSizeSpinBox->setSuffix("%");
     QObject::connect(m_labelSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
-    m_labelSizeSpinBox->setToolTip("Set height of label as percentage of tab height");
+    m_labelSizeSpinBox->setToolTip("Set height of label as percentage of tab height for selected axis");
     
     m_numericsSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
     m_numericsSizeSpinBox->setSuffix("%");
     QObject::connect(m_numericsSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
-    m_numericsSizeSpinBox->setToolTip("Set height of numeric values as percentage of tab height");
+    m_numericsSizeSpinBox->setToolTip("Set height of numeric values as percentage of tab height for selected axis");
     
     m_linesTicksSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
     m_linesTicksSizeSpinBox->setSuffix("%");
     QObject::connect(m_linesTicksSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
-    m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines and ticks as percentage of tab height");
+    m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines as percentage of tab height for ALL axes");
     
     m_paddingSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
     m_paddingSizeSpinBox->setSuffix("%");
     QObject::connect(m_paddingSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
-    m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height");
+    m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height for selected axis");
     
     /*
      * Group widgets for blocking signals
@@ -217,14 +226,14 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     sizesLayout->addWidget(new QLabel("Label"), sizesRow, 0);
     sizesLayout->addWidget(m_labelSizeSpinBox, sizesRow, 1);
     sizesRow++;
-    sizesLayout->addWidget(new QLabel("Numerics"), sizesRow, 0);
+    sizesLayout->addWidget(new QLabel("Scale"), sizesRow, 0);
     sizesLayout->addWidget(m_numericsSizeSpinBox, sizesRow, 1);
     sizesRow++;
-    sizesLayout->addWidget(new QLabel("Lines/Ticks"), sizesRow, 0);
-    sizesLayout->addWidget(m_linesTicksSizeSpinBox, sizesRow, 1);
-    sizesRow++;
-    sizesLayout->addWidget(new QLabel("Padding"), sizesRow, 0);
+    sizesLayout->addWidget(new QLabel("Pad"), sizesRow, 0);
     sizesLayout->addWidget(m_paddingSizeSpinBox, sizesRow, 1);
+    sizesRow++;
+    sizesLayout->addWidget(new QLabel("Lines"), sizesRow, 0);
+    sizesLayout->addWidget(m_linesTicksSizeSpinBox, sizesRow, 1);
     sizesRow++;
     
     /*
@@ -234,6 +243,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QGridLayout* showLayout = new QGridLayout(showWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(showLayout, 8, 0);
     int32_t axisRow = 0;
+    showLayout->addWidget(new QLabel("Show"), axisRow, 0, Qt::AlignHCenter);
+    axisRow++;
     showLayout->addWidget(m_axisDisplayedByUserCheckBox, axisRow, 0);
     axisRow++;
     showLayout->addWidget(m_showLabelCheckBox, axisRow, 0);
@@ -250,16 +261,16 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QGridLayout* rangeLayout = new QGridLayout(rangeWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(rangeLayout, 3, 0);
     int rangeRow = 0;
-    rangeLayout->addWidget(new QLabel("Range Mode"), rangeRow, 0);
+    rangeLayout->addWidget(new QLabel("Range"), rangeRow, 0);
     m_autoUserRangeComboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
     rangeLayout->addWidget(m_autoUserRangeComboBox->getWidget(), rangeRow, 1);
     rangeRow++;
     m_userMinimumValueSpinBox->setFixedWidth(90);
     m_userMaximumValueSpinBox->setFixedWidth(90);
-    rangeLayout->addWidget(new QLabel("User Max"), rangeRow, 0);
+    rangeLayout->addWidget(new QLabel("Max"), rangeRow, 0);
     rangeLayout->addWidget(m_userMaximumValueSpinBox, rangeRow, 1);
     rangeRow++;
-    rangeLayout->addWidget(new QLabel("User Min"), rangeRow, 0);
+    rangeLayout->addWidget(new QLabel("Min"), rangeRow, 0);
     rangeLayout->addWidget(m_userMinimumValueSpinBox, rangeRow, 1);
     
     /*
@@ -268,19 +279,17 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QWidget* numericsWidget = new QWidget();
     QGridLayout* numericsLayout = new QGridLayout(numericsWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(numericsLayout, 3, 0);
-    int COLUMN_ONE = 0;
-    int COLUMN_TWO = 1;
-    int COLUMN_THREE = 2;
     int numericsRow = 0;
-    numericsLayout->addWidget(new QLabel("Format"), numericsRow, COLUMN_ONE);
-    numericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), numericsRow, COLUMN_TWO, 1, 2);
+    numericsLayout->addWidget(new QLabel("Format"), numericsRow, 0);
+    numericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), numericsRow, 1);
     numericsRow++;
-    numericsLayout->addWidget(new QLabel("Decimals"), numericsRow, COLUMN_ONE);
-    numericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, numericsRow, COLUMN_TWO, 1, 2);
+    numericsLayout->addWidget(new QLabel("Decimals"), numericsRow, 0);
+    numericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, numericsRow, 1);
     numericsRow++;
-    numericsLayout->addWidget(new QLabel("Subdivisions"), numericsRow, COLUMN_ONE);
-    numericsLayout->addWidget(m_numericSubdivisionsModeComboBox->getWidget(), numericsRow, COLUMN_TWO);
-    numericsLayout->addWidget(m_userSubdivisionsSpinBox, numericsRow, COLUMN_THREE);
+    numericsLayout->addWidget(new QLabel("Subdivisions"), numericsRow, 0);
+    numericsLayout->addWidget(m_numericSubdivisionsModeComboBox->getWidget(), numericsRow, 1);
+    numericsRow++;
+    numericsLayout->addWidget(m_userSubdivisionsSpinBox, numericsRow, 1);
     
     /*
      * Top layout
@@ -310,10 +319,10 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 5);
     gridLayout->addWidget(numericsWidget, 1, 6, Qt::AlignTop);
     
-    QVBoxLayout* dialogLayout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(dialogLayout, 0, 2);
-    dialogLayout->addLayout(gridLayout);
-    dialogLayout->addStretch();
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
+    layout->addLayout(gridLayout);
+    layout->addStretch();
 
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);

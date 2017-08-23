@@ -483,10 +483,6 @@ namespace caret {
                                           const int barycentricNodes[3],
                                           const int numberOfNodes);
         
-        void setLineWidth(const float lineWidth);
-        
-        void setPointSize(const float pointSize);
-        
         enum ClippingDataType {
             CLIPPING_DATA_TYPE_FEATURES,
             CLIPPING_DATA_TYPE_SURFACE,

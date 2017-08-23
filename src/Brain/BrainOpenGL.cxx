@@ -396,6 +396,44 @@ BrainOpenGL::getTextRenderer()
 }
 
 /**
+ * Set the OpenGL line width.  Value is clamped
+ * to minimum and maximum values to prevent
+ * OpenGL error caused by invalid line width.
+ */
+void
+BrainOpenGL::setLineWidth(const float lineWidth)
+{
+    if (lineWidth > s_maxLineWidth) {
+        glLineWidth(s_maxLineWidth);
+    }
+    else if (lineWidth < s_minLineWidth) {
+        glLineWidth(s_minLineWidth);
+    }
+    else {
+        glLineWidth(lineWidth);
+    }
+}
+
+/**
+ * Set the OpenGL point size.  Value is clamped
+ * to minimum and maximum values to prevent
+ * OpenGL error caused by invalid point size.
+ */
+void
+BrainOpenGL::setPointSize(const float pointSize)
+{
+    if (pointSize > s_maxPointSize) {
+        glPointSize(s_maxPointSize);
+    }
+    else if (pointSize < s_minPointSize) {
+        glPointSize(s_minPointSize);
+    }
+    else {
+        glPointSize(pointSize);
+    }
+}
+
+/**
  * Get the minimum and maximum values for the size of a point.
  * @param minPointSizeOut
  *    Gets minimum size of point.

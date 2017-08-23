@@ -135,6 +135,10 @@ namespace caret {
         
         void getBackgroundColor(uint8_t backgroundColor[3]) const;
         
+        static void setLineWidth(const float lineWidth);
+        
+        static void setPointSize(const float pointSize);
+        
         static void getMinMaxPointSize(float& minPointSizeOut, float& maxPointSizeOut);
         
         static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);

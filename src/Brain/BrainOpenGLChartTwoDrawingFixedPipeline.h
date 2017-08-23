@@ -151,7 +151,8 @@ namespace caret {
                                  const float leftAxisWidth,
                                  const float rightAxisWidth);
 
-            void setLabelAndNumericsCoordinates(const float foregroundFloatRGBA[4]);
+            void setLabelAndNumericsCoordinates(const float foregroundFloatRGBA[4],
+                                                const float graphicsBoxLineThickness);
             
             void drawAxis(BrainOpenGLChartTwoDrawingFixedPipeline* chartDrawing,
                           const float foregroundFloatRGBA[4],
@@ -273,6 +274,9 @@ namespace caret {
         /** These annotations will be drawn by the annotation drawing code */
         std::vector<Annotation*> m_annotationsForDrawingOutput;
         
+        static float s_minimumLineWidthOpenGL;
+        static float s_maximumLineWidthOpenGL;
+        
         static const int32_t IDENTIFICATION_INDICES_PER_HISTOGRAM      = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE     = 2;
         static const int32_t IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT = 2;
@@ -282,7 +286,8 @@ namespace caret {
     };
     
 #ifdef __BRAIN_OPEN_G_L_CHART_TWO_DRAWING_FIXED_PIPELINE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    float BrainOpenGLChartTwoDrawingFixedPipeline::s_minimumLineWidthOpenGL = 1.0f;
+    float BrainOpenGLChartTwoDrawingFixedPipeline::s_maximumLineWidthOpenGL = 1.0f;
 #endif // __BRAIN_OPEN_G_L_CHART_TWO_DRAWING_FIXED_PIPELINE_DECLARE__
 
 } // namespace

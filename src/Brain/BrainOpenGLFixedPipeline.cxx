@@ -1159,7 +1159,7 @@ BrainOpenGLFixedPipeline::applyClippingPlanes(const ClippingDataType clippingDat
 
     if (m_clippingPlaneGroup->isDisplayClippingBoxSelected()) {
         glColor3f(1.0, 0.0, 0.0);
-        glLineWidth(2.0);
+        setLineWidth(2.0);
         glPushMatrix();
         glTranslatef(panning[0], panning[1], panning[2]);
         
@@ -2975,46 +2975,6 @@ BrainOpenGLFixedPipeline::unstretchedBorderLineTest(const float p1[3],
     
     return false;
 }
-
-
-/**
- * Set the OpenGL line width.  Value is clamped
- * to minimum and maximum values to prevent
- * OpenGL error caused by invalid line width.
- */
-void 
-BrainOpenGLFixedPipeline::setLineWidth(const float lineWidth)
-{
-    if (lineWidth > s_maxLineWidth) {
-        glLineWidth(s_maxLineWidth);
-    }
-    else if (lineWidth < s_minLineWidth) {
-        glLineWidth(s_minLineWidth);
-    }
-    else {
-        glLineWidth(lineWidth);
-    }
-}
-
-/**
- * Set the OpenGL point size.  Value is clamped
- * to minimum and maximum values to prevent
- * OpenGL error caused by invalid point size.
- */
-void
-BrainOpenGLFixedPipeline::setPointSize(const float pointSize)
-{
-    if (pointSize > s_maxPointSize) {
-        glPointSize(s_maxPointSize);
-    }
-    else if (pointSize < s_minPointSize) {
-        glPointSize(s_minPointSize);
-    }
-    else {
-        glPointSize(pointSize);
-    }
-}
-
 
 /**
  * Draw foci on a surface.

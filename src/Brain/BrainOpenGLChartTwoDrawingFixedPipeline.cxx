@@ -69,8 +69,10 @@
 
 using namespace caret;
 
+static bool debugFlag = false;
+
 /**
- * \class caret::BrainOpenGLChartTwoDrawingFixedPipeline 
+ * \class caret::BrainOpenGLChartTwoDrawingFixedPipeline
  * \brief Drawing of version two charts.
  * \ingroup Brain
  */
@@ -82,6 +84,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::BrainOpenGLChartTwoDrawingFixedPipeline
 : BrainOpenGLChartTwoDrawingInterface()
 {
     m_preferences = SessionManager::get()->getCaretPreferences();
+    
+    BrainOpenGL::getMinMaxLineWidth(s_minimumLineWidthOpenGL,
+                                    s_maximumLineWidthOpenGL);
 }
 
 /**
@@ -146,16 +151,16 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     m_viewport[1] = viewport[1];
     m_viewport[2] = viewport[2];
     m_viewport[3] = viewport[3];
-
+    
     m_selectionItemAnnotation = m_brain->getSelectionManager()->getAnnotationIdentification();
     m_selectionItemHistogram  = m_brain->getSelectionManager()->getChartTwoHistogramIdentification();
     m_selectionItemLineSeries = m_brain->getSelectionManager()->getChartTwoLineSeriesIdentification();
     m_selectionItemMatrix     = m_brain->getSelectionManager()->getChartTwoMatrixIdentification();
-
+    
     m_fixedPipelineDrawing->disableLighting();
     
     /*
-     * Find color bars for this tab and decrease height of 
+     * Find color bars for this tab and decrease height of
      * viewport so chart is above color bars.
      */
     std::vector<AnnotationColorBar*> colorBars;
@@ -220,11 +225,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                 drawHistogramFlag = false;
             }
             if ( (! m_selectionItemLineSeries->isEnabledForSelection())
-                  && (! m_selectionItemAnnotation->isEnabledForSelection()) ) {
+                && (! m_selectionItemAnnotation->isEnabledForSelection()) ) {
                 drawLineSeriesFlag = false;
             }
             if ( (! m_selectionItemMatrix->isEnabledForSelection())
-                  && (! m_selectionItemAnnotation->isEnabledForSelection()) ) {
+                && (! m_selectionItemAnnotation->isEnabledForSelection()) ) {
                 drawMatrixFlag = false;
             }
             if (drawHistogramFlag
@@ -253,8 +258,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
             ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
             int32_t selectedIndex = -1;
             topOverlay->getSelectionData(mapFile,
-                                      selectedIndexType,
-                                      selectedIndex);
+                                         selectedIndexType,
+                                         selectedIndex);
             if (mapFile != NULL) {
                 const ChartTwoDataTypeEnum::Enum chartDataType = topOverlay->getChartTwoDataType();
                 switch (chartDataType) {
@@ -600,6 +605,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
         const float leftAxisWidth    = leftAxisInfo.m_axisWidth;
         const float rightAxisWidth   = rightAxisInfo.m_axisWidth;
         
+        /*
+         * The constructors were only able to find width or height but not both.
+         * Now we can find the other value.
+         */
         titleInfo.setTitleViewport(leftAxisWidth,
                                    rightAxisWidth);
         leftAxisInfo.setAxisViewport(topTitleHeight,
@@ -609,19 +618,19 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                      rightAxisWidth);
         rightAxisInfo.setAxisViewport(topTitleHeight,
                                       bottomAxisHeight,
-                                     topAxisHeight,
-                                     leftAxisWidth,
-                                     rightAxisWidth);
+                                      topAxisHeight,
+                                      leftAxisWidth,
+                                      rightAxisWidth);
         bottomAxisInfo.setAxisViewport(topTitleHeight,
                                        bottomAxisHeight,
-                                     topAxisHeight,
-                                     leftAxisWidth,
-                                     rightAxisWidth);
+                                       topAxisHeight,
+                                       leftAxisWidth,
+                                       rightAxisWidth);
         topAxisInfo.setAxisViewport(topTitleHeight,
                                     bottomAxisHeight,
-                                     topAxisHeight,
-                                     leftAxisWidth,
-                                     rightAxisWidth);
+                                    topAxisHeight,
+                                    leftAxisWidth,
+                                    rightAxisWidth);
         
         const float foregroundRGBA[4] = {
             m_fixedPipelineDrawing->m_foregroundColorFloat[0],
@@ -630,10 +639,16 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
             1.0f
         };
         
-        leftAxisInfo.setLabelAndNumericsCoordinates(foregroundRGBA);
-        rightAxisInfo.setLabelAndNumericsCoordinates(foregroundRGBA);
-        bottomAxisInfo.setLabelAndNumericsCoordinates(foregroundRGBA);
-        topAxisInfo.setLabelAndNumericsCoordinates(foregroundRGBA);
+        const float graphicsBoxLineThickness = convertPercentageOfViewportToPixels(m_chartOverlaySet->getAxisLineThickness(),
+                                                                                   tabViewportHeight);
+        leftAxisInfo.setLabelAndNumericsCoordinates(foregroundRGBA,
+                                                    graphicsBoxLineThickness);
+        rightAxisInfo.setLabelAndNumericsCoordinates(foregroundRGBA,
+                                                     graphicsBoxLineThickness);
+        bottomAxisInfo.setLabelAndNumericsCoordinates(foregroundRGBA,
+                                                      graphicsBoxLineThickness);
+        topAxisInfo.setLabelAndNumericsCoordinates(foregroundRGBA,
+                                                   graphicsBoxLineThickness);
         
         /*
          * Ensure that there is sufficient space for the axes data display.
@@ -773,7 +788,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                     /*
                                      * Increase line width for identification
                                      */
-                                    glLineWidth(ENVELOPE_LINE_WIDTH * 3.0f);
+                                    BrainOpenGL::setLineWidth(ENVELOPE_LINE_WIDTH * 3.0f);
                                     GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
                                                                                 histogramPrimitives->getEnvelopePrimitive(),
                                                                                 m_fixedPipelineDrawing->mouseX,
@@ -797,7 +812,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                     drawPrimitivePrivate(histogramPrimitives->getBarsPrimitive());
                                 }
                                 if (drawEnvelopeFlag) {
-                                    glLineWidth(ENVELOPE_LINE_WIDTH);
+                                    BrainOpenGL::setLineWidth(ENVELOPE_LINE_WIDTH);
                                     m_fixedPipelineDrawing->enableLineAntiAliasing();
                                     drawPrimitivePrivate(histogramPrimitives->getEnvelopePrimitive());
                                     m_fixedPipelineDrawing->disableLineAntiAliasing();
@@ -868,7 +883,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                     int32_t primitiveIndex = -1;
                     float   primitiveDepth = 0.0;
                     
-                    glLineWidth(LINE_SERIES_LINE_WIDTH * 5.0f);
+                    BrainOpenGL::setLineWidth(LINE_SERIES_LINE_WIDTH * 5.0f);
                     GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
                                                                 lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
                                                                 m_fixedPipelineDrawing->mouseX,
@@ -892,7 +907,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                      * will alter the colors during drawing).
                      */
                     m_fixedPipelineDrawing->enableLineAntiAliasing();
-                    glLineWidth(lineChart.m_chartTwoCartesianData->getLineWidth());
+                    BrainOpenGL::setLineWidth(lineChart.m_chartTwoCartesianData->getLineWidth());
                     GraphicsEngineDataOpenGL::draw(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
                                                    lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
                     m_fixedPipelineDrawing->disableLineAntiAliasing();
@@ -1126,10 +1141,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
-                                                             const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
-                                                             const float cellWidth,
-                                                             const float cellHeight,
-                                                             const float zooming)
+                                                                const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
+                                                                const float cellWidth,
+                                                                const float cellHeight,
+                                                                const float zooming)
 {
     GraphicsPrimitiveV3fC4f* matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType);
     if (matrixPrimitive == NULL) {
@@ -1242,7 +1257,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 rowOutlineData4f->addVertex(maxX, maxY);
                 rowOutlineData4f->addVertex(minX, maxY);
                 const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
-                glLineWidth(highlightLineWidth);
+                BrainOpenGL::setLineWidth(highlightLineWidth);
                 drawPrimitivePrivate(rowOutlineData4f.get());
             }
             
@@ -1274,7 +1289,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 columnOutlineData4f->addVertex(maxX, maxY);
                 columnOutlineData4f->addVertex(minX, maxY);
                 const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
-                glLineWidth(highlightLineWidth);
+                BrainOpenGL::setLineWidth(highlightLineWidth);
                 drawPrimitivePrivate(columnOutlineData4f.get());
             }
         }
@@ -1346,9 +1361,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::convertPercentageOfViewportToPixels(con
         return 0.0f;
     }
     
-    const float minimumWidthOrHeight = 1.0f;
-    const float pixelsWidthOrHeight = std::max((percentageWidthOrHeight / 100.0f) * viewportWidthOrHeight,
-                                                minimumWidthOrHeight);
+    float pixelsWidthOrHeight = ((percentageWidthOrHeight / 100.0f) * viewportWidthOrHeight);
+    if (pixelsWidthOrHeight < s_minimumLineWidthOpenGL) {
+        pixelsWidthOrHeight = s_minimumLineWidthOpenGL;
+    }
+    if (pixelsWidthOrHeight > s_maximumLineWidthOpenGL) {
+        pixelsWidthOrHeight = s_maximumLineWidthOpenGL;
+    }
+    
     return pixelsWidthOrHeight;
 }
 
@@ -1399,61 +1419,50 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
                                                                           vpHeight);
     const float halfGridLineWidth = lineThicknessPixels / 2.0;
     
-    const float gridLeft   = vpX + leftAxisWidth;
-    const float gridRight  = vpX + vpWidth - rightAxisWidth;
-    const float gridBottom = vpY + bottomAxisHeight;
-    const float gridTop    = vpY + vpHeight - topAxisHeight - titleHeight;
-    
     glViewport(vpX,
                vpY,
                vpWidth,
                vpHeight);
     
     if (drawBoxFlag) {
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(vpX, (vpX + vpWidth),
-                vpY, (vpY + vpHeight),
-                -1.0, 1.0);
+        /*
+         * For box, set coordinates for the middle of the line
+         */
+        const float boxLeft   = vpX + leftAxisWidth + halfGridLineWidth;
+        const float boxRight  = vpX + vpWidth - rightAxisWidth - halfGridLineWidth;
+        const float boxBottom = vpY + bottomAxisHeight + halfGridLineWidth;
+        const float boxTop    = vpY + vpHeight - topAxisHeight - titleHeight - halfGridLineWidth;
         
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        
-        std::unique_ptr<GraphicsPrimitiveV3f> gridData
+        /*
+         * We adjust the horizontal lines by half the line width.
+         * Otherwise, there will be 'corner gaps' where the horizontal
+         * and vertical lines are joined
+         */
+        std::unique_ptr<GraphicsPrimitiveV3f> boxData
         = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
                                                                                    m_fixedPipelineDrawing->m_foregroundColorFloat));
-        gridData->reserveForNumberOfVertices(8);
-        gridData->addVertex(gridLeft,  gridBottom + halfGridLineWidth);
-        gridData->addVertex(gridRight, gridBottom + halfGridLineWidth);
-        gridData->addVertex(gridRight - halfGridLineWidth, gridBottom);
-        gridData->addVertex(gridRight - halfGridLineWidth, gridTop);
-        gridData->addVertex(gridRight, gridTop - halfGridLineWidth);
-        gridData->addVertex(gridLeft,  gridTop - halfGridLineWidth);
-        gridData->addVertex(gridLeft + halfGridLineWidth, gridTop);
-        gridData->addVertex(gridLeft + halfGridLineWidth, gridBottom);
-        glLineWidth(lineThicknessPixels);
-        drawPrimitivePrivate(gridData.get());
+        const float cornerOffset = halfGridLineWidth;
+        boxData->reserveForNumberOfVertices(8);
+        boxData->addVertex(boxLeft - cornerOffset,  boxBottom);
+        boxData->addVertex(boxRight + cornerOffset, boxBottom);
+        boxData->addVertex(boxRight, boxBottom);
+        boxData->addVertex(boxRight, boxTop);
+        boxData->addVertex(boxRight + cornerOffset, boxTop);
+        boxData->addVertex(boxLeft - cornerOffset,  boxTop);
+        boxData->addVertex(boxLeft, boxTop);
+        boxData->addVertex(boxLeft, boxBottom);
+        BrainOpenGL::setLineWidth(lineThicknessPixels);
+        drawPrimitivePrivate(boxData.get());
     }
     
     /*
-     * Region inside the grid's box
+     * Region INSIDE the grid's box so that any data plots
+     * are WITHIN the box
      */
-    const int32_t graphicsLeft   = static_cast<int32_t>(gridLeft);
-    const int32_t graphicsRight  = static_cast<int32_t>(gridRight);
-    const int32_t graphicsBottom = static_cast<int32_t>(gridBottom);
-    const int32_t graphicsTop    = static_cast<int32_t>(gridTop);
-//    const int32_t graphicsLeft   = static_cast<int32_t>(gridLeft   + 0.5f);
-//    const int32_t graphicsRight  = static_cast<int32_t>(gridRight  - 0.5f);
-//    const int32_t graphicsBottom = static_cast<int32_t>(gridBottom + 0.5f);
-//    const int32_t graphicsTop    = static_cast<int32_t>(gridTop    - 0.5f);
-//    const int32_t graphicsLeft   = static_cast<int32_t>(gridLeft   + std::ceil(halfGridLineWidth  + 1.0));
-//    const int32_t graphicsRight  = static_cast<int32_t>(gridRight  - std::floor(halfGridLineWidth + 1.0));
-//    const int32_t graphicsBottom = static_cast<int32_t>(gridBottom + std::ceil(halfGridLineWidth  + 1.0));
-//    const int32_t graphicsTop    = static_cast<int32_t>(gridTop    - std::floor(halfGridLineWidth + 1.0));
-//    const int32_t graphicsLeft   = static_cast<int32_t>(gridLeft   + std::ceil(lineThicknessPixels  + 1.0));
-//    const int32_t graphicsRight  = static_cast<int32_t>(gridRight  - std::floor(lineThicknessPixels + 1.0));
-//    const int32_t graphicsBottom = static_cast<int32_t>(gridBottom + std::ceil(lineThicknessPixels  + 1.0));
-//    const int32_t graphicsTop    = static_cast<int32_t>(gridTop    - std::floor(lineThicknessPixels + 1.0));
+    const float graphicsLeft   = vpX + leftAxisWidth + lineThicknessPixels;
+    const float graphicsRight  = vpX + vpWidth - rightAxisWidth - lineThicknessPixels;
+    const float graphicsBottom = vpY + bottomAxisHeight + lineThicknessPixels;
+    const float graphicsTop    = vpY + vpHeight - topAxisHeight - titleHeight - lineThicknessPixels;
     
     const int32_t graphicsWidth = graphicsRight - graphicsLeft;
     const int32_t graphicsHeight = graphicsTop  - graphicsBottom;
@@ -1595,7 +1604,7 @@ m_tabViewportHeight(tabViewport[3])
     if (m_axis != NULL) {
         CaretAssert(m_axis->getAxisLocation() == axisLocation);
         m_axisDisplayedFlag = (axis->isEnabledByChart()
-                                && axis->isDisplayedByUser());
+                               && axis->isDisplayedByUser());
     }
     if ( ! m_axisDisplayedFlag) {
         /*
@@ -1606,13 +1615,13 @@ m_tabViewportHeight(tabViewport[3])
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                 m_axisHeight = convertPercentageOfViewportToPixels(emptyAxisPaddingPercentage,
-                                                               m_tabViewportHeight);
+                                                                   m_tabViewportHeight);
                 m_labelPaddingSizePixels = m_axisHeight;
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
                 m_axisWidth = convertPercentageOfViewportToPixels(emptyAxisPaddingPercentage,
-                                                              m_tabViewportWidth);
+                                                                  m_tabViewportWidth);
                 m_labelPaddingSizePixels = m_axisWidth;
                 break;
         }
@@ -1635,7 +1644,7 @@ m_tabViewportHeight(tabViewport[3])
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
             m_labelPaddingSizePixels = convertPercentageOfViewportToPixels(axis->getPaddingSize(),
-                                                                    m_tabViewportHeight);
+                                                                           m_tabViewportHeight);
             m_numericsTicksPaddingSizePixels = convertPercentageOfViewportToPixels(numericsTicksPaddingPercentage,
                                                                                    m_tabViewportHeight);
             break;
@@ -1649,10 +1658,12 @@ m_tabViewportHeight(tabViewport[3])
     }
     
     m_lineDrawingWidth = convertPercentageOfViewportToPixels(lineWidthPercentage,
-                                                                m_tabViewportHeight);
+                                                             m_tabViewportHeight);
     m_tickLength = 0.0f;
     if (m_axis->isShowTickmarks()) {
-        m_tickLength = m_lineDrawingWidth; // * 2.0f;
+        const float tickLengthPercentage = 1.0f;
+        m_tickLength = convertPercentageOfViewportToPixels(tickLengthPercentage, m_tabViewportHeight);
+        //m_tickLength = m_lineDrawingWidth; // * 2.0f;
     }
     
     /*
@@ -1670,18 +1681,19 @@ m_tabViewportHeight(tabViewport[3])
     initializeNumericText(dataMinimumValue, dataMaximumValue, numericsWidth, numericsHeight);
     
     /*
-     * Width or height for this axis
+     * For the bottom and the top, we now have its height but we do not yet know its width
+     * and likewise for left and right.
      */
     switch (axisLocation) {
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            m_axisHeight = m_labelPaddingSizePixels + labelHeight + numericsHeight + m_numericsTicksPaddingSizePixels + m_tickLength;
+            m_axisHeight = std::ceil(m_labelPaddingSizePixels + labelHeight + numericsHeight + m_numericsTicksPaddingSizePixels + m_tickLength);
             CaretAssert(m_axisHeight >= 0.0f);
             break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
             /* Note: label is rotated on left/right so use it's height */
-            m_axisWidth = m_labelPaddingSizePixels + labelHeight + numericsWidth + m_numericsTicksPaddingSizePixels + m_tickLength;
+            m_axisWidth = std::ceil(m_labelPaddingSizePixels + labelHeight + numericsWidth + m_numericsTicksPaddingSizePixels + m_tickLength);
             CaretAssert(m_axisWidth >= 0.0f);
             break;
     }
@@ -1696,7 +1708,7 @@ m_tabViewportHeight(tabViewport[3])
  * @param widthOut
  *     Output with width of label.
  * @param heightOut
- *     Height of label.
+ *     Output with hight of label.
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeLabel(const AString& labelText,
@@ -1745,8 +1757,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeLabel(const 
         double textWidth = 0.0;
         double textHeight = 0.0;
         m_textRenderer->getTextWidthHeightInPixels(*text,
-                                                 m_tabViewportWidth, m_tabViewportHeight,
-                                                 textWidth, textHeight);
+                                                   m_tabViewportWidth, m_tabViewportHeight,
+                                                   textWidth, textHeight);
         widthOut  = textWidth;
         heightOut = textHeight;
     }
@@ -1788,13 +1800,19 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
     std::vector<float> scaleValuePositions;
     std::vector<AString> scaleValuesText;
     m_axis->getScaleValuesAndOffsets(dataMinimumDataValue,
-                                   dataMaximumDataValue,
-                                   axisLength,
-                                   m_axisMinimumValue,
-                                   m_axisMaximumValue,
-                                   scaleValuePositions,
-                                   scaleValuesText);
+                                     dataMaximumDataValue,
+                                     axisLength,
+                                     m_axisMinimumValue,
+                                     m_axisMaximumValue,
+                                     scaleValuePositions,
+                                     scaleValuesText);
     
+    /*
+     * For each numeric value, create a text annotation and determine the 
+     * width and height of the text.  Also, set either the X or Y-coordinate
+     * with the normalized coordinate (zero to one) that will be used
+     * later to position the numeric value.
+     */
     CaretAssert(scaleValuePositions.size() == scaleValuesText.size());
     const int32_t numValues = static_cast<int32_t>(scaleValuesText.size());
     const int32_t firstIndex = 0;
@@ -1819,7 +1837,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
                     text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
                 }
                 break;
-           case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                 xyz[0] = scaleValuePositions[i];
                 text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
                 if (i == firstIndex) {
@@ -1878,9 +1896,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
 }
 
 /**
- * Set the axis viewport.  Once the width of the left and right and the height of the 
- * bottom and top axes are known, we can determine the sizes of each axis and set
- * calculate the viewport for the axis.
+ * Set the axis viewport.  
+ * 
+ * In the constructor, we were able to determine the width of the left and right
+ * axes and the height of the bottom and top axes.  Now we can determine
+ * the size of the other dimension and computer a viewport for the axis.
  *
  * @param titleHeight
  *    Height of the title.
@@ -1946,14 +1966,17 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setAxisViewport(const 
 }
 
 /**
- * Set the coordinates for the label and the numerics once we know the 
- * viewport for the axis.
+ * When this method is called, we have the viewport for the axis and we can now use the 
+ * viewport to position the numerical value and the label.
  *
  * @param foregroundFloatRGBA
  *     Color of the foreground.
+ * @param graphicsBoxLineThickness
+ *     Line thickness of the graphics box.
  */
 void
-BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoordinates(const float foregroundFloatRGBA[4])
+BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoordinates(const float foregroundFloatRGBA[4],
+                                                                                         const float graphicsBoxLineThickness)
 {
     if (m_axis == NULL) {
         return;
@@ -1966,12 +1989,42 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
     if ( ! m_axisDisplayedFlag) {
         return;
     }
-
-    const float vpX = m_axisViewport[0];
-    const float vpY = m_axisViewport[1];
-    const float vpWidth = m_axisViewport[2];
-    const float vpHeight = m_axisViewport[3];
     
+    /*
+     * Adjust the 'viewport' to account for the thickness of the lines
+     * for the box that contains the plot of data
+     */
+    float vpX = m_axisViewport[0];
+    float vpY = m_axisViewport[1];
+    float vpWidth = m_axisViewport[2];
+    float vpHeight = m_axisViewport[3];
+    switch (m_axisLocation) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            vpX     += graphicsBoxLineThickness;
+            vpWidth -= (graphicsBoxLineThickness * 2.0);
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+            vpY      += graphicsBoxLineThickness;
+            vpHeight -= (graphicsBoxLineThickness * 2.0);
+            break;
+    }
+    
+    if (debugFlag) {
+        glColor3f(1.0, 0.0, 0.0);
+        BrainOpenGL::setLineWidth(1.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(vpX, vpY);
+        glVertex2f(vpX + vpWidth, vpY);
+        glVertex2f(vpX + vpWidth, vpY + vpHeight);
+        glVertex2f(vpX, vpY + vpHeight);
+        glEnd();
+    }
+    
+    /*
+     * 'Center' the label in the viewport
+     */
     if (m_axis->isShowLabel()) {
         float xyz[3];
         switch (m_axisLocation) {
@@ -1996,7 +2049,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
         m_labelText->setCustomTextColor(foregroundFloatRGBA);
         m_labelText->getCoordinate()->setXYZ(xyz);
     }
-
+    
+    /*
+     * Now convert the 'normalized' (zero to one) numeric value coordinate
+     * to real coordinate.
+     */
     for (auto& text : m_numericsText) {
         float xyz[3];
         text->getCoordinate()->getXYZ(xyz);
@@ -2028,7 +2085,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
 
 /**
  * Draw the axis.
- * 
+ *
  * @param chartDrawing
  *     The chart drawing parent.
  * @param foregroundFloatRGBA
@@ -2058,15 +2115,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
         return;
     }
     
-//    glColor3f(1.0, 0.0, 0.0);
-//    glLineWidth(2.0);
-//    glBegin(GL_LINE_LOOP);
-//    glVertex2f(m_axisViewport[0], m_axisViewport[1]);
-//    glVertex2f(m_axisViewport[0] + m_axisViewport[2], m_axisViewport[1]);
-//    glVertex2f(m_axisViewport[0] + m_axisViewport[2], m_axisViewport[1] + m_axisViewport[3]);
-//    glVertex2f(m_axisViewport[0], m_axisViewport[1] + m_axisViewport[3]);
-//    glEnd();
-    
     const int32_t numScaleValuesToDraw = static_cast<int32_t>(m_numericsText.size());
     
     if (numScaleValuesToDraw > 0) {
@@ -2092,31 +2140,35 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
             const float textY = xyz[1];
             
             /*
-             * Offset the tick from its corresponding numeric value
+             * Tick starts at an offset from its corresponding numerical value.
+             * The length of the tick is increased by half the line width so
+             * that the tick connects to the box around the data plot without
+             * a gap.
              */
             float tickStartX = textX;
             float tickStartY = textY;
             float tickEndX   = 0.0;
             float tickEndY   = 0.0;
+            const float tickLength = m_tickLength + (m_lineDrawingWidth / 2.0f);
             switch (m_axisLocation) {
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                     tickStartY += m_numericsTicksPaddingSizePixels;
                     tickEndX   = tickStartX;
-                    tickEndY   = tickStartY + m_tickLength;
+                    tickEndY   = tickStartY + tickLength;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                     tickStartY -= m_numericsTicksPaddingSizePixels;
                     tickEndX   = tickStartX;
-                    tickEndY   = tickStartY - m_tickLength;
+                    tickEndY   = tickStartY - tickLength;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                     tickStartX += m_numericsTicksPaddingSizePixels;
-                    tickEndX   = tickStartX + m_tickLength;
+                    tickEndX   = tickStartX + tickLength;
                     tickEndY   = tickStartY;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
                     tickStartX -= m_numericsTicksPaddingSizePixels;
-                    tickEndX   = tickStartX - m_tickLength;
+                    tickEndX   = tickStartX - tickLength;
                     tickEndY   = tickStartY;
                     break;
             }
@@ -2129,19 +2181,25 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
                 }
             }
             
+            /*
+             * Draw the numeric value.
+             */
             m_textRenderer->drawTextAtViewportCoords(textX,
                                                      textY,
                                                      0.0,
                                                      *text);
         }
-
+        
         /*
          * Draw the ticks.
          */
-        glLineWidth(m_lineDrawingWidth);
+        BrainOpenGL::setLineWidth(m_lineDrawingWidth);
         chartDrawing->drawPrimitivePrivate(ticksData.get());
     }
     
+    /*
+     * Draw the label
+     */
     if (m_axis->isShowLabel()) {
         float xyz[3];
         m_labelText->getCoordinate()->getXYZ(xyz);
@@ -2188,21 +2246,24 @@ m_title(title)
     m_paddingSizePixels = convertPercentageOfViewportToPixels(m_title->getPaddingSize(),
                                                               m_tabViewportHeight);
     
+    /*
+     * Create a text annotation for drawing the title
+     */
     AnnotationPercentSizeText* text = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                     AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
-        float xyz[3] = { 0.0f, 0.0f, 0.0f };
-                xyz[0] = 0.5f;
-                text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-                text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        text->setText(titleText);
-        text->setFontPercentViewportSize(m_title->getTextSize());
-        text->getCoordinate()->setXYZ(xyz);
-        
-        double m_textWidth = 0.0;
-        double m_textHeight = 0.0;
-        m_textRenderer->getTextWidthHeightInPixels(*text,
-                                                   m_tabViewportWidth, m_tabViewportHeight,
-                                                   m_textWidth, m_textHeight);
+    float xyz[3] = { 0.0f, 0.0f, 0.0f };
+    xyz[0] = 0.5f;
+    text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+    text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+    text->setText(titleText);
+    text->setFontPercentViewportSize(m_title->getTextSize());
+    text->getCoordinate()->setXYZ(xyz);
+    
+    double m_textWidth = 0.0;
+    double m_textHeight = 0.0;
+    m_textRenderer->getTextWidthHeightInPixels(*text,
+                                               m_tabViewportWidth, m_tabViewportHeight,
+                                               m_textWidth, m_textHeight);
     m_text.reset(text);
     
     m_titleHeight = m_paddingSizePixels + m_textHeight;
@@ -2225,7 +2286,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::TitleDrawingInfo::setTitleViewport(cons
     if ( ! m_titleDisplayedFlag) {
         return;
     }
-
+    
     m_titleWidth = m_tabViewportWidth - (leftAxisWidth + rightAxisWidth);
     if (m_titleWidth < 1.0f) {
         m_titleWidth = 1.0f;
@@ -2236,7 +2297,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::TitleDrawingInfo::setTitleViewport(cons
     
     m_titleWidth = m_tabViewportWidth - (leftAxisWidth + rightAxisWidth);
     m_titleViewport[0] = leftAxisWidth;
-    m_titleViewport[1] = /*m_tabViewportY + */m_tabViewportHeight - m_titleHeight;
+    m_titleViewport[1] = m_tabViewportHeight - m_titleHeight;
     
     m_titleViewport[2] = m_titleWidth;
     m_titleViewport[3] = m_titleHeight;
@@ -2269,22 +2330,24 @@ BrainOpenGLChartTwoDrawingFixedPipeline::TitleDrawingInfo::drawTitle(const float
         return;
     }
     
-    //    glColor3f(1.0, 0.0, 0.0);
-    //    glLineWidth(2.0);
-    //    glBegin(GL_LINE_LOOP);
-    //    glVertex2f(m_axisViewport[0], m_axisViewport[1]);
-    //    glVertex2f(m_axisViewport[0] + m_axisViewport[2], m_axisViewport[1]);
-    //    glVertex2f(m_axisViewport[0] + m_axisViewport[2], m_axisViewport[1] + m_axisViewport[3]);
-    //    glVertex2f(m_axisViewport[0], m_axisViewport[1] + m_axisViewport[3]);
-    //    glEnd();
+    if (debugFlag) {
+        glColor3f(1.0, 0.0, 0.0);
+        BrainOpenGL::setLineWidth(2.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(m_titleViewport[0], m_titleViewport[1]);
+        glVertex2f(m_titleViewport[0] + m_titleViewport[2], m_titleViewport[1]);
+        glVertex2f(m_titleViewport[0] + m_titleViewport[2], m_titleViewport[1] + m_titleViewport[3]);
+        glVertex2f(m_titleViewport[0], m_titleViewport[1] + m_titleViewport[3]);
+        glEnd();
+    }
     
     m_text->setTextColor(CaretColorEnum::CUSTOM);
     m_text->setCustomTextColor(foregroundFloatRGBA);
     
-        float xyz[3];
-        m_text->getCoordinate()->getXYZ(xyz);
-        m_textRenderer->drawTextAtViewportCoords(xyz[0],
-                                                 xyz[1],
-                                                 0.0,
-                                                 *(m_text.get()));
+    float xyz[3];
+    m_text->getCoordinate()->getXYZ(xyz);
+    m_textRenderer->drawTextAtViewportCoords(xyz[0],
+                                             xyz[1],
+                                             0.0,
+                                             *(m_text.get()));
 }
