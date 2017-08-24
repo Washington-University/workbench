@@ -51,6 +51,7 @@ OperationParameters* OperationVolumeWeightedStats::getParameters()
     
     OptionalParameter* weightVolumeOpt = ret->createOptionalParameter(2, "-weight-volume", "use weights from a volume file");
     weightVolumeOpt->addVolumeParameter(1, "weight-volume", "volume file containing the weights");
+    weightVolumeOpt->createOptionalParameter(2, "-match-maps", "each subvolume of input uses the corresponding subvolume from the weights file");
     
     OptionalParameter* subvolOpt = ret->createOptionalParameter(3, "-subvolume", "only display output for one subvolume");
     subvolOpt->addStringParameter(1, "subvolume", "the subvolume number or name");
@@ -275,11 +276,21 @@ void OperationVolumeWeightedStats::useParameters(OperationParameters* myParams, 
     OptionalParameter* weightVolumeOpt = myParams->getOptionalParameter(2);
     VolumeFile* myWeights = NULL;
     const float* weightData = NULL;
+    bool matchSubvolWeights = false;
     if (weightVolumeOpt->m_present)
     {
         myWeights = weightVolumeOpt->getVolume(1);
         if (!myWeights->matchesVolumeSpace(input)) throw OperationException("weight volume doesn't match volume space of input");
-        weightData = myWeights->getFrame();
+        if (weightVolumeOpt->getOptionalParameter(2)->m_present)
+        {
+            if (myWeights->getDimensions()[3] != dims[3])
+            {
+                throw OperationException("-match-maps specified, but weights file has different number of subvolumes than input");
+            }
+            matchSubvolWeights = true;
+        } else {
+            weightData = myWeights->getFrame();
+        }
     }
     int subvol = -1;
     OptionalParameter* subvolOpt = myParams->getOptionalParameter(3);
@@ -300,7 +311,7 @@ void OperationVolumeWeightedStats::useParameters(OperationParameters* myParams, 
         {
             if (myRoi->getDimensions()[3] != dims[3])
             {
-                throw OperationException("-match-maps specified, but roi has different number of subvolumes than input");
+                throw OperationException("-match-maps specified, but roi file has different number of subvolumes than input");
             }
             matchSubvolMode = true;
         } else {
@@ -353,6 +364,10 @@ void OperationVolumeWeightedStats::useParameters(OperationParameters* myParams, 
             {
                 roiData = myRoi->getFrame(i);
             }
+            if (matchSubvolWeights)
+            {
+                weightData = myWeights->getFrame(i);
+            }
             float result;
             if (weightData != NULL)
             {
@@ -369,6 +384,10 @@ void OperationVolumeWeightedStats::useParameters(OperationParameters* myParams, 
         if (matchSubvolMode)
         {
             roiData = myRoi->getFrame(subvol);
+        }
+        if (matchSubvolWeights)
+        {
+            weightData = myWeights->getFrame(subvol);
         }
         float result;
         if (weightData != NULL)
