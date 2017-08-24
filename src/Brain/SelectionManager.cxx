@@ -38,6 +38,7 @@
 #include "SelectionItemChartMatrix.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemChartTwoHistogram.h"
+#include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
@@ -76,6 +77,7 @@ SelectionManager::SelectionManager()
     m_chartDataFrequencyIdentification = new SelectionItemChartFrequencySeries();
     m_chartMatrixIdentification     = new SelectionItemChartMatrix();
     m_chartTwoHistogramIdentification = std::unique_ptr<SelectionItemChartTwoHistogram>(new SelectionItemChartTwoHistogram());
+    m_chartTwoLabelIdentification = std::unique_ptr<SelectionItemChartTwoLabel>(new SelectionItemChartTwoLabel());
     m_chartTwoLineSeriesIdentification = std::unique_ptr<SelectionItemChartTwoLineSeries>(new SelectionItemChartTwoLineSeries());
     m_chartTwoMatrixIdentification = std::unique_ptr<SelectionItemChartTwoMatrix>(new SelectionItemChartTwoMatrix());
     
@@ -99,6 +101,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_chartMatrixIdentification);
     m_allSelectionItems.push_back(m_chartTimeSeriesIdentification);
     m_allSelectionItems.push_back(m_chartTwoHistogramIdentification.get());
+    m_allSelectionItems.push_back(m_chartTwoLabelIdentification.get());
     m_allSelectionItems.push_back(m_chartTwoLineSeriesIdentification.get());
     m_allSelectionItems.push_back(m_chartTwoMatrixIdentification.get());
     m_allSelectionItems.push_back(m_ciftiConnectivityMatrixRowColumnIdentfication);
@@ -766,6 +769,24 @@ const SelectionItemChartTwoLineSeries*
 SelectionManager::getChartTwoLineSeriesIdentification() const
 {
     return m_chartTwoLineSeriesIdentification.get();
+}
+
+/**
+ * @return Identification for chart two label identification
+ */
+SelectionItemChartTwoLabel*
+SelectionManager::getChartTwoLabelIdentification()
+{
+    return m_chartTwoLabelIdentification.get();
+}
+
+/**
+ * @return Identification for chart two label identification
+ */
+const SelectionItemChartTwoLabel*
+SelectionManager::getChartTwoLabelIdentification() const
+{
+    return m_chartTwoLabelIdentification.get();
 }
 
 /**

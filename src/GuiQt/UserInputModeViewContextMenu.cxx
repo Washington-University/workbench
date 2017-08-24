@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <QActionGroup>
+#include <QLineEdit>
 
 #define __USER_INPUT_MODE_VIEW_CONTEXT_MENU_DECLARE__
 #include "UserInputModeViewContextMenu.h"
@@ -34,6 +35,8 @@
 #include "BrowserTabContent.h"
 #include "ChartableLineSeriesBrainordinateInterface.h"
 #include "ChartingDataManager.h"
+#include "ChartTwoCartesianAxis.h"
+#include "ChartTwoOverlaySet.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryFile.h"
@@ -57,6 +60,7 @@
 #include "Model.h"
 #include "ProgressReportingDialog.h"
 #include "SelectionItemBorderSurface.h"
+#include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemSurfaceNode.h"
@@ -67,6 +71,7 @@
 #include "Surface.h"
 #include "UserInputModeFociWidget.h"
 #include "VolumeFile.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -110,6 +115,11 @@ UserInputModeViewContextMenu::UserInputModeViewContextMenu(SelectionManager* sel
     addBorderRegionOfInterestActions();
     
     /*
+     * Add the chart actions
+     */
+    addChartActions();
+    
+    /*
      * Add the foci actions.
      */
     addFociActions();
@@ -117,16 +127,41 @@ UserInputModeViewContextMenu::UserInputModeViewContextMenu(SelectionManager* sel
     /*
      * Show Label ROI operations only for surfaces
      */
-        addLabelRegionOfInterestActions();
+    addLabelRegionOfInterestActions();
     
     const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
     
-    if (this->actions().count() > 0) {
-        this->addSeparator();
+    bool showRemoveVertexSymbolsFlag = false;
+    if (this->browserTabContent != NULL) {
+        switch (this->browserTabContent->getSelectedModelType()) {
+            case ModelTypeEnum::MODEL_TYPE_CHART:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                showRemoveVertexSymbolsFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                showRemoveVertexSymbolsFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                showRemoveVertexSymbolsFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                showRemoveVertexSymbolsFlag = true;
+                break;
+        }
     }
-    this->addAction("Remove All Vertex Identification Symbols",
-                    this,
-                    SLOT(removeAllNodeIdentificationSymbolsSelected()));
+    if (showRemoveVertexSymbolsFlag) {
+        if (this->actions().count() > 0) {
+            this->addSeparator();
+        }
+        this->addAction("Remove All Vertex Identification Symbols",
+                        this,
+                        SLOT(removeAllNodeIdentificationSymbolsSelected()));
+    }
     
     if (idSymbol->isValid()) {
         const AString text = ("Remove Identification of Vertices "
@@ -642,6 +677,57 @@ UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
                      true);
     addActionsToMenu(chartableDataActions,
                      true);
+}
+
+/**
+ * Add chart options to the menu
+ */
+void
+UserInputModeViewContextMenu::addChartActions()
+{
+    QList<QAction*> chartActions;
+
+    SelectionItemChartTwoLabel* labelID = this->selectionManager->getChartTwoLabelIdentification();
+    if (labelID->isValid()) {
+        chartActions.push_back(WuQtUtilities::createAction("Edit Chart Axis Label...",
+                                                                "",
+                                                                this,
+                                                                this,
+                                                                SLOT(editChartLabelSelected())));
+    }
+    
+    addActionsToMenu(chartActions, true);
+}
+
+/**
+ * Called to edit the chart label.
+ */
+void
+UserInputModeViewContextMenu::editChartLabelSelected()
+{
+    SelectionItemChartTwoLabel* labelID = this->selectionManager->getChartTwoLabelIdentification();
+    if (labelID->isValid()) {
+        ChartTwoCartesianAxis* axis = labelID->getChartTwoCartesianAxis();
+        ChartTwoOverlaySet* chartOverlaySet = labelID->getChartOverlaySet();
+        if ((axis != NULL)
+            && (chartOverlaySet != NULL)) {
+            WuQDataEntryDialog newNameDialog("Axis Label",
+                                             this);
+            QLineEdit* lineEdit = newNameDialog.addLineEditWidget("Label");
+            lineEdit->setText(chartOverlaySet->getAxisLabel(axis));
+            if (newNameDialog.exec() == WuQDataEntryDialog::Accepted) {
+                const AString name = lineEdit->text().trimmed();
+                chartOverlaySet->setAxisLabel(axis,
+                                              name);
+                
+                /*
+                 * Update graphics.
+                 */
+                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            }
+        }
+    }
 }
 
 /**

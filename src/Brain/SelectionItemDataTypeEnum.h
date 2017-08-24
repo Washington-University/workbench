@@ -59,6 +59,8 @@ public:
         CHART_TIME_SERIES,
         /** Version Two Chart Histogram */
         CHART_TWO_HISTOGRAM,
+        /** Version Two Chart Label */
+        CHART_TWO_LABEL,
         /** Version Two Chart Line-Series */
         CHART_TWO_LINE_SERIES,
         /** Version Two Chart Matrix */

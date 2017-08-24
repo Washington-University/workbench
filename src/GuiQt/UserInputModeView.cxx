@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <QMessageBox>
+#include <QLineEdit>
 
 #define __USER_INPUT_MODE_VIEW_DECLARE__
 #include "UserInputModeView.h"
@@ -29,12 +30,17 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
+#include "ChartTwoCartesianAxis.h"
+#include "ChartTwoOverlaySet.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventUpdateYokedWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "MouseEvent.h"
+#include "SelectionItemChartTwoLabel.h"
+#include "SelectionManager.h"
 #include "UserInputModeViewContextMenu.h"
+#include "WuQDataEntryDialog.h"
 
 using namespace caret;
 
@@ -160,6 +166,50 @@ AString
 UserInputModeView::toString() const
 {
     return "UserInputModeView";
+}
+
+/**
+ * Process a mouse left double-click event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeView::mouseLeftDoubleClick(const MouseEvent& mouseEvent)
+{
+    const bool allowDoubleClickToEditChartLabel = false;
+    if (allowDoubleClickToEditChartLabel) {
+        const int32_t mouseX = mouseEvent.getX();
+        const int32_t mouseY = mouseEvent.getY();
+        
+        BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+        SelectionManager* idManager = openGLWidget->performIdentification(mouseX,
+                                                                          mouseY,
+                                                                          false);
+        CaretAssert(idManager);
+        SelectionItemChartTwoLabel* labelID = idManager->getChartTwoLabelIdentification();
+        if (labelID->isValid()) {
+            ChartTwoCartesianAxis* axis = labelID->getChartTwoCartesianAxis();
+            ChartTwoOverlaySet* chartOverlaySet = labelID->getChartOverlaySet();
+            if ((axis != NULL)
+                && (chartOverlaySet != NULL)) {
+                WuQDataEntryDialog newNameDialog("Axis Label",
+                                                 openGLWidget);
+                QLineEdit* lineEdit = newNameDialog.addLineEditWidget("Label");
+                lineEdit->setText(chartOverlaySet->getAxisLabel(axis));
+                if (newNameDialog.exec() == WuQDataEntryDialog::Accepted) {
+                    const AString name = lineEdit->text().trimmed();
+                    chartOverlaySet->setAxisLabel(axis,
+                                                  name);
+                    
+                    /*
+                     * Update graphics.
+                     */
+                    updateGraphics(mouseEvent);
+                }
+            }
+        }
+    }
 }
 
 /**

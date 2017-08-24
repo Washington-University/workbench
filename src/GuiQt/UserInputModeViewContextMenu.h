@@ -90,6 +90,8 @@ namespace caret {
 
         void borderDataSeriesSelected();
         
+        void editChartLabelSelected();
+        
     private:
         class ParcelConnectivity {
         public:
@@ -143,6 +145,8 @@ namespace caret {
         void addIdentificationActions();
         
         void addBorderRegionOfInterestActions();
+        
+        void addChartActions();
         
         void addFociActions();
         

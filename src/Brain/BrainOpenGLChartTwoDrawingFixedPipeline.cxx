@@ -63,6 +63,7 @@
 #include "SessionManager.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionItemChartTwoHistogram.h"
+#include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionManager.h"
@@ -156,6 +157,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     m_selectionItemHistogram  = m_brain->getSelectionManager()->getChartTwoHistogramIdentification();
     m_selectionItemLineSeries = m_brain->getSelectionManager()->getChartTwoLineSeriesIdentification();
     m_selectionItemMatrix     = m_brain->getSelectionManager()->getChartTwoMatrixIdentification();
+    m_selectionItemChartLabel = m_brain->getSelectionManager()->getChartTwoLabelIdentification();
     
     m_fixedPipelineDrawing->disableLighting();
     
@@ -221,11 +223,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
             if ( (! m_selectionItemHistogram->isEnabledForSelection())
-                && (! m_selectionItemAnnotation->isEnabledForSelection()) ){
+                && (! m_selectionItemAnnotation->isEnabledForSelection())
+                && (! m_selectionItemChartLabel->isEnabledForSelection()) ) {
                 drawHistogramFlag = false;
             }
             if ( (! m_selectionItemLineSeries->isEnabledForSelection())
-                && (! m_selectionItemAnnotation->isEnabledForSelection()) ) {
+                && (! m_selectionItemAnnotation->isEnabledForSelection())
+                && (! m_selectionItemChartLabel->isEnabledForSelection()) ) {
                 drawLineSeriesFlag = false;
             }
             if ( (! m_selectionItemMatrix->isEnabledForSelection())
@@ -467,14 +471,38 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
     
     /*
      * Bounds valid?
+     * For X, maximum value must be greater than minimum value
+     * For Y, maximum value must be greater than or equal to minimum value since
+     * all data points may be zero.
      */
     const bool xBottomValid = (xMinBottom < xMaxBottom);
     const bool xTopValid    = (xMinTop < xMaxTop);
     const bool xValid       = (xBottomValid || xTopValid);
-    const bool yLeftValid   = (yMinLeft < yMaxLeft);
-    const bool yRightValid  = (yMinRight < yMaxRight);
+    const bool yLeftValid   = (yMinLeft <= yMaxLeft);
+    const bool yRightValid  = (yMinRight <= yMaxRight);
     const bool yValid       = (yLeftValid || yRightValid);
-    if (xValid || yValid) {
+    if (xValid && yValid) {
+        /*
+         * If Y-range is zero, make it a non-zero range.
+         * Otherwise, the orthographic projection will be invalid
+         */
+        const float smallValue = 0.00001;
+        const float smallRange = 0.01;
+        if (yLeftValid) {
+            const float diff = yMaxLeft - yMinLeft;
+            if (diff < smallValue) {
+                yMinLeft -= smallRange;
+                yMaxLeft += smallRange;
+            }
+        }
+        if (yRightValid) {
+            const float diff = yMaxRight - yMinRight;
+            if (diff < smallValue) {
+                yMinRight -= smallRange;
+                yMaxRight += smallRange;
+            }
+        }
+        
         /*
          * Make invalid ranges zero
          */
@@ -657,10 +685,38 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
             && (tabViewportHeight > (bottomAxisHeight + topAxisHeight + topTitleHeight))) {
             
             titleInfo.drawTitle(foregroundRGBA);
-            leftAxisInfo.drawAxis(this, foregroundRGBA, yMinLeft, yMaxLeft);
-            rightAxisInfo.drawAxis(this, foregroundRGBA, yMinRight, yMaxRight);
-            topAxisInfo.drawAxis(this, foregroundRGBA, xMinTop, xMaxTop);
-            bottomAxisInfo.drawAxis(this, foregroundRGBA, xMinBottom, xMaxBottom);
+            leftAxisInfo.drawAxis(this,
+                                  m_chartOverlaySet,
+                                  m_fixedPipelineDrawing->getContextSharingGroupPointer(),
+                                  m_fixedPipelineDrawing->mouseX,
+                                  m_fixedPipelineDrawing->mouseY,
+                                  foregroundRGBA,
+                                  yMinLeft,
+                                  yMaxLeft);
+            rightAxisInfo.drawAxis(this,
+                                   m_chartOverlaySet,
+                                   m_fixedPipelineDrawing->getContextSharingGroupPointer(),
+                                   m_fixedPipelineDrawing->mouseX,
+                                   m_fixedPipelineDrawing->mouseY,
+                                   foregroundRGBA,
+                                   yMinRight,
+                                   yMaxRight);
+            topAxisInfo.drawAxis(this,
+                                 m_chartOverlaySet,
+                                 m_fixedPipelineDrawing->getContextSharingGroupPointer(),
+                                 m_fixedPipelineDrawing->mouseX,
+                                 m_fixedPipelineDrawing->mouseY,
+                                 foregroundRGBA,
+                                 xMinTop,
+                                 xMaxTop);
+            bottomAxisInfo.drawAxis(this,
+                                    m_chartOverlaySet,
+                                    m_fixedPipelineDrawing->getContextSharingGroupPointer(),
+                                    m_fixedPipelineDrawing->mouseX,
+                                    m_fixedPipelineDrawing->mouseY,
+                                    foregroundRGBA,
+                                    xMinBottom,
+                                    xMaxBottom);
             
             
             drawChartGraphicsBoxAndSetViewport(tabViewportX,
@@ -1669,9 +1725,7 @@ m_tabViewportHeight(tabViewport[3])
     /*
      * Width/height of label
      */
-    float labelWidth  = 0.0f;
-    float labelHeight = 0.0f;
-    initializeLabel(labelText, labelWidth, labelHeight);
+    initializeLabel(labelText, m_labelWidth, m_labelHeight);
     
     /*
      * Maximum width/height of numeric values
@@ -1687,13 +1741,13 @@ m_tabViewportHeight(tabViewport[3])
     switch (axisLocation) {
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            m_axisHeight = std::ceil(m_labelPaddingSizePixels + labelHeight + numericsHeight + m_numericsTicksPaddingSizePixels + m_tickLength);
+            m_axisHeight = std::ceil(m_labelPaddingSizePixels + m_labelHeight + numericsHeight + m_numericsTicksPaddingSizePixels + m_tickLength);
             CaretAssert(m_axisHeight >= 0.0f);
             break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
             /* Note: label is rotated on left/right so use it's height */
-            m_axisWidth = std::ceil(m_labelPaddingSizePixels + labelHeight + numericsWidth + m_numericsTicksPaddingSizePixels + m_tickLength);
+            m_axisWidth = std::ceil(m_labelPaddingSizePixels + m_labelHeight + numericsWidth + m_numericsTicksPaddingSizePixels + m_tickLength);
             CaretAssert(m_axisWidth >= 0.0f);
             break;
     }
@@ -2026,7 +2080,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
      * 'Center' the label in the viewport
      */
     if (m_axis->isShowLabel()) {
-        float xyz[3];
+        float xyz[3] = { 0.0, 0.0, 0.0 };
         switch (m_axisLocation) {
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                 xyz[0] = vpX + (vpWidth / 2.0f);
@@ -2055,7 +2109,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
      * to real coordinate.
      */
     for (auto& text : m_numericsText) {
-        float xyz[3];
+        float xyz[3] = { 0.0, 0.0, 0.0 };
         text->getCoordinate()->getXYZ(xyz);
         
         switch (m_axisLocation) {
@@ -2088,6 +2142,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
  *
  * @param chartDrawing
  *     The chart drawing parent.
+ * @param chartTwoOverlaySet
+ *     Chart overlay set containing the axis.
+ * @param openGLContextSharingGroupPointer
+ *     Pointer to current OpenGL context.
+ * @param mouseX
+ *     X-coordinate of the mouse.
+ * @param mouseY
+ *     Y-coordinate of the mouse.
  * @param foregroundFloatRGBA
  *     Color of the foreground.
  * @param axisMinimumValueOut
@@ -2097,6 +2159,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLChartTwoDrawingFixedPipeline* chartDrawing,
+                                                                   ChartTwoOverlaySet* chartTwoOverlaySet,
+                                                                   void* openGLContextSharingGroupPointer,
+                                                                   const int32_t mouseX,
+                                                                   const int32_t mouseY,
                                                                    const float foregroundFloatRGBA[4],
                                                                    float& axisMinimumValueOut,
                                                                    float& axisMaximumValueOut)
@@ -2203,10 +2269,91 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
     if (m_axis->isShowLabel()) {
         float xyz[3];
         m_labelText->getCoordinate()->getXYZ(xyz);
-        m_textRenderer->drawTextAtViewportCoords(xyz[0],
-                                                 xyz[1],
-                                                 0.0,
-                                                 *(m_labelText.get()));
+        if (chartDrawing->m_identificationModeFlag) {
+            /*
+             * For identification simply draw a box in a single quad
+             */
+            int32_t primitiveIndex = -1;
+            float   primitiveDepth = 0.0;
+            
+            float bottomLeft[3], bottomRight[3], topLeft[3], topRight[3];
+            m_textRenderer->getBoundsForTextAtViewportCoords(*(m_labelText.get()), xyz[0], xyz[1], xyz[2],
+                                                             m_tabViewportWidth, m_tabViewportHeight,
+                                                             bottomLeft, bottomRight, topRight, topLeft);
+            
+            std::unique_ptr<GraphicsPrimitiveV3f> boxPrimitive = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
+                                                                                                                                        foregroundFloatRGBA));
+            boxPrimitive->reserveForNumberOfVertices(4);
+            boxPrimitive->addVertex(bottomLeft);
+            boxPrimitive->addVertex(bottomRight);
+            boxPrimitive->addVertex(topRight);
+            boxPrimitive->addVertex(topLeft);
+            
+//            Complete offsets and maybe examine alignments from the text annotation to set the offsets
+//            
+//            float horizSize = 0.0f;
+//            float vertSize  = 0.0f;
+//            switch (m_axisLocation) {
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+//                    horizSize = m_labelWidth;
+//                    vertSize  = m_labelHeight;
+//                    xyz[1] += (vertSize / 2.0f);
+//                    break;
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+//                    horizSize = m_labelWidth;
+//                    vertSize  = m_labelHeight;
+//                    xyz[1] -= (vertSize / 2.0f);
+//                    break;
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+//                    /*
+//                     * Label is drawn rotated 90 degrees !
+//                     */
+//                    horizSize = m_labelHeight;
+//                    vertSize  = m_labelWidth;
+//                    xyz[0] += (horizSize / 2.0f);
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+//                    /*
+//                     * Label is drawn rotated 90 degrees !
+//                     */
+//                    horizSize = m_labelHeight;
+//                    vertSize  = m_labelWidth;
+//                    xyz[0] -= (horizSize / 2.0f);
+//                    break;
+//            }
+//            
+//            const float halfWidth  = horizSize / 2.0f;
+//            const float halfHeight = vertSize  / 2.0f;
+//            const float left   = xyz[0] - halfWidth;
+//            const float right  = xyz[0] + halfWidth;
+//            const float bottom = xyz[1] - halfHeight;
+//            const float top    = xyz[1] + halfHeight;
+//            std::unique_ptr<GraphicsPrimitiveV3f> boxPrimitive = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
+//                                                                                              foregroundFloatRGBA));
+//            boxPrimitive->addVertex(left,  bottom, 0.0f);
+//            boxPrimitive->addVertex(right, bottom, 0.0f);
+//            boxPrimitive->addVertex(right, top, 0.0f);
+//            boxPrimitive->addVertex(left,  top, 0.0f);
+            
+            GraphicsEngineDataOpenGL::drawWithSelection(openGLContextSharingGroupPointer,
+                                                        boxPrimitive.get(),
+                                                        mouseX,
+                                                        mouseY,
+                                                        primitiveIndex,
+                                                        primitiveDepth);
+            
+            if (primitiveIndex >= 0) {
+                if (chartDrawing->m_selectionItemChartLabel->isOtherScreenDepthCloserToViewer(primitiveDepth)) {
+                    chartDrawing->m_selectionItemChartLabel->setChartTwoCartesianAxis(const_cast<ChartTwoCartesianAxis*>(m_axis),
+                                                                                      chartTwoOverlaySet);
+                }
+            }
+        }
+        else {
+            m_textRenderer->drawTextAtViewportCoords(xyz[0],
+                                                     xyz[1],
+                                                     0.0,
+                                                     *(m_labelText.get()));
+        }
     }
 }
 

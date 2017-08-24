@@ -161,6 +161,7 @@ SelectionItemChartFrequencySeries.h
 SelectionItemChartMatrix.h
 SelectionItemChartTimeSeries.h
 SelectionItemChartTwoHistogram.h
+SelectionItemChartTwoLabel.h
 SelectionItemChartTwoLineSeries.h
 SelectionItemChartTwoMatrix.h
 SelectionItemCiftiConnectivityMatrixRowColumn.h
@@ -306,6 +307,7 @@ SelectionItemChartFrequencySeries.cxx
 SelectionItemChartMatrix.cxx
 SelectionItemChartTimeSeries.cxx
 SelectionItemChartTwoHistogram.cxx
+SelectionItemChartTwoLabel.cxx
 SelectionItemChartTwoLineSeries.cxx
 SelectionItemChartTwoMatrix.cxx
 SelectionItemCiftiConnectivityMatrixRowColumn.cxx

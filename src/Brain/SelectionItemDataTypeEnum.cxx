@@ -107,6 +107,10 @@ SelectionItemDataTypeEnum::initialize()
                                                  "CHART_TWO_LINE_SERIES",
                                                  "Line-Series Chart Two"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(CHART_TWO_LABEL,
+                                                 "CHART_TWO_LABEL",
+                                                 "Label Chart Two"));
+    
     enumData.push_back(SelectionItemDataTypeEnum(CHART_TWO_MATRIX,
                                                  "CHART_TWO_MATRIX",
                                                  "Matrix Chart Two"));

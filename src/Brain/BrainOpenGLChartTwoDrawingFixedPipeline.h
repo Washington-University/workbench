@@ -44,6 +44,7 @@ namespace caret {
     class GraphicsPrimitive;
     class SelectionItemAnnotation;
     class SelectionItemChartTwoHistogram;
+    class SelectionItemChartTwoLabel;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
     
@@ -155,6 +156,10 @@ namespace caret {
                                                 const float graphicsBoxLineThickness);
             
             void drawAxis(BrainOpenGLChartTwoDrawingFixedPipeline* chartDrawing,
+                          ChartTwoOverlaySet* chartTwoOverlaySet,
+                          void* openGLContextSharingGroupPointer,
+                          const int32_t mouseX,
+                          const int32_t mouseY,
                           const float foregroundFloatRGBA[4],
                           float& axisMinimumValueOut,
                           float& axisMaximumValueOut);
@@ -185,6 +190,8 @@ namespace caret {
             const float m_tabViewportHeight = 0.0f;
             float m_lineDrawingWidth = 1.0f;
             float m_tickLength = 0.0f;
+            float m_labelWidth  = 0.0f;
+            float m_labelHeight = 0.0f;
             
             void initializeNumericText(const float dataMinimumDataValue,
                                        const float dataMaximumDataValue,
@@ -269,6 +276,8 @@ namespace caret {
 
         SelectionItemChartTwoMatrix* m_selectionItemMatrix;
 
+        SelectionItemChartTwoLabel* m_selectionItemChartLabel;
+
         bool m_identificationModeFlag;
         
         /** These annotations will be drawn by the annotation drawing code */
@@ -283,6 +292,7 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class AxisDrawingInfo;
     };
     
 #ifdef __BRAIN_OPEN_G_L_CHART_TWO_DRAWING_FIXED_PIPELINE_DECLARE__
