@@ -25,11 +25,11 @@
 #include "BrainBrowserWindowToolBarComponent.h"
 
 class QCheckBox;
-class QDoubleSpinBox;
 
 namespace caret {
 
     class ChartTwoOverlaySet;
+    class WuQDoubleSpinBox;
     
     class BrainBrowserWindowToolBarChartTwoTitle : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
@@ -57,9 +57,9 @@ namespace caret {
         
         QCheckBox* m_showTitleCheckBox;
         
-        QDoubleSpinBox* m_titleSizeSpinBox;
+        WuQDoubleSpinBox* m_titleSizeSpinBox;
         
-        QDoubleSpinBox* m_paddingSizeSpinBox;
+        WuQDoubleSpinBox* m_paddingSizeSpinBox;
         
 
         ChartTwoOverlaySet* m_chartOverlaySet;

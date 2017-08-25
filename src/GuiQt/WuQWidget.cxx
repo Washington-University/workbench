@@ -23,6 +23,8 @@
 #include "WuQWidget.h"
 #undef __WU_Q_WIDGET_DECLARE__
 
+#include <QWidget>
+
 #include "CaretAssert.h"
 
 using namespace caret;
@@ -67,6 +69,7 @@ using namespace caret;
  * which will destroy it.
  */
 
+
 /**
  * Constructor.
  */
@@ -81,6 +84,35 @@ WuQWidget::WuQWidget(QObject* parent)
  */
 WuQWidget::~WuQWidget()
 {
+}
+
+/**
+ * Sets both the minimum and maximum width of the widget to w without changing the heights.
+ *
+ * @param width
+ *     Width value.
+ */
+void
+WuQWidget::setFixedWidth(int width)
+{
+    QWidget* widget = getWidget();
+    CaretAssert(widget);
+    widget->setFixedWidth(width);
+}
+
+
+/**
+ * Set the tooltip for this spin box.
+ *
+ * @param tooltip
+ *     Text for the tooltip.
+ */
+void
+WuQWidget::setToolTip(const QString& tooltip)
+{
+    QWidget* widget = getWidget();
+    CaretAssert(widget);
+    widget->setToolTip(tooltip);
 }
 
 

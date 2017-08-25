@@ -39,6 +39,7 @@ namespace caret {
     class ChartTwoCartesianAxisWidget;
     class ChartTwoOverlaySet;
     class EnumComboBoxTemplate;
+    class WuQDoubleSpinBox;
     class WuQWidgetObjectGroup;
     
     class BrainBrowserWindowToolBarChartTwoAxes : public BrainBrowserWindowToolBarComponent {
@@ -100,9 +101,9 @@ namespace caret {
         
         EnumComboBoxTemplate* m_autoUserRangeComboBox;
         
-        QDoubleSpinBox* m_userMinimumValueSpinBox;
+        WuQDoubleSpinBox* m_userMinimumValueSpinBox;
         
-        QDoubleSpinBox* m_userMaximumValueSpinBox;
+        WuQDoubleSpinBox* m_userMaximumValueSpinBox;
         
         QCheckBox* m_showTickMarksCheckBox;
         
@@ -116,13 +117,13 @@ namespace caret {
         
         QSpinBox* m_userSubdivisionsSpinBox;
         
-        QDoubleSpinBox* m_labelSizeSpinBox;
+        WuQDoubleSpinBox* m_labelSizeSpinBox;
         
-        QDoubleSpinBox* m_numericsSizeSpinBox;
+        WuQDoubleSpinBox* m_numericsSizeSpinBox;
         
-        QDoubleSpinBox* m_linesTicksSizeSpinBox;
+        WuQDoubleSpinBox* m_linesTicksSizeSpinBox;
         
-        QDoubleSpinBox* m_paddingSizeSpinBox;
+        WuQDoubleSpinBox* m_paddingSizeSpinBox;
         
         ChartTwoOverlaySet* m_chartOverlaySet;
         

@@ -185,6 +185,7 @@ ELSE()
         WuQDialogModal.h
         WuQDialogNonModal.h
         WuQDoubleSlider.h
+        WuQDoubleSpinBox.h
         WuQEventBlockingFilter.h
         WuQGridLayoutGroup.h
         WuQGroupBoxExclusiveWidget.h
@@ -411,6 +412,7 @@ WuQDialog.h
 WuQDialogModal.h
 WuQDialogNonModal.h
 WuQDoubleSlider.h
+WuQDoubleSpinBox.h
 WuQEventBlockingFilter.h
 WuQFactory.h
 WuQGridLayoutGroup.h
@@ -623,6 +625,7 @@ WuQDialog.cxx
 WuQDialogModal.cxx
 WuQDialogNonModal.cxx
 WuQDoubleSlider.cxx
+WuQDoubleSpinBox.cxx
 WuQEventBlockingFilter.cxx
 WuQFactory.cxx
 WuQGridLayoutGroup.cxx

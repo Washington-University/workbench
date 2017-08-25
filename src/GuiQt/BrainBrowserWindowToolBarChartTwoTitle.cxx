@@ -24,7 +24,6 @@
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_TITLE_DECLARE__
 
 #include <QCheckBox>
-#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -39,6 +38,7 @@
 #include "ChartTwoTitle.h"
 #include "ModelChartTwo.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQDoubleSpinBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -71,15 +71,15 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     WuQtUtilities::setToolButtonStyleForQt5Mac(editTitleToolButton);
     editTitleToolButton->setDefaultAction(editTitleAction);
     
-    m_titleSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
-    m_titleSizeSpinBox->setSuffix("%");
-    QObject::connect(m_titleSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    m_titleSizeSpinBox = new WuQDoubleSpinBox(this);
+    m_titleSizeSpinBox->setupForPercentage(0.0, 99.0); // 99 instead of 100 results in narrower width
+    QObject::connect(m_titleSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
     m_titleSizeSpinBox->setToolTip("Set height of title as percentage of tab height");
     
-    m_paddingSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
-    m_paddingSizeSpinBox->setSuffix("%");
-    QObject::connect(m_paddingSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
+    m_paddingSizeSpinBox->setupForPercentage(0.0, 99.0); // 99 instead of 100 results in narrower width
+    QObject::connect(m_paddingSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
     
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height");
@@ -89,10 +89,10 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     layout->addWidget(m_showTitleCheckBox, row, 0, 1, 2, Qt::AlignHCenter);
     row++;
     layout->addWidget(new QLabel("Size"), row, 0);
-    layout->addWidget(m_titleSizeSpinBox, row, 1);
+    layout->addWidget(m_titleSizeSpinBox->getWidget(), row, 1);
     row++;
     layout->addWidget(new QLabel("Pad"), row, 0);
-    layout->addWidget(m_paddingSizeSpinBox, row, 1);
+    layout->addWidget(m_paddingSizeSpinBox->getWidget(), row, 1);
     row++;
     layout->addWidget(editTitleToolButton, row, 0, 1, 2, Qt::AlignHCenter);
     row++;

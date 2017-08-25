@@ -54,6 +54,7 @@
 #include "ModelChartTwo.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
+#include "WuQDoubleSpinBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -131,14 +132,17 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
     m_autoUserRangeComboBox->getWidget()->setToolTip("Choose auto or user axis range scaling");
     
-    const double bigValue = 999999.0;
-    m_userMinimumValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigValue, bigValue, 1.0, 1);
-    QObject::connect(m_userMinimumValueSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    m_userMinimumValueSpinBox = new WuQDoubleSpinBox(this);
+    m_userMinimumValueSpinBox->setDecimalsModeAuto();
+    m_userMinimumValueSpinBox->setSingleStepPercentage(1.0);
+    QObject::connect(m_userMinimumValueSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisMinimumValueChanged);
     m_userMinimumValueSpinBox->setToolTip("Set user scaling axis minimum value");
     
-    m_userMaximumValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigValue, bigValue, 1.0, 1);
-    QObject::connect(m_userMaximumValueSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    m_userMaximumValueSpinBox = new WuQDoubleSpinBox(this);
+    m_userMaximumValueSpinBox->setDecimalsModeAuto();
+    m_userMaximumValueSpinBox->setSingleStepPercentage(1.0);
+    QObject::connect(m_userMaximumValueSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisMaximumValueChanged);
     m_userMaximumValueSpinBox->setToolTip("Set user scaling axis maximum value");
     
@@ -170,27 +174,27 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     /*
      * Size spin boxes
      */
-    m_labelSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
-    m_labelSizeSpinBox->setSuffix("%");
-    QObject::connect(m_labelSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    m_labelSizeSpinBox = new WuQDoubleSpinBox(this);
+    m_labelSizeSpinBox->setupForPercentage(0.0, 99.0); // 99 instead of 100 results in narrower width
+    QObject::connect(m_labelSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_labelSizeSpinBox->setToolTip("Set height of label as percentage of tab height for selected axis");
     
-    m_numericsSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
-    m_numericsSizeSpinBox->setSuffix("%");
-    QObject::connect(m_numericsSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    m_numericsSizeSpinBox = new WuQDoubleSpinBox(this);
+    m_numericsSizeSpinBox->copySettings(m_labelSizeSpinBox);
+    QObject::connect(m_numericsSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_numericsSizeSpinBox->setToolTip("Set height of numeric values as percentage of tab height for selected axis");
     
-    m_linesTicksSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
-    m_linesTicksSizeSpinBox->setSuffix("%");
-    QObject::connect(m_linesTicksSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    m_linesTicksSizeSpinBox = new WuQDoubleSpinBox(this);
+    m_linesTicksSizeSpinBox->copySettings(m_labelSizeSpinBox);
+    QObject::connect(m_linesTicksSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines as percentage of tab height for ALL axes");
     
-    m_paddingSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(0.0, 100.0, 1.0, 1);
-    m_paddingSizeSpinBox->setSuffix("%");
-    QObject::connect(m_paddingSizeSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
+    m_paddingSizeSpinBox->copySettings(m_labelSizeSpinBox);
+    QObject::connect(m_paddingSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height for selected axis");
     
@@ -224,16 +228,16 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     WuQtUtilities::setLayoutSpacingAndMargins(sizesLayout, 3, 0);
     int32_t sizesRow = 0;
     sizesLayout->addWidget(new QLabel("Label"), sizesRow, 0);
-    sizesLayout->addWidget(m_labelSizeSpinBox, sizesRow, 1);
+    sizesLayout->addWidget(m_labelSizeSpinBox->getWidget(), sizesRow, 1);
     sizesRow++;
     sizesLayout->addWidget(new QLabel("Scale"), sizesRow, 0);
-    sizesLayout->addWidget(m_numericsSizeSpinBox, sizesRow, 1);
+    sizesLayout->addWidget(m_numericsSizeSpinBox->getWidget(), sizesRow, 1);
     sizesRow++;
     sizesLayout->addWidget(new QLabel("Pad"), sizesRow, 0);
-    sizesLayout->addWidget(m_paddingSizeSpinBox, sizesRow, 1);
+    sizesLayout->addWidget(m_paddingSizeSpinBox->getWidget(), sizesRow, 1);
     sizesRow++;
     sizesLayout->addWidget(new QLabel("Lines"), sizesRow, 0);
-    sizesLayout->addWidget(m_linesTicksSizeSpinBox, sizesRow, 1);
+    sizesLayout->addWidget(m_linesTicksSizeSpinBox->getWidget(), sizesRow, 1);
     sizesRow++;
     
     /*
@@ -268,10 +272,10 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_userMinimumValueSpinBox->setFixedWidth(90);
     m_userMaximumValueSpinBox->setFixedWidth(90);
     rangeLayout->addWidget(new QLabel("Max"), rangeRow, 0);
-    rangeLayout->addWidget(m_userMaximumValueSpinBox, rangeRow, 1);
+    rangeLayout->addWidget(m_userMaximumValueSpinBox->getWidget(), rangeRow, 1);
     rangeRow++;
     rangeLayout->addWidget(new QLabel("Min"), rangeRow, 0);
-    rangeLayout->addWidget(m_userMinimumValueSpinBox, rangeRow, 1);
+    rangeLayout->addWidget(m_userMinimumValueSpinBox->getWidget(), rangeRow, 1);
     
     /*
      * Numerics widgets layout
