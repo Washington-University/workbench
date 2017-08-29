@@ -175,25 +175,25 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      * Size spin boxes
      */
     m_labelSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_labelSizeSpinBox->setupForPercentage(0.0, 99.0); // 99 instead of 100 results in narrower width
+    m_labelSizeSpinBox->setupRangePercentage(0.0, 99.0); // 99 instead of 100 results in narrower width
     QObject::connect(m_labelSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_labelSizeSpinBox->setToolTip("Set height of label as percentage of tab height for selected axis");
     
     m_numericsSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_numericsSizeSpinBox->copySettings(m_labelSizeSpinBox);
+    m_numericsSizeSpinBox->setupRangePercentage(0.0, 99.0);
     QObject::connect(m_numericsSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_numericsSizeSpinBox->setToolTip("Set height of numeric values as percentage of tab height for selected axis");
     
     m_linesTicksSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_linesTicksSizeSpinBox->copySettings(m_labelSizeSpinBox);
+    m_linesTicksSizeSpinBox->setupRangePercentage(0.0, 99.0);
     QObject::connect(m_linesTicksSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines as percentage of tab height for ALL axes");
     
     m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_paddingSizeSpinBox->copySettings(m_labelSizeSpinBox);
+    m_paddingSizeSpinBox->setupRangePercentage(0.0, 99.0);
     QObject::connect(m_paddingSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height for selected axis");
@@ -508,11 +508,12 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
         
         m_axisDisplayedByUserCheckBox->setChecked(m_chartAxis->isDisplayedByUser());
         m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(m_chartAxis->getScaleRangeMode());
-        float rangeMin(0.0), rangeMax(0.0);
-        m_chartAxis->getRange(rangeMin, rangeMax);
-        m_userMinimumValueSpinBox->setRange(rangeMin, rangeMax);
+        float rangeMin(0.0f), rangeMax(0.0f);
+        m_chartAxis->getDataRange(rangeMin, rangeMax);
+        const float exceedMultiplier = 1.0f;
+        m_userMinimumValueSpinBox->setRangeExceedable(rangeMin, rangeMax, exceedMultiplier);
         m_userMinimumValueSpinBox->setValue(m_chartAxis->getUserScaleMinimumValue());
-        m_userMaximumValueSpinBox->setRange(rangeMin, rangeMax);
+        m_userMaximumValueSpinBox->setRangeExceedable(rangeMin, rangeMax, exceedMultiplier);
         m_userMaximumValueSpinBox->setValue(m_chartAxis->getUserScaleMaximumValue());
         m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
         m_showLabelCheckBox->setChecked(m_chartAxis->isShowLabel());

@@ -34,6 +34,7 @@
 
 namespace caret {
     class AnnotationColorBar;
+    class BoundingBox;
     class CaretMappableDataFile;
     class ChartTwoOverlaySet;
     class PlainTextStringBuilder;
@@ -131,6 +132,8 @@ namespace caret {
         bool isAllMapsSelected() const;
         
         void setAllMapsSelected(const bool status);
+        
+        bool getBounds(BoundingBox& boundingBoxOut) const;
         
         virtual void receiveEvent(Event* event);
 

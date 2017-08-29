@@ -23,6 +23,7 @@
 #include "ChartTwoLineSeriesHistory.h"
 #undef __CHART_TWO_LINE_SERIES_HISTORY_DECLARE__
 
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartTwoDataCartesian.h"
@@ -460,6 +461,41 @@ ChartTwoLineSeriesHistory::clearModified()
     for (const auto item : m_chartHistory) {
         item->clearModified();
     }
+}
+
+/**
+ * Get a bounding box for data displayed within this overlay.
+ * Bounds are provided for histogram and line-series charts only.
+ *
+ * @param boundingBox
+ *     Upon exit contains bounds for data within this overlay
+ * @return
+ *     True if the bounds are valid, else false.
+ */
+bool
+ChartTwoLineSeriesHistory::getBounds(BoundingBox& boundingBoxOut) const
+{
+    boundingBoxOut.resetForUpdate();
+    
+    bool validFlag = false;
+    
+    for (const auto data : m_chartHistory) {
+        CaretAssert(data);
+        if (data->isSelected()) {
+            BoundingBox boundingBox;
+            if (data->getBounds(boundingBox)) {
+                boundingBoxOut.update(boundingBox.getMinX(),
+                                      boundingBox.getMinY(),
+                                      boundingBox.getMinZ());
+                boundingBoxOut.update(boundingBox.getMaxX(),
+                                      boundingBox.getMaxY(),
+                                      boundingBox.getMaxZ());
+                validFlag = true;
+            }
+        }
+    }
+    
+    return validFlag;
 }
 
 /**

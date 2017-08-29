@@ -190,6 +190,10 @@ EventTypeEnum::initialize()
                                      "EVENT_CHART_TWO_ATTRIBUTES_CHANGED",
                                      "GUI notification of the change in chart two atttributes"));
     
+    enumData.push_back(EventTypeEnum(EVENT_CHART_TWO_AXIS_GET_DATA_RANGE,
+                                     "EVENT_CHART_TWO_AXIS_GET_DATA_RANGE",
+                                     "Get the range of data for a chart two axis"));
+    
     enumData.push_back(EventTypeEnum(EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
                                      "EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA",
                                      "Load line series data for chart two implementation"));

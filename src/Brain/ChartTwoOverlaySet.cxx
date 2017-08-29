@@ -24,6 +24,7 @@
 #undef __CHART_TWO_OVERLAY_SET_DECLARE__
 
 #include "AnnotationPercentSizeText.h"
+#include "BoundingBox.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
@@ -36,6 +37,7 @@
 #include "EventAnnotationChartLabelGet.h"
 #include "EventBrowserTabGet.h"
 #include "EventChartTwoAttributesChanged.h"
+#include "EventChartTwoAxisGetDataRange.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventMapYokingValidation.h"
@@ -76,9 +78,9 @@ m_tabIndex(tabIndex)
 {
     m_numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
     
-    m_chartAxisLeft   = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT));
-    m_chartAxisRight  = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT));
-    m_chartAxisBottom = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
+    m_chartAxisLeft   = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT));
+    m_chartAxisRight  = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT));
+    m_chartAxisBottom = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
     
     m_chartAxisLeft->setEnabledByChart(false);
     m_chartAxisRight->setEnabledByChart(false);
@@ -90,16 +92,9 @@ m_tabIndex(tabIndex)
         {
             m_chartAxisLeft->setEnabledByChart(true);
             m_chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
-            float rangeMin = 0.0, rangeMax = 0.0;
-            m_chartAxisLeft->getRange(rangeMin, rangeMax);
-            rangeMin = 0.0;
-            m_chartAxisLeft->setRange(rangeMin, rangeMax);
             
             m_chartAxisRight->setEnabledByChart(false);
             m_chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
-            m_chartAxisRight->getRange(rangeMin, rangeMax);
-            rangeMin = 0.0;
-            m_chartAxisRight->setRange(rangeMin, rangeMax);
             
             m_chartAxisBottom->setEnabledByChart(true);
             m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
@@ -109,16 +104,9 @@ m_tabIndex(tabIndex)
         {
             m_chartAxisLeft->setEnabledByChart(true);
             m_chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
-            float rangeMin = 0.0, rangeMax = 0.0;
-            m_chartAxisLeft->getRange(rangeMin, rangeMax);
-            rangeMin = 0.0;
-            m_chartAxisLeft->setRange(rangeMin, rangeMax);
             
             m_chartAxisRight->setEnabledByChart(false);
             m_chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
-            m_chartAxisRight->getRange(rangeMin, rangeMax);
-            rangeMin = 0.0;
-            m_chartAxisRight->setRange(rangeMin, rangeMax);
             
             m_chartAxisBottom->setEnabledByChart(true);
             m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
@@ -162,6 +150,7 @@ m_tabIndex(tabIndex)
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
 }
@@ -288,6 +277,44 @@ ChartTwoOverlaySet::getOverlayWeakPointer(const int32_t overlayNumber)
     return m_overlays[overlayNumber];
 }
 
+/**
+ * @return The displayed overlays which are the overlays
+ * shown in the Overlay Toolbox and this includes
+ * overlays that the user may have set to disabled.
+ */
+std::vector<ChartTwoOverlay*>
+ChartTwoOverlaySet::getDisplayedOverlays() const
+{
+    std::vector<ChartTwoOverlay*> displayedOverlays;
+    
+    const int numOverlays = getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numOverlays; i++) {
+        CaretAssertVectorIndex(m_overlays, i);
+        displayedOverlays.push_back(m_overlays[i].get());
+    }
+    
+    return displayedOverlays;
+}
+
+/**
+ * @return The displayed overlays but only those
+ * that are enabled by the user.
+ */
+std::vector<ChartTwoOverlay*>
+ChartTwoOverlaySet::getEnabledOverlays() const
+{
+    std::vector<ChartTwoOverlay*> enabledOverlays;
+    
+    const int numOverlays = getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numOverlays; i++) {
+        CaretAssertVectorIndex(m_overlays, i);
+        if (m_overlays[i]->isEnabled()) {
+            enabledOverlays.push_back(m_overlays[i].get());
+        }
+    }
+    
+    return enabledOverlays;
+}
 
 /**
  * Get a text description of the window's content.
@@ -590,6 +617,22 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
         
         attributeEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE) {
+        EventChartTwoAxisGetDataRange* rangeEvent = dynamic_cast<EventChartTwoAxisGetDataRange*>(event);
+        CaretAssert(rangeEvent);
+        
+        if (rangeEvent->getChartOverlaySet() == this) {
+            float minimumValue = 0.0f;
+            float maximumValue = 0.0f;
+            if (getDataRangeForAxis(rangeEvent->getChartAxisLocation(),
+                                    minimumValue,
+                                    maximumValue)) {
+                rangeEvent->setMinimumAndMaximumValues(minimumValue,
+                                                       maximumValue);
+                rangeEvent->setEventProcessed();
+            }
+        }
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
         /*
          * The events intended for overlays are received here so that
@@ -696,6 +739,106 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
 }
 
 /**
+ * Get the minimum and maximum values for the given chart axis
+ * from the ENABLED overlays in this chart overlay set.
+ *
+ * @param chartAxisLocation
+ *    Location of axis.
+ * @param minimumValueOut
+ *    Output with minimum value for axis.
+ * @param maximumValueOut
+ *    Output with maximum value for axis.
+ * @return
+ *    True if output values are valid, else false.
+ */
+bool
+ChartTwoOverlaySet::getDataRangeForAxis(const ChartAxisLocationEnum::Enum chartAxisLocation,
+                                        float& minimumValueOut,
+                                        float& maximumValueOut) const
+{
+    minimumValueOut = 0.0f;
+    maximumValueOut = 0.0f;
+    if ( ! isAxesSupportedByChartDataType()) {
+        return false;
+    }
+    
+    minimumValueOut =  std::numeric_limits<float>::max();
+    maximumValueOut = -std::numeric_limits<float>::max();
+
+    std::vector<ChartTwoOverlay*> enabledOverlays = getEnabledOverlays();
+    for (auto overlay : enabledOverlays) {
+        if (overlay->isEnabled()) {
+            CaretMappableDataFile* mapFile = NULL;
+            ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+            int32_t selectedIndex = -1;
+            overlay->getSelectionData(mapFile,
+                                      selectedIndexType,
+                                      selectedIndex);
+            if (mapFile != NULL) {
+                BoundingBox boundingBox;
+                if (overlay->getBounds(boundingBox)) {
+                    switch (chartAxisLocation) {
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                            minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
+                            maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                            if (overlay->getCartesianVerticalAxisLocation() == ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT) {
+                                minimumValueOut = std::min(minimumValueOut, boundingBox.getMinY());
+                                maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxY());
+                            }
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                            if (overlay->getCartesianVerticalAxisLocation() == ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT) {
+                                minimumValueOut = std::min(minimumValueOut, boundingBox.getMinY());
+                                maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxY());
+                            }
+                            break;
+                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                            minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
+                            maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
+                            break;
+                    }
+                }
+            }
+        }
+    }
+    
+    if (minimumValueOut < maximumValueOut) {
+        return true;
+    }
+    
+    minimumValueOut = 0.0f;
+    maximumValueOut = 0.0f;
+    
+    return false;
+}
+
+/**
+ * @return Are axes supported by the chart data type for this overlay set?
+ */
+bool
+ChartTwoOverlaySet::isAxesSupportedByChartDataType() const
+{
+    bool axisSupportedFlag = false;
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            axisSupportedFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            axisSupportedFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
+    
+    return axisSupportedFlag;
+}
+
+
+/**
  * Get the displayed chart axes.
  *
  * @param axesOut
@@ -708,85 +851,20 @@ ChartTwoOverlaySet::getDisplayedChartAxes(std::vector<ChartTwoCartesianAxis*>& a
     
     AString lineSeriesDataTypeName;
     
-    bool showAxesFlag = false;
-    switch (m_chartDataType) {
-        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
-            break;
-        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-            showAxesFlag = true;
-            break;
-        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-        {
-            const ChartTwoOverlay* primaryOverlay = getPrimaryOverlay();
-            if (primaryOverlay != NULL) {
-                CaretMappableDataFile* mapFile = NULL;
-                ChartTwoOverlay::SelectedIndexType indexType;
-                int32_t mapIndex;
-                primaryOverlay->getSelectionData(mapFile, indexType, mapIndex);
-                if (mapFile != NULL) {
-                    const NiftiTimeUnitsEnum::Enum units = mapFile->getMapIntervalUnits();
-                    switch (units) {
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
-                            lineSeriesDataTypeName = "Hertz";
-                            break;
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
-                            lineSeriesDataTypeName = "milliseconds";
-                            break;
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
-                            lineSeriesDataTypeName = "parts per million";
-                            break;
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
-                            lineSeriesDataTypeName = "seconds";
-                            break;
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
-                            lineSeriesDataTypeName = "data";
-                            break;
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
-                            lineSeriesDataTypeName = "microseconds";
-                            break;
-                    }
-                }
-            }
-        }
-            showAxesFlag = true;
-            break;
-        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-            break;
-    }
-
-    bool showBottomFlag = false;
-    bool showLeftFlag   = false;
-    bool showRightFlag  = false;
     
-    if (showAxesFlag) {
-        for (auto overlay : m_overlays) {
-            if (overlay->isEnabled()) {
-                CaretMappableDataFile* mapFile = NULL;
-                ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
-                int32_t selectedIndex = -1;
-                overlay->getSelectionData(mapFile,
-                                          selectedIndexType,
-                                          selectedIndex);
-                if (mapFile != NULL) {
-                    showBottomFlag = true;
-                    switch (overlay->getCartesianVerticalAxisLocation()) {
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                            CaretAssert(0);
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                            showLeftFlag = true;
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                            showRightFlag = true;
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                            CaretAssert(0);
-                            break;
-                    }
-                }
-            }
-        }
-    }
+    float xMin = 0.0f;
+    float xMax = 0.0f;
+    float yMinLeft = 0.0f;
+    float yMaxLeft = 0.0f;
+    float yMinRight = 0.0f;
+    float yMaxRight = 0.0f;
+    
+    bool showBottomFlag = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM,
+                                              xMin, xMax);
+    bool showLeftFlag   = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT,
+                                              yMinLeft, yMaxLeft);
+    bool showRightFlag  = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT,
+                                              yMinRight, yMaxRight);
     
     m_chartAxisBottom->setEnabledByChart(showBottomFlag);
     m_chartAxisLeft->setEnabledByChart(showLeftFlag);

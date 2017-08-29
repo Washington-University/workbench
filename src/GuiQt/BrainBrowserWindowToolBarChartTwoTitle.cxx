@@ -72,13 +72,13 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     editTitleToolButton->setDefaultAction(editTitleAction);
     
     m_titleSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_titleSizeSpinBox->setupForPercentage(0.0, 99.0); // 99 instead of 100 results in narrower width
+    m_titleSizeSpinBox->setupRangePercentage(0.0, 99.0); // 99 instead of 100 results in narrower width
     QObject::connect(m_titleSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
     m_titleSizeSpinBox->setToolTip("Set height of title as percentage of tab height");
     
     m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_paddingSizeSpinBox->setupForPercentage(0.0, 99.0); // 99 instead of 100 results in narrower width
+    m_paddingSizeSpinBox->setupRangePercentage(0.0, 99.0); // 99 instead of 100 results in narrower width
     QObject::connect(m_paddingSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
     

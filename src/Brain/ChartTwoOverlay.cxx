@@ -24,6 +24,7 @@
 #undef __CHART_TWO_OVERLAY_DECLARE__
 
 #include "AnnotationColorBar.h"
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
@@ -36,6 +37,7 @@
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventChartOverlayValidate.h"
 #include "EventManager.h"
+#include "Histogram.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -506,6 +508,73 @@ const AnnotationColorBar*
 ChartTwoOverlay::getColorBar() const
 {
     return m_colorBar.get();
+}
+
+/**
+ * Get a bounding box for data displayed within this overlay.
+ * Bounds are provided for histogram and line-series charts only.
+ * 
+ * @param boundingBox
+ *     Upon exit contains bounds for data within this overlay
+ * @return
+ *     True if the bounds are valid, else false.
+ */
+bool
+ChartTwoOverlay::getBounds(BoundingBox& boundingBoxOut) const
+{
+    boundingBoxOut.resetForUpdate();
+
+    if ( ! isEnabled()) {
+        return false;
+    }
+    
+    CaretMappableDataFile* mapFile = NULL;
+    SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
+    getSelectionData(mapFile,
+                     selectedIndexType,
+                     selectedIndex);
+    
+    if (mapFile == NULL) {
+        return false;
+    }
+    
+    ChartableTwoFileDelegate* chartDelegate = mapFile->getChartingDelegate();
+    
+    bool validFlag = false;
+    
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+        {
+            ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
+            const Histogram* histogram = histogramChart->getHistogramForChartDrawing(selectedIndex,
+                                                                                     (isAllMapsSupported()
+                                                                                      && isAllMapsSelected()));
+            CaretAssert(histogram);
+            float histogramMinX = 0.0, histogramMaxX = 0.0, histogramMaxY = 0.0;
+            histogram->getRangeAndMaxDisplayHeight(histogramMinX, histogramMaxX, histogramMaxY);
+            if (histogramMaxX > histogramMinX) {
+                boundingBoxOut.set(histogramMinX, histogramMaxX,
+                                   0.0f, histogramMaxY,
+                                   0.0f, 0.0f);
+                validFlag = true;
+            }
+        }
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+        {
+            const ChartableTwoFileLineSeriesChart* lineSeriesChart = chartDelegate->getLineSeriesCharting();
+            const ChartTwoLineSeriesHistory* lineSeriesHistory = lineSeriesChart->getHistory();
+            validFlag = lineSeriesHistory->getBounds(boundingBoxOut);
+        }
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
+    
+    return validFlag;
 }
 
 /**

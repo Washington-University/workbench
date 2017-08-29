@@ -43,14 +43,25 @@ using namespace caret;
  * are not virtual.  So, extend WuQWidget (which extends QObject),
  * encapsulate QDoubleSpinbox, and implement needed methods.
  *
- * Two added features are:
+ * Added features are:
  * (1) Ability to automatically compute digits right of decimal
  * based upon the range of the data.
+ *
  * (2) Ablity to set increment/decrement values as a percentage
  * of the range of data.
  *
- * Unlike QDoubleSpinBox, the valueChanged() signal DOES NOT get 
- * emitted when setValue() is called.
+ * (3) Ability to set an "exceedable" range.  A QDoubleSpinBox
+ * will NOT emit a 'valueChanged' signal if the user tries to 
+ * exceed the minimum or maximum value.  'setRangeExceedable()'
+ * will allow the minimum and maximum values to be exceeded
+ * but any auto formatting (decimals, step size) is based
+ * only on the minimum and maximum values specified.
+ *
+ * (4) if 'QDoubleSpinBox::setValue()' is called, it will
+ * emit the 'valueChanged()' signal which can be problematic
+ * when updating the value in the spin box.  This implementation
+ * DOES NOT emit the 'valueChanged()' signal when 'setValue()' 
+ * is called.
  */
 
 /**
@@ -62,15 +73,16 @@ using namespace caret;
  *     The parent widget.
  */
 WuQDoubleSpinBox::WuQDoubleSpinBox(QWidget* parent)
-: WuQWidget(parent),
-m_decimalsMode(DecimalsMode::DECIMALS_FIXED),
-m_singleStepMode(SingleStepMode::SINGLE_STEP_FIXED)
+: WuQWidget(parent)
+//m_decimalsMode(DecimalsMode::FIXED),
+//m_singleStepMode(SingleStepMode::FIXED)
 {
     /*
      * Create the spin box and initialize it
+     * Note that most members are initialized in the header file
      */
     m_spinBox = new QDoubleSpinBox();
-    m_spinBox->setRange(0.0, 99.99);
+    m_spinBox->setRange(m_minimumValue, m_maximumValue);
     m_spinBox->setSingleStep(1.0);
     m_spinBox->setDecimals(2);
     m_spinBox->setValue(0.0);
@@ -96,66 +108,48 @@ WuQDoubleSpinBox::getWidget()
     return m_spinBox;
 }
 
-/**
- * Setup for percentage values.  Percentage range 
- * [0.0, 100], with 2 digits right of decimal,
- * a single step of 0.1, and a '%' suffix.
- *
- * @param minimumPercentage
- *     Minimum percentage (must be in range [0.0, 100.0]
- * @param maximumPercentage
- *     Maximum percentage (must be in range [0.0, 100.0]
- */
-void
-WuQDoubleSpinBox::setupForPercentage(const double minimumPercentage,
-                                     const double maximumPercentage)
-{
-    setRange(minimumPercentage,
-             maximumPercentage);
-    setDecimals(2);
-    setSingleStepPercentage(0.1);
-    setSuffix("%");
-}
-
-/**
- * Copy all setting from the given spin box
- *
- * @param copyFromSpinBox
- *     Spinbox from which settings are copied to 'this' instance
- */
-void
-WuQDoubleSpinBox::copySettings(const WuQDoubleSpinBox* copyFromSpinBox)
-{
-    CaretAssert(copyFromSpinBox);
-    
-    setRange(copyFromSpinBox->minimum(), copyFromSpinBox->maximum());
-    m_decimalsMode = copyFromSpinBox->m_decimalsMode;
-    switch (copyFromSpinBox->m_decimalsMode) {
-        case DecimalsMode::DECIMALS_AUTO:
-            setDecimalsModeAuto();
-            break;
-        case DecimalsMode::DECIMALS_FIXED:
-            setDecimals(copyFromSpinBox->decimals());
-            break;
-    }
-    
-    setPrefix(copyFromSpinBox->prefix());
-    setSuffix(copyFromSpinBox->suffix());
-    
-    setSingleStep(copyFromSpinBox->singleStep());
-    m_singleStepPercentage = copyFromSpinBox->m_singleStepPercentage;
-    m_singleStepMode = copyFromSpinBox->m_singleStepMode;
-    switch (m_singleStepMode) {
-        case SingleStepMode::SINGLE_STEP_FIXED:
-            break;
-        case SingleStepMode::SINGLE_STEP_PERCENTAGE:
-            setSingleStepPercentage(copyFromSpinBox->singleStepPercentage());
-            break;
-    }
-    
-    
-    
-}
+///**
+// * Copy all setting from the given spin box
+// *
+// * @param copyFromSpinBox
+// *     Spinbox from which settings are copied to 'this' instance
+// */
+//void
+//WuQDoubleSpinBox::copySettings(const WuQDoubleSpinBox* copyFromSpinBox)
+//{
+//    CaretAssert(copyFromSpinBox);
+//    
+//    switch (m_rangeMode) {
+//        case RangeMode::EXCEEDABLE:
+//            setRangeExceedable(m_minimumValue, m_maximumValue, m_exceedRangeMultiplier);
+//            break;
+//        case RangeMode::INCLUSIVE:
+//            setRange(m_minimumValue, m_maximumValue);
+//    }
+//    m_decimalsMode = copyFromSpinBox->m_decimalsMode;
+//    switch (copyFromSpinBox->m_decimalsMode) {
+//        case DecimalsMode::AUTO:
+//            setDecimalsModeAuto();
+//            break;
+//        case DecimalsMode::FIXED:
+//            setDecimals(copyFromSpinBox->decimals());
+//            break;
+//    }
+//    
+//    setPrefix(copyFromSpinBox->prefix());
+//    setSuffix(copyFromSpinBox->suffix());
+//    
+//    setSingleStep(copyFromSpinBox->singleStep());
+//    m_singleStepPercentage = copyFromSpinBox->m_singleStepPercentage;
+//    m_singleStepMode = copyFromSpinBox->m_singleStepMode;
+//    switch (m_singleStepMode) {
+//        case SingleStepMode::FIXED:
+//            break;
+//        case SingleStepMode::PERCENTAGE:
+//            setSingleStepPercentage(copyFromSpinBox->singleStepPercentage());
+//            break;
+//    }
+//}
 
 
 ///**
@@ -182,7 +176,7 @@ WuQDoubleSpinBox::decimalsMode() const
 void
 WuQDoubleSpinBox::setDecimalsModeAuto()
 {
-    m_decimalsMode = DecimalsMode::DECIMALS_AUTO;
+    m_decimalsMode = DecimalsMode::AUTO;
     updateDecimalsForAutoMode();
 }
 
@@ -206,7 +200,7 @@ WuQDoubleSpinBox::decimals() const
 void
 WuQDoubleSpinBox::setDecimals(int prec)
 {
-    m_decimalsMode = DecimalsMode::DECIMALS_FIXED;
+    m_decimalsMode = DecimalsMode::FIXED;
     m_spinBox->setDecimals(prec);
 }
 
@@ -284,11 +278,11 @@ WuQDoubleSpinBox::updateDecimalsForAutoMode()
     }
     
     switch (m_decimalsMode) {
-        case DecimalsMode::DECIMALS_AUTO:
-            m_spinBox->setDecimals(computeDigitsRightOfDecimal(m_spinBox->maximum()
-                                                               - m_spinBox->minimum()));
+        case DecimalsMode::AUTO:
+            m_spinBox->setDecimals(computeDigitsRightOfDecimal(m_maximumValue
+                                                               - m_minimumValue));
             break;
-        case DecimalsMode::DECIMALS_FIXED:
+        case DecimalsMode::FIXED:
             break;
     }
 }
@@ -299,7 +293,7 @@ WuQDoubleSpinBox::updateDecimalsForAutoMode()
 double
 WuQDoubleSpinBox::minimum() const
 {
-    return m_spinBox->minimum();
+    return m_minimumValue;
 }
 
 /**
@@ -308,7 +302,7 @@ WuQDoubleSpinBox::minimum() const
 double
 WuQDoubleSpinBox::maximum() const
 {
-    return m_spinBox->maximum();
+    return m_maximumValue;
 }
 
 /**
@@ -320,9 +314,17 @@ WuQDoubleSpinBox::maximum() const
 void
 WuQDoubleSpinBox::setMaximum(double max)
 {
-    m_spinBox->setMaximum(max);
-    updateDecimalsForAutoMode();
-    updateSingleStepPercentage();
+    m_maximumValue = max;
+    switch (m_rangeMode) {
+        case RangeMode::EXCEEDABLE:
+            setRangeExceedable(m_minimumValue, m_maximumValue, m_exceedRangeMultiplier);
+            break;
+        case RangeMode::INCLUSIVE:
+            break;
+    }
+//    m_spinBox->setMaximum(max);
+//    updateDecimalsForAutoMode();
+//    updateSingleStepPercentage();
 }
 
 /**
@@ -334,9 +336,17 @@ WuQDoubleSpinBox::setMaximum(double max)
 void
 WuQDoubleSpinBox::setMinimum(double min)
 {
-    m_spinBox->setMinimum(min);
-    updateDecimalsForAutoMode();
-    updateSingleStepPercentage();
+    m_minimumValue = min;
+    switch (m_rangeMode) {
+        case RangeMode::EXCEEDABLE:
+            setRangeExceedable(m_minimumValue, m_maximumValue, m_exceedRangeMultiplier);
+            break;
+        case RangeMode::INCLUSIVE:
+            break;
+    }
+//    m_spinBox->setMinimum(min);
+//    updateDecimalsForAutoMode();
+//    updateSingleStepPercentage();
 }
 
 /**
@@ -363,6 +373,7 @@ WuQDoubleSpinBox::setPrefix(const QString &prefix)
 
 /**
  * Convenience function to set the minimum and maximum values with a single function call.
+ * Selected value is limited to minimum and maximum.
  *
  * @param minimum 
  *    New minimum value.
@@ -370,11 +381,70 @@ WuQDoubleSpinBox::setPrefix(const QString &prefix)
  *    New maximum value.
  */
 void
-WuQDoubleSpinBox::setRange(double minimum, double maximum)
+WuQDoubleSpinBox::setRange(double minimum,
+                           double maximum)
 {
-    m_spinBox->setRange(minimum, maximum);
+//    ADD A SET RANGE WITH PADDING OR EXTRA
+//    THAT USE TRUE RANGE FOR DECIMALS AND THEN
+//    SETS THE SPIN BOX RANGE WITH EXTRA
+//    SO THAT THE ARROWS WILL ALWYAS CHANGE VALUES
+//
+    m_minimumValue = minimum;
+    m_maximumValue = maximum;
+    m_rangeMode = RangeMode::INCLUSIVE;
+    m_spinBox->setRange(m_minimumValue, m_maximumValue);
     updateDecimalsForAutoMode();
     updateSingleStepPercentage();
+}
+
+/**
+ * Convenience function to set the minimum and maximum values with a single function call.
+ * Selected value is allowed to exceed minimum and maximum by (maximum - minimum) * rangeMultiplier.
+ * Any automatic formatting or decimals excludes the "exceed amount".
+ *
+ * @param minimum
+ *    New minimum value.
+ * @param maximum
+ *    New maximum value.
+ * @param rangeMultiplier
+ *    The range multiplier.
+ */
+void
+WuQDoubleSpinBox::setRangeExceedable(double minimum,
+                                     double maximum,
+                                     double rangeMultiplier)
+{
+    m_minimumValue = minimum;
+    m_maximumValue = maximum;
+    m_rangeMode = RangeMode::EXCEEDABLE;
+
+    m_exceedRangeMultiplier = rangeMultiplier;
+    const double exceedAmount = (maximum - minimum) * m_exceedRangeMultiplier;
+    m_spinBox->setRange(m_minimumValue - exceedAmount, m_maximumValue + exceedAmount);
+    
+    updateDecimalsForAutoMode();
+    updateSingleStepPercentage();
+}
+
+/**
+ * Set range for percentage values.  Percentage range
+ * [0.0, 100], with 2 digits right of decimal,
+ * a single step of 0.1, and a '%' suffix.
+ *
+ * @param minimumPercentage
+ *     Minimum percentage (must be in range [0.0, 100.0]
+ * @param maximumPercentage
+ *     Maximum percentage (must be in range [0.0, 100.0]
+ */
+void
+WuQDoubleSpinBox::setupRangePercentage(const double minimumPercentage,
+                                       const double maximumPercentage)
+{
+    setRange(minimumPercentage,
+             maximumPercentage);
+    setDecimals(2);
+    setSingleStepPercentage(0.1);
+    setSuffix("%");
 }
 
 /**
@@ -383,7 +453,7 @@ WuQDoubleSpinBox::setRange(double minimum, double maximum)
  * amount of the given value.
  *
  * NOTE: When this method is called, the SingleStepMode is set
- * to SINGLE_STEP_FIXED
+ * to FIXED
  *
  * @param value
  *     New step value.
@@ -394,7 +464,7 @@ WuQDoubleSpinBox::setSingleStep(double value)
     CaretAssert(value >= 0.0);
     
     m_spinBox->setSingleStep(value);
-    m_singleStepMode = SingleStepMode::SINGLE_STEP_FIXED;
+    m_singleStepMode = SingleStepMode::FIXED;
 }
 
 /**
@@ -403,7 +473,7 @@ WuQDoubleSpinBox::setSingleStep(double value)
  * percentage of the minimum and maximum values.
  *
  * NOTE: When this method is called, the SingleStepMode is set
- * to SINGLE_STEP_PERCENTAGE.
+ * to PERCENTAGE.
  *
  * @param percentage
  *     The step percentage that ranges (0.0, 100.0].
@@ -415,7 +485,7 @@ WuQDoubleSpinBox::setSingleStepPercentage(double percentage)
     CaretAssert(percentage <= 100.0);
     
     m_singleStepPercentage = percentage;
-    m_singleStepMode       = SingleStepMode::SINGLE_STEP_PERCENTAGE;
+    m_singleStepMode       = SingleStepMode::PERCENTAGE;
     
     updateSingleStepPercentage();
 }
@@ -428,12 +498,12 @@ void
 WuQDoubleSpinBox::updateSingleStepPercentage()
 {
     switch (m_singleStepMode) {
-        case SingleStepMode::SINGLE_STEP_FIXED:
+        case SingleStepMode::FIXED:
             break;
-        case SingleStepMode::SINGLE_STEP_PERCENTAGE:
+        case SingleStepMode::PERCENTAGE:
         {
-            const double minValue = m_spinBox->minimum();
-            const double maxValue = m_spinBox->maximum();
+            const double minValue = m_minimumValue;
+            const double maxValue = m_maximumValue;
             const double dataRange = maxValue - minValue;
             
             double stepValue = 0.0;

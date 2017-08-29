@@ -94,6 +94,8 @@ public:
         EVENT_CHART_OVERLAY_VALIDATE,
         /** GUI notification of the change in chart two atttributes */
         EVENT_CHART_TWO_ATTRIBUTES_CHANGED,
+        /** Get the range of data for a chart two axis */
+        EVENT_CHART_TWO_AXIS_GET_DATA_RANGE,
         /** Load chart two line series data */
         EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
         /** Show the chart two line series history dialog */

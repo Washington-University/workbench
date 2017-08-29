@@ -33,12 +33,14 @@
 
 
 namespace caret {
+    class ChartTwoOverlaySet;
     class SceneClassAssistant;
 
     class ChartTwoCartesianAxis : public CaretObject, public SceneableInterface {
         
     public:
-        ChartTwoCartesianAxis(const ChartAxisLocationEnum::Enum axisLocation);
+        ChartTwoCartesianAxis(const ChartTwoOverlaySet* parentChartOverlaySet,
+                              const ChartAxisLocationEnum::Enum axisLocation);
         
         virtual ~ChartTwoCartesianAxis();
         
@@ -52,11 +54,8 @@ namespace caret {
         
         void setDisplayedByUser(const bool displayed);
         
-        void getRange(float& rangeMinimumOut,
-                      float& rangeMaximumOut) const;
-        
-        void setRange(const float rangeMinimum,
-                      const float rangeMaximum);
+        void getDataRange(float& rangeMinimumOut,
+                          float& rangeMaximumOut) const;
         
         float getUserScaleMinimumValue() const;
         
@@ -163,15 +162,11 @@ namespace caret {
 
         void limitUserScaleMinMaxToValidRange();
         
-        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
-
+        const ChartTwoOverlaySet* m_parentChartOverlaySet;
+        
         const ChartAxisLocationEnum::Enum m_axisLocation;
         
-        /** Allowable range minimum NOT SAVED TO SCENE */
-        mutable float m_rangeMinimumValue = 0.0f;
-        
-        /** Allowable range maximum NOT SAVED TO SCENE */
-        mutable float m_rangeMaximumValue = 1.0f;
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
         
         mutable float m_userScaleMinimumValue = -100.0f;
         

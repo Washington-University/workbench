@@ -31,6 +31,7 @@
 
 
 namespace caret {
+    class BoundingBox;
     class ChartTwoDataCartesian;
     class SceneClassAssistant;
 
@@ -72,6 +73,8 @@ namespace caret {
         void removeHistoryItem(const int32_t index);
         
         void clearHistory();
+        
+        bool getBounds(BoundingBox& boundingBoxOut) const;
         
         // ADD_NEW_METHODS_HERE
 

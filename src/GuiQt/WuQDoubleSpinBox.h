@@ -43,12 +43,12 @@ namespace caret {
             /**
              * Number of decimals is calculated from the range of data
              */
-            DECIMALS_AUTO,
+            AUTO,
             /**
              * Number of decimals is fixed by calling setDecimals(int) 
              * (Normal spin box functionality)
              */
-            DECIMALS_FIXED
+            FIXED
         };
         
         /**
@@ -58,11 +58,26 @@ namespace caret {
             /**
              * Step by a fixed amount (normal spin box functionality)
              */
-            SINGLE_STEP_FIXED,
+            FIXED,
             /**
-             * Step by a percenage of data range
+             * Step by a percentage of data range
              */
-            SINGLE_STEP_PERCENTAGE
+            PERCENTAGE
+        };
+        
+        /**
+         * Mode for data range
+         */
+        enum class RangeMode {
+            /**
+             * Normal spin box behavior, values limited inclusively to minimum and maximum
+             */
+            INCLUSIVE,
+            /**
+             * May exceed minimum and maximum values.
+             * Formatted for specified minimum and maximum.
+             */
+            EXCEEDABLE
         };
         
         WuQDoubleSpinBox(QWidget* parent);
@@ -71,10 +86,7 @@ namespace caret {
 
         virtual QWidget* getWidget();
         
-        void setupForPercentage(const double minimumPercentage,
-                                const double maximumPercentage);
-        
-        void copySettings(const WuQDoubleSpinBox* copyFromSpinBox);
+        //void copySettings(const WuQDoubleSpinBox* copyFromSpinBox);
         
         QString	cleanText() const;
         
@@ -99,6 +111,13 @@ namespace caret {
         void setPrefix(const QString &prefix);
         
         void setRange(double minimum, double maximum);
+        
+        void setRangeExceedable(double minimum,
+                                double maximum,
+                                double rangeMultiplier);
+        
+        void setupRangePercentage(const double minimumPercentage,
+                                  const double maximumPercentage);
         
         void setSingleStep(double value);
         
@@ -156,11 +175,19 @@ namespace caret {
         
         QDoubleSpinBox* m_spinBox;
         
-        DecimalsMode m_decimalsMode = DecimalsMode::DECIMALS_FIXED;
+        RangeMode m_rangeMode = RangeMode::INCLUSIVE;
         
-        SingleStepMode m_singleStepMode = SingleStepMode::SINGLE_STEP_FIXED;
+        DecimalsMode m_decimalsMode = DecimalsMode::FIXED;
+        
+        SingleStepMode m_singleStepMode = SingleStepMode::FIXED;
         
         double m_singleStepPercentage = 1.0;
+        
+        double m_minimumValue = 0.0;
+        
+        double m_maximumValue = 99.0;
+        
+        double m_exceedRangeMultiplier = 0.0;
         
         // ADD_NEW_MEMBERS_HERE
 

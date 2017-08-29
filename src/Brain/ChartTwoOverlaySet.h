@@ -24,6 +24,7 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
+#include "ChartAxisLocationEnum.h"
 #include "ChartTwoDataTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
@@ -61,6 +62,10 @@ namespace caret {
         
         std::weak_ptr<ChartTwoOverlay> getOverlayWeakPointer(const int32_t overlayNumber);
         
+        std::vector<ChartTwoOverlay*> getDisplayedOverlays() const;
+        
+        std::vector<ChartTwoOverlay*> getEnabledOverlays() const;
+        
         void addDisplayedOverlay();
         
         int32_t getNumberOfDisplayedOverlays() const;
@@ -73,6 +78,12 @@ namespace caret {
         
         void setAxisLabel(const ChartTwoCartesianAxis* axis,
                           const AString& label);
+        
+        bool isAxesSupportedByChartDataType() const;
+        
+        bool getDataRangeForAxis(const ChartAxisLocationEnum::Enum chartAxisLocation,
+                                 float& minimumValueOut,
+                                 float& maximumValueOut) const;
         
         ChartTwoTitle* getChartTitle();
         

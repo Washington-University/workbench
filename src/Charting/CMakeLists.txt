@@ -53,6 +53,7 @@ ChartTwoNumericSubdivisionsModeEnum.h
 ChartTwoLineSeriesHistory.h
 ChartTwoTitle.h
 EventChartTwoAttributesChanged.h
+EventChartTwoAxisGetDataRange.h
 EventChartTwoLoadLineSeriesData.h
 MapFileDataSelector.h
 
@@ -94,6 +95,7 @@ ChartTwoNumericSubdivisionsModeEnum.cxx
 ChartTwoLineSeriesHistory.cxx
 ChartTwoTitle.cxx
 EventChartTwoAttributesChanged.cxx
+EventChartTwoAxisGetDataRange.cxx
 EventChartTwoLoadLineSeriesData.cxx
 MapFileDataSelector.cxx
 )
