@@ -46,7 +46,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "ModelSurfaceMontage.h"
-#include "WuQSpecialIncrementDoubleSpinBox.h"
+#include "WuQDoubleSpinBox.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -59,19 +59,6 @@ using namespace caret;
  * \brief Widget for annotation font selection
  * \ingroup GuiQt
  */
-
-/**
- * Processes increment and decrements for double spin box.
- */
-class FontSizeFunctionObject : public WuQSpecialIncrementDoubleSpinBox::StepFunctionObject {
-public:
-    double getNewValue(const double currentValue,
-                       const int steps) const {
-        const double stepAmount = 0.1;
-        const double outputValue = currentValue + (stepAmount * steps);
-        return outputValue;
-    }
-};
 
 /**
  * Constructor.
@@ -106,16 +93,12 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Combo box for font size
      */
-    m_fontSizeSpinBox = new WuQSpecialIncrementDoubleSpinBox(new FontSizeFunctionObject);
-    m_fontSizeSpinBox->setRange(0.0, 1000.0);
-    m_fontSizeSpinBox->setDecimals(1);
-    m_fontSizeSpinBox->setSingleStep(0.1);
-    m_fontSizeSpinBox->setSuffix("%");
+    m_fontSizeSpinBox = new WuQDoubleSpinBox(this);
+    m_fontSizeSpinBox->setupRangePercentage(0.0, 100.0);
     QObject::connect(m_fontSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(fontSizeChanged()));
-    WuQtUtilities::setToolTipAndStatusTip(m_fontSizeSpinBox,
+    WuQtUtilities::setToolTipAndStatusTip(m_fontSizeSpinBox->getWidget(),
                                           "Change font size (height) as percentage, zero to one-hundred, of viewport height");
-    
 
     /*
      * Text color menu
@@ -232,7 +215,7 @@ m_browserWindowIndex(browserWindowIndex)
             fontNameSizeLayout->addWidget(m_fontNameComboBox->getWidget(),
                                           0, 1, 1, 3);
             fontNameSizeLayout->addWidget(sizeLabel, 1, 0);
-            fontNameSizeLayout->addWidget(m_fontSizeSpinBox,
+            fontNameSizeLayout->addWidget(m_fontSizeSpinBox->getWidget(),
                                           1, 1);
             fontNameSizeLayout->addWidget(styleLabel, 2, 0);
             fontNameSizeLayout->addLayout(stylesLayout, 2, 1);
@@ -464,14 +447,11 @@ void
 AnnotationFontWidget::updateFontSizeSpinBox(const float value,
                                             const bool haveMultipleValuesFlag)
 {
-    m_fontSizeSpinBox->blockSignals(true);
     m_fontSizeSpinBox->setValue(value);
-    m_fontSizeSpinBox->blockSignals(false);
     QString fontSizeSuffix("%");
     if (haveMultipleValuesFlag) {
         fontSizeSuffix = "%+";
     }
-    m_fontSizeSpinBox->setSuffix(fontSizeSuffix);
 }
 
 /**
@@ -749,7 +729,6 @@ AnnotationFontWidget::fontSizeChanged()
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    
 }
 
 /**

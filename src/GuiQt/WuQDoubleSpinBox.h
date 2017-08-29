@@ -189,6 +189,8 @@ namespace caret {
         
         double m_exceedRangeMultiplier = 0.0;
         
+        bool m_blockValueUpdateFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

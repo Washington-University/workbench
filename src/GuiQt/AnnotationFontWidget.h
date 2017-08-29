@@ -38,7 +38,7 @@ namespace caret {
     class AnnotationText;
     class CaretColorEnumMenu;
     class EnumComboBoxTemplate;
-    class WuQSpecialIncrementDoubleSpinBox;
+    class WuQDoubleSpinBox;
     
     class AnnotationFontWidget : public QWidget {
         
@@ -94,7 +94,7 @@ namespace caret {
         
         EnumComboBoxTemplate* m_fontNameComboBox;
 
-        WuQSpecialIncrementDoubleSpinBox* m_fontSizeSpinBox;
+        WuQDoubleSpinBox* m_fontSizeSpinBox;
         
         QToolButton* m_textColorToolButton;
         

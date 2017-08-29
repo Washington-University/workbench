@@ -74,8 +74,6 @@ using namespace caret;
  */
 WuQDoubleSpinBox::WuQDoubleSpinBox(QWidget* parent)
 : WuQWidget(parent)
-//m_decimalsMode(DecimalsMode::FIXED),
-//m_singleStepMode(SingleStepMode::FIXED)
 {
     /*
      * Create the spin box and initialize it
@@ -320,11 +318,9 @@ WuQDoubleSpinBox::setMaximum(double max)
             setRangeExceedable(m_minimumValue, m_maximumValue, m_exceedRangeMultiplier);
             break;
         case RangeMode::INCLUSIVE:
+            setRange(m_minimumValue, m_maximumValue);
             break;
     }
-//    m_spinBox->setMaximum(max);
-//    updateDecimalsForAutoMode();
-//    updateSingleStepPercentage();
 }
 
 /**
@@ -342,11 +338,9 @@ WuQDoubleSpinBox::setMinimum(double min)
             setRangeExceedable(m_minimumValue, m_maximumValue, m_exceedRangeMultiplier);
             break;
         case RangeMode::INCLUSIVE:
+            setRange(m_minimumValue, m_maximumValue);
             break;
     }
-//    m_spinBox->setMinimum(min);
-//    updateDecimalsForAutoMode();
-//    updateSingleStepPercentage();
 }
 
 /**
@@ -384,11 +378,6 @@ void
 WuQDoubleSpinBox::setRange(double minimum,
                            double maximum)
 {
-//    ADD A SET RANGE WITH PADDING OR EXTRA
-//    THAT USE TRUE RANGE FOR DECIMALS AND THEN
-//    SETS THE SPIN BOX RANGE WITH EXTRA
-//    SO THAT THE ARROWS WILL ALWYAS CHANGE VALUES
-//
     m_minimumValue = minimum;
     m_maximumValue = maximum;
     m_rangeMode = RangeMode::INCLUSIVE;
@@ -615,6 +604,10 @@ WuQDoubleSpinBox::valueFromText(const QString &text) const
  */
 void WuQDoubleSpinBox::setValue(double val)
 {
+    if (m_blockValueUpdateFlag) {
+        return;
+    }
+    
     QSignalBlocker blocker(m_spinBox);
     m_spinBox->setValue(val);
 }
@@ -630,11 +623,23 @@ void WuQDoubleSpinBox::setValue(double val)
 void
 WuQDoubleSpinBox::valueChangedPrivate(double d)
 {
+    if (m_spinBox->signalsBlocked()) {
+        return;
+    }
     if (signalsBlocked()) {
         return;
     }
     
+    /*
+     * Emitting the signal may cause a call to the 'setValue()' method.
+     * We need to prevent this.  Otherwise, the spin box will get updated
+     * with only the first character that was typed by user.
+     * For example, without this, if the user tried to enter 9.3,
+     * setValue gets called with only 9 and the user cannot enter the .3.
+     */
+    m_blockValueUpdateFlag = true;
     emit valueChanged(d);
+    m_blockValueUpdateFlag = false;
 }
 
 // ADD_NEW_METHODS_HERE
