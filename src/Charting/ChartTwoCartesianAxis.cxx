@@ -738,9 +738,11 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float minimumDataValue,
     int32_t labelsDigitsRightOfDecimal = 0;
     
     switch (m_scaleRangeMode) {
-        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO:
+        case ChartTwoAxisScaleRangeModeEnum::AUTO:
             break;
-        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER:
+        case ChartTwoAxisScaleRangeModeEnum::DATA:
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::USER:
             switch (m_axisLocation) {
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                     minimumValue = m_userScaleMinimumValue;
@@ -772,13 +774,41 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float minimumDataValue,
     }
     
     switch (m_scaleRangeMode) {
-        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO:
+        case ChartTwoAxisScaleRangeModeEnum::AUTO:
             m_userScaleMinimumValue = labelsStart;
             m_userScaleMaximumValue = labelsEnd;
             break;
-        case ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER:
-            labelsStart = m_userScaleMinimumValue;
-            labelsEnd   = m_userScaleMaximumValue;
+        case ChartTwoAxisScaleRangeModeEnum::DATA:
+        {
+            const double range = maximumDataValue - minimumDataValue;
+            if (range > 0.0) {
+                const int32_t numSteps = MathFunctions::round((labelsEnd - labelsStart) / labelsStep);
+                if (numSteps > 0) {
+                    labelsStart = minimumDataValue;
+                    labelsEnd   = maximumDataValue;
+                    labelsStep  = range / numSteps;
+                    m_userScaleMinimumValue = labelsStart;
+                    m_userScaleMaximumValue = labelsEnd;
+                }
+            }
+        }
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::USER:
+//            labelsStart = m_userScaleMinimumValue;
+//            labelsEnd   = m_userScaleMaximumValue;
+        {
+            const double range = m_userScaleMaximumValue - m_userScaleMinimumValue;
+            if (range > 0.0) {
+                const int32_t numSteps = MathFunctions::round((labelsEnd - labelsStart) / labelsStep);
+                if (numSteps > 0) {
+                    labelsStart = m_userScaleMinimumValue;
+                    labelsEnd   = m_userScaleMaximumValue;
+                    labelsStep  = range / numSteps;
+                    m_userScaleMinimumValue = labelsStart;
+                    m_userScaleMaximumValue = labelsEnd;
+                }
+            }
+        }
             break;
     }
     
@@ -829,6 +859,8 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float minimumDataValue,
     if (tickLabelsStep <= 0.0) {
         return false;
     }
+    
+    const float onePercentRange = labelsRange * 0.01f;
     
     std::vector<float> labelNumericValues;
     
@@ -900,6 +932,23 @@ ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float minimumDataValue,
         }
         
         labelValue  += tickLabelsStep;
+        
+        /*
+         * It is possible that 'labelValue' may be slightly greater than 'labelsEnd'
+         * for the last label which results in the last label not displayed.
+         * So, if the 'labelValue' is slightly greater than 'labelsEnd', 
+         * limit 'labelValue' so that the label at the end of the data range
+         * is displayed.
+         *
+         * Example: labelValue = 73.9500046
+         *          labelsEnd  = 73.9499969
+         */
+        if (labelValue > labelsEnd) {
+            const float diff = labelValue - labelsEnd;
+            if (diff < onePercentRange) {
+                labelValue = labelsEnd;
+            }
+        }
     }
     
     const int32_t numValues = static_cast<int32_t>(labelNumericValues.size());

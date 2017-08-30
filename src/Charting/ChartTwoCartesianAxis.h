@@ -178,7 +178,7 @@ namespace caret {
         
         mutable int32_t m_titleOverlayIndex = 0;
         
-        ChartTwoAxisScaleRangeModeEnum::Enum m_scaleRangeMode = ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_AUTO;
+        ChartTwoAxisScaleRangeModeEnum::Enum m_scaleRangeMode = ChartTwoAxisScaleRangeModeEnum::AUTO;
         
         CaretUnitsTypeEnum::Enum m_units = CaretUnitsTypeEnum::NONE;
         

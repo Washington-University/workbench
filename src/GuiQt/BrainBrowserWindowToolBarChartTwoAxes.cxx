@@ -126,11 +126,17 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     /*
      * Range controls
      */
+    const AString rangeTooltip("Auto - Adjusts axis range to fit data with some\n"
+                               "       padding so that scale value are usually\n"
+                               "       whole numbers\n"
+                               "Data - Axis range is limited to minimum and \n"
+                               "       maximum values of the data\n"
+                               "User - Axis range is controlled by user");
     m_autoUserRangeComboBox = new EnumComboBoxTemplate(this);
     m_autoUserRangeComboBox->setup<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>();
     QObject::connect(m_autoUserRangeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
-    m_autoUserRangeComboBox->getWidget()->setToolTip("Choose auto or user axis range scaling");
+    m_autoUserRangeComboBox->getWidget()->setToolTip(rangeTooltip);
     
     m_userMinimumValueSpinBox = new WuQDoubleSpinBox(this);
     m_userMinimumValueSpinBox->setDecimalsModeAuto();
@@ -625,7 +631,7 @@ BrainBrowserWindowToolBarChartTwoAxes::axisMinimumValueChanged(double minimumVal
          * ensure Auto/User Range selection is USER
          */
         m_autoUserRangeComboBox->getWidget()->blockSignals(true);
-        m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER);
+        m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::USER);
         m_autoUserRangeComboBox->getWidget()->blockSignals(false);
         
         /*
@@ -656,7 +662,7 @@ BrainBrowserWindowToolBarChartTwoAxes::axisMaximumValueChanged(double maximumVal
          * ensure Auto/User Range selection is USER
          */
         m_autoUserRangeComboBox->getWidget()->blockSignals(true);
-        m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::AXIS_DATA_RANGE_USER);
+        m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::USER);
         m_autoUserRangeComboBox->getWidget()->blockSignals(false);
 
         /*

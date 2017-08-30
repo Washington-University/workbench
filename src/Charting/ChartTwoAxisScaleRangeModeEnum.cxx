@@ -77,15 +77,19 @@ using namespace caret;
  *
  * @param guiName
  *    User-friendly name for use in user-interface.
+ * @param oldName
+ *    An older version of 'name'
  */
 ChartTwoAxisScaleRangeModeEnum::ChartTwoAxisScaleRangeModeEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+                                                               const AString& name,
+                                                               const AString& guiName,
+                                                               const AString& oldName)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
+    this->oldName = oldName;
 }
 
 /**
@@ -106,13 +110,20 @@ ChartTwoAxisScaleRangeModeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(ChartTwoAxisScaleRangeModeEnum(AXIS_DATA_RANGE_AUTO, 
-                                    "AXIS_DATA_RANGE_AUTO", 
-                                    "Auto"));
+    enumData.push_back(ChartTwoAxisScaleRangeModeEnum(AUTO,
+                                                      "AUTO",
+                                                      "Auto",
+                                                      "AXIS_DATA_RANGE_AUTO"));
     
-    enumData.push_back(ChartTwoAxisScaleRangeModeEnum(AXIS_DATA_RANGE_USER, 
-                                    "AXIS_DATA_RANGE_USER", 
-                                    "User"));
+    enumData.push_back(ChartTwoAxisScaleRangeModeEnum(DATA,
+                                                      "DATA",
+                                                      "Data",
+                                                      "AXIS_DATA_RANGE_DATA"));
+    
+    enumData.push_back(ChartTwoAxisScaleRangeModeEnum(USER,
+                                                      "USER",
+                                                      "User",
+                                                      "AXIS_DATA_RANGE_USER"));
     
 }
 
@@ -176,7 +187,8 @@ ChartTwoAxisScaleRangeModeEnum::fromName(const AString& name, bool* isValidOut)
          iter != enumData.end();
          iter++) {
         const ChartTwoAxisScaleRangeModeEnum& d = *iter;
-        if (d.name == name) {
+        if ((d.name == name)
+            || (d.oldName == name)) {
             enumValue = d.enumValue;
             validFlag = true;
             break;

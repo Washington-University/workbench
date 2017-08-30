@@ -35,10 +35,13 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Auto scales and pads for nice numeric scale values */
+        AUTO,
+        /** Scales to minimum and maximum of data */
+        DATA,
+        /** Scales to user-specified minimum and maximum */
         /** */
-        AXIS_DATA_RANGE_AUTO,
-        /** */
-        AXIS_DATA_RANGE_USER
+        USER
     };
 
 
@@ -64,8 +67,9 @@ public:
 
 private:
     ChartTwoAxisScaleRangeModeEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+                                   const AString& name,
+                                   const AString& guiName,
+                                   const AString& oldName);
 
     static const ChartTwoAxisScaleRangeModeEnum* findData(const Enum enumValue);
 
@@ -92,6 +96,9 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** For older version of 'name' */
+    AString oldName;
 };
 
 #ifdef __CHART_TWO_AXIS_SCALE_RANGE_MODE_ENUM_DECLARE__

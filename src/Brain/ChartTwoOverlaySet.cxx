@@ -108,6 +108,10 @@ m_tabIndex(tabIndex)
             m_chartAxisRight->setEnabledByChart(false);
             m_chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
             
+            /*
+             * X-axis for line series shows full extent of data
+             */
+            m_chartAxisBottom->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
             m_chartAxisBottom->setEnabledByChart(true);
             m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
         }
