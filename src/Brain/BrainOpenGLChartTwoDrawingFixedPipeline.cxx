@@ -483,27 +483,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
     const bool yValid       = (yLeftValid || yRightValid);
     if (xValid && yValid) {
         /*
-         * If Y-range is zero, make it a non-zero range.
-         * Otherwise, the orthographic projection will be invalid
-         */
-        const float smallValue = 0.00001;
-        const float smallRange = 0.01;
-        if (yLeftValid) {
-            const float diff = yMaxLeft - yMinLeft;
-            if (diff < smallValue) {
-                yMinLeft -= smallRange;
-                yMaxLeft += smallRange;
-            }
-        }
-        if (yRightValid) {
-            const float diff = yMaxRight - yMinRight;
-            if (diff < smallValue) {
-                yMinRight -= smallRange;
-                yMaxRight += smallRange;
-            }
-        }
-        
-        /*
          * Make invalid ranges zero
          */
         if ( ! yLeftValid) {
@@ -731,6 +710,27 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                                rightAxisWidth,
                                                true, /* draw the box */
                                                chartGraphicsDrawingViewport);
+        }
+        
+        /*
+         * When the user is editing an axis minimum or maximum value,
+         * their difference may become zero which will cause
+         * a problem with the orthographic projection.  So
+         * in this rare instance, make the maximum value
+         * slightly larger than the minimum value.
+         */
+        const float smallRange = 0.01;
+        if (xMinBottom >= xMaxBottom) {
+            xMaxBottom = xMinBottom + smallRange;
+        }
+        if (xMinTop >= xMaxTop) {
+            xMaxTop = xMinBottom + smallRange;
+        }
+        if (yMinLeft >= yMaxLeft) {
+            yMaxLeft = yMinLeft + smallRange;
+        }
+        if (yMinRight >= yMaxRight) {
+            yMaxRight = yMinRight + smallRange;
         }
         
         glViewport(chartGraphicsDrawingViewport[0],

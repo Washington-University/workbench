@@ -638,9 +638,9 @@ BrainBrowserWindowToolBarChartTwoAxes::axisMinimumValueChanged(double minimumVal
          * Ensure maximum value is always greater than or equal to minimum
          */
         if (minimumValue > m_userMaximumValueSpinBox->value()) {
-            m_userMaximumValueSpinBox->blockSignals(true);
+            m_userMaximumValueSpinBox->getWidget()->blockSignals(true);
             m_userMaximumValueSpinBox->setValue(minimumValue);
-            m_userMaximumValueSpinBox->blockSignals(false);
+            m_userMaximumValueSpinBox->getWidget()->blockSignals(false);
         }
         
         valueChanged();
@@ -669,9 +669,9 @@ BrainBrowserWindowToolBarChartTwoAxes::axisMaximumValueChanged(double maximumVal
          * Ensure minimum value is always less than or equal to maximum
          */
         if (maximumValue < m_userMinimumValueSpinBox->value()) {
-            m_userMinimumValueSpinBox->blockSignals(true);
+            m_userMinimumValueSpinBox->getWidget()->blockSignals(true);
             m_userMinimumValueSpinBox->setValue(maximumValue);
-            m_userMinimumValueSpinBox->blockSignals(false);
+            m_userMinimumValueSpinBox->getWidget()->blockSignals(false);
         }
         
         valueChanged();
