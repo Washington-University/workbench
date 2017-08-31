@@ -229,10 +229,19 @@ m_newAnnotationCreatedByContextMenu(NULL)
     addSeparator();
     
     /*
-     * Turn on/off display in tabs
+     * Turn off display in tabs
      */
     QAction* turnOffTabDisplayAction = addAction("Turn Off Chart/Stereotaxic/Surface Annotation Display in Other Tabs",
                                               this, SLOT(turnOffDisplayInOtherTabs()));
+
+    /*
+     * Separator
+     */
+    addSeparator();
+    
+    /*
+     * Turn on display in tabs
+     */
     QAction* turnOnTabDisplayAction = addAction("Turn On Chart/Stereotaxic/Surface Annotation Display in All Tabs",
                                               this, SLOT(turnOnDisplayInAllTabs()));
     turnOffTabDisplayAction->setEnabled(haveThreeDimCoordAnnotationsFlag);
