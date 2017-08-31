@@ -30,6 +30,7 @@
 
 #include "AString.h"
 #include "CaretAssert.h"
+#include "NumericTextFormatting.h"
 
 using namespace caret;
 
@@ -242,6 +243,58 @@ WuQDoubleSpinBox::computeDigitsRightOfDecimal(const double dataRange)
 }
 
 /**
+ * Compute a reasonable 'exceed range' which is used
+ * for setting the acceptable values in the spin box
+ * to the range of data plus a reasonable amount 
+ * above and below.
+ * 
+ * @param minValue
+ *     The minimum data value.
+ * @param maxValue
+ *     The maximum data value.
+ * @param
+ *     Exceed amount for increased range.
+ */
+double
+WuQDoubleSpinBox::computeExceedRange(const double minValue,
+                          const double maxValue)
+{
+    double exceedRange = 10.0;
+    
+    const double range = maxValue - minValue;
+    if (range >= 1.0) {
+        const double logVal = std::log10(range);
+        const double exponent = logVal + 2;
+        exceedRange = std::pow(10.0, exponent);
+    }
+    
+    return exceedRange;
+}
+
+/**
+ * Testing of the exceed ragne.
+ */
+void
+WuQDoubleSpinBox::testExceedRange()
+{
+    {
+        const double value = 0.0;
+        const double exceedRange = computeExceedRange(0.0, value);
+        AString s = QString("Range: %1  execeedRange: %2").arg(value, 10).arg(exceedRange);
+        std::cout << s << std::endl;
+    }
+    
+    for (int32_t exponent = -10; exponent <= 10; exponent++) {
+        const double value = std::pow(10.0, exponent);
+        const double exceedRange = computeExceedRange(0.0, value);
+        AString s = QString("Range: %1  exceedRange: %2  lo10: %3").arg(value, 10).arg(exceedRange).arg((int)std::log10(value));
+        std::cout << s << std::endl;
+    }
+    std::cout << std::endl << std::endl;
+}
+
+
+/**
  * Used for testing computation of digits right of decimal point.
  */
 void
@@ -272,6 +325,7 @@ WuQDoubleSpinBox::updateDecimalsForAutoMode()
     static bool decimalsTestFlag = false;
     if (decimalsTestFlag) {
         testDigitsRightOfDecimal();
+        testExceedRange();
         decimalsTestFlag = false;
     }
     
@@ -286,61 +340,21 @@ WuQDoubleSpinBox::updateDecimalsForAutoMode()
 }
 
 /**
- * @return Minimum displayed value.
+ * @return Minimum DISPLAYED value.
  */
 double
 WuQDoubleSpinBox::minimum() const
 {
-    return m_minimumValue;
+    return m_spinBox->minimum();
 }
 
 /**
- * @return Maximum displayed value.
+ * @return Maximum DISPLAYED value.
  */
 double
 WuQDoubleSpinBox::maximum() const
 {
-    return m_maximumValue;
-}
-
-/**
- * Sets the maximum value displayed in the spin box.
- *
- * @param max
- *     New maximum value.
- */
-void
-WuQDoubleSpinBox::setMaximum(double max)
-{
-    m_maximumValue = max;
-    switch (m_rangeMode) {
-        case RangeMode::EXCEEDABLE:
-            setRangeExceedable(m_minimumValue, m_maximumValue, m_exceedRangeMultiplier);
-            break;
-        case RangeMode::INCLUSIVE:
-            setRange(m_minimumValue, m_maximumValue);
-            break;
-    }
-}
-
-/**
- * Sets the minimum value displayed in the spin box.
- *
- * @param min
- *     New minimum value.
- */
-void
-WuQDoubleSpinBox::setMinimum(double min)
-{
-    m_minimumValue = min;
-    switch (m_rangeMode) {
-        case RangeMode::EXCEEDABLE:
-            setRangeExceedable(m_minimumValue, m_maximumValue, m_exceedRangeMultiplier);
-            break;
-        case RangeMode::INCLUSIVE:
-            setRange(m_minimumValue, m_maximumValue);
-            break;
-    }
+    return m_spinBox->maximum();
 }
 
 /**
@@ -366,8 +380,7 @@ WuQDoubleSpinBox::setPrefix(const QString &prefix)
 }
 
 /**
- * Convenience function to set the minimum and maximum values with a single function call.
- * Selected value is limited to minimum and maximum.
+ * Set the minimum and maximum values for this spin box.
  *
  * @param minimum 
  *    New minimum value.
@@ -384,35 +397,110 @@ WuQDoubleSpinBox::setRange(double minimum,
     m_spinBox->setRange(m_minimumValue, m_maximumValue);
     updateDecimalsForAutoMode();
     updateSingleStepPercentage();
+    setDataRangeToolTip();
 }
 
 /**
- * Convenience function to set the minimum and maximum values with a single function call.
- * Selected value is allowed to exceed minimum and maximum by (maximum - minimum) * rangeMultiplier.
+ * Set range with an automatically calculated 'exceedAmount', typically
+ * 100 times the range and a power of 10.
+ *
  * Any automatic formatting or decimals excludes the "exceed amount".
  *
  * @param minimum
  *    New minimum value.
  * @param maximum
  *    New maximum value.
- * @param rangeMultiplier
- *    The range multiplier.
+ */
+void
+WuQDoubleSpinBox::setRangeExceedable(double minimum,
+                                     double maximum)
+{
+    const double exceedAmount = computeExceedRange(minimum, maximum);
+    const double exceedMin = makePowerOfTen(minimum - exceedAmount);
+    const double exceedMax = makePowerOfTen(maximum + exceedAmount);
+    
+    setRangeExceedable(minimum,
+                       maximum,
+                       exceedMin,
+                       exceedMax);
+}
+
+/**
+ * Set the range of the data and the spin box.
+ 
+ * All formating is based upon the data minimum and maximum.
+ *
+ * @param dataMinimum
+ *     Data minimum value.
+ * @param dataMaximum
+ *     Data maximum value.
+ * @param spinBoxMinimum
+ *     Spinbox minimum value.
+ * @param spinBoxMaximum
+ *     Spinbox maximum value.
+ */
+void
+WuQDoubleSpinBox::setRangeExceedable(const double dataMinimum,
+                                     const double dataMaximum,
+                                     const double spinBoxMinimum,
+                                     const double spinBoxMaximum)
+{
+    m_minimumValue = dataMinimum;
+    m_maximumValue = dataMaximum;
+    m_rangeMode = RangeMode::EXCEEDABLE;
+    
+    m_spinBox->setRange(spinBoxMinimum,
+                        spinBoxMaximum);
+    
+    updateDecimalsForAutoMode();
+    updateSingleStepPercentage();
+    setDataRangeToolTip();
+}
+
+/**
+ * Increase the value to the next power of ten.
+ * Example: 8500 becomes 10000
+ * 
+ * @param value
+ *     The value.
+ * @return
+ *     Value increased to next power of ten.
+ */
+double
+WuQDoubleSpinBox::makePowerOfTen(const double value) const
+{
+    const bool negativeFlag = (value < 0.0);
+    double valuePositive = std::fabs(value);
+    const int64_t logVal = static_cast<int64_t>(std::log10(valuePositive) + 1);
+    double powerTenValue = std::pow(10.0, logVal);
+    if (negativeFlag) {
+        powerTenValue = -powerTenValue;
+    }
+    return powerTenValue;
+}
+
+
+/**
+ * Set range with a specified 'exceedAmount'.
+ * Selected value is allowed to exceed minimum and maximum by exceedAmount.
+ * Any automatic formatting or decimals excludes the "exceed amount".
+ *
+ * @param minimum
+ *    New minimum value.
+ * @param maximum
+ *    New maximum value.
+ * @param exceedAmount
+ *    The fixed exceed amount.
  */
 void
 WuQDoubleSpinBox::setRangeExceedable(double minimum,
                                      double maximum,
-                                     double rangeMultiplier)
+                                     double exceedAmount)
 {
-    m_minimumValue = minimum;
-    m_maximumValue = maximum;
-    m_rangeMode = RangeMode::EXCEEDABLE;
-
-    m_exceedRangeMultiplier = rangeMultiplier;
-    const double exceedAmount = (maximum - minimum) * m_exceedRangeMultiplier;
-    m_spinBox->setRange(m_minimumValue - exceedAmount, m_maximumValue + exceedAmount);
-    
-    updateDecimalsForAutoMode();
-    updateSingleStepPercentage();
+    setRangeExceedable(minimum,
+                       maximum,
+                       minimum - exceedAmount,
+                       maximum + exceedAmount);
 }
 
 /**
@@ -434,6 +522,7 @@ WuQDoubleSpinBox::setupRangePercentage(const double minimumPercentage,
     setDecimals(2);
     setSingleStepPercentage(0.1);
     setSuffix("%");
+    setDataRangeToolTip();
 }
 
 /**
@@ -641,6 +730,82 @@ WuQDoubleSpinBox::valueChangedPrivate(double d)
     emit valueChanged(d);
     m_blockValueUpdateFlag = false;
 }
+
+/**
+ * Set the tooltip for this spin box.  After this
+ * tooltip, the range of data is displayed.
+ *
+ * @param tooltip
+ *     Text for the tooltip.
+ */
+void
+WuQDoubleSpinBox::setToolTip(const QString& tooltip)
+{
+    m_userToolTip = tooltip;
+    setDataRangeToolTip();
+}
+
+/**
+ * @return Text for a tooltip indicating range of data.
+ */
+void
+WuQDoubleSpinBox::setDataRangeToolTip() const
+{
+    
+    AString s;
+    
+    if ( ! m_userToolTip.isEmpty()) {
+        s += (m_userToolTip + "\n");
+    }
+    
+    s += QString("Data min/max: %1  %2").arg(doubleToString(m_minimumValue)).arg(doubleToString(m_maximumValue));
+                 
+
+    switch (m_rangeMode) {
+        case RangeMode::EXCEEDABLE:
+        {
+            const double minVal = m_spinBox->minimum();
+            const double maxVal = m_spinBox->maximum();
+            s += (+ "\n"
+                  + QString("Acceptable min/max: %1  %2").arg(doubleToString(minVal)).arg(doubleToString(maxVal)));
+        }            break;
+        case RangeMode::INCLUSIVE:
+            break;
+    }
+    
+    m_spinBox->setToolTip(s);
+}
+
+/**
+ * Convert the double to a string.  If the value
+ * exceeds maximum float list as 'infinity'.
+ *
+ * @param value
+ *     The double value.
+ * @return
+ *     The string representation.
+ */
+QString
+WuQDoubleSpinBox::doubleToString(const double value) const
+{
+    QString s;
+    
+    if (value >= std::numeric_limits<float>::max()) {
+        s = "+infinity";
+    }
+    else if (value <= -std::numeric_limits<float>::max()) {
+        s = "-infinity";
+    }
+    else {
+        s = QString("%1").arg(value, 0, 'f');
+        s = NumericTextFormatting::cleanZerosInValueText(s);
+        s += m_spinBox->suffix();
+    }
+    
+    return s;
+}
+
+
 
 // ADD_NEW_METHODS_HERE
 

@@ -39,7 +39,7 @@ namespace caret {
         
         virtual QWidget* getWidget() = 0;
         
-        void setToolTip(const QString& tooltip);
+        virtual void setToolTip(const QString& tooltip);
         
         void setFixedWidth(int w);
 

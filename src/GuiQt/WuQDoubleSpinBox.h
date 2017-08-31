@@ -104,17 +104,16 @@ namespace caret {
         
         void setDecimalsModeAuto();
         
-        void setMaximum(double max);
-        
-        void setMinimum(double min);
-        
         void setPrefix(const QString &prefix);
         
         void setRange(double minimum, double maximum);
         
         void setRangeExceedable(double minimum,
                                 double maximum,
-                                double rangeMultiplier);
+                                double exceedAmount);
+        
+        void setRangeExceedable(double minimum,
+                                double maximum);
         
         void setupRangePercentage(const double minimumPercentage,
                                   const double maximumPercentage);
@@ -138,6 +137,8 @@ namespace caret {
         double value() const;
         
         virtual double	valueFromText(const QString &text) const;
+        
+        virtual void setToolTip(const QString& tooltip);
         
         // ADD_NEW_METHODS_HERE
 
@@ -173,6 +174,22 @@ namespace caret {
         
         void testDigitsRightOfDecimal();
         
+        double computeExceedRange(const double minValue,
+                                  const double maxValue);
+        
+        QString doubleToString(const double value) const;
+        
+        void testExceedRange();
+        
+        void setRangeExceedable(const double dataMinimum,
+                                const double dataMaximum,
+                                const double spinBoxMinimum,
+                                const double spinBoxMaximum);
+        
+        double makePowerOfTen(const double value) const;
+        
+        void setDataRangeToolTip() const;
+        
         QDoubleSpinBox* m_spinBox;
         
         RangeMode m_rangeMode = RangeMode::INCLUSIVE;
@@ -187,9 +204,9 @@ namespace caret {
         
         double m_maximumValue = 99.0;
         
-        double m_exceedRangeMultiplier = 0.0;
-        
         bool m_blockValueUpdateFlag = false;
+        
+        QString m_userToolTip;
         
         // ADD_NEW_MEMBERS_HERE
 

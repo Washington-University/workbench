@@ -49,6 +49,9 @@ namespace caret {
         static void formatValuesIndividually(const float valuesIn[],
                                              AString formattedValuesOut[],
                                              const int32_t numberOfValues);
+        
+        static AString cleanZerosInValueText(const AString& textValueIn);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -59,8 +62,6 @@ namespace caret {
         NumericTextFormatting(const NumericTextFormatting&);
         
         NumericTextFormatting& operator=(const NumericTextFormatting&);
-        
-        static AString cleanZerosInValueText(const AString& textValueIn);
         
         static AString removeLeadingZeroFromExponent(const NumericFormatModeEnum::Enum numericFormat,
                                                      const AString& textValueIn);

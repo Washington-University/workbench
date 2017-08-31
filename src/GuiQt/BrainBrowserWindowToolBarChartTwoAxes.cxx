@@ -516,10 +516,9 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
         m_autoUserRangeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(m_chartAxis->getScaleRangeMode());
         float rangeMin(0.0f), rangeMax(0.0f);
         m_chartAxis->getDataRange(rangeMin, rangeMax);
-        const float exceedMultiplier = 1.0f;
-        m_userMinimumValueSpinBox->setRangeExceedable(rangeMin, rangeMax, exceedMultiplier);
+        m_userMinimumValueSpinBox->setRangeExceedable(rangeMin, rangeMax);
         m_userMinimumValueSpinBox->setValue(m_chartAxis->getUserScaleMinimumValue());
-        m_userMaximumValueSpinBox->setRangeExceedable(rangeMin, rangeMax, exceedMultiplier);
+        m_userMaximumValueSpinBox->setRangeExceedable(rangeMin, rangeMax);
         m_userMaximumValueSpinBox->setValue(m_chartAxis->getUserScaleMaximumValue());
         m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
         m_showLabelCheckBox->setChecked(m_chartAxis->isShowLabel());
