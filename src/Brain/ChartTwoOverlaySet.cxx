@@ -594,7 +594,7 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
                 EventManager::get()->sendEvent(tabEvent.getPointer());
                 const BrowserTabContent* btc = tabEvent.getBrowserTab();
                 if (btc != NULL) {
-                    const YokingGroupEnum::Enum tabYoking = btc->getYokingGroup();
+                    const YokingGroupEnum::Enum tabYoking = btc->getChartModelYokingGroup();
                     
                     if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
                         && (yokingGroup == tabYoking)
@@ -613,6 +613,32 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
                                 CaretAssert(0);
                                 break;
                         }
+                    }
+                }
+            }
+                break;
+            case EventChartTwoAttributesChanged::Mode::TITLE:
+            {
+                YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+                ChartTwoDataTypeEnum::Enum chartTwoDataType = ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID;
+                ChartTwoTitle* chartTitle = NULL;
+                attributeEvent->getTitleChanged(yokingGroup,
+                                                chartTwoDataType,
+                                                chartTitle);
+                
+                /*
+                 * Only tabs in the windows are valid
+                 */
+                EventBrowserTabGet tabEvent(m_tabIndex);
+                EventManager::get()->sendEvent(tabEvent.getPointer());
+                const BrowserTabContent* btc = tabEvent.getBrowserTab();
+                if (btc != NULL) {
+                    const YokingGroupEnum::Enum tabYoking = btc->getChartModelYokingGroup();
+                    
+                    if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
+                        && (yokingGroup == tabYoking)
+                        && (m_chartDataType == chartTwoDataType)) {
+                        *m_title = *chartTitle;
                     }
                 }
             }

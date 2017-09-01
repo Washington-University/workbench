@@ -76,6 +76,7 @@ EventChartTwoAttributesChanged::setCartesianAxisChanged(const YokingGroupEnum::E
                               const ChartTwoDataTypeEnum::Enum chartTwoDataType,
                               const ChartTwoCartesianAxis* cartesianAxis)
 {
+    CaretAssert(cartesianAxis);
     m_mode             = Mode::CARTESIAN_AXIS;
     m_yokingGroup      = yokingGroup;
     m_chartTwoDataType = chartTwoDataType;
@@ -95,7 +96,7 @@ EventChartTwoAttributesChanged::setCartesianAxisChanged(const YokingGroupEnum::E
 void
 EventChartTwoAttributesChanged::getCartesianAxisChanged(YokingGroupEnum::Enum &yokingGroupOut,
                               ChartTwoDataTypeEnum::Enum &chartTwoDataTypeOut,
-                              ChartTwoCartesianAxis* &cartesianAxisOut)
+                              ChartTwoCartesianAxis* &cartesianAxisOut) const
 {
     CaretAssert(m_mode == Mode::CARTESIAN_AXIS);
     yokingGroupOut      = m_yokingGroup;
@@ -103,4 +104,42 @@ EventChartTwoAttributesChanged::getCartesianAxisChanged(YokingGroupEnum::Enum &y
     cartesianAxisOut    = m_cartesianAxis;
 }
 
+/**
+ * Set for a change in a title.
+ *
+ * @param yokingGroup
+ *     Selected yoking group.
+ * @param chartTwoDataType
+ *     Type of chart.
+ */
+void
+EventChartTwoAttributesChanged::setTitleChanged(const YokingGroupEnum::Enum yokingGroup,
+                                                const ChartTwoDataTypeEnum::Enum chartTwoDataType,
+                                                const ChartTwoTitle* chartTitle)
+{
+    CaretAssert(chartTitle);
+    m_mode             = Mode::TITLE;
+    m_yokingGroup      = yokingGroup;
+    m_chartTwoDataType = chartTwoDataType;
+    m_chartTitle       = const_cast<ChartTwoTitle*>(chartTitle);
+}
+
+/**
+ * Get for a change in title.
+ *
+ * @param yokingGroupOut
+ *     Selected yoking group.
+ * @param chartTwoDataTypeOut
+ *     Type of chart.
+ */
+void
+EventChartTwoAttributesChanged::getTitleChanged(YokingGroupEnum::Enum &yokingGroupOut,
+                                                ChartTwoDataTypeEnum::Enum &chartTwoDataTypeOut,
+                                                ChartTwoTitle* &chartTitleOut) const
+{
+    CaretAssert(m_mode == Mode::TITLE);
+    yokingGroupOut      = m_yokingGroup;
+    chartTwoDataTypeOut = m_chartTwoDataType;
+    chartTitleOut       = m_chartTitle;
+}
 

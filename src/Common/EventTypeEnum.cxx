@@ -354,10 +354,6 @@ EventTypeEnum::initialize()
                                      "EVENT_UPDATE_INFORMATION_WINDOWS", 
                                      "Update the information windows"));
 
-    enumData.push_back(EventTypeEnum(EVENT_UPDATE_YOKED_WINDOWS,
-                                     "EVENT_UPDATE_YOKED_WINDOWS",
-                                     "Update yoked windows graphics and toolbar"));
-
     enumData.push_back(EventTypeEnum(EVENT_UPDATE_VOLUME_EDITING_TOOLBAR,
                                      "EVENT_UPDATE_VOLUME_EDITING_TOOLBAR",
                                      "Update the volume editing toolbar"));

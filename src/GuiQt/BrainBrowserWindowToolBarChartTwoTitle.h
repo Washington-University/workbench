@@ -46,7 +46,7 @@ namespace caret {
     private slots:
         void editTitleActionTriggered();
         
-        void showTitleCheckBoxToggled(bool);
+        void showTitleCheckBoxClicked(bool);
         
         void sizeSpinBoxValueChanged(double);
         
@@ -54,6 +54,8 @@ namespace caret {
         BrainBrowserWindowToolBarChartTwoTitle(const BrainBrowserWindowToolBarChartTwoTitle&);
 
         BrainBrowserWindowToolBarChartTwoTitle& operator=(const BrainBrowserWindowToolBarChartTwoTitle&);
+        
+        void performUpdating();
         
         QCheckBox* m_showTitleCheckBox;
         

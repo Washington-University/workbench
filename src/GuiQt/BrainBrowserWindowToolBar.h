@@ -438,6 +438,8 @@ namespace caret {
         
         bool isContructorFinished;
         bool isDestructionInProgress;
+        
+        bool m_performingUpdateFlag = false;
     };
 }
 

@@ -538,7 +538,6 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_USER_INTERFACE_UPDATE:
         case EventTypeEnum::EVENT_PROGRESS_UPDATE:
         case EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS:
-        case EventTypeEnum::EVENT_UPDATE_YOKED_WINDOWS:
         case EventTypeEnum::EVENT_UPDATE_VOLUME_EDITING_TOOLBAR:
         {
             const AString msg(EventTypeEnum::toName(eventType)

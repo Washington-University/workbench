@@ -33,12 +33,14 @@
 namespace caret {
 
     class ChartTwoCartesianAxis;
+    class ChartTwoTitle;
     class EventChartTwoAttributesChanged : public Event {
         
     public:
         enum class Mode {
             INVALID,
-            CARTESIAN_AXIS
+            CARTESIAN_AXIS,
+            TITLE
         };
         
         EventChartTwoAttributesChanged();
@@ -53,9 +55,15 @@ namespace caret {
         
         void getCartesianAxisChanged(YokingGroupEnum::Enum &yokingGroupOut,
                                       ChartTwoDataTypeEnum::Enum &chartTwoDataTypeOut,
-                                      ChartTwoCartesianAxis* &cartesianAxisOut);
+                                     ChartTwoCartesianAxis* &cartesianAxisOut) const;
         
+        void setTitleChanged(const YokingGroupEnum::Enum yokingGroup,
+                             const ChartTwoDataTypeEnum::Enum chartTwoDataType,
+                             const ChartTwoTitle* chartTitle);
         
+        void getTitleChanged(YokingGroupEnum::Enum &yokingGroupOut,
+                             ChartTwoDataTypeEnum::Enum &chartTwoDataTypeOut,
+                             ChartTwoTitle* &chartTitleOut) const;
 
         // ADD_NEW_METHODS_HERE
 
@@ -71,6 +79,8 @@ namespace caret {
         ChartTwoDataTypeEnum::Enum m_chartTwoDataType = ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID;
         
         ChartTwoCartesianAxis* m_cartesianAxis = NULL;
+        
+        ChartTwoTitle* m_chartTitle = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

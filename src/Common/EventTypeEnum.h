@@ -184,8 +184,6 @@ public:
         EVENT_PROGRESS_UPDATE,
         /** Update the information windows */
         EVENT_UPDATE_INFORMATION_WINDOWS,
-        /** Event to update yoked windows (graphics and toolbar) */
-        EVENT_UPDATE_YOKED_WINDOWS,
         /** Update the volume editing toolbar */
         EVENT_UPDATE_VOLUME_EDITING_TOOLBAR,
         /* THIS MUST ALWAYS BE LAST - NOT an event type but is number of event types */

@@ -77,7 +77,7 @@ m_tabAspectRatioLockedAction(tabAspectRatioLockedAction)
                                                     "Surface Yoking is applied to Surface, Surface Montage\n"
                                                     "and Whole Brain.  Volume Yoking is applied to Volumes."));
     
-    QLabel* yokeToLabel = new QLabel("Yoking:");
+    m_yokeToLabel = new QLabel("Yoking:");
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
@@ -91,13 +91,13 @@ m_tabAspectRatioLockedAction(tabAspectRatioLockedAction)
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
-    layout->addWidget(yokeToLabel);
+    layout->addWidget(m_yokeToLabel);
     layout->addWidget(m_yokingGroupComboBox->getWidget());
     layout->addSpacing(15);
     layout->addWidget(windowAspectRatioLockedToolButton);
     layout->addWidget(tabAspectRatioLockedToolButton);
     
-    addToWidgetGroup(yokeToLabel);
+    addToWidgetGroup(m_yokeToLabel);
     addToWidgetGroup(m_yokingGroupComboBox->getWidget());
 }
 
@@ -119,7 +119,34 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
 {
     blockAllSignals(true);
     
-    m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getYokingGroup());
+    bool chartFlag = false;
+    switch (browserTabContent->getSelectedModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            chartFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            chartFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            break;
+    }
+    
+    if (chartFlag) {
+        m_yokeToLabel->setText("Chart Yoking:");
+        m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getChartModelYokingGroup());
+    }
+    else {
+        m_yokeToLabel->setText("Yoking:");
+        m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getBrainModelYokingGroup());
+    }
     m_tabAspectRatioLockedAction->blockSignals(true);
     m_tabAspectRatioLockedAction->setChecked(browserTabContent->isAspectRatioLocked());
     m_tabAspectRatioLockedAction->blockSignals(false);
@@ -138,8 +165,33 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
         return;
     }
     
+    bool chartFlag = false;
+    switch (browserTabContent->getSelectedModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            chartFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            chartFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            break;
+    }
+    
     YokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>();
-    browserTabContent->setYokingGroup(yokingGroup);
+    if (chartFlag) {
+        browserTabContent->setChartModelYokingGroup(yokingGroup);
+    }
+    else {
+        browserTabContent->setBrainModelYokingGroup(yokingGroup);
+    }
     
     m_parentToolBar->updateToolBarComponents(browserTabContent);
 

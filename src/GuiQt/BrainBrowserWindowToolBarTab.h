@@ -25,6 +25,7 @@
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
+class QLabel;
 class QToolButton;
 
 namespace caret {
@@ -54,6 +55,8 @@ namespace caret {
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
 
         BrainBrowserWindowToolBarTab& operator=(const BrainBrowserWindowToolBarTab&);
+        
+        QLabel* m_yokeToLabel;
         
         EnumComboBoxTemplate* m_yokingGroupComboBox;
 

@@ -588,7 +588,7 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
         const BrowserTabContent* tabContent = getTabContentFromSelectedTab();
         CaretAssert(tabContent);
         
-        const YokingGroupEnum::Enum yokingGroup = tabContent->getYokingGroup();
+        const YokingGroupEnum::Enum yokingGroup = tabContent->getChartModelYokingGroup();
         if (yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
             const ModelChartTwo* modelChartTwo = tabContent->getDisplayedChartTwoModel();
             CaretAssert(modelChartTwo);

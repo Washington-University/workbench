@@ -371,13 +371,19 @@ namespace caret {
 
         void reset();
 
-        void updateYokedBrowserTabs();
+        void updateChartModelYokedBrowserTabs();
         
-        bool isYoked() const;
+        bool isBrainModelYoked() const;
         
-        YokingGroupEnum::Enum getYokingGroup() const;
+        bool isChartModelYoked() const;
         
-        void setYokingGroup(const YokingGroupEnum::Enum yokingType);
+        YokingGroupEnum::Enum getBrainModelYokingGroup() const;
+        
+        void setBrainModelYokingGroup(const YokingGroupEnum::Enum brainModelYokingType);
+        
+        YokingGroupEnum::Enum getChartModelYokingGroup() const;
+        
+        void setChartModelYokingGroup(const YokingGroupEnum::Enum chartModelYokingType);
         
         bool isWholeBrainLeftEnabled() const;
         
@@ -434,6 +440,10 @@ namespace caret {
         
         const ViewingTransformations* getViewingTransformation() const;
         
+        void updateBrainModelYokedBrowserTabs();
+        
+        void updateYokedModelBrowserTabs();
+        
         AString getDefaultName() const;
         
         /** Number of this tab */
@@ -484,8 +494,11 @@ namespace caret {
          */
         Matrix4x4* m_obliqueVolumeRotationMatrix;
         
-        /** Yoking group */
-        YokingGroupEnum::Enum m_yokingGroup;
+        /** Brain Model Yoking group */
+        YokingGroupEnum::Enum m_brainModelYokingGroup;
+        
+        /** Chart Model Yoking group */
+        YokingGroupEnum::Enum m_chartModelYokingGroup;
         
         /** Volume Surface Outlines */
         VolumeSurfaceOutlineSetModel* m_volumeSurfaceOutlineSetModel;

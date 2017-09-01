@@ -33,7 +33,8 @@
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlaySet.h"
 #include "EventGraphicsUpdateOneWindow.h"
-#include "EventUpdateYokedWindows.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "MouseEvent.h"
@@ -388,35 +389,31 @@ UserInputModeView::showContextMenu(const MouseEvent& mouseEvent,
     contextMenu.exec(menuPosition);
 }
 
-
-
 /**
- * If this windows is yoked, issue an event to update other
- * windows that are using the same yoking.
+ * Updated graphics.
  */
 void
 UserInputModeView::updateGraphics(const MouseEvent& mouseEvent)
 {
-    bool issuedYokeEvent = false;
     if (mouseEvent.getViewportContent() != NULL) {
         BrowserTabContent* browserTabContent = mouseEvent.getViewportContent()->getBrowserTabContent();
-        const int32_t browserWindowIndex = mouseEvent.getBrowserWindowIndex();
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
-        
         if (browserTabContent != NULL) {
-            if (browserTabContent->isYoked()) {
-                issuedYokeEvent = true;
-                EventManager::get()->sendEvent(EventUpdateYokedWindows(browserTabContent->getYokingGroup()).getPointer());
+            if (browserTabContent->isChartModelYoked()
+                || browserTabContent->isBrainModelYoked()) {
+                /*
+                 * When yoked, need to update GUI and all windows
+                 */
+                EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(mouseEvent.getBrowserWindowIndex()).getPointer());
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                return;
             }
         }
     }
     
     /*
-     * If not yoked, just need to update graphics.
+     * Not yoked, just update graphics in this window
      */
-    if (issuedYokeEvent == false) {
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
-    }
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
 }
 
 

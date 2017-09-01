@@ -36,6 +36,8 @@
 #include "CaretAssert.h"
 #include "ChartTwoOverlaySet.h"
 #include "ChartTwoTitle.h"
+#include "EventChartTwoAttributesChanged.h"
+#include "EventManager.h"
 #include "ModelChartTwo.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
@@ -59,8 +61,8 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
 {
     m_showTitleCheckBox = new QCheckBox("Show Title");
     m_showTitleCheckBox->setToolTip("Show the title at the top of the chart");
-    QObject::connect(m_showTitleCheckBox, &QCheckBox::toggled,
-                     this, &BrainBrowserWindowToolBarChartTwoTitle::showTitleCheckBoxToggled);
+    QObject::connect(m_showTitleCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarChartTwoTitle::showTitleCheckBoxClicked);
     
     QAction* editTitleAction = new QAction("Edit Title...");
     editTitleAction->setToolTip("Edit the chart title in a dialog");
@@ -146,19 +148,18 @@ BrainBrowserWindowToolBarChartTwoTitle::updateContent(BrowserTabContent* browser
 }
 
 /**
- * Called when show title checkbox is toggled.
+ * Called when show title checkbox is clicked.
  *
  * @param checked
  *     Status of checkbox.
  */
 void
-BrainBrowserWindowToolBarChartTwoTitle::showTitleCheckBoxToggled(bool checked)
+BrainBrowserWindowToolBarChartTwoTitle::showTitleCheckBoxClicked(bool checked)
 {
     if (m_chartOverlaySet != NULL) {
         ChartTwoTitle* chartTitle = m_chartOverlaySet->getChartTitle();
         chartTitle->setDisplayed(checked);
-        this->updateGraphicsWindow();
-        this->updateOtherYokedWindows();
+        this->performUpdating();
     }
 }
 
@@ -172,8 +173,7 @@ BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged(double)
         ChartTwoTitle* chartTitle = m_chartOverlaySet->getChartTitle();
         chartTitle->setTextSize(m_titleSizeSpinBox->value());
         chartTitle->setPaddingSize(m_paddingSizeSpinBox->value());
-        this->updateGraphicsWindow();
-        this->updateOtherYokedWindows();
+        this->performUpdating();
     }
 }
 
@@ -191,9 +191,29 @@ BrainBrowserWindowToolBarChartTwoTitle::editTitleActionTriggered()
         if (newNameDialog.exec() == WuQDataEntryDialog::Accepted) {
             const AString name = lineEdit->text().trimmed();
             m_chartOverlaySet->getChartTitle()->setText(name);
-            this->updateGraphicsWindow();
-            this->updateOtherYokedWindows();
+            this->performUpdating();
         }
     }
 }
 
+void
+BrainBrowserWindowToolBarChartTwoTitle::performUpdating()
+{
+    const BrowserTabContent* tabContent = getTabContentFromSelectedTab();
+    CaretAssert(tabContent);
+    
+    const YokingGroupEnum::Enum yokingGroup = tabContent->getChartModelYokingGroup();
+    if (yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
+        const ModelChartTwo* modelChartTwo = tabContent->getDisplayedChartTwoModel();
+        CaretAssert(modelChartTwo);
+        const int32_t tabIndex = tabContent->getTabNumber();
+    
+        EventChartTwoAttributesChanged attributesEvent;
+        attributesEvent.setTitleChanged(yokingGroup,
+                                        modelChartTwo->getSelectedChartTwoDataType(tabIndex),
+                                        m_chartOverlaySet->getChartTitle());
+        EventManager::get()->sendEvent(attributesEvent.getPointer());
+    }
+    
+    this->updateOtherYokedWindows();
+}

@@ -119,7 +119,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_guiName = "";
     m_userName = "";
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
-    m_yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
     
     m_aspectRatio = 1.0;
@@ -199,8 +200,10 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_aspectRatioLocked",
                                &m_aspectRatioLocked);
     
-    m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_yokingGroup",
-                                                                   &m_yokingGroup);
+    m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_brainModelYokingGroup",
+                                                                       &m_brainModelYokingGroup);
+    m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_chartModelYokingGroup",
+                                                                       &m_chartModelYokingGroup);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET);
     EventManager::get()->addEventListener(this,
@@ -215,7 +218,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
      * Need to be done from here
      */
     if (prefs->isYokingDefaultedOn()) {
-        setYokingGroup(YokingGroupEnum::YOKING_GROUP_A);
+        setBrainModelYokingGroup(YokingGroupEnum::YOKING_GROUP_A);
+        setChartModelYokingGroup(YokingGroupEnum::YOKING_GROUP_OFF);
     }
 }
 
@@ -281,7 +285,8 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     *m_clippingPlaneGroup = *tabToClone->m_clippingPlaneGroup;
     
-    m_yokingGroup = tabToClone->m_yokingGroup;
+    m_brainModelYokingGroup = tabToClone->m_brainModelYokingGroup;
+    m_chartModelYokingGroup = tabToClone->m_chartModelYokingGroup;
     m_aspectRatio = tabToClone->m_aspectRatio;
     m_aspectRatioLocked = tabToClone->m_aspectRatioLocked;
     
@@ -2079,7 +2084,7 @@ void
 BrowserTabContent::setTranslation( const float translation[3])
 {
     getViewingTransformation()->setTranslation(translation);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -2100,7 +2105,7 @@ BrowserTabContent::setTranslation(const float translationX,
     getViewingTransformation()->setTranslation(translationX,
                                                translationY,
                                                translationZ);
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2121,7 +2126,7 @@ void
 BrowserTabContent::setScaling(const float scaling)
 {
     return getViewingTransformation()->setScaling(scaling);
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2143,7 +2148,7 @@ void
 BrowserTabContent::setRotationMatrix(const Matrix4x4& rotationMatrix)
 {
     getViewingTransformation()->setRotationMatrix(rotationMatrix);
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2166,7 +2171,7 @@ BrowserTabContent::setObliqueVolumeRotationMatrix(const Matrix4x4& obliqueRotati
 {
     *m_obliqueVolumeRotationMatrix = obliqueRotationMatrix;
     
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -2197,7 +2202,7 @@ BrowserTabContent::setRightCortexFlatMapOffset(const float offsetX,
                                                const float offsetY)
 {
     getViewingTransformation()->setRightCortexFlatMapOffset(offsetX, offsetY);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -2231,7 +2236,7 @@ BrowserTabContent::resetView()
     if (isVolumeSlicesDisplayed()) {
         m_obliqueVolumeRotationMatrix->identity();
     }
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2244,7 +2249,7 @@ BrowserTabContent::rightView()
         return;
     }
     getViewingTransformation()->rightView();
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2257,7 +2262,7 @@ BrowserTabContent::leftView()
         return;
     }
     getViewingTransformation()->leftView();
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2270,7 +2275,7 @@ BrowserTabContent::anteriorView()
         return;
     }
     getViewingTransformation()->anteriorView();
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2283,7 +2288,7 @@ BrowserTabContent::posteriorView()
         return;
     }
     getViewingTransformation()->posteriorView();
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2296,7 +2301,7 @@ BrowserTabContent::dorsalView()
         return;
     }
     getViewingTransformation()->dorsalView();
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2309,7 +2314,7 @@ BrowserTabContent::ventralView()
         return;
     }
     getViewingTransformation()->ventralView();
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2656,7 +2661,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
             viewingTransform->setRotationMatrix(rotationMatrix);
         }
     }
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -2719,7 +2724,7 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
         }
         getViewingTransformation()->setScaling(scaling);
     }
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -3002,7 +3007,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
             getViewingTransformation()->setTranslation(translation);
         }
     }
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -3208,7 +3213,7 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
     const float rightFlatZoom = modelTransform.getRightCortexFlatMapZoomFactor();
     setRightCortexFlatMapZoomFactor(rightFlatZoom);
     
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 
@@ -3268,8 +3273,27 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_A;
+    m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    
     m_sceneClassAssistant->restoreMembers(sceneAttributes, 
                                           sceneClass);
+    
+    /*
+     * With charting version two, yoking was split into chart and non-chart yoking
+     * If old yoking group is found, apply it to the brain model yoking group
+     */
+    const AString oldYokingGroupName = sceneClass->getEnumeratedTypeValueAsString("m_yokingGroup",
+                                                                                  "XXXXXX");
+    if ( ! oldYokingGroupName.isEmpty()) {
+        bool validFlag = false;
+        const YokingGroupEnum::Enum oldYokeGroup = YokingGroupEnum::fromName(oldYokingGroupName,
+                                                                             &validFlag);
+        if (validFlag) {
+            m_brainModelYokingGroup = oldYokeGroup;
+            m_chartModelYokingGroup = oldYokeGroup;
+        }
+    }
     
     m_obliqueVolumeRotationMatrix->identity();
     float obliqueMatrix[16];
@@ -3506,6 +3530,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
             }
         }
     }
+    
 }
 
 /**
@@ -3577,7 +3602,7 @@ BrowserTabContent::setClippingPlaneEnabled(const bool xEnabled,
     m_clippingPlaneGroup->setVolumeSelected(volumeEnabled);
     m_clippingPlaneGroup->setFeaturesSelected(featuresEnabled);
 
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -3625,7 +3650,7 @@ BrowserTabContent::setClippingPlaneTransformation(const float panning[3],
     
     m_clippingPlaneGroup->setDisplayClippingBoxSelected(displayClippingBox);
 
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -3648,7 +3673,7 @@ void
 BrowserTabContent::resetClippingPlaneTransformation()
 {
     m_clippingPlaneGroup->resetTransformation();
-    updateYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -3702,7 +3727,7 @@ void
 BrowserTabContent::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
 {
     m_volumeSliceSettings->setSliceViewPlane(slicePlane);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3724,7 +3749,7 @@ void
 BrowserTabContent::setSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum slicePlanesAllViewLayout)
 {
     m_volumeSliceSettings->setSlicePlanesAllViewLayout(slicePlanesAllViewLayout);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3746,7 +3771,7 @@ void
 BrowserTabContent::setSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType)
 {
     m_volumeSliceSettings->setSliceDrawingType(sliceDrawingType);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3768,7 +3793,7 @@ void
 BrowserTabContent::setSliceProjectionType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType)
 {
     m_volumeSliceSettings->setSliceProjectionType(sliceProjectionType);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3789,7 +3814,7 @@ void
 BrowserTabContent::setMontageNumberOfColumns(const int32_t montageNumberOfColumns)
 {
     m_volumeSliceSettings->setMontageNumberOfColumns(montageNumberOfColumns);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3810,7 +3835,7 @@ void
 BrowserTabContent::setMontageNumberOfRows(const int32_t montageNumberOfRows)
 {
     m_volumeSliceSettings->setMontageNumberOfRows(montageNumberOfRows);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3831,7 +3856,7 @@ void
 BrowserTabContent::setMontageSliceSpacing(const int32_t montageSliceSpacing)
 {
     m_volumeSliceSettings->setMontageSliceSpacing(montageSliceSpacing);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3841,7 +3866,7 @@ void
 BrowserTabContent::setSlicesToOrigin()
 {
     selectSlicesAtOrigin();
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3855,7 +3880,7 @@ BrowserTabContent::reset()
         m_volumeSliceSettings->reset();
         m_obliqueVolumeRotationMatrix->identity();
     }
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3877,7 +3902,7 @@ void
 BrowserTabContent::selectSlicesAtOrigin()
 {
     m_volumeSliceSettings->selectSlicesAtOrigin();
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3889,7 +3914,7 @@ void
 BrowserTabContent::selectSlicesAtCoordinate(const float xyz[3])
 {
     m_volumeSliceSettings->selectSlicesAtCoordinate(xyz);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3913,7 +3938,7 @@ void
 BrowserTabContent::setIdentificationUpdatesVolumeSlices(const bool status)
 {
     m_identificationUpdatesVolumeSlices = status;
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3937,7 +3962,7 @@ BrowserTabContent::setSliceIndexAxial(const VolumeMappableInterface* volumeFile,
                                         const int64_t sliceIndexAxial)
 {
     m_volumeSliceSettings->setSliceIndexAxial(volumeFile, sliceIndexAxial);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3962,7 +3987,7 @@ BrowserTabContent::setSliceIndexCoronal(const VolumeMappableInterface* volumeFil
                                           const int64_t sliceIndexCoronal)
 {
     m_volumeSliceSettings->setSliceIndexCoronal(volumeFile, sliceIndexCoronal);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -3987,7 +4012,7 @@ BrowserTabContent::setSliceIndexParasagittal(const VolumeMappableInterface* volu
 {
     m_volumeSliceSettings->setSliceIndexParasagittal(volumeFile,
                                                          sliceIndexParasagittal);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -4008,7 +4033,7 @@ void
 BrowserTabContent::setSliceCoordinateAxial(const float z)
 {
     m_volumeSliceSettings->setSliceCoordinateAxial(z);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -4029,7 +4054,7 @@ void
 BrowserTabContent::setSliceCoordinateCoronal(const float y)
 {
     m_volumeSliceSettings->setSliceCoordinateCoronal(y);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -4050,7 +4075,7 @@ void
 BrowserTabContent::setSliceCoordinateParasagittal(const float x)
 {
     m_volumeSliceSettings->setSliceCoordinateParasagittal(x);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -4073,7 +4098,7 @@ void
 BrowserTabContent::setSliceParasagittalEnabled(const bool sliceEnabledParasagittal)
 {
     m_volumeSliceSettings->setSliceParasagittalEnabled(sliceEnabledParasagittal);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -4096,7 +4121,7 @@ void
 BrowserTabContent::setSliceCoronalEnabled(const bool sliceEnabledCoronal)
 {
     m_volumeSliceSettings->setSliceCoronalEnabled(sliceEnabledCoronal);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -4119,7 +4144,7 @@ void
 BrowserTabContent::setSliceAxialEnabled(const bool sliceEnabledAxial)
 {
     m_volumeSliceSettings->setSliceAxialEnabled(sliceEnabledAxial);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 
@@ -4144,7 +4169,7 @@ void
 BrowserTabContent::setWholeBrainLeftEnabled(const bool enabled)
 {
     m_wholeBrainSurfaceSettings->setLeftEnabled(enabled);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -4165,7 +4190,7 @@ void
 BrowserTabContent::setWholeBrainRightEnabled(const bool enabled)
 {
     m_wholeBrainSurfaceSettings->setRightEnabled(enabled);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -4186,7 +4211,7 @@ void
 BrowserTabContent::setWholeBrainCerebellumEnabled(const bool enabled)
 {
     m_wholeBrainSurfaceSettings->setCerebellumEnabled(enabled);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -4207,7 +4232,7 @@ void
 BrowserTabContent::setWholeBrainLeftRightSeparation(const float separation)
 {
     m_wholeBrainSurfaceSettings->setLeftRightSeparation(separation);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -4228,30 +4253,30 @@ void
 BrowserTabContent::setWholeBrainCerebellumSeparation(const float separation)
 {
     m_wholeBrainSurfaceSettings->setCerebellumSeparation(separation);
-    updateYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
- * @return Selected yoking group.
+ * @return Selected yoking group for charts
  */
 YokingGroupEnum::Enum
-BrowserTabContent::getYokingGroup() const
+BrowserTabContent::getChartModelYokingGroup() const
 {
-    return m_yokingGroup;
+    return m_chartModelYokingGroup;
 }
 
 /**
- * Set the selected yoking group.
+ * Set the selected yoking group for charts.
  *
- * @param yokingGroup
+ * @param chartModelYokingType
  *    New value for yoking group.
  */
 void
-BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
+BrowserTabContent::setChartModelYokingGroup(const YokingGroupEnum::Enum chartModelYokingType)
 {
-    m_yokingGroup = yokingGroup;
+    m_chartModelYokingGroup = chartModelYokingType;
     
-    if (m_yokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+    if (m_chartModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
         return;
     }
     
@@ -4266,21 +4291,13 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
          iter++) {
         BrowserTabContent* btc = *iter;
         if (btc != this) {
-            if (btc->getYokingGroup() == m_yokingGroup) {
+            if (btc->getChartModelYokingGroup() == m_chartModelYokingGroup) {
                 copyFromTabIndex = btc->getTabNumber();
                 /*
                  * If anything is added, also need to update updateYokedBrowserTabs()
                  */
-                *m_viewingTransformation = *btc->m_viewingTransformation;
-                *m_flatSurfaceViewingTransformation = *btc->m_flatSurfaceViewingTransformation;
-                *m_cerebellumViewingTransformation = *btc->m_cerebellumViewingTransformation;
-                *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
                 *m_chartTwoMatrixViewingTranformation = *btc->m_chartTwoMatrixViewingTranformation;
                 *m_chartTwoMatrixDisplayProperties = *btc->m_chartTwoMatrixDisplayProperties;
-                *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
-                *m_obliqueVolumeRotationMatrix = *btc->m_obliqueVolumeRotationMatrix;
-                *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
-                m_identificationUpdatesVolumeSlices = btc->m_identificationUpdatesVolumeSlices;
                 break;
             }
         }
@@ -4298,26 +4315,125 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
 }
 
 /**
- * @return Is this browser tab yoked?
+ * @return Selected yoking group for brain models (surface or volumes)
+ */
+YokingGroupEnum::Enum
+BrowserTabContent::getBrainModelYokingGroup() const
+{
+    return m_brainModelYokingGroup;
+}
+
+/**
+ * Set the selected yoking group for brain models (surface or volumes)
+ *
+ * @param brainModelYokingType
+ *    New value for yoking group.
+ */
+void
+BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainModelYokingType)
+{
+    m_brainModelYokingGroup = brainModelYokingType;
+    
+    if (m_brainModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    int32_t copyFromTabIndex = -1;
+    
+    /*
+     * Find another browser tab using the same yoking as 'me' and copy
+     * yoked data from the other browser tab.
+     */
+    for (std::set<BrowserTabContent*>::iterator iter = s_allBrowserTabContent.begin();
+         iter != s_allBrowserTabContent.end();
+         iter++) {
+        BrowserTabContent* btc = *iter;
+        if (btc != this) {
+            if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
+                copyFromTabIndex = btc->getTabNumber();
+                /*
+                 * If anything is added, also need to update updateYokedBrowserTabs()
+                 */
+                *m_viewingTransformation = *btc->m_viewingTransformation;
+                *m_flatSurfaceViewingTransformation = *btc->m_flatSurfaceViewingTransformation;
+                *m_cerebellumViewingTransformation = *btc->m_cerebellumViewingTransformation;
+                *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
+                *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
+                *m_obliqueVolumeRotationMatrix = *btc->m_obliqueVolumeRotationMatrix;
+                *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
+                m_identificationUpdatesVolumeSlices = btc->m_identificationUpdatesVolumeSlices;
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * @return Is this browser tab brain model yoked?
  */
 bool
-BrowserTabContent::isYoked() const
+BrowserTabContent::isBrainModelYoked() const
 {
-    const bool yoked = (m_yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF);
+    const bool yoked = (m_brainModelYokingGroup != YokingGroupEnum::YOKING_GROUP_OFF);
     return yoked;
 }
 
 /**
- * Update other browser tabs with yoked data.
+ * @return Is this browser tab chart model yoked?
+ */
+bool
+BrowserTabContent::isChartModelYoked() const
+{
+    const bool yoked = (m_chartModelYokingGroup != YokingGroupEnum::YOKING_GROUP_OFF);
+    return yoked;
+}
+
+/**
+ * Update other browser tabs with brain or chart yoked data dependent upon active model
  */
 void
-BrowserTabContent::updateYokedBrowserTabs()
+BrowserTabContent::updateYokedModelBrowserTabs()
+{
+    bool chartFlag = false;
+    
+    switch (getSelectedModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            chartFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            chartFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            break;
+    }
+ 
+    if (chartFlag) {
+        updateChartModelYokedBrowserTabs();
+    }
+    else {
+        updateBrainModelYokedBrowserTabs();
+    }
+}
+
+/**
+ * Update other browser tabs with brain model yoked data.
+ */
+void
+BrowserTabContent::updateBrainModelYokedBrowserTabs()
 {
     if (isExecutingConstructor) {
         return;
     }
     
-    if (m_yokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+    if (m_brainModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
         return;
     }
     
@@ -4332,17 +4448,48 @@ BrowserTabContent::updateYokedBrowserTabs()
             /*
              * If anything is added, also need to update setYokingGroup()
              */
-            if (btc->getYokingGroup() == m_yokingGroup) {
+            if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
                 *btc->m_viewingTransformation = *m_viewingTransformation;
                 *btc->m_flatSurfaceViewingTransformation = *m_flatSurfaceViewingTransformation;
                 *btc->m_cerebellumViewingTransformation = *m_cerebellumViewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
-                *btc->m_chartTwoMatrixViewingTranformation = *m_chartTwoMatrixViewingTranformation;
-                *btc->m_chartTwoMatrixDisplayProperties = *m_chartTwoMatrixDisplayProperties;
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;
                 btc->m_identificationUpdatesVolumeSlices = m_identificationUpdatesVolumeSlices;
+            }
+        }
+    }
+}
+
+/**
+ * Update other browser tabs with brain model yoked data.
+ */
+void
+BrowserTabContent::updateChartModelYokedBrowserTabs()
+{
+    if (isExecutingConstructor) {
+        return;
+    }
+    
+    if (m_chartModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    /*
+     * Copy yoked data from 'me' to all other yoked browser tabs
+     */
+    for (std::set<BrowserTabContent*>::iterator iter = s_allBrowserTabContent.begin();
+         iter != s_allBrowserTabContent.end();
+         iter++) {
+        BrowserTabContent* btc = *iter;
+        if (btc != this) {
+            /*
+             * If anything is added, also need to update setYokingGroup()
+             */
+            if (btc->getChartModelYokingGroup() == m_chartModelYokingGroup) {
+                *btc->m_chartTwoMatrixViewingTranformation = *m_chartTwoMatrixViewingTranformation;
+                *btc->m_chartTwoMatrixDisplayProperties = *m_chartTwoMatrixDisplayProperties;
             }
         }
     }

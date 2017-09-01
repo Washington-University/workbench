@@ -326,7 +326,6 @@ EventOverlaySettingsEditorDialogRequest.h
 EventPaletteColorMappingEditorDialogRequest.h
 EventUpdateInformationWindows.h
 EventUpdateVolumeEditingToolBar.h
-EventUpdateYokedWindows.h
 EventUserInterfaceUpdate.h
 FiberOrientationSelectionViewController.h
 FiberSamplesOpenGLWidget.h
@@ -539,7 +538,6 @@ EventOverlaySettingsEditorDialogRequest.cxx
 EventPaletteColorMappingEditorDialogRequest.cxx
 EventUpdateInformationWindows.cxx
 EventUpdateVolumeEditingToolBar.cxx
-EventUpdateYokedWindows.cxx
 EventUserInterfaceUpdate.cxx
 FiberOrientationSelectionViewController.cxx
 FiberSamplesOpenGLWidget.cxx

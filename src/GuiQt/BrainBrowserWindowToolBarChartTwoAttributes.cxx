@@ -363,7 +363,7 @@ MatrixChartTwoAttributesWidget::valueChanged()
         BrowserTabContent* tabContent = m_brainBrowserWindowToolBarChartAttributes->getTabContentFromSelectedTab();
         CaretAssert(tabContent);
         
-        tabContent->updateYokedBrowserTabs();
+        tabContent->updateChartModelYokedBrowserTabs();
         m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
     }
