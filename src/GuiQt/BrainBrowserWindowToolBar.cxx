@@ -153,7 +153,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
 : QToolBar(parentBrainBrowserWindow)
 {
     this->browserWindowIndex = browserWindowIndex;
-    this->updateCounter = 0;
     m_tabIndexForTileTabsHighlighting = -1;
     
     this->isContructorFinished = false;
@@ -1383,10 +1382,14 @@ BrainBrowserWindowToolBar::updateToolBar()
         return;
     }
 
+    /*
+     * If this is true, it indicates that one of the 'update' methods has mistakenly emitted a signal
+     * or an update.
+     */
     if (m_performingUpdateFlag) {
         const AString msg("During an update of the toolbar, a signal was issued and needs to be blocked.\n"
                           "Set a break on this line and go through the call stack to find where the\n"
-                          "signal was emitted.");
+                          "signal was emitted and block it.");
         CaretLogSevere(msg);
     }
     m_performingUpdateFlag = true;
@@ -1401,8 +1404,6 @@ BrainBrowserWindowToolBar::updateToolBar()
             this->removeTab(i);
         }
     }
-    
-    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
     
@@ -1558,12 +1559,6 @@ BrainBrowserWindowToolBar::updateToolBar()
 
     updateToolBarComponents(browserTabContent);
     
-    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
-    
-    if (this->updateCounter != 0) {
-        CaretLogSevere("Update counter is non-zero at end of updateToolBar()");
-    }
-    
     this->updateAllTabNames();
     
     BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
@@ -1694,8 +1689,6 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
         modelType = browserTabContent->getSelectedModelType();
     }
     
-    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
-    
     this->viewWidgetGroup->blockAllSignals(true);
     
     /*
@@ -1743,8 +1736,6 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
     
     this->viewWidgetGroup->blockAllSignals(false);
 
-    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
-    
     return modelType;
 }
 
@@ -1966,8 +1957,6 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTab
         return;
     }
     
-    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
-    
     const int32_t tabIndex = browserTabContent->getTabNumber();
     
     this->orientationWidgetGroup->blockAllSignals(true);
@@ -2111,8 +2100,6 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTab
         this->orientationPosteriorToolButton->setVisible(showSingleViewOrientationButtons);
     }
     this->orientationWidgetGroup->blockAllSignals(false);
-        
-    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -2285,7 +2272,6 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
     if (this->wholeBrainSurfaceOptionsWidget->isHidden()) {
         return;
     }
-    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
  
     ModelWholeBrain* wholeBrainModel = browserTabContent->getDisplayedWholeBrainModel();
     if (wholeBrainModel != NULL) {
@@ -2324,9 +2310,6 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
         
         this->wholeBrainSurfaceOptionsWidgetGroup->blockAllSignals(false);
     }
-    
-    
-    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -2585,8 +2568,6 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
         return;
     }
     
-    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
-    
     this->modeWidgetGroup->blockAllSignals(true);
     
     EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
@@ -2619,8 +2600,6 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
     this->modeWidgetGroup->blockAllSignals(false);
 
     this->updateDisplayedModeUserInputWidget();
-    
-    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 void
@@ -3060,15 +3039,11 @@ BrainBrowserWindowToolBar::updateSingleSurfaceOptionsWidget(BrowserTabContent* b
         return;
     }
     
-    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
-    
     this->singleSurfaceSelectionWidgetGroup->blockAllSignals(true);
     
     this->surfaceSurfaceSelectionControl->updateControl(browserTabContent->getSurfaceModelSelector());
     
     this->singleSurfaceSelectionWidgetGroup->blockAllSignals(false);
-    
-    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -3169,11 +3144,7 @@ BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* browserT
         return;
     }
 
-    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
-    
     m_volumeMontageComponent->updateContent(browserTabContent);
-
-    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -3319,7 +3290,6 @@ BrainBrowserWindowToolBar::updateToolBox()
 void 
 BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
 {
-    CaretLogEntering();
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     if (btc == NULL) {
         return;
@@ -3347,7 +3317,6 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
         btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_INVALID);
     }
     
-    this->checkUpdateCounter();
     this->updateToolBar();
     this->updateTabName(-1);
     this->updateToolBox();
@@ -3364,8 +3333,6 @@ BrainBrowserWindowToolBar::orientationLeftOrLateralToolButtonTriggered(bool /*ch
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
         btc->leftView();
     this->updateOtherYokedWindows();
-    
-    this->checkUpdateCounter();
 }
 
 /**
@@ -3377,8 +3344,6 @@ BrainBrowserWindowToolBar::orientationRightOrMedialToolButtonTriggered(bool /*ch
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
         btc->rightView();
     this->updateOtherYokedWindows();
-    
-    this->checkUpdateCounter();
 }
 
 /**
@@ -3390,8 +3355,6 @@ BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool /*checked
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->anteriorView();
     this->updateOtherYokedWindows();
-    
-    this->checkUpdateCounter();
 }
 
 /**
@@ -3403,8 +3366,6 @@ BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool /*checke
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->posteriorView();
     this->updateOtherYokedWindows();
-    
-    this->checkUpdateCounter();
 }
 
 /**
@@ -3416,8 +3377,6 @@ BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool /*checked*/
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->dorsalView();
     this->updateOtherYokedWindows();
-    
-    this->checkUpdateCounter();
 }
 
 /**
@@ -3429,8 +3388,6 @@ BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool /*checked*
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->ventralView();
     this->updateOtherYokedWindows();
-    
-    this->checkUpdateCounter();
 }
 
 /**
@@ -3447,8 +3404,6 @@ BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
         this->updateVolumeIndicesWidget(btc);
         this->updateOtherYokedWindows();
     }
-    
-    this->checkUpdateCounter();
 }
 
 /**
@@ -3460,8 +3415,6 @@ BrainBrowserWindowToolBar::orientationLateralMedialToolButtonTriggered(bool /*ch
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->leftView();
     this->updateOtherYokedWindows();
-    
-    this->checkUpdateCounter();
 }
 
 /**
@@ -3473,8 +3426,6 @@ BrainBrowserWindowToolBar::orientationDorsalVentralToolButtonTriggered(bool /*ch
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->dorsalView();
     this->updateOtherYokedWindows();
-    
-    this->checkUpdateCounter();
 }
 
 /**
@@ -3486,8 +3437,6 @@ BrainBrowserWindowToolBar::orientationAnteriorPosteriorToolButtonTriggered(bool 
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->anteriorView();
     this->updateOtherYokedWindows();
-    
-    this->checkUpdateCounter();
 }
 
 /**
@@ -3540,9 +3489,6 @@ BrainBrowserWindowToolBar::customViewActionTriggered()
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int /*indx*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
@@ -3570,9 +3516,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int /*indx*
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceLeftCheckBoxStateChanged(int /*state*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
@@ -3590,9 +3533,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftCheckBoxStateChanged(int /*state
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*checked*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
     if (wholeBrainModel == NULL) {
@@ -3646,11 +3586,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*check
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceRightToolButtonTriggered(bool /*checked*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
     if (wholeBrainModel == NULL) {
@@ -3704,11 +3639,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightToolButtonTriggered(bool /*chec
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumToolButtonTriggered(bool /*checked*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
     if (wholeBrainModel == NULL) {
@@ -3762,9 +3692,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumToolButtonTriggered(bool /
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int /*state*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
@@ -3782,9 +3709,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int /*stat
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int /*state*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
@@ -3802,9 +3726,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int /
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChanged(double /*d*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
-
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
@@ -3822,9 +3743,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChang
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(double /*d*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
-
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
@@ -3859,29 +3777,6 @@ BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
     }
     
     this->updateTabName(-1);
-    
-    this->checkUpdateCounter();    
-}
-
-void
-BrainBrowserWindowToolBar::checkUpdateCounter()
-{
-    if (this->updateCounter != 0) {
-        CaretLogWarning(AString("Update counter is non-zero, this indicates that signal needs to be blocked during update, value=")
-                        + AString::number(updateCounter));
-    }
-}
-
-void 
-BrainBrowserWindowToolBar::incrementUpdateCounter(const char* /*methodName*/)
-{
-    this->updateCounter++;
-}
-
-void 
-BrainBrowserWindowToolBar::decrementUpdateCounter(const char* /*methodName*/)
-{
-    this->updateCounter--;
 }
 
 /**

@@ -226,19 +226,6 @@ namespace caret {
         /** Is set to the user input widget provided by the user input processor */
         QWidget* userInputControlsWidgetActiveInputWidget;
         
-        /**
-         * When updating, no signals should be emitted.  This variable
-         * is incremented at the beginning of an update method and
-         * decremented at the end of the update method.  If it is 
-         * non-zero in a slot method, then a signal was emitted during
-         * the update and the widget that emitted the signal should
-         * have its signal blocked.
-         */
-        void incrementUpdateCounter(const char* methodName);
-        void decrementUpdateCounter(const char* methodName);
-        void checkUpdateCounter();
-        int updateCounter;
-        
         void removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent);
         
         void getAllTabContent(std::vector<BrowserTabContent*>& allTabContent) const;
@@ -439,6 +426,9 @@ namespace caret {
         bool isContructorFinished;
         bool isDestructionInProgress;
         
+        /**
+         * Tracks when update is performed to catch incorrectly emitted signals.
+         */
         bool m_performingUpdateFlag = false;
     };
 }
