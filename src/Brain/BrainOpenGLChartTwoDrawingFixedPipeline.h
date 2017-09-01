@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <set>
 #include "BrainOpenGLChartTwoDrawingInterface.h"
 #include "CaretColorEnum.h"

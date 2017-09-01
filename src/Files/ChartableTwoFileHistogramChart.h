@@ -44,7 +44,8 @@ namespace caret {
             
             HistogramPrimitives(GraphicsPrimitiveV3fC4f* thresholdPrimitive,
                                 GraphicsPrimitiveV3fC4f* barsPrimitive,
-                                GraphicsPrimitiveV3fC4f* envelopePrimitive);
+                                GraphicsPrimitiveV3fC4f* envelopePrimitive,
+                                const float envelopeLineWidthPercentage);
             
             ~HistogramPrimitives();
             
@@ -66,10 +67,16 @@ namespace caret {
              */
             GraphicsPrimitiveV3fC4f* getEnvelopePrimitive() { return m_envelopePrimitive.get(); }
             
+            /**
+             * @return Line width percentage for drawing envelope
+             */
+            float getEnvelopeLineWidthPercentage() const { return m_envelopeLineWidthPercentage; }
+            
         private:
             std::unique_ptr<GraphicsPrimitiveV3fC4f> m_thresholdPrimitive;
             std::unique_ptr<GraphicsPrimitiveV3fC4f> m_barsPrimitive;
             std::unique_ptr<GraphicsPrimitiveV3fC4f> m_envelopePrimitive;
+            float m_envelopeLineWidthPercentage = 1.0f;
         };
         
         ChartableTwoFileHistogramChart(const ChartTwoHistogramContentTypeEnum::Enum histogramContentType,

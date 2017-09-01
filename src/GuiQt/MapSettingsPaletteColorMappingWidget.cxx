@@ -64,6 +64,7 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQDoubleSlider.h"
+#include "WuQDoubleSpinBox.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -766,7 +767,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     QObject::connect(m_histogramBarsColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(applyAndUpdate()));
     
-    QLabel* envelopeColorLabel = new QLabel("Envelope Color");
+    QLabel* envelopeColorLabel = new QLabel("Envelope");// Color");
     if (colorBarIconValid) {
         m_histogramEnvelopeColorComboBox = new CaretColorEnumComboBox("Palette",
                                                                   colorBarIcon,
@@ -780,6 +781,12 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
                                           "Set histogram envelope coloring");
     QObject::connect(m_histogramEnvelopeColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(applyAndUpdate()));
+    
+    QLabel* envelopeLineWidthLabel = new QLabel("Envelope Width");
+    m_histogramEnvelopeLineWidthPercentageSpinBox = new WuQDoubleSpinBox(this);
+    m_histogramEnvelopeLineWidthPercentageSpinBox->setupRangePercentage(0.0, 100.0);
+    QObject::connect(m_histogramEnvelopeLineWidthPercentageSpinBox,  static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
+                     [=](double) { this->applyAndUpdate(); });
     
     const int32_t maxBuckets = 100000;
     QLabel* bucketsLabel = new QLabel("Buckets");
@@ -799,6 +806,9 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     rowIndex++;
     controlLayout->addWidget(envelopeColorLabel, rowIndex, 0);
     controlLayout->addWidget(m_histogramEnvelopeColorComboBox->getWidget(), rowIndex, 1);
+    rowIndex++;
+    controlLayout->addWidget(envelopeLineWidthLabel, rowIndex, 0);
+    controlLayout->addWidget(m_histogramEnvelopeLineWidthPercentageSpinBox->getWidget(), rowIndex, 1);
     rowIndex++;
     controlLayout->addWidget(horizRangeLabel, rowIndex, 0);
     controlLayout->addWidget(m_histogramHorizontalRangeComboBox->getWidget(), rowIndex, 1);
@@ -836,6 +846,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     statisticsLayout->addWidget(new QLabel("Min"), 3, 0);
     statisticsLayout->addWidget(this->statisticsMinimumValueLabel, 3, 1);
     //statisticsWidget->setFixedHeight(statisticsWidget->sizeHint().height());
+    statisticsLayout->setRowStretch(statisticsLayout->rowCount(), 100);
     
     
     QGroupBox* groupBox = new QGroupBox("Histogram");
@@ -1752,7 +1763,7 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
         
         m_histogramBarsColorComboBox->setSelectedColor(this->paletteColorMapping->getHistogramBarsColor());
         m_histogramEnvelopeColorComboBox->setSelectedColor(this->paletteColorMapping->getHistogramEnvelopeColor());
-        
+        m_histogramEnvelopeLineWidthPercentageSpinBox->setValue(this->paletteColorMapping->getHistogramEnvelopeLineWidthPercentage());
         m_histogramBarsVisibleCheckBox->setChecked(this->paletteColorMapping->isHistogramBarsVisible());
         m_histogramEnvelopeVisibleCheckBox->setChecked(this->paletteColorMapping->isHistogramEnvelopeVisible());
 
@@ -2408,6 +2419,7 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     
     this->paletteColorMapping->setHistogramBarsColor(m_histogramBarsColorComboBox->getSelectedColor());
     this->paletteColorMapping->setHistogramEnvelopeColor(m_histogramEnvelopeColorComboBox->getSelectedColor());
+    this->paletteColorMapping->setHistogramEnvelopeLineWidthPercentage(m_histogramEnvelopeLineWidthPercentageSpinBox->value());
     this->paletteColorMapping->setHistogramBarsVisible(m_histogramBarsVisibleCheckBox->isChecked());
     this->paletteColorMapping->setHistogramEnvelopeVisible(m_histogramEnvelopeVisibleCheckBox->isChecked());
     this->paletteColorMapping->setHistogramRangeMode(m_histogramHorizontalRangeComboBox->getSelectedItem<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>());

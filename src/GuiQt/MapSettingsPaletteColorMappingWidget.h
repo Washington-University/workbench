@@ -46,6 +46,7 @@ namespace caret {
     class Histogram;
     class PaletteColorMapping;
     class WuQDoubleSlider;
+    class WuQDoubleSpinBox;
     class WuQWidgetObjectGroup;
     class WuQwtPlot;
     
@@ -202,6 +203,8 @@ namespace caret {
         CaretColorEnumComboBox* m_histogramBarsColorComboBox;
         
         CaretColorEnumComboBox* m_histogramEnvelopeColorComboBox;
+        
+        WuQDoubleSpinBox* m_histogramEnvelopeLineWidthPercentageSpinBox;
         
         QCheckBox* m_histogramBarsVisibleCheckBox;
         

@@ -50,6 +50,7 @@ namespace PaletteColorMappingXmlElements {
     static const AString XML_TAG_HISTOGRAM_ENVELOPE_VISIBLE = "HistogramEnvelopeVisible";
     static const AString XML_TAG_HISTOGRAM_BARS_COLOR = "HistogramBarsColor";
     static const AString XML_TAG_HISTOGRAM_ENVELOPE_COLOR = "HistogramEnvelopeColor";
+    static const AString XML_TAG_HISTOGRAM_ENVELOPE_LINE_WIDTH_PERCENTAGE = "HistogramEnvelopeLineWidthPercentage";
     static const AString XML_TAG_HISTOGRAM_NUMBER_OF_BUCKETS = "HistogramNumberOfBuckets";
     static const AString XML_TAG_NUMERIC_FORMAT_MODE = "NumericFormatMode";
     static const AString XML_TAG_PRECISION_DIGITS = "PrecisionDigits";

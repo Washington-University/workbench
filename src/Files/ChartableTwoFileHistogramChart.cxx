@@ -610,7 +610,8 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
         
         HistogramPrimitives* histogramPrimitives =  new HistogramPrimitives(thresholdPrimitive,
                                                                             barsPrimitive,
-                                                                            envelopePrimitive);
+                                                                            envelopePrimitive,
+                                                                            paletteColorMapping->getHistogramEnvelopeLineWidthPercentage());
         
         m_mapHistogramPrimitives.insert(std::make_pair(mapIndex,
                                                           std::unique_ptr<HistogramPrimitives>(histogramPrimitives)));
@@ -678,14 +679,18 @@ ChartableTwoFileHistogramChart::HistogramPrimitives::HistogramPrimitives()
  *     Graphics Primitive for drawing histogram bars.
  * @param envelopePrimitive
  *     Graphics Primitive for drawing histogram envelope.
+ * @param envelopeLineWidthPercentage
+ *     Line width percentage for drawing envelope.
  */
 ChartableTwoFileHistogramChart::HistogramPrimitives::HistogramPrimitives(GraphicsPrimitiveV3fC4f* thresholdPrimitive,
-                    GraphicsPrimitiveV3fC4f* barsPrimitive,
-                    GraphicsPrimitiveV3fC4f* envelopePrimitive)
+                                                                         GraphicsPrimitiveV3fC4f* barsPrimitive,
+                                                                         GraphicsPrimitiveV3fC4f* envelopePrimitive,
+                                                                         const float envelopeLineWidthPercentage)
 {
     m_thresholdPrimitive.reset(thresholdPrimitive);
     m_barsPrimitive.reset(barsPrimitive);
     m_envelopePrimitive.reset(envelopePrimitive);
+    m_envelopeLineWidthPercentage = envelopeLineWidthPercentage;
 }
 
 /*

@@ -152,6 +152,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm,
         this->histogramEnvelopeVisible = pcm.histogramEnvelopeVisible;
         this->histogramBarsColor = pcm.histogramBarsColor;
         this->histogramEnvelopeColor = pcm.histogramEnvelopeColor;
+        this->histogramEnvelopeLineWidthPercentage = pcm.histogramEnvelopeLineWidthPercentage;
         this->histogramNumberOfBuckets = pcm.histogramNumberOfBuckets;
     }
     this->colorBarNumericFormatMode = pcm.colorBarNumericFormatMode;
@@ -218,6 +219,7 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
                 && (this->histogramEnvelopeVisible == pcm.histogramEnvelopeVisible)
                 && (this->histogramBarsColor == pcm.histogramBarsColor)
                 && (this->histogramEnvelopeColor == pcm.histogramEnvelopeColor)
+                && (this->histogramEnvelopeLineWidthPercentage == pcm.histogramEnvelopeLineWidthPercentage)
                 && (this->histogramNumberOfBuckets == pcm.histogramNumberOfBuckets)) {
                 allMatchFlag = true;
             }
@@ -268,6 +270,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->histogramEnvelopeVisible = false;
     this->histogramBarsColor = CaretColorEnum::CUSTOM;  // CUSTOM is color with palette
     this->histogramEnvelopeColor = CaretColorEnum::RED;
+    this->histogramEnvelopeLineWidthPercentage = 1.0f;
     this->histogramNumberOfBuckets = 100;
     this->colorBarNumericFormatMode = NumericFormatModeEnum::AUTO;
     this->colorBarPrecisionDigits = 2;
@@ -395,6 +398,8 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                      CaretColorEnum::toName(this->histogramBarsColor));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_ENVELOPE_COLOR,
                                      CaretColorEnum::toName(this->histogramEnvelopeColor));
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_ENVELOPE_LINE_WIDTH_PERCENTAGE,
+                                     this->histogramEnvelopeLineWidthPercentage);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_NUMBER_OF_BUCKETS,
                                      this->histogramNumberOfBuckets);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_NUMERIC_FORMAT_MODE,
@@ -2887,6 +2892,31 @@ PaletteColorMapping::setHistogramEnvelopeColor(const CaretColorEnum::Enum histog
         setModified();
     }
 }
+
+/**
+ * @return The line width percentage for drawing histogram as envelope.
+ */
+float
+PaletteColorMapping::getHistogramEnvelopeLineWidthPercentage() const
+{
+    return histogramEnvelopeLineWidthPercentage;
+}
+
+/**
+ * Set line width percentage for drawing histogram as envelope.
+ *
+ * @param lineWidthPercentage
+ *     New value for line width percentage.
+ */
+void
+PaletteColorMapping::setHistogramEnvelopeLineWidthPercentage(const float lineWidthPercentage)
+{
+    if (lineWidthPercentage != this->histogramEnvelopeLineWidthPercentage) {
+        this->histogramEnvelopeLineWidthPercentage = lineWidthPercentage;
+        setModified();
+    }
+}
+
 
 /**
  * @return Histogram number of buckets.

@@ -818,7 +818,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                                                                      drawInfo->m_allMapsSelected);
                         
                         if (histogramPrimitives != NULL) {
-                            const float ENVELOPE_LINE_WIDTH = 1.0;
+                            const float lineWidthPercentage = histogramPrimitives->getEnvelopeLineWidthPercentage();
+                            const float envelopeLineWidth   = convertPercentageOfViewportToPixels(lineWidthPercentage,
+                                                                                                  tabViewportHeight);
                             
                             if (m_identificationModeFlag) {
                                 int32_t primitiveIndex = -1;
@@ -844,7 +846,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                     /*
                                      * Increase line width for identification
                                      */
-                                    BrainOpenGL::setLineWidth(ENVELOPE_LINE_WIDTH * 3.0f);
+                                    BrainOpenGL::setLineWidth(envelopeLineWidth * 3.0f);
                                     GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
                                                                                 histogramPrimitives->getEnvelopePrimitive(),
                                                                                 m_fixedPipelineDrawing->mouseX,
@@ -868,7 +870,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                     drawPrimitivePrivate(histogramPrimitives->getBarsPrimitive());
                                 }
                                 if (drawEnvelopeFlag) {
-                                    BrainOpenGL::setLineWidth(ENVELOPE_LINE_WIDTH);
+                                    BrainOpenGL::setLineWidth(envelopeLineWidth);
                                     m_fixedPipelineDrawing->enableLineAntiAliasing();
                                     drawPrimitivePrivate(histogramPrimitives->getEnvelopePrimitive());
                                     m_fixedPipelineDrawing->disableLineAntiAliasing();

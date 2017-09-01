@@ -230,6 +230,10 @@ namespace caret {
         
         void setHistogramEnvelopeColor(const CaretColorEnum::Enum histogramEnvelopeColor);
         
+        float getHistogramEnvelopeLineWidthPercentage() const;
+        
+        void setHistogramEnvelopeLineWidthPercentage(const float lineWidthPercentage);
+        
         int32_t getHistogramNumberOfBuckets() const;
         
         void setHistogramNumberOfBuckets(const int32_t histogramNumberOfBuckets);
@@ -343,6 +347,8 @@ namespace caret {
         CaretColorEnum::Enum histogramBarsColor;
         
         CaretColorEnum::Enum histogramEnvelopeColor;
+        
+        float histogramEnvelopeLineWidthPercentage;
         
         int32_t histogramNumberOfBuckets;
         
