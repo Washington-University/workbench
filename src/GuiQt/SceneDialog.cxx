@@ -2372,10 +2372,18 @@ SceneDialog::displayScenePrivateWithErrorMessageDialog(SceneFile* sceneFile,
 {
     AString errorMessage;
     
+    ElapsedTimer et;
+    et.start();
+    
     const bool successFlag = displayScenePrivateWithErrorMessage(sceneFile,
                                                  scene,
                                                  showWaitCursor,
                                                  errorMessage);
+    AString msg = (AString::number(et.getElapsedTimeSeconds())
+                   + " seconds to read Scene "
+                   + scene->getName());
+    CaretLogInfo(msg);
+    
     if ( ! successFlag) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
