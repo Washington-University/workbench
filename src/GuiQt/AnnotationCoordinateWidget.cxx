@@ -355,8 +355,8 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_xCoordSpinBox->setSingleStep(xyzStep);
         m_xCoordSpinBox->setSuffix(suffix);
         m_xCoordSpinBox->setValue(xyz[0]);
-        m_xCoordSpinBox->blockSignals(false);
         m_xCoordSpinBox->setDecimals(digitsRightOfDecimal);
+        m_xCoordSpinBox->blockSignals(false);
         
         m_yCoordSpinBox->blockSignals(true);
         m_yCoordSpinBox->setRange(yMin,
@@ -364,8 +364,8 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_yCoordSpinBox->setSingleStep(xyzStep);
         m_yCoordSpinBox->setSuffix(suffix);
         m_yCoordSpinBox->setValue(xyz[1]);
-        m_yCoordSpinBox->blockSignals(false);
         m_yCoordSpinBox->setDecimals(digitsRightOfDecimal);
+        m_yCoordSpinBox->blockSignals(false);
         
         m_zCoordSpinBox->blockSignals(true);
         m_zCoordSpinBox->setRange(zMin,
@@ -373,8 +373,8 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_zCoordSpinBox->setSingleStep(xyzStep);
         m_zCoordSpinBox->setSuffix(suffix);
         m_zCoordSpinBox->setValue(xyz[2]);
-        m_zCoordSpinBox->blockSignals(false);
         m_zCoordSpinBox->setDecimals(digitsRightOfDecimal);
+        m_zCoordSpinBox->blockSignals(false);
         
         if (surfaceFlag) {
             StructureEnum::Enum structure = StructureEnum::INVALID;
