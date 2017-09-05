@@ -1420,12 +1420,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::convertPercentageOfViewportToPixels(con
     }
     
     float pixelsWidthOrHeight = ((percentageWidthOrHeight / 100.0f) * viewportWidthOrHeight);
-    if (pixelsWidthOrHeight < s_minimumLineWidthOpenGL) {
-        pixelsWidthOrHeight = s_minimumLineWidthOpenGL;
-    }
-    if (pixelsWidthOrHeight > s_maximumLineWidthOpenGL) {
-        pixelsWidthOrHeight = s_maximumLineWidthOpenGL;
-    }
     
     return pixelsWidthOrHeight;
 }
