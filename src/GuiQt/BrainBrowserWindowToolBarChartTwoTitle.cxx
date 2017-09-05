@@ -191,6 +191,10 @@ BrainBrowserWindowToolBarChartTwoTitle::editTitleActionTriggered()
         if (newNameDialog.exec() == WuQDataEntryDialog::Accepted) {
             const AString name = lineEdit->text().trimmed();
             m_chartOverlaySet->getChartTitle()->setText(name);
+            if ( ! name.isEmpty()) {
+                m_chartOverlaySet->getChartTitle()->setDisplayed(true);
+                m_showTitleCheckBox->setChecked(true);
+            }
             this->performUpdating();
         }
     }
@@ -216,4 +220,5 @@ BrainBrowserWindowToolBarChartTwoTitle::performUpdating()
     }
     
     this->updateOtherYokedWindows();
+    this->updateGraphicsWindow();
 }
