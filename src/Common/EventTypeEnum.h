@@ -186,6 +186,8 @@ public:
         EVENT_UPDATE_INFORMATION_WINDOWS,
         /** Update the volume editing toolbar */
         EVENT_UPDATE_VOLUME_EDITING_TOOLBAR,
+        /** Update yoked windows */
+        EVENT_UPDATE_YOKED_WINDOWS,
         /* THIS MUST ALWAYS BE LAST - NOT an event type but is number of event types */
         EVENT_COUNT
     };

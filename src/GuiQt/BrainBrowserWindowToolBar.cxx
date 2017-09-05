@@ -91,6 +91,7 @@
 #include "EventManager.h"
 #include "EventModelGetAll.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventUpdateYokedWindows.h"
 #include "GuiManager.h"
 #include "Model.h"
 #include "ModelChart.h"
@@ -3859,6 +3860,22 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         }
         tabEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_YOKED_WINDOWS) {
+        EventUpdateYokedWindows* yokeUpdateEvent =
+        dynamic_cast<EventUpdateYokedWindows*>(event);
+        CaretAssert(yokeUpdateEvent);
+        
+        BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
+        if (browserTabContent != NULL) {
+            if (this->browserWindowIndex != yokeUpdateEvent->getBrowserWindowIndexThatIssuedEvent()) {
+                if (yokeUpdateEvent->isBrainOrChartModelYoking(browserTabContent->getBrainModelYokingGroup(),
+                                                               browserTabContent->getChartModelYokingGroup())) {
+                    this->updateToolBar();
+                    this->updateGraphicsWindow();
+                }
+            }
+        }
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED) {
         EventBrowserTabGetAllViewed* viewedTabsEvent = dynamic_cast<EventBrowserTabGetAllViewed*>(event);
         CaretAssert(viewedTabsEvent);
@@ -3899,16 +3916,14 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
 void
 BrainBrowserWindowToolBar::updateOtherYokedWindows()
 {
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    
-//    BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
-//    if (browserTabContent != NULL) {
-//        if (browserTabContent->isYoked()) {
-//            EventManager::get()->sendEvent(EventUpdateYokedWindows(this->browserWindowIndex,
-//                                                                   browserTabContent->getBrainModelYokingGroup()).getPointer());
-//        }
-//    }
+    BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
+    if (browserTabContent != NULL) {
+        if (browserTabContent->isBrainModelYoked()) {
+            EventManager::get()->sendEvent(EventUpdateYokedWindows(this->browserWindowIndex,
+                                                                   browserTabContent->getBrainModelYokingGroup(),
+                                                                   browserTabContent->getChartModelYokingGroup()).getPointer());
+        }
+    }
 }
 
 /**

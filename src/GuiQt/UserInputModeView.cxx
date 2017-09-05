@@ -34,6 +34,7 @@
 #include "ChartTwoOverlaySet.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventUpdateYokedWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -390,30 +391,44 @@ UserInputModeView::showContextMenu(const MouseEvent& mouseEvent,
 }
 
 /**
- * Updated graphics.
+ * If this windows is yoked, issue an event to update other
+ * windows that are using the same yoking.
  */
 void
 UserInputModeView::updateGraphics(const MouseEvent& mouseEvent)
 {
+    bool issuedYokeEvent = false;
     if (mouseEvent.getViewportContent() != NULL) {
         BrowserTabContent* browserTabContent = mouseEvent.getViewportContent()->getBrowserTabContent();
+        const int32_t browserWindowIndex = mouseEvent.getBrowserWindowIndex();
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
+        
+        YokingGroupEnum::Enum brainYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+        YokingGroupEnum::Enum chartYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+        
         if (browserTabContent != NULL) {
-            if (browserTabContent->isChartModelYoked()
-                || browserTabContent->isBrainModelYoked()) {
-                /*
-                 * When yoked, need to update GUI and all windows
-                 */
-                EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(mouseEvent.getBrowserWindowIndex()).getPointer());
+            if (browserTabContent->isBrainModelYoked()) {
+                brainYokingGroup = browserTabContent->getBrainModelYokingGroup();
+                issuedYokeEvent = true;
+            }
+            if (browserTabContent->isChartModelYoked()) {
+                chartYokingGroup = browserTabContent->getChartModelYokingGroup();
+                issuedYokeEvent = true;
+            }
+            
+            if (issuedYokeEvent) {
                 EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-                return;
+                EventManager::get()->sendEvent(EventUpdateYokedWindows(brainYokingGroup,
+                                                                       chartYokingGroup).getPointer());
             }
         }
     }
     
     /*
-     * Not yoked, just update graphics in this window
+     * If not yoked, just need to update graphics.
      */
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+    if ( ! issuedYokeEvent) {
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+    }
 }
-
 

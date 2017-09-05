@@ -539,6 +539,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_PROGRESS_UPDATE:
         case EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS:
         case EventTypeEnum::EVENT_UPDATE_VOLUME_EDITING_TOOLBAR:
+        case EventTypeEnum::EVENT_UPDATE_YOKED_WINDOWS:
         {
             const AString msg(EventTypeEnum::toName(eventType)
                               + " has an special subclass of class Event and should never be sent as an event.");
