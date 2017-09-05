@@ -181,25 +181,25 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      * Size spin boxes
      */
     m_labelSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_labelSizeSpinBox->setupRangePercentage(0.0, 99.0); // 99 instead of 100 results in narrower width
+    m_labelSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_labelSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_labelSizeSpinBox->setToolTip("Set height of label as percentage of tab height for selected axis");
     
     m_numericsSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_numericsSizeSpinBox->setupRangePercentage(0.0, 99.0);
+    m_numericsSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_numericsSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_numericsSizeSpinBox->setToolTip("Set height of numeric values as percentage of tab height for selected axis");
     
     m_linesTicksSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_linesTicksSizeSpinBox->setupRangePercentage(0.0, 99.0);
+    m_linesTicksSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_linesTicksSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines as percentage of tab height for ALL axes");
     
     m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_paddingSizeSpinBox->setupRangePercentage(0.0, 99.0);
+    m_paddingSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_paddingSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height for selected axis");

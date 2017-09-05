@@ -784,7 +784,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     
     QLabel* envelopeLineWidthLabel = new QLabel("Envelope Width");
     m_histogramEnvelopeLineWidthPercentageSpinBox = new WuQDoubleSpinBox(this);
-    m_histogramEnvelopeLineWidthPercentageSpinBox->setupRangePercentage(0.0, 100.0);
+    m_histogramEnvelopeLineWidthPercentageSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_histogramEnvelopeLineWidthPercentageSpinBox,  static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      [=](double) { this->applyAndUpdate(); });
     

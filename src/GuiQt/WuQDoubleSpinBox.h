@@ -115,8 +115,8 @@ namespace caret {
         void setRangeExceedable(double minimum,
                                 double maximum);
         
-        void setupRangePercentage(const double minimumPercentage,
-                                  const double maximumPercentage);
+        void setRangePercentage(const double minimumPercentage,
+                                const double maximumPercentage);
         
         void setSingleStep(double value);
         

@@ -514,8 +514,8 @@ WuQDoubleSpinBox::setRangeExceedable(double minimum,
  *     Maximum percentage (must be in range [0.0, 100.0]
  */
 void
-WuQDoubleSpinBox::setupRangePercentage(const double minimumPercentage,
-                                       const double maximumPercentage)
+WuQDoubleSpinBox::setRangePercentage(const double minimumPercentage,
+                                     const double maximumPercentage)
 {
     setRange(minimumPercentage,
              maximumPercentage);

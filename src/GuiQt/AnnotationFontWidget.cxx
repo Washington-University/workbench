@@ -94,7 +94,7 @@ m_browserWindowIndex(browserWindowIndex)
      * Combo box for font size
      */
     m_fontSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_fontSizeSpinBox->setupRangePercentage(0.0, 100.0);
+    m_fontSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_fontSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(fontSizeChanged()));
     WuQtUtilities::setToolTipAndStatusTip(m_fontSizeSpinBox->getWidget(),
