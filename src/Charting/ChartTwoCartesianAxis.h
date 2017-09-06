@@ -190,10 +190,10 @@ namespace caret {
         int32_t m_userNumberOfSubdivisions = 2;
         
         /** size of label text*/
-        float m_labelTextSize = 5.0f;
+        float m_labelTextSize = 2.5f;
         
         /** size of numerics text*/
-        float m_numericsTextSize = 5.0f;
+        float m_numericsTextSize = 2.5f;
         
         /** size of padding*/
         float m_paddingSize = 0.0f;

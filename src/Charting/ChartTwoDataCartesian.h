@@ -91,6 +91,11 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
+        /**
+         * @return The default line width for cartesian charts.
+         */
+        static float getDefaultLineWidth() { return 0.5f; }
+        
     protected:
 //        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
 //                                             SceneClass* sceneClass);
@@ -134,7 +139,6 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
         
-
         // ADD_NEW_MEMBERS_HERE
 
     };

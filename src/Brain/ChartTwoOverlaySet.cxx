@@ -122,8 +122,6 @@ m_tabIndex(tabIndex)
     
     m_title = std::unique_ptr<ChartTwoTitle>(new ChartTwoTitle());
     
-    m_axisLineThickness = 1.0f;
-    
     m_sceneAssistant  = new SceneClassAssistant();
     m_sceneAssistant->add("m_chartAxisLeft",
                           "ChartTwoCartesianAxis",

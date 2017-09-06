@@ -166,7 +166,7 @@ namespace caret {
         bool m_inFirstOverlayChangedMethodFlag = false;
         
         /** Thickness of box around chart and tick marks on axes*/
-        float m_axisLineThickness = 1.0;
+        float m_axisLineThickness = 0.5;
         
         // ADD_NEW_MEMBERS_HERE
         

@@ -124,7 +124,7 @@ namespace caret {
         
         CaretColorEnum::Enum m_defaultColor = CaretColorEnum::BLUE;
         
-        float m_defaultLineWidth = 1.0f;
+        float m_defaultLineWidth;
         
         int32_t m_displayCount;
         

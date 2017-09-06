@@ -175,7 +175,7 @@ ChartTwoLineSeriesHistory::initializeInstance()
     m_defaultColor = ChartTwoLineSeriesHistory::generateDefaultColor();
     validateDefaultColor();
     
-    m_defaultLineWidth = 1.0f;
+    m_defaultLineWidth = ChartTwoDataCartesian::getDefaultLineWidth();
     
     const int32_t defaultHistoryCount = 1;
     m_loadingEnabled = false;

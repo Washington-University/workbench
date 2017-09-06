@@ -270,7 +270,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->histogramEnvelopeVisible = false;
     this->histogramBarsColor = CaretColorEnum::CUSTOM;  // CUSTOM is color with palette
     this->histogramEnvelopeColor = CaretColorEnum::RED;
-    this->histogramEnvelopeLineWidthPercentage = 1.0f;
+    this->histogramEnvelopeLineWidthPercentage = 0.5f;
     this->histogramNumberOfBuckets = 100;
     this->colorBarNumericFormatMode = NumericFormatModeEnum::AUTO;
     this->colorBarPrecisionDigits = 2;

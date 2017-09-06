@@ -102,7 +102,7 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
     
     m_selectionStatus   = true;
     m_color             = CaretColorEnum::RED;
-    m_lineWidth         = 1.0;
+    m_lineWidth         = getDefaultLineWidth();
     m_timeStartInSecondsAxisX = 0.0;
     m_timeStepInSecondsAxisX  = 1.0;
     
