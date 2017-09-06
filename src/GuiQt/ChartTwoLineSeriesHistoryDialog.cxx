@@ -24,7 +24,6 @@
 #undef __CHART_TWO_LINE_SERIES_HISTORY_DIALOG_DECLARE__
 
 #include <QComboBox>
-#include <QDoubleSpinBox>
 #include <QLabel>
 #include <QSignalBlocker>
 #include <QSignalMapper>
@@ -45,6 +44,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "MapFileDataSelector.h"
+#include "WuQDoubleSpinBox.h"
 #include "WuQImageLabel.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -86,13 +86,11 @@ ChartTwoLineSeriesHistoryDialog::ChartTwoLineSeriesHistoryDialog(QWidget* parent
                      this, &ChartTwoLineSeriesHistoryDialog::defaultColorSelected);
     
     QLabel* defaultLineWidthLabel = new QLabel("Default Line Width: ");
-    m_defaultLineWidthSpinBox = new QDoubleSpinBox();
-    m_defaultLineWidthSpinBox->setRange(0.0, 100000.0);
-    m_defaultLineWidthSpinBox->setDecimals(2);
-    m_defaultLineWidthSpinBox->setSingleStep(0.1);
+    m_defaultLineWidthSpinBox = new WuQDoubleSpinBox(this);
+    m_defaultLineWidthSpinBox->setRangePercentage(0.0, 100.0);
     m_defaultLineWidthSpinBox->setToolTip("Default width of new chart lines");
-    defaultLineWidthLabel->setToolTip(m_defaultLineWidthSpinBox->toolTip());
-    QObject::connect(m_defaultLineWidthSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    defaultLineWidthLabel->setToolTip(m_defaultLineWidthSpinBox->getWidget()->toolTip());
+    QObject::connect(m_defaultLineWidthSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &ChartTwoLineSeriesHistoryDialog::defaultLineWidthChanged);
     
     QToolButton* removeAllHistoryToolButton = new QToolButton();
@@ -136,7 +134,7 @@ ChartTwoLineSeriesHistoryDialog::ChartTwoLineSeriesHistoryDialog(QWidget* parent
     topLayout->addWidget(m_filenameLabel, gridRow, 0, 1, 5, Qt::AlignLeft);
     gridRow++;
     topLayout->addWidget(defaultLineWidthLabel, gridRow, 0);
-    topLayout->addWidget(m_defaultLineWidthSpinBox, gridRow, 1);
+    topLayout->addWidget(m_defaultLineWidthSpinBox->getWidget(), gridRow, 1);
     topLayout->addWidget(defaultColorLabel, gridRow, 2);
     topLayout->addWidget(m_defaultColorComboBox->getWidget(), gridRow, 3);
     gridRow++;
@@ -357,15 +355,14 @@ ChartTwoLineSeriesHistoryDialog::loadHistoryIntoTableWidget(ChartTwoLineSeriesHi
                 m_colorComboBoxes.push_back(caretColorComboBox);
             }
             else if (j == COLUMN_LINE_WIDTH) {
-                QDoubleSpinBox* lineWidthSpinBox = new QDoubleSpinBox();
-                lineWidthSpinBox->setRange(1.0, 10.0);
-                lineWidthSpinBox->setSingleStep(1.0);
+                WuQDoubleSpinBox* lineWidthSpinBox = new WuQDoubleSpinBox(this);
+                lineWidthSpinBox->setRangePercentage(0.0, 100.0);
                 QObject::connect(lineWidthSpinBox, SIGNAL(valueChanged(double)),
                                  m_lineWidthItemSignalMapper, SLOT(map()));
                 m_lineWidthItemSignalMapper->setMapping(lineWidthSpinBox, iRow);
                 m_tableWidget->setCellWidget(iRow,
                                              COLUMN_LINE_WIDTH,
-                                             lineWidthSpinBox);
+                                             lineWidthSpinBox->getWidget());
                 m_lineWidthSpinBoxes.push_back(lineWidthSpinBox);
             }
             else if (j == COLUMN_DESCRIPTION) {

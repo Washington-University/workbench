@@ -28,7 +28,6 @@
 #include "CaretColorEnum.h"
 #include "WuQDialogNonModal.h"
 
-class QDoubleSpinBox;
 class QLabel;
 class QIcon;
 class QSignalMapper;
@@ -41,6 +40,7 @@ namespace caret {
     class CaretMappableDataFile;
     class ChartTwoLineSeriesHistory;
     class ChartTwoOverlay;
+    class WuQDoubleSpinBox;
 
     class ChartTwoLineSeriesHistoryDialog : public WuQDialogNonModal {
         
@@ -106,13 +106,13 @@ namespace caret {
         
         std::vector<CaretColorEnumComboBox*> m_colorComboBoxes;
         
-        std::vector<QDoubleSpinBox*> m_lineWidthSpinBoxes;
+        std::vector<WuQDoubleSpinBox*> m_lineWidthSpinBoxes;
         
         QLabel* m_filenameLabel;
         
         CaretColorEnumComboBox* m_defaultColorComboBox;
         
-        QDoubleSpinBox* m_defaultLineWidthSpinBox;
+        WuQDoubleSpinBox* m_defaultLineWidthSpinBox;
         
         QSpinBox* m_viewedMaximumCountSpinBox;
         
