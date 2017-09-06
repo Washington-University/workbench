@@ -243,6 +243,9 @@ namespace caret {
         static float convertPercentageOfViewportToPixels(const float percentageWidthOrHeight,
                                                          const float viewportWidthOrHeight);
         
+        static float convertPercentageOfViewportToOpenGLLineWidth(const float percentageWidthOrHeight,
+                                                                  const float viewportWidthOrHeight);
+        
         Brain* m_brain;
         
         BrainOpenGLViewportContent* m_viewportContent;

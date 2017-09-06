@@ -195,7 +195,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_linesTicksSizeSpinBox = new WuQDoubleSpinBox(this);
     m_linesTicksSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_linesTicksSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
-                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::axisLineThicknessChanged);
     m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines as percentage of tab height for ALL axes");
     
     m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
@@ -561,6 +561,37 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
 }
 
 /**
+ * Called when the axis line thickness changes.
+ */
+void
+BrainBrowserWindowToolBarChartTwoAxes::axisLineThicknessChanged(double)
+{
+    if (m_chartOverlaySet != NULL) {
+        m_chartOverlaySet->setAxisLineThickness(m_linesTicksSizeSpinBox->value());
+        
+        const BrowserTabContent* tabContent = getTabContentFromSelectedTab();
+        CaretAssert(tabContent);
+        
+        const YokingGroupEnum::Enum yokingGroup = tabContent->getChartModelYokingGroup();
+        if (yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
+            const ModelChartTwo* modelChartTwo = tabContent->getDisplayedChartTwoModel();
+            CaretAssert(modelChartTwo);
+            const int32_t tabIndex = tabContent->getTabNumber();
+            EventChartTwoAttributesChanged attributesEvent;
+            attributesEvent.setLineThicknessChanged(yokingGroup,
+                                                    modelChartTwo->getSelectedChartTwoDataType(tabIndex),
+                                                    m_linesTicksSizeSpinBox->value());
+            EventManager::get()->sendEvent(attributesEvent.getPointer());
+        }
+    }
+    
+    updateGraphics();
+    
+    updateContent(getTabContentFromSelectedTab());
+}
+
+
+/**
  * Called when a widget is changed by the user.
  */
 void
@@ -581,7 +612,6 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
         m_chartAxis->setUserNumberOfSubdivisions(m_userSubdivisionsSpinBox->value());
         
         m_chartAxis->setLabelTextSize(m_labelSizeSpinBox->value());
-        m_chartOverlaySet->setAxisLineThickness(m_linesTicksSizeSpinBox->value());
         m_chartAxis->setNumericsTextSize(m_numericsSizeSpinBox->value());
         m_chartAxis->setPaddingSize(m_paddingSizeSpinBox->value());
         

@@ -105,12 +105,56 @@ EventChartTwoAttributesChanged::getCartesianAxisChanged(YokingGroupEnum::Enum &y
 }
 
 /**
+ * Set for a change in line thickness.
+ *
+ * @param yokingGroup
+ *     Selected yoking group.
+ * @param chartTwoDataType
+ *     Type of chart.
+ * @param lineThickness
+ *     New line thickness
+ */
+void
+EventChartTwoAttributesChanged::setLineThicknessChanged(const YokingGroupEnum::Enum yokingGroup,
+                                                        const ChartTwoDataTypeEnum::Enum chartTwoDataType,
+                                                        const float lineThickness)
+{
+    m_mode             = Mode::LINE_THICKESS;
+    m_yokingGroup      = yokingGroup;
+    m_chartTwoDataType = chartTwoDataType;
+    m_lineThickness    = lineThickness;
+}
+
+/**
+ * Get for a change in line thickness
+ *
+ * @param yokingGroupOut
+ *     Selected yoking group.
+ * @param chartTwoDataTypeOut
+ *     Type of chart.
+ * @param lineThicknessOut
+ *     Output line thickness
+ */
+void
+EventChartTwoAttributesChanged::getLineThicknessChanged(YokingGroupEnum::Enum &yokingGroupOut,
+                                                        ChartTwoDataTypeEnum::Enum &chartTwoDataTypeOut,
+                                                        float& lineThicknessOut) const
+{
+    CaretAssert(m_mode == Mode::LINE_THICKESS);
+    yokingGroupOut      = m_yokingGroup;
+    chartTwoDataTypeOut = m_chartTwoDataType;
+    lineThicknessOut       = m_lineThickness;
+}
+
+/**
  * Set for a change in a title.
  *
  * @param yokingGroup
  *     Selected yoking group.
  * @param chartTwoDataType
  *     Type of chart.
+ * @parm chartTitle
+ *     Chart title.
  */
 void
 EventChartTwoAttributesChanged::setTitleChanged(const YokingGroupEnum::Enum yokingGroup,
@@ -131,6 +175,8 @@ EventChartTwoAttributesChanged::setTitleChanged(const YokingGroupEnum::Enum yoki
  *     Selected yoking group.
  * @param chartTwoDataTypeOut
  *     Type of chart.
+ * @parm chartTitleOut
+ *     Chart title.
  */
 void
 EventChartTwoAttributesChanged::getTitleChanged(YokingGroupEnum::Enum &yokingGroupOut,

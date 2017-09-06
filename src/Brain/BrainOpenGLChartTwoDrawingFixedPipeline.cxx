@@ -646,7 +646,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
             1.0f
         };
         
-        const float graphicsBoxLineThickness = convertPercentageOfViewportToPixels(m_chartOverlaySet->getAxisLineThickness(),
+        const float graphicsBoxLineThickness = convertPercentageOfViewportToOpenGLLineWidth(m_chartOverlaySet->getAxisLineThickness(),
                                                                                    tabViewportHeight);
         leftAxisInfo.setLabelAndNumericsCoordinates(foregroundRGBA,
                                                     graphicsBoxLineThickness);
@@ -819,7 +819,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                         
                         if (histogramPrimitives != NULL) {
                             const float lineWidthPercentage = histogramPrimitives->getEnvelopeLineWidthPercentage();
-                            const float envelopeLineWidth   = convertPercentageOfViewportToPixels(lineWidthPercentage,
+                            const float envelopeLineWidth   = convertPercentageOfViewportToOpenGLLineWidth(lineWidthPercentage,
                                                                                                   tabViewportHeight);
                             
                             if (m_identificationModeFlag) {
@@ -1400,6 +1400,38 @@ BrainOpenGLChartTwoDrawingFixedPipeline::restoreStateOfOpenGL()
 }
 
 /**
+ * Convert a percentage of viewport width or height to an OpenGL Line Width.
+ * When percentage width or height is zero, zero will be returned.
+ * Otherwise the returned value will ALWAYS be at least one.
+ *
+ *
+ * @param percentageWidthOrHeight
+ *     The percentage of width or height (ranges 0.0 to 100.0).
+ * @param viewportWidthOrHeight
+ *     The viewport width or height.
+ * @return
+ *     Pixels size value.
+ */
+float
+BrainOpenGLChartTwoDrawingFixedPipeline::convertPercentageOfViewportToOpenGLLineWidth(const float percentageWidthOrHeight,
+                                                                                      const float viewportWidthOrHeight)
+{
+    if (percentageWidthOrHeight <= 0.0f) {
+        return 0.0f;
+    }
+    
+    float pixelsWidthOrHeight = ((percentageWidthOrHeight / 100.0f) * viewportWidthOrHeight);
+    
+    if (pixelsWidthOrHeight < s_minimumLineWidthOpenGL) {
+        pixelsWidthOrHeight = s_minimumLineWidthOpenGL;
+    }
+    if (pixelsWidthOrHeight > s_maximumLineWidthOpenGL) {
+        pixelsWidthOrHeight = s_maximumLineWidthOpenGL;
+    }
+    return pixelsWidthOrHeight;
+}
+
+/**
  * Convert a percentage of viewport width or height to pixels.
  * When percentage width or height is zero, zero will be returned.
  * Otherwise the returned value will ALWAYS be at least one.
@@ -1467,8 +1499,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
                                                                             const bool drawBoxFlag,
                                                                             int32_t chartGraphicsDrawingViewportOut[4])
 {
-    const float lineThicknessPixels = convertPercentageOfViewportToPixels(lineThicknessPercentage,
-                                                                          vpHeight);
+    const float lineThicknessPixels = convertPercentageOfViewportToOpenGLLineWidth(lineThicknessPercentage,
+                                                                                   vpHeight);
     const float halfGridLineWidth = lineThicknessPixels / 2.0;
     
     glViewport(vpX,
@@ -1709,12 +1741,12 @@ m_tabViewportHeight(tabViewport[3])
             break;
     }
     
-    m_lineDrawingWidth = convertPercentageOfViewportToPixels(lineWidthPercentage,
+    m_lineDrawingWidth = convertPercentageOfViewportToOpenGLLineWidth(lineWidthPercentage,
                                                              m_tabViewportHeight);
     m_tickLength = 0.0f;
     if (m_axis->isShowTickmarks()) {
         const float tickLengthPercentage = 1.0f;
-        m_tickLength = convertPercentageOfViewportToPixels(tickLengthPercentage, m_tabViewportHeight);
+        m_tickLength = convertPercentageOfViewportToOpenGLLineWidth(tickLengthPercentage, m_tabViewportHeight);
         //m_tickLength = m_lineDrawingWidth; // * 2.0f;
     }
     

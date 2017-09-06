@@ -73,6 +73,8 @@ namespace caret {
         
         void axisLabelToolButtonClicked(bool);
         
+        void axisLineThicknessChanged(double);
+        
     private:
         BrainBrowserWindowToolBarChartTwoAxes(const BrainBrowserWindowToolBarChartTwoAxes&);
 

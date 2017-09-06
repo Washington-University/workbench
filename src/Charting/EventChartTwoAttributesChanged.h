@@ -40,6 +40,7 @@ namespace caret {
         enum class Mode {
             INVALID,
             CARTESIAN_AXIS,
+            LINE_THICKESS,
             TITLE
         };
         
@@ -57,6 +58,14 @@ namespace caret {
                                       ChartTwoDataTypeEnum::Enum &chartTwoDataTypeOut,
                                      ChartTwoCartesianAxis* &cartesianAxisOut) const;
         
+        void setLineThicknessChanged(const YokingGroupEnum::Enum yokingGroup,
+                                     const ChartTwoDataTypeEnum::Enum chartTwoDataType,
+                                     const float lineThickness);
+        
+        void getLineThicknessChanged(YokingGroupEnum::Enum &yokingGroupOut,
+                                     ChartTwoDataTypeEnum::Enum &chartTwoDataTypeOut,
+                                     float& lineThicknessOut) const;
+
         void setTitleChanged(const YokingGroupEnum::Enum yokingGroup,
                              const ChartTwoDataTypeEnum::Enum chartTwoDataType,
                              const ChartTwoTitle* chartTitle);
@@ -64,7 +73,7 @@ namespace caret {
         void getTitleChanged(YokingGroupEnum::Enum &yokingGroupOut,
                              ChartTwoDataTypeEnum::Enum &chartTwoDataTypeOut,
                              ChartTwoTitle* &chartTitleOut) const;
-
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -81,6 +90,8 @@ namespace caret {
         ChartTwoCartesianAxis* m_cartesianAxis = NULL;
         
         ChartTwoTitle* m_chartTitle = NULL;
+        
+        float m_lineThickness = 1.0f;
         
         // ADD_NEW_MEMBERS_HERE
 

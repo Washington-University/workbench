@@ -617,6 +617,32 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
                 }
             }
                 break;
+            case EventChartTwoAttributesChanged::Mode::LINE_THICKESS:
+            {
+                YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+                ChartTwoDataTypeEnum::Enum chartTwoDataType = ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID;
+                float lineThickness = 0.0f;
+                attributeEvent->getLineThicknessChanged(yokingGroup,
+                                                        chartTwoDataType,
+                                                        lineThickness);
+                
+                /*
+                 * Only tabs in the windows are valid
+                 */
+                EventBrowserTabGet tabEvent(m_tabIndex);
+                EventManager::get()->sendEvent(tabEvent.getPointer());
+                const BrowserTabContent* btc = tabEvent.getBrowserTab();
+                if (btc != NULL) {
+                    const YokingGroupEnum::Enum tabYoking = btc->getChartModelYokingGroup();
+                    
+                    if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
+                        && (yokingGroup == tabYoking)
+                        && (m_chartDataType == chartTwoDataType)) {
+                        m_axisLineThickness = lineThickness;
+                    }
+                }
+            }
+                break;
             case EventChartTwoAttributesChanged::Mode::TITLE:
             {
                 YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
