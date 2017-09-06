@@ -1205,9 +1205,9 @@ ImageCaptureDialog::applyButtonClicked()
         QWidget* parent = getDialogButtonBox()->button(QDialogButtonBox::Apply);
         CaretAssert(parent);
         
-        WuQTimedMessageDisplay::show(parent,
-                                     0.5,
-                                     "Image captured");
+        WuQTimedMessageDisplay::showNonModal(parent,
+                                             3.0,
+                                             "Image captured");
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());

@@ -34,18 +34,23 @@ namespace caret {
     private:
         WuQTimedMessageDisplay(QWidget* parent,
                                const float displayForSeconds,
-                               const QString& message);
+                               const QString& message,
+                               const bool modalFlag);
         
     public:
-        static void show(QWidget* parent,
-                         const float displayForSeconds,
-                         const QString& message);
+        static void showModal(QWidget* parent,
+                              const float displayForSeconds,
+                              const QString& message);
         
-        static void show(QWidget* parent,
-                         const int32_t x,
-                         const int32_t y,
-                         const float displayForSeconds,
-                         const QString& message);
+        static void showNonModal(QWidget* parent,
+                                 const float displayForSeconds,
+                                 const QString& message);
+        
+        static void showModal(QWidget* parent,
+                              const int32_t x,
+                              const int32_t y,
+                              const float displayForSeconds,
+                              const QString& message);
         
         virtual ~WuQTimedMessageDisplay();
         
@@ -59,7 +64,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

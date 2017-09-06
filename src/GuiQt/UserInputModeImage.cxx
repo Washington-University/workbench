@@ -225,11 +225,11 @@ UserInputModeImage::mouseLeftClick(const MouseEvent& mouseEvent)
     updateAfterControlPointsChanged();
     
     if ( ! toolTipMessage.isEmpty()) {
-        WuQTimedMessageDisplay::show(openGLWidget,
-                                     mouseEvent.getX(),
-                                     mouseEvent.getY(),
-                                     2,
-                                     toolTipMessage);
+        WuQTimedMessageDisplay::showModal(openGLWidget,
+                                          mouseEvent.getX(),
+                                          mouseEvent.getY(),
+                                          2,
+                                          toolTipMessage);
     }
 }
 

@@ -55,10 +55,13 @@ using namespace caret;
  *    Message is displayed for this amount of time, in milliseconds.
  * @param message
  *    Message that is displayed.
+ * @param modalFlag
+ *    If true dialog is modal.
  */
 WuQTimedMessageDisplay::WuQTimedMessageDisplay(QWidget* parent,
                                                const float displayForSeconds,
-                                               const QString& message)
+                                               const QString& message,
+                                               const bool modalFlag)
 : QDialog(parent,
           Qt::FramelessWindowHint)
 {
@@ -68,7 +71,7 @@ WuQTimedMessageDisplay::WuQTimedMessageDisplay(QWidget* parent,
     /*
      * Modal so it blocks until done.
      */
-    setModal(true);
+    setModal(modalFlag);
     
     /*
      * Delete self when done.
@@ -94,8 +97,14 @@ WuQTimedMessageDisplay::WuQTimedMessageDisplay(QWidget* parent,
      */
     QTimer* timer = new QTimer(this);
     timer->setSingleShot(true);
-    QObject::connect(timer, SIGNAL(timeout()),
-                     this, SLOT(accept()));
+    if (modalFlag) {
+        QObject::connect(timer, SIGNAL(timeout()),
+                         this, SLOT(accept()));
+    }
+    else {
+        QObject::connect(timer, SIGNAL(timeout()),
+                         this, SLOT(close()));
+    }
     timer->start(displayForSeconds * 1000.0);
     
     /*
@@ -117,14 +126,40 @@ WuQTimedMessageDisplay::WuQTimedMessageDisplay(QWidget* parent,
  *    Message that is displayed.
  */
 void
-WuQTimedMessageDisplay::show(QWidget* parent,
-                             const float displayForSeconds,
-                             const QString& message)
+WuQTimedMessageDisplay::showModal(QWidget* parent,
+                                  const float displayForSeconds,
+                                  const QString& message)
 {
     WuQTimedMessageDisplay* md = new WuQTimedMessageDisplay(parent,
                                                             displayForSeconds,
-                                                            message);
+                                                            message,
+                                                            true);
     md->exec();
+}
+
+/**
+ * Display a message containing the given message for the given amount
+ * of time.  This method will return IMMEDIATELY and the message will
+ * delete its self when closed.
+ *
+ * @param parent
+ *    Parent on which message is displayed.
+ * @param displayForSeconds
+ *    Message is displayed for this amount of time, in milliseconds.
+ * @param message
+ *    Message that is displayed.
+ */
+void
+WuQTimedMessageDisplay::showNonModal(QWidget* parent,
+                                     const float displayForSeconds,
+                                     const QString& message)
+{
+    WuQTimedMessageDisplay* md = new WuQTimedMessageDisplay(parent,
+                                                            displayForSeconds,
+                                                            message,
+                                                            false);
+    md->show();
+    md->raise();
 }
 
 /**
@@ -143,15 +178,16 @@ WuQTimedMessageDisplay::show(QWidget* parent,
  *    Message that is displayed.
  */
 void
-WuQTimedMessageDisplay::show(QWidget* parent,
-                             const int32_t x,
-                             const int32_t y,
-                             const float displayForSeconds,
-                             const QString& message)
+WuQTimedMessageDisplay::showModal(QWidget* parent,
+                                  const int32_t x,
+                                  const int32_t y,
+                                  const float displayForSeconds,
+                                  const QString& message)
 {
     WuQTimedMessageDisplay* md = new WuQTimedMessageDisplay(parent,
                                                             displayForSeconds,
-                                                            message);
+                                                            message,
+                                                            true);
     const int32_t originAtTopWindowY = parent->height() - y;
     QPoint globalXY = parent->mapToGlobal(QPoint(x,
                                                  originAtTopWindowY));
@@ -164,6 +200,5 @@ WuQTimedMessageDisplay::show(QWidget* parent,
  */
 WuQTimedMessageDisplay::~WuQTimedMessageDisplay()
 {
-    
 }
 
