@@ -1480,10 +1480,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
         /*
          * For box, set coordinates for the middle of the line
          */
-        const float boxLeft   = vpX + leftAxisWidth + halfGridLineWidth;
-        const float boxRight  = vpX + vpWidth - rightAxisWidth - halfGridLineWidth;
-        const float boxBottom = vpY + bottomAxisHeight + halfGridLineWidth;
-        const float boxTop    = vpY + vpHeight - topAxisHeight - titleHeight - halfGridLineWidth;
+        const float boxLeft   = leftAxisWidth + halfGridLineWidth;
+        const float boxRight  = vpWidth - rightAxisWidth - halfGridLineWidth;
+        const float boxBottom = bottomAxisHeight + halfGridLineWidth;
+        const float boxTop    = vpHeight - topAxisHeight - titleHeight - halfGridLineWidth;
         
         /*
          * We adjust the horizontal lines by half the line width.
