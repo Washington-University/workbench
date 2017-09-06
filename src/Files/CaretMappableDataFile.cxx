@@ -115,7 +115,6 @@ CaretMappableDataFile::initializeCaretMappableDataFileInstance()
 void 
 CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile& cmdf)
 {
-    setPaletteNormalizationMode(cmdf.getPaletteNormalizationMode());
     *m_labelDrawingProperties = *cmdf.m_labelDrawingProperties;
 }
 
