@@ -1710,6 +1710,22 @@ m_tabViewportHeight(tabViewport[3])
                 break;
         }
         
+        /*
+         * This is necessary so that the correct axis minimum and
+         * maximum values (m_axisMinimumValue and m_axisMaximumValue).
+         */
+        if (m_axis != NULL) {
+            std::vector<float> scaleValuePositions;
+            std::vector<AString> scaleValuesText;
+            m_axis->getScaleValuesAndOffsets(dataMinimumValue,
+                                             dataMaximumValue,
+                                             1.0,
+                                             m_axisMinimumValue,
+                                             m_axisMaximumValue,
+                                             scaleValuePositions,
+                                             scaleValuesText);
+        }
+
         return;
     }
     
