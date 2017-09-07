@@ -1276,7 +1276,7 @@ BrainBrowserWindowToolBar::selectedTabChanged(int indx)
                  * Note: There is no need to 'stop' the timer if it is running
                  * as the start() method will stop and restart the timer
                  */
-                const int timeInMilliseconds = 5000;
+                const int timeInMilliseconds = 750;
                 m_tileTabsHighlightingTimer->setSingleShot(true);
                 m_tileTabsHighlightingTimer->start(timeInMilliseconds);
             }
