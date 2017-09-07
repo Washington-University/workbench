@@ -343,8 +343,7 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                                                + this->elementText);
                }
            }
-           else
-               if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_ENVELOPE_LINE_WIDTH_PERCENTAGE) {
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_ENVELOPE_LINE_WIDTH_PERCENTAGE) {
                 this->paletteColorMapping->setHistogramEnvelopeLineWidthPercentage(this->elementText.toFloat());
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_NUMBER_OF_BUCKETS) {

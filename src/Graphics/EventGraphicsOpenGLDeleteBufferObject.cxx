@@ -23,6 +23,7 @@
 #include "EventGraphicsOpenGLDeleteBufferObject.h"
 #undef __EVENT_GRAPHICS_OPEN_G_L_DELETE_BUFFER_OBJECT_DECLARE__
 
+#include "ApplicationInformation.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventTypeEnum.h"
@@ -58,14 +59,31 @@ m_openglBufferObject(openglBufferObject)
  */
 EventGraphicsOpenGLDeleteBufferObject::~EventGraphicsOpenGLDeleteBufferObject()
 {
-    if (this->getEventProcessCount() <= 0) {
-        CaretLogSevere("Deletion of OpenGL Buffer Object Name="
-                       + AString::number(m_openglBufferObject->getBufferObjectName())
-                       + ", context pointer="
-                       + AString::number((qulonglong)m_openglBufferObject->getOpenGLContextPointer())
-                       + " appears to have failed.  The events processed count is zero and that "
-                       "indicates that the event was not received in any listener or the "
-                       "listener failed to set the event as processed.");
+    switch (ApplicationInformation::getApplicationType()) {
+        case ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE:
+            /*
+             * Do not test for deletion of OpenGL buffers with
+             * the command line program as will require redesign
+             * of the -show-scene command and would likely require
+             * loading of the scene for each window.
+             */
+            break;
+        case ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE:
+            /*
+             * Only perform this test for the GUI application.
+             */
+            if (this->getEventProcessCount() <= 0) {
+                CaretLogSevere("Deletion of OpenGL Buffer Object Name="
+                               + AString::number(m_openglBufferObject->getBufferObjectName())
+                               + ", context pointer="
+                               + AString::number((qulonglong)m_openglBufferObject->getOpenGLContextPointer())
+                               + " appears to have failed.  The events processed count is zero and that "
+                               "indicates that the event was not received in any listener or the "
+                               "listener failed to set the event as processed.");
+            }
+            break;
+        case ApplicationTypeEnum::APPLICATION_TYPE_INVALID:
+            break;
     }
 }
 
