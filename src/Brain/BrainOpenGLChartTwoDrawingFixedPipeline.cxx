@@ -399,7 +399,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                 const Histogram* histogram = histogramChart->getHistogramForChartDrawing(selectedIndex,
                                                                                          (chartOverlay->isAllMapsSupported()
                                                                                           && chartOverlay->isAllMapsSelected()));
-                CaretAssert(histogram);
+                if (histogram == NULL) {
+                    histogramDrawingInfo.pop_back();
+                    continue;
+                }
+                
                 float histogramMinX = 0.0, histogramMaxX = 0.0, histogramMaxY = 0.0;
                 histogram->getRangeAndMaxDisplayHeight(histogramMinX, histogramMaxX, histogramMaxY);
                 if (histogramMaxX > histogramMinX) {

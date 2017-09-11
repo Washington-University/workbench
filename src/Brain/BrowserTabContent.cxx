@@ -1562,11 +1562,17 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
                                     break;
                             }
                             
-                            paletteColorMapping->setupAnnotationColorBar(statistics,
-                                                                         info.m_colorBar);
-                            
-                            info.m_colorBar->setTabIndex(m_tabNumber);
-                            colorBarsOut.push_back(info.m_colorBar);
+                            /*
+                             * Statistics may be NULL for some instances of histograms
+                             * from dynamically loaded files (dynconn)
+                             */
+                            if (statistics != NULL) {
+                                paletteColorMapping->setupAnnotationColorBar(statistics,
+                                                                             info.m_colorBar);
+                                
+                                info.m_colorBar->setTabIndex(m_tabNumber);
+                                colorBarsOut.push_back(info.m_colorBar);
+                            }
                         }
                     }
                 }

@@ -550,14 +550,16 @@ ChartTwoOverlay::getBounds(BoundingBox& boundingBoxOut) const
             const Histogram* histogram = histogramChart->getHistogramForChartDrawing(selectedIndex,
                                                                                      (isAllMapsSupported()
                                                                                       && isAllMapsSelected()));
-            CaretAssert(histogram);
-            float histogramMinX = 0.0, histogramMaxX = 0.0, histogramMaxY = 0.0;
-            histogram->getRangeAndMaxDisplayHeight(histogramMinX, histogramMaxX, histogramMaxY);
-            if (histogramMaxX > histogramMinX) {
-                boundingBoxOut.set(histogramMinX, histogramMaxX,
-                                   0.0f, histogramMaxY,
-                                   0.0f, 0.0f);
-                validFlag = true;
+            //CaretAssert(histogram);
+            if (histogram != NULL) {
+                float histogramMinX = 0.0, histogramMaxX = 0.0, histogramMaxY = 0.0;
+                histogram->getRangeAndMaxDisplayHeight(histogramMinX, histogramMaxX, histogramMaxY);
+                if (histogramMaxX > histogramMinX) {
+                    boundingBoxOut.set(histogramMinX, histogramMaxX,
+                                       0.0f, histogramMaxY,
+                                       0.0f, 0.0f);
+                    validFlag = true;
+                }
             }
         }
             break;
