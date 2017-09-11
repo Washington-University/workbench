@@ -700,6 +700,36 @@ ChartableTwoFileMatrixChart::setSelectedRowColumnIndex(const int32_t tabIndex,
 }
 
 /**
+ * Load a row or column if none are loaded.
+ *
+ */
+void
+ChartableTwoFileMatrixChart::loadDefaultRowOrColumn()
+{
+    if (getChartTwoDataType() != ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
+        return;
+    }
+    if (m_matrixDataFileType == MatrixDataFileType::INVALID) {
+        return;
+    }
+    
+    const int32_t tabIndex = BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS - 1;
+    ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension = getSelectedRowColumnDimension();
+    std::vector<int32_t> selectedRowIndices;
+    std::vector<int32_t> selectedColumnIndices;
+    
+    getSelectedRowColumnIndices(tabIndex,
+                                rowColumnDimension,
+                                selectedRowIndices,
+                                selectedColumnIndices);
+    
+    if (selectedRowIndices.empty()
+        && selectedRowIndices.empty()) {
+        setSelectedRowColumnIndex(tabIndex, 0);
+    }
+}
+
+/**
  * @return True if the file supports row selection.
  */
 bool

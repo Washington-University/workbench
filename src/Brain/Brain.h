@@ -409,6 +409,8 @@ namespace caret {
         
         void restoreModelChartOneToModelChartTwo();
         
+        void loadMatrixChartingFileDefaultRowOrColumn(CaretDataFile* caretDataFile);
+        
         IdentificationManager* getIdentificationManager();
 
         SelectionManager* getSelectionManager();

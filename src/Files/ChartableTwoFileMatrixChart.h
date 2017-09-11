@@ -84,6 +84,8 @@ namespace caret {
         
         bool hasColumnSelection() const;
         
+        void loadDefaultRowOrColumn();
+        
         AString getRowNumberAndName(const int32_t rowIndex) const;
         
         AString getColumnNumberAndName(const int32_t columnIndex) const;

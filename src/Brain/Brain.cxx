@@ -39,6 +39,7 @@
 #include "CaretPreferences.h"
 #include "ChartingDataManager.h"
 #include "ChartableTwoFileDelegate.h"
+#include "ChartableTwoFileMatrixChart.h"
 #include "ChartableLineSeriesBrainordinateInterface.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiBrainordinateLabelFile.h"
@@ -5223,6 +5224,8 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
         throw dfe;
     }
    
+    loadMatrixChartingFileDefaultRowOrColumn(caretDataFileRead);
+    
     updateAfterFilesAddedOrRemoved();
     
     return caretDataFileRead;
@@ -7187,6 +7190,8 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                 caretDataFile->restoreFromScene(sceneAttributes,
                                                 bestMatchingSceneClass);
             }
+            
+            loadMatrixChartingFileDefaultRowOrColumn(caretDataFile);
         }
     }
     
@@ -7310,6 +7315,27 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAnnotationFile->clearModified();
 }
+
+/**
+ * Load the default row/column for a matrix charting file.
+ * If the file is not matrix chartable, no action is taken.
+ *
+ * @param caretDataFile
+ *     The Caret Data File.
+ */
+void
+Brain::loadMatrixChartingFileDefaultRowOrColumn(CaretDataFile* caretDataFile)
+{
+    if (caretDataFile == NULL) {
+        return;
+    }
+    
+    CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
+    if (cmdf != NULL) {
+        cmdf->getChartingDelegate()->getMatrixCharting()->loadDefaultRowOrColumn();
+    }
+}
+
 
 /**
  * If model one charts are in scene but not
