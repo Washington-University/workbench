@@ -21,6 +21,7 @@
 #include <QTextStream>
 
 #include "AString.h"
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include <iostream>
 
@@ -913,4 +914,78 @@ AString::countMatchingCharactersFromEnd(const AString& rhs) const
     return matchCount;
 }
 
+/**
+ * Find the longest common prefix in the given vector of strings.
+ *
+ * @param v
+ *     A vector of strings
+ * @return
+ *     Longest common prefix found (may be an empty string).
+ */
+AString
+AString::findLongestCommonPrefix(const std::vector<AString>& stringVector)
+{
+    AString longestPrefix;
+    
+    const int32_t numStrings = static_cast<int32_t>(stringVector.size());
+    if (numStrings == 1) {
+        CaretAssertVectorIndex(stringVector, 0);
+        longestPrefix = stringVector[0];
+    }
+    else if (numStrings > 1) {
+        /*
+         * Find string with shortest name
+         */
+        CaretAssertVectorIndex(stringVector, 0);
+        AString shortestString = stringVector[0];
+        for (const auto name : stringVector) {
+            if (name.length() < shortestString.length()) {
+                shortestString = name;
+            }
+        }
+        
+        /*
+         * Loop through each character in the shortest string
+         * until a character does not match in any strings
+         */
+        const int32_t numChars = static_cast<int32_t>(shortestString.length());
+        for (int32_t ich = 0; ich < numChars; ich++) {
+            const QChar character = shortestString.at(ich);
+            
+            bool allMatchFlag = true;
+            for (const auto name : stringVector) {
+                CaretAssert(ich  < name.length());
+                if (name.at(ich) != character) {
+                    allMatchFlag = false;
+                }
+            }
+            
+            if (allMatchFlag) {
+                longestPrefix.append(character);
+            }
+            else {
+                break;
+            }
+        }
+    }
+    
+    /*
+     * If the last character is a '/', remove it
+     */
+    if (longestPrefix.length() > 1) {
+        if (longestPrefix.endsWith('/')) {
+            longestPrefix.resize(longestPrefix.length() - 1);
+        }
+    }
+    
+    const bool debugFlag = false;
+    if (debugFlag) {
+        std::cout << "Longest prefix: " << longestPrefix << std::endl;
+        for (const auto name : stringVector) {
+            std::cout << "   " << name << std::endl;
+        }
+    }
+    
+    return longestPrefix;
+}
 

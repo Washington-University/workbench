@@ -95,6 +95,8 @@ namespace caret {
         
         void setBalsaBaseDirectory(const AString& balsaBaseDirectory);
         
+        AString findBaseDirectoryForDataFiles() const;
+        
         void reorderScenes(std::vector<Scene*>& orderedScenes);
         
         int32_t getSceneIndexFromNumberOrName(const AString& numberOrName);

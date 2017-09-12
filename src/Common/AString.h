@@ -131,6 +131,9 @@ namespace caret {
         AString replaceHtmlSpecialCharactersWithEscapeCharacters() const;
         
         AString fixUnicodeHyphens(bool* hyphenReplaced = NULL, bool* hadOtherNonAscii = NULL, const bool& quiet = false) const;
+        
+        static AString findLongestCommonPrefix(const std::vector<AString>& v);
+        
     };
 }
 

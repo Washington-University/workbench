@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <set>
 
 #define __SCENE_FILE_DECLARE__
 #include "SceneFile.h"
@@ -42,6 +43,7 @@
 #include "SceneClassArray.h"
 #include "SceneFileSaxReader.h"
 #include "SceneInfo.h"
+#include "ScenePathName.h"
 #include "SceneXmlElements.h"
 #include "SceneWriterXml.h"
 #include "SpecFile.h"
@@ -802,6 +804,57 @@ SceneFile::setBalsaExtractToDirectoryName(const AString& extractToDirectoryName)
         setModified();
         m_balsaExtractToDirectoryName = extractToDirectoryName;
     }
+}
+
+/**
+ * return Base directory for data files.
+ * The base directory is a directory that is parent to all loaded data files.
+ */
+AString
+SceneFile::findBaseDirectoryForDataFiles() const
+{
+    std::set<AString> directoryNames;
+    
+    /**
+     * Find all 'path name' elements from ALL scenes
+     */
+    for (Scene* scene: m_scenes) {
+        CaretAssert(scene);
+        std::vector<SceneObject*> children = scene->getDescendants();
+        for (SceneObject* sceneObject : children) {
+            CaretAssert(sceneObject);
+            if (sceneObject->getDataType() == SceneObjectDataTypeEnum::SCENE_PATH_NAME) {
+                const ScenePathName* scenePathName = dynamic_cast<ScenePathName*>(sceneObject);
+                /*
+                 * Will be NULL for 'path name arrays' which we ignore
+                 */
+                if (scenePathName != NULL) {
+                    /*
+                     * files in spec file are named "fileName" in the scene
+                     * specFile is named "specFileName"
+                     * and these names are unique to name of files in the spec file
+                     */
+                    if ((sceneObject->getName() == "fileName")
+                        || (sceneObject->getName() == "specFileName")) {
+                        const AString pathName = scenePathName->stringValue().trimmed();
+                        if ( ! pathName.isEmpty()) {
+                            FileInformation fileInfo(pathName);
+                            const AString dirName = fileInfo.getAbsolutePath().trimmed();
+                            if ( ! dirName.isEmpty()) {
+                                directoryNames.insert(dirName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    const std::vector<AString> stringVector(directoryNames.begin(),
+                                            directoryNames.end());
+    const AString baseDirectoryName = AString::findLongestCommonPrefix(stringVector);
+    
+    return baseDirectoryName;
 }
 
 /**
