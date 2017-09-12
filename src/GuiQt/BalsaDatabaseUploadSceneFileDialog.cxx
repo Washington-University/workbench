@@ -273,8 +273,16 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
      */
     m_browseBaseDirectoryPushButton = new QPushButton("Browse...");
     m_browseBaseDirectoryPushButton->setToolTip("Use a file system dialog to choose the base directory");
-    QObject::connect(m_browseBaseDirectoryPushButton, SIGNAL(clicked()),
-                     this, SLOT(browseBaseDirectoryPushButtonClicked()));
+    QObject::connect(m_browseBaseDirectoryPushButton, &QPushButton::clicked,
+                     this, &BalsaDatabaseUploadSceneFileDialog::browseBaseDirectoryPushButtonClicked);
+    
+    /*
+     * Browse for base directory
+     */
+    m_findBaseDirectoryPushButton = new QPushButton("Find");
+    m_findBaseDirectoryPushButton->setToolTip("Find the base directory by examining files in all scenes");
+    QObject::connect(m_findBaseDirectoryPushButton, &QPushButton::clicked,
+                     this, &BalsaDatabaseUploadSceneFileDialog::findBaseDirectoryPushButtonClicked);
     
     int columnCounter = 0;
     const int COLUMN_LABEL = columnCounter++;
@@ -307,7 +315,8 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     row++;
     gridLayout->addWidget(m_baseDirectoryLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_baseDirectoryLineEdit, row, COLUMN_DATA_WIDGET);
-    gridLayout->addWidget(m_browseBaseDirectoryPushButton, row, COLUMN_BUTTON_ONE, 1, 2);
+    gridLayout->addWidget(m_browseBaseDirectoryPushButton, row, COLUMN_BUTTON_ONE);
+    gridLayout->addWidget(m_findBaseDirectoryPushButton, row, COLUMN_BUTTON_TWO);
     row++;
     gridLayout->addWidget(m_balsaStudyTitleLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_balsaStudyTitleLineEdit, row, COLUMN_DATA_WIDGET);
@@ -711,7 +720,7 @@ BalsaDatabaseUploadSceneFileDialog::browseZipFileCustomDirectoryPushButtonClicke
             directoryName = fileInfo.getAbsoluteFilePath();
         }
     }
-    AString newDirectoryName = CaretFileDialog::getExistingDirectoryDialog(m_browseBaseDirectoryPushButton,
+    AString newDirectoryName = CaretFileDialog::getExistingDirectoryDialog(m_zipFileCustomDirectoryRadioButton,
                                                                            "Choose Custom Zip File Directory",
                                                                            directoryName);
     /*
@@ -924,6 +933,27 @@ BalsaDatabaseUploadSceneFileDialog::setLabelText(const LabelName labelName)
     
     CaretAssert(label);
     label->setText(coloredText);
+}
+
+/**
+ * Called when find base directory push button is clicked.
+ */
+void
+BalsaDatabaseUploadSceneFileDialog::findBaseDirectoryPushButtonClicked()
+{
+    CaretAssert(m_sceneFile);
+    
+    const AString baseDirectoryName = m_sceneFile->findBaseDirectoryForDataFiles();
+    
+    if (baseDirectoryName.isEmpty()) {
+        return;
+    }
+    
+    /*
+     * Set name for base directory
+     */
+    m_baseDirectoryLineEdit->setText(baseDirectoryName);
+    validateData();
 }
 
 

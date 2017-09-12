@@ -68,6 +68,8 @@ namespace caret {
         
         void browseZipFileCustomDirectoryPushButtonClicked();
         
+        void findBaseDirectoryPushButtonClicked();
+        
     protected:
         virtual void okButtonClicked();
         
@@ -135,6 +137,7 @@ namespace caret {
         QPushButton* m_selectStudyTitlePushButton;
         
         QPushButton* m_browseBaseDirectoryPushButton;
+        QPushButton* m_findBaseDirectoryPushButton;
         
         QLabel* m_baseDirectoryLabel;
         QLineEdit* m_baseDirectoryLineEdit;
