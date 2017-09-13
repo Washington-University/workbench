@@ -118,7 +118,6 @@
 #include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
 #include "WuQMessageBox.h"
-//#include "WuQWebView.h"
 #include "WuQtUtilities.h"
 
 #include "CaretAssert.h"
@@ -382,22 +381,6 @@ GuiManager::getBrain() const
 {
     return SessionManager::get()->getBrain(0);
 }
-
-/**
- * Get the Brain OpenGL for drawing with OpenGL.
- *
- * @return 
- *    Point to the brain.
- */
-//BrainOpenGL* 
-//GuiManager::getBrainOpenGL()
-//{
-//    if (this->brainOpenGL == NULL) {
-//        this->brainOpenGL = BrainOpenGL::getBrainOpenGL();
-//    }
-//    
-//    return this->brainOpenGL;
-//}
 
 /**
  * See if a brain browser window can be closed.  If there is only
@@ -1340,6 +1323,10 @@ GuiManager::receiveEvent(Event* event)
              || (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW)) {
         if (m_chartTwoLineSeriesHistoryDialog != NULL) {
             m_chartTwoLineSeriesHistoryDialog->updateDialog();
+        }
+        
+        for (auto overlayEditor : m_overlaySettingsEditors) {
+            overlayEditor->updateChartLinesInDialog();
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MAC_DOCK_MENU_UPDATE) {

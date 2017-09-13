@@ -36,6 +36,7 @@ namespace caret {
     class CaretMappableDataFile;
     class ChartTwoOverlay;
     class LabelTableEditorWidget;
+    class MapSettingsChartTwoLineHistoryWidget;
     class MapSettingsColorBarWidget;
     class MapSettingsFiberTrajectoryWidget;
     class MapSettingsLabelsWidget;
@@ -57,6 +58,8 @@ namespace caret {
                                            ChartTwoOverlay* chartOverlay);
         
         void updateDialog();
+        
+        void updateChartLinesInDialog();
         
         virtual ~OverlaySettingsEditorDialog();
 
@@ -119,6 +122,8 @@ namespace caret {
         
         MapSettingsLabelsWidget* m_labelsWidget;
         
+        MapSettingsChartTwoLineHistoryWidget* m_lineHistoryWidget;
+        
         QPushButton* m_editLabelTablePushButton;
         
         QLabel* m_selectedMapFileNameLabel;
@@ -138,6 +143,8 @@ namespace caret {
         int32_t m_parcelsWidgetTabIndex;
         
         int32_t m_trajectoryWidgetTabIndex;
+        
+        int32_t m_lineHistoryWidgetTabIndex;
         
     };
     

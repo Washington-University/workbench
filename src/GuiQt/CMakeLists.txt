@@ -135,6 +135,7 @@ ELSE()
         LabelSelectionViewController.h
         MacApplication.h
         MacDockMenu.h
+        MapSettingsChartTwoLineHistoryWidget.h
         MapSettingsColorBarWidget.h
         MapSettingsFiberTrajectoryWidget.h
         MapSettingsLabelsWidget.h
@@ -351,6 +352,7 @@ KeyEvent.h
 LabelSelectionViewController.h
 MacApplication.h
 MacDockMenu.h
+MapSettingsChartTwoLineHistoryWidget.h
 MapSettingsColorBarWidget.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLabelsWidget.h
@@ -564,6 +566,7 @@ KeyEvent.cxx
 LabelSelectionViewController.cxx
 MacApplication.cxx
 MacDockMenu.cxx
+MapSettingsChartTwoLineHistoryWidget.cxx
 MapSettingsColorBarWidget.cxx
 MapSettingsFiberTrajectoryWidget.cxx
 MapSettingsLabelsWidget.cxx

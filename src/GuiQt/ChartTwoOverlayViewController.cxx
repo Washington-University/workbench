@@ -792,7 +792,6 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-            enableSettingsActionFlag = false;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
             break;

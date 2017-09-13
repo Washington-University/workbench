@@ -43,6 +43,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabelTableEditor.h"
+#include "MapSettingsChartTwoLineHistoryWidget.h"
 #include "MapSettingsColorBarWidget.h"
 #include "MapSettingsFiberTrajectoryWidget.h"
 #include "MapSettingsLabelsWidget.h"
@@ -105,6 +106,8 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
     
     m_labelsWidget = new MapSettingsLabelsWidget();
     
+    m_lineHistoryWidget = new MapSettingsChartTwoLineHistoryWidget();
+    
     m_tabWidget = new QTabWidget();
     
     m_colorBarWidgetTabIndex = m_tabWidget->addTab(m_colorBarWidget,
@@ -117,6 +120,8 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
     m_layersWidgetTabIndex = m_tabWidget->addTab(m_layerWidget,
                       "Layer");
     
+    m_lineHistoryWidgetTabIndex = m_tabWidget->addTab(m_lineHistoryWidget,
+                                                      "Lines");
     m_metadataWidgetTabIndex = m_tabWidget->addTab(new QWidget(),
                       "Metadata");
     m_tabWidget->setTabEnabled(m_tabWidget->count() - 1, false);
@@ -303,6 +308,7 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
     bool isParcelsValid = false;
     bool isFiberTrajectoryValid = false;
     bool isVolumeLayer = false;
+    bool isLinesValid = false;
     
     QString mapFileName = "";
     QString mapName = "";
@@ -395,78 +401,100 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
             }
         }
         else if (m_chartOverlay != NULL) {
-            int32_t selectedMapIndex = -1;
-            bool mapTypeFlag = false;
-            switch (m_chartOverlaySelectedIndexType) {
-                case ChartTwoOverlay::SelectedIndexType::INVALID:
-                    CaretAssert(0);
+            bool hasMapsFlag = false;
+            bool hasHistoryFlag = false;
+            switch (m_chartOverlay->getChartTwoDataType()) {
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartTwoOverlay::SelectedIndexType::MAP:
-                    if ((m_selectedMapFileIndex >= 0)
-                        && (m_selectedMapFileIndex < m_caretMappableDataFile->getNumberOfMaps())) {
-                        selectedMapIndex = m_selectedMapFileIndex;
-                        mapTypeFlag = true;
-                    }
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                    hasMapsFlag = true;
                     break;
-                case ChartTwoOverlay::SelectedIndexType::COLUMN:
-                case ChartTwoOverlay::SelectedIndexType::ROW:
-                    if (m_selectedMapFileIndex >= 0) {
-                        if (m_caretMappableDataFile->getNumberOfMaps() == 1) {
-                            m_selectedMapFileIndex = 0;
-                        }
-                        selectedMapIndex = m_selectedMapFileIndex;
-                    }
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                    hasHistoryFlag = true;
+                    break;
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                    hasMapsFlag = true;
                     break;
             }
-            if ((selectedMapIndex >= 0)
-                && (selectedMapIndex < m_caretMappableDataFile->getNumberOfMaps())) {
-                /*
-                 * Get name of file and map
-                 */
-                mapFileName = m_caretMappableDataFile->getFileNameNoPath();
-                if (m_selectedMapFileIndex >= 0) {
-                    mapName = m_caretMappableDataFile->getMapName(selectedMapIndex);
-                }
-                
-                if (mapTypeFlag) {
-                    metadata = m_caretMappableDataFile->getMapMetaData(selectedMapIndex);
-                    if (metadata != NULL) {
-                        /*
-                         * TODO: Update metadata widget
-                         */
-                        //isMetadataValid = true;
-                    }
-                }
-                
-                if (m_caretMappableDataFile->isMappedWithPalette()) {
-                    PaletteColorMapping* paletteColorMapping = m_caretMappableDataFile->getMapPaletteColorMapping(selectedMapIndex);
-                    if (paletteColorMapping != NULL) {
-                        /*
-                         * Update palette settings
-                         */
-                        isPaletteValid = true;
-                        m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
-                                                                  selectedMapIndex);
-                        AnnotationColorBar* colorBar = NULL;
-                        if (m_brainordinateOverlay != NULL) {
-                            colorBar = m_brainordinateOverlay->getColorBar();
+            
+            int32_t selectedMapIndex = -1;
+            bool mapTypeFlag = false;
+            if (hasMapsFlag) {
+                switch (m_chartOverlaySelectedIndexType) {
+                    case ChartTwoOverlay::SelectedIndexType::INVALID:
+                        CaretAssert(0);
+                        break;
+                    case ChartTwoOverlay::SelectedIndexType::MAP:
+                        if ((m_selectedMapFileIndex >= 0)
+                            && (m_selectedMapFileIndex < m_caretMappableDataFile->getNumberOfMaps())) {
+                            selectedMapIndex = m_selectedMapFileIndex;
+                            mapTypeFlag = true;
                         }
-                        else if (m_chartOverlay != NULL) {
-                            colorBar = m_chartOverlay->getColorBar();
+                        break;
+                    case ChartTwoOverlay::SelectedIndexType::COLUMN:
+                    case ChartTwoOverlay::SelectedIndexType::ROW:
+                        if (m_selectedMapFileIndex >= 0) {
+                            if (m_caretMappableDataFile->getNumberOfMaps() == 1) {
+                                m_selectedMapFileIndex = 0;
+                            }
+                            selectedMapIndex = m_selectedMapFileIndex;
                         }
-                        m_colorBarWidget->updateContent(colorBar,
-                                                        paletteColorMapping);
-                    }
+                        break;
                 }
-                
-                CiftiConnectivityMatrixParcelFile* parcelsFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(m_caretMappableDataFile);
-                if (parcelsFile != NULL) {
+                if ((selectedMapIndex >= 0)
+                    && (selectedMapIndex < m_caretMappableDataFile->getNumberOfMaps())) {
                     /*
-                     * Update parcels
+                     * Get name of file and map
                      */
-                    isParcelsValid = true;
-                    m_parcelsWidget->updateEditor(parcelsFile);
+                    mapFileName = m_caretMappableDataFile->getFileNameNoPath();
+                    if (m_selectedMapFileIndex >= 0) {
+                        mapName = m_caretMappableDataFile->getMapName(selectedMapIndex);
+                    }
+                    
+                    if (mapTypeFlag) {
+                        metadata = m_caretMappableDataFile->getMapMetaData(selectedMapIndex);
+                        if (metadata != NULL) {
+                            /*
+                             * TODO: Update metadata widget
+                             */
+                            //isMetadataValid = true;
+                        }
+                    }
+                    
+                    if (m_caretMappableDataFile->isMappedWithPalette()) {
+                        PaletteColorMapping* paletteColorMapping = m_caretMappableDataFile->getMapPaletteColorMapping(selectedMapIndex);
+                        if (paletteColorMapping != NULL) {
+                            /*
+                             * Update palette settings
+                             */
+                            isPaletteValid = true;
+                            m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
+                                                                      selectedMapIndex);
+                            AnnotationColorBar* colorBar = NULL;
+                            if (m_brainordinateOverlay != NULL) {
+                                colorBar = m_brainordinateOverlay->getColorBar();
+                            }
+                            else if (m_chartOverlay != NULL) {
+                                colorBar = m_chartOverlay->getColorBar();
+                            }
+                            m_colorBarWidget->updateContent(colorBar,
+                                                            paletteColorMapping);
+                        }
+                    }
+                    
+                    CiftiConnectivityMatrixParcelFile* parcelsFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(m_caretMappableDataFile);
+                    if (parcelsFile != NULL) {
+                        /*
+                         * Update parcels
+                         */
+                        isParcelsValid = true;
+                        m_parcelsWidget->updateEditor(parcelsFile);
+                    }
                 }
+            }
+            else if (hasHistoryFlag) {
+                isLinesValid = true;
+                m_lineHistoryWidget->updateContent(m_chartOverlay);
             }
         }
         else {
@@ -492,6 +520,8 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
                                isParcelsValid);
     m_tabWidget->setTabEnabled(m_trajectoryWidgetTabIndex,
                                isFiberTrajectoryValid);
+    m_tabWidget->setTabEnabled(m_lineHistoryWidgetTabIndex,
+                               isLinesValid);
 
     /*
      * When the selected tab is invalid, we want to select the
@@ -500,6 +530,7 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
      */
     std::vector<int32_t> priorityTabIndices;
     priorityTabIndices.push_back(m_paletteWidgetTabIndex);
+    priorityTabIndices.push_back(m_lineHistoryWidgetTabIndex);
     priorityTabIndices.push_back(m_colorBarWidgetTabIndex);
     priorityTabIndices.push_back(m_labelsWidgetTabIndex);
     priorityTabIndices.push_back(m_parcelsWidgetTabIndex);
@@ -563,6 +594,26 @@ OverlaySettingsEditorDialog::updateDialog()
     if ((m_brainordinateOverlay == NULL)
         && (m_chartOverlay == NULL)) {
         close();
+    }
+}
+
+/**
+ * Update chart lines in the dialog
+ */
+void
+OverlaySettingsEditorDialog::updateChartLinesInDialog()
+{
+    if (m_chartOverlay != NULL) {
+        EventChartOverlayValidate validateChartOverlayEvent(m_chartOverlay);
+        EventManager::get()->sendEvent(validateChartOverlayEvent.getPointer());
+        if ( ! validateChartOverlayEvent.isValidChartOverlay()) {
+            m_chartOverlay = NULL;
+        }
+        
+        if (m_chartOverlay != NULL) {
+            updateDialogContentPrivate(NULL,
+                                       m_chartOverlay);
+        }
     }
 }
 
