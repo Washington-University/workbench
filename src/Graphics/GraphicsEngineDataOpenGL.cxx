@@ -90,17 +90,17 @@ GraphicsEngineDataOpenGL::deleteBufferObjectHelper(GraphicsOpenGLBufferObject* &
 void
 GraphicsEngineDataOpenGL::deleteBuffers()
 {
-    deleteBufferObjectHelper(m_coordinateBufferObject);
+    //deleteBufferObjectHelper(m_coordinateBufferObject);
     
-    deleteBufferObjectHelper(m_normalVectorBufferObject);
+    //deleteBufferObjectHelper(m_normalVectorBufferObject);
     
-    deleteBufferObjectHelper(m_colorBufferObject);
+    //deleteBufferObjectHelper(m_colorBufferObject);
     
-    deleteBufferObjectHelper(m_textureCoordinatesBufferObject);
+    //deleteBufferObjectHelper(m_textureCoordinatesBufferObject);
     
-    for (auto mapBuff: m_alternativeColorBufferObjectMap) {
-        deleteBufferObjectHelper(mapBuff.second);
-    }
+//    for (auto& mapBuff: m_alternativeColorBufferObjectMap) {
+//        deleteBufferObjectHelper(mapBuff.second);
+//    }
     m_alternativeColorBufferObjectMap.clear();
     
     if (m_textureImageDataName != NULL) {
@@ -188,7 +188,7 @@ GraphicsEngineDataOpenGL::loadCoordinateBuffer(GraphicsPrimitive* primitive)
             if (m_coordinateBufferObject == NULL) {
                 EventGraphicsOpenGLCreateBufferObject createEvent;
                 EventManager::get()->sendEvent(createEvent.getPointer());
-                m_coordinateBufferObject = createEvent.getOpenGLBufferObject();
+                m_coordinateBufferObject.reset(createEvent.getOpenGLBufferObject());
                 CaretAssert(m_coordinateBufferObject);
             }
             
@@ -239,7 +239,7 @@ GraphicsEngineDataOpenGL::loadNormalVectorBuffer(GraphicsPrimitive* primitive)
             
             EventGraphicsOpenGLCreateBufferObject createEvent;
             EventManager::get()->sendEvent(createEvent.getPointer());
-            m_normalVectorBufferObject = createEvent.getOpenGLBufferObject();
+            m_normalVectorBufferObject.reset(createEvent.getOpenGLBufferObject());
             CaretAssert(m_normalVectorBufferObject->getBufferObjectName());
             
             glBindBuffer(GL_ARRAY_BUFFER,
@@ -265,7 +265,6 @@ GraphicsEngineDataOpenGL::loadColorBuffer(GraphicsPrimitive* primitive)
     
     GLenum usageHint = getOpeGLBufferUsageHint(primitive);
     
-    
     switch (primitive->m_colorType) {
         case GraphicsPrimitive::ColorType::NONE:
             break;
@@ -273,7 +272,7 @@ GraphicsEngineDataOpenGL::loadColorBuffer(GraphicsPrimitive* primitive)
         {
             EventGraphicsOpenGLCreateBufferObject createEvent;
             EventManager::get()->sendEvent(createEvent.getPointer());
-            m_colorBufferObject = createEvent.getOpenGLBufferObject();
+            m_colorBufferObject.reset(createEvent.getOpenGLBufferObject());
             CaretAssert(m_colorBufferObject->getBufferObjectName());
             
             m_componentsPerColor = 4;
@@ -295,7 +294,7 @@ GraphicsEngineDataOpenGL::loadColorBuffer(GraphicsPrimitive* primitive)
         {
             EventGraphicsOpenGLCreateBufferObject createEvent;
             EventManager::get()->sendEvent(createEvent.getPointer());
-            m_colorBufferObject = createEvent.getOpenGLBufferObject();
+            m_colorBufferObject.reset(createEvent.getOpenGLBufferObject());
             CaretAssert(m_colorBufferObject->getBufferObjectName());
             
             m_componentsPerColor = 4;
@@ -335,7 +334,7 @@ GraphicsEngineDataOpenGL::loadTextureCoordinateBuffer(GraphicsPrimitive* primiti
         {
             EventGraphicsOpenGLCreateBufferObject createEvent;
             EventManager::get()->sendEvent(createEvent.getPointer());
-            m_textureCoordinatesBufferObject = createEvent.getOpenGLBufferObject();
+            m_textureCoordinatesBufferObject.reset(createEvent.getOpenGLBufferObject());
             CaretAssert(m_textureCoordinatesBufferObject->getBufferObjectName());
             
             m_textureCoordinatesDataType = GL_FLOAT;
@@ -503,9 +502,9 @@ GraphicsOpenGLBufferObject*
 GraphicsEngineDataOpenGL::loadAlternativeColorBuffer(GraphicsPrimitive* primitive,
                                                      const int32_t alternativeColorIdentifier)
 {
-    std::map<int32_t, GraphicsOpenGLBufferObject*>::iterator iter = m_alternativeColorBufferObjectMap.find(alternativeColorIdentifier);
+    const auto& iter = m_alternativeColorBufferObjectMap.find(alternativeColorIdentifier);
     if (iter != m_alternativeColorBufferObjectMap.end()) {
-        return iter->second;
+        return iter->second.get();
     }
     
     GraphicsOpenGLBufferObject* outputOpenGLBufferObject = NULL;
@@ -548,8 +547,9 @@ GraphicsEngineDataOpenGL::loadAlternativeColorBuffer(GraphicsPrimitive* primitiv
                          colorDataPointer,
                          usageHint);
             
+            std::shared_ptr<GraphicsOpenGLBufferObject> bufferObjectPtr(bufferObject);
             m_alternativeColorBufferObjectMap.insert(std::make_pair(alternativeColorIdentifier,
-                                                                    bufferObject));
+                                                                    bufferObjectPtr));
             outputOpenGLBufferObject = bufferObject;
         }
             break;
@@ -585,8 +585,9 @@ GraphicsEngineDataOpenGL::loadAlternativeColorBuffer(GraphicsPrimitive* primitiv
                          colorDataPointer,
                          usageHint);
             
+            std::shared_ptr<GraphicsOpenGLBufferObject> bufferObjectPtr(bufferObject);
             m_alternativeColorBufferObjectMap.insert(std::make_pair(alternativeColorIdentifier,
-                                                                    bufferObject));
+                                                                    bufferObjectPtr));
             outputOpenGLBufferObject = bufferObject;
         }
             break;

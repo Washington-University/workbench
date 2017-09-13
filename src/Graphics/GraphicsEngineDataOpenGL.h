@@ -111,7 +111,7 @@ namespace caret {
         
         GLsizei m_arrayIndicesCount = 0;
         
-        GraphicsOpenGLBufferObject* m_coordinateBufferObject = NULL;
+        std::unique_ptr<GraphicsOpenGLBufferObject> m_coordinateBufferObject;
         
         GLenum m_coordinateDataType = GL_FLOAT;
 
@@ -121,19 +121,19 @@ namespace caret {
         
         bool m_reloadColorsFlag = false;
         
-        GraphicsOpenGLBufferObject* m_normalVectorBufferObject = NULL;
+        std::unique_ptr<GraphicsOpenGLBufferObject> m_normalVectorBufferObject;
         
         GLenum m_normalVectorDataType = GL_FLOAT;
         
-        GraphicsOpenGLBufferObject* m_colorBufferObject = NULL;
+        std::unique_ptr<GraphicsOpenGLBufferObject> m_colorBufferObject;
         
-        std::map<int32_t, GraphicsOpenGLBufferObject*> m_alternativeColorBufferObjectMap;
+        std::map<int32_t, std::shared_ptr<GraphicsOpenGLBufferObject>> m_alternativeColorBufferObjectMap;
         
         GLenum m_colorDataType = GL_FLOAT;
         
         GLint m_componentsPerColor = 0;
         
-        GraphicsOpenGLBufferObject* m_textureCoordinatesBufferObject = NULL;
+        std::unique_ptr<GraphicsOpenGLBufferObject> m_textureCoordinatesBufferObject;
         
         GLenum m_textureCoordinatesDataType = GL_FLOAT;
         
