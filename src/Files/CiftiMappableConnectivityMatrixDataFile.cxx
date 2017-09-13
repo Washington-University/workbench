@@ -885,7 +885,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                    + " was "
                    + AString::number(timer.getElapsedTimeSeconds())
                    + " seconds.");
-    CaretLogInfo(msg);
+    CaretLogFine(msg);
 }
 
 
