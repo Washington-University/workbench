@@ -495,7 +495,6 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED:
         case EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE:
         case EventTypeEnum::EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA:
-        case EventTypeEnum::EVENT_CHART_TWO_SHOW_LINE_SERIES_HISTORY_DIALOG:
         case EventTypeEnum::EVENT_DATA_FILE_ADD:
         case EventTypeEnum::EVENT_DATA_FILE_DELETE:
         case EventTypeEnum::EVENT_DATA_FILE_READ:

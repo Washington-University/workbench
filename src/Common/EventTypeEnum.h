@@ -98,8 +98,6 @@ public:
         EVENT_CHART_TWO_AXIS_GET_DATA_RANGE,
         /** Load chart two line series data */
         EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
-        /** Show the chart two line series history dialog */
-        EVENT_CHART_TWO_SHOW_LINE_SERIES_HISTORY_DIALOG,
         /** Add a data file into the Brain*/
         EVENT_DATA_FILE_ADD,
         /** Delete a data file from the brain */

@@ -45,7 +45,6 @@ using namespace caret;
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
-#include "EventChartTwoShowLineSeriesHistoryDialog.h"
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -171,19 +170,6 @@ m_chartOverlay(NULL)
     m_constructionToolButton->setPopupMode(QToolButton::InstantPopup);
     
     /*
-     * History button
-     */
-    m_historyToolButton = new QToolButton();
-    m_historyAction = WuQtUtilities::createAction("H",
-                                                  "Show history of line charts loaded from selected file",
-                                                  this,
-                                                  this,
-                                                  SLOT(historyActionTriggered(bool)));
-    QPixmap historyPixmap = createHistoryPixmap(m_historyToolButton);
-    m_historyAction->setIcon(historyPixmap);
-    m_historyToolButton->setDefaultAction(m_historyAction);
-    
-    /*
      * Matrix triangular view mode button
      */
     m_matrixTriangularViewModeAction = WuQtUtilities::createAction("M",
@@ -306,15 +292,6 @@ ChartTwoOverlayViewController::updateOverlaySettingsEditor()
                                                      selectedIndexType,
                                                      selectedIndex);
         EventManager::get()->sendEvent(pcme.getPointer());
-    }
-    
-    if (mapFile != NULL) {
-        if (m_chartOverlay->isHistorySupported()) {
-            EventChartTwoShowLineSeriesHistoryDialog lshd(EventChartTwoShowLineSeriesHistoryDialog::Mode::CHART_OVERLAY_CHANGED,
-                                                          m_browserWindowIndex,
-                                                          m_chartOverlay);
-            EventManager::get()->sendEvent(lshd.getPointer());
-        }
     }
 }
 
@@ -587,32 +564,6 @@ ChartTwoOverlayViewController::settingsActionTriggered()
 }
 
 /**
- * Called when the history action is selected.
- */
-void
-ChartTwoOverlayViewController::historyActionTriggered(bool)
-{
-    if (m_chartOverlay == NULL) {
-        return;
-    }
-    
-    CaretMappableDataFile* mapFile = NULL;
-    ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
-    int32_t selectedIndex = -1;
-    m_chartOverlay->getSelectionData(mapFile,
-                                     selectedIndexType,
-                                     selectedIndex);
-    
-    if (mapFile != NULL) {
-        EventChartTwoShowLineSeriesHistoryDialog lshd(EventChartTwoShowLineSeriesHistoryDialog::Mode::SHOW_DIALOG,
-                                                      m_browserWindowIndex,
-                                                      m_chartOverlay);
-        EventManager::get()->sendEvent(lshd.getPointer());
-    }
-}
-
-
-/**
  * Update this view controller using the given overlay.
  * @param overlay
  *   Overlay that is used in this view controller.
@@ -817,14 +768,6 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
      * Update construction button
      */
     m_constructionAction->setEnabled(true);
-    
-    /*
-     * Update history button
-     */
-    m_historyAction->setEnabled(false);
-    if (validOverlayAndFileFlag) {
-        m_historyAction->setEnabled(m_chartOverlay->isHistorySupported());
-    }
     
     /*
      * Update matrix triangular view mode
@@ -1441,54 +1384,4 @@ ChartTwoOverlayViewController::createMatrixTriangularViewModePixmap(QWidget* wid
     
     return pixmap;
 }
-
-
-/**
- * Create a history pixmap.
- *
- * @param widget
- *    To color the pixmap with backround and foreground,
- *    the palette from the given widget is used.
- * @return
- *    Pixmap for history.
- */
-QPixmap
-ChartTwoOverlayViewController::createHistoryPixmap(QWidget* widget)
-{
-    CaretAssert(widget);
-    
-    /*
-     * Create a small, square pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    const qreal iconSize = 24.0;
-    const qreal centerX = iconSize / 2.0;
-    const qreal centerY = iconSize / 2.0;
-    
-    QPixmap pixmap(static_cast<int>(iconSize),
-                   static_cast<int>(iconSize));
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
-                                                                                pixmap);
-    
-    QPen pen = painter->pen();
-    pen.setWidthF(2.0);
-    painter->setPen(pen);
-    
-    const QPointF circleCenterXY(centerX, centerY);
-    const qreal   circleRadius = iconSize * 0.45;
-    
-    painter->drawEllipse(circleCenterXY,
-                         circleRadius, circleRadius);
-    
-    const qreal nineOClockX = circleRadius * 0.5; //0.25 * iconSize;
-    const qreal twelveOClockY = 0.15 * iconSize;
-    painter->drawLine(QPointF(centerX, centerY),
-                      QPointF(nineOClockX, centerY));
-    painter->drawLine(QPointF(centerX, centerY),
-                      QPointF(centerY, twelveOClockY));
-    
-    return pixmap;
-}
-
-
 

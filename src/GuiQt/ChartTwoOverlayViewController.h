@@ -84,8 +84,6 @@ namespace caret {
         
         void yokingGroupActivated();
         
-        void historyActionTriggered(bool);
-        
         void allMapsCheckBoxClicked(bool);
         
         void menuAddOverlayAboveTriggered();
@@ -131,8 +129,6 @@ namespace caret {
         
         void updateOverlaySettingsEditor();
         
-        QPixmap createHistoryPixmap(QWidget* widget);
-        
         QPixmap createMatrixTriangularViewModePixmap(QWidget* widget,
                                                      const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode);
 
@@ -162,10 +158,6 @@ namespace caret {
         QAction* m_colorBarAction;
         
         QAction* m_constructionAction;
-        
-        QToolButton* m_historyToolButton;
-        
-        QAction* m_historyAction;
         
         QToolButton* m_matrixTriangularViewModeToolButton;
         
