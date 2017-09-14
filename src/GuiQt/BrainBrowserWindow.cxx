@@ -3513,13 +3513,11 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
  * may not be visible when Tile Tabs is enabled and there
  * is no available space in the tile tabs configuration.
  *
- * @param newTabTypeMessage
- *     Message for type of new tab.
  * @return
  *     True if new tab should be created, else false.
  */
 bool
-BrainBrowserWindow::allowAddingNewTab(const AString& newTabTypeMessage)
+BrainBrowserWindow::allowAddingNewTab()
 {
     static bool m_doNotShowDialogAgainFlag = false;
     
@@ -3585,7 +3583,7 @@ BrainBrowserWindow::allowAddingNewTab(const AString& newTabTypeMessage)
 void
 BrainBrowserWindow::processNewTab()
 {
-    if (allowAddingNewTab("create")) {
+    if (allowAddingNewTab()) {
         m_toolbar->addNewTab();
     }
 }
@@ -3596,7 +3594,7 @@ BrainBrowserWindow::processNewTab()
 void
 BrainBrowserWindow::processDuplicateTab()
 {
-    if (allowAddingNewTab("duplicate")) {
+    if (allowAddingNewTab()) {
         BrowserTabContent* previousTabContent = getBrowserTabContent();
         m_toolbar->addNewTabCloneContent(previousTabContent);
     }

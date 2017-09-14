@@ -298,7 +298,7 @@ namespace caret {
         
         bool isMacOptionKeyDown() const;
         
-        bool allowAddingNewTab(const AString& newTabTypeMessage);
+        bool allowAddingNewTab();
         
         /** Index of this window */
         int32_t m_browserWindowIndex;
