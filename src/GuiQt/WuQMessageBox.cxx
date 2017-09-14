@@ -276,6 +276,79 @@ WuQMessageBox::warningOk(QWidget* parent,
 }
 
 /**
+ * Display an error message box with the
+ * given text and an OK button and a checkbox with 
+ * the text "Remember my choice and do not show this dialog".
+ *
+ * If the user closes the dialog with the "Do not show
+ * again" box checked, the next time this function is
+ * called with the dialog will not be displayed.
+ *
+ * @param parent
+ *    Parent on which message box is displayed.
+ * @param uniqueIdentifier
+ *    Unique identifier used for associating of
+ *    "do not show" status
+ * @param text
+ *    Message that is displayed.
+ */
+void
+WuQMessageBox::warningOkWithDoNotShowAgain(QWidget* parent,
+                                           const QString& uniqueIdentifier,
+                                           const QString& text)
+{
+    /*
+     * See if user previously selected "do not show again".
+     * If so, do not display dialog and return.
+     */
+    auto doNotShowStatus = s_doNotShowAgainButtonSelection.find(uniqueIdentifier);
+    if (doNotShowStatus != s_doNotShowAgainButtonSelection.end()) {
+        return;
+    }
+    
+    QMessageBox msgBox(parent);
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setWindowTitle("");
+    msgBox.setText(text);
+    msgBox.addButton(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+    msgBox.setEscapeButton(QMessageBox::Ok);
+    
+    QCheckBox* checkBox = addDoNotShowAgainCheckBox(msgBox);
+    
+    msgBox.exec();
+    
+    /*
+     * If the "do not show again" checkbox was checked,
+     * save to do not show status.
+     */
+    const bool doNotShowAgainFlag = checkBox->isChecked();
+    if (doNotShowAgainFlag) {
+        s_doNotShowAgainButtonSelection.insert(std::make_pair(uniqueIdentifier,
+                                                              QMessageBox::NoButton));
+    }
+}
+
+/**
+ * Add a "do not show again" checkbox to the given message checkbox.
+ *
+ * @param messageBox
+ *      Message box to which "do not show again" checkbox is added.
+ * @return
+ *      Pointer to the checkbox (do not destroy as dialog closing 
+ *      will handle checkbox destruction).
+ */
+QCheckBox*
+WuQMessageBox::addDoNotShowAgainCheckBox(QMessageBox& messageBox)
+{
+    QCheckBox* checkBox = new QCheckBox("Remember my choice and do not show this dialog again");
+    messageBox.setCheckBox(checkBox);
+    checkBox->setToolTip("Do not show again for this session (until wb_view is exited)");
+    return checkBox;
+}
+
+
+/**
  * Display a warning message box with Ok and Cancel
  * buttons.  Pressing the enter key is the equivalent
  * of pressing the Ok button.
@@ -394,9 +467,8 @@ WuQMessageBox::warningYesNoWithDoNotShowAgain(QWidget* parent,
     msgBox.addButton(QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::No);
     msgBox.setEscapeButton(QMessageBox::No);
-    QCheckBox* checkBox = new QCheckBox("Remember my choice and do not show this dialog again");
-    msgBox.setCheckBox(checkBox);
-    checkBox->setToolTip("Do not show is for this session (until wb_view is exited");
+    
+    QCheckBox* checkBox = addDoNotShowAgainCheckBox(msgBox);
     
     const QMessageBox::StandardButton buttonClicked =
     static_cast<QMessageBox::StandardButton>(msgBox.exec());
@@ -418,7 +490,7 @@ WuQMessageBox::warningYesNoWithDoNotShowAgain(QWidget* parent,
      * If the "do not show again" checkbox was checked,
      * save the button that the user clicked.
      */
-    const bool doNotShowAgainFlag = msgBox.checkBox()->isChecked();
+    const bool doNotShowAgainFlag = checkBox->isChecked();
     if (doNotShowAgainFlag) {
         if (doNotShowStatus != s_doNotShowAgainButtonSelection.end()) {
             doNotShowStatus->second = buttonClicked;

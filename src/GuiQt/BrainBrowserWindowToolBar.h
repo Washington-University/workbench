@@ -227,6 +227,9 @@ namespace caret {
         /** Is set to the user input widget provided by the user input processor */
         QWidget* userInputControlsWidgetActiveInputWidget;
         
+        QAction* m_windowAspectRatioLockedAction;
+        QAction* m_tabAspectRatioLockedAction;
+        
         void removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent);
         
         void getAllTabContent(std::vector<BrowserTabContent*>& allTabContent) const;

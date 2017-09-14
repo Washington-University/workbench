@@ -156,6 +156,9 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->browserWindowIndex = browserWindowIndex;
     m_tabIndexForTileTabsHighlighting = -1;
     
+    m_windowAspectRatioLockedAction = windowAspectRatioLockedAction;
+    m_tabAspectRatioLockedAction = tabAspectRatioLockedAction;
+    
     this->isContructorFinished = false;
     this->isDestructionInProgress = false;
 
@@ -344,8 +347,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->modeWidget = this->createModeWidget();
-    this->windowWidget = this->createTabOptionsWidget(windowAspectRatioLockedAction,
-                                                      tabAspectRatioLockedAction);
+    this->windowWidget = this->createTabOptionsWidget(m_windowAspectRatioLockedAction,
+                                                      m_tabAspectRatioLockedAction);
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     m_clippingOptionsWidget = createClippingOptionsWidget();
@@ -667,26 +670,32 @@ BrainBrowserWindowToolBar::addOrInsertNewTab(BrowserTabContent* browserTabConten
                                               "NewTab");
     }
     else {
-        const int32_t tabContentIndex = browserTabContent->getTabNumber();
-        
-        const int32_t numTabs = this->tabBar->count();
-        if (numTabs <= 0) {
-            newTabIndex = this->tabBar->addTab("NewTab");
-        }
-        else {
-            int insertIndex = 0;
-            for (int32_t i = 0; i < numTabs; i++) {
-                if (tabContentIndex > this->getTabContentFromTab(i)->getTabNumber()) {
-                    insertIndex = i + 1;
-                }
-            }
-            if (insertIndex >= numTabs) {
+        const bool putTabInTabOrderFlag = false;
+        if (putTabInTabOrderFlag) {
+            const int32_t tabContentIndex = browserTabContent->getTabNumber();
+            
+            const int32_t numTabs = this->tabBar->count();
+            if (numTabs <= 0) {
                 newTabIndex = this->tabBar->addTab("NewTab");
             }
             else {
-                this->tabBar->insertTab(insertIndex, "NewTab");
-                newTabIndex = insertIndex;
+                int insertIndex = 0;
+                for (int32_t i = 0; i < numTabs; i++) {
+                    if (tabContentIndex > this->getTabContentFromTab(i)->getTabNumber()) {
+                        insertIndex = i + 1;
+                    }
+                }
+                if (insertIndex >= numTabs) {
+                    newTabIndex = this->tabBar->addTab("NewTab");
+                }
+                else {
+                    this->tabBar->insertTab(insertIndex, "NewTab");
+                    newTabIndex = insertIndex;
+                }
             }
+        }
+        else {
+            newTabIndex = this->tabBar->addTab("NewTab");
         }
     }
 
@@ -2512,7 +2521,21 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
     UserInputModeAbstract::UserInputMode inputMode = UserInputModeAbstract::INVALID;
     
     if (action == this->modeInputModeAnnotationsAction) {
-        inputMode = UserInputModeAbstract::ANNOTATIONS;        
+        if ( ( ! m_windowAspectRatioLockedAction->isChecked())
+            && ( ! m_tabAspectRatioLockedAction->isChecked()) ) {
+            const QString msg("<html>"
+                              "Neither <B>Lock Window Aspect</B> nor <B>Lock Tab Aspect</B> "
+                              "are selected.  Tab and Window annotations are displayed "
+                              "in <I>percentage coordinates</I> of the tab/window "
+                              "width and height.  Locking tab/window aspect ensures that "
+                              "the shape of the tab/window maintains its aspect ratio so "
+                              "that tab/window annotations remain in the correct location. "
+                              "</html>");
+            WuQMessageBox::warningOkWithDoNotShowAgain(this,
+                                                       "lockAspectDoNotShowAgainIdentifier",
+                                                       msg);
+        }
+        inputMode = UserInputModeAbstract::ANNOTATIONS;
     }
     else if (action == this->modeInputModeBordersAction) {
         inputMode = UserInputModeAbstract::BORDERS;

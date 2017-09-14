@@ -26,6 +26,8 @@
 
 #include <QMessageBox>
 
+class QCheckBox;
+
 namespace caret {
     class WuQMessageBox : public QMessageBox {
         
@@ -52,6 +54,10 @@ namespace caret {
         
         static void warningOk(QWidget* parent,
                               const QString& text);
+        
+        static void warningOkWithDoNotShowAgain(QWidget* parent,
+                                                const QString& uniqueIdentifier,
+                                                const QString& text);
         
         static bool warningOkCancel(QWidget* parent,
                                     const QString& text);
@@ -100,6 +106,8 @@ namespace caret {
         
         WuQMessageBox(const WuQMessageBox&);
         WuQMessageBox& operator=(const WuQMessageBox&);
+        
+        static QCheckBox* addDoNotShowAgainCheckBox(QMessageBox& messageBox);
         
         static void updateButtonText(QMessageBox& messageBox,
                                      const QMessageBox::StandardButton standardButton,
