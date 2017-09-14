@@ -236,6 +236,18 @@ namespace caret {
                                                 const bool drawBoxFlag,
                                                 int32_t chartGraphicsDrawingViewportOut[4]);
         
+        bool createChartDrawingViewport(const float vpX,
+                                        const float vpY,
+                                        const float vpWidth,
+                                        const float vpHeight,
+                                        const float lineThicknessPercentage,
+                                        const float titleHeight,
+                                        const float bottomAxisHeight,
+                                        const float topAxisHeight,
+                                        const float leftAxisWidth,
+                                        const float rightAxisWidth,
+                                        int32_t chartGraphicsDrawingViewportOut[4]);
+        
         void drawPrimitivePrivate(GraphicsPrimitive* primitive);
         
         void updateViewportContentForCharting(const int32_t viewport[4]);

@@ -661,12 +661,19 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
         topAxisInfo.setLabelAndNumericsCoordinates(foregroundRGBA,
                                                    graphicsBoxLineThickness);
         
-        /*
-         * Ensure that there is sufficient space for the axes data display.
-         */
-        if ((tabViewportWidth > (leftAxisWidth + rightAxisWidth))
-            && (tabViewportHeight > (bottomAxisHeight + topAxisHeight + topTitleHeight))) {
-            
+        const bool drawAxesFlag = createChartDrawingViewport(tabViewportX,
+                                                         tabViewportY,
+                                                         tabViewportWidth,
+                                                         tabViewportHeight,
+                                                         m_chartOverlaySet->getAxisLineThickness(),
+                                                         topTitleHeight,
+                                                         bottomAxisHeight,
+                                                         topAxisHeight,
+                                                         leftAxisWidth,
+                                                         rightAxisWidth,
+                                                         chartGraphicsDrawingViewport);
+
+        if (drawAxesFlag) {
             titleInfo.drawTitle(foregroundRGBA);
             leftAxisInfo.drawAxis(this,
                                   m_chartOverlaySet,
@@ -701,7 +708,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                     xMinBottom,
                                     xMaxBottom);
             
-            
             drawChartGraphicsBoxAndSetViewport(tabViewportX,
                                                tabViewportY,
                                                tabViewportWidth,
@@ -715,6 +721,75 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                                true, /* draw the box */
                                                chartGraphicsDrawingViewport);
         }
+        else {
+            drawChartGraphicsBoxAndSetViewport(tabViewportX,
+                                               tabViewportY,
+                                               tabViewportWidth,
+                                               tabViewportHeight,
+                                               m_chartOverlaySet->getAxisLineThickness(),
+                                               topTitleHeight,
+                                               0.0f, // bottomAxisHeight,
+                                               0.0f, //topAxisHeight,
+                                               0.0f, //leftAxisWidth,
+                                               0.0f, //rightAxisWidth,
+                                               true, /* draw the box */
+                                               chartGraphicsDrawingViewport);
+        }
+        
+//        /*
+//         * Ensure that there is sufficient space for the axes data display.
+//         */
+//        if ((tabViewportWidth > (leftAxisWidth + rightAxisWidth))
+//            && (tabViewportHeight > (bottomAxisHeight + topAxisHeight + topTitleHeight))) {
+//            
+//            titleInfo.drawTitle(foregroundRGBA);
+//            leftAxisInfo.drawAxis(this,
+//                                  m_chartOverlaySet,
+//                                  m_fixedPipelineDrawing->getContextSharingGroupPointer(),
+//                                  m_fixedPipelineDrawing->mouseX,
+//                                  m_fixedPipelineDrawing->mouseY,
+//                                  foregroundRGBA,
+//                                  yMinLeft,
+//                                  yMaxLeft);
+//            rightAxisInfo.drawAxis(this,
+//                                   m_chartOverlaySet,
+//                                   m_fixedPipelineDrawing->getContextSharingGroupPointer(),
+//                                   m_fixedPipelineDrawing->mouseX,
+//                                   m_fixedPipelineDrawing->mouseY,
+//                                   foregroundRGBA,
+//                                   yMinRight,
+//                                   yMaxRight);
+//            topAxisInfo.drawAxis(this,
+//                                 m_chartOverlaySet,
+//                                 m_fixedPipelineDrawing->getContextSharingGroupPointer(),
+//                                 m_fixedPipelineDrawing->mouseX,
+//                                 m_fixedPipelineDrawing->mouseY,
+//                                 foregroundRGBA,
+//                                 xMinTop,
+//                                 xMaxTop);
+//            bottomAxisInfo.drawAxis(this,
+//                                    m_chartOverlaySet,
+//                                    m_fixedPipelineDrawing->getContextSharingGroupPointer(),
+//                                    m_fixedPipelineDrawing->mouseX,
+//                                    m_fixedPipelineDrawing->mouseY,
+//                                    foregroundRGBA,
+//                                    xMinBottom,
+//                                    xMaxBottom);
+//            
+//            
+//            drawChartGraphicsBoxAndSetViewport(tabViewportX,
+//                                               tabViewportY,
+//                                               tabViewportWidth,
+//                                               tabViewportHeight,
+//                                               m_chartOverlaySet->getAxisLineThickness(),
+//                                               topTitleHeight,
+//                                               bottomAxisHeight,
+//                                               topAxisHeight,
+//                                               leftAxisWidth,
+//                                               rightAxisWidth,
+//                                               true, /* draw the box */
+//                                               chartGraphicsDrawingViewport);
+//        }
         
         /*
          * When the user is editing an axis minimum or maximum value,
@@ -1558,6 +1633,92 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
     chartGraphicsDrawingViewportOut[1] = graphicsBottom;
     chartGraphicsDrawingViewportOut[2] = graphicsWidth;
     chartGraphicsDrawingViewportOut[3] = graphicsHeight;
+    
+    CaretAssert(graphicsWidth > 0);
+    CaretAssert(graphicsHeight > 0);
+}
+
+/**
+ * Create the graphics viewport.
+ *
+ * @param vpX
+ *     Viewport X
+ * @param vpY
+ *     Viewport Y
+ * @param vpWidth
+ *     Viewport width
+ * @param vpHeight
+ *     Viewport height
+ * @param lineThicknessPercentage
+ *     Thickness of lines in percentage of viewport height
+ * @param titleHeight
+ *     Height of the title
+ * @param bottomAxisHeight
+ *     Height of bottom axis
+ * @param topAxisHeight
+ *     Height of top axis
+ * @param leftAxisWidth
+ *     Width of left axis
+ * @param rightAxisWidth
+ *     Width of right axis
+ * @param chartGraphicsDrawingViewportOut
+ *     Output containing viewport for drawing chart graphics within
+ *     the box/grid that is adjusted for the box's line thickness.
+ * @return 
+ *     True if axes should be drawn, otherwise false.  When chart
+ *     gets too small, axes are not drawn.
+ */
+bool
+BrainOpenGLChartTwoDrawingFixedPipeline::createChartDrawingViewport(const float vpX,
+                                const float vpY,
+                                const float vpWidth,
+                                const float vpHeight,
+                                const float lineThicknessPercentage,
+                                const float titleHeight,
+                                const float bottomAxisHeight,
+                                const float topAxisHeight,
+                                const float leftAxisWidth,
+                                const float rightAxisWidth,
+                                int32_t chartGraphicsDrawingViewportOut[4])
+{
+    const float lineThicknessPixels = convertPercentageOfViewportToOpenGLLineWidth(lineThicknessPercentage,
+                                                                                   vpHeight);
+    /*
+     * Region INSIDE the grid's box so that any data plots
+     * are WITHIN the box
+     */
+    float graphicsLeft   = vpX + leftAxisWidth + lineThicknessPixels;
+    float graphicsRight  = vpX + vpWidth - rightAxisWidth - lineThicknessPixels;
+    float graphicsBottom = vpY + bottomAxisHeight + lineThicknessPixels;
+    float graphicsTop    = vpY + vpHeight - topAxisHeight - titleHeight - lineThicknessPixels;
+    
+    int32_t graphicsWidth = graphicsRight - graphicsLeft;
+    int32_t graphicsHeight = graphicsTop  - graphicsBottom;
+    
+    bool drawAxesFlag = true;
+    
+    const int32_t minViewportSize = 20;
+    if ((graphicsWidth < minViewportSize)
+        || (graphicsHeight < minViewportSize)) {
+        graphicsLeft   = vpX;
+        graphicsRight  = vpX + vpWidth;
+        graphicsBottom = vpY;
+        graphicsTop    = vpY + vpHeight;
+        
+        graphicsWidth = graphicsRight - graphicsLeft;
+        graphicsHeight = graphicsTop  - graphicsBottom;
+        drawAxesFlag = false;
+    }
+    
+    chartGraphicsDrawingViewportOut[0] = graphicsLeft;
+    chartGraphicsDrawingViewportOut[1] = graphicsBottom;
+    chartGraphicsDrawingViewportOut[2] = graphicsWidth;
+    chartGraphicsDrawingViewportOut[3] = graphicsHeight;
+    
+    CaretAssert(graphicsWidth > 0);
+    CaretAssert(graphicsHeight > 0);
+    
+    return drawAxesFlag;
 }
 
 /**
@@ -1569,6 +1730,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::updateViewportContentForCharting(const int32_t viewport[4])
 {
+    CaretAssert(viewport[2] > 0);
+    CaretAssert(viewport[3] > 0);
+    
     GLfloat modelviewArray[16];
     glGetFloatv(GL_MODELVIEW_MATRIX, modelviewArray);
     GLfloat projectionArray[16];
