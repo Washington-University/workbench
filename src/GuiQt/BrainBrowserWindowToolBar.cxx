@@ -4140,3 +4140,12 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
     showHideToolBar(showToolBar);
 }
 
+/**
+ * @return Number of tabs in the tab bar.
+ */
+int32_t
+BrainBrowserWindowToolBar::getNumberOfTabs() const
+{
+    return this->tabBar->count();
+}
+

@@ -3509,12 +3509,85 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 }
 
 /**
+ * When adding a new tab or duplicating a tab, the tab 
+ * may not be visible when Tile Tabs is enabled and there
+ * is no available space in the tile tabs configuration.
+ *
+ * @param newTabTypeMessage
+ *     Message for type of new tab.
+ * @return
+ *     True if new tab should be created, else false.
+ */
+bool
+BrainBrowserWindow::allowAddingNewTab(const AString& newTabTypeMessage)
+{
+    static bool m_doNotShowDialogAgainFlag = false;
+    
+    if (m_doNotShowDialogAgainFlag) {
+        return true;
+    }
+    
+    /*
+     * Is tile tabs off?
+     */
+    if ( ! m_viewTileTabsSelected) {
+        return true;
+    }
+    
+    const TileTabsConfiguration* tileTabs = getSelectedTileTabsConfiguration();
+    if (tileTabs == NULL) {
+        return true;
+    }
+    
+    /*
+     * Default configuration always shows all tabs
+     */
+    if (tileTabs->isDefaultConfiguration()) {
+        return true;
+    }
+    
+    /*
+     * Is there space in the current configuration?
+     */
+    const int32_t tileTabsCount = tileTabs->getNumberOfColumns() * tileTabs->getNumberOfRows();
+    if (m_toolbar->getNumberOfTabs() < tileTabsCount) {
+        return true;
+    }
+    
+    /*
+     * Selected configuration is full, all user to continue/cancel
+     */
+    const AString doNotShowAgainMsg("Remember my choice and do not show this dialog again");
+    
+    const AString msg("<html>"
+                      "Tile tabs is enabled and there is no space in the selected tile "
+                      "tabs configuration for the new tab.  If you choose to continue, "
+                      "either the new tab will not be visible or an existing tab will "
+                      "become invisible until the tile tabs configuration is changed."
+                      "<p>"
+                      "Do you want to create the new tab?"
+                      "<br>"
+                      "</html>");
+    
+
+    if (WuQMessageBox::warningYesNoWithDoNotShowAgain(this,
+                                                      "NewTabNotDisplayedDueToTileTabs",
+                                                      msg)) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
  * Adds a new tab to the window.
  */
-void 
+void
 BrainBrowserWindow::processNewTab()
 {
-    m_toolbar->addNewTab();
+    if (allowAddingNewTab("create")) {
+        m_toolbar->addNewTab();
+    }
 }
 
 /**
@@ -3523,8 +3596,10 @@ BrainBrowserWindow::processNewTab()
 void
 BrainBrowserWindow::processDuplicateTab()
 {
-    BrowserTabContent* previousTabContent = getBrowserTabContent();
-    m_toolbar->addNewTabCloneContent(previousTabContent);
+    if (allowAddingNewTab("duplicate")) {
+        BrowserTabContent* previousTabContent = getBrowserTabContent();
+        m_toolbar->addNewTabCloneContent(previousTabContent);
+    }
 }
 
 /**

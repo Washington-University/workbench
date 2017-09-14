@@ -101,6 +101,7 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+        int32_t getNumberOfTabs() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
