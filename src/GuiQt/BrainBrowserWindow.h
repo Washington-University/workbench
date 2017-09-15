@@ -145,6 +145,12 @@ namespace caret {
         
         void setAspectRatio(const float aspectRatio);
         
+        void setLockTabAspectStatusAndRatio(const bool lockStatus,
+                                            const float aspectRatio);
+        
+        void setLockWindowAspectStatusAndRatio(const bool lockStatus,
+                                               const float aspectRatio);
+        
         bool hasValidOpenGL();
         
         bool isOpenGLContextSharingValid() const;
@@ -230,6 +236,7 @@ namespace caret {
         void processWindowAspectRatioLockedToggled(bool checked);
         void processLockAllTabsAspectRatioTriggered();
         void processUnlockAllTabsAspectRatioTriggered();
+        void processEditTabAndWindowAspectRatiosTriggered();
         
         void processEditMenuItemTriggered(QAction* action);
         void processEditMenuAboutToShow();
@@ -385,6 +392,7 @@ namespace caret {
         QAction* m_unlockAllTabsAspectRatioAction;
         QAction* m_tabAspectRatioLockedAction;
         QAction* m_windowAspectRatioLockedAction;
+        QAction* m_editTabAndWindowAspectRatiosAction;
         
         QAction* m_featuresToolBoxAction;
         

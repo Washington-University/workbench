@@ -24,8 +24,9 @@
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_TAB_DECLARE__
 
 #include <QAction>
-#include <QLabel>
 #include <QCheckBox>
+#include <QDoubleSpinBox>
+#include <QLabel>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -39,6 +40,7 @@
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 #include "YokingGroupEnum.h"
+#include "WuQDataEntryDialog.h"
 
 using namespace caret;
     
@@ -81,21 +83,27 @@ m_tabAspectRatioLockedAction(tabAspectRatioLockedAction)
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
-    QToolButton* windowAspectRatioLockedToolButton = new QToolButton();
-    windowAspectRatioLockedToolButton->setDefaultAction(windowAspectRatioLockedAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(windowAspectRatioLockedToolButton);
+    m_windowAspectRatioLockedToolButton = new QToolButton();
+    m_windowAspectRatioLockedToolButton->setDefaultAction(windowAspectRatioLockedAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_windowAspectRatioLockedToolButton);
+    QObject::connect(m_windowAspectRatioLockedToolButton, &QToolButton::customContextMenuRequested,
+                     this, &BrainBrowserWindowToolBarTab::windowAspectCustomContextMenuRequested);
+    m_windowAspectRatioLockedToolButton->setContextMenuPolicy(Qt::CustomContextMenu);
     
-    QToolButton* tabAspectRatioLockedToolButton = new QToolButton();
-    tabAspectRatioLockedToolButton->setDefaultAction(tabAspectRatioLockedAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(tabAspectRatioLockedToolButton);
+    m_tabAspectRatioLockedToolButton = new QToolButton();
+    m_tabAspectRatioLockedToolButton->setDefaultAction(tabAspectRatioLockedAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_tabAspectRatioLockedToolButton);
+    QObject::connect(m_tabAspectRatioLockedToolButton, &QToolButton::customContextMenuRequested,
+                     this, &BrainBrowserWindowToolBarTab::tabAspectCustomContextMenuRequested);
+    m_tabAspectRatioLockedToolButton->setContextMenuPolicy(Qt::CustomContextMenu);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     layout->addWidget(m_yokeToLabel);
     layout->addWidget(m_yokingGroupComboBox->getWidget());
     layout->addSpacing(15);
-    layout->addWidget(windowAspectRatioLockedToolButton);
-    layout->addWidget(tabAspectRatioLockedToolButton);
+    layout->addWidget(m_windowAspectRatioLockedToolButton);
+    layout->addWidget(m_tabAspectRatioLockedToolButton);
     
     addToWidgetGroup(m_yokeToLabel);
     addToWidgetGroup(m_yokingGroupComboBox->getWidget());
@@ -107,6 +115,80 @@ m_tabAspectRatioLockedAction(tabAspectRatioLockedAction)
 BrainBrowserWindowToolBarTab::~BrainBrowserWindowToolBarTab()
 {
 }
+
+/**
+ * Called when context menu requested for window lock aspect button.
+ *
+ * @param pos
+ *     Postion of mouse in parent widget.
+ */
+void
+BrainBrowserWindowToolBarTab::tabAspectCustomContextMenuRequested(const QPoint& /*pos*/)
+{
+    BrowserTabContent* tabContent = m_parentToolBar->getTabContentFromSelectedTab();
+    if (tabContent != NULL) {
+        BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+        CaretAssert(window);
+        
+        float aspectRatio = getAspectRatioFromDialog("Set Tab Aspect Ratio",
+                                                     tabContent->getAspectRatio(),
+                                                     m_tabAspectRatioLockedToolButton);
+        if (aspectRatio > 0.0) {
+            window->setLockTabAspectStatusAndRatio(true, aspectRatio);
+        }
+    }
+}
+
+/**
+ * Called when context menu requested for window lock aspect button.
+ *
+ * @param pos
+ *     Postion of mouse in parent widget.
+ */
+void
+BrainBrowserWindowToolBarTab::windowAspectCustomContextMenuRequested(const QPoint& /*pos*/)
+{
+    BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    CaretAssert(window);
+    
+    float aspectRatio = getAspectRatioFromDialog("Set Window Aspect Ratio",
+                                                 window->getAspectRatio(),
+                                                 m_windowAspectRatioLockedToolButton);
+    if (aspectRatio > 0.0) {
+        window->setLockWindowAspectStatusAndRatio(true, aspectRatio);
+    }
+}
+
+/**
+ * Get the new aspect ratio using a dialog.
+ *
+ * @param title
+ *     Title for dialog.
+ * @param aspectRatio
+ *     Default value for aspect ratio
+ * @param parent
+ *     Parent for the dialog.
+ */
+float
+BrainBrowserWindowToolBarTab::getAspectRatioFromDialog(const QString& title,
+                                                       const float aspectRatio,
+                                                       QWidget* parent) const
+{
+    float aspectRatioOut = -1.0;
+    
+    WuQDataEntryDialog ded(title,
+                           parent);
+    QDoubleSpinBox* ratioSpinBox = ded.addDoubleSpinBox("Aspect Ratio", aspectRatio);
+    ratioSpinBox->setSingleStep(0.01);
+    ratioSpinBox->setRange(ratioSpinBox->singleStep(), 100.0);
+    ratioSpinBox->setDecimals(3);
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        aspectRatioOut = ratioSpinBox->value();
+    }
+    
+    return aspectRatioOut;
+}
+
 
 /**
  * Update the surface montage options widget.
