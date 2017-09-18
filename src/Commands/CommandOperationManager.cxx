@@ -1002,7 +1002,7 @@ void CommandOperationManager::printArgumentsHelp(const AString& programName)
     cout << "      [-fixnan] - replace NaN results with a value" << endl;
     cout << "         <replace> - value to replace NaN with" << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
-    cout << "      [-var] (repeatable) - repeatable - a volume file to use as a variable" << endl;
+    cout << "      [-var] - repeatable - a volume file to use as a variable" << endl;
     cout << "         <name> - the name of the variable, as used in the expression" << endl;
     cout << "         <volume> - the volume file to use as this variable" << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
@@ -1014,7 +1014,7 @@ void CommandOperationManager::printArgumentsHelp(const AString& programName)
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   '<expression>' and '<volume-out>' denote mandatory parameters.  '[-fixnan]'" << endl;
     cout << "   denotes an option taking one mandatory parameter '<replace>', and" << endl;
-    cout << "   '[-var] (repeatable)' denotes a repeatable option with mandatory parameters" << endl;
+    cout << "   '[-var] - repeatable' denotes a repeatable option with mandatory parameters" << endl;
     cout << "   '<name>' and '<volume>', and two suboptions: '[-subvolume]', which has a" << endl;
     cout << "   mandatory parameter '<subvol>', and '[-repeat]', which takes no parameters." << endl;
     cout << "   Commands also provide additional help info below the section in the example." << endl;
