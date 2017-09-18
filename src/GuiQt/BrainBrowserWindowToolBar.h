@@ -93,7 +93,7 @@ namespace caret {
         
         void addNewTab();
         
-        void addNewTabCloneContent(BrowserTabContent* browserTabContentToBeCloned);
+        void addNewDuplicatedTab(BrowserTabContent* browserTabContentToBeCloned);
         
         void addNewTabWithContent(BrowserTabContent* browserTabContent);
         
@@ -257,16 +257,27 @@ namespace caret {
         void selectedTabChanged(int indx);
         void tabMoved(int, int);
         void tabCloseSelected(int);
+        void showTabMenu(const QPoint& pos);
         
     private:
-        void insertTabAtIndex(BrowserTabContent* browserTabContent,
-                              const int32_t insertAtIndex);
+        enum class InsertTabMode {
+            APPEND,
+            AT_TAB_BAR_INDEX,
+            AT_TAB_CONTENTS_INDEX
+        };
         
-        void addOrInsertNewTab(BrowserTabContent* browserTabContent,
-                               const int32_t insertAtIndex);
+        bool allowAddingNewTab();
+        
+        void insertTabContentPrivate(const InsertTabMode insertTabMode,
+                                     BrowserTabContent* browserTabContent,
+                                     const int32_t tabBarIndex);
         
         void removeTab(int index);
         void tabClosed(int index);
+        
+        void insertNewTabAtTabBarIndex(int32_t tabBarIndex);
+        void insertClonedTabContentAtTabBarIndex(const BrowserTabContent* tabContentToBeCloned,
+                                                 const int32_t tabBarIndex);
         
         BrowserTabContent* createNewTab(AString& errorMessage);
         
@@ -434,6 +445,8 @@ namespace caret {
          * Tracks when update is performed to catch incorrectly emitted signals.
          */
         bool m_performingUpdateFlag = false;
+        
+        const int32_t TAB_INDEX_APPEND_TO_TOOLBAR = 10000;
     };
 }
 

@@ -112,6 +112,7 @@
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
 #include "StructureSurfaceSelectionControl.h"
+#include "TileTabsConfiguration.h"
 #include "UserInputModeAbstract.h"
 #include "VolumeFile.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -233,6 +234,17 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                      this, SLOT(tabCloseSelected(int)));
     QObject::connect(this->tabBar, SIGNAL(tabMoved(int,int)),
                      this, SLOT(tabMoved(int,int)));
+    
+
+    /*
+     * Add context menu
+     * From the position, use QTabBar::tabAt(const QPoint& position) to get the
+     * tab that the user has clicked and if over a tab, pop-up a menu 
+     * for the tab with Create New Tab and Place Right, Duplicate and Place on Right
+     */
+    QObject::connect(this->tabBar, &QTabBar::customContextMenuRequested,
+                     this, &BrainBrowserWindowToolBar::showTabMenu);
+    this->tabBar->setContextMenuPolicy(Qt::CustomContextMenu);
     
     /*
      * Custom view action
@@ -428,11 +440,18 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->addWidget(w);
     
     if (initialBrowserTabContent != NULL) {
-        this->addNewTabWithContent(initialBrowserTabContent);
+        insertTabContentPrivate(InsertTabMode::APPEND,
+                                initialBrowserTabContent,
+                                -1);
     }
     else {
         AString errorMessage;
-        this->createNewTab(errorMessage);
+        BrowserTabContent* tabContent = this->createNewTab(errorMessage);
+        if (tabContent != NULL) {
+            insertTabContentPrivate(InsertTabMode::APPEND,
+                                    tabContent,
+                                    -1);
+        }
     }
     
     this->updateToolBar();
@@ -517,7 +536,8 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
 }
 
 /**
- * Create a new tab.
+ * Create a new tab.  NOTE: This method only creates
+ * a new tab, it DOES NOT add the tab to the toolbar.
  * @param errorMessage
  *     If fails to create new tab, it will contain a message
  *     describing the error.
@@ -542,7 +562,6 @@ BrainBrowserWindowToolBar::createNewTab(AString& errorMessage)
     Brain* brain = GuiManager::get()->getBrain();
     tabContent->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(brain, 
                                                                                 false);
-    this->addNewTabWithContent(tabContent);
     
     return tabContent;
 }
@@ -554,8 +573,28 @@ BrainBrowserWindowToolBar::createNewTab(AString& errorMessage)
  *    Tab Content that is to be cloned into the new tab.
  */
 void 
-BrainBrowserWindowToolBar::addNewTabCloneContent(BrowserTabContent* browserTabContentToBeCloned)
+BrainBrowserWindowToolBar::addNewDuplicatedTab(BrowserTabContent* browserTabContentToBeCloned)
 {
+    insertClonedTabContentAtTabBarIndex(browserTabContentToBeCloned,
+                                        -1);
+}
+
+/**
+ * Clone and insert the cloned tab at the given index in the tab bar.
+ *
+ * @param browserTabContentToBeCloned
+ *    Tab Content that is to be cloned into the new tab.
+ * @param tabBarIndex
+ *     Index in the tab bar.  If invalid, tab is appended to the end of the toolbar.
+ */
+void
+BrainBrowserWindowToolBar::insertClonedTabContentAtTabBarIndex(const BrowserTabContent* browserTabContentToBeCloned,
+                                                               const int32_t tabBarIndex)
+{
+    if ( ! allowAddingNewTab()) {
+        return;
+    }
+    
     /*
      * Wait cursor
      */
@@ -572,11 +611,22 @@ BrainBrowserWindowToolBar::addNewTabCloneContent(BrowserTabContent* browserTabCo
         return;
     }
     
+    if (tabBarIndex >= 0){
+        insertTabContentPrivate(InsertTabMode::AT_TAB_BAR_INDEX,
+                                tabContent,
+                                tabBarIndex);
+    }
+    else {
+        insertTabContentPrivate(InsertTabMode::APPEND,
+                                tabContent,
+                                -1);
+    }
+    
     if (browserTabContentToBeCloned != NULL) {
         /*
          * New tab is clone of tab that was displayed when the new tab was created.
          */
-        tabContent->cloneBrowserTabContent(browserTabContentToBeCloned);
+        tabContent->cloneBrowserTabContent(const_cast<BrowserTabContent*>(browserTabContentToBeCloned));
     }
     
     this->updateToolBar();
@@ -594,8 +644,9 @@ BrainBrowserWindowToolBar::addNewTabCloneContent(BrowserTabContent* browserTabCo
 void 
 BrainBrowserWindowToolBar::addNewTabWithContent(BrowserTabContent* tabContent)
 {
-    addOrInsertNewTab(tabContent,
-                      -1);
+    insertTabContentPrivate(InsertTabMode::APPEND,
+                            tabContent,
+                            -1);
 }
 
 /**
@@ -604,6 +655,22 @@ BrainBrowserWindowToolBar::addNewTabWithContent(BrowserTabContent* tabContent)
 void
 BrainBrowserWindowToolBar::addNewTab()
 {
+    insertNewTabAtTabBarIndex(-1);
+}
+
+/**
+ * Insert a new tab at the given index in the tab bar.
+ *
+ * @param tabBarIndex
+ *     Index in the tab bar.  If invalid, tab is appended to the end of the toolbar.
+ */
+void
+BrainBrowserWindowToolBar::insertNewTabAtTabBarIndex(const int32_t tabBarIndex)
+{
+    if ( ! allowAddingNewTab()) {
+        return;
+    }
+    
     /*
      * Wait cursor
      */
@@ -619,7 +686,18 @@ BrainBrowserWindowToolBar::addNewTab()
                               errorMessage);
         return;
     }
-
+    
+    if (tabBarIndex >= 0){
+        insertTabContentPrivate(InsertTabMode::AT_TAB_BAR_INDEX,
+                                tabContent,
+                                tabBarIndex);
+    }
+    else {
+        insertTabContentPrivate(InsertTabMode::APPEND,
+                                tabContent,
+                                -1);
+    }
+    
     this->updateToolBar();
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
@@ -629,49 +707,36 @@ BrainBrowserWindowToolBar::addNewTab()
 
 
 /**
- * Insert the tab content at the given index.
+ * Insert tab content into a tab in the toolbar.
  *
+ * @param insertTabMode
+ *     Mode for inserting the tab.
  * @param browserTabContent
- *    Content of the tab.
- * @param insertAtIndex
- *    Insert the tab at the given index in the tab bar.  Must be greater than or
- *    equal to zero.
+ *     The tab content.
+ * @param tabBarIndex
+ *     Index of tab bar of where tab is inserted for mode AT_TAB_BAR_INDEX
  */
 void
-BrainBrowserWindowToolBar::insertTabAtIndex(BrowserTabContent* browserTabContent,
-                      const int32_t insertAtIndex)
-{
-    CaretAssert(insertAtIndex >= 0);
-    
-    addOrInsertNewTab(browserTabContent,
-                      insertAtIndex);
-}
-
-/**
- * Add or Insert the tab content at the given index.
- *
- * @param browserTabContent
- *    Content of the tab.
- * @param insertAtIndex
- *    If greater than or equal to zero, insert the tab at this index.  
- *    Otherwise, use the index from the tab content or just append.
- */
-void
-BrainBrowserWindowToolBar::addOrInsertNewTab(BrowserTabContent* browserTabContent,
-                       const int32_t insertAtIndex)
+BrainBrowserWindowToolBar::insertTabContentPrivate(const InsertTabMode insertTabMode,
+                                                   BrowserTabContent* browserTabContent,
+                                                   const int32_t tabBarIndex)
 {
     CaretAssert(browserTabContent);
-
+    
     this->tabBar->blockSignals(true);
-
+    
     int32_t newTabIndex = -1;
-    if (insertAtIndex >= 0) {
-        newTabIndex = this->tabBar->insertTab(insertAtIndex,
-                                              "NewTab");
-    }
-    else {
-        const bool putTabInTabOrderFlag = false;
-        if (putTabInTabOrderFlag) {
+    
+    switch (insertTabMode) {
+        case InsertTabMode::APPEND:
+            newTabIndex = this->tabBar->addTab("NewTab");
+            break;
+        case InsertTabMode::AT_TAB_BAR_INDEX:
+            newTabIndex = this->tabBar->insertTab(tabBarIndex,
+                                                  "NewTab");
+            break;
+        case InsertTabMode::AT_TAB_CONTENTS_INDEX:
+        {
             const int32_t tabContentIndex = browserTabContent->getTabNumber();
             
             const int32_t numTabs = this->tabBar->count();
@@ -694,22 +759,92 @@ BrainBrowserWindowToolBar::addOrInsertNewTab(BrowserTabContent* browserTabConten
                 }
             }
         }
-        else {
-            newTabIndex = this->tabBar->addTab("NewTab");
-        }
+            break;
     }
-
+    
     this->tabBar->setTabData(newTabIndex,
                              qVariantFromValue((void*)browserTabContent));
-
+    
     const int32_t numOpenTabs = this->tabBar->count();
     this->tabBar->setTabsClosable(numOpenTabs > 1);
-
+    
     this->updateTabName(newTabIndex);
     
     this->tabBar->setCurrentIndex(newTabIndex);
     
     this->tabBar->blockSignals(false);
+}
+
+/**
+ * When adding a new tab or duplicating a tab, the tab
+ * may not be visible when Tile Tabs is enabled and there
+ * is no available space in the tile tabs configuration.
+ *
+ * @return
+ *     True if new tab should be created, else false.
+ */
+bool
+BrainBrowserWindowToolBar::allowAddingNewTab()
+{
+    static bool m_doNotShowDialogAgainFlag = false;
+    
+    if (m_doNotShowDialogAgainFlag) {
+        return true;
+    }
+    
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
+    CaretAssert(browserWindow);
+    
+    /*
+     * Is tile tabs off?
+     */
+    if ( ! browserWindow->isTileTabsSelected()) {
+        return true;
+    }
+    
+    const TileTabsConfiguration* tileTabs = browserWindow->getSelectedTileTabsConfiguration();
+    if (tileTabs == NULL) {
+        return true;
+    }
+    
+    /*
+     * Default configuration always shows all tabs
+     */
+    if (tileTabs->isDefaultConfiguration()) {
+        return true;
+    }
+    
+    /*
+     * Is there space in the current configuration?
+     */
+    const int32_t tileTabsCount = tileTabs->getNumberOfColumns() * tileTabs->getNumberOfRows();
+    if (getNumberOfTabs() < tileTabsCount) {
+        return true;
+    }
+    
+    /*
+     * Selected configuration is full, all user to continue/cancel
+     */
+    const AString doNotShowAgainMsg("Remember my choice and do not show this dialog again");
+    
+    const AString msg("<html>"
+                      "Tile tabs is enabled and there is no space in the selected tile "
+                      "tabs configuration for the new tab.  If you choose to continue, "
+                      "either the new tab will not be visible or an existing tab will "
+                      "become invisible until the tile tabs configuration is changed."
+                      "<p>"
+                      "Do you want to create the new tab?"
+                      "<br>"
+                      "</html>");
+    
+    
+    if (WuQMessageBox::warningYesNoWithDoNotShowAgain(this,
+                                                      "NewTabNotDisplayedDueToTileTabs",
+                                                      msg)) {
+        return true;
+    }
+    
+    return false;
 }
 
 
@@ -889,7 +1024,12 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     const int32_t numberOfTabsToAdd = numberOfTabsNeeded - this->tabBar->count();
     for (int32_t i = 0; i < numberOfTabsToAdd; i++) {
         AString errorMessage;
-        this->createNewTab(errorMessage);
+        BrowserTabContent* tabContent = this->createNewTab(errorMessage);
+        if (tabContent != NULL) {
+            insertTabContentPrivate(InsertTabMode::APPEND,
+                                    tabContent,
+                                    -1);
+        }
     }
     
     int32_t tabIndex = 0;
@@ -1008,9 +1148,13 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
     if (controller != NULL) {
         if (tabIndex >= this->tabBar->count()) {
             AString errorMessage;
-            if (this->createNewTab(errorMessage) == NULL) {
+            BrowserTabContent* tabContent = this->createNewTab(errorMessage);
+            if (tabContent == NULL) {
                 return -1;
             }
+            insertTabContentPrivate(InsertTabMode::APPEND,
+                                    tabContent,
+                                    -1);
             tabIndex = this->tabBar->count() - 1;
         }
         
@@ -1250,6 +1394,59 @@ void
 BrainBrowserWindowToolBar::closeSelectedTab()
 {
     tabCloseSelected(this->tabBar->currentIndex());
+}
+
+/**
+ * Called when context menu requested for the tab bar.
+ *
+ * @param pos
+ *     Postion of mouse in parent widget.
+ */
+void
+BrainBrowserWindowToolBar::showTabMenu(const QPoint& pos)
+{
+    const int tabUnderMouseIndex = this->tabBar->tabAt(pos);
+    
+    if (tabUnderMouseIndex >= 0) {
+        const int32_t insertAtTabIndex = tabUnderMouseIndex + 1;
+        QMenu menu(this->tabBar);
+        menu.move(mapToGlobal(pos));
+        QAction* addAction = menu.addAction("Add New Tab to Right");
+        QAction* duplicateAction = menu.addAction("Duplicate This Tab to Right");
+        menu.addSeparator();
+        QAction* closeAction = menu.addAction("Close This Tab");
+        closeAction->setEnabled(this->tabBar->count() > 1);
+        
+        const QAction* selectedAction = menu.exec();
+        if (selectedAction == addAction) {
+            insertNewTabAtTabBarIndex(insertAtTabIndex);
+        }
+        else if (selectedAction == duplicateAction) {
+            BrowserTabContent* tabContent = getTabContentFromTab(tabUnderMouseIndex);
+            CaretAssert(tabContent);
+            insertClonedTabContentAtTabBarIndex(tabContent,
+                                                insertAtTabIndex);
+        }
+        else if (selectedAction == closeAction) {
+            closeSelectedTab();
+        }
+        else if (selectedAction != NULL) {
+            CaretAssertMessage(0, "Has a new action been added to the menu");
+        }
+    }
+    else {
+        QMenu menu(this->tabBar);
+        menu.move(mapToGlobal(pos));
+        QAction* addAction = menu.addAction("Add New Tab");
+        
+        const QAction* selectedAction = menu.exec();
+        if (selectedAction == addAction) {
+            addNewTab();
+        }
+        else if (selectedAction != NULL) {
+            CaretAssertMessage(0, "Has a new action been added to the menu");
+        }
+    }
 }
 
 /**
@@ -1643,8 +1840,6 @@ BrainBrowserWindowToolBar::createViewWidget()
     this->viewModeSurfaceMontageRadioButton = new QRadioButton("Montage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("All");
-    
-//    this->viewModeChartOneRadioButton->setVisible(false);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -2445,18 +2640,12 @@ BrainBrowserWindowToolBar::createModeWidget()
     
     WuQtUtilities::matchWidgetWidths(inputModeAnnotationsToolButton,
                                      inputModeBordersToolButton,
-                                     //inputModeFociToolButton,
-                                     //inputModeImageToolButton,
                                      inputModeViewToolButton,
                                      inputModeVolumeEditButton);
-//    inputModeFociToolButton->setContentsMargins(0, 0, 0, 0);
-//    inputModeImageToolButton->setContentsMargins(0, 0, 0, 0);
     inputModeFociToolButton->setSizePolicy(QSizePolicy::Preferred,
                                            inputModeFociToolButton->sizePolicy().verticalPolicy());
     inputModeImageToolButton->setSizePolicy(QSizePolicy::Preferred,
                                            inputModeImageToolButton->sizePolicy().verticalPolicy());
-//    inputModeFociToolButton->setFixedWidth(inputModeFociToolButton->sizeHint().width());
-//    inputModeImageToolButton->setFixedWidth(inputModeImageToolButton->sizeHint().width());
     
     /*
      * Layout for input modes
@@ -3870,9 +4059,14 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                 case EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE:
                     if (tabBar->count() == 0) {
                         AString errorMessage;
-                        createNewTab(errorMessage);
+                        BrowserTabContent* tabContent = createNewTab(errorMessage);
                         if (errorMessage.isEmpty() == false) {
                             CaretLogSevere(errorMessage);
+                        }
+                        if (tabContent != NULL) {
+                            insertTabContentPrivate(InsertTabMode::APPEND,
+                                                    tabContent,
+                                                    -1);
                         }
                     }
                     break;
@@ -3925,11 +4119,6 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
     else {
         
     }
-    
-//    CaretLogFinest("Toolbar width/height: "
-//                   + AString::number(width())
-//                   + "/"
-//                   + AString::number(height()));
 }
 
 /**
@@ -4135,8 +4324,10 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
                 if (tabContent->getTabNumber() == selectedTabIndex) {
                     defaultTabBarIndex = iTab;
                 }
-                this->insertTabAtIndex(tabContent,
-                                       iTab);
+                CaretAssert(iTab >= 0);
+                insertTabContentPrivate(InsertTabMode::AT_TAB_BAR_INDEX,
+                                        tabContent,
+                                        iTab);
             }
             else {
                 sceneAttributes->addToErrorMessage("Toolbar in window "
