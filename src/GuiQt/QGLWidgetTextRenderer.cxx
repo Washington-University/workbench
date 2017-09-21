@@ -29,6 +29,13 @@
 #include "QGLWidgetTextRenderer.h"
 #undef __QT_OPEN_G_L_TEXT_RENDERER_DECLARE__
 
+/*
+ * When GLEW is used, CaretOpenGLInclude.h will include "Gl/glew.h".
+ * Gl/glew.h MUST BE BEFORE Gl/gl.h and Gl/gl.h is included by
+ * QGLWidget so, we must include CaretOpenGL.h before QGLWidget.
+ */
+#include "CaretOpenGLInclude.h"
+
 #include <cmath>
 #include <limits>
 

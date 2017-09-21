@@ -42,6 +42,8 @@ IF (OPENGL_FOUND)
    # OpenGL Include Directory
    #
    INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
+   MESSAGE("OpenGL Include Directory: ${OPENGL_INCLUDE_DIR}")
+   MESSAGE("OpenGL Libraries: ${OPENGL_LIBRARIES}")
 ELSE (OPENGL_FOUND)
    MESSAGE(SEND_ERROR "OpenGL Libraries were not found")
 ENDIF (OPENGL_FOUND)

@@ -246,6 +246,35 @@ ENDIF (Qwt_FOUND)
 
 ##########################################################################################
 #
+# Look for GLEW
+#
+SET(GLEW_RESULT "No")
+FIND_PACKAGE(GLEW)
+
+IF (GLEW_FOUND)
+    SET(GLEW_RESULT "${GLEW_INCLUDE_DIRS} ${GLEW_LIBRARIES}")
+    MESSAGE("GLEW Include Dirs: ${GLEW_INCLUDE_DIRS}")
+    MESSAGE("GLEW Libraries: ${GLEW_LIBRARIES}")
+    STRING(FIND ${GLEW_LIBRARIES} "glew32s.lib" GLEW_STATIC_LIB_NAME_INDEX)
+    ADD_DEFINITIONS(-DHAVE_GLEW)
+    IF (GLEW_STATIC_LIB_NAME_INDEX GREATER -1)
+        ADD_DEFINITIONS(-DHAVE_GLEW_STATIC_LIB)
+        MESSAGE("GLEW Static Library Found")
+    ENDIF()
+    INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIRS})
+ELSE()
+    SET(GLEW_LIBRARIES "")
+    SET(GLEW_INCLUDE_DIRS "")
+    IF (WIN32)
+        MESSAGE(SEND_ERROR "GLEW not found and is required on Windows for finding OpenGL functions.\n"
+            "    Setting CMAKE_PREFIX_PATH to the GLEW installation directory when\n"
+            "    running CMAKE may help find GLEW.\n"
+            "    -DCMAKE_PREFIX_PATH=C:\some-path\glew-2.1.0")
+    ENDIF()
+ENDIF()
+
+##########################################################################################
+#
 # The Find OpenMP package may not work on all systems and the user may
 # furnish the paths to the OpenMP files by using environment variables.
 #
@@ -527,6 +556,7 @@ IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
     MESSAGE(${MSG_MODE} "PACKAGES:")
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "FTGL:     " ${FTGL_RESULT})
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "FreeType: " ${FREETYPE_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "GLEW:     " ${GLEW_RESULT})
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "OpenMP:   " ${OPENMP_RESULT})
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "OpenSSL:  " ${OPENSSL_RESULT})
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "OSMESA:   " ${OSMESA_RESULT})

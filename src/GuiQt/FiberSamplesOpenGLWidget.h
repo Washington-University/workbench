@@ -21,6 +21,13 @@
  */
 /*LICENSE_END*/
 
+/*
+ * When GLEW is used, CaretOpenGLInclude.h will include "Gl/glew.h".
+ * Gl/glew.h MUST BE BEFORE Gl/gl.h and Gl/gl.h is included by
+ * QGLWidget so, we must include CaretOpenGL.h before QGLWidget.
+ */
+#include "CaretOpenGLInclude.h"
+
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 #include <QOpenGLWidget>
 #else

@@ -18,6 +18,12 @@
  */
 /*LICENSE_END*/
 
+/*
+ * When GLEW is used, CaretOpenGLInclude.h will include "Gl/glew.h".
+ * Gl/glew.h MUST BE BEFORE Gl/gl.h and Gl/gl.h is included by
+ * some Qt classes so, we must include CaretOpenGL.h first.
+ */
+#include "CaretOpenGLInclude.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -492,6 +498,31 @@ main(int argc, char* argv[])
             app.processEvents();
             WuQMessageBox::errorOk(NULL,
                                    noOpenGLMessage);
+            app.processEvents();
+            
+            return -1;
+        }
+        
+        /*
+         * Initialize GLEW if it is being used
+         */
+        AString glewErrorMessage;
+#ifdef HAVE_GLEW
+        GLenum err = glewInit();
+        if (GLEW_OK != err) {
+            /* Problem: glewInit failed, something is seriously wrong. */
+            
+            glewErrorMessage = ("GLEW failed to initialize.\n"
+                                + AString(reinterpret_cast<const char*>(glewGetErrorString(err))));
+            CaretLogSevere(glewErrorMessage);
+        }
+        CaretLogInfo("Status: Using GLEW version "
+                     + AString(reinterpret_cast<const char*>(glewGetString(GLEW_VERSION))));
+#endif /* HAVE_GLEW */
+        if ( ! glewErrorMessage.isEmpty()) {
+            app.processEvents();
+            WuQMessageBox::errorOk(NULL,
+                                   glewErrorMessage);
             app.processEvents();
             
             return -1;

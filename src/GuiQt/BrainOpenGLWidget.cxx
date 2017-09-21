@@ -18,6 +18,10 @@
  */
 /*LICENSE_END*/
 
+#define __BRAIN_OPENGL_WIDGET_DEFINE__
+#include "BrainOpenGLWidget.h"
+#undef __BRAIN_OPENGL_WIDGET_DEFINE__
+
 #include <algorithm>
 #include <cmath>
 
@@ -29,10 +33,6 @@
 #include <QOpenGLContext>
 #include <QToolTip>
 #include <QWheelEvent>
-
-#define __BRAIN_OPENGL_WIDGET_DEFINE__
-#include "BrainOpenGLWidget.h"
-#undef __BRAIN_OPENGL_WIDGET_DEFINE__
 
 #include "Border.h"
 #include "Brain.h"

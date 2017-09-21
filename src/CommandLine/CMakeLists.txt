@@ -70,8 +70,8 @@ endif()
 
 #
 # Libraries that are linked
-# Note: OSMESA library variables will be empty and have no effect
-# if OSMESA is not available
+# Note: GLEW_LIBRARIES and OSMESA library variables will be empty and
+# have no effect if not available
 #
 TARGET_LINK_LIBRARIES(${EXE_NAME}
 Commands
@@ -96,6 +96,7 @@ ${QUAZIP_LIBRARIES}
 ${FREETYPE_LIBRARIES}
 ${QT_LIBRARIES}
 ${QT5_LINK_LIBS}
+${GLEW_LIBRARIES}
 ${OSMESA_OFFSCREEN_LIBRARY}
 ${OSMESA_GL_LIBRARY}
 ${OSMESA_GLU_LIBRARY}

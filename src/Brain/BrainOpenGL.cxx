@@ -967,6 +967,13 @@ BrainOpenGL::getOpenGLInformation()
                         + "\nOpenGL Vendor: " + AString(vendorStr)
                         + "\nOpenGL Renderer: " + AString(renderStr));
     
+    AString glewVersionName("No GLEW in this version of Workbench");
+#ifdef HAVE_GLEW
+    glewVersionName = AString(reinterpret_cast<const char*>(glewGetString(GLEW_VERSION)));
+#endif /* HAVE_GLEW */
+    lineInfo += "\n";
+    lineInfo += ("\nGLEW Version: " + glewVersionName);
+    
     lineInfo += "\n";
     lineInfo += ("\nFont Renderer: " + m_textRenderer->getName());
     lineInfo += "\n";

@@ -27,16 +27,41 @@
  * \ingroup Brain
  */
 
-#ifdef CARET_OS_WINDOWS
-#include <Windows.h>
+/*
+ * When using GLEW, GL/glew.h MUST be included before Gl/gl.h.
+ * Note: Windows.h includes Gl/gl.h.
+ *
+ * Must define GLEW_STATIC when GLEW is in a static library
+ * or linking errors will occur with GLEW functions
+ */
+#ifdef HAVE_GLEW
+    #ifdef HAVE_GLEW_STATIC_LIB
+        #define GLEW_STATIC
+    #endif
+
+    #include <GL/glew.h>
 #endif
+
+#ifdef CARET_OS_WINDOWS
+    #include <Windows.h>
+#endif
+
 #ifdef CARET_OS_MACOSX
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
+    #include <OpenGL/gl.h>
+    #include <OpenGL/glu.h>
 #else
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glu.h>
+    #ifndef HAVE_GLEW
+        #ifdef CARET_OS_LINUX
+            /*
+             * On linux, adds support for newer OpenGL 
+             * as described at https://www.khronos.org/registry/OpenGL/ABI/
+             */
+            #define GL_GLEXT_PROTOTYPES
+        #endif
+    #endif
+
+    #include <GL/gl.h>
+    #include <GL/glu.h>
 #endif
 
 #endif  //__CARET_OPEN_GL_INCLUDE_H__
