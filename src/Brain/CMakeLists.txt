@@ -22,33 +22,6 @@ IF (QT4_FOUND)
 ENDIF ()
 
 #
-# Need OpenGL
-#
-FIND_PACKAGE(OpenGL REQUIRED)
-IF (OPENGL_FOUND)
-   #
-   # Need help finding includes on Apple
-   #
-   IF (APPLE) 
-      # When searching for the include directory, find the location
-      # for the OpenGL framework rather than an individual header file.
-      FIND_PATH(OPENGL_INCLUDE_DIR OpenGL.framework
-        /System/Library/Frameworks
-        /Library/Frameworks
-        ~/Library/Frameworks
-      )
-   ENDIF (APPLE)
-   #
-   # OpenGL Include Directory
-   #
-   INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
-   MESSAGE("OpenGL Include Directory: ${OPENGL_INCLUDE_DIR}")
-   MESSAGE("OpenGL Libraries: ${OPENGL_LIBRARIES}")
-ELSE (OPENGL_FOUND)
-   MESSAGE(SEND_ERROR "OpenGL Libraries were not found")
-ENDIF (OPENGL_FOUND)
-
-#
 # Create the brain library
 #
 ADD_LIBRARY(Brain

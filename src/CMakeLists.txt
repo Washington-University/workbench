@@ -244,6 +244,32 @@ ELSE (Qwt_FOUND)
     SET(QWT_RESULT "In Workbench Source Code")
 ENDIF (Qwt_FOUND)
 
+#
+# Need OpenGL
+#
+FIND_PACKAGE(OpenGL REQUIRED)
+IF (OPENGL_FOUND)
+    #
+    # Need help finding includes on Apple
+    #
+    IF (APPLE)
+        # When searching for the include directory, find the location
+        # for the OpenGL framework rather than an individual header file.
+        FIND_PATH(OPENGL_INCLUDE_DIR OpenGL.framework
+                  /System/Library/Frameworks
+                  /Library/Frameworks
+                  ~/Library/Frameworks)
+    ENDIF (APPLE)
+    #
+    # OpenGL Include Directory
+    #
+    INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
+    MESSAGE("OpenGL Include Directory: ${OPENGL_INCLUDE_DIR}")
+    MESSAGE("OpenGL Libraries: ${OPENGL_LIBRARIES}")
+ELSE (OPENGL_FOUND)
+    MESSAGE(SEND_ERROR "OpenGL Libraries were not found")
+ENDIF (OPENGL_FOUND)
+
 ##########################################################################################
 #
 # Look for GLEW
