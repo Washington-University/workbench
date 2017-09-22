@@ -100,6 +100,12 @@ namespace caret {
                                                                 const QString& noButtonText,
                                                                 const QString& text,
                                                                 const QString& informativeText);
+        static bool warningAcceptReject(QWidget* parent,
+                                        const QString& text,
+                                        const QString& acceptButtonText,
+                                        const QString& rejectButtonText);
+        
+        
     private:
         WuQMessageBox(QWidget* parent = 0);
         ~WuQMessageBox();

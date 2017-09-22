@@ -583,6 +583,61 @@ WuQMessageBox::warningYesToAllYesNo(QWidget* parent,
 }
 
 /**
+ * Display a warning message box with the given
+ * text and content for accept/reject buttons.
+ * Pressing the enter key is the equivalent of 
+ * pressing the Ok button.
+ *
+ * @param parent
+ *    Parent on which message box is displayed.
+ * @param text
+ *    Message that is displayed.
+ * @param acceptButtonText
+ *    Text for "accept" button.
+ * @param rejectButtonText
+ *    Text for "reject" button.
+ * @return
+ *    true if the "accept" button was pressed or false
+ *    if the "reject" button was pressed.
+ */
+bool
+WuQMessageBox::warningAcceptReject(QWidget* parent,
+                                   const QString& text,
+                                   const QString& acceptButtonText,
+                                   const QString& rejectButtonText)
+{
+    QMessageBox msgBox(parent);
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setWindowTitle("");
+    msgBox.setText(text);
+    msgBox.addButton(QMessageBox::Ok);
+    msgBox.addButton(QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+    msgBox.setEscapeButton(QMessageBox::Cancel);
+    
+    updateButtonText(msgBox, QMessageBox::Ok, acceptButtonText);
+    updateButtonText(msgBox, QMessageBox::Cancel, rejectButtonText);
+    
+    QMessageBox::StandardButton buttonPressed =
+    static_cast<QMessageBox::StandardButton>(msgBox.exec());
+    
+    bool acceptPressed = false;
+    
+    switch (buttonPressed) {
+        case QMessageBox::Ok:
+            acceptPressed = true;
+            break;
+        case QMessageBox::Cancel:
+            break;
+        default:
+            CaretAssert(0);
+            break;
+    }
+    
+    return acceptPressed;
+}
+
+/**
  * Update the text for the standard button in the given message box.
  *
  * @param messageBox
