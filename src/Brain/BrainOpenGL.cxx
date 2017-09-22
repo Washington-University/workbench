@@ -552,6 +552,42 @@ BrainOpenGL::testForVersionOfOpenGLSupported(const AString& versionOfOpenGL)
 }
 
 /**
+ * Test for the required version of OpenGL Workbench needs.
+ *
+ * @param errorMessageOut
+ *     Output with error message if required version is not available.
+ * @return 
+ *     True if required version available, else false.
+ */
+bool
+BrainOpenGL::testForRequiredOpenGLVersion(AString& errorMessageOut)
+{
+    const AString minimumOpenGLVersion("1.5");
+    if ( ! BrainOpenGL::testForVersionOfOpenGLSupported(minimumOpenGLVersion)) {
+        const AString msg("OpenGL Version "
+                          + minimumOpenGLVersion
+                          + " or later is required.  This computer has version "
+                          + BrainOpenGL::getOpenGLVersion()
+                          + "\nYou may continue but the software may crash.");
+        errorMessageOut = msg;
+        return false;
+    }
+    
+    return true;
+}
+
+
+/**
+ * @return The OpenGL version.
+ */
+AString
+BrainOpenGL::getOpenGLVersion()
+{
+    return QLatin1String(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+}
+
+
+/**
  * Extract the major and minor versions from an OpenGL version string.
  * @param versionString
  *   The OpenGL version string which is "<major>.<minor>[.optionalVendorInfo].

@@ -41,6 +41,7 @@
 
 #include "ApplicationInformation.h"
 #include "BrainBrowserWindow.h"
+#include "BrainOpenGL.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
 #include "CaretCommandLine.h"
@@ -396,6 +397,7 @@ main(int argc, char* argv[])
          * Log debug status
          */
         CaretLogConfig(applicationInformation.getCompiledWithDebugStatus());
+
         
         /*
          * Enabled the desired splash screen based upon user preferences
@@ -501,6 +503,20 @@ main(int argc, char* argv[])
             app.processEvents();
             
             return -1;
+        }
+        
+        /**
+         * Test for the required OpenGL version is available.
+         */
+        AString requiredOpenGLMessage;
+        if ( ! BrainOpenGL::testForRequiredOpenGLVersion(requiredOpenGLMessage)) {
+            app.processEvents();
+            if ( ! WuQMessageBox::warningAcceptReject(NULL,
+                                                      requiredOpenGLMessage,
+                                                      "Continue",
+                                                      "Exit")) {
+                return -1;
+            }
         }
         
         /*

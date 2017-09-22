@@ -143,7 +143,11 @@ namespace caret {
         
         static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);
         
+        static bool testForRequiredOpenGLVersion(AString& errorMessageOut);
+        
         static bool testForVersionOfOpenGLSupported(const AString& versionOfOpenGL);
+        
+        static AString getOpenGLVersion();
         
         static void testForOpenGLError(const AString& message);
         
