@@ -68,6 +68,20 @@ if(Qt5_FOUND)
         Qt5::Xml)
 endif()
 
+SET (MESA_OR_OPENGL_LIBRARIES "")
+IF (OSMESA_FOUND)
+    SET(MESA_OR_OPENGL_LIBRARIES
+        ${OSMESA_OFFSCREEN_LIBRARY}
+        ${OSMESA_GL_LIBRARY}
+        ${OSMESA_GLU_LIBRARY})
+ELSE()
+    IF (OPENGL_FOUND)
+        SET(MESA_OR_OPENGL_LIBRARIES ${OPENGL_LIBRARIES})
+    ELSE()
+        MESSAGE(SEND_ERROR "Must have either OpenGL or Mesa3D for command line")
+    ENDIF()
+ENDIF()
+
 #
 # Libraries that are linked
 # Note: GLEW_LIBRARIES and OSMESA library variables will be empty and
@@ -97,21 +111,9 @@ ${FREETYPE_LIBRARIES}
 ${QT_LIBRARIES}
 ${QT5_LINK_LIBS}
 ${GLEW_LIBRARIES}
+${MESA_OR_OPENGL_LIBRARIES}
 ${ZLIB_LIBRARIES}
 ${LIBS})
-
-IF (WIN32)
-    IF (HAVE_OSMESA)
-        TARGET_LINK_LIBRARIES(${EXE_NAME}
-                              ${OSMESA_OFFSCREEN_LIBRARY}
-                              ${OSMESA_GL_LIBRARY}
-                              ${OSMESA_GLU_LIBRARY})
-    ELSE()
-        TARGET_LINK_LIBRARIES(${EXE_NAME}
-                              opengl32
-                              glu32)
-    ENDIF()
-ENDIF()
 
 INCLUDE(GNUInstallDirs)
 
