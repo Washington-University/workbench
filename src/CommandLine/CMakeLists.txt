@@ -97,11 +97,21 @@ ${FREETYPE_LIBRARIES}
 ${QT_LIBRARIES}
 ${QT5_LINK_LIBS}
 ${GLEW_LIBRARIES}
-${OSMESA_OFFSCREEN_LIBRARY}
-${OSMESA_GL_LIBRARY}
-${OSMESA_GLU_LIBRARY}
 ${ZLIB_LIBRARIES}
 ${LIBS})
+
+IF (WIN32)
+    IF (HAVE_OSMESA)
+        TARGET_LINK_LIBRARIES(${EXE_NAME}
+                              ${OSMESA_OFFSCREEN_LIBRARY}
+                              ${OSMESA_GL_LIBRARY}
+                              ${OSMESA_GLU_LIBRARY})
+    ELSE()
+        TARGET_LINK_LIBRARIES(${EXE_NAME}
+                              opengl32
+                              glu32)
+    ENDIF()
+ENDIF()
 
 INCLUDE(GNUInstallDirs)
 

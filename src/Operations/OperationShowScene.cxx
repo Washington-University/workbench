@@ -22,6 +22,10 @@
 #include <cstdio>
 #include <fstream>
 
+#ifdef HAVE_GLEW
+#include <GL/glew.h>
+#endif
+
 #ifdef HAVE_OSMESA
 #include <GL/osmesa.h>
 #endif // HAVE_OSMESA

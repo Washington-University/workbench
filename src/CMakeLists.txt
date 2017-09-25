@@ -244,9 +244,11 @@ ELSE (Qwt_FOUND)
     SET(QWT_RESULT "In Workbench Source Code")
 ENDIF (Qwt_FOUND)
 
+##########################################################################################
 #
 # Need OpenGL
 #
+SET(OPENGL_RESULT "")
 FIND_PACKAGE(OpenGL REQUIRED)
 IF (OPENGL_FOUND)
     #
@@ -266,6 +268,7 @@ IF (OPENGL_FOUND)
     INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
     MESSAGE("OpenGL Include Directory: ${OPENGL_INCLUDE_DIR}")
     MESSAGE("OpenGL Libraries: ${OPENGL_LIBRARIES}")
+    SET(OPENGL_RESULT ${OPENGL_LIBRARIES})
 ELSE (OPENGL_FOUND)
     MESSAGE(SEND_ERROR "OpenGL Libraries were not found")
 ENDIF (OPENGL_FOUND)
@@ -464,13 +467,13 @@ SET(OSMESA_RESULT "Not found")
 IF (EXISTS ${WORKBENCH_MESA_DIR})
     IF (EXISTS ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h)
         FIND_LIBRARY(OSMESA_LIBRARY_FOUND
-                     NAMES OSMesa
+                     NAMES OSMesa OSMESA32
                      HINTS ${WORKBENCH_MESA_DIR}/lib)
         FIND_LIBRARY(OSMESA_GL_LIBRARY_FOUND
-                     NAMES GL
+                     NAMES GL OPENGL32
                      HINTS ${WORKBENCH_MESA_DIR}/lib)
         FIND_LIBRARY(OSMESA_GLU_LIBRARY_FOUND
-                     NAMES GLU
+                     NAMES GLU GLU32
                      HINTS ${WORKBENCH_MESA_DIR}/lib)
         IF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
             SET(OSMESA_DEFINITION -DHAVE_OSMESA)
@@ -583,6 +586,7 @@ IF(WB_CMAKE_VERBOSE_OUTPUT_FLAG)
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "FTGL:     " ${FTGL_RESULT})
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "FreeType: " ${FREETYPE_RESULT})
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "GLEW:     " ${GLEW_RESULT})
+    MESSAGE(${MSG_MODE} ${MSG_INDENT} "OpenGL:   " ${OPENGL_RESULT})
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "OpenMP:   " ${OPENMP_RESULT})
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "OpenSSL:  " ${OPENSSL_RESULT})
     MESSAGE(${MSG_MODE} ${MSG_INDENT} "OSMESA:   " ${OSMESA_RESULT})
