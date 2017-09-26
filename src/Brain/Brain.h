@@ -487,6 +487,8 @@ namespace caret {
                           const AString& dataFileName,
                           const bool markDataFileAsModified);
         
+        void createModelChartTwo();
+        
         /**
          * Is the data file with the given name already loaded?
          *

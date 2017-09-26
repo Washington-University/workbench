@@ -4742,13 +4742,7 @@ Brain::updateChartModel()
 
     if (haveChartableFileFlag) {
         if (m_modelChartTwo == NULL) {
-            m_modelChartTwo = new ModelChartTwo(this);
-            EventModelAdd eventAddModel(m_modelChartTwo);
-            EventManager::get()->sendEvent(eventAddModel.getPointer());
-            
-            if (m_isSpecFileBeingRead == false) {
-                m_modelChartTwo->initializeOverlays();
-            }
+            createModelChartTwo();
         }
     }
     else {
@@ -4762,9 +4756,24 @@ Brain::updateChartModel()
 }
 
 /**
+ * Create the model chart two.
+ */
+void
+Brain::createModelChartTwo()
+{
+    m_modelChartTwo = new ModelChartTwo(this);
+    EventModelAdd eventAddModel(m_modelChartTwo);
+    EventManager::get()->sendEvent(eventAddModel.getPointer());
+    
+    if (m_isSpecFileBeingRead == false) {
+        m_modelChartTwo->initializeOverlays();
+    }
+}
+
+/**
  * Update the volume slice model.
  */
-void 
+void
 Brain::updateVolumeSliceModel()
 {
     bool isValid = false;
@@ -7348,12 +7357,18 @@ Brain::loadMatrixChartingFileDefaultRowOrColumn(CaretDataFile* caretDataFile)
 void
 Brain::restoreModelChartOneToModelChartTwo()
 {
-    CaretAssert(m_modelChartTwo);
-    if ( ! m_modelChartTwo->isRestoredFromScene()) {
-        if (m_modelChart != NULL) {
-            if (m_modelChart->isRestoredFromScene()) {
-                m_modelChartTwo->restoreSceneFromChartOneModel(m_modelChart);
+    if (m_modelChartTwo != NULL) {
+        if (m_modelChartTwo->isRestoredFromScene()) {
+            return;
+        }
+    }
+    
+    if (m_modelChart != NULL) {
+        if (m_modelChart->isRestoredFromScene()) {
+            if (m_modelChartTwo == NULL) {
+                createModelChartTwo();
             }
+            m_modelChartTwo->restoreSceneFromChartOneModel(m_modelChart);
         }
     }
 }
