@@ -4131,9 +4131,13 @@ BrainBrowserWindowToolBar::updateOtherYokedWindows()
     BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
     if (browserTabContent != NULL) {
         if (browserTabContent->isBrainModelYoked()) {
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
             EventManager::get()->sendEvent(EventUpdateYokedWindows(this->browserWindowIndex,
                                                                    browserTabContent->getBrainModelYokingGroup(),
                                                                    browserTabContent->getChartModelYokingGroup()).getPointer());
+        }
+        else {
+            updateGraphicsWindow();
         }
     }
 }
