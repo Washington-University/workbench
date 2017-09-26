@@ -83,14 +83,25 @@ m_balsaPassword(balsaPassword)
     QPushButton* newStudyTitlePushButton = new QPushButton("Create New Study...");
     newStudyTitlePushButton->setSizePolicy(QSizePolicy::Fixed,
                                            newStudyTitlePushButton->sizePolicy().verticalPolicy());
-                                           
     QObject::connect(newStudyTitlePushButton, &QPushButton::clicked,
                      this, &BalsaStudySelectionDialog::newStudyButtonClicked);
+    
+    m_editSelectedStudyPushButton = new QPushButton("Edit Selected Study Title...");
+    m_editSelectedStudyPushButton->setSizePolicy(QSizePolicy::Fixed,
+                                                 m_editSelectedStudyPushButton->sizePolicy().verticalPolicy());
+    QObject::connect(m_editSelectedStudyPushButton, &QPushButton::clicked,
+                     this, &BalsaStudySelectionDialog::editSelectedStudyButtonClicked);
+    
+    
+    QHBoxLayout* studyButtonLayout = new QHBoxLayout();
+    studyButtonLayout->addWidget(newStudyTitlePushButton);
+    studyButtonLayout->addStretch();
+    studyButtonLayout->addWidget(m_editSelectedStudyPushButton);
     
     QWidget* dialogWidget = new QWidget;
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
     dialogLayout->addWidget(m_studyTableWidget, 100);
-    dialogLayout->addWidget(newStudyTitlePushButton, 0);
+    dialogLayout->addLayout(studyButtonLayout, 0);
     
     setCentralWidget(dialogWidget, SCROLL_AREA_NEVER);
     
@@ -242,6 +253,32 @@ BalsaStudySelectionDialog::newStudyButtonClicked()
             WuQMessageBox::errorOk(this,
                                    errorMessage);
         }
+    }
+}
+
+/**
+ * Called when edit selected study title button is clicked
+ */
+void
+BalsaStudySelectionDialog::editSelectedStudyButtonClicked()
+{
+    const int32_t selectedRow = m_studyTableWidget->currentRow();
+    if (selectedRow < 0) {
+        WuQMessageBox::errorOk(this, "No Study Title is selected");
+        return;
+    }
+    
+    CaretAssertVectorIndex(m_studyInformation, selectedRow);
+    AString title = m_studyInformation[selectedRow].getStudyTitle();
+    
+    title = QInputDialog::getText(this,
+                                  "Edit study title",
+                                  "Title",
+                                  QLineEdit::Normal,
+                                  title);
+    if ( ! title.isNull()) {
+        m_studyInformation[selectedRow].setStudyTitle(title);
+        loadStudyTitleTableWidget(title);
     }
 }
 

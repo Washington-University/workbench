@@ -81,14 +81,6 @@ m_sceneFile(sceneFile)
 {
     CaretAssert(m_sceneFile);
     
-    /*
-     * Icons
-     */
-    m_lockClosedIconValid = WuQtUtilities::loadIcon(":/BalsaUploadDialog/lock-closed.png",
-                                                    m_lockClosedIcon);
-    m_lockOpenIconValid = WuQtUtilities::loadIcon(":/BalsaUploadDialog/lock-open.png",
-                                                  m_lockOpenIcon);
-    
     QTabWidget* tabWidget = new QTabWidget();
     tabWidget->addTab(createUploadTab(), "Upload");
     tabWidget->addTab(createAdvancedTab(), "Advanced");
@@ -96,7 +88,6 @@ m_sceneFile(sceneFile)
     setCentralWidget(tabWidget,
                      WuQDialogModal::SCROLL_AREA_NEVER);
     
-    updateBalsaStudyIDLockButtonIcon();
     validateData();
     
     setSizePolicy(sizePolicy().horizontalPolicy(),
@@ -213,32 +204,9 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_balsaStudyIDLineEdit->setReadOnly(true);
     m_balsaStudyIDLineEdit->setToolTip("The Study ID is available from the BALSA Database; click the Get button to get a Study ID");
     m_balsaStudyIDLineEdit->setValidator(createValidator(LabelName::LABEL_STUDY_ID));
+    m_balsaStudyIDLineEdit->setReadOnly(true);
     QObject::connect(m_balsaStudyIDLineEdit, &QLineEdit::textEdited,
                      this, [=] { this->validateData(); });
-    
-    /*
-     * Get BALSA Study ID button
-     */
-    const bool showGetStudyIdButtonFlag = false;
-    m_getBalsaStudyIDPushButton = NULL;
-    if (showGetStudyIdButtonFlag) {
-        m_getBalsaStudyIDPushButton = new QPushButton("Get...");
-        m_getBalsaStudyIDPushButton->setToolTip("Get the BALSA Study ID by sending Study Title to BALSA");
-        QObject::connect(m_getBalsaStudyIDPushButton, &QPushButton::clicked,
-                         this, &BalsaDatabaseUploadSceneFileDialog::getBalsaStudyIDPushButtonClicked);
-    }
-    
-    /*
-     * BALSA Study ID Lock button
-     */
-    m_balsaStudyIDLockPushButton = new QPushButton("Lock");
-    m_balsaStudyIDLockPushButton->setToolTip("Unlock to allow manual editing of the Study ID.");
-    QObject::connect(m_balsaStudyIDLockPushButton, &QPushButton::clicked,
-                     this, &BalsaDatabaseUploadSceneFileDialog::balsaStudyIDLockPushButtonClicked);
-    if (m_lockClosedIconValid
-        && m_lockOpenIconValid) {
-        m_balsaStudyIDLockPushButton->setText("");
-    }
     
     /*
      * Scene BALSA Study Title
@@ -247,14 +215,15 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_balsaStudyTitleLineEdit = new QLineEdit();
     m_balsaStudyTitleLineEdit->setToolTip("Title for the study");
     m_balsaStudyTitleLineEdit->setValidator(createValidator(LabelName::LABEL_STUDY_TITLE));
+    m_balsaStudyTitleLineEdit->setReadOnly(true);
     QObject::connect(m_balsaStudyTitleLineEdit, &QLineEdit::textEdited,
                      this, [=] { this->validateData(); });
     
     /**
      * Select Study Push Button
      */
-    m_selectStudyTitlePushButton = new QPushButton("Add/Choose...");
-    m_selectStudyTitlePushButton->setToolTip("Add new study or choose from user's studies in BALSA Database");
+    m_selectStudyTitlePushButton = new QPushButton("Add/Choose/Rename...");
+    m_selectStudyTitlePushButton->setToolTip("Add new study, choose a study, or edit a study's title in BALSA Database");
     QObject::connect(m_selectStudyTitlePushButton, &QPushButton::clicked,
                      this, &BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked);
     
@@ -324,11 +293,6 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     row++;
     gridLayout->addWidget(m_balsaStudyIDLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_balsaStudyIDLineEdit, row, COLUMN_DATA_WIDGET);
-    gridLayout->addWidget(m_balsaStudyIDLockPushButton, row, COLUMN_BUTTON_ONE);
-    if (m_getBalsaStudyIDPushButton != NULL) {
-        gridLayout->addWidget(m_getBalsaStudyIDPushButton, row, COLUMN_BUTTON_TWO);
-    }
-    
     
     m_balsaStudyIDLineEdit->setText(m_sceneFile->getBalsaStudyID());
     AString baseDirectory = m_sceneFile->getBalsaBaseDirectory();
@@ -504,13 +468,17 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     if ( ! m_baseDirectoryLineEdit->hasAcceptableInput()) {
         msg.appendWithNewLine("Base Directory is invalid.<p>");
     }
+    bool invalidStudyFlag = false;
     if ( ! m_balsaStudyTitleLineEdit->hasAcceptableInput()) {
-        msg.appendWithNewLine("Study Title is invalid.<p>");
+        invalidStudyFlag = true;
     }
     if ( ! m_balsaStudyIDLineEdit->hasAcceptableInput()) {
-        msg.appendWithNewLine("Study ID is invalid.  To get a Study ID, press the \"Get\" button which "
-                              "sends the Study Title to the Database and returns a Study ID.  You may "
-                              "also go to https://balsa.wustl.edu to get a Study ID<p>");
+        invalidStudyFlag = true;
+    }
+    if (invalidStudyFlag) {
+        msg.appendWithNewLine("Study ID and/or Title is invalid.  Press the \""
+                              + m_selectStudyTitlePushButton->text()
+                              + "\" button to choose or create a BALSA Study ID and Title.");
     }
     
     if ( ! msg.isEmpty()) {
@@ -528,7 +496,7 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     if (m_sceneFile->isModified()) {
         const QString msg("The scene file is modified and must be saved before continuing.  Would you like "
                           "to save the scene file using its current name and continue?");
-        if (WuQMessageBox::warningYesNo(this, msg)) {
+        if (WuQMessageBox::warningOkCancel(this, msg)) {
             try {
                 Brain* brain = GuiManager::get()->getBrain();
                 brain->writeDataFile(m_sceneFile);
@@ -623,82 +591,6 @@ BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked()
             m_balsaStudyTitleLineEdit->setText(bsi.getStudyTitle());
         }
         validateData();
-    }
-}
-
-/**
- * Update the Icon in the BALSA Study ID Lock Button
- */
-void
-BalsaDatabaseUploadSceneFileDialog::updateBalsaStudyIDLockButtonIcon()
-{
-    
-    if (m_lockClosedIconValid
-        && m_lockOpenIconValid) {
-        if (m_balsaStudyIDLineEdit->isReadOnly()) {
-            m_balsaStudyIDLockPushButton->setIcon(m_lockClosedIcon);
-        }
-        else {
-            m_balsaStudyIDLockPushButton->setIcon(m_lockOpenIcon);
-        }
-    }
-}
-
-/**
- * Called when BALSA Study ID Lock Button is clicked
- */
-void
-BalsaDatabaseUploadSceneFileDialog::balsaStudyIDLockPushButtonClicked()
-{
-    /*
-     * Toggle the 'read only' status of the Study ID's Line Edit
-     */
-    m_balsaStudyIDLineEdit->setReadOnly( ! m_balsaStudyIDLineEdit->isReadOnly());
-    
-    updateBalsaStudyIDLockButtonIcon();
-}
-
-
-/**
- * Called when get BALSA study ID push button is clicked.
- */
-void
-BalsaDatabaseUploadSceneFileDialog::getBalsaStudyIDPushButtonClicked()
-{
-    CaretAssert(m_getBalsaStudyIDPushButton);
-    
-    const AString title = m_balsaStudyTitleLineEdit->text().trimmed();
-    if (title.isEmpty()) {
-        WuQMessageBox::errorOk(m_getBalsaStudyIDPushButton,
-                               "The Study Title is required to get a Study ID");
-        return;
-    }
-    
-    CursorDisplayScoped cursor;
-    cursor.showWaitCursor();
-    
-    const AString username = m_usernameLineEdit->text().trimmed();
-    const AString password = m_passwordLineEdit->text().trimmed();
-    
-    AString studyID;
-    AString errorMessage;
-    CaretPointer<BalsaDatabaseManager> balsaDatabaseManager(new BalsaDatabaseManager());
-    const bool successFlag = balsaDatabaseManager->getStudyIDFromStudyTitle(getDataBaseURL(),
-                                                                         username,
-                                                                         password,
-                                                                         title,
-                                                                         studyID,
-                                                                         errorMessage);
-    
-    cursor.restoreCursor();
-    
-    if (successFlag) {
-        m_balsaStudyIDLineEdit->setText(studyID);
-        validateData();
-    }
-    else {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
     }
 }
 
@@ -830,9 +722,8 @@ void
 BalsaDatabaseUploadSceneFileDialog::validateData()
 {
     updateAllLabels();
-    if (m_getBalsaStudyIDPushButton != NULL) {
-        m_getBalsaStudyIDPushButton->setEnabled(m_balsaStudyTitleLineEdit->hasAcceptableInput());
-    }
+    m_selectStudyTitlePushButton->setEnabled(m_usernameLineEdit->hasAcceptableInput()
+                                             && (m_passwordLineEdit->hasAcceptableInput()));
 }
 
 /**

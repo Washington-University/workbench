@@ -56,10 +56,6 @@ namespace caret {
 
         void browseBaseDirectoryPushButtonClicked();
 
-        void getBalsaStudyIDPushButtonClicked();
-        
-        void balsaStudyIDLockPushButtonClicked();
-        
         void validateData();
         
         void selectStudyTitleButtonClicked();
@@ -96,8 +92,6 @@ namespace caret {
         
         AString getDataBaseURL() const;
         
-        void updateBalsaStudyIDLockButtonIcon();
-        
         QRegularExpressionValidator* createValidator(const LabelName labelName);
         
         AString getZipFileNameWithPath(AString& errorMessageOut) const;
@@ -126,9 +120,6 @@ namespace caret {
         QLabel* m_extractDirectoryNameLabel;
         QLineEdit* m_extractDirectoryNameLineEdit;
 
-        QPushButton* m_getBalsaStudyIDPushButton;
-        QPushButton* m_balsaStudyIDLockPushButton;
-        
         QLabel* m_balsaStudyIDLabel;
         QLineEdit* m_balsaStudyIDLineEdit;
         
@@ -141,12 +132,6 @@ namespace caret {
         
         QLabel* m_baseDirectoryLabel;
         QLineEdit* m_baseDirectoryLineEdit;
-        
-        QIcon m_lockClosedIcon;
-        bool m_lockClosedIconValid = false;
-        
-        QIcon m_lockOpenIcon;
-        bool m_lockOpenIconValid = false;
         
         // ADD_NEW_MEMBERS_HERE
 

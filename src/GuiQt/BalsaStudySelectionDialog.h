@@ -28,6 +28,7 @@
 #include "BalsaStudyInformation.h"
 #include "WuQDialogModal.h"
 
+class QPushButton;
 class QTableWidget;
 
 
@@ -58,6 +59,8 @@ namespace caret {
     private slots:
         void newStudyButtonClicked();
         
+        void editSelectedStudyButtonClicked();
+        
     private:
         const int32_t COLUMN_TITLE = 0;
         
@@ -82,6 +85,8 @@ namespace caret {
         const AString& m_balsaPassword;
         
         QTableWidget* m_studyTableWidget;
+        
+        QPushButton* m_editSelectedStudyPushButton;
         
         // ADD_NEW_MEMBERS_HERE
 
