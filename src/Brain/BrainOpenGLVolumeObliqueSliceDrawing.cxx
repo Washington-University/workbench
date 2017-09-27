@@ -1204,8 +1204,13 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
      */
     std::vector<VolumeSlice> volumeSlices;
     for (int32_t i = 0; i < numVolumes; i++) {
+        float sliceOpacity = 1.0;
+        if (i > 0) {
+            sliceOpacity = m_volumeDrawInfo[i].opacity;
+        }
         volumeSlices.push_back(VolumeSlice(m_volumeDrawInfo[i].volumeFile,
-                                           m_volumeDrawInfo[i].mapIndex));
+                                           m_volumeDrawInfo[i].mapIndex,
+                                           m_volumeDrawInfo[i].opacity));
         
     }
     bool showFirstVoxelCoordFlag = debugFlag;
@@ -1676,12 +1681,12 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
             
             const uint8_t* rgba = volumeSlices[sliceIndex].getRgbaForValueByIndex(voxelOffset);
             if (rgba[3] > 0) {
-                voxelRGBA[0] = rgba[0];
-                voxelRGBA[1] = rgba[1];
-                voxelRGBA[2] = rgba[2];
-                voxelRGBA[3] = rgba[3];
-                
                 if (m_identificationModeFlag) {
+                    voxelRGBA[0] = rgba[0];
+                    voxelRGBA[1] = rgba[1];
+                    voxelRGBA[2] = rgba[2];
+                    voxelRGBA[3] = rgba[3];
+                    
                     VolumeMappableInterface* volMap = volumeSlices[sliceIndex].m_volumeMappableInterface;
                     int64_t voxelI, voxelJ, voxelK;
                     volMap->enclosingVoxel(vtd->m_center[0], vtd->m_center[1], vtd->m_center[2],
@@ -1697,6 +1702,40 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                                                  voxelK,
                                                  diffXYZ,
                                                  voxelRGBA);
+                    }
+                }
+                else {
+                    /*
+                     * In oblique drawing, each drawn "voxel" is composited from
+                     * an interpolated voxel from each slice.  Therefore, we must
+                     * do our own alpha (transparency) processing.
+                     */
+                    bool noAlphaFlag = true;
+                    if (iSlice > 0) {
+                        float alpha = volumeSlices[sliceIndex].m_opacity;
+                        if (alpha < 1.0f) {
+                            if ((voxelRGBA[3] > 0)
+                                && (rgba[3] > 0)) {
+                                const float oneMinusAlpha = 1.0f - alpha;
+                                voxelRGBA[0] = static_cast<uint8_t>((rgba[0] * alpha) + (voxelRGBA[0] * oneMinusAlpha));
+                                voxelRGBA[1] = static_cast<uint8_t>((rgba[1] * alpha) + (voxelRGBA[1] * oneMinusAlpha));
+                                voxelRGBA[2] = static_cast<uint8_t>((rgba[2] * alpha) + (voxelRGBA[2] * oneMinusAlpha));
+                                voxelRGBA[3] = 255;
+                                noAlphaFlag = false;
+                            }
+                        }
+                    }
+                    
+                    if (volumeEditingDrawAllVoxelsFlag
+                        && (volumeSlices[sliceIndex].m_volumeFile == voxelEditingVolumeFile)) {
+                        noAlphaFlag = true;
+                    }
+                    
+                    if (noAlphaFlag) {
+                        voxelRGBA[0] = rgba[0];
+                        voxelRGBA[1] = rgba[1];
+                        voxelRGBA[2] = rgba[2];
+                        voxelRGBA[3] = rgba[3];
                     }
                 }
             }
@@ -5192,7 +5231,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::getVolumeDrawingViewDependentCulling(const
  *   Index of selected map.
  */
 BrainOpenGLVolumeObliqueSliceDrawing::VolumeSlice::VolumeSlice(VolumeMappableInterface* volumeMappableInterface,
-                                                        const int32_t mapIndex)
+                                                               const int32_t mapIndex,
+                                                               const float opacity)
 {
     m_volumeMappableInterface = volumeMappableInterface;
     m_volumeFile = dynamic_cast<VolumeFile*>(m_volumeMappableInterface);
@@ -5201,6 +5241,9 @@ BrainOpenGLVolumeObliqueSliceDrawing::VolumeSlice::VolumeSlice(VolumeMappableInt
     CaretAssert(m_volumeMappableInterface);
     m_mapIndex = mapIndex;
     CaretAssert(m_mapIndex >= 0);
+    
+    m_opacity = opacity;
+    CaretAssert((m_opacity >= 0.0f) && (m_opacity <= 1.0f));
     
     const int64_t sliceDim = 300;
     const int64_t numVoxels = sliceDim * sliceDim;

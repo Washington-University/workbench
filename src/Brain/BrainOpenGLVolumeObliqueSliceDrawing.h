@@ -73,7 +73,8 @@ namespace caret {
              *   Volume that contains the data values.
              */
             VolumeSlice(VolumeMappableInterface* volumeMappableInterface,
-                        const int32_t mapIndex);
+                        const int32_t mapIndex,
+                        const float opacity);
             
             /**
              * Add a value and return its index.
@@ -130,6 +131,11 @@ namespace caret {
              * Map index
              */
             int32_t m_mapIndex;
+            
+            /**
+             * Opacity
+             */
+            float m_opacity;
             
             /**
              * The voxel values for single scalar or red if RGBA volume
