@@ -138,6 +138,10 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                          "DELETE_ANNOTATIONS",
                                                          "Delete Annotations"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(DUPLICATE_ANNOTATION,
+                                                         "DUPLICATE_ANNOTATION",
+                                                         "Duplicate Annotation"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(GROUPING_GROUP,
                                                          "GROUPING_GROUP",
                                                          "Group Annotations"));

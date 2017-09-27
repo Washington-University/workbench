@@ -38,10 +38,12 @@ namespace caret {
             MODE_CREATE,
             MODE_CUT,
             MODE_DELETE,
+            MODE_DUPLICATE,
             MODE_PASTE,
             MODE_UNCREATE,
             MODE_UNCUT,
             MODE_UNDELETE,
+            MODE_UNDUPLICATE,
             MODE_UNPASTE
         };
         

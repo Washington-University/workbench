@@ -83,6 +83,8 @@ namespace caret {
         
         void applyGroupingUngroup();
         
+        void duplicateAnnotationSelected(QAction*);
+        
     private:
         UserInputModeAnnotationsContextMenu(const UserInputModeAnnotationsContextMenu&);
 
@@ -91,6 +93,8 @@ namespace caret {
         void applyGrouping(const AnnotationGroupingModeEnum::Enum grouping);
         
         QMenu* createTurnOnInDisplayGroupMenu();
+        
+        QMenu* createDuplicateTabSpaceAnnotationMenu();
         
         UserInputModeAnnotations* m_userInputModeAnnotations;
         

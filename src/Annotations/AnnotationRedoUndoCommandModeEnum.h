@@ -53,6 +53,8 @@ public:
         CUT_ANNOTATION,
         /** Delete Annotations */
         DELETE_ANNOTATIONS,
+        /** Duplicate Annotation */
+        DUPLICATE_ANNOTATION,
         /** Group Annotations */
         GROUPING_GROUP,
         /** Regroup Annotations */

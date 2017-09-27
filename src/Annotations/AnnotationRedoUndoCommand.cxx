@@ -188,6 +188,11 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
                                    + AnnotationRedoUndoCommandModeEnum::toName(m_mode)
                                    + " is handle in the redo() and undo() functions."));
             break;
+        case AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATION:
+            CaretAssertMessage(0, ("This mode "
+                                   + AnnotationRedoUndoCommandModeEnum::toName(m_mode)
+                                   + " is handle in the redo() and undo() functions."));
+            break;
         case AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP:
             CaretAssert(0);
         case AnnotationRedoUndoCommandModeEnum::GROUPING_REGROUP:
@@ -547,6 +552,17 @@ AnnotationRedoUndoCommand::redo(AString& errorMessageOut)
                 validFlag = false;
             }
         }
+        else if (m_mode == AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATION) {
+            EventAnnotationAddToRemoveFromFile duplicateEvent(EventAnnotationAddToRemoveFromFile::MODE_DUPLICATE,
+                                                          annMem->m_annotationFile,
+                                                          annMem->m_annotation);
+            EventManager::get()->sendEvent(duplicateEvent.getPointer());
+            
+            if (duplicateEvent.isError()) {
+                errorMessageOut.appendWithNewLine(duplicateEvent.getErrorMessage());
+                validFlag = false;
+            }
+        }
         else if (m_mode == AnnotationRedoUndoCommandModeEnum::PASTE_ANNOTATION) {
             EventAnnotationAddToRemoveFromFile pasteEvent(EventAnnotationAddToRemoveFromFile::MODE_PASTE,
                                                            annMem->m_annotationFile,
@@ -667,6 +683,17 @@ AnnotationRedoUndoCommand::undo(AString& errorMessageOut)
             
             if (event.isError()) {
                 errorMessageOut.appendWithNewLine(event.getErrorMessage());
+                validFlag = false;
+            }
+        }
+        else if (m_mode == AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATION) {
+            EventAnnotationAddToRemoveFromFile duplicateEvent(EventAnnotationAddToRemoveFromFile::MODE_UNDUPLICATE,
+                                                              annMem->m_annotationFile,
+                                                              annMem->m_annotation);
+            EventManager::get()->sendEvent(duplicateEvent.getPointer());
+            
+            if (duplicateEvent.isError()) {
+                errorMessageOut.appendWithNewLine(duplicateEvent.getErrorMessage());
                 validFlag = false;
             }
         }
@@ -1316,6 +1343,41 @@ AnnotationRedoUndoCommand::setModePasteAnnotation(AnnotationFile* annotationFile
     
     m_annotationMementos.push_back(am);
 }
+
+/**
+ * Set the mode to duplicate annotations and create the undo/redo instances.
+ *
+ * @param annotationFile
+ *     File to which annotation is pasted.
+ * @param annotations
+ *     The new anntotation duplicated from existing annotation.
+ */
+void
+AnnotationRedoUndoCommand::setModeDuplicateAnnotation(AnnotationFile* annotationFile,
+                                                  Annotation* annotation)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATION;
+    setDescription("Duplicate Annotation");
+    
+    CaretAssert(annotationFile);
+    CaretAssert(annotation);
+    
+    /*
+     * NOTE: We only need the pointer since the file containing
+     * the annotation will handle delete/undelete of the
+     * annotation.  If we don't use NULL for the redo and
+     * undo annotations, copies of the annotation would be
+     * needed since the AnnotationMemento will delete
+     * the redo and undo annotations when it is deleted.
+     */
+    AnnotationMemento* am = new AnnotationMemento(annotationFile,
+                                                  annotation,
+                                                  NULL,
+                                                  NULL);
+    
+    m_annotationMementos.push_back(am);
+}
+
 
 /**
  * Set the mode to rotation angle and create the undo/redo instances

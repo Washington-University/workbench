@@ -354,6 +354,13 @@ AnnotationFile::receiveEvent(Event* event)
                     annEvent->setSuccessful(true);
                 }
                 break;
+            case EventAnnotationAddToRemoveFromFile::MODE_DUPLICATE:
+                if (annotationFile == this) {
+                    if (restoreAnnotationAddIfNotFound(annotation)) {
+                        annEvent->setSuccessful(true);
+                    }
+                }
+                break;
             case EventAnnotationAddToRemoveFromFile::MODE_PASTE:
                 if (annotationFile == this) {
                     if (restoreAnnotationAddIfNotFound(annotation)) {
@@ -378,6 +385,12 @@ AnnotationFile::receiveEvent(Event* event)
                     annEvent->setSuccessful(true);
                 }
                 break;
+            case EventAnnotationAddToRemoveFromFile::MODE_UNDUPLICATE:
+                if (annotationFile == this) {
+                    if (removeAnnotation(annotation)) {
+                        annEvent->setSuccessful(true);
+                    }
+                }
             case EventAnnotationAddToRemoveFromFile::MODE_UNPASTE:
                 if (annotationFile == this) {
                     if (removeAnnotation(annotation)) {

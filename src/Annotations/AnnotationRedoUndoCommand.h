@@ -96,6 +96,9 @@ namespace caret {
         void setModePasteAnnotation(AnnotationFile* annotationFile,
                                     Annotation* annotation);
         
+        void setModeDuplicateAnnotation(AnnotationFile* annotationFile,
+                                        Annotation* annotation);
+        
         void setModeRotationAngle(const float newRotationAngle,
                                   const std::vector<Annotation*>& annotations);
         

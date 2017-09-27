@@ -39,6 +39,8 @@
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "DisplayPropertiesAnnotation.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -184,6 +186,14 @@ m_newAnnotationCreatedByContextMenu(NULL)
     QAction* deleteAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::DELETER),
                                       this, SLOT(deleteAnnotations()));
     deleteAction->setEnabled(allSelectedAnnotationsDeletableFlag);
+    
+    /*
+     * Duplicate tab space annotation
+     */
+    QMenu* duplicateMenu = createDuplicateTabSpaceAnnotationMenu();
+    if (duplicateMenu != NULL) {
+        addMenu(duplicateMenu);
+    }
     
     /*
      * Paste
@@ -479,6 +489,9 @@ UserInputModeAnnotationsContextMenu::turnOnDisplayInGroup(QAction* action)
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * @return New menu for turning on in display group
+ */
 QMenu*
 UserInputModeAnnotationsContextMenu::createTurnOnInDisplayGroupMenu()
 {
@@ -498,6 +511,84 @@ UserInputModeAnnotationsContextMenu::createTurnOnInDisplayGroupMenu()
     }
     
     return menu;
+}
+
+/**
+ * @return New menu for duplicating a tab annotation.
+ *         NULL is returned if no other tabs.
+ */
+QMenu*
+UserInputModeAnnotationsContextMenu::createDuplicateTabSpaceAnnotationMenu()
+{
+    EventBrowserTabGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    const std::vector<BrowserTabContent*> allTabs = tabIndicesEvent.getAllBrowserTabs();
+    
+    bool menuValidFlag = false;
+    if (m_annotation->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
+        if (allTabs.size() > 1) {
+            menuValidFlag = true;
+        }
+    }
+    
+    QMenu* menu = new QMenu("Duplicate to Tab");
+    QObject::connect(menu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(duplicateAnnotationSelected(QAction*)));
+    
+    if (menuValidFlag) {
+        for (BrowserTabContent* tabContent : allTabs) {
+            if (tabContent->getTabNumber() != m_annotation->getTabIndex()) {
+                QAction* action = menu->addAction(tabContent->getName());
+                action->setData((int)tabContent->getTabNumber());
+            }
+        }
+    }
+    else {
+        menu->setEnabled(false);
+    }
+    
+    return menu;
+}
+
+/**
+ * Gets called when a selection is made from Duplicate Tab Annotation menu
+ *
+ * @param action
+ *     Action selected from Duplicate menu
+ */
+void
+UserInputModeAnnotationsContextMenu::duplicateAnnotationSelected(QAction* action)
+{
+    CaretAssert(action);
+    CaretAssert(m_annotationFile);
+    CaretAssert(m_annotation);
+    
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    
+    const int32_t tabIndex = action->data().toInt();
+    
+    Annotation* annCopy = m_annotation->clone();
+    annCopy->setTabIndex(tabIndex);
+    
+    DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+    dpa->updateForNewAnnotation(annCopy);
+
+    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    undoCommand->setModeDuplicateAnnotation(m_annotationFile,
+                                            annCopy);
+    AString errorMessage;
+    if ( ! annotationManager->applyCommand(undoCommand,
+                                           errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+    annotationManager->selectAnnotationForEditing(m_mouseEvent.getBrowserWindowIndex(),
+                                                  AnnotationManager::SELECTION_MODE_SINGLE,
+                                                  false,
+                                                  annCopy);
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**
