@@ -119,12 +119,7 @@ AnnotationWidthHeightWidget::~AnnotationWidthHeightWidget()
 void
 AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotations2D)
 {
-    m_annotations2D.clear();
-    for (auto a : annotations2D) {
-        if (a->getType() != AnnotationTypeEnum::COLOR_BAR) {
-            m_annotations2D.push_back(a);
-        }
-    }
+    m_annotations2D = annotations2D;
     
     if ( ! m_annotations2D.empty()) {
         float widthValue = 0.0;
