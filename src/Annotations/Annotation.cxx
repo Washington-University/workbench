@@ -1198,7 +1198,6 @@ Annotation::initializeProperties()
         resetProperty(Property::GROUP);
         resetProperty(Property::LINE_COLOR);
         resetProperty(Property::LINE_THICKNESS);
-        resetProperty(Property::ROTATION);
         resetProperty(Property::TEXT_COLOR);
         resetProperty(Property::TEXT_EDIT);
         
