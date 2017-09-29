@@ -28,6 +28,7 @@
 
 #include <QJsonDocument>
 
+#include "BalsaUserRoles.h"
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
@@ -699,6 +700,109 @@ BalsaDatabaseManager::requestStudyID(const AString& databaseURL,
 }
 
 /**
+ * Request the user's roles
+ *
+ * @param databaseURL
+ *     URL for database
+ * @param roleNamesOut
+ *     Output with names of roles
+ * @param errorMessageOut
+ *     Output with error message
+ * @return
+ *     True if success, else false.
+ */
+bool
+BalsaDatabaseManager::requestUserRoles(const AString& databaseURL,
+                                       AString& roleNamesOut,
+                                       AString& errorMessageOut)
+{
+    const AString studyIdURL(databaseURL
+                             + "/user/roles");
+    
+    errorMessageOut.clear();
+    
+    CaretHttpRequest caretRequest;
+    caretRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
+    caretRequest.m_url    = studyIdURL;
+    caretRequest.m_headers.insert(std::make_pair("Content-Type",
+                                                 "application/x-www-form-urlencoded"));
+    caretRequest.m_headers.insert(std::make_pair("Cookie",
+                                                 getJSessionIdCookie()));
+    caretRequest.m_arguments.push_back(std::make_pair("type",
+                                                      "json"));
+    
+    CaretHttpResponse studyResponse;
+    CaretHttpManager::httpRequest(caretRequest, studyResponse);
+    
+    if (m_debugFlag) {
+        std::cout << "Request rolese response Code: " << studyResponse.m_responseCode << std::endl;
+    }
+    
+    if (studyResponse.m_responseCode != 200) {
+        errorMessageOut = ("Requesting roles failed with HTTP code="
+                           + AString::number(studyResponse.m_responseCode));
+        return false;
+    }
+    
+    AString contentType = getHeaderValue(studyResponse, "Content-Type");
+    //AString contentType = studyResponse.getHeaderValue("Content-Type");
+    if (contentType.isNull()) {
+        errorMessageOut = ("Requesting roles failed.  Content type returned by BALSA is unknown");
+        return false;
+    }
+    
+    if ( ! contentType.toLower().startsWith("application/json")) {
+        errorMessageOut = ("Requesting rolesfailed.  Content type return by BALSA should be JSON format but is "
+                           + contentType);
+        return false;
+    }
+    
+    studyResponse.m_body.push_back('\0');
+    AString responseContent(&studyResponse.m_body[0]);
+    
+//    if (m_debugFlag) {
+        std::cout << "Request roles body:\n" << responseContent << std::endl << std::endl;
+//    }
+    
+    QJsonParseError jsonError;
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toLatin1(),
+                                                         &jsonError);
+    if (jsonDocument.isNull()) {
+        errorMessageOut = ("Requesting roles failed.  Failed to parse JSON, error:"
+                           + jsonError.errorString());
+        return false;
+    }
+    
+    QByteArray json = jsonDocument.toJson();
+    if (m_debugFlag) {
+        std::cout << "Array?: " << jsonDocument.isArray() << std::endl;
+        std::cout << "Empty?: " << jsonDocument.isEmpty() << std::endl;
+        std::cout << "NULL?: " << jsonDocument.isNull() << std::endl;
+        std::cout << "Object?: " << jsonDocument.isObject() << std::endl;
+        std::cout << "JSON length: " << json.size() << std::endl;
+        AString str(json);
+        std::cout << ("Formatted JSON:\n" + str) << std::endl;
+    }
+    
+    if ( ! jsonDocument.isArray()) {
+        errorMessageOut  = ("Requesting roles failed.  JSON content is not an array."
+                            "JSON is displayed in terminal if logging level is warning or higher.");
+        CaretLogWarning("Roles JSON is not Array\n"
+                        + AString(jsonDocument.toJson()));
+        return false;
+    }
+    
+    BalsaUserRoles bsi(jsonDocument.array());
+    std::cout << bsi.toString() << std::endl;
+//    if ( ! bsi.getStudyID().isEmpty()) {
+//        studyIDOut = bsi.getStudyID();
+//        return true;
+//    }
+    
+    return bsi.isValid();
+}
+
+/**
  * Login to BALSA and request a study ID from a study title.
  *
  * @param databaseURL
@@ -748,6 +852,56 @@ BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& databaseURL,
     if ( ! requestStudyID(databaseURL,
                           studyTitle,
                           studyIdOut,
+                          errorMessageOut)) {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Login to BALSA and request a study ID from a study title.
+ *
+ * @param databaseURL
+ *     URL of the database.
+ * @param username
+ *     Username for logging in.
+ * @param password
+ *     Password for logging in.
+ * @param studyTitle
+ *     The study's titlee.
+ * @param studyIdOut
+ *     Output containing the study ID.
+ * @param errorMessageOut
+ *     Contains description of any error(s).
+ * @return
+ *     True if processing was successful, else false.
+ */
+bool
+BalsaDatabaseManager::getUserRoles(const AString& databaseURL,
+                                   const AString& username,
+                                   const AString& password,
+                                   AString& roleNamesOut,
+                                   AString& errorMessageOut)
+{
+    /*
+     * Login
+     */
+    const AString loginURL(databaseURL
+                           + "/j_spring_security_check");
+    if ( ! login(loginURL,
+                 username,
+                 password,
+                 errorMessageOut)) {
+        
+        return false;
+    }
+    
+    CaretLogInfo("SESSION ID from BALSA Login: "
+                 + getJSessionIdCookie());
+    
+    if ( ! requestUserRoles(databaseURL,
+                          roleNamesOut,
                           errorMessageOut)) {
         return false;
     }

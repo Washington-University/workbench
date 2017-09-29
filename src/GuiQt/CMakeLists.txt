@@ -249,6 +249,7 @@ BalsaDatabaseManager.h
 BalsaDatabaseUploadSceneFileDialog.h
 BalsaStudySelectionDialog.h
 BalsaStudyInformation.h
+BalsaUserRoles.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -461,6 +462,7 @@ AnnotationWidthHeightWidget.cxx
 BalsaDatabaseManager.cxx
 BalsaDatabaseUploadSceneFileDialog.cxx
 BalsaStudyInformation.cxx
+BalsaUserRoles.cxx
 BalsaStudySelectionDialog.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx

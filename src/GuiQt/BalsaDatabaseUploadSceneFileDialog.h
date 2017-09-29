@@ -66,6 +66,8 @@ namespace caret {
         
         void findBaseDirectoryPushButtonClicked();
         
+        void rolesButtonClicked();
+        
     protected:
         virtual void okButtonClicked();
         

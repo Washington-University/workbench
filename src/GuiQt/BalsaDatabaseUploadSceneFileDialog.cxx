@@ -253,6 +253,14 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     QObject::connect(m_findBaseDirectoryPushButton, &QPushButton::clicked,
                      this, &BalsaDatabaseUploadSceneFileDialog::findBaseDirectoryPushButtonClicked);
     
+    /*
+     * Roles button
+     */
+    QPushButton* rolesPushButton = new QPushButton("Test Roles...");
+    rolesPushButton->setToolTip("Test getting the user's roles");
+    QObject::connect(rolesPushButton, &QPushButton::clicked,
+                     this, &BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked);
+
     int columnCounter = 0;
     const int COLUMN_LABEL = columnCounter++;
     const int COLUMN_DATA_WIDGET = columnCounter++;
@@ -293,6 +301,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     row++;
     gridLayout->addWidget(m_balsaStudyIDLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_balsaStudyIDLineEdit, row, COLUMN_DATA_WIDGET);
+    gridLayout->addWidget(rolesPushButton, row, COLUMN_BUTTON_ONE, 1, 2);
     
     m_balsaStudyIDLineEdit->setText(m_sceneFile->getBalsaStudyID());
     AString baseDirectory = m_sceneFile->getBalsaBaseDirectory();
@@ -545,6 +554,26 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     WuQDialogModal::okButtonClicked();    
 }
 
+void
+BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked()
+{
+    const AString username = m_usernameLineEdit->text().trimmed();
+    const AString password = m_passwordLineEdit->text().trimmed();
+
+    AString roleNames;
+    AString errorMessage;
+    
+    if ( ! m_balsaDatabaseManager->getUserRoles(getDataBaseURL(),
+                                                username,
+                                                password,
+                                                roleNames,
+                                                errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+        return;
+    }
+}
+
 /**
  * Select a Study Title from those user has in BALSA Database
  */
@@ -555,9 +584,9 @@ BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked()
     const AString password = m_passwordLineEdit->text().trimmed();
     
     std::vector<BalsaStudyInformation> studyInfo;
-    studyInfo.emplace(studyInfo.end(), "AV4H", "Study One");
-    studyInfo.emplace(studyInfo.end(), "BX32", "Study Two");
-    studyInfo.emplace(studyInfo.end(), "CR33", "Study Three");
+//    studyInfo.emplace(studyInfo.end(), "AV4H", "Study One");
+//    studyInfo.emplace(studyInfo.end(), "BX32", "Study Two");
+//    studyInfo.emplace(studyInfo.end(), "CR33", "Study Three");
     
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();

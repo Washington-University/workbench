@@ -42,6 +42,12 @@ namespace caret {
                                            std::vector<BalsaStudyInformation>& studyInformationOut,
                                            AString& errorMessageOut);
         
+        bool getUserRoles(const AString& databaseURL,
+                          const AString& username,
+                          const AString& password,
+                          AString& roleNamesOut,
+                          AString& errorMessageOut);
+        
         bool getStudyIDFromStudyTitle(const AString& databaseURL,
                                       const AString& username,
                                       const AString& password,
@@ -94,6 +100,10 @@ namespace caret {
         bool requestStudyID(const AString& databaseURL,
                             const AString& studyTitle,
                             AString& studyIDOut,
+                            AString& errorMessageOut);
+        
+        bool requestUserRoles(const AString& databaseURL,
+                            AString& roleNamesOut,
                             AString& errorMessageOut);
         
         bool uploadFileWithCaretHttpManager(const AString& uploadURL,
