@@ -56,7 +56,8 @@ using namespace caret;
 BalsaDatabaseManager::BalsaDatabaseManager()
 : CaretObject()
 {
-    m_debugFlag = false;
+    m_debugFlag = true;
+    logout();
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
@@ -81,8 +82,8 @@ BalsaDatabaseManager::toString() const
 /**
  * Login to the BALSA Database.
  *
- * @param loginURL
- *     URL for logging in.
+ * @param databaseURL
+ *     URL of the database for login
  * @param username
  *     Name for login.
  * @param password
@@ -93,16 +94,19 @@ BalsaDatabaseManager::toString() const
  *     True if login is successful, else false.
  */
 bool
-BalsaDatabaseManager::login(const AString& loginURL,
+BalsaDatabaseManager::login(const AString& databaseURL,
                             const AString& username,
                             const AString& password,
                             AString& errorMessageOut)
 {
     errorMessageOut.clear();
     
+    m_databaseURL = databaseURL;
     m_username = username.trimmed();
     m_password = password.trimmed();
     m_jSessionIdCookie = "";
+    
+    const AString loginURL(databaseURL + "/j_spring_security_check");
     
     CaretHttpRequest loginRequest;
     loginRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
@@ -148,6 +152,7 @@ BalsaDatabaseManager::login(const AString& loginURL,
     if (loginResponse.m_responseCode == 200) {
         if (m_jSessionIdCookie.isEmpty()) {
             errorMessageOut = ("Login was successful but BALSA failed to provide a Session ID.");
+            logout();
             return false;
         }
         
@@ -159,9 +164,23 @@ BalsaDatabaseManager::login(const AString& loginURL,
     errorMessageOut = ("Login has failed.\n"
                        "HTTP Code: " + AString::number(loginResponse.m_responseCode)
                        + " Content: " + responseContent);
+    logout();
 
     return false;
 }
+
+/**
+ * Logout of the database
+ */
+void
+BalsaDatabaseManager::logout()
+{
+    m_databaseURL.clear();
+    m_username.clear();
+    m_password.clear();
+    m_jSessionIdCookie.clear();
+}
+
 
 /**
  * Upload file to the BALSA Database.
@@ -643,7 +662,6 @@ BalsaDatabaseManager::requestStudyID(const AString& databaseURL,
     }
     
     AString contentType = getHeaderValue(studyResponse, "Content-Type");
-    //AString contentType = studyResponse.getHeaderValue("Content-Type");
     if (contentType.isNull()) {
         errorMessageOut = ("Requesting study ID failed.  Content type returned by BALSA is unknown");
         return false;
@@ -745,7 +763,6 @@ BalsaDatabaseManager::requestUserRoles(const AString& databaseURL,
     }
     
     AString contentType = getHeaderValue(studyResponse, "Content-Type");
-    //AString contentType = studyResponse.getHeaderValue("Content-Type");
     if (contentType.isNull()) {
         errorMessageOut = ("Requesting roles failed.  Content type returned by BALSA is unknown");
         return false;
@@ -760,9 +777,9 @@ BalsaDatabaseManager::requestUserRoles(const AString& databaseURL,
     studyResponse.m_body.push_back('\0');
     AString responseContent(&studyResponse.m_body[0]);
     
-//    if (m_debugFlag) {
+    if (m_debugFlag) {
         std::cout << "Request roles body:\n" << responseContent << std::endl << std::endl;
-//    }
+    }
     
     QJsonParseError jsonError;
     QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toLatin1(),
@@ -793,11 +810,9 @@ BalsaDatabaseManager::requestUserRoles(const AString& databaseURL,
     }
     
     BalsaUserRoles bsi(jsonDocument.array());
-    std::cout << bsi.toString() << std::endl;
-//    if ( ! bsi.getStudyID().isEmpty()) {
-//        studyIDOut = bsi.getStudyID();
-//        return true;
-//    }
+    if (m_debugFlag) {
+        std::cout << "**** Roles: " << bsi.toString() << std::endl;
+    }
     
     return bsi.isValid();
 }
@@ -805,12 +820,6 @@ BalsaDatabaseManager::requestUserRoles(const AString& databaseURL,
 /**
  * Login to BALSA and request a study ID from a study title.
  *
- * @param databaseURL
- *     URL of the database.
- * @param username
- *     Username for logging in.
- * @param password
- *     Password for logging in.
  * @param studyTitle
  *     The study's titlee.
  * @param studyIdOut
@@ -821,10 +830,7 @@ BalsaDatabaseManager::requestUserRoles(const AString& databaseURL,
  *     True if processing was successful, else false.
  */
 bool
-BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& databaseURL,
-                                               const AString& username,
-                                               const AString& password,
-                                               const AString& studyTitle,
+BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& studyTitle,
                                                AString& studyIdOut,
                                                AString& errorMessageOut)
 {
@@ -833,23 +839,7 @@ BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& databaseURL,
         return false;
     }
     
-    /*
-     * Login
-     */
-    const AString loginURL(databaseURL
-                           + "/j_spring_security_check");
-    if ( ! login(loginURL,
-                 username,
-                 password,
-                 errorMessageOut)) {
-        
-        return false;
-    }
-    
-    CaretLogInfo("SESSION ID from BALSA Login: "
-                 + getJSessionIdCookie());
-    
-    if ( ! requestStudyID(databaseURL,
+    if ( ! requestStudyID(m_databaseURL,
                           studyTitle,
                           studyIdOut,
                           errorMessageOut)) {
@@ -862,14 +852,8 @@ BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& databaseURL,
 /**
  * Login to BALSA and request a study ID from a study title.
  *
- * @param databaseURL
- *     URL of the database.
- * @param username
- *     Username for logging in.
- * @param password
- *     Password for logging in.
  * @param studyTitle
- *     The study's titlee.
+ *     The study's title.
  * @param studyIdOut
  *     Output containing the study ID.
  * @param errorMessageOut
@@ -878,29 +862,10 @@ BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& databaseURL,
  *     True if processing was successful, else false.
  */
 bool
-BalsaDatabaseManager::getUserRoles(const AString& databaseURL,
-                                   const AString& username,
-                                   const AString& password,
-                                   AString& roleNamesOut,
+BalsaDatabaseManager::getUserRoles(AString& roleNamesOut,
                                    AString& errorMessageOut)
 {
-    /*
-     * Login
-     */
-    const AString loginURL(databaseURL
-                           + "/j_spring_security_check");
-    if ( ! login(loginURL,
-                 username,
-                 password,
-                 errorMessageOut)) {
-        
-        return false;
-    }
-    
-    CaretLogInfo("SESSION ID from BALSA Login: "
-                 + getJSessionIdCookie());
-    
-    if ( ! requestUserRoles(databaseURL,
+    if ( ! requestUserRoles(m_databaseURL,
                           roleNamesOut,
                           errorMessageOut)) {
         return false;
@@ -911,14 +876,8 @@ BalsaDatabaseManager::getUserRoles(const AString& databaseURL,
 
 
 /**
- * Login to BALSA and request a study ID from a study title.
+ * Request study information.
  *
- * @param databaseURL
- *     URL of the database.
- * @param username
- *     Username for logging in.
- * @param password
- *     Password for logging in.
  * @param studyInformationOut
  *     Output containing information for all of the user's studies.
  * @param errorMessageOut
@@ -927,37 +886,13 @@ BalsaDatabaseManager::getUserRoles(const AString& databaseURL,
  *     True if processing was successful, else false.
  */
 bool
-BalsaDatabaseManager::getAllStudyInformationForUser(const AString& databaseURL,
-                                   const AString& username,
-                                   const AString& password,
-                                   std::vector<BalsaStudyInformation>& studyInformationOut,
-                                   AString& errorMessageOut)
+BalsaDatabaseManager::getAllStudyInformation(std::vector<BalsaStudyInformation>& studyInformationOut,
+                                             AString& errorMessageOut)
 {
     studyInformationOut.clear();
     errorMessageOut = "";
     
-    /*
-     * Login
-     */
-    const AString loginURL(databaseURL
-                           + "/j_spring_security_check");
-    if ( ! login(loginURL,
-                 username,
-                 password,
-                 errorMessageOut)) {
-        
-        return false;
-    }
-    
-    if (m_debugFlag) {
-        std::cout << "SESSION ID from BALSA Login: " << getJSessionIdCookie() << std::endl;
-    }
-    else {
-        CaretLogInfo("SESSION ID from BALSA Login: "
-                     + getJSessionIdCookie());
-    }
-    
-    const AString studyIdURL(databaseURL
+    const AString studyIdURL(m_databaseURL
                              + "/study/mine");
     
     errorMessageOut.clear();
@@ -1066,12 +1001,6 @@ BalsaDatabaseManager::getAllStudyInformationForUser(const AString& databaseURL,
  * Login to BALSA, zip the scene and data files, and upload the
  * ZIP file to BALSA.
  *
- * @param databaseURL
- *     URL of the database.
- * @param username
- *     Username for logging in.
- * @param password
- *     Password for logging in.
  * @param sceneFile
  *     Name of scene file.
  * @param zipFileName
@@ -1084,13 +1013,10 @@ BalsaDatabaseManager::getAllStudyInformationForUser(const AString& databaseURL,
  *     True if processing was successful, else false.
  */
 bool
-BalsaDatabaseManager::uploadZippedSceneFile(const AString& databaseURL,
-                           const AString& username,
-                           const AString& password,
-                           const SceneFile* sceneFile,
-                           const AString& zipFileName,
-                           const AString& extractToDirectoryName,
-                           AString& errorMessageOut)
+BalsaDatabaseManager::uploadZippedSceneFile(const SceneFile* sceneFile,
+                                            const AString& zipFileName,
+                                            const AString& extractToDirectoryName,
+                                            AString& errorMessageOut)
 {
     errorMessageOut.clear();
     
@@ -1140,22 +1066,6 @@ BalsaDatabaseManager::uploadZippedSceneFile(const AString& databaseURL,
                                        "Logging in...");
     EventManager::get()->sendEvent(progressUpdate.getPointer());
     
-    /*
-     * Login
-     */
-    const AString loginURL(databaseURL
-                           + "/j_spring_security_check");
-    if ( ! login(loginURL,
-                 username,
-                 password,
-                 errorMessageOut)) {
-        
-        return false;
-    }
-    
-    CaretLogInfo("SESSION ID from BALSA Login: "
-                 + getJSessionIdCookie());
-    
     progressUpdate.setProgress(PROGRESS_ZIPPING, "Zipping Scene and Data Files");
     EventManager::get()->sendEvent(progressUpdate.getPointer());
     
@@ -1178,7 +1088,7 @@ BalsaDatabaseManager::uploadZippedSceneFile(const AString& databaseURL,
      * Upload the ZIP file
      */
     AString uploadResultText;
-    const AString uploadURL(databaseURL
+    const AString uploadURL(m_databaseURL
                             + "/study/handleUpload/"
                             + sceneFile->getBalsaStudyID());
     const bool uploadSuccessFlag = uploadFile(uploadURL,
@@ -1201,7 +1111,7 @@ BalsaDatabaseManager::uploadZippedSceneFile(const AString& databaseURL,
         progressUpdate.setProgress(PROGRESS_PROCESS_UPLOAD, "Processing uploaded zip file");
         EventManager::get()->sendEvent(progressUpdate.getPointer());
         
-        const AString processUploadURL(databaseURL
+        const AString processUploadURL(m_databaseURL
                                        + "/study/processUpload/"
                                        + sceneFile->getBalsaStudyID());
         AString processUploadResultText;

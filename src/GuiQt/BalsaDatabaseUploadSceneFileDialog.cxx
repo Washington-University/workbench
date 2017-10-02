@@ -24,6 +24,7 @@
 #undef __BALSA_DATABASE_UPLOAD_SCENE_FILE_DIALOG_DECLARE__
 
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDateTime>
 #include <QDesktopServices>
@@ -54,6 +55,7 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+#include "WuQWidgetDisabler.h"
 
 using namespace caret;
 
@@ -81,17 +83,25 @@ m_sceneFile(sceneFile)
 {
     CaretAssert(m_sceneFile);
     
-    QTabWidget* tabWidget = new QTabWidget();
-    tabWidget->addTab(createUploadTab(), "Upload");
-    tabWidget->addTab(createAdvancedTab(), "Advanced");
+    QWidget* loginWidget = createLoginWidget();
+    m_uploadWidget = createUploadWidget();
+    m_uploadWidget->setEnabled(false);
     
-    setCentralWidget(tabWidget,
+    QWidget* dialogWidget = new QWidget();
+    QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
+    dialogLayout->addWidget(loginWidget);
+    dialogLayout->addWidget(m_uploadWidget);
+    
+    setCentralWidget(dialogWidget,
                      WuQDialogModal::SCROLL_AREA_NEVER);
     
-    validateData();
+    loginInformationChanged();
     
     setSizePolicy(sizePolicy().horizontalPolicy(),
                   QSizePolicy::Fixed);
+    
+    setOkButtonText("");
+    setCancelButtonText("Close");
 }
 
 /**
@@ -102,10 +112,24 @@ BalsaDatabaseUploadSceneFileDialog::~BalsaDatabaseUploadSceneFileDialog()
 }
 
 /**
- * @return New instance of the upload tab.
+ * Called when the Cancel button (we have changed text
+ * to Close) is clicked.
+ */
+void
+BalsaDatabaseUploadSceneFileDialog::cancelButtonClicked()
+{
+    /*
+     * Will logout of database and disable part of dialog
+     */
+    loginInformationChanged();
+}
+
+
+/**
+ * @return The login widget
  */
 QWidget*
-BalsaDatabaseUploadSceneFileDialog::createUploadTab()
+BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
 {
     QString defaultUserName = "balsaTest";
     QString defaultPassword = "@2password";
@@ -119,7 +143,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
      * Create the BALSA database manager
      */
     m_balsaDatabaseManager = std::unique_ptr<BalsaDatabaseManager>(new BalsaDatabaseManager());
-
+    
     /*
      * Database selection
      */
@@ -129,6 +153,10 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_databaseComboBox->addItem("https://balsa.wustl.edu");
     m_databaseComboBox->addItem("http://johnsdev.wustl.edu:8080");
     m_databaseComboBox->addItem("https://johnsdev.wustl.edu:8080");
+    QObject::connect(m_databaseComboBox, static_cast<void(QComboBox::*)(const QString&)>(&QComboBox::activated),
+                     this, [=] { this->loginInformationChanged(); });
+    QObject::connect(m_databaseComboBox, &QComboBox::editTextChanged,
+                     this, [=] { this->loginInformationChanged(); });
     
     const int minimumLineEditWidth = 250;
     
@@ -141,7 +169,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_usernameLineEdit->setText(defaultUserName);
     m_usernameLineEdit->setValidator(createValidator(LabelName::LABEL_USERNAME));
     QObject::connect(m_usernameLineEdit, &QLineEdit::textEdited,
-                     this, [=] { this->validateData(); });
+                     this, [=] { this->loginInformationChanged(); });
     
     /*
      * Password
@@ -153,7 +181,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_passwordLineEdit->setText(defaultPassword);
     m_passwordLineEdit->setValidator(createValidator(LabelName::LABEL_PASSWORD));
     QObject::connect(m_passwordLineEdit, &QLineEdit::textEdited,
-                     this, [=] { this->validateData(); });
+                     this, [=] { this->loginInformationChanged(); });
     
     /*
      * Forgot username label/link
@@ -183,6 +211,77 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
                      this, SLOT(labelHtmlLinkClicked(const QString&)));
     
     /*
+     * Login push button
+     */
+    m_loginPushButton = new QPushButton("Login");
+    QObject::connect(m_loginPushButton, &QPushButton::clicked,
+                     this, &BalsaDatabaseUploadSceneFileDialog::loginButtonClicked);
+    
+    int columnCounter = 0;
+    const int COLUMN_LABEL = columnCounter++;
+    const int COLUMN_DATA_WIDGET = columnCounter++;
+    const int COLUMN_BUTTON_ONE = columnCounter++;
+    const int COLUMN_BUTTON_TWO = columnCounter++;
+    
+    QGroupBox* groupBox = new QGroupBox("Database Login");
+    QGridLayout* gridLayout = new QGridLayout(groupBox);
+    gridLayout->setSpacing(2);
+    gridLayout->setColumnStretch(COLUMN_LABEL, 0);
+    gridLayout->setColumnStretch(COLUMN_DATA_WIDGET, 100);
+    gridLayout->setColumnStretch(COLUMN_BUTTON_ONE, 0);
+    gridLayout->setColumnStretch(COLUMN_BUTTON_TWO, 0);
+    int row = 0;
+    gridLayout->addWidget(m_databaseLabel, row, COLUMN_LABEL, Qt::AlignRight);
+    gridLayout->addWidget(m_databaseComboBox, row, COLUMN_DATA_WIDGET);
+    gridLayout->addWidget(registerLabel, row, COLUMN_BUTTON_ONE, 1, 2);
+    row++;
+    gridLayout->addWidget(m_usernameLabel, row, COLUMN_LABEL, Qt::AlignRight);
+    gridLayout->addWidget(m_usernameLineEdit, row, COLUMN_DATA_WIDGET);
+    gridLayout->addWidget(forgotUsernameLabel, row, COLUMN_BUTTON_ONE, 1, 2);
+    row++;
+    gridLayout->addWidget(m_passwordLabel, row, COLUMN_LABEL, Qt::AlignRight);
+    gridLayout->addWidget(m_passwordLineEdit, row, COLUMN_DATA_WIDGET);
+    gridLayout->addWidget(forgotPasswordLabel, row, COLUMN_BUTTON_ONE, 1, 2);
+    row++;
+    gridLayout->setRowMinimumHeight(row, 10); // empty row
+    row++;
+    gridLayout->addWidget(m_loginPushButton, row, COLUMN_DATA_WIDGET, 1, 1, Qt::AlignLeft);
+    
+    return groupBox;
+}
+
+/**
+ * Called when login information (database, username, password) is changed
+ */
+void
+BalsaDatabaseUploadSceneFileDialog::loginInformationChanged()
+{
+    m_balsaDatabaseManager->logout();
+    m_uploadWidget->setEnabled(false);
+    updateAllLabels();
+}
+
+/**
+ * @return The upload widget
+ */
+QWidget*
+BalsaDatabaseUploadSceneFileDialog::createUploadWidget()
+{
+    QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(createUploadTab(), "Upload");
+    tabWidget->addTab(createAdvancedTab(), "Advanced");
+    
+    return tabWidget;
+}
+
+
+/**
+ * @return New instance of the upload tab.
+ */
+QWidget*
+BalsaDatabaseUploadSceneFileDialog::createUploadTab()
+{
+    /*
      * Extract to directory
      */
     const AString defaultExtractDirectoryName = m_sceneFile->getDefaultExtractToDirectoryName();
@@ -193,7 +292,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_extractDirectoryNameLineEdit->setToolTip("Directory that is created when user unzips the ZIP file");
     m_extractDirectoryNameLineEdit->setText(defaultExtractDirectoryName);
     QObject::connect(m_extractDirectoryNameLineEdit, &QLineEdit::textEdited,
-                     this, [=] { this->validateData(); });
+                     this, [=] { this->validateUploadData(); });
     
     
     /*
@@ -206,7 +305,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_balsaStudyIDLineEdit->setValidator(createValidator(LabelName::LABEL_STUDY_ID));
     m_balsaStudyIDLineEdit->setReadOnly(true);
     QObject::connect(m_balsaStudyIDLineEdit, &QLineEdit::textEdited,
-                     this, [=] { this->validateData(); });
+                     this, [=] { this->validateUploadData(); });
     
     /*
      * Scene BALSA Study Title
@@ -217,7 +316,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_balsaStudyTitleLineEdit->setValidator(createValidator(LabelName::LABEL_STUDY_TITLE));
     m_balsaStudyTitleLineEdit->setReadOnly(true);
     QObject::connect(m_balsaStudyTitleLineEdit, &QLineEdit::textEdited,
-                     this, [=] { this->validateData(); });
+                     this, [=] { this->validateUploadData(); });
     
     /**
      * Select Study Push Button
@@ -235,7 +334,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_baseDirectoryLineEdit->setToolTip("Directory that contains all data files");
     m_baseDirectoryLineEdit->setValidator(createValidator(LabelName::LABEL_BASE_DIRECTORY));
     QObject::connect(m_baseDirectoryLineEdit, &QLineEdit::textEdited,
-                     this, [=] { this->validateData(); });
+                     this, [=] { this->validateUploadData(); });
     
     /*
      * Browse for base directory
@@ -261,6 +360,22 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     QObject::connect(rolesPushButton, &QPushButton::clicked,
                      this, &BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked);
 
+    /*
+     * Auto-save checkbox
+     */
+    m_autoSaveSceneFileCheckBox = new QCheckBox("Auto-Save Scene File");
+    m_autoSaveSceneFileCheckBox->setChecked(true);
+    QObject::connect(m_autoSaveSceneFileCheckBox, &QCheckBox::clicked,
+                     this, &BalsaDatabaseUploadSceneFileDialog::autoSaveCheckBoxClicked);
+    
+    /*
+     * Upload push button
+     */
+    m_uploadPushButton = new QPushButton("Upload");
+    QObject::connect(m_uploadPushButton, &QPushButton::clicked,
+                     this, &BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked);
+    
+    
     int columnCounter = 0;
     const int COLUMN_LABEL = columnCounter++;
     const int COLUMN_DATA_WIDGET = columnCounter++;
@@ -270,23 +385,12 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     QWidget* widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(widget);
     gridLayout->setSpacing(2);
+    gridLayout->setColumnMinimumWidth(COLUMN_DATA_WIDGET, 300);
     gridLayout->setColumnStretch(COLUMN_LABEL, 0);
     gridLayout->setColumnStretch(COLUMN_DATA_WIDGET, 100);
     gridLayout->setColumnStretch(COLUMN_BUTTON_ONE, 0);
     gridLayout->setColumnStretch(COLUMN_BUTTON_TWO, 0);
     int row = 0;
-    gridLayout->addWidget(m_databaseLabel, row, COLUMN_LABEL, Qt::AlignRight);
-    gridLayout->addWidget(m_databaseComboBox, row, COLUMN_DATA_WIDGET);
-    gridLayout->addWidget(registerLabel, row, COLUMN_BUTTON_ONE, 1, 2);
-    row++;
-    gridLayout->addWidget(m_usernameLabel, row, COLUMN_LABEL, Qt::AlignRight);
-    gridLayout->addWidget(m_usernameLineEdit, row, COLUMN_DATA_WIDGET);
-    gridLayout->addWidget(forgotUsernameLabel, row, COLUMN_BUTTON_ONE, 1, 2);
-    row++;
-    gridLayout->addWidget(m_passwordLabel, row, COLUMN_LABEL, Qt::AlignRight);
-    gridLayout->addWidget(m_passwordLineEdit, row, COLUMN_DATA_WIDGET);
-    gridLayout->addWidget(forgotPasswordLabel, row, COLUMN_BUTTON_ONE, 1, 2);
-    row++;
     gridLayout->addWidget(m_extractDirectoryNameLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_extractDirectoryNameLineEdit, row, COLUMN_DATA_WIDGET);
     row++;
@@ -302,6 +406,13 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     gridLayout->addWidget(m_balsaStudyIDLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_balsaStudyIDLineEdit, row, COLUMN_DATA_WIDGET);
     gridLayout->addWidget(rolesPushButton, row, COLUMN_BUTTON_ONE, 1, 2);
+    row++;
+    gridLayout->addWidget(m_autoSaveSceneFileCheckBox, row, COLUMN_DATA_WIDGET, 1, 3, Qt::AlignLeft);
+    row++;
+    gridLayout->setRowMinimumHeight(row, 10); // empty row
+    row++;
+    gridLayout->addWidget(m_uploadPushButton, row, COLUMN_DATA_WIDGET, 1, 1, Qt::AlignLeft);
+    row++;
     
     m_balsaStudyIDLineEdit->setText(m_sceneFile->getBalsaStudyID());
     AString baseDirectory = m_sceneFile->getBalsaBaseDirectory();
@@ -398,7 +509,7 @@ BalsaDatabaseUploadSceneFileDialog::labelHtmlLinkClicked(const QString& linkPath
 void
 BalsaDatabaseUploadSceneFileDialog::zipFileDirectoryRadioButtonClicked(int)
 {
-    validateData();
+    validateUploadData();
 }
 
 /**
@@ -445,10 +556,42 @@ BalsaDatabaseUploadSceneFileDialog::getZipFileNameWithPath(AString& errorMessage
 }
 
 /**
- * Gets called when the OK button is clicked.
+ * Gets called when the login button is clicked.
  */
 void
-BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
+BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
+{
+    const AString username = m_usernameLineEdit->text().trimmed();
+    const AString password = m_passwordLineEdit->text().trimmed();
+    
+    m_uploadWidget->setEnabled(false);
+    
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    /*
+     * If operation takes a while
+     */
+    WuQWidgetDisabler blocker(m_loginPushButton);
+    
+    AString errorMessage;
+    if ( ! m_balsaDatabaseManager->login(getDataBaseURL(),
+                                         username,
+                                         password,
+                                         errorMessage)) {
+        cursor.restoreCursor();
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+    
+    m_uploadWidget->setEnabled(true);
+}
+
+/**
+ * Gets called when the upload button is clicked.
+ */
+void
+BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
 {
     CaretAssert(m_sceneFile);
     
@@ -502,27 +645,30 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     
     const AString extractToDirectoryName = m_extractDirectoryNameLineEdit->text().trimmed();
     
-    if (m_sceneFile->isModified()) {
-        const QString msg("The scene file is modified and must be saved before continuing.  Would you like "
-                          "to save the scene file using its current name and continue?");
-        if (WuQMessageBox::warningOkCancel(this, msg)) {
-            try {
-                Brain* brain = GuiManager::get()->getBrain();
-                brain->writeDataFile(m_sceneFile);
-            }
-            catch (const DataFileException& e) {
-                WuQMessageBox::errorOk(this, e.whatString());
-                return;
-            }
-        }
-        else {
-            return;
-        }
+    if ( ! saveSceneFile("")) {
+        return;
     }
+//    if (m_sceneFile->isModified()) {
+//        const QString msg("The scene file is modified and must be saved before continuing.  Would you like "
+//                          "to save the scene file using its current name and continue?");
+//        if (WuQMessageBox::warningOkCancel(this, msg)) {
+//            try {
+//                Brain* brain = GuiManager::get()->getBrain();
+//                brain->writeDataFile(m_sceneFile);
+//            }
+//            catch (const DataFileException& e) {
+//                WuQMessageBox::errorOk(this, e.whatString());
+//                return;
+//            }
+//        }
+//        else {
+//            return;
+//        }
+//    }
     
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
-
+    
     ProgressReportingDialog progressDialog("Upload Scene File to BALSA",
                                            "",
                                            this);
@@ -530,13 +676,10 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     progressDialog.setCancelButton((QPushButton*)0); // no cancel button
     
     AString errorMessage;
-    const bool successFlag = m_balsaDatabaseManager->uploadZippedSceneFile(getDataBaseURL(),
-                                                                         username,
-                                                                         password,
-                                                                         m_sceneFile,
-                                                                         zipFileName,
-                                                                         extractToDirectoryName,
-                                                                         errorMessage);
+    const bool successFlag = m_balsaDatabaseManager->uploadZippedSceneFile(m_sceneFile,
+                                                                           zipFileName,
+                                                                           extractToDirectoryName,
+                                                                           errorMessage);
     
     cursor.restoreCursor();
     
@@ -551,7 +694,58 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
         return;
     }
     
-    WuQDialogModal::okButtonClicked();    
+    WuQDialogModal::okButtonClicked();
+}
+
+/**
+ * Save the scene file if it is modified.  If auto-save is OFF, the user is
+ * prompted to confirm saving.
+ *
+ * @param message
+ *     Message containing reason for saving scene file.  If empty, the
+ *     default "file has been modified and must be saved" message is displayed.
+ * @return
+ *     True if the scene file was saved successfully, else false.
+ */
+bool
+BalsaDatabaseUploadSceneFileDialog::saveSceneFile(const AString& saveMessage)
+{
+    if (m_sceneFile->isModified()) {
+        if ( ! m_autoSaveSceneFileCheckBox->isChecked()) {
+            QString msg("The scene file is modified and must be saved before continuing.  Would you like "
+                              "to save the scene file using its current name and continue?");
+            if ( ! saveMessage.isEmpty()) {
+                msg = saveMessage;
+            }
+            
+            if ( ! WuQMessageBox::warningOkCancel(this, msg)) {
+                return false;
+            }
+            
+        }
+        try {
+            Brain* brain = GuiManager::get()->getBrain();
+            brain->writeDataFile(m_sceneFile);
+        }
+        catch (const DataFileException& e) {
+            WuQMessageBox::errorOk(this, e.whatString());
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * Gets called when auto save checkbox is checked.
+ *
+ * @param checked
+ *     Check status
+ */
+void
+BalsaDatabaseUploadSceneFileDialog::autoSaveCheckBoxClicked(bool /*checked*/)
+{
+    
 }
 
 void
@@ -563,15 +757,14 @@ BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked()
     AString roleNames;
     AString errorMessage;
     
-    if ( ! m_balsaDatabaseManager->getUserRoles(getDataBaseURL(),
-                                                username,
-                                                password,
-                                                roleNames,
+    if ( ! m_balsaDatabaseManager->getUserRoles(roleNames,
                                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
         return;
     }
+    
+    std::cout << "*** Role Names: " << roleNames << std::endl;
 }
 
 /**
@@ -591,11 +784,8 @@ BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked()
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
     AString errorMessage;
-    if ( ! m_balsaDatabaseManager->getAllStudyInformationForUser(getDataBaseURL(),
-                                                                 username,
-                                                                 password,
-                                                                 studyInfo,
-                                                                 errorMessage)) {
+    if ( ! m_balsaDatabaseManager->getAllStudyInformation(studyInfo,
+                                                          errorMessage)) {
         cursor.restoreCursor();
         WuQMessageBox::errorOk(this,
                                errorMessage);
@@ -619,7 +809,7 @@ BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked()
             m_balsaStudyIDLineEdit->setText(bsi.getStudyID());
             m_balsaStudyTitleLineEdit->setText(bsi.getStudyTitle());
         }
-        validateData();
+        validateUploadData();
     }
 }
 
@@ -661,7 +851,7 @@ BalsaDatabaseUploadSceneFileDialog::browseZipFileCustomDirectoryPushButtonClicke
         m_zipFileCustomDirectoryRadioButton->setChecked(true);
     }
     
-    validateData();
+    validateUploadData();
 }
 
 /**
@@ -696,7 +886,7 @@ BalsaDatabaseUploadSceneFileDialog::browseBaseDirectoryPushButtonClicked()
      * Set name of new scene file and add to brain
      */
     m_baseDirectoryLineEdit->setText(newDirectoryName);
-    validateData();
+    validateUploadData();
 }
 
 /**
@@ -748,11 +938,11 @@ BalsaDatabaseUploadSceneFileDialog::createValidator(const LabelName labelName)
  * Called by validators.
  */
 void
-BalsaDatabaseUploadSceneFileDialog::validateData()
+BalsaDatabaseUploadSceneFileDialog::validateUploadData()
 {
     updateAllLabels();
-    m_selectStudyTitlePushButton->setEnabled(m_usernameLineEdit->hasAcceptableInput()
-                                             && (m_passwordLineEdit->hasAcceptableInput()));
+//    m_selectStudyTitlePushButton->setEnabled(m_usernameLineEdit->hasAcceptableInput()
+//                                             && (m_passwordLineEdit->hasAcceptableInput()));
 }
 
 /**
@@ -873,7 +1063,7 @@ BalsaDatabaseUploadSceneFileDialog::findBaseDirectoryPushButtonClicked()
      * Set name for base directory
      */
     m_baseDirectoryLineEdit->setText(baseDirectoryName);
-    validateData();
+    validateUploadData();
 }
 
 

@@ -36,29 +36,24 @@ namespace caret {
         
         virtual ~BalsaDatabaseManager();
         
-        bool getAllStudyInformationForUser(const AString& databaseURL,
-                                           const AString& username,
-                                           const AString& password,
-                                           std::vector<BalsaStudyInformation>& studyInformationOut,
-                                           AString& errorMessageOut);
+        bool login(const AString& databaseURL,
+                   const AString& username,
+                   const AString& password,
+                   AString& errorMessageOut);
         
-        bool getUserRoles(const AString& databaseURL,
-                          const AString& username,
-                          const AString& password,
-                          AString& roleNamesOut,
+        void logout();
+        
+        bool getAllStudyInformation(std::vector<BalsaStudyInformation>& studyInformationOut,
+                                    AString& errorMessageOut);
+        
+        bool getUserRoles(AString& roleNamesOut,
                           AString& errorMessageOut);
         
-        bool getStudyIDFromStudyTitle(const AString& databaseURL,
-                                      const AString& username,
-                                      const AString& password,
-                                      const AString& studyTitle,
+        bool getStudyIDFromStudyTitle(const AString& studyTitle,
                                       AString& studyIdOut,
                                       AString& errorMessageOut);
         
-        bool uploadZippedSceneFile(const AString& databaseURL,
-                                   const AString& username,
-                                   const AString& password,
-                                   const SceneFile* sceneFile,
+        bool uploadZippedSceneFile(const SceneFile* sceneFile,
                                    const AString& zipFileName,
                                    const AString& extractToDirectoryName,
                                    AString& errorMessageOut);
@@ -78,11 +73,6 @@ namespace caret {
         BalsaDatabaseManager(const BalsaDatabaseManager&);
 
         BalsaDatabaseManager& operator=(const BalsaDatabaseManager&);
-        
-        bool login(const AString& loginURL,
-                   const AString& username,
-                   const AString& password,
-                   AString& errorMessageOut);
         
         AString getJSessionIdCookie() const;
         
@@ -116,6 +106,9 @@ namespace caret {
                                    const AString& responseContent,
                                    const int32_t responseHttpCode,
                                    AString& errorMessageOut) const;
+        
+        AString m_databaseURL;
+        
         AString m_username;
         
         AString m_password;

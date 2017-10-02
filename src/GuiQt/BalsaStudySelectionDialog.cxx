@@ -228,12 +228,9 @@ BalsaStudySelectionDialog::newStudyButtonClicked()
         title = title.trimmed();
         AString studyID;
         AString errorMessage;
-        const bool successFlag = m_balsaDatabaseManager->getStudyIDFromStudyTitle(m_databaseURL,
-                                                                                m_balsaUsername,
-                                                                                m_balsaPassword,
-                                                                                title,
-                                                                                studyID,
-                                                                                errorMessage);
+        const bool successFlag = m_balsaDatabaseManager->getStudyIDFromStudyTitle(title,
+                                                                                  studyID,
+                                                                                  errorMessage);
         
         if (successFlag) {
             const AString titleLower = title.toLower();

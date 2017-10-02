@@ -27,6 +27,7 @@
 
 #include "WuQDialogModal.h"
 
+class QCheckBox;
 class QComboBox;
 class QLabel;
 class QLineEdit;
@@ -52,11 +53,18 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
+        
+        void loginInformationChanged();
+        
+        void loginButtonClicked();
+        
+        void uploadButtonClicked();
+        
         void labelHtmlLinkClicked(const QString&);
 
         void browseBaseDirectoryPushButtonClicked();
 
-        void validateData();
+        void validateUploadData();
         
         void selectStudyTitleButtonClicked();
         
@@ -68,8 +76,11 @@ namespace caret {
         
         void rolesButtonClicked();
         
+        void autoSaveCheckBoxClicked(bool checked);
+
+        virtual void cancelButtonClicked();
+
     protected:
-        virtual void okButtonClicked();
         
     private:
         enum class LabelName {
@@ -85,6 +96,10 @@ namespace caret {
         BalsaDatabaseUploadSceneFileDialog(const BalsaDatabaseUploadSceneFileDialog&);
 
         BalsaDatabaseUploadSceneFileDialog& operator=(const BalsaDatabaseUploadSceneFileDialog&);
+        
+        QWidget* createLoginWidget();
+        
+        QWidget* createUploadWidget();
         
         QWidget* createUploadTab();
         
@@ -102,9 +117,13 @@ namespace caret {
         
         void setLabelText(const LabelName labelName);
         
+        bool saveSceneFile(const AString& saveMesage);
+        
         SceneFile* m_sceneFile;
         
         std::unique_ptr<BalsaDatabaseManager> m_balsaDatabaseManager;
+        
+        QWidget* m_uploadWidget;
         
         QLabel* m_databaseLabel;
         QComboBox* m_databaseComboBox;
@@ -114,6 +133,8 @@ namespace caret {
         
         QLabel* m_passwordLabel;
         QLineEdit* m_passwordLineEdit;
+        
+        QPushButton* m_loginPushButton;
         
         QRadioButton* m_zipFileTemporaryDirectoryRadioButton;
         QRadioButton* m_zipFileCustomDirectoryRadioButton;
@@ -134,6 +155,9 @@ namespace caret {
         
         QLabel* m_baseDirectoryLabel;
         QLineEdit* m_baseDirectoryLineEdit;
+        
+        QCheckBox* m_autoSaveSceneFileCheckBox;
+        QPushButton* m_uploadPushButton;
         
         // ADD_NEW_MEMBERS_HERE
 
