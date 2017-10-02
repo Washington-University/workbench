@@ -56,7 +56,7 @@ using namespace caret;
 BalsaDatabaseManager::BalsaDatabaseManager()
 : CaretObject()
 {
-    m_debugFlag = true;
+    m_debugFlag = false;
     logout();
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }

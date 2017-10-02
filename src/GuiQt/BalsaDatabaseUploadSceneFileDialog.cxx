@@ -648,23 +648,6 @@ BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
     if ( ! saveSceneFile("")) {
         return;
     }
-//    if (m_sceneFile->isModified()) {
-//        const QString msg("The scene file is modified and must be saved before continuing.  Would you like "
-//                          "to save the scene file using its current name and continue?");
-//        if (WuQMessageBox::warningOkCancel(this, msg)) {
-//            try {
-//                Brain* brain = GuiManager::get()->getBrain();
-//                brain->writeDataFile(m_sceneFile);
-//            }
-//            catch (const DataFileException& e) {
-//                WuQMessageBox::errorOk(this, e.whatString());
-//                return;
-//            }
-//        }
-//        else {
-//            return;
-//        }
-//    }
     
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
@@ -777,9 +760,6 @@ BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked()
     const AString password = m_passwordLineEdit->text().trimmed();
     
     std::vector<BalsaStudyInformation> studyInfo;
-//    studyInfo.emplace(studyInfo.end(), "AV4H", "Study One");
-//    studyInfo.emplace(studyInfo.end(), "BX32", "Study Two");
-//    studyInfo.emplace(studyInfo.end(), "CR33", "Study Three");
     
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
@@ -941,8 +921,6 @@ void
 BalsaDatabaseUploadSceneFileDialog::validateUploadData()
 {
     updateAllLabels();
-//    m_selectStudyTitlePushButton->setEnabled(m_usernameLineEdit->hasAcceptableInput()
-//                                             && (m_passwordLineEdit->hasAcceptableInput()));
 }
 
 /**
