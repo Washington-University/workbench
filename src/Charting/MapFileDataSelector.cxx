@@ -77,7 +77,8 @@ MapFileDataSelector::~MapFileDataSelector()
  *    Object that is copied.
  */
 MapFileDataSelector::MapFileDataSelector(const MapFileDataSelector& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperMapFileDataSelector(obj);
 }

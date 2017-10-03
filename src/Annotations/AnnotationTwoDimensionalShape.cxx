@@ -328,30 +328,21 @@ AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
 bool
 AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const
 {
-    bool chartFlag       = false;
-    bool tabWindowFlag   = false;
-    bool stereotaxicFlag = false;
-    bool surfaceFlag     = false;
     bool viewportFlag    = false;
     
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
-            chartFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            stereotaxicFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            surfaceFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            tabWindowFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
             viewportFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            tabWindowFlag = true;
             break;
     }
     

@@ -896,7 +896,7 @@ SpecFile::readFile(const AString& filenameIn)
     checkFileReadability(filename);
     
     SpecFileSaxReader saxReader(this);
-    std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
+    std::unique_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
         parser->parseFile(filename, &saxReader);
     }
@@ -943,7 +943,7 @@ void
 SpecFile::readFileFromString(const AString& string)
 {
     SpecFileSaxReader saxReader(this);
-    std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
+    std::unique_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
         parser->parseString(string, &saxReader);
     }

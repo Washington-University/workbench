@@ -60,7 +60,8 @@ LabelDrawingProperties::~LabelDrawingProperties()
  *    Object that is copied.
  */
 LabelDrawingProperties::LabelDrawingProperties(const LabelDrawingProperties& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     initializeInstance();
     copyHelper(obj);

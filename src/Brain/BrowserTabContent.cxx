@@ -4344,8 +4344,6 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
         return;
     }
     
-    int32_t copyFromTabIndex = -1;
-    
     /*
      * Find another browser tab using the same yoking as 'me' and copy
      * yoked data from the other browser tab.
@@ -4356,7 +4354,6 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
         BrowserTabContent* btc = *iter;
         if (btc != this) {
             if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
-                copyFromTabIndex = btc->getTabNumber();
                 /*
                  * If anything is added, also need to update updateYokedBrowserTabs()
                  */

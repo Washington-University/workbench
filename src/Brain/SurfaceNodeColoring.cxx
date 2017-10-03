@@ -251,10 +251,10 @@ SurfaceNodeColoring::showBrainordinateHighlightRegionOfInterest(const Brain* bra
     uint8_t foregroundColorByte[4];
     prefs->getBackgroundAndForegroundColors()->getColorForegroundSurfaceView(foregroundColorByte);
     const float foregroundColor[4] = {
-        foregroundColorByte[0],
-        foregroundColorByte[1],
-        foregroundColorByte[2],
-        1.0
+        static_cast<float>(foregroundColorByte[0]) / 255.0f,
+        static_cast<float>(foregroundColorByte[1]) / 255.0f,
+        static_cast<float>(foregroundColorByte[2]) / 255.0,
+        1.0f
     };
     
     const BrainordinateRegionOfInterest* roi = brain->getBrainordinateHighlightRegionOfInterest();

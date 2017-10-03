@@ -210,6 +210,7 @@ ChartTwoDataCartesian::clone() const
  */
 ChartTwoDataCartesian::ChartTwoDataCartesian(const ChartTwoDataCartesian& obj)
 : CaretObjectTracksModification(obj),
+SceneableInterface(obj),
 m_dataAxisUnitsX(obj.m_dataAxisUnitsX),
 m_dataAxisUnitsY(obj.m_dataAxisUnitsY),
 m_graphicsPrimitiveType(obj.m_graphicsPrimitiveType)

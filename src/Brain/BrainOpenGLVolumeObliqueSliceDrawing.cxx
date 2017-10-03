@@ -1204,10 +1204,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
      */
     std::vector<VolumeSlice> volumeSlices;
     for (int32_t i = 0; i < numVolumes; i++) {
-        float sliceOpacity = 1.0;
-        if (i > 0) {
-            sliceOpacity = m_volumeDrawInfo[i].opacity;
-        }
         volumeSlices.push_back(VolumeSlice(m_volumeDrawInfo[i].volumeFile,
                                            m_volumeDrawInfo[i].mapIndex,
                                            m_volumeDrawInfo[i].opacity));

@@ -71,7 +71,8 @@ ChartTwoTitle::~ChartTwoTitle()
  *    Object that is copied.
  */
 ChartTwoTitle::ChartTwoTitle(const ChartTwoTitle& obj)
-: CaretObjectTracksModification(obj)
+: CaretObjectTracksModification(obj),
+SceneableInterface(obj)
 {
     this->copyHelperChartTwoTitle(obj);
 }

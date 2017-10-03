@@ -154,7 +154,8 @@ ChartTwoCompoundDataType::newInstanceForMatrix(const int32_t matrixNumberOfRows,
  *    Object that is copied.
  */
 ChartTwoCompoundDataType::ChartTwoCompoundDataType(const ChartTwoCompoundDataType& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     initializeChartTwoCompoundDataType();
     this->copyHelperChartTwoCompoundDataType(obj);
