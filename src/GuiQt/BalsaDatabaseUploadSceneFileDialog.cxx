@@ -122,6 +122,8 @@ BalsaDatabaseUploadSceneFileDialog::cancelButtonClicked()
      * Will logout of database and disable part of dialog
      */
     loginInformationChanged();
+    
+    WuQDialogModal::cancelButtonClicked();
 }
 
 
@@ -359,6 +361,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     rolesPushButton->setToolTip("Test getting the user's roles");
     QObject::connect(rolesPushButton, &QPushButton::clicked,
                      this, &BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked);
+    rolesPushButton->setVisible(false);
 
     /*
      * Auto-save checkbox
