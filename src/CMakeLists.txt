@@ -296,9 +296,8 @@ ELSE()
     SET(GLEW_INCLUDE_DIRS "")
     IF (WIN32)
         MESSAGE(SEND_ERROR "GLEW not found and is required on Windows for finding OpenGL functions.\n"
-            "    Setting CMAKE_PREFIX_PATH to the GLEW installation directory when\n"
-            "    running CMAKE may help find GLEW.\n"
-            "    -DCMAKE_PREFIX_PATH=C:\some-path\glew-2.1.0")
+                           "    Setting CMAKE_PREFIX_PATH to the GLEW installation directory when\n"
+                           "    running CMAKE may help find GLEW.\n")
     ENDIF()
 ENDIF()
 
