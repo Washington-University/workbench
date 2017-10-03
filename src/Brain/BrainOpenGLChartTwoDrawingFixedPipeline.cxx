@@ -1227,6 +1227,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
      */
     updateViewportContentForCharting(chartGraphicsDrawingViewport);
     
+    std::vector<MatrixRowColumnHighight*> rowColumnHighlighting;
+    
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
         ChartTwoOverlay* chartOverlay = m_chartOverlaySet->getOverlay(iOverlay);
         if ( ! chartOverlay->isEnabled()) {
@@ -1258,10 +1260,34 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
                                    chartOverlay->getMatrixTriangularViewingMode(),
                                    cellWidth,
                                    cellHeight,
-                                   m_zooming);
+                                   m_zooming,
+                                   rowColumnHighlighting);
         }
     }
+    
+    /*
+     * Row/column highlighting must be drawn after matrices to that
+     * the highlights are over any and all displayed matrices
+     */
+    const int32_t numHighlights = static_cast<int32_t>(rowColumnHighlighting.size());
+    if (numHighlights > 0) {
+        for (int32_t ctr = 0; ctr < numHighlights; ctr++) {
+            MatrixRowColumnHighight* mrch = rowColumnHighlighting[ctr];
+            CaretAssert(mrch);
+            
+            glPushMatrix();
+            glLoadMatrixf(mrch->m_modelViewMatrix);
+            
+            BrainOpenGL::setLineWidth(mrch->m_lineWidth);
+            drawPrimitivePrivate(mrch->m_graphicsPrimitive.get());
+            delete mrch;
+            
+            glPopMatrix();
+        }
+        rowColumnHighlighting.clear();
+    }
 }
+
 /*
  * Draw a matrix chart content.
  *
@@ -1281,7 +1307,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                                 const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
                                                                 const float cellWidth,
                                                                 const float cellHeight,
-                                                                const float zooming)
+                                                                const float zooming,
+                                                                std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut)
 {
     GraphicsPrimitiveV3fC4f* matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType);
     if (matrixPrimitive == NULL) {
@@ -1365,72 +1392,112 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                      selectedRowColumnDimension,
                                                      selectedRowIndices,
                                                      selectedColumnIndices);
+            
+            /*
+             * If true, selected row highlighting will be limited
+             * to a upper or lower triangular cells when
+             * triangular display is selected
+             * Disabled by WB-741
+             */
+            const bool limitSelectionToTriangularFlag = false;
+            
             for (auto rowIndex : selectedRowIndices) {
-                std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
-                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
-                                                                                           highlightRGBA));
-                rowOutlineData4f->reserveForNumberOfVertices(4);
+//                std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
+//                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+//                                                                                           highlightRGBA));
+//                rowOutlineData4f->reserveForNumberOfVertices(4);
                 
                 float minX = 0;
                 float maxX = numberOfColumns;
                 const float minY = numberOfRows - rowIndex - 1;
                 const float maxY = minY + 1.0f;
                 
-                switch (chartViewingType) {
-                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
-                        break;
-                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
-                        break;
-                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
-                        maxX = rowIndex;  /* matrix is symmetric */
-                        break;
-                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
-                        minX = rowIndex + 1;  /* matrix is symmetric */
-                        break;
+                if (limitSelectionToTriangularFlag) {
+                    switch (chartViewingType) {
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+                            break;
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                            break;
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                            maxX = rowIndex;  /* matrix is symmetric */
+                            break;
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                            minX = rowIndex + 1;  /* matrix is symmetric */
+                            break;
+                    }
                 }
                 
-                rowOutlineData4f->addVertex(minX, minY);
-                rowOutlineData4f->addVertex(maxX, minY);
-                rowOutlineData4f->addVertex(maxX, maxY);
-                rowOutlineData4f->addVertex(minX, maxY);
                 const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
-                BrainOpenGL::setLineWidth(highlightLineWidth);
-                drawPrimitivePrivate(rowOutlineData4f.get());
+//                rowOutlineData4f->addVertex(minX, minY);
+//                rowOutlineData4f->addVertex(maxX, minY);
+//                rowOutlineData4f->addVertex(maxX, maxY);
+//                rowOutlineData4f->addVertex(minX, maxY);
+//                BrainOpenGL::setLineWidth(highlightLineWidth);
+//                //drawPrimitivePrivate(rowOutlineData4f.get());
+                
+                GraphicsPrimitiveV3fC4f* rowOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINE_LOOP);
+                rowOutlineData->reserveForNumberOfVertices(4);
+                rowOutlineData->addVertex(minX, minY, highlightRGBA);
+                rowOutlineData->addVertex(maxX, minY, highlightRGBA);
+                rowOutlineData->addVertex(maxX, maxY, highlightRGBA);
+                rowOutlineData->addVertex(minX, maxY, highlightRGBA);
+                
+                float modelViewMatrix[16];
+                glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix);
+                rowColumnHighlightingOut.push_back(new MatrixRowColumnHighight(rowOutlineData,
+                                                                               highlightLineWidth,
+                                                                               modelViewMatrix));
             }
             
             for (auto columnIndex : selectedColumnIndices) {
-                std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
-                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
-                                                                                           highlightRGBA));
-                columnOutlineData4f->reserveForNumberOfVertices(4);
+//                std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
+//                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+//                                                                                           highlightRGBA));
+//                columnOutlineData4f->reserveForNumberOfVertices(4);
                 
                 const float minX = columnIndex;
                 const float maxX = columnIndex + 1;
                 float minY = 0;
                 float maxY = numberOfRows;
                 
-                switch (chartViewingType) {
-                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
-                        break;
-                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
-                        break;
-                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
-                        maxY = columnIndex;  /* matrix is symmetric */
-                        break;
-                    case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
-                        minY = columnIndex + 1;  /* matrix is symmetric */
-                        break;
+                if (limitSelectionToTriangularFlag) {
+                    switch (chartViewingType) {
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL:
+                            break;
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL_NO_DIAGONAL:
+                            break;
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_LOWER_NO_DIAGONAL:
+                            maxY = columnIndex;  /* matrix is symmetric */
+                            break;
+                        case ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_UPPER_NO_DIAGONAL:
+                            minY = columnIndex + 1;  /* matrix is symmetric */
+                            break;
+                    }
                 }
-                columnOutlineData4f->addVertex(minX, minY);
-                columnOutlineData4f->addVertex(maxX, minY);
-                columnOutlineData4f->addVertex(maxX, maxY);
-                columnOutlineData4f->addVertex(minX, maxY);
+                
                 const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
-                BrainOpenGL::setLineWidth(highlightLineWidth);
-                drawPrimitivePrivate(columnOutlineData4f.get());
+//                columnOutlineData4f->addVertex(minX, minY);
+//                columnOutlineData4f->addVertex(maxX, minY);
+//                columnOutlineData4f->addVertex(maxX, maxY);
+//                columnOutlineData4f->addVertex(minX, maxY);
+//                BrainOpenGL::setLineWidth(highlightLineWidth);
+//                //drawPrimitivePrivate(columnOutlineData4f.get());
+                
+                GraphicsPrimitiveV3fC4f* columnOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINE_LOOP);
+                columnOutlineData->reserveForNumberOfVertices(4);
+                columnOutlineData->addVertex(minX, minY, highlightRGBA);
+                columnOutlineData->addVertex(maxX, minY, highlightRGBA);
+                columnOutlineData->addVertex(maxX, maxY, highlightRGBA);
+                columnOutlineData->addVertex(minX, maxY, highlightRGBA);
+                
+                float modelViewMatrix[16];
+                glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix);
+                rowColumnHighlightingOut.push_back(new MatrixRowColumnHighight(columnOutlineData,
+                                                                               highlightLineWidth,
+                                                                               modelViewMatrix));
             }
         }
-    }
+     }
     
     glDisable(GL_BLEND);
     glPopMatrix();

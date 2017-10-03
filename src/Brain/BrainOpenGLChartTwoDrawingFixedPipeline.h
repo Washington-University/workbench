@@ -28,6 +28,7 @@
 #include "ChartAxisLocationEnum.h"
 #include "ChartTwoDataTypeEnum.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"
+#include "GraphicsPrimitive.h"
 
 namespace caret {
 
@@ -42,7 +43,6 @@ namespace caret {
     class ChartableTwoFileHistogramChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
-    class GraphicsPrimitive;
     class SelectionItemAnnotation;
     class SelectionItemChartTwoHistogram;
     class SelectionItemChartTwoLabel;
@@ -205,6 +205,21 @@ namespace caret {
             
         };
         
+        class MatrixRowColumnHighight {
+        public:
+            MatrixRowColumnHighight(GraphicsPrimitive* graphicsPrimitive,
+                                    const float lineWidth,
+                                    const float modelViewMatrix[16])
+            : m_graphicsPrimitive(std::unique_ptr<GraphicsPrimitive>(graphicsPrimitive)),
+            m_lineWidth(lineWidth) {
+                for (int32_t i = 0; i < 16; i++) m_modelViewMatrix[i] = modelViewMatrix[i];
+            }
+            
+            std::unique_ptr<GraphicsPrimitive> m_graphicsPrimitive;
+            float m_lineWidth;
+            float m_modelViewMatrix[16];
+        };
+        
         BrainOpenGLChartTwoDrawingFixedPipeline(const BrainOpenGLChartTwoDrawingFixedPipeline&);
 
         BrainOpenGLChartTwoDrawingFixedPipeline& operator=(const BrainOpenGLChartTwoDrawingFixedPipeline&);
@@ -216,10 +231,11 @@ namespace caret {
         void drawMatrixChart();
         
         void drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
-                                 const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
-                                 const float cellWidth,
-                                 const float cellHeight,
-                                 const float zooming);
+                                    const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
+                                    const float cellWidth,
+                                    const float cellHeight,
+                                    const float zooming,
+                                    std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut);
         
         void drawHistogramOrLineSeriesChart(const ChartTwoDataTypeEnum::Enum chartDataType);
         
