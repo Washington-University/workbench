@@ -1428,7 +1428,7 @@ BrainBrowserWindowToolBar::showTabMenu(const QPoint& pos)
                                                 insertAtTabIndex);
         }
         else if (selectedAction == closeAction) {
-            closeSelectedTab();
+            tabCloseSelected(tabUnderMouseIndex);
         }
         else if (selectedAction != NULL) {
             CaretAssertMessage(0, "Has a new action been added to the menu");
