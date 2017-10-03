@@ -86,6 +86,8 @@ ChartingDataManager::receiveEvent(Event* event)
         if (modelChartTwo != NULL) {
             modelChartTwo->loadChartDataForYokedScalarDataSeriesFiles(yokeMapEvent->getMapYokingGroup(),
                                                                       yokeMapEvent->getMapIndex());
+            modelChartTwo->selectRowColumnInYokedScalarDataSeriesFileOverlay(yokeMapEvent->getMapYokingGroup(),
+                                                                             yokeMapEvent->getMapIndex());
         }
     }
 }

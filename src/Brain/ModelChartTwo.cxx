@@ -309,6 +309,57 @@ ModelChartTwo::loadChartDataForYokedScalarDataSeriesFiles(const MapYokingGroupEn
 }
 
 /**
+ * Select yoked row/column in scalar data series file's overlay
+ *
+ * @param mapYokingGroup
+ *     The map yoking group.
+ * @param mapIndex
+ *     The map index.
+ */
+void
+ModelChartTwo::selectRowColumnInYokedScalarDataSeriesFileOverlay(const MapYokingGroupEnum::Enum mapYokingGroup,
+                                                          const int32_t mapIndex)
+{
+    if (mapYokingGroup == MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    EventBrowserTabIndicesGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    const std::vector<int32_t> tabIndices = tabIndicesEvent.getAllBrowserTabIndices();
+    
+    /*
+     * Find Cifti Scalar Data Series Files in valid Chart Overlays that
+     * have the matching yoking group
+     */
+    for (auto tabIndex : tabIndices) {
+        CaretAssertArrayIndex(m_selectedChartTwoDataType, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+        if (m_selectedChartTwoDataType[tabIndex] == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
+            ChartTwoOverlaySet* overlaySet = m_matrixChartOverlaySetArray->getChartTwoOverlaySet(tabIndex);
+            CaretAssert(overlaySet);
+            
+            const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+            for (int32_t iOverlay = 0; iOverlay < numOverlays; iOverlay++) {
+                ChartTwoOverlay* overlay = overlaySet->getOverlay(iOverlay);
+                CaretAssert(overlay);
+                
+                if (overlay->isEnabled()) {
+                    if (overlay->getMapYokingGroup() == mapYokingGroup) {
+                        CaretMappableDataFile* mapFile = overlay->getSelectedMapFile();
+                        if (mapFile != NULL) {
+                            if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
+                                overlay->setSelectionData(mapFile, mapIndex);
+                            }
+                        }
+                    }
+                }
+            }
+            
+        }
+    }
+}
+
+/**
  * Receive an event.
  * 
  * @param event

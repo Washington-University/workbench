@@ -77,6 +77,9 @@ namespace caret {
         void loadChartDataForYokedScalarDataSeriesFiles(const MapYokingGroupEnum::Enum mapYokingGroup,
                                                         const int32_t mapIndex);
         
+        void selectRowColumnInYokedScalarDataSeriesFileOverlay(const MapYokingGroupEnum::Enum mapYokingGroup,
+                                                               const int32_t mapIndex);
+        
         virtual OverlaySet* getOverlaySet(const int tabIndex) override;
         
         virtual const OverlaySet* getOverlaySet(const int tabIndex) const override;
