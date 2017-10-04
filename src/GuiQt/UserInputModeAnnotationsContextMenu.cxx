@@ -520,6 +520,10 @@ UserInputModeAnnotationsContextMenu::createTurnOnInDisplayGroupMenu()
 QMenu*
 UserInputModeAnnotationsContextMenu::createDuplicateTabSpaceAnnotationMenu()
 {
+    if (m_annotation == NULL) {
+        return NULL;
+    }
+    
     EventBrowserTabGetAll tabIndicesEvent;
     EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
     const std::vector<BrowserTabContent*> allTabs = tabIndicesEvent.getAllBrowserTabs();
