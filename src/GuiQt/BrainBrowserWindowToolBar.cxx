@@ -2707,22 +2707,28 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
         return;
     }
 
+    EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
+    EventManager::get()->sendEvent(getInputModeEvent.getPointer());
+    const UserInputModeAbstract::UserInputMode currentMode = getInputModeEvent.getUserInputMode();
+    
     UserInputModeAbstract::UserInputMode inputMode = UserInputModeAbstract::INVALID;
     
     if (action == this->modeInputModeAnnotationsAction) {
-        if ( ( ! m_windowAspectRatioLockedAction->isChecked())
-            && ( ! m_tabAspectRatioLockedAction->isChecked()) ) {
-            const QString msg("<html>"
-                              "Neither <B>Lock Window Aspect</B> nor <B>Lock Tab Aspect</B> "
-                              "are selected.  Tab and Window annotations are displayed "
-                              "in <I>percentage coordinates</I> of the tab/window "
-                              "width and height.  Locking tab/window aspect ensures that "
-                              "the shape of the tab/window maintains its aspect ratio so "
-                              "that tab/window annotations remain in the correct location. "
-                              "</html>");
-            WuQMessageBox::warningOkWithDoNotShowAgain(this,
-                                                       "lockAspectDoNotShowAgainIdentifier",
-                                                       msg);
+        if (currentMode !=  UserInputModeAbstract::ANNOTATIONS) {
+            if ( ( ! m_windowAspectRatioLockedAction->isChecked())
+                && ( ! m_tabAspectRatioLockedAction->isChecked()) ) {
+                const QString msg("<html>"
+                                  "Neither <B>Lock Window Aspect</B> nor <B>Lock Tab Aspect</B> "
+                                  "are selected.  Tab and Window annotations are displayed "
+                                  "in <I>percentage coordinates</I> of the tab/window "
+                                  "width and height.  Locking tab/window aspect ensures that "
+                                  "the shape of the tab/window maintains its aspect ratio so "
+                                  "that tab/window annotations remain in the correct location. "
+                                  "</html>");
+                WuQMessageBox::warningOkWithDoNotShowAgain(this,
+                                                           "lockAspectDoNotShowAgainIdentifier",
+                                                           msg);
+            }
         }
         inputMode = UserInputModeAbstract::ANNOTATIONS;
     }
