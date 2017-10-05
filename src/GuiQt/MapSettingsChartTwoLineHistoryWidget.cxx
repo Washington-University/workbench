@@ -142,8 +142,8 @@ MapSettingsChartTwoLineHistoryWidget::MapSettingsChartTwoLineHistoryWidget(QWidg
     topLayout->addWidget(removeAllHistoryToolButton, gridRow, 2, 1, 2, Qt::AlignLeft);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addLayout(topLayout);
-    layout->addWidget(m_tableWidget);
+    layout->addLayout(topLayout, 0);
+    layout->addWidget(m_tableWidget, 100);
 }
 
 /**
@@ -463,6 +463,12 @@ MapSettingsChartTwoLineHistoryWidget::tableWidgetCellChanged(int rowIndex, int c
 void
 MapSettingsChartTwoLineHistoryWidget::removeHistoryItemSelected(int rowIndex)
 {
+    /*
+     * May be possible for user to press another remove button
+     * before this one is finished
+     */
+    const QSignalBlocker removeSignalBlocker(m_removeHistoryItemSignalMapper);
+    
     ChartTwoLineSeriesHistory* lineSeriesHistory = getLineSeriesHistory();
     lineSeriesHistory->removeHistoryItem(rowIndex);
     updateDialogContentPrivate();
