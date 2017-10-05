@@ -37,6 +37,7 @@ class QRegularExpressionValidator;
 
 namespace caret {
     class BalsaDatabaseManager;
+    class BalsaUserRoles;
     class SceneFile;
     
     class BalsaDatabaseUploadSceneFileDialog : public WuQDialogModal {
@@ -135,6 +136,8 @@ namespace caret {
         QLineEdit* m_passwordLineEdit;
         
         QPushButton* m_loginPushButton;
+        
+        std::unique_ptr<BalsaUserRoles> m_userRoles;
         
         QRadioButton* m_zipFileTemporaryDirectoryRadioButton;
         QRadioButton* m_zipFileCustomDirectoryRadioButton;

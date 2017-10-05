@@ -27,6 +27,7 @@
 
 namespace caret {
 
+    class BalsaUserRoles;
     class SceneFile;
     
     class BalsaDatabaseManager : public CaretObject, public EventListenerInterface {
@@ -46,7 +47,7 @@ namespace caret {
         bool getAllStudyInformation(std::vector<BalsaStudyInformation>& studyInformationOut,
                                     AString& errorMessageOut);
         
-        bool getUserRoles(AString& roleNamesOut,
+        bool getUserRoles(BalsaUserRoles& userRolesOut,
                           AString& errorMessageOut);
         
         bool getStudyIDFromStudyTitle(const AString& studyTitle,
@@ -90,10 +91,6 @@ namespace caret {
         bool requestStudyID(const AString& databaseURL,
                             const AString& studyTitle,
                             AString& studyIDOut,
-                            AString& errorMessageOut);
-        
-        bool requestUserRoles(const AString& databaseURL,
-                            AString& roleNamesOut,
                             AString& errorMessageOut);
         
         bool uploadFileWithCaretHttpManager(const AString& uploadURL,

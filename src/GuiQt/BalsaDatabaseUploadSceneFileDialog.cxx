@@ -40,6 +40,7 @@
 
 #include "BalsaDatabaseManager.h"
 #include "BalsaStudySelectionDialog.h"
+#include "BalsaUserRoles.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
@@ -82,6 +83,8 @@ BalsaDatabaseUploadSceneFileDialog::BalsaDatabaseUploadSceneFileDialog(SceneFile
 m_sceneFile(sceneFile)
 {
     CaretAssert(m_sceneFile);
+    
+    m_userRoles.reset(new BalsaUserRoles);
     
     QWidget* loginWidget = createLoginWidget();
     m_uploadWidget = createUploadWidget();
@@ -260,6 +263,7 @@ BalsaDatabaseUploadSceneFileDialog::loginInformationChanged()
 {
     m_balsaDatabaseManager->logout();
     m_uploadWidget->setEnabled(false);
+    m_userRoles->resetToAllInvalid();
     updateAllLabels();
 }
 
@@ -361,7 +365,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     rolesPushButton->setToolTip("Test getting the user's roles");
     QObject::connect(rolesPushButton, &QPushButton::clicked,
                      this, &BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked);
-    rolesPushButton->setVisible(false);
+    //rolesPushButton->setVisible(false);
 
     /*
      * Auto-save checkbox
@@ -585,6 +589,34 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
         cursor.restoreCursor();
         WuQMessageBox::errorOk(this,
                                errorMessage);
+        return;
+    }
+    
+    if (m_balsaDatabaseManager->getUserRoles(*m_userRoles,
+                                             errorMessage)) {
+        if ( ! m_userRoles->isSubmitter()) {
+            cursor.restoreCursor();
+            const AString msg("Login to BALSA was successful.  However, your have not agreed "
+                              "to the BALSA Submission Terms and Conditions that are required "
+                              "to upload data to BALSA.  You will need to login to BALSA "
+                              "using your web browser and complete this agreement.");
+            const bool okPressedFlag = WuQMessageBox::warningAcceptReject(this,
+                                                                          msg,
+                                                                          "OK",
+                                                                          "OK, Go to BALSA in Web Browser");
+            if ( ! okPressedFlag) {
+                labelHtmlLinkClicked("/");
+            }
+            return;
+        }
+    }
+    else {
+        cursor.restoreCursor();
+        const AString msg("Unable to verify that you have agreed to the BALSA "
+                          "Submission Terms and Conditions.  If you have not "
+                          "agreed to terms and conditions, uploading will fail.\n\n"
+                          + errorMessage);
+        WuQMessageBox::warningOk(this, msg);
     }
     
     m_uploadWidget->setEnabled(true);
@@ -743,14 +775,15 @@ BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked()
     AString roleNames;
     AString errorMessage;
     
-    if ( ! m_balsaDatabaseManager->getUserRoles(roleNames,
+    BalsaUserRoles balsaUserRoles;
+    if ( ! m_balsaDatabaseManager->getUserRoles(balsaUserRoles,
                                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
         return;
     }
     
-    std::cout << "*** Role Names: " << roleNames << std::endl;
+    std::cout << "*** Role Names: " << balsaUserRoles.toString() << std::endl;
 }
 
 /**

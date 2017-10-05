@@ -41,6 +41,8 @@ namespace caret {
 
         BalsaUserRoles& operator=(const BalsaUserRoles& obj);
         
+        void resetToAllInvalid();
+        
         bool parseJson(const QJsonArray& jsonArray);
         
         bool isEmpty() const;

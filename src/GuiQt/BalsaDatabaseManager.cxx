@@ -718,23 +718,78 @@ BalsaDatabaseManager::requestStudyID(const AString& databaseURL,
 }
 
 /**
- * Request the user's roles
+ * Login to BALSA and request a study ID from a study title.
  *
- * @param databaseURL
- *     URL for database
- * @param roleNamesOut
- *     Output with names of roles
+ * @param studyTitle
+ *     The study's titlee.
+ * @param studyIdOut
+ *     Output containing the study ID.
  * @param errorMessageOut
- *     Output with error message
+ *     Contains description of any error(s).
  * @return
- *     True if success, else false.
+ *     True if processing was successful, else false.
  */
 bool
-BalsaDatabaseManager::requestUserRoles(const AString& databaseURL,
-                                       AString& roleNamesOut,
-                                       AString& errorMessageOut)
+BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& studyTitle,
+                                               AString& studyIdOut,
+                                               AString& errorMessageOut)
 {
-    const AString studyIdURL(databaseURL
+    if (studyTitle.isEmpty()) {
+        errorMessageOut = "The study title is empty.";
+        return false;
+    }
+    
+    if ( ! requestStudyID(m_databaseURL,
+                          studyTitle,
+                          studyIdOut,
+                          errorMessageOut)) {
+        return false;
+    }
+    
+    return true;
+}
+
+///**
+// * Login to BALSA and request a study ID from a study title.
+// *
+// * @param studyTitle
+// *     The study's title.
+// * @param studyIdOut
+// *     Output containing the study ID.
+// * @param errorMessageOut
+// *     Contains description of any error(s).
+// * @return
+// *     True if processing was successful, else false.
+// */
+//bool
+//BalsaDatabaseManager::getUserRoles(AString& roleNamesOut,
+//                                   AString& errorMessageOut)
+//{
+//    if ( ! requestUserRoles(m_databaseURL,
+//                          roleNamesOut,
+//                          errorMessageOut)) {
+//        return false;
+//    }
+//    
+//    return true;
+//}
+/**
+ * Get the User's Roles.
+ *
+ * @param userRolesOut
+ *     Output with user's roles.
+ * @param errorMessageOut
+ *     Contains description of any error(s).
+ * @return
+ *     True if processing was successful, else false.
+ */
+bool
+BalsaDatabaseManager::getUserRoles(BalsaUserRoles& userRolesOut,
+                                   AString& errorMessageOut)
+{
+    userRolesOut.resetToAllInvalid();
+    
+    const AString studyIdURL(m_databaseURL
                              + "/user/roles");
     
     errorMessageOut.clear();
@@ -809,69 +864,13 @@ BalsaDatabaseManager::requestUserRoles(const AString& databaseURL,
         return false;
     }
     
-    BalsaUserRoles bsi(jsonDocument.array());
+    userRolesOut.parseJson(jsonDocument.array());
+    
     if (m_debugFlag) {
-        std::cout << "**** Roles: " << bsi.toString() << std::endl;
+        std::cout << "**** Roles: " << userRolesOut.toString() << std::endl;
     }
     
-    return bsi.isValid();
-}
-
-/**
- * Login to BALSA and request a study ID from a study title.
- *
- * @param studyTitle
- *     The study's titlee.
- * @param studyIdOut
- *     Output containing the study ID.
- * @param errorMessageOut
- *     Contains description of any error(s).
- * @return
- *     True if processing was successful, else false.
- */
-bool
-BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& studyTitle,
-                                               AString& studyIdOut,
-                                               AString& errorMessageOut)
-{
-    if (studyTitle.isEmpty()) {
-        errorMessageOut = "The study title is empty.";
-        return false;
-    }
-    
-    if ( ! requestStudyID(m_databaseURL,
-                          studyTitle,
-                          studyIdOut,
-                          errorMessageOut)) {
-        return false;
-    }
-    
-    return true;
-}
-
-/**
- * Login to BALSA and request a study ID from a study title.
- *
- * @param studyTitle
- *     The study's title.
- * @param studyIdOut
- *     Output containing the study ID.
- * @param errorMessageOut
- *     Contains description of any error(s).
- * @return
- *     True if processing was successful, else false.
- */
-bool
-BalsaDatabaseManager::getUserRoles(AString& roleNamesOut,
-                                   AString& errorMessageOut)
-{
-    if ( ! requestUserRoles(m_databaseURL,
-                          roleNamesOut,
-                          errorMessageOut)) {
-        return false;
-    }
-    
-    return true;
+    return userRolesOut.isValid();
 }
 
 

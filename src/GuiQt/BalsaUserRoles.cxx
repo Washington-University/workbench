@@ -44,7 +44,7 @@ using namespace caret;
 BalsaUserRoles::BalsaUserRoles()
 : CaretObject()
 {
-    
+    resetToAllInvalid();
 }
 
 /**
@@ -55,6 +55,7 @@ BalsaUserRoles::BalsaUserRoles()
  */
 BalsaUserRoles::BalsaUserRoles(const QJsonArray& jsonArray)
 {
+    resetToAllInvalid();
     parseJson(jsonArray);
 }
 
@@ -109,6 +110,19 @@ BalsaUserRoles::copyHelperBalsaUserRoles(const BalsaUserRoles& obj)
 }
 
 /**
+ * Reset the instance to all invalid roles.
+ */
+void
+BalsaUserRoles::resetToAllInvalid()
+{
+    m_validFlag     = false;
+    m_adminFlag     = false;
+    m_curatorFlag   = false;
+    m_submitterFlag = false;
+    m_userFlag      = false;
+}
+
+/**
  * Parse JSON to find roles.
  *
  * @param jsonArray
@@ -119,12 +133,14 @@ BalsaUserRoles::copyHelperBalsaUserRoles(const BalsaUserRoles& obj)
 bool
 BalsaUserRoles::parseJson(const QJsonArray& jsonArray)
 {
+    resetToAllInvalid();
+    
     for (QJsonArray::const_iterator roleIter = jsonArray.begin();
          roleIter != jsonArray.end();
          roleIter++) {
         QJsonValue value = *roleIter;
         if (value.isString()) {
-            const QString roleName = value.toString();
+            const QString roleName = value.toString().trimmed();
             if (roleName == "ROLE_ADMIN") {
                 m_adminFlag = true;
             }
@@ -211,11 +227,11 @@ AString
 BalsaUserRoles::toString() const
 {
     AString msg("BalsaUserRoles: "
-                + AString(m_validFlag ? "Data Valid - YES: " : "Data Valid - NO: ")
-                + AString(m_adminFlag ? "Admin; " : "")
-                + AString(m_curatorFlag ? "Curator; " : "")
-                + AString(m_submitterFlag ? "Submitter; " : "")
-                + AString(m_userFlag ? "User; " : ""));
+                + AString("Data Valid - " + AString(m_validFlag ? "YES: " : "NO: "))
+                + AString("Admin - "      + AString(m_adminFlag ? "YES: " : "NO: "))
+                + AString("Curator - "    + AString(m_curatorFlag ? "YES: " : "NO: "))
+                + AString("Submitter - "  + AString(m_submitterFlag ? "YES: " : "NO: "))
+                + AString("User - "       + AString(m_userFlag ? "YES: " : "NO: ")));
     return msg;
 }
 
