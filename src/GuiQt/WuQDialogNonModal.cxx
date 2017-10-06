@@ -79,8 +79,28 @@ WuQDialogNonModal::~WuQDialogNonModal()
     
 }
 
-/** 
- * May be called requesting the dialog to update its content 
+/**
+ * Show the dialog.
+ *
+ * There are a number of methods for 'showing' a Qt dialog.
+ * Some of them will show the dialog for the first time.  
+ * If the dialog is 'behind' the main window, not all
+ * of the methods put the dialog in front of the window.
+ * This methods uses several of the Qt methods to ensure
+ * that the dialog is moved in front of a main window.
+ */
+void
+WuQDialogNonModal::showDialog()
+{
+    this->setVisible(true);
+    this->show();
+    this->activateWindow();
+    this->raise();
+}
+
+
+/**
+ * May be called requesting the dialog to update its content
  * Subclasses should override.
  */
 void

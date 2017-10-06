@@ -1603,9 +1603,7 @@ GuiManager::processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browser
         m_surfacePropertiesEditorDialog->setSaveWindowPositionForNextTime(true);
         wasCreatedFlag = true;
     }
-    m_surfacePropertiesEditorDialog->setVisible(true);
-    m_surfacePropertiesEditorDialog->show();
-    m_surfacePropertiesEditorDialog->activateWindow();
+    m_surfacePropertiesEditorDialog->showDialog();
     
     if (wasCreatedFlag) {
         WuQtUtilities::moveWindowToSideOfParent(browserWindow,
@@ -1692,8 +1690,7 @@ GuiManager::showHideSceneDialog(const bool status,
             }
         }
         
-        this->sceneDialog->show();
-        this->sceneDialog->activateWindow();
+        this->sceneDialog->showDialog();
         
         this->sceneDialog->createDefaultSceneFile();
     }
@@ -1773,9 +1770,7 @@ GuiManager::processShowBugReportDialog(BrainBrowserWindow* browserWindow,
         this->addNonModalDialog(m_bugReportDialog);
     }
     
-    m_bugReportDialog->setVisible(true);
-    m_bugReportDialog->show();
-    m_bugReportDialog->activateWindow();
+    m_bugReportDialog->showDialog();
 }
 
 /**
@@ -1831,8 +1826,7 @@ GuiManager::showHideHelpDialog(const bool status,
             }
         }
         
-        m_helpViewerDialog->show();
-        m_helpViewerDialog->activateWindow();
+        m_helpViewerDialog->showDialog();
     }
     else {
         m_helpViewerDialog->close();
@@ -1953,9 +1947,7 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
     if (forceDisplayOfDialog
         || m_informationDisplayDialogEnabledAction->isChecked()) {
         if (m_informationDisplayDialog != NULL) {
-            m_informationDisplayDialog->setVisible(true);
-            m_informationDisplayDialog->show();
-            m_informationDisplayDialog->activateWindow();
+            m_informationDisplayDialog->showDialog();
         }
     }
 }
@@ -2018,8 +2010,7 @@ GuiManager::showHideIdentfyBrainordinateDialog(const bool status,
             }
         }
         
-        m_identifyBrainordinateDialog->show();
-        m_identifyBrainordinateDialog->activateWindow();
+        m_identifyBrainordinateDialog->showDialog();
     }
     else {
         m_identifyBrainordinateDialog->close();
@@ -2091,9 +2082,7 @@ GuiManager::processShowClippingPlanesDialog(BrainBrowserWindow* browserWindow)
     
     const int32_t browserWindowIndex = browserWindow->getBrowserWindowIndex();
     m_clippingPlanesDialog->updateContent(browserWindowIndex);
-    m_clippingPlanesDialog->setVisible(true);
-    m_clippingPlanesDialog->show();
-    m_clippingPlanesDialog->activateWindow();
+    m_clippingPlanesDialog->showDialog();
 }
 
 
@@ -2112,9 +2101,7 @@ GuiManager::processShowCustomViewDialog(BrainBrowserWindow* browserWindow)
     
     const int32_t browserWindowIndex = browserWindow->getBrowserWindowIndex();
     m_customViewDialog->updateContent(browserWindowIndex);
-    m_customViewDialog->setVisible(true);
-    m_customViewDialog->show();
-    m_customViewDialog->activateWindow();
+    m_customViewDialog->showDialog();
     
 }
 
@@ -2132,9 +2119,7 @@ GuiManager::processShowTileTabsConfigurationDialog(caret::BrainBrowserWindow *br
     }
     
     m_tileTabsConfigurationDialog->updateDialogWithSelectedTileTabsFromWindow(browserWindow);
-    m_tileTabsConfigurationDialog->setVisible(true);
-    m_tileTabsConfigurationDialog->show();
-    m_tileTabsConfigurationDialog->activateWindow();
+    m_tileTabsConfigurationDialog->showDialog();
 }
 
 /**
@@ -2151,9 +2136,7 @@ GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
     }
     this->imageCaptureDialog->updateDialog();
     this->imageCaptureDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
-    this->imageCaptureDialog->setVisible(true);
-    this->imageCaptureDialog->show();
-    this->imageCaptureDialog->activateWindow();
+    this->imageCaptureDialog->showDialog();
 }
 
 /**
@@ -2170,9 +2153,7 @@ GuiManager::processShowGapsAndMarginsDialog(BrainBrowserWindow* browserWindow)
     }
     m_gapsAndMarginsDialog->updateDialog();
     //m_tabMarginsDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
-    m_gapsAndMarginsDialog->setVisible(true);
-    m_gapsAndMarginsDialog->show();
-    m_gapsAndMarginsDialog->activateWindow();
+    m_gapsAndMarginsDialog->showDialog();
 }
 
 /**
@@ -2192,6 +2173,7 @@ GuiManager::processShowMovieDialog(BrainBrowserWindow* browserWindow)
     this->movieDialog->setVisible(true);
     this->movieDialog->show();
     this->movieDialog->activateWindow();
+    this->movieDialog->raise();
 }
 
 
@@ -2209,9 +2191,7 @@ GuiManager::processShowPreferencesDialog(BrainBrowserWindow* browserWindow)
         this->addNonModalDialog(this->preferencesDialog);
     }
     this->preferencesDialog->updateDialog();
-    this->preferencesDialog->setVisible(true);
-    this->preferencesDialog->show();
-    this->preferencesDialog->activateWindow();
+    this->preferencesDialog->showDialog();
 }
 
 /**

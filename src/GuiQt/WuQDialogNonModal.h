@@ -39,6 +39,8 @@ namespace caret {
         
         void setCloseButtonText(const AString& text);
         
+        void showDialog();
+        
         virtual void updateDialog();
         //virtual void updateDialog() = 0;
         
