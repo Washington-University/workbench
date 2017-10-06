@@ -95,9 +95,6 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
         case DEVELOPER_FLAG_UNUSED:
             this->flagStatus = false;
             break;
-        case DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1:
-            this->flagStatus = true;
-            break;
     }
 }
 
@@ -122,11 +119,6 @@ DeveloperFlagsEnum::initialize()
     enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_UNUSED,
                                           "DEVELOPER_FLAG_UNUSED",
                                           "Developer flag unused"));
-    
-    
-    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1,
-                                          "DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1",
-                                          "Draw with New Charting in Window 1"));
 }
 
 /**

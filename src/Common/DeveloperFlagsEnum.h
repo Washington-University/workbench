@@ -36,7 +36,6 @@ public:
      */
     enum Enum {
         DEVELOPER_FLAG_UNUSED,
-        DEVELOPER_FLAG_NEW_CHARTING_WINDOW_1
     };
 
     ~DeveloperFlagsEnum();
