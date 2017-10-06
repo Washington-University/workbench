@@ -365,7 +365,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     rolesPushButton->setToolTip("Test getting the user's roles");
     QObject::connect(rolesPushButton, &QPushButton::clicked,
                      this, &BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked);
-    //rolesPushButton->setVisible(false);
+    rolesPushButton->setVisible(false);
 
     /*
      * Auto-save checkbox
@@ -424,8 +424,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_balsaStudyIDLineEdit->setText(m_sceneFile->getBalsaStudyID());
     AString baseDirectory = m_sceneFile->getBalsaBaseDirectory();
     if (baseDirectory.isEmpty()) {
-        FileInformation fileInfo(m_sceneFile->getFileName());
-        baseDirectory = fileInfo.getPathName();
+        baseDirectory = m_sceneFile->findBaseDirectoryForDataFiles();
     }
     m_baseDirectoryLineEdit->setText(baseDirectory);
     m_balsaStudyTitleLineEdit->setText(m_sceneFile->getBalsaStudyTitle());
