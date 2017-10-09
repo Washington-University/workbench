@@ -276,7 +276,7 @@ namespace caret {
         void tabClosed(int index);
         
         void insertNewTabAtTabBarIndex(int32_t tabBarIndex);
-        void insertClonedTabContentAtTabBarIndex(const BrowserTabContent* tabContentToBeCloned,
+        void insertAndCloneTabContentAtTabBarIndex(const BrowserTabContent* tabContentToBeCloned,
                                                  const int32_t tabBarIndex);
         
         BrowserTabContent* createNewTab(AString& errorMessage);
@@ -446,6 +446,8 @@ namespace caret {
         bool m_performingUpdateFlag = false;
         
         const int32_t TAB_INDEX_APPEND_TO_TOOLBAR = 10000;
+        
+        friend class BrainBrowserWindowToolBarTabPopUpMenu;
     };
 }
 

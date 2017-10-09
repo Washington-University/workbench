@@ -85,6 +85,7 @@ ELSE()
         BrainBrowserWindowToolBarSliceSelection.h
         BrainBrowserWindowToolBarSurfaceMontage.h
         BrainBrowserWindowToolBarTab.h
+        BrainBrowserWindowToolBarTabPopUpMenu.h
         BrainBrowserWindowToolBarVolumeMontage.h
         BrainOpenGLWidget.h
         BugReportDialog.h
@@ -276,6 +277,7 @@ BrainBrowserWindowToolBarSlicePlane.h
 BrainBrowserWindowToolBarSliceSelection.h
 BrainBrowserWindowToolBarSurfaceMontage.h
 BrainBrowserWindowToolBarTab.h
+BrainBrowserWindowToolBarTabPopUpMenu.h
 BrainBrowserWindowToolBarVolumeMontage.h
 BrainOpenGLWidget.h
 BugReportDialog.h
@@ -491,6 +493,7 @@ BrainBrowserWindowToolBarSlicePlane.cxx
 BrainBrowserWindowToolBarSliceSelection.cxx
 BrainBrowserWindowToolBarSurfaceMontage.cxx
 BrainBrowserWindowToolBarTab.cxx
+BrainBrowserWindowToolBarTabPopUpMenu.cxx
 BrainBrowserWindowToolBarVolumeMontage.cxx
 BrainOpenGLWidget.cxx
 BugReportDialog.cxx

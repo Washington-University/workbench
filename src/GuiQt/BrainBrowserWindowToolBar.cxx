@@ -66,6 +66,7 @@
 #include "BrainBrowserWindowToolBarSliceSelection.h"
 #include "BrainBrowserWindowToolBarSurfaceMontage.h"
 #include "BrainBrowserWindowToolBarTab.h"
+#include "BrainBrowserWindowToolBarTabPopUpMenu.h"
 #include "BrainBrowserWindowToolBarVolumeMontage.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -575,7 +576,7 @@ BrainBrowserWindowToolBar::createNewTab(AString& errorMessage)
 void 
 BrainBrowserWindowToolBar::addNewDuplicatedTab(BrowserTabContent* browserTabContentToBeCloned)
 {
-    insertClonedTabContentAtTabBarIndex(browserTabContentToBeCloned,
+    insertAndCloneTabContentAtTabBarIndex(browserTabContentToBeCloned,
                                         -1);
 }
 
@@ -588,7 +589,7 @@ BrainBrowserWindowToolBar::addNewDuplicatedTab(BrowserTabContent* browserTabCont
  *     Index in the tab bar.  If invalid, tab is appended to the end of the toolbar.
  */
 void
-BrainBrowserWindowToolBar::insertClonedTabContentAtTabBarIndex(const BrowserTabContent* browserTabContentToBeCloned,
+BrainBrowserWindowToolBar::insertAndCloneTabContentAtTabBarIndex(const BrowserTabContent* browserTabContentToBeCloned,
                                                                const int32_t tabBarIndex)
 {
     if ( ! allowAddingNewTab()) {
@@ -1405,34 +1406,12 @@ BrainBrowserWindowToolBar::closeSelectedTab()
 void
 BrainBrowserWindowToolBar::showTabMenu(const QPoint& pos)
 {
-    const int tabUnderMouseIndex = this->tabBar->tabAt(pos);
+    const int tabIndexUnderMouseIndex = this->tabBar->tabAt(pos);
     
-    if (tabUnderMouseIndex >= 0) {
-        const int32_t insertAtTabIndex = tabUnderMouseIndex + 1;
-        QMenu menu(this->tabBar);
-        menu.move(mapToGlobal(pos));
-        QAction* addAction = menu.addAction("Add New Tab to Right");
-        QAction* duplicateAction = menu.addAction("Duplicate This Tab to Right");
-        menu.addSeparator();
-        QAction* closeAction = menu.addAction("Close This Tab");
-        closeAction->setEnabled(this->tabBar->count() > 1);
-        
-        const QAction* selectedAction = menu.exec();
-        if (selectedAction == addAction) {
-            insertNewTabAtTabBarIndex(insertAtTabIndex);
-        }
-        else if (selectedAction == duplicateAction) {
-            BrowserTabContent* tabContent = getTabContentFromTab(tabUnderMouseIndex);
-            CaretAssert(tabContent);
-            insertClonedTabContentAtTabBarIndex(tabContent,
-                                                insertAtTabIndex);
-        }
-        else if (selectedAction == closeAction) {
-            tabCloseSelected(tabUnderMouseIndex);
-        }
-        else if (selectedAction != NULL) {
-            CaretAssertMessage(0, "Has a new action been added to the menu");
-        }
+    if (tabIndexUnderMouseIndex >= 0) {
+        BrainBrowserWindowToolBarTabPopUpMenu menu(this,
+                                                   tabIndexUnderMouseIndex);
+        menu.exec(mapToGlobal(pos));
     }
     else {
         QMenu menu(this->tabBar);
