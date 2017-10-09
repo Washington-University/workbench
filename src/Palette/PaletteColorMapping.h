@@ -282,6 +282,8 @@ namespace caret {
         static const float SMALL_NEGATIVE;
         
     private:
+        bool isZeroNumericText(const AString& numericText) const;
+        
         PaletteScaleModeEnum::Enum scaleMode;
         
         float autoScalePercentageNegativeMaximum;

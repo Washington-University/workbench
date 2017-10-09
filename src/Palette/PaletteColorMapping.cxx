@@ -2196,7 +2196,7 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
     if (negativeDataDisplayedFlag
         && positiveDataDisplayedFlag) {
         CaretAssert(negativeValuesText.size() > 0);
-        const AString negMinText = negativeValuesText.back();
+        AString negMinText = negativeValuesText.back();
         CaretAssert(positiveValuesText.size() > 0);
         const AString posMinText = positiveValuesText.front();
         
@@ -2206,6 +2206,10 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
              * same, there is no need to display both of them.
              */
             zeroValueText = negMinText;
+        }
+        else if (isZeroNumericText(negMinText)
+                 && (isZeroNumericText(posMinText))) {
+            zeroValueText = "0";
         }
         else {
             /*
@@ -2615,6 +2619,10 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
              */
             zeroValueText = negMinText;
         }
+        else if (isZeroNumericText(negMinText)
+                 && (isZeroNumericText(posMinText))) {
+            zeroValueText = "0";
+        }
         else {
             /*
              * When the negative min and positive min values are the
@@ -2738,6 +2746,28 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
         std::cout << std::endl;
     }
 }
+
+/**
+ * Is the numeric value of the text zero?
+ * 
+ * @param numericText
+ *      The text with a numeric value
+ * @return
+ *      True if the text represents zero, else false
+ */
+bool
+PaletteColorMapping::isZeroNumericText(const AString& numericText) const
+{
+    if ((numericText == "0")
+        || (numericText == "0.0")
+        || (numericText == "-0")
+        || (numericText == "-0.0")) {
+        return true;
+    }
+    
+    return false;
+}
+                                      
 
 /**
  * @return True if thresholding is linked meaning
