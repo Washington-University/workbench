@@ -270,9 +270,6 @@ namespace caret {
                                               const int64_t numberOfData) const;
         
         void getPaletteColorBarScaleText(const FastStatistics* statistics,
-                                         std::vector<std::pair<float, AString> >& normalizedPositionAndTextOut) const;
-        
-        void getPaletteColorBarScaleText(const FastStatistics* statistics,
                                          std::vector<AnnotationColorBarNumericText*>& colorBarNumericTextOut) const;
         
         /** A positive value near zero - may be zero! */
@@ -370,8 +367,8 @@ namespace caret {
     };
 
 #ifdef __PALETTE_COLOR_MAPPING_DECLARE__
-    const float PaletteColorMapping::SMALL_POSITIVE = 0.0;  // JWH 24 April 2015  0.00001;
-    const float PaletteColorMapping::SMALL_NEGATIVE = 0.0;  // JWH 24 April 2015 -0.00001;
+    const float PaletteColorMapping::SMALL_POSITIVE = 0.0;
+    const float PaletteColorMapping::SMALL_NEGATIVE = 0.0;
 #endif // __PALETTE_COLOR_MAPPING_DECLARE__
     
 } // namespace

@@ -262,7 +262,6 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdMappedAverageAreaMaximum =  1.0f;
     this->thresholdDataName = "";
     this->thresholdShowFailureInGreen = false;
-    //this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP;
     this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE;
     this->thresholdNegMinPosMaxLinked = false;
     this->histogramRangeMode = PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL;
@@ -546,9 +545,6 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
         float rightSideRGBA[4];
         rightSideScalarColor->getColor(rightSideRGBA);
         
-        //addXyRgba(quadsXYZ, quadsRGBA, rightSideScalar, -halfHeight, rightSideRGBA);
-        //addXyRgba(quadsXYZ, quadsRGBA, rightSideScalar,  halfHeight, rightSideRGBA);
-        
         /*
          * Default left side of palette subsection to far left side
          * and same color as right side of palette subsection
@@ -695,241 +691,6 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
     setupAnnotationColorBarNumericText(statistics,
                                        colorBar);
 }
-
-///**
-// * Setup an annotation color bar with its color sections.
-// *
-// * @param statistics
-// *     Statistics of data for colorbar.
-// * @param colorBar
-// *     The annotation colorbar that has its color sections set.
-// */
-//void
-//PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
-//                                             AnnotationColorBar* colorBar)
-//{
-//    CaretAssert(statistics);
-//    CaretAssert(colorBar);
-//    
-//    colorBar->clearSections();
-//    
-//    const AString paletteName = getSelectedPaletteName();
-//    EventPaletteGetByName paletteEvent(paletteName);
-//    EventManager::get()->sendEvent(paletteEvent.getPointer());
-//    const Palette* palette = paletteEvent.getPalette();
-//    if (palette == NULL) {
-//        CaretLogSevere("Unable to find palette named \""
-//                       + paletteName
-//                       + "\"");
-//        return;
-//    }
-//    
-//    
-//    /*
-//     * Types of values for display
-//     */
-//    const bool isPositiveOnly = (this->displayPositiveDataFlag && ( ! this->displayNegativeDataFlag));
-//    const bool isNegativeOnly = (( ! this->displayPositiveDataFlag) && this->displayNegativeDataFlag);
-//    
-//    float xMinimum = -1.0;
-//    float xMaximum =  1.0;
-//    if (isPositiveOnly) {
-//        xMinimum = 0.0;
-//    }
-//    else if (isNegativeOnly) {
-//        xMaximum = 0.0;
-//    }
-//    
-//    /*
-//     * Always interpolate if the palette has only two colors
-//     */
-//    bool interpolateColor = this->interpolatePaletteFlag;
-//    if (palette->getNumberOfScalarsAndColors() <= 2) {
-//        interpolateColor = true;
-//    }
-//    
-//    /*
-//     * Draw the colorbar starting with the color assigned
-//     * to the negative end of the palette.
-//     * Colorbar scalars range from -1 to 1.
-//     */
-//    const int iStart = palette->getNumberOfScalarsAndColors() - 1;
-//    const int iEnd = 1;
-//    const int iStep = -1;
-//    for (int i = iStart; i >= iEnd; i += iStep) {
-//        /*
-//         * palette data for 'left' side of a color in the palette.
-//         */
-//        const PaletteScalarAndColor* sc = palette->getScalarAndColor(i);
-//        float scalar = sc->getScalar();
-//        float rgba[4];
-//        sc->getColor(rgba);
-//        
-//        /*
-//         * palette data for 'right' side of a color in the palette.
-//         */
-//        const PaletteScalarAndColor* nextSC = palette->getScalarAndColor(i - 1);
-//        float nextScalar = nextSC->getScalar();
-//        float nextRGBA[4];
-//        nextSC->getColor(nextRGBA);
-//        const bool isNoneColorFlag = nextSC->isNoneColor();
-//        
-//        /*
-//         * Exclude negative regions if not displayed.
-//         */
-//        if ( ! this->displayNegativeDataFlag) {
-//            if (nextScalar < 0.0) {
-//                continue;
-//            }
-//            else if (scalar < 0.0) {
-//                scalar = 0.0;
-//            }
-//        }
-//        
-//        /*
-//         * Exclude positive regions if not displayed.
-//         */
-//        if ( ! this->displayPositiveDataFlag) {
-//            if (scalar > 0.0) {
-//                continue;
-//            }
-//            else if (nextScalar > 0.0) {
-//                nextScalar = 0.0;
-//            }
-//        }
-//        
-//        /*
-//         * Normally, the first entry has a scalar value of -1.
-//         * If it does not, use the first color draw from
-//         * -1 to the first scalar value.
-//         */
-//        if (i == iStart) {
-//            if ( ! sc->isNoneColor()) {
-//                if (scalar > -1.0) {
-//                    const float xStart = -1.0;
-//                    const float xEnd   = scalar;
-//                    
-//                    colorBar->addSection(xStart,
-//                                         xEnd,
-//                                         rgba,
-//                                         rgba);
-//                }
-//            }
-//        }
-//        
-//        /*
-//         * If the 'next' color is none, drawing
-//         * is skipped to let the background show
-//         * throw the 'none' region of the palette.
-//         */
-//        if ( ! isNoneColorFlag) {
-//            /*
-//             * left and right region of an entry in the palette
-//             */
-//            const float xStart = scalar;
-//            const float xEnd   = nextScalar;
-//            
-//            /*
-//             * Unless interpolating, use the 'next' color.
-//             */
-//            float* startRGBA = nextRGBA;
-//            float* endRGBA   = nextRGBA;
-//            if (interpolateColor) {
-//                startRGBA = rgba;
-//            }
-//            
-//            /*
-//             * Draw the region in the palette.
-//             */
-//            colorBar->addSection(xStart,
-//                                 xEnd,
-//                                 startRGBA,
-//                                 endRGBA);
-//            
-//            /*
-//             * The last scalar value is normally 1.0.  If the last
-//             * scalar is less than 1.0, then fill in the rest of
-//             * the palette from the last scalar to 1.0.
-//             */
-//            if (i == iEnd) {
-//                if (nextScalar < 1.0) {
-//                    const float xStart = nextScalar;
-//                    const float xEnd   = 1.0;
-//                    colorBar->addSection(xStart,
-//                                         xEnd,
-//                                         nextRGBA,
-//                                         nextRGBA);
-//                }
-//            }
-//        }
-//    }
-//    
-//    float backgroundRGBA[4];
-//    colorBar->getBackgroundColorRGBA(backgroundRGBA);
-//    
-//    /*
-//     * Draw over thresholded regions with background color
-//     */
-//    if (this->thresholdType != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
-//        const float minMaxThresholds[2] = {
-//            getThresholdMinimum(thresholdType),
-//            getThresholdMaximum(thresholdType)
-//        };
-//        float normalizedThresholds[2];
-//        
-//        mapDataToPaletteNormalizedValues(statistics,
-//                                         minMaxThresholds,
-//                                         normalizedThresholds,
-//                                         2);
-//        
-//        switch (this->thresholdTest) {
-//            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
-//                if (normalizedThresholds[0] >= xMinimum) {
-//                    colorBar->addSection(xMinimum,
-//                                         normalizedThresholds[0],
-//                                         backgroundRGBA,
-//                                         backgroundRGBA);
-//                }
-//                if (normalizedThresholds[1] < xMaximum) {
-//                    colorBar->addSection(normalizedThresholds[1],
-//                                         xMaximum,
-//                                         backgroundRGBA,
-//                                         backgroundRGBA);
-//                }
-//                break;
-//            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
-//            {
-//                const float xMin = MathFunctions::limitRange(normalizedThresholds[0],
-//                                                             xMinimum,
-//                                                             xMaximum);
-//                const float xMax = MathFunctions::limitRange(normalizedThresholds[1],
-//                                                             xMinimum,
-//                                                             xMaximum);
-//                if (xMin < xMax) {
-//                    colorBar->addSection(normalizedThresholds[0],
-//                                         normalizedThresholds[1],
-//                                         backgroundRGBA,
-//                                         backgroundRGBA);
-//                }
-//            }
-//                break;
-//        }
-//    }
-//    
-//    /*
-//     * If zeros are not displayed, draw a line in the
-//     * background color at zero in the palette.
-//     */
-//    if ( ! this->displayZeroDataFlag) {
-//        colorBar->addSection(0.0, 0.0, backgroundRGBA, backgroundRGBA);
-//    }
-//
-//    /**
-//     * Add numeric text to the color bar.
-//     */
-//    setupAnnotationColorBarNumericText(statistics,
-//                                       colorBar);
-//}
 
 /**
  * Get auto scale percentage negative maximum.
@@ -1942,9 +1703,6 @@ PaletteColorMapping::setupAnnotationColorBarNumericText(const FastStatistics* st
     getPaletteColorBarScaleText(statistics,
                                 colorBarNumericText);
     
-//    std::vector<std::pair<float, AString> > normalizedPositionAndText;
-//    getPaletteColorBarScaleText(statistics,
-//                                normalizedPositionAndText);
     
     for (std::vector<AnnotationColorBarNumericText*>::iterator iter = colorBarNumericText.begin();
          iter != colorBarNumericText.end();
@@ -1987,9 +1745,9 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
         {
             const int emDash = 0x2014;
             
-            const AString positive("(+)"); //"POS");
+            const AString positive("(+)");
             const AString zero("0");
-            const AString negative("(" + QString(QChar(emDash)) + ")");   //"NEG");
+            const AString negative("(" + QString(QChar(emDash)) + ")");
             
             if (isDisplayPositiveDataFlag()
                 && isDisplayNegativeDataFlag()) {
@@ -2005,9 +1763,6 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
                                                                                    positive,
                                                                                    AnnotationTextAlignHorizontalEnum::RIGHT,
                                                                                    true));
-//                normalizedPositionAndTextOut.push_back(std::make_pair(0.0, negative));
-//                normalizedPositionAndTextOut.push_back(std::make_pair(0.5, zero));
-//                normalizedPositionAndTextOut.push_back(std::make_pair(1.0, positive));
             }
             else if (isDisplayPositiveDataFlag()) {
                 colorBarNumericTextOut.push_back(new AnnotationColorBarNumericText(0.0,
@@ -2018,8 +1773,6 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
                                                                                    positive,
                                                                                    AnnotationTextAlignHorizontalEnum::RIGHT,
                                                                                    true));
-//                normalizedPositionAndTextOut.push_back(std::make_pair(0.0, zero));
-//                normalizedPositionAndTextOut.push_back(std::make_pair(1.0, positive));
             }
             else if (isDisplayNegativeDataFlag()) {
                 colorBarNumericTextOut.push_back(new AnnotationColorBarNumericText(0.0,
@@ -2030,15 +1783,12 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
                                                                                    zero,
                                                                                    AnnotationTextAlignHorizontalEnum::CENTER,
                                                                                    true));
-//                normalizedPositionAndTextOut.push_back(std::make_pair(0.0, negative));
-//                normalizedPositionAndTextOut.push_back(std::make_pair(1.0, zero));
             }
             else if (isDisplayZeroDataFlag()) {
                 colorBarNumericTextOut.push_back(new AnnotationColorBarNumericText(0.5,
                                                                                    zero,
                                                                                    AnnotationTextAlignHorizontalEnum::CENTER,
                                                                                    true));
-//                normalizedPositionAndTextOut.push_back(std::make_pair(0.5, zero));
             }
             
             return;
@@ -2151,7 +1901,6 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
              * Decimal mode integers for percentile
              */
             numericFormatModeForTextFormatting = NumericFormatModeEnum::DECIMAL;
-            //precisionDigitsForTextFormatting = 0;
             break;
         case PaletteColorBarValuesModeEnum::SIGN_ONLY:
             CaretAssertMessage(0, "Should never get here.  Sign only handled above");
@@ -2291,8 +2040,6 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
                                                                                negativeValuesText[i],
                                                                                alignment,
                                                                                true));
-//            normalizedPositionAndTextOut.push_back(std::make_pair(value,
-//                                                                  negativeValuesText[i]));
         }
     }
     
@@ -2305,8 +2052,6 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
                                                                            zeroValueText,
                                                                            AnnotationTextAlignHorizontalEnum::CENTER,
                                                                            true));
-//        normalizedPositionAndTextOut.push_back(std::make_pair(0.5,
-//                                                              zeroValueText));
     }
     
     /*
@@ -2353,8 +2098,6 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
                                                                                positiveValuesText[i],
                                                                                alignment,
                                                                                true));
-//            normalizedPositionAndTextOut.push_back(std::make_pair(value,
-//                                                                  positiveValuesText[i]));
         }
     }
     
@@ -2371,11 +2114,6 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
                 AnnotationColorBarNumericText* nt = *iter;
                 nt->setNumericText(nt->getNumericText() + "%");
             }
-//            for (std::vector<std::pair<float, AString> >::iterator iter = normalizedPositionAndTextOut.begin();
-//                 iter != normalizedPositionAndTextOut.end();
-//                 iter++) {
-//                iter->second.append("%");
-//            }
             break;
         case PaletteColorBarValuesModeEnum::SIGN_ONLY:
             break;
@@ -2402,351 +2140,6 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
     }
 }
 
-
-/**
- * Get the text characters for drawing the scale above the palette
- * color bar.
- *
- * @param statistics
- *     Statistics for the data.
- * @param normalizedPositionAndTextOut,
- *     Horizontal position ranging 0.0 to 1.0
- *     and text values.
- */
-void
-PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistics,
-                                                 std::vector<std::pair<float, AString> >& normalizedPositionAndTextOut) const
-{
-    normalizedPositionAndTextOut.clear();
-    
-    /*
-     * Processing for Sign Only Mode
-     */
-    switch (this->colorBarValuesMode) {
-        case PaletteColorBarValuesModeEnum::DATA:
-            break;
-        case PaletteColorBarValuesModeEnum::PERCENTILE:
-            break;
-        case PaletteColorBarValuesModeEnum::SIGN_ONLY:
-        {
-            const int emDash = 0x2014;
-            
-            const AString positive("(+)"); //"POS");
-            const AString zero("0");
-            const AString negative("(" + QString(QChar(emDash)) + ")");   //"NEG");
-            
-            if (isDisplayPositiveDataFlag()
-                && isDisplayNegativeDataFlag()) {
-                normalizedPositionAndTextOut.push_back(std::make_pair(0.0, negative));
-                normalizedPositionAndTextOut.push_back(std::make_pair(0.5, zero));
-                normalizedPositionAndTextOut.push_back(std::make_pair(1.0, positive));
-            }
-            else if (isDisplayPositiveDataFlag()) {
-                normalizedPositionAndTextOut.push_back(std::make_pair(0.0, zero));
-                normalizedPositionAndTextOut.push_back(std::make_pair(1.0, positive));
-            }
-            else if (isDisplayNegativeDataFlag()) {
-                normalizedPositionAndTextOut.push_back(std::make_pair(0.0, negative));
-                normalizedPositionAndTextOut.push_back(std::make_pair(1.0, zero));
-            }
-            else if (isDisplayZeroDataFlag()) {
-                normalizedPositionAndTextOut.push_back(std::make_pair(0.5, zero));
-            }
-            
-            return;
-        }
-            break;
-    }
-    
-    
-    float negMax = -1.0;
-    float negMin =  0.0;
-    float posMin =  0.0;
-    float posMax =  1.0;
-    switch (getScaleMode()) {
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
-        {
-            float dummy;
-            statistics->getNonzeroRanges(negMax, dummy, dummy, posMax);
-        }
-            break;
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
-        {
-            const float maxPct = getAutoScaleAbsolutePercentageMaximum();
-            const float minPct = getAutoScaleAbsolutePercentageMinimum();
-            
-            negMax = -statistics->getApproxAbsolutePercentile(maxPct);
-            negMin = -statistics->getApproxAbsolutePercentile(minPct);
-            posMin =  statistics->getApproxAbsolutePercentile(minPct);
-            posMax =  statistics->getApproxAbsolutePercentile(maxPct);
-        }
-            break;
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
-        {
-            const float negMaxPct = getAutoScalePercentageNegativeMaximum();
-            const float negMinPct = getAutoScalePercentageNegativeMinimum();
-            const float posMinPct = getAutoScalePercentagePositiveMinimum();
-            const float posMaxPct = getAutoScalePercentagePositiveMaximum();
-            
-            negMax = statistics->getApproxNegativePercentile(negMaxPct);
-            negMin = statistics->getApproxNegativePercentile(negMinPct);
-            posMin = statistics->getApproxPositivePercentile(posMinPct);
-            posMax = statistics->getApproxPositivePercentile(posMaxPct);
-        }
-            break;
-        case PaletteScaleModeEnum::MODE_USER_SCALE:
-            negMax = getUserScaleNegativeMaximum();
-            negMin = getUserScaleNegativeMinimum();
-            posMin = getUserScalePositiveMinimum();
-            posMax = getUserScalePositiveMaximum();
-            break;
-    }
-    
-    /*
-     * numeric values displayed for negative data
-     */
-    std::vector<float> negativeValues;
-    negativeValues.push_back(negMax);
-    if (this->colorBarNumericSubdivisionCount > 0) {
-        const float range    = negMin - negMax;
-        const float interval = range / (this->colorBarNumericSubdivisionCount + 1);
-        for (int32_t i = 0; i < this->colorBarNumericSubdivisionCount; i++) {
-            negativeValues.push_back(negMax
-                                     + (interval * (i + 1)));
-        }
-    }
-    negativeValues.push_back(negMin);
-    
-    /*
-     * numeric values displayed for positive data
-     */
-    std::vector<float> positiveValues;
-    positiveValues.push_back(posMin);
-    if (this->colorBarNumericSubdivisionCount > 0) {
-        const float range    = posMax - posMin;
-        const float interval = range / (this->colorBarNumericSubdivisionCount + 1);
-        for (int32_t i = 0; i < this->colorBarNumericSubdivisionCount; i++) {
-            positiveValues.push_back(posMin
-                                     + (interval * (i + 1)));
-        }
-    }
-    positiveValues.push_back(posMax);
-    
-    /*
-     * Wil need to override these values when percentile
-     */
-    NumericFormatModeEnum::Enum numericFormatModeForTextFormatting = this->colorBarNumericFormatMode;
-    int32_t precisionDigitsForTextFormatting = this->colorBarPrecisionDigits;
-    
-    /*
-     * Processing for percentile mode
-     * Convert numeric values to percentiles
-     */
-    switch (this->colorBarValuesMode) {
-        case PaletteColorBarValuesModeEnum::DATA:
-            break;
-        case PaletteColorBarValuesModeEnum::PERCENTILE:
-            for (std::vector<float>::iterator iter = positiveValues.begin();
-                 iter != positiveValues.end();
-                 iter++) {
-                const float percentile = statistics->getPositiveValuePercentile(*iter);
-                *iter = percentile;
-            }
-            for (std::vector<float>::iterator iter = negativeValues.begin();
-                 iter != negativeValues.end();
-                 iter++) {
-                const float percentile = statistics->getNegativeValuePercentile(*iter);
-                *iter = percentile;
-            }
-            
-            /*
-             * Decimal mode integers for percentile
-             */
-            numericFormatModeForTextFormatting = NumericFormatModeEnum::DECIMAL;
-            precisionDigitsForTextFormatting = 0;
-            break;
-        case PaletteColorBarValuesModeEnum::SIGN_ONLY:
-            CaretAssertMessage(0, "Should never get here.  Sign only handled above");
-            break;
-    }
-    
-    /*
-     * Create text representations for negative values
-     */
-    const int32_t numberOfNegValues = static_cast<int32_t>(negativeValues.size());
-    std::vector<AString> negativeValuesText(numberOfNegValues);
-    NumericTextFormatting::formatValueRange(numericFormatModeForTextFormatting,
-                                            precisionDigitsForTextFormatting,
-                                            &negativeValues[0],
-                                            &negativeValuesText[0],
-                                            numberOfNegValues);
-    
-    /*
-     * Create text representations for positive values
-     */
-    const int32_t numberOfPosValues = static_cast<int32_t>(positiveValues.size());
-    std::vector<AString> positiveValuesText(numberOfPosValues);
-    NumericTextFormatting::formatValueRange(numericFormatModeForTextFormatting,
-                                            precisionDigitsForTextFormatting,
-                                            &positiveValues[0],
-                                            &positiveValuesText[0],
-                                            numberOfPosValues);
-    
-    CaretAssert(negativeValues.size() == negativeValuesText.size());
-    CaretAssert(positiveValues.size() == positiveValuesText.size());
-    
-    /*
-     * Types of values for display
-     */
-    const bool positiveDataDisplayedFlag = isDisplayPositiveDataFlag();
-    const bool negativeDataDisplayedFlag = isDisplayNegativeDataFlag();
-    
-    /*
-     * Are both negative and positive values displayed?
-     */
-    AString zeroValueText;
-    if (negativeDataDisplayedFlag
-        && positiveDataDisplayedFlag) {
-        CaretAssert(negativeValuesText.size() > 0);
-        const AString negMinText = negativeValuesText.back();
-        CaretAssert(positiveValuesText.size() > 0);
-        const AString posMinText = positiveValuesText.front();
-        
-        if (negMinText == posMinText) {
-            /*
-             * When the negative min and positive min values are the
-             * same, there is no need to display both of them.
-             */
-            zeroValueText = negMinText;
-        }
-        else if (isZeroNumericText(negMinText)
-                 && (isZeroNumericText(posMinText))) {
-            zeroValueText = "0";
-        }
-        else {
-            /*
-             * When the negative min and positive min values are the
-             * different, display both an separate with a slash
-             */
-            zeroValueText = negMinText + "/" + posMinText;
-        }
-        
-        /*
-         * Since the negative min and positive min text values
-         * are dislayed together by above code, remove these
-         * values from their respective text values.
-         */
-        negativeValuesText.resize(negativeValuesText.size() - 1);
-        negativeValues.resize(negativeValues.size() - 1);
-        CaretAssert(negativeValues.size() == negativeValuesText.size());
-        positiveValuesText.erase(positiveValuesText.begin());
-        positiveValues.erase(positiveValues.begin());
-        CaretAssert(positiveValues.size() == positiveValuesText.size());
-    }
-    
-    /*
-     * The positions of the text are normalized in the range zero
-     * to one where zero is at the left side of the color bar
-     * and one is at the right side of the color bar.
-     */
-    float negPositionStart = 0.0;
-    float negPositionInterval = 0.0;
-    float posPositionStart = 0.0;
-    float posPositionInterval = 0.0;
-    if (negativeDataDisplayedFlag
-        && positiveDataDisplayedFlag) {
-        negPositionStart = 0.0;
-        CaretAssert(negativeValuesText.size() > 0);
-        negPositionInterval = (0.5 / negativeValuesText.size());
-        
-        CaretAssert(positiveValuesText.size() > 0);
-        posPositionInterval = (0.5 / positiveValuesText.size());
-        posPositionStart = 0.5 + posPositionInterval;
-    }
-    else if (negativeDataDisplayedFlag) {
-        negPositionStart = 0.0;
-        negPositionInterval = 1.0;
-        if (negativeValuesText.size() > 1) {
-            CaretAssert(negativeValuesText.size() > 0);
-            negPositionInterval = (1.0 / (negativeValuesText.size() - 1));
-        }
-    }
-    else if (positiveDataDisplayedFlag) {
-        posPositionStart = 0.0;
-        posPositionInterval = 1.0;
-        if (positiveValuesText.size() > 1) {
-            CaretAssert(positiveValuesText.size() > 0);
-            posPositionInterval = (1.0 / (positiveValuesText.size() - 1));
-        }
-    }
-    
-    /*
-     * Output the negative values text
-     */
-    if (negativeDataDisplayedFlag) {
-        const int32_t numValues = static_cast<int32_t>(negativeValuesText.size());
-        for (int32_t i = 0; i < numValues; i++) {
-            CaretAssertVectorIndex(negativeValuesText, i);
-            const float value = (negPositionStart
-                                 + (i * negPositionInterval));
-            normalizedPositionAndTextOut.push_back(std::make_pair(value,
-                                                                  negativeValuesText[i]));
-        }
-    }
-    
-    /*
-     * Add the zero value text
-     */
-    if (negativeDataDisplayedFlag
-        && positiveDataDisplayedFlag) {
-        normalizedPositionAndTextOut.push_back(std::make_pair(0.5,
-                                                              zeroValueText));
-    }
-    
-    /*
-     * Add the positive values text
-     */
-    if (positiveDataDisplayedFlag) {
-        const int32_t numValues = static_cast<int32_t>(positiveValuesText.size());
-        for (int32_t i = 0; i < numValues; i++) {
-            CaretAssertVectorIndex(positiveValuesText, i);
-            const float value = (posPositionStart
-                                 + (i * posPositionInterval));
-            normalizedPositionAndTextOut.push_back(std::make_pair(value,
-                                                                  positiveValuesText[i]));
-        }
-    }
-    
-    /*
-     * Add percentage signs when percentile is selected
-     */
-    switch (this->colorBarValuesMode) {
-        case PaletteColorBarValuesModeEnum::DATA:
-            break;
-        case PaletteColorBarValuesModeEnum::PERCENTILE:
-            for (std::vector<std::pair<float, AString> >::iterator iter = normalizedPositionAndTextOut.begin();
-                 iter != normalizedPositionAndTextOut.end();
-                 iter++) {
-                iter->second.append("%");
-            }
-            break;
-        case PaletteColorBarValuesModeEnum::SIGN_ONLY:
-            break;
-    }
-    
-    const bool debugFlag = false;
-    if (debugFlag) {
-        const int numItems = static_cast<int32_t>(normalizedPositionAndTextOut.size());
-        std::cout << "Colorbar: " << std::endl;
-        for (int32_t i = 0; i < numItems; i++) {
-            std::cout << "    " << qPrintable(QString::number(normalizedPositionAndTextOut[i].first)
-                                              + ": "
-                                              + normalizedPositionAndTextOut[i].second) << std::endl;
-        }
-        std::cout << std::endl;
-    }
-}
-
 /**
  * Is the numeric value of the text zero?
  * 
@@ -2767,7 +2160,6 @@ PaletteColorMapping::isZeroNumericText(const AString& numericText) const
     
     return false;
 }
-                                      
 
 /**
  * @return True if thresholding is linked meaning
