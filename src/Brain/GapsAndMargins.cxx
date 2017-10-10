@@ -100,6 +100,8 @@ GapsAndMargins::GapsAndMargins()
  */
 GapsAndMargins::~GapsAndMargins()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     delete m_sceneAssistant;
 }
 
