@@ -75,6 +75,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "FociProjectionDialog.h"
+#include "GapsAndMargins.h"
 #include "GuiManager.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -274,6 +275,12 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     }
 #endif
     s_brainBrowserWindows.insert(this);
+    
+    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+    gapsAndMargins->setSurfaceMontageHorizontalGapForWindow(m_browserWindowIndex, 0.0f);
+    gapsAndMargins->setSurfaceMontageVerticalGapForWindow(m_browserWindowIndex, 0.0f);
+    gapsAndMargins->setVolumeMontageHorizontalGapForWindow(m_browserWindowIndex, 0.0f);
+    gapsAndMargins->setVolumeMontageVerticalGapForWindow(m_browserWindowIndex, 0.0f);
 }
 
 /**
