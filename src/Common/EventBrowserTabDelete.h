@@ -33,7 +33,8 @@ namespace caret {
     class EventBrowserTabDelete : public Event {
         
     public:
-        EventBrowserTabDelete(BrowserTabContent* browserTab);
+        EventBrowserTabDelete(BrowserTabContent* browserTab,
+                              const int32_t browserTabIndex);
         
         virtual ~EventBrowserTabDelete();
         
@@ -48,7 +49,7 @@ namespace caret {
         
         BrowserTabContent* m_browserTab;
         
-        int32_t m_browserTabIndex;
+        const int32_t m_browserTabIndex;
     };
 
 } // namespace

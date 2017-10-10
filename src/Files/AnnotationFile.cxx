@@ -42,6 +42,7 @@
 #include "EventAnnotationAddToRemoveFromFile.h"
 #include "EventAnnotationGroupGetWithKey.h"
 #include "EventAnnotationGrouping.h"
+#include "EventBrowserTabDelete.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
 #include "SceneClass.h"
@@ -218,6 +219,7 @@ AnnotationFile::initializeAnnotationFile()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUPING);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
 }
 
 /**
@@ -345,12 +347,12 @@ AnnotationFile::receiveEvent(Event* event)
                 }
                 break;
             case EventAnnotationAddToRemoveFromFile::MODE_CUT:
-                if (removeAnnotation(annotation)) {
+                if (removeAnnotationWithUndoRedo(annotation)) {
                     annEvent->setSuccessful(true);
                 }
                 break;
             case EventAnnotationAddToRemoveFromFile::MODE_DELETE:
-                if (removeAnnotation(annotation)) {
+                if (removeAnnotationWithUndoRedo(annotation)) {
                     annEvent->setSuccessful(true);
                 }
                 break;
@@ -370,7 +372,7 @@ AnnotationFile::receiveEvent(Event* event)
                 break;
             case EventAnnotationAddToRemoveFromFile::MODE_UNCREATE:
                 if (annotationFile == this) {
-                    if (removeAnnotation(annotation)) {
+                    if (removeAnnotationWithUndoRedo(annotation)) {
                         annEvent->setSuccessful(true);
                     }
                 }
@@ -387,13 +389,13 @@ AnnotationFile::receiveEvent(Event* event)
                 break;
             case EventAnnotationAddToRemoveFromFile::MODE_UNDUPLICATE:
                 if (annotationFile == this) {
-                    if (removeAnnotation(annotation)) {
+                    if (removeAnnotationWithUndoRedo(annotation)) {
                         annEvent->setSuccessful(true);
                     }
                 }
             case EventAnnotationAddToRemoveFromFile::MODE_UNPASTE:
                 if (annotationFile == this) {
-                    if (removeAnnotation(annotation)) {
+                    if (removeAnnotationWithUndoRedo(annotation)) {
                         annEvent->setSuccessful(true);
                     }
                 }
@@ -434,6 +436,15 @@ AnnotationFile::receiveEvent(Event* event)
                     processUngroupingAnnotations(groupEvent);
                     break;
             }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE) {
+        EventBrowserTabDelete* deleteEvent = dynamic_cast<EventBrowserTabDelete*>(event);
+        CaretAssert(deleteEvent);
+        
+        const int32_t tabIndex = deleteEvent->getBrowserTabIndex();
+        if (removeAnnotationsInTab(tabIndex)) {
+            deleteEvent->setEventProcessed();
         }
     }
 }
@@ -782,9 +793,9 @@ AnnotationFile::restoreAnnotation(Annotation* annotation)
 }
 
 /**
- * Remove the annotation.  NOTE: The annotation is NOT deleted
- * but instead it is saved so that it can be 'undeleted' 
- * or 're-pasted'.
+ * Remove the annotation for use with REDO/UNDO.  
+ * NOTE: The annotation is NOT deleted but instead
+ * it is saved so that it can be 'undeleted' or 're-pasted'.
  *
  * @param annotation
  *     Annotation that is removed.
@@ -792,9 +803,56 @@ AnnotationFile::restoreAnnotation(Annotation* annotation)
  *     True if the annotation was removed, otherwise false.
  */
 bool
-AnnotationFile::removeAnnotation(Annotation* annotation)
+AnnotationFile::removeAnnotationWithUndoRedo(Annotation* annotation)
 {
+    return removeAnnotationPrivate(annotation, true);
     
+    
+//    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+//         groupIter != m_annotationGroups.end();
+//         groupIter++) {
+//        QSharedPointer<AnnotationGroup> group = *groupIter;
+//        QSharedPointer<Annotation> removedAnnotationPointer;
+//        if (group->removeAnnotation(annotation,
+//                                    removedAnnotationPointer)) {
+//            
+//            removedAnnotationPointer->invalidateAnnotationGroupKey();
+//            
+//            m_removedAnnotations.insert(removedAnnotationPointer);
+//            
+//            /*
+//             * Remove group if it is empty.
+//             */
+//            if (group->isEmpty()) {
+//                m_annotationGroups.erase(groupIter);
+//            }
+//            
+//            setModified();
+//            return true;
+//        }
+//    }
+//    
+//    /*
+//     * Annotation not in this file
+//     */
+//    return false;
+}
+
+/**
+ * Remove the 
+ *
+ * @param annotation
+ *     Annotation that is removed.
+ * @param keepAnnotationForUndoRedoFlag
+ *     If true, keep the annotation available for any
+ *     undo or redo operation.
+ * @return
+ *     True if the annotation was removed, otherwise false.
+ */
+bool
+AnnotationFile::removeAnnotationPrivate(Annotation* annotation,
+                                        const bool keepAnnotationForUndoRedoFlag)
+{
     for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
          groupIter != m_annotationGroups.end();
          groupIter++) {
@@ -805,7 +863,9 @@ AnnotationFile::removeAnnotation(Annotation* annotation)
             
             removedAnnotationPointer->invalidateAnnotationGroupKey();
             
-            m_removedAnnotations.insert(removedAnnotationPointer);
+            if (keepAnnotationForUndoRedoFlag) {
+                m_removedAnnotations.insert(removedAnnotationPointer);
+            }
             
             /*
              * Remove group if it is empty.
@@ -818,29 +878,51 @@ AnnotationFile::removeAnnotation(Annotation* annotation)
             return true;
         }
     }
-//    for (AnnotationIterator iter = m_annotations.begin();
-//         iter != m_annotations.end();
-//         iter++) {
-//        QSharedPointer<Annotation>& annotationPointer = *iter;
-//        if (annotationPointer == annotation) {
-//            m_removedAnnotations.insert(annotationPointer);
-//            
-//            m_annotations.erase(iter);
-//            
-//            setModified();
-//            
-//            /*
-//             * Successfully removed
-//             */
-//            return true;
-//        }
-//    }
     
     /*
      * Annotation not in this file
      */
     return false;
 }
+
+/**
+ * Remove all annotations in tab space in the given tab.
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ * @return
+ *     True if any annotations were removed.
+ */
+bool
+AnnotationFile::removeAnnotationsInTab(const int32_t tabIndex)
+{
+    std::vector<AnnotationGroupIterator> groupsToRemove;
+    
+    /*
+     * Find annotation group(s) in tab space
+     * with the given tab index.
+     */
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        QSharedPointer<AnnotationGroup>& group = *groupIter;
+        if (group->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
+            if (group->getTabOrWindowIndex() == tabIndex) {
+                groupsToRemove.push_back(groupIter);
+            }
+        }
+    }
+    
+    /*
+     * Remove the groups (shared pointers will do all deleting)
+     */
+    for (auto annGroup : groupsToRemove) {
+        m_annotationGroups.erase(annGroup);
+    }
+    
+    return ( ! groupsToRemove.empty());
+}
+
 
 /**
  * Get all annotations in this file.

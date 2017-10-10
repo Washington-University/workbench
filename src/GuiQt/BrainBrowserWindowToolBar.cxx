@@ -1546,7 +1546,8 @@ BrainBrowserWindowToolBar::removeTab(int tabIndex)
     if (p != NULL) {
         BrowserTabContent* btc = (BrowserTabContent*)p;
         
-        EventBrowserTabDelete deleteTabEvent(btc);
+        EventBrowserTabDelete deleteTabEvent(btc,
+                                             btc->getTabNumber());
         EventManager::get()->sendEvent(deleteTabEvent.getPointer());
     }
     

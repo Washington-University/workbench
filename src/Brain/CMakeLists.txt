@@ -77,7 +77,6 @@ DummyFontTextRenderer.h
 EventAnnotationColorBarGet.h
 EventBrainReset.h
 EventBrainStructureGetAll.h
-EventBrowserTabDelete.h
 EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabGetAllViewed.h
@@ -224,7 +223,6 @@ DummyFontTextRenderer.cxx
 EventAnnotationColorBarGet.cxx
 EventBrainReset.cxx
 EventBrainStructureGetAll.cxx
-EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabGetAllViewed.cxx

@@ -195,7 +195,12 @@ namespace caret {
         
         bool restoreAnnotationAddIfNotFound(Annotation* annotation);
         
-        bool removeAnnotation(Annotation* annotation);
+        bool removeAnnotationWithUndoRedo(Annotation* annotation);
+        
+        bool removeAnnotationPrivate(Annotation* annotation,
+                                     const bool keepAnnotationForUndoRedoFlag);
+        
+        bool removeAnnotationsInTab(const int32_t tabIndex);
         
         int32_t generateUniqueKey();
         

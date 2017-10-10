@@ -97,6 +97,7 @@ DisplayGroupEnum.h
 ElapsedTimer.h
 Event.h
 EventAlertUser.h
+EventBrowserTabDelete.h
 EventBrowserTabIndicesGetAll.h
 EventCaretPreferencesGet.h
 EventGetViewportSize.h
@@ -195,6 +196,7 @@ DisplayGroupEnum.cxx
 ElapsedTimer.cxx
 Event.cxx
 EventAlertUser.cxx
+EventBrowserTabDelete.cxx
 EventBrowserTabIndicesGetAll.cxx
 EventCaretPreferencesGet.cxx
 EventGetViewportSize.cxx

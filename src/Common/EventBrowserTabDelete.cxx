@@ -19,7 +19,6 @@
 /*LICENSE_END*/
 
 #include "CaretAssert.h"
-#include "BrowserTabContent.h"
 #include "EventBrowserTabDelete.h"
 
 using namespace caret;
@@ -27,12 +26,13 @@ using namespace caret;
 /**
  * Constructor.
  */
-EventBrowserTabDelete::EventBrowserTabDelete(BrowserTabContent* browserTab)
-: Event(EventTypeEnum::EVENT_BROWSER_TAB_DELETE)
+EventBrowserTabDelete::EventBrowserTabDelete(BrowserTabContent* browserTab,
+                                             const int32_t browserTabIndex)
+: Event(EventTypeEnum::EVENT_BROWSER_TAB_DELETE),
+m_browserTab(browserTab),
+m_browserTabIndex(browserTabIndex)
 {
     CaretAssert(browserTab);
-    m_browserTab = browserTab;
-    m_browserTabIndex = browserTab->getTabNumber();
 }
 
 /**
