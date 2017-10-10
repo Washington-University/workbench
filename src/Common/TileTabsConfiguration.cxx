@@ -117,7 +117,9 @@ TileTabsConfiguration::initialize()
                                1.0);
     m_columnStretchFactors.resize(getMaximumNumberOfColumns(),
                                   1.0);
-
+    m_numberOfColumns = 0;
+    m_numberOfRows    = 0;
+    
     setNumberOfRows(2);
     setNumberOfColumns(2);
     
@@ -329,8 +331,9 @@ TileTabsConfiguration::getNumberOfRows() const
 void
 TileTabsConfiguration::setNumberOfRows(const int32_t numberOfRows)
 {
-    CaretAssert(numberOfRows >= 1);
+    const int32_t oldNumerOfRows = m_numberOfRows;
     
+    CaretAssert(numberOfRows >= 1);
     m_numberOfRows = numberOfRows;
     if (m_numberOfRows > getMaximumNumberOfRows()) {
         CaretLogSevere("Requested number of rows is "
@@ -338,6 +341,14 @@ TileTabsConfiguration::setNumberOfRows(const int32_t numberOfRows)
                        + " but maximum is "
                        + getMaximumNumberOfRows());
         m_numberOfRows = getMaximumNumberOfRows();
+    }
+    
+    /*
+     * Stretch factors default to 1.0
+     */
+    for (int32_t iRow = oldNumerOfRows; iRow < m_numberOfRows; iRow++) {
+        CaretAssertVectorIndex(m_rowStretchFactors, iRow);
+        m_rowStretchFactors[iRow] = 1.0;
     }
 }
 
@@ -359,6 +370,8 @@ TileTabsConfiguration::getNumberOfColumns() const
 void
 TileTabsConfiguration::setNumberOfColumns(const int32_t numberOfColumns)
 {
+    const int32_t oldNumberOfColumns = m_numberOfColumns;
+    
     CaretAssert(numberOfColumns >= 1);
     
     m_numberOfColumns = numberOfColumns;
@@ -368,6 +381,14 @@ TileTabsConfiguration::setNumberOfColumns(const int32_t numberOfColumns)
                        + " but maximum is "
                        + getMaximumNumberOfColumns());
         m_numberOfColumns = getMaximumNumberOfColumns();
+    }
+    
+    /*
+     * Stretch factors default to 1.0
+     */
+    for (int32_t iCol = oldNumberOfColumns; iCol < m_numberOfColumns; iCol++) {
+        CaretAssertVectorIndex(m_columnStretchFactors, iCol);
+        m_columnStretchFactors[iCol] = 1.0;
     }
 }
 
