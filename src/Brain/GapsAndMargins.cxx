@@ -23,7 +23,10 @@
 #include "GapsAndMargins.h"
 #undef __GAPS_AND_MARGINS_DECLARE__
 
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventBrowserTabNew.h"
+#include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -84,6 +87,12 @@ GapsAndMargins::GapsAndMargins()
                                m_volumeMontageVerticalGaps,
                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS,
                                0.0);
+    
+    /*
+     * Use processed event listener because we need to know the index
+     * of the tab that was created
+     */
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW);
 }
 
 /**
@@ -92,6 +101,35 @@ GapsAndMargins::GapsAndMargins()
 GapsAndMargins::~GapsAndMargins()
 {
     delete m_sceneAssistant;
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+GapsAndMargins::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW) {
+        EventBrowserTabNew* newTabEvent = dynamic_cast<EventBrowserTabNew*>(event);
+        CaretAssert(newTabEvent);
+        
+        const BrowserTabContent* tab = newTabEvent->getBrowserTab();
+        CaretAssert(tab);
+        if (tab != NULL) {
+            const int32_t tabIndex = tab->getTabNumber();
+            CaretAssertArrayIndex(m_tabMarginsLeft,   BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+            CaretAssertArrayIndex(m_tabMarginsRight,  BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+            CaretAssertArrayIndex(m_tabMarginsBottom, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+            CaretAssertArrayIndex(m_tabMarginsTop,    BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+            m_tabMarginsLeft[tabIndex]   = 0.0;
+            m_tabMarginsRight[tabIndex]  = 0.0;
+            m_tabMarginsBottom[tabIndex] = 0.0;
+            m_tabMarginsTop[tabIndex]    = 0.0;
+        }
+    }
 }
 
 /**

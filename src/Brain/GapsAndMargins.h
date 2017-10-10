@@ -23,17 +23,20 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
+#include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 namespace caret {
     class SceneClassAssistant;
 
-    class GapsAndMargins : public CaretObject, public SceneableInterface {
+    class GapsAndMargins : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
         GapsAndMargins();
         
         virtual ~GapsAndMargins();
+        
+        virtual void receiveEvent(Event* event) override;
         
         float getMarginLeftForTab(const int32_t tabIndex) const;
         
