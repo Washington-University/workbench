@@ -167,6 +167,8 @@ void
 BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
 {
     if (action != NULL) {
+        const BrowserTabContent* activeTabContent = m_toolBar->getTabContentFromTab(m_activeTabIndex);
+        
         MenuItem menuItem = static_cast<MenuItem>(action->data().toInt());
         
         CaretAssert(isEnabled(menuItem));
@@ -202,13 +204,23 @@ BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
                 moveToIndex = 0;
                 break;
             case MenuItem::MOVE_TAB_BEFORE:
-                moveToIndex = m_activeTabIndex;
+                if (m_tabIndexUnderMouse < m_activeTabIndex) {
+                    moveToIndex = m_activeTabIndex - 1;
+                }
+                else {
+                    moveToIndex = m_activeTabIndex;
+                }
                 break;
             case MenuItem::MOVE_TAB_AFTER:
-                moveToIndex = m_activeTabIndex + 1;
+                if (m_tabIndexUnderMouse < m_activeTabIndex) {
+                    moveToIndex = m_activeTabIndex;
+                }
+                else {
+                    moveToIndex = m_activeTabIndex + 1;
+                }
                 break;
             case MenuItem::MOVE_TAB_TO_END:
-                moveToIndex = m_numberOfTabs;
+                moveToIndex = m_numberOfTabs - 1;
                 break;
             case MenuItem::DELETE_TAB:
                 deleteIndex = m_tabIndexUnderMouse;
@@ -230,6 +242,21 @@ BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
             if (moveToIndex != m_tabIndexUnderMouse) {
                 m_toolBar->tabBar->moveTab(m_tabIndexUnderMouse, moveToIndex);
             }
+        }
+        
+        /*
+         * Ensure active tab remains active.  Note that number of tabs may have changed.
+         */
+        int32_t updatedActiveTabIndex = -1;
+        const int32_t numTabs = m_toolBar->tabBar->count();
+        for (int32_t iTab = 0; iTab < numTabs; iTab++) {
+            if (activeTabContent == m_toolBar->getTabContentFromTab(iTab)) {
+                updatedActiveTabIndex = iTab;
+                break;
+            }
+        }
+        if (updatedActiveTabIndex >= 0) {
+            m_toolBar->tabBar->setCurrentIndex(updatedActiveTabIndex);
         }
     }
 }
@@ -273,12 +300,14 @@ BrainBrowserWindowToolBarTabPopUpMenu::isEnabled(const MenuItem menuItem) const
             }
             break;
         case MenuItem::MOVE_TAB_BEFORE:
-            if (m_tabIndexUnderMouse != (m_activeTabIndex - 1)) {
+            if ((m_tabIndexUnderMouse != m_activeTabIndex)
+                && (m_tabIndexUnderMouse != (m_activeTabIndex - 1))) {
                 enabledFlag = true;
             }
             break;
         case MenuItem::MOVE_TAB_AFTER:
-            if (m_tabIndexUnderMouse != (m_activeTabIndex + 1)) {
+            if ((m_tabIndexUnderMouse != m_activeTabIndex)
+                && (m_tabIndexUnderMouse != (m_activeTabIndex + 1))) {
                 enabledFlag = true;
             }
             break;
