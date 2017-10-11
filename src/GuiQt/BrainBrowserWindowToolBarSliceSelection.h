@@ -61,6 +61,7 @@ namespace caret {
         void volumeIndicesZcoordSpinBoxValueChanged(double d);
         void volumeSliceProjectionTypeEnumComboBoxItemActivated();
         void volumeIdentificationToggled(bool value);
+        void obliqueMaskingActionTriggered(bool);
         
     private:
         BrainBrowserWindowToolBarSliceSelection(const BrainBrowserWindowToolBarSliceSelection&);
@@ -86,6 +87,7 @@ namespace caret {
         QDoubleSpinBox* m_volumeIndicesXcoordSpinBox;
         QDoubleSpinBox* m_volumeIndicesYcoordSpinBox;
         QDoubleSpinBox* m_volumeIndicesZcoordSpinBox;
+        QAction* m_obliqueMaskingAction;
         
         EnumComboBoxTemplate* m_volumeSliceProjectionTypeEnumComboBox;
         // ADD_NEW_MEMBERS_HERE

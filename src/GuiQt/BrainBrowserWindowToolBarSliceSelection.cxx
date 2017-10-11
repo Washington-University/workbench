@@ -30,6 +30,7 @@
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
+#include <QMenu>
 #include <QSpinBox>
 #include <QToolButton>
 
@@ -178,6 +179,25 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolTipAndStatusTip(m_volumeSliceProjectionTypeEnumComboBox->getWidget(),
                                           "Chooses viewing orientation (oblique or orthogonal)");
     
+//    QMenu* obliqueMaskingMenu = new QMenu("Oblique Sampling");
+//    obliqueMaskingMenu->addAction("Oblique Masking - OFF");
+//    obliqueMaskingMenu->addAction("Oblique Masking - ENCLOSING");
+//    obliqueMaskingMenu->addAction("Oblique Masking - TRILINEAR");
+//    QAction* obliqueMaskingAction = new QAction("M");
+//    obliqueMaskingAction->setMenu(obliqueMaskingMenu);
+//    QToolButton* obliqueMaskingToolButton = new QToolButton();
+//    obliqueMaskingToolButton->setDefaultAction(obliqueMaskingAction);
+//    WuQtUtilities::setToolButtonStyleForQt5Mac(obliqueMaskingToolButton);
+    
+    const AString maskToolTip("Masking for oblique slice viewing");
+    m_obliqueMaskingAction = new QAction("M");
+    m_obliqueMaskingAction->setToolTip(maskToolTip);
+    QObject::connect(m_obliqueMaskingAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered);
+    QToolButton* obliqueMaskingToolButton = new QToolButton();
+    obliqueMaskingToolButton->setDefaultAction(m_obliqueMaskingAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(obliqueMaskingToolButton);
+    
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
     gridLayout->addWidget(m_volumeIndicesParasagittalCheckBox, 0, 0);
@@ -196,7 +216,9 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(m_volumeIndicesZcoordSpinBox, 2, 3);
 
     gridLayout->addWidget(volumeIDToolButton, 3, 0, 1, 2, Qt::AlignLeft);
-    gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 2, 1, 3, Qt::AlignRight);
+    gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 2, 1, 2, Qt::AlignCenter);
+    //gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 2, 1, 3, Qt::AlignRight);
+    gridLayout->addWidget(obliqueMaskingToolButton, 3, 4);
 
     gridLayout->addWidget(volumeIndicesOriginToolButton, 0, 4, 3, 1);
     
@@ -716,4 +738,17 @@ BrainBrowserWindowToolBarSliceSelection::volumeIdentificationToggled(bool value)
     browserTabContent->setIdentificationUpdatesVolumeSlices(value);
 }
 
+/**
+ * Called when the oblique masking action is triggered.
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered(bool)
+{
+    QMenu obliqueMaskingMenu("Oblique Sampling");
+    obliqueMaskingMenu.addAction("Oblique Masking - OFF");
+    obliqueMaskingMenu.addAction("Oblique Masking - ENCLOSING");
+    obliqueMaskingMenu.addAction("Oblique Masking - TRILINEAR");
+    /*QAction* selectedAction =*/ obliqueMaskingMenu.exec(QCursor::pos());
+    
+}
 
