@@ -1164,6 +1164,27 @@ WuQtUtilities::setWordWrappedToolTip(QWidget* widget,
 }
 
 /**
+ * Set the text for a tooltip so that long lines are
+ * wrapped and the tooltip is not one giant line
+ * that is the width of the display.
+ *
+ * This is accomplished by placing the text into a
+ * QTextDocument and then retrieving the text with
+ * HTML formatting.
+ *
+ * @param action
+ *    Action on which tooltip is set.
+ * @param tooltipText
+ *    Text for the widget's tooltip.
+ */
+void
+WuQtUtilities::setWordWrappedToolTip(QAction* action,
+                                     const QString& tooltipText)
+{
+    action->setToolTip(createWordWrappedToolTipText(tooltipText));
+}
+
+/**
  * Convert a Qt::CheckState to a boolean value.
  *
  * @param checkState
