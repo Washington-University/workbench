@@ -44,6 +44,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "VolumeFile.h"
+#include "VolumeSliceObliqueDrawingMaskEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "WuQFactory.h"
 #include "WuQWidgetObjectGroup.h"
@@ -179,19 +180,14 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolTipAndStatusTip(m_volumeSliceProjectionTypeEnumComboBox->getWidget(),
                                           "Chooses viewing orientation (oblique or orthogonal)");
     
-//    QMenu* obliqueMaskingMenu = new QMenu("Oblique Sampling");
-//    obliqueMaskingMenu->addAction("Oblique Masking - OFF");
-//    obliqueMaskingMenu->addAction("Oblique Masking - ENCLOSING");
-//    obliqueMaskingMenu->addAction("Oblique Masking - TRILINEAR");
-//    QAction* obliqueMaskingAction = new QAction("M");
-//    obliqueMaskingAction->setMenu(obliqueMaskingMenu);
-//    QToolButton* obliqueMaskingToolButton = new QToolButton();
-//    obliqueMaskingToolButton->setDefaultAction(obliqueMaskingAction);
-//    WuQtUtilities::setToolButtonStyleForQt5Mac(obliqueMaskingToolButton);
-    
-    const AString maskToolTip("Masking for oblique slice viewing");
+    const AString maskToolTip("Masking for oblique slice viewing is used to remove "
+                              "artifacts due to cubic interpolation.  In extreme "
+                              "instance, the artifacts result in blocky and/or "
+                              "striped patterns.");
     m_obliqueMaskingAction = new QAction("M");
-    m_obliqueMaskingAction->setToolTip(maskToolTip);
+    WuQtUtilities::setWordWrappedToolTip(m_obliqueMaskingAction,
+                                         maskToolTip);
+    m_obliqueMaskingAction->setCheckable(true);
     QObject::connect(m_obliqueMaskingAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered);
     QToolButton* obliqueMaskingToolButton = new QToolButton();
@@ -318,6 +314,8 @@ BrainBrowserWindowToolBarSliceSelection::updateContent(BrowserTabContent* browse
         m_volumeIndicesParasagittalCheckBox->setChecked(browserTabContent->isSliceParasagittalEnabled());
     }
     
+    updateObliqueMaskingButton();
+
     m_volumeSliceProjectionTypeEnumComboBox->setSelectedItem<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>(browserTabContent->getSliceProjectionType());
     
     m_volumeIdentificationUpdatesSlicesAction->setChecked(browserTabContent->isIdentificationUpdatesVolumeSlices());
@@ -719,6 +717,7 @@ BrainBrowserWindowToolBarSliceSelection::volumeSliceProjectionTypeEnumComboBoxIt
     btc->setSliceProjectionType(sliceProjectionType);
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
+    updateObliqueMaskingButton();
     EventManager::get()->sendEvent(EventUpdateVolumeEditingToolBar().getPointer());
 }
 
@@ -744,11 +743,79 @@ BrainBrowserWindowToolBarSliceSelection::volumeIdentificationToggled(bool value)
 void
 BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered(bool)
 {
-    QMenu obliqueMaskingMenu("Oblique Sampling");
-    obliqueMaskingMenu.addAction("Oblique Masking - OFF");
-    obliqueMaskingMenu.addAction("Oblique Masking - ENCLOSING");
-    obliqueMaskingMenu.addAction("Oblique Masking - TRILINEAR");
-    /*QAction* selectedAction =*/ obliqueMaskingMenu.exec(QCursor::pos());
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    std::vector<VolumeSliceObliqueDrawingMaskEnum::Enum> allMaskEnums;
+    VolumeSliceObliqueDrawingMaskEnum::getAllEnums(allMaskEnums);
     
+    QMenu obliqueMaskingMenu("Oblique Sampling");
+    QActionGroup* maskActionGroup = new QActionGroup(this);
+    maskActionGroup->setExclusive(true);
+    QAction* selectedAction = NULL;
+    for (auto maskEnum : allMaskEnums) {
+        QAction* action = maskActionGroup->addAction(VolumeSliceObliqueDrawingMaskEnum::toGuiName(maskEnum));
+        action->setCheckable(true);
+        action->setData(VolumeSliceObliqueDrawingMaskEnum::toIntegerCode(maskEnum));
+        if (maskEnum == browserTabContent->getObliqueSliceDrawingMaskingType()) {
+            selectedAction = action;
+        }
+        obliqueMaskingMenu.addAction(action);
+    }
+    if (selectedAction != NULL) {
+        selectedAction->setChecked(true);
+    }
+    
+    selectedAction = obliqueMaskingMenu.exec(QCursor::pos());
+    if (selectedAction != NULL) {
+        const int32_t intValue = selectedAction->data().toInt();
+        bool validFlag = false;
+        VolumeSliceObliqueDrawingMaskEnum::Enum maskType = VolumeSliceObliqueDrawingMaskEnum::fromIntegerCode(intValue,
+                                                                                                              &validFlag);
+        CaretAssert(validFlag);
+        browserTabContent->setObliqueSliceDrawingMaskingType(maskType);
+        
+        this->updateGraphicsWindow();
+        this->updateOtherYokedWindows();
+        EventManager::get()->sendEvent(EventUpdateVolumeEditingToolBar().getPointer());
+    }
+    
+    updateObliqueMaskingButton();
 }
+
+/**
+ * Update the oblique masking button so that it enabled only 
+ * when oblique slice drawing is selected and it is "checked"
+ * when a masking is applied.
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::updateObliqueMaskingButton()
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
+    QSignalBlocker obliqueBlocker(m_obliqueMaskingAction);
+    switch (browserTabContent->getObliqueSliceDrawingMaskingType()) {
+        case VolumeSliceObliqueDrawingMaskEnum::OFF:
+            m_obliqueMaskingAction->setChecked(false);
+            break;
+        case VolumeSliceObliqueDrawingMaskEnum::ENCLOSING_VOXEL:
+        case VolumeSliceObliqueDrawingMaskEnum::TRILINEAR_INTERPOLATION:
+            m_obliqueMaskingAction->setChecked(true);
+            break;
+    }
+    
+    switch (browserTabContent->getSliceProjectionType()) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            m_obliqueMaskingAction->setEnabled(true);
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            m_obliqueMaskingAction->setEnabled(false);
+            break;
+    }
+}
+
 

@@ -26,6 +26,7 @@
 #include "ModelTypeEnum.h"
 #include "SceneableInterface.h"
 #include "VolumeSliceDrawingTypeEnum.h"
+#include "VolumeSliceObliqueDrawingMaskEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -59,6 +60,10 @@ namespace caret {
         VolumeSliceDrawingTypeEnum::Enum getSliceDrawingType() const;
 
         void setSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType);
+        
+        VolumeSliceObliqueDrawingMaskEnum::Enum getObliqueSliceDrawingMaskingType() const;
+        
+        void setObliqueSliceDrawingMaskingType(const VolumeSliceObliqueDrawingMaskEnum::Enum maskingType);
         
         VolumeSliceProjectionTypeEnum::Enum getSliceProjectionType() const;
         
@@ -155,6 +160,9 @@ namespace caret {
         
         /** Type of slice drawing (single/montage) */
         VolumeSliceDrawingTypeEnum::Enum m_sliceDrawingType;
+        
+        /** Type of masking for oblique slice drawing */
+        VolumeSliceObliqueDrawingMaskEnum::Enum m_obliqueSliceDrawingMaskingType;
         
         /** Type of slice projection (oblique/orthogonal) */
         VolumeSliceProjectionTypeEnum::Enum m_sliceProjectionType;

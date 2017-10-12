@@ -73,6 +73,8 @@ namespace caret {
                                                              const int64_t sliceIndex);
         void updateSliceIndicesAndCoordinatesRanges();
         
+        void updateObliqueMaskingButton();
+        
         BrainBrowserWindowToolBar* m_parentToolBar;
         
         WuQWidgetObjectGroup* m_volumeIndicesWidgetGroup;

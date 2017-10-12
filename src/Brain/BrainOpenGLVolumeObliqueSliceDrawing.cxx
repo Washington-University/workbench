@@ -105,6 +105,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::~BrainOpenGLVolumeObliqueSliceDrawing()
  *    Type of slice drawing (montage, single)
  * @param sliceProjectionType
  *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param obliqueSliceMaskingType
+ *    Masking for oblique slice drawing
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
  */
@@ -114,6 +116,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
                                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                                   const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                           const VolumeSliceObliqueDrawingMaskEnum::Enum obliqueSliceMaskingType,
                                   const int32_t viewport[4])
 {
     CaretAssert(sliceProjectionType == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
@@ -126,7 +129,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
     CaretAssert(browserTabContent);
     m_browserTabContent = browserTabContent;    
     m_fixedPipelineDrawing = fixedPipelineDrawing;
-    
+    m_obliqueSliceMaskingType = obliqueSliceMaskingType;
     /*
      * No lighting for drawing slices
      */
@@ -1445,6 +1448,43 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                                                              VolumeFile::CUBIC,
                                                              &valueValidFlag,
                                                              vdi.mapIndex);
+                        
+                        if (valueValidFlag
+                            && (values[0] != 0.0f)) {
+                            /*
+                             * Apply masking to oblique voxels (WB-750).
+                             * In some instances, CUBIC interpolation may result in a voxel
+                             * receiving a very small value (0.000000000000000210882405) and 
+                             * this will cause the slice drawing to look very unusual.  Masking
+                             * is used to prevent this from occurring.
+                             *
+                             */
+                            bool maskValidFlag = false;
+                            float maskValue = 0.0f;
+                            switch (m_obliqueSliceMaskingType) {
+                                case VolumeSliceObliqueDrawingMaskEnum::OFF:
+                                    maskValidFlag = false;
+                                    break;
+                                case VolumeSliceObliqueDrawingMaskEnum::ENCLOSING_VOXEL:
+                                    maskValue = volumeFile->interpolateValue(voxelCenter,
+                                                                             VolumeFile::ENCLOSING_VOXEL,
+                                                                             &maskValidFlag,
+                                                                             vdi.mapIndex);
+                                    break;
+                                case VolumeSliceObliqueDrawingMaskEnum::TRILINEAR_INTERPOLATION:
+                                    maskValue = volumeFile->interpolateValue(voxelCenter,
+                                                                             VolumeFile::TRILINEAR,
+                                                                             &maskValidFlag,
+                                                                             vdi.mapIndex);
+                                    break;
+                            }
+                            
+                            if (maskValidFlag
+                                && (maskValue == 0.0f)) {
+                                values[0] = 0.0f;
+                                valueValidFlag = false;
+                            }
+                        }
                     }
                     else if (ciftiMappableFile != NULL) {
                         const int64_t voxelOffset = ciftiMappableFile->getMapDataOffsetForVoxelAtCoordinate(voxelCenter,

@@ -3552,7 +3552,7 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
     
     VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
     VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
-
+    VolumeSliceObliqueDrawingMaskEnum::Enum obliqueMaskType = browserTabContent->getObliqueSliceDrawingMaskingType();
     
     /*
      * There is/was a flaw in volume drawing in that it does not "center"
@@ -3582,11 +3582,12 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
     else {
         BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
         obliqueVolumeSliceDrawing.draw(this,
-                                   browserTabContent,
-                                   volumeDrawInfo,
-                                   sliceDrawingType,
-                                   sliceProjectionType,
-                                   viewport);
+                                       browserTabContent,
+                                       volumeDrawInfo,
+                                       sliceDrawingType,
+                                       sliceProjectionType,
+                                       obliqueMaskType,
+                                       viewport);
     }
 }
 

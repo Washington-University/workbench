@@ -3803,6 +3803,28 @@ BrowserTabContent::setSliceProjectionType(const VolumeSliceProjectionTypeEnum::E
 }
 
 /**
+ * @return The masking used when drawing an oblique volume slice
+ */
+VolumeSliceObliqueDrawingMaskEnum::Enum
+BrowserTabContent::getObliqueSliceDrawingMaskingType() const
+{
+    return m_volumeSliceSettings->getObliqueSliceDrawingMaskingType();
+}
+
+/**
+ * Set the masking used when drawing an oblique volume slice.
+ *
+ * @param maskingType
+ *     Type of masking.
+ */
+void
+BrowserTabContent::setObliqueSliceDrawingMaskingType(const VolumeSliceObliqueDrawingMaskEnum::Enum maskingType)
+{
+    m_volumeSliceSettings->setObliqueSliceDrawingMaskingType(maskingType);
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
  * @return the montage number of columns for the given window tab.
  */
 int32_t

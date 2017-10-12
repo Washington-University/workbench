@@ -50,6 +50,8 @@ VolumeSliceSettings::VolumeSliceSettings()
     m_slicePlanesAllViewLayout = VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT;
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
+    m_obliqueSliceDrawingMaskingType = VolumeSliceObliqueDrawingMaskEnum::ENCLOSING_VOXEL;
+    
     m_montageNumberOfColumns = 6; // was 3;
     m_montageNumberOfRows    = 4;
     m_montageSliceSpacing    = 5;
@@ -72,6 +74,8 @@ VolumeSliceSettings::VolumeSliceSettings()
                                                                                    &m_sliceDrawingType);
     m_sceneAssistant->add<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>("m_sliceProjectionType",
                                                                                  &m_sliceProjectionType);
+    m_sceneAssistant->add<VolumeSliceObliqueDrawingMaskEnum,VolumeSliceObliqueDrawingMaskEnum::Enum>("m_obliqueSliceDrawingMaskingType",
+                                                                                             &m_obliqueSliceDrawingMaskingType);
     m_sceneAssistant->add("m_montageNumberOfColumns",
                           &m_montageNumberOfColumns);
     m_sceneAssistant->add("m_montageNumberOfRows",
@@ -135,6 +139,7 @@ VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& ob
     m_slicePlanesAllViewLayout = obj.m_slicePlanesAllViewLayout;
     m_sliceDrawingType       = obj.m_sliceDrawingType;
     m_sliceProjectionType    = obj.m_sliceProjectionType;
+    m_obliqueSliceDrawingMaskingType = obj.m_obliqueSliceDrawingMaskingType;
     
     m_montageNumberOfColumns = obj.m_montageNumberOfColumns;
     m_montageNumberOfRows    = obj.m_montageNumberOfRows;
@@ -304,8 +309,29 @@ VolumeSliceSettings::setSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum 
     m_sliceDrawingType = sliceDrawingType;
 }
 
-/** 
- * @return Type of slice projection (oblique/orthogonal) 
+/**
+ * @return The masking used when drawing an oblique volume slice
+ */
+VolumeSliceObliqueDrawingMaskEnum::Enum
+VolumeSliceSettings::getObliqueSliceDrawingMaskingType() const
+{
+    return m_obliqueSliceDrawingMaskingType;
+}
+
+/**
+ * Set the masking used when drawing an oblique volume slice.
+ *
+ * @param maskingType
+ *     Type of masking.
+ */
+void
+VolumeSliceSettings::setObliqueSliceDrawingMaskingType(const VolumeSliceObliqueDrawingMaskEnum::Enum maskingType)
+{
+    m_obliqueSliceDrawingMaskingType = maskingType;
+}
+
+/**
+ * @return Type of slice projection (oblique/orthogonal)
  */
 VolumeSliceProjectionTypeEnum::Enum
 VolumeSliceSettings::getSliceProjectionType() const
@@ -804,10 +830,11 @@ VolumeSliceSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
-     * Added in scene version 2
+     * Added in scene version 2 or later
      */
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
+    m_obliqueSliceDrawingMaskingType = VolumeSliceObliqueDrawingMaskEnum::ENCLOSING_VOXEL;
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

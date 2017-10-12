@@ -24,11 +24,11 @@
 #include "BrainOpenGLFixedPipeline.h"
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
+#include "VolumeSliceObliqueDrawingMaskEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
-
 
 namespace caret {
 
@@ -54,6 +54,7 @@ namespace caret {
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                   const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                  const VolumeSliceObliqueDrawingMaskEnum::Enum obliqueSliceMaskingType,
                   const int32_t viewport[4]);
 
         // ADD_NEW_METHODS_HERE
@@ -369,6 +370,8 @@ namespace caret {
         double m_viewingMatrix[16];
         
         double m_orthographicBounds[6];
+        
+        VolumeSliceObliqueDrawingMaskEnum::Enum m_obliqueSliceMaskingType = VolumeSliceObliqueDrawingMaskEnum::OFF;
         
         std::vector<int32_t> m_identificationIndices;
         

@@ -32,6 +32,7 @@
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
+#include "VolumeSliceObliqueDrawingMaskEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
@@ -305,6 +306,10 @@ namespace caret {
         VolumeSliceProjectionTypeEnum::Enum getSliceProjectionType() const;
         
         void setSliceProjectionType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType);
+        
+        VolumeSliceObliqueDrawingMaskEnum::Enum getObliqueSliceDrawingMaskingType() const;
+        
+        void setObliqueSliceDrawingMaskingType(const VolumeSliceObliqueDrawingMaskEnum::Enum maskingType);
         
         int32_t getMontageNumberOfColumns() const;
         
