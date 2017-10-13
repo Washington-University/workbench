@@ -71,7 +71,7 @@ m_tabIndex(viewportContent->getTabIndex())
         if (bbw->isTileTabsSelected()) {
             m_createNewTabBeforeAction = addAction("Create New Tab Before This Tab");
             m_createNewTabAfterAction = addAction("Create New Tab After This Tab");
-            m_selectTabAction = addAction("Select Tab " + tabContent->getName());
+            m_selectTabAction = addAction("Select This Tab");
         }
         
         QObject::connect(this, &QMenu::triggered,
