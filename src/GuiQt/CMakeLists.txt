@@ -175,6 +175,7 @@ ELSE()
         UserInputModeImageWidget.h
         UserInputModeViewContextMenu.h
         UserInputModeVolumeEditWidget.h
+        UserInputTileTabsContextMenu.h
         UsernamePasswordWidget.h
         VolumeFileCreateDialog.h
         VolumeSurfaceOutlineColorOrTabViewController.h
@@ -316,6 +317,7 @@ EventBrowserWindowContentGet.h
 EventBrowserWindowCreateTabs.h
 EventBrowserWindowGraphicsRedrawn.h
 EventBrowserWindowNew.h
+EventBrowserWindowTileTabOperation.h
 EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
@@ -403,6 +405,7 @@ UserInputModeView.h
 UserInputModeViewContextMenu.h
 UserInputModeVolumeEdit.h
 UserInputModeVolumeEditWidget.h
+UserInputTileTabsContextMenu.h
 UsernamePasswordWidget.h
 ViewModeEnum.h
 VolumeFileCreateDialog.h
@@ -531,6 +534,7 @@ EventBrowserWindowContentGet.cxx
 EventBrowserWindowCreateTabs.cxx
 EventBrowserWindowGraphicsRedrawn.cxx
 EventBrowserWindowNew.cxx
+EventBrowserWindowTileTabOperation.cxx
 EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
@@ -618,6 +622,7 @@ UserInputModeView.cxx
 UserInputModeViewContextMenu.cxx
 UserInputModeVolumeEdit.cxx
 UserInputModeVolumeEditWidget.cxx
+UserInputTileTabsContextMenu.cxx
 UsernamePasswordWidget.cxx
 ViewModeEnum.cxx
 VolumeFileCreateDialog.cxx

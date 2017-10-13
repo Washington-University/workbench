@@ -154,7 +154,11 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_WINDOW_NEW", 
                                      "Create a new browser window"));
     
-    enumData.push_back(EventTypeEnum(EVENT_CARET_MAPPABLE_DATA_FILES_GET, 
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION,
+                                     "EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION",
+                                     "Browser Window Tile Tab Operation"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_CARET_MAPPABLE_DATA_FILES_GET,
                                      "EVENT_CARET_MAPPABLE_DATA_FILES_GET", 
                                      "Get all Caret Mappable data files"));
 

@@ -384,8 +384,8 @@ UserInputModeView::showContextMenu(const MouseEvent& mouseEvent,
                                                                       mouseY,
                                                                       false);
     
-    UserInputModeViewContextMenu contextMenu(idManager,
-                                             tabContent,
+    UserInputModeViewContextMenu contextMenu(viewportContent,
+                                             idManager,
                                              openGLWidget);
     contextMenu.exec(menuPosition);
 }

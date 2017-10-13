@@ -487,6 +487,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_NEW:
+        case EventTypeEnum::EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION:
         case EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET:
         case EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS:
         case EventTypeEnum::EVENT_CARET_PREFERENCES_GET:

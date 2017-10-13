@@ -30,6 +30,8 @@
 #include "AlgorithmNodesInsideBorder.h"
 #include "Border.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -70,6 +72,7 @@
 #include "SessionManager.h"
 #include "Surface.h"
 #include "UserInputModeFociWidget.h"
+#include "UserInputTileTabsContextMenu.h"
 #include "VolumeFile.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
@@ -88,22 +91,36 @@ using namespace caret;
  */
 /**
  * Constructor.
+ *
+ * @param viewportContent
+ *    Content of the viewport.
  * @param selectionManager
  *    The selection manager, provides data under the cursor.
- * @param browserTabContent
- *    Content of browser tab.
  * @param parentOpenGLWidget
  *    Parent OpenGL Widget on which the menu is displayed.
  */
-UserInputModeViewContextMenu::UserInputModeViewContextMenu(SelectionManager* selectionManager,
-                                                           BrowserTabContent* browserTabContent,
+UserInputModeViewContextMenu::UserInputModeViewContextMenu(BrainOpenGLViewportContent* viewportContent,
+                                                           SelectionManager* selectionManager,
                                                            BrainOpenGLWidget* parentOpenGLWidget)
 : QMenu(parentOpenGLWidget)
 {
+    this->viewportContent = viewportContent;
+    CaretAssert(this->viewportContent);
     this->parentOpenGLWidget = parentOpenGLWidget;
     this->selectionManager = selectionManager;
-    this->browserTabContent = browserTabContent;
+    this->browserTabContent = viewportContent->getBrowserTabContent();
+    CaretAssert(this->browserTabContent);
     
+    UserInputTileTabsContextMenu* tabMenu = new UserInputTileTabsContextMenu(this->parentOpenGLWidget,
+                                                                             this->viewportContent);
+    if (tabMenu->isValid()) {
+        addSubMenuToMenu(tabMenu,
+                         true);
+    }
+    else {
+        delete tabMenu;
+        tabMenu = NULL;
+    }
     /*
      * Add the identification actions.
      */
@@ -191,7 +208,7 @@ UserInputModeViewContextMenu::~UserInputModeViewContextMenu()
  * Add the actions to this context menu.
  *
  * @param actionsToAdd
- *     Actions to add to the menum.
+ *     Actions to add to the menu.
  * @param addSeparatorBeforeActions
  *     If true and there are actions presently in the menu, a separator
  *     (horizontal bar) is added prior to adding the given actions.
@@ -211,6 +228,30 @@ UserInputModeViewContextMenu::addActionsToMenu(QList<QAction*>& actionsToAdd,
     }
 }
 
+/**
+ * Add a submenu to this menu.
+ *
+ * @param menu
+ *     Menu that is added.
+ * @param addSeparatorBeforeMenu
+ *     If true and the menu is not empty, add a separator before
+ *     adding the sub menu.
+ */
+void
+UserInputModeViewContextMenu::addSubMenuToMenu(QMenu* menu,
+                                               const bool addSeparatorBeforeMenu)
+{
+    CaretAssert(menu);
+    
+    if (addSeparatorBeforeMenu) {
+        if (actions().isEmpty() == false) {
+            addSeparator();
+        }
+        
+        addMenu(menu);
+    }
+    
+}
 
 /**
  * Add the identification actions to the menu.

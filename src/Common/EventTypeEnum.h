@@ -82,6 +82,8 @@ public:
         EVENT_BROWSER_WINDOW_MENUS_UPDATE,
         /** Create a new browser window */
         EVENT_BROWSER_WINDOW_NEW,
+        /** Browser tile tab operations */
+        EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION,
         /** Get CaretMappable data files */
         EVENT_CARET_MAPPABLE_DATA_FILES_GET,
         /** Get CaretMappableDataFiles and their maps viewed as overlays */

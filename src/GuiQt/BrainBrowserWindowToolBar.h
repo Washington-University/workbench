@@ -126,6 +126,8 @@ namespace caret {
         BrowserTabContent* getTabContentFromSelectedTab();
         BrowserTabContent* getTabContentFromTab(const int tabIndex);
         
+        int32_t getTabBarIndexWithBrowserTabIndex(const int32_t browserTabIndex);
+        
         Model* getDisplayedModel();
         
         int32_t loadIntoTab(const int32_t tabIndex,
@@ -436,6 +438,7 @@ namespace caret {
          */
         int32_t m_tabIndexForTileTabsHighlighting;
         QTimer* m_tileTabsHighlightingTimer = NULL;
+        bool m_tileTabsHighlightingTimerEnabledFlag = true;
         
         bool isContructorFinished;
         bool isDestructionInProgress;

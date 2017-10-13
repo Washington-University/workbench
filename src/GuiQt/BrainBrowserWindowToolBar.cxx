@@ -85,6 +85,7 @@
 #include "EventBrowserWindowContentGet.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowNew.h"
+#include "EventBrowserWindowTileTabOperation.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -458,10 +459,12 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->updateToolBar();
     
     this->isContructorFinished = true;
+    m_tileTabsHighlightingTimerEnabledFlag = true;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
@@ -733,8 +736,10 @@ BrainBrowserWindowToolBar::insertTabContentPrivate(const InsertTabMode insertTab
             newTabIndex = this->tabBar->addTab("NewTab");
             break;
         case InsertTabMode::AT_TAB_BAR_INDEX:
-            newTabIndex = this->tabBar->insertTab(tabBarIndex,
-                                                  "NewTab");
+            if ((tabBarIndex >= 0) && (tabBarIndex <= this->tabBar->count())) {
+                newTabIndex = this->tabBar->insertTab(tabBarIndex,
+                                                      "NewTab");
+            }
             break;
         case InsertTabMode::AT_TAB_CONTENTS_INDEX:
         {
@@ -1446,24 +1451,26 @@ BrainBrowserWindowToolBar::selectedTabChanged(int indx)
         if (browserWindow->isTileTabsSelected()) {
             const BrowserTabContent* btc = getTabContentFromSelectedTab();
             if (btc != NULL) {
-                m_tabIndexForTileTabsHighlighting = btc->getTabNumber();
-                
-                /*
-                 * Short timer that will reset the tab highlighting
-                 */
-                if (m_tileTabsHighlightingTimer == NULL) {
-                    m_tileTabsHighlightingTimer = new QTimer(this);
-                    QObject::connect(m_tileTabsHighlightingTimer, &QTimer::timeout,
-                                     this, &BrainBrowserWindowToolBar::resetTabIndexForTileTabsHighlighting);
+                if (m_tileTabsHighlightingTimerEnabledFlag) {
+                    m_tabIndexForTileTabsHighlighting = btc->getTabNumber();
+                    
+                    /*
+                     * Short timer that will reset the tab highlighting
+                     */
+                    if (m_tileTabsHighlightingTimer == NULL) {
+                        m_tileTabsHighlightingTimer = new QTimer(this);
+                        QObject::connect(m_tileTabsHighlightingTimer, &QTimer::timeout,
+                                         this, &BrainBrowserWindowToolBar::resetTabIndexForTileTabsHighlighting);
+                    }
+                    
+                    /*
+                     * Note: There is no need to 'stop' the timer if it is running
+                     * as the start() method will stop and restart the timer
+                     */
+                    const int timeInMilliseconds = 750;
+                    m_tileTabsHighlightingTimer->setSingleShot(true);
+                    m_tileTabsHighlightingTimer->start(timeInMilliseconds);
                 }
-                
-                /*
-                 * Note: There is no need to 'stop' the timer if it is running
-                 * as the start() method will stop and restart the timer
-                 */
-                const int timeInMilliseconds = 750;
-                m_tileTabsHighlightingTimer->setSingleShot(true);
-                m_tileTabsHighlightingTimer->start(timeInMilliseconds);
             }
         }
     }
@@ -4063,6 +4070,34 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         }
         tabEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION) {
+        EventBrowserWindowTileTabOperation* tileTabsEvent =
+        dynamic_cast<EventBrowserWindowTileTabOperation*>(event);
+        CaretAssert(tileTabsEvent);
+        
+        if (tileTabsEvent->getWindowIndex() == this->browserWindowIndex) {
+            const int32_t browserTabIndex = tileTabsEvent->getBrowserTabIndex();
+            int32_t tabBarIndex = getTabBarIndexWithBrowserTabIndex(browserTabIndex);
+            if (tabBarIndex >= 0) {
+                const EventBrowserWindowTileTabOperation::Operation operation = tileTabsEvent->getOperation();
+                switch (operation) {
+                    case EventBrowserWindowTileTabOperation::OPERATION_NEW_TAB_AFTER:
+                        insertNewTabAtTabBarIndex(tabBarIndex + 1);
+                        break;
+                    case EventBrowserWindowTileTabOperation::OPERATION_NEW_TAB_BEFORE:
+                        insertNewTabAtTabBarIndex(tabBarIndex);
+                        break;
+                    case EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB:
+                        m_tileTabsHighlightingTimerEnabledFlag = false;
+                        this->tabBar->setCurrentIndex(tabBarIndex);
+                        m_tileTabsHighlightingTimerEnabledFlag = true;
+                        break;
+                }
+            }
+            
+            tileTabsEvent->setEventProcessed();
+        }
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_YOKED_WINDOWS) {
         EventUpdateYokedWindows* yokeUpdateEvent =
         dynamic_cast<EventUpdateYokedWindows*>(event);
@@ -4105,6 +4140,30 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
     else {
         
     }
+}
+
+/**
+ * Get the tab bar index containing the browser tab index.
+ *
+ * @param browserTabIndex
+ *     Index of the browser tab.
+ * @return 
+ *     Index in tab bar containing the browser tab index or -1 if not found.
+ */
+int32_t
+BrainBrowserWindowToolBar::getTabBarIndexWithBrowserTabIndex(const int32_t browserTabIndex)
+{
+    const int numTabs = this->tabBar->count();
+    if (numTabs > 0) {
+        for (int32_t i = 0; i < numTabs; i++) {
+            const BrowserTabContent* btc = getTabContentFromTab(i);
+            if (btc->getTabNumber() == browserTabIndex){
+                return i;
+            }
+        }
+    }
+    
+    return -1;
 }
 
 /**
