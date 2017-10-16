@@ -15,6 +15,7 @@ EventGraphicsOpenGLDeleteTextureName.h
 GraphicsEngineData.h
 GraphicsEngineDataOpenGL.h
 GraphicsOpenGLBufferObject.h
+GraphicsOpenGLLineDrawing.h
 GraphicsOpenGLTextureName.h
 GraphicsPrimitive.h
 GraphicsPrimitiveSelectionHelper.h
@@ -30,6 +31,7 @@ EventGraphicsOpenGLDeleteTextureName.cxx
 GraphicsEngineData.cxx
 GraphicsEngineDataOpenGL.cxx
 GraphicsOpenGLBufferObject.cxx
+GraphicsOpenGLLineDrawing.cxx
 GraphicsOpenGLTextureName.cxx
 GraphicsPrimitive.cxx
 GraphicsPrimitiveSelectionHelper.cxx
@@ -45,6 +47,7 @@ GraphicsPrimitiveV3fT3f.cxx
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Common
 ${CMAKE_SOURCE_DIR}/Graphics
+${CMAKE_SOURCE_DIR}/Nifti
 )
 
 TARGET_LINK_LIBRARIES(Graphics ${CARET_QT5_LINK})

@@ -323,6 +323,7 @@ namespace caret {
         void copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj);
 
         friend class GraphicsEngineDataOpenGL;
+        friend class GraphicsOpenGLLineDrawing;
         friend class GraphicsPrimitiveSelectionHelper;
         
         std::vector<float> m_dummyFloatRGBAVector;
