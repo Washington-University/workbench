@@ -22,6 +22,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "FileInformation.h"
 #include "GiftiMetaDataSaxReader.h"
 #include "GiftiXmlElements.h"
 #include "Scene.h"
@@ -29,6 +30,7 @@
 #include "SceneFileSaxReader.h"
 #include "SceneInfo.h"
 #include "SceneInfoSaxReader.h"
+#include "ScenePathName.h"
 #include "SceneXmlElements.h"
 
 #include "XmlAttributes.h"
@@ -45,10 +47,12 @@ using namespace caret;
 /**
  * constructor.
  */
-SceneFileSaxReader::SceneFileSaxReader(SceneFile* sceneFile)
+SceneFileSaxReader::SceneFileSaxReader(SceneFile* sceneFile,
+                                       const AString& sceneFileName)
 {
     CaretAssert(sceneFile);
     m_sceneFile = sceneFile;
+    m_sceneFileName = sceneFileName;
     m_state = STATE_NONE;
     m_stateStack.push(m_state);
     m_elementText = "";
@@ -56,6 +60,7 @@ SceneFileSaxReader::SceneFileSaxReader(SceneFile* sceneFile)
     m_sceneSaxReader = NULL;
     m_sceneInfoSaxReader = NULL;
     m_scene = NULL;
+    m_baseBathTypeWasFoundFlag = false;
 }
 
 /**
@@ -138,6 +143,9 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
             else if (qName == SceneXmlElements::SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY_TAG) {
                 m_state = STATE_SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY;
             }
+            else if (qName == SceneXmlElements::SCENE_INFO_BASE_PATH_TYPE) {
+                m_state = STATE_SCENE_INFO_BASE_PATH_TYPE;
+            }
             else {
                 const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::SCENE_INFO_TAG,
                                                                                    qName);
@@ -154,6 +162,8 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
         case STATE_SCENE_INFO_BALSA_BASE_DIRECTORY:
             break;
         case STATE_SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY:
+            break;
+        case STATE_SCENE_INFO_BASE_PATH_TYPE:
             break;
         case STATE_SCENE_INFO:
             m_sceneInfoSaxReader->startElement(namespaceURI, localName, qName, attributes);
@@ -248,6 +258,24 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
         case STATE_SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY:
             m_sceneFile->setBalsaExtractToDirectoryName(m_elementText);
             break;
+        case STATE_SCENE_INFO_BASE_PATH_TYPE:
+        {
+            SceneFileBasePathTypeEnum::Enum basePathType = SceneFileBasePathTypeEnum::AUTOMATIC;
+            bool validFlag = false;
+            basePathType = SceneFileBasePathTypeEnum::fromName(m_elementText, &validFlag);
+            if (validFlag) {
+                m_baseBathTypeWasFoundFlag = true;
+            }
+            else {
+                basePathType = SceneFileBasePathTypeEnum::AUTOMATIC;
+                
+                AString msg("Invalid BasePathType name: " + m_elementText);
+                XmlSaxParserException e(msg);
+                warning(e);
+            }
+            m_sceneFile->setBasePathType(basePathType);
+        }
+            break;
         case STATE_SCENE_INFO:
             CaretAssert(m_sceneInfo);
             CaretAssert(m_sceneInfoSaxReader);
@@ -280,6 +308,47 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
                                      + m_sceneFile->getFileName());
                     CaretAssertMessage(0, msg);
                     CaretLogSevere(msg);
+                }
+            }
+            
+            if (m_baseBathTypeWasFoundFlag) {
+                switch (m_sceneFile->getBasePathType()) {
+                    case SceneFileBasePathTypeEnum::AUTOMATIC:
+                        m_sceneFile->setBalsaBaseDirectory("");
+                        break;
+                    case SceneFileBasePathTypeEnum::CUSTOM:
+                    {
+                        AString basePath = m_sceneFile->getBalsaBaseDirectory();
+                        if ( ! basePath.isEmpty()) {
+                            FileInformation basePathInfo(basePath);
+                            if (basePathInfo.isRelative()) {
+//                                FileInformation tempBaseFile(basePath,
+//                                                             "temp.txt");
+                                ScenePathName basePathName("basePathName",
+                                                           "");
+                                basePathName.setValueToAbsolutePath(m_sceneFileName,
+                                                                    (basePath)); // + "/temp.txt"));
+                                basePath = basePathName.stringValue();
+                            }
+                        }
+                        m_sceneFile->setBalsaBaseDirectory(basePath);
+                    }
+                        break;
+                }
+            }
+            else {
+                /*
+                 * Base path type was added by WB- in Oct 2017.
+                 * If it is not found, the file was created prior to adding the
+                 * base path type.  If there is no base path, the go ahead and
+                 * use AUTOMATIC mode.  If there is a base path assume it is valid
+                 * and use CUSTOM mode.
+                 */
+                if (m_sceneFile->getBalsaBaseDirectory().isEmpty()) {
+                    m_sceneFile->setBasePathType(SceneFileBasePathTypeEnum::AUTOMATIC);
+                }
+                else {
+                    m_sceneFile->setBasePathType(SceneFileBasePathTypeEnum::CUSTOM);
                 }
             }
         }

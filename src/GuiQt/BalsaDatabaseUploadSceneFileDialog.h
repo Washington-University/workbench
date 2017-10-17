@@ -38,6 +38,7 @@ class QRegularExpressionValidator;
 namespace caret {
     class BalsaDatabaseManager;
     class BalsaUserRoles;
+    class SceneBasePathWidget;
     class SceneFile;
     
     class BalsaDatabaseUploadSceneFileDialog : public WuQDialogModal {
@@ -63,8 +64,6 @@ namespace caret {
         
         void labelHtmlLinkClicked(const QString&);
 
-        void browseBaseDirectoryPushButtonClicked();
-
         void validateUploadData();
         
         void selectStudyTitleButtonClicked();
@@ -72,8 +71,6 @@ namespace caret {
         void zipFileDirectoryRadioButtonClicked(int);
         
         void browseZipFileCustomDirectoryPushButtonClicked();
-        
-        void findBaseDirectoryPushButtonClicked();
         
         void rolesButtonClicked();
         
@@ -85,7 +82,6 @@ namespace caret {
         
     private:
         enum class LabelName {
-            LABEL_BASE_DIRECTORY,
             LABEL_DATABASE,
             LABEL_EXTRACT_DIRECTORY,
             LABEL_PASSWORD,
@@ -153,14 +149,10 @@ namespace caret {
         QLineEdit* m_balsaStudyTitleLineEdit;
         QPushButton* m_selectStudyTitlePushButton;
         
-        QPushButton* m_browseBaseDirectoryPushButton;
-        QPushButton* m_findBaseDirectoryPushButton;
-        
-        QLabel* m_baseDirectoryLabel;
-        QLineEdit* m_baseDirectoryLineEdit;
-        
         QCheckBox* m_autoSaveSceneFileCheckBox;
         QPushButton* m_uploadPushButton;
+        
+        SceneBasePathWidget* m_basePathWidget;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -51,6 +51,7 @@
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ProgressReportingDialog.h"
+#include "SceneBasePathWidget.h"
 #include "SceneFile.h"
 #include "SystemUtilities.h"
 #include "WuQDataEntryDialog.h"
@@ -88,7 +89,7 @@ m_sceneFile(sceneFile)
     
     QWidget* loginWidget = createLoginWidget();
     m_uploadWidget = createUploadWidget();
-    m_uploadWidget->setEnabled(false);
+    m_uploadPushButton->setEnabled(false);
     
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
@@ -105,6 +106,8 @@ m_sceneFile(sceneFile)
     
     setOkButtonText("");
     setCancelButtonText("Close");
+    
+    m_basePathWidget->updateSceneFile(m_sceneFile);
 }
 
 /**
@@ -262,7 +265,7 @@ void
 BalsaDatabaseUploadSceneFileDialog::loginInformationChanged()
 {
     m_balsaDatabaseManager->logout();
-    m_uploadWidget->setEnabled(false);
+    m_uploadPushButton->setEnabled(false);
     m_userRoles->resetToAllInvalid();
     updateAllLabels();
 }
@@ -333,32 +336,6 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
                      this, &BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked);
     
     /*
-     * Base Directory
-     */
-    m_baseDirectoryLabel = new QLabel("");
-    m_baseDirectoryLineEdit = new QLineEdit();
-    m_baseDirectoryLineEdit->setToolTip("Directory that contains all data files");
-    m_baseDirectoryLineEdit->setValidator(createValidator(LabelName::LABEL_BASE_DIRECTORY));
-    QObject::connect(m_baseDirectoryLineEdit, &QLineEdit::textEdited,
-                     this, [=] { this->validateUploadData(); });
-    
-    /*
-     * Browse for base directory
-     */
-    m_browseBaseDirectoryPushButton = new QPushButton("Browse...");
-    m_browseBaseDirectoryPushButton->setToolTip("Use a file system dialog to choose the base directory");
-    QObject::connect(m_browseBaseDirectoryPushButton, &QPushButton::clicked,
-                     this, &BalsaDatabaseUploadSceneFileDialog::browseBaseDirectoryPushButtonClicked);
-    
-    /*
-     * Browse for base directory
-     */
-    m_findBaseDirectoryPushButton = new QPushButton("Find");
-    m_findBaseDirectoryPushButton->setToolTip("Find the base directory by examining files in all scenes");
-    QObject::connect(m_findBaseDirectoryPushButton, &QPushButton::clicked,
-                     this, &BalsaDatabaseUploadSceneFileDialog::findBaseDirectoryPushButtonClicked);
-    
-    /*
      * Roles button
      */
     QPushButton* rolesPushButton = new QPushButton("Test Roles...");
@@ -401,11 +378,6 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     gridLayout->addWidget(m_extractDirectoryNameLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_extractDirectoryNameLineEdit, row, COLUMN_DATA_WIDGET);
     row++;
-    gridLayout->addWidget(m_baseDirectoryLabel, row, COLUMN_LABEL, Qt::AlignRight);
-    gridLayout->addWidget(m_baseDirectoryLineEdit, row, COLUMN_DATA_WIDGET);
-    gridLayout->addWidget(m_browseBaseDirectoryPushButton, row, COLUMN_BUTTON_ONE);
-    gridLayout->addWidget(m_findBaseDirectoryPushButton, row, COLUMN_BUTTON_TWO);
-    row++;
     gridLayout->addWidget(m_balsaStudyTitleLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_balsaStudyTitleLineEdit, row, COLUMN_DATA_WIDGET);
     gridLayout->addWidget(m_selectStudyTitlePushButton, row, COLUMN_BUTTON_ONE, 1, 2);
@@ -422,11 +394,10 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     row++;
     
     m_balsaStudyIDLineEdit->setText(m_sceneFile->getBalsaStudyID());
-    AString baseDirectory = m_sceneFile->getBalsaBaseDirectory();
-    if (baseDirectory.isEmpty()) {
-        baseDirectory = m_sceneFile->findBaseDirectoryForDataFiles();
-    }
-    m_baseDirectoryLineEdit->setText(baseDirectory);
+//    AString baseDirectory = m_sceneFile->getBalsaBaseDirectory();
+//    if (baseDirectory.isEmpty()) {
+//        baseDirectory = m_sceneFile->findBaseDirectoryForDataFiles();
+//    }
     m_balsaStudyTitleLineEdit->setText(m_sceneFile->getBalsaStudyTitle());
     m_extractDirectoryNameLineEdit->setText(m_sceneFile->getBalsaExtractToDirectoryName());
     
@@ -472,9 +443,13 @@ BalsaDatabaseUploadSceneFileDialog::createAdvancedTab()
     gridLayout->addWidget(browseCustomDirectoryPushButton, 1, 2);
     row++;
     
+    m_basePathWidget = new SceneBasePathWidget();
+
     QWidget* widget = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(zipDirectoryGroupBox);
+    //layout->addWidget(m_basePathWidget, 0, Qt::AlignLeft);
+    layout->addWidget(m_basePathWidget);
     layout->addStretch();
     
     return widget;
@@ -570,7 +545,7 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
     const AString username = m_usernameLineEdit->text().trimmed();
     const AString password = m_passwordLineEdit->text().trimmed();
     
-    m_uploadWidget->setEnabled(false);
+    m_uploadPushButton->setEnabled(false);
     
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
@@ -618,7 +593,7 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
         WuQMessageBox::warningOk(this, msg);
     }
     
-    m_uploadWidget->setEnabled(true);
+    m_uploadPushButton->setEnabled(true);
 }
 
 /**
@@ -631,7 +606,6 @@ BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
     
     m_sceneFile->setBalsaStudyID(m_balsaStudyIDLineEdit->text().trimmed());
     m_sceneFile->setBalsaStudyTitle(m_balsaStudyTitleLineEdit->text().trimmed());
-    m_sceneFile->setBalsaBaseDirectory(m_baseDirectoryLineEdit->text().trimmed());
     AString zipFileErrorMessage;
     const AString zipFileName = getZipFileNameWithPath(zipFileErrorMessage);
     
@@ -651,9 +625,26 @@ BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
     if ( ! m_extractDirectoryNameLineEdit->hasAcceptableInput()) {
         msg.appendWithNewLine("Extract to Directory is invalid.<p>");
     }
-    if ( ! m_baseDirectoryLineEdit->hasAcceptableInput()) {
-        msg.appendWithNewLine("Base Directory is invalid.<p>");
+    
+    switch (m_sceneFile->getBasePathType()) {
+        case SceneFileBasePathTypeEnum::AUTOMATIC:
+            break;
+        case SceneFileBasePathTypeEnum::CUSTOM:
+        {
+            if (m_sceneFile->getBalsaBaseDirectory().isEmpty()) {
+                msg.appendWithNewLine("CUSTOM Base Path (on Advanced Tab) is invalid.  "
+                                      "Select Base Path or use AUTOMATIC.<p>");
+            }
+            else {
+                if ( ! FileInformation(m_sceneFile->getBalsaBaseDirectory()).exists()) {
+                    msg.appendWithNewLine("CUSTOM Base Directory (on Advanced Tab) is not a valid directory on this computer.  "
+                                          "Select a valid Base Path or use AUTOMATIC.<p>");
+                }
+            }
+        }
+            break;
     }
+    
     bool invalidStudyFlag = false;
     if ( ! m_balsaStudyTitleLineEdit->hasAcceptableInput()) {
         invalidStudyFlag = true;
@@ -870,41 +861,6 @@ BalsaDatabaseUploadSceneFileDialog::browseZipFileCustomDirectoryPushButtonClicke
 }
 
 /**
- * Called when upload scene file is selected.
- */
-void
-BalsaDatabaseUploadSceneFileDialog::browseBaseDirectoryPushButtonClicked()
-{
-    CaretAssert(m_sceneFile);
-    
-    /*
-     * Let user choose directory path
-     */
-    QString directoryName;
-    FileInformation fileInfo(m_baseDirectoryLineEdit->text().trimmed());
-    if (fileInfo.exists()) {
-        if (fileInfo.isDirectory()) {
-            directoryName = fileInfo.getAbsoluteFilePath();
-        }
-    }
-    AString newDirectoryName = CaretFileDialog::getExistingDirectoryDialog(m_browseBaseDirectoryPushButton,
-                                                                           "Choose Base Directory",
-                                                                           directoryName);
-    /*
-     * If user cancels,  return
-     */
-    if (newDirectoryName.isEmpty()) {
-        return;
-    }
-    
-    /*
-     * Set name of new scene file and add to brain
-     */
-    m_baseDirectoryLineEdit->setText(newDirectoryName);
-    validateUploadData();
-}
-
-/**
  * Create a regular expression validatory for the give label/data.
  *
  * @param labelName
@@ -916,9 +872,6 @@ BalsaDatabaseUploadSceneFileDialog::createValidator(const LabelName labelName)
     QRegularExpression regEx;
     
     switch (labelName) {
-        case LabelName::LABEL_BASE_DIRECTORY:
-            regEx.setPattern(".+");
-            break;
         case LabelName::LABEL_DATABASE:
             regEx.setPattern(".+");
             break;
@@ -964,7 +917,6 @@ BalsaDatabaseUploadSceneFileDialog::validateUploadData()
 void
 BalsaDatabaseUploadSceneFileDialog::updateAllLabels()
 {
-    setLabelText(LabelName::LABEL_BASE_DIRECTORY);
     setLabelText(LabelName::LABEL_DATABASE);
     setLabelText(LabelName::LABEL_EXTRACT_DIRECTORY);
     setLabelText(LabelName::LABEL_PASSWORD);
@@ -989,11 +941,6 @@ BalsaDatabaseUploadSceneFileDialog::setLabelText(const LabelName labelName)
     AString labelText;
     bool validFlag = false;
     switch (labelName) {
-        case LabelName::LABEL_BASE_DIRECTORY:
-            label = m_baseDirectoryLabel;
-            labelText = "Base Directory";
-            validFlag = m_baseDirectoryLineEdit->hasAcceptableInput();
-            break;
         case LabelName::LABEL_DATABASE:
             label = m_databaseLabel;
             labelText = "Database";
@@ -1057,26 +1004,3 @@ BalsaDatabaseUploadSceneFileDialog::setLabelText(const LabelName labelName)
     CaretAssert(label);
     label->setText(coloredText);
 }
-
-/**
- * Called when find base directory push button is clicked.
- */
-void
-BalsaDatabaseUploadSceneFileDialog::findBaseDirectoryPushButtonClicked()
-{
-    CaretAssert(m_sceneFile);
-    
-    const AString baseDirectoryName = m_sceneFile->findBaseDirectoryForDataFiles();
-    
-    if (baseDirectoryName.isEmpty()) {
-        return;
-    }
-    
-    /*
-     * Set name for base directory
-     */
-    m_baseDirectoryLineEdit->setText(baseDirectoryName);
-    validateUploadData();
-}
-
-

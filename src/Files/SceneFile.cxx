@@ -47,6 +47,7 @@
 #include "SceneXmlElements.h"
 #include "SceneWriterXml.h"
 #include "SpecFile.h"
+#include "SystemUtilities.h"
 #include "XmlSaxParser.h"
 #include "XmlWriter.h"
 
@@ -69,6 +70,7 @@ SceneFile::SceneFile()
     m_balsaStudyTitle = "";
     m_balsaBaseDirectory = "";
     m_balsaExtractToDirectoryName = "";
+    m_basePathType = SceneFileBasePathTypeEnum::AUTOMATIC;
     m_metadata = new GiftiMetaData();
 }
 
@@ -101,6 +103,7 @@ SceneFile::clear()
     m_balsaStudyTitle = "";
     m_balsaBaseDirectory = "";
     m_balsaExtractToDirectoryName = "";
+    m_basePathType = SceneFileBasePathTypeEnum::AUTOMATIC;
     
     for (std::vector<Scene*>::iterator iter = m_scenes.begin();
          iter != m_scenes.end();
@@ -544,6 +547,29 @@ SceneFile::setBalsaBaseDirectory(const AString& balsaBaseDirectory)
     }
 }
 
+/**
+ * @return The base path type.
+ */
+SceneFileBasePathTypeEnum::Enum
+SceneFile::getBasePathType() const
+{
+    return m_basePathType;
+}
+
+/**
+ * Set the base path type.
+ * 
+ * @param basePathType
+ *     New type for base path.
+ */
+void SceneFile::setBasePathType(const SceneFileBasePathTypeEnum::Enum basePathType)
+{
+    if (basePathType != m_basePathType) {
+        m_basePathType = basePathType;
+        setModified();
+    }
+}
+
 
 /**
  * Read the scene file.
@@ -565,7 +591,8 @@ SceneFile::readFile(const AString& filenameIn)
     checkFileReadability(filename);
     
     this->setFileName(filename);
-    SceneFileSaxReader saxReader(this);
+    SceneFileSaxReader saxReader(this,
+                                 filename);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
         parser->parseFile(filename, &saxReader);
@@ -679,10 +706,43 @@ SceneFile::writeFile(const AString& filename)
                                     getBalsaStudyID());
         xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_STUDY_TITLE_TAG,
                                     getBalsaStudyTitle());
-        xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_BASE_DIRECTORY_TAG,
-                                    getBalsaBaseDirectory());
+        switch (getBasePathType()) {
+            case SceneFileBasePathTypeEnum::AUTOMATIC:
+                xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_BASE_DIRECTORY_TAG,
+                                            "");
+                break;
+            case SceneFileBasePathTypeEnum::CUSTOM:
+            {
+                /*
+                 * Write base path as a path RELATIVE to the scene file
+                 * but only when base path type is CUSTOM
+                 * Note: we do not use FileInformation::getCanonicalFilePath()
+                 * because it returns an empty string if the file DOES NOT exist
+                 * and this may occur since the file may be new and has not
+                 * been closed.
+                 */
+                if ( ! getBalsaBaseDirectory().isEmpty()) {
+                    const AString baseDirAbsPath = FileInformation(getBalsaBaseDirectory()).getAbsoluteFilePath();
+                    const AString sceneFileAbsPath = FileInformation(filename).getAbsoluteFilePath();
+                    ScenePathName basePathName("basePathName",
+                                               baseDirAbsPath);
+                    
+                    const AString relativeBasePath = basePathName.getRelativePathToSceneFile(sceneFileAbsPath);
+                    
+                    //std::cout << "baseDirAbsPath: " << baseDirAbsPath << std::endl;
+                    //std::cout << "sceneFileAbsPath: " << sceneFileAbsPath << std::endl;
+                    //std::cout << "relativeTempFileName: " << relativeBasePath << std::endl;
+                    
+                    xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_BASE_DIRECTORY_TAG,
+                                                relativeBasePath);
+                }
+            }
+                break;
+        }
         xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY_TAG,
                                     getBalsaExtractToDirectoryName());
+        xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BASE_PATH_TYPE,
+                                    SceneFileBasePathTypeEnum::toName(getBasePathType()));
         
         for (int32_t i = 0; i < numScenes; i++) {
             m_scenes[i]->getSceneInfo()->writeSceneInfo(xmlWriter,

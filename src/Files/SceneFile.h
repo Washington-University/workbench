@@ -23,6 +23,7 @@
 
 
 #include "CaretDataFile.h"
+#include "SceneFileBasePathTypeEnum.h"
 
 namespace caret {
 
@@ -91,6 +92,10 @@ namespace caret {
         
         void setBalsaStudyTitle(const AString& balsaStudyTitle);
         
+        SceneFileBasePathTypeEnum::Enum getBasePathType() const;
+        
+        void setBasePathType(const SceneFileBasePathTypeEnum::Enum basePathType);
+        
         AString getBalsaBaseDirectory() const;
         
         void setBalsaBaseDirectory(const AString& balsaBaseDirectory);
@@ -140,6 +145,9 @@ namespace caret {
         
         /** the BALSA Study Title */
         AString m_balsaStudyTitle;
+        
+        /** the Base Path Type */
+        SceneFileBasePathTypeEnum::Enum m_basePathType;
         
         /** the Base Directory */
         AString m_balsaBaseDirectory;

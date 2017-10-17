@@ -44,6 +44,7 @@ SceneClassArray.h
 SceneClassAssistant.h
 SceneEnumeratedTypeArray.h
 SceneEnumeratedType.h
+SceneFileBasePathTypeEnum.h
 SceneFloat.h
 SceneFloatArray.h
 SceneInfo.h
@@ -80,6 +81,7 @@ SceneClassArray.cxx
 SceneClassAssistant.cxx
 SceneEnumeratedTypeArray.cxx
 SceneEnumeratedType.cxx
+SceneFileBasePathTypeEnum.cxx
 SceneFloat.cxx
 SceneFloatArray.cxx
 SceneInfo.cxx

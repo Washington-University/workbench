@@ -457,10 +457,30 @@ BalsaDatabaseManager::zipSceneAndDataFiles(const SceneFile* sceneFile,
         return false;
     }
     
-    AString baseDirectoryName;
-    if ( ! sceneFile->getBalsaBaseDirectory().isEmpty()) {
-        /* validate ? */
-        baseDirectoryName = sceneFile->getBalsaBaseDirectory();
+    AString basePathName = sceneFile->getBalsaBaseDirectory();
+    
+    switch (sceneFile->getBasePathType()) {
+        case SceneFileBasePathTypeEnum::AUTOMATIC:
+            basePathName = sceneFile->findBaseDirectoryForDataFiles();
+            if ( ! FileInformation(basePathName).exists()) {
+                errorMessageOut = ("AUTOMATIC base path mode produced an invalid base path (directory does not exist): \""
+                                   + basePathName
+                                   + "\"");
+                return false;
+            }
+            break;
+        case SceneFileBasePathTypeEnum::CUSTOM:
+            if (basePathName.isEmpty()) {
+                errorMessageOut = ("CUSTOM base path is empty");
+                return false;
+            }
+            if ( ! FileInformation(basePathName).exists()) {
+                errorMessageOut = ("CUSTOM base path is invalid (directory does not exist): \""
+                                   + basePathName
+                                   + "\"");
+                return false;
+            }
+            break;
     }
     
     bool successFlag = false;
@@ -468,7 +488,7 @@ BalsaDatabaseManager::zipSceneAndDataFiles(const SceneFile* sceneFile,
         OperationZipSceneFile::createZipFile(sceneFileName,
                                              extractToDirectoryName,
                                              zipFileName,
-                                             baseDirectoryName,
+                                             basePathName,
                                              OperationZipSceneFile::PROGRESS_GUI_EVENT,
                                              NULL);
         successFlag = true;
