@@ -139,13 +139,8 @@ BalsaDatabaseUploadSceneFileDialog::cancelButtonClicked()
 QWidget*
 BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
 {
-    QString defaultUserName = "balsaTest";
-    QString defaultPassword = "@2password";
-    
-#ifdef NDEBUG
-    defaultUserName = "";
-    defaultPassword = "";
-#endif
+    AString defaultUserName;
+    AString defaultPassword;
     
     /*
      * Create the BALSA database manager
