@@ -3552,7 +3552,7 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
     
     VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
     VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
-    VolumeSliceObliqueDrawingMaskEnum::Enum obliqueMaskType = browserTabContent->getObliqueSliceDrawingMaskingType();
+    VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueMaskType = browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType();
     
     /*
      * There is/was a flaw in volume drawing in that it does not "center"

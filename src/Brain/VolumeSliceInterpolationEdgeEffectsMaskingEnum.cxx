@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __VOLUME_SLICE_OBLIQUE_DRAWING_MASK_ENUM_DECLARE__
-#include "VolumeSliceObliqueDrawingMaskEnum.h"
-#undef __VOLUME_SLICE_OBLIQUE_DRAWING_MASK_ENUM_DECLARE__
+#define __VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_DECLARE__
+#include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
+#undef __VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::VolumeSliceObliqueDrawingMaskEnum 
- * \brief Enumerated type for oblique slice drawing masking
+ * \class caret::VolumeSliceInterpolationEdgeEffectsMaskingEnum 
+ * \brief Enumerated type for edge effects masking.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_volumeSliceObliqueDrawingMaskEnumComboBox;
+ *         EnumComboBoxTemplate* m_volumeSliceInterpolationEdgeEffectsMaskingEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void volumeSliceObliqueDrawingMaskEnumComboBoxItemActivated();
+ *             void volumeSliceInterpolationEdgeEffectsMaskingEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "VolumeSliceObliqueDrawingMaskEnum.h"
+ *         #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
  * 
  *     Instatiate:
- *         m_volumeSliceObliqueDrawingMaskEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_volumeSliceObliqueDrawingMaskEnumComboBox->setup<VolumeSliceObliqueDrawingMaskEnum,VolumeSliceObliqueDrawingMaskEnum::Enum>();
+ *         m_volumeSliceInterpolationEdgeEffectsMaskingEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_volumeSliceInterpolationEdgeEffectsMaskingEnumComboBox->setup<VolumeSliceInterpolationEdgeEffectsMaskingEnum,VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_volumeSliceObliqueDrawingMaskEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(volumeSliceObliqueDrawingMaskEnumComboBoxItemActivated()));
+ *         QObject::connect(m_volumeSliceInterpolationEdgeEffectsMaskingEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(volumeSliceInterpolationEdgeEffectsMaskingEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_volumeSliceObliqueDrawingMaskEnumComboBox->setSelectedItem<VolumeSliceObliqueDrawingMaskEnum,VolumeSliceObliqueDrawingMaskEnum::Enum>(NEW_VALUE);
+ *         m_volumeSliceInterpolationEdgeEffectsMaskingEnumComboBox->setSelectedItem<VolumeSliceInterpolationEdgeEffectsMaskingEnum,VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const VolumeSliceObliqueDrawingMaskEnum::Enum VARIABLE = m_volumeSliceObliqueDrawingMaskEnumComboBox->getSelectedItem<VolumeSliceObliqueDrawingMaskEnum,VolumeSliceObliqueDrawingMaskEnum::Enum>();
+ *         const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum VARIABLE = m_volumeSliceInterpolationEdgeEffectsMaskingEnumComboBox->getSelectedItem<VolumeSliceInterpolationEdgeEffectsMaskingEnum,VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-VolumeSliceObliqueDrawingMaskEnum::VolumeSliceObliqueDrawingMaskEnum(const Enum enumValue,
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::VolumeSliceInterpolationEdgeEffectsMaskingEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,32 +91,66 @@ VolumeSliceObliqueDrawingMaskEnum::VolumeSliceObliqueDrawingMaskEnum(const Enum 
 /**
  * Destructor.
  */
-VolumeSliceObliqueDrawingMaskEnum::~VolumeSliceObliqueDrawingMaskEnum()
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::~VolumeSliceInterpolationEdgeEffectsMaskingEnum()
 {
+}
+
+AString
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::getToolTip()
+{
+    AString toolTip("<html>"
+                    "Masking is used to remove edge effects from cubic<br>"
+                    "interpolation.  In extreme instances, the artifacts<br>"
+                    "result in blocky and/or striped patterns.<br>"
+                    "<br>");
+    
+    std::vector<Enum> allEnums;
+    getAllEnums(allEnums);
+    
+    for (const auto enumValue : allEnums) {
+        AString description(toGuiName(enumValue) + " - ");
+        switch (enumValue) {
+            case OFF:
+                description.append("No masking");
+                break;
+            case LOOSE:
+                description.append("Mask with Trilinear Interpolation");
+                break;
+            case TIGHT:
+                description.append("Mask with Enclosing Voxel");
+                break;
+        }
+        toolTip.append(description + "<br>");
+    }
+    
+    toolTip.append("</html>");
+    
+    return toolTip;
 }
 
 /**
  * Initialize the enumerated metadata.
  */
 void
-VolumeSliceObliqueDrawingMaskEnum::initialize()
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(VolumeSliceObliqueDrawingMaskEnum(OFF, 
+    enumData.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum(OFF, 
                                     "OFF", 
-                                    "Oblique Masking OFF"));
+                                    "Masking Off"));
     
-    enumData.push_back(VolumeSliceObliqueDrawingMaskEnum(ENCLOSING_VOXEL, 
-                                    "ENCLOSING_VOXEL",
-                                    "Oblique Masking ENCLOSING VOXEL"));
+    enumData.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum(LOOSE, 
+                                    "LOOSE", 
+                                    "Masking Loose"));
     
-    enumData.push_back(VolumeSliceObliqueDrawingMaskEnum(TRILINEAR_INTERPOLATION,
-                                    "TRILINEAR_INTERPOLATION",
-                                    "Oblique Masking TRILINEAR INTERPOLATION"));
+    enumData.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum(TIGHT, 
+                                    "TIGHT", 
+                                    "Masking Tight"));
+    
 }
 
 /**
@@ -126,14 +160,14 @@ VolumeSliceObliqueDrawingMaskEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const VolumeSliceObliqueDrawingMaskEnum*
-VolumeSliceObliqueDrawingMaskEnum::findData(const Enum enumValue)
+const VolumeSliceInterpolationEdgeEffectsMaskingEnum*
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const VolumeSliceObliqueDrawingMaskEnum* d = &enumData[i];
+        const VolumeSliceInterpolationEdgeEffectsMaskingEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -150,10 +184,10 @@ VolumeSliceObliqueDrawingMaskEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-VolumeSliceObliqueDrawingMaskEnum::toName(Enum enumValue) {
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const VolumeSliceObliqueDrawingMaskEnum* enumInstance = findData(enumValue);
+    const VolumeSliceInterpolationEdgeEffectsMaskingEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -167,18 +201,18 @@ VolumeSliceObliqueDrawingMaskEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-VolumeSliceObliqueDrawingMaskEnum::Enum 
-VolumeSliceObliqueDrawingMaskEnum::fromName(const AString& name, bool* isValidOut)
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum 
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = VolumeSliceObliqueDrawingMaskEnum::enumData[0].enumValue;
+    Enum enumValue = VolumeSliceInterpolationEdgeEffectsMaskingEnum::enumData[0].enumValue;
     
-    for (std::vector<VolumeSliceObliqueDrawingMaskEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const VolumeSliceObliqueDrawingMaskEnum& d = *iter;
+        const VolumeSliceInterpolationEdgeEffectsMaskingEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -190,7 +224,7 @@ VolumeSliceObliqueDrawingMaskEnum::fromName(const AString& name, bool* isValidOu
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type VolumeSliceObliqueDrawingMaskEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type VolumeSliceInterpolationEdgeEffectsMaskingEnum"));
     }
     return enumValue;
 }
@@ -203,10 +237,10 @@ VolumeSliceObliqueDrawingMaskEnum::fromName(const AString& name, bool* isValidOu
  *     String representing enumerated value.
  */
 AString 
-VolumeSliceObliqueDrawingMaskEnum::toGuiName(Enum enumValue) {
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const VolumeSliceObliqueDrawingMaskEnum* enumInstance = findData(enumValue);
+    const VolumeSliceInterpolationEdgeEffectsMaskingEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -220,18 +254,18 @@ VolumeSliceObliqueDrawingMaskEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-VolumeSliceObliqueDrawingMaskEnum::Enum 
-VolumeSliceObliqueDrawingMaskEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum 
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = VolumeSliceObliqueDrawingMaskEnum::enumData[0].enumValue;
+    Enum enumValue = VolumeSliceInterpolationEdgeEffectsMaskingEnum::enumData[0].enumValue;
     
-    for (std::vector<VolumeSliceObliqueDrawingMaskEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const VolumeSliceObliqueDrawingMaskEnum& d = *iter;
+        const VolumeSliceInterpolationEdgeEffectsMaskingEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -243,7 +277,7 @@ VolumeSliceObliqueDrawingMaskEnum::fromGuiName(const AString& guiName, bool* isV
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type VolumeSliceObliqueDrawingMaskEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type VolumeSliceInterpolationEdgeEffectsMaskingEnum"));
     }
     return enumValue;
 }
@@ -255,10 +289,10 @@ VolumeSliceObliqueDrawingMaskEnum::fromGuiName(const AString& guiName, bool* isV
  *    Integer code for data type.
  */
 int32_t
-VolumeSliceObliqueDrawingMaskEnum::toIntegerCode(Enum enumValue)
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const VolumeSliceObliqueDrawingMaskEnum* enumInstance = findData(enumValue);
+    const VolumeSliceInterpolationEdgeEffectsMaskingEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -273,18 +307,18 @@ VolumeSliceObliqueDrawingMaskEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-VolumeSliceObliqueDrawingMaskEnum::Enum
-VolumeSliceObliqueDrawingMaskEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = VolumeSliceObliqueDrawingMaskEnum::enumData[0].enumValue;
+    Enum enumValue = VolumeSliceInterpolationEdgeEffectsMaskingEnum::enumData[0].enumValue;
     
-    for (std::vector<VolumeSliceObliqueDrawingMaskEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const VolumeSliceObliqueDrawingMaskEnum& enumInstance = *iter;
+        const VolumeSliceInterpolationEdgeEffectsMaskingEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -296,7 +330,7 @@ VolumeSliceObliqueDrawingMaskEnum::fromIntegerCode(const int32_t integerCode, bo
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type VolumeSliceObliqueDrawingMaskEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type VolumeSliceInterpolationEdgeEffectsMaskingEnum"));
     }
     return enumValue;
 }
@@ -309,13 +343,13 @@ VolumeSliceObliqueDrawingMaskEnum::fromIntegerCode(const int32_t integerCode, bo
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-VolumeSliceObliqueDrawingMaskEnum::getAllEnums(std::vector<VolumeSliceObliqueDrawingMaskEnum::Enum>& allEnums)
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::getAllEnums(std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<VolumeSliceObliqueDrawingMaskEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -331,16 +365,16 @@ VolumeSliceObliqueDrawingMaskEnum::getAllEnums(std::vector<VolumeSliceObliqueDra
  *     If true, the names are sorted in alphabetical order.
  */
 void
-VolumeSliceObliqueDrawingMaskEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<VolumeSliceObliqueDrawingMaskEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(VolumeSliceObliqueDrawingMaskEnum::toName(iter->enumValue));
+        allNames.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -357,16 +391,16 @@ VolumeSliceObliqueDrawingMaskEnum::getAllNames(std::vector<AString>& allNames, c
  *     If true, the names are sorted in alphabetical order.
  */
 void
-VolumeSliceObliqueDrawingMaskEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<VolumeSliceObliqueDrawingMaskEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(VolumeSliceObliqueDrawingMaskEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

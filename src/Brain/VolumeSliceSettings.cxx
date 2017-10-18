@@ -50,7 +50,7 @@ VolumeSliceSettings::VolumeSliceSettings()
     m_slicePlanesAllViewLayout = VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT;
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
-    m_obliqueSliceDrawingMaskingType = VolumeSliceObliqueDrawingMaskEnum::ENCLOSING_VOXEL;
+    m_volumeSliceInterpolationEdgeEffectsMaskingType = VolumeSliceInterpolationEdgeEffectsMaskingEnum::TIGHT;
     
     m_montageNumberOfColumns = 6; // was 3;
     m_montageNumberOfRows    = 4;
@@ -74,8 +74,8 @@ VolumeSliceSettings::VolumeSliceSettings()
                                                                                    &m_sliceDrawingType);
     m_sceneAssistant->add<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>("m_sliceProjectionType",
                                                                                  &m_sliceProjectionType);
-    m_sceneAssistant->add<VolumeSliceObliqueDrawingMaskEnum,VolumeSliceObliqueDrawingMaskEnum::Enum>("m_obliqueSliceDrawingMaskingType",
-                                                                                             &m_obliqueSliceDrawingMaskingType);
+    m_sceneAssistant->add<VolumeSliceInterpolationEdgeEffectsMaskingEnum,VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum>("m_volumeSliceInterpolationEdgeEffectsMaskingType",
+                                                                                             &m_volumeSliceInterpolationEdgeEffectsMaskingType);
     m_sceneAssistant->add("m_montageNumberOfColumns",
                           &m_montageNumberOfColumns);
     m_sceneAssistant->add("m_montageNumberOfRows",
@@ -139,7 +139,7 @@ VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& ob
     m_slicePlanesAllViewLayout = obj.m_slicePlanesAllViewLayout;
     m_sliceDrawingType       = obj.m_sliceDrawingType;
     m_sliceProjectionType    = obj.m_sliceProjectionType;
-    m_obliqueSliceDrawingMaskingType = obj.m_obliqueSliceDrawingMaskingType;
+    m_volumeSliceInterpolationEdgeEffectsMaskingType = obj.m_volumeSliceInterpolationEdgeEffectsMaskingType;
     
     m_montageNumberOfColumns = obj.m_montageNumberOfColumns;
     m_montageNumberOfRows    = obj.m_montageNumberOfRows;
@@ -312,10 +312,10 @@ VolumeSliceSettings::setSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum 
 /**
  * @return The masking used when drawing an oblique volume slice
  */
-VolumeSliceObliqueDrawingMaskEnum::Enum
-VolumeSliceSettings::getObliqueSliceDrawingMaskingType() const
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum
+VolumeSliceSettings::getVolumeSliceInterpolationEdgeEffectsMaskingType() const
 {
-    return m_obliqueSliceDrawingMaskingType;
+    return m_volumeSliceInterpolationEdgeEffectsMaskingType;
 }
 
 /**
@@ -325,9 +325,9 @@ VolumeSliceSettings::getObliqueSliceDrawingMaskingType() const
  *     Type of masking.
  */
 void
-VolumeSliceSettings::setObliqueSliceDrawingMaskingType(const VolumeSliceObliqueDrawingMaskEnum::Enum maskingType)
+VolumeSliceSettings::setVolumeSliceInterpolationEdgeEffectsMaskingType(const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskingType)
 {
-    m_obliqueSliceDrawingMaskingType = maskingType;
+    m_volumeSliceInterpolationEdgeEffectsMaskingType = maskingType;
 }
 
 /**
@@ -834,7 +834,7 @@ VolumeSliceSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
-    m_obliqueSliceDrawingMaskingType = VolumeSliceObliqueDrawingMaskEnum::ENCLOSING_VOXEL;
+    m_volumeSliceInterpolationEdgeEffectsMaskingType = VolumeSliceInterpolationEdgeEffectsMaskingEnum::TIGHT;
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

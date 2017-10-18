@@ -116,7 +116,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
                                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                                   const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                           const VolumeSliceObliqueDrawingMaskEnum::Enum obliqueSliceMaskingType,
+                                           const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueSliceMaskingType,
                                   const int32_t viewport[4])
 {
     CaretAssert(sliceProjectionType == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
@@ -1462,18 +1462,18 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                             bool maskValidFlag = false;
                             float maskValue = 0.0f;
                             switch (m_obliqueSliceMaskingType) {
-                                case VolumeSliceObliqueDrawingMaskEnum::OFF:
+                                case VolumeSliceInterpolationEdgeEffectsMaskingEnum::OFF:
                                     maskValidFlag = false;
                                     break;
-                                case VolumeSliceObliqueDrawingMaskEnum::ENCLOSING_VOXEL:
+                                case VolumeSliceInterpolationEdgeEffectsMaskingEnum::LOOSE:
                                     maskValue = volumeFile->interpolateValue(voxelCenter,
-                                                                             VolumeFile::ENCLOSING_VOXEL,
+                                                                             VolumeFile::TRILINEAR,
                                                                              &maskValidFlag,
                                                                              vdi.mapIndex);
                                     break;
-                                case VolumeSliceObliqueDrawingMaskEnum::TRILINEAR_INTERPOLATION:
+                                case VolumeSliceInterpolationEdgeEffectsMaskingEnum::TIGHT:
                                     maskValue = volumeFile->interpolateValue(voxelCenter,
-                                                                             VolumeFile::TRILINEAR,
+                                                                             VolumeFile::ENCLOSING_VOXEL,
                                                                              &maskValidFlag,
                                                                              vdi.mapIndex);
                                     break;

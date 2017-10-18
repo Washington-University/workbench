@@ -3805,10 +3805,10 @@ BrowserTabContent::setSliceProjectionType(const VolumeSliceProjectionTypeEnum::E
 /**
  * @return The masking used when drawing an oblique volume slice
  */
-VolumeSliceObliqueDrawingMaskEnum::Enum
-BrowserTabContent::getObliqueSliceDrawingMaskingType() const
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum
+BrowserTabContent::getVolumeSliceInterpolationEdgeEffectsMaskingType() const
 {
-    return m_volumeSliceSettings->getObliqueSliceDrawingMaskingType();
+    return m_volumeSliceSettings->getVolumeSliceInterpolationEdgeEffectsMaskingType();
 }
 
 /**
@@ -3818,9 +3818,9 @@ BrowserTabContent::getObliqueSliceDrawingMaskingType() const
  *     Type of masking.
  */
 void
-BrowserTabContent::setObliqueSliceDrawingMaskingType(const VolumeSliceObliqueDrawingMaskEnum::Enum maskingType)
+BrowserTabContent::setVolumeSliceInterpolationEdgeEffectsMaskingType(const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskingType)
 {
-    m_volumeSliceSettings->setObliqueSliceDrawingMaskingType(maskingType);
+    m_volumeSliceSettings->setVolumeSliceInterpolationEdgeEffectsMaskingType(maskingType);
     updateBrainModelYokedBrowserTabs();
 }
 

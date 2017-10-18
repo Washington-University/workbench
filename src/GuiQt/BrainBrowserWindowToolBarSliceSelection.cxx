@@ -44,7 +44,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "VolumeFile.h"
-#include "VolumeSliceObliqueDrawingMaskEnum.h"
+#include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "WuQFactory.h"
 #include "WuQWidgetObjectGroup.h"
@@ -180,13 +180,8 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolTipAndStatusTip(m_volumeSliceProjectionTypeEnumComboBox->getWidget(),
                                           "Chooses viewing orientation (oblique or orthogonal)");
     
-    const AString maskToolTip("Masking for oblique slice viewing is used to remove "
-                              "artifacts due to cubic interpolation.  In extreme "
-                              "instance, the artifacts result in blocky and/or "
-                              "striped patterns.");
     m_obliqueMaskingAction = new QAction("M");
-    WuQtUtilities::setWordWrappedToolTip(m_obliqueMaskingAction,
-                                         maskToolTip);
+    m_obliqueMaskingAction->setToolTip(VolumeSliceInterpolationEdgeEffectsMaskingEnum::getToolTip());
     m_obliqueMaskingAction->setCheckable(true);
     QObject::connect(m_obliqueMaskingAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered);
@@ -213,7 +208,6 @@ m_parentToolBar(parentToolBar)
 
     gridLayout->addWidget(volumeIDToolButton, 3, 0, 1, 2, Qt::AlignLeft);
     gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 2, 1, 2, Qt::AlignCenter);
-    //gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 2, 1, 3, Qt::AlignRight);
     gridLayout->addWidget(obliqueMaskingToolButton, 3, 4);
 
     gridLayout->addWidget(volumeIndicesOriginToolButton, 0, 4, 3, 1);
@@ -747,18 +741,18 @@ BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered(bool)
     if (browserTabContent == NULL) {
         return;
     }
-    std::vector<VolumeSliceObliqueDrawingMaskEnum::Enum> allMaskEnums;
-    VolumeSliceObliqueDrawingMaskEnum::getAllEnums(allMaskEnums);
+    std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum> allMaskEnums;
+    VolumeSliceInterpolationEdgeEffectsMaskingEnum::getAllEnums(allMaskEnums);
     
     QMenu obliqueMaskingMenu("Oblique Sampling");
     QActionGroup* maskActionGroup = new QActionGroup(this);
     maskActionGroup->setExclusive(true);
     QAction* selectedAction = NULL;
     for (auto maskEnum : allMaskEnums) {
-        QAction* action = maskActionGroup->addAction(VolumeSliceObliqueDrawingMaskEnum::toGuiName(maskEnum));
+        QAction* action = maskActionGroup->addAction(VolumeSliceInterpolationEdgeEffectsMaskingEnum::toGuiName(maskEnum));
         action->setCheckable(true);
-        action->setData(VolumeSliceObliqueDrawingMaskEnum::toIntegerCode(maskEnum));
-        if (maskEnum == browserTabContent->getObliqueSliceDrawingMaskingType()) {
+        action->setData(VolumeSliceInterpolationEdgeEffectsMaskingEnum::toIntegerCode(maskEnum));
+        if (maskEnum == browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType()) {
             selectedAction = action;
         }
         obliqueMaskingMenu.addAction(action);
@@ -771,10 +765,10 @@ BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered(bool)
     if (selectedAction != NULL) {
         const int32_t intValue = selectedAction->data().toInt();
         bool validFlag = false;
-        VolumeSliceObliqueDrawingMaskEnum::Enum maskType = VolumeSliceObliqueDrawingMaskEnum::fromIntegerCode(intValue,
+        VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskType = VolumeSliceInterpolationEdgeEffectsMaskingEnum::fromIntegerCode(intValue,
                                                                                                               &validFlag);
         CaretAssert(validFlag);
-        browserTabContent->setObliqueSliceDrawingMaskingType(maskType);
+        browserTabContent->setVolumeSliceInterpolationEdgeEffectsMaskingType(maskType);
         
         this->updateGraphicsWindow();
         this->updateOtherYokedWindows();
@@ -798,12 +792,12 @@ BrainBrowserWindowToolBarSliceSelection::updateObliqueMaskingButton()
     }
     
     QSignalBlocker obliqueBlocker(m_obliqueMaskingAction);
-    switch (browserTabContent->getObliqueSliceDrawingMaskingType()) {
-        case VolumeSliceObliqueDrawingMaskEnum::OFF:
+    switch (browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType()) {
+        case VolumeSliceInterpolationEdgeEffectsMaskingEnum::OFF:
             m_obliqueMaskingAction->setChecked(false);
             break;
-        case VolumeSliceObliqueDrawingMaskEnum::ENCLOSING_VOXEL:
-        case VolumeSliceObliqueDrawingMaskEnum::TRILINEAR_INTERPOLATION:
+        case VolumeSliceInterpolationEdgeEffectsMaskingEnum::LOOSE:
+        case VolumeSliceInterpolationEdgeEffectsMaskingEnum::TIGHT:
             m_obliqueMaskingAction->setChecked(true);
             break;
     }

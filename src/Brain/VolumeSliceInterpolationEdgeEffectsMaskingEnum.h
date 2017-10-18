@@ -1,5 +1,5 @@
-#ifndef __VOLUME_SLICE_OBLIQUE_DRAWING_MASK_ENUM_H__
-#define __VOLUME_SLICE_OBLIQUE_DRAWING_MASK_ENUM_H__
+#ifndef __VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_H__
+#define __VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,22 +28,23 @@
 
 namespace caret {
 
-class VolumeSliceObliqueDrawingMaskEnum {
+class VolumeSliceInterpolationEdgeEffectsMaskingEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Masking Off */
+        /** Off */
         OFF,
-        /** Mask with enclosing voxel */
-        ENCLOSING_VOXEL,
-        /** Mask with trilinear interpolation */
-        TRILINEAR_INTERPOLATION
+        /** Loose - Trilinear */
+        LOOSE,
+        /** Tight - Enclosing Voxel */
+        TIGHT
     };
 
-    ~VolumeSliceObliqueDrawingMaskEnum();
+
+    ~VolumeSliceInterpolationEdgeEffectsMaskingEnum();
 
     static AString toName(Enum enumValue);
     
@@ -63,15 +64,17 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static AString getToolTip();
+    
 private:
-    VolumeSliceObliqueDrawingMaskEnum(const Enum enumValue, 
+    VolumeSliceInterpolationEdgeEffectsMaskingEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const VolumeSliceObliqueDrawingMaskEnum* findData(const Enum enumValue);
+    static const VolumeSliceInterpolationEdgeEffectsMaskingEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<VolumeSliceObliqueDrawingMaskEnum> enumData;
+    static std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -95,11 +98,11 @@ private:
     AString guiName;
 };
 
-#ifdef __VOLUME_SLICE_OBLIQUE_DRAWING_MASK_ENUM_DECLARE__
-std::vector<VolumeSliceObliqueDrawingMaskEnum> VolumeSliceObliqueDrawingMaskEnum::enumData;
-bool VolumeSliceObliqueDrawingMaskEnum::initializedFlag = false;
-int32_t VolumeSliceObliqueDrawingMaskEnum::integerCodeCounter = 0; 
-#endif // __VOLUME_SLICE_OBLIQUE_DRAWING_MASK_ENUM_DECLARE__
+#ifdef __VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_DECLARE__
+std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum> VolumeSliceInterpolationEdgeEffectsMaskingEnum::enumData;
+bool VolumeSliceInterpolationEdgeEffectsMaskingEnum::initializedFlag = false;
+int32_t VolumeSliceInterpolationEdgeEffectsMaskingEnum::integerCodeCounter = 0; 
+#endif // __VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_DECLARE__
 
 } // namespace
-#endif  //__VOLUME_SLICE_OBLIQUE_DRAWING_MASK_ENUM_H__
+#endif  //__VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_H__
