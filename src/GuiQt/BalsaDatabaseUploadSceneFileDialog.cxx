@@ -88,7 +88,7 @@ m_sceneFile(sceneFile)
     m_userRoles.reset(new BalsaUserRoles);
     
     QWidget* loginWidget = createLoginWidget();
-    m_uploadWidget = createUploadWidget();
+    m_uploadWidget = createTabWidget();
     m_uploadPushButton->setEnabled(false);
     
     QWidget* dialogWidget = new QWidget();
@@ -107,7 +107,7 @@ m_sceneFile(sceneFile)
     setOkButtonText("");
     setCancelButtonText("Close");
     
-    m_basePathWidget->updateSceneFile(m_sceneFile);
+    m_basePathWidget->updateWithSceneFile(m_sceneFile);
 }
 
 /**
@@ -124,6 +124,9 @@ BalsaDatabaseUploadSceneFileDialog::~BalsaDatabaseUploadSceneFileDialog()
 void
 BalsaDatabaseUploadSceneFileDialog::cancelButtonClicked()
 {
+    s_username = m_usernameLineEdit->text();
+    s_password = m_passwordLineEdit->text();
+    
     /*
      * Will logout of database and disable part of dialog
      */
@@ -139,9 +142,6 @@ BalsaDatabaseUploadSceneFileDialog::cancelButtonClicked()
 QWidget*
 BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
 {
-    AString defaultUserName;
-    AString defaultPassword;
-    
     /*
      * Create the BALSA database manager
      */
@@ -169,7 +169,7 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     m_usernameLabel = new QLabel("");
     m_usernameLineEdit = new QLineEdit();
     m_usernameLineEdit->setMinimumWidth(minimumLineEditWidth);
-    m_usernameLineEdit->setText(defaultUserName);
+    m_usernameLineEdit->setText(s_username);
     m_usernameLineEdit->setValidator(createValidator(LabelName::LABEL_USERNAME));
     QObject::connect(m_usernameLineEdit, &QLineEdit::textEdited,
                      this, [=] { this->loginInformationChanged(); });
@@ -181,7 +181,7 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     m_passwordLineEdit = new QLineEdit();
     m_passwordLineEdit->setMinimumWidth(minimumLineEditWidth);
     m_passwordLineEdit->setEchoMode(QLineEdit::Password);
-    m_passwordLineEdit->setText(defaultPassword);
+    m_passwordLineEdit->setText(s_password);
     m_passwordLineEdit->setValidator(createValidator(LabelName::LABEL_PASSWORD));
     QObject::connect(m_passwordLineEdit, &QLineEdit::textEdited,
                      this, [=] { this->loginInformationChanged(); });
@@ -228,7 +228,7 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     
     QGroupBox* groupBox = new QGroupBox("Database Login");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
-    gridLayout->setSpacing(2);
+    gridLayout->setSpacing(5);
     gridLayout->setColumnStretch(COLUMN_LABEL, 0);
     gridLayout->setColumnStretch(COLUMN_DATA_WIDGET, 100);
     gridLayout->setColumnStretch(COLUMN_BUTTON_ONE, 0);
@@ -269,7 +269,7 @@ BalsaDatabaseUploadSceneFileDialog::loginInformationChanged()
  * @return The upload widget
  */
 QWidget*
-BalsaDatabaseUploadSceneFileDialog::createUploadWidget()
+BalsaDatabaseUploadSceneFileDialog::createTabWidget()
 {
     QTabWidget* tabWidget = new QTabWidget();
     tabWidget->addTab(createUploadTab(), "Upload");
@@ -361,9 +361,8 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     const int COLUMN_BUTTON_ONE = columnCounter++;
     const int COLUMN_BUTTON_TWO = columnCounter++;
     
-    QWidget* widget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(widget);
-    gridLayout->setSpacing(2);
+    QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->setSpacing(5);
     gridLayout->setColumnMinimumWidth(COLUMN_DATA_WIDGET, 300);
     gridLayout->setColumnStretch(COLUMN_LABEL, 0);
     gridLayout->setColumnStretch(COLUMN_DATA_WIDGET, 100);
@@ -389,10 +388,6 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     row++;
     
     m_balsaStudyIDLineEdit->setText(m_sceneFile->getBalsaStudyID());
-//    AString baseDirectory = m_sceneFile->getBalsaBaseDirectory();
-//    if (baseDirectory.isEmpty()) {
-//        baseDirectory = m_sceneFile->findBaseDirectoryForDataFiles();
-//    }
     m_balsaStudyTitleLineEdit->setText(m_sceneFile->getBalsaStudyTitle());
     m_extractDirectoryNameLineEdit->setText(m_sceneFile->getBalsaExtractToDirectoryName());
     
@@ -400,6 +395,10 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
         m_extractDirectoryNameLineEdit->setText(m_sceneFile->getDefaultExtractToDirectoryName());
     }
     
+    QWidget* widget = new QWidget;
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(gridLayout);
+    layout->addStretch();
     return widget;
 }
 
@@ -443,7 +442,6 @@ BalsaDatabaseUploadSceneFileDialog::createAdvancedTab()
     QWidget* widget = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(zipDirectoryGroupBox);
-    //layout->addWidget(m_basePathWidget, 0, Qt::AlignLeft);
     layout->addWidget(m_basePathWidget);
     layout->addStretch();
     
@@ -606,6 +604,9 @@ BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
     
     m_sceneFile->setBalsaExtractToDirectoryName(m_extractDirectoryNameLineEdit->text().trimmed());
     
+    s_username = m_usernameLineEdit->text();
+    s_password = m_passwordLineEdit->text();
+    
     AString msg;
     if ( ! m_usernameLineEdit->hasAcceptableInput()) {
         msg.appendWithNewLine("Username is missing.  If you do not have an account, press the \"Register\" link.  "
@@ -621,23 +622,29 @@ BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
         msg.appendWithNewLine("Extract to Directory is invalid.<p>");
     }
     
-    switch (m_sceneFile->getBasePathType()) {
-        case SceneFileBasePathTypeEnum::AUTOMATIC:
-            break;
-        case SceneFileBasePathTypeEnum::CUSTOM:
-        {
-            if (m_sceneFile->getBalsaBaseDirectory().isEmpty()) {
-                msg.appendWithNewLine("CUSTOM Base Path (on Advanced Tab) is invalid.  "
-                                      "Select Base Path or use AUTOMATIC.<p>");
-            }
-            else {
-                if ( ! FileInformation(m_sceneFile->getBalsaBaseDirectory()).exists()) {
-                    msg.appendWithNewLine("CUSTOM Base Directory (on Advanced Tab) is not a valid directory on this computer.  "
-                                          "Select a valid Base Path or use AUTOMATIC.<p>");
+    AString basePathErrorMessage;
+    if ( ! m_basePathWidget->isValid(basePathErrorMessage)) {
+        msg.appendWithNewLine(basePathErrorMessage);
+    }
+    else {
+        switch (m_sceneFile->getBasePathType()) {
+            case SceneFileBasePathTypeEnum::AUTOMATIC:
+                break;
+            case SceneFileBasePathTypeEnum::CUSTOM:
+            {
+                if (m_sceneFile->getBalsaBaseDirectory().isEmpty()) {
+                    msg.appendWithNewLine("CUSTOM Base Path (on Advanced Tab) is invalid.  "
+                                          "Select Base Path or use AUTOMATIC.<p>");
+                }
+                else {
+                    if ( ! FileInformation(m_sceneFile->getBalsaBaseDirectory()).exists()) {
+                        msg.appendWithNewLine("CUSTOM Base Directory (on Advanced Tab) is not a valid directory on this computer.  "
+                                              "Select a valid Base Path or use AUTOMATIC.<p>");
+                    }
                 }
             }
+                break;
         }
-            break;
     }
     
     bool invalidStudyFlag = false;

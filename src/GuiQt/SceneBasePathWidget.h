@@ -31,6 +31,8 @@ class QAbstractButton;
 class QLineEdit;
 class QRadioButton;
 
+#include "AString.h"
+
 namespace caret {
 
     class SceneFile;
@@ -44,8 +46,10 @@ namespace caret {
         
         virtual ~SceneBasePathWidget();
         
-        void updateSceneFile(SceneFile* sceneFile);
+        void updateWithSceneFile(SceneFile* sceneFile);
 
+        bool isValid(AString& errorMessageOut) const;
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:

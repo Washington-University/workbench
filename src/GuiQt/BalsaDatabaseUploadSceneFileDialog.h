@@ -96,7 +96,7 @@ namespace caret {
         
         QWidget* createLoginWidget();
         
-        QWidget* createUploadWidget();
+        QWidget* createTabWidget();
         
         QWidget* createUploadTab();
         
@@ -154,12 +154,16 @@ namespace caret {
         
         SceneBasePathWidget* m_basePathWidget;
         
+        static AString s_username;
+        static AString s_password;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __BALSA_DATABASE_UPLOAD_SCENE_FILE_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    AString BalsaDatabaseUploadSceneFileDialog::s_username;
+    AString BalsaDatabaseUploadSceneFileDialog::s_password;
 #endif // __BALSA_DATABASE_UPLOAD_SCENE_FILE_DIALOG_DECLARE__
 
 } // namespace

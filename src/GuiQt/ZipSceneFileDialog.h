@@ -32,6 +32,7 @@ class QRegularExpressionValidator;
 namespace caret {
 
     class SceneFile;
+    class SceneBasePathWidget;
     
     class ZipSceneFileDialog : public WuQDialogModal {
         
@@ -51,17 +52,12 @@ namespace caret {
         virtual void okButtonClicked();
     
     private slots:
-        void browseBaseDirectoryPushButtonClicked();
-        
         void chooseZipFileButtonClicked();
-        
-        void findBaseDirectoryPushButtonClicked();
         
         void validateData();
         
     private:
         enum class LabelName {
-            BASE_DIRECTORY,
             EXTRACT_DIRECTORY,
             ZIP_FILE
         };
@@ -84,13 +80,7 @@ namespace caret {
         
         QLineEdit* m_extractDirectoryNameLineEdit;
         
-        QLabel* m_baseDirectoryLabel;
-        
-        QLineEdit* m_baseDirectoryLineEdit;
-        
-        QPushButton* m_findBaseDirectoryPushButton;
-        
-        QPushButton* m_browseBaseDirectoryPushButton;
+        SceneBasePathWidget* m_basePathWidget;
         
         // ADD_NEW_MEMBERS_HERE
 

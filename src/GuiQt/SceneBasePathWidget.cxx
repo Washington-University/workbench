@@ -110,7 +110,7 @@ SceneBasePathWidget::~SceneBasePathWidget()
  *     The scene file.
  */
 void
-SceneBasePathWidget::updateSceneFile(SceneFile* sceneFile)
+SceneBasePathWidget::updateWithSceneFile(SceneFile* sceneFile)
 {
     m_sceneFile = sceneFile;
     
@@ -164,7 +164,7 @@ SceneBasePathWidget::browseButtonClicked()
     
     m_sceneFile->setBalsaBaseDirectory(newDirectoryName);
     m_sceneFile->setBasePathType(SceneFileBasePathTypeEnum::CUSTOM);
-    updateSceneFile(m_sceneFile);
+    updateWithSceneFile(m_sceneFile);
 }
 
 /**
@@ -186,5 +186,45 @@ SceneBasePathWidget::basePathTypeButtonGroupClicked(QAbstractButton* button)
         CaretAssertMessage(0, "Has a new SceneFileBasePathTypeEnum::Enum been added?");
     }
     
-    updateSceneFile(m_sceneFile);
+    updateWithSceneFile(m_sceneFile);
 }
+
+/**
+ * @return True if the selections in the widget are valid, else false.
+ *
+ * @param errorMessageOut
+ *     Output contains error information if false returned.
+ */
+bool
+SceneBasePathWidget::isValid(AString& errorMessageOut) const
+{
+    errorMessageOut.clear();
+    
+    if (m_automaticRadioButton->isChecked()) {
+        /* valid */
+    }
+    else if (m_customRadioButton->isChecked()) {
+        const AString basePath = m_basePathLineEdit->text().trimmed();
+        if (basePath.isEmpty()) {
+            errorMessageOut = "CUSTOM base path is empty.";
+        }
+        else {
+            FileInformation fileInfo(basePath);
+            if (fileInfo.exists()
+                && fileInfo.isDirectory()) {
+                /* Valid directory */
+            }
+            else {
+                errorMessageOut = "CUSTOM base path is not a valid directory";
+            }
+        }
+    }
+    else {
+        CaretAssert(0);
+        errorMessageOut = "Neither AUTOMATIC nor CUSTOM is selected.";
+    }
+    
+    return (errorMessageOut.isEmpty());
+}
+
+

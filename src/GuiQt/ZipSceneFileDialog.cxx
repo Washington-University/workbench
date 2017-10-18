@@ -24,11 +24,13 @@
 #undef __ZIP_SCENE_FILE_DIALOG_DECLARE__
 
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
+#include <QVBoxLayout>
 
 #include "BalsaDatabaseManager.h"
 #include "Brain.h"
@@ -39,6 +41,7 @@
 #include "DataFileException.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
+#include "SceneBasePathWidget.h"
 #include "SceneFile.h"
 #include "SystemUtilities.h"
 #include "WuQMessageBox.h"
@@ -108,7 +111,7 @@ m_sceneFile(sceneFile)
     /*
      * Zip file button
      */
-    QPushButton* chooseZipFileButton = new QPushButton("Choose...");
+    QPushButton* chooseZipFileButton = new QPushButton("Browse...");
     QObject::connect(chooseZipFileButton, SIGNAL(clicked()),
                      this, SLOT(chooseZipFileButtonClicked()));
     
@@ -126,56 +129,28 @@ m_sceneFile(sceneFile)
     /*
      * Base Directory
      */
-    m_baseDirectoryLabel = new QLabel("Base Directory");
-    m_baseDirectoryLineEdit = new QLineEdit();
-    m_baseDirectoryLineEdit->setToolTip("Directory that contains all data files");
-    m_baseDirectoryLineEdit->setValidator(createValidator(LabelName::BASE_DIRECTORY));
-    QObject::connect(m_baseDirectoryLineEdit, &QLineEdit::textEdited,
-                     this, [=] { this->validateData(); });
+    m_basePathWidget = new SceneBasePathWidget();
     
-    /*
-     * Browse for base directory
-     */
-    m_browseBaseDirectoryPushButton = new QPushButton("Browse...");
-    m_browseBaseDirectoryPushButton->setToolTip("Use a file system dialog to choose the base directory");
-    QObject::connect(m_browseBaseDirectoryPushButton, &QPushButton::clicked,
-                     this, &ZipSceneFileDialog::browseBaseDirectoryPushButtonClicked);
-    
-    /*
-     * Browse for base directory
-     */
-    m_findBaseDirectoryPushButton = new QPushButton("Find");
-    m_findBaseDirectoryPushButton->setToolTip("Find the base directory by examining files in all scenes");
-    QObject::connect(m_findBaseDirectoryPushButton, &QPushButton::clicked,
-                     this, &ZipSceneFileDialog::findBaseDirectoryPushButtonClicked);
-    
-    
-    QWidget* dialogWidget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(dialogWidget);
-    gridLayout->setColumnStretch(0, 0);
-    gridLayout->setColumnStretch(1, 100);
-    gridLayout->setColumnStretch(2, 0);
-    gridLayout->setColumnStretch(3, 0);
+    QGroupBox* zipFileGroupBox = new QGroupBox("Zip File");
+    QGridLayout* zipFileLayout = new QGridLayout(zipFileGroupBox);
+    zipFileLayout->setSpacing(2);
+    zipFileLayout->setColumnStretch(0, 0);
+    zipFileLayout->setColumnStretch(1, 100);
+    zipFileLayout->setColumnStretch(2, 0);
     int row = 0;
-    gridLayout->addWidget(m_zipFileNameLabel, row, 0);
-    gridLayout->addWidget(m_zipFileNameLineEdit, row, 1);
-    gridLayout->addWidget(chooseZipFileButton, row, 2);
+    zipFileLayout->addWidget(m_zipFileNameLabel, row, 0);
+    zipFileLayout->addWidget(m_zipFileNameLineEdit, row, 1);
+    zipFileLayout->addWidget(chooseZipFileButton, row, 2);
     row++;
-    gridLayout->addWidget(m_extractDirectoryLabel, row, 0);
-    gridLayout->addWidget(m_extractDirectoryNameLineEdit, row, 1);
+    zipFileLayout->addWidget(m_extractDirectoryLabel, row, 0);
+    zipFileLayout->addWidget(m_extractDirectoryNameLineEdit, row, 1);
     row++;
-    gridLayout->addWidget(m_baseDirectoryLabel, row, 0);
-    gridLayout->addWidget(m_baseDirectoryLineEdit, row, 1);
-    gridLayout->addWidget(m_browseBaseDirectoryPushButton, row, 2);
-    gridLayout->addWidget(m_findBaseDirectoryPushButton, row, 3);
+
+    QWidget* dialogWidget = new QWidget();
+    QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
+    dialogLayout->addWidget(zipFileGroupBox);
+    dialogLayout->addWidget(m_basePathWidget);
     row++;
-    
-    AString baseDirectory = m_sceneFile->getBalsaBaseDirectory();
-    if (baseDirectory.isEmpty()) {
-        FileInformation fileInfo(m_sceneFile->getFileName());
-        baseDirectory = fileInfo.getPathName();
-    }
-    m_baseDirectoryLineEdit->setText(baseDirectory);
     
     AString extractDirectory = m_sceneFile->getBalsaExtractToDirectoryName();
     if (extractDirectory.isEmpty()) {
@@ -185,6 +160,8 @@ m_sceneFile(sceneFile)
     
     setCentralWidget(dialogWidget,
                      WuQDialogModal::SCROLL_AREA_NEVER);
+    
+    m_basePathWidget->updateWithSceneFile(m_sceneFile);
     
     validateData();
 }
@@ -199,7 +176,6 @@ ZipSceneFileDialog::~ZipSceneFileDialog()
 void
 ZipSceneFileDialog::validateData()
 {
-    setLabelText(LabelName::BASE_DIRECTORY);
     setLabelText(LabelName::EXTRACT_DIRECTORY);
     setLabelText(LabelName::ZIP_FILE);
 }
@@ -244,12 +220,12 @@ ZipSceneFileDialog::okButtonClicked()
     if ( ! m_extractDirectoryNameLineEdit->hasAcceptableInput()) {
         errorMessage.appendWithNewLine("Extract to Directory is invalid.<p>");
     }
-    if ( ! m_baseDirectoryLineEdit->hasAcceptableInput()) {
-        errorMessage.appendWithNewLine("Base Directory is invalid.<p>");
+    AString basePathErrorMessage;
+    if ( ! m_basePathWidget->isValid(basePathErrorMessage)) {
+        errorMessage.appendWithNewLine(basePathErrorMessage);
     }
     
     if (errorMessage.isEmpty()) {
-        m_sceneFile->setBalsaBaseDirectory(m_baseDirectoryLineEdit->text().trimmed());
         m_sceneFile->setBalsaExtractToDirectoryName(extractToDirectoryName);
         
         if (m_sceneFile->isModified()) {
@@ -301,63 +277,6 @@ ZipSceneFileDialog::okButtonClicked()
 }
 
 /**
- * Called when find base directory push button is clicked.
- */
-void
-ZipSceneFileDialog::findBaseDirectoryPushButtonClicked()
-{
-    CaretAssert(m_sceneFile);
-    
-    const AString baseDirectoryName = m_sceneFile->findBaseDirectoryForDataFiles();
-    
-    if (baseDirectoryName.isEmpty()) {
-        return;
-    }
-    
-    /*
-     * Set name for base directory
-     */
-    m_baseDirectoryLineEdit->setText(baseDirectoryName);
-    validateData();
-}
-
-
-/**
- * Called when browse base directory push button is clicked.
- */
-void
-ZipSceneFileDialog::browseBaseDirectoryPushButtonClicked()
-{
-    CaretAssert(m_sceneFile);
-    
-    /*
-     * Let user choose directory path
-     */
-    QString directoryName;
-    FileInformation fileInfo(m_baseDirectoryLineEdit->text().trimmed());
-    if (fileInfo.exists()) {
-        if (fileInfo.isDirectory()) {
-            directoryName = fileInfo.getAbsoluteFilePath();
-        }
-    }
-    AString newDirectoryName = CaretFileDialog::getExistingDirectoryDialog(m_browseBaseDirectoryPushButton,
-                                                                           "Choose Base Directory",
-                                                                           directoryName);
-    /*
-     * If user cancels,  return
-     */
-    if (newDirectoryName.isEmpty()) {
-        return;
-    }
-    
-    /*
-     * Set name of base directory
-     */
-    m_baseDirectoryLineEdit->setText(newDirectoryName);
-    validateData();
-}
-
-/**
  * Create a regular expression validatory for the give label/data.
  *
  * @param labelName
@@ -369,9 +288,6 @@ ZipSceneFileDialog::createValidator(const LabelName labelName)
     QRegularExpression regEx;
     
     switch (labelName) {
-        case LabelName::BASE_DIRECTORY:
-            regEx.setPattern(".+");
-            break;
         case LabelName::EXTRACT_DIRECTORY:
             regEx.setPattern(".+");
             break;
@@ -401,11 +317,6 @@ ZipSceneFileDialog::setLabelText(const LabelName labelName)
     AString labelText;
     bool validFlag = false;
     switch (labelName) {
-        case LabelName::BASE_DIRECTORY:
-            label = m_baseDirectoryLabel;
-            labelText = "Base Directory";
-            validFlag = m_baseDirectoryLineEdit->hasAcceptableInput();
-            break;
         case LabelName::EXTRACT_DIRECTORY:
             label = m_extractDirectoryLabel;
             labelText = "Extract to Directory";
@@ -413,7 +324,7 @@ ZipSceneFileDialog::setLabelText(const LabelName labelName)
             break;
         case LabelName::ZIP_FILE:
             label = m_zipFileNameLabel;
-            labelText = "Zip File";
+            labelText = "Zip File Name";
             validFlag = m_zipFileNameLineEdit->hasAcceptableInput();
             break;
     }
