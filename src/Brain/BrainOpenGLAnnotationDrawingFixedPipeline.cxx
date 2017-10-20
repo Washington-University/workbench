@@ -54,7 +54,9 @@
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsOpenGLLineDrawing.h"
 #include "GraphicsPrimitiveV3f.h"
+#include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
@@ -360,12 +362,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
         windowXYZOut[1] = windowY - m_modelSpaceViewport[1];
         
         /*
-         * From OpenGL Programming Guide 3rd Ed, p 133:
+         * From OpenGL Programming Guide 3rd Ed, p 133,
+         * or 6th Ed, p 142
          *
-         * If the near value is 1.0 and the far value is 3.0,
-         * objects must have z-coordinates between -1.0 and -3.0 in order to be visible.
-         * So, negate the Z-value to be negative.
-         */
+         * Remember that with the projection commands, the near and far coordinates measure 
+         * distance from the viewpoint and that (by default) you're looking down the negative
+         * z axis. Thus, if the near value is 1.0 and the far 3.0, objects must have z coordinates
+         * between -1.0 and -3.0 in order to be visible. To ensure that you haven't clipped
+         * everything out of your scene, temporarily set the near and far clipping planes to
+         * some absurdly inclusive values, such as 0.001 and 1000000.0. This alters appearance
+         * for operations such as depth-buffering and fog, but it might uncover inadvertently 
+         * clipped objects.         */
         windowXYZOut[2] = -windowZ;
         
         if ((m_modelSpaceProjectionMatrix[0] != 0.0)
@@ -2762,6 +2769,33 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                                                        foregroundRGBA,
                                                        lineWidth);
                 drawnFlag = true;
+                
+                /*
+                 * For testing new line drawing
+                 */
+                const bool testLineDrawingFlag = false;
+                if (testLineDrawingFlag) {
+                    std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive;
+                    primitive.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINES));
+                    const int32_t numXYZ = static_cast<int32_t>(coords.size() / 3);
+                    const float rgba[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+                    for (int32_t i = 0; i < numXYZ; i++) {
+                        primitive->addVertex(&coords[i*3], rgba);
+                    }
+                    
+                    /*
+                     * Width not limited to OpenGL min/max
+                     */
+                    float widthPixels = (line->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
+
+                    GraphicsOpenGLLineDrawing lineDraw(primitive.get(),
+                                                       widthPixels);
+                    AString errorMessage;
+                    const bool successFlag = lineDraw.run(errorMessage);
+                    if ( ! successFlag) {
+                        //CaretLogSevere("Line Drawing: " + errorMessage);
+                    }
+                }
             }
         }
         

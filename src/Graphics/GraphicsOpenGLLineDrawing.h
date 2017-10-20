@@ -52,14 +52,23 @@ namespace caret {
         
         GraphicsOpenGLLineDrawing& operator=(const GraphicsOpenGLLineDrawing& obj);
         
-        void convertLineToRectangle(const float* startXYZ,
-                                    const float* endXYZ);
+        void convertPointsToWindowCoordinates();
+        
+        void convertLineSegmentsToQuads();
+        
+        void drawQuads();
         
         const GraphicsPrimitive* m_inputPrimitive;
         
         const float m_lineThicknessPixels;
         
         GraphicsPrimitive* m_outputPrimitive = NULL;
+        
+        std::vector<float> m_windowLineSegmentsXYZ;
+        
+        std::vector<float> m_windowQuadsXYZ;
+        
+        bool m_debugFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 
