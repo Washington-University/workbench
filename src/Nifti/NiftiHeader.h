@@ -78,6 +78,11 @@ namespace caret
         bool operator==(const NiftiHeader& rhs) const;//for testing purposes
         bool operator!=(const NiftiHeader& rhs) const { return !((*this) == rhs); }
     private:
+        struct Quirks
+        {
+            bool no_extender;
+            Quirks() { no_extender = false; }
+        };
         nifti_2_header m_header;//storage for header values regardless of version
         int m_version;
         bool m_isSwapped;
@@ -85,8 +90,8 @@ namespace caret
         static void swapHeaderBytes(nifti_2_header &header);
         void prepareHeader(nifti_1_header& header) const;//transform internal state into ready to write header struct
         void prepareHeader(nifti_2_header& header) const;
-        void setupFrom(const nifti_1_header& header);//error check provided header, and populate members from it
-        void setupFrom(const nifti_2_header& header);
+        Quirks setupFrom(const nifti_1_header& header);//error check provided header, and populate members from it
+        Quirks setupFrom(const nifti_2_header& header);
         static int typeToNumBits(const int64_t& type);
         int64_t computeVoxOffset(const int& version) const;
     };

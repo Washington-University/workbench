@@ -622,6 +622,7 @@ void NiftiHeader::read(CaretBinaryFile& inFile)
     inFile.read(&buffer1, sizeof(nifti_1_header));
     int version = NIFTI2_VERSION(buffer1);
     bool swapped = false;
+    Quirks myquirks;
     try
     {
         if (version == 2)
@@ -633,14 +634,14 @@ void NiftiHeader::read(CaretBinaryFile& inFile)
                 swapped = true;
                 swapHeaderBytes(buffer2);
             }
-            setupFrom(buffer2);
+            myquirks = setupFrom(buffer2);
         } else if (version == 1) {
             if (NIFTI2_NEEDS_SWAP(buffer1))//yes, this works on nifti-1 also
             {
                 swapped = true;
                 swapHeaderBytes(buffer1);
             }
-            setupFrom(buffer1);
+            myquirks = setupFrom(buffer1);
         } else {
             throw DataFileException(inFile.getFilename() + " is not a valid NIfTI file");
         }
@@ -648,47 +649,56 @@ void NiftiHeader::read(CaretBinaryFile& inFile)
         throw DataFileException("error reading NIfTI file " + inFile.getFilename() + ": " + e.whatString());
     }
     m_extensions.clear();
-    char extender[4];
-    inFile.read(extender, 4);
-    int extensions = 0;//if it has extensions in a format we don't know about, don't try to read them
-    if (version == 1 && extender[0] != 0) extensions = 1;//sadly, this is the only thing nifti-1 says about the extender bytes
-    if (version == 2 && extender[0] == 1 && extender[1] == 0 && extender[2] == 0 && extender[3] == 0) extensions = 1;//from http://nifti.nimh.nih.gov/nifti-2 as of 4/4/2014:
-    if (extensions == 1)//"extentions match those of NIfTI-1.1 when the extender bytes are 1 0 0 0"
+    if (myquirks.no_extender)
     {
-        int64_t extStart;
-        if (version == 1)
+        int min_offset = 352;
+        if (version == 2) min_offset = 544;
+        CaretLogWarning("in file '" + inFile.getFilename() + "', vox_offset is " + AString::number(m_header.vox_offset) +
+        ", nifti standard specifies that it should be at least " + AString::number(min_offset) + ", assuming malformed file with no extender");
+    } else {
+        char extender[4];
+        inFile.read(extender, 4);
+        int extensions = 0;//if it has extensions in a format we don't know about, don't try to read them
+        if (version == 1 && extender[0] != 0) extensions = 1;//sadly, this is the only thing nifti-1 says about the extender bytes
+        if (version == 2 && extender[0] == 1 && extender[1] == 0 && extender[2] == 0 && extender[3] == 0) extensions = 1;//from http://nifti.nimh.nih.gov/nifti-2 as of 4/4/2014:
+        if (extensions == 1)//"extentions match those of NIfTI-1.1 when the extender bytes are 1 0 0 0"
         {
-            extStart = 352;
-        } else {
-            CaretAssert(version == 2);
-            extStart = 544;
-        }
-        CaretAssert(inFile.pos() == extStart);
-        while(extStart + 2 * sizeof(int32_t) <= (size_t)m_header.vox_offset)
-        {
-            int32_t esize, ecode;
-            inFile.read(&esize, sizeof(int32_t));
-            if (swapped) ByteSwapping::swap(esize);
-            inFile.read(&ecode, sizeof(int32_t));
-            if (swapped) ByteSwapping::swap(ecode);
-            if (esize < 8 || esize + extStart > m_header.vox_offset) break;
-            CaretPointer<NiftiExtension> tempExtension(new NiftiExtension());
-            if ((size_t)esize > 2 * sizeof(int32_t))//don't try to read 0 bytes
+            int64_t extStart;
+            if (version == 1)
             {
-                tempExtension->m_bytes.resize(esize - 2 * sizeof(int32_t));
-                inFile.read(tempExtension->m_bytes.data(), esize - 2 * sizeof(int32_t));
+                extStart = 352;
+            } else {
+                CaretAssert(version == 2);
+                extStart = 544;
             }
-            tempExtension->m_ecode = ecode;
-            m_extensions.push_back(tempExtension);
-            extStart += esize;//esize includes the two int32_ts
+            CaretAssert(inFile.pos() == extStart);
+            while(extStart + 2 * sizeof(int32_t) <= (size_t)m_header.vox_offset)
+            {
+                int32_t esize, ecode;
+                inFile.read(&esize, sizeof(int32_t));
+                if (swapped) ByteSwapping::swap(esize);
+                inFile.read(&ecode, sizeof(int32_t));
+                if (swapped) ByteSwapping::swap(ecode);
+                if (esize < 8 || esize + extStart > m_header.vox_offset) break;
+                CaretPointer<NiftiExtension> tempExtension(new NiftiExtension());
+                if ((size_t)esize > 2 * sizeof(int32_t))//don't try to read 0 bytes
+                {
+                    tempExtension->m_bytes.resize(esize - 2 * sizeof(int32_t));
+                    inFile.read(tempExtension->m_bytes.data(), esize - 2 * sizeof(int32_t));
+                }
+                tempExtension->m_ecode = ecode;
+                m_extensions.push_back(tempExtension);
+                extStart += esize;//esize includes the two int32_ts
+            }
         }
     }
     m_isSwapped = swapped;//now that we know there were no errors (because they throw), complete the internal state
     m_version = version;
 }
 
-void NiftiHeader::setupFrom(const nifti_1_header& header)
+NiftiHeader::Quirks NiftiHeader::setupFrom(const nifti_1_header& header)
 {
+    Quirks ret;
     if (header.sizeof_hdr != sizeof(nifti_1_header)) throw DataFileException("incorrect sizeof_hdr");
     const char magic[] = "n+1\0";//only support single-file nifti
     if (strncmp(header.magic, magic, 4) != 0) throw DataFileException("incorrect magic");
@@ -697,7 +707,14 @@ void NiftiHeader::setupFrom(const nifti_1_header& header)
     {
         if (header.dim[i + 1] < 1) throw DataFileException("dim[" + QString::number(i + 1) + "] < 1");
     }
-    if (header.vox_offset < 352) throw DataFileException("incorrect vox_offset");
+    if (header.vox_offset < 352)
+    {
+        if (header.vox_offset < 348)
+        {
+            throw DataFileException("invalid vox_offset: " + AString::number(header.vox_offset));
+        }
+        ret.no_extender = true;
+    }
     int numBits = typeToNumBits(header.datatype);
     if (header.bitpix != numBits) CaretLogWarning("datatype disagrees with bitpix");
     m_header.sizeof_hdr = header.sizeof_hdr;//copy in everything, so we don't have to fake anything to print the header as read
@@ -742,10 +759,12 @@ void NiftiHeader::setupFrom(const nifti_1_header& header)
     m_header.intent_code = header.intent_code;
     for (int i = 0; i < 16; ++i) m_header.intent_name[i] = header.intent_name[i];
     m_header.dim_info = header.dim_info;
+    return ret;
 }
 
-void NiftiHeader::setupFrom(const nifti_2_header& header)
+NiftiHeader::Quirks NiftiHeader::setupFrom(const nifti_2_header& header)
 {
+    Quirks ret;
     if (header.sizeof_hdr != sizeof(nifti_2_header)) throw DataFileException("incorrect sizeof_hdr");
     const char magic[] = "n+2\0\r\n\032\n";//only support single-file nifti
     for (int i = 0; i < 8; ++i)
@@ -757,9 +776,10 @@ void NiftiHeader::setupFrom(const nifti_2_header& header)
     {
         if (header.dim[i + 1] < 1) throw DataFileException("dim[" + QString::number(i + 1) + "] < 1");
     }
-    if (header.vox_offset < 352) throw DataFileException("incorrect vox_offset");
+    if (header.vox_offset < 544) throw DataFileException("incorrect vox_offset");//haven't noticed any nifti-2 with bad vox_offset yet, and all cifti files have a big extension, so they have to have used it correctly
     if (header.bitpix != typeToNumBits(header.datatype)) CaretLogWarning("datatype disagrees with bitpix");
     memcpy(&m_header, &header, sizeof(nifti_2_header));
+    return ret;
 }
 
 int NiftiHeader::typeToNumBits(const int64_t& type)
