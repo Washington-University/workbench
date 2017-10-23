@@ -55,6 +55,23 @@ JsonHelper::~JsonHelper()
 }
 
 /**
+ * Convert the JSON Array to a String representation
+ *
+ * @param jsonValue
+ *     The JSON Value
+ * @return
+ *     The string representation of the value.
+ */
+AString
+JsonHelper::jsonArrayToString(const QJsonArray& jsonArray)
+{
+    const QJsonDocument contentJson = QJsonDocument(jsonArray);
+    const AString s = contentJson.toJson(QJsonDocument::Compact);
+    return s;
+}
+
+
+/**
  * Determine type of content in the value and return its string representation
  *
  * @param jsonValue

@@ -27,6 +27,7 @@
 
 #include "AString.h"
 
+class QJsonArray;
 class QJsonValue;
 
 
@@ -35,6 +36,8 @@ namespace caret {
     class JsonHelper {
         
     public:
+        static AString jsonArrayToString(const QJsonArray& jsonArray);
+        
         static AString jsonValueToString(const QJsonValue& jsonValue);
 
 
