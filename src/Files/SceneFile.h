@@ -116,6 +116,10 @@ namespace caret {
 
         AString getDefaultExtractToDirectoryName() const;
         
+        virtual bool isModified() const override;
+        
+        virtual void clearModified() override;
+        
         // ADD_NEW_METHODS_HERE
 
         /** Version of file */

@@ -22,7 +22,7 @@
 /*LICENSE_END*/
 
 
-#include "CaretObject.h"
+#include "CaretObjectTracksModification.h"
 #include "SceneTypeEnum.h"
 
 namespace caret {
@@ -31,7 +31,7 @@ namespace caret {
     class SceneInfo;
     class SceneObject;
     
-    class Scene : public CaretObject {
+    class Scene : public CaretObjectTracksModification {
         
     public:
         Scene(const SceneTypeEnum::Enum sceneType);
@@ -81,6 +81,9 @@ namespace caret {
         
         void setHasFilesWithRemotePaths(const bool hasFilesWithRemotePaths);
 
+        virtual bool isModified() const override;
+        
+        virtual void clearModified() override;
         
         // ADD_NEW_METHODS_HERE
 

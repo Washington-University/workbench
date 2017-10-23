@@ -949,4 +949,33 @@ SceneFile::getDefaultExtractToDirectoryName() const
     return directoryName;
 }
 
+/**
+ * @return True if this scene is modified.
+ */
+bool
+SceneFile::isModified() const
+{
+    if (CaretDataFile::isModified()) {
+        return true;
+    }
+    for (const auto scene : m_scenes) {
+        if (scene->isModified()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Clear the modified status of this scene.
+ */
+void
+SceneFile::clearModified()
+{
+    CaretDataFile::clearModified();
+    for (auto scene : m_scenes) {
+        scene->clearModified();
+    }
+}
 

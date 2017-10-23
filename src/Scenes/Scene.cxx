@@ -231,14 +231,15 @@ SomeClass::restoreFromScene(const SceneAttributes* sceneAttributes,
  *    Type of scene.
  */
 Scene::Scene(const SceneTypeEnum::Enum sceneType)
-: CaretObject()
+:CaretObjectTracksModification()
 {
     m_sceneAttributes = new SceneAttributes(sceneType);
     m_hasFilesWithRemotePaths = false;
     m_sceneInfo = new SceneInfo();
 }
 
-Scene::Scene(const Scene& rhs) : CaretObject()
+Scene::Scene(const Scene& rhs)
+:CaretObjectTracksModification()
 {
     m_sceneAttributes = new SceneAttributes(*(rhs.m_sceneAttributes));
     m_hasFilesWithRemotePaths = rhs.m_hasFilesWithRemotePaths;
@@ -310,6 +311,7 @@ Scene::addClass(SceneClass* sceneClass)
 {
     if (sceneClass != NULL) {
         m_sceneClasses.push_back(sceneClass);
+        setModified();
     }
 }
 
@@ -493,6 +495,33 @@ Scene::setSceneInfo(SceneInfo* sceneInfo)
         delete m_sceneInfo;
     }
     m_sceneInfo = sceneInfo;
+    setModified();
+}
+
+/**
+ * @return True if this scene is modified.
+ */
+bool
+Scene::isModified() const
+{
+    if (CaretObjectTracksModification::isModified()) {
+        return true;
+    }
+    if (m_sceneInfo->isModified()) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Clear the modified status of this scene.
+ */
+void
+Scene::clearModified()
+{
+    CaretObjectTracksModification::clearModified();
+    m_sceneInfo->clearModified();
 }
 
 

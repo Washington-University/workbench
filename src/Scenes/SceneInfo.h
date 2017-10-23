@@ -22,14 +22,14 @@
 /*LICENSE_END*/
 
 #include <stdint.h>
-#include "CaretObject.h"
+#include "CaretObjectTracksModification.h"
 
 
 
 namespace caret {
     class XmlWriter;
     
-    class SceneInfo : public CaretObject {
+    class SceneInfo : public CaretObjectTracksModification {
         
     public:
         SceneInfo();
