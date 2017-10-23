@@ -113,6 +113,7 @@ FloatMatrix.h
 Histogram.h
 HtmlStringBuilder.h
 ImageCaptureMethodEnum.h
+JsonHelper.h
 Logger.h
 LogHandler.h
 LogHandlerStandardError.h
@@ -211,6 +212,7 @@ FloatMatrix.cxx
 Histogram.cxx
 HtmlStringBuilder.cxx
 ImageCaptureMethodEnum.cxx
+JsonHelper.cxx
 Logger.cxx
 LogHandler.cxx
 LogHandlerStandardError.cxx
