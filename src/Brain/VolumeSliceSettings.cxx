@@ -40,6 +40,8 @@ using namespace caret;
  * \ingroup Brain
  */
 
+const static VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum defaultVolumeSliceInterpolationEdgeMaskType =
+                                                    VolumeSliceInterpolationEdgeEffectsMaskingEnum::LOOSE;
 /**
  * Constructor.
  */
@@ -50,7 +52,7 @@ VolumeSliceSettings::VolumeSliceSettings()
     m_slicePlanesAllViewLayout = VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT;
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
-    m_volumeSliceInterpolationEdgeEffectsMaskingType = VolumeSliceInterpolationEdgeEffectsMaskingEnum::TIGHT;
+    m_volumeSliceInterpolationEdgeEffectsMaskingType = defaultVolumeSliceInterpolationEdgeMaskType;
     
     m_montageNumberOfColumns = 6; // was 3;
     m_montageNumberOfRows    = 4;
@@ -834,7 +836,7 @@ VolumeSliceSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
-    m_volumeSliceInterpolationEdgeEffectsMaskingType = VolumeSliceInterpolationEdgeEffectsMaskingEnum::TIGHT;
+    m_volumeSliceInterpolationEdgeEffectsMaskingType = defaultVolumeSliceInterpolationEdgeMaskType;
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
