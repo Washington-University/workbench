@@ -89,7 +89,6 @@ m_sceneFile(sceneFile)
     
     QWidget* loginWidget = createLoginWidget();
     m_uploadWidget = createTabWidget();
-    m_uploadPushButton->setEnabled(false);
     
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
@@ -173,6 +172,8 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     m_usernameLineEdit->setValidator(createValidator(LabelName::LABEL_USERNAME));
     QObject::connect(m_usernameLineEdit, &QLineEdit::textEdited,
                      this, [=] { this->loginInformationChanged(); });
+    QObject::connect(m_usernameLineEdit, &QLineEdit::returnPressed,
+                     this, &BalsaDatabaseUploadSceneFileDialog::returnPressedUsernameOrPassword);
     
     /*
      * Password
@@ -185,6 +186,8 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     m_passwordLineEdit->setValidator(createValidator(LabelName::LABEL_PASSWORD));
     QObject::connect(m_passwordLineEdit, &QLineEdit::textEdited,
                      this, [=] { this->loginInformationChanged(); });
+    QObject::connect(m_passwordLineEdit, &QLineEdit::returnPressed,
+                     this, &BalsaDatabaseUploadSceneFileDialog::returnPressedUsernameOrPassword);
     
     /*
      * Forgot username label/link
@@ -261,6 +264,7 @@ BalsaDatabaseUploadSceneFileDialog::loginInformationChanged()
 {
     m_balsaDatabaseManager->logout();
     m_uploadPushButton->setEnabled(false);
+    m_selectStudyTitlePushButton->setEnabled(false);
     m_userRoles->resetToAllInvalid();
     updateAllLabels();
 }
@@ -539,6 +543,7 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
     const AString password = m_passwordLineEdit->text().trimmed();
     
     m_uploadPushButton->setEnabled(false);
+    m_selectStudyTitlePushButton->setEnabled(false);
     
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
@@ -587,7 +592,26 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
     }
     
     m_uploadPushButton->setEnabled(true);
+    m_selectStudyTitlePushButton->setEnabled(true);
 }
+
+/**
+ * Gets called when return is pressed in either username 
+ * or password.  If both contain text, try to login.
+ */
+void
+BalsaDatabaseUploadSceneFileDialog::returnPressedUsernameOrPassword()
+{
+    if (m_usernameLineEdit->text().trimmed().isEmpty()) {
+        return;
+    }
+    if (m_passwordLineEdit->text().trimmed().isEmpty()) {
+        return;
+    }
+    
+    loginButtonClicked();
+}
+
 
 /**
  * Gets called when the upload button is clicked.
@@ -692,6 +716,13 @@ BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
                                                                            errorMessage);
     
     cursor.restoreCursor();
+    
+    /*
+     * Scene file may be modified with updated Scene IDs from BALSA.
+     * Allow user to save, but do not require saving
+     */
+    saveSceneFile("Scene IDs were updated by BALSA during upload.  Would you like "
+                  "to save the scene file using its current name?");
     
     progressDialog.setValue(progressDialog.maximum());
     

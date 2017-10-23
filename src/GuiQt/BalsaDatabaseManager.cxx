@@ -36,8 +36,10 @@
 #include "EventManager.h"
 #include "EventProgressUpdate.h"
 #include "FileInformation.h"
+#include "JsonHelper.h"
 #include "OperationZipSceneFile.h"
 #include "ProgramParameters.h"
+#include "Scene.h"
 #include "SceneFile.h"
 
 using namespace caret;
@@ -58,7 +60,7 @@ BalsaDatabaseManager::BalsaDatabaseManager()
 {
     m_debugFlag = false;
     logout();
-//    EventManager::get()->addEventListener(this, EventTypeEnum::);
+    //EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
 /**
@@ -289,7 +291,7 @@ BalsaDatabaseManager::uploadFileWithCaretHttpManager(const AString& uploadURL,
     responseContentOut.append(&uploadResponse.m_body[0]);
 
     
-    return processUploadResponse(uploadResponse.m_headers,
+    return verifyUploadFileResponse(uploadResponse.m_headers,
                                  responseContentOut,
                                  uploadResponse.m_responseCode,
                                  errorMessageOut);
@@ -310,7 +312,7 @@ BalsaDatabaseManager::uploadFileWithCaretHttpManager(const AString& uploadURL,
  *     True if response shows upload was successful, else false.
  */
 bool
-BalsaDatabaseManager::processUploadResponse(const std::map<AString, AString>& responseHeaders,
+BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>& responseHeaders,
                                             const AString& responseContent,
                                             const int32_t responseHttpCode,
                                             AString& errorMessageOut) const
@@ -519,35 +521,34 @@ BalsaDatabaseManager::getJSessionIdCookie() const
 void
 BalsaDatabaseManager::receiveEvent(Event* /*event*/)
 {
-//    if (event->getEventType() == EventTypeEnum::) {
-//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-//        CaretAssert(eventName);
-//
-//        event->setEventProcessed();
-//    }
+    //    if (event->getEventType() == EventTypeEnum::) {
+    //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
+    //        CaretAssert(eventName);
+    //
+    //        event->setEventProcessed();
+    //    }
 }
 
 /**
  * Request BALSA database process the file that was uploaded.
  *
+ * @param sceneFile
+ *     Scene file that was uploaded.
  * @param processUploadURL
  *     URL for uploading file.
  * @param httpContentTypeName
  *     Type of content for upload (eg: application/zip, see http://www.freeformatter.com/mime-types-list.html)
- * @param responseContentOut
- *     If successful, contains the response content received after successful upload.
  * @param errorMessageOut
  *     Contains error information if upload failed.
  * @return
  *     True if upload is successful, else false.
  */
 bool
-BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
+BalsaDatabaseManager::processUploadedFile(SceneFile* sceneFile,
+                                          const AString& processUploadURL,
                          const AString& httpContentTypeName,
-                         AString& responseContentOut,
                          AString& errorMessageOut)
 {
-    responseContentOut.clear();
     errorMessageOut.clear();
     
     if (httpContentTypeName.isEmpty()) {
@@ -563,6 +564,8 @@ BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
                                                   httpContentTypeName));
     uploadRequest.m_headers.insert(std::make_pair("Cookie",
                                                   getJSessionIdCookie()));
+    uploadRequest.m_arguments.push_back(std::make_pair("type",
+                                                      "json"));
     
     CaretHttpResponse uploadResponse;
     CaretHttpManager::httpRequest(uploadRequest, uploadResponse);
@@ -571,6 +574,14 @@ BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
         std::cout << "Process upload response Code: " << uploadResponse.m_responseCode << std::endl;
     }
     
+    if (uploadResponse.m_responseCode != 200) {
+        errorMessageOut = ("Process Upload failed code: "
+                           + QString::number(uploadResponse.m_responseCode)
+                           + "\n");
+        
+        return false;
+    }
+
     for (std::map<AString, AString>::iterator mapIter = uploadResponse.m_headers.begin();
          mapIter != uploadResponse.m_headers.end();
          mapIter++) {
@@ -581,26 +592,110 @@ BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
     }
     
     uploadResponse.m_body.push_back('\0');
-    responseContentOut.append(&uploadResponse.m_body[0]);
-    CaretLogFine("Process Upload to BALSA reply body: "
-                 + responseContentOut);
-    
-    if (uploadResponse.m_responseCode == 200) {
-        return true;
+    AString responseContent(&uploadResponse.m_body[0]);
+    if (m_debugFlag) {
+        std::cout << "Process Upload to BALSA reply body: " << responseContent << std::endl;
+    }
+    else {
+        CaretLogFine("Process Upload to BALSA reply body: "
+                     + responseContent);
     }
     
-    errorMessageOut = ("Process Upload failed code: "
-                       + QString::number(uploadResponse.m_responseCode)
-                       + "\n"
-                       + responseContentOut);
     
-    return false;
+    AString contentType = getHeaderValue(uploadResponse, "Content-Type");
+    if (contentType.isNull()) {
+        errorMessageOut = ("Process Upload Content type returned by BALSA is unknown");
+        return false;
+    }
+    
+    if ( ! contentType.toLower().startsWith("application/json")) {
+        errorMessageOut = ("Process Upload Content type return by BALSA should be JSON format but is "
+                           + contentType
+                           + "Scene File was uploaded but Scene IDs will not be updated");
+        return false;
+    }
+   
+    if ( ! updateSceneIdsFromProcessUploadResponse(sceneFile,
+                                                   responseContent,
+                                                   errorMessageOut)) {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Get the Scene IDs from the JSON content returned by
+ * the process upload command and update the scene file.
+ *
+ * @param sceneFile
+ *     Scene file that was uploaded.
+ * @param jsonContent
+ *     The JSON content.
+ * @param errorMessage
+ *     Contains error information if there is a problem.
+ * @return
+ *     true if successful, else false.
+ */
+bool
+BalsaDatabaseManager::updateSceneIdsFromProcessUploadResponse(SceneFile* sceneFile,
+                                                              const AString& jsonContent,
+                                                              AString& errorMessageOut)
+{
+    QJsonParseError jsonError;
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(jsonContent.toLatin1(),
+                                                         &jsonError);
+    if (jsonDocument.isNull()) {
+        errorMessageOut = ("Failed to parse JSON response from procssess upload, error:"
+                           + jsonError.errorString());
+        return false;
+    }
+    if ( ! jsonDocument.isArray()) {
+        errorMessageOut = ("Unrecognized format of JSON response from process upload (not an array)");
+        return false;
+    }
+    const AString mySceneFileName = sceneFile->getFileNameNoPath();
+    
+    QJsonArray jsonArray = jsonDocument.array();
+    const int32_t numFileAndSceneIds = jsonArray.count();
+    for (int32_t j = 0; j < numFileAndSceneIds; j++) {
+        SceneFileIdentifiers sceneFileIDs(m_debugFlag,
+                                          jsonArray.at(j));
+        if ( ! sceneFileIDs.isValid()) {
+            errorMessageOut = ("Scene File IDs error: "
+                               + sceneFileIDs.getErrorMessage());
+            return false;
+        }
+        
+        if (sceneFileIDs.m_sceneFileName == mySceneFileName) {
+            for (const auto& indexAndID : sceneFileIDs.m_sceneIndexAndIDsMap) {
+                const int32_t sceneIndex = indexAndID.first;
+                const AString sceneID    = indexAndID.second;
+                
+                if ((sceneIndex >= 0)
+                    && (sceneIndex < sceneFile->getNumberOfScenes())) {
+                    Scene* scene = sceneFile->getSceneAtIndex(sceneIndex);
+                    CaretAssert(scene);
+                    scene->setBalsaSceneID(sceneID);
+                }
+                else {
+                    errorMessageOut = ("Invalid Scene Index from BALSA Scene IDs: "
+                                       + AString::number(sceneIndex));
+                    return false;
+                }
+            }
+        }
+    }
+    
+    return true;
 }
 
 /**
  * Get the value for the given header name using
  * a case-insensitive string comparison.
  *
+ * @param httpResponse
+ *     The HTTP response.
  * @param headerName
  *     The header name.
  * @return
@@ -608,8 +703,9 @@ BalsaDatabaseManager::processUploadedFile(const AString& processUploadURL,
  *     not found the returned string will be NULL
  *     (test with .isNull()).
  */
-static AString getHeaderValue(const CaretHttpResponse& httpResponse,
-                              const AString& headerName)
+AString
+BalsaDatabaseManager::getHeaderValue(const CaretHttpResponse& httpResponse,
+                                     const AString& headerName) const
 {
     /*
      * NULL string
@@ -769,30 +865,6 @@ BalsaDatabaseManager::getStudyIDFromStudyTitle(const AString& studyTitle,
     return true;
 }
 
-///**
-// * Login to BALSA and request a study ID from a study title.
-// *
-// * @param studyTitle
-// *     The study's title.
-// * @param studyIdOut
-// *     Output containing the study ID.
-// * @param errorMessageOut
-// *     Contains description of any error(s).
-// * @return
-// *     True if processing was successful, else false.
-// */
-//bool
-//BalsaDatabaseManager::getUserRoles(AString& roleNamesOut,
-//                                   AString& errorMessageOut)
-//{
-//    if ( ! requestUserRoles(m_databaseURL,
-//                          roleNamesOut,
-//                          errorMessageOut)) {
-//        return false;
-//    }
-//    
-//    return true;
-//}
 /**
  * Get the User's Roles.
  *
@@ -1032,7 +1104,7 @@ BalsaDatabaseManager::getAllStudyInformation(std::vector<BalsaStudyInformation>&
  *     True if processing was successful, else false.
  */
 bool
-BalsaDatabaseManager::uploadZippedSceneFile(const SceneFile* sceneFile,
+BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
                                             const AString& zipFileName,
                                             const AString& extractToDirectoryName,
                                             AString& errorMessageOut)
@@ -1098,7 +1170,7 @@ BalsaDatabaseManager::uploadZippedSceneFile(const SceneFile* sceneFile,
         return false;
     }
     
-    if (m_debugFlag) std::cout << "Zip file has been created " << std::endl;
+    if (m_debugFlag) std::cout << "Zip file " << zipFileName << " has been created " << std::endl;
     
     progressUpdate.setProgress(PROGRESS_UPLOAD, "Uploading zip file");
     EventManager::get()->sendEvent(progressUpdate.getPointer());
@@ -1133,10 +1205,9 @@ BalsaDatabaseManager::uploadZippedSceneFile(const SceneFile* sceneFile,
         const AString processUploadURL(m_databaseURL
                                        + "/study/processUpload/"
                                        + sceneFile->getBalsaStudyID());
-        AString processUploadResultText;
-        const bool processUploadSuccessFlag = processUploadedFile(processUploadURL,
+        const bool processUploadSuccessFlag = processUploadedFile(sceneFile,
+                                                                  processUploadURL,
                                                                   "application/x-www-form-urlencoded",
-                                                                  processUploadResultText,
                                                                   errorMessageOut);
         
         if (m_debugFlag) std::cout << "Result of processing the uploaded ZIP file" << AString::fromBool(processUploadSuccessFlag) << std::endl;
@@ -1157,7 +1228,133 @@ BalsaDatabaseManager::uploadZippedSceneFile(const SceneFile* sceneFile,
     
     progressUpdate.setProgress(PROGRESS_DONE, "Finished.");
     EventManager::get()->sendEvent(progressUpdate.getPointer());
+    
     return true;
 }
 
+/**
+ * Constructor that parses JSON containing scene file name and identifiers.
+ *
+ * Example: ["FileName.scene",[[1,"55XX"],[0,"n51z"]]]
+ *
+ * @param debugFlag
+ *     Debugging flag
+ * @param jsonValue
+ *     The JSON value containing the array.
+ */
+BalsaDatabaseManager::SceneFileIdentifiers::SceneFileIdentifiers(const bool debugFlag,
+                                                                 const QJsonValue& jsonValue)
+: m_debugFlag(debugFlag)
+{
+    if ( ! jsonValue.isArray()) {
+        m_errorMessage = ("Scene File Name/Identifier is not JSON array \""
+                          + JsonHelper::jsonValueToString(jsonValue)
+                          + "\"");
+        return;
+    }
+    
+    if (m_debugFlag) {
+        std::cout << "Scene IDs Content: " << JsonHelper::jsonValueToString(jsonValue) << std::endl;
+    }
+
+    
+    const QJsonArray jsonArray = jsonValue.toArray();
+    if (jsonArray.count() != 2) {
+        m_errorMessage = ("Scene File Name/Identifier array should have two elements \""
+                          + JsonHelper::jsonValueToString(jsonValue)
+                          + "\"");
+        return;
+    }
+    
+    const QJsonValue sceneFileNameJsonValue = jsonArray.at(0);
+    if ( ! sceneFileNameJsonValue.isString()) {
+        m_errorMessage = ("Scene File Name is not a string \""
+                          + JsonHelper::jsonValueToString(sceneFileNameJsonValue)
+                          + "\"");
+        return;
+    }
+    m_sceneFileName = sceneFileNameJsonValue.toString();
+    
+    const QJsonValue sceneIDsJsonValue = jsonArray.at(1);
+    if ( ! sceneIDsJsonValue.isArray()) {
+        m_errorMessage = ("Scene IDs is not an array \""
+                          + JsonHelper::jsonValueToString(sceneFileNameJsonValue)
+                          + "\"");
+        
+        return;
+    }
+    
+    const QJsonArray sceneIDsArray = sceneIDsJsonValue.toArray();
+    const int numSceneIDs = sceneIDsArray.count();
+    for (int32_t i = 0; i < numSceneIDs; i++) {
+        const QJsonValue sceneIDJsonElementValue = sceneIDsArray.at(i);
+        if (m_debugFlag) {
+            std::cout << "Scene Index/ID: " << i << " " << JsonHelper::jsonValueToString(sceneIDJsonElementValue) << std::endl;
+        }
+        
+        if ( ! sceneIDJsonElementValue.isArray()) {
+            m_errorMessage = ("Scene Index/ID is not an array \""
+                              + JsonHelper::jsonValueToString(sceneIDJsonElementValue)
+                              + "\"");
+            
+            return;
+        }
+        
+        const QJsonArray sceneIDJsonArray = sceneIDJsonElementValue.toArray();
+        if (sceneIDJsonArray.count() != 2) {
+            m_errorMessage = ("Scene Index/ID array should have two elements \""
+                              + JsonHelper::jsonValueToString(sceneIDJsonArray)
+                              + "\"");
+            return;
+        }
+        
+        const QJsonValue sceneIndexValue = sceneIDJsonArray.at(0);
+        if ( ! sceneIndexValue.isDouble()) {
+            m_errorMessage = ("Scene Index (first element) is not a number \""
+                              + JsonHelper::jsonValueToString(sceneIndexValue)
+                              + "\"");
+            return;
+        }
+        
+        const QJsonValue sceneIDValue = sceneIDJsonArray.at(1);
+        if ( ! sceneIDValue.isString()) {
+            m_errorMessage = ("Scene ID (second element) is not a string \""
+                              + JsonHelper::jsonValueToString(sceneIDJsonArray)
+                              + "\"");
+            return;
+        }
+        
+        const int32_t invalidIndex = -1;
+        const int32_t sceneIndex = sceneIndexValue.toInt(invalidIndex);
+        if (sceneIndex == invalidIndex) {
+            m_errorMessage = ("Scene Index (first element) is not an integer \""
+                              + JsonHelper::jsonValueToString(sceneIndexValue)
+                              + "\"");
+            return;
+        }
+        
+        const AString sceneID = sceneIDValue.toString();
+        
+        m_sceneIndexAndIDsMap.insert(std::make_pair(sceneIndex,
+                                                    sceneID));
+    }
+}
+
+/**
+ * @return True if parsing was valid.
+ */
+bool
+BalsaDatabaseManager::SceneFileIdentifiers::isValid() const
+{
+    return (m_errorMessage.isEmpty());
+}
+
+/**
+ * @return Error message describing parsing problem.
+ */
+AString
+BalsaDatabaseManager::SceneFileIdentifiers::getErrorMessage() const
+{
+    return m_errorMessage;
+}
 

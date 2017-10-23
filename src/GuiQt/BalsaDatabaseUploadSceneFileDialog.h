@@ -60,6 +60,8 @@ namespace caret {
         
         void loginButtonClicked();
         
+        void returnPressedUsernameOrPassword();
+        
         void uploadButtonClicked();
         
         void labelHtmlLinkClicked(const QString&);

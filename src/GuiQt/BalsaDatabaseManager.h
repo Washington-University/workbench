@@ -21,13 +21,18 @@
  */
 /*LICENSE_END*/
 
+#include <map>
+
 #include "BalsaStudyInformation.h"
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 
+class QJsonValue;
+
 namespace caret {
 
     class BalsaUserRoles;
+    struct CaretHttpResponse;
     class SceneFile;
     
     class BalsaDatabaseManager : public CaretObject, public EventListenerInterface {
@@ -54,7 +59,7 @@ namespace caret {
                                       AString& studyIdOut,
                                       AString& errorMessageOut);
         
-        bool uploadZippedSceneFile(const SceneFile* sceneFile,
+        bool uploadZippedSceneFile(SceneFile* sceneFile,
                                    const AString& zipFileName,
                                    const AString& extractToDirectoryName,
                                    AString& errorMessageOut);
@@ -71,6 +76,24 @@ namespace caret {
         virtual void receiveEvent(Event* event);
 
     private:
+        class SceneFileIdentifiers {
+        public:
+            SceneFileIdentifiers(const bool debugFlag,
+                                 const QJsonValue& jsonValue);
+            
+            bool isValid() const;
+            
+            AString getErrorMessage() const;
+            
+            const bool m_debugFlag;
+            
+            AString m_errorMessage;
+            
+            AString m_sceneFileName;
+            
+            std::map<int32_t, AString> m_sceneIndexAndIDsMap;
+        };
+        
         BalsaDatabaseManager(const BalsaDatabaseManager&);
 
         BalsaDatabaseManager& operator=(const BalsaDatabaseManager&);
@@ -83,9 +106,9 @@ namespace caret {
                         AString& responseContentOut,
                         AString& errorMessageOut);
         
-        bool processUploadedFile(const AString& processUploadURL,
+        bool processUploadedFile(SceneFile* sceneFile,
+                                 const AString& processUploadURL,
                                  const AString& httpContentTypeName,
-                                 AString& responseContentOut,
                                  AString& errorMessageOut);
         
         bool requestStudyID(const AString& databaseURL,
@@ -99,10 +122,17 @@ namespace caret {
                         AString& responseContentOut,
                         AString& errorMessageOut);
         
-        bool processUploadResponse(const std::map<AString, AString>& responseHeaders,
+        bool verifyUploadFileResponse(const std::map<AString, AString>& responseHeaders,
                                    const AString& responseContent,
                                    const int32_t responseHttpCode,
                                    AString& errorMessageOut) const;
+        
+        AString getHeaderValue(const CaretHttpResponse& httpResponse,
+                               const AString& headerName) const;
+        
+        bool updateSceneIdsFromProcessUploadResponse(SceneFile* sceneFile,
+                                                     const AString& jsonContent,
+                                                     AString& errorMessageOut);
         
         AString m_databaseURL;
         
