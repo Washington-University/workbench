@@ -658,6 +658,12 @@ BalsaDatabaseManager::updateSceneIdsFromProcessUploadResponse(SceneFile* sceneFi
     
     QJsonArray jsonArray = jsonDocument.array();
     const int32_t numFileAndSceneIds = jsonArray.count();
+    if (numFileAndSceneIds <= 0) {
+        errorMessageOut = ("No Scene IDs were returned by BALSA.  Content returned \""
+                           + JsonHelper::jsonArrayToString(jsonArray)
+                           + "\"");
+        return false;
+    }
     for (int32_t j = 0; j < numFileAndSceneIds; j++) {
         SceneFileIdentifiers sceneFileIDs(m_debugFlag,
                                           jsonArray.at(j));
