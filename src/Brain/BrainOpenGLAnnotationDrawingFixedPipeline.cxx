@@ -1272,6 +1272,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                     BrainOpenGLPrimitiveDrawing::drawRectangleOutline(bottomLeft, bottomRight, topRight, topLeft,
                                                                       outlineWidth,
                                                                       foregroundRGBA);
+
+                    /*
+                     * For testing new line drawing
+                     * Width not limited to OpenGL min/max
+                     */
+                    const bool testLineDrawingFlag = false;
+                    if (testLineDrawingFlag) {
+                        float widthPixels = (box->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
+                        GraphicsOpenGLLineDrawing::drawLineLoopSolidColor(coords, foregroundRGBA, widthPixels);
+                    }
                 }
                 else {
                     const float tempRGBA[4] = { 1.0, 1.0, 0.0, 1.0 };
@@ -2746,6 +2756,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     
     uint8_t foregroundRGBA[4];
     line->getLineColorRGBA(foregroundRGBA);
+    float floatForegroundRGBA[4];
+    line->getLineColorRGBA(floatForegroundRGBA);
     
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
     
@@ -2772,29 +2784,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                 
                 /*
                  * For testing new line drawing
+                 * Width not limited to OpenGL min/max
                  */
                 const bool testLineDrawingFlag = false;
                 if (testLineDrawingFlag) {
-                    std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive;
-                    primitive.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINES));
-                    const int32_t numXYZ = static_cast<int32_t>(coords.size() / 3);
-                    const float rgba[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
-                    for (int32_t i = 0; i < numXYZ; i++) {
-                        primitive->addVertex(&coords[i*3], rgba);
-                    }
-                    
-                    /*
-                     * Width not limited to OpenGL min/max
-                     */
                     float widthPixels = (line->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
-
-                    GraphicsOpenGLLineDrawing lineDraw(primitive.get(),
-                                                       widthPixels);
-                    AString errorMessage;
-                    const bool successFlag = lineDraw.run(errorMessage);
-                    if ( ! successFlag) {
-                        //CaretLogSevere("Line Drawing: " + errorMessage);
-                    }
+                    GraphicsOpenGLLineDrawing::drawLinesSolidColor(coords, floatForegroundRGBA, widthPixels);
                 }
             }
         }

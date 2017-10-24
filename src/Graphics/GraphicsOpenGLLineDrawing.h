@@ -26,8 +26,7 @@
 #include <memory>
 
 #include "CaretObject.h"
-
-
+#include "Matrix4x4.h"
 
 namespace caret {
 
@@ -36,39 +35,117 @@ namespace caret {
     class GraphicsOpenGLLineDrawing : public CaretObject {
         
     public:
-        GraphicsOpenGLLineDrawing(const GraphicsPrimitive* primitive,
-                                  const float lineThicknessPixels);
+//        GraphicsOpenGLLineDrawing(const GraphicsPrimitive* primitive,
+//                                  const float lineThicknessPixels);
         
         virtual ~GraphicsOpenGLLineDrawing();
         
-        bool run(AString& errorMessageOut);
+        //bool run(AString& errorMessageOut);
 
+        static bool drawLinesSolidColor(const std::vector<float>& xyz,
+                                        const float rgba[4],
+                                        const float lineThicknessPixels);
+        
+        static bool drawLineStripSolidColor(const std::vector<float>& xyz,
+                                        const float rgba[4],
+                                        const float lineThicknessPixels);
+        
+        static bool drawLineLoopSolidColor(const std::vector<float>& xyz,
+                                        const float rgba[4],
+                                        const float lineThicknessPixels);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
         
     private:
+        /**
+         * Type of line coloring
+         */
+        enum class ColorType {
+            /** color at each vertex */
+            RGBA_PER_VERTEX,
+            /** one color for all vertices */
+            RGBA_SOLID
+        };
+        
+        /**
+         * Type of line drawing
+         */
+        enum class LineType {
+            /** Each pair of vertices is an independent line segment (GL_LINES) */
+            LINES,
+            /** A connected set of lines forming a loop (last is automaticall connected to first) */
+            LINE_LOOP,
+            /** A connected set of lines (last is not connected to first) */
+            LINE_STRIP
+        };
+        
+        GraphicsOpenGLLineDrawing(const std::vector<float>& xyz,
+                                  const std::vector<float>& rgba,
+                                  const float lineThicknessPixels,
+                                  const ColorType colorType,
+                                  const LineType lineType);
+        
         GraphicsOpenGLLineDrawing(const GraphicsOpenGLLineDrawing& obj);
         
-        GraphicsOpenGLLineDrawing& operator=(const GraphicsOpenGLLineDrawing& obj);
+        GraphicsOpenGLLineDrawing& operator=(const GraphicsOpenGLLineDrawing& obj) const;
         
-        void convertPointsToWindowCoordinates();
+        static bool drawLinesPrivate(const std::vector<float>& xyz,
+                                     const std::vector<float>& rgba,
+                                     const float lineThicknessPixels,
+                                     const ColorType colorType,
+                                     const LineType lineType);
+        
+        bool performDrawing();
+        
+        void saveOpenGLState();
+        
+        void restoreOpenGLState();
+        
+        void createProjectionMatrix();
+        
+        void convertFromModelToWindowCoordinate(const float modelXYZ[3],
+                                                float windowXYZOut[3]) const;
+        
+        //void convertPointsToWindowCoordinates();
+        
+        void createWindowCoordinatesFromVertices();
         
         void convertLineSegmentsToQuads();
+        
+        void createQuadFromWindowVertices(const int32_t indexOne,
+                                          const int32_t indexTwo);
         
         void drawQuads();
         
         const GraphicsPrimitive* m_inputPrimitive;
         
+        const std::vector<float>& m_inputXYZ;
+        
+        const std::vector<float>& m_inputRGBA;
+        
         const float m_lineThicknessPixels;
+        
+        const ColorType m_colorType;
+        
+        const LineType m_lineType;
         
         GraphicsPrimitive* m_outputPrimitive = NULL;
         
-        std::vector<float> m_windowLineSegmentsXYZ;
+        std::vector<float> m_vertexWindowXYZ;
         
         std::vector<float> m_windowQuadsXYZ;
         
+        std::vector<float> m_windowQuadsRGBA;
+        
         bool m_debugFlag = false;
+        
+        int m_savedPolygonMode[2];
+        
+        int m_savedViewport[4];
+        
+        Matrix4x4 m_projectionMatrix;
         
         // ADD_NEW_MEMBERS_HERE
 
