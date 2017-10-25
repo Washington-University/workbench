@@ -74,7 +74,7 @@ namespace caret {
         
         void browseZipFileCustomDirectoryPushButtonClicked();
         
-        void rolesButtonClicked();
+        void testButtonClicked();
         
         void autoSaveCheckBoxClicked(bool checked);
 
@@ -118,6 +118,8 @@ namespace caret {
         
         bool saveSceneFile(const AString& saveMesage);
         
+        void updateUserRolesLabel();
+        
         SceneFile* m_sceneFile;
         
         std::unique_ptr<BalsaDatabaseManager> m_balsaDatabaseManager;
@@ -134,6 +136,7 @@ namespace caret {
         QLineEdit* m_passwordLineEdit;
         
         QPushButton* m_loginPushButton;
+        QLabel* m_userRolesLabel;
         
         std::unique_ptr<BalsaUserRoles> m_userRoles;
         

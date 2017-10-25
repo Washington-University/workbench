@@ -59,6 +59,8 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+        AString getRolesForDisplayInGUI() const;
+        
         virtual AString toString() const;
         
     private:

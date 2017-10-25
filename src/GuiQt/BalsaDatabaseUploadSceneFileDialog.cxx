@@ -107,6 +107,7 @@ m_sceneFile(sceneFile)
     setCancelButtonText("Close");
     
     m_basePathWidget->updateWithSceneFile(m_sceneFile);
+    updateUserRolesLabel();
 }
 
 /**
@@ -223,35 +224,43 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     QObject::connect(m_loginPushButton, &QPushButton::clicked,
                      this, &BalsaDatabaseUploadSceneFileDialog::loginButtonClicked);
     
+    /*
+     * Label for User Roles
+     */
+    m_userRolesLabel = new QLabel("                 ");
+    
     int columnCounter = 0;
     const int COLUMN_LABEL = columnCounter++;
-    const int COLUMN_DATA_WIDGET = columnCounter++;
+    const int COLUMN_DATA_WIDGET_ONE = columnCounter++;
+    const int COLUMN_DATA_WIDGET_TWO = columnCounter++;
     const int COLUMN_BUTTON_ONE = columnCounter++;
-    const int COLUMN_BUTTON_TWO = columnCounter++;
+    //const int COLUMN_BUTTON_TWO = columnCounter++;
     
     QGroupBox* groupBox = new QGroupBox("Database Login");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
     gridLayout->setSpacing(5);
     gridLayout->setColumnStretch(COLUMN_LABEL, 0);
-    gridLayout->setColumnStretch(COLUMN_DATA_WIDGET, 100);
+    gridLayout->setColumnStretch(COLUMN_DATA_WIDGET_ONE, 0);
+    gridLayout->setColumnStretch(COLUMN_DATA_WIDGET_TWO, 100);
     gridLayout->setColumnStretch(COLUMN_BUTTON_ONE, 0);
-    gridLayout->setColumnStretch(COLUMN_BUTTON_TWO, 0);
+    //gridLayout->setColumnStretch(COLUMN_BUTTON_TWO, 0);
     int row = 0;
     gridLayout->addWidget(m_databaseLabel, row, COLUMN_LABEL, Qt::AlignRight);
-    gridLayout->addWidget(m_databaseComboBox, row, COLUMN_DATA_WIDGET);
-    gridLayout->addWidget(registerLabel, row, COLUMN_BUTTON_ONE, 1, 2);
+    gridLayout->addWidget(m_databaseComboBox, row, COLUMN_DATA_WIDGET_ONE, 1, 2);
+    gridLayout->addWidget(registerLabel, row, COLUMN_BUTTON_ONE);
     row++;
     gridLayout->addWidget(m_usernameLabel, row, COLUMN_LABEL, Qt::AlignRight);
-    gridLayout->addWidget(m_usernameLineEdit, row, COLUMN_DATA_WIDGET);
-    gridLayout->addWidget(forgotUsernameLabel, row, COLUMN_BUTTON_ONE, 1, 2);
+    gridLayout->addWidget(m_usernameLineEdit, row, COLUMN_DATA_WIDGET_ONE, 1, 2);
+    gridLayout->addWidget(forgotUsernameLabel, row, COLUMN_BUTTON_ONE);
     row++;
     gridLayout->addWidget(m_passwordLabel, row, COLUMN_LABEL, Qt::AlignRight);
-    gridLayout->addWidget(m_passwordLineEdit, row, COLUMN_DATA_WIDGET);
-    gridLayout->addWidget(forgotPasswordLabel, row, COLUMN_BUTTON_ONE, 1, 2);
+    gridLayout->addWidget(m_passwordLineEdit, row, COLUMN_DATA_WIDGET_ONE, 1, 2);
+    gridLayout->addWidget(forgotPasswordLabel, row, COLUMN_BUTTON_ONE);
     row++;
     gridLayout->setRowMinimumHeight(row, 10); // empty row
     row++;
-    gridLayout->addWidget(m_loginPushButton, row, COLUMN_DATA_WIDGET, 1, 1, Qt::AlignLeft);
+    gridLayout->addWidget(m_loginPushButton, row, COLUMN_DATA_WIDGET_ONE);
+    gridLayout->addWidget(m_userRolesLabel, row, COLUMN_DATA_WIDGET_TWO, 1, Qt::AlignLeft);
     
     return groupBox;
 }
@@ -335,13 +344,13 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
                      this, &BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked);
     
     /*
-     * Roles button
+     * Test button
      */
-    QPushButton* rolesPushButton = new QPushButton("Test Roles...");
-    rolesPushButton->setToolTip("Test getting the user's roles");
-    QObject::connect(rolesPushButton, &QPushButton::clicked,
-                     this, &BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked);
-    rolesPushButton->setVisible(false);
+    QPushButton* testPushButton = new QPushButton("Test...");
+    testPushButton->setToolTip("Test some functionality");
+    QObject::connect(testPushButton, &QPushButton::clicked,
+                     this, &BalsaDatabaseUploadSceneFileDialog::testButtonClicked);
+    testPushButton->setVisible(false);
 
     /*
      * Auto-save checkbox
@@ -382,7 +391,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     row++;
     gridLayout->addWidget(m_balsaStudyIDLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_balsaStudyIDLineEdit, row, COLUMN_DATA_WIDGET);
-    gridLayout->addWidget(rolesPushButton, row, COLUMN_BUTTON_ONE, 1, 2);
+    gridLayout->addWidget(testPushButton, row, COLUMN_BUTTON_ONE, 1, 2);
     row++;
     gridLayout->addWidget(m_autoSaveSceneFileCheckBox, row, COLUMN_DATA_WIDGET, 1, 3, Qt::AlignLeft);
     row++;
@@ -544,6 +553,8 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
     
     m_uploadPushButton->setEnabled(false);
     m_selectStudyTitlePushButton->setEnabled(false);
+    m_userRoles->resetToAllInvalid();
+    updateUserRolesLabel();
     
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
@@ -583,6 +594,8 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
         }
     }
     else {
+        m_userRoles->resetToAllInvalid();
+        
         cursor.restoreCursor();
         const AString msg("Unable to verify that you have agreed to the BALSA "
                           "Submission Terms and Conditions.  If you have not "
@@ -591,12 +604,33 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
         WuQMessageBox::warningOk(this, msg);
     }
     
+    updateUserRolesLabel();
+    
     m_uploadPushButton->setEnabled(true);
     m_selectStudyTitlePushButton->setEnabled(true);
 }
 
 /**
- * Gets called when return is pressed in either username 
+ * Update roles label with user's valid roles
+ */
+void
+BalsaDatabaseUploadSceneFileDialog::updateUserRolesLabel()
+{
+    m_userRolesLabel->setText("");
+    
+    const bool showRolesFlag = false;
+    if (showRolesFlag) {
+        const AString rolesText = m_userRoles->getRolesForDisplayInGUI();
+        if ( ! rolesText.isEmpty()) {
+            m_userRolesLabel->setText("   BALSA Roles: "
+                                      + rolesText);
+        }
+    }
+}
+
+
+/**
+ * Gets called when return is pressed in either username
  * or password.  If both contain text, try to login.
  */
 void
@@ -696,7 +730,22 @@ BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
     
     const AString extractToDirectoryName = m_extractDirectoryNameLineEdit->text().trimmed();
     
-    if ( ! saveSceneFile("")) {
+    AString saveMessage("The scene file is modified and must be saved before continuing.");
+    AString errorMessage;
+    bool sceneFileModStatus = m_sceneFile->isModified();
+    if (m_balsaDatabaseManager->updateSceneIDs(m_sceneFile,
+                                               errorMessage)) {
+        if ( ! sceneFileModStatus) {
+            if (m_sceneFile->isModified()) {
+                saveMessage = "The scene file was modified to add BALSA Scene Identifiers and must be saved before continuing.";
+            }
+        }
+    }
+    else {
+        return;
+    }
+    
+    if ( ! saveSceneFile(saveMessage)) {
         return;
     }
     
@@ -709,20 +758,12 @@ BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
     
     progressDialog.setCancelButton((QPushButton*)0); // no cancel button
     
-    AString errorMessage;
     const bool successFlag = m_balsaDatabaseManager->uploadZippedSceneFile(m_sceneFile,
                                                                            zipFileName,
                                                                            extractToDirectoryName,
                                                                            errorMessage);
-    
+
     cursor.restoreCursor();
-    
-    /*
-     * Scene file may be modified with updated Scene IDs from BALSA.
-     * Allow user to save, but do not require saving
-     */
-    saveSceneFile("Scene IDs were updated by BALSA during upload.  Would you like "
-                  "to save the scene file using its current name?");
     
     progressDialog.setValue(progressDialog.maximum());
     
@@ -753,12 +794,8 @@ BalsaDatabaseUploadSceneFileDialog::saveSceneFile(const AString& saveMessage)
 {
     if (m_sceneFile->isModified()) {
         if ( ! m_autoSaveSceneFileCheckBox->isChecked()) {
-            QString msg("The scene file is modified and must be saved before continuing.  Would you like "
-                              "to save the scene file using its current name and continue?");
-            if ( ! saveMessage.isEmpty()) {
-                msg = saveMessage;
-            }
-            
+            AString msg(saveMessage
+                        +  "  Would you like to save the scene file using its current name and continue?");
             if ( ! WuQMessageBox::warningOkCancel(this, msg)) {
                 return false;
             }
@@ -790,8 +827,11 @@ BalsaDatabaseUploadSceneFileDialog::autoSaveCheckBoxClicked(bool /*checked*/)
 }
 
 void
-BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked()
+BalsaDatabaseUploadSceneFileDialog::testButtonClicked()
 {
+    bool testRolesFlag = false;
+    bool testNewIDsFlag = true;
+    if (testRolesFlag) {
     const AString username = m_usernameLineEdit->text().trimmed();
     const AString password = m_passwordLineEdit->text().trimmed();
 
@@ -807,6 +847,23 @@ BalsaDatabaseUploadSceneFileDialog::rolesButtonClicked()
     }
     
     std::cout << "*** Role Names: " << balsaUserRoles.toString() << std::endl;
+    }
+    
+    if (testNewIDsFlag) {
+        int32_t numberOfSceneIDs = 2;
+        std::vector<AString> sceneIDs;
+        AString errorMessage;
+        if ( ! m_balsaDatabaseManager->getSceneIDs(numberOfSceneIDs,
+                                                   sceneIDs,
+                                                   errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+            return;
+        }
+        for (auto id : sceneIDs) {
+            std::cout << "Scene ID " << id << std::endl;
+        }
+    }
 }
 
 /**

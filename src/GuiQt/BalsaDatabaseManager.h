@@ -59,6 +59,13 @@ namespace caret {
                                       AString& studyIdOut,
                                       AString& errorMessageOut);
         
+        bool getSceneIDs(const int32_t numberOfSceneIDs,
+                             std::vector<AString>& sceneIDsOut,
+                             AString& errorMessageOut);
+        
+        bool updateSceneIDs(SceneFile* sceneFile,
+                            AString& errorMessageOut);
+        
         bool uploadZippedSceneFile(SceneFile* sceneFile,
                                    const AString& zipFileName,
                                    const AString& extractToDirectoryName,
@@ -109,6 +116,7 @@ namespace caret {
         bool processUploadedFile(SceneFile* sceneFile,
                                  const AString& processUploadURL,
                                  const AString& httpContentTypeName,
+                                 const bool updateSceneIDsFromResponseFlag,
                                  AString& errorMessageOut);
         
         bool requestStudyID(const AString& databaseURL,

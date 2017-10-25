@@ -982,15 +982,13 @@ SceneDialog::uploadSceneFileButtonClicked()
     }
     
     SceneFile* sceneFile = getSelectedSceneFile();
-//    if (sceneFile->isModified()) {
-//        WuQMessageBox::errorOk(m_uploadSceneFilePushButton,
-//                               "Selected Scene File is modified and must be saved prior to uploading.");
-//        return;
-//    }
     
     BalsaDatabaseUploadSceneFileDialog uploadDialog(sceneFile,
                                                     this);
     uploadDialog.exec();
+    
+    /* Scene ID may have been added and it is shown in info section for each scene */
+    loadScenesIntoDialog(NULL);
     
     updateSceneFileModifiedStatusLabel();
 }

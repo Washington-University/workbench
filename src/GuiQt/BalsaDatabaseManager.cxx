@@ -538,6 +538,8 @@ BalsaDatabaseManager::receiveEvent(Event* /*event*/)
  *     URL for uploading file.
  * @param httpContentTypeName
  *     Type of content for upload (eg: application/zip, see http://www.freeformatter.com/mime-types-list.html)
+ * @param updateSceneIDsFromResponseFlag
+ *     If true, update the Scene IDs using those in the response content.
  * @param errorMessageOut
  *     Contains error information if upload failed.
  * @return
@@ -546,8 +548,9 @@ BalsaDatabaseManager::receiveEvent(Event* /*event*/)
 bool
 BalsaDatabaseManager::processUploadedFile(SceneFile* sceneFile,
                                           const AString& processUploadURL,
-                         const AString& httpContentTypeName,
-                         AString& errorMessageOut)
+                                          const AString& httpContentTypeName,
+                                          const bool updateSceneIDsFromResponseFlag,
+                                          AString& errorMessageOut)
 {
     errorMessageOut.clear();
     
@@ -582,43 +585,48 @@ BalsaDatabaseManager::processUploadedFile(SceneFile* sceneFile,
         return false;
     }
 
-    for (std::map<AString, AString>::iterator mapIter = uploadResponse.m_headers.begin();
-         mapIter != uploadResponse.m_headers.end();
-         mapIter++) {
-        if (m_debugFlag) {
-            std::cout << "   Process Upload Response Header: " << qPrintable(mapIter->first)
-            << " -> " << qPrintable(mapIter->second) << std::endl;
+    /*
+     * As of 24 Oct 2017, Scene IDs are updated prior to uploading scene fiel
+     */
+    if (updateSceneIDsFromResponseFlag) {
+        for (std::map<AString, AString>::iterator mapIter = uploadResponse.m_headers.begin();
+             mapIter != uploadResponse.m_headers.end();
+             mapIter++) {
+            if (m_debugFlag) {
+                std::cout << "   Process Upload Response Header: " << qPrintable(mapIter->first)
+                << " -> " << qPrintable(mapIter->second) << std::endl;
+            }
         }
-    }
-    
-    uploadResponse.m_body.push_back('\0');
-    AString responseContent(&uploadResponse.m_body[0]);
-    if (m_debugFlag) {
-        std::cout << "Process Upload to BALSA reply body: " << responseContent << std::endl;
-    }
-    else {
-        CaretLogFine("Process Upload to BALSA reply body: "
-                     + responseContent);
-    }
-    
-    
-    AString contentType = getHeaderValue(uploadResponse, "Content-Type");
-    if (contentType.isNull()) {
-        errorMessageOut = ("Process Upload Content type returned by BALSA is unknown");
-        return false;
-    }
-    
-    if ( ! contentType.toLower().startsWith("application/json")) {
-        errorMessageOut = ("Process Upload Content type return by BALSA should be JSON format but is "
-                           + contentType
-                           + "Scene File was uploaded but Scene IDs will not be updated");
-        return false;
-    }
-   
-    if ( ! updateSceneIdsFromProcessUploadResponse(sceneFile,
-                                                   responseContent,
-                                                   errorMessageOut)) {
-        return false;
+        
+        uploadResponse.m_body.push_back('\0');
+        AString responseContent(&uploadResponse.m_body[0]);
+        if (m_debugFlag) {
+            std::cout << "Process Upload to BALSA reply body: " << responseContent << std::endl;
+        }
+        else {
+            CaretLogFine("Process Upload to BALSA reply body: "
+                         + responseContent);
+        }
+        
+        
+        AString contentType = getHeaderValue(uploadResponse, "Content-Type");
+        if (contentType.isNull()) {
+            errorMessageOut = ("Process Upload Content type returned by BALSA is unknown");
+            return false;
+        }
+        
+        if ( ! contentType.toLower().startsWith("application/json")) {
+            errorMessageOut = ("Process Upload Content type return by BALSA should be JSON format but is "
+                               + contentType
+                               + "Scene File was uploaded but Scene IDs will not be updated");
+            return false;
+        }
+        
+        if ( ! updateSceneIdsFromProcessUploadResponse(sceneFile,
+                                                       responseContent,
+                                                       errorMessageOut)) {
+            return false;
+        }
     }
     
     return true;
@@ -731,6 +739,156 @@ BalsaDatabaseManager::getHeaderValue(const CaretHttpResponse& httpResponse,
     
     return value;
 }
+
+/**
+ * Add Scene IDs to scenes in the given scene file that are missing Scene IDs
+ *
+ * @param sceneFile
+ *     The scene file.
+ * @param errorMessageOut
+ *     Output with error message
+ * @return
+ *     True if success, else false.
+ */
+bool
+BalsaDatabaseManager::updateSceneIDs(SceneFile* sceneFile,
+                                     AString& errorMessageOut)
+{
+    CaretAssert(sceneFile);
+    
+    std::vector<Scene*> scenesMissingID;
+    
+    const int32_t numScenes = sceneFile->getNumberOfScenes();
+    for (int32_t i = 0; i < numScenes; i++) {
+        Scene* scene = sceneFile->getSceneAtIndex(i);
+        CaretAssert(scene);
+        if (scene->getBalsaSceneID().trimmed().isEmpty()) {
+            scenesMissingID.push_back(scene);
+        }
+    }
+    
+    const int32_t numberOfIDs = static_cast<int32_t>(scenesMissingID.size());
+    if (numberOfIDs > 0) {
+        std::vector<AString> sceneIDs;
+        if ( ! getSceneIDs(numberOfIDs,
+                           sceneIDs,
+                           errorMessageOut)) {
+            return false;
+        }
+        
+        CaretAssert(scenesMissingID.size() == sceneIDs.size());
+        
+        for (int32_t i = 0; i < numberOfIDs; i++) {
+            scenesMissingID[i]->setBalsaSceneID(sceneIDs[i]);
+        }
+    }
+    
+    return true;
+}
+
+
+/**
+ * Request the given number of scene IDs
+ *
+ * @param numberOfSceneIDs
+ *     Number of scene IDs requested
+ * @param sceneIDsOut
+ *     Output with requested number of Scene IDs
+ * @param errorMessageOut
+ *     Output with error message
+ * @return
+ *     True if success, else false.
+ */
+bool
+BalsaDatabaseManager::getSceneIDs(const int32_t numberOfSceneIDs,
+                                  std::vector<AString>& sceneIDsOut,
+                                  AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    sceneIDsOut.clear();
+    
+    if (numberOfSceneIDs <= 0) {
+        errorMessageOut = "Zero or fewer Study IDs requested";
+        return false;
+    }
+    
+    const AString studyIdURL(m_databaseURL
+                             + "/scene/newIds/"
+                             + AString::number(numberOfSceneIDs));
+    
+    errorMessageOut.clear();
+    
+    CaretHttpRequest caretRequest;
+    caretRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
+    caretRequest.m_url    = studyIdURL;
+    caretRequest.m_headers.insert(std::make_pair("Content-Type",
+                                                 "application/x-www-form-urlencoded"));
+    caretRequest.m_headers.insert(std::make_pair("Cookie",
+                                                 getJSessionIdCookie()));
+    caretRequest.m_arguments.push_back(std::make_pair("type",
+                                                      "json"));
+    
+    CaretHttpResponse response;
+    CaretHttpManager::httpRequest(caretRequest, response);
+    
+    if (m_debugFlag) {
+        std::cout << "Request Scene IDs response Code: " << response.m_responseCode << std::endl;
+    }
+    
+    if (response.m_responseCode != 200) {
+        errorMessageOut = ("Requesting Scene IDs failed with HTTP code="
+                           + AString::number(response.m_responseCode)
+                           + ".  This error may be caused by failure to agree to data use terms.");
+        return false;
+    }
+    
+    response.m_body.push_back('\0');
+    AString responseContent(&response.m_body[0]);
+    
+    if (m_debugFlag) {
+        std::cout << "Request Scene IDs body:\n" << responseContent << std::endl << std::endl;
+    }
+    
+    AString contentType = getHeaderValue(response, "Content-Type");
+    if (contentType.isNull()) {
+        errorMessageOut = ("Requesting Scene IDs failed.  Content type returned by BALSA is unknown");
+        return false;
+    }
+    
+    if (contentType.toLower().startsWith("text/html")) {
+        /*
+         * Response from BALSA has Scene IDs separated by '<br>'
+         * Example: vp5B<br>Z02A<BR>
+         */
+        QStringList sl = responseContent.split("<br>",
+                                               QString::SkipEmptyParts,
+                                               Qt::CaseInsensitive);
+        const int32_t receivedCount = sl.count();
+        if (receivedCount != numberOfSceneIDs) {
+            errorMessageOut = ("Requested "
+                               + AString::number(numberOfSceneIDs)
+                               + " but received "
+                               + receivedCount
+                               + " IDs");
+            return false;
+        }
+        for (int32_t i = 0; i < receivedCount; i++) {
+            sceneIDsOut.push_back(sl.at(i));
+        }
+    }
+    else if (contentType.toLower().startsWith("application/json")) {
+        errorMessageOut = ("Requesting Scene IDS failed.  Content type returned by BALSA is JSON but support for JSON has not been implemented in Workbench");
+        return false;
+    }
+    else {
+        errorMessageOut = ("Requesting Scene IDS failed.  Content type returned by BALSA should be either text/html or JSON format but is "
+                           + contentType);
+        return false;
+    }
+    
+    return true;
+}
+
 
 /**
  * Get the study ID from a study Title
@@ -1214,6 +1372,7 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
         const bool processUploadSuccessFlag = processUploadedFile(sceneFile,
                                                                   processUploadURL,
                                                                   "application/x-www-form-urlencoded",
+                                                                  false, // do not look for Scene IDs in response content
                                                                   errorMessageOut);
         
         if (m_debugFlag) std::cout << "Result of processing the uploaded ZIP file" << AString::fromBool(processUploadSuccessFlag) << std::endl;

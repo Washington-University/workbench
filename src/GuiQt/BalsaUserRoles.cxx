@@ -218,6 +218,23 @@ BalsaUserRoles::isValid() const
     return m_validFlag;
 }
 
+/**
+ * @return Roles formatted for display in GUI.
+ */
+AString
+BalsaUserRoles::getRolesForDisplayInGUI() const
+{
+    AString s;
+    
+    if (m_validFlag) {
+        if (m_adminFlag) s.append("Admin; ");
+        if (m_curatorFlag) s.append("Curator; ");
+        if (m_submitterFlag) s.append("Submitter; ");
+        if (m_userFlag) s.append("User; ");
+    }
+    
+    return s;
+}
 
 /**
  * Get a description of this object's content.
