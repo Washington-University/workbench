@@ -1248,9 +1248,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                  * select annotation that are inside of the box
                  */
                 const float slightlyThicker = 2.0;
-                BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                          selectionColorRGBA,
-                                                          outlineWidth + slightlyThicker);
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+                    /*
+                     * For testing new line drawing
+                     * Width not limited to OpenGL min/max
+                     */
+                    float widthPixels = (box->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
+                    GraphicsOpenGLLineDrawing::drawLineLoopSolidByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                                           coords, selectionColorRGBA, widthPixels);
+                }
+                else {
+                    BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
+                                                              selectionColorRGBA,
+                                                              outlineWidth + slightlyThicker);
+                }
             }
             
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
@@ -1269,18 +1280,19 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
             if (drawForegroundFlag) {
                 const bool drawOutlineWithPolygonsFlag = true;
                 if (drawOutlineWithPolygonsFlag) {
-                    BrainOpenGLPrimitiveDrawing::drawRectangleOutline(bottomLeft, bottomRight, topRight, topLeft,
-                                                                      outlineWidth,
-                                                                      foregroundRGBA);
-
-                    /*
-                     * For testing new line drawing
-                     * Width not limited to OpenGL min/max
-                     */
-                    const bool testLineDrawingFlag = false;
-                    if (testLineDrawingFlag) {
+                    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+                        /*
+                         * For testing new line drawing
+                         * Width not limited to OpenGL min/max
+                         */
                         float widthPixels = (box->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
-                        GraphicsOpenGLLineDrawing::drawLineLoopSolidColor(coords, foregroundRGBA, widthPixels);
+                        GraphicsOpenGLLineDrawing::drawLineLoopSolidFloatColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                                          coords, foregroundRGBA, widthPixels);
+                    }
+                    else {
+                        BrainOpenGLPrimitiveDrawing::drawRectangleOutline(bottomLeft, bottomRight, topRight, topLeft,
+                                                                          outlineWidth,
+                                                                          foregroundRGBA);
                     }
                 }
                 else {
@@ -2767,9 +2779,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
         if (m_selectionModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
-            BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                                   selectionColorRGBA,
-                                                   backgroundLineWidth);
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+                /*
+                 * For testing new line drawing
+                 * Width not limited to OpenGL min/max
+                 */
+                float widthPixels = (line->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
+                GraphicsOpenGLLineDrawing::drawLinesSolidByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                                    coords, selectionColorRGBA, widthPixels);
+            }
+            else {
+                BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                                       selectionColorRGBA,
+                                                       backgroundLineWidth);
+            }
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                     line,
                                                     AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
@@ -2777,20 +2800,22 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
         }
         else {
             if (drawForegroundFlag) {
-                BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                                       foregroundRGBA,
-                                                       lineWidth);
-                drawnFlag = true;
-                
-                /*
-                 * For testing new line drawing
-                 * Width not limited to OpenGL min/max
-                 */
-                const bool testLineDrawingFlag = false;
-                if (testLineDrawingFlag) {
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+                    /*
+                     * For testing new line drawing
+                     * Width not limited to OpenGL min/max
+                     */
                     float widthPixels = (line->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
-                    GraphicsOpenGLLineDrawing::drawLinesSolidColor(coords, floatForegroundRGBA, widthPixels);
+                    GraphicsOpenGLLineDrawing::drawLinesSolidFloatColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                                   coords, floatForegroundRGBA, widthPixels);
                 }
+                else {
+                    BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                                           foregroundRGBA,
+                                                           lineWidth);
+                }
+                
+                drawnFlag = true;
             }
         }
         

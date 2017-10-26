@@ -30,29 +30,54 @@
 
 namespace caret {
 
-    class GraphicsPrimitive;
+    class GraphicsPrimitiveV3fC4f;
+    class GraphicsPrimitiveV3fC4ub;
     
     class GraphicsOpenGLLineDrawing : public CaretObject {
         
     public:
-//        GraphicsOpenGLLineDrawing(const GraphicsPrimitive* primitive,
-//                                  const float lineThicknessPixels);
-        
         virtual ~GraphicsOpenGLLineDrawing();
         
-        //bool run(AString& errorMessageOut);
-
-        static bool drawLinesSolidColor(const std::vector<float>& xyz,
+        static bool drawLinesPerVertexFloatColor(void* openglContextPointer,
+                                            const std::vector<float>& xyz,
+                                            const std::vector<float>& rgba,
+                                            const float lineThicknessPixels);
+        
+        static bool drawLinesSolidFloatColor(void* openglContextPointer,
+                                        const std::vector<float>& xyz,
                                         const float rgba[4],
                                         const float lineThicknessPixels);
         
-        static bool drawLineStripSolidColor(const std::vector<float>& xyz,
+        static bool drawLineStripSolidFloatColor(void* openglContextPointer,
+                                            const std::vector<float>& xyz,
                                         const float rgba[4],
                                         const float lineThicknessPixels);
         
-        static bool drawLineLoopSolidColor(const std::vector<float>& xyz,
-                                        const float rgba[4],
-                                        const float lineThicknessPixels);
+        static bool drawLineLoopSolidFloatColor(void* openglContextPointer,
+                                           const std::vector<float>& xyz,
+                                           const float rgba[4],
+                                           const float lineThicknessPixels);
+        
+        
+        static bool drawLinesPerVertexByteColor(void* openglContextPointer,
+                                                 const std::vector<float>& xyz,
+                                                 const std::vector<uint8_t>& rgba,
+                                                 const float lineThicknessPixels);
+        
+        static bool drawLinesSolidByteColor(void* openglContextPointer,
+                                             const std::vector<float>& xyz,
+                                             const uint8_t rgba[4],
+                                             const float lineThicknessPixels);
+        
+        static bool drawLineStripSolidByteColor(void* openglContextPointer,
+                                                 const std::vector<float>& xyz,
+                                                 const uint8_t rgba[4],
+                                                 const float lineThicknessPixels);
+        
+        static bool drawLineLoopSolidByteColor(void* openglContextPointer,
+                                                const std::vector<float>& xyz,
+                                                const uint8_t rgba[4],
+                                                const float lineThicknessPixels);
         
         // ADD_NEW_METHODS_HERE
 
@@ -63,10 +88,14 @@ namespace caret {
          * Type of line coloring
          */
         enum class ColorType {
-            /** color at each vertex */
-            RGBA_PER_VERTEX,
-            /** one color for all vertices */
-            RGBA_SOLID
+            /** Byte RGBA color at each vertex */
+            BYTE_RGBA_PER_VERTEX,
+            /** One Byte RGBA color for all vertices */
+            BYTE_RGBA_SOLID,
+            /** Float RGBA color at each vertex */
+            FLOAT_RGBA_PER_VERTEX,
+            /** One Float RGBA color for all vertices */
+            FLOAT_RGBA_SOLID
         };
         
         /**
@@ -81,8 +110,10 @@ namespace caret {
             LINE_STRIP
         };
         
-        GraphicsOpenGLLineDrawing(const std::vector<float>& xyz,
-                                  const std::vector<float>& rgba,
+        GraphicsOpenGLLineDrawing(void* openglContextPointer,
+                                  const std::vector<float>& xyz,
+                                  const std::vector<float>& floatRGBA,
+                                  const std::vector<uint8_t>& byteRGBA,
                                   const float lineThicknessPixels,
                                   const ColorType colorType,
                                   const LineType lineType);
@@ -91,8 +122,10 @@ namespace caret {
         
         GraphicsOpenGLLineDrawing& operator=(const GraphicsOpenGLLineDrawing& obj) const;
         
-        static bool drawLinesPrivate(const std::vector<float>& xyz,
-                                     const std::vector<float>& rgba,
+        static bool drawLinesPrivate(void* openglContextPointer,
+                                     const std::vector<float>& xyz,
+                                     const std::vector<float>& floatRGBA,
+                                     const std::vector<uint8_t>& byteRGBA,
                                      const float lineThicknessPixels,
                                      const ColorType colorType,
                                      const LineType lineType);
@@ -108,8 +141,6 @@ namespace caret {
         void convertFromModelToWindowCoordinate(const float modelXYZ[3],
                                                 float windowXYZOut[3]) const;
         
-        //void convertPointsToWindowCoordinates();
-        
         void createWindowCoordinatesFromVertices();
         
         void convertLineSegmentsToQuads();
@@ -119,11 +150,13 @@ namespace caret {
         
         void drawQuads();
         
-        const GraphicsPrimitive* m_inputPrimitive;
+        void* m_openglContextPointer;
         
         const std::vector<float>& m_inputXYZ;
         
-        const std::vector<float>& m_inputRGBA;
+        const std::vector<float>& m_inputFloatRGBA;
+        
+        const std::vector<uint8_t>& m_inputByteRGBA;
         
         const float m_lineThicknessPixels;
         
@@ -131,13 +164,11 @@ namespace caret {
         
         const LineType m_lineType;
         
-        GraphicsPrimitive* m_outputPrimitive = NULL;
-        
         std::vector<float> m_vertexWindowXYZ;
         
-        std::vector<float> m_windowQuadsXYZ;
+        //std::vector<float> m_windowQuadsXYZ;
         
-        std::vector<float> m_windowQuadsRGBA;
+        //std::vector<float> m_windowQuadsRGBA;
         
         bool m_debugFlag = false;
         
@@ -146,6 +177,10 @@ namespace caret {
         int m_savedViewport[4];
         
         Matrix4x4 m_projectionMatrix;
+        
+        std::unique_ptr<GraphicsPrimitiveV3fC4f> m_primitiveFloatColor;
+        
+        std::unique_ptr<GraphicsPrimitiveV3fC4ub> m_primitiveByteColor;
         
         // ADD_NEW_MEMBERS_HERE
 

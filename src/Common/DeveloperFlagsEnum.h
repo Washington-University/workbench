@@ -36,6 +36,7 @@ public:
      */
     enum Enum {
         DEVELOPER_FLAG_UNUSED,
+        DEVELOPER_FLAG_NEW_LINE_DRAWING
     };
 
     ~DeveloperFlagsEnum();

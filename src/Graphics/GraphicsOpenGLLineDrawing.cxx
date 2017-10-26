@@ -27,8 +27,11 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "GraphicsEngineDataOpenGL.h"
 #include "CaretOpenGLInclude.h"
 #include "GraphicsPrimitive.h"
+#include "GraphicsPrimitiveV3fC4f.h"
+#include "GraphicsPrimitiveV3fC4ub.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 
@@ -57,10 +60,14 @@ GraphicsOpenGLLineDrawing::~GraphicsOpenGLLineDrawing()
 /**
  * Constructor.
  *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
  * @param xyz
  *     The XYZ vertices.
- * @param rgba
- *     The RGBA coloring.
+ * @param floatRGBA
+ *     The Float RGBA coloring.
+ * @param byteRGBA
+ *     The Byte RGBA coloring.
  * @param lineThicknessPixels
  *     Thickness of lines in pixels.
  * @param colorType
@@ -68,14 +75,17 @@ GraphicsOpenGLLineDrawing::~GraphicsOpenGLLineDrawing()
  * @param lineType
  *     Type of lines drawn.
  */
-GraphicsOpenGLLineDrawing::GraphicsOpenGLLineDrawing(const std::vector<float>& xyz,
-                          const std::vector<float>& rgba,
-                          const float lineThicknessPixels,
-                          const ColorType colorType,
-                          const LineType lineType)
-: m_inputPrimitive(NULL),
+GraphicsOpenGLLineDrawing::GraphicsOpenGLLineDrawing(void* openglContextPointer,
+                                                     const std::vector<float>& xyz,
+                                                     const std::vector<float>& floatRGBA,
+                                                     const std::vector<uint8_t>& byteRGBA,
+                                                     const float lineThicknessPixels,
+                                                     const ColorType colorType,
+                                                     const LineType lineType)
+: m_openglContextPointer(openglContextPointer),
 m_inputXYZ(xyz),
-m_inputRGBA(rgba),
+m_inputFloatRGBA(floatRGBA),
+m_inputByteRGBA(byteRGBA),
 m_lineThicknessPixels(lineThicknessPixels),
 m_colorType(colorType),
 m_lineType(lineType)
@@ -83,11 +93,12 @@ m_lineType(lineType)
     
 }
 
-
 /**
  * Draw lines where each pair of vertices is drawn as an independent
  * line segment.  Same as OpenGL GL_LINES mode with glBegin().
  *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
  * @param xyz
  *     The vertices.
  * @param rgba
@@ -98,41 +109,59 @@ m_lineType(lineType)
  *     True if drawn, or false if there was an error.
  */
 bool
-GraphicsOpenGLLineDrawing::drawLinesSolidColor(const std::vector<float>& xyz,
+GraphicsOpenGLLineDrawing::drawLinesPerVertexFloatColor(void* openglContextPointer,
+                                                   const std::vector<float>& xyz,
+                                                   const std::vector<float>& rgba,
+                                                   const float lineThicknessPixels)
+{
+    std::vector<uint8_t> emptyByteRGBA;
+    return drawLinesPrivate(openglContextPointer,
+                            xyz,
+                            rgba,
+                            emptyByteRGBA,
+                            lineThicknessPixels,
+                            ColorType::FLOAT_RGBA_PER_VERTEX,
+                            LineType::LINES);
+}
+
+/**
+ * Draw lines where each pair of vertices is drawn as an independent
+ * line segment.  Same as OpenGL GL_LINES mode with glBegin().
+ *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
+ * @param xyz
+ *     The vertices.
+ * @param rgba
+ *     RGBA color for the lines with values ranging [0.0, 1.0]
+ * @param lineThicknessPixels
+ *     Thickness of line in pixels.
+ * @return
+ *     True if drawn, or false if there was an error.
+ */
+bool
+GraphicsOpenGLLineDrawing::drawLinesSolidFloatColor(void* openglContextPointer,
+                                               const std::vector<float>& xyz,
                                                const float rgba[4],
                                                const float lineThicknessPixels)
 {
     std::vector<float> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
     
-    return drawLinesPrivate(xyz,
+    std::vector<uint8_t> emptyByteRGBA;
+    return drawLinesPrivate(openglContextPointer,
+                            xyz,
                             rgbaVector,
+                            emptyByteRGBA,
                             lineThicknessPixels,
-                            ColorType::RGBA_SOLID,
+                            ColorType::FLOAT_RGBA_SOLID,
                             LineType::LINES);
-    
-//    const int32_t numPoints = static_cast<int32_t>(xyz.size() / 3);
-//    if (numPoints < 2) {
-//        CaretLogWarning("Invalid number of points="
-//                        + AString::number(numPoints)
-//                        + " for line drawing.  Must be at least 2.");
-//        return false;
-//    }
-//    
-//    std::vector<float> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
-//    
-//    GraphicsOpenGLLineDrawing lineDrawing(xyz,
-//                                          rgbaVector,
-//                                          lineThicknessPixels,
-//                                          ColorType::RGBA_SOLID,
-//                                          LineType::LINES);
-//    lineDrawing.performDrawing();
-//    
-//    return true;
 }
 
 /**
  * Draw a connect line strip.  Same as OpenGL GL_LINE_STRIP mode with glBegin().
  *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
  * @param xyz
  *     The vertices.
  * @param rgba
@@ -143,23 +172,28 @@ GraphicsOpenGLLineDrawing::drawLinesSolidColor(const std::vector<float>& xyz,
  *     True if drawn, or false if there was an error.
  */
 bool
-GraphicsOpenGLLineDrawing::drawLineStripSolidColor(const std::vector<float>& xyz,
+GraphicsOpenGLLineDrawing::drawLineStripSolidFloatColor(void* openglContextPointer,
+                                                   const std::vector<float>& xyz,
                                                const float rgba[4],
                                                const float lineThicknessPixels)
 {
     std::vector<float> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
+    std::vector<uint8_t> emptyByteRGBA;
     
-    return drawLinesPrivate(xyz,
+    return drawLinesPrivate(openglContextPointer,
+                            xyz,
                             rgbaVector,
+                            emptyByteRGBA,
                             lineThicknessPixels,
-                            ColorType::RGBA_SOLID,
+                            ColorType::FLOAT_RGBA_SOLID,
                             LineType::LINE_STRIP);
-    
 }
 
 /**
  * Draw a connect line loop (last is connected to first).  Same as OpenGL GL_LINE_LOOP mode with glBegin().
  *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
  * @param xyz
  *     The vertices.
  * @param rgba
@@ -170,28 +204,166 @@ GraphicsOpenGLLineDrawing::drawLineStripSolidColor(const std::vector<float>& xyz
  *     True if drawn, or false if there was an error.
  */
 bool
-GraphicsOpenGLLineDrawing::drawLineLoopSolidColor(const std::vector<float>& xyz,
+GraphicsOpenGLLineDrawing::drawLineLoopSolidFloatColor(void* openglContextPointer,
+                                                  const std::vector<float>& xyz,
                                                    const float rgba[4],
                                                    const float lineThicknessPixels)
 {
     std::vector<float> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
-    
-    return drawLinesPrivate(xyz,
+    std::vector<uint8_t> emptyByteRGBA;
+    return drawLinesPrivate(openglContextPointer,
+                            xyz,
                             rgbaVector,
+                            emptyByteRGBA,
                             lineThicknessPixels,
-                            ColorType::RGBA_SOLID,
+                            ColorType::FLOAT_RGBA_SOLID,
                             LineType::LINE_LOOP);
-    
+}
+
+
+
+
+
+/**
+ * Draw lines where each pair of vertices is drawn as an independent
+ * line segment.  Same as OpenGL GL_LINES mode with glBegin().
+ *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
+ * @param xyz
+ *     The vertices.
+ * @param rgba
+ *     RGBA color for the lines with values ranging [0, 255]
+ * @param lineThicknessPixels
+ *     Thickness of line in pixels.
+ * @return
+ *     True if drawn, or false if there was an error.
+ */
+bool
+GraphicsOpenGLLineDrawing::drawLinesPerVertexByteColor(void* openglContextPointer,
+                                                        const std::vector<float>& xyz,
+                                                        const std::vector<uint8_t>& rgba,
+                                                        const float lineThicknessPixels)
+{
+    std::vector<float> emptyFloatRGBA;
+    return drawLinesPrivate(openglContextPointer,
+                            xyz,
+                            emptyFloatRGBA,
+                            rgba,
+                            lineThicknessPixels,
+                            ColorType::BYTE_RGBA_PER_VERTEX,
+                            LineType::LINES);
 }
 
 /**
  * Draw lines where each pair of vertices is drawn as an independent
  * line segment.  Same as OpenGL GL_LINES mode with glBegin().
  *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
  * @param xyz
  *     The vertices.
  * @param rgba
- *     RGBA color for the lines with values ranging [0.0, 1.0]
+ *     RGBA color for the lines with values ranging [0, 255]
+ * @param lineThicknessPixels
+ *     Thickness of line in pixels.
+ * @return
+ *     True if drawn, or false if there was an error.
+ */
+bool
+GraphicsOpenGLLineDrawing::drawLinesSolidByteColor(void* openglContextPointer,
+                                                    const std::vector<float>& xyz,
+                                                    const uint8_t rgba[4],
+                                                    const float lineThicknessPixels)
+{
+    std::vector<uint8_t> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
+    
+    std::vector<float> emptyFloatRGBA;
+    return drawLinesPrivate(openglContextPointer,
+                            xyz,
+                            emptyFloatRGBA,
+                            rgbaVector,
+                            lineThicknessPixels,
+                            ColorType::BYTE_RGBA_SOLID,
+                            LineType::LINES);
+}
+
+/**
+ * Draw a connect line strip.  Same as OpenGL GL_LINE_STRIP mode with glBegin().
+ *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
+ * @param xyz
+ *     The vertices.
+ * @param rgba
+ *     RGBA color for the lines with values ranging [0, 255]
+ * @param lineThicknessPixels
+ *     Thickness of line in pixels.
+ * @return
+ *     True if drawn, or false if there was an error.
+ */
+bool
+GraphicsOpenGLLineDrawing::drawLineStripSolidByteColor(void* openglContextPointer,
+                                                        const std::vector<float>& xyz,
+                                                        const uint8_t rgba[4],
+                                                        const float lineThicknessPixels)
+{
+    std::vector<uint8_t> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
+    std::vector<float> emptyFloatRGBA;
+    
+    return drawLinesPrivate(openglContextPointer,
+                            xyz,
+                            emptyFloatRGBA,
+                            rgbaVector,
+                            lineThicknessPixels,
+                            ColorType::BYTE_RGBA_SOLID,
+                            LineType::LINE_STRIP);
+}
+
+/**
+ * Draw a connect line loop (last is connected to first).  Same as OpenGL GL_LINE_LOOP mode with glBegin().
+ *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
+ * @param xyz
+ *     The vertices.
+ * @param rgba
+ *     RGBA color for the lines with values ranging [0, 255]
+ * @param lineThicknessPixels
+ *     Thickness of line in pixels.
+ * @return
+ *     True if drawn, or false if there was an error.
+ */
+bool
+GraphicsOpenGLLineDrawing::drawLineLoopSolidByteColor(void* openglContextPointer,
+                                                       const std::vector<float>& xyz,
+                                                       const uint8_t rgba[4],
+                                                       const float lineThicknessPixels)
+{
+    std::vector<uint8_t> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
+    std::vector<float> emptyFloatRGBA;
+    return drawLinesPrivate(openglContextPointer,
+                            xyz,
+                            emptyFloatRGBA,
+                            rgbaVector,
+                            lineThicknessPixels,
+                            ColorType::BYTE_RGBA_SOLID,
+                            LineType::LINE_LOOP);
+}
+
+
+/**
+ * Draw lines where each pair of vertices is drawn as an independent
+ * line segment.  Same as OpenGL GL_LINES mode with glBegin().
+ *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
+ * @param xyz
+ *     The vertices.
+ * @param floatRGBA
+ *     The Float RGBA coloring.
+ * @param byteRGBA
+ *     The Byte RGBA coloring.
  * @param lineThicknessPixels
  *     Thickness of line in pixels.
  * @param colorType
@@ -202,14 +374,18 @@ GraphicsOpenGLLineDrawing::drawLineLoopSolidColor(const std::vector<float>& xyz,
  *     True if drawn, or false if there was an error.
  */
 bool
-GraphicsOpenGLLineDrawing::drawLinesPrivate(const std::vector<float>& xyz,
-                                            const std::vector<float>& rgba,
+GraphicsOpenGLLineDrawing::drawLinesPrivate(void* openglContextPointer,
+                                            const std::vector<float>& xyz,
+                                            const std::vector<float>& floatRGBA,
+                                            const std::vector<uint8_t>& byteRGBA,
                                             const float lineThicknessPixels,
                                             const ColorType colorType,
                                             const LineType lineType)
 {
-    GraphicsOpenGLLineDrawing lineDrawing(xyz,
-                                          rgba,
+    GraphicsOpenGLLineDrawing lineDrawing(openglContextPointer,
+                                          xyz,
+                                          floatRGBA,
+                                          byteRGBA,
                                           lineThicknessPixels,
                                           colorType,
                                           lineType);
@@ -233,26 +409,48 @@ GraphicsOpenGLLineDrawing::performDrawing()
         return false;
     }
     
-    const int32_t numRGBA = static_cast<int32_t>(m_inputRGBA.size());
+    const int32_t numFloatRGBA = static_cast<int32_t>(m_inputFloatRGBA.size());
+    const int32_t numByteRGBA = static_cast<int32_t>(m_inputByteRGBA.size());
     switch (m_colorType) {
-        case ColorType::RGBA_PER_VERTEX:
+        case ColorType::BYTE_RGBA_PER_VERTEX:
         {
-            const int32_t numRgbaVertices = numRGBA / 4;
+            const int32_t numRgbaVertices = numByteRGBA / 4;
             if (numVertices != numRgbaVertices) {
                 CaretLogSevere("Mismatch in vertices and coloring.  There are "
                                + AString::number(numVertices)
-                               + " vertices but have coloring for "
+                               + " vertices but have byte coloring for "
                                + AString::number(numRgbaVertices)
                                + " vertices");
                 return false;
             }
         }
             break;
-        case ColorType::RGBA_SOLID:
-            if (numRGBA < 4) {
+        case ColorType::BYTE_RGBA_SOLID:
+            if (numByteRGBA < 4) {
                 CaretLogSevere("Must have at last 4 color components for solid color line drawing"
                                "Number of color components is "
-                               + AString::number(numRGBA));
+                               + AString::number(numByteRGBA));
+                return false;
+            }
+            break;
+        case ColorType::FLOAT_RGBA_PER_VERTEX:
+        {
+            const int32_t numRgbaVertices = numFloatRGBA / 4;
+            if (numVertices != numRgbaVertices) {
+                CaretLogSevere("Mismatch in vertices and coloring.  There are "
+                               + AString::number(numVertices)
+                               + " vertices but have float coloring for "
+                               + AString::number(numRgbaVertices)
+                               + " vertices");
+                return false;
+            }
+        }
+            break;
+        case ColorType::FLOAT_RGBA_SOLID:
+            if (numFloatRGBA < 4) {
+                CaretLogSevere("Must have at last 4 color components for solid color line drawing"
+                               "Number of color components is "
+                               + AString::number(numFloatRGBA));
                 return false;
             }
             break;
@@ -345,7 +543,8 @@ GraphicsOpenGLLineDrawing::createProjectionMatrix()
                  projectionArray);
     
     m_projectionMatrix.setMatrixFromOpenGL(projectionArray);
-    m_projectionMatrix.postmultiply(modelviewMatrix);
+    //m_projectionMatrix.postmultiply(modelviewMatrix);
+    m_projectionMatrix.premultiply(modelviewMatrix);
 }
 
 
@@ -379,16 +578,20 @@ GraphicsOpenGLLineDrawing::createWindowCoordinatesFromVertices()
         m_vertexWindowXYZ.push_back(windowXYZ[1]);
         m_vertexWindowXYZ.push_back(windowXYZ[2]);
         
-//        if (m_debugFlag) {
-//            GLdouble winX, winY, winZ;
-//            gluProject(xyz[i3], xyz[i3+1], xyz[i3+2],
-//                       modelviewArray, projectionArray, viewport,
-//                       &winX, &winY, &winZ);
-//            std::cout << "Input: " << xyz[i3] << ", " << xyz[i3+1] << ", " << xyz[i3+2] << std::endl;
-//            std::cout << "   Pt " << i << ": "
-//            << windowX << ", " << windowY << ", " << windowZ << "  w=" << xyzw[3] << std::endl;
-//            std::cout << "   gluProject " << winX << ", " << winY << ", " << winZ << std::endl;
-//        }
+        if (m_debugFlag) {
+            GLdouble modelviewArray[16];
+            glGetDoublev(GL_MODELVIEW_MATRIX, modelviewArray);
+            GLdouble projectionArray[16];
+            glGetDoublev(GL_PROJECTION_MATRIX, projectionArray);
+            GLdouble winX, winY, winZ;
+            gluProject(m_inputXYZ[i3], m_inputXYZ[i3+1], m_inputXYZ[i3+2],
+                       modelviewArray, projectionArray, viewport,
+                       &winX, &winY, &winZ);
+            std::cout << "Input: " << m_inputXYZ[i3] << ", " << m_inputXYZ[i3+1] << ", " << m_inputXYZ[i3+2] << std::endl;
+            std::cout << "   Pt " << i << ": "
+            << winX << ", " << winY << ", " << winZ << std::endl;
+            std::cout << "   gluProject " << winX << ", " << winY << ", " << winZ << std::endl;
+        }
     }
     
     CaretAssert(m_inputXYZ.size() == m_vertexWindowXYZ.size());
@@ -495,42 +698,78 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
         z2
     };
     
+
+    /*
+     * RGBA for the points P1, P2, P3, P4
+     */
+    int32_t rgbaOffsetP1P2 = 0;
+    int32_t rgbaOffsetP3P4 = 0;
+    switch (m_colorType) {
+        case ColorType::BYTE_RGBA_PER_VERTEX:
+            rgbaOffsetP1P2 = indexOne * 4;
+            rgbaOffsetP3P4 = indexTwo * 4;
+            break;
+        case ColorType::BYTE_RGBA_SOLID:
+            break;
+        case ColorType::FLOAT_RGBA_PER_VERTEX:
+            rgbaOffsetP1P2 = indexOne * 4;
+            rgbaOffsetP3P4 = indexTwo * 4;
+            break;
+        case ColorType::FLOAT_RGBA_SOLID:
+            break;
+    }
+    
     float crossProduct[3];
     MathFunctions::crossProduct(startToEndVector, perpendicularVector, crossProduct);
-    if (crossProduct[2] < 0.0) {
-        m_windowQuadsXYZ.insert(m_windowQuadsXYZ.end(), p1, p1 + 3);
-        m_windowQuadsXYZ.insert(m_windowQuadsXYZ.end(), p2, p2 + 3);
-        m_windowQuadsXYZ.insert(m_windowQuadsXYZ.end(), p3, p3 + 3);
-        m_windowQuadsXYZ.insert(m_windowQuadsXYZ.end(), p4, p4 + 3);
-    }
-    else {
-        std::cout << "Flipped Quad" << std::endl;
-        m_windowQuadsXYZ.insert(m_windowQuadsXYZ.end(), p1, p1 + 3);
-        m_windowQuadsXYZ.insert(m_windowQuadsXYZ.end(), p4, p4 + 3);
-        m_windowQuadsXYZ.insert(m_windowQuadsXYZ.end(), p3, p3 + 3);
-        m_windowQuadsXYZ.insert(m_windowQuadsXYZ.end(), p2, p2 + 3);
-    }
- 
+    
     switch (m_colorType) {
-        case ColorType::RGBA_PER_VERTEX:
+        case ColorType::BYTE_RGBA_PER_VERTEX:
+        case ColorType::BYTE_RGBA_SOLID:
         {
-            CaretAssertVectorIndex(m_inputRGBA, indexOne * 4 * 3);
-            const float* rgbaOneOffset = &m_inputRGBA[indexOne * 4];
-            m_windowQuadsRGBA.insert(m_windowQuadsRGBA.end(), rgbaOneOffset, rgbaOneOffset + 4);
-            m_windowQuadsRGBA.insert(m_windowQuadsRGBA.end(), rgbaOneOffset, rgbaOneOffset + 4);
+            CaretAssertVectorIndex(m_inputByteRGBA, rgbaOffsetP1P2 + 3);
+            const uint8_t* rgbaP12 = &m_inputByteRGBA[rgbaOffsetP1P2];
+            CaretAssertVectorIndex(m_inputByteRGBA, rgbaOffsetP3P4 + 3);
+            const uint8_t* rgbaP34 = &m_inputByteRGBA[rgbaOffsetP3P4];
             
-            CaretAssertVectorIndex(m_inputRGBA, indexTwo * 4 * 3);
-            const float* rgbaTwoOffset = &m_inputRGBA[indexTwo * 4];
-            m_windowQuadsRGBA.insert(m_windowQuadsRGBA.end(), rgbaTwoOffset, rgbaTwoOffset + 4);
-            m_windowQuadsRGBA.insert(m_windowQuadsRGBA.end(), rgbaOneOffset, rgbaOneOffset + 4);
+            CaretAssert(m_primitiveByteColor.get());
+            if (crossProduct[2] < 0.0) {
+                m_primitiveByteColor->addVertex(p1, rgbaP12);
+                m_primitiveByteColor->addVertex(p2, rgbaP12);
+                m_primitiveByteColor->addVertex(p3, rgbaP34);
+                m_primitiveByteColor->addVertex(p4, rgbaP34);
+            }
+            else {
+                std::cout << "Flipped Quad" << std::endl;
+                m_primitiveByteColor->addVertex(p1, rgbaP12);
+                m_primitiveByteColor->addVertex(p4, rgbaP34);
+                m_primitiveByteColor->addVertex(p3, rgbaP34);
+                m_primitiveByteColor->addVertex(p2, rgbaP12);
+            }
         }
             break;
-        case ColorType::RGBA_SOLID:
-            CaretAssertVectorIndex(m_inputRGBA, 3);
-            m_windowQuadsRGBA.insert(m_windowQuadsRGBA.end(), m_inputRGBA.begin(), m_inputRGBA.begin() + 4);
-            m_windowQuadsRGBA.insert(m_windowQuadsRGBA.end(), m_inputRGBA.begin(), m_inputRGBA.begin() + 4);
-            m_windowQuadsRGBA.insert(m_windowQuadsRGBA.end(), m_inputRGBA.begin(), m_inputRGBA.begin() + 4);
-            m_windowQuadsRGBA.insert(m_windowQuadsRGBA.end(), m_inputRGBA.begin(), m_inputRGBA.begin() + 4);
+        case ColorType::FLOAT_RGBA_PER_VERTEX:
+        case ColorType::FLOAT_RGBA_SOLID:
+        {
+            CaretAssertVectorIndex(m_inputFloatRGBA, rgbaOffsetP1P2 + 3);
+            const float* rgbaP12 = &m_inputFloatRGBA[rgbaOffsetP1P2];
+            CaretAssertVectorIndex(m_inputFloatRGBA, rgbaOffsetP3P4 + 3);
+            const float* rgbaP34 = &m_inputFloatRGBA[rgbaOffsetP3P4];
+            
+            CaretAssert(m_primitiveFloatColor.get());
+            if (crossProduct[2] < 0.0) {
+                m_primitiveFloatColor->addVertex(p1, rgbaP12);
+                m_primitiveFloatColor->addVertex(p2, rgbaP12);
+                m_primitiveFloatColor->addVertex(p3, rgbaP34);
+                m_primitiveFloatColor->addVertex(p4, rgbaP34);
+            }
+            else {
+                std::cout << "Flipped Quad" << std::endl;
+                m_primitiveFloatColor->addVertex(p1, rgbaP12);
+                m_primitiveFloatColor->addVertex(p4, rgbaP34);
+                m_primitiveFloatColor->addVertex(p3, rgbaP34);
+                m_primitiveFloatColor->addVertex(p2, rgbaP12);
+            }
+        }
             break;
     }
 }
@@ -545,8 +784,35 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
 void
 GraphicsOpenGLLineDrawing::convertLineSegmentsToQuads()
 {
+    
     const int32_t numVertices = static_cast<int32_t>(m_vertexWindowXYZ.size() / 3);
-    m_windowQuadsXYZ.reserve(numVertices * 6);  // 2 points in line to 4 points in quad
+    
+    int32_t estimatedNumberOfQuads = 0;
+    switch (m_lineType) {
+        case LineType::LINES:
+            estimatedNumberOfQuads = numVertices / 2;
+            break;
+        case LineType::LINE_LOOP:
+            estimatedNumberOfQuads = numVertices;
+            break;
+        case LineType::LINE_STRIP:
+            estimatedNumberOfQuads = numVertices - 1;
+            break;
+    }
+    
+    switch (m_colorType) {
+        case ColorType::BYTE_RGBA_PER_VERTEX:
+        case ColorType::BYTE_RGBA_SOLID:
+            m_primitiveByteColor.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
+            m_primitiveByteColor->reserveForNumberOfVertices(estimatedNumberOfQuads * 4);
+            break;
+        case ColorType::FLOAT_RGBA_PER_VERTEX:
+        case ColorType::FLOAT_RGBA_SOLID:
+            m_primitiveFloatColor.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+            m_primitiveFloatColor->reserveForNumberOfVertices(estimatedNumberOfQuads * 4);
+            break;
+    }
+    
     
     const int32_t numVerticesMinusOne = numVertices - 1;
     
@@ -580,10 +846,6 @@ GraphicsOpenGLLineDrawing::convertLineSegmentsToQuads()
 void
 GraphicsOpenGLLineDrawing::drawQuads()
 {
-    const int32_t numVertices = static_cast<int32_t>(m_windowQuadsXYZ.size() / 3);
-    const int32_t numRGBA     = static_cast<int32_t>(m_windowQuadsRGBA.size() / 4);
-    CaretAssert(numVertices == numRGBA);
-    
     GLdouble depthRange[2];
     glGetDoublev(GL_DEPTH_RANGE,
                  depthRange);
@@ -604,24 +866,28 @@ GraphicsOpenGLLineDrawing::drawQuads()
     //glPolygonMode(GL_BACK, GL_LINE);
     
     switch (m_colorType) {
-        case ColorType::RGBA_PER_VERTEX:
-            break;
-        case ColorType::RGBA_SOLID:
-            glBegin(GL_QUADS);  //GL_QUADS)
-            for (int32_t j = 0; j < numVertices; j++) {
-                CaretAssertVectorIndex(m_windowQuadsRGBA, j*4 + 3);
-                glColor4fv(&m_windowQuadsRGBA[j*4]);
-                CaretAssertVectorIndex(m_windowQuadsXYZ, j*3 + 2);
-                glVertex3fv(&m_windowQuadsXYZ[j*3]);
+        case ColorType::BYTE_RGBA_PER_VERTEX:
+        case ColorType::BYTE_RGBA_SOLID:
+            CaretAssert(m_primitiveByteColor.get());
+            GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
+                                           m_primitiveByteColor.get());
+            if (m_debugFlag) {
+                std::cout << std::endl << "Quad Primitive: " << m_primitiveByteColor->toString() << std::endl;
+                std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
             }
-            glEnd();
+            break;
+        case ColorType::FLOAT_RGBA_PER_VERTEX:
+        case ColorType::FLOAT_RGBA_SOLID:
+            CaretAssert(m_primitiveFloatColor.get());
+            GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
+                                           m_primitiveFloatColor.get());
+            if (m_debugFlag) {
+                std::cout << std::endl << "Quad Primitive: " << m_primitiveFloatColor->toString() << std::endl;
+                std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
+            }
             break;
     }
     
-    if (m_debugFlag) {
-        std::cout << std::endl << "QUADS: " << AString::fromNumbers(m_windowQuadsXYZ, ",") << std::endl;
-        std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
-    }
 }
 
 /**
