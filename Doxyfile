@@ -43,6 +43,7 @@ INPUT = \
 	src/FilesBase \
 	src/FtglFont \
 	src/Gifti \
+	src/Graphics \
 	src/GuiQt \
 	src/Nifti \
 	src/OSMesaDummy \
