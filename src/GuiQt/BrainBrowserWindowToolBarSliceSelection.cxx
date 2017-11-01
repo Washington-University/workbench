@@ -588,45 +588,21 @@ BrainBrowserWindowToolBarSliceSelection::readVolumeSliceIndicesAndUpdateSliceCoo
         switch (sliceProjectionType) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             {
-                float sx(1.0), sy(1.0), sz(1.0);
-                underlayVolumeFile->getVoxelSpacing(sx, sy, sz);
-                
                 switch (viewPlane) {
                     case VolumeSliceViewPlaneEnum::ALL:
                         CaretAssert(0);
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
-                    {
-                        const int32_t diff  = sliceIndex - btc->getSliceIndexAxial(underlayVolumeFile);
-                        if (diff > 0) {
-                            btc->setSliceCoordinateAxial(btc->getSliceCoordinateAxial() + sz);
-                        }
-                        else {
-                            btc->setSliceCoordinateAxial(btc->getSliceCoordinateAxial() - sz);
-                        }
-                    }
+                        btc->setSliceIndexAxial(underlayVolumeFile,
+                                                sliceIndex);
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
-                    {
-                        const int32_t diff  = sliceIndex - btc->getSliceIndexCoronal(underlayVolumeFile);
-                        if (diff > 0) {
-                            btc->setSliceCoordinateCoronal(btc->getSliceCoordinateCoronal() + sy);
-                        }
-                        else {
-                            btc->setSliceCoordinateCoronal(btc->getSliceCoordinateCoronal() - sy);
-                        }
-                    }
+                        btc->setSliceIndexCoronal(underlayVolumeFile,
+                                                  sliceIndex);
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    {
-                        const int32_t diff  = sliceIndex - btc->getSliceIndexParasagittal(underlayVolumeFile);
-                        if (diff > 0) {
-                            btc->setSliceCoordinateParasagittal(btc->getSliceCoordinateParasagittal() + sx);
-                        }
-                        else {
-                            btc->setSliceCoordinateParasagittal(btc->getSliceCoordinateParasagittal() - sx);
-                        }
-                    }
+                        btc->setSliceIndexParasagittal(underlayVolumeFile,
+                                                       sliceIndex);
                         break;
                 }
             }
