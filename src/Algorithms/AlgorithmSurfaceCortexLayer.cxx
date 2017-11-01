@@ -55,7 +55,7 @@ OperationParameters* AlgorithmSurfaceCortexLayer::getParameters()
     OptionalParameter* metricOpt = ret->createOptionalParameter(5, "-placement-out", "output the placement as a distance fraction from pial to white");
     metricOpt->addMetricOutputParameter(1, "placement-metric", "output metric");
     
-    ret->createOptionalParameter(6, "-untwist", "temporary option for comparing methods, specify to use old method");
+    //ret->createOptionalParameter(6, "-untwist", "temporary option for comparing methods, specify to use old method");
     
     ret->setHelpText(
         AString("The input surfaces must have vertex correspondence.  ") +
@@ -78,7 +78,7 @@ void AlgorithmSurfaceCortexLayer::useParameters(OperationParameters* myParams, P
     {
         myMetricOut = metricOpt->getOutputMetric(1);
     }
-    bool untwistMode = myParams->getOptionalParameter(6)->m_present;
+    bool untwistMode = false;//myParams->getOptionalParameter(6)->m_present;
     AlgorithmSurfaceCortexLayer(myProgObj, myWhiteSurf, myPialSurf, myVolFrac, myOutSurf, myMetricOut, untwistMode);
 }
 
