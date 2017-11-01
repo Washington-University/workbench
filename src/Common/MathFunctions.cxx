@@ -1373,8 +1373,6 @@ MathFunctions::vtkPerpendiculars(const double x[3], double y[3], double z[3],
     }
 }
 
-
-
 /**
  * Determine if 2D line segments intersect.
  * Algorithm from http://mathworld.wolfram.com/Line-LineIntersection.html
@@ -1388,16 +1386,17 @@ MathFunctions::vtkPerpendiculars(const double x[3], double y[3], double z[3],
  *    parameter to 0.01.
  * @param intersectionOut Location of intersection.
  * @return  true if the line segments intersect else false.
- *
+ *          The intersection MUST BE within the range of
+ *          each of the line segments.
  */
 bool
 MathFunctions::lineIntersection2D(
-                   const float p1[2],
-                   const float p2[2],
-                   const float q1[2],
-                   const float q2[2],
-                   const float tolerance,
-                   float intersectionOut[2])
+                                  const float p1[2],
+                                  const float p2[2],
+                                  const float q1[2],
+                                  const float q2[2],
+                                  const float tolerance,
+                                  float intersectionOut[2])
 {
     double tol = tolerance;
     double x1 = p1[0];
@@ -1434,6 +1433,70 @@ MathFunctions::lineIntersection2D(
             (y >= pyMin) && (y <= pyMax) && (y >= qyMin) && (y <= qyMax)) {
             return true;
         }
+    }
+    
+    return false;
+}
+
+
+/**
+ * Determine if 2D vectors intersect.
+ * Algorithm from http://mathworld.wolfram.com/Line-LineIntersection.html
+ *
+ * @param p1 Vector 1 end point 1.
+ * @param p2 Vector 1 end point 2.
+ * @param q1 Vector 2 end point 1.
+ * @param q2 Vector 2 end point 2.
+ * @param tolerance  Tolerance around the vertices (essentially
+ *    lengthens lines by this quantity).  Caret5 set this
+ *    parameter to 0.01.
+ * @param intersectionOut Location of intersection.
+ * @return  true if the vectors intersect.
+ */
+bool
+MathFunctions::vectorIntersection2D(
+                   const float p1[2],
+                   const float p2[2],
+                   const float q1[2],
+                   const float q2[2],
+                   const float tolerance,
+                   float intersectionOut[2])
+{
+    double tol = tolerance;
+    double x1 = p1[0];
+    double y1 = p1[1];
+    double x2 = p2[0];
+    double y2 = p2[1];
+    
+    double x3 = q1[0];
+    double y3 = q1[1];
+    double x4 = q2[0];
+    double y4 = q2[1];
+    
+    double denom = ((x1 - x2) * (y3 - y4)) - ((x3 - x4) * (y1 - y2));
+    
+    if (denom != 0.0) {
+        double a = (x1 * y2) - (x2 * y1);
+        double c = (x3 * y4) - (x4 * y3);
+        double x = ((a * (x3 - x4)) - (c * (x1 - x2))) / denom;
+        double y = ((a * (y3 - y4)) - (c * (y1 - y2))) / denom;
+        
+//        double pxMax = std::max(x1, x2) + tol;
+//        double pxMin = std::min(x1, x2) - tol;
+//        double pyMax = std::max(y1, y2) + tol;
+//        double pyMin = std::min(y1, y2) - tol;
+//        
+//        double qxMax = std::max(x3, x4) + tol;
+//        double qxMin = std::min(x3, x4) - tol;
+//        double qyMax = std::max(y3, y4) + tol;
+//        double qyMin = std::min(y3, y4) - tol;
+        
+        intersectionOut[0] = (float)x;
+        intersectionOut[1] = (float)y;
+//        if ((x >= pxMin) && (x <= pxMax) && (x >= qxMin) && (x <= qxMax) &&
+//            (y >= pyMin) && (y <= pyMax) && (y >= qyMin) && (y <= qyMax)) {
+            return true;
+//        }
     }
     
     return false;

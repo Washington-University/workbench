@@ -239,6 +239,14 @@ public:
                     const float tolerance,
                     float intersectionOut[3]);
 
+    static bool vectorIntersection2D(
+                                     const float p1[3],
+                                     const float p2[3],
+                                     const float q1[3],
+                                     const float q2[3],
+                                     const float tolerance,
+                                     float intersectionOut[3]);
+    
     static bool rayIntersectPlane(
                     const float p1[3],
                     const float p2[3],

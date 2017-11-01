@@ -58,6 +58,7 @@
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
+#include "GraphicsShape.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -1978,9 +1979,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
                  * since it is opaque and prevents "behind" annotations
                  * from being selected
                  */
-                m_brainOpenGLFixedPipeline->drawEllipseFilled(selectionColorRGBA,
-                                                              majorAxis,
-                                                              minorAxis);
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+                    GraphicsShape::drawEllipseFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                              majorAxis * 2.0f,
+                                                              minorAxis * 2.0f,
+                                                              selectionColorRGBA);
+                }
+                else {
+                    m_brainOpenGLFixedPipeline->drawEllipseFilled(selectionColorRGBA,
+                                                                  majorAxis,
+                                                                  minorAxis);
+                }
             }
             else {
                 /*
@@ -1988,10 +1997,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
                  * select annotation that are inside of the box
                  */
                 const float slightlyThicker = 2.0;
-                m_brainOpenGLFixedPipeline->drawEllipseOutline(selectionColorRGBA,
-                                                               majorAxis,
-                                                               minorAxis,
-                                                               outlineWidth + slightlyThicker);
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+                    float widthPixels = (oval->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
+                    GraphicsShape::drawEllipseOutlineByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                               majorAxis * 2.0f,
+                                                               minorAxis * 2.0f,
+                                                               selectionColorRGBA,
+                                                               widthPixels + slightlyThicker);
+                }
+                else {
+                    m_brainOpenGLFixedPipeline->drawEllipseOutline(selectionColorRGBA,
+                                                                   majorAxis,
+                                                                   minorAxis,
+                                                                   outlineWidth + slightlyThicker);
+                }
             }
             
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
@@ -2001,17 +2020,35 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
         }
         else {
             if (drawBackgroundFlag) {
-                m_brainOpenGLFixedPipeline->drawEllipseFilled(backgroundRGBA,
-                                                              majorAxis,
-                                                              minorAxis);
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+                    GraphicsShape::drawEllipseFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                               majorAxis * 2.0f,
+                                                               minorAxis * 2.0f,
+                                                               backgroundRGBA);
+                }
+                else {
+                    m_brainOpenGLFixedPipeline->drawEllipseFilled(backgroundRGBA,
+                                                                  majorAxis,
+                                                                  minorAxis);
+                }
                 drawnFlag = true;
             }
             
             if (drawForegroundFlag) {
-                m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
-                                                               majorAxis,
-                                                               minorAxis,
-                                                               outlineWidth);
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+                    float widthPixels = (oval->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
+                    GraphicsShape::drawEllipseOutlineByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                               majorAxis * 2.0f,
+                                                               minorAxis * 2.0f,
+                                                               foregroundRGBA,
+                                                               widthPixels);
+                }
+                else {
+                    m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
+                                                                   majorAxis,
+                                                                   minorAxis,
+                                                                   outlineWidth);
+                }
                 drawnFlag = true;
             }
         }

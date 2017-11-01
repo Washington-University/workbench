@@ -638,6 +638,25 @@ GraphicsPrimitive::replaceFloatXYZ(const std::vector<float>& xyz)
 }
 
 /**
+ * Replace the XYZ coordinate at the given index
+ *
+ * @param vertexIndex
+ *     Index of the vertex
+ * @param xyz
+ *     The new XYZ coordinate
+ */
+void
+GraphicsPrimitive::replaceVertexFloatXYZ(const int32_t vertexIndex,
+                                         const float xyz[3])
+{
+    const int32_t offset = vertexIndex * 3;
+    CaretAssertVectorIndex(m_xyz, offset + 2);
+    m_xyz[offset]     = xyz[0];
+    m_xyz[offset + 1] = xyz[1];
+    m_xyz[offset + 2] = xyz[2];
+}
+
+/**
  * Get a bounds box for the vertex coordinates.
  *
  * @param boundingBoxOut

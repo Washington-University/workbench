@@ -3637,12 +3637,21 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                     glDisable(GL_DEPTH_TEST);
                     float widthPixels = thickness;
                     if (surfaceColorFlag) {
+                        /*
+                         * Note: Must draw as line segments (each consecutive two points is independent of all others).
+                         * The reason is that the intersection algorithm picks triangles for intersection with the 
+                         * surface in no particular order.  Thus, two adjacent points in the lines may be nowhere
+                         * near each others.
+                         */
                         GraphicsOpenGLLineDrawing::drawLinesPerVertexFloatColor(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
                                                                            lineXYZ,
                                                                            lineRGBA,
                                                                            widthPixels);
                     }
                     else {
+                        /*
+                         * Ditto, comment above
+                         */
                         float rgba[4] = { 1.0, 0.0, 0.0, 1.0 };
                         CaretColorEnum::toRGBAFloat(outlineColor, rgba);
                         GraphicsOpenGLLineDrawing::drawLinesSolidFloatColor(m_fixedPipelineDrawing->getContextSharingGroupPointer(),

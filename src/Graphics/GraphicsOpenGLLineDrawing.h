@@ -30,12 +30,23 @@
 
 namespace caret {
 
+    class GraphicsPrimitive;
     class GraphicsPrimitiveV3fC4f;
     class GraphicsPrimitiveV3fC4ub;
     
     class GraphicsOpenGLLineDrawing : public CaretObject {
         
     public:
+        /**
+         * Join tyupe of how connected lines are drawn to remove gaps between segments
+         */
+        enum JoinType {
+            /** None */
+            NONE,
+            /* Extends 'outsides' of lines to meet forming a pointed shape */
+            MITER
+        };
+        
         virtual ~GraphicsOpenGLLineDrawing();
         
         static bool drawLinesPerVertexFloatColor(void* openglContextPointer,
@@ -146,9 +157,18 @@ namespace caret {
         void convertLineSegmentsToQuads();
         
         void createQuadFromWindowVertices(const int32_t indexOne,
-                                          const int32_t indexTwo);
+                                          const int32_t indexTwo,
+                                          const bool lastVertexFlag);
         
         void drawQuads();
+        
+        void performJoin(const int32_t lineVertexIndexOne,
+                         const int32_t lineVertexIndexTwo,
+                         const int32_t lineVertexIndexThree,
+                         const int32_t quadOneVertexIndex,
+                         const int32_t quadTwoVertexIndex);
+        
+        void joinQuads();
         
         void* m_openglContextPointer;
         
@@ -166,9 +186,13 @@ namespace caret {
         
         std::vector<float> m_vertexWindowXYZ;
         
+        std::vector<int32_t> m_vertexWindowInputIndices;
+        
         //std::vector<float> m_windowQuadsXYZ;
         
         //std::vector<float> m_windowQuadsRGBA;
+        
+        JoinType m_joinType = JoinType::MITER;
         
         bool m_debugFlag = false;
         
@@ -177,6 +201,14 @@ namespace caret {
         int m_savedViewport[4];
         
         Matrix4x4 m_projectionMatrix;
+        
+        /*
+         * The base class graphics primitive that points to 
+         * either the Float or Byte Color primitive and can
+         * be used for non-color operations.  NEVER delete
+         * this as it points to one the color primitive
+         */
+        GraphicsPrimitive* m_primitive = NULL;
         
         std::unique_ptr<GraphicsPrimitiveV3fC4f> m_primitiveFloatColor;
         

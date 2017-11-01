@@ -462,9 +462,17 @@ GraphicsOpenGLLineDrawing::performDrawing()
     
     createWindowCoordinatesFromVertices();
     
-    convertLineSegmentsToQuads();
-    
-    drawQuads();
+    const int32_t numWindowPoints = static_cast<int32_t>(m_vertexWindowXYZ.size() / 3);
+    if (numWindowPoints >= 2) {
+        convertLineSegmentsToQuads();
+        
+        joinQuads();
+        
+        CaretAssert(m_primitive);
+        if (m_primitive->isValid()) {
+            drawQuads();
+        }
+    }
     
     restoreOpenGLState();
     
@@ -554,6 +562,8 @@ GraphicsOpenGLLineDrawing::createProjectionMatrix()
 void
 GraphicsOpenGLLineDrawing::createWindowCoordinatesFromVertices()
 {
+    const float coincidentMaxDistSQ = (0.01f * 0.01f);
+    
     GLdouble depthRange[2];
     glGetDoublev(GL_DEPTH_RANGE,
                  depthRange);
@@ -562,10 +572,32 @@ GraphicsOpenGLLineDrawing::createWindowCoordinatesFromVertices()
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
     
-    const int32_t numPoints = static_cast<int32_t>(m_inputXYZ.size() / 3);
-    m_vertexWindowXYZ.reserve(numPoints * 3);
+    int32_t numInputPoints = static_cast<int32_t>(m_inputXYZ.size() / 3);
+    int32_t iStep = 1;
+    switch (m_lineType) {
+        case LineType::LINES:
+            iStep = 2;
+            if (MathFunctions::isOddNumber(numInputPoints)) {
+                CaretLogWarning("Odd number of points for drawing line segment pairs, should be even number.");
+                --numInputPoints;
+            }
+            break;
+        case LineType::LINE_LOOP:
+            iStep = 1;
+            break;
+        case LineType::LINE_STRIP:
+            iStep = 1;
+            break;
+    }
     
-    for (int32_t i = 0; i < numPoints; i++) {
+    m_vertexWindowXYZ.reserve(numInputPoints * 3);
+    m_vertexWindowInputIndices.reserve(numInputPoints);
+    
+    /*
+     * Coincident points that result in zero length
+     * line segments are filtered out
+     */
+    for (int32_t i = 0; i < numInputPoints; i += iStep) {
         const int32_t i3 = i * 3;
         
         /*
@@ -573,10 +605,55 @@ GraphicsOpenGLLineDrawing::createWindowCoordinatesFromVertices()
          * as described by the documentation from gluProject().
          */
         float windowXYZ[3];
+        CaretAssertVectorIndex(m_inputXYZ, i3 + 1);
         convertFromModelToWindowCoordinate(&m_inputXYZ[i3], windowXYZ);
-        m_vertexWindowXYZ.push_back(windowXYZ[0]);
-        m_vertexWindowXYZ.push_back(windowXYZ[1]);
-        m_vertexWindowXYZ.push_back(windowXYZ[2]);
+        
+        if (iStep == 1) {
+            if (i > 0) {
+                const float previousPointOffset = (m_vertexWindowXYZ.size() - 3);
+                CaretAssertVectorIndex(m_vertexWindowXYZ, previousPointOffset + 2);
+                const float distSQ = MathFunctions::distanceSquared3D(windowXYZ,
+                                                                      &m_vertexWindowXYZ[previousPointOffset]);
+                if (distSQ < coincidentMaxDistSQ) {
+                    CaretLogSevere("Filtered out connected segment conincident point " + AString::number(i));
+                    continue;
+                }
+            }
+
+            m_vertexWindowXYZ.push_back(windowXYZ[0]);
+            m_vertexWindowXYZ.push_back(windowXYZ[1]);
+            m_vertexWindowXYZ.push_back(windowXYZ[2]);
+            m_vertexWindowInputIndices.push_back(i);
+        }
+        else if (iStep == 2) {
+            const int32_t iNext3 = (i + 1) * 3;
+            float windowNextXYZ[3];
+            CaretAssertVectorIndex(m_inputXYZ, iNext3 + 2);
+            convertFromModelToWindowCoordinate(&m_inputXYZ[iNext3],
+                                               windowNextXYZ);
+            
+            const float distSQ = MathFunctions::distanceSquared3D(windowXYZ,
+                                                                  windowNextXYZ);
+            if (distSQ < coincidentMaxDistSQ) {
+                CaretLogSevere("Filtered out line pairs conincident points "
+                               + AString::number(i)
+                               + " and "
+                               + AString::number(i + 1));
+                continue;
+            }
+            m_vertexWindowXYZ.push_back(windowXYZ[0]);
+            m_vertexWindowXYZ.push_back(windowXYZ[1]);
+            m_vertexWindowXYZ.push_back(windowXYZ[2]);
+            m_vertexWindowInputIndices.push_back(i);
+
+            m_vertexWindowXYZ.push_back(windowNextXYZ[0]);
+            m_vertexWindowXYZ.push_back(windowNextXYZ[1]);
+            m_vertexWindowXYZ.push_back(windowNextXYZ[2]);
+            m_vertexWindowInputIndices.push_back(i + 1);
+        }
+        else {
+            CaretAssertMessage(0, "Invalid step value");
+        }
         
         if (m_debugFlag) {
             GLdouble modelviewArray[16];
@@ -594,7 +671,7 @@ GraphicsOpenGLLineDrawing::createWindowCoordinatesFromVertices()
         }
     }
     
-    CaretAssert(m_inputXYZ.size() == m_vertexWindowXYZ.size());
+    CaretAssert(m_vertexWindowXYZ.size() == (m_vertexWindowInputIndices.size() * 3));
 }
 
 /**
@@ -632,10 +709,13 @@ GraphicsOpenGLLineDrawing::convertFromModelToWindowCoordinate(const float modelX
  *     Index of first vertex.
  * @param indexTwo
  *     Index of second vertex.
+ * @param lastVertexFlag
+ *     Flag indicating last vertex used when joining line loop last to first
  */
 void
 GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
-                                                        const int32_t indexTwo)
+                                                        const int32_t indexTwo,
+                                                        const bool lastVertexFlag)
 {
     const int32_t iOne3 = indexOne * 3;
     CaretAssertVectorIndex(m_vertexWindowXYZ, iOne3 + 2);
@@ -649,18 +729,28 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
     float z2 = m_vertexWindowXYZ[iTwo3 + 2];
     
     /*
-     * Vector from start to end on line segment in 2D coordinates
+     * Normalized vector from start to end on line segment in 2D coordinates
      */
     float startToEndVector[3] = {
         x2 - x1,
         y2 - y1,
         0.0f
     };
+    const float lineLength = MathFunctions::normalizeVector(startToEndVector);
+    if (lineLength < 0.001f) {
+        CaretLogWarning("This should not happen: Failure to filter coincident points with indices="
+                       + AString::number(indexOne)
+                       + ", "
+                       + AString::number(indexTwo)
+                       + " Coordinates: "
+                       + AString::fromNumbers(&m_vertexWindowXYZ[iOne3], 3, ",")
+                       + "    "
+                       + AString::fromNumbers(&m_vertexWindowXYZ[iOne3], 3, ","));
+    }
     
     /*
      * Create a perpendicualar vector to the line segment
      */
-    MathFunctions::normalizeVector(startToEndVector);
     float perpendicularVector[3] = {
         startToEndVector[1],
         -startToEndVector[0],
@@ -676,6 +766,7 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
     
     /*
      * Points of the rectangle
+     * They should be counter-clockwise oriented
      */
     float p1[3] = {
         x1 - halfWidthX,
@@ -698,6 +789,14 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
         z2
     };
     
+    /*
+     * Indices to input coloring.
+     * Note that coincident points may be removed
+     */
+    CaretAssertVectorIndex(m_vertexWindowInputIndices, indexOne);
+    const int32_t indexOneRgba = m_vertexWindowInputIndices[indexOne];
+    CaretAssertVectorIndex(m_vertexWindowInputIndices, indexTwo);
+    const int32_t indexTwoRgba = m_vertexWindowInputIndices[indexTwo];
 
     /*
      * RGBA for the points P1, P2, P3, P4
@@ -706,14 +805,14 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
     int32_t rgbaOffsetP3P4 = 0;
     switch (m_colorType) {
         case ColorType::BYTE_RGBA_PER_VERTEX:
-            rgbaOffsetP1P2 = indexOne * 4;
-            rgbaOffsetP3P4 = indexTwo * 4;
+            rgbaOffsetP1P2 = indexOneRgba * 4;
+            rgbaOffsetP3P4 = indexTwoRgba * 4;
             break;
         case ColorType::BYTE_RGBA_SOLID:
             break;
         case ColorType::FLOAT_RGBA_PER_VERTEX:
-            rgbaOffsetP1P2 = indexOne * 4;
-            rgbaOffsetP3P4 = indexTwo * 4;
+            rgbaOffsetP1P2 = indexOneRgba * 4;
+            rgbaOffsetP3P4 = indexTwoRgba * 4;
             break;
         case ColorType::FLOAT_RGBA_SOLID:
             break;
@@ -721,6 +820,9 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
     
     float crossProduct[3];
     MathFunctions::crossProduct(startToEndVector, perpendicularVector, crossProduct);
+    if (crossProduct[2] == 0.0f) {
+        /* This should get caught by vector length check above */
+    }
     
     switch (m_colorType) {
         case ColorType::BYTE_RGBA_PER_VERTEX:
@@ -732,7 +834,7 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
             const uint8_t* rgbaP34 = &m_inputByteRGBA[rgbaOffsetP3P4];
             
             CaretAssert(m_primitiveByteColor.get());
-            if (crossProduct[2] < 0.0) {
+            if (crossProduct[2] <= 0.0f) {
                 m_primitiveByteColor->addVertex(p1, rgbaP12);
                 m_primitiveByteColor->addVertex(p2, rgbaP12);
                 m_primitiveByteColor->addVertex(p3, rgbaP34);
@@ -740,10 +842,10 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
             }
             else {
                 std::cout << "Flipped Quad" << std::endl;
+                m_primitiveByteColor->addVertex(p2, rgbaP12);
                 m_primitiveByteColor->addVertex(p1, rgbaP12);
                 m_primitiveByteColor->addVertex(p4, rgbaP34);
                 m_primitiveByteColor->addVertex(p3, rgbaP34);
-                m_primitiveByteColor->addVertex(p2, rgbaP12);
             }
         }
             break;
@@ -756,7 +858,7 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
             const float* rgbaP34 = &m_inputFloatRGBA[rgbaOffsetP3P4];
             
             CaretAssert(m_primitiveFloatColor.get());
-            if (crossProduct[2] < 0.0) {
+            if (crossProduct[2] <= 0.0f) {
                 m_primitiveFloatColor->addVertex(p1, rgbaP12);
                 m_primitiveFloatColor->addVertex(p2, rgbaP12);
                 m_primitiveFloatColor->addVertex(p3, rgbaP34);
@@ -764,16 +866,189 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
             }
             else {
                 std::cout << "Flipped Quad" << std::endl;
+                m_primitiveFloatColor->addVertex(p2, rgbaP12);
                 m_primitiveFloatColor->addVertex(p1, rgbaP12);
                 m_primitiveFloatColor->addVertex(p4, rgbaP34);
                 m_primitiveFloatColor->addVertex(p3, rgbaP34);
-                m_primitiveFloatColor->addVertex(p2, rgbaP12);
             }
         }
             break;
     }
+    
+//    /*
+//     * Perform joins of connected lines
+//     */
+//    switch (m_lineType) {
+//        case LineType::LINES:
+//            return;
+//            break;
+//        case LineType::LINE_LOOP:
+//            break;
+//        case LineType::LINE_STRIP:
+//            break;
+//    }
+//    
+//    if (indexTwo >= 2) {
+//        CaretAssert(m_primitive);
+//        const int32_t numQuadVertices = m_primitive->getNumberOfVertices();
+//        
+//        switch (m_joinType) {
+//            case JoinType::NONE:
+//                return;
+//                break;
+//            case JoinType::MITER:
+//                if (lastVertexFlag) {
+//                    /* Join last quad to first quad */
+//                    performJoin(indexOne,
+//                                indexTwo,
+//                                0,
+//                                numQuadVertices - 4,
+//                                0);
+//                }
+//                else {
+//                    performJoin(indexOne - 1,
+//                                indexOne,
+//                                indexTwo,
+//                                numQuadVertices - 8,
+//                                numQuadVertices - 4);
+//                }
+//                break;
+//        }
+//    }
 }
 
+void
+GraphicsOpenGLLineDrawing::joinQuads()
+{
+    /*
+     * Perform joins of connected lines
+     */
+    
+    CaretAssert(m_primitive);
+    const int32_t numberOfLineVertices = (m_vertexWindowXYZ.size() / 3);
+    const int32_t lastVertexIndex = numberOfLineVertices - 1;
+    int32_t numberOfLines = numberOfLineVertices;
+
+    switch (m_lineType) {
+        case LineType::LINES:
+            numberOfLines = 0;
+            break;
+        case LineType::LINE_LOOP:
+            break;
+        case LineType::LINE_STRIP:
+            numberOfLines = numberOfLines - 2;
+            break;
+    }
+
+    switch (m_joinType) {
+        case JoinType::NONE:
+            numberOfLines = 0;
+            break;
+        case JoinType::MITER:
+            for (int32_t indexOne = 0; indexOne < numberOfLines; indexOne++) {
+                const int32_t indexTwo = (((indexOne + 1) <= lastVertexIndex) ? (indexOne + 1) : 0);
+                const int32_t indexThree = (((indexTwo + 1) <= lastVertexIndex) ? (indexTwo + 1) : 0);
+                if (m_debugFlag) {
+                    std::cout << "JOIN: " << indexOne << ", " << indexTwo << ", " << indexThree << std::endl;
+                }
+                
+                const int32_t quadOneVertexIndex = indexOne * 4;
+                const int32_t quadTwoVertexIndex = indexTwo * 4;
+                performJoin(indexOne, indexTwo, indexThree, quadOneVertexIndex, quadTwoVertexIndex);
+            }
+            break;
+    }
+}
+
+/**
+ * Perform a join using the last two vertices in quad one
+ * and the first two vertices in quad two
+ *
+ * @param lineVertexIndexOne
+ *     Index of first vertex in line segment
+ * @param lineVertexIndexTwo
+ *     Index of second vertex in line segment
+ * @param lineVertexIndexThree
+ *     Index of three vertex in line segment
+ * @param quadOneVertexIndex
+ *     Index of first vertex in first quad
+ * @param quadTwoVertexIndex
+ *     Index of first vertex in second quad
+ */
+void
+GraphicsOpenGLLineDrawing::performJoin(const int32_t lineVertexIndexOne,
+                                       const int32_t lineVertexIndexTwo,
+                                       const int32_t lineVertexIndexThree,
+                                       const int32_t quadOneVertexIndex,
+                                       const int32_t quadTwoVertexIndex)
+{
+    if (m_debugFlag) std::cout << "Join: " << lineVertexIndexOne << ", " << lineVertexIndexTwo << ", " << lineVertexIndexThree << std::endl;
+    CaretAssert(m_primitive);
+    
+    /*
+     * Determine if the junction of the two consecutive 
+     * line segments in window coordinates makes a left
+     * or right turn
+     */
+    CaretAssertVectorIndex(m_vertexWindowXYZ, (lineVertexIndexOne * 3) + 2);
+    CaretAssertVectorIndex(m_vertexWindowXYZ, (lineVertexIndexTwo * 3) + 2);
+    CaretAssertVectorIndex(m_vertexWindowXYZ, (lineVertexIndexThree * 3) + 2);
+    const float signedArea = MathFunctions::triangleAreaSigned2D(&m_vertexWindowXYZ[lineVertexIndexOne * 3],
+                                                                 &m_vertexWindowXYZ[lineVertexIndexTwo * 3],
+                                                                 &m_vertexWindowXYZ[lineVertexIndexThree * 3]);
+
+
+    int32_t quadOneSideBeginVertexIndex = -1;
+    int32_t quadOneSideEndVertexIndex = -1;
+    int32_t quadTwoSideBeginVertexIndex = -1;
+    int32_t quadTwoSideEndVertexIndex = -1;
+    const float smallNumber = 0.001;
+    if (signedArea > smallNumber) {
+        if (m_debugFlag) std::cout << "   Left Turn" << std::endl;
+        /*
+         * Right side is vertices two and three
+         */
+        quadOneSideBeginVertexIndex = quadOneVertexIndex + 1;
+        quadOneSideEndVertexIndex = quadOneVertexIndex + 2;
+        quadTwoSideBeginVertexIndex = quadTwoVertexIndex + 1;
+        quadTwoSideEndVertexIndex = quadTwoVertexIndex + 2;
+    }
+    else if (signedArea < -smallNumber) {
+        if (m_debugFlag) std::cout << "   Right Turn" << std::endl;
+        /*
+         * Right side is vertices 1 and 4
+         */
+        quadOneSideBeginVertexIndex = quadOneVertexIndex;
+        quadOneSideEndVertexIndex = quadOneVertexIndex + 3;
+        quadTwoSideBeginVertexIndex = quadTwoVertexIndex;
+        quadTwoSideEndVertexIndex = quadTwoVertexIndex + 3;
+    }
+    else {
+        if (m_debugFlag) std::cout << "   Parallel" << std::endl;
+        return;
+    }
+  
+    const std::vector<float>& xyz = m_primitive->getFloatXYZ();
+    CaretAssertVectorIndex(xyz, (quadOneSideBeginVertexIndex * 3) + 2);
+    CaretAssertVectorIndex(xyz, (quadOneSideEndVertexIndex * 3) + 2);
+    CaretAssertVectorIndex(xyz, (quadTwoSideBeginVertexIndex * 3) + 2);
+    CaretAssertVectorIndex(xyz, (quadTwoSideEndVertexIndex * 3) + 2);
+    const float* q1v1 = &xyz[quadOneSideBeginVertexIndex * 3];
+    const float* q1v2 = &xyz[quadOneSideEndVertexIndex * 3];
+    const float* q2v1 = &xyz[quadTwoSideBeginVertexIndex * 3];
+    const float* q2v2 = &xyz[quadTwoSideEndVertexIndex * 3];
+    
+    /*
+     * Find location of where the edges in the quads intersect
+     */
+    float intersectionXYZ[3];
+    if (MathFunctions::vectorIntersection2D(q1v1, q1v2, q2v1, q2v2, 0.0f, intersectionXYZ)) {
+        intersectionXYZ[2] = q1v1[2];
+        if (m_debugFlag) std::cout << "      Intersection: " << AString::fromNumbers(intersectionXYZ, 3, ",") << std::endl;
+        m_primitive->replaceVertexFloatXYZ(quadOneSideEndVertexIndex, intersectionXYZ);
+        m_primitive->replaceVertexFloatXYZ(quadTwoSideBeginVertexIndex, intersectionXYZ);
+    }
+}
 
 /**
  * Convert each line segment into a rectangle
@@ -800,19 +1075,24 @@ GraphicsOpenGLLineDrawing::convertLineSegmentsToQuads()
             break;
     }
     
+    m_primitive = NULL;
     switch (m_colorType) {
         case ColorType::BYTE_RGBA_PER_VERTEX:
         case ColorType::BYTE_RGBA_SOLID:
             m_primitiveByteColor.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
             m_primitiveByteColor->reserveForNumberOfVertices(estimatedNumberOfQuads * 4);
+            m_primitive = m_primitiveByteColor.get();
             break;
         case ColorType::FLOAT_RGBA_PER_VERTEX:
         case ColorType::FLOAT_RGBA_SOLID:
             m_primitiveFloatColor.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
             m_primitiveFloatColor->reserveForNumberOfVertices(estimatedNumberOfQuads * 4);
+            m_primitive = m_primitiveFloatColor.get();
             break;
     }
-    
+    CaretAssert(m_primitive);
+
+    m_primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
     const int32_t numVerticesMinusOne = numVertices - 1;
     
@@ -822,19 +1102,19 @@ GraphicsOpenGLLineDrawing::convertLineSegmentsToQuads()
             const int32_t numLineSegments = (numVertices / 2);
             for (int32_t i = 0; i < numLineSegments; i++) {
                 const int32_t i2 = i * 2;
-                createQuadFromWindowVertices(i2, i2 + 1);
+                createQuadFromWindowVertices(i2, i2 + 1, false);
             }
         }
             break;
         case LineType::LINE_LOOP:
             for (int32_t i = 0; i < numVerticesMinusOne; i++) {
-                createQuadFromWindowVertices(i, i + 1);
+                createQuadFromWindowVertices(i, i + 1, false);
             }
-            createQuadFromWindowVertices(numVerticesMinusOne, 0);
+            createQuadFromWindowVertices(numVerticesMinusOne, 0, true);
             break;
         case LineType::LINE_STRIP:
             for (int32_t i = 0; i < numVerticesMinusOne; i++) {
-                createQuadFromWindowVertices(i, i + 1);
+                createQuadFromWindowVertices(i, i + 1, false);
             }
             break;
     }
@@ -865,29 +1145,36 @@ GraphicsOpenGLLineDrawing::drawQuads()
     glPolygonMode(GL_FRONT, GL_FILL);
     //glPolygonMode(GL_BACK, GL_LINE);
     
-    switch (m_colorType) {
-        case ColorType::BYTE_RGBA_PER_VERTEX:
-        case ColorType::BYTE_RGBA_SOLID:
-            CaretAssert(m_primitiveByteColor.get());
-            GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
-                                           m_primitiveByteColor.get());
-            if (m_debugFlag) {
-                std::cout << std::endl << "Quad Primitive: " << m_primitiveByteColor->toString() << std::endl;
-                std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
-            }
-            break;
-        case ColorType::FLOAT_RGBA_PER_VERTEX:
-        case ColorType::FLOAT_RGBA_SOLID:
-            CaretAssert(m_primitiveFloatColor.get());
-            GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
-                                           m_primitiveFloatColor.get());
-            if (m_debugFlag) {
-                std::cout << std::endl << "Quad Primitive: " << m_primitiveFloatColor->toString() << std::endl;
-                std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
-            }
-            break;
+    CaretAssert(m_primitive);
+    GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
+                                   m_primitive);
+    if (m_debugFlag) {
+        std::cout << std::endl << "Quad Primitive: " << m_primitive->toString() << std::endl;
+        std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
     }
     
+//    switch (m_colorType) {
+//        case ColorType::BYTE_RGBA_PER_VERTEX:
+//        case ColorType::BYTE_RGBA_SOLID:
+//            CaretAssert(m_primitiveByteColor.get());
+//            GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
+//                                           m_primitiveByteColor.get());
+//            if (m_debugFlag) {
+//                std::cout << std::endl << "Quad Primitive: " << m_primitiveByteColor->toString() << std::endl;
+//                std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
+//            }
+//            break;
+//        case ColorType::FLOAT_RGBA_PER_VERTEX:
+//        case ColorType::FLOAT_RGBA_SOLID:
+//            CaretAssert(m_primitiveFloatColor.get());
+//            GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
+//                                           m_primitiveFloatColor.get());
+//            if (m_debugFlag) {
+//                std::cout << std::endl << "Quad Primitive: " << m_primitiveFloatColor->toString() << std::endl;
+//                std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
+//            }
+//            break;
+//    }
 }
 
 /**

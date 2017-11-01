@@ -101,6 +101,7 @@
 #include "GapsAndMargins.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GraphicsOpenGLLineDrawing.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
@@ -2873,65 +2874,130 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             }
         }
         else {
-            glColor3fv(borderDrawInfo.rgba);
-            
-            /*
-             * Start at one, since need two points for each line
-             */
-            glBegin(GL_LINES);
-            for (int32_t i = 1; i < numPointsToDraw; i++) {
-                /*
-                 * On a flat surface, do not draw a line segment if it is
-                 * from non-consecutive border points.  This occurs when
-                 * a border point does not project to the flat surface
-                 * due to a cut or removal of the medial wall.  If helps
-                 * prevent long border lines stretching from one edge of the
-                 * surface to a far away edge.
-                 */
-                if (flatSurfaceDrawUnstretchedLinesFlag) {
-                    if (pointIndex[i] != (pointIndex[i-1] + 1)) {
-                        continue;
-                    }
-                }
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
                 
-                const int32_t i3 = i * 3;
-                CaretAssertVectorIndex(pointXYZ, i3 + 2);
-                const float* xyz1 = &pointXYZ[i3 - 3];
-                const float* xyz2 = &pointXYZ[i3];
-                
-                bool drawIt = true;
-                if (doClipping) {
-                    if (isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
-                                                                     xyz1)
-                        && (isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
-                                                                         xyz2)) ) {
-                        /* nothing */
-                    }
-                    else {
-                        drawIt = false;
-                    }
-                }
-                
-                
-                if (drawIt) {
+                std::vector<float> linesXYZ;
+                for (int32_t i = 1; i < numPointsToDraw; i++) {
+                    /*
+                     * On a flat surface, do not draw a line segment if it is
+                     * from non-consecutive border points.  This occurs when
+                     * a border point does not project to the flat surface
+                     * due to a cut or removal of the medial wall.  If helps
+                     * prevent long border lines stretching from one edge of the
+                     * surface to a far away edge.
+                     */
                     if (flatSurfaceDrawUnstretchedLinesFlag) {
-                        CaretAssertVectorIndex(pointAnatomicalXYZ, i3 + 2);
-                        if (unstretchedBorderLineTest(xyz1,
-                                                      xyz2,
-                                                      &pointAnatomicalXYZ[i3],
-                                                      &pointAnatomicalXYZ[i3-3],
-                                                      unstretchedLinesLength)) {
+                        if (pointIndex[i] != (pointIndex[i-1] + 1)) {
+                            continue;
+                        }
+                    }
+                    
+                    const int32_t i3 = i * 3;
+                    CaretAssertVectorIndex(pointXYZ, i3 + 2);
+                    const float* xyz1 = &pointXYZ[i3 - 3];
+                    const float* xyz2 = &pointXYZ[i3];
+                    
+                    bool drawIt = true;
+                    if (doClipping) {
+                        if (isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                         xyz1)
+                            && (isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                             xyz2)) ) {
+                            /* nothing */
+                        }
+                        else {
                             drawIt = false;
                         }
                     }
+                    
+                    
+                    if (drawIt) {
+                        if (flatSurfaceDrawUnstretchedLinesFlag) {
+                            CaretAssertVectorIndex(pointAnatomicalXYZ, i3 + 2);
+                            if (unstretchedBorderLineTest(xyz1,
+                                                          xyz2,
+                                                          &pointAnatomicalXYZ[i3],
+                                                          &pointAnatomicalXYZ[i3-3],
+                                                          unstretchedLinesLength)) {
+                                drawIt = false;
+                            }
+                        }
+                    }
+                    
+                    if (drawIt) {
+                        linesXYZ.insert(linesXYZ.end(), xyz1, xyz1 + 3);
+                        linesXYZ.insert(linesXYZ.end(), xyz2, xyz2 + 3);
+                    }
                 }
                 
-                if (drawIt) {
-                    glVertex3fv(xyz1);
-                    glVertex3fv(xyz2);
+                if (linesXYZ.size() >= 6) {
+                    GraphicsOpenGLLineDrawing::drawLineStripSolidFloatColor(getContextSharingGroupPointer(),
+                                                                        linesXYZ,
+                                                                        borderDrawInfo.rgba,
+                                                                        lineWidth);
                 }
             }
-            glEnd();
+            else {
+                glColor3fv(borderDrawInfo.rgba);
+                
+                /*
+                 * Start at one, since need two points for each line
+                 */
+                glBegin(GL_LINES);
+                for (int32_t i = 1; i < numPointsToDraw; i++) {
+                    /*
+                     * On a flat surface, do not draw a line segment if it is
+                     * from non-consecutive border points.  This occurs when
+                     * a border point does not project to the flat surface
+                     * due to a cut or removal of the medial wall.  If helps
+                     * prevent long border lines stretching from one edge of the
+                     * surface to a far away edge.
+                     */
+                    if (flatSurfaceDrawUnstretchedLinesFlag) {
+                        if (pointIndex[i] != (pointIndex[i-1] + 1)) {
+                            continue;
+                        }
+                    }
+                    
+                    const int32_t i3 = i * 3;
+                    CaretAssertVectorIndex(pointXYZ, i3 + 2);
+                    const float* xyz1 = &pointXYZ[i3 - 3];
+                    const float* xyz2 = &pointXYZ[i3];
+                    
+                    bool drawIt = true;
+                    if (doClipping) {
+                        if (isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                         xyz1)
+                            && (isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                             xyz2)) ) {
+                            /* nothing */
+                        }
+                        else {
+                            drawIt = false;
+                        }
+                    }
+                    
+                    
+                    if (drawIt) {
+                        if (flatSurfaceDrawUnstretchedLinesFlag) {
+                            CaretAssertVectorIndex(pointAnatomicalXYZ, i3 + 2);
+                            if (unstretchedBorderLineTest(xyz1,
+                                                          xyz2,
+                                                          &pointAnatomicalXYZ[i3],
+                                                          &pointAnatomicalXYZ[i3-3],
+                                                          unstretchedLinesLength)) {
+                                drawIt = false;
+                            }
+                        }
+                    }
+                    
+                    if (drawIt) {
+                        glVertex3fv(xyz1);
+                        glVertex3fv(xyz2);
+                    }
+                }
+                glEnd();
+            }
         }
         
         this->enableLighting();

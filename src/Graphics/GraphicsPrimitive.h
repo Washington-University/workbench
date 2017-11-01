@@ -239,6 +239,14 @@ namespace caret {
         
         void replaceFloatXYZ(const std::vector<float>& xyz);
         
+        /**
+         * @return The number of vertices
+         */
+        inline int32_t getNumberOfVertices() const { return (m_xyz.size() / 3); }
+        
+        void replaceVertexFloatXYZ(const int32_t vertexIndex,
+                                   const float xyz[3]);
+        
         bool getVertexBounds(BoundingBox& boundingBoxOut) const;
         
         GraphicsEngineDataOpenGL* getGraphicsEngineDataForOpenGL();
