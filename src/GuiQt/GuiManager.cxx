@@ -722,15 +722,14 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
                  * Is modification data but NOT palette
                  */
                 CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(file);
-                bool dataModFlag = false;
                 if (mappableDataFile != NULL) {
                     if ( ! mappableDataFile->isModifiedPaletteColorMapping()) {
                         if (mappableDataFile->isModifiedExcludingPaletteColorMapping()) {
-                            dataModFlag = true;
+                            modifiedDataFiles.push_back(file);
                         }
                     }
                 }
-                if (dataModFlag) {
+                else {
                     modifiedDataFiles.push_back(file);
                 }
                 break;
