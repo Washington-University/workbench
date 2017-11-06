@@ -1310,7 +1310,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                                 const float zooming,
                                                                 std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut)
 {
-    GraphicsPrimitiveV3fC4f* matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType);
+    GraphicsPrimitiveV3fC4f* matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
+                                                                                               CiftiMappableDataFile::MatrixGridMode::FILLED);
     if (matrixPrimitive == NULL) {
         return;
     }
@@ -1363,9 +1364,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             glPolygonMode(GL_FRONT,
                           GL_LINE);
             
-            GraphicsEngineDataOpenGL::drawWithAlternativeColor(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-                                                               matrixPrimitive,
-                                                               matrixChart->getMatrixChartGraphicsPrimitiveGridColorIdentifier());
+            GraphicsPrimitiveV3fC4f* matrixGridPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
+                                                                                                           CiftiMappableDataFile::MatrixGridMode::OUTLINE);
+            drawPrimitivePrivate(matrixGridPrimitive);
             glPolygonMode(GL_FRONT,
                           GL_FILL);
         }

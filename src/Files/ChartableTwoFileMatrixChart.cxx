@@ -409,14 +409,18 @@ ChartableTwoFileMatrixChart::getMatrixDataRGBA(int32_t& numberOfRowsOut,
  *
  * @param matrixViewMode
  *     The matrix visualization mode (upper/lower).
+ * @param gridMode
+ *     The grid mode (filled or outline)
  */
 GraphicsPrimitiveV3fC4f*
-ChartableTwoFileMatrixChart::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode) const
+ChartableTwoFileMatrixChart::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
+                                                                const CiftiMappableDataFile::MatrixGridMode gridMode) const
 {
     const CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
     CaretAssert(ciftiMapFile);
     
-    return ciftiMapFile->getMatrixChartingGraphicsPrimitive(matrixViewMode);
+    return ciftiMapFile->getMatrixChartingGraphicsPrimitive(matrixViewMode,
+                                                            gridMode);
 }
 
 /** 

@@ -477,6 +477,10 @@ namespace caret {
         CiftiMappableDataFile& operator=(const CiftiMappableDataFile&);
         
     public:
+        enum class MatrixGridMode {
+            FILLED,
+            OUTLINE
+        };
         
         virtual void getMapData(const int32_t mapIndex,
                                 std::vector<float>& dataOut) const;
@@ -490,7 +494,8 @@ namespace caret {
                                       int32_t& numberOfColumnsOut,
                                       std::vector<float>& rgbaOut) const;
         
-        GraphicsPrimitiveV3fC4f* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode) const;
+        GraphicsPrimitiveV3fC4f* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
+                                                                    const MatrixGridMode gridMode) const;
         
         /** Identifier for the matrix primitives alternative color used for the grid coloring */
         int32_t getMatrixChartGraphicsPrimitiveGridColorIdentifier() const { return 1; }
@@ -744,7 +749,13 @@ namespace caret {
         /** Histogram used when statistics computed on all data in file */
         CaretPointer<Histogram> m_fileHistogram;
         
+        /** Primitive for matrix cells */
         mutable std::unique_ptr<GraphicsPrimitiveV3fC4f> m_matrixGraphicsPrimitive;
+        
+        /** Primitive for grid outline around matrix cells */
+        mutable std::unique_ptr<GraphicsPrimitiveV3fC4f> m_matrixGraphicsOutlinePrimitive;
+        
+        mutable uint8_t m_previousMatrixGridRGBA[4] = { 0, 1, 2, 3 };
         
         int32_t m_fileHistogramNumberOfBuckets = 100;
         

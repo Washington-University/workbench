@@ -26,6 +26,7 @@
 #include "ChartTwoMatrixLoadingDimensionEnum.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"
 #include "ChartableTwoFileBaseChart.h"
+#include "CiftiMappableDataFile.h"
 
 namespace caret {
 
@@ -58,7 +59,8 @@ namespace caret {
                                int32_t& numberOfColumnsOut,
                                std::vector<float>& rgbaOut) const;
         
-        GraphicsPrimitiveV3fC4f* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode) const;
+        GraphicsPrimitiveV3fC4f* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
+                                                                    const CiftiMappableDataFile::MatrixGridMode gridMode) const;
         
         int32_t getMatrixChartGraphicsPrimitiveGridColorIdentifier() const;
         

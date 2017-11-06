@@ -1398,6 +1398,7 @@ CiftiMappableDataFile::invalidateColoringInAllMaps()
      * and in particular, matrix grid outline coloring
      */
     m_matrixGraphicsPrimitive.reset();
+    m_matrixGraphicsOutlinePrimitive.reset();
     invalidateHistogramChartColoring();
 }
 
@@ -1484,39 +1485,61 @@ CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba,
  *
  * @param matrixViewMode
  *     The matrix visualization mode (upper/lower).
+ * @param gridMode
+ *     The grid mode (filled or outline)
  */
 GraphicsPrimitiveV3fC4f*
-CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode) const
+CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
+                                                          const MatrixGridMode gridMode) const
 {
-    if (m_matrixGraphicsPrimitive == NULL) {
+    EventCaretPreferencesGet preferencesEvent;
+    EventManager::get()->sendEvent(preferencesEvent.getPointer());
+    CaretPreferences* caretPreferences = preferencesEvent.getCaretPreferences();
+    uint8_t gridByteRGBA[4] = { 0, 0, 0, 0 };
+    
+    GraphicsPrimitiveV3fC4f* matrixPrimitive = NULL;
+    switch (gridMode) {
+        case MatrixGridMode::FILLED:
+            matrixPrimitive = m_matrixGraphicsPrimitive.get();
+            break;
+        case MatrixGridMode::OUTLINE:
+            caretPreferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridByteRGBA);
+            matrixPrimitive = m_matrixGraphicsOutlinePrimitive.get();
+            
+            if ((gridByteRGBA[0] != m_previousMatrixGridRGBA[0])
+                || (gridByteRGBA[1] != m_previousMatrixGridRGBA[1])
+                || (gridByteRGBA[2] != m_previousMatrixGridRGBA[2])
+                || (gridByteRGBA[3] != m_previousMatrixGridRGBA[3])) {
+                matrixPrimitive = NULL;
+                m_previousMatrixGridRGBA[0] = gridByteRGBA[0];
+                m_previousMatrixGridRGBA[1] = gridByteRGBA[1];
+                m_previousMatrixGridRGBA[2] = gridByteRGBA[2];
+                m_previousMatrixGridRGBA[3] = gridByteRGBA[3];
+            }
+            break;
+    }
+    
+    if (matrixPrimitive == NULL) {
         int32_t numberOfRows = 0;
         int32_t numberOfColumns = 0;
         std::vector<float> matrixRGBA;
         if (getMatrixForChartingRGBA(numberOfRows, numberOfColumns, matrixRGBA)) {
             const int32_t numberOfCells = numberOfRows * numberOfColumns;
             if (numberOfCells > 0) {
-                m_matrixGraphicsPrimitive
-                = std::unique_ptr<GraphicsPrimitiveV3fC4f>(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
-                m_matrixGraphicsPrimitive->reserveForNumberOfVertices(numberOfCells * 4);  // QUADS
-                m_matrixGraphicsPrimitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
+                matrixPrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS);
+                matrixPrimitive->reserveForNumberOfVertices(numberOfCells * 4);  // QUADS
+                matrixPrimitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
                 
                 /*
                  * RGBA for grid outline
                  */
-                EventCaretPreferencesGet preferencesEvent;
-                EventManager::get()->sendEvent(preferencesEvent.getPointer());
-                CaretPreferences* caretPreferences = preferencesEvent.getCaretPreferences();
                 float cellOutlineRGBA[4] = { 1.0, 0.0, 0.0, 1.0 };
                 if (caretPreferences != NULL) {
-                    uint8_t gridByteRGBA[4];
-                    caretPreferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridByteRGBA);
                     cellOutlineRGBA[0] = static_cast<float>(gridByteRGBA[0]) / 255.0f;
                     cellOutlineRGBA[1] = static_cast<float>(gridByteRGBA[1]) / 255.0f;
                     cellOutlineRGBA[2] = static_cast<float>(gridByteRGBA[2]) / 255.0f;
                     cellOutlineRGBA[3] = 1.0;
                 }
-                std::vector<float> gridOutlineRGBA;
-                gridOutlineRGBA.reserve(numberOfCells * 4 * 4); // four vertices per cell, four color components per vertex
                 
                 /*
                  * Alpha zero for cells that are "not drawn"
@@ -1602,23 +1625,35 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                             }
                         }
                         
-                        if (drawCellFlag) {
-                            m_matrixGraphicsPrimitive->addVertex(cellX, cellY, 0.0, rgba);
-                            m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
-                            m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
-                            m_matrixGraphicsPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
-                            for (int32_t i4 = 0; i4 < 4; i4++) {
-                                gridOutlineRGBA.insert(gridOutlineRGBA.end(), cellOutlineRGBA, cellOutlineRGBA + 4);
-                            }
-                        }
-                        else {
-                            m_matrixGraphicsPrimitive->addVertex(cellX, cellY, 0.0, cellNotDrawRGBA);
-                            m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellNotDrawRGBA);
-                            m_matrixGraphicsPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellNotDrawRGBA);
-                            m_matrixGraphicsPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellNotDrawRGBA);
-                            for (int32_t i4 = 0; i4 < 4; i4++) {
-                                gridOutlineRGBA.insert(gridOutlineRGBA.end(), cellNotDrawRGBA, cellNotDrawRGBA + 4);
-                            }
+                        switch (gridMode) {
+                            case MatrixGridMode::FILLED:
+                                if (drawCellFlag) {
+                                    matrixPrimitive->addVertex(cellX, cellY, 0.0, rgba);
+                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
+                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
+                                    matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
+                                }
+                                else {
+                                    matrixPrimitive->addVertex(cellX, cellY, 0.0, cellNotDrawRGBA);
+                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellNotDrawRGBA);
+                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellNotDrawRGBA);
+                                    matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellNotDrawRGBA);
+                                }
+                                break;
+                            case MatrixGridMode::OUTLINE:
+                                if (drawCellFlag) {
+                                    matrixPrimitive->addVertex(cellX, cellY, 0.0, cellOutlineRGBA);
+                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellOutlineRGBA);
+                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellOutlineRGBA);
+                                    matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellOutlineRGBA);
+                                }
+                                else {
+                                    matrixPrimitive->addVertex(cellX, cellY, 0.0, cellNotDrawRGBA);
+                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellNotDrawRGBA);
+                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellNotDrawRGBA);
+                                    matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellNotDrawRGBA);
+                                }
+                                break;
                         }
                         
                         cellX += cellWidth;
@@ -1626,15 +1661,24 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                     
                     cellY -= cellHeight;
                 }
-                
-                m_matrixGraphicsPrimitive->setAlternativeFloatRGBA(getMatrixChartGraphicsPrimitiveGridColorIdentifier(),
-                                                                   gridOutlineRGBA);
             }
-
         }
     }
     
-    return m_matrixGraphicsPrimitive.get();
+    switch (gridMode) {
+        case MatrixGridMode::FILLED:
+            if (matrixPrimitive != m_matrixGraphicsPrimitive.get()) {
+                m_matrixGraphicsPrimitive.reset(matrixPrimitive);
+            }
+            break;
+        case MatrixGridMode::OUTLINE:
+            if (matrixPrimitive != m_matrixGraphicsOutlinePrimitive.get()) {
+                m_matrixGraphicsOutlinePrimitive.reset(matrixPrimitive);
+            }
+            break;
+    }
+    
+    return matrixPrimitive;
 }
 
 
@@ -2462,6 +2506,7 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
     
     invalidateHistogramChartColoring();
     m_matrixGraphicsPrimitive.reset();
+    m_matrixGraphicsOutlinePrimitive.reset();
 }
 
 /**
