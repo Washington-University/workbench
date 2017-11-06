@@ -1489,6 +1489,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 columnOutlineData->addVertex(maxX, minY, highlightRGBA);
                 columnOutlineData->addVertex(maxX, maxY, highlightRGBA);
                 columnOutlineData->addVertex(minX, maxY, highlightRGBA);
+                columnOutlineData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, highlightLineWidth);
                 
                 float modelViewMatrix[16];
                 glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix);
@@ -1681,7 +1682,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
         boxData->addVertex(boxLeft - cornerOffset,  boxTop);
         boxData->addVertex(boxLeft, boxTop);
         boxData->addVertex(boxLeft, boxBottom);
-        BrainOpenGL::setLineWidth(lineThicknessPixels);
+        boxData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, lineThicknessPixels);
         drawPrimitivePrivate(boxData.get());
     }
     
@@ -2539,6 +2540,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
          * Draw the ticks.
          */
         BrainOpenGL::setLineWidth(m_lineDrawingWidth);
+        ticksData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, m_lineDrawingWidth);
         chartDrawing->drawPrimitivePrivate(ticksData.get());
     }
     
@@ -2567,6 +2569,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
             boxPrimitive->addVertex(bottomRight);
             boxPrimitive->addVertex(topRight);
             boxPrimitive->addVertex(topLeft);
+            boxPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, m_lineDrawingWidth);
             
 //            Complete offsets and maybe examine alignments from the text annotation to set the offsets
 //            

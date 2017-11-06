@@ -228,6 +228,8 @@ namespace caret {
         
         void drawBorder(const BorderDrawInfo& borderDrawInfo);
         
+        void drawBorderOld(const BorderDrawInfo& borderDrawInfo);
+        
         bool unstretchedBorderLineTest(const float p1[3],
                                        const float p2[3],
                                        const float anat1[3],

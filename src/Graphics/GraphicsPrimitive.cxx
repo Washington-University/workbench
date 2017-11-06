@@ -117,6 +117,11 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_alternativeFloatRGBA        = obj.m_alternativeFloatRGBA;
     m_alternativeUnsignedByteRGBA = obj.m_alternativeUnsignedByteRGBA;
     m_floatTextureSTR             = obj.m_floatTextureSTR;
+    m_lineWidthType               = obj.m_lineWidthType;
+    m_lineWidthValue              = obj.m_lineWidthValue;
+    m_pointSizeType               = obj.m_pointSizeType;
+    m_pointDiameterValue          = obj.m_pointDiameterValue;
+    m_primitiveRestartIndices     = obj.m_primitiveRestartIndices;
     m_textureImageBytesRGBA       = obj.m_textureImageBytesRGBA;
     m_textureImageWidth           = obj.m_textureImageWidth;
     m_textureImageHeight          = obj.m_textureImageHeight;
@@ -372,6 +377,72 @@ GraphicsPrimitive::toString() const
 }
 
 /**
+ * @return Type of primitive as text.
+ */
+AString
+GraphicsPrimitive::getPrimitiveTypeAsText() const
+{
+    AString s;
+    
+    switch (m_primitiveType) {
+        case PrimitiveType::LINE_LOOP:
+            s = "Line Loop";
+            break;
+        case PrimitiveType::LINE_STRIP:
+            s = "Line Strip";
+            break;
+        case PrimitiveType::LINES:
+            s = "Lines";
+            break;
+        case PrimitiveType::POINTS:
+            s = "Points";
+            break;
+        case PrimitiveType::POLYGON:
+            s = "Polygon";
+            break;
+        case PrimitiveType::QUAD_STRIP:
+            s = "Quad Strip";
+            break;
+        case PrimitiveType::QUADS:
+            s = "Quads";
+            break;
+        case PrimitiveType::TRIANGLE_FAN:
+            s = "Triangle Fan";
+            break;
+        case PrimitiveType::TRIANGLE_STRIP:
+            s = "Triangle Strip";
+            break;
+        case PrimitiveType::TRIANGLES:
+            s = "Triangles";
+            break;
+    }
+    
+    return s;
+}
+
+/**
+ * @return Size type as text for the given size type.
+ *
+ * @param sizeType
+ *     The size type.
+ */
+AString
+GraphicsPrimitive::getSizeTypeAsText(const SizeType sizeType) const
+{
+    AString s;
+    
+    switch (sizeType) {
+        case SizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+            s = "Percentage Viewport Height";
+            break;
+        case SizeType::PIXELS:
+            s = "Pixels";
+            break;
+    }
+    return s;
+}
+
+/**
  * Convert to string.
  *
  * @param includeAllDataFlag
@@ -380,43 +451,13 @@ GraphicsPrimitive::toString() const
 AString
 GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
 {
-    AString s;
+    AString s("Primitive: ");
     
-    switch (m_primitiveType) {
-        case PrimitiveType::LINE_LOOP:
-            s.appendWithNewLine("Primitive: Line Loop");
-            break;
-        case PrimitiveType::LINE_STRIP:
-            s.appendWithNewLine("Primitive: Line Strip");
-            break;
-        case PrimitiveType::LINES:
-            s.appendWithNewLine("Primitive: Lines");
-            break;
-        case PrimitiveType::POINTS:
-            s.appendWithNewLine("Primitive: Points");
-            break;
-        case PrimitiveType::POLYGON:
-            s.appendWithNewLine("Primitive: Polygon");
-            break;
-        case PrimitiveType::QUAD_STRIP:
-            s.appendWithNewLine("Primitive: Quad Strip");
-            break;
-        case PrimitiveType::QUADS:
-            s.appendWithNewLine("Primitive: Quads");
-            break;
-        case PrimitiveType::TRIANGLE_FAN:
-            s.appendWithNewLine("Primitive: Triangle Fan");
-            break;
-        case PrimitiveType::TRIANGLE_STRIP:
-            s.appendWithNewLine("Primitive: Triangle Strip");
-            break;
-        case PrimitiveType::TRIANGLES:
-            s.appendWithNewLine("Primitive: Triangles");
-            break;
-    }
+    s.append(getPrimitiveTypeAsText());
+
     switch (m_vertexType) {
         case VertexType::FLOAT_XYZ:
-            s.appendWithNewLine("Vertex: " + AString::number(m_xyz.size()) + " Float XYZ.  ");
+            s.appendWithNewLine("Vertex Count: " + AString::number(m_xyz.size() / 3) + " Float XYZ.  ");
             if (includeAllDataFlag ) {
                 s.append("\n   ");
                 const int32_t count = static_cast<int32_t>(m_xyz.size());
@@ -431,9 +472,18 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             break;
     }
     
+    if ( ! m_primitiveRestartIndices.empty()) {
+        s.appendWithNewLine("Restart Indices Count: " + AString::number(m_primitiveRestartIndices.size()));
+        if (includeAllDataFlag) {
+            std::vector<int32_t> temp(m_primitiveRestartIndices.begin(),
+                                      m_primitiveRestartIndices.end());
+            s.appendWithNewLine("    " + AString::fromNumbers(temp, ", "));
+        }
+    }
+    
     switch (m_normalVectorType) {
         case NormalVectorType::FLOAT_XYZ:
-            s.appendWithNewLine("Normal Vector: " + AString::number(m_floatNormalVectorXYZ.size()) + " Float XYZ.  ");
+            s.appendWithNewLine("Normal Vector Count: " + AString::number(m_floatNormalVectorXYZ.size() / 3) + " Float XYZ.  ");
             break;
             if (includeAllDataFlag ) {
                 s.append("\n   ");
@@ -454,7 +504,7 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
         case GraphicsPrimitive::ColorType::NONE:
             break;
         case ColorType::FLOAT_RGBA:
-            s.appendWithNewLine("Color: " + AString::number(m_floatRGBA.size()) + " Float RGBA 0.0 to 1.0.  ");
+            s.appendWithNewLine("Color Count: " + AString::number(m_floatRGBA.size() / 4) + " Float RGBA 0.0 to 1.0.  ");
             if (includeAllDataFlag ) {
                 s.append("\n   ");
                 const int32_t count = static_cast<int32_t>(m_floatRGBA.size());
@@ -467,7 +517,7 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             }
             break;
         case ColorType::UNSIGNED_BYTE_RGBA:
-            s.appendWithNewLine("Color: " + AString::number(m_unsignedByteRGBA.size()) + " Unsigned Byte RGBA  0 to 255");
+            s.appendWithNewLine("Color Count: " + AString::number(m_unsignedByteRGBA.size() / 4) + " Unsigned Byte RGBA  0 to 255");
             if (includeAllDataFlag ) {
                 s.append("\n   ");
                 const int32_t count = static_cast<int32_t>(m_unsignedByteRGBA.size());
@@ -499,6 +549,50 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
                 }
             }
             break;
+    }
+    
+    bool addLineWidthFlag = false;
+    bool addPointSizeFlag = false;
+    
+    switch (m_primitiveType) {
+        case PrimitiveType::LINE_LOOP:
+            addLineWidthFlag = true;
+            break;
+        case PrimitiveType::LINE_STRIP:
+            addLineWidthFlag = true;
+            break;
+        case PrimitiveType::LINES:
+            addLineWidthFlag = true;
+            break;
+        case PrimitiveType::POINTS:
+            addPointSizeFlag = true;
+            break;
+        case PrimitiveType::POLYGON:
+            break;
+        case PrimitiveType::QUAD_STRIP:
+            break;
+        case PrimitiveType::QUADS:
+            break;
+        case PrimitiveType::TRIANGLE_FAN:
+            break;
+        case PrimitiveType::TRIANGLE_STRIP:
+            break;
+        case PrimitiveType::TRIANGLES:
+            break;
+    }
+    
+    if (addLineWidthFlag) {
+        s.appendWithNewLine("Line Width Type: "
+                            + getSizeTypeAsText(m_lineWidthType)
+                            + "; Width Value: "
+                            + AString::number(m_lineWidthValue, 'f', 3));
+    }
+    
+    if (addPointSizeFlag) {
+        s.appendWithNewLine("Point Diameter Type: "
+                            + getSizeTypeAsText(m_pointSizeType)
+                            + "; Diameter Value: "
+                            + AString::number(m_pointDiameterValue, 'f', 3));
     }
     
     return s;
@@ -657,6 +751,130 @@ GraphicsPrimitive::replaceVertexFloatXYZ(const int32_t vertexIndex,
 }
 
 /**
+ * Get the float RGBA coloring for a vertex.
+ *
+ * @param vertexIndex
+ *     Index of the vertex.
+ * @param rgbaOut
+ *     Output with RGBA.
+ */
+void
+GraphicsPrimitive::getVertexFloatRGBA(const int32_t vertexIndex,
+                                      float rgbaOut[4]) const
+{
+    const int32_t i4 = vertexIndex * 4;
+    switch (m_colorType) {
+        case ColorType::NONE:
+            CaretAssert(0);
+            break;
+        case ColorType::FLOAT_RGBA:
+            CaretAssertVectorIndex(m_floatRGBA, i4 + 3);
+            rgbaOut[0] = m_floatRGBA[i4];
+            rgbaOut[1] = m_floatRGBA[i4 + 1];
+            rgbaOut[2] = m_floatRGBA[i4 + 2];
+            rgbaOut[3] = m_floatRGBA[i4 + 3];
+            break;
+        case ColorType::UNSIGNED_BYTE_RGBA:
+            CaretAssertMessage(0, "Getting float RGBA from primitive but coloring type is Byte");
+            CaretLogWarning("Getting float RGBA from primitive but coloring type is Byte");
+            break;
+    }
+}
+
+/**
+ * Replace the float RGBA coloring for a vertex.
+ *
+ * @param vertexIndex
+ *     Index of the vertex.
+ * @param rgba
+ *     New RGBA for vertex.
+ */
+void
+GraphicsPrimitive::replaceVertexFloatRGBA(const int32_t vertexIndex,
+                                          const float rgba[4])
+{
+    const int32_t i4 = vertexIndex * 4;
+    switch (m_colorType) {
+        case ColorType::NONE:
+            CaretAssert(0);
+            break;
+        case ColorType::FLOAT_RGBA:
+            CaretAssertVectorIndex(m_floatRGBA, i4 + 3);
+            m_floatRGBA[i4]     = rgba[0];
+            m_floatRGBA[i4 + 1] = rgba[1];
+            m_floatRGBA[i4 + 2] = rgba[2];
+            m_floatRGBA[i4 + 3] = rgba[3];
+            break;
+        case ColorType::UNSIGNED_BYTE_RGBA:
+            CaretAssertMessage(0, "Replacing float RGBA in primitive but coloring type is Byte");
+            CaretLogWarning("Replacing float RGBA in primitive but coloring type is Byte");
+            break;
+    }
+}
+
+/**
+ * Get the byte RGBA coloring for a vertex.
+ *
+ * @param vertexIndex
+ *     Index of the vertex.
+ * @param rgbaOut
+ *     Output with RGBA.
+ */
+void
+GraphicsPrimitive::getVertexByteRGBA(const int32_t vertexIndex,
+                                     uint8_t rgbaOut[4]) const
+{
+    const int32_t i4 = vertexIndex * 4;
+    switch (m_colorType) {
+        case ColorType::NONE:
+            CaretAssert(0);
+            break;
+        case ColorType::FLOAT_RGBA:
+            CaretAssertMessage(0, "Getting Byte RGBA in primitive but coloring type is Float");
+            CaretLogWarning("Getting Byte RGBA in primitive but coloring type is Float");
+            break;
+        case ColorType::UNSIGNED_BYTE_RGBA:
+            CaretAssertVectorIndex(m_unsignedByteRGBA, i4 + 3);
+            rgbaOut[0] = m_unsignedByteRGBA[i4];
+            rgbaOut[1] = m_unsignedByteRGBA[i4 + 1];
+            rgbaOut[2] = m_unsignedByteRGBA[i4 + 2];
+            rgbaOut[3] = m_unsignedByteRGBA[i4 + 3];
+            break;
+    }
+}
+
+/**
+ * Replace the float RGBA coloring for a vertex.
+ *
+ * @param vertexIndex
+ *     Index of the vertex.
+ * @param rgba
+ *     New RGBA for vertex.
+ */
+void
+GraphicsPrimitive::replaceVertexByteRGBA(const int32_t vertexIndex,
+                                         const uint8_t rgba[4])
+{
+    const int32_t i4 = vertexIndex * 4;
+    switch (m_colorType) {
+        case ColorType::NONE:
+            CaretAssert(0);
+            break;
+        case ColorType::FLOAT_RGBA:
+            CaretAssertMessage(0, "Replacing Byte RGBA in primitive but coloring type is Float");
+            CaretLogWarning("Replacing Byte RGBA in primitive but coloring type is Float");
+            break;
+        case ColorType::UNSIGNED_BYTE_RGBA:
+            CaretAssertVectorIndex(m_unsignedByteRGBA, i4 + 3);
+            m_unsignedByteRGBA[i4]     = rgba[0];
+            m_unsignedByteRGBA[i4 + 1] = rgba[1];
+            m_unsignedByteRGBA[i4 + 2] = rgba[2];
+            m_unsignedByteRGBA[i4 + 3] = rgba[3];
+            break;
+    }
+}
+
+/**
  * Get a bounds box for the vertex coordinates.
  *
  * @param boundingBoxOut
@@ -687,6 +905,137 @@ GraphicsPrimitive::getVertexBounds(BoundingBox& boundingBoxOut) const
     return m_boundingBoxValid;
 }
 
+/**
+ * There may be instances where a primitive should stop and restart at
+ * non-consecutive vertices (such as a gap in connected line segment).
+ * Typically, this requires creating separate primitives around
+ * the gap.
+ * 
+ * When this method is called, it indicates that any previously
+ * added points will not connect to any points after this method
+ * is called.  
+ *
+ * This functionality is similar to that of glPrimitiveRestartIndex()
+ * that is not available in versions of OpenGL prior to 3.1.
+ *
+ * At this time, this functionality if available only for 
+ * line strip and line loop.
+ */
+void
+GraphicsPrimitive::addPrimitiveRestart()
+{
+    bool notApplicableFlag = false;
+    bool supportedFlag = false;
+    
+    switch (m_primitiveType) {
+        case PrimitiveType::LINE_LOOP:
+            supportedFlag = true;
+            break;
+        case PrimitiveType::LINE_STRIP:
+            supportedFlag = true;
+            break;
+        case PrimitiveType::LINES:
+            notApplicableFlag = true;
+            break;
+        case PrimitiveType::POINTS:
+            notApplicableFlag = true;
+            break;
+        case PrimitiveType::POLYGON:
+            notApplicableFlag = true;
+            break;
+        case PrimitiveType::QUAD_STRIP:
+            break;
+        case PrimitiveType::QUADS:
+            notApplicableFlag = true;
+            break;
+        case PrimitiveType::TRIANGLE_FAN:
+            break;
+        case PrimitiveType::TRIANGLE_STRIP:
+            break;
+        case PrimitiveType::TRIANGLES:
+            notApplicableFlag = true;
+            break;
+    }
+    
+    if (notApplicableFlag) {
+        CaretLogWarning("Requested primitive restart on non-applicable primitive type: "
+                        + getPrimitiveTypeAsText());
+    }
+    else if (supportedFlag) {
+        /*
+         * A set is used because a vertex could be added more than one time
+         */
+        m_primitiveRestartIndices.insert(getNumberOfVertices());
+    }
+    else {
+        CaretLogSevere("Requested primitive restart on not yet supported primitive type: "
+                       + getPrimitiveTypeAsText());
+    }
+}
+
+/**
+ * Get the point diameter.
+ *
+ * @param sizeTypeOut
+ *     Type of sizing.
+ * @param pointDiameterOut
+ *     Diameter of point.
+ */
+void
+GraphicsPrimitive::getPointDiameter(SizeType& sizeTypeOut,
+                                    float& pointDiameterOut) const
+{
+    sizeTypeOut  = m_pointSizeType;
+    pointDiameterOut = m_pointDiameterValue;
+}
+
+/**
+ * Set the point diameter.
+ *
+ * @param sizeType
+ *     Type of sizing.
+ * @param pointDiameter
+ *     Diameter of point.
+ */
+void
+GraphicsPrimitive::setPointDiameter(const SizeType sizeType,
+                                    const float pointDiameter)
+{
+    m_pointSizeType  = sizeType;
+    m_pointDiameterValue = pointDiameter;
+}
+
+/**
+ * Get the line width.
+ *
+ * @param sizeTypeOut
+ *     Type of sizing.
+ * @param lineWidthOut
+ *     Width of line.
+ */
+void
+GraphicsPrimitive::getLineWidth(SizeType& widthTypeOut,
+                                float lineWidthOut) const
+{
+    widthTypeOut = m_lineWidthType;
+    lineWidthOut = m_lineWidthValue;
+}
+
+/**
+ * Set the line width.
+ *
+ * @param sizeType
+ *     Type of sizing.
+ * @param lineWidth
+ *     Width of line.
+ */
+void
+GraphicsPrimitive::setLineWidth(const SizeType widthType,
+                                const float lineWidth)
+{
+    m_lineWidthType = widthType;
+    m_lineWidthValue = lineWidth;
+}
 
 /**
  * @return A reference to the alternative coloring.  An empty vector is returned

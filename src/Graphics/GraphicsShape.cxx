@@ -80,10 +80,19 @@ GraphicsShape::drawEllipseOutlineByteColor(void* openglContextPointer,
     std::vector<float> ellipseXYZ;
     createEllipseVertices(majorAxis, minorAxis, ellipseXYZ);
     
-    GraphicsOpenGLLineDrawing::drawLineLoopSolidByteColor(openglContextPointer,
-                                                          ellipseXYZ,
-                                                          rgba,
-                                                          lineThickness);
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+                                                                                       rgba));
+    const int32_t numVertices = static_cast<int32_t>(ellipseXYZ.size() / 3);
+    for (int32_t i = 0; i < numVertices; i++) {
+        primitive->addVertex(&ellipseXYZ[i * 3]);
+    }
+    
+    primitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
+                            lineThickness);
+    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    
+    GraphicsOpenGLLineDrawing::draw(openglContextPointer,
+                                    primitive.get());
 }
 
 /**

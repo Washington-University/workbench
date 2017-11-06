@@ -293,6 +293,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                 const float redRGBA[4] = { 1.0f, 0.0, 0.0, 1.0f };
                 std::unique_ptr<GraphicsPrimitiveV3f> crossShape = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
                                                                                                                                             redRGBA));
+                crossShape->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, 2.0f);
                 crossShape->addVertex(drawingSpaceXYZ[0],
                                       drawingSpaceXYZ[1] - 10);
                 crossShape->addVertex(drawingSpaceXYZ[0],
@@ -2459,6 +2460,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                       annXYZ[1]);
                 crossShape->addVertex(annXYZ[0] + 10,
                                       annXYZ[1]);
+                crossShape->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, 2.0f);
                 GraphicsEngineDataOpenGL::draw(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
                                                crossShape.get());
             }

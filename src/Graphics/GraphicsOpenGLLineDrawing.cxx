@@ -58,6 +58,104 @@ GraphicsOpenGLLineDrawing::~GraphicsOpenGLLineDrawing()
 }
 
 /**
+ * Draw the given graphics primitive containing lines
+ * by converting the lines to polygons.
+ *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
+ * @param primtive
+ *     The graphics primitive.
+ */
+bool
+GraphicsOpenGLLineDrawing::draw(void* openglContextPointer,
+                                const GraphicsPrimitive* primitive)
+{
+    CaretAssert(primitive);
+    if (primitive->isValid()) {
+        float lineWidth = primitive->m_lineWidthValue;
+        
+        switch (primitive->m_lineWidthType) {
+            case GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+            {
+                GLint viewport[4];
+                glGetIntegerv(GL_VIEWPORT, viewport);
+                lineWidth = (lineWidth / 100.0) * viewport[3];
+            }
+                break;
+            case GraphicsPrimitive::SizeType::PIXELS:
+                break;
+        }
+        
+        ColorType colorType = ColorType::FLOAT_RGBA_PER_VERTEX;
+        switch (primitive->m_colorType) {
+            case GraphicsPrimitive::ColorType::NONE:
+                CaretLogSevere("INVALID color type NONE for graphics primitive");
+                return false;
+                break;
+            case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+                colorType = ColorType::FLOAT_RGBA_PER_VERTEX;
+                break;
+            case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+                colorType = ColorType::BYTE_RGBA_PER_VERTEX;
+                break;
+        }
+        
+        LineType lineType = LineType::LINES;
+        switch (primitive->m_primitiveType) {
+            case GraphicsPrimitive::PrimitiveType::LINE_LOOP:
+                lineType = LineType::LINE_LOOP;
+                break;
+            case GraphicsPrimitive::PrimitiveType::LINE_STRIP:
+                lineType = LineType::LINE_STRIP;
+                break;
+            case GraphicsPrimitive::PrimitiveType::LINES:
+                lineType = LineType::LINES;
+                break;
+            case GraphicsPrimitive::PrimitiveType::POINTS:
+                CaretLogSevere("POINTS is not a valid line drawing type");
+                return false;
+                break;
+            case GraphicsPrimitive::PrimitiveType::POLYGON:
+                CaretLogSevere("POLYGON is not a valid line drawing type");
+                return false;
+                break;
+            case GraphicsPrimitive::PrimitiveType::QUAD_STRIP:
+                CaretLogSevere("QUAD_STRIP is not a valid line drawing type");
+                return false;
+                break;
+            case GraphicsPrimitive::PrimitiveType::QUADS:
+                CaretLogSevere("QUADS is not a valid line drawing type");
+                return false;
+                break;
+            case GraphicsPrimitive::PrimitiveType::TRIANGLE_FAN:
+                CaretLogSevere("TRIANGLE_FAN is not a valid line drawing type");
+                return false;
+                break;
+            case GraphicsPrimitive::PrimitiveType::TRIANGLE_STRIP:
+                CaretLogSevere("TRIANGLE_STRIP is not a valid line drawing type");
+                return false;
+                break;
+            case GraphicsPrimitive::PrimitiveType::TRIANGLES:
+                CaretLogSevere("TRIANGLES is not a valid line drawing type");
+                return false;
+                break;
+        }
+        
+        return drawLinesPrivate(openglContextPointer,
+                                primitive->m_xyz,
+                                primitive->m_floatRGBA,
+                                primitive->m_unsignedByteRGBA,
+                                primitive->m_primitiveRestartIndices,
+                                lineWidth,
+                                colorType,
+                                lineType);
+    }
+    
+    return false;
+}
+
+
+/**
  * Constructor.
  *
  * @param openglContextPointer
@@ -68,6 +166,9 @@ GraphicsOpenGLLineDrawing::~GraphicsOpenGLLineDrawing()
  *     The Float RGBA coloring.
  * @param byteRGBA
  *     The Byte RGBA coloring.
+ * @param vertexPrimitiveRestartIndices
+ *     Contains indices at which the primitive should restart.
+ *     The primitive will stop at the index and not connect to the next index.
  * @param lineThicknessPixels
  *     Thickness of lines in pixels.
  * @param colorType
@@ -79,6 +180,7 @@ GraphicsOpenGLLineDrawing::GraphicsOpenGLLineDrawing(void* openglContextPointer,
                                                      const std::vector<float>& xyz,
                                                      const std::vector<float>& floatRGBA,
                                                      const std::vector<uint8_t>& byteRGBA,
+                                                     const std::set<int32_t>& vertexPrimitiveRestartIndices,
                                                      const float lineThicknessPixels,
                                                      const ColorType colorType,
                                                      const LineType lineType)
@@ -86,6 +188,7 @@ GraphicsOpenGLLineDrawing::GraphicsOpenGLLineDrawing(void* openglContextPointer,
 m_inputXYZ(xyz),
 m_inputFloatRGBA(floatRGBA),
 m_inputByteRGBA(byteRGBA),
+m_vertexPrimitiveRestartIndices(vertexPrimitiveRestartIndices),
 m_lineThicknessPixels(lineThicknessPixels),
 m_colorType(colorType),
 m_lineType(lineType)
@@ -114,11 +217,13 @@ GraphicsOpenGLLineDrawing::drawLinesPerVertexFloatColor(void* openglContextPoint
                                                    const std::vector<float>& rgba,
                                                    const float lineThicknessPixels)
 {
+    std::set<int32_t> emptyPrimitiveRestartIndices;
     std::vector<uint8_t> emptyByteRGBA;
     return drawLinesPrivate(openglContextPointer,
                             xyz,
                             rgba,
                             emptyByteRGBA,
+                            emptyPrimitiveRestartIndices,
                             lineThicknessPixels,
                             ColorType::FLOAT_RGBA_PER_VERTEX,
                             LineType::LINES);
@@ -147,11 +252,13 @@ GraphicsOpenGLLineDrawing::drawLinesSolidFloatColor(void* openglContextPointer,
 {
     std::vector<float> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
     
+    std::set<int32_t> emptyPrimitiveRestartIndices;
     std::vector<uint8_t> emptyByteRGBA;
     return drawLinesPrivate(openglContextPointer,
                             xyz,
                             rgbaVector,
                             emptyByteRGBA,
+                            emptyPrimitiveRestartIndices,
                             lineThicknessPixels,
                             ColorType::FLOAT_RGBA_SOLID,
                             LineType::LINES);
@@ -179,11 +286,13 @@ GraphicsOpenGLLineDrawing::drawLineStripSolidFloatColor(void* openglContextPoint
 {
     std::vector<float> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
     std::vector<uint8_t> emptyByteRGBA;
+    std::set<int32_t> emptyPrimitiveRestartIndices;
     
     return drawLinesPrivate(openglContextPointer,
                             xyz,
                             rgbaVector,
                             emptyByteRGBA,
+                            emptyPrimitiveRestartIndices,
                             lineThicknessPixels,
                             ColorType::FLOAT_RGBA_SOLID,
                             LineType::LINE_STRIP);
@@ -211,10 +320,13 @@ GraphicsOpenGLLineDrawing::drawLineLoopSolidFloatColor(void* openglContextPointe
 {
     std::vector<float> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
     std::vector<uint8_t> emptyByteRGBA;
+    std::set<int32_t> emptyPrimitiveRestartIndices;
+    
     return drawLinesPrivate(openglContextPointer,
                             xyz,
                             rgbaVector,
                             emptyByteRGBA,
+                            emptyPrimitiveRestartIndices,
                             lineThicknessPixels,
                             ColorType::FLOAT_RGBA_SOLID,
                             LineType::LINE_LOOP);
@@ -246,10 +358,13 @@ GraphicsOpenGLLineDrawing::drawLinesPerVertexByteColor(void* openglContextPointe
                                                         const float lineThicknessPixels)
 {
     std::vector<float> emptyFloatRGBA;
+    std::set<int32_t> emptyPrimitiveRestartIndices;
+    
     return drawLinesPrivate(openglContextPointer,
                             xyz,
                             emptyFloatRGBA,
                             rgba,
+                            emptyPrimitiveRestartIndices,
                             lineThicknessPixels,
                             ColorType::BYTE_RGBA_PER_VERTEX,
                             LineType::LINES);
@@ -279,10 +394,13 @@ GraphicsOpenGLLineDrawing::drawLinesSolidByteColor(void* openglContextPointer,
     std::vector<uint8_t> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
     
     std::vector<float> emptyFloatRGBA;
+    std::set<int32_t> emptyPrimitiveRestartIndices;
+    
     return drawLinesPrivate(openglContextPointer,
                             xyz,
                             emptyFloatRGBA,
                             rgbaVector,
+                            emptyPrimitiveRestartIndices,
                             lineThicknessPixels,
                             ColorType::BYTE_RGBA_SOLID,
                             LineType::LINES);
@@ -310,11 +428,13 @@ GraphicsOpenGLLineDrawing::drawLineStripSolidByteColor(void* openglContextPointe
 {
     std::vector<uint8_t> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
     std::vector<float> emptyFloatRGBA;
+    std::set<int32_t> emptyPrimitiveRestartIndices;
     
     return drawLinesPrivate(openglContextPointer,
                             xyz,
                             emptyFloatRGBA,
                             rgbaVector,
+                            emptyPrimitiveRestartIndices,
                             lineThicknessPixels,
                             ColorType::BYTE_RGBA_SOLID,
                             LineType::LINE_STRIP);
@@ -342,10 +462,13 @@ GraphicsOpenGLLineDrawing::drawLineLoopSolidByteColor(void* openglContextPointer
 {
     std::vector<uint8_t> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
     std::vector<float> emptyFloatRGBA;
+    std::set<int32_t> emptyPrimitiveRestartIndices;
+    
     return drawLinesPrivate(openglContextPointer,
                             xyz,
                             emptyFloatRGBA,
                             rgbaVector,
+                            emptyPrimitiveRestartIndices,
                             lineThicknessPixels,
                             ColorType::BYTE_RGBA_SOLID,
                             LineType::LINE_LOOP);
@@ -364,6 +487,8 @@ GraphicsOpenGLLineDrawing::drawLineLoopSolidByteColor(void* openglContextPointer
  *     The Float RGBA coloring.
  * @param byteRGBA
  *     The Byte RGBA coloring.
+ * @param vertexPrimitiveRestartIndices
+ *     Contains indices at which the primitive should restart.
  * @param lineThicknessPixels
  *     Thickness of line in pixels.
  * @param colorType
@@ -378,6 +503,7 @@ GraphicsOpenGLLineDrawing::drawLinesPrivate(void* openglContextPointer,
                                             const std::vector<float>& xyz,
                                             const std::vector<float>& floatRGBA,
                                             const std::vector<uint8_t>& byteRGBA,
+                                            const std::set<int32_t>& vertexPrimitiveRestartIndices,
                                             const float lineThicknessPixels,
                                             const ColorType colorType,
                                             const LineType lineType)
@@ -386,6 +512,7 @@ GraphicsOpenGLLineDrawing::drawLinesPrivate(void* openglContextPointer,
                                           xyz,
                                           floatRGBA,
                                           byteRGBA,
+                                          vertexPrimitiveRestartIndices,
                                           lineThicknessPixels,
                                           colorType,
                                           lineType);
@@ -709,13 +836,10 @@ GraphicsOpenGLLineDrawing::convertFromModelToWindowCoordinate(const float modelX
  *     Index of first vertex.
  * @param indexTwo
  *     Index of second vertex.
- * @param lastVertexFlag
- *     Flag indicating last vertex used when joining line loop last to first
  */
 void
 GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
-                                                        const int32_t indexTwo,
-                                                        const bool lastVertexFlag)
+                                                        const int32_t indexTwo)
 {
     const int32_t iOne3 = indexOne * 3;
     CaretAssertVectorIndex(m_vertexWindowXYZ, iOne3 + 2);
@@ -875,88 +999,58 @@ GraphicsOpenGLLineDrawing::createQuadFromWindowVertices(const int32_t indexOne,
             break;
     }
     
-//    /*
-//     * Perform joins of connected lines
-//     */
-//    switch (m_lineType) {
-//        case LineType::LINES:
-//            return;
-//            break;
-//        case LineType::LINE_LOOP:
-//            break;
-//        case LineType::LINE_STRIP:
-//            break;
-//    }
-//    
-//    if (indexTwo >= 2) {
-//        CaretAssert(m_primitive);
-//        const int32_t numQuadVertices = m_primitive->getNumberOfVertices();
-//        
-//        switch (m_joinType) {
-//            case JoinType::NONE:
-//                return;
-//                break;
-//            case JoinType::MITER:
-//                if (lastVertexFlag) {
-//                    /* Join last quad to first quad */
-//                    performJoin(indexOne,
-//                                indexTwo,
-//                                0,
-//                                numQuadVertices - 4,
-//                                0);
-//                }
-//                else {
-//                    performJoin(indexOne - 1,
-//                                indexOne,
-//                                indexTwo,
-//                                numQuadVertices - 8,
-//                                numQuadVertices - 4);
-//                }
-//                break;
-//        }
-//    }
+    m_quadInfo.push_back(QuadInfo(indexOne, indexTwo));
 }
 
+/**
+ * Join quads to create connected line segments
+ * without cracks where the quads join together.
+ */
 void
 GraphicsOpenGLLineDrawing::joinQuads()
 {
-    /*
-     * Perform joins of connected lines
-     */
-    
     CaretAssert(m_primitive);
-    const int32_t numberOfLineVertices = (m_vertexWindowXYZ.size() / 3);
-    const int32_t lastVertexIndex = numberOfLineVertices - 1;
-    int32_t numberOfLines = numberOfLineVertices;
 
+    const int32_t numQuads = static_cast<int32_t>(m_quadInfo.size());
+    const int32_t numQuadsMinusOne = numQuads - 1;
+    
+    int32_t numQuadsToConnect = 0;
     switch (m_lineType) {
         case LineType::LINES:
-            numberOfLines = 0;
+            numQuadsToConnect = 0;
             break;
         case LineType::LINE_LOOP:
+            numQuadsToConnect = numQuads;
             break;
         case LineType::LINE_STRIP:
-            numberOfLines = numberOfLines - 2;
+            numQuadsToConnect = numQuadsMinusOne;
             break;
     }
-
-    switch (m_joinType) {
-        case JoinType::NONE:
-            numberOfLines = 0;
-            break;
-        case JoinType::MITER:
-            for (int32_t indexOne = 0; indexOne < numberOfLines; indexOne++) {
-                const int32_t indexTwo = (((indexOne + 1) <= lastVertexIndex) ? (indexOne + 1) : 0);
-                const int32_t indexThree = (((indexTwo + 1) <= lastVertexIndex) ? (indexTwo + 1) : 0);
-                if (m_debugFlag) {
-                    std::cout << "JOIN: " << indexOne << ", " << indexTwo << ", " << indexThree << std::endl;
-                }
-                
-                const int32_t quadOneVertexIndex = indexOne * 4;
-                const int32_t quadTwoVertexIndex = indexTwo * 4;
-                performJoin(indexOne, indexTwo, indexThree, quadOneVertexIndex, quadTwoVertexIndex);
-            }
-            break;
+    
+    /*
+     * Perform joins of connected quads
+     */
+    for (int32_t i = 0; i < numQuadsToConnect; i++) {
+        CaretAssertVectorIndex(m_quadInfo, i);
+        const QuadInfo& quad = m_quadInfo[i];
+        
+        const int32_t nextQuadIndex = ((i < numQuadsMinusOne) ? (i + 1) : 0);
+        CaretAssertVectorIndex(m_quadInfo, nextQuadIndex);
+        const QuadInfo& nextQuad = m_quadInfo[nextQuadIndex];
+        
+        /*
+         * Does quad "i" connect to quad "i+1" ?
+         */
+        if (quad.m_vertexTwoIndex == nextQuad.m_vertexOneIndex) {
+            const int32_t quadOneVertexIndex = i * 4;
+            const int32_t quadTwoVertexIndex = nextQuadIndex * 4;
+            
+            performJoin(quad.m_vertexOneIndex,
+                        quad.m_vertexTwoIndex,
+                        nextQuad.m_vertexTwoIndex,
+                        quadOneVertexIndex,
+                        quadTwoVertexIndex);
+        }
     }
 }
 
@@ -964,25 +1058,25 @@ GraphicsOpenGLLineDrawing::joinQuads()
  * Perform a join using the last two vertices in quad one
  * and the first two vertices in quad two
  *
- * @param lineVertexIndexOne
- *     Index of first vertex in line segment
- * @param lineVertexIndexTwo
- *     Index of second vertex in line segment
- * @param lineVertexIndexThree
- *     Index of three vertex in line segment
+ * @param windowVertexIndexOne
+ *     Index of first window vertex from line segment
+ * @param windowVertexIndexTwo
+ *     Index of second window from line segment
+ * @param windowVertexIndexThree
+ *     Index of three window from line segment
  * @param quadOneVertexIndex
  *     Index of first vertex in first quad
  * @param quadTwoVertexIndex
  *     Index of first vertex in second quad
  */
 void
-GraphicsOpenGLLineDrawing::performJoin(const int32_t lineVertexIndexOne,
-                                       const int32_t lineVertexIndexTwo,
-                                       const int32_t lineVertexIndexThree,
+GraphicsOpenGLLineDrawing::performJoin(const int32_t windowVertexIndexOne,
+                                       const int32_t windowVertexIndexTwo,
+                                       const int32_t windowVertexIndexThree,
                                        const int32_t quadOneVertexIndex,
                                        const int32_t quadTwoVertexIndex)
 {
-    if (m_debugFlag) std::cout << "Join: " << lineVertexIndexOne << ", " << lineVertexIndexTwo << ", " << lineVertexIndexThree << std::endl;
+    if (m_debugFlag) std::cout << "Join: " << windowVertexIndexOne << ", " << windowVertexIndexTwo << ", " << windowVertexIndexThree << std::endl;
     CaretAssert(m_primitive);
     
     /*
@@ -990,12 +1084,12 @@ GraphicsOpenGLLineDrawing::performJoin(const int32_t lineVertexIndexOne,
      * line segments in window coordinates makes a left
      * or right turn
      */
-    CaretAssertVectorIndex(m_vertexWindowXYZ, (lineVertexIndexOne * 3) + 2);
-    CaretAssertVectorIndex(m_vertexWindowXYZ, (lineVertexIndexTwo * 3) + 2);
-    CaretAssertVectorIndex(m_vertexWindowXYZ, (lineVertexIndexThree * 3) + 2);
-    const float signedArea = MathFunctions::triangleAreaSigned2D(&m_vertexWindowXYZ[lineVertexIndexOne * 3],
-                                                                 &m_vertexWindowXYZ[lineVertexIndexTwo * 3],
-                                                                 &m_vertexWindowXYZ[lineVertexIndexThree * 3]);
+    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexOne * 3) + 2);
+    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexTwo * 3) + 2);
+    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexThree * 3) + 2);
+    const float signedArea = MathFunctions::triangleAreaSigned2D(&m_vertexWindowXYZ[windowVertexIndexOne * 3],
+                                                                 &m_vertexWindowXYZ[windowVertexIndexTwo * 3],
+                                                                 &m_vertexWindowXYZ[windowVertexIndexThree * 3]);
 
 
     int32_t quadOneSideBeginVertexIndex = -1;
@@ -1039,14 +1133,122 @@ GraphicsOpenGLLineDrawing::performJoin(const int32_t lineVertexIndexOne,
     const float* q2v2 = &xyz[quadTwoSideEndVertexIndex * 3];
     
     /*
+     * Miter limit is a multiple of the line thickness
+     */
+    const float miterLimit = m_lineThicknessPixels;// * 2.0f;
+    const float miterLimitSquared = miterLimit * miterLimit;
+    
+    /*
      * Find location of where the edges in the quads intersect
      */
     float intersectionXYZ[3];
     if (MathFunctions::vectorIntersection2D(q1v1, q1v2, q2v1, q2v2, 0.0f, intersectionXYZ)) {
         intersectionXYZ[2] = q1v1[2];
         if (m_debugFlag) std::cout << "      Intersection: " << AString::fromNumbers(intersectionXYZ, 3, ",") << std::endl;
-        m_primitive->replaceVertexFloatXYZ(quadOneSideEndVertexIndex, intersectionXYZ);
-        m_primitive->replaceVertexFloatXYZ(quadTwoSideBeginVertexIndex, intersectionXYZ);
+        
+        /*
+         * When the angle is very sharp, the miter point can be very long and pointy
+         * so limit to a multiplier of the line thickness
+         */
+        CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexTwo * 3) + 2);
+        const float* joinPointXYZ = &m_vertexWindowXYZ[(windowVertexIndexTwo * 3)];
+        const float distanceSquared = MathFunctions::distanceSquared3D(joinPointXYZ,
+                                                                       intersectionXYZ);
+        if (distanceSquared > miterLimitSquared) {
+            /*
+             * Extend lines by the miter limit to create a new quad
+             */
+            float newV1[3];
+            createMiterJoinVertex(q1v1, q1v2, miterLimit, newV1);
+            float newV2[3];
+            createMiterJoinVertex(q2v2, q2v1, miterLimit, newV2);
+            
+            m_quadJoins.push_back(QuadJoin(q1v2,
+                                           newV1,
+                                           q2v1,
+                                           newV2,
+                                           quadOneSideEndVertexIndex,
+                                           quadTwoSideBeginVertexIndex));
+        }
+        else {
+            /*
+             * Move the existing quad vertices to their intersection point
+             */
+            m_primitive->replaceVertexFloatXYZ(quadOneSideEndVertexIndex, intersectionXYZ);
+            m_primitive->replaceVertexFloatXYZ(quadTwoSideBeginVertexIndex, intersectionXYZ);
+        }
+    }
+}
+
+/**
+ * Create a vertex for a miter join when the length limit is exceeded
+ *
+ * @param v1
+ *     First vertex
+ * @param v2
+ *     Second vertex that is connected to the miter join vertex.
+ * @param miterLength
+ *     Length of output vertex from v2
+ * @param xyzOut
+ *     Output with vertex used for miter join.
+ */
+void
+GraphicsOpenGLLineDrawing::createMiterJoinVertex(const float v1[3],
+                                                 const float v2[3],
+                                                 const float miterLength,
+                                                 float xyzOut[3])
+{
+    float n2[3];
+    MathFunctions::subtractVectors(v2, v1, n2);
+    MathFunctions::normalizeVector(n2);
+    n2[0] *= miterLength;
+    n2[1] *= miterLength;
+    n2[2] *= miterLength;
+    xyzOut[0] = v2[0] + n2[0];
+    xyzOut[1] = v2[1] + n2[1];
+    xyzOut[2] = v2[2] + n2[2];
+}
+
+/**
+ * When the quads are joined, additional quads may be
+ * created to to fill in the gaps.
+ */
+void
+GraphicsOpenGLLineDrawing::addMiterJoinQuads()
+{
+    const int32_t numJoinQuads = static_cast<int32_t>(m_quadJoins.size());
+    for (int32_t i = 0; i < numJoinQuads; i++) {
+        CaretAssertVectorIndex(m_quadJoins, i);
+        const QuadJoin& quadJoin = m_quadJoins[i];
+        
+        /*
+         * Add the join quad to the primitive
+         */
+        switch (m_primitive->getColorType()) {
+            case GraphicsPrimitive::ColorType::NONE:
+                CaretAssert(0);
+                break;
+            case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+            {
+                float rgba[4];
+                m_primitiveFloatColor->getVertexFloatRGBA(quadJoin.m_primitiveOneTwoIndex, rgba);
+                m_primitiveFloatColor->addVertex(&quadJoin.m_xyz[0], rgba);
+                m_primitiveFloatColor->addVertex(&quadJoin.m_xyz[3], rgba);
+                m_primitiveFloatColor->addVertex(&quadJoin.m_xyz[6], rgba);
+                m_primitiveFloatColor->addVertex(&quadJoin.m_xyz[9], rgba);
+            }
+                break;
+            case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+            {
+                uint8_t rgba[4];
+                m_primitiveByteColor->getVertexByteRGBA(quadJoin.m_primitiveThreeFourIndex, rgba);
+                m_primitiveByteColor->addVertex(&quadJoin.m_xyz[0], rgba);
+                m_primitiveByteColor->addVertex(&quadJoin.m_xyz[3], rgba);
+                m_primitiveByteColor->addVertex(&quadJoin.m_xyz[6], rgba);
+                m_primitiveByteColor->addVertex(&quadJoin.m_xyz[9], rgba);
+            }
+                break;
+        }
     }
 }
 
@@ -1062,16 +1264,21 @@ GraphicsOpenGLLineDrawing::convertLineSegmentsToQuads()
     
     const int32_t numVertices = static_cast<int32_t>(m_vertexWindowXYZ.size() / 3);
     
+    /*
+     * When estimating number of quads,
+     * include both the quads formed by the vertices
+     * and possible quads added for joining end points
+     */
     int32_t estimatedNumberOfQuads = 0;
     switch (m_lineType) {
         case LineType::LINES:
             estimatedNumberOfQuads = numVertices / 2;
             break;
         case LineType::LINE_LOOP:
-            estimatedNumberOfQuads = numVertices;
+            estimatedNumberOfQuads = numVertices * 2;
             break;
         case LineType::LINE_STRIP:
-            estimatedNumberOfQuads = numVertices - 1;
+            estimatedNumberOfQuads = (numVertices - 1) * 2;
             break;
     }
     
@@ -1095,6 +1302,18 @@ GraphicsOpenGLLineDrawing::convertLineSegmentsToQuads()
     m_primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
     const int32_t numVerticesMinusOne = numVertices - 1;
+
+    std::vector<bool> restartVertexFlags(numVertices, false);
+    for (auto index : m_vertexPrimitiveRestartIndices) {
+        restartVertexFlags[index] = true;
+    }
+    
+    /*
+     * Restart is disabled because it removes vertices that break joins
+     * Might want to draw all quads and use alpha=0 for quads that
+     * should not be joined.
+     */
+    const bool restartEnabledFlag = true;
     
     switch (m_lineType) {
         case LineType::LINES:
@@ -1102,19 +1321,27 @@ GraphicsOpenGLLineDrawing::convertLineSegmentsToQuads()
             const int32_t numLineSegments = (numVertices / 2);
             for (int32_t i = 0; i < numLineSegments; i++) {
                 const int32_t i2 = i * 2;
-                createQuadFromWindowVertices(i2, i2 + 1, false);
+                createQuadFromWindowVertices(i2, i2 + 1);
             }
         }
             break;
         case LineType::LINE_LOOP:
             for (int32_t i = 0; i < numVerticesMinusOne; i++) {
-                createQuadFromWindowVertices(i, i + 1, false);
+                CaretAssertVectorIndex(restartVertexFlags, i + 1);
+                if (restartVertexFlags[i + 1]) {
+                    if (restartEnabledFlag) continue;
+                }
+                createQuadFromWindowVertices(i, i + 1);
             }
-            createQuadFromWindowVertices(numVerticesMinusOne, 0, true);
+            createQuadFromWindowVertices(numVerticesMinusOne, 0);
             break;
         case LineType::LINE_STRIP:
             for (int32_t i = 0; i < numVerticesMinusOne; i++) {
-                createQuadFromWindowVertices(i, i + 1, false);
+                CaretAssertVectorIndex(restartVertexFlags, i + 1);
+                if (restartVertexFlags[i + 1]) {
+                    if (restartEnabledFlag) continue;
+                }
+                createQuadFromWindowVertices(i, i + 1);
             }
             break;
     }
@@ -1152,29 +1379,6 @@ GraphicsOpenGLLineDrawing::drawQuads()
         std::cout << std::endl << "Quad Primitive: " << m_primitive->toString() << std::endl;
         std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
     }
-    
-//    switch (m_colorType) {
-//        case ColorType::BYTE_RGBA_PER_VERTEX:
-//        case ColorType::BYTE_RGBA_SOLID:
-//            CaretAssert(m_primitiveByteColor.get());
-//            GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
-//                                           m_primitiveByteColor.get());
-//            if (m_debugFlag) {
-//                std::cout << std::endl << "Quad Primitive: " << m_primitiveByteColor->toString() << std::endl;
-//                std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
-//            }
-//            break;
-//        case ColorType::FLOAT_RGBA_PER_VERTEX:
-//        case ColorType::FLOAT_RGBA_SOLID:
-//            CaretAssert(m_primitiveFloatColor.get());
-//            GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
-//                                           m_primitiveFloatColor.get());
-//            if (m_debugFlag) {
-//                std::cout << std::endl << "Quad Primitive: " << m_primitiveFloatColor->toString() << std::endl;
-//                std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
-//            }
-//            break;
-//    }
 }
 
 /**

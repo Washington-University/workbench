@@ -107,6 +107,10 @@ namespace caret {
         
         GLenum getOpeGLBufferUsageHint(const GraphicsPrimitive* primitive) const;
         
+        static float getLineWidthForDrawingInPixels(const GraphicsPrimitive* primitive);
+        
+        static float getPointDiameterForDrawingInPixels(const GraphicsPrimitive* primitive);
+        
         const void* m_openglContextPointer;
         
         GLsizei m_arrayIndicesCount = 0;

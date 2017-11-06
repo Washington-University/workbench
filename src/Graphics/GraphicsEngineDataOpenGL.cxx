@@ -1030,15 +1030,19 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::LINE_LOOP:
             openGLPrimitiveType = GL_LINE_LOOP;
+            glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
         case GraphicsPrimitive::PrimitiveType::LINE_STRIP:
             openGLPrimitiveType = GL_LINE_STRIP;
+            glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
         case GraphicsPrimitive::PrimitiveType::LINES:
             openGLPrimitiveType = GL_LINES;
+            glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
         case GraphicsPrimitive::PrimitiveType::POINTS:
             openGLPrimitiveType = GL_POINTS;
+            glPointSize(getPointDiameterForDrawingInPixels(primitive));
             break;
         case GraphicsPrimitive::PrimitiveType::POLYGON:
             openGLPrimitiveType = GL_POLYGON;
@@ -1086,6 +1090,72 @@ const void*
 GraphicsEngineDataOpenGL::getOpenGLContextPointer() const
 {
     return m_openglContextPointer;
+}
+
+/**
+ * Get the line width in pixels for drawing lines.
+ * If the primitive's line width type is a percentage
+ * of viewport height, convert it to pixels.
+ *
+ * @param primtive
+ *     The graphics primitive.
+ * @return
+ *     Width of line in pixels.
+ */
+float
+GraphicsEngineDataOpenGL::getLineWidthForDrawingInPixels(const GraphicsPrimitive* primitive)
+{
+    CaretAssert(primitive);
+    
+    float width = primitive->m_lineWidthValue;
+    
+    switch (primitive->m_lineWidthType) {
+        case GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+        {
+            GLint viewport[4];
+            glGetIntegerv(GL_VIEWPORT, viewport);
+            
+            width = (viewport[3] * (width / 100.0f));
+        }
+            break;
+        case GraphicsPrimitive::SizeType::PIXELS:
+            break;
+    }
+    
+    return width;
+}
+
+/**
+ * Get the point diameter in pixels for drawing points.
+ * If the primitive's point diameter type is a percentage
+ * of viewport height, convert it to pixels.
+ *
+ * @param primtive
+ *     The graphics primitive.
+ * @return
+ *     Diameter of point in pixels.
+ */
+float
+GraphicsEngineDataOpenGL::getPointDiameterForDrawingInPixels(const GraphicsPrimitive* primitive)
+{
+    CaretAssert(primitive);
+    
+    float pointSize = primitive->m_pointDiameterValue;
+    
+    switch (primitive->m_lineWidthType) {
+        case GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+        {
+            GLint viewport[4];
+            glGetIntegerv(GL_VIEWPORT, viewport);
+            
+            pointSize = (viewport[3] * (pointSize / 100.0f));
+        }
+            break;
+        case GraphicsPrimitive::SizeType::PIXELS:
+            break;
+    }
+    
+    return pointSize;
 }
 
 

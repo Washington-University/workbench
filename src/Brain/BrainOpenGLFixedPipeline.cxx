@@ -101,7 +101,9 @@
 #include "GapsAndMargins.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsOpenGLLineDrawing.h"
+#include "GraphicsPrimitiveV3fC4ub.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
@@ -2566,6 +2568,291 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
  *
  * @param borderDrawInfo
  *   Info about border being drawn.
+ */
+void
+BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
+{
+    if ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+        drawBorderOld(borderDrawInfo);
+        return;
+    }
+    
+    CaretAssert(borderDrawInfo.surface);
+    CaretAssert(borderDrawInfo.border);
+    
+    const StructureEnum::Enum surfaceStructure = borderDrawInfo.surface->getStructure();
+    const StructureEnum::Enum contralateralSurfaceStructure = StructureEnum::getContralateralStructure(surfaceStructure);
+    const int32_t numBorderPoints = borderDrawInfo.border->getNumberOfPoints();
+    const bool isHighlightEndPoints = borderDrawInfo.isHighlightEndPoints;
+    
+    float pointDiameter = 2.0;
+    float lineWidth  = 2.0;
+    BorderDrawingTypeEnum::Enum drawType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
+    if (borderDrawInfo.borderFileIndex >= 0) {
+        const BrainStructure* bs = borderDrawInfo.surface->getBrainStructure();
+        const Brain* brain = bs->getBrain();
+        const DisplayPropertiesBorders* dpb = brain->getDisplayPropertiesBorders();
+        const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(this->windowTabIndex);
+        pointDiameter = dpb->getPointSize(displayGroup,
+                                          this->windowTabIndex);
+        lineWidth  = dpb->getLineWidth(displayGroup,
+                                       this->windowTabIndex);
+        drawType  = dpb->getDrawingType(displayGroup,
+                                        this->windowTabIndex);
+    }
+    
+    bool drawSphericalPoints = false;
+    bool drawSquarePoints = false;
+    bool drawLines  = false;
+    switch (drawType) {
+        case BorderDrawingTypeEnum::DRAW_AS_LINES:
+            drawLines = true;
+            break;
+        case BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES:
+            drawSphericalPoints = true;
+            break;
+        case BorderDrawingTypeEnum::DRAW_AS_POINTS_SQUARES:
+            drawSquarePoints = true;
+            break;
+        case BorderDrawingTypeEnum::DRAW_AS_POINTS_AND_LINES:
+            drawLines = true;
+            drawSphericalPoints = true;
+            break;
+    }
+    
+    const bool flatSurfaceFlag = (borderDrawInfo.surface->getSurfaceType() == SurfaceTypeEnum::FLAT);
+    bool flatSurfaceDrawUnstretchedLinesFlag = false;
+    float unstretchedLinesLength = -1.0;
+    if (flatSurfaceFlag) {
+        if ((borderDrawInfo.anatomicalSurface != NULL)
+            && (borderDrawInfo.unstretchedLinesLength > 0.0)) {
+            flatSurfaceDrawUnstretchedLinesFlag = true;
+            unstretchedLinesLength = borderDrawInfo.unstretchedLinesLength;
+        }
+    }
+    
+    const float drawAtDistanceAboveSurface = 0.0;
+    
+    const CaretPointer<TopologyHelper> th = borderDrawInfo.surface->getTopologyHelper();
+    const std::vector<int32_t>& nodesBoundaryEdgeCount = th->getNumberOfBoundaryEdgesForAllNodes();
+    CaretAssert(static_cast<int32_t>(nodesBoundaryEdgeCount.size()) == borderDrawInfo.surface->getNumberOfNodes());
+    
+    std::unique_ptr<GraphicsPrimitiveV3fC4ub> pointsPrimitive;
+    if (drawSphericalPoints || drawSquarePoints) {
+        pointsPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::POINTS));
+    }
+    std::unique_ptr<GraphicsPrimitiveV3fC4ub> linesPrimitive;
+    if (drawLines) {
+        linesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::LINE_STRIP));
+    }
+    
+    const bool featureClippingFlag = isFeatureClippingEnabled();
+    
+    const uint8_t highlightFirstPointRGBA[4] = { 0, 255, 0, 1 };
+    const uint8_t highlightLastPointRGBA[4]  = { 0, 192, 0, 1 };
+    
+    const uint8_t solidColorRGBA[4] = {
+        borderDrawInfo.rgba[0] * 255.0f,
+        borderDrawInfo.rgba[1] * 255.0f,
+        borderDrawInfo.rgba[2] * 255.0f,
+        borderDrawInfo.rgba[3] * 255.0f
+    };
+    
+    bool lastPointForLineValidFlag = false;
+    float lastPointForLineXYZ[3] = { 0.0f, 0.0f, 0.0f };
+    int32_t lastPointIndex = -1;
+    /*
+     * Find points valid for this surface
+     */
+    for (int32_t i = 0; i < numBorderPoints; i++) {
+        /*
+         * If previous point was not valid, need to "restart" the border lines
+         */
+        if (i > 0) {
+            if ( ! lastPointForLineValidFlag) {
+                if (linesPrimitive) {
+                    linesPrimitive->addPrimitiveRestart();
+                }
+            }
+        }
+        
+        const SurfaceProjectedItem* p = borderDrawInfo.border->getPoint(i);
+        
+        /*
+         * Test to match structure
+         */
+        const StructureEnum::Enum pointStructure = p->getStructure();
+        bool structureMatches = true;
+        if (surfaceStructure != pointStructure) {
+            structureMatches = false;
+            if (borderDrawInfo.isContralateralEnabled) {
+                if (contralateralSurfaceStructure == pointStructure) {
+                    structureMatches = true;
+                }
+            }
+        }
+        if ( ! structureMatches) {
+            lastPointForLineValidFlag = false;
+            continue;
+        }
+        
+        /*
+         * Test if point projects to surface successfully
+         */
+        float xyz[3];
+        bool projectionValidFlag = p->getProjectedPositionAboveSurface(*borderDrawInfo.surface,
+                                                              xyz,
+                                                              drawAtDistanceAboveSurface);
+        if ( ! projectionValidFlag) {
+            lastPointForLineValidFlag = false;
+            continue;
+        }
+        
+        /*
+         * Test if point is inside clipping planes
+         */
+        if (featureClippingFlag) {
+            if ( ! isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                xyz)) {
+                lastPointForLineValidFlag = false;
+                continue;
+            }
+        }
+       
+        /*
+         * If this is a flat surface and unstretched lines is enabled
+         * Do not use point if it was projected to all nodes that are on edges
+         * Typically these edges are where cuts were made for flattening
+         */
+        if (flatSurfaceDrawUnstretchedLinesFlag){
+            if (p->getBarycentricProjection()->isValid()) {
+                const int32_t* baryNodes = p->getBarycentricProjection()->getTriangleNodes();
+                if (baryNodes != NULL) {
+                    int32_t edgeNodeCount = 0;
+                    if (nodesBoundaryEdgeCount[baryNodes[0]] > 0) edgeNodeCount++;
+                    if (nodesBoundaryEdgeCount[baryNodes[1]] > 0) edgeNodeCount++;
+                    if (nodesBoundaryEdgeCount[baryNodes[2]] > 0) edgeNodeCount++;
+                    if (edgeNodeCount >= 3) {
+                        lastPointForLineValidFlag = false;
+                        continue;
+                    }
+                }
+            }
+        }
+        
+        /*
+         * For Lines ONLY:
+         *    If flat surface and unstretched lines is enabled
+         *
+         */
+        if (flatSurfaceDrawUnstretchedLinesFlag) {
+            if (i > 0) {
+                if (lastPointForLineValidFlag) {
+                    float anatXYZ[3];
+                    const bool anatXyzValid = p->getProjectedPositionAboveSurface(*borderDrawInfo.anatomicalSurface,
+                                                                                    anatXYZ,
+                                                                                    drawAtDistanceAboveSurface);
+                    const SurfaceProjectedItem* lastP = borderDrawInfo.border->getPoint(i - 1);
+                    float lastAnatXYZ[3];
+                    const bool lastAnatXyzValid = lastP->getProjectedPositionAboveSurface(*borderDrawInfo.anatomicalSurface,
+                                                                                    lastAnatXYZ,
+                                                                                    drawAtDistanceAboveSurface);
+                    if (anatXyzValid && lastAnatXyzValid) {
+                        if (unstretchedBorderLineTest(xyz,
+                                                      lastPointForLineXYZ,
+                                                      anatXYZ,
+                                                      lastAnatXYZ,
+                                                      unstretchedLinesLength)) {
+                            if (linesPrimitive) {
+                                linesPrimitive->addPrimitiveRestart();
+                            }
+                        }
+                    }
+                }
+                
+            }
+            
+        }
+        
+        /*
+         * Color for point
+         */
+        uint8_t pointRGBA[4] = {
+            solidColorRGBA[0],
+            solidColorRGBA[1],
+            solidColorRGBA[2],
+            solidColorRGBA[3],
+        };
+        if (borderDrawInfo.isSelect) {
+            uint8_t idRGBA[4];
+            this->colorIdentification->addItem(idRGBA,
+                                               SelectionItemDataTypeEnum::BORDER_SURFACE,
+                                               borderDrawInfo.borderFileIndex,
+                                               borderDrawInfo.borderIndex,
+                                               i);
+            pointRGBA[3] = 255;
+            
+            if (pointsPrimitive) {
+                pointsPrimitive->addVertex(xyz, idRGBA);
+            }
+            if (linesPrimitive) {
+                linesPrimitive->addVertex(xyz, idRGBA);
+            }
+        }
+        else {
+            if (pointsPrimitive) {
+                if (isHighlightEndPoints) {
+                    if (i == 0) {
+                        pointsPrimitive->addVertex(xyz, highlightFirstPointRGBA);
+                    }
+                    else if (i == (numBorderPoints - 1)) {
+                        pointsPrimitive->addVertex(xyz, highlightLastPointRGBA);
+                    }
+                }
+                else {
+                    pointsPrimitive->addVertex(xyz, solidColorRGBA);
+                }
+            }
+            if (linesPrimitive) {
+                linesPrimitive->addVertex(xyz, solidColorRGBA);
+            }
+        }
+        
+        /*
+         * May need point for next time
+         */
+        lastPointForLineXYZ[0] = xyz[0];
+        lastPointForLineXYZ[1] = xyz[1];
+        lastPointForLineXYZ[2] = xyz[2];
+        lastPointIndex = i;
+        lastPointForLineValidFlag = true;
+    }
+    
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_LIGHTING);
+    
+    if (pointsPrimitive) {
+        pointsPrimitive->setPointDiameter(GraphicsPrimitive::SizeType::PIXELS,
+                                          pointDiameter);
+        GraphicsEngineDataOpenGL::draw(getContextSharingGroupPointer(),
+                                       pointsPrimitive.get());
+    }
+    if (linesPrimitive) {
+        linesPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
+                                     lineWidth);
+        GraphicsOpenGLLineDrawing::draw(getContextSharingGroupPointer(),
+                                        linesPrimitive.get());
+    }
+    
+    glPopAttrib();
+}
+
+/**
+ * Draw a border on a surface.  The color must be set prior
+ * to calling this method.
+ *
+ * @param borderDrawInfo
+ *   Info about border being drawn.
  * @param border
  *   Border that is drawn on the surface.
  * @param borderFileIndex
@@ -2576,7 +2863,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
  *   Selection mode is active.
  */
 void 
-BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
+BrainOpenGLFixedPipeline::drawBorderOld(const BorderDrawInfo& borderDrawInfo)
 {
     CaretAssert(borderDrawInfo.surface);
     CaretAssert(borderDrawInfo.border);
@@ -2874,70 +3161,6 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             }
         }
         else {
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                
-                std::vector<float> linesXYZ;
-                for (int32_t i = 1; i < numPointsToDraw; i++) {
-                    /*
-                     * On a flat surface, do not draw a line segment if it is
-                     * from non-consecutive border points.  This occurs when
-                     * a border point does not project to the flat surface
-                     * due to a cut or removal of the medial wall.  If helps
-                     * prevent long border lines stretching from one edge of the
-                     * surface to a far away edge.
-                     */
-                    if (flatSurfaceDrawUnstretchedLinesFlag) {
-                        if (pointIndex[i] != (pointIndex[i-1] + 1)) {
-                            continue;
-                        }
-                    }
-                    
-                    const int32_t i3 = i * 3;
-                    CaretAssertVectorIndex(pointXYZ, i3 + 2);
-                    const float* xyz1 = &pointXYZ[i3 - 3];
-                    const float* xyz2 = &pointXYZ[i3];
-                    
-                    bool drawIt = true;
-                    if (doClipping) {
-                        if (isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
-                                                                         xyz1)
-                            && (isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
-                                                                             xyz2)) ) {
-                            /* nothing */
-                        }
-                        else {
-                            drawIt = false;
-                        }
-                    }
-                    
-                    
-                    if (drawIt) {
-                        if (flatSurfaceDrawUnstretchedLinesFlag) {
-                            CaretAssertVectorIndex(pointAnatomicalXYZ, i3 + 2);
-                            if (unstretchedBorderLineTest(xyz1,
-                                                          xyz2,
-                                                          &pointAnatomicalXYZ[i3],
-                                                          &pointAnatomicalXYZ[i3-3],
-                                                          unstretchedLinesLength)) {
-                                drawIt = false;
-                            }
-                        }
-                    }
-                    
-                    if (drawIt) {
-                        linesXYZ.insert(linesXYZ.end(), xyz1, xyz1 + 3);
-                        linesXYZ.insert(linesXYZ.end(), xyz2, xyz2 + 3);
-                    }
-                }
-                
-                if (linesXYZ.size() >= 6) {
-                    GraphicsOpenGLLineDrawing::drawLineStripSolidFloatColor(getContextSharingGroupPointer(),
-                                                                        linesXYZ,
-                                                                        borderDrawInfo.rgba,
-                                                                        lineWidth);
-                }
-            }
-            else {
                 glColor3fv(borderDrawInfo.rgba);
                 
                 /*
@@ -2998,7 +3221,6 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 }
                 glEnd();
             }
-        }
         
         this->enableLighting();
     }

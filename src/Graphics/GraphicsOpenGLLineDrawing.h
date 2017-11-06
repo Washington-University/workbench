@@ -24,6 +24,7 @@
 
 
 #include <memory>
+#include <set>
 
 #include "CaretObject.h"
 #include "Matrix4x4.h"
@@ -48,6 +49,9 @@ namespace caret {
         };
         
         virtual ~GraphicsOpenGLLineDrawing();
+        
+        static bool draw(void* openglContextPointer,
+                         const GraphicsPrimitive* primitive);
         
         static bool drawLinesPerVertexFloatColor(void* openglContextPointer,
                                             const std::vector<float>& xyz,
@@ -120,11 +124,51 @@ namespace caret {
             /** A connected set of lines (last is not connected to first) */
             LINE_STRIP
         };
+
+        /**
+         * Indices into input vertices of line
+         * that formed the quad
+         */
+        class QuadInfo {
+        public:
+            QuadInfo(const int32_t vertexOneIndex,
+                     const int32_t vertexTwoIndex)
+            : m_vertexOneIndex(vertexOneIndex),
+            m_vertexTwoIndex(vertexTwoIndex) { }
+            
+            int32_t m_vertexOneIndex;
+            int32_t m_vertexTwoIndex;
+        };
+        
+        /**
+         * Quads created by joining of lines
+         */
+        class QuadJoin {
+        public:
+            QuadJoin(const float xyzOne[3],
+                     const float xyzTwo[3],
+                     const float xyzThree[3],
+                     const float xyzFour[3],
+                     const int32_t primitiveOneTwoIndex,
+                     const int32_t primitiveThreeFourIndex)
+            : m_primitiveOneTwoIndex(primitiveOneTwoIndex),
+            m_primitiveThreeFourIndex(primitiveThreeFourIndex) {
+                m_xyz.insert(m_xyz.end(), xyzOne,   xyzOne + 3);
+                m_xyz.insert(m_xyz.end(), xyzTwo,   xyzTwo + 3);
+                m_xyz.insert(m_xyz.end(), xyzThree, xyzThree + 3);
+                m_xyz.insert(m_xyz.end(), xyzFour,  xyzFour + 3);
+            }
+            
+            std::vector<float> m_xyz;
+            int32_t m_primitiveOneTwoIndex;
+            int32_t m_primitiveThreeFourIndex;
+        };
         
         GraphicsOpenGLLineDrawing(void* openglContextPointer,
                                   const std::vector<float>& xyz,
                                   const std::vector<float>& floatRGBA,
                                   const std::vector<uint8_t>& byteRGBA,
+                                  const std::set<int32_t>& vertexPrimitiveRestartIndices,
                                   const float lineThicknessPixels,
                                   const ColorType colorType,
                                   const LineType lineType);
@@ -137,6 +181,7 @@ namespace caret {
                                      const std::vector<float>& xyz,
                                      const std::vector<float>& floatRGBA,
                                      const std::vector<uint8_t>& byteRGBA,
+                                     const std::set<int32_t>& vertexPrimitiveRestartIndices,
                                      const float lineThicknessPixels,
                                      const ColorType colorType,
                                      const LineType lineType);
@@ -157,8 +202,7 @@ namespace caret {
         void convertLineSegmentsToQuads();
         
         void createQuadFromWindowVertices(const int32_t indexOne,
-                                          const int32_t indexTwo,
-                                          const bool lastVertexFlag);
+                                          const int32_t indexTwo);
         
         void drawQuads();
         
@@ -170,6 +214,13 @@ namespace caret {
         
         void joinQuads();
         
+        void addMiterJoinQuads();
+        
+        void createMiterJoinVertex(const float v1[3],
+                                   const float v2[3],
+                                   const float miterLength,
+                                   float xyzOut[3]);
+        
         void* m_openglContextPointer;
         
         const std::vector<float>& m_inputXYZ;
@@ -177,6 +228,8 @@ namespace caret {
         const std::vector<float>& m_inputFloatRGBA;
         
         const std::vector<uint8_t>& m_inputByteRGBA;
+        
+        std::set<int32_t> m_vertexPrimitiveRestartIndices;
         
         const float m_lineThicknessPixels;
         
@@ -213,6 +266,10 @@ namespace caret {
         std::unique_ptr<GraphicsPrimitiveV3fC4f> m_primitiveFloatColor;
         
         std::unique_ptr<GraphicsPrimitiveV3fC4ub> m_primitiveByteColor;
+        
+        std::vector<QuadInfo> m_quadInfo;
+        
+        std::vector<QuadJoin> m_quadJoins;
         
         // ADD_NEW_MEMBERS_HERE
 

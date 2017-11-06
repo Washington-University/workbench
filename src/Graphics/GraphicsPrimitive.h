@@ -24,6 +24,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
@@ -144,6 +145,21 @@ namespace caret {
         };
         
         /**
+         * Type for point size and line width
+         */
+        enum class SizeType {
+            /**
+             * Size of point or width of line is a percentage of viewport height.
+             * Ranges [0.0, 100.0]
+             */
+            PERCENTAGE_VIEWPORT_HEIGHT,
+            /**
+             * Size of point or width of line is in pixels
+             */
+            PIXELS
+        };
+        
+        /**
          * Hint to graphics engine on how the primitive is used.
          * The hint must be set prior to loading of buffers.
          */
@@ -247,7 +263,33 @@ namespace caret {
         void replaceVertexFloatXYZ(const int32_t vertexIndex,
                                    const float xyz[3]);
         
+        void getVertexFloatRGBA(const int32_t vertexIndex,
+                                float rgbaOut[4]) const;
+
+        void replaceVertexFloatRGBA(const int32_t vertexIndex,
+                                    const float rgba[4]);
+        
+        void getVertexByteRGBA(const int32_t vertexIndex,
+                                uint8_t rgbaOut[4]) const;
+        
+        void replaceVertexByteRGBA(const int32_t vertexIndex,
+                                    const uint8_t rgba[4]);
+        
         bool getVertexBounds(BoundingBox& boundingBoxOut) const;
+        
+        void addPrimitiveRestart();
+        
+        void getPointDiameter(SizeType& sizeTypeOut,
+                              float& pointDiameterOut) const;
+        
+        void setPointDiameter(const SizeType sizeType,
+                              const float pointDiameter);
+        
+        void getLineWidth(SizeType& widthTypeOut,
+                          float lineWidthOut) const;
+        
+        void setLineWidth(const SizeType widthType,
+                          const float lineWidth);
         
         GraphicsEngineDataOpenGL* getGraphicsEngineDataForOpenGL();
         
@@ -289,6 +331,10 @@ namespace caret {
                                 const float y,
                                 const float z);
         
+        AString getPrimitiveTypeAsText() const;
+        
+        AString getSizeTypeAsText(const SizeType sizeType) const;
+        
         const VertexType  m_vertexType;
         
         const NormalVectorType m_normalVectorType;
@@ -323,7 +369,17 @@ namespace caret {
         
         int32_t m_textureImageHeight = -1;
         
+        SizeType m_pointSizeType = SizeType::PIXELS;
+        
+        float m_pointDiameterValue = 1.0f;
+        
+        SizeType m_lineWidthType = SizeType::PIXELS;
+        
+        float m_lineWidthValue = 1.0f;
+        
         mutable std::unique_ptr<BoundingBox> m_boundingBox;
+        
+        std::set<int32_t> m_primitiveRestartIndices;
         
     private:
         std::vector<float> m_xyz;
