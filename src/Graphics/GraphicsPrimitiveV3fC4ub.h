@@ -46,9 +46,6 @@ namespace caret {
                        const float z,
                        const uint8_t rgba[4]);
         
-        void setAlternativeUnsignedByteRGBA(const int32_t identifier,
-                                            const std::vector<uint8_t>& rgbaUnsignedByte);
-        
         virtual GraphicsPrimitive* clone() const;
         
         // ADD_NEW_METHODS_HERE

@@ -52,9 +52,6 @@ namespace caret {
                        const float y,
                        const float rgba[4]);
         
-        void setAlternativeFloatRGBA(const int32_t identifier,
-                                     const std::vector<float>& rgbaFloat);
-        
         virtual GraphicsPrimitive* clone() const;
         
         // ADD_NEW_METHODS_HERE

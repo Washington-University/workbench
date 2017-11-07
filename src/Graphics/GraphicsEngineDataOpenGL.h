@@ -53,14 +53,6 @@ namespace caret {
                                       int32_t& selectedPrimitiveIndexOut,
                                       float&   selectedPrimitiveDepthOut);
         
-        static void drawWithOverrideColor(void* openglContextPointer,
-                                          GraphicsPrimitive* primitive,
-                                          const float solidColorOverrideRGBA[4]);
-        
-        static void drawWithAlternativeColor(void* openglContextPointer,
-                                             GraphicsPrimitive* primitive,
-                                             const int32_t alternativeColorIdentifier);
-        
         const void* getOpenGLContextPointer() const;
         
         void invalidateCoordinates();
@@ -71,8 +63,6 @@ namespace caret {
 
     private:
         enum class PrivateDrawMode {
-            DRAW_COLOR_ALTERNATIVE,
-            DRAW_COLOR_SOLID,
             DRAW_NORMAL,
             DRAW_SELECTION,
         };
@@ -91,19 +81,12 @@ namespace caret {
         
         void loadTextureCoordinateBuffer(GraphicsPrimitive* primitive);
         
-        GraphicsOpenGLBufferObject* loadAlternativeColorBuffer(GraphicsPrimitive* primitive,
-                                                               const int32_t alternativeColorIdentifier);
-        
         void loadTextureImageDataBuffer(GraphicsPrimitive* primitive);
-        
-        void deleteBufferObjectHelper(GraphicsOpenGLBufferObject* &bufferObject);
         
         static void drawPrivate(const PrivateDrawMode drawMode,
                                 void* openglContextPointer,
                                 GraphicsPrimitive* primitive,
-                                GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper,
-                                const int32_t alternativeColorIdentifier,
-                                const float solidColorRGBA[4]);
+                                GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
         
         GLenum getOpeGLBufferUsageHint(const GraphicsPrimitive* primitive) const;
         
@@ -130,8 +113,6 @@ namespace caret {
         GLenum m_normalVectorDataType = GL_FLOAT;
         
         std::unique_ptr<GraphicsOpenGLBufferObject> m_colorBufferObject;
-        
-        std::map<int32_t, std::shared_ptr<GraphicsOpenGLBufferObject>> m_alternativeColorBufferObjectMap;
         
         GLenum m_colorDataType = GL_FLOAT;
         

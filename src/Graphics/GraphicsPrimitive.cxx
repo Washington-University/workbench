@@ -114,8 +114,6 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_floatNormalVectorXYZ        = obj.m_floatNormalVectorXYZ;
     m_floatRGBA                   = obj.m_floatRGBA;
     m_unsignedByteRGBA            = obj.m_unsignedByteRGBA;
-    m_alternativeFloatRGBA        = obj.m_alternativeFloatRGBA;
-    m_alternativeUnsignedByteRGBA = obj.m_alternativeUnsignedByteRGBA;
     m_floatTextureSTR             = obj.m_floatTextureSTR;
     m_lineWidthType               = obj.m_lineWidthType;
     m_lineWidthValue              = obj.m_lineWidthValue;
@@ -599,76 +597,6 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
 }
 
 /**
- * @return Is the alternative coloring with the given identifier valid?
- *
- * @param identifier
- *     Identifier of the alternative coloring.
- */
-bool
-GraphicsPrimitive::isAlternativeColoringValid(const int32_t identifier) const
-{
-    bool validFlag = false;
-    
-    switch (m_colorType) {
-        case GraphicsPrimitive::ColorType::NONE:
-            break;
-        case ColorType::FLOAT_RGBA:
-            validFlag = isAlternativeFloatRGBAValidProtected(identifier);
-            break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
-            validFlag = isAlternativeUnsignedByteRGBAValidProtected(identifier);
-            break;
-    }
-    
-    return validFlag;
-}
-
-
-/**
- * @return Is the alternative float coloring valid for the given identifier?
- * 
- * @param identifier
- *     Identifier for alternative coloring.
- */
-bool
-GraphicsPrimitive::isAlternativeFloatRGBAValidProtected(const int32_t identifier) const
-{
-    std::map<int32_t, std::vector<float>>::const_iterator iter = m_alternativeFloatRGBA.find(identifier);
-    
-    if (iter != m_alternativeFloatRGBA.end()) {
-        const int32_t numVerticesFromXYZ  = m_xyz.size() / 3;
-        const int32_t numVerticesFromRGBA = iter->second.size() / 4;
-        if (numVerticesFromRGBA == numVerticesFromXYZ) {
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-/**
- * @return Is the alternative unsigned byte coloring valid for the given identifier?
- *
- * @param identifier
- *     Identifier for alternative coloring.
- */
-bool
-GraphicsPrimitive::isAlternativeUnsignedByteRGBAValidProtected(const int32_t identifier) const
-{
-    std::map<int32_t, std::vector<uint8_t>>::const_iterator iter = m_alternativeUnsignedByteRGBA.find(identifier);
-    
-    if (iter != m_alternativeUnsignedByteRGBA.end()) {
-        const int32_t numVerticesFromXYZ  = m_xyz.size() / 3;
-        const int32_t numVerticesFromRGBA = iter->second.size() / 4;
-        if (numVerticesFromRGBA == numVerticesFromXYZ) {
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-/**
  * Add a vertex.
  *
  * @param xyz
@@ -748,6 +676,10 @@ GraphicsPrimitive::replaceVertexFloatXYZ(const int32_t vertexIndex,
     m_xyz[offset]     = xyz[0];
     m_xyz[offset + 1] = xyz[1];
     m_xyz[offset + 2] = xyz[2];
+
+    if (m_graphicsEngineDataForOpenGL != NULL) {
+        m_graphicsEngineDataForOpenGL->invalidateCoordinates();
+    }
 }
 
 /**
@@ -810,6 +742,10 @@ GraphicsPrimitive::replaceVertexFloatRGBA(const int32_t vertexIndex,
             CaretLogWarning("Replacing float RGBA in primitive but coloring type is Byte");
             break;
     }
+
+    if (m_graphicsEngineDataForOpenGL != NULL) {
+        m_graphicsEngineDataForOpenGL->invalidateColors();
+    }
 }
 
 /**
@@ -871,6 +807,10 @@ GraphicsPrimitive::replaceVertexByteRGBA(const int32_t vertexIndex,
             m_unsignedByteRGBA[i4 + 2] = rgba[2];
             m_unsignedByteRGBA[i4 + 3] = rgba[3];
             break;
+    }
+
+    if (m_graphicsEngineDataForOpenGL != NULL) {
+        m_graphicsEngineDataForOpenGL->invalidateColors();
     }
 }
 
@@ -1035,134 +975,6 @@ GraphicsPrimitive::setLineWidth(const SizeType widthType,
 {
     m_lineWidthType = widthType;
     m_lineWidthValue = lineWidth;
-}
-
-/**
- * @return A reference to the alternative coloring.  An empty vector is returned
- * if the alternative coloring data is invalid.
- *
- * @param identifier
- *     Identifier for alternative coloring.
- */
-const std::vector<float>&
-GraphicsPrimitive::getAlternativeFloatRGBAProtected(const int32_t identifier) const
-{
-    std::map<int32_t, std::vector<float>>::const_iterator iter = m_alternativeFloatRGBA.find(identifier);
-    
-    if (iter != m_alternativeFloatRGBA.end()) {
-        return iter->second;
-    }
-    
-    return m_dummyFloatRGBAVector;
-}
-
-/**
- * @return A reference to the alternative coloring.  An empty vector is returned
- * if the alternative coloring data is invalid.
- *
- * @param identifier
- *     Identifier for alternative coloring.
- */
-const std::vector<uint8_t>&
-GraphicsPrimitive::getAlternativeUnsignedByteRGBAProtected(const int32_t identifier) const
-{
-    std::map<int32_t, std::vector<uint8_t>>::const_iterator iter = m_alternativeUnsignedByteRGBA.find(identifier);
-    
-    if (iter != m_alternativeUnsignedByteRGBA.end()) {
-        return iter->second;
-    }
-    
-    return m_dummyUnsignedByteRGBAVector;
-}
-
-/**
- * Set alternative RGBA coloring with float data.
- * 
- * @param identifier
- *     Any integer value used to identify the alternative coloring.
- * @param rgbaFloat
- *     The alternative coloring that must contain the correct number of 
- *     RGBA components for the primitive's number of vertices.
- */
-void
-GraphicsPrimitive::setAlternativeFloatRGBAProtected(const int32_t identifier,
-                                                    const std::vector<float>& rgbaFloat)
-{
-    const int32_t numVerticesFromXYZ  = m_xyz.size() / 3;
-    const int32_t numVerticesFromRGBA = rgbaFloat.size() / 4;
-    if (numVerticesFromRGBA != numVerticesFromXYZ) {
-        const AString msg("Number of alternative RGBA values is for "
-                          + AString::number(numVerticesFromRGBA)
-                          + " vertices but should be for "
-                          + AString::number(numVerticesFromXYZ)
-                          + " vertices.");
-        CaretAssertMessage(0, msg);
-        CaretLogSevere(msg);
-        return;
-    }
-    
-    switch (m_colorType) {
-        case GraphicsPrimitive::ColorType::NONE:
-            CaretAssert(0);
-            break;
-        case ColorType::FLOAT_RGBA:
-            break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
-        {
-            const AString msg("Alternative RGBA must match primitive color type which is unsigned byte");
-            CaretAssertMessage(0, msg);
-            CaretLogSevere(msg);
-        }
-            break;
-    }
-    
-    m_alternativeFloatRGBA.insert(std::make_pair(identifier,
-                                                 rgbaFloat));
-}
-
-/**
- * Set alternative RGBA coloring with float data.
- *
- * @param identifier
- *     Any integer value used to identify the alternative coloring.
- * @param rgbaByte
- *     The alternative coloring that must contain the correct number of
- *     RGBA components for the primitive's number of vertices.
- */
-void
-GraphicsPrimitive::setAlternativeUnsignedByteRGBAProtected(const int32_t identifier,
-                                                           const std::vector<uint8_t>& rgbaByte)
-{
-    const int32_t numVerticesFromXYZ  = m_xyz.size() / 3;
-    const int32_t numVerticesFromRGBA = rgbaByte.size() / 4;
-    if (numVerticesFromRGBA != numVerticesFromXYZ) {
-        const AString msg("Number of alternative RGBA values is for "
-                          + AString::number(numVerticesFromRGBA)
-                          + " vertices but should be for "
-                          + AString::number(numVerticesFromXYZ)
-                          + " vertices.");
-        CaretAssertMessage(0, msg);
-        CaretLogSevere(msg);
-        return;
-    }
-    
-    switch (m_colorType) {
-        case GraphicsPrimitive::ColorType::NONE:
-            CaretAssert(0);
-            break;
-        case ColorType::FLOAT_RGBA:
-        {
-            const AString msg("Alternative RGBA must match primitive color type which is float");
-            CaretAssertMessage(0, msg);
-            CaretLogSevere(msg);
-        }
-            break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
-            break;
-    }
-    
-    m_alternativeUnsignedByteRGBA.insert(std::make_pair(identifier,
-                                                        rgbaByte));
 }
 
 /**

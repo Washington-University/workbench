@@ -221,8 +221,6 @@ namespace caret {
         
         bool isValid() const;
         
-        bool isAlternativeColoringValid(const int32_t identifier) const;
-        
         /**
          * @return Type of the vertices.
          */
@@ -307,20 +305,6 @@ namespace caret {
     protected:
         AString toStringPrivate(const bool includeAllDataFlag) const;
         
-        void setAlternativeFloatRGBAProtected(const int32_t identifier,
-                                              const std::vector<float>& rgbaFloat);
-        
-        void setAlternativeUnsignedByteRGBAProtected(const int32_t identifier,
-                                                     const std::vector<uint8_t>& rgbaByte);
-        
-        const std::vector<float>& getAlternativeFloatRGBAProtected(const int32_t identifier) const;
-        
-        const std::vector<uint8_t>& getAlternativeUnsignedByteRGBAProtected(const int32_t identifier) const;
-        
-        bool isAlternativeFloatRGBAValidProtected(const int32_t identifier) const;
-        
-        bool isAlternativeUnsignedByteRGBAValidProtected(const int32_t identifier) const;
-        
         void setTextureImage(const uint8_t* imageBytesRGBA,
                              const int32_t imageWidth,
                              const int32_t imageHeight);
@@ -356,10 +340,6 @@ namespace caret {
         std::vector<float> m_floatRGBA;
         
         std::vector<uint8_t> m_unsignedByteRGBA;
-        
-        std::map<int32_t, std::vector<float>> m_alternativeFloatRGBA;
-        
-        std::map<int32_t, std::vector<uint8_t>> m_alternativeUnsignedByteRGBA;
         
         std::vector<float> m_floatTextureSTR;
         
