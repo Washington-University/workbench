@@ -1029,9 +1029,14 @@ BrainOpenGL::getOpenGLInformation()
         const AString smoothLineWidthGranularity = ("GL_SMOOTH_LINE_WIDTH_GRANULARITY value is "
                                                     + AString::number(values[0]));
         
+        glGetFloatv(GL_SMOOTH_POINT_SIZE_RANGE, values);
+        const AString smoothPointSizeRange = ("GL_SMOOTH_POINT_SIZE_RANGE value is "
+                                              + AString::fromNumbers(values, 2, ", "));
+        
         lineInfo += ("\n" + aliasedLineWidthRange
                      + "\n" + smoothLineWidthRange
-                     + "\n" + smoothLineWidthGranularity);
+                     + "\n" + smoothLineWidthGranularity
+                     + "\n" + smoothPointSizeRange);
     }
 #endif // GL_VERSION_2_0
     //#else  // GL_VERSION_2_0

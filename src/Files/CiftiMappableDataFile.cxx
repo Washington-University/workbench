@@ -1526,7 +1526,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
         if (getMatrixForChartingRGBA(numberOfRows, numberOfColumns, matrixRGBA)) {
             const int32_t numberOfCells = numberOfRows * numberOfColumns;
             if (numberOfCells > 0) {
-                matrixPrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS);
+                matrixPrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS);
                 matrixPrimitive->reserveForNumberOfVertices(numberOfCells * 4);  // QUADS
                 matrixPrimitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
                 

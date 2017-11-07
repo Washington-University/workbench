@@ -266,7 +266,7 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
             ChartTwoDataCartesian* cartesianData = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                              xUnits,
                                                                              CaretUnitsTypeEnum::NONE,
-                                                                             GraphicsPrimitive::PrimitiveType::LINES);
+                                                                             GraphicsPrimitive::PrimitiveType::OPENGL_LINES);
             cartesianData->setMapFileDataSelector(mapFileDataSelector);
             
             float x = 0.0f;

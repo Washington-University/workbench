@@ -72,34 +72,34 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
     m_numberOfVerticesPerPrimitive = 0;
     
     switch (m_parentGraphicsPrimitive->getPrimitiveType()) {
-        case GraphicsPrimitive::PrimitiveType::LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
             m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
-        case GraphicsPrimitive::PrimitiveType::LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
             m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
-        case GraphicsPrimitive::PrimitiveType::LINES:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
             m_numberOfVerticesPerPrimitive = 2;
             break;
-        case GraphicsPrimitive::PrimitiveType::POINTS:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
             m_numberOfVerticesPerPrimitive = 1;
             break;
-        case GraphicsPrimitive::PrimitiveType::POLYGON:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
             m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
-        case GraphicsPrimitive::PrimitiveType::QUAD_STRIP:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
             CaretAssertMessage(0, "Not yet implemented");
             break;
-        case GraphicsPrimitive::PrimitiveType::QUADS:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
             m_numberOfVerticesPerPrimitive = 4;
             break;
-        case GraphicsPrimitive::PrimitiveType::TRIANGLE_FAN:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
             CaretAssertMessage(0, "Not yet implemented");
             break;
-        case GraphicsPrimitive::PrimitiveType::TRIANGLE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
             CaretAssertMessage(0, "Not yet implemented");
             break;
-        case GraphicsPrimitive::PrimitiveType::TRIANGLES:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             m_numberOfVerticesPerPrimitive = 3;
             break;
     }

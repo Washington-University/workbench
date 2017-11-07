@@ -764,38 +764,38 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
      */
     GLenum openGLPrimitiveType = GL_INVALID_ENUM;
     switch (primitive->m_primitiveType) {
-        case GraphicsPrimitive::PrimitiveType::LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
             openGLPrimitiveType = GL_LINE_LOOP;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
-        case GraphicsPrimitive::PrimitiveType::LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
             openGLPrimitiveType = GL_LINE_STRIP;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
-        case GraphicsPrimitive::PrimitiveType::LINES:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
             openGLPrimitiveType = GL_LINES;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
-        case GraphicsPrimitive::PrimitiveType::POINTS:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
             openGLPrimitiveType = GL_POINTS;
             glPointSize(getPointDiameterForDrawingInPixels(primitive));
             break;
-        case GraphicsPrimitive::PrimitiveType::POLYGON:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
             openGLPrimitiveType = GL_POLYGON;
             break;
-        case GraphicsPrimitive::PrimitiveType::QUAD_STRIP:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
             openGLPrimitiveType = GL_QUAD_STRIP;
             break;
-        case GraphicsPrimitive::PrimitiveType::QUADS:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
             openGLPrimitiveType = GL_QUADS;
             break;
-        case GraphicsPrimitive::PrimitiveType::TRIANGLE_FAN:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
             openGLPrimitiveType = GL_TRIANGLE_FAN;
             break;
-        case GraphicsPrimitive::PrimitiveType::TRIANGLE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
             openGLPrimitiveType = GL_TRIANGLE_STRIP;
             break;
-        case GraphicsPrimitive::PrimitiveType::TRIANGLES:
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             openGLPrimitiveType = GL_TRIANGLES;
             break;
     }

@@ -291,7 +291,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
             const bool drawCrossFlag = false;
             if (drawCrossFlag) {
                 const float redRGBA[4] = { 1.0f, 0.0, 0.0, 1.0f };
-                std::unique_ptr<GraphicsPrimitiveV3f> crossShape = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
+                std::unique_ptr<GraphicsPrimitiveV3f> crossShape = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES,
                                                                                                                                             redRGBA));
                 crossShape->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, 2.0f);
                 crossShape->addVertex(drawingSpaceXYZ[0],
@@ -2450,7 +2450,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             const bool drawCrossFlag = false;
             if (drawCrossFlag) {
                 const float redRGBA[4] = { 1.0f, 0.0, 0.0, 1.0f };
-                std::unique_ptr<GraphicsPrimitiveV3f> crossShape = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
+                std::unique_ptr<GraphicsPrimitiveV3f> crossShape = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES,
                                                                                                                                             redRGBA));
                 crossShape->addVertex(annXYZ[0],
                                       annXYZ[1] - 10);

@@ -90,27 +90,30 @@ namespace caret {
             /**
              * Draws a connected group of line segments from the first vertex to the last.  
              * Vertices n and n+1 define line n.  n-1 lines are drawn. 
+             * Note: OpenGL supports a limited range of line widths, usually [0.5, 10] pixels
              */
-            LINE_LOOP,
+            OPENGL_LINE_LOOP,
             /** 
              * Treats each pair of vertices as an independent line  segment.
              * Vertices  2n-1  and  2n define line n.  n/2 lines are drawn.
+             * Note: OpenGL supports a limited range of line widths, usually [0.5, 10] pixels
              */
-            LINE_STRIP,
+            OPENGL_LINE_STRIP,
             /** 
              * Draws a connected group of line segments from the first vertex to the last,  then  back
              * to the first.  Vertices n and n+1 define line n.  The last line, however, is defined by
              * vertices n and 1.  n lines are drawn. 
+             * Note: OpenGL supports a limited range of line widths, usually [0.5, 10] pixels
              */
-            LINES,
+            OPENGL_LINES,
             /**
              * Treats each vertex as a single point.  Vertex n defines point n.  n points are drawn.
              */
-            POINTS,
+            OPENGL_POINTS,
             /** 
              * Draws a single, convex polygon.  Vertices 1 through n define this polygon. 
              */
-            POLYGON,
+            OPENGL_POLYGON,
             /** 
              * Draws  a connected group of quadrilaterals.  One quadrilateral is defined for each pair
              * of vertices presented after the first pair.  Vertices 2n-1, 2n, 2n+2, and  2n+1  define
@@ -118,30 +121,30 @@ namespace caret {
              * are used to construct a quadrilateral from strip data is different from that used  with
              * independent data.
              */
-            QUAD_STRIP,
+            OPENGL_QUAD_STRIP,
             /** 
              * Treats each group of four vertices as an  independent  quadrilateral.
              * Vertices  4n-3, 4n-2, 4n-3, and 4n define quadrilateral n.  n/4 quadrilaterals are drawn.
              */
-            QUADS,
+            OPENGL_QUADS,
             /**
              * Draws a connected group of triangles.  One triangle is defined  for  each  vertex
              * presented  after the first two vertices.  Vertices 1, n+1, and n+2 define triangle n.  n-2
              * triangles are drawn.
              */
-            TRIANGLE_FAN,
+            OPENGL_TRIANGLE_FAN,
             /** 
              * Draws  a  connected  group  of triangles.  One triangle is defined for each vertex
              * presented after the first two vertices.  For odd n, vertices n, n+1, and n+2 define
              * triangle  n.   For  even  n,  vertices n+1, n, and n+2 define triangle n.  n-2 triangles are
              * drawn.
              */
-            TRIANGLE_STRIP,
+            OPENGL_TRIANGLE_STRIP,
             /** 
              * Treats each triplet of vertices as an independent triangle.  Vertices 3n-2,  3n-1,  and
              * 3n define triangle n.  n/3 triangles are drawn. 
              */
-            TRIANGLES
+            OPENGL_TRIANGLES
         };
         
         /**

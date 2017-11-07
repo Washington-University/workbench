@@ -1404,7 +1404,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             
             for (auto rowIndex : selectedRowIndices) {
 //                std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
-//                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+//                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP,
 //                                                                                           highlightRGBA));
 //                rowOutlineData4f->reserveForNumberOfVertices(4);
                 
@@ -1436,7 +1436,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
 //                BrainOpenGL::setLineWidth(highlightLineWidth);
 //                //drawPrimitivePrivate(rowOutlineData4f.get());
                 
-                GraphicsPrimitiveV3fC4f* rowOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINE_LOOP);
+                GraphicsPrimitiveV3fC4f* rowOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP);
                 rowOutlineData->reserveForNumberOfVertices(4);
                 rowOutlineData->addVertex(minX, minY, highlightRGBA);
                 rowOutlineData->addVertex(maxX, minY, highlightRGBA);
@@ -1452,7 +1452,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             
             for (auto columnIndex : selectedColumnIndices) {
 //                std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
-//                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+//                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP,
 //                                                                                           highlightRGBA));
 //                columnOutlineData4f->reserveForNumberOfVertices(4);
                 
@@ -1484,7 +1484,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
 //                BrainOpenGL::setLineWidth(highlightLineWidth);
 //                //drawPrimitivePrivate(columnOutlineData4f.get());
                 
-                GraphicsPrimitiveV3fC4f* columnOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINE_LOOP);
+                GraphicsPrimitiveV3fC4f* columnOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP);
                 columnOutlineData->reserveForNumberOfVertices(4);
                 columnOutlineData->addVertex(minX, minY, highlightRGBA);
                 columnOutlineData->addVertex(maxX, minY, highlightRGBA);
@@ -1671,7 +1671,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
          * and vertical lines are joined
          */
         std::unique_ptr<GraphicsPrimitiveV3f> boxData
-        = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
+        = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES,
                                                                                    m_fixedPipelineDrawing->m_foregroundColorFloat));
         const float cornerOffset = halfGridLineWidth;
         boxData->reserveForNumberOfVertices(8);
@@ -2468,7 +2468,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
         const bool showTicksEnabledFlag = m_axis->isShowTickmarks();
         
         std::unique_ptr<GraphicsPrimitiveV3f> ticksData
-        = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINES,
+        = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES,
                                                                                    foregroundFloatRGBA));
         ticksData->reserveForNumberOfVertices(numScaleValuesToDraw * 2);
         
@@ -2563,7 +2563,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
                                                              m_tabViewportWidth, m_tabViewportHeight,
                                                              bottomLeft, bottomRight, topRight, topLeft);
             
-            std::unique_ptr<GraphicsPrimitiveV3f> boxPrimitive = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
+            std::unique_ptr<GraphicsPrimitiveV3f> boxPrimitive = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS,
                                                                                                                                         foregroundFloatRGBA));
             boxPrimitive->reserveForNumberOfVertices(4);
             boxPrimitive->addVertex(bottomLeft);
@@ -2610,7 +2610,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
 //            const float right  = xyz[0] + halfWidth;
 //            const float bottom = xyz[1] - halfHeight;
 //            const float top    = xyz[1] + halfHeight;
-//            std::unique_ptr<GraphicsPrimitiveV3f> boxPrimitive = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::QUADS,
+//            std::unique_ptr<GraphicsPrimitiveV3f> boxPrimitive = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS,
 //                                                                                              foregroundFloatRGBA));
 //            boxPrimitive->addVertex(left,  bottom, 0.0f);
 //            boxPrimitive->addVertex(right, bottom, 0.0f);

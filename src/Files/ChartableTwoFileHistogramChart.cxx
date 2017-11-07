@@ -421,9 +421,9 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
          * Use Lines when drawing envelope (two vertices per line)
          * Using quads and lines simplifies identification of individual bars in the histogram
          */
-        GraphicsPrimitiveV3fC4f* barsPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS);
+        GraphicsPrimitiveV3fC4f* barsPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS);
         barsPrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForQuads);
-        GraphicsPrimitiveV3fC4f* envelopePrimitive  = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::LINES);
+        GraphicsPrimitiveV3fC4f* envelopePrimitive  = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES);
         envelopePrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForEnvelope);
         GraphicsPrimitiveV3fC4f* thresholdPrimitive = NULL;
         
@@ -465,7 +465,7 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
             float threshMinValue = paletteColorMapping->getThresholdNormalMinimum();
             float threshMaxValue = paletteColorMapping->getThresholdNormalMaximum();
             
-            thresholdPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS);
+            thresholdPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS);
             
             switch (paletteColorMapping->getThresholdTest()) {
                 case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:

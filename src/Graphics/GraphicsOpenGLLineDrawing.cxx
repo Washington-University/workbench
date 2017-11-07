@@ -102,40 +102,40 @@ GraphicsOpenGLLineDrawing::draw(void* openglContextPointer,
         
         LineType lineType = LineType::LINES;
         switch (primitive->m_primitiveType) {
-            case GraphicsPrimitive::PrimitiveType::LINE_LOOP:
+            case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
                 lineType = LineType::LINE_LOOP;
                 break;
-            case GraphicsPrimitive::PrimitiveType::LINE_STRIP:
+            case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
                 lineType = LineType::LINE_STRIP;
                 break;
-            case GraphicsPrimitive::PrimitiveType::LINES:
+            case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
                 lineType = LineType::LINES;
                 break;
-            case GraphicsPrimitive::PrimitiveType::POINTS:
+            case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
                 CaretLogSevere("POINTS is not a valid line drawing type");
                 return false;
                 break;
-            case GraphicsPrimitive::PrimitiveType::POLYGON:
+            case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
                 CaretLogSevere("POLYGON is not a valid line drawing type");
                 return false;
                 break;
-            case GraphicsPrimitive::PrimitiveType::QUAD_STRIP:
+            case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
                 CaretLogSevere("QUAD_STRIP is not a valid line drawing type");
                 return false;
                 break;
-            case GraphicsPrimitive::PrimitiveType::QUADS:
+            case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
                 CaretLogSevere("QUADS is not a valid line drawing type");
                 return false;
                 break;
-            case GraphicsPrimitive::PrimitiveType::TRIANGLE_FAN:
+            case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
                 CaretLogSevere("TRIANGLE_FAN is not a valid line drawing type");
                 return false;
                 break;
-            case GraphicsPrimitive::PrimitiveType::TRIANGLE_STRIP:
+            case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
                 CaretLogSevere("TRIANGLE_STRIP is not a valid line drawing type");
                 return false;
                 break;
-            case GraphicsPrimitive::PrimitiveType::TRIANGLES:
+            case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
                 CaretLogSevere("TRIANGLES is not a valid line drawing type");
                 return false;
                 break;
@@ -1286,13 +1286,13 @@ GraphicsOpenGLLineDrawing::convertLineSegmentsToQuads()
     switch (m_colorType) {
         case ColorType::BYTE_RGBA_PER_VERTEX:
         case ColorType::BYTE_RGBA_SOLID:
-            m_primitiveByteColor.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::QUADS));
+            m_primitiveByteColor.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS));
             m_primitiveByteColor->reserveForNumberOfVertices(estimatedNumberOfQuads * 4);
             m_primitive = m_primitiveByteColor.get();
             break;
         case ColorType::FLOAT_RGBA_PER_VERTEX:
         case ColorType::FLOAT_RGBA_SOLID:
-            m_primitiveFloatColor.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::QUADS));
+            m_primitiveFloatColor.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS));
             m_primitiveFloatColor->reserveForNumberOfVertices(estimatedNumberOfQuads * 4);
             m_primitive = m_primitiveFloatColor.get();
             break;

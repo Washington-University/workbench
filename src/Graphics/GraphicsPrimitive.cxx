@@ -275,17 +275,17 @@ GraphicsPrimitive::isValid() const
         }
         
         switch (m_primitiveType) {
-            case PrimitiveType::LINE_LOOP:
+            case PrimitiveType::OPENGL_LINE_LOOP:
                 if (numXYZ < 3) {
                     CaretLogWarning("Line loop must have at least 3 vertices.");
                 }
                 break;
-            case PrimitiveType::LINE_STRIP:
+            case PrimitiveType::OPENGL_LINE_STRIP:
                 if (numXYZ < 2) {
                     CaretLogWarning("Line strip must have at least 2 vertices.");
                 }
                 break;
-            case PrimitiveType::LINES:
+            case PrimitiveType::OPENGL_LINES:
                 if (numXYZ < 2) {
                     CaretLogWarning("Lines must have at least 2 vertices.");
                 }
@@ -296,14 +296,14 @@ GraphicsPrimitive::isValid() const
                     }
                 }
                 break;
-            case PrimitiveType::POINTS:
+            case PrimitiveType::OPENGL_POINTS:
                 break;
-            case PrimitiveType::POLYGON:
+            case PrimitiveType::OPENGL_POLYGON:
                 if (numXYZ < 3) {
                     CaretLogWarning("Polygon must have at least 3 vertices.");
                 }
                 break;
-            case PrimitiveType::QUAD_STRIP:
+            case PrimitiveType::OPENGL_QUAD_STRIP:
                 if (numXYZ < 4) {
                     CaretLogWarning("Quad strip must have at least 4 vertices.");
                 }
@@ -314,7 +314,7 @@ GraphicsPrimitive::isValid() const
                     }
                 }
                 break;
-            case PrimitiveType::QUADS:
+            case PrimitiveType::OPENGL_QUADS:
                 if (numXYZ < 4) {
                     CaretLogWarning("Quads must have at least 4 vertices.");
                 }
@@ -325,17 +325,17 @@ GraphicsPrimitive::isValid() const
                     }
                 }
                 break;
-            case PrimitiveType::TRIANGLE_FAN:
+            case PrimitiveType::OPENGL_TRIANGLE_FAN:
                 if (numXYZ < 3) {
                     CaretLogWarning("Triangle fan must have at least 3 vertices.");
                 }
                 break;
-            case PrimitiveType::TRIANGLE_STRIP:
+            case PrimitiveType::OPENGL_TRIANGLE_STRIP:
                 if (numXYZ < 3) {
                     CaretLogWarning("Triangle strip must have at least 3 vertices.");
                 }
                 break;
-            case PrimitiveType::TRIANGLES:
+            case PrimitiveType::OPENGL_TRIANGLES:
                 if (numXYZ < 3) {
                     CaretLogWarning("Triangles must have at least 3 vertices.");
                 }
@@ -383,34 +383,34 @@ GraphicsPrimitive::getPrimitiveTypeAsText() const
     AString s;
     
     switch (m_primitiveType) {
-        case PrimitiveType::LINE_LOOP:
+        case PrimitiveType::OPENGL_LINE_LOOP:
             s = "Line Loop";
             break;
-        case PrimitiveType::LINE_STRIP:
+        case PrimitiveType::OPENGL_LINE_STRIP:
             s = "Line Strip";
             break;
-        case PrimitiveType::LINES:
+        case PrimitiveType::OPENGL_LINES:
             s = "Lines";
             break;
-        case PrimitiveType::POINTS:
+        case PrimitiveType::OPENGL_POINTS:
             s = "Points";
             break;
-        case PrimitiveType::POLYGON:
+        case PrimitiveType::OPENGL_POLYGON:
             s = "Polygon";
             break;
-        case PrimitiveType::QUAD_STRIP:
+        case PrimitiveType::OPENGL_QUAD_STRIP:
             s = "Quad Strip";
             break;
-        case PrimitiveType::QUADS:
+        case PrimitiveType::OPENGL_QUADS:
             s = "Quads";
             break;
-        case PrimitiveType::TRIANGLE_FAN:
+        case PrimitiveType::OPENGL_TRIANGLE_FAN:
             s = "Triangle Fan";
             break;
-        case PrimitiveType::TRIANGLE_STRIP:
+        case PrimitiveType::OPENGL_TRIANGLE_STRIP:
             s = "Triangle Strip";
             break;
-        case PrimitiveType::TRIANGLES:
+        case PrimitiveType::OPENGL_TRIANGLES:
             s = "Triangles";
             break;
     }
@@ -553,29 +553,29 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
     bool addPointSizeFlag = false;
     
     switch (m_primitiveType) {
-        case PrimitiveType::LINE_LOOP:
+        case PrimitiveType::OPENGL_LINE_LOOP:
             addLineWidthFlag = true;
             break;
-        case PrimitiveType::LINE_STRIP:
+        case PrimitiveType::OPENGL_LINE_STRIP:
             addLineWidthFlag = true;
             break;
-        case PrimitiveType::LINES:
+        case PrimitiveType::OPENGL_LINES:
             addLineWidthFlag = true;
             break;
-        case PrimitiveType::POINTS:
+        case PrimitiveType::OPENGL_POINTS:
             addPointSizeFlag = true;
             break;
-        case PrimitiveType::POLYGON:
+        case PrimitiveType::OPENGL_POLYGON:
             break;
-        case PrimitiveType::QUAD_STRIP:
+        case PrimitiveType::OPENGL_QUAD_STRIP:
             break;
-        case PrimitiveType::QUADS:
+        case PrimitiveType::OPENGL_QUADS:
             break;
-        case PrimitiveType::TRIANGLE_FAN:
+        case PrimitiveType::OPENGL_TRIANGLE_FAN:
             break;
-        case PrimitiveType::TRIANGLE_STRIP:
+        case PrimitiveType::OPENGL_TRIANGLE_STRIP:
             break;
-        case PrimitiveType::TRIANGLES:
+        case PrimitiveType::OPENGL_TRIANGLES:
             break;
     }
     
@@ -868,31 +868,31 @@ GraphicsPrimitive::addPrimitiveRestart()
     bool supportedFlag = false;
     
     switch (m_primitiveType) {
-        case PrimitiveType::LINE_LOOP:
+        case PrimitiveType::OPENGL_LINE_LOOP:
             supportedFlag = true;
             break;
-        case PrimitiveType::LINE_STRIP:
+        case PrimitiveType::OPENGL_LINE_STRIP:
             supportedFlag = true;
             break;
-        case PrimitiveType::LINES:
+        case PrimitiveType::OPENGL_LINES:
             notApplicableFlag = true;
             break;
-        case PrimitiveType::POINTS:
+        case PrimitiveType::OPENGL_POINTS:
             notApplicableFlag = true;
             break;
-        case PrimitiveType::POLYGON:
+        case PrimitiveType::OPENGL_POLYGON:
             notApplicableFlag = true;
             break;
-        case PrimitiveType::QUAD_STRIP:
+        case PrimitiveType::OPENGL_QUAD_STRIP:
             break;
-        case PrimitiveType::QUADS:
+        case PrimitiveType::OPENGL_QUADS:
             notApplicableFlag = true;
             break;
-        case PrimitiveType::TRIANGLE_FAN:
+        case PrimitiveType::OPENGL_TRIANGLE_FAN:
             break;
-        case PrimitiveType::TRIANGLE_STRIP:
+        case PrimitiveType::OPENGL_TRIANGLE_STRIP:
             break;
-        case PrimitiveType::TRIANGLES:
+        case PrimitiveType::OPENGL_TRIANGLES:
             notApplicableFlag = true;
             break;
     }

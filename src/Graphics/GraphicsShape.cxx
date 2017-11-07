@@ -80,7 +80,7 @@ GraphicsShape::drawEllipseOutlineByteColor(void* openglContextPointer,
     std::vector<float> ellipseXYZ;
     createEllipseVertices(majorAxis, minorAxis, ellipseXYZ);
     
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::LINE_LOOP,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP,
                                                                                        rgba));
     const int32_t numVertices = static_cast<int32_t>(ellipseXYZ.size() / 3);
     for (int32_t i = 0; i < numVertices; i++) {
@@ -117,7 +117,7 @@ GraphicsShape::drawEllipseFilledByteColor(void* openglContextPointer,
     createEllipseVertices(majorAxis, minorAxis, ellipseXYZ);
 
     
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::TRIANGLE_FAN,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN,
                                                                                        rgba));
     const float center[3] = { 0.0f, 0.0f, 0.0f };
     primitive->addVertex(center);

@@ -589,7 +589,7 @@ ChartTwoLineSeriesHistory::restoreFromScene(const SceneAttributes* sceneAttribut
             ChartTwoDataCartesian* historyItem = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                            CaretUnitsTypeEnum::NONE,
                                                                            CaretUnitsTypeEnum::NONE,
-                                                                           GraphicsPrimitive::PrimitiveType::LINES);
+                                                                           GraphicsPrimitive::PrimitiveType::OPENGL_LINES);
             historyItem->restoreFromScene(sceneAttributes,
                                           historyClass);
             
