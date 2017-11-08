@@ -25,10 +25,12 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DeveloperFlagsEnum.h"
 #include "EventGraphicsOpenGLCreateBufferObject.h"
 #include "EventGraphicsOpenGLCreateTextureName.h"
 #include "EventManager.h"
 #include "GraphicsOpenGLBufferObject.h"
+#include "GraphicsOpenGLLineDrawing.h"
 #include "GraphicsOpenGLTextureName.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveSelectionHelper.h"
@@ -467,10 +469,174 @@ void
 GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
                                GraphicsPrimitive* primitive)
 {
-    drawPrivate(PrivateDrawMode::DRAW_NORMAL,
+    CaretAssert(primitive);
+    
+    GraphicsPrimitive* primitiveToDraw = primitive;
+    
+    /* Conversion to window space creates a new primitive that must be deleted */
+    std::unique_ptr<GraphicsPrimitive> windowSpacePrimitive;
+    
+    bool workbenchLineFlag = false;
+    switch (primitive->m_primitiveType) {
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
+            break;
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+                workbenchLineFlag = true;
+            }
+            break;
+    }
+    
+    if (workbenchLineFlag) {
+        AString errorMessage;
+        primitiveToDraw = GraphicsOpenGLLineDrawing::convertWorkbenchLinePrimitiveTypeToOpenGL(openglContextPointer,
+                                                                                               primitive,
+                                                                                               errorMessage);
+        if (primitiveToDraw == NULL) {
+            CaretLogSevere(errorMessage);
+            return;
+        }
+        windowSpacePrimitive.reset(primitiveToDraw);
+        drawWindowSpace(PrivateDrawMode::DRAW_NORMAL,
+                        openglContextPointer,
+                        primitiveToDraw,
+                        NULL);
+    }
+    else {
+        drawPrivate(PrivateDrawMode::DRAW_NORMAL,
+                    openglContextPointer,
+                    primitiveToDraw,
+                    NULL);
+    }
+}
+
+/**
+ * Draw the graphics primitive in window space.
+ *
+ * @param drawMode
+ *     Mode for drawing.
+ * @param openglContextPointer
+ *     Pointer to the active OpenGL context.
+ * @param primitive
+ *     Primitive that is drawn.
+ * @param primitiveSelectionHelper
+ *     Selection helper when draw mode is selection.
+ */
+void
+GraphicsEngineDataOpenGL::drawWindowSpace(const PrivateDrawMode drawMode,
+                            void* openglContextPointer,
+                            GraphicsPrimitive* primitive,
+                            GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper)
+{
+    int32_t polygonMode[2];
+    int32_t viewport[4];
+    saveOpenGLStateForWindowSpaceDrawing(polygonMode,
+                                         viewport);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(viewport[0], viewport[0] + viewport[2],
+            viewport[1], viewport[1] + viewport[3],
+            0, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    glPolygonMode(GL_FRONT, GL_FILL);
+
+    drawPrivate(drawMode,
                 openglContextPointer,
                 primitive,
-                NULL);
+                primitiveSelectionHelper);
+    
+    restoreOpenGLStateForWindowSpaceDrawing(polygonMode,
+                                            viewport);
+}
+
+/**
+ * Save the OpenGL State for drawing in window space.
+ *
+ * @param polygonMode
+ *    Output with the polygon mode.
+ * @param viewport
+ *    Output with viewport.
+ */
+void
+GraphicsEngineDataOpenGL::saveOpenGLStateForWindowSpaceDrawing(int32_t polygonMode[2],
+                                          int32_t viewport[4])
+{
+    glPushAttrib(GL_COLOR_BUFFER_BIT
+                 | GL_ENABLE_BIT
+                 | GL_HINT_BIT
+                 | GL_LIGHTING_BIT
+                 | GL_POLYGON_BIT);
+    
+    /*
+     * For anti-aliasing requires sorting polygons
+     * and turning of depth testing
+     */
+    const bool drawWithAntiAliasingFlag = false;
+    if (drawWithAntiAliasingFlag) {
+        glBlendFunc (GL_SRC_ALPHA_SATURATE, GL_ONE);
+        glEnable(GL_BLEND);
+        glHint(GL_POLYGON_SMOOTH_HINT,
+               GL_NICEST);
+        glEnable(GL_POLYGON_SMOOTH);
+    }
+    
+    glDisable(GL_LIGHTING);
+    glDisable(GL_COLOR_MATERIAL);
+    glGetIntegerv(GL_POLYGON_MODE,
+                  polygonMode);
+    
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+}
+
+/**
+ * Restore the OpenGL State from drawing in window space.
+ 
+ * @param polygonMode
+ *    Polygon mode.
+ * @param viewport
+ *    Viewport.
+ */
+void
+GraphicsEngineDataOpenGL::restoreOpenGLStateForWindowSpaceDrawing(int32_t polygonMode[2],
+                                                                  int32_t viewport[4])
+{
+    glPolygonMode(GL_FRONT, polygonMode[0]);
+    glPolygonMode(GL_BACK, polygonMode[1]);
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    
+    glPopAttrib();
 }
 
 /**
@@ -498,6 +664,35 @@ GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
                                             float&   selectedPrimitiveDepthOut)
 {
     CaretAssert(primitive);
+    
+    switch (primitive->m_primitiveType) {
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
+            break;
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
+            break;
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
+            break;
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
+            break;
+    }
     
     selectedPrimitiveIndexOut = -1;
     selectedPrimitiveDepthOut = 0.0;
@@ -765,14 +960,17 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     GLenum openGLPrimitiveType = GL_INVALID_ENUM;
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
             openGLPrimitiveType = GL_LINE_LOOP;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
             openGLPrimitiveType = GL_LINE_STRIP;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
             openGLPrimitiveType = GL_LINES;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;

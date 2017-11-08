@@ -139,6 +139,12 @@ GraphicsOpenGLLineDrawing::draw(void* openglContextPointer,
                 CaretLogSevere("TRIANGLES is not a valid line drawing type");
                 return false;
                 break;
+            case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
+                break;
+            case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
+                break;
+            case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
+                break;
         }
         
         return drawLinesPrivate(openglContextPointer,
@@ -154,6 +160,128 @@ GraphicsOpenGLLineDrawing::draw(void* openglContextPointer,
     return false;
 }
 
+/**
+ * Convert a Workbench Line Primitive to an OpenGL primitive.
+ * OpenGL has limits on the width of the lines that it draws.  This method will
+ * convert the lines into polygons so that any line width may be drawn.
+ *
+ * @param openglContextPointer
+ *     Pointer to current OpenGL context.
+ * @param primitive
+ *     A graphics primitive with a primitive type that is one of the
+ *     WORKBENCH_LINE* types.
+ * @param errorMessageOut
+ *     Upon exit contains an error message if conversion failed.
+ * @return
+ *     A graphics primitive with an OPENGL_QUADS type that draws the lines
+ *     using polygons.  NULL if error.
+ */
+GraphicsPrimitive*
+GraphicsOpenGLLineDrawing::convertWorkbenchLinePrimitiveTypeToOpenGL(void* openglContextPointer,
+                                                                     const GraphicsPrimitive* primitive,
+                                                                     AString& errorMessageOut)
+{
+    CaretAssert(primitive);
+    errorMessageOut.clear();
+    
+    if (openglContextPointer == NULL) {
+        errorMessageOut = "Pointer to current OpenGL context is invalid.";
+        return NULL;
+    }
+    
+    if ( ! primitive->isValid()) {
+        errorMessageOut = "Primitive is not valid.";
+        return NULL;
+    }
+    
+    float lineWidth = primitive->m_lineWidthValue;
+    
+    switch (primitive->m_lineWidthType) {
+        case GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+        {
+            GLint viewport[4];
+            glGetIntegerv(GL_VIEWPORT, viewport);
+            lineWidth = (lineWidth / 100.0) * viewport[3];
+        }
+            break;
+        case GraphicsPrimitive::SizeType::PIXELS:
+            break;
+    }
+    
+    ColorType colorType = ColorType::FLOAT_RGBA_PER_VERTEX;
+    switch (primitive->m_colorType) {
+        case GraphicsPrimitive::ColorType::NONE:
+            errorMessageOut = "INVALID color type NONE for graphics primitive";
+            return NULL;
+            break;
+        case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+            colorType = ColorType::FLOAT_RGBA_PER_VERTEX;
+            break;
+        case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+            colorType = ColorType::BYTE_RGBA_PER_VERTEX;
+            break;
+    }
+    
+    LineType lineType = LineType::LINES;
+    switch (primitive->m_primitiveType) {
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
+            errorMessageOut = "Input type is OPENGL_LINE_LOOP but must be one of the WORKBENCH_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
+            errorMessageOut = "Input type is OPENGL_LINE_STRIP but must be one of the WORKBENCH_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
+            errorMessageOut = "Input type is OPENGL_LINES but must be one of the WORKBENCH_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
+            errorMessageOut = "Input type is OPENGL_POINTS but must be one of the WORKBENCH_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
+            errorMessageOut = "Input type is OPENGL_POLYGON but must be one of the WORKBENCH_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
+            errorMessageOut = "Input type is OPENGL_QUAD_STRIP but must be one of the WORKBENCH_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
+            errorMessageOut = "Input type is OPENGL_QUADS but must be one of the WORKBENCH_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
+            errorMessageOut = "Input type is OPENGL_TRIANGLE_FAN but must be one of the WORKBENCH_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
+            errorMessageOut = "Input type is OPENGL_TRIANGLE_STRIP but must be one of the WORKBENCH_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
+            errorMessageOut = "Input type is OPENGL_TRIANGLES but must be one of the WORKBENCH_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
+            lineType = LineType::LINE_LOOP;
+            break;
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
+            lineType = LineType::LINE_STRIP;
+            break;
+        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
+            lineType = LineType::LINES;
+            break;
+    }
+    
+    if ( ! errorMessageOut.isEmpty()) {
+        return NULL;
+    }
+    
+    GraphicsOpenGLLineDrawing lineConversion(NULL,
+                                             primitive->m_xyz,
+                                             primitive->m_floatRGBA,
+                                             primitive->m_unsignedByteRGBA,
+                                             primitive->m_primitiveRestartIndices,
+                                             lineWidth,
+                                             colorType,
+                                             lineType);
+    
+    GraphicsPrimitive* primitiveOut = lineConversion.convertLinesToPolygons(errorMessageOut);
+    
+    return primitiveOut;
+}
 
 /**
  * Constructor.
@@ -518,6 +646,115 @@ GraphicsOpenGLLineDrawing::drawLinesPrivate(void* openglContextPointer,
                                           lineType);
     return lineDrawing.performDrawing();
 }
+
+/**
+ * Convert the content of this instance to a new graphics primitive
+ * that draws the lines as polygons.
+ *
+ * @param errorMessageOut
+ *     Contains error message if conversion failed.
+ * @return
+ *     Pointer to new primitive or NULL if there is an error.
+ *     Caller must destroy the primitive.
+ */
+GraphicsPrimitive*
+GraphicsOpenGLLineDrawing::convertLinesToPolygons(AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    const int32_t numVertices = static_cast<int32_t>(m_inputXYZ.size() / 3);
+    if (numVertices < 2) {
+        errorMessageOut = ("Invalid number of vertices="
+                        + AString::number(numVertices)
+                        + " for line drawing.  Must be at least 2.");
+        return NULL;
+    }
+    
+    const int32_t numFloatRGBA = static_cast<int32_t>(m_inputFloatRGBA.size());
+    const int32_t numByteRGBA = static_cast<int32_t>(m_inputByteRGBA.size());
+    switch (m_colorType) {
+        case ColorType::BYTE_RGBA_PER_VERTEX:
+        {
+            const int32_t numRgbaVertices = numByteRGBA / 4;
+            if (numVertices != numRgbaVertices) {
+                errorMessageOut = ("Mismatch in vertices and coloring.  There are "
+                               + AString::number(numVertices)
+                               + " vertices but have byte coloring for "
+                               + AString::number(numRgbaVertices)
+                               + " vertices");
+                return NULL;
+            }
+        }
+            break;
+        case ColorType::BYTE_RGBA_SOLID:
+            if (numByteRGBA < 4) {
+                errorMessageOut = ("Must have at last 4 color components for solid color line drawing"
+                               "Number of color components is "
+                               + AString::number(numByteRGBA));
+                return NULL;
+            }
+            break;
+        case ColorType::FLOAT_RGBA_PER_VERTEX:
+        {
+            const int32_t numRgbaVertices = numFloatRGBA / 4;
+            if (numVertices != numRgbaVertices) {
+                errorMessageOut = ("Mismatch in vertices and coloring.  There are "
+                               + AString::number(numVertices)
+                               + " vertices but have float coloring for "
+                               + AString::number(numRgbaVertices)
+                               + " vertices");
+                return NULL;
+            }
+        }
+            break;
+        case ColorType::FLOAT_RGBA_SOLID:
+            if (numFloatRGBA < 4) {
+                errorMessageOut = ("Must have at last 4 color components for solid color line drawing"
+                               "Number of color components is "
+                               + AString::number(numFloatRGBA));
+                return NULL;
+            }
+            break;
+    }
+    
+    saveOpenGLState();
+    
+    createProjectionMatrix();
+    
+    createWindowCoordinatesFromVertices();
+    
+    const int32_t numWindowPoints = static_cast<int32_t>(m_vertexWindowXYZ.size() / 3);
+    if (numWindowPoints >= 2) {
+        convertLineSegmentsToQuads();
+        
+        joinQuads();
+        
+        CaretAssert(m_primitive);
+    }
+    
+    restoreOpenGLState();
+    
+    GraphicsPrimitive* primitiveOut = NULL;
+    
+    if (m_primitive->isValid()) {
+        if (m_primitiveByteColor.get() != NULL) {
+            primitiveOut = m_primitiveByteColor.release();
+        }
+        else if (m_primitiveFloatColor.get() != NULL) {
+            primitiveOut = m_primitiveFloatColor.release();
+        }
+        else {
+            CaretAssert(0);
+            errorMessageOut = "Both Byte and Float Primitives are invalid, should never happen";
+        }
+    }
+    else {
+        errorMessageOut = "Converted primitive is invalid.";
+    }
+    
+    return primitiveOut;
+}
+
 
 /**
  * Perform the line drawinhg.

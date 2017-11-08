@@ -88,13 +88,25 @@ namespace caret {
                                 GraphicsPrimitive* primitive,
                                 GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
         
+        static void drawWindowSpace(const PrivateDrawMode drawMode,
+                                void* openglContextPointer,
+                                GraphicsPrimitive* primitive,
+                                GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
+        
         GLenum getOpeGLBufferUsageHint(const GraphicsPrimitive* primitive) const;
         
         static float getLineWidthForDrawingInPixels(const GraphicsPrimitive* primitive);
         
         static float getPointDiameterForDrawingInPixels(const GraphicsPrimitive* primitive);
         
+        static void saveOpenGLStateForWindowSpaceDrawing(int32_t polygonMode[2],
+                                                  int32_t viewport[4]);
+        
+        static void restoreOpenGLStateForWindowSpaceDrawing(int32_t polygonMode[2],
+                                                     int32_t viewport[4]);
+        
         const void* m_openglContextPointer;
+        
         
         GLsizei m_arrayIndicesCount = 0;
         

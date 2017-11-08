@@ -50,6 +50,10 @@ namespace caret {
         
         virtual ~GraphicsOpenGLLineDrawing();
         
+        static GraphicsPrimitive* convertWorkbenchLinePrimitiveTypeToOpenGL(void* openglContextPointer,
+                                                                            const GraphicsPrimitive* primitive,
+                                                                            AString& errorMessageOut);
+        
         static bool draw(void* openglContextPointer,
                          const GraphicsPrimitive* primitive);
         
@@ -187,6 +191,8 @@ namespace caret {
                                      const LineType lineType);
         
         bool performDrawing();
+        
+        GraphicsPrimitive* convertLinesToPolygons(AString& errorMessageOut);
         
         void saveOpenGLState();
         

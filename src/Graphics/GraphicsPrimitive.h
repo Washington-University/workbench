@@ -144,7 +144,19 @@ namespace caret {
              * Treats each triplet of vertices as an independent triangle.  Vertices 3n-2,  3n-1,  and
              * 3n define triangle n.  n/3 triangles are drawn. 
              */
-            OPENGL_TRIANGLES
+            OPENGL_TRIANGLES,
+            /**
+             * Like OPENGL_LINE_LOOP but there is no limit on line width as it draws the lines using polygons.
+             */
+            WORKBENCH_LINE_LOOP,
+            /**
+             * Like OPENGL_LINE_STRIP but there is no limit on line width as it draws the lines using polygons.
+             */
+            WORKBENCH_LINE_STRIP,
+            /**
+             * Like OPENGL_LINES but there is no limit on line width as it draws the lines using polygons.
+             */
+            WORKBENCH_LINES,
         };
         
         /**

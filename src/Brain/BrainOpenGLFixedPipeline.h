@@ -228,8 +228,6 @@ namespace caret {
         
         void drawBorder(const BorderDrawInfo& borderDrawInfo);
         
-        void drawBorderOld(const BorderDrawInfo& borderDrawInfo);
-        
         bool unstretchedBorderLineTest(const float p1[3],
                                        const float p2[3],
                                        const float anat1[3],
@@ -394,15 +392,6 @@ namespace caret {
         
         void drawCircleFilled(const uint8_t rgba[4],
                               const double diameter);
-        
-        void drawEllipseOutline(const uint8_t rgba[4],
-                                const double majorAxis,
-                                const double minorAxis,
-                                const double lineThickness);
-        
-        void drawEllipseFilled(const uint8_t rgba[4],
-                               const double majorAxis,
-                               const double minorAxis);
         
         void drawSphereWithDiameter(const uint8_t rgba[4],
                                     const double diameter);

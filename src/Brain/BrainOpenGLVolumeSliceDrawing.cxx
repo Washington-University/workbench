@@ -48,7 +48,9 @@
 #include "GapsAndMargins.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsOpenGLLineDrawing.h"
+#include "GraphicsPrimitiveV3fC4f.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
 #include "IdentificationWithColor.h"
@@ -3598,108 +3600,53 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 glColor3fv(CaretColorEnum::toRGB(outlineColor));
                 m_fixedPipelineDrawing->setLineWidth(thickness);
                 
-                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                    std::vector<float> lineXYZ;
-                    std::vector<float> lineRGBA;
+                float solidRGBA[4];
+                CaretColorEnum::toRGBAFloat(outlineColor, solidRGBA);
+                
+                std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES));
+                
+                /*
+                 * Examine each triangle to see if it intersects the Plane
+                 * in which the slice exists.
+                 */
+                for (int it = 0; it < numTriangles; it++) {
+                    const int32_t* triangleNodes = surface->getTriangle(it);
+                    const float* c1 = surface->getCoordinate(triangleNodes[0]);
+                    const float* c2 = surface->getCoordinate(triangleNodes[1]);
+                    const float* c3 = surface->getCoordinate(triangleNodes[2]);
                     
-                    /*
-                     * Examine each triangle to see if it intersects the Plane
-                     * in which the slice exists.
-                     */
-                    for (int it = 0; it < numTriangles; it++) {
-                        const int32_t* triangleNodes = surface->getTriangle(it);
-                        const float* c1 = surface->getCoordinate(triangleNodes[0]);
-                        const float* c2 = surface->getCoordinate(triangleNodes[1]);
-                        const float* c3 = surface->getCoordinate(triangleNodes[2]);
-                        
-                        if (plane.triangleIntersectPlane(c1, c2, c3,
-                                                         intersectionPoint1,
-                                                         intersectionPoint2)) {
-                            if (surfaceColorFlag) {
-                                const int32_t rgbaOffset = triangleNodes[0] * 4;
-                                /*
-                                 * Use coloring assigned to the first node in the triangle
-                                 * but only if Alpha is valid (greater than zero).
-                                 */
-                                if (nodeColoringRGBA[rgbaOffset + 3] <= 0.0f) {
-                                    continue;
-                                }
-                                lineRGBA.insert(lineRGBA.end(), &nodeColoringRGBA[rgbaOffset], &nodeColoringRGBA[rgbaOffset] + 4);
-                                lineRGBA.insert(lineRGBA.end(), &nodeColoringRGBA[rgbaOffset], &nodeColoringRGBA[rgbaOffset] + 4);
+                    if (plane.triangleIntersectPlane(c1, c2, c3,
+                                                     intersectionPoint1,
+                                                     intersectionPoint2)) {
+                        if (surfaceColorFlag) {
+                            const int32_t rgbaOffset = triangleNodes[0] * 4;
+                            /*
+                             * Use coloring assigned to the first node in the triangle
+                             * but only if Alpha is valid (greater than zero).
+                             */
+                            if (nodeColoringRGBA[rgbaOffset + 3] <= 0.0f) {
+                                continue;
                             }
-                            lineXYZ.insert(lineXYZ.end(), intersectionPoint1, intersectionPoint1 + 3);
-                            lineXYZ.insert(lineXYZ.end(), intersectionPoint2, intersectionPoint2 + 3);
+                            primitive->addVertex(intersectionPoint1, &nodeColoringRGBA[rgbaOffset]);
+                            primitive->addVertex(intersectionPoint2, &nodeColoringRGBA[rgbaOffset]);
                         }
-                    }
-                    
-                    GLboolean depthTestFlag = GL_FALSE;
-                    glGetBooleanv(GL_DEPTH_TEST, &depthTestFlag);
-                    glDisable(GL_DEPTH_TEST);
-                    float widthPixels = thickness;
-                    if (surfaceColorFlag) {
-                        /*
-                         * Note: Must draw as line segments (each consecutive two points is independent of all others).
-                         * The reason is that the intersection algorithm picks triangles for intersection with the 
-                         * surface in no particular order.  Thus, two adjacent points in the lines may be nowhere
-                         * near each others.
-                         */
-                        GraphicsOpenGLLineDrawing::drawLinesPerVertexFloatColor(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-                                                                           lineXYZ,
-                                                                           lineRGBA,
-                                                                           widthPixels);
-                    }
-                    else {
-                        /*
-                         * Ditto, comment above
-                         */
-                        float rgba[4] = { 1.0, 0.0, 0.0, 1.0 };
-                        CaretColorEnum::toRGBAFloat(outlineColor, rgba);
-                        GraphicsOpenGLLineDrawing::drawLinesSolidFloatColor(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-                                                                       lineXYZ,
-                                                                       rgba,
-                                                                       widthPixels);
-                    }
-                    if (depthTestFlag) {
-                        glEnable(GL_DEPTH_TEST);
+                        else {
+                            primitive->addVertex(intersectionPoint1, solidRGBA);
+                            primitive->addVertex(intersectionPoint2, solidRGBA);
+                        }
                     }
                 }
-                else {
-                    /*
-                     * Examine each triangle to see if it intersects the Plane
-                     * in which the slice exists.
-                     */
-                    glBegin(GL_LINES);
-                    for (int it = 0; it < numTriangles; it++) {
-                        const int32_t* triangleNodes = surface->getTriangle(it);
-                        const float* c1 = surface->getCoordinate(triangleNodes[0]);
-                        const float* c2 = surface->getCoordinate(triangleNodes[1]);
-                        const float* c3 = surface->getCoordinate(triangleNodes[2]);
-                        
-                        if (plane.triangleIntersectPlane(c1, c2, c3,
-                                                         intersectionPoint1,
-                                                         intersectionPoint2)) {
-                            if (surfaceColorFlag) {
-                                /*
-                                 * Use coloring assigned to the first node in the triangle
-                                 * but only if Alpha is valid (greater than zero).
-                                 */
-                                const int64_t colorIndex = triangleNodes[0] * 4;
-                                if (nodeColoringRGBA[colorIndex + 3] > 0.0) {
-                                    glColor3fv(&nodeColoringRGBA[triangleNodes[0] * 4]);
-                                }
-                                else {
-                                    continue;
-                                }
-                            }
-                            
-                            /*
-                             * Draw the line where the triangle intersections the slice
-                             */
-                            glVertex3fv(intersectionPoint1);
-                            glVertex3fv(intersectionPoint2);
-                        }
-                    }
-                    glEnd();
+                
+                GLboolean depthTestFlag = GL_FALSE;
+                glGetBooleanv(GL_DEPTH_TEST, &depthTestFlag);
+                glDisable(GL_DEPTH_TEST);
+                float widthPixels = thickness;
+                primitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
+                                        widthPixels);
+                GraphicsEngineDataOpenGL::draw(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
+                                               primitive.get());
+                if (depthTestFlag) {
+                    glEnable(GL_DEPTH_TEST);
                 }
             }
         }

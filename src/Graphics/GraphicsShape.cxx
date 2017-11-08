@@ -27,7 +27,6 @@
 
 #include "CaretAssert.h"
 #include "GraphicsEngineDataOpenGL.h"
-#include "GraphicsOpenGLLineDrawing.h"
 #include "GraphicsPrimitiveV3f.h"
 
 using namespace caret;
@@ -57,6 +56,89 @@ GraphicsShape::~GraphicsShape()
 }
 
 /**
+ * Draw an outline box.
+ *
+ * @param openglContextPointer
+ *    Pointer to OpenGL context.
+ * @param v1
+ *    First vertex.
+ * @param v2
+ *    Second vertex.
+ * @param v3
+ *    Third vertex.
+ * @param v4
+ *    Fourth vertex.
+ * @param rgba
+ *    Color for drawing.
+ * @param lineThicknessType
+ *    Type of line thickness.
+ * @param lineThickness
+ *    Thickness of the line.
+ */
+void
+GraphicsShape::drawBoxOutlineByteColor(void* openglContextPointer,
+                                    const float v1[3],
+                                    const float v2[3],
+                                    const float v3[3],
+                                    const float v4[3],
+                                    const uint8_t rgba[4],
+                                    const GraphicsPrimitive::SizeType lineThicknessType,
+                                    const double lineThickness)
+{
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP,
+                                                                                       rgba));
+    primitive->addVertex(v1);
+    primitive->addVertex(v2);
+    primitive->addVertex(v3);
+    primitive->addVertex(v4);
+    
+    primitive->setLineWidth(lineThicknessType,
+                            lineThickness);
+    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    
+    GraphicsEngineDataOpenGL::draw(openglContextPointer,
+                                   primitive.get());
+}
+
+/**
+ * Draw a filled box.
+ *
+ * @param openglContextPointer
+ *    Pointer to OpenGL context.
+ * @param v1
+ *    First vertex.
+ * @param v2
+ *    Second vertex.
+ * @param v3
+ *    Third vertex.
+ * @param v4
+ *    Fourth vertex.
+ * @param rgba
+ *    Color for drawing.
+ */
+void
+GraphicsShape::drawBoxFilledByteColor(void* openglContextPointer,
+                                   const float v1[3],
+                                   const float v2[3],
+                                   const float v3[3],
+                                   const float v4[3],
+                                   const uint8_t rgba[4])
+{
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS,
+                                                                                       rgba));
+    primitive->addVertex(v1);
+    primitive->addVertex(v2);
+    primitive->addVertex(v3);
+    primitive->addVertex(v4);
+    
+    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    
+    GraphicsEngineDataOpenGL::draw(openglContextPointer,
+                                   primitive.get());
+}
+
+
+/**
  * Draw an outline ellipse.
  *
  * @param openglContextPointer
@@ -67,6 +149,8 @@ GraphicsShape::~GraphicsShape()
  *    Diameter of the minor axis.
  * @param rgba
  *    Color for drawing.
+ * @param lineThicknessType
+ *    Type of line thickness.
  * @param lineThickness
  *    Thickness of the line.
  */
@@ -75,24 +159,25 @@ GraphicsShape::drawEllipseOutlineByteColor(void* openglContextPointer,
                                            const double majorAxis,
                                            const double minorAxis,
                                            const uint8_t rgba[4],
+                                           const GraphicsPrimitive::SizeType lineThicknessType,
                                            const double lineThickness)
 {
     std::vector<float> ellipseXYZ;
     createEllipseVertices(majorAxis, minorAxis, ellipseXYZ);
     
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP,
                                                                                        rgba));
     const int32_t numVertices = static_cast<int32_t>(ellipseXYZ.size() / 3);
     for (int32_t i = 0; i < numVertices; i++) {
         primitive->addVertex(&ellipseXYZ[i * 3]);
     }
     
-    primitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
+    primitive->setLineWidth(lineThicknessType,
                             lineThickness);
     primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
-    GraphicsOpenGLLineDrawing::draw(openglContextPointer,
-                                    primitive.get());
+    GraphicsEngineDataOpenGL::draw(openglContextPointer,
+                                   primitive.get());
 }
 
 /**
@@ -127,6 +212,79 @@ GraphicsShape::drawEllipseFilledByteColor(void* openglContextPointer,
     }
     primitive->addVertex(&ellipseXYZ[0]);
     
+    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    
+    GraphicsEngineDataOpenGL::draw(openglContextPointer,
+                                   primitive.get());
+}
+
+/**
+ * Draw lines: Each pair of vertices is a separate line segment
+ * similar to OpenGL's GL_LINES
+ *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
+ * @param xyz
+ *    Coordinates of the line end points.
+ * @param rgba
+ *    Color for drawing.
+ * @param lineThicknessType
+ *    Type of line thickness.
+ * @param lineThickness
+ *    Thickness of the line.
+ */
+void
+GraphicsShape::drawLinesByteColor(void* openglContextPointer,
+                                  const std::vector<float>& xyz,
+                                  const uint8_t rgba[4],
+                                  const GraphicsPrimitive::SizeType lineThicknessType,
+                                  const double lineThickness)
+{
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES,
+                                                                                       rgba));
+    const int32_t numVertices = static_cast<int32_t>(xyz.size() / 3);
+    for (int32_t i = 0; i < numVertices; i++) {
+        primitive->addVertex(&xyz[i * 3]);
+    }
+    
+    primitive->setLineWidth(lineThicknessType,
+                            lineThickness);
+    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    
+    GraphicsEngineDataOpenGL::draw(openglContextPointer,
+                                   primitive.get());
+}
+
+/**
+ * Draw line strip similar to OpenGL's GL_LINES
+ *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
+ * @param xyz
+ *    Coordinates of the line end points.
+ * @param rgba
+ *    Color for drawing.
+ * @param lineThicknessType
+ *    Type of line thickness.
+ * @param lineThickness
+ *    Thickness of the line.
+ */
+void
+GraphicsShape::drawLineStripByteColor(void* openglContextPointer,
+                                  const std::vector<float>& xyz,
+                                  const uint8_t rgba[4],
+                                  const GraphicsPrimitive::SizeType lineThicknessType,
+                                  const double lineThickness)
+{
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP,
+                                                                                       rgba));
+    const int32_t numVertices = static_cast<int32_t>(xyz.size() / 3);
+    for (int32_t i = 0; i < numVertices; i++) {
+        primitive->addVertex(&xyz[i * 3]);
+    }
+    
+    primitive->setLineWidth(lineThicknessType,
+                            lineThickness);
     primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
     GraphicsEngineDataOpenGL::draw(openglContextPointer,

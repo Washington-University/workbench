@@ -49,12 +49,10 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
-#include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "GraphicsEngineDataOpenGL.h"
-#include "GraphicsOpenGLLineDrawing.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
@@ -1205,7 +1203,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     if (box->getLineWidthPercentage() <= 0.0) {
         convertObsoleteLineWidthPixelsToPercentageWidth(box);
     }
-    const float outlineWidth = getLineWidthFromPercentageHeight(box->getLineWidthPercentage());
     
     const bool depthTestFlag = isDrawnWithDepthTesting(box);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
@@ -1218,9 +1215,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     
     std::vector<float> dummyNormals;
     
-    float backgroundRGBA[4];
+    uint8_t backgroundRGBA[4];
     box->getBackgroundColorRGBA(backgroundRGBA);
-    float foregroundRGBA[4];
+    uint8_t foregroundRGBA[4];
     box->getLineColorRGBA(foregroundRGBA);
 
     const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
@@ -1240,30 +1237,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                  * since it is opaque and prevents "behind" annotations
                  * from being selected
                  */
-                BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                         dummyNormals,
-                                                         selectionColorRGBA);
+                GraphicsShape::drawBoxFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                      bottomLeft,
+                                                      bottomRight,
+                                                      topRight,
+                                                      topLeft,
+                                                      selectionColorRGBA);
             }
             else {
                 /*
                  * Drawing foreground as line will still allow user to
                  * select annotation that are inside of the box
                  */
-                const float slightlyThicker = 2.0;
-                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                    /*
-                     * For testing new line drawing
-                     * Width not limited to OpenGL min/max
-                     */
-                    float widthPixels = (box->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
-                    GraphicsOpenGLLineDrawing::drawLineLoopSolidByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
-                                                                           coords, selectionColorRGBA, widthPixels);
-                }
-                else {
-                    BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                              selectionColorRGBA,
-                                                              outlineWidth + slightlyThicker);
-                }
+                GraphicsShape::drawBoxOutlineByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                       bottomLeft,
+                                                       bottomRight,
+                                                       topRight,
+                                                       topLeft,
+                                                       selectionColorRGBA,
+                                                       GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                       box->getLineWidthPercentage());
             }
             
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
@@ -1273,36 +1266,24 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
         }
         else {
             if (drawBackgroundFlag) {
-                BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                         dummyNormals,
-                                                         backgroundRGBA);
+                GraphicsShape::drawBoxFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                      bottomLeft,
+                                                      bottomRight,
+                                                      topRight,
+                                                      topLeft,
+                                                      backgroundRGBA);
                 drawnFlag = true;
             }
             
             if (drawForegroundFlag) {
-                const bool drawOutlineWithPolygonsFlag = true;
-                if (drawOutlineWithPolygonsFlag) {
-                    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                        /*
-                         * For testing new line drawing
-                         * Width not limited to OpenGL min/max
-                         */
-                        float widthPixels = (box->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
-                        GraphicsOpenGLLineDrawing::drawLineLoopSolidFloatColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
-                                                                          coords, foregroundRGBA, widthPixels);
-                    }
-                    else {
-                        BrainOpenGLPrimitiveDrawing::drawRectangleOutline(bottomLeft, bottomRight, topRight, topLeft,
-                                                                          outlineWidth,
-                                                                          foregroundRGBA);
-                    }
-                }
-                else {
-                    const float tempRGBA[4] = { 1.0, 1.0, 0.0, 1.0 };
-                    BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                              tempRGBA,
-                                                              outlineWidth);
-                }
+                    GraphicsShape::drawBoxOutlineByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                           bottomLeft,
+                                                           bottomRight,
+                                                           topRight,
+                                                           topLeft,
+                                                           foregroundRGBA,
+                                                           GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                           box->getLineWidthPercentage());
                 drawnFlag = true;
             }
         }
@@ -1941,7 +1922,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     if (oval->getLineWidthPercentage() <= 0.0) {
         convertObsoleteLineWidthPixelsToPercentageWidth(oval);
     }
-    const float outlineWidth = getLineWidthFromPercentageHeight(oval->getLineWidthPercentage());
     
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
@@ -1980,38 +1960,22 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
                  * since it is opaque and prevents "behind" annotations
                  * from being selected
                  */
-                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                    GraphicsShape::drawEllipseFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
-                                                              majorAxis * 2.0f,
-                                                              minorAxis * 2.0f,
-                                                              selectionColorRGBA);
-                }
-                else {
-                    m_brainOpenGLFixedPipeline->drawEllipseFilled(selectionColorRGBA,
-                                                                  majorAxis,
-                                                                  minorAxis);
-                }
+                GraphicsShape::drawEllipseFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                          majorAxis * 2.0f,
+                                                          minorAxis * 2.0f,
+                                                          selectionColorRGBA);
             }
             else {
                 /*
                  * Drawing foreground as line will still allow user to
                  * select annotation that are inside of the box
                  */
-                const float slightlyThicker = 2.0;
-                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                    float widthPixels = (oval->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
-                    GraphicsShape::drawEllipseOutlineByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
-                                                               majorAxis * 2.0f,
-                                                               minorAxis * 2.0f,
-                                                               selectionColorRGBA,
-                                                               widthPixels + slightlyThicker);
-                }
-                else {
-                    m_brainOpenGLFixedPipeline->drawEllipseOutline(selectionColorRGBA,
-                                                                   majorAxis,
-                                                                   minorAxis,
-                                                                   outlineWidth + slightlyThicker);
-                }
+                GraphicsShape::drawEllipseOutlineByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                           majorAxis * 2.0f,
+                                                           minorAxis * 2.0f,
+                                                           selectionColorRGBA,
+                                                           GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                           oval->getLineWidthPercentage());
             }
             
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
@@ -2021,35 +1985,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
         }
         else {
             if (drawBackgroundFlag) {
-                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                    GraphicsShape::drawEllipseFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
-                                                               majorAxis * 2.0f,
-                                                               minorAxis * 2.0f,
-                                                               backgroundRGBA);
-                }
-                else {
-                    m_brainOpenGLFixedPipeline->drawEllipseFilled(backgroundRGBA,
-                                                                  majorAxis,
-                                                                  minorAxis);
-                }
+                GraphicsShape::drawEllipseFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                          majorAxis * 2.0f,
+                                                          minorAxis * 2.0f,
+                                                          backgroundRGBA);
                 drawnFlag = true;
             }
             
             if (drawForegroundFlag) {
-                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                    float widthPixels = (oval->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
-                    GraphicsShape::drawEllipseOutlineByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
-                                                               majorAxis * 2.0f,
-                                                               minorAxis * 2.0f,
-                                                               foregroundRGBA,
-                                                               widthPixels);
-                }
-                else {
-                    m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
-                                                                   majorAxis,
-                                                                   minorAxis,
-                                                                   outlineWidth);
-                }
+                GraphicsShape::drawEllipseOutlineByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                           majorAxis * 2.0f,
+                                                           minorAxis * 2.0f,
+                                                           foregroundRGBA,
+                                                           GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                           oval->getLineWidthPercentage());
                 drawnFlag = true;
             }
         }
@@ -2089,9 +2038,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                                                                                      const float bottomRight[3],
                                                                                      const float topRight[3],
                                                                                      const float topLeft[3],
-                                                                                     std::vector<float>& lineCoordinatesOut) const
+                                                                                     std::vector<float>& lineCoordinatesOut,
+                                                                                     std::vector<float>& arrowCoordinatesOut) const
 {
     lineCoordinatesOut.clear();
+    arrowCoordinatesOut.clear();
     
     if (text->isConnectToBrainordinateValid()) {
         bool showLineFlag = false;
@@ -2159,12 +2110,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                             convertObsoleteLineWidthPixelsToPercentageWidth(text);
                         }
                         const float lineWidth = getLineWidthFromPercentageHeight(text->getLineWidthPercentage());
+                        std::vector<float> unusedArrowCoordinates;
                         createLineCoordinates(annXYZ,
                                               brainordinateXYZ,
                                               lineWidth,
                                               false,
                                               showArrowFlag,
-                                              lineCoordinatesOut);
+                                              lineCoordinatesOut,
+                                              unusedArrowCoordinates,
+                                              arrowCoordinatesOut);
+                        
                     }
                 }
             }
@@ -2357,6 +2312,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
         }
         else {
             std::vector<float> connectLineCoordinates;
+            std::vector<float> arrowCoordinates;
 
             getTextLineToBrainordinateLineCoordinates(text,
                                                       surfaceDisplayed,
@@ -2364,16 +2320,30 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                       bottomRight,
                                                       topRight,
                                                       topLeft,
-                                                      connectLineCoordinates);
+                                                      connectLineCoordinates,
+                                                      arrowCoordinates);
             
             if ( ! connectLineCoordinates.empty()) {
                 if (text->getLineWidthPercentage() <= 0.0) {
                     convertObsoleteLineWidthPixelsToPercentageWidth(text);
                 }
-                const float lineWidth = getLineWidthFromPercentageHeight(text->getLineWidthPercentage());
-                BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
-                                                       textColorRGBA,
-                                                       lineWidth);
+                
+                GraphicsShape::drawLinesByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                  connectLineCoordinates,
+                                                  textColorRGBA,
+                                                  GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                  text->getLineWidthPercentage());
+                if ( ! arrowCoordinates.empty()) {
+                    GraphicsShape::drawLineStripByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                      arrowCoordinates,
+                                                      textColorRGBA,
+                                                      GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                      text->getLineWidthPercentage());
+                }
+//                const float lineWidth = getLineWidthFromPercentageHeight(text->getLineWidthPercentage());
+//                BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
+//                                                       textColorRGBA,
+//                                                       lineWidth);
             }
             
             if (drawTextFlag) {
@@ -2646,18 +2616,22 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::createLineCoordinates(const float lineHeadXYZ[3],
                                                                  const float lineTailXYZ[3],
-                                                                 const float lineThickness,
+                                                                 const float lineThicknessPixels,
                                                                  const bool validStartArrow,
                                                                  const bool validEndArrow,
-                                                                 std::vector<float>& coordinatesOut) const
+                                                                 std::vector<float>& lineCoordinatesOut,
+                                                                 std::vector<float>& startArrowCoordinatesOut,
+                                                                 std::vector<float>& endArrowCoordinatesOut) const
 {
-    coordinatesOut.clear();
+    lineCoordinatesOut.clear();
+    startArrowCoordinatesOut.clear();
+    endArrowCoordinatesOut.clear();
     
     /*
      * Length of arrow's tips is function of line thickness
      */
     const float tipScale = 3.0;
-    const float tipLength = lineThickness * tipScale;
+    const float tipLength = lineThicknessPixels * tipScale;
     
     /*
      * Point on arrow's line that is between the arrow's left and right arrow tips
@@ -2730,19 +2704,19 @@ BrainOpenGLAnnotationDrawingFixedPipeline::createLineCoordinates(const float lin
         tailArrowTipsOnLine[2] - headLeftRightTipOffset[2]
     };
     
-    coordinatesOut.insert(coordinatesOut.end(), lineHeadXYZ, lineHeadXYZ + 3);
-    coordinatesOut.insert(coordinatesOut.end(), lineTailXYZ, lineTailXYZ + 3);
+    lineCoordinatesOut.insert(lineCoordinatesOut.end(), lineHeadXYZ, lineHeadXYZ + 3);
+    lineCoordinatesOut.insert(lineCoordinatesOut.end(), lineTailXYZ, lineTailXYZ + 3);
     if (validStartArrow) {
-        coordinatesOut.insert(coordinatesOut.end(), lineHeadXYZ,     lineHeadXYZ + 3);
-        coordinatesOut.insert(coordinatesOut.end(), headRightTipEnd, headRightTipEnd + 3);
-        coordinatesOut.insert(coordinatesOut.end(), lineHeadXYZ,     lineHeadXYZ + 3);
-        coordinatesOut.insert(coordinatesOut.end(), headLeftTipEnd,  headLeftTipEnd + 3);
+        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), lineHeadXYZ,     lineHeadXYZ + 3);
+        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), headRightTipEnd, headRightTipEnd + 3);
+        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), lineHeadXYZ,     lineHeadXYZ + 3);
+        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), headLeftTipEnd,  headLeftTipEnd + 3);
     }
     if (validEndArrow) {
-        coordinatesOut.insert(coordinatesOut.end(), lineTailXYZ,     lineTailXYZ + 3);
-        coordinatesOut.insert(coordinatesOut.end(), tailRightTipEnd, tailRightTipEnd + 3);
-        coordinatesOut.insert(coordinatesOut.end(), lineTailXYZ,     lineTailXYZ + 3);
-        coordinatesOut.insert(coordinatesOut.end(), tailLeftTipEnd,  tailLeftTipEnd + 3);
+        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), lineTailXYZ,     lineTailXYZ + 3);
+        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), tailRightTipEnd, tailRightTipEnd + 3);
+        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), lineTailXYZ,     lineTailXYZ + 3);
+        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), tailLeftTipEnd,  tailLeftTipEnd + 3);
     }
 }
 
@@ -2786,7 +2760,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
         convertObsoleteLineWidthPixelsToPercentageWidth(line);
     }
     const float lineWidth = getLineWidthFromPercentageHeight(line->getLineWidthPercentage());
-    const float backgroundLineWidth = lineWidth + 4;
     
     const float selectionCenterXYZ[3] = {
         (lineHeadXYZ[0] + lineTailXYZ[0]) / 2.0,
@@ -2797,18 +2770,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     const bool depthTestFlag = isDrawnWithDepthTesting(line);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
-    std::vector<float> coords;
+    std::vector<float> lineCoordinates;
+    std::vector<float> startArrowCoordinates;
+    std::vector<float>  endArrowCoordinates;
     createLineCoordinates(lineHeadXYZ,
                           lineTailXYZ,
                           lineWidth,
                           line->isDisplayStartArrow(),
                           line->isDisplayEndArrow(),
-                          coords);
+                          lineCoordinates,
+                          startArrowCoordinates,
+                          endArrowCoordinates);
     
     uint8_t foregroundRGBA[4];
     line->getLineColorRGBA(foregroundRGBA);
-    float floatForegroundRGBA[4];
-    line->getLineColorRGBA(floatForegroundRGBA);
     
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
     
@@ -2818,19 +2793,25 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
         if (m_selectionModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                /*
-                 * For testing new line drawing
-                 * Width not limited to OpenGL min/max
-                 */
-                float widthPixels = (line->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
-                GraphicsOpenGLLineDrawing::drawLinesSolidByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
-                                                                    coords, selectionColorRGBA, widthPixels);
+            
+            GraphicsShape::drawLinesByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                              lineCoordinates,
+                                              selectionColorRGBA,
+                                              GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                              line->getLineWidthPercentage());
+            if ( ! startArrowCoordinates.empty()) {
+                GraphicsShape::drawLineStripByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                      startArrowCoordinates,
+                                                      selectionColorRGBA,
+                                                      GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                      line->getLineWidthPercentage());
             }
-            else {
-                BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                                       selectionColorRGBA,
-                                                       backgroundLineWidth);
+            if ( ! endArrowCoordinates.empty()) {
+                GraphicsShape::drawLineStripByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                      endArrowCoordinates,
+                                                      selectionColorRGBA,
+                                                      GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                      line->getLineWidthPercentage());
             }
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                     line,
@@ -2839,21 +2820,25 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
         }
         else {
             if (drawForegroundFlag) {
-                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                    /*
-                     * For testing new line drawing
-                     * Width not limited to OpenGL min/max
-                     */
-                    float widthPixels = (line->getLineWidthPercentage() / 100.0f) * m_modelSpaceViewport[3];
-                    GraphicsOpenGLLineDrawing::drawLinesSolidFloatColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
-                                                                   coords, floatForegroundRGBA, widthPixels);
+                GraphicsShape::drawLinesByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                  lineCoordinates,
+                                                  foregroundRGBA,
+                                                  GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                  line->getLineWidthPercentage());
+                if ( ! startArrowCoordinates.empty()) {
+                    GraphicsShape::drawLineStripByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                          startArrowCoordinates,
+                                                          foregroundRGBA,
+                                                          GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                          line->getLineWidthPercentage());
                 }
-                else {
-                    BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                                           foregroundRGBA,
-                                                           lineWidth);
+                if ( ! endArrowCoordinates.empty()) {
+                    GraphicsShape::drawLineStripByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                          endArrowCoordinates,
+                                                          foregroundRGBA,
+                                                          GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                          line->getLineWidthPercentage());
                 }
-                
                 drawnFlag = true;
             }
         }

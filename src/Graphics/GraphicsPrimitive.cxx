@@ -276,16 +276,19 @@ GraphicsPrimitive::isValid() const
         
         switch (m_primitiveType) {
             case PrimitiveType::OPENGL_LINE_LOOP:
+            case PrimitiveType::WORKBENCH_LINE_LOOP:
                 if (numXYZ < 3) {
                     CaretLogWarning("Line loop must have at least 3 vertices.");
                 }
                 break;
             case PrimitiveType::OPENGL_LINE_STRIP:
+            case PrimitiveType::WORKBENCH_LINE_STRIP:
                 if (numXYZ < 2) {
                     CaretLogWarning("Line strip must have at least 2 vertices.");
                 }
                 break;
             case PrimitiveType::OPENGL_LINES:
+            case PrimitiveType::WORKBENCH_LINES:
                 if (numXYZ < 2) {
                     CaretLogWarning("Lines must have at least 2 vertices.");
                 }
@@ -412,6 +415,12 @@ GraphicsPrimitive::getPrimitiveTypeAsText() const
             break;
         case PrimitiveType::OPENGL_TRIANGLES:
             s = "Triangles";
+            break;
+        case PrimitiveType::WORKBENCH_LINE_LOOP:
+            break;
+        case PrimitiveType::WORKBENCH_LINE_STRIP:
+            break;
+        case PrimitiveType::WORKBENCH_LINES:
             break;
     }
     
@@ -576,6 +585,12 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
         case PrimitiveType::OPENGL_TRIANGLE_STRIP:
             break;
         case PrimitiveType::OPENGL_TRIANGLES:
+            break;
+        case PrimitiveType::WORKBENCH_LINE_LOOP:
+            break;
+        case PrimitiveType::WORKBENCH_LINE_STRIP:
+            break;
+        case PrimitiveType::WORKBENCH_LINES:
             break;
     }
     
@@ -869,10 +884,8 @@ GraphicsPrimitive::addPrimitiveRestart()
     
     switch (m_primitiveType) {
         case PrimitiveType::OPENGL_LINE_LOOP:
-            supportedFlag = true;
             break;
         case PrimitiveType::OPENGL_LINE_STRIP:
-            supportedFlag = true;
             break;
         case PrimitiveType::OPENGL_LINES:
             notApplicableFlag = true;
@@ -894,6 +907,14 @@ GraphicsPrimitive::addPrimitiveRestart()
             break;
         case PrimitiveType::OPENGL_TRIANGLES:
             notApplicableFlag = true;
+            break;
+        case PrimitiveType::WORKBENCH_LINE_LOOP:
+            supportedFlag = true;
+            break;
+        case PrimitiveType::WORKBENCH_LINE_STRIP:
+            supportedFlag = true;
+            break;
+        case PrimitiveType::WORKBENCH_LINES:
             break;
     }
     

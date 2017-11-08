@@ -270,7 +270,9 @@ namespace caret {
                                    const float lineThickness,
                                    const bool validStartArrow,
                                    const bool validEndArrow,
-                                   std::vector<float>& coordinatesOut) const;
+                                   std::vector<float>& lineCoordinatesOut,
+                                   std::vector<float>& startArrowCoordinatesOut,
+                                   std::vector<float>& endArrowCoordinatesOut) const;
         
         void getTextLineToBrainordinateLineCoordinates(const AnnotationText* text,
                                                        const Surface* surfaceDisplayed,
@@ -278,7 +280,8 @@ namespace caret {
                                                        const float bottomRight[3],
                                                        const float topRight[3],
                                                        const float topLeft[3],
-                                                       std::vector<float>& lineCoordinatesOut) const;
+                                                       std::vector<float>& lineCoordinatesOut,
+                                                       std::vector<float>& arrowCoordinatesOut) const;
         
         static void expandBox(float bottomLeft[3],
                        float bottomRight[3],

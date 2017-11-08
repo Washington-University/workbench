@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "CaretObject.h"
+#include "GraphicsPrimitive.h"
 
 
 
@@ -36,16 +37,45 @@ namespace caret {
     public:
         virtual ~GraphicsShape();
         
+        static void drawBoxOutlineByteColor(void* openglContextPointer,
+                                            const float v1[3],
+                                            const float v2[3],
+                                            const float v3[3],
+                                            const float v4[3],
+                                            const uint8_t rgba[4],
+                                            const GraphicsPrimitive::SizeType lineThicknessType,
+                                            const double lineThickness);
+        
+        static void drawBoxFilledByteColor(void* openglContextPointer,
+                                           const float v1[3],
+                                           const float v2[3],
+                                           const float v3[3],
+                                           const float v4[3],
+                                           const uint8_t rgba[4]);
+        
         static void drawEllipseOutlineByteColor(void* openglContextPointer,
                                                 const double majorAxis,
                                                 const double minorAxis,
                                                 const uint8_t rgba[4],
+                                                const GraphicsPrimitive::SizeType lineThicknessType,
                                                 const double lineThickness);
         
         static void drawEllipseFilledByteColor(void* openglContextPointer,
                                                const double majorAxis,
                                                const double minorAxis,
                                                const uint8_t rgba[4]);
+        
+        static void drawLinesByteColor(void* openglContextPointer,
+                                       const std::vector<float>& xyz,
+                                       const uint8_t rgba[4],
+                                       const GraphicsPrimitive::SizeType lineThicknessType,
+                                       const double lineThickness);
+        
+        static void drawLineStripByteColor(void* openglContextPointer,
+                                           const std::vector<float>& xyz,
+                                           const uint8_t rgba[4],
+                                           const GraphicsPrimitive::SizeType lineThicknessType,
+                                           const double lineThickness);
         
         // ADD_NEW_METHODS_HERE
 
