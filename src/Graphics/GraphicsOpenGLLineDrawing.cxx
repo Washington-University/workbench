@@ -1542,7 +1542,7 @@ GraphicsOpenGLLineDrawing::convertLineSegmentsToQuads()
     }
     CaretAssert(m_primitive);
 
-    m_primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    m_primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
     const int32_t numVerticesMinusOne = numVertices - 1;
 

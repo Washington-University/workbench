@@ -24,8 +24,9 @@
 #include <map>
 #include <memory>
 
-#include "GraphicsEngineData.h"
 #include "CaretOpenGLInclude.h"
+#include "GraphicsEngineData.h"
+#include "GraphicsPrimitive.h"
 
 namespace caret {
 
@@ -96,7 +97,7 @@ namespace caret {
         static void drawSpheresPrimitive(void* openglContextPointer,
                                          const GraphicsPrimitive* primitive);
         
-        GLenum getOpeGLBufferUsageHint(const GraphicsPrimitive* primitive) const;
+        GLenum getOpenGLBufferUsageHint(const GraphicsPrimitive::UsageType primitiveUsageType) const;
         
         static float getLineWidthForDrawingInPixels(const GraphicsPrimitive* primitive);
         

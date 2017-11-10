@@ -1528,7 +1528,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
             if (numberOfCells > 0) {
                 matrixPrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS);
                 matrixPrimitive->reserveForNumberOfVertices(numberOfCells * 4);  // QUADS
-                matrixPrimitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
+                matrixPrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
                 
                 /*
                  * RGBA for grid outline

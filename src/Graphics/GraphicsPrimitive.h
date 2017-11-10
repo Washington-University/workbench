@@ -236,9 +236,23 @@ namespace caret {
         
         void reserveForNumberOfVertices(const int32_t numberOfVertices);
         
-        UsageType getUsageType() const;
+        UsageType getUsageTypeCoordinates() const;
         
-        void setUsageType(const UsageType usage);
+        UsageType getUsageTypeNormals() const;
+        
+        UsageType getUsageTypeColors() const;
+        
+        UsageType getUsageTypeTextureCoordinates() const;
+        
+        void setUsageTypeAll(const UsageType usage);
+        
+        void setUsageTypeCoordinates(const UsageType usage);
+        
+        void setUsageTypeNormals(const UsageType usage);
+        
+        void setUsageTypeColors(const UsageType usage);
+        
+        void setUsageTypeTextureCoordinates(const UsageType usage);
         
         virtual void receiveEvent(Event* event);
         
@@ -364,7 +378,13 @@ namespace caret {
 
         mutable bool m_boundingBoxValid = false;
         
-        UsageType m_usageType = UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES;
+        UsageType m_usageTypeCoordinates = UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES;
+        
+        UsageType m_usageTypeNormals = UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES;
+        
+        UsageType m_usageTypeColors = UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES;
+        
+        UsageType m_usageTypeTextureCoordinates = UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES;
         
         std::unique_ptr<GraphicsEngineDataOpenGL> m_graphicsEngineDataForOpenGL;
         

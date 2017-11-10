@@ -111,7 +111,7 @@ GraphicsShape::drawBoxOutlineByteColor(void* openglContextPointer,
     
     primitive->setLineWidth(lineThicknessType,
                             lineThickness);
-    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
     GraphicsEngineDataOpenGL::draw(openglContextPointer,
                                    primitive.get());
@@ -148,7 +148,7 @@ GraphicsShape::drawBoxFilledByteColor(void* openglContextPointer,
     primitive->addVertex(v3);
     primitive->addVertex(v4);
     
-    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
     GraphicsEngineDataOpenGL::draw(openglContextPointer,
                                    primitive.get());
@@ -191,7 +191,7 @@ GraphicsShape::drawEllipseOutlineByteColor(void* openglContextPointer,
     
     primitive->setLineWidth(lineThicknessType,
                             lineThickness);
-    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
     GraphicsEngineDataOpenGL::draw(openglContextPointer,
                                    primitive.get());
@@ -229,7 +229,7 @@ GraphicsShape::drawEllipseFilledByteColor(void* openglContextPointer,
     }
     primitive->addVertex(&ellipseXYZ[0]);
     
-    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
     GraphicsEngineDataOpenGL::draw(openglContextPointer,
                                    primitive.get());
@@ -266,7 +266,7 @@ GraphicsShape::drawLinesByteColor(void* openglContextPointer,
     
     primitive->setLineWidth(lineThicknessType,
                             lineThickness);
-    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
     GraphicsEngineDataOpenGL::draw(openglContextPointer,
                                    primitive.get());
@@ -302,7 +302,7 @@ GraphicsShape::drawLineStripByteColor(void* openglContextPointer,
     
     primitive->setLineWidth(lineThicknessType,
                             lineThickness);
-    primitive->setUsageType(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
     GraphicsEngineDataOpenGL::draw(openglContextPointer,
                                    primitive.get());
@@ -347,6 +347,9 @@ GraphicsShape::drawSphereByteColor(void* openglContextPointer,
         else {
             spherePrimitive = createSpherePrimitiveTriangles(10);
         }
+        /* colors may change but not coordinates/normals */
+        spherePrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
+        spherePrimitive->setUsageTypeColors(GraphicsPrimitive::UsageType::MODIFIED_MANY_DRAWN_MANY_TIMES);
         s_byteSpherePrimitives.insert(std::make_pair(std::make_pair(openglContextPointer, numLatLonDivisions),
                                                      spherePrimitive));
     }

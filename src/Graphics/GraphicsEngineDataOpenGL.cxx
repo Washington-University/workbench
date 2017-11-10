@@ -105,16 +105,16 @@ GraphicsEngineDataOpenGL::invalidateColors()
 /**
  * Get the OpenGL Buffer Usage Hint from the primitive.
  *
- * @param primitive
- *     The graphics primitive
+ * @param primitiveUsageType
+ *     The graphics primitive usage type
  * @return
  *     The OpenGL Buffer Usage Hint.
  */
 GLenum
-GraphicsEngineDataOpenGL::getOpeGLBufferUsageHint(const GraphicsPrimitive* primitive) const
+GraphicsEngineDataOpenGL::getOpenGLBufferUsageHint(const GraphicsPrimitive::UsageType primitiveUsageType) const
 {
     GLenum usageHint = GL_STREAM_DRAW;
-    switch (primitive->getUsageType()) {
+    switch (primitiveUsageType) {
         case GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES:
             usageHint = GL_STREAM_DRAW;
             break;
@@ -140,7 +140,7 @@ GraphicsEngineDataOpenGL::loadCoordinateBuffer(GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     
-    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
+    GLenum usageHint = getOpenGLBufferUsageHint(primitive->getUsageTypeCoordinates());
     
     
     GLsizei coordinateCount = 0;
@@ -197,7 +197,7 @@ GraphicsEngineDataOpenGL::loadNormalVectorBuffer(GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     
-    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
+    GLenum usageHint = getOpenGLBufferUsageHint(primitive->getUsageTypeNormals());
     
     
     switch (primitive->m_normalVectorType) {
@@ -236,7 +236,7 @@ GraphicsEngineDataOpenGL::loadColorBuffer(GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     
-    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
+    GLenum usageHint = getOpenGLBufferUsageHint(primitive->getUsageTypeColors());
     
     switch (primitive->m_colorType) {
         case GraphicsPrimitive::ColorType::NONE:
@@ -300,7 +300,7 @@ GraphicsEngineDataOpenGL::loadTextureCoordinateBuffer(GraphicsPrimitive* primiti
 {
     CaretAssert(primitive);
     
-    GLenum usageHint = getOpeGLBufferUsageHint(primitive);
+    GLenum usageHint = getOpenGLBufferUsageHint(primitive->getUsageTypeTextureCoordinates());
     
     switch (primitive->m_textureType) {
         case GraphicsPrimitive::TextureType::FLOAT_STR:

@@ -180,26 +180,103 @@ GraphicsPrimitive::reserveForNumberOfVertices(const int32_t numberOfVertices)
 }
 
 /**
- * @return The usage type hint for graphics system.
+ * @return The coordinates usage type hint for graphics system.
  */
 GraphicsPrimitive::UsageType
-GraphicsPrimitive::getUsageType() const
+GraphicsPrimitive::getUsageTypeCoordinates() const
 {
-    return m_usageType;
+    return m_usageTypeCoordinates;
+}
+/**
+ * @return The normals usage type hint for graphics system.
+ */
+GraphicsPrimitive::UsageType
+GraphicsPrimitive::getUsageTypeNormals() const
+{
+    return m_usageTypeNormals;
 }
 
 /**
- * Set the usage type hint for graphics system.
+ * @return The colors usage type hint for graphics system.
+ */
+GraphicsPrimitive::UsageType
+GraphicsPrimitive::getUsageTypeColors() const
+{
+    return m_usageTypeColors;
+}
+
+/**
+ * @return The texture coordinates usage type hint for graphics system.
+ */
+GraphicsPrimitive::UsageType
+GraphicsPrimitive::getUsageTypeTextureCoordinates() const
+{
+    return m_usageTypeTextureCoordinates;
+}
+
+/**
+ * Set the usage type hint for all data types for graphics system.
+ * This will override any of the individual (vertex, normal, etc)
+ * usage types so they should be called after calling this method.
  *
  * @param usageType
  *     New value for usage type.
  */
 void
-GraphicsPrimitive::setUsageType(const UsageType usageType)
+GraphicsPrimitive::setUsageTypeAll(const UsageType usageType)
 {
-    m_usageType = usageType;
+    m_usageTypeCoordinates = usageType;
+    m_usageTypeNormals  = usageType;
+    m_usageTypeColors   = usageType;
+    m_usageTypeTextureCoordinates  = usageType;
+}
+/**
+ * Set the coordinates usage type hint for graphics system.
+ *
+ * @param usageType
+ *     New value for usage type.
+ */
+void
+GraphicsPrimitive::setUsageTypeCoordinates(const UsageType usageType)
+{
+    m_usageTypeCoordinates = usageType;
 }
 
+/**
+ * Set the normals usage type hint for graphics system.
+ *
+ * @param usageType
+ *     New value for usage type.
+ */
+void
+GraphicsPrimitive::setUsageTypeNormals(const UsageType usageType)
+{
+    m_usageTypeNormals = usageType;
+}
+
+/**
+ * Set the colors usage type hint for graphics system.
+ *
+ * @param usageType
+ *     New value for usage type.
+ */
+void
+GraphicsPrimitive::setUsageTypeColors(const UsageType usageType)
+{
+    m_usageTypeColors = usageType;
+}
+
+/**
+ * Set the texture coordinates usage type hint for graphics system.
+ *
+ * @param usageType
+ *     New value for usage type.
+ */
+void
+GraphicsPrimitive::setUsageTypeTextureCoordinates(const UsageType usageType)
+{
+    m_usageTypeTextureCoordinates = usageType;
+}
 
 /**
  * @return Is this graphics primitive valid.
