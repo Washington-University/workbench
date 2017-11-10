@@ -10,4 +10,4 @@
 ----------------------------------------------------------------------------*/
 extern float  sdot_naive  (const float  *a, const float  *b, int n);
 extern double ddot_naive  (const double *a, const double *b, int n);
-extern double sddot_naive (const float  *a, const float  *b, int n);
+extern double dsdot_naive (const float  *a, const float  *b, int n);

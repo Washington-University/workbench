@@ -489,12 +489,12 @@ CiftiConnectivityMatrixDenseDynamicFile::correlation(const std::vector<float>& d
     const RowData& otherData = m_rowData[otherRowIndex];
     
     if (m_cacheDataFlag) {
-        xySum = sddot(&data[0], &otherData.m_data[0], numberOfPoints);
+        xySum = dsdot(&data[0], &otherData.m_data[0], numberOfPoints);
     }
     else {
         std::vector<float> otherDataVector(m_numberOfTimePoints);
         m_parentDataSeriesCiftiFile->getRow(&otherDataVector[0], otherRowIndex);
-        xySum = sddot(&data[0], &otherDataVector[0], numberOfPoints);
+        xySum = dsdot(&data[0], &otherDataVector[0], numberOfPoints);
     }
     
     const double ssxy = xySum - (numFloat * mean * otherData.m_mean);

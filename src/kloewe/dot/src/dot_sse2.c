@@ -10,4 +10,4 @@
 ----------------------------------------------------------------------------*/
 extern float  sdot_sse2  (const float  *a, const float  *b, int n);
 extern double ddot_sse2  (const double *a, const double *b, int n);
-extern double sddot_sse2 (const float  *a, const float  *b, int n);
+extern double dsdot_sse2 (const float  *a, const float  *b, int n);

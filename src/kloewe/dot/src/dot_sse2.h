@@ -1,13 +1,6 @@
 /*----------------------------------------------------------------------------
   File:     dot_sse2.h
   Contents: dot product (SSE2-based implementations)
-
-  Notes:
-  On older CPU models such as the Xeon E5440, unaligned load (_mm_loadu_ps)
-  is significantly slower than aligned load (_mm_load_ps) which is why we
-  try to avoid it here if possible. On newer CPU models, the AVX version
-  should be used.
-
   Authors:  Kristian Loewe, Christian Borgelt
 ----------------------------------------------------------------------------*/
 #ifndef DOT_SSE2_H
@@ -38,7 +31,7 @@
 ----------------------------------------------------------------------------*/
 inline float  sdot_sse2  (const float  *a, const float  *b, int n);
 inline double ddot_sse2  (const double *a, const double *b, int n);
-inline double sddot_sse2 (const float  *a, const float  *b, int n);
+inline double dsdot_sse2 (const float  *a, const float  *b, int n);
 
 /*----------------------------------------------------------------------------
   Inline Functions
@@ -48,9 +41,9 @@ inline double sddot_sse2 (const float  *a, const float  *b, int n);
 inline float sdot_sse2 (const float *a, const float *b, int n)
 {
   // initialize total sum
-  float s = 0.0;
+  float s = 0.0f;
 
-  // compute and add up to 3 products without SIMD, hoping for alignment
+  // compute and add up to 3 products without SIMD to achieve alignment
   int aligned = is_aligned(a, 16) && is_aligned(b, 16);
   if (!aligned) {
     int k = 0;
@@ -58,7 +51,7 @@ inline float sdot_sse2 (const float *a, const float *b, int n)
       s += (*a) * (*b);
       n--; a++; b++;
       aligned = is_aligned(a, 16) && is_aligned(b, 16);
-      if (aligned || (++k > 2) || (++k > n))
+      if (aligned || (++k > 2) || (n == 0))
         break;
     }
   }
@@ -99,7 +92,7 @@ inline double ddot_sse2 (const double *a, const double *b, int n)
   // initialize total sum
   double s = 0.0;
 
-  // compute and add up to 1 product without SIMD, hoping for alignment
+  // compute and add up to 1 product without SIMD to achieve alignment
   int aligned = is_aligned(a, 16) && is_aligned(b, 16);
   if (!aligned) {
       s += (*a) * (*b);
@@ -134,12 +127,12 @@ inline double ddot_sse2 (const double *a, const double *b, int n)
 /*--------------------------------------------------------------------------*/
 
 // --- dot product (input: single; intermediate and output: double)
-inline double sddot_sse2 (const float *a, const float *b, int n)
+inline double dsdot_sse2 (const float *a, const float *b, int n)
 {
   // initialize total sum
   double s = 0.0;
 
-  // compute and add up to 3 products without SIMD, hoping for alignment
+  // compute and add up to 3 products without SIMD to achieve alignment
   int aligned = is_aligned(a, 16) && is_aligned(b, 16);
   if (!aligned) {
     int k = 0;
@@ -147,7 +140,7 @@ inline double sddot_sse2 (const float *a, const float *b, int n)
       s += (*a) * (*b);
       n--; a++; b++;
       aligned = is_aligned(a, 16) && is_aligned(b, 16);
-      if (aligned || (++k > 2) || (++k > n))
+      if (aligned || (++k > 2) || (n == 0))
         break;
     }
   }
@@ -186,6 +179,6 @@ inline double sddot_sse2 (const float *a, const float *b, int n)
     s += a[k] * b[k];
 
   return s;
-}  // sddot_sse2()
+}  // dsdot_sse2()
 
 #endif // DOT_SSE2_H

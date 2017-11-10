@@ -11,7 +11,7 @@
 ----------------------------------------------------------------------------*/
 inline float  sdot_naive  (const float  *a, const float  *b, int n);
 inline double ddot_naive  (const double *a, const double *b, int n);
-inline double sddot_naive (const float  *a, const float  *b, int n);
+inline double dsdot_naive (const float  *a, const float  *b, int n);
 
 /*----------------------------------------------------------------------------
   Inline Functions
@@ -52,12 +52,12 @@ inline double sddot_naive (const float  *a, const float  *b, int n);
 /*--------------------------------------------------------------------------*/
 
 // --- dot product (input: single; intermediate and output: double)
-inline double sddot_naive (const float *a, const float *b, int n)
+inline double dsdot_naive (const float *a, const float *b, int n)
 {
   double sum = 0;
   for (int k = 0; k < n; k++)
     sum += a[k] * b[k];
   return sum;
-}  // sddot_naive()
+}  // dsdot_naive()
 
 #endif // DOT_NAIVE_H
