@@ -26,8 +26,12 @@
 #include <cmath>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveV3f.h"
+#include "GraphicsPrimitiveV3fN3f.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 
@@ -54,6 +58,19 @@ GraphicsShape::GraphicsShape()
 GraphicsShape::~GraphicsShape()
 {
 }
+
+/**
+ * Delete all primitives.
+ */
+void
+GraphicsShape::deleteAllPrimitives()
+{
+    for (auto iter : s_byteSpherePrimitives) {
+        delete iter.second;
+    }
+    s_byteSpherePrimitives.clear();
+}
+
 
 /**
  * Draw an outline box.
@@ -85,7 +102,7 @@ GraphicsShape::drawBoxOutlineByteColor(void* openglContextPointer,
                                     const GraphicsPrimitive::SizeType lineThicknessType,
                                     const double lineThickness)
 {
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP,
                                                                                        rgba));
     primitive->addVertex(v1);
     primitive->addVertex(v2);
@@ -165,7 +182,7 @@ GraphicsShape::drawEllipseOutlineByteColor(void* openglContextPointer,
     std::vector<float> ellipseXYZ;
     createEllipseVertices(majorAxis, minorAxis, ellipseXYZ);
     
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP,
                                                                                        rgba));
     const int32_t numVertices = static_cast<int32_t>(ellipseXYZ.size() / 3);
     for (int32_t i = 0; i < numVertices; i++) {
@@ -240,7 +257,7 @@ GraphicsShape::drawLinesByteColor(void* openglContextPointer,
                                   const GraphicsPrimitive::SizeType lineThicknessType,
                                   const double lineThickness)
 {
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
                                                                                        rgba));
     const int32_t numVertices = static_cast<int32_t>(xyz.size() / 3);
     for (int32_t i = 0; i < numVertices; i++) {
@@ -276,7 +293,7 @@ GraphicsShape::drawLineStripByteColor(void* openglContextPointer,
                                   const GraphicsPrimitive::SizeType lineThicknessType,
                                   const double lineThickness)
 {
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP,
                                                                                        rgba));
     const int32_t numVertices = static_cast<int32_t>(xyz.size() / 3);
     for (int32_t i = 0; i < numVertices; i++) {
@@ -289,6 +306,61 @@ GraphicsShape::drawLineStripByteColor(void* openglContextPointer,
     
     GraphicsEngineDataOpenGL::draw(openglContextPointer,
                                    primitive.get());
+}
+
+/**
+ * Draw line a sphere at the given XYZ coordinate
+ *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
+ * @param xyz
+ *     XYZ-coordinate of sphere
+ * @param rgba
+ *    Color for drawing.
+ * @param radius
+ *    Radius of the sphere.
+ */
+void
+GraphicsShape::drawSphereByteColor(void* openglContextPointer,
+                                   const float xyz[3],
+                                   const uint8_t rgba[4],
+                                   const float radius)
+{
+    const int32_t numLatLonDivisions = 10;
+    
+    GraphicsPrimitive* spherePrimitive = NULL;
+    for (const auto iter : s_byteSpherePrimitives) {
+        const auto& key = iter.first;
+        if ((key.first == openglContextPointer)
+            && (key.second == numLatLonDivisions)) {
+            spherePrimitive = iter.second;
+            CaretAssert(spherePrimitive);
+            break;
+        }
+    }
+    
+    if (spherePrimitive == NULL) {
+        const bool useStripsFlag = true;
+        if (useStripsFlag) {
+            spherePrimitive = createSpherePrimitiveTriangleStrips(10);
+        }
+        else {
+            spherePrimitive = createSpherePrimitiveTriangles(10);
+        }
+        s_byteSpherePrimitives.insert(std::make_pair(std::make_pair(openglContextPointer, numLatLonDivisions),
+                                                     spherePrimitive));
+    }
+
+    CaretAssert(spherePrimitive);
+    
+    spherePrimitive->replaceAllVertexSolidByteRGBA(rgba);
+    
+    glPushMatrix();
+    glTranslatef(xyz[0], xyz[1], xyz[2]);
+    glScalef(radius, radius, radius);
+    GraphicsEngineDataOpenGL::draw(openglContextPointer,
+                                   spherePrimitive);
+    glPopMatrix();
 }
 
 /**
@@ -360,6 +432,219 @@ GraphicsShape::createEllipseVertices(const double majorAxis,
             ellipseXYZOut[quadFourIndex + 2] = z;
         }
     }
+}
+
+/**
+ * Create an XYZ coordinate on a sphere.
+ *
+ * @param radius
+ *     Radius of the sphere
+ * @param latDegrees
+ *     Latitude on sphere in degrees
+ * @param lonDegrees
+ *     Longitude on sphere in degrees
+ * @param latIndex
+ *     Index of the latitude sections
+ * @param numLat
+ *     Number of latitude sections
+ * @param xyzOut
+ *     Output with XYZ coordinate
+ * @param normalXyzOut
+ *     Output with Normal vector
+ */
+void
+GraphicsShape::createSphereXYZ(const float radius,
+                               const float latDegrees,
+                               const float lonDegrees,
+                               const int32_t latIndex,
+                               const int32_t numLat,
+                               float xyzOut[3],
+                               float normalXyzOut[3])
+{
+    constexpr float degToRad = M_PI / 180.0f;
+    
+    const float lonRad = lonDegrees * degToRad;
+    const float latRad = latDegrees * degToRad;
+    const float z = radius * std::sin(latRad);
+    
+
+    xyzOut[0] = radius * std::cos(latRad) * std::cos(lonRad);
+    xyzOut[1] = radius * std::cos(latRad) * std::sin(lonRad);
+    xyzOut[2] = z;
+    
+    if (latIndex == 0) {
+        xyzOut[0] =  0.0f;
+        xyzOut[1] =  0.0f;
+        xyzOut[2] = -radius;
+    }
+    else if (latIndex == (numLat - 1)) {
+        xyzOut[0] = 0.0f;
+        xyzOut[1] = 0.0f;
+        xyzOut[2] = radius;
+    }
+    
+    normalXyzOut[0] = xyzOut[0];
+    normalXyzOut[1] = xyzOut[1];
+    normalXyzOut[2] = xyzOut[2];
+    MathFunctions::normalizeVector(normalXyzOut);
+    
+}
+
+/**
+ * Create a sphere with radius of 0.5 and with the given number
+ * of latitude and longitude divisions.
+ *
+ * @param numberOfLatLon
+ *     Number of latitude/longitude divisions
+ * @return
+ *     Graphics primitive containing the sphere.
+ */
+GraphicsPrimitiveV3fN3f*
+GraphicsShape::createSpherePrimitiveTriangles(const int32_t numberOfLatLon)
+{
+    if (numberOfLatLon < 3) {
+        CaretAssertMessage(0, "For sphere, must have at least 3 lat/lon divisions");
+        CaretLogSevere("For sphere, must have at least 3 lat/lon divisions");
+        return NULL;
+    }
+    
+    bool debugFlag = false;
+    if (debugFlag) {
+        std::cout << std::endl;
+        std::cout << "TRIANGLE START" << std::endl;
+    }
+    
+    const float radius = 0.5f;
+    
+    const int numLat = numberOfLatLon;
+    const int numLon = numberOfLatLon;
+    
+    uint8_t rgba[4] = { 255, 255, 255, 255 };
+    GraphicsPrimitiveV3fN3f* primitive = GraphicsPrimitive::newPrimitiveV3fN3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
+                                                                               rgba);
+    
+    const float dLat = 180.0 / numLat;
+    for (int iLat = 0; iLat < numLat; iLat++) {
+        const float latDeg = -90.0f + (iLat * dLat);
+        
+        const float latDeg2 = -90.0f + ((iLat + 1) * dLat);
+        
+        const float dLon = 360.0f / numLon;
+        for (int iLon = 0; iLon < numLon; iLon++) {
+            const float lonDeg = iLon * dLon;
+            
+            float xyz1[3];
+            float normal1[3];
+            createSphereXYZ(radius, latDeg, lonDeg, iLat, numLat, xyz1, normal1);
+            
+            float xyz2[3];
+            float normal2[3];
+            createSphereXYZ(radius, latDeg2, lonDeg, iLat + 1, numLat, xyz2, normal2);
+            
+
+            float xyz3[3];
+            float normal3[3];
+            createSphereXYZ(radius, latDeg, (lonDeg + dLon), iLat, numLat, xyz3, normal3);
+            
+            float xyz4[3];
+            float normal4[3];
+            createSphereXYZ(radius, latDeg2, (lonDeg + dLon), iLat + 1, numLat, xyz4, normal4);
+            
+            primitive->addVertex(xyz1, normal1);
+            primitive->addVertex(xyz3, normal3);
+            primitive->addVertex(xyz2, normal2);
+            
+            primitive->addVertex(xyz2, normal2);
+            primitive->addVertex(xyz3, normal3);
+            primitive->addVertex(xyz4, normal4);
+            
+            if (debugFlag) {
+                const int32_t indx1 = (primitive->getNumberOfVertices() - 2);
+                const int32_t indx2 = (primitive->getNumberOfVertices() - 1);
+                std::cout << "   " << iLat << ", " << iLon << std::endl;
+                std::cout << "       " << indx1 << ":" << latDeg << ", " << lonDeg << ", " << AString::fromNumbers(xyz1, 3, ",") << std::endl;
+                std::cout << "       " << indx2 << ":" << latDeg2 << ", " << lonDeg << ", " << AString::fromNumbers(xyz2, 3, ",") << std::endl;
+                std::cout << "       "  << AString::fromNumbers(xyz3, 3, ",") << std::endl;
+                std::cout << "       "  << AString::fromNumbers(xyz4, 3, ",") << std::endl;
+            }
+        }
+        
+        if (debugFlag) std::cout << std::endl;
+    }
+    
+    return primitive;
+}
+
+/**
+ * Create a sphere with radius of 0.5 and with the given number
+ * of latitude and longitude divisions.
+ *
+ * @param numberOfLatLon
+ *     Number of latitude/longitude divisions
+ * @return
+ *     Graphics primitive containing the sphere.
+ */
+GraphicsPrimitiveV3fN3f*
+GraphicsShape::createSpherePrimitiveTriangleStrips(const int32_t numberOfLatLon)
+{
+    if (numberOfLatLon < 3) {
+        CaretAssertMessage(0, "For sphere, must have at least 3 lat/lon divisions");
+        CaretLogSevere("For sphere, must have at least 3 lat/lon divisions");
+        return NULL;
+    }
+    
+    bool debugFlag = false;
+    if (debugFlag) {
+        std::cout << std::endl;
+        std::cout << "TRIANGLE START" << std::endl;
+    }
+    
+    const float radius = 0.5f;
+    
+    const int numLat = numberOfLatLon;
+    const int numLon = numberOfLatLon;
+    
+    uint8_t rgba[4] = { 255, 255, 255, 255 };
+    GraphicsPrimitiveV3fN3f* primitive = GraphicsPrimitive::newPrimitiveV3fN3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                                                               rgba);
+    
+    const float dLat = 180.0 / numLat;
+    for (int iLat = 0; iLat < numLat; iLat++) {
+        const float latDeg = -90.0f + (iLat * dLat);
+        
+        const float latDeg2 = -90.0f + ((iLat + 1) * dLat);
+        
+        const float dLon = 360.0f / numLon;
+        for (int iLon = 0; iLon <= numLon; iLon++) {
+            const float lonDeg = iLon * dLon;
+            
+            float xyz1[3];
+            float normal1[3];
+            createSphereXYZ(radius, latDeg, lonDeg, iLat, numLat, xyz1, normal1);
+            
+            float xyz2[3];
+            float normal2[3];
+            createSphereXYZ(radius, latDeg2, lonDeg, iLat + 1, numLat, xyz2, normal2);
+            
+            primitive->addVertex(xyz2, normal2);
+            primitive->addVertex(xyz1, normal1);
+            
+            if (debugFlag) {
+                const int32_t indx1 = (primitive->getNumberOfVertices() - 2);
+                const int32_t indx2 = (primitive->getNumberOfVertices() - 1);
+                std::cout << "   " << iLat << ", " << iLon << std::endl;
+                std::cout << "       " << indx1 << ":" << latDeg << ", " << lonDeg << ", " << AString::fromNumbers(xyz1, 3, ",") << std::endl;
+                std::cout << "       " << indx2 << ":" << latDeg2 << ", " << lonDeg << ", " << AString::fromNumbers(xyz2, 3, ",") << std::endl;
+            }
+        }
+        
+        if (iLat < (numLat - 1)) {
+            primitive->addPrimitiveRestart();
+        }
+        if (debugFlag) std::cout << std::endl;
+    }
+    
+    return primitive;
 }
 
 /**

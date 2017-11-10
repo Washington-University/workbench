@@ -3603,7 +3603,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 float solidRGBA[4];
                 CaretColorEnum::toRGBAFloat(outlineColor, solidRGBA);
                 
-                std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES));
+                std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
                 
                 /*
                  * Examine each triangle to see if it intersects the Plane

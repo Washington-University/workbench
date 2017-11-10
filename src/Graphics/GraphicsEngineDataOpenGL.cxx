@@ -34,6 +34,7 @@
 #include "GraphicsOpenGLTextureName.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveSelectionHelper.h"
+#include "GraphicsShape.h"
 
 using namespace caret;
 
@@ -477,6 +478,7 @@ GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
     std::unique_ptr<GraphicsPrimitive> windowSpacePrimitive;
     
     bool workbenchLineFlag = false;
+    bool spheresFlag = false;
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
             break;
@@ -498,16 +500,23 @@ GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             break;
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
             if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
                 workbenchLineFlag = true;
             }
             break;
+        case GraphicsPrimitive::PrimitiveType::SPHERES:
+            spheresFlag = true;
+            break;
     }
     
-    if (workbenchLineFlag) {
+    if (spheresFlag) {
+        drawSpheresPrimitive(openglContextPointer,
+                             primitive);
+    }
+    else if (workbenchLineFlag) {
         AString errorMessage;
         primitiveToDraw = GraphicsOpenGLLineDrawing::convertWorkbenchLinePrimitiveTypeToOpenGL(openglContextPointer,
                                                                                                primitive,
@@ -570,6 +579,50 @@ GraphicsEngineDataOpenGL::drawWindowSpace(const PrivateDrawMode drawMode,
     
     restoreOpenGLStateForWindowSpaceDrawing(polygonMode,
                                             viewport);
+}
+
+/**
+ * Draw a sphere primitive type.
+ * 
+ * @param openglContextPointer
+ *     Pointer to the active OpenGL context.
+ * @param primitive
+ *     The spheres primitive type.
+ */
+void
+GraphicsEngineDataOpenGL::drawSpheresPrimitive(void* openglContextPointer,
+                                               const GraphicsPrimitive* primitive)
+{
+    CaretAssert(primitive);
+    CaretAssert(primitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::SPHERES);
+
+    GraphicsPrimitive::SizeType sizeType;
+    float sizeValue = 0.0f;
+    primitive->getSphereDiameter(sizeType,
+                                 sizeValue);
+    
+    const int32_t numberOfVertices = primitive->getNumberOfVertices();
+    for (int32_t i = 0; i < numberOfVertices; i++) {
+        const int32_t i3 = i * 3;
+        CaretAssertVectorIndex(primitive->m_xyz, i3 + 2);
+        const int32_t i4 = i * 4;
+
+        switch (primitive->m_colorType) {
+            case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+                CaretAssert(0);
+                break;
+            case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+                CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
+                GraphicsShape::drawSphereByteColor(openglContextPointer,
+                                                   &primitive->m_xyz[i3],
+                                                   &primitive->m_unsignedByteRGBA[i4],
+                                                   sizeValue);
+                break;
+            case GraphicsPrimitive::ColorType::NONE:
+                CaretAssert(0);
+                break;
+        }
+    }
 }
 
 /**
@@ -686,11 +739,14 @@ GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             break;
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
             break;
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
             break;
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
+            break;
+        case GraphicsPrimitive::PrimitiveType::SPHERES:
+            CaretAssertMessage(0, "Not yet implemented");
             break;
     }
     
@@ -960,17 +1016,17 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     GLenum openGLPrimitiveType = GL_INVALID_ENUM;
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
             openGLPrimitiveType = GL_LINE_LOOP;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
             openGLPrimitiveType = GL_LINE_STRIP;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
             openGLPrimitiveType = GL_LINES;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
@@ -995,6 +1051,9 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             openGLPrimitiveType = GL_TRIANGLES;
+            break;
+        case GraphicsPrimitive::PrimitiveType::SPHERES:
+            CaretAssertMessage(0, "SPHERES are not drawn with this method");
             break;
     }
     

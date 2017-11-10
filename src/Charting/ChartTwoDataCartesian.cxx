@@ -414,7 +414,7 @@ ChartTwoDataCartesian::setColor(const CaretColorEnum::Enum color)
     if (m_graphicsPrimitive != NULL) {
         float rgba[4];
         CaretColorEnum::toRGBAFloat(m_color, rgba);
-        m_graphicsPrimitive->replaceColoring(rgba);
+        m_graphicsPrimitive->replaceAllVertexSolidFloatRGBA(rgba);
     }
 }
 

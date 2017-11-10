@@ -73,15 +73,15 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
     
     switch (m_parentGraphicsPrimitive->getPrimitiveType()) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
             m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
             m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
             m_numberOfVerticesPerPrimitive = 2;
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
@@ -104,6 +104,9 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             m_numberOfVerticesPerPrimitive = 3;
+            break;
+        case GraphicsPrimitive::PrimitiveType::SPHERES:
+            m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
     }
     

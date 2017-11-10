@@ -37,6 +37,7 @@ namespace caret {
     class GraphicsPrimitiveV3f;
     class GraphicsPrimitiveV3fC4f;
     class GraphicsPrimitiveV3fC4ub;
+    class GraphicsPrimitiveV3fN3f;
     class GraphicsPrimitiveV3fT3f;
     
     class GraphicsPrimitive : public CaretObject, public EventListenerInterface {
@@ -148,15 +149,19 @@ namespace caret {
             /**
              * Like OPENGL_LINE_LOOP but there is no limit on line width as it draws the lines using polygons.
              */
-            WORKBENCH_LINE_LOOP,
+            POLYGONAL_LINE_LOOP,
             /**
              * Like OPENGL_LINE_STRIP but there is no limit on line width as it draws the lines using polygons.
              */
-            WORKBENCH_LINE_STRIP,
+            POLYGONAL_LINE_STRIP,
             /**
              * Like OPENGL_LINES but there is no limit on line width as it draws the lines using polygons.
              */
-            WORKBENCH_LINES,
+            POLYGONAL_LINES,
+            /*
+             * Draws sphere at each vertex
+             */
+            SPHERES
         };
         
         /**
@@ -214,6 +219,9 @@ namespace caret {
         
         static GraphicsPrimitiveV3f* newPrimitiveV3f(const GraphicsPrimitive::PrimitiveType primitiveType,
                                               const uint8_t unsignedByteRGBA[4]);
+        
+        static GraphicsPrimitiveV3fN3f* newPrimitiveV3fN3f(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                                           const uint8_t unsignedByteRGBA[4]);
         
         static GraphicsPrimitiveV3fC4f* newPrimitiveV3fC4f(const GraphicsPrimitive::PrimitiveType primitiveType);
         
@@ -288,6 +296,10 @@ namespace caret {
         void replaceVertexByteRGBA(const int32_t vertexIndex,
                                     const uint8_t rgba[4]);
         
+        void replaceAllVertexSolidByteRGBA(const uint8_t rgba[4]);
+        
+        void replaceAllVertexSolidFloatRGBA(const float rgba[4]);
+        
         bool getVertexBounds(BoundingBox& boundingBoxOut) const;
         
         void addPrimitiveRestart();
@@ -303,6 +315,12 @@ namespace caret {
         
         void setLineWidth(const SizeType widthType,
                           const float lineWidth);
+        
+        void getSphereDiameter(SizeType& sizeTypeOut,
+                               float& sphereDiameterOut) const;
+        
+        void setSphereDiameter(const SizeType sizeType,
+                               const float sphereDiameter);
         
         GraphicsEngineDataOpenGL* getGraphicsEngineDataForOpenGL();
         
@@ -324,11 +342,11 @@ namespace caret {
                              const int32_t imageWidth,
                              const int32_t imageHeight);
         
-        void addVertexProtected(const float xyz[3]);
-        
-        void addVertexProtected(const float x,
-                                const float y,
-                                const float z);
+        void addVertexProtected(const float xyz[3],
+                                const float normalVector[3],
+                                const float rgbaFloat[4],
+                                const uint8_t rgbaByte[4],
+                                const float textureSTR[3]);
         
         AString getPrimitiveTypeAsText() const;
         
@@ -350,16 +368,6 @@ namespace caret {
         
         std::unique_ptr<GraphicsEngineDataOpenGL> m_graphicsEngineDataForOpenGL;
         
-        std::vector<float> m_floatNormalVectorXYZ;
-        
-        std::vector<float> m_floatRGBA;
-        
-        std::vector<uint8_t> m_unsignedByteRGBA;
-        
-        std::vector<float> m_floatTextureSTR;
-        
-        std::vector<uint8_t> m_textureImageBytesRGBA;
-        
         int32_t m_textureImageWidth = -1;
         
         int32_t m_textureImageHeight = -1;
@@ -372,15 +380,36 @@ namespace caret {
         
         float m_lineWidthValue = 1.0f;
         
+        SizeType m_sphereSizeType = SizeType::PIXELS;
+        
+        float m_sphereDiameterValue = 1.0f;
+        
         mutable std::unique_ptr<BoundingBox> m_boundingBox;
         
-        std::set<int32_t> m_primitiveRestartIndices;
+        std::set<int32_t> m_polygonalLinePrimitiveRestartIndices;
+        
+        int32_t m_triangleStripPrimitiveRestartIndex = -1;
         
     private:
-        std::vector<float> m_xyz;
         
         void copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj);
-
+        
+        void copyVertex(const int32_t copyFromIndex,
+                        const int32_t copyToIndex);
+        
+        void fillTriangleStripPrimitiveRestartVertices();
+        
+        std::vector<float> m_xyz;
+        
+        std::vector<float> m_floatNormalVectorXYZ;
+        
+        std::vector<float> m_floatRGBA;
+        
+        std::vector<uint8_t> m_unsignedByteRGBA;
+        
+        std::vector<float> m_floatTextureSTR;
+        
+        std::vector<uint8_t> m_textureImageBytesRGBA;
         friend class GraphicsEngineDataOpenGL;
         friend class GraphicsOpenGLLineDrawing;
         friend class GraphicsPrimitiveSelectionHelper;

@@ -22,6 +22,7 @@ GraphicsPrimitiveSelectionHelper.h
 GraphicsPrimitiveV3f.h
 GraphicsPrimitiveV3fC4f.h
 GraphicsPrimitiveV3fC4ub.h
+GraphicsPrimitiveV3fN3f.h
 GraphicsPrimitiveV3fT3f.h
 GraphicsShape.h
 
@@ -39,6 +40,7 @@ GraphicsPrimitiveSelectionHelper.cxx
 GraphicsPrimitiveV3f.cxx
 GraphicsPrimitiveV3fC4f.cxx
 GraphicsPrimitiveV3fC4ub.cxx
+GraphicsPrimitiveV3fN3f.cxx
 GraphicsPrimitiveV3fT3f.cxx
 GraphicsShape.cxx
 )

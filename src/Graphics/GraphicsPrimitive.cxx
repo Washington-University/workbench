@@ -31,6 +31,7 @@
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "GraphicsPrimitiveV3fN3f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 
 using namespace caret;
@@ -119,7 +120,9 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_lineWidthValue              = obj.m_lineWidthValue;
     m_pointSizeType               = obj.m_pointSizeType;
     m_pointDiameterValue          = obj.m_pointDiameterValue;
-    m_primitiveRestartIndices     = obj.m_primitiveRestartIndices;
+    m_polygonalLinePrimitiveRestartIndices     = obj.m_polygonalLinePrimitiveRestartIndices;
+    m_sphereSizeType              = obj.m_sphereSizeType;
+    m_sphereDiameterValue         = obj.m_sphereDiameterValue;
     m_textureImageBytesRGBA       = obj.m_textureImageBytesRGBA;
     m_textureImageWidth           = obj.m_textureImageWidth;
     m_textureImageHeight          = obj.m_textureImageHeight;
@@ -276,19 +279,19 @@ GraphicsPrimitive::isValid() const
         
         switch (m_primitiveType) {
             case PrimitiveType::OPENGL_LINE_LOOP:
-            case PrimitiveType::WORKBENCH_LINE_LOOP:
+            case PrimitiveType::POLYGONAL_LINE_LOOP:
                 if (numXYZ < 3) {
                     CaretLogWarning("Line loop must have at least 3 vertices.");
                 }
                 break;
             case PrimitiveType::OPENGL_LINE_STRIP:
-            case PrimitiveType::WORKBENCH_LINE_STRIP:
+            case PrimitiveType::POLYGONAL_LINE_STRIP:
                 if (numXYZ < 2) {
                     CaretLogWarning("Line strip must have at least 2 vertices.");
                 }
                 break;
             case PrimitiveType::OPENGL_LINES:
-            case PrimitiveType::WORKBENCH_LINES:
+            case PrimitiveType::POLYGONAL_LINES:
                 if (numXYZ < 2) {
                     CaretLogWarning("Lines must have at least 2 vertices.");
                 }
@@ -349,6 +352,11 @@ GraphicsPrimitive::isValid() const
                     }
                 }
                 break;
+            case PrimitiveType::SPHERES:
+                if (numXYZ < 1) {
+                    CaretLogWarning("Spheres must have at least 1 vertices.");
+                }
+                break;
         }
 
         return true;
@@ -387,40 +395,46 @@ GraphicsPrimitive::getPrimitiveTypeAsText() const
     
     switch (m_primitiveType) {
         case PrimitiveType::OPENGL_LINE_LOOP:
-            s = "Line Loop";
+            s = "OpenGL Line Loop";
             break;
         case PrimitiveType::OPENGL_LINE_STRIP:
-            s = "Line Strip";
+            s = "OpenGL Line Strip";
             break;
         case PrimitiveType::OPENGL_LINES:
-            s = "Lines";
+            s = "OpenGL Lines";
             break;
         case PrimitiveType::OPENGL_POINTS:
-            s = "Points";
+            s = "OpenGL Points";
             break;
         case PrimitiveType::OPENGL_POLYGON:
-            s = "Polygon";
+            s = "OpenGL Polygon";
             break;
         case PrimitiveType::OPENGL_QUAD_STRIP:
-            s = "Quad Strip";
+            s = "OpenGL Quad Strip";
             break;
         case PrimitiveType::OPENGL_QUADS:
-            s = "Quads";
+            s = "OpenGL Quads";
             break;
         case PrimitiveType::OPENGL_TRIANGLE_FAN:
-            s = "Triangle Fan";
+            s = "OpenGL Triangle Fan";
             break;
         case PrimitiveType::OPENGL_TRIANGLE_STRIP:
-            s = "Triangle Strip";
+            s = "OpenGL Triangle Strip";
             break;
         case PrimitiveType::OPENGL_TRIANGLES:
-            s = "Triangles";
+            s = "OpenGL Triangles";
             break;
-        case PrimitiveType::WORKBENCH_LINE_LOOP:
+        case PrimitiveType::POLYGONAL_LINE_LOOP:
+            s = "Polygonal Line Loop";
             break;
-        case PrimitiveType::WORKBENCH_LINE_STRIP:
+        case PrimitiveType::POLYGONAL_LINE_STRIP:
+            s = "Polygonal Line Strip";
             break;
-        case PrimitiveType::WORKBENCH_LINES:
+        case PrimitiveType::POLYGONAL_LINES:
+            s = "Polygonal Lines";
+            break;
+        case PrimitiveType::SPHERES:
+            s = "Spheres";
             break;
     }
     
@@ -479,11 +493,11 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             break;
     }
     
-    if ( ! m_primitiveRestartIndices.empty()) {
-        s.appendWithNewLine("Restart Indices Count: " + AString::number(m_primitiveRestartIndices.size()));
+    if ( ! m_polygonalLinePrimitiveRestartIndices.empty()) {
+        s.appendWithNewLine("Polygonal Line Primitive Restart Indices Count: " + AString::number(m_polygonalLinePrimitiveRestartIndices.size()));
         if (includeAllDataFlag) {
-            std::vector<int32_t> temp(m_primitiveRestartIndices.begin(),
-                                      m_primitiveRestartIndices.end());
+            std::vector<int32_t> temp(m_polygonalLinePrimitiveRestartIndices.begin(),
+                                      m_polygonalLinePrimitiveRestartIndices.end());
             s.appendWithNewLine("    " + AString::fromNumbers(temp, ", "));
         }
     }
@@ -558,8 +572,9 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             break;
     }
     
-    bool addLineWidthFlag = false;
-    bool addPointSizeFlag = false;
+    bool addLineWidthFlag  = false;
+    bool addPointSizeFlag  = false;
+    bool addSphereSizeFlag = false;
     
     switch (m_primitiveType) {
         case PrimitiveType::OPENGL_LINE_LOOP:
@@ -586,11 +601,17 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             break;
         case PrimitiveType::OPENGL_TRIANGLES:
             break;
-        case PrimitiveType::WORKBENCH_LINE_LOOP:
+        case PrimitiveType::POLYGONAL_LINE_LOOP:
+            addLineWidthFlag = true;
             break;
-        case PrimitiveType::WORKBENCH_LINE_STRIP:
+        case PrimitiveType::POLYGONAL_LINE_STRIP:
+            addLineWidthFlag = true;
             break;
-        case PrimitiveType::WORKBENCH_LINES:
+        case PrimitiveType::POLYGONAL_LINES:
+            addLineWidthFlag = true;
+            break;
+        case PrimitiveType::SPHERES:
+            addSphereSizeFlag = true;
             break;
     }
     
@@ -608,44 +629,89 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
                             + AString::number(m_pointDiameterValue, 'f', 3));
     }
     
+    if (addSphereSizeFlag) {
+        s.appendWithNewLine("Sphere Diameter Type: "
+                            + getSizeTypeAsText(m_sphereSizeType)
+                            + "; Diameter Value: "
+                            + AString::number(m_sphereDiameterValue, 'f', 3));
+    }
+
     return s;
 }
 
 /**
- * Add a vertex.
+ * Add a vertex and its normal vector
  *
  * @param xyz
  *     Coordinate of vertex.
+ * @param normalVector
+ *     Normal vector for the vertex.
+ * @param rgbaFloat
+ *     Float RGBA color components.
+ * @param rgbaByte
+ *     Byte RGBA color components.
  */
 void
-GraphicsPrimitive::addVertexProtected(const float xyz[3])
+GraphicsPrimitive::addVertexProtected(const float xyz[3],
+                                      const float normalVector[3],
+                                      const float rgbaFloat[4],
+                                      const uint8_t rgbaByte[4],
+                                      const float textureSTR[3])
 {
     m_xyz.insert(m_xyz.end(),
                  xyz, xyz + 3);
+    
+    switch (m_normalVectorType) {
+        case NormalVectorType::FLOAT_XYZ:
+            CaretAssert(normalVector);
+            m_floatNormalVectorXYZ.insert(m_floatNormalVectorXYZ.end(),
+                                          normalVector,
+                                          normalVector + 3);
+            break;
+        case NormalVectorType::NONE:
+            break;
+    }
+    
+    switch (m_colorType) {
+        case ColorType::NONE:
+            CaretAssert(0);
+            break;
+        case ColorType::FLOAT_RGBA:
+            CaretAssert(rgbaFloat);
+            m_floatRGBA.insert(m_floatRGBA.end(),
+                               rgbaFloat,
+                               rgbaFloat + 4);
+            break;
+        case ColorType::UNSIGNED_BYTE_RGBA:
+            CaretAssert(rgbaByte);
+            m_unsignedByteRGBA.insert(m_unsignedByteRGBA.end(),
+                                      rgbaByte,
+                                      rgbaByte + 4);
+            break;
+    }
+    
+    switch (m_textureType) {
+        case TextureType::NONE:
+            break;
+        case TextureType::FLOAT_STR:
+            CaretAssert(textureSTR);
+            m_floatTextureSTR.insert(m_floatTextureSTR.end(),
+                                     textureSTR,
+                                     textureSTR + 3);
+            break;
+    }
+    
     m_boundingBoxValid = false;
+    
+    /*
+     * The triangle strip primitve vertces are filled after two
+     * vertices are added after requesting a restart
+     */
+    if (m_triangleStripPrimitiveRestartIndex == getNumberOfVertices()) {
+        m_triangleStripPrimitiveRestartIndex = -1;
+        fillTriangleStripPrimitiveRestartVertices();
+    }
 }
-
-/**
- * Add a vertex.
- *
- * @param x
- *     X-coordinate of vertex.
- * @param y
- *     Y-coordinate of vertex.
- * @param z
- *     Z-coordinate of vertex.
- */
-void
-GraphicsPrimitive::addVertexProtected(const float x,
-                                      const float y,
-                                      const float z)
-{
-    m_xyz.push_back(x);
-    m_xyz.push_back(y);
-    m_xyz.push_back(z);
-    m_boundingBoxValid = false;
-}
-
 
 /**
  * Replace the existing XYZ coordinates with the given
@@ -830,6 +896,78 @@ GraphicsPrimitive::replaceVertexByteRGBA(const int32_t vertexIndex,
 }
 
 /**
+ * Replace all vertex RGBA with the given solid color RGBA.
+ *
+ * @param rgba
+ *     RGBA values for all vertices
+ */
+void
+GraphicsPrimitive::replaceAllVertexSolidByteRGBA(const uint8_t rgba[4])
+{
+    switch (m_colorType) {
+        case ColorType::NONE:
+            CaretAssert(0);
+            break;
+        case ColorType::FLOAT_RGBA:
+            CaretAssertMessage(0, "Replacing Byte RGBA in primitive but coloring type is Float");
+            CaretLogWarning("Replacing Byte RGBA in primitive but coloring type is Float");
+            break;
+        case ColorType::UNSIGNED_BYTE_RGBA:
+        {
+            const int32_t numRGBA = static_cast<int32_t>(m_unsignedByteRGBA.size() / 4);
+            for (int32_t i = 0; i < numRGBA; i++) {
+                const int32_t i4 = i * 4;
+                CaretAssertVectorIndex(m_unsignedByteRGBA, i4 + 3);
+                m_unsignedByteRGBA[i4]     = rgba[0];
+                m_unsignedByteRGBA[i4 + 1] = rgba[1];
+                m_unsignedByteRGBA[i4 + 2] = rgba[2];
+                m_unsignedByteRGBA[i4 + 3] = rgba[3];
+            }
+        }
+    }
+    
+    if (m_graphicsEngineDataForOpenGL != NULL) {
+        m_graphicsEngineDataForOpenGL->invalidateColors();
+    }
+}
+
+/**
+ * Replace all vertex RGBA with the given solid color RGBA.
+ *
+ * @param rgba
+ *     RGBA values for all vertices
+ */
+void
+GraphicsPrimitive::replaceAllVertexSolidFloatRGBA(const float rgba[4])
+{
+    switch (m_colorType) {
+        case ColorType::NONE:
+            CaretAssert(0);
+            break;
+        case ColorType::FLOAT_RGBA:
+        {
+            const int32_t numRGBA = static_cast<int32_t>(m_floatRGBA.size() / 4);
+            for (int32_t i = 0; i < numRGBA; i++) {
+                const int32_t i4 = i * 4;
+                CaretAssertVectorIndex(m_floatRGBA, i4 + 3);
+                m_floatRGBA[i4]     = rgba[0];
+                m_floatRGBA[i4 + 1] = rgba[1];
+                m_floatRGBA[i4 + 2] = rgba[2];
+                m_floatRGBA[i4 + 3] = rgba[3];
+            }
+        }
+            break;
+        case ColorType::UNSIGNED_BYTE_RGBA:
+            CaretAssertMessage(0, "Replacing Byte RGBA in primitive but coloring type is Float");
+            CaretLogWarning("Replacing Byte RGBA in primitive but coloring type is Float");
+            break;
+    }
+}
+
+
+
+
+/**
  * Get a bounds box for the vertex coordinates.
  *
  * @param boundingBoxOut
@@ -879,8 +1017,8 @@ GraphicsPrimitive::getVertexBounds(BoundingBox& boundingBoxOut) const
 void
 GraphicsPrimitive::addPrimitiveRestart()
 {
-    bool notApplicableFlag = false;
-    bool supportedFlag = false;
+    bool polygonalLineFlag = false;
+    bool triangleStripFlag = false;
     
     switch (m_primitiveType) {
         case PrimitiveType::OPENGL_LINE_LOOP:
@@ -888,50 +1026,193 @@ GraphicsPrimitive::addPrimitiveRestart()
         case PrimitiveType::OPENGL_LINE_STRIP:
             break;
         case PrimitiveType::OPENGL_LINES:
-            notApplicableFlag = true;
             break;
         case PrimitiveType::OPENGL_POINTS:
-            notApplicableFlag = true;
             break;
         case PrimitiveType::OPENGL_POLYGON:
-            notApplicableFlag = true;
             break;
         case PrimitiveType::OPENGL_QUAD_STRIP:
             break;
         case PrimitiveType::OPENGL_QUADS:
-            notApplicableFlag = true;
             break;
         case PrimitiveType::OPENGL_TRIANGLE_FAN:
             break;
         case PrimitiveType::OPENGL_TRIANGLE_STRIP:
+            triangleStripFlag = true;
             break;
         case PrimitiveType::OPENGL_TRIANGLES:
-            notApplicableFlag = true;
             break;
-        case PrimitiveType::WORKBENCH_LINE_LOOP:
-            supportedFlag = true;
+        case PrimitiveType::POLYGONAL_LINE_LOOP:
+            polygonalLineFlag = true;
             break;
-        case PrimitiveType::WORKBENCH_LINE_STRIP:
-            supportedFlag = true;
+        case PrimitiveType::POLYGONAL_LINE_STRIP:
+            polygonalLineFlag = true;
             break;
-        case PrimitiveType::WORKBENCH_LINES:
+        case PrimitiveType::POLYGONAL_LINES:
+            break;
+        case PrimitiveType::SPHERES:
             break;
     }
     
-    if (notApplicableFlag) {
-        CaretLogWarning("Requested primitive restart on non-applicable primitive type: "
-                        + getPrimitiveTypeAsText());
-    }
-    else if (supportedFlag) {
+    if (polygonalLineFlag) {
         /*
          * A set is used because a vertex could be added more than one time
          */
-        m_primitiveRestartIndices.insert(getNumberOfVertices());
+        m_polygonalLinePrimitiveRestartIndices.insert(getNumberOfVertices());
+    }
+    else if (triangleStripFlag) {
+        const int32_t numVertices = getNumberOfVertices();
+        if (numVertices > 3) {
+            /*
+             * Add 18 dummy vertices that will be used for the
+             * 6 degenerate triangles at a later time
+             */
+            float float4[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+            uint8_t byte4[4] = { 0, 0, 0, 0 };
+            for (int32_t i = 0; i < 18; i++) {
+                addVertexProtected(float4, float4, float4, byte4, float4);
+            }
+            
+            /*
+             * When the number of vertices becomes the index below,
+             * the degenerate triangles will be added.
+             */
+            m_triangleStripPrimitiveRestartIndex = getNumberOfVertices() + 2;
+        }
+        else {
+            CaretLogSevere("Must have at least three vertices before requesting a triangle strip primitive restart.");
+        }
     }
     else {
         CaretLogSevere("Requested primitive restart on not yet supported primitive type: "
                        + getPrimitiveTypeAsText());
     }
+}
+
+/**
+ * Copy a vertex to another vertex.
+ *
+ * @param copyFromIndex
+ *     Index of the 'copied' vertex.
+ * @param copyToIndex
+ */
+void
+GraphicsPrimitive::copyVertex(const int32_t copyFromIndex,
+                              const int32_t copyToIndex)
+{
+    const int32_t from3 = copyFromIndex * 3;
+    const int32_t to3   = copyToIndex * 3;
+    
+    for (int32_t i = 0; i < 3; i++) {
+        CaretAssertVectorIndex(m_xyz, from3 + i);
+        CaretAssertVectorIndex(m_xyz, to3 + i);
+        m_xyz[to3 + i] = m_xyz[from3 + i];
+        
+        switch (m_normalVectorType) {
+            case NormalVectorType::FLOAT_XYZ:
+                CaretAssertVectorIndex(m_floatNormalVectorXYZ, from3 + i);
+                CaretAssertVectorIndex(m_floatNormalVectorXYZ, to3 + i);
+                m_floatNormalVectorXYZ[to3 + i] = m_floatNormalVectorXYZ[from3 + i];
+                break;
+            case NormalVectorType::NONE:
+                break;
+        }
+        
+        switch (m_textureType) {
+            case TextureType::NONE:
+                break;
+            case TextureType::FLOAT_STR:
+                CaretAssertVectorIndex(m_floatTextureSTR, from3 + i);
+                CaretAssertVectorIndex(m_floatTextureSTR, to3 + i);
+                m_floatTextureSTR[to3 + i] = m_floatTextureSTR[from3 + i];
+                break;
+        }
+    }
+    
+    const int32_t from4 = copyFromIndex * 4;
+    const int32_t to4   = copyToIndex * 4;
+    
+    for (int32_t i = 0; i < 4; i++) {
+        switch (m_colorType) {
+            case ColorType::NONE:
+                CaretAssert(0);
+                break;
+            case ColorType::FLOAT_RGBA:
+                CaretAssertVectorIndex(m_floatRGBA, from4 + i);
+                CaretAssertVectorIndex(m_floatRGBA, to4 + i);
+                m_floatRGBA[to4 + i] = m_floatRGBA[from4 + i];
+                break;
+            case ColorType::UNSIGNED_BYTE_RGBA:
+                CaretAssertVectorIndex(m_unsignedByteRGBA, from4 + i);
+                CaretAssertVectorIndex(m_unsignedByteRGBA, to4 + i);
+                m_unsignedByteRGBA[to4 + i] = m_unsignedByteRGBA[from4 + i];
+                break;
+        }
+    }
+    
+    m_boundingBoxValid = false;
+}
+
+/**
+ * Fill the degenerate vertices for the triangle strip.
+ * Since OpenGL's primitive restart (glPrimitiveRestartIndices())
+ * function is not available prior to OpenGL 3.1, add
+ * degenerate triangles as explained in the following links.
+ *
+ * @param newStripVertexOneXYZ
+ *     First vertex in new strip that will be added after calling this method.
+ * @param newStripVertexTwoXYZ
+ *     Second vertex in new strip that will be added after calling this method.
+ *
+ * @see http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/concatenating-triangle-strips-r1871
+ * @see http://en.wikipedia.org/wiki/Triangle_strip
+ */
+void
+GraphicsPrimitive::fillTriangleStripPrimitiveRestartVertices()
+{
+    const int32_t numVertices = getNumberOfVertices();
+    
+    /* 
+     * Vertices "F" and "F" were added just before the call to addPrimitiveRestart()
+     * Vertices "G" and "H" were added after the call to addPrimitiveRestart() and
+     * this method was called immediately after "H" was added
+     * addPrimitiveRestart() added 18 vertices:
+     * DEF + EFF + FFG + FGG + GGH + GHG + GGH + GHI
+     *
+     * From: https://www.gamedev.net/articles/programming/graphics/concatenating-triangle-strips-r1871
+     */
+    
+    const int32_t vertexH = numVertices - 1;
+    const int32_t vertexG = numVertices - 2;
+    const int32_t vertexF = numVertices - 21;
+    const int32_t vertexE = numVertices - 22;
+    int32_t copyToIndex = vertexF + 1;
+    
+    copyVertex(vertexE, copyToIndex++);
+    copyVertex(vertexF, copyToIndex++);
+    copyVertex(vertexF, copyToIndex++);
+    
+    copyVertex(vertexF, copyToIndex++);
+    copyVertex(vertexF, copyToIndex++);
+    copyVertex(vertexG, copyToIndex++);
+    
+    copyVertex(vertexF, copyToIndex++);
+    copyVertex(vertexG, copyToIndex++);
+    copyVertex(vertexG, copyToIndex++);
+    
+    copyVertex(vertexG, copyToIndex++);
+    copyVertex(vertexG, copyToIndex++);
+    copyVertex(vertexH, copyToIndex++);
+    
+    copyVertex(vertexG, copyToIndex++);
+    copyVertex(vertexH, copyToIndex++);
+    copyVertex(vertexG, copyToIndex++);
+    
+    copyVertex(vertexG, copyToIndex++);
+    copyVertex(vertexG, copyToIndex++);
+    copyVertex(vertexH, copyToIndex++);
+    
+    CaretAssert(copyToIndex == vertexG);
 }
 
 /**
@@ -996,6 +1277,38 @@ GraphicsPrimitive::setLineWidth(const SizeType widthType,
 {
     m_lineWidthType = widthType;
     m_lineWidthValue = lineWidth;
+}
+
+/**
+ * Get the point diameter.
+ *
+ * @param sizeTypeOut
+ *     Type of sizing.
+ * @param pointDiameterOut
+ *     Diameter of point.
+ */
+void
+GraphicsPrimitive::getSphereDiameter(SizeType& sizeTypeOut,
+                                     float& sphereDiameterOut) const
+{
+    sizeTypeOut  = m_sphereSizeType;
+    sphereDiameterOut = m_sphereDiameterValue;
+}
+
+/**
+ * Set the point diameter.
+ *
+ * @param sizeType
+ *     Type of sizing.
+ * @param pointDiameter
+ *     Diameter of point.
+ */
+void
+GraphicsPrimitive::setSphereDiameter(const SizeType sizeType,
+                                     const float sphereDiameter)
+{
+    m_sphereSizeType  = sizeType;
+    m_sphereDiameterValue = sphereDiameter;
 }
 
 /**
@@ -1083,6 +1396,22 @@ GraphicsPrimitive::newPrimitiveV3f(const GraphicsPrimitive::PrimitiveType primit
 {
     GraphicsPrimitiveV3f* primitive = new GraphicsPrimitiveV3f(primitiveType,
                                                                floatRGBA);
+    return primitive;
+}
+
+/**
+ * @return A new primitive for XYZ with solid color float RGBA.  Caller is responsible
+ * for deleting the returned pointer.
+ *
+ * @param primitiveType
+ *     Type of primitive drawn (triangles, lines, etc.)
+ */
+GraphicsPrimitiveV3fN3f*
+GraphicsPrimitive::newPrimitiveV3fN3f(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                      const uint8_t unsignedByteRGBA[4])
+{
+    GraphicsPrimitiveV3fN3f* primitive = new GraphicsPrimitiveV3fN3f(primitiveType,
+                                                                     unsignedByteRGBA);
     return primitive;
 }
 

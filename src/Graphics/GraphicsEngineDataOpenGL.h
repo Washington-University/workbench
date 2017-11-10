@@ -93,6 +93,9 @@ namespace caret {
                                 GraphicsPrimitive* primitive,
                                 GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
         
+        static void drawSpheresPrimitive(void* openglContextPointer,
+                                         const GraphicsPrimitive* primitive);
+        
         GLenum getOpeGLBufferUsageHint(const GraphicsPrimitive* primitive) const;
         
         static float getLineWidthForDrawingInPixels(const GraphicsPrimitive* primitive);

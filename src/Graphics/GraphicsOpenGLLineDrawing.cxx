@@ -139,11 +139,14 @@ GraphicsOpenGLLineDrawing::draw(void* openglContextPointer,
                 CaretLogSevere("TRIANGLES is not a valid line drawing type");
                 return false;
                 break;
-            case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
+            case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
                 break;
-            case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
+            case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
                 break;
-            case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
+            case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
+                break;
+            case GraphicsPrimitive::PrimitiveType::SPHERES:
+                CaretLogSevere("SPHERES is not a valid line drawing type");
                 break;
         }
         
@@ -151,7 +154,7 @@ GraphicsOpenGLLineDrawing::draw(void* openglContextPointer,
                                 primitive->m_xyz,
                                 primitive->m_floatRGBA,
                                 primitive->m_unsignedByteRGBA,
-                                primitive->m_primitiveRestartIndices,
+                                primitive->m_polygonalLinePrimitiveRestartIndices,
                                 lineWidth,
                                 colorType,
                                 lineType);
@@ -225,43 +228,46 @@ GraphicsOpenGLLineDrawing::convertWorkbenchLinePrimitiveTypeToOpenGL(void* openg
     LineType lineType = LineType::LINES;
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
-            errorMessageOut = "Input type is OPENGL_LINE_LOOP but must be one of the WORKBENCH_LINE* types";
+            errorMessageOut = "Input type is OPENGL_LINE_LOOP but must be one of the POLYGONAL_LINE* types";
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
-            errorMessageOut = "Input type is OPENGL_LINE_STRIP but must be one of the WORKBENCH_LINE* types";
+            errorMessageOut = "Input type is OPENGL_LINE_STRIP but must be one of the POLYGONAL_LINE* types";
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
-            errorMessageOut = "Input type is OPENGL_LINES but must be one of the WORKBENCH_LINE* types";
+            errorMessageOut = "Input type is OPENGL_LINES but must be one of the POLYGONAL_LINE* types";
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
-            errorMessageOut = "Input type is OPENGL_POINTS but must be one of the WORKBENCH_LINE* types";
+            errorMessageOut = "Input type is OPENGL_POINTS but must be one of the POLYGONAL_LINE* types";
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
-            errorMessageOut = "Input type is OPENGL_POLYGON but must be one of the WORKBENCH_LINE* types";
+            errorMessageOut = "Input type is OPENGL_POLYGON but must be one of the POLYGONAL_LINE* types";
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
-            errorMessageOut = "Input type is OPENGL_QUAD_STRIP but must be one of the WORKBENCH_LINE* types";
+            errorMessageOut = "Input type is OPENGL_QUAD_STRIP but must be one of the POLYGONAL_LINE* types";
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
-            errorMessageOut = "Input type is OPENGL_QUADS but must be one of the WORKBENCH_LINE* types";
+            errorMessageOut = "Input type is OPENGL_QUADS but must be one of the POLYGONAL_LINE* types";
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
-            errorMessageOut = "Input type is OPENGL_TRIANGLE_FAN but must be one of the WORKBENCH_LINE* types";
+            errorMessageOut = "Input type is OPENGL_TRIANGLE_FAN but must be one of the POLYGONAL_LINE* types";
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
-            errorMessageOut = "Input type is OPENGL_TRIANGLE_STRIP but must be one of the WORKBENCH_LINE* types";
+            errorMessageOut = "Input type is OPENGL_TRIANGLE_STRIP but must be one of the POLYGONAL_LINE* types";
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
-            errorMessageOut = "Input type is OPENGL_TRIANGLES but must be one of the WORKBENCH_LINE* types";
+            errorMessageOut = "Input type is OPENGL_TRIANGLES but must be one of the POLYGONAL_LINE* types";
             break;
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
             lineType = LineType::LINE_LOOP;
             break;
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
             lineType = LineType::LINE_STRIP;
             break;
-        case GraphicsPrimitive::PrimitiveType::WORKBENCH_LINES:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
             lineType = LineType::LINES;
+            break;
+        case GraphicsPrimitive::PrimitiveType::SPHERES:
+            errorMessageOut = "Input type is OPENGL_TRIANGLES but must be one of the POLYGONAL_LINE* types";
             break;
     }
     
@@ -273,7 +279,7 @@ GraphicsOpenGLLineDrawing::convertWorkbenchLinePrimitiveTypeToOpenGL(void* openg
                                              primitive->m_xyz,
                                              primitive->m_floatRGBA,
                                              primitive->m_unsignedByteRGBA,
-                                             primitive->m_primitiveRestartIndices,
+                                             primitive->m_polygonalLinePrimitiveRestartIndices,
                                              lineWidth,
                                              colorType,
                                              lineType);
@@ -999,7 +1005,7 @@ GraphicsOpenGLLineDrawing::createWindowCoordinatesFromVertices()
             const float distSQ = MathFunctions::distanceSquared3D(windowXYZ,
                                                                   windowNextXYZ);
             if (distSQ < coincidentMaxDistSQ) {
-                CaretLogSevere("Filtered out line pairs conincident points "
+                CaretLogFine("Filtered out line pairs conincident points "
                                + AString::number(i)
                                + " and "
                                + AString::number(i + 1));
@@ -1607,7 +1613,6 @@ GraphicsOpenGLLineDrawing::drawQuads()
     glLoadIdentity();
     
     glPolygonMode(GL_FRONT, GL_FILL);
-    //glPolygonMode(GL_BACK, GL_LINE);
     
     CaretAssert(m_primitive);
     GraphicsEngineDataOpenGL::draw(m_openglContextPointer,

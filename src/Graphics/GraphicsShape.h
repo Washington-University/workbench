@@ -22,7 +22,7 @@
 /*LICENSE_END*/
 
 
-
+#include <map>
 #include <memory>
 
 #include "CaretObject.h"
@@ -32,6 +32,8 @@
 
 namespace caret {
 
+    class GraphicsPrimitiveV3fN3f;
+    
     class GraphicsShape : public CaretObject {
         
     public:
@@ -77,6 +79,13 @@ namespace caret {
                                            const GraphicsPrimitive::SizeType lineThicknessType,
                                            const double lineThickness);
         
+        static void drawSphereByteColor(void* openglContextPointer,
+                                        const float xyz[3],
+                                        const uint8_t rgba[4],
+                                        const float radius);
+        
+        static void deleteAllPrimitives();
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -92,12 +101,27 @@ namespace caret {
                                           const double minorAxis,
                                           std::vector<float>& ellipseXYZOut);
         
+        
+        static GraphicsPrimitiveV3fN3f* createSpherePrimitiveTriangles(const int32_t numberOfLatLon);
+        
+        static GraphicsPrimitiveV3fN3f* createSpherePrimitiveTriangleStrips(const int32_t numberOfLatLon);
+        
+        static void createSphereXYZ(const float radius,
+                                    const float latDegrees,
+                                    const float lonDegrees,
+                                    const int32_t latIndex,
+                                    const int32_t numLat,
+                                    float xyzOut[3],
+                                    float normalXyzOut[3]);
+        
+        static std::map<std::pair<void*, int32_t>, GraphicsPrimitive*> s_byteSpherePrimitives;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __GRAPHICS_SHAPE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::map<std::pair<void*, int32_t>, GraphicsPrimitive*> GraphicsShape::s_byteSpherePrimitives;
 #endif // __GRAPHICS_SHAPE_DECLARE__
 
 } // namespace

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __GRAPHICS_PRIMITIVE_V3F_DECLARE__
-#include "GraphicsPrimitiveV3f.h"
-#undef __GRAPHICS_PRIMITIVE_V3F_DECLARE__
+#define __GRAPHICS_PRIMITIVE_V3F_N3F_DECLARE__
+#include "GraphicsPrimitiveV3fN3f.h"
+#undef __GRAPHICS_PRIMITIVE_V3F_N3F_DECLARE__
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -32,8 +32,8 @@ using namespace caret;
 
     
 /**
- * \class caret::GraphicsPrimitiveV3f 
- * \brief Primitive containing XYZ with one color (float, unsigned byte) applied to all vertices.
+ * \class caret::GraphicsPrimitiveV3fN3f 
+ * \brief Primitive containing vertices, normals, and with one color (float, unsigned byte) applied to all vertices.
  * \ingroup Graphics
  *
  * When we move to using the programmable pipeline OpenGL, the color components
@@ -48,10 +48,10 @@ using namespace caret;
  * @param rgba
  *     RGBA color components ranging 0.0 to 1.0.
  */
-GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
+GraphicsPrimitiveV3fN3f::GraphicsPrimitiveV3fN3f(const PrimitiveType primitiveType,
                                            const float rgba[4])
 : GraphicsPrimitive(VertexType::FLOAT_XYZ,
-                    NormalVectorType::NONE,
+                    NormalVectorType::FLOAT_XYZ,
                     ColorType::FLOAT_RGBA,
                     TextureType::NONE,
                     primitiveType)
@@ -70,10 +70,10 @@ GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
  * @param rgba
  *     RGBA color components ranging 0.0 to 1.0.
  */
-GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
+GraphicsPrimitiveV3fN3f::GraphicsPrimitiveV3fN3f(const PrimitiveType primitiveType,
                                            const uint8_t rgba[4])
 : GraphicsPrimitive(VertexType::FLOAT_XYZ,
-                    NormalVectorType::NONE,
+                    NormalVectorType::FLOAT_XYZ,
                     ColorType::UNSIGNED_BYTE_RGBA,
                     TextureType::NONE,
                     primitiveType)
@@ -87,7 +87,7 @@ GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
 /**
  * Destructor.
  */
-GraphicsPrimitiveV3f::~GraphicsPrimitiveV3f()
+GraphicsPrimitiveV3fN3f::~GraphicsPrimitiveV3fN3f()
 {
 }
 
@@ -96,10 +96,10 @@ GraphicsPrimitiveV3f::~GraphicsPrimitiveV3f()
  * @param obj
  *    Object that is copied.
  */
-GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const GraphicsPrimitiveV3f& obj)
+GraphicsPrimitiveV3fN3f::GraphicsPrimitiveV3fN3f(const GraphicsPrimitiveV3fN3f& obj)
 : GraphicsPrimitive(obj)
 {
-    this->copyHelperGraphicsPrimitiveV3f(obj);
+    this->copyHelperGraphicsPrimitiveV3fN3f(obj);
 }
 
 /**
@@ -108,7 +108,7 @@ GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const GraphicsPrimitiveV3f& obj)
  *    Object that is copied.
  */
 void 
-GraphicsPrimitiveV3f::copyHelperGraphicsPrimitiveV3f(const GraphicsPrimitiveV3f& obj)
+GraphicsPrimitiveV3fN3f::copyHelperGraphicsPrimitiveV3fN3f(const GraphicsPrimitiveV3fN3f& obj)
 {
     for (int32_t i = 0; i < 4; i++) {
         m_floatSolidRGBA[i]        = obj.m_floatSolidRGBA[i];
@@ -121,12 +121,15 @@ GraphicsPrimitiveV3f::copyHelperGraphicsPrimitiveV3f(const GraphicsPrimitiveV3f&
  * 
  * @param xyz
  *     Coordinate of vertex.
+ * @param normalXYZ
+ *     Normal vector
  */
 void
-GraphicsPrimitiveV3f::addVertex(const float xyz[3])
+GraphicsPrimitiveV3fN3f::addVertex(const float xyz[3],
+                                   const float normalXYZ[3])
 {
     addVertexProtected(xyz,
-                       NULL,
+                       normalXYZ,
                        m_floatSolidRGBA,
                        m_unsignedByteSolidRGBA,
                        NULL);
@@ -141,15 +144,23 @@ GraphicsPrimitiveV3f::addVertex(const float xyz[3])
  *     Y-coordinate of vertex.
  * @param z
  *     Z-coordinate of vertex.
+ * @param normalX
+ *     X component of normal vector
+ * @param normalY
+ *     Y component of normal vector
+ * @param normalZ
+ *     Z component of normal vector
  */
 void
-GraphicsPrimitiveV3f::addVertex(const float x,
-                                const float y,
-                                const float z)
+GraphicsPrimitiveV3fN3f::addVertex(const float x,
+                                   const float y,
+                                   const float z,
+                                   const float normalX,
+                                   const float normalY,
+                                   const float normalZ)
 {
-    const float xyz[3] = { x, y, z };
-    addVertexProtected(xyz,
-                       NULL,
+    addVertexProtected((float[]){ x, y, z },
+                       (float[]){ normalX, normalY, normalZ },
                        m_floatSolidRGBA,
                        m_unsignedByteSolidRGBA,
                        NULL);
@@ -162,14 +173,22 @@ GraphicsPrimitiveV3f::addVertex(const float x,
  *     X-coordinate of vertex.
  * @param y
  *     Y-coordinate of vertex.
- * @param rgba
- *     RGBA color components ranging 0.0 to 1.0.
+ * @param normalX
+ *     X component of normal vector
+ * @param normalY
+ *     Y component of normal vector
  */
 void
-GraphicsPrimitiveV3f::addVertex(const float x,
-                                const float y)
+GraphicsPrimitiveV3fN3f::addVertex(const float x,
+                                   const float y,
+                                   const float normalX,
+                                   const float normalY)
 {
-    addVertex(x, y, 0.0f);
+    addVertexProtected((float[]){ x, y, 0.0f },
+                       (float[]){ normalX, normalY, 0.0f },
+                       m_floatSolidRGBA,
+                       m_unsignedByteSolidRGBA,
+                       NULL);
 }
 
 /**
@@ -177,15 +196,19 @@ GraphicsPrimitiveV3f::addVertex(const float x,
  *
  * @param xyzArray
  *    Array containing XYZ vertex data.
+ * @param normalXyzArray
+ *    Array containing XYZ normal vector data.
  * @param numberOfVertices
  *    Number of vertices (xyz triplets) to add
  */
 void
-GraphicsPrimitiveV3f::addVertices(const float xyzArray[],
-                                  const int32_t numberOfVertices)
+GraphicsPrimitiveV3fN3f::addVertices(const float xyzArray[],
+                                     const float normalXyzArray[],
+                                     const int32_t numberOfVertices)
 {
     for (int32_t i = 0; i < numberOfVertices; i++) {
-        addVertex(&xyzArray[i*3]);
+        addVertex(&xyzArray[i*3],
+                  &normalXyzArray[i*3]);
     }
 }
 
@@ -194,9 +217,9 @@ GraphicsPrimitiveV3f::addVertices(const float xyzArray[],
  * Clone this primitive.
  */
 GraphicsPrimitive*
-GraphicsPrimitiveV3f::clone() const
+GraphicsPrimitiveV3fN3f::clone() const
 {
-    GraphicsPrimitiveV3f* obj = new GraphicsPrimitiveV3f(*this);
+    GraphicsPrimitiveV3fN3f* obj = new GraphicsPrimitiveV3fN3f(*this);
     return obj;
 }
 

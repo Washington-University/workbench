@@ -1,5 +1,5 @@
-#ifndef __GRAPHICS_PRIMITIVE_V3F_H__
-#define __GRAPHICS_PRIMITIVE_V3F_H__
+#ifndef __GRAPHICS_PRIMITIVE_V3F_N3F_H__
+#define __GRAPHICS_PRIMITIVE_V3F_N3F_H__
 
 /*LICENSE_START*/
 /*
@@ -31,29 +31,36 @@
 
 namespace caret {
 
-    class GraphicsPrimitiveV3f : public GraphicsPrimitive {
+    class GraphicsPrimitiveV3fN3f : public GraphicsPrimitive {
         
     public:
-        GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
+        GraphicsPrimitiveV3fN3f(const PrimitiveType primitiveType,
                                 const float rgba[4]);
         
-        GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
+        GraphicsPrimitiveV3fN3f(const PrimitiveType primitiveType,
                                 const uint8_t rgba[4]);
         
-        virtual ~GraphicsPrimitiveV3f();
+        virtual ~GraphicsPrimitiveV3fN3f();
         
-        GraphicsPrimitiveV3f(const GraphicsPrimitiveV3f& obj);
+        GraphicsPrimitiveV3fN3f(const GraphicsPrimitiveV3fN3f& obj);
 
-        void addVertex(const float xyz[3]);
+        void addVertex(const float xyz[3],
+                       const float normalXYZ[3]);
 
         void addVertex(const float x,
                        const float y,
-                       const float z);
+                       const float z,
+                       const float normalX,
+                       const float normalY,
+                       const float normalZ);
         
         void addVertex(const float x,
-                       const float y);
+                       const float y,
+                       const float normalX,
+                       const float normalY);
 
         void addVertices(const float xyzArray[],
+                         const float normalXyzArray[],
                          const int32_t numberOfVertices);
         
         virtual GraphicsPrimitive* clone() const;
@@ -61,9 +68,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        GraphicsPrimitiveV3f& operator=(const GraphicsPrimitiveV3f& obj);
+        GraphicsPrimitiveV3fN3f& operator=(const GraphicsPrimitiveV3fN3f& obj);
         
-        void copyHelperGraphicsPrimitiveV3f(const GraphicsPrimitiveV3f& obj);
+        void copyHelperGraphicsPrimitiveV3fN3f(const GraphicsPrimitiveV3fN3f& obj);
 
         float m_floatSolidRGBA[4];
         
@@ -73,9 +80,9 @@ namespace caret {
 
     };
     
-#ifdef __GRAPHICS_PRIMITIVE_V3F_DECLARE__
+#ifdef __GRAPHICS_PRIMITIVE_V3F_N3F_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GRAPHICS_PRIMITIVE_V3F_DECLARE__
+#endif // __GRAPHICS_PRIMITIVE_V3F_N3F_DECLARE__
 
 } // namespace
-#endif  //__GRAPHICS_PRIMITIVE_V3F_H__
+#endif  //__GRAPHICS_PRIMITIVE_V3F_N3F_H__

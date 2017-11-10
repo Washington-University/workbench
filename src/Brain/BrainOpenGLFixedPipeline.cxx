@@ -103,6 +103,7 @@
 #include "GiftiLabelTable.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "GraphicsShape.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
@@ -233,6 +234,8 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     
     delete this->colorIdentification;
     this->colorIdentification = NULL;
+    
+    GraphicsShape::deleteAllPrimitives();
 }
 
 /**
@@ -2632,12 +2635,15 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     CaretAssert(static_cast<int32_t>(nodesBoundaryEdgeCount.size()) == borderDrawInfo.surface->getNumberOfNodes());
     
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> pointsPrimitive;
-    if (drawSphericalPoints || drawSquarePoints) {
+    if (drawSquarePoints) {
         pointsPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS));
+    }
+    if (drawSphericalPoints) {
+        pointsPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
     }
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> linesPrimitive;
     if (drawLines) {
-        linesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::WORKBENCH_LINE_STRIP));
+        linesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP));
     }
     
     const bool featureClippingFlag = isFeatureClippingEnabled();
@@ -2802,6 +2808,9 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                     else if (i == (numBorderPoints - 1)) {
                         pointsPrimitive->addVertex(xyz, highlightLastPointRGBA);
                     }
+                    else {
+                        pointsPrimitive->addVertex(xyz, solidColorRGBA);
+                    }
                 }
                 else {
                     pointsPrimitive->addVertex(xyz, solidColorRGBA);
@@ -2828,10 +2837,18 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     if (pointsPrimitive) {
         pointsPrimitive->setPointDiameter(GraphicsPrimitive::SizeType::PIXELS,
                                           pointDiameter);
+        pointsPrimitive->setSphereDiameter(GraphicsPrimitive::SizeType::PIXELS,
+                                           pointDiameter);
+        if (pointsPrimitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::SPHERES) {
+            if ( ! borderDrawInfo.isSelect) {
+                glEnable(GL_LIGHTING);
+            }
+        }
         GraphicsEngineDataOpenGL::draw(getContextSharingGroupPointer(),
                                        pointsPrimitive.get());
     }
     if (linesPrimitive) {
+        glDisable(GL_LIGHTING);
         linesPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
                                      lineWidth);
         GraphicsEngineDataOpenGL::draw(getContextSharingGroupPointer(),
