@@ -431,7 +431,8 @@ namespace caret {
         
         std::vector<uint8_t> m_textureImageBytesRGBA;
         friend class GraphicsEngineDataOpenGL;
-        friend class GraphicsOpenGLLineDrawing;
+        friend class GraphicsOpenGLPolylineQuads;
+        friend class GraphicsOpenGLPolylineTriangles;
         friend class GraphicsPrimitiveSelectionHelper;
         
         std::vector<float> m_dummyFloatRGBAVector;

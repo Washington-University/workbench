@@ -15,7 +15,8 @@ EventGraphicsOpenGLDeleteTextureName.h
 GraphicsEngineData.h
 GraphicsEngineDataOpenGL.h
 GraphicsOpenGLBufferObject.h
-GraphicsOpenGLLineDrawing.h
+GraphicsOpenGLPolylineQuads.h
+GraphicsOpenGLPolylineTriangles.h
 GraphicsOpenGLTextureName.h
 GraphicsPrimitive.h
 GraphicsPrimitiveSelectionHelper.h
@@ -33,7 +34,8 @@ EventGraphicsOpenGLDeleteTextureName.cxx
 GraphicsEngineData.cxx
 GraphicsEngineDataOpenGL.cxx
 GraphicsOpenGLBufferObject.cxx
-GraphicsOpenGLLineDrawing.cxx
+GraphicsOpenGLPolylineQuads.cxx
+GraphicsOpenGLPolylineTriangles.cxx
 GraphicsOpenGLTextureName.cxx
 GraphicsPrimitive.cxx
 GraphicsPrimitiveSelectionHelper.cxx

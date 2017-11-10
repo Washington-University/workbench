@@ -30,7 +30,8 @@
 #include "EventGraphicsOpenGLCreateTextureName.h"
 #include "EventManager.h"
 #include "GraphicsOpenGLBufferObject.h"
-#include "GraphicsOpenGLLineDrawing.h"
+#include "GraphicsOpenGLPolylineQuads.h"
+#include "GraphicsOpenGLPolylineTriangles.h"
 #include "GraphicsOpenGLTextureName.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveSelectionHelper.h"
@@ -518,9 +519,12 @@ GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
     }
     else if (workbenchLineFlag) {
         AString errorMessage;
-        primitiveToDraw = GraphicsOpenGLLineDrawing::convertWorkbenchLinePrimitiveTypeToOpenGL(openglContextPointer,
-                                                                                               primitive,
-                                                                                               errorMessage);
+//        primitiveToDraw = GraphicsOpenGLPolylineQuads::convertWorkbenchLinePrimitiveTypeToOpenGL(openglContextPointer,
+//                                                                                               primitive,
+//                                                                                               errorMessage);
+        primitiveToDraw = GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(openglContextPointer,
+                                                                                                 primitive,
+                                                                                                 errorMessage);
         if (primitiveToDraw == NULL) {
             CaretLogSevere(errorMessage);
             return;

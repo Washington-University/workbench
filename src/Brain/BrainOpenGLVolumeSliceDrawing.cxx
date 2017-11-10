@@ -49,7 +49,6 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GraphicsEngineDataOpenGL.h"
-#include "GraphicsOpenGLLineDrawing.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
