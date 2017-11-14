@@ -35,6 +35,8 @@ namespace caret {
     public:
         virtual ~BrainOpenGLTextRenderInterface();
         
+        virtual void setSharedOpenGLContextPointer(void* contextSharingGroupPointer) = 0;
+        
         /**
          * Draw annnotation text at the given viewport coordinates using
          * the the annotations attributes for the style of text.

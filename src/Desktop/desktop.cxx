@@ -331,6 +331,7 @@ main(int argc, char* argv[])
          * QApplication is created.
          */
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+        QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
         BrainOpenGLWidget::initializeDefaultGLFormat();
 #endif
         

@@ -69,6 +69,11 @@ GraphicsShape::deleteAllPrimitives()
         delete iter.second;
     }
     s_byteSpherePrimitives.clear();
+    
+    for (auto iter : s_byteCirclePrimitives) {
+        delete iter.second;
+    }
+    s_byteCirclePrimitives.clear();
 }
 
 
@@ -118,6 +123,51 @@ GraphicsShape::drawBoxOutlineByteColor(void* openglContextPointer,
 }
 
 /**
+ * Draw an outline box.
+ *
+ * @param openglContextPointer
+ *    Pointer to OpenGL context.
+ * @param v1
+ *    First vertex.
+ * @param v2
+ *    Second vertex.
+ * @param v3
+ *    Third vertex.
+ * @param v4
+ *    Fourth vertex.
+ * @param rgba
+ *    Color for drawing.
+ * @param lineThicknessType
+ *    Type of line thickness.
+ * @param lineThickness
+ *    Thickness of the line.
+ */
+void
+GraphicsShape::drawBoxOutlineFloatColor(void* openglContextPointer,
+                                        const float v1[3],
+                                        const float v2[3],
+                                        const float v3[3],
+                                        const float v4[3],
+                                        const float rgba[4],
+                                        const GraphicsPrimitive::SizeType lineThicknessType,
+                                        const double lineThickness)
+{
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP,
+                                                                                       rgba));
+    primitive->addVertex(v1);
+    primitive->addVertex(v2);
+    primitive->addVertex(v3);
+    primitive->addVertex(v4);
+    
+    primitive->setLineWidth(lineThicknessType,
+                            lineThickness);
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    
+    GraphicsEngineDataOpenGL::draw(openglContextPointer,
+                                   primitive.get());
+}
+
+/**
  * Draw a filled box.
  *
  * @param openglContextPointer
@@ -140,6 +190,43 @@ GraphicsShape::drawBoxFilledByteColor(void* openglContextPointer,
                                    const float v3[3],
                                    const float v4[3],
                                    const uint8_t rgba[4])
+{
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS,
+                                                                                       rgba));
+    primitive->addVertex(v1);
+    primitive->addVertex(v2);
+    primitive->addVertex(v3);
+    primitive->addVertex(v4);
+    
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    
+    GraphicsEngineDataOpenGL::draw(openglContextPointer,
+                                   primitive.get());
+}
+
+/**
+ * Draw a filled box.
+ *
+ * @param openglContextPointer
+ *    Pointer to OpenGL context.
+ * @param v1
+ *    First vertex.
+ * @param v2
+ *    Second vertex.
+ * @param v3
+ *    Third vertex.
+ * @param v4
+ *    Fourth vertex.
+ * @param rgba
+ *    Color for drawing.
+ */
+void
+GraphicsShape::drawBoxFilledFloatColor(void* openglContextPointer,
+                                       const float v1[3],
+                                       const float v2[3],
+                                       const float v3[3],
+                                       const float v4[3],
+                                       const float rgba[4])
 {
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS,
                                                                                        rgba));
@@ -309,7 +396,7 @@ GraphicsShape::drawLineStripByteColor(void* openglContextPointer,
 }
 
 /**
- * Draw line a sphere at the given XYZ coordinate
+ * Draw a sphere at the given XYZ coordinate
  *
  * @param openglContextPointer
  *     Pointer to OpenGL context.
@@ -342,10 +429,10 @@ GraphicsShape::drawSphereByteColor(void* openglContextPointer,
     if (spherePrimitive == NULL) {
         const bool useStripsFlag = true;
         if (useStripsFlag) {
-            spherePrimitive = createSpherePrimitiveTriangleStrips(10);
+            spherePrimitive = createSpherePrimitiveTriangleStrips(numLatLonDivisions);
         }
         else {
-            spherePrimitive = createSpherePrimitiveTriangles(10);
+            spherePrimitive = createSpherePrimitiveTriangles(numLatLonDivisions);
         }
         /* colors may change but not coordinates/normals */
         spherePrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
@@ -364,6 +451,136 @@ GraphicsShape::drawSphereByteColor(void* openglContextPointer,
     GraphicsEngineDataOpenGL::draw(openglContextPointer,
                                    spherePrimitive);
     glPopMatrix();
+}
+
+/**
+ * Draw a filled circle at the given XYZ coordinate
+ *
+ * @param openglContextPointer
+ *     Pointer to OpenGL context.
+ * @param xyz
+ *     XYZ-coordinate of circle
+ * @param rgba
+ *    Color for drawing.
+ * @param radius
+ *    Radius of the circle.
+ */
+void
+GraphicsShape::drawCircleFilled(void *openglContextPointer,
+                             const float xyz[3],
+                             const uint8_t rgba[4],
+                             const float radius)
+{
+    const int32_t numberOfDivisions = 20;
+    
+    GraphicsPrimitive* circlePrimitive = NULL;
+    for (const auto keyPrim : s_byteCirclePrimitives) {
+        if (keyPrim.first == numberOfDivisions) {
+            circlePrimitive = keyPrim.second;
+            break;
+        }
+    }
+    
+    if (circlePrimitive == NULL) {
+        circlePrimitive = createCirclePrimitive(numberOfDivisions,
+                                                0.5f);
+        circlePrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
+        circlePrimitive->setUsageTypeColors(GraphicsPrimitive::UsageType::MODIFIED_MANY_DRAWN_MANY_TIMES);
+        s_byteCirclePrimitives.insert(std::make_pair(numberOfDivisions,
+                                                     circlePrimitive));
+    }
+    
+    CaretAssert(circlePrimitive);
+    
+    circlePrimitive->replaceAllVertexSolidByteRGBA(rgba);
+    
+    glPushMatrix();
+    if (xyz != NULL) {
+        glTranslatef(xyz[0], xyz[1], xyz[2]);
+    }
+    glScalef(radius, radius, 1.0f);
+    GraphicsEngineDataOpenGL::draw(openglContextPointer,
+                                   circlePrimitive);
+    glPopMatrix();
+}
+
+/**
+ * Create the primitive for a circle.
+ *
+ * @param radius
+ *    Radius of the circle.
+ */
+GraphicsPrimitive*
+GraphicsShape::createCirclePrimitive(const int32_t numberOfDivisions,
+                                     const double radius)
+{
+    /*
+     * Setup step size based upon number of points around circle
+     */
+    //    const int32_t numberOfPoints = 8;
+    const float step = (2.0 * M_PI) / numberOfDivisions;
+    
+    GraphicsPrimitiveV3f* primitive = GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN,
+                                                                         (float[]) { 1.0f, 1.0f, 1.0f, 1.0f });
+    /*
+     * Generate points around ring
+     */
+    const float z = 0.0;
+    primitive->addVertex(0.0f, 0.0f, z);
+    for (int32_t i = 0; i <= numberOfDivisions; i++) {
+        const float t = step * i;
+        const float x = radius * std::cos(t);
+        const float y = radius * std::sin(t);
+        
+        primitive->addVertex(x, y, z);
+    }
+    
+    return primitive;
+    
+}
+
+
+/**
+ * Create the vertices for a ring.
+ *
+ * @param innerRadius
+ *    Inner radius of the ring.
+ * @param outerRadius
+ *    Outer radius of the ring.
+ * @return
+ *    Primitive containing vertices of ring.
+ */
+GraphicsPrimitive*
+GraphicsShape::createRingPrimitive(const double innerRadius,
+                                   const double outerRadius)
+{
+    const int32_t numberOfSides = 20;
+    
+    /*
+     * Setup step size based upon number of points around circle
+     */
+    //    const int32_t numberOfPoints = 8;
+    const float step = (2.0 * M_PI) / numberOfSides;
+    
+    GraphicsPrimitiveV3f* primitive = GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                                                         (float[]) { 1.0f, 1.0f, 1.0f, 1.0f });
+    /*
+     * Generate points around ring
+     */
+    const float z = 0.0;
+    for (int32_t i = 0; i <= numberOfSides; i++) {
+        const float t = step * i;
+        
+        const float xin = innerRadius * std::cos(t);
+        const float yin = innerRadius * std::sin(t);
+        const float xout = outerRadius * std::cos(t);
+        const float yout = outerRadius * std::sin(t);
+        
+        primitive->addVertex(xin, yin, z);
+        primitive->addVertex(xout, yout, z);
+    }
+    
+    return primitive;
 }
 
 /**

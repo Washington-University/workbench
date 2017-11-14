@@ -48,12 +48,28 @@ namespace caret {
                                             const GraphicsPrimitive::SizeType lineThicknessType,
                                             const double lineThickness);
         
+        static void drawBoxOutlineFloatColor(void* openglContextPointer,
+                                             const float v1[3],
+                                             const float v2[3],
+                                             const float v3[3],
+                                             const float v4[3],
+                                             const float rgba[4],
+                                             const GraphicsPrimitive::SizeType lineThicknessType,
+                                             const double lineThickness);
+        
         static void drawBoxFilledByteColor(void* openglContextPointer,
                                            const float v1[3],
                                            const float v2[3],
                                            const float v3[3],
                                            const float v4[3],
                                            const uint8_t rgba[4]);
+        
+        static void drawBoxFilledFloatColor(void* openglContextPointer,
+                                            const float v1[3],
+                                            const float v2[3],
+                                            const float v3[3],
+                                            const float v4[3],
+                                            const float rgba[4]);
         
         static void drawEllipseOutlineByteColor(void* openglContextPointer,
                                                 const double majorAxis,
@@ -84,6 +100,11 @@ namespace caret {
                                         const uint8_t rgba[4],
                                         const float radius);
         
+        static void drawCircleFilled(void *openglContextPointer,
+                                     const float xyz[3],
+                                     const uint8_t rgba[4],
+                                     const float radius);
+        
         static void deleteAllPrimitives();
         
         // ADD_NEW_METHODS_HERE
@@ -96,6 +117,12 @@ namespace caret {
         GraphicsShape(const GraphicsShape&);
 
         GraphicsShape& operator=(const GraphicsShape&);
+        
+        static GraphicsPrimitive* createCirclePrimitive(const int32_t numberOfDivisions,
+                                                        const double radius);
+        
+        static GraphicsPrimitive* createRingPrimitive(const double innerRadius,
+                                                      const double outerRadius);
         
         static void createEllipseVertices(const double majorAxis,
                                           const double minorAxis,
@@ -116,12 +143,15 @@ namespace caret {
         
         static std::map<std::pair<void*, int32_t>, GraphicsPrimitive*> s_byteSpherePrimitives;
         
+        static std::map<int32_t, GraphicsPrimitive*> s_byteCirclePrimitives;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __GRAPHICS_SHAPE_DECLARE__
     std::map<std::pair<void*, int32_t>, GraphicsPrimitive*> GraphicsShape::s_byteSpherePrimitives;
+    std::map<int32_t, GraphicsPrimitive*> GraphicsShape::s_byteCirclePrimitives;
 #endif // __GRAPHICS_SHAPE_DECLARE__
 
 } // namespace

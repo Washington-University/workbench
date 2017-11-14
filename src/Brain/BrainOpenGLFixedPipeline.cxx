@@ -51,7 +51,6 @@
 #include "BrainOpenGLShapeCube.h"
 #include "BrainOpenGLShapeCylinder.h"
 #include "BrainOpenGLShapeRing.h"
-#include "BrainOpenGLShapeRingOutline.h"
 #include "BrainOpenGLShapeSphere.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
@@ -175,8 +174,6 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     m_shapeCylinder = NULL;
     m_shapeCube   = NULL;
     m_shapeCubeRounded = NULL;
-    m_shapeCircleOutline = NULL;
-    m_shapeCircleFilled  = NULL;
     this->surfaceNodeColoring = new SurfaceNodeColoring();
     m_brain = NULL;
     m_clippingPlaneGroup = NULL;
@@ -211,26 +208,10 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
         delete m_shapeCubeRounded;
         m_shapeCubeRounded = NULL;
     }
-    if (m_shapeCircleFilled != NULL) {
-        delete m_shapeCircleFilled;
-        m_shapeCircleFilled = NULL;
-    }
-    if (m_shapeCircleOutline != NULL) {
-        delete m_shapeCircleOutline;
-        m_shapeCircleOutline = NULL;
-    }
     if (this->surfaceNodeColoring != NULL) {
         delete this->surfaceNodeColoring;
         this->surfaceNodeColoring = NULL;
     }
-    
-    for (std::map<float, BrainOpenGLShapeRingOutline*>::iterator iter = m_shapeEllipseOutlines.begin();
-         iter != m_shapeEllipseOutlines.end();
-         iter++) {
-        BrainOpenGLShapeRingOutline* shape = iter->second;
-        delete shape;
-    }
-    m_shapeEllipseOutlines.clear();
     
     delete this->colorIdentification;
     this->colorIdentification = NULL;
@@ -1565,16 +1546,6 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     if (m_shapeCubeRounded == NULL) {
         m_shapeCubeRounded = new BrainOpenGLShapeCube(1.0,
                                                       BrainOpenGLShapeCube::ROUNDED);
-    }
-    if (m_shapeCircleOutline == NULL) {
-        m_shapeCircleOutline = new BrainOpenGLShapeRing(20,
-                                                     0.9,
-                                                     1.0);
-    }
-    if (m_shapeCircleFilled == NULL) {
-        m_shapeCircleFilled = new BrainOpenGLShapeRing(20,
-                                                        0.0,
-                                                        1.0);
     }
     
     if (this->initializedOpenGLFlag) {
@@ -5945,42 +5916,6 @@ BrainOpenGLFixedPipeline::drawRoundedCube(const float rgba[4],
     glPushMatrix();
     glScaled(cubeSize, cubeSize, cubeSize);
     m_shapeCubeRounded->draw(rgba);
-    glPopMatrix();
-}
-
-/**
- * Draw an outline circle.
- *
- * @param rgba
- *    Color for drawing.
- * @param diameter
- *    Diameter of the circle.
- */
-void
-BrainOpenGLFixedPipeline::drawCircleOutline(const uint8_t rgba[4],
-                                            const double diameter)
-{
-    glPushMatrix();
-    glScaled(diameter, diameter, 1.0);
-    m_shapeCircleOutline->draw(rgba);
-    glPopMatrix();
-}
-
-/**
- * Draw a filled circle.
- *
- * @param rgba
- *    Color for drawing.
- * @param diameter
- *    Diameter of the circle.
- */
-void
-BrainOpenGLFixedPipeline::drawCircleFilled(const uint8_t rgba[4],
-                                           const double diameter)
-{
-    glPushMatrix();
-    glScaled(diameter, diameter, 1.0);
-    m_shapeCircleFilled->draw(rgba);
     glPopMatrix();
 }
 

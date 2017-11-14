@@ -55,6 +55,7 @@ using namespace caret;
  */
 GraphicsOpenGLPolylineQuads::~GraphicsOpenGLPolylineQuads()
 {
+    CaretAssertMessage(0, "This class should not be used.  Instead, use GraphicsOpenGLPolylineTriangles");
 }
 
 /**

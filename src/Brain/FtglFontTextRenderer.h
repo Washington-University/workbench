@@ -39,6 +39,8 @@ namespace caret {
         
         virtual ~FtglFontTextRenderer();
         
+        virtual void setSharedOpenGLContextPointer(void* contextSharingGroupPointer) override;
+        
         bool isValid() const;
         
         virtual void drawTextAtViewportCoords(const double viewportX,
@@ -290,6 +292,8 @@ namespace caret {
         void saveStateOfOpenGL();
         
         void restoreStateOfOpenGL();
+        
+        void* m_contextSharingGroupPointer;
         
         /**
          * The default font.  DO NOT delete it since it points to

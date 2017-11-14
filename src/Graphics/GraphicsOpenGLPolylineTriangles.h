@@ -57,47 +57,47 @@ namespace caret {
         static bool draw(void* openglContextPointer,
                          const GraphicsPrimitive* primitive);
         
-        static bool drawLinesPerVertexFloatColor(void* openglContextPointer,
-                                            const std::vector<float>& xyz,
-                                            const std::vector<float>& rgba,
-                                            const float lineThicknessPixels);
-        
-        static bool drawLinesSolidFloatColor(void* openglContextPointer,
-                                        const std::vector<float>& xyz,
-                                        const float rgba[4],
-                                        const float lineThicknessPixels);
-        
-        static bool drawLineStripSolidFloatColor(void* openglContextPointer,
-                                            const std::vector<float>& xyz,
-                                        const float rgba[4],
-                                        const float lineThicknessPixels);
-        
-        static bool drawLineLoopSolidFloatColor(void* openglContextPointer,
-                                           const std::vector<float>& xyz,
-                                           const float rgba[4],
-                                           const float lineThicknessPixels);
-        
-        
-        static bool drawLinesPerVertexByteColor(void* openglContextPointer,
-                                                 const std::vector<float>& xyz,
-                                                 const std::vector<uint8_t>& rgba,
-                                                 const float lineThicknessPixels);
-        
-        static bool drawLinesSolidByteColor(void* openglContextPointer,
-                                             const std::vector<float>& xyz,
-                                             const uint8_t rgba[4],
-                                             const float lineThicknessPixels);
-        
-        static bool drawLineStripSolidByteColor(void* openglContextPointer,
-                                                 const std::vector<float>& xyz,
-                                                 const uint8_t rgba[4],
-                                                 const float lineThicknessPixels);
-        
-        static bool drawLineLoopSolidByteColor(void* openglContextPointer,
-                                                const std::vector<float>& xyz,
-                                                const uint8_t rgba[4],
-                                                const float lineThicknessPixels);
-        
+//        static bool drawLinesPerVertexFloatColor(void* openglContextPointer,
+//                                            const std::vector<float>& xyz,
+//                                            const std::vector<float>& rgba,
+//                                            const float lineThicknessPixels);
+//        
+//        static bool drawLinesSolidFloatColor(void* openglContextPointer,
+//                                        const std::vector<float>& xyz,
+//                                        const float rgba[4],
+//                                        const float lineThicknessPixels);
+//        
+//        static bool drawLineStripSolidFloatColor(void* openglContextPointer,
+//                                            const std::vector<float>& xyz,
+//                                        const float rgba[4],
+//                                        const float lineThicknessPixels);
+//        
+//        static bool drawLineLoopSolidFloatColor(void* openglContextPointer,
+//                                           const std::vector<float>& xyz,
+//                                           const float rgba[4],
+//                                           const float lineThicknessPixels);
+//        
+//        
+//        static bool drawLinesPerVertexByteColor(void* openglContextPointer,
+//                                                 const std::vector<float>& xyz,
+//                                                 const std::vector<uint8_t>& rgba,
+//                                                 const float lineThicknessPixels);
+//        
+//        static bool drawLinesSolidByteColor(void* openglContextPointer,
+//                                             const std::vector<float>& xyz,
+//                                             const uint8_t rgba[4],
+//                                             const float lineThicknessPixels);
+//        
+//        static bool drawLineStripSolidByteColor(void* openglContextPointer,
+//                                                 const std::vector<float>& xyz,
+//                                                 const uint8_t rgba[4],
+//                                                 const float lineThicknessPixels);
+//        
+//        static bool drawLineLoopSolidByteColor(void* openglContextPointer,
+//                                                const std::vector<float>& xyz,
+//                                                const uint8_t rgba[4],
+//                                                const float lineThicknessPixels);
+//        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

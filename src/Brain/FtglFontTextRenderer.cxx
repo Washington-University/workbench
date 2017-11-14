@@ -76,10 +76,11 @@
 #include <QStringList>
 
 #include "AnnotationPointSizeText.h"
-#include "BrainOpenGLPrimitiveDrawing.h"
+#include "BrainOpenGL.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
+#include "GraphicsShape.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 
@@ -116,7 +117,8 @@ static const bool drawCrosshairsAtFontStartingCoordinate = false;
  * Constructor.
  */
 FtglFontTextRenderer::FtglFontTextRenderer()
-: BrainOpenGLTextRenderInterface()
+: BrainOpenGLTextRenderInterface(),
+m_contextSharingGroupPointer(0)
 {
     m_defaultFont = NULL;
 #ifdef HAVE_FREETYPE
@@ -153,6 +155,18 @@ FtglFontTextRenderer::~FtglFontTextRenderer()
      * a double delete.
      */
 #endif // HAVE_FREETYPE
+}
+
+/**
+ * Constructor.
+ *
+ * @param contextSharingGroupPointer
+ *     Shared OpenGL context pointer.
+ */
+void
+FtglFontTextRenderer::setSharedOpenGLContextPointer(void* contextSharingGroupPointer)
+{
+    m_contextSharingGroupPointer = contextSharingGroupPointer;
 }
 
 /**
@@ -531,9 +545,11 @@ FtglFontTextRenderer::drawUnderline(const double lineStartX,
     underlineCoords.insert(underlineCoords.end(), lineY);
     underlineCoords.insert(underlineCoords.end(), lineZ);
     
-    BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
-                                           foregroundRgba,
-                                           underlineThickness);
+    GraphicsShape::drawLinesByteColor(m_contextSharingGroupPointer,
+                                      underlineCoords,
+                                      foregroundRgba,
+                                      GraphicsPrimitive::SizeType::PIXELS,
+                                      underlineThickness);
     
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_BLEND);
@@ -581,15 +597,10 @@ FtglFontTextRenderer::drawOutline(const double minX,
     expandBox(bottomLeft, bottomRight, topRight, topLeft,
               outlineThickness, outlineThickness);
     
-    std::vector<float> underlineCoords;
-    underlineCoords.insert(underlineCoords.end(), bottomLeft, bottomLeft + 3);
-    underlineCoords.insert(underlineCoords.end(), bottomRight, bottomRight + 3);
-    underlineCoords.insert(underlineCoords.end(), topRight, topRight + 3);
-    underlineCoords.insert(underlineCoords.end(), topLeft, topLeft + 3);
-    
-    BrainOpenGLPrimitiveDrawing::drawLineLoop(underlineCoords,
-                                              foregroundRgba,
-                                              outlineThickness);
+    GraphicsShape::drawBoxOutlineByteColor(m_contextSharingGroupPointer,
+                                           bottomLeft, bottomRight, topRight, topLeft,
+                                           foregroundRgba,
+                                           GraphicsPrimitive::SizeType::PIXELS, outlineThickness);
     
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_BLEND);

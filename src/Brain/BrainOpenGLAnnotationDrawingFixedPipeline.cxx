@@ -42,7 +42,6 @@
 #include "AnnotationText.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
-#include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "BrowserTabContent.h"
@@ -1207,14 +1206,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     const bool depthTestFlag = isDrawnWithDepthTesting(box);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
 
-    std::vector<float> coords;
-    coords.insert(coords.end(), bottomLeft,  bottomLeft + 3);
-    coords.insert(coords.end(), bottomRight, bottomRight + 3);
-    coords.insert(coords.end(), topRight,    topRight + 3);
-    coords.insert(coords.end(), topLeft,     topLeft + 3);
-    
-    std::vector<float> dummyNormals;
-    
     uint8_t backgroundRGBA[4];
     box->getBackgroundColorRGBA(backgroundRGBA);
     uint8_t foregroundRGBA[4];
@@ -1345,14 +1336,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
     const bool depthTestFlag = isDrawnWithDepthTesting(colorBar);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
-    std::vector<float> coords;
-    coords.insert(coords.end(), bottomLeft,  bottomLeft + 3);
-    coords.insert(coords.end(), bottomRight, bottomRight + 3);
-    coords.insert(coords.end(), topRight,    topRight + 3);
-    coords.insert(coords.end(), topLeft,     topLeft + 3);
-    
-    std::vector<float> dummyNormals;
-    
     float backgroundRGBA[4];
     colorBar->getBackgroundColorRGBA(backgroundRGBA);
     float foregroundRGBA[4];
@@ -1363,9 +1346,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
     if (m_selectionModeFlag) {
         uint8_t selectionColorRGBA[4];
         getIdentificationColor(selectionColorRGBA);
-        BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                 dummyNormals,
-                                                 selectionColorRGBA);
+        GraphicsShape::drawBoxFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                              bottomLeft, bottomRight, topRight, topLeft,
+                                              selectionColorRGBA);
         m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                 colorBar,
                                                 AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
@@ -1391,9 +1374,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
             bgCoords.insert(bgCoords.end(), bgTopRight,    bgTopRight + 3);
             bgCoords.insert(bgCoords.end(), bgTopLeft,     bgTopLeft + 3);
             
-            BrainOpenGLPrimitiveDrawing::drawPolygon(bgCoords,
-                                                     dummyNormals,
-                                                     backgroundRGBA);
+            GraphicsShape::drawBoxFilledFloatColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                   bgBottomLeft, bgBottomRight, bgTopRight, bgTopLeft,
+                                                   backgroundRGBA);
         }
         
         /*
@@ -1555,29 +1538,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
     const float xTopRight = (xBottomRight + (bottomToTopUnitVector[0] * tickMarksHeightInPixels));
     const float yTopRight = (yBottomRight + (bottomToTopUnitVector[1] * tickMarksHeightInPixels));
     
-    std::vector<ColorBarLine> colorBarLines;
-
     float rgba[4];
     colorBar->getTextColorRGBA(rgba);
     
     const float z = 0.0;
 
-    
+    std::unique_ptr<GraphicsPrimitiveV3f> linesPrimitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
+                                                                                            rgba));
     /*
      * Horizontal line at top of tick marks
      */
     const bool showHorizontalLineFlag = false;
     if (showHorizontalLineFlag) {
-        std::vector<float> lineCoords;
-        lineCoords.push_back(xTopLeft);
-        lineCoords.push_back(yTopLeft);
-        lineCoords.push_back(z);
-        lineCoords.push_back(xTopRight);
-        lineCoords.push_back(yTopRight);
-        lineCoords.push_back(z);
-        
-        colorBarLines.push_back(ColorBarLine(lineCoords,
-                                             rgba));
+        linesPrimitive->addVertex(xTopLeft, yTopLeft, z);
+        linesPrimitive->addVertex(xTopRight, yTopRight, z);
     }
     
     float leftToRightVector[3];
@@ -1601,16 +1575,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
         const float tickBottomX = xBottomLeft + (dx * scalar);
         const float tickBottomY = yBottomLeft + (dy * scalar);
         
-        std::vector<float> lineCoords;
-        lineCoords.push_back(tickTopX);
-        lineCoords.push_back(tickTopY);
-        lineCoords.push_back(z);
-        lineCoords.push_back(tickBottomX);
-        lineCoords.push_back(tickBottomY);
-        lineCoords.push_back(z);
-
-        colorBarLines.push_back(ColorBarLine(lineCoords,
-                                             rgba));
+        linesPrimitive->addVertex(tickTopX, tickTopY, z);
+        linesPrimitive->addVertex(tickBottomX, tickBottomY, z);
     }
     
     /*
@@ -1618,14 +1584,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
      */
     glPolygonOffset(1.0, 1.0);
     glEnable(GL_POLYGON_OFFSET_LINE);
-    for (std::vector<ColorBarLine>::iterator iter = colorBarLines.begin();
-         iter != colorBarLines.end();
-         iter++) {
-        CaretAssert(iter->m_lineCoords.size() == 6);
-        BrainOpenGLPrimitiveDrawing::drawLines(iter->m_lineCoords,
-                                               iter->m_rgba,
-                                               tickThickness);
-    }
+    linesPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, tickThickness);
+    GraphicsEngineDataOpenGL::draw(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                   linesPrimitive.get());
     glDisable(GL_POLYGON_OFFSET_LINE);
 }
 
@@ -1654,13 +1615,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
                                                                 const float topLeft[3],
                                                                 const float sectionsHeightInPixels)
 {
-    std::vector<float> normals;
-    for (int32_t i = 0; i < 4; i++) {
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-    }
-    
     std::vector<ColorBarLine> colorBarLines;
     
     float bottomToTopUnitVector[3];
@@ -1693,6 +1647,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
     
     const float z = 0.0;
 
+    std::unique_ptr<GraphicsPrimitiveV3fC4f> linesPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
+    linesPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, 1.0f);
+    std::unique_ptr<GraphicsPrimitiveV3fC4f> trianglesPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES));
+    
     const int32_t numSections = colorBar->getNumberOfSections();
     
     for (int32_t iSect = 0; iSect < numSections; iSect++) {
@@ -1714,16 +1672,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
         const float tlY = yTopLeft    + (dy * startNormalizedScalar);
 
         if (startScalar == endScalar) {
-            std::vector<float> lineCoords;
-            lineCoords.push_back(blX);
-            lineCoords.push_back(blY);
-            lineCoords.push_back(z);
-            lineCoords.push_back(tlX);
-            lineCoords.push_back(tlY);
-            lineCoords.push_back(z);
+            const float* rgba = section->getStartRGBA();
+            linesPrimitive->addVertex((float[]){ blX, blY, z}, rgba);
+            linesPrimitive->addVertex((float[]){ tlX, tlY, z}, rgba);
             
-            colorBarLines.push_back(ColorBarLine(lineCoords,
-                                                 section->getStartRGBA()));
         }
         else {
             const float brX = xBottomLeft + (dx * endNormalizedScalar);
@@ -1731,32 +1683,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
             const float trX = xTopLeft    + (dx * endNormalizedScalar);
             const float trY = yTopLeft    + (dy * endNormalizedScalar);
             
-            
-            std::vector<float> coords;
-            coords.push_back(blX);
-            coords.push_back(blY);
-            coords.push_back(z);
-            coords.push_back(brX);
-            coords.push_back(brY);
-            coords.push_back(z);
-            coords.push_back(trX);
-            coords.push_back(trY);
-            coords.push_back(z);
-            coords.push_back(tlX);
-            coords.push_back(tlY);
-            coords.push_back(z);
-            
             const float* rgbaLeft  = section->getStartRGBA();
             const float* rgbaRight = section->getEndRGBA();
-            std::vector<float> rgbaColors;
-            rgbaColors.insert(rgbaColors.end(), rgbaLeft, rgbaLeft + 4);
-            rgbaColors.insert(rgbaColors.end(), rgbaRight, rgbaRight + 4);
-            rgbaColors.insert(rgbaColors.end(), rgbaRight, rgbaRight + 4);
-            rgbaColors.insert(rgbaColors.end(), rgbaLeft, rgbaLeft + 4);
             
-            BrainOpenGLPrimitiveDrawing::drawQuads(coords,
-                                                   normals,
-                                                   rgbaColors);
+            trianglesPrimitive->addVertex(blX, blY, z, rgbaLeft);
+            trianglesPrimitive->addVertex(brX, brY, z, rgbaRight);
+            trianglesPrimitive->addVertex(tlX, tlY, z, rgbaLeft);
+            trianglesPrimitive->addVertex(tlX, tlY, z, rgbaLeft);
+            trianglesPrimitive->addVertex(brX, brY, z, rgbaRight);
+            trianglesPrimitive->addVertex(trX, trY, z, rgbaRight);
             
             if (printDebugFlag) {
                 const AString msg("Section ("
@@ -1785,16 +1720,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
      * Lines need to be drawn OVER any quads (otherwise the quads
      * would obscure the lines
      */
+    /*
+     * Lines need to be drawn OVER any quads (otherwise the quads
+     * would obscure the lines
+     */
+    GraphicsEngineDataOpenGL::draw(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                   trianglesPrimitive.get());
     glPolygonOffset(1.0, 1.0);
     glEnable(GL_POLYGON_OFFSET_LINE);
-    for (std::vector<ColorBarLine>::iterator iter = colorBarLines.begin();
-         iter != colorBarLines.end();
-         iter++) {
-        CaretAssert(iter->m_lineCoords.size() == 6);
-        BrainOpenGLPrimitiveDrawing::drawLines(iter->m_lineCoords,
-                                               iter->m_rgba,
-                                               1.0);
-    }
+    GraphicsEngineDataOpenGL::draw(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                   linesPrimitive.get());
     glDisable(GL_POLYGON_OFFSET_LINE);
 }
 
@@ -2267,14 +2202,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                                                     annXYZ[0], annXYZ[1], annXYZ[2],
                                                                                     m_modelSpaceViewport[2], m_modelSpaceViewport[3],
                                                                                     bottomLeft, bottomRight, topRight, topLeft);
-    
-    std::vector<float> coords;
-    coords.insert(coords.end(), bottomLeft,  bottomLeft + 3);
-    coords.insert(coords.end(), bottomRight, bottomRight + 3);
-    coords.insert(coords.end(), topRight,    topRight + 3);
-    coords.insert(coords.end(), topLeft,     topLeft + 3);
-    
-    std::vector<float> dummyNormals;
 
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
@@ -2302,9 +2229,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
         if (m_selectionModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
-            BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                     dummyNormals,
-                                                     selectionColorRGBA);
+            GraphicsShape::drawBoxFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                  bottomLeft, bottomRight, topRight, topLeft,
+                                                  selectionColorRGBA);
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                     text,
                                                     AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
@@ -2340,10 +2267,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                       GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                       text->getLineWidthPercentage());
                 }
-//                const float lineWidth = getLineWidthFromPercentageHeight(text->getLineWidthPercentage());
-//                BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
-//                                                       textColorRGBA,
-//                                                       lineWidth);
             }
             
             if (drawTextFlag) {
@@ -2378,18 +2301,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                         float tl[3];
                         getAnnotationTwoDimShapeBounds(text, annXYZ, bl, br, tr, tl);
                         
-                        std::vector<float> boxCoords;
-                        boxCoords.insert(boxCoords.end(), bl, bl + 3);
-                        boxCoords.insert(boxCoords.end(), br, br + 3);
-                        boxCoords.insert(boxCoords.end(), tr, tr + 3);
-                        boxCoords.insert(boxCoords.end(), tl, tl + 3);
-                        
-                        if (boxCoords.size() == 12) {
-                            const float lineWidthPixelsForDrawingNewTextAnnotation = 2.0f;
-                            BrainOpenGLPrimitiveDrawing::drawLineLoop(boxCoords,
-                                                                      foregroundRGBA,
-                                                                      lineWidthPixelsForDrawingNewTextAnnotation);
-                        }
+                        GraphicsShape::drawBoxOutlineByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                               bl, br, tr, tl,
+                                                               foregroundRGBA,
+                                                               GraphicsPrimitive::SizeType::PIXELS,
+                                                               2.0f);
                     }
                     else {
                         m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(annXYZ[0],
@@ -2499,14 +2415,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
         return false;
     }
     
-    std::vector<float> coords;
-    coords.insert(coords.end(), bottomLeft,  bottomLeft + 3);
-    coords.insert(coords.end(), bottomRight, bottomRight + 3);
-    coords.insert(coords.end(), topRight,    topRight + 3);
-    coords.insert(coords.end(), topLeft,     topLeft + 3);
-    
-    std::vector<float> dummyNormals;
-    
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
         (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
@@ -2528,9 +2436,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
         if (m_selectionModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
-            BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                     dummyNormals,
-                                                     selectionColorRGBA);
+            GraphicsShape::drawBoxFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                  bottomLeft, bottomRight, topRight, topLeft,
+                                                  selectionColorRGBA);
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                     image,
                                                     AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
@@ -2572,10 +2480,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                 if (image->getLineWidthPercentage() <= 0.0) {
                     convertObsoleteLineWidthPixelsToPercentageWidth(image);
                 }
-                const float lineWidth = getLineWidthFromPercentageHeight(image->getLineWidthPercentage());
-                BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                          foregroundRGBA,
-                                                          lineWidth);
+                GraphicsShape::drawBoxOutlineFloatColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                        bottomLeft, bottomRight, topRight, topLeft,
+                                                        foregroundRGBA,
+                                                        GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT, image->getLineWidthPercentage());
             }
             
             setDepthTestingStatus(depthTestFlag);
@@ -2888,22 +2796,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
         glRotatef(-rotationAngle, 0.0, 0.0, 1.0);
     }
     
-    std::vector<float> coords;
-    coords.push_back(-halfWidthHeight);
-    coords.push_back(-halfWidthHeight);
-    coords.push_back(0.0);
-    coords.push_back( halfWidthHeight);
-    coords.push_back(-halfWidthHeight);
-    coords.push_back(0.0);
-    coords.push_back( halfWidthHeight);
-    coords.push_back( halfWidthHeight);
-    coords.push_back(0.0);
-    coords.push_back(-halfWidthHeight);
-    coords.push_back( halfWidthHeight);
-    coords.push_back(0.0);
-    
-    std::vector<float> dummyNormals;
-    
+    const float bottomLeft[3]  = { -halfWidthHeight, -halfWidthHeight, 0.0f };
+    const float bottomRight[3] = { halfWidthHeight,  -halfWidthHeight, 0.0f };
+    const float topRight[3]    = { halfWidthHeight,   halfWidthHeight, 0.0f };
+    const float topLeft[3]     = { -halfWidthHeight,  halfWidthHeight, 0.0f };
+
     bool drawFilledCircleFlag  = false;
     bool drawOutlineCircleFlag = false;
     bool drawSquareFlag        = false;
@@ -2949,9 +2846,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
     if (m_selectionModeFlag) {
         uint8_t identificationRGBA[4];
         getIdentificationColor(identificationRGBA);
-        BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                 dummyNormals,
-                                                 identificationRGBA);
+        GraphicsShape::drawBoxFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                              bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              identificationRGBA);
         m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                 annotation,
                                                 handleType,
@@ -2959,13 +2859,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
     }
     else {
         if (drawFilledCircleFlag) {
-            m_brainOpenGLFixedPipeline->drawCircleFilled(m_selectionBoxRGBA,
-                                                         halfWidthHeight);
+            GraphicsShape::drawCircleFilled(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                            NULL,
+                                            m_selectionBoxRGBA,
+                                            halfWidthHeight);
         }
         else if (drawSquareFlag) {
-            BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                     dummyNormals,
-                                                     m_selectionBoxRGBA);
+            GraphicsShape::drawBoxFilledByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                                  bottomLeft,
+                                                  bottomRight,
+                                                  topRight,
+                                                  topLeft,
+                                                  m_selectionBoxRGBA);
         }
         else if (drawOutlineCircleFlag) {
             const float diameter = halfWidthHeight;
@@ -3168,15 +3073,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
     expandBox(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft, innerSpacing, innerSpacing);
     
     if (! m_selectionModeFlag) {
-        std::vector<float> coords;
-        coords.insert(coords.end(), handleBottomLeft,  handleBottomLeft + 3);
-        coords.insert(coords.end(), handleBottomRight, handleBottomRight + 3);
-        coords.insert(coords.end(), handleTopRight,    handleTopRight + 3);
-        coords.insert(coords.end(), handleTopLeft,     handleTopLeft + 3);
-        
-        BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                  m_selectionBoxRGBA,
-                                                  2.0);
+        GraphicsShape::drawBoxOutlineByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                               handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft,
+                                               m_selectionBoxRGBA, GraphicsPrimitive::SizeType::PIXELS, 2.0f);
     }
     
     const float handleLeft[3] = {
@@ -3321,9 +3220,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
         std::vector<float> coords;
         coords.insert(coords.end(), handleRotationLineEnd, handleRotationLineEnd + 3);
         coords.insert(coords.end(), handleOffset, handleOffset + 3);
-        BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                               m_selectionBoxRGBA,
-                                               2.0);
+        GraphicsShape::drawLinesByteColor(m_brainOpenGLFixedPipeline->getContextSharingGroupPointer(),
+                                          coords, m_selectionBoxRGBA,
+                                          GraphicsPrimitive::SizeType::PIXELS, 2.0f);
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
                          annotationFile,
                          annotation,

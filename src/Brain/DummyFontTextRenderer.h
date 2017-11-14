@@ -35,6 +35,8 @@ namespace caret {
         
         virtual ~DummyFontTextRenderer();
         
+        virtual void setSharedOpenGLContextPointer(void* contextSharingGroupPointer) override;
+        
         bool isValid() const;
         
         virtual void drawTextAtViewportCoords(const double viewportX,

@@ -205,6 +205,7 @@ void BrainOpenGL::drawModels(const int32_t windowIndex,
                              std::vector<BrainOpenGLViewportContent*>& viewportContents)
 {
     m_contextSharingGroupPointer = contextSharingGroupPointer;
+    m_textRenderer->setSharedOpenGLContextPointer(contextSharingGroupPointer);
     
     drawModelsImplementation(windowIndex,
                              brain,
@@ -213,6 +214,7 @@ void BrainOpenGL::drawModels(const int32_t windowIndex,
     deleteUnusedOpenGLNames();
     
     m_contextSharingGroupPointer = NULL;
+    m_textRenderer->setSharedOpenGLContextPointer(NULL);
 }
 
 /**
@@ -247,7 +249,8 @@ void BrainOpenGL::selectModel(const int32_t windowIndex,
                               const bool applySelectionBackgroundFiltering)
 {
     m_contextSharingGroupPointer = contextSharingGroupPointer;
-    
+    m_textRenderer->setSharedOpenGLContextPointer(contextSharingGroupPointer);
+
     selectModelImplementation(windowIndex,
                               brain,
                               viewportContent,
@@ -258,6 +261,7 @@ void BrainOpenGL::selectModel(const int32_t windowIndex,
     deleteUnusedOpenGLNames();
     
     m_contextSharingGroupPointer = NULL;
+    m_textRenderer->setSharedOpenGLContextPointer(NULL);
 }
 
 /**
@@ -290,7 +294,8 @@ void BrainOpenGL::projectToModel(const int32_t windowIndex,
                     SurfaceProjectedItem& projectionOut)
 {
     m_contextSharingGroupPointer = contextSharingGroupPointer;
-    
+    m_textRenderer->setSharedOpenGLContextPointer(contextSharingGroupPointer);
+
     projectToModelImplementation(windowIndex,
                                  brain,
                                  viewportContent,
@@ -300,6 +305,7 @@ void BrainOpenGL::projectToModel(const int32_t windowIndex,
     deleteUnusedOpenGLNames();
     
     m_contextSharingGroupPointer = NULL;
+    m_textRenderer->setSharedOpenGLContextPointer(NULL);
 }
 
 
