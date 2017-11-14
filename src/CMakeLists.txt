@@ -275,10 +275,12 @@ ENDIF (OPENGL_FOUND)
 
 ##########################################################################################
 #
-# Look for GLEW
+# Look for GLEW but only on Windows
 #
 SET(GLEW_RESULT "No")
-FIND_PACKAGE(GLEW)
+IF (WIN32)
+    FIND_PACKAGE(GLEW)
+ENDIF ()
 
 IF (GLEW_FOUND)
     SET(GLEW_RESULT "${GLEW_INCLUDE_DIRS} ${GLEW_LIBRARIES}")
