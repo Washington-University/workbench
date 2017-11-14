@@ -49,16 +49,9 @@ using namespace caret;
 
 /**
  * Constructor.
- *
- * @param openglContextPointer
- *     Context to which the OpenGL buffers apply.  The current usage of QGLWidget
- *     shares the OpenGL context among all QGLWidgets.  However, in the event
- *     OpenGL contexts are not shared, this implementation will need to be 
- *     updated.
  */
-GraphicsEngineDataOpenGL::GraphicsEngineDataOpenGL(const void* openglContextPointer)
-: GraphicsEngineData(),
-m_openglContextPointer(openglContextPointer)
+GraphicsEngineDataOpenGL::GraphicsEngineDataOpenGL()
+: GraphicsEngineData()
 {
     
 }
@@ -462,14 +455,11 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
 /**
  * Draw the given graphics primitive.
  *
- * @param openglContextPointer
- *     Pointer to the active OpenGL context.
  * @param primitive
  *     Primitive that is drawn.
  */
 void
-GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
-                               GraphicsPrimitive* primitive)
+GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     
@@ -514,16 +504,14 @@ GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
     }
     
     if (spheresFlag) {
-        drawSpheresPrimitive(openglContextPointer,
-                             primitive);
+        drawSpheresPrimitive(primitive);
     }
     else if (workbenchLineFlag) {
         AString errorMessage;
 //        primitiveToDraw = GraphicsOpenGLPolylineQuads::convertWorkbenchLinePrimitiveTypeToOpenGL(openglContextPointer,
 //                                                                                               primitive,
 //                                                                                               errorMessage);
-        primitiveToDraw = GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(openglContextPointer,
-                                                                                                 primitive,
+        primitiveToDraw = GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(primitive,
                                                                                                  errorMessage);
         if (primitiveToDraw == NULL) {
             CaretLogSevere(errorMessage);
@@ -531,13 +519,11 @@ GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
         }
         windowSpacePrimitive.reset(primitiveToDraw);
         drawWindowSpace(PrivateDrawMode::DRAW_NORMAL,
-                        openglContextPointer,
                         primitiveToDraw,
                         NULL);
     }
     else {
         drawPrivate(PrivateDrawMode::DRAW_NORMAL,
-                    openglContextPointer,
                     primitiveToDraw,
                     NULL);
     }
@@ -548,8 +534,6 @@ GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
  *
  * @param drawMode
  *     Mode for drawing.
- * @param openglContextPointer
- *     Pointer to the active OpenGL context.
  * @param primitive
  *     Primitive that is drawn.
  * @param primitiveSelectionHelper
@@ -557,7 +541,6 @@ GraphicsEngineDataOpenGL::draw(void* openglContextPointer,
  */
 void
 GraphicsEngineDataOpenGL::drawWindowSpace(const PrivateDrawMode drawMode,
-                            void* openglContextPointer,
                             GraphicsPrimitive* primitive,
                             GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper)
 {
@@ -577,7 +560,6 @@ GraphicsEngineDataOpenGL::drawWindowSpace(const PrivateDrawMode drawMode,
     glPolygonMode(GL_FRONT, GL_FILL);
 
     drawPrivate(drawMode,
-                openglContextPointer,
                 primitive,
                 primitiveSelectionHelper);
     
@@ -588,14 +570,11 @@ GraphicsEngineDataOpenGL::drawWindowSpace(const PrivateDrawMode drawMode,
 /**
  * Draw a sphere primitive type.
  * 
- * @param openglContextPointer
- *     Pointer to the active OpenGL context.
  * @param primitive
  *     The spheres primitive type.
  */
 void
-GraphicsEngineDataOpenGL::drawSpheresPrimitive(void* openglContextPointer,
-                                               const GraphicsPrimitive* primitive)
+GraphicsEngineDataOpenGL::drawSpheresPrimitive(const GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     CaretAssert(primitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::SPHERES);
@@ -617,8 +596,7 @@ GraphicsEngineDataOpenGL::drawSpheresPrimitive(void* openglContextPointer,
                 break;
             case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
                 CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
-                GraphicsShape::drawSphereByteColor(openglContextPointer,
-                                                   &primitive->m_xyz[i3],
+                GraphicsShape::drawSphereByteColor(&primitive->m_xyz[i3],
                                                    &primitive->m_unsignedByteRGBA[i4],
                                                    sizeValue);
                 break;
@@ -699,8 +677,6 @@ GraphicsEngineDataOpenGL::restoreOpenGLStateForWindowSpaceDrawing(int32_t polygo
 /**
  * Draw to determine the index of primitive at the given (X, Y) location
  *
- * @param openglContextPointer
- *     Pointer to the active OpenGL context.
  * @param primitive
  *     Primitive that is drawn.
  * @param pixelX
@@ -713,8 +689,7 @@ GraphicsEngineDataOpenGL::restoreOpenGLStateForWindowSpaceDrawing(int32_t polygo
  *     Output with depth at the location.
  */
 void
-GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
-                                            GraphicsPrimitive* primitive,
+GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
                                             const int32_t pixelX,
                                             const int32_t pixelY,
                                             int32_t& selectedPrimitiveIndexOut,
@@ -776,7 +751,6 @@ GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
         GraphicsPrimitiveSelectionHelper selectionHelper(primitive);
         selectionHelper.setupSelectionBeforeDrawing();
         drawPrivate(PrivateDrawMode::DRAW_SELECTION,
-                    openglContextPointer,
                     primitive,
                     &selectionHelper);
         
@@ -828,8 +802,6 @@ GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
  *
  * @param drawMode
  *     Mode for drawing.
- * @param openglContextPointer
- *     Pointer to the active OpenGL context.
  * @param primitive
  *     Primitive that is drawn.
  * @param primitiveSelectionHelper
@@ -837,11 +809,9 @@ GraphicsEngineDataOpenGL::drawWithSelection(void* openglContextPointer,
  */
 void
 GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
-                                      void* openglContextPointer,
                                       GraphicsPrimitive* primitive,
                                       GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper)
 {
-    CaretAssert(openglContextPointer);
     CaretAssert(primitive);
     if ( ! primitive->isValid()) {
         return;
@@ -856,7 +826,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     
     GraphicsEngineDataOpenGL* openglData = primitive->getGraphicsEngineDataForOpenGL();
     if (openglData == NULL) {
-        openglData = new GraphicsEngineDataOpenGL(openglContextPointer);
+        openglData = new GraphicsEngineDataOpenGL();
         primitive->setGraphicsEngineDataForOpenGL(openglData);
         
         openglData->loadAllBuffers(primitive);
@@ -878,14 +848,6 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     }
     
     openglData->loadTextureImageDataBuffer(primitive);
-    
-    if (openglContextPointer != openglData->getOpenGLContextPointer()) {
-        const AString msg("Only one OpenGL graphics context is allowed.  Have there been "
-                          "changes made to QGLWidget creation?");
-        CaretAssertMessage(0, msg);
-        CaretLogSevere(msg);
-        return;
-    }
     
     const GLuint coordBufferID = openglData->m_coordinateBufferObject->getBufferObjectName();
     CaretAssert(coordBufferID);
@@ -1078,15 +1040,6 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
-}
-
-/**
- * @return Pointer to the OpenGL graphics context to which the buffers belong.
- */
-const void*
-GraphicsEngineDataOpenGL::getOpenGLContextPointer() const
-{
-    return m_openglContextPointer;
 }
 
 /**

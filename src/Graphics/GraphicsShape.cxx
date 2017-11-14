@@ -74,14 +74,17 @@ GraphicsShape::deleteAllPrimitives()
         delete iter.second;
     }
     s_byteCirclePrimitives.clear();
+
+    for (auto iter : s_byteRingPrimitives) {
+        delete iter.second;
+    }
+    s_byteRingPrimitives.clear();
 }
 
 
 /**
  * Draw an outline box.
  *
- * @param openglContextPointer
- *    Pointer to OpenGL context.
  * @param v1
  *    First vertex.
  * @param v2
@@ -98,8 +101,7 @@ GraphicsShape::deleteAllPrimitives()
  *    Thickness of the line.
  */
 void
-GraphicsShape::drawBoxOutlineByteColor(void* openglContextPointer,
-                                    const float v1[3],
+GraphicsShape::drawBoxOutlineByteColor(const float v1[3],
                                     const float v2[3],
                                     const float v3[3],
                                     const float v4[3],
@@ -118,15 +120,12 @@ GraphicsShape::drawBoxOutlineByteColor(void* openglContextPointer,
                             lineThickness);
     primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
-    GraphicsEngineDataOpenGL::draw(openglContextPointer,
-                                   primitive.get());
+    GraphicsEngineDataOpenGL::draw(primitive.get());
 }
 
 /**
  * Draw an outline box.
  *
- * @param openglContextPointer
- *    Pointer to OpenGL context.
  * @param v1
  *    First vertex.
  * @param v2
@@ -143,8 +142,7 @@ GraphicsShape::drawBoxOutlineByteColor(void* openglContextPointer,
  *    Thickness of the line.
  */
 void
-GraphicsShape::drawBoxOutlineFloatColor(void* openglContextPointer,
-                                        const float v1[3],
+GraphicsShape::drawBoxOutlineFloatColor(const float v1[3],
                                         const float v2[3],
                                         const float v3[3],
                                         const float v4[3],
@@ -163,15 +161,12 @@ GraphicsShape::drawBoxOutlineFloatColor(void* openglContextPointer,
                             lineThickness);
     primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
-    GraphicsEngineDataOpenGL::draw(openglContextPointer,
-                                   primitive.get());
+    GraphicsEngineDataOpenGL::draw(primitive.get());
 }
 
 /**
  * Draw a filled box.
  *
- * @param openglContextPointer
- *    Pointer to OpenGL context.
  * @param v1
  *    First vertex.
  * @param v2
@@ -184,8 +179,7 @@ GraphicsShape::drawBoxOutlineFloatColor(void* openglContextPointer,
  *    Color for drawing.
  */
 void
-GraphicsShape::drawBoxFilledByteColor(void* openglContextPointer,
-                                   const float v1[3],
+GraphicsShape::drawBoxFilledByteColor(const float v1[3],
                                    const float v2[3],
                                    const float v3[3],
                                    const float v4[3],
@@ -200,15 +194,12 @@ GraphicsShape::drawBoxFilledByteColor(void* openglContextPointer,
     
     primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
-    GraphicsEngineDataOpenGL::draw(openglContextPointer,
-                                   primitive.get());
+    GraphicsEngineDataOpenGL::draw(primitive.get());
 }
 
 /**
  * Draw a filled box.
  *
- * @param openglContextPointer
- *    Pointer to OpenGL context.
  * @param v1
  *    First vertex.
  * @param v2
@@ -221,8 +212,7 @@ GraphicsShape::drawBoxFilledByteColor(void* openglContextPointer,
  *    Color for drawing.
  */
 void
-GraphicsShape::drawBoxFilledFloatColor(void* openglContextPointer,
-                                       const float v1[3],
+GraphicsShape::drawBoxFilledFloatColor(const float v1[3],
                                        const float v2[3],
                                        const float v3[3],
                                        const float v4[3],
@@ -237,16 +227,13 @@ GraphicsShape::drawBoxFilledFloatColor(void* openglContextPointer,
     
     primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
-    GraphicsEngineDataOpenGL::draw(openglContextPointer,
-                                   primitive.get());
+    GraphicsEngineDataOpenGL::draw(primitive.get());
 }
 
 
 /**
  * Draw an outline ellipse.
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param majorAxis
  *    Diameter of the major axis.
  * @param minorAxis
@@ -259,8 +246,7 @@ GraphicsShape::drawBoxFilledFloatColor(void* openglContextPointer,
  *    Thickness of the line.
  */
 void
-GraphicsShape::drawEllipseOutlineByteColor(void* openglContextPointer,
-                                           const double majorAxis,
+GraphicsShape::drawEllipseOutlineByteColor(const double majorAxis,
                                            const double minorAxis,
                                            const uint8_t rgba[4],
                                            const GraphicsPrimitive::SizeType lineThicknessType,
@@ -280,15 +266,12 @@ GraphicsShape::drawEllipseOutlineByteColor(void* openglContextPointer,
                             lineThickness);
     primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
-    GraphicsEngineDataOpenGL::draw(openglContextPointer,
-                                   primitive.get());
+    GraphicsEngineDataOpenGL::draw(primitive.get());
 }
 
 /**
  * Draw a filled ellipse.
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param majorAxis
  *    Diameter of the major axis.
  * @param minorAxis
@@ -297,8 +280,7 @@ GraphicsShape::drawEllipseOutlineByteColor(void* openglContextPointer,
  *    Color for drawing.
  */
 void
-GraphicsShape::drawEllipseFilledByteColor(void* openglContextPointer,
-                                          const double majorAxis,
+GraphicsShape::drawEllipseFilledByteColor(const double majorAxis,
                                           const double minorAxis,
                                           const uint8_t rgba[4])
 {
@@ -318,16 +300,13 @@ GraphicsShape::drawEllipseFilledByteColor(void* openglContextPointer,
     
     primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
-    GraphicsEngineDataOpenGL::draw(openglContextPointer,
-                                   primitive.get());
+    GraphicsEngineDataOpenGL::draw(primitive.get());
 }
 
 /**
  * Draw lines: Each pair of vertices is a separate line segment
  * similar to OpenGL's GL_LINES
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param xyz
  *    Coordinates of the line end points.
  * @param rgba
@@ -338,8 +317,7 @@ GraphicsShape::drawEllipseFilledByteColor(void* openglContextPointer,
  *    Thickness of the line.
  */
 void
-GraphicsShape::drawLinesByteColor(void* openglContextPointer,
-                                  const std::vector<float>& xyz,
+GraphicsShape::drawLinesByteColor(const std::vector<float>& xyz,
                                   const uint8_t rgba[4],
                                   const GraphicsPrimitive::SizeType lineThicknessType,
                                   const double lineThickness)
@@ -355,15 +333,12 @@ GraphicsShape::drawLinesByteColor(void* openglContextPointer,
                             lineThickness);
     primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
-    GraphicsEngineDataOpenGL::draw(openglContextPointer,
-                                   primitive.get());
+    GraphicsEngineDataOpenGL::draw(primitive.get());
 }
 
 /**
  * Draw line strip similar to OpenGL's GL_LINES
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param xyz
  *    Coordinates of the line end points.
  * @param rgba
@@ -374,8 +349,7 @@ GraphicsShape::drawLinesByteColor(void* openglContextPointer,
  *    Thickness of the line.
  */
 void
-GraphicsShape::drawLineStripByteColor(void* openglContextPointer,
-                                  const std::vector<float>& xyz,
+GraphicsShape::drawLineStripByteColor(const std::vector<float>& xyz,
                                   const uint8_t rgba[4],
                                   const GraphicsPrimitive::SizeType lineThicknessType,
                                   const double lineThickness)
@@ -391,15 +365,12 @@ GraphicsShape::drawLineStripByteColor(void* openglContextPointer,
                             lineThickness);
     primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
-    GraphicsEngineDataOpenGL::draw(openglContextPointer,
-                                   primitive.get());
+    GraphicsEngineDataOpenGL::draw(primitive.get());
 }
 
 /**
  * Draw a sphere at the given XYZ coordinate
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param xyz
  *     XYZ-coordinate of sphere
  * @param rgba
@@ -408,8 +379,7 @@ GraphicsShape::drawLineStripByteColor(void* openglContextPointer,
  *    Radius of the sphere.
  */
 void
-GraphicsShape::drawSphereByteColor(void* openglContextPointer,
-                                   const float xyz[3],
+GraphicsShape::drawSphereByteColor(const float xyz[3],
                                    const uint8_t rgba[4],
                                    const float radius)
 {
@@ -418,8 +388,7 @@ GraphicsShape::drawSphereByteColor(void* openglContextPointer,
     GraphicsPrimitive* spherePrimitive = NULL;
     for (const auto iter : s_byteSpherePrimitives) {
         const auto& key = iter.first;
-        if ((key.first == openglContextPointer)
-            && (key.second == numLatLonDivisions)) {
+        if ((key  == numLatLonDivisions)) {
             spherePrimitive = iter.second;
             CaretAssert(spherePrimitive);
             break;
@@ -437,7 +406,7 @@ GraphicsShape::drawSphereByteColor(void* openglContextPointer,
         /* colors may change but not coordinates/normals */
         spherePrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
         spherePrimitive->setUsageTypeColors(GraphicsPrimitive::UsageType::MODIFIED_MANY_DRAWN_MANY_TIMES);
-        s_byteSpherePrimitives.insert(std::make_pair(std::make_pair(openglContextPointer, numLatLonDivisions),
+        s_byteSpherePrimitives.insert(std::make_pair(numLatLonDivisions,
                                                      spherePrimitive));
     }
 
@@ -448,16 +417,13 @@ GraphicsShape::drawSphereByteColor(void* openglContextPointer,
     glPushMatrix();
     glTranslatef(xyz[0], xyz[1], xyz[2]);
     glScalef(radius, radius, radius);
-    GraphicsEngineDataOpenGL::draw(openglContextPointer,
-                                   spherePrimitive);
+    GraphicsEngineDataOpenGL::draw(spherePrimitive);
     glPopMatrix();
 }
 
 /**
  * Draw a filled circle at the given XYZ coordinate
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param xyz
  *     XYZ-coordinate of circle
  * @param rgba
@@ -466,8 +432,7 @@ GraphicsShape::drawSphereByteColor(void* openglContextPointer,
  *    Radius of the circle.
  */
 void
-GraphicsShape::drawCircleFilled(void *openglContextPointer,
-                             const float xyz[3],
+GraphicsShape::drawCircleFilled(const float xyz[3],
                              const uint8_t rgba[4],
                              const float radius)
 {
@@ -499,14 +464,66 @@ GraphicsShape::drawCircleFilled(void *openglContextPointer,
         glTranslatef(xyz[0], xyz[1], xyz[2]);
     }
     glScalef(radius, radius, 1.0f);
-    GraphicsEngineDataOpenGL::draw(openglContextPointer,
-                                   circlePrimitive);
+    GraphicsEngineDataOpenGL::draw(circlePrimitive);
+    glPopMatrix();
+}
+
+/**
+ * Draw a ring at the given XYZ coordinate
+ *
+ * @param xyz
+ *     XYZ-coordinate of ring
+ * @param rgba
+ *    Color for drawing.
+ * @param innerRadius
+ *    Inner adius of the ring.
+ * @param outerRadius
+ *    Outer adius of the ring.
+ */
+void
+GraphicsShape::drawRing(const float xyz[3],
+                        const uint8_t rgba[4],
+                        const double innerRadius,
+                        const double outerRadius)
+{
+    const int32_t numberOfDivisions = 20;
+    
+    GraphicsPrimitive* ringPrimitive = NULL;
+    for (const auto keyPrim : s_byteRingPrimitives) {
+        if (keyPrim.first.matches(numberOfDivisions,
+                                  innerRadius,
+                                  outerRadius)) {
+            ringPrimitive = keyPrim.second;
+            break;
+        }
+    }
+    
+    if (ringPrimitive == NULL) {
+        RingKey ringKey(numberOfDivisions, innerRadius, outerRadius);
+        ringPrimitive = createRingPrimitive(ringKey);
+        ringPrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
+        ringPrimitive->setUsageTypeColors(GraphicsPrimitive::UsageType::MODIFIED_MANY_DRAWN_MANY_TIMES);
+        s_byteRingPrimitives.insert(std::make_pair(RingKey(numberOfDivisions, innerRadius, outerRadius),
+                                                   ringPrimitive));
+    }
+    
+    CaretAssert(ringPrimitive);
+    
+    ringPrimitive->replaceAllVertexSolidByteRGBA(rgba);
+    
+    glPushMatrix();
+    if (xyz != NULL) {
+        glTranslatef(xyz[0], xyz[1], xyz[2]);
+    }
+    GraphicsEngineDataOpenGL::draw(ringPrimitive);
     glPopMatrix();
 }
 
 /**
  * Create the primitive for a circle.
  *
+ * @param numberOfDivisions
+ *    Number of divisions
  * @param radius
  *    Radius of the circle.
  */
@@ -521,7 +538,7 @@ GraphicsShape::createCirclePrimitive(const int32_t numberOfDivisions,
     const float step = (2.0 * M_PI) / numberOfDivisions;
     
     GraphicsPrimitiveV3f* primitive = GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN,
-                                                                         (float[]) { 1.0f, 1.0f, 1.0f, 1.0f });
+                                                                         (uint8_t[]) { 255, 255, 255, 255 });
     /*
      * Generate points around ring
      */
@@ -543,6 +560,8 @@ GraphicsShape::createCirclePrimitive(const int32_t numberOfDivisions,
 /**
  * Create the vertices for a ring.
  *
+ * @param numberOfDivisions
+ *    Number of divisions
  * @param innerRadius
  *    Inner radius of the ring.
  * @param outerRadius
@@ -551,30 +570,26 @@ GraphicsShape::createCirclePrimitive(const int32_t numberOfDivisions,
  *    Primitive containing vertices of ring.
  */
 GraphicsPrimitive*
-GraphicsShape::createRingPrimitive(const double innerRadius,
-                                   const double outerRadius)
+GraphicsShape::createRingPrimitive(const RingKey& ringKey)
 {
-    const int32_t numberOfSides = 20;
-    
     /*
      * Setup step size based upon number of points around circle
      */
-    //    const int32_t numberOfPoints = 8;
-    const float step = (2.0 * M_PI) / numberOfSides;
+    const float step = (2.0 * M_PI) / ringKey.m_numberOfDivisions;
     
     GraphicsPrimitiveV3f* primitive = GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                         (float[]) { 1.0f, 1.0f, 1.0f, 1.0f });
+                                                                         (uint8_t[]) { 255, 255, 255, 255 });
     /*
      * Generate points around ring
      */
     const float z = 0.0;
-    for (int32_t i = 0; i <= numberOfSides; i++) {
+    for (int32_t i = 0; i <= ringKey.m_numberOfDivisions; i++) {
         const float t = step * i;
         
-        const float xin = innerRadius * std::cos(t);
-        const float yin = innerRadius * std::sin(t);
-        const float xout = outerRadius * std::cos(t);
-        const float yout = outerRadius * std::sin(t);
+        const float xin  = ringKey.m_innerRadius * std::cos(t);
+        const float yin  = ringKey.m_innerRadius * std::sin(t);
+        const float xout = ringKey.m_outerRadius * std::cos(t);
+        const float yout = ringKey.m_outerRadius * std::sin(t);
         
         primitive->addVertex(xin, yin, z);
         primitive->addVertex(xout, yout, z);

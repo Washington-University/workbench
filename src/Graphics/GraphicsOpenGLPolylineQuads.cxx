@@ -62,14 +62,11 @@ GraphicsOpenGLPolylineQuads::~GraphicsOpenGLPolylineQuads()
  * Draw the given graphics primitive containing lines
  * by converting the lines to polygons.
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param primtive
  *     The graphics primitive.
  */
 bool
-GraphicsOpenGLPolylineQuads::draw(void* openglContextPointer,
-                                const GraphicsPrimitive* primitive)
+GraphicsOpenGLPolylineQuads::draw(const GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     if (primitive->isValid()) {
@@ -151,8 +148,7 @@ GraphicsOpenGLPolylineQuads::draw(void* openglContextPointer,
                 break;
         }
         
-        return drawLinesPrivate(openglContextPointer,
-                                primitive->m_xyz,
+        return drawLinesPrivate(primitive->m_xyz,
                                 primitive->m_floatRGBA,
                                 primitive->m_unsignedByteRGBA,
                                 primitive->m_polygonalLinePrimitiveRestartIndices,
@@ -169,8 +165,6 @@ GraphicsOpenGLPolylineQuads::draw(void* openglContextPointer,
  * OpenGL has limits on the width of the lines that it draws.  This method will
  * convert the lines into polygons so that any line width may be drawn.
  *
- * @param openglContextPointer
- *     Pointer to current OpenGL context.
  * @param primitive
  *     A graphics primitive with a primitive type that is one of the
  *     WORKBENCH_LINE* types.
@@ -181,17 +175,11 @@ GraphicsOpenGLPolylineQuads::draw(void* openglContextPointer,
  *     using polygons.  NULL if error.
  */
 GraphicsPrimitive*
-GraphicsOpenGLPolylineQuads::convertWorkbenchLinePrimitiveTypeToOpenGL(void* openglContextPointer,
-                                                                     const GraphicsPrimitive* primitive,
+GraphicsOpenGLPolylineQuads::convertWorkbenchLinePrimitiveTypeToOpenGL(const GraphicsPrimitive* primitive,
                                                                      AString& errorMessageOut)
 {
     CaretAssert(primitive);
     errorMessageOut.clear();
-    
-    if (openglContextPointer == NULL) {
-        errorMessageOut = "Pointer to current OpenGL context is invalid.";
-        return NULL;
-    }
     
     if ( ! primitive->isValid()) {
         errorMessageOut = "Primitive is not valid.";
@@ -276,8 +264,7 @@ GraphicsOpenGLPolylineQuads::convertWorkbenchLinePrimitiveTypeToOpenGL(void* ope
         return NULL;
     }
     
-    GraphicsOpenGLPolylineQuads lineConversion(NULL,
-                                             primitive->m_xyz,
+    GraphicsOpenGLPolylineQuads lineConversion(primitive->m_xyz,
                                              primitive->m_floatRGBA,
                                              primitive->m_unsignedByteRGBA,
                                              primitive->m_polygonalLinePrimitiveRestartIndices,
@@ -293,8 +280,6 @@ GraphicsOpenGLPolylineQuads::convertWorkbenchLinePrimitiveTypeToOpenGL(void* ope
 /**
  * Constructor.
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param xyz
  *     The XYZ vertices.
  * @param floatRGBA
@@ -311,16 +296,14 @@ GraphicsOpenGLPolylineQuads::convertWorkbenchLinePrimitiveTypeToOpenGL(void* ope
  * @param lineType
  *     Type of lines drawn.
  */
-GraphicsOpenGLPolylineQuads::GraphicsOpenGLPolylineQuads(void* openglContextPointer,
-                                                     const std::vector<float>& xyz,
+GraphicsOpenGLPolylineQuads::GraphicsOpenGLPolylineQuads(const std::vector<float>& xyz,
                                                      const std::vector<float>& floatRGBA,
                                                      const std::vector<uint8_t>& byteRGBA,
                                                      const std::set<int32_t>& vertexPrimitiveRestartIndices,
                                                      const float lineThicknessPixels,
                                                      const ColorType colorType,
                                                      const LineType lineType)
-: m_openglContextPointer(openglContextPointer),
-m_inputXYZ(xyz),
+: m_inputXYZ(xyz),
 m_inputFloatRGBA(floatRGBA),
 m_inputByteRGBA(byteRGBA),
 m_vertexPrimitiveRestartIndices(vertexPrimitiveRestartIndices),
@@ -331,291 +314,10 @@ m_lineType(lineType)
     
 }
 
-///**
-// * Draw lines where each pair of vertices is drawn as an independent
-// * line segment.  Same as OpenGL GL_LINES mode with glBegin().
-// *
-// * @param openglContextPointer
-// *     Pointer to OpenGL context.
-// * @param xyz
-// *     The vertices.
-// * @param rgba
-// *     RGBA color for the lines with values ranging [0.0, 1.0]
-// * @param lineThicknessPixels
-// *     Thickness of line in pixels.
-// * @return
-// *     True if drawn, or false if there was an error.
-// */
-//bool
-//GraphicsOpenGLPolylineQuads::drawLinesPerVertexFloatColor(void* openglContextPointer,
-//                                                   const std::vector<float>& xyz,
-//                                                   const std::vector<float>& rgba,
-//                                                   const float lineThicknessPixels)
-//{
-//    std::set<int32_t> emptyPrimitiveRestartIndices;
-//    std::vector<uint8_t> emptyByteRGBA;
-//    return drawLinesPrivate(openglContextPointer,
-//                            xyz,
-//                            rgba,
-//                            emptyByteRGBA,
-//                            emptyPrimitiveRestartIndices,
-//                            lineThicknessPixels,
-//                            ColorType::FLOAT_RGBA_PER_VERTEX,
-//                            LineType::LINES);
-//}
-//
-///**
-// * Draw lines where each pair of vertices is drawn as an independent
-// * line segment.  Same as OpenGL GL_LINES mode with glBegin().
-// *
-// * @param openglContextPointer
-// *     Pointer to OpenGL context.
-// * @param xyz
-// *     The vertices.
-// * @param rgba
-// *     RGBA color for the lines with values ranging [0.0, 1.0]
-// * @param lineThicknessPixels
-// *     Thickness of line in pixels.
-// * @return
-// *     True if drawn, or false if there was an error.
-// */
-//bool
-//GraphicsOpenGLPolylineQuads::drawLinesSolidFloatColor(void* openglContextPointer,
-//                                               const std::vector<float>& xyz,
-//                                               const float rgba[4],
-//                                               const float lineThicknessPixels)
-//{
-//    std::vector<float> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
-//    
-//    std::set<int32_t> emptyPrimitiveRestartIndices;
-//    std::vector<uint8_t> emptyByteRGBA;
-//    return drawLinesPrivate(openglContextPointer,
-//                            xyz,
-//                            rgbaVector,
-//                            emptyByteRGBA,
-//                            emptyPrimitiveRestartIndices,
-//                            lineThicknessPixels,
-//                            ColorType::FLOAT_RGBA_SOLID,
-//                            LineType::LINES);
-//}
-//
-///**
-// * Draw a connect line strip.  Same as OpenGL GL_LINE_STRIP mode with glBegin().
-// *
-// * @param openglContextPointer
-// *     Pointer to OpenGL context.
-// * @param xyz
-// *     The vertices.
-// * @param rgba
-// *     RGBA color for the lines with values ranging [0.0, 1.0]
-// * @param lineThicknessPixels
-// *     Thickness of line in pixels.
-// * @return
-// *     True if drawn, or false if there was an error.
-// */
-//bool
-//GraphicsOpenGLPolylineQuads::drawLineStripSolidFloatColor(void* openglContextPointer,
-//                                                   const std::vector<float>& xyz,
-//                                               const float rgba[4],
-//                                               const float lineThicknessPixels)
-//{
-//    std::vector<float> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
-//    std::vector<uint8_t> emptyByteRGBA;
-//    std::set<int32_t> emptyPrimitiveRestartIndices;
-//    
-//    return drawLinesPrivate(openglContextPointer,
-//                            xyz,
-//                            rgbaVector,
-//                            emptyByteRGBA,
-//                            emptyPrimitiveRestartIndices,
-//                            lineThicknessPixels,
-//                            ColorType::FLOAT_RGBA_SOLID,
-//                            LineType::LINE_STRIP);
-//}
-//
-///**
-// * Draw a connect line loop (last is connected to first).  Same as OpenGL GL_LINE_LOOP mode with glBegin().
-// *
-// * @param openglContextPointer
-// *     Pointer to OpenGL context.
-// * @param xyz
-// *     The vertices.
-// * @param rgba
-// *     RGBA color for the lines with values ranging [0.0, 1.0]
-// * @param lineThicknessPixels
-// *     Thickness of line in pixels.
-// * @return
-// *     True if drawn, or false if there was an error.
-// */
-//bool
-//GraphicsOpenGLPolylineQuads::drawLineLoopSolidFloatColor(void* openglContextPointer,
-//                                                  const std::vector<float>& xyz,
-//                                                   const float rgba[4],
-//                                                   const float lineThicknessPixels)
-//{
-//    std::vector<float> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
-//    std::vector<uint8_t> emptyByteRGBA;
-//    std::set<int32_t> emptyPrimitiveRestartIndices;
-//    
-//    return drawLinesPrivate(openglContextPointer,
-//                            xyz,
-//                            rgbaVector,
-//                            emptyByteRGBA,
-//                            emptyPrimitiveRestartIndices,
-//                            lineThicknessPixels,
-//                            ColorType::FLOAT_RGBA_SOLID,
-//                            LineType::LINE_LOOP);
-//}
-//
-//
-//
-//
-//
-///**
-// * Draw lines where each pair of vertices is drawn as an independent
-// * line segment.  Same as OpenGL GL_LINES mode with glBegin().
-// *
-// * @param openglContextPointer
-// *     Pointer to OpenGL context.
-// * @param xyz
-// *     The vertices.
-// * @param rgba
-// *     RGBA color for the lines with values ranging [0, 255]
-// * @param lineThicknessPixels
-// *     Thickness of line in pixels.
-// * @return
-// *     True if drawn, or false if there was an error.
-// */
-//bool
-//GraphicsOpenGLPolylineQuads::drawLinesPerVertexByteColor(void* openglContextPointer,
-//                                                        const std::vector<float>& xyz,
-//                                                        const std::vector<uint8_t>& rgba,
-//                                                        const float lineThicknessPixels)
-//{
-//    std::vector<float> emptyFloatRGBA;
-//    std::set<int32_t> emptyPrimitiveRestartIndices;
-//    
-//    return drawLinesPrivate(openglContextPointer,
-//                            xyz,
-//                            emptyFloatRGBA,
-//                            rgba,
-//                            emptyPrimitiveRestartIndices,
-//                            lineThicknessPixels,
-//                            ColorType::BYTE_RGBA_PER_VERTEX,
-//                            LineType::LINES);
-//}
-//
-///**
-// * Draw lines where each pair of vertices is drawn as an independent
-// * line segment.  Same as OpenGL GL_LINES mode with glBegin().
-// *
-// * @param openglContextPointer
-// *     Pointer to OpenGL context.
-// * @param xyz
-// *     The vertices.
-// * @param rgba
-// *     RGBA color for the lines with values ranging [0, 255]
-// * @param lineThicknessPixels
-// *     Thickness of line in pixels.
-// * @return
-// *     True if drawn, or false if there was an error.
-// */
-//bool
-//GraphicsOpenGLPolylineQuads::drawLinesSolidByteColor(void* openglContextPointer,
-//                                                    const std::vector<float>& xyz,
-//                                                    const uint8_t rgba[4],
-//                                                    const float lineThicknessPixels)
-//{
-//    std::vector<uint8_t> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
-//    
-//    std::vector<float> emptyFloatRGBA;
-//    std::set<int32_t> emptyPrimitiveRestartIndices;
-//    
-//    return drawLinesPrivate(openglContextPointer,
-//                            xyz,
-//                            emptyFloatRGBA,
-//                            rgbaVector,
-//                            emptyPrimitiveRestartIndices,
-//                            lineThicknessPixels,
-//                            ColorType::BYTE_RGBA_SOLID,
-//                            LineType::LINES);
-//}
-//
-///**
-// * Draw a connect line strip.  Same as OpenGL GL_LINE_STRIP mode with glBegin().
-// *
-// * @param openglContextPointer
-// *     Pointer to OpenGL context.
-// * @param xyz
-// *     The vertices.
-// * @param rgba
-// *     RGBA color for the lines with values ranging [0, 255]
-// * @param lineThicknessPixels
-// *     Thickness of line in pixels.
-// * @return
-// *     True if drawn, or false if there was an error.
-// */
-//bool
-//GraphicsOpenGLPolylineQuads::drawLineStripSolidByteColor(void* openglContextPointer,
-//                                                        const std::vector<float>& xyz,
-//                                                        const uint8_t rgba[4],
-//                                                        const float lineThicknessPixels)
-//{
-//    std::vector<uint8_t> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
-//    std::vector<float> emptyFloatRGBA;
-//    std::set<int32_t> emptyPrimitiveRestartIndices;
-//    
-//    return drawLinesPrivate(openglContextPointer,
-//                            xyz,
-//                            emptyFloatRGBA,
-//                            rgbaVector,
-//                            emptyPrimitiveRestartIndices,
-//                            lineThicknessPixels,
-//                            ColorType::BYTE_RGBA_SOLID,
-//                            LineType::LINE_STRIP);
-//}
-//
-///**
-// * Draw a connect line loop (last is connected to first).  Same as OpenGL GL_LINE_LOOP mode with glBegin().
-// *
-// * @param openglContextPointer
-// *     Pointer to OpenGL context.
-// * @param xyz
-// *     The vertices.
-// * @param rgba
-// *     RGBA color for the lines with values ranging [0, 255]
-// * @param lineThicknessPixels
-// *     Thickness of line in pixels.
-// * @return
-// *     True if drawn, or false if there was an error.
-// */
-//bool
-//GraphicsOpenGLPolylineQuads::drawLineLoopSolidByteColor(void* openglContextPointer,
-//                                                       const std::vector<float>& xyz,
-//                                                       const uint8_t rgba[4],
-//                                                       const float lineThicknessPixels)
-//{
-//    std::vector<uint8_t> rgbaVector = { rgba[0], rgba[1], rgba[2], rgba[3] };
-//    std::vector<float> emptyFloatRGBA;
-//    std::set<int32_t> emptyPrimitiveRestartIndices;
-//    
-//    return drawLinesPrivate(openglContextPointer,
-//                            xyz,
-//                            emptyFloatRGBA,
-//                            rgbaVector,
-//                            emptyPrimitiveRestartIndices,
-//                            lineThicknessPixels,
-//                            ColorType::BYTE_RGBA_SOLID,
-//                            LineType::LINE_LOOP);
-//}
-
-
 /**
  * Draw lines where each pair of vertices is drawn as an independent
  * line segment.  Same as OpenGL GL_LINES mode with glBegin().
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param xyz
  *     The vertices.
  * @param floatRGBA
@@ -634,8 +336,7 @@ m_lineType(lineType)
  *     True if drawn, or false if there was an error.
  */
 bool
-GraphicsOpenGLPolylineQuads::drawLinesPrivate(void* openglContextPointer,
-                                            const std::vector<float>& xyz,
+GraphicsOpenGLPolylineQuads::drawLinesPrivate(const std::vector<float>& xyz,
                                             const std::vector<float>& floatRGBA,
                                             const std::vector<uint8_t>& byteRGBA,
                                             const std::set<int32_t>& vertexPrimitiveRestartIndices,
@@ -643,8 +344,7 @@ GraphicsOpenGLPolylineQuads::drawLinesPrivate(void* openglContextPointer,
                                             const ColorType colorType,
                                             const LineType lineType)
 {
-    GraphicsOpenGLPolylineQuads lineDrawing(openglContextPointer,
-                                          xyz,
+    GraphicsOpenGLPolylineQuads lineDrawing(xyz,
                                           floatRGBA,
                                           byteRGBA,
                                           vertexPrimitiveRestartIndices,
@@ -1616,8 +1316,7 @@ GraphicsOpenGLPolylineQuads::drawQuads()
     glPolygonMode(GL_FRONT, GL_FILL);
     
     CaretAssert(m_primitive);
-    GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
-                                   m_primitive);
+    GraphicsEngineDataOpenGL::draw(m_primitive);
     if (m_debugFlag) {
         std::cout << std::endl << "Quad Primitive: " << m_primitive->toString() << std::endl;
         std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;

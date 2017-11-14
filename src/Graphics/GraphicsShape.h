@@ -39,8 +39,7 @@ namespace caret {
     public:
         virtual ~GraphicsShape();
         
-        static void drawBoxOutlineByteColor(void* openglContextPointer,
-                                            const float v1[3],
+        static void drawBoxOutlineByteColor(const float v1[3],
                                             const float v2[3],
                                             const float v3[3],
                                             const float v4[3],
@@ -48,8 +47,7 @@ namespace caret {
                                             const GraphicsPrimitive::SizeType lineThicknessType,
                                             const double lineThickness);
         
-        static void drawBoxOutlineFloatColor(void* openglContextPointer,
-                                             const float v1[3],
+        static void drawBoxOutlineFloatColor(const float v1[3],
                                              const float v2[3],
                                              const float v3[3],
                                              const float v4[3],
@@ -57,53 +55,50 @@ namespace caret {
                                              const GraphicsPrimitive::SizeType lineThicknessType,
                                              const double lineThickness);
         
-        static void drawBoxFilledByteColor(void* openglContextPointer,
-                                           const float v1[3],
+        static void drawBoxFilledByteColor(const float v1[3],
                                            const float v2[3],
                                            const float v3[3],
                                            const float v4[3],
                                            const uint8_t rgba[4]);
         
-        static void drawBoxFilledFloatColor(void* openglContextPointer,
-                                            const float v1[3],
+        static void drawBoxFilledFloatColor(const float v1[3],
                                             const float v2[3],
                                             const float v3[3],
                                             const float v4[3],
                                             const float rgba[4]);
         
-        static void drawEllipseOutlineByteColor(void* openglContextPointer,
-                                                const double majorAxis,
+        static void drawEllipseOutlineByteColor(const double majorAxis,
                                                 const double minorAxis,
                                                 const uint8_t rgba[4],
                                                 const GraphicsPrimitive::SizeType lineThicknessType,
                                                 const double lineThickness);
         
-        static void drawEllipseFilledByteColor(void* openglContextPointer,
-                                               const double majorAxis,
+        static void drawEllipseFilledByteColor(const double majorAxis,
                                                const double minorAxis,
                                                const uint8_t rgba[4]);
         
-        static void drawLinesByteColor(void* openglContextPointer,
-                                       const std::vector<float>& xyz,
+        static void drawLinesByteColor(const std::vector<float>& xyz,
                                        const uint8_t rgba[4],
                                        const GraphicsPrimitive::SizeType lineThicknessType,
                                        const double lineThickness);
         
-        static void drawLineStripByteColor(void* openglContextPointer,
-                                           const std::vector<float>& xyz,
+        static void drawLineStripByteColor(const std::vector<float>& xyz,
                                            const uint8_t rgba[4],
                                            const GraphicsPrimitive::SizeType lineThicknessType,
                                            const double lineThickness);
         
-        static void drawSphereByteColor(void* openglContextPointer,
-                                        const float xyz[3],
+        static void drawSphereByteColor(const float xyz[3],
                                         const uint8_t rgba[4],
                                         const float radius);
         
-        static void drawCircleFilled(void *openglContextPointer,
-                                     const float xyz[3],
+        static void drawCircleFilled(const float xyz[3],
                                      const uint8_t rgba[4],
                                      const float radius);
+        
+        static void drawRing(const float xyz[3],
+                             const uint8_t rgba[4],
+                             const double innerRadius,
+                             const double outerRadius);
         
         static void deleteAllPrimitives();
         
@@ -112,6 +107,44 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        class RingKey {
+        public:
+            RingKey(const int32_t numberOfDivisions,
+                    const float innerRadius,
+                    const float outerRadius)
+            : m_numberOfDivisions(numberOfDivisions),
+            m_innerRadius(innerRadius),
+            m_outerRadius(outerRadius) { }
+            
+            bool matches(const int32_t numberOfDivisions,
+                         const float innerRadius,
+                         const float outerRadius) const {
+                if ((m_numberOfDivisions == numberOfDivisions)
+                    && (m_innerRadius == innerRadius)
+                    && (m_outerRadius == outerRadius)) {
+                    return true;
+                }
+                return false;
+            }
+            
+            bool operator<(const RingKey& rhs) const {
+                if (m_numberOfDivisions < rhs.m_numberOfDivisions) {
+                    return true;
+                }
+                if (m_innerRadius < rhs.m_innerRadius) {
+                    return true;
+                }
+                if (m_outerRadius < rhs.m_outerRadius) {
+                    return true;
+                }
+                return false;
+            }
+            
+            int32_t m_numberOfDivisions;
+            float m_innerRadius;
+            float m_outerRadius;
+        };
+        
         GraphicsShape();
         
         GraphicsShape(const GraphicsShape&);
@@ -121,8 +154,7 @@ namespace caret {
         static GraphicsPrimitive* createCirclePrimitive(const int32_t numberOfDivisions,
                                                         const double radius);
         
-        static GraphicsPrimitive* createRingPrimitive(const double innerRadius,
-                                                      const double outerRadius);
+        static GraphicsPrimitive* createRingPrimitive(const RingKey& ringKey);
         
         static void createEllipseVertices(const double majorAxis,
                                           const double minorAxis,
@@ -141,17 +173,21 @@ namespace caret {
                                     float xyzOut[3],
                                     float normalXyzOut[3]);
         
-        static std::map<std::pair<void*, int32_t>, GraphicsPrimitive*> s_byteSpherePrimitives;
+        static std::map<int32_t, GraphicsPrimitive*> s_byteSpherePrimitives;
         
         static std::map<int32_t, GraphicsPrimitive*> s_byteCirclePrimitives;
+        
+        
+        static std::map<RingKey, GraphicsPrimitive*> s_byteRingPrimitives;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __GRAPHICS_SHAPE_DECLARE__
-    std::map<std::pair<void*, int32_t>, GraphicsPrimitive*> GraphicsShape::s_byteSpherePrimitives;
+    std::map<int32_t, GraphicsPrimitive*> GraphicsShape::s_byteSpherePrimitives;
     std::map<int32_t, GraphicsPrimitive*> GraphicsShape::s_byteCirclePrimitives;
+    std::map<GraphicsShape::RingKey, GraphicsPrimitive*> GraphicsShape::s_byteRingPrimitives;
 #endif // __GRAPHICS_SHAPE_DECLARE__
 
 } // namespace

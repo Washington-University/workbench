@@ -50,12 +50,10 @@ namespace caret {
         
         virtual ~GraphicsOpenGLPolylineTriangles();
         
-        static GraphicsPrimitive* convertWorkbenchLinePrimitiveTypeToOpenGL(void* openglContextPointer,
-                                                                            const GraphicsPrimitive* primitive,
+        static GraphicsPrimitive* convertWorkbenchLinePrimitiveTypeToOpenGL(const GraphicsPrimitive* primitive,
                                                                             AString& errorMessageOut);
         
-        static bool draw(void* openglContextPointer,
-                         const GraphicsPrimitive* primitive);
+        static bool draw(const GraphicsPrimitive* primitive);
         
 //        static bool drawLinesPerVertexFloatColor(void* openglContextPointer,
 //                                            const std::vector<float>& xyz,
@@ -175,8 +173,7 @@ namespace caret {
             const int32_t m_primitiveVertexTwoIndex;
         };
         
-        GraphicsOpenGLPolylineTriangles(void* openglContextPointer,
-                                  const std::vector<float>& xyz,
+        GraphicsOpenGLPolylineTriangles(const std::vector<float>& xyz,
                                   const std::vector<float>& floatRGBA,
                                   const std::vector<uint8_t>& byteRGBA,
                                   const std::set<int32_t>& vertexPrimitiveRestartIndices,
@@ -188,8 +185,7 @@ namespace caret {
         
         GraphicsOpenGLPolylineTriangles& operator=(const GraphicsOpenGLPolylineTriangles& obj) const;
         
-        static bool drawLinesPrivate(void* openglContextPointer,
-                                     const std::vector<float>& xyz,
+        static bool drawLinesPrivate(const std::vector<float>& xyz,
                                      const std::vector<float>& floatRGBA,
                                      const std::vector<uint8_t>& byteRGBA,
                                      const std::set<int32_t>& vertexPrimitiveRestartIndices,
@@ -230,8 +226,6 @@ namespace caret {
                                    const float v2[3],
                                    const float miterLength,
                                    float xyzOut[3]);
-        
-        void* m_openglContextPointer;
         
         const std::vector<float>& m_inputXYZ;
         

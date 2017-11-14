@@ -2815,15 +2815,13 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 glEnable(GL_LIGHTING);
             }
         }
-        GraphicsEngineDataOpenGL::draw(getContextSharingGroupPointer(),
-                                       pointsPrimitive.get());
+        GraphicsEngineDataOpenGL::draw(pointsPrimitive.get());
     }
     if (linesPrimitive) {
         glDisable(GL_LIGHTING);
         linesPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
                                      lineWidth);
-        GraphicsEngineDataOpenGL::draw(getContextSharingGroupPointer(),
-                                       linesPrimitive.get());
+        GraphicsEngineDataOpenGL::draw(linesPrimitive.get());
     }
     
     glPopAttrib();

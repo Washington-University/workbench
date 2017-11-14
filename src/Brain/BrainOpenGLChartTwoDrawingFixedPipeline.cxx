@@ -677,7 +677,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
             titleInfo.drawTitle(foregroundRGBA);
             leftAxisInfo.drawAxis(this,
                                   m_chartOverlaySet,
-                                  m_fixedPipelineDrawing->getContextSharingGroupPointer(),
                                   m_fixedPipelineDrawing->mouseX,
                                   m_fixedPipelineDrawing->mouseY,
                                   foregroundRGBA,
@@ -685,7 +684,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                   yMaxLeft);
             rightAxisInfo.drawAxis(this,
                                    m_chartOverlaySet,
-                                   m_fixedPipelineDrawing->getContextSharingGroupPointer(),
                                    m_fixedPipelineDrawing->mouseX,
                                    m_fixedPipelineDrawing->mouseY,
                                    foregroundRGBA,
@@ -693,7 +691,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                    yMaxRight);
             topAxisInfo.drawAxis(this,
                                  m_chartOverlaySet,
-                                 m_fixedPipelineDrawing->getContextSharingGroupPointer(),
                                  m_fixedPipelineDrawing->mouseX,
                                  m_fixedPipelineDrawing->mouseY,
                                  foregroundRGBA,
@@ -701,7 +698,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                  xMaxTop);
             bottomAxisInfo.drawAxis(this,
                                     m_chartOverlaySet,
-                                    m_fixedPipelineDrawing->getContextSharingGroupPointer(),
                                     m_fixedPipelineDrawing->mouseX,
                                     m_fixedPipelineDrawing->mouseY,
                                     foregroundRGBA,
@@ -913,8 +909,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                      */
                                     glPushMatrix();
                                     glScalef(1.0, 1000.0, 1.0);
-                                    GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-                                                                                histogramPrimitives->getBarsPrimitive(),
+                                    GraphicsEngineDataOpenGL::drawWithSelection(histogramPrimitives->getBarsPrimitive(),
                                                                                 m_fixedPipelineDrawing->mouseX,
                                                                                 m_fixedPipelineDrawing->mouseY,
                                                                                 primitiveIndex,
@@ -926,8 +921,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                      * Increase line width for identification
                                      */
                                     BrainOpenGL::setLineWidth(envelopeLineWidth * 3.0f);
-                                    GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-                                                                                histogramPrimitives->getEnvelopePrimitive(),
+                                    GraphicsEngineDataOpenGL::drawWithSelection(histogramPrimitives->getEnvelopePrimitive(),
                                                                                 m_fixedPipelineDrawing->mouseX,
                                                                                 m_fixedPipelineDrawing->mouseY,
                                                                                 primitiveIndex,
@@ -1021,8 +1015,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                     float   primitiveDepth = 0.0;
                     
                     BrainOpenGL::setLineWidth(LINE_SERIES_LINE_WIDTH * 5.0f);
-                    GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-                                                                lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
+                    GraphicsEngineDataOpenGL::drawWithSelection(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
                                                                 m_fixedPipelineDrawing->mouseX,
                                                                 m_fixedPipelineDrawing->mouseY,
                                                                 primitiveIndex,
@@ -1045,8 +1038,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                      */
                     m_fixedPipelineDrawing->enableLineAntiAliasing();
                     BrainOpenGL::setLineWidth(lineChart.m_chartTwoCartesianData->getLineWidth());
-                    GraphicsEngineDataOpenGL::draw(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-                                                   lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
+                    GraphicsEngineDataOpenGL::draw(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
                     m_fixedPipelineDrawing->disableLineAntiAliasing();
                 }
                 
@@ -1332,8 +1324,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
     if (m_identificationModeFlag) {
         int32_t primitiveIndex = -1;
         float   primitiveDepth = 0.0;
-        GraphicsEngineDataOpenGL::drawWithSelection(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-                                                    matrixPrimitive,
+        GraphicsEngineDataOpenGL::drawWithSelection(matrixPrimitive,
                                                     m_fixedPipelineDrawing->mouseX,
                                                     m_fixedPipelineDrawing->mouseY,
                                                     primitiveIndex,
@@ -1828,8 +1819,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawPrimitivePrivate(GraphicsPrimitive*
         return;
     }
     
-    GraphicsEngineDataOpenGL::draw(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-                                   primitive);
+    GraphicsEngineDataOpenGL::draw(primitive);
 }
 
 /**
@@ -2425,8 +2415,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
  *     The chart drawing parent.
  * @param chartTwoOverlaySet
  *     Chart overlay set containing the axis.
- * @param openGLContextSharingGroupPointer
- *     Pointer to current OpenGL context.
  * @param mouseX
  *     X-coordinate of the mouse.
  * @param mouseY
@@ -2441,7 +2429,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLChartTwoDrawingFixedPipeline* chartDrawing,
                                                                    ChartTwoOverlaySet* chartTwoOverlaySet,
-                                                                   void* openGLContextSharingGroupPointer,
                                                                    const int32_t mouseX,
                                                                    const int32_t mouseY,
                                                                    const float foregroundFloatRGBA[4],
@@ -2617,8 +2604,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
 //            boxPrimitive->addVertex(right, top, 0.0f);
 //            boxPrimitive->addVertex(left,  top, 0.0f);
             
-            GraphicsEngineDataOpenGL::drawWithSelection(openGLContextSharingGroupPointer,
-                                                        boxPrimitive.get(),
+            GraphicsEngineDataOpenGL::drawWithSelection(boxPrimitive.get(),
                                                         mouseX,
                                                         mouseY,
                                                         primitiveIndex,

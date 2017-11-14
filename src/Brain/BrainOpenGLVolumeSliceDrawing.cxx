@@ -3642,8 +3642,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 float widthPixels = thickness;
                 primitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
                                         widthPixels);
-                GraphicsEngineDataOpenGL::draw(m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-                                               primitive.get());
+                GraphicsEngineDataOpenGL::draw(primitive.get());
                 if (depthTestFlag) {
                     glEnable(GL_DEPTH_TEST);
                 }

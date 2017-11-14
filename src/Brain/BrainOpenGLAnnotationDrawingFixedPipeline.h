@@ -46,7 +46,6 @@ namespace caret {
     class Brain;
     
     class BrainOpenGLFixedPipeline;
-    class BrainOpenGLShapeRing;
     class Surface;
     
     class BrainOpenGLAnnotationDrawingFixedPipeline : public CaretObject {
@@ -346,9 +345,6 @@ namespace caret {
         
         /** Color for selection box and sizing handles */
         uint8_t m_selectionBoxRGBA[4];
-        
-        /** Used for rotation hanlde circle */
-        BrainOpenGLShapeRing* m_rotationHandleCircle;
         
         float m_lineWidthMinimum = 1.0f;
         

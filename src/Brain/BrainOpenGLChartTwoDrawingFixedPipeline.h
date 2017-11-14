@@ -158,7 +158,6 @@ namespace caret {
             
             void drawAxis(BrainOpenGLChartTwoDrawingFixedPipeline* chartDrawing,
                           ChartTwoOverlaySet* chartTwoOverlaySet,
-                          void* openGLContextSharingGroupPointer,
                           const int32_t mouseX,
                           const int32_t mouseY,
                           const float foregroundFloatRGBA[4],

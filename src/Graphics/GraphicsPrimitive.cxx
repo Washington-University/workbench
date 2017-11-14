@@ -751,7 +751,6 @@ GraphicsPrimitive::addVertexProtected(const float xyz[3],
     
     switch (m_colorType) {
         case ColorType::NONE:
-            CaretAssert(0);
             break;
         case ColorType::FLOAT_RGBA:
             CaretAssert(rgbaFloat);
@@ -1212,7 +1211,6 @@ GraphicsPrimitive::copyVertex(const int32_t copyFromIndex,
     for (int32_t i = 0; i < 4; i++) {
         switch (m_colorType) {
             case ColorType::NONE:
-                CaretAssert(0);
                 break;
             case ColorType::FLOAT_RGBA:
                 CaretAssertVectorIndex(m_floatRGBA, from4 + i);

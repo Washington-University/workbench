@@ -117,8 +117,7 @@ static const bool drawCrosshairsAtFontStartingCoordinate = false;
  * Constructor.
  */
 FtglFontTextRenderer::FtglFontTextRenderer()
-: BrainOpenGLTextRenderInterface(),
-m_contextSharingGroupPointer(0)
+: BrainOpenGLTextRenderInterface()
 {
     m_defaultFont = NULL;
 #ifdef HAVE_FREETYPE
@@ -155,18 +154,6 @@ FtglFontTextRenderer::~FtglFontTextRenderer()
      * a double delete.
      */
 #endif // HAVE_FREETYPE
-}
-
-/**
- * Constructor.
- *
- * @param contextSharingGroupPointer
- *     Shared OpenGL context pointer.
- */
-void
-FtglFontTextRenderer::setSharedOpenGLContextPointer(void* contextSharingGroupPointer)
-{
-    m_contextSharingGroupPointer = contextSharingGroupPointer;
 }
 
 /**
@@ -545,8 +532,7 @@ FtglFontTextRenderer::drawUnderline(const double lineStartX,
     underlineCoords.insert(underlineCoords.end(), lineY);
     underlineCoords.insert(underlineCoords.end(), lineZ);
     
-    GraphicsShape::drawLinesByteColor(m_contextSharingGroupPointer,
-                                      underlineCoords,
+    GraphicsShape::drawLinesByteColor(underlineCoords,
                                       foregroundRgba,
                                       GraphicsPrimitive::SizeType::PIXELS,
                                       underlineThickness);
@@ -597,8 +583,7 @@ FtglFontTextRenderer::drawOutline(const double minX,
     expandBox(bottomLeft, bottomRight, topRight, topLeft,
               outlineThickness, outlineThickness);
     
-    GraphicsShape::drawBoxOutlineByteColor(m_contextSharingGroupPointer,
-                                           bottomLeft, bottomRight, topRight, topLeft,
+    GraphicsShape::drawBoxOutlineByteColor(bottomLeft, bottomRight, topRight, topLeft,
                                            foregroundRgba,
                                            GraphicsPrimitive::SizeType::PIXELS, outlineThickness);
     

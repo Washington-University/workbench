@@ -50,53 +50,43 @@ namespace caret {
         
         virtual ~GraphicsOpenGLPolylineQuads();
         
-        static GraphicsPrimitive* convertWorkbenchLinePrimitiveTypeToOpenGL(void* openglContextPointer,
-                                                                            const GraphicsPrimitive* primitive,
+        static GraphicsPrimitive* convertWorkbenchLinePrimitiveTypeToOpenGL(const GraphicsPrimitive* primitive,
                                                                             AString& errorMessageOut);
         
-        static bool draw(void* openglContextPointer,
-                         const GraphicsPrimitive* primitive);
+        static bool draw(const GraphicsPrimitive* primitive);
         
-        static bool drawLinesPerVertexFloatColor(void* openglContextPointer,
-                                            const std::vector<float>& xyz,
-                                            const std::vector<float>& rgba,
-                                            const float lineThicknessPixels);
-        
-        static bool drawLinesSolidFloatColor(void* openglContextPointer,
-                                        const std::vector<float>& xyz,
-                                        const float rgba[4],
-                                        const float lineThicknessPixels);
-        
-        static bool drawLineStripSolidFloatColor(void* openglContextPointer,
-                                            const std::vector<float>& xyz,
-                                        const float rgba[4],
-                                        const float lineThicknessPixels);
-        
-        static bool drawLineLoopSolidFloatColor(void* openglContextPointer,
-                                           const std::vector<float>& xyz,
-                                           const float rgba[4],
-                                           const float lineThicknessPixels);
-        
-        
-        static bool drawLinesPerVertexByteColor(void* openglContextPointer,
-                                                 const std::vector<float>& xyz,
-                                                 const std::vector<uint8_t>& rgba,
-                                                 const float lineThicknessPixels);
-        
-        static bool drawLinesSolidByteColor(void* openglContextPointer,
-                                             const std::vector<float>& xyz,
-                                             const uint8_t rgba[4],
-                                             const float lineThicknessPixels);
-        
-        static bool drawLineStripSolidByteColor(void* openglContextPointer,
-                                                 const std::vector<float>& xyz,
-                                                 const uint8_t rgba[4],
-                                                 const float lineThicknessPixels);
-        
-        static bool drawLineLoopSolidByteColor(void* openglContextPointer,
-                                                const std::vector<float>& xyz,
-                                                const uint8_t rgba[4],
-                                                const float lineThicknessPixels);
+//        static bool drawLinesPerVertexFloatColor(const std::vector<float>& xyz,
+//                                            const std::vector<float>& rgba,
+//                                            const float lineThicknessPixels);
+//        
+//        static bool drawLinesSolidFloatColor(const std::vector<float>& xyz,
+//                                        const float rgba[4],
+//                                        const float lineThicknessPixels);
+//        
+//        static bool drawLineStripSolidFloatColor(const std::vector<float>& xyz,
+//                                        const float rgba[4],
+//                                        const float lineThicknessPixels);
+//        
+//        static bool drawLineLoopSolidFloatColor(const std::vector<float>& xyz,
+//                                           const float rgba[4],
+//                                           const float lineThicknessPixels);
+//        
+//        
+//        static bool drawLinesPerVertexByteColor(const std::vector<float>& xyz,
+//                                                 const std::vector<uint8_t>& rgba,
+//                                                 const float lineThicknessPixels);
+//        
+//        static bool drawLinesSolidByteColor(const std::vector<float>& xyz,
+//                                             const uint8_t rgba[4],
+//                                             const float lineThicknessPixels);
+//        
+//        static bool drawLineStripSolidByteColor(const std::vector<float>& xyz,
+//                                                 const uint8_t rgba[4],
+//                                                 const float lineThicknessPixels);
+//        
+//        static bool drawLineLoopSolidByteColor(const std::vector<float>& xyz,
+//                                                const uint8_t rgba[4],
+//                                                const float lineThicknessPixels);
         
         // ADD_NEW_METHODS_HERE
 
@@ -168,8 +158,7 @@ namespace caret {
             int32_t m_primitiveThreeFourIndex;
         };
         
-        GraphicsOpenGLPolylineQuads(void* openglContextPointer,
-                                  const std::vector<float>& xyz,
+        GraphicsOpenGLPolylineQuads(const std::vector<float>& xyz,
                                   const std::vector<float>& floatRGBA,
                                   const std::vector<uint8_t>& byteRGBA,
                                   const std::set<int32_t>& vertexPrimitiveRestartIndices,
@@ -181,8 +170,7 @@ namespace caret {
         
         GraphicsOpenGLPolylineQuads& operator=(const GraphicsOpenGLPolylineQuads& obj) const;
         
-        static bool drawLinesPrivate(void* openglContextPointer,
-                                     const std::vector<float>& xyz,
+        static bool drawLinesPrivate(const std::vector<float>& xyz,
                                      const std::vector<float>& floatRGBA,
                                      const std::vector<uint8_t>& byteRGBA,
                                      const std::set<int32_t>& vertexPrimitiveRestartIndices,
@@ -227,8 +215,6 @@ namespace caret {
                                    const float miterLength,
                                    float xyzOut[3]);
         
-        void* m_openglContextPointer;
-        
         const std::vector<float>& m_inputXYZ;
         
         const std::vector<float>& m_inputFloatRGBA;
@@ -246,10 +232,6 @@ namespace caret {
         std::vector<float> m_vertexWindowXYZ;
         
         std::vector<int32_t> m_vertexWindowInputIndices;
-        
-        //std::vector<float> m_windowQuadsXYZ;
-        
-        //std::vector<float> m_windowQuadsRGBA;
         
         JoinType m_joinType = JoinType::MITER;
         

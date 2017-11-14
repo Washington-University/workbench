@@ -38,23 +38,19 @@ namespace caret {
     class GraphicsEngineDataOpenGL : public GraphicsEngineData {
         
     public:
-        GraphicsEngineDataOpenGL(const void* openglContextPointer);
+        GraphicsEngineDataOpenGL();
         
         virtual ~GraphicsEngineDataOpenGL();
 
         void deleteBuffers();
         
-        static void draw(void* openglContextPointer,
-                         GraphicsPrimitive* primitive);
+        static void draw(GraphicsPrimitive* primitive);
         
-        static void drawWithSelection(void* openglContextPointer,
-                                      GraphicsPrimitive* primitive,
+        static void drawWithSelection(GraphicsPrimitive* primitive,
                                       const int32_t pixelX,
                                       const int32_t pixelY,
                                       int32_t& selectedPrimitiveIndexOut,
                                       float&   selectedPrimitiveDepthOut);
-        
-        const void* getOpenGLContextPointer() const;
         
         void invalidateCoordinates();
         
@@ -85,17 +81,14 @@ namespace caret {
         void loadTextureImageDataBuffer(GraphicsPrimitive* primitive);
         
         static void drawPrivate(const PrivateDrawMode drawMode,
-                                void* openglContextPointer,
                                 GraphicsPrimitive* primitive,
                                 GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
         
         static void drawWindowSpace(const PrivateDrawMode drawMode,
-                                void* openglContextPointer,
                                 GraphicsPrimitive* primitive,
                                 GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
         
-        static void drawSpheresPrimitive(void* openglContextPointer,
-                                         const GraphicsPrimitive* primitive);
+        static void drawSpheresPrimitive(const GraphicsPrimitive* primitive);
         
         GLenum getOpenGLBufferUsageHint(const GraphicsPrimitive::UsageType primitiveUsageType) const;
         
@@ -108,9 +101,6 @@ namespace caret {
         
         static void restoreOpenGLStateForWindowSpaceDrawing(int32_t polygonMode[2],
                                                      int32_t viewport[4]);
-        
-        const void* m_openglContextPointer;
-        
         
         GLsizei m_arrayIndicesCount = 0;
         

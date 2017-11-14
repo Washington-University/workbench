@@ -57,17 +57,6 @@ DummyFontTextRenderer::~DummyFontTextRenderer()
 }
 
 /**
- * Constructor.
- *
- * @param contextSharingGroupPointer
- *     Shared OpenGL context pointer.
- */
-void
-DummyFontTextRenderer::setSharedOpenGLContextPointer(void* /*contextSharingGroupPointer*/)
-{
-}
-
-/**
  * @return The font system is valid.
  */
 bool

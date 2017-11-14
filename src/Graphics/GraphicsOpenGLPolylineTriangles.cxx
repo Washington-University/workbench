@@ -61,14 +61,11 @@ GraphicsOpenGLPolylineTriangles::~GraphicsOpenGLPolylineTriangles()
  * Draw the given graphics primitive containing lines
  * by converting the lines to polygons.
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param primtive
  *     The graphics primitive.
  */
 bool
-GraphicsOpenGLPolylineTriangles::draw(void* openglContextPointer,
-                                const GraphicsPrimitive* primitive)
+GraphicsOpenGLPolylineTriangles::draw(const GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     if (primitive->isValid()) {
@@ -150,8 +147,7 @@ GraphicsOpenGLPolylineTriangles::draw(void* openglContextPointer,
                 break;
         }
         
-        return drawLinesPrivate(openglContextPointer,
-                                primitive->m_xyz,
+        return drawLinesPrivate(primitive->m_xyz,
                                 primitive->m_floatRGBA,
                                 primitive->m_unsignedByteRGBA,
                                 primitive->m_polygonalLinePrimitiveRestartIndices,
@@ -168,8 +164,6 @@ GraphicsOpenGLPolylineTriangles::draw(void* openglContextPointer,
  * OpenGL has limits on the width of the lines that it draws.  This method will
  * convert the lines into polygons so that any line width may be drawn.
  *
- * @param openglContextPointer
- *     Pointer to current OpenGL context.
  * @param primitive
  *     A graphics primitive with a primitive type that is one of the
  *     WORKBENCH_LINE* types.
@@ -180,17 +174,11 @@ GraphicsOpenGLPolylineTriangles::draw(void* openglContextPointer,
  *     using polygons.  NULL if error.
  */
 GraphicsPrimitive*
-GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(void* openglContextPointer,
-                                                                     const GraphicsPrimitive* primitive,
+GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const GraphicsPrimitive* primitive,
                                                                      AString& errorMessageOut)
 {
     CaretAssert(primitive);
     errorMessageOut.clear();
-    
-    if (openglContextPointer == NULL) {
-        errorMessageOut = "Pointer to current OpenGL context is invalid.";
-        return NULL;
-    }
     
     if ( ! primitive->isValid()) {
         errorMessageOut = "Primitive is not valid.";
@@ -275,8 +263,7 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(void*
         return NULL;
     }
     
-    GraphicsOpenGLPolylineTriangles lineConversion(NULL,
-                                             primitive->m_xyz,
+    GraphicsOpenGLPolylineTriangles lineConversion(primitive->m_xyz,
                                              primitive->m_floatRGBA,
                                              primitive->m_unsignedByteRGBA,
                                              primitive->m_polygonalLinePrimitiveRestartIndices,
@@ -292,8 +279,6 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(void*
 /**
  * Constructor.
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param xyz
  *     The XYZ vertices.
  * @param floatRGBA
@@ -310,16 +295,14 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(void*
  * @param lineType
  *     Type of lines drawn.
  */
-GraphicsOpenGLPolylineTriangles::GraphicsOpenGLPolylineTriangles(void* openglContextPointer,
-                                                     const std::vector<float>& xyz,
+GraphicsOpenGLPolylineTriangles::GraphicsOpenGLPolylineTriangles(const std::vector<float>& xyz,
                                                      const std::vector<float>& floatRGBA,
                                                      const std::vector<uint8_t>& byteRGBA,
                                                      const std::set<int32_t>& vertexPrimitiveRestartIndices,
                                                      const float lineThicknessPixels,
                                                      const ColorType colorType,
                                                      const LineType lineType)
-: m_openglContextPointer(openglContextPointer),
-m_inputXYZ(xyz),
+: m_inputXYZ(xyz),
 m_inputFloatRGBA(floatRGBA),
 m_inputByteRGBA(byteRGBA),
 m_vertexPrimitiveRestartIndices(vertexPrimitiveRestartIndices),
@@ -334,8 +317,6 @@ m_lineType(lineType)
  * Draw lines where each pair of vertices is drawn as an independent
  * line segment.  Same as OpenGL GL_LINES mode with glBegin().
  *
- * @param openglContextPointer
- *     Pointer to OpenGL context.
  * @param xyz
  *     The vertices.
  * @param floatRGBA
@@ -354,8 +335,7 @@ m_lineType(lineType)
  *     True if drawn, or false if there was an error.
  */
 bool
-GraphicsOpenGLPolylineTriangles::drawLinesPrivate(void* openglContextPointer,
-                                            const std::vector<float>& xyz,
+GraphicsOpenGLPolylineTriangles::drawLinesPrivate(const std::vector<float>& xyz,
                                             const std::vector<float>& floatRGBA,
                                             const std::vector<uint8_t>& byteRGBA,
                                             const std::set<int32_t>& vertexPrimitiveRestartIndices,
@@ -363,8 +343,7 @@ GraphicsOpenGLPolylineTriangles::drawLinesPrivate(void* openglContextPointer,
                                             const ColorType colorType,
                                             const LineType lineType)
 {
-    GraphicsOpenGLPolylineTriangles lineDrawing(openglContextPointer,
-                                          xyz,
+    GraphicsOpenGLPolylineTriangles lineDrawing(xyz,
                                           floatRGBA,
                                           byteRGBA,
                                           vertexPrimitiveRestartIndices,
@@ -1398,8 +1377,7 @@ GraphicsOpenGLPolylineTriangles::drawTriangles()
     glPolygonMode(GL_FRONT, GL_FILL);
     
     CaretAssert(m_primitive);
-    GraphicsEngineDataOpenGL::draw(m_openglContextPointer,
-                                   m_primitive);
+    GraphicsEngineDataOpenGL::draw(m_primitive);
     if (m_debugFlag) {
         std::cout << std::endl << "Quad Primitive: " << m_primitive->toString() << std::endl;
         std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
