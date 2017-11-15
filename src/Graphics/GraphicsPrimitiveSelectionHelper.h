@@ -58,12 +58,10 @@ namespace caret {
         GraphicsPrimitive* m_parentGraphicsPrimitive;
         
         int32_t m_numberOfVerticesPerPrimitive = 0;
-        
-        //int32_t m_numberOfSelectionIndicesPerPrimitive = 0;
+
+        int32_t m_vertexOffsetForPrimitive = 0;
         
         std::vector<uint8_t> m_selectionEncodedRGBA;
-        
-        //std::vector<int32_t> m_selectionIndices;
         
         // ADD_NEW_MEMBERS_HERE
 

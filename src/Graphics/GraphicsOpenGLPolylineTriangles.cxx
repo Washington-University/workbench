@@ -112,18 +112,6 @@ GraphicsOpenGLPolylineTriangles::draw(const GraphicsPrimitive* primitive)
                 CaretLogSevere("POINTS is not a valid line drawing type");
                 return false;
                 break;
-            case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
-                CaretLogSevere("POLYGON is not a valid line drawing type");
-                return false;
-                break;
-            case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
-                CaretLogSevere("QUAD_STRIP is not a valid line drawing type");
-                return false;
-                break;
-            case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
-                CaretLogSevere("QUADS is not a valid line drawing type");
-                return false;
-                break;
             case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
                 CaretLogSevere("TRIANGLE_FAN is not a valid line drawing type");
                 return false;
@@ -170,8 +158,8 @@ GraphicsOpenGLPolylineTriangles::draw(const GraphicsPrimitive* primitive)
  * @param errorMessageOut
  *     Upon exit contains an error message if conversion failed.
  * @return
- *     A graphics primitive with an OPENGL_QUADS type that draws the lines
- *     using polygons.  NULL if error.
+ *     A graphics primitive with an OPENGL_TRIANGLES type that draws the lines
+ *     using triangles.  NULL if error.
  */
 GraphicsPrimitive*
 GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const GraphicsPrimitive* primitive,
@@ -226,15 +214,6 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
             errorMessageOut = "Input type is OPENGL_POINTS but must be one of the POLYGONAL_LINE* types";
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
-            errorMessageOut = "Input type is OPENGL_POLYGON but must be one of the POLYGONAL_LINE* types";
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
-            errorMessageOut = "Input type is OPENGL_QUAD_STRIP but must be one of the POLYGONAL_LINE* types";
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
-            errorMessageOut = "Input type is OPENGL_QUADS but must be one of the POLYGONAL_LINE* types";
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
             errorMessageOut = "Input type is OPENGL_TRIANGLE_FAN but must be one of the POLYGONAL_LINE* types";

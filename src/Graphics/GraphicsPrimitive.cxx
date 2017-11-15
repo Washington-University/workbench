@@ -381,33 +381,6 @@ GraphicsPrimitive::isValid() const
                 break;
             case PrimitiveType::OPENGL_POINTS:
                 break;
-            case PrimitiveType::OPENGL_POLYGON:
-                if (numXYZ < 3) {
-                    CaretLogWarning("Polygon must have at least 3 vertices.");
-                }
-                break;
-            case PrimitiveType::OPENGL_QUAD_STRIP:
-                if (numXYZ < 4) {
-                    CaretLogWarning("Quad strip must have at least 4 vertices.");
-                }
-                else {
-                    const uint32_t extraVertices = numXYZ % 2;
-                    if (extraVertices > 0) {
-                        CaretLogWarning("Extra vertices for drawing quads ignored.");
-                    }
-                }
-                break;
-            case PrimitiveType::OPENGL_QUADS:
-                if (numXYZ < 4) {
-                    CaretLogWarning("Quads must have at least 4 vertices.");
-                }
-                else {
-                    const uint32_t extraVertices = numXYZ % 4;
-                    if (extraVertices > 0) {
-                        CaretLogWarning("Extra vertices for drawing quads ignored.");
-                    }
-                }
-                break;
             case PrimitiveType::OPENGL_TRIANGLE_FAN:
                 if (numXYZ < 3) {
                     CaretLogWarning("Triangle fan must have at least 3 vertices.");
@@ -482,15 +455,6 @@ GraphicsPrimitive::getPrimitiveTypeAsText() const
             break;
         case PrimitiveType::OPENGL_POINTS:
             s = "OpenGL Points";
-            break;
-        case PrimitiveType::OPENGL_POLYGON:
-            s = "OpenGL Polygon";
-            break;
-        case PrimitiveType::OPENGL_QUAD_STRIP:
-            s = "OpenGL Quad Strip";
-            break;
-        case PrimitiveType::OPENGL_QUADS:
-            s = "OpenGL Quads";
             break;
         case PrimitiveType::OPENGL_TRIANGLE_FAN:
             s = "OpenGL Triangle Fan";
@@ -665,12 +629,6 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             break;
         case PrimitiveType::OPENGL_POINTS:
             addPointSizeFlag = true;
-            break;
-        case PrimitiveType::OPENGL_POLYGON:
-            break;
-        case PrimitiveType::OPENGL_QUAD_STRIP:
-            break;
-        case PrimitiveType::OPENGL_QUADS:
             break;
         case PrimitiveType::OPENGL_TRIANGLE_FAN:
             break;
@@ -1105,12 +1063,6 @@ GraphicsPrimitive::addPrimitiveRestart()
             break;
         case PrimitiveType::OPENGL_POINTS:
             break;
-        case PrimitiveType::OPENGL_POLYGON:
-            break;
-        case PrimitiveType::OPENGL_QUAD_STRIP:
-            break;
-        case PrimitiveType::OPENGL_QUADS:
-            break;
         case PrimitiveType::OPENGL_TRIANGLE_FAN:
             break;
         case PrimitiveType::OPENGL_TRIANGLE_STRIP:
@@ -1316,7 +1268,7 @@ GraphicsPrimitive::getPointDiameter(SizeType& sizeTypeOut,
  */
 void
 GraphicsPrimitive::setPointDiameter(const SizeType sizeType,
-                                    const float pointDiameter)
+                                    const float pointDiameter) const
 {
     m_pointSizeType  = sizeType;
     m_pointDiameterValue = pointDiameter;
@@ -1348,7 +1300,7 @@ GraphicsPrimitive::getLineWidth(SizeType& widthTypeOut,
  */
 void
 GraphicsPrimitive::setLineWidth(const SizeType widthType,
-                                const float lineWidth)
+                                const float lineWidth) const
 {
     m_lineWidthType = widthType;
     m_lineWidthValue = lineWidth;
@@ -1380,7 +1332,7 @@ GraphicsPrimitive::getSphereDiameter(SizeType& sizeTypeOut,
  */
 void
 GraphicsPrimitive::setSphereDiameter(const SizeType sizeType,
-                                     const float sphereDiameter)
+                                     const float sphereDiameter) const
 {
     m_sphereSizeType  = sizeType;
     m_sphereDiameterValue = sphereDiameter;

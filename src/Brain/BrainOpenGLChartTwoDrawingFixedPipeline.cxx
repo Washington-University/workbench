@@ -533,8 +533,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
         
         ChartTwoTitle* chartTitle = m_chartOverlaySet->getChartTitle();
         
-        //double width = 0.0, height = 0.0;
-        
         GLint vp[4];
         glGetIntegerv(GL_VIEWPORT, vp);
         
@@ -732,61 +730,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                                chartGraphicsDrawingViewport);
         }
         
-//        /*
-//         * Ensure that there is sufficient space for the axes data display.
-//         */
-//        if ((tabViewportWidth > (leftAxisWidth + rightAxisWidth))
-//            && (tabViewportHeight > (bottomAxisHeight + topAxisHeight + topTitleHeight))) {
-//            
-//            titleInfo.drawTitle(foregroundRGBA);
-//            leftAxisInfo.drawAxis(this,
-//                                  m_chartOverlaySet,
-//                                  m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-//                                  m_fixedPipelineDrawing->mouseX,
-//                                  m_fixedPipelineDrawing->mouseY,
-//                                  foregroundRGBA,
-//                                  yMinLeft,
-//                                  yMaxLeft);
-//            rightAxisInfo.drawAxis(this,
-//                                   m_chartOverlaySet,
-//                                   m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-//                                   m_fixedPipelineDrawing->mouseX,
-//                                   m_fixedPipelineDrawing->mouseY,
-//                                   foregroundRGBA,
-//                                   yMinRight,
-//                                   yMaxRight);
-//            topAxisInfo.drawAxis(this,
-//                                 m_chartOverlaySet,
-//                                 m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-//                                 m_fixedPipelineDrawing->mouseX,
-//                                 m_fixedPipelineDrawing->mouseY,
-//                                 foregroundRGBA,
-//                                 xMinTop,
-//                                 xMaxTop);
-//            bottomAxisInfo.drawAxis(this,
-//                                    m_chartOverlaySet,
-//                                    m_fixedPipelineDrawing->getContextSharingGroupPointer(),
-//                                    m_fixedPipelineDrawing->mouseX,
-//                                    m_fixedPipelineDrawing->mouseY,
-//                                    foregroundRGBA,
-//                                    xMinBottom,
-//                                    xMaxBottom);
-//            
-//            
-//            drawChartGraphicsBoxAndSetViewport(tabViewportX,
-//                                               tabViewportY,
-//                                               tabViewportWidth,
-//                                               tabViewportHeight,
-//                                               m_chartOverlaySet->getAxisLineThickness(),
-//                                               topTitleHeight,
-//                                               bottomAxisHeight,
-//                                               topAxisHeight,
-//                                               leftAxisWidth,
-//                                               rightAxisWidth,
-//                                               true, /* draw the box */
-//                                               chartGraphicsDrawingViewport);
-//        }
-        
         /*
          * When the user is editing an axis minimum or maximum value,
          * their difference may become zero which will cause
@@ -914,13 +857,23 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                                                                 m_fixedPipelineDrawing->mouseY,
                                                                                 primitiveIndex,
                                                                                 primitiveDepth);
+                                    
+                                    /*
+                                     * Each bar is drawn using two triangles
+                                     */
+                                    CaretAssert(histogramPrimitives->getBarsPrimitive()->getPrimitiveType()
+                                                == GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
+                                    if (primitiveIndex > 0) {
+                                        primitiveIndex /= 2;
+                                    }
                                     glPopMatrix();
                                 }
                                 else if (drawEnvelopeFlag) {
                                     /*
                                      * Increase line width for identification
                                      */
-                                    BrainOpenGL::setLineWidth(envelopeLineWidth * 3.0f);
+                                    histogramPrimitives->getEnvelopePrimitive()->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
+                                                                                        envelopeLineWidth * 3.0f);
                                     GraphicsEngineDataOpenGL::drawWithSelection(histogramPrimitives->getEnvelopePrimitive(),
                                                                                 m_fixedPipelineDrawing->mouseX,
                                                                                 m_fixedPipelineDrawing->mouseY,
@@ -943,7 +896,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                     drawPrimitivePrivate(histogramPrimitives->getBarsPrimitive());
                                 }
                                 if (drawEnvelopeFlag) {
-                                    BrainOpenGL::setLineWidth(envelopeLineWidth);
+                                    histogramPrimitives->getEnvelopePrimitive()->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
+                                                                                        envelopeLineWidth);
                                     m_fixedPipelineDrawing->enableLineAntiAliasing();
                                     drawPrimitivePrivate(histogramPrimitives->getEnvelopePrimitive());
                                     m_fixedPipelineDrawing->disableLineAntiAliasing();
@@ -1330,6 +1284,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                     primitiveIndex,
                                                     primitiveDepth);
         if (primitiveIndex >= 0) {
+            /*
+             * Two triangles per cell so divided the primitive index by two
+             */
+            CaretAssert(matrixPrimitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
+            primitiveIndex /= 2;
+            
             int32_t numberOfRows = 0;
             int32_t numberOfColumns = 0;
             matrixChart->getMatrixDimensions(numberOfRows,
@@ -1394,11 +1354,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             const bool limitSelectionToTriangularFlag = false;
             
             for (auto rowIndex : selectedRowIndices) {
-//                std::unique_ptr<GraphicsPrimitiveV3f> rowOutlineData4f
-//                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP,
-//                                                                                           highlightRGBA));
-//                rowOutlineData4f->reserveForNumberOfVertices(4);
-                
                 float minX = 0;
                 float maxX = numberOfColumns;
                 const float minY = numberOfRows - rowIndex - 1;
@@ -1420,12 +1375,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 }
                 
                 const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
-//                rowOutlineData4f->addVertex(minX, minY);
-//                rowOutlineData4f->addVertex(maxX, minY);
-//                rowOutlineData4f->addVertex(maxX, maxY);
-//                rowOutlineData4f->addVertex(minX, maxY);
-//                BrainOpenGL::setLineWidth(highlightLineWidth);
-//                //drawPrimitivePrivate(rowOutlineData4f.get());
                 
                 GraphicsPrimitiveV3fC4f* rowOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP);
                 rowOutlineData->reserveForNumberOfVertices(4);
@@ -1442,11 +1391,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
             }
             
             for (auto columnIndex : selectedColumnIndices) {
-//                std::unique_ptr<GraphicsPrimitiveV3f> columnOutlineData4f
-//                = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP,
-//                                                                                           highlightRGBA));
-//                columnOutlineData4f->reserveForNumberOfVertices(4);
-                
                 const float minX = columnIndex;
                 const float maxX = columnIndex + 1;
                 float minY = 0;
@@ -1468,12 +1412,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 }
                 
                 const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
-//                columnOutlineData4f->addVertex(minX, minY);
-//                columnOutlineData4f->addVertex(maxX, minY);
-//                columnOutlineData4f->addVertex(maxX, maxY);
-//                columnOutlineData4f->addVertex(minX, maxY);
-//                BrainOpenGL::setLineWidth(highlightLineWidth);
-//                //drawPrimitivePrivate(columnOutlineData4f.get());
                 
                 GraphicsPrimitiveV3fC4f* columnOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP);
                 columnOutlineData->reserveForNumberOfVertices(4);
@@ -2540,7 +2478,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
         m_labelText->getCoordinate()->getXYZ(xyz);
         if (chartDrawing->m_identificationModeFlag) {
             /*
-             * For identification simply draw a box in a single quad
+             * For identification simply draw a box using a triangle strip
              */
             int32_t primitiveIndex = -1;
             float   primitiveDepth = 0.0;
@@ -2550,59 +2488,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
                                                              m_tabViewportWidth, m_tabViewportHeight,
                                                              bottomLeft, bottomRight, topRight, topLeft);
             
-            std::unique_ptr<GraphicsPrimitiveV3f> boxPrimitive = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS,
-                                                                                                                                        foregroundFloatRGBA));
+            std::unique_ptr<GraphicsPrimitiveV3f> boxPrimitive = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                                                                                                                          foregroundFloatRGBA));
             boxPrimitive->reserveForNumberOfVertices(4);
-            boxPrimitive->addVertex(bottomLeft);
-            boxPrimitive->addVertex(bottomRight);
-            boxPrimitive->addVertex(topRight);
             boxPrimitive->addVertex(topLeft);
+            boxPrimitive->addVertex(bottomLeft);
+            boxPrimitive->addVertex(topRight);
+            boxPrimitive->addVertex(bottomRight);
             boxPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, m_lineDrawingWidth);
-            
-//            Complete offsets and maybe examine alignments from the text annotation to set the offsets
-//            
-//            float horizSize = 0.0f;
-//            float vertSize  = 0.0f;
-//            switch (m_axisLocation) {
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//                    horizSize = m_labelWidth;
-//                    vertSize  = m_labelHeight;
-//                    xyz[1] += (vertSize / 2.0f);
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//                    horizSize = m_labelWidth;
-//                    vertSize  = m_labelHeight;
-//                    xyz[1] -= (vertSize / 2.0f);
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//                    /*
-//                     * Label is drawn rotated 90 degrees !
-//                     */
-//                    horizSize = m_labelHeight;
-//                    vertSize  = m_labelWidth;
-//                    xyz[0] += (horizSize / 2.0f);
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//                    /*
-//                     * Label is drawn rotated 90 degrees !
-//                     */
-//                    horizSize = m_labelHeight;
-//                    vertSize  = m_labelWidth;
-//                    xyz[0] -= (horizSize / 2.0f);
-//                    break;
-//            }
-//            
-//            const float halfWidth  = horizSize / 2.0f;
-//            const float halfHeight = vertSize  / 2.0f;
-//            const float left   = xyz[0] - halfWidth;
-//            const float right  = xyz[0] + halfWidth;
-//            const float bottom = xyz[1] - halfHeight;
-//            const float top    = xyz[1] + halfHeight;
-//            std::unique_ptr<GraphicsPrimitiveV3f> boxPrimitive = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS,
-//                                                                                              foregroundFloatRGBA));
-//            boxPrimitive->addVertex(left,  bottom, 0.0f);
-//            boxPrimitive->addVertex(right, bottom, 0.0f);
-//            boxPrimitive->addVertex(right, top, 0.0f);
-//            boxPrimitive->addVertex(left,  top, 0.0f);
             
             GraphicsEngineDataOpenGL::drawWithSelection(boxPrimitive.get(),
                                                         mouseX,

@@ -1526,8 +1526,17 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
         if (getMatrixForChartingRGBA(numberOfRows, numberOfColumns, matrixRGBA)) {
             const int32_t numberOfCells = numberOfRows * numberOfColumns;
             if (numberOfCells > 0) {
-                matrixPrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS);
-                matrixPrimitive->reserveForNumberOfVertices(numberOfCells * 4);  // QUADS
+                switch (gridMode) {
+                    case MatrixGridMode::FILLED:
+                        matrixPrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
+                        matrixPrimitive->reserveForNumberOfVertices(numberOfCells * 6);  // 2 triangles per cell, 3 vertices per triangle
+                        break;
+                    case MatrixGridMode::OUTLINE:
+                        /* Lines are used around each cell to simplify upper/lower triangular options */
+                        matrixPrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES);
+                        matrixPrimitive->reserveForNumberOfVertices(numberOfCells * 8);  // 4 lines per cell, 2 vertices per line
+                        break;
+                }
                 matrixPrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
                 
                 /*
@@ -1551,7 +1560,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                  * not displayed due to the triangular view selection.
                  * The reason is that it greatly simplifies identification as
                  * one can derive the row and column from the primitive index.
-                 * Using quads also simplifies identification.  Lastly, since
+                 * Using triangles also simplifies identification.  Lastly, since
                  * OpenGL buffers are used, drawing is very fast.
                  */
                 int32_t rgbaOffset = 0;
@@ -1627,32 +1636,32 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                         
                         switch (gridMode) {
                             case MatrixGridMode::FILLED:
-                                if (drawCellFlag) {
-                                    matrixPrimitive->addVertex(cellX, cellY, 0.0, rgba);
-                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, rgba);
-                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, rgba);
-                                    matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, rgba);
-                                }
-                                else {
-                                    matrixPrimitive->addVertex(cellX, cellY, 0.0, cellNotDrawRGBA);
-                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellNotDrawRGBA);
-                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellNotDrawRGBA);
-                                    matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellNotDrawRGBA);
-                                }
+                            {
+                                const float* cellRGBA = (drawCellFlag ? rgba : cellNotDrawRGBA);
+                                matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixPrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
+                                matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
+                                
+                                matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
+                                matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
+                            }
                                 break;
                             case MatrixGridMode::OUTLINE:
-                                if (drawCellFlag) {
-                                    matrixPrimitive->addVertex(cellX, cellY, 0.0, cellOutlineRGBA);
-                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellOutlineRGBA);
-                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellOutlineRGBA);
-                                    matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellOutlineRGBA);
-                                }
-                                else {
-                                    matrixPrimitive->addVertex(cellX, cellY, 0.0, cellNotDrawRGBA);
-                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellNotDrawRGBA);
-                                    matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellNotDrawRGBA);
-                                    matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellNotDrawRGBA);
-                                }
+                            {
+                                const float* cellRGBA = (drawCellFlag ? cellOutlineRGBA : cellNotDrawRGBA);
+                                matrixPrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
+                                matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
+                                
+                                matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
+                                matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
+
+                                matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
+                                
+                                matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixPrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
+                            }
                                 break;
                         }
                         

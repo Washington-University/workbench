@@ -30,7 +30,6 @@
 #include "EventGraphicsOpenGLCreateTextureName.h"
 #include "EventManager.h"
 #include "GraphicsOpenGLBufferObject.h"
-#include "GraphicsOpenGLPolylineQuads.h"
 #include "GraphicsOpenGLPolylineTriangles.h"
 #include "GraphicsOpenGLTextureName.h"
 #include "GraphicsPrimitive.h"
@@ -479,12 +478,6 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
             break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
-            break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
@@ -508,9 +501,6 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
     }
     else if (workbenchLineFlag) {
         AString errorMessage;
-//        primitiveToDraw = GraphicsOpenGLPolylineQuads::convertWorkbenchLinePrimitiveTypeToOpenGL(openglContextPointer,
-//                                                                                               primitive,
-//                                                                                               errorMessage);
         primitiveToDraw = GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(primitive,
                                                                                                  errorMessage);
         if (primitiveToDraw == NULL) {
@@ -705,12 +695,6 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
             break;
@@ -999,15 +983,6 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
             openGLPrimitiveType = GL_POINTS;
             glPointSize(getPointDiameterForDrawingInPixels(primitive));
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
-            openGLPrimitiveType = GL_POLYGON;
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
-            openGLPrimitiveType = GL_QUAD_STRIP;
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
-            openGLPrimitiveType = GL_QUADS;
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
             openGLPrimitiveType = GL_TRIANGLE_FAN;

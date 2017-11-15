@@ -84,7 +84,10 @@ namespace caret {
         };
         
         /**
-         * Type of primitives for drawing
+         * Type of primitives for drawing.  There are NO primitives equivalent to
+         * OpenGL's GL_QUAD_STRIP and GL_POLYGON.  The reason is that these
+         * primitive types are removed in 3.x (probably 3.2).
+         *
          * Descriptions are copied from the glVertex man page.
          */
         enum class PrimitiveType {
@@ -111,23 +114,6 @@ namespace caret {
              * Treats each vertex as a single point.  Vertex n defines point n.  n points are drawn.
              */
             OPENGL_POINTS,
-            /** 
-             * Draws a single, convex polygon.  Vertices 1 through n define this polygon. 
-             */
-            OPENGL_POLYGON,
-            /** 
-             * Draws  a connected group of quadrilaterals.  One quadrilateral is defined for each pair
-             * of vertices presented after the first pair.  Vertices 2n-1, 2n, 2n+2, and  2n+1  define
-             * quadrilateral  n.  n/2 quadrilaterals are drawn.  Note that the order in which vertices
-             * are used to construct a quadrilateral from strip data is different from that used  with
-             * independent data.
-             */
-            OPENGL_QUAD_STRIP,
-            /** 
-             * Treats each group of four vertices as an  independent  quadrilateral.
-             * Vertices  4n-3, 4n-2, 4n-3, and 4n define quadrilateral n.  n/4 quadrilaterals are drawn.
-             */
-            OPENGL_QUADS,
             /**
              * Draws a connected group of triangles.  One triangle is defined  for  each  vertex
              * presented  after the first two vertices.  Vertices 1, n+1, and n+2 define triangle n.  n-2
@@ -322,19 +308,19 @@ namespace caret {
                               float& pointDiameterOut) const;
         
         void setPointDiameter(const SizeType sizeType,
-                              const float pointDiameter);
+                              const float pointDiameter) const;
         
         void getLineWidth(SizeType& widthTypeOut,
                           float lineWidthOut) const;
         
         void setLineWidth(const SizeType widthType,
-                          const float lineWidth);
+                          const float lineWidth) const;
         
         void getSphereDiameter(SizeType& sizeTypeOut,
                                float& sphereDiameterOut) const;
         
         void setSphereDiameter(const SizeType sizeType,
-                               const float sphereDiameter);
+                               const float sphereDiameter) const;
         
         GraphicsEngineDataOpenGL* getGraphicsEngineDataForOpenGL();
         
@@ -392,17 +378,17 @@ namespace caret {
         
         int32_t m_textureImageHeight = -1;
         
-        SizeType m_pointSizeType = SizeType::PIXELS;
+        mutable SizeType m_pointSizeType = SizeType::PIXELS;
         
-        float m_pointDiameterValue = 1.0f;
+        mutable float m_pointDiameterValue = 1.0f;
         
-        SizeType m_lineWidthType = SizeType::PIXELS;
+        mutable SizeType m_lineWidthType = SizeType::PIXELS;
         
-        float m_lineWidthValue = 1.0f;
+        mutable float m_lineWidthValue = 1.0f;
         
-        SizeType m_sphereSizeType = SizeType::PIXELS;
+        mutable SizeType m_sphereSizeType = SizeType::PIXELS;
         
-        float m_sphereDiameterValue = 1.0f;
+        mutable float m_sphereDiameterValue = 1.0f;
         
         mutable std::unique_ptr<BoundingBox> m_boundingBox;
         
@@ -431,7 +417,6 @@ namespace caret {
         
         std::vector<uint8_t> m_textureImageBytesRGBA;
         friend class GraphicsEngineDataOpenGL;
-        friend class GraphicsOpenGLPolylineQuads;
         friend class GraphicsOpenGLPolylineTriangles;
         friend class GraphicsPrimitiveSelectionHelper;
         

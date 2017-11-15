@@ -56,6 +56,10 @@ namespace caret {
 
         GraphicsPrimitiveV3fT3f* getGraphicsPrimitive() const;
         
+        void setVertexBounds(const float bottomLeft[3],
+                             const float bottomRight[3],
+                             const float topRight[3],
+                             const float topLeft[3]);
         // ADD_NEW_METHODS_HERE
 
           

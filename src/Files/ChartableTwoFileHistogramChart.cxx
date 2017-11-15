@@ -88,11 +88,6 @@ m_histogramContentType(histogramContentType)
  */
 ChartableTwoFileHistogramChart::~ChartableTwoFileHistogramChart()
 {
-//    for (auto mapHistoPair : m_indexHistogramsMap) {
-//        delete mapHistoPair.second;
-//    }
-//    m_indexHistogramsMap.clear();
-    
     delete m_sceneAssistant;
 }
 
@@ -134,7 +129,6 @@ void
 ChartableTwoFileHistogramChart::invalidateAllColoring()
 {
     m_mapHistogramPrimitives.clear();
-    //std::cout << "Invalidating histograms..." << std::endl;
 }
 
 /**
@@ -421,7 +415,7 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
          * Use Lines when drawing envelope (two vertices per line)
          * Using quads and lines simplifies identification of individual bars in the histogram
          */
-        GraphicsPrimitiveV3fC4f* barsPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS);
+        GraphicsPrimitiveV3fC4f* barsPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
         barsPrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForQuads);
         GraphicsPrimitiveV3fC4f* envelopePrimitive  = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES);
         envelopePrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForEnvelope);
@@ -465,30 +459,42 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
             float threshMinValue = paletteColorMapping->getThresholdNormalMinimum();
             float threshMaxValue = paletteColorMapping->getThresholdNormalMaximum();
             
-            thresholdPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS);
+            thresholdPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
             
             switch (paletteColorMapping->getThresholdTest()) {
                 case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
                 {
-                    thresholdPrimitive->reserveForNumberOfVertices(8);
+                    thresholdPrimitive->reserveForNumberOfVertices(12);
+
+                    thresholdPrimitive->addVertex(minX, maxY, threshRGBA);
                     thresholdPrimitive->addVertex(minX, minY, threshRGBA);
                     thresholdPrimitive->addVertex(threshMinValue, minY, threshRGBA);
-                    thresholdPrimitive->addVertex(threshMinValue, maxY, threshRGBA);
-                    thresholdPrimitive->addVertex(minX, maxY, threshRGBA);
                     
+                    thresholdPrimitive->addVertex(minX, maxY, threshRGBA);
+                    thresholdPrimitive->addVertex(threshMinValue, minY, threshRGBA);
+                    thresholdPrimitive->addVertex(threshMinValue, maxY, threshRGBA);
+                    
+                    
+                    thresholdPrimitive->addVertex(threshMaxValue, maxY, threshRGBA);
                     thresholdPrimitive->addVertex(threshMaxValue, minY, threshRGBA);
                     thresholdPrimitive->addVertex(maxX, minY, threshRGBA);
-                    thresholdPrimitive->addVertex(maxX, maxY, threshRGBA);
+                    
                     thresholdPrimitive->addVertex(threshMaxValue, maxY, threshRGBA);
+                    thresholdPrimitive->addVertex(maxX, minY, threshRGBA);
+                    thresholdPrimitive->addVertex(maxX, maxY, threshRGBA);
                 }
                     break;
                 case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
                 {
-                    thresholdPrimitive->reserveForNumberOfVertices(4);
+                    thresholdPrimitive->reserveForNumberOfVertices(6);
+                    
+                    thresholdPrimitive->addVertex(threshMinValue, maxY, threshRGBA);
                     thresholdPrimitive->addVertex(threshMinValue, minY, threshRGBA);
                     thresholdPrimitive->addVertex(threshMaxValue, minY, threshRGBA);
-                    thresholdPrimitive->addVertex(threshMaxValue, maxY, threshRGBA);
+                    
                     thresholdPrimitive->addVertex(threshMinValue, maxY, threshRGBA);
+                    thresholdPrimitive->addVertex(threshMaxValue, minY, threshRGBA);
+                    thresholdPrimitive->addVertex(threshMaxValue, maxY, threshRGBA);
                 }
                     break;
             }
@@ -548,22 +554,20 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
             }
             
             if (barsSolidColorFlag) {
-                /*
-                 * Use alpha from normal coloring
-                 */
                 barsSolidColorRGBA[3] = rgba[3];
-                barsPrimitive->addVertex(xMin, yMin, barsSolidColorRGBA);
-                barsPrimitive->addVertex(xMax, yMin, barsSolidColorRGBA);
-                barsPrimitive->addVertex(xMax, yMax, barsSolidColorRGBA);
-                barsPrimitive->addVertex(xMin, yMax, barsSolidColorRGBA);
             }
-            else {
-                barsPrimitive->addVertex(xMin, yMin, rgba);
-                barsPrimitive->addVertex(xMax, yMin, rgba);
-                barsPrimitive->addVertex(xMax, yMax, rgba);
-                barsPrimitive->addVertex(xMin, yMax, rgba);
-            }
+            const float* cellRGBA = (barsSolidColorFlag ? barsSolidColorRGBA : rgba);
+
+            /* Triangle One for Cell*/
+            barsPrimitive->addVertex(xMin, yMax, cellRGBA);
+            barsPrimitive->addVertex(xMin, yMin, cellRGBA);
+            barsPrimitive->addVertex(xMax, yMin, cellRGBA);
             
+            /* Triangle Two for Cell */
+            barsPrimitive->addVertex(xMin, yMax, cellRGBA);
+            barsPrimitive->addVertex(xMax, yMin, cellRGBA);
+            barsPrimitive->addVertex(xMax, yMax, cellRGBA);
+
             if (envelopeSolidColorFlag) {
                 const float envelopeX = x + halfBucketWidth;
                 if (i == 0) {

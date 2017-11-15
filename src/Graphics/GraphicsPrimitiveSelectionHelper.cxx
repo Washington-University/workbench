@@ -70,6 +70,7 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
     }
     
     m_numberOfVerticesPerPrimitive = 0;
+    m_vertexOffsetForPrimitive     = 0;
     
     switch (m_parentGraphicsPrimitive->getPrimitiveType()) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
@@ -87,20 +88,25 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
         case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
             m_numberOfVerticesPerPrimitive = 1;
             break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_POLYGON:
-            m_numberOfVerticesPerPrimitive = numberOfVertices;
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_QUAD_STRIP:
-            CaretAssertMessage(0, "Not yet implemented");
-            break;
-        case GraphicsPrimitive::PrimitiveType::OPENGL_QUADS:
-            m_numberOfVerticesPerPrimitive = 4;
-            break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
-            CaretAssertMessage(0, "Not yet implemented");
+            /*
+             * Assuming vertices start at ZERO
+             * Color is at vertex (i + 2):
+             * Vertex[2] is color for first triangle,
+             * Vertex[3] is color for second triangle...
+             */
+            m_numberOfVerticesPerPrimitive = 1;
+            m_vertexOffsetForPrimitive     = 2;
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
-            CaretAssertMessage(0, "Not yet implemented");
+            /*
+             * Assuming vertices start at ZERO
+             * Color is at vertex (i + 2):
+             * Vertex[2] is color for first triangle,
+             * Vertex[3] is color for second triangle...
+             */
+            m_numberOfVerticesPerPrimitive = 1;
+            m_vertexOffsetForPrimitive     = 2;
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             m_numberOfVerticesPerPrimitive = 3;
@@ -111,7 +117,7 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
     }
     
     if (numberOfVertices > 0) {
-        const int32_t numberOfPrimitives = numberOfVertices / m_numberOfVerticesPerPrimitive;
+        const int32_t numberOfPrimitives = (numberOfVertices / m_numberOfVerticesPerPrimitive) - m_vertexOffsetForPrimitive;
         const int32_t maxPrimitivesSupported = 255 * 255 * 255;
         if (numberOfPrimitives > maxPrimitivesSupported) {
             const AString msg("Number of primitives for selection="
@@ -130,10 +136,12 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
                 m_selectionEncodedRGBA.resize(selectionRgbaSize);
                 
                 /*
-                 * Encode the primitive index into the RGBA selection data
+                 * Encode the primitive index into the RGBA selection data.
                  */
                 int32_t indexRGBA = 0;
-                for (int32_t primitiveIndex = 0; primitiveIndex < numberOfPrimitives; primitiveIndex++) {
+                const int32_t startIndex = m_vertexOffsetForPrimitive;
+                const int32_t endIndex   = m_vertexOffsetForPrimitive + numberOfPrimitives;
+                for (int32_t primitiveIndex = startIndex; primitiveIndex < endIndex; primitiveIndex++) {
                     uint8_t blue  = (uint8_t)(primitiveIndex         & 0xff);
                     uint8_t green = (uint8_t)((primitiveIndex >> 8)  & 0xff);
                     uint8_t red   = (uint8_t)((primitiveIndex >> 16) & 0xff);
@@ -166,6 +174,25 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
                         }
                         
                         m_selectionEncodedRGBA[indexRGBA+3] = vertexAlpha;
+                        
+                        if (primitiveIndex == startIndex) {
+                            if (startIndex > 0) {
+                                /*
+                                 * For THE FIRST triangle in a triangle strip or fan, 
+                                 * its color is at vertex 2 (assuming first index is ZERO).
+                                 * Here we copy the color from vertex 2 to vertices
+                                 * 0 and 1.  This is not absolutely necessary but it 
+                                 * ensures correct color values and avoid a possible
+                                 * NaN from unintialized values.
+                                 */
+                                for (int32_t m = 0; m < startIndex; m++) {
+                                    const int32_t m4 = m * 4;
+                                    for (int32_t n = 0; n < 4; n++) {
+                                        m_selectionEncodedRGBA[m4 + n] = m_selectionEncodedRGBA[indexRGBA + n];
+                                    }
+                                }
+                            }
+                        }
                         indexRGBA += 4;
                     }
                 }
@@ -200,7 +227,7 @@ GraphicsPrimitiveSelectionHelper::getPrimitiveIndexFromEncodedRGBA(const uint8_t
                 && (rgba[1] == m_selectionEncodedRGBA[i4+1])
                 && (rgba[2] == m_selectionEncodedRGBA[i4+2])) {
                 if (m_selectionEncodedRGBA[i4+3] > 0) {
-                    primitiveIndex = i / m_numberOfVerticesPerPrimitive;
+                    primitiveIndex = (i / m_numberOfVerticesPerPrimitive) + m_vertexOffsetForPrimitive;
                 }
                 break;
             }

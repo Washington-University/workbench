@@ -231,24 +231,53 @@ AnnotationImage::getGraphicsPrimitive() const
 {
     if (m_graphicsPrimitive == NULL) {
         if ( ! m_imageBytesRGBA.empty()) {
-            GraphicsPrimitiveV3fT3f* primitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS,
+            GraphicsPrimitiveV3fT3f* primitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &m_imageBytesRGBA[0],
                                                                                        m_imageWidth,
                                                                                        m_imageHeight);
             /*
-             * Four coordinates are needed but XY values do not mattter.
-             * These XY values are replaced when the image is drawn.
-             * The texture (S, T) do matter.
+             * A Triangle Strip (consisting of two triangles) is used
+             * for drawing the image.  At this time, the XYZ coordinates
+             * do not matter and they will be updated when the annotation
+             * is drawn by a call to ::setVertexBounds().
+             * The order of the vertices in the triangle strip is
+             * Top Left, Bottom Left, Top Right, Bottom Right.  If this
+             * order changes, ::setVertexBounds must be updated.
+             *
+             * Zeros are used for the X- and Y-coordinates.
+             * The third and fourth parameters are the texture
+             * S and T coordinates.
              */
-            primitive->addVertex(50, 50, 0.0, 0.0);
-            primitive->addVertex(250, 50, 1.0, 0.0);
-            primitive->addVertex(250, 250, 1.0, 1.0);
-            primitive->addVertex(50, 250, 0.0, 1.0);
+            primitive->addVertex(0, 0, 0, 1);  /* Top Left */
+            primitive->addVertex(0, 0, 0, 0);  /* Bottom Left */
+            primitive->addVertex(0, 0, 1, 1);  /* Top Right */
+            primitive->addVertex(0, 0, 1, 0);  /* Bottom Right */
+
             m_graphicsPrimitive.reset(primitive);
+            
+            
+//            create triangles above and add method to set the vertex coordintes (bottom left, bottom right, etc)
         }
     }
     
     return m_graphicsPrimitive.get();
+}
+
+void
+AnnotationImage::setVertexBounds(const float bottomLeft[3],
+                                 const float bottomRight[3],
+                                 const float topRight[3],
+                                 const float topLeft[3])
+{
+    GraphicsPrimitiveV3fT3f* primitive = getGraphicsPrimitive();
+    CaretAssert(primitive);
+    
+    CaretAssert(primitive->getNumberOfVertices() == 4);
+
+    primitive->replaceVertexFloatXYZ(0, topLeft);
+    primitive->replaceVertexFloatXYZ(1, bottomLeft);
+    primitive->replaceVertexFloatXYZ(2, topRight);
+    primitive->replaceVertexFloatXYZ(3, bottomRight);
 }
 
 /**

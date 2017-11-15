@@ -111,6 +111,7 @@ GraphicsShape::drawBoxOutlineByteColor(const float v1[3],
 {
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP,
                                                                                        rgba));
+    primitive->reserveForNumberOfVertices(4);
     primitive->addVertex(v1);
     primitive->addVertex(v2);
     primitive->addVertex(v3);
@@ -152,6 +153,7 @@ GraphicsShape::drawBoxOutlineFloatColor(const float v1[3],
 {
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP,
                                                                                        rgba));
+    primitive->reserveForNumberOfVertices(4);
     primitive->addVertex(v1);
     primitive->addVertex(v2);
     primitive->addVertex(v3);
@@ -165,7 +167,7 @@ GraphicsShape::drawBoxOutlineFloatColor(const float v1[3],
 }
 
 /**
- * Draw a filled box.
+ * Draw a filled box.  Vertices must be in a counter-clockwise order.
  *
  * @param v1
  *    First vertex.
@@ -185,12 +187,15 @@ GraphicsShape::drawBoxFilledByteColor(const float v1[3],
                                    const float v4[3],
                                    const uint8_t rgba[4])
 {
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
                                                                                        rgba));
+    primitive->reserveForNumberOfVertices(6);
     primitive->addVertex(v1);
     primitive->addVertex(v2);
     primitive->addVertex(v3);
+    primitive->addVertex(v3);
     primitive->addVertex(v4);
+    primitive->addVertex(v1);
     
     primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
@@ -198,7 +203,7 @@ GraphicsShape::drawBoxFilledByteColor(const float v1[3],
 }
 
 /**
- * Draw a filled box.
+ * Draw a filled box.  Vertices must be in a counter-clockwise order.
  *
  * @param v1
  *    First vertex.
@@ -218,12 +223,15 @@ GraphicsShape::drawBoxFilledFloatColor(const float v1[3],
                                        const float v4[3],
                                        const float rgba[4])
 {
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_QUADS,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
                                                                                        rgba));
+    primitive->reserveForNumberOfVertices(6);
     primitive->addVertex(v1);
     primitive->addVertex(v2);
     primitive->addVertex(v3);
+    primitive->addVertex(v3);
     primitive->addVertex(v4);
+    primitive->addVertex(v1);
     
     primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
     
@@ -258,6 +266,7 @@ GraphicsShape::drawEllipseOutlineByteColor(const double majorAxis,
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP,
                                                                                        rgba));
     const int32_t numVertices = static_cast<int32_t>(ellipseXYZ.size() / 3);
+    primitive->reserveForNumberOfVertices(numVertices);
     for (int32_t i = 0; i < numVertices; i++) {
         primitive->addVertex(&ellipseXYZ[i * 3]);
     }
@@ -286,13 +295,14 @@ GraphicsShape::drawEllipseFilledByteColor(const double majorAxis,
 {
     std::vector<float> ellipseXYZ;
     createEllipseVertices(majorAxis, minorAxis, ellipseXYZ);
+    const int32_t numVertices = static_cast<int32_t>(ellipseXYZ.size() / 3);
 
     
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN,
                                                                                        rgba));
+    primitive->reserveForNumberOfVertices(numVertices + 1);
     const float center[3] = { 0.0f, 0.0f, 0.0f };
     primitive->addVertex(center);
-    const int32_t numVertices = static_cast<int32_t>(ellipseXYZ.size() / 3);
     for (int32_t i = 0; i < numVertices; i++) {
         primitive->addVertex(&ellipseXYZ[i * 3]);
     }
@@ -325,6 +335,7 @@ GraphicsShape::drawLinesByteColor(const std::vector<float>& xyz,
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
                                                                                        rgba));
     const int32_t numVertices = static_cast<int32_t>(xyz.size() / 3);
+    primitive->reserveForNumberOfVertices(numVertices);
     for (int32_t i = 0; i < numVertices; i++) {
         primitive->addVertex(&xyz[i * 3]);
     }
@@ -357,6 +368,7 @@ GraphicsShape::drawLineStripByteColor(const std::vector<float>& xyz,
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP,
                                                                                        rgba));
     const int32_t numVertices = static_cast<int32_t>(xyz.size() / 3);
+    primitive->reserveForNumberOfVertices(numVertices);
     for (int32_t i = 0; i < numVertices; i++) {
         primitive->addVertex(&xyz[i * 3]);
     }
@@ -539,6 +551,7 @@ GraphicsShape::createCirclePrimitive(const int32_t numberOfDivisions,
     
     GraphicsPrimitiveV3f* primitive = GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN,
                                                                          (uint8_t[]) { 255, 255, 255, 255 });
+    primitive->reserveForNumberOfVertices(numberOfDivisions + 2);
     /*
      * Generate points around ring
      */
@@ -579,6 +592,7 @@ GraphicsShape::createRingPrimitive(const RingKey& ringKey)
     
     GraphicsPrimitiveV3f* primitive = GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                          (uint8_t[]) { 255, 255, 255, 255 });
+    primitive->reserveForNumberOfVertices((ringKey.m_numberOfDivisions + 1) * 2);
     /*
      * Generate points around ring
      */

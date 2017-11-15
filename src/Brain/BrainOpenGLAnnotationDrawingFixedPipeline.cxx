@@ -2431,20 +2431,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                 }
             }
             
+            image->setVertexBounds(bottomLeft,
+                                   bottomRight,
+                                   topRight,
+                                   topLeft);
             GraphicsPrimitiveV3fT3f* primitive = image->getGraphicsPrimitive();
             if (primitive != NULL) {
                 if (primitive->isValid()) {
-                    /*
-                     * Replace the primitive's XYZ values here
-                     * Image ALWAYS has four coordinates
-                     */
-                    std::vector<float> xyz;
-                    xyz.insert(xyz.end(), bottomLeft,  bottomLeft + 3);
-                    xyz.insert(xyz.end(), bottomRight, bottomRight + 3);
-                    xyz.insert(xyz.end(), topRight,    topRight + 3);
-                    xyz.insert(xyz.end(), topLeft,     topLeft + 3);
-                    primitive->replaceFloatXYZ(xyz);
-                    
                     GraphicsEngineDataOpenGL::draw(primitive);
                 }
                 drawnFlag = true;
