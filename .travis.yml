@@ -15,7 +15,7 @@ git:
 addons:
     apt:
         sources:
-            - sourceline: ppa:beineri/opt-qt562-trusty
+            - sourceline: ppa:beineri/opt-qt571-trusty
         packages:
             - qt56base
             - zlib1g-dev
@@ -30,7 +30,7 @@ env:
         - OMP_NUM_THREADS=4
 
 before_install:
-    - source /opt/qt56/bin/qt56-env.sh
+    - source /opt/qt57/bin/qt57-env.sh
     - mkdir ../build
     - cd ../build
 
