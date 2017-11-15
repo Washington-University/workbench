@@ -547,7 +547,7 @@ ENABLE_TESTING()
 # or to "OSMESA" to print all OSMESA variables.
 #
 SET(DEBUG_VARIABLE_PREFIX "")
-IF(NOT (DEBUG_VARIABLE_PREFIX STREQUAL ""))
+IF(NOT ("${DEBUG_VARIABLE_PREFIX}" STREQUAL ""))
     getListOfVarsStartingWith(${DEBUG_VARIABLE_PREFIX} allVars)
     foreach( debugVar IN LISTS allVars ) 
             message(${MSG_TYPE} ${MSG_INDENT} "${debugVar}=${${debugVar}}" )
