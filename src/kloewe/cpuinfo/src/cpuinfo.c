@@ -28,7 +28,10 @@
 #ifdef NDEBUG
 #define DBGMSG(...)  ((void)0)
 #else
-#define DBGMSG(...)  fprintf(stderr, __VA_ARGS__)
+#line __LINE__ "cpuinfo.c"
+#define DBGMSG(...)  do { fprintf(stderr, "%s:%d:%s()\n", \
+                          __FILE__, __LINE__, __func__); \
+                          fprintf(stderr, __VA_ARGS__); } while(0)
 #endif
 
 /*----------------------------------------------------------------------------
@@ -42,23 +45,30 @@ typedef struct {                    /* --- processor ids --- */
 /*----------------------------------------------------------------------------
   Global Variables
 ----------------------------------------------------------------------------*/
-static int cpuinfo[5];              /* cpu information */
+static int cpuinfo[4];              /* cpu information (cpuid) */
+static int peax = -1;               /* previous eax */
+static int pecx = -1;               /* previous ecx */
+static int nphys  = 0;              /* # processors/packages/sockets */
+static int ncores = 0;              /* # processor cores */
+static int nprocs = 0;              /* # logical processors */
 
 /*----------------------------------------------------------------------------
   Functions
 ----------------------------------------------------------------------------*/
 #ifdef _WIN32                       /* if Microsoft Windows system */
-#define cpuid   __cpuid             /* map existing function */
+#define cpuid   __cpuidex           /* map existing function */
 #else                               /* if Linux/Unix system */
 
-static void cpuid (int32_t info[4], int32_t type)
+static void cpuid (int32_t info[4], int32_t eax, int32_t ecx)
 {                                   /* --- get CPU information */
   __asm__ __volatile__ ("cpuid" :
                         "=a" (info[0]),
                         "=b" (info[1]),
                         "=c" (info[2]),
                         "=d" (info[3])
-                        : "a" (type), "c" (0)); // : "a" (type));
+                        : "a" (eax), "c" (ecx));
+  peax = eax;
+  pecx = ecx;
 }  /* cpuid() */
 
 #endif  /* #ifdef _WIN32 .. #else .. */
@@ -107,17 +117,25 @@ static int cmpids (const void *p, const void *q)
 
 /*--------------------------------------------------------------------------*/
 
-int corecnt (void)
-{                                   /* --- number of processor cores */
+static int enumerate (void)
+{                                   /* --- enumerate topology */
   FILE    *fp;                      /* file for /proc/cpuinfo */
   PROCIDS *pids;                    /* processor ids (physical & core) */
   int n;                            /* # log. processors found in cpuinfo */
   int i, p, c, np, nc;              /* loop variables */
-  int nphys  = 0;                   /* number of physical processors */
-  int ncores = 0;                   /* number of physical cores */
-  int nprocs = proccnt();           /* # log. processors (reference) */
 
-  if (nprocs < 0) return -1;        /* abort if nprocs can't be determined */
+  /* determine number of logical processors (reference) */
+  #ifdef _SC_NPROCESSORS_ONLN       /* if glibc's sysconf is available */
+  nprocs = (int)sysconf(_SC_NPROCESSORS_ONLN);
+  #else
+  nprocs = -1;
+  #endif
+  if (nprocs < 0) {                 /* abort if nprocs can't be determined */
+    nphys  = -1;
+    ncores = -1;
+    nprocs = -1;
+    return -1;
+  }
 
   /* collect physical id and core id of each logical processor */
   pids = calloc((size_t)nprocs, sizeof(PROCIDS));
@@ -133,7 +151,13 @@ int corecnt (void)
     while (((c = fgetc(fp)) != EOF) && (c != '\n'));
   }
   fclose(fp);
-  if (n != nprocs) { free(pids); return -1; }
+  if (n != nprocs) {                /* abort if the number of log. procs */
+    nphys  = -1;                    /* found differs from the reference */
+    ncores = -1;
+    nprocs = -1;
+    free(pids);
+    return -1;
+  }
 
   /* sort the array of processor ids and determine the number of cores */
   qsort(pids, (size_t)nprocs, sizeof(PROCIDS), cmpids);
@@ -142,7 +166,7 @@ int corecnt (void)
   for (i = np = nc = 0; i < n; i++) {
     if (pids[i].phys == p) {   np += 1;
       if (pids[i].core == c) { nc += 1; continue; }
-      DBGMSG("phys %d, core %d: %d logical processor(s)\n", p, c, nc);
+      DBGMSG("phys %d, core %2d: %d logical processor(s)\n", p, c, nc);
       c = pids[i].core; nc = 1;
       ncores += 1; continue;
     }
@@ -157,19 +181,79 @@ int corecnt (void)
   DBGMSG("number of physical processors: %d\n", nphys);
   DBGMSG("number of cores: %d\n", ncores);
   free(pids);
-  if ((ncores != nprocs) && (ncores != nprocs/2))
-    return -1;                      /* check result for consistency */
-  return ncores;                    /* return the number of cores */
+  if (nprocs % ncores) {            /* check results for consistency */
+    nphys  = -1;
+    ncores = -1;
+    nprocs = -1;
+    return -1; }
+  else
+    return 0;
+}  /* enumerate() */
+
+/*--------------------------------------------------------------------------*/
+
+int physcnt (void)
+{                                   /* --- number of physical processors */
+  if (!nphys)
+    if (enumerate()) { return -1; }
+  return nphys;
+}  /* physcnt() */
+
+/*--------------------------------------------------------------------------*/
+
+int corecnt (void)
+{                                   /* --- number of processor cores */
+  if (!ncores)
+    if (enumerate()) { return -1; }
+  return ncores;
 }  /* corecnt() */
 
+/*--------------------------------------------------------------------------*/
+
+int proccnt (void)
+{                                   /* --- number of logical processors */
+  if (!nprocs)
+    if (enumerate()) { return -1; }
+  return nprocs;
+}  /* proccnt() */
+
+/*--------------------------------------------------------------------------*/
 #elif defined _WIN32                /* if Microsoft Windows system */
+
+int physcnt (void)
+{                                   /* --- number of physical processors */
+  return -1;                        /* not yet implemented for Windows */
+}  /* physcnt() */
+
+/*--------------------------------------------------------------------------*/
 
 int corecnt (void)
 {                                   /* --- number of processor cores */
   return -1;                        /* not yet implemented for Windows */
 }  /* corecnt() */
 
+/*--------------------------------------------------------------------------*/
+
+int proccnt (void)
+{                                   /* --- number of logical processors */
+  SYSTEM_INFO sysinfo;              /* system information structure */
+  GetSystemInfo(&sysinfo);          /* get system information */
+  return sysinfo.dwNumberOfProcessors;
+}  /* proccnt() */
+
+/*--------------------------------------------------------------------------*/
 #elif defined __APPLE__             /* if Apple Mac OS system */
+
+int physcnt (void)
+{                                   /* --- number of physical processors */
+  int nphys;
+  size_t len = sizeof(nphys);
+  if (sysctlbyname("hw.packages", &nphys, &len, NULL, (size_t)0))
+    return -1;
+  return nphys;
+}  /* physcnt() */
+
+/*--------------------------------------------------------------------------*/
 
 int corecnt (void)
 {                                   /* --- number of processor cores */
@@ -180,27 +264,7 @@ int corecnt (void)
   return ncores;
 }  /* corecnt() */
 
-#endif  /* #ifdef __linux__ .. #elif def. _WIN32 .. #elif def. __APPLE__ .. */
 /*--------------------------------------------------------------------------*/
-#ifdef __linux__                    /* if Linux system */
-#ifdef _SC_NPROCESSORS_ONLN         /* if glibc's sysconf is available */
-
-int proccnt (void)
-{                                   /* --- number of logical processors */
-  return (int)sysconf(_SC_NPROCESSORS_ONLN);
-}  /* proccnt() */
-
-#endif  /* #ifdef _SC_NPROCESSORS_ONLN */
-#elif defined _WIN32                /* if Microsoft Windows system */
-
-int proccnt (void)
-{                                   /* --- number of logical processors */
-  SYSTEM_INFO sysinfo;              /* system information structure */
-  GetSystemInfo(&sysinfo);          /* get system information */
-  return sysinfo.dwNumberOfProcessors;
-}  /* proccnt() */
-
-#elif defined __APPLE__             /* if Apple Mac OS system */
 
 int proccnt (void)
 {                                   /* --- number of logical processors */
@@ -230,7 +294,10 @@ Additional info and references (proccnt, Linux version):
 int proccntmax (void)
 {                                   /* --- max. number of logical processors
                                      *     per physical processor */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
   return (cpuinfo[1] >> 16) & 0xff; /* EBX[23:16] */
 }  /* proccntmax() */
 
@@ -248,7 +315,10 @@ References (proccntmax):
 
 int hasMMX (void)
 {                                   /* --- check for MMX instructions */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
   return (cpuinfo[3] & (1 << 23)) != 0;
 }  /* hasMMX() */
 
@@ -256,73 +326,166 @@ int hasMMX (void)
 
 int hasSSE (void)
 {                                   /* --- check for SSE instructions */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
-  return (cpuinfo[3] & (1 << 25)) != 0;
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[3] & (1 << 25)) != 0; /* EDX 25 */
 }  /* hasSSE() */
 
 /*--------------------------------------------------------------------------*/
 
 int hasSSE2 (void)
 {                                   /* --- check for SSE2 instructions */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
-  return (cpuinfo[3] & (1 << 26)) != 0;
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[3] & (1 << 26)) != 0; /* EDX 26 */
 }  /* hasSSE2() */
 
 /*--------------------------------------------------------------------------*/
 
 int hasSSE3 (void)
 {                                   /* --- check for SSE3 instructions */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
-  return (cpuinfo[2] & (1 <<  0)) != 0;
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[2] & (1 <<  0)) != 0; /* ECX 0 */
 }  /* hasSSE3() */
 
 /*--------------------------------------------------------------------------*/
 
 int hasSSSE3 (void)
 {                                   /* --- check for SSSE3 instructions */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
-  return (cpuinfo[2] & (1 <<  9)) != 0;
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[2] & (1 <<  9)) != 0; /* ECX 9 */
 }  /* hasSSSE3() */
 
 /*--------------------------------------------------------------------------*/
 
 int hasSSE41 (void)
 {                                   /* --- check for SSE4.1 instructions */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
-  return (cpuinfo[2] & (1 << 19)) != 0;
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[2] & (1 << 19)) != 0; /* ECX 19 */
 }  /* hasSSE41() */
 
 /*--------------------------------------------------------------------------*/
 
 int hasSSE42 (void)
 {                                   /* --- check for SSE4.2 instructions */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
-  return (cpuinfo[2] & (1 << 20)) != 0;
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[2] & (1 << 20)) != 0; /* ECX 20 */
 }  /* hasSSE42() */
 
 /*--------------------------------------------------------------------------*/
 
 int hasPOPCNT (void)
 {                                   /* --- check for popcnt instructions */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
-  return (cpuinfo[2] & (1 << 23)) != 0;
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[2] & (1 << 23)) != 0; /* ECX 23 */
 }  /* hasPOPCNT() */
 
 /*--------------------------------------------------------------------------*/
 
 int hasAVX (void)
 {                                   /* --- check for AVX instructions */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
-  return (cpuinfo[2] & (1 << 28)) != 0;
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[2] & (1 << 28)) != 0; /* ECX 28 */
 }  /* hasAVX() */
+
+/*--------------------------------------------------------------------------*/
+
+int hasAVX2 (void)
+{                                   /* --- check for AVX2 instructions */
+  int eax = 7;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[1] & (1 <<  5)) != 0; /* EBX 5 */
+}  /* hasAVX2() */
 
 /*--------------------------------------------------------------------------*/
 
 int hasFMA3 (void)
 {                                   /* --- check for FMA3 */
-  if (!cpuinfo[4]) { cpuid(cpuinfo, 1); cpuinfo[4] = -1; }
-  return (cpuinfo[2] & (1 << 12)) != 0;
+  int eax = 1;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[2] & (1 << 12)) != 0; /* ECX 12 */
 }  /* hasFMA3() */
+
+/*--------------------------------------------------------------------------*/
+
+int hasAVX512f (void)
+{                                   /* --- check for AVX512f instructions */
+  int eax = 7;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[1] & (1 << 16)) != 0; /* EBX 16 */
+}  /* hasAVX512f() */
+
+/*--------------------------------------------------------------------------*/
+
+int hasAVX512cd (void)
+{                                   /* --- check for AVX512cd instructions */
+  int eax = 7;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[1] & (1 << 28)) != 0; /* EBX 28 */
+}  /* hasAVX512cd() */
+
+/*--------------------------------------------------------------------------*/
+
+int hasAVX512bw (void)
+{                                   /* --- check for AVX512bw instructions */
+  int eax = 7;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[1] & (1 << 30)) != 0; /* EBX 30 */
+}  /* hasAVX512bw() */
+
+/*--------------------------------------------------------------------------*/
+
+int hasAVX512dq (void)
+{                                   /* --- check for AVX512dq instructions */
+  int eax = 7;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[1] & (1 << 17)) != 0; /* EBX 17 */
+}  /* hasAVX512dq() */
+
+/*--------------------------------------------------------------------------*/
+
+int hasAVX512vl (void)
+{                                   /* --- check for AVX512vl instructions */
+  int eax = 7;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  return (cpuinfo[1] & (1 << 31)) != 0; /* EBX 31 */
+}  /* hasAVX512vl() */
 
 /*--------------------------------------------------------------------------*/
 
@@ -330,11 +493,13 @@ void getVendorID (char *buf)
 {                                   /* --- get vendor id */
   /* the string is going to be exactly 12 characters long, allocate
      the buffer outside this function accordingly */
-  int regs[4];
-  cpuid(regs, 0);
-  ((unsigned *)buf)[0] = (unsigned)regs[1]; // EBX
-  ((unsigned *)buf)[1] = (unsigned)regs[3]; // EDX
-  ((unsigned *)buf)[2] = (unsigned)regs[2]; // ECX
+  int eax = 0;
+  int ecx = 0;
+  if ((eax != peax) || (ecx != pecx))
+    cpuid(cpuinfo, eax, ecx);
+  ((unsigned *)buf)[0] = (unsigned)cpuinfo[1]; /* EBX */
+  ((unsigned *)buf)[1] = (unsigned)cpuinfo[3]; /* EDX */
+  ((unsigned *)buf)[2] = (unsigned)cpuinfo[2]; /* ECX */
 }  /* getVendorID() */
 
 /*----------------------------------------------------------------------------
@@ -347,28 +512,36 @@ int main (int argc, char* argv[])
 {
   char vendor[12];
   getVendorID(vendor);
-  printf("Vendor             %s\n", vendor);
-  #ifndef _WIN32
-  printf("Processor cores    %d\n", corecnt());
-  #endif
-  printf("Logical processors %d\n", proccnt());
-  printf("MMX                %d\n", hasMMX());
-  printf("SSE                %d\n", hasSSE());
-  printf("SSE2               %d\n", hasSSE2());
-  printf("SSE3               %d\n", hasSSE3());
-  printf("SSSE3              %d\n", hasSSSE3());
-  printf("SSE41              %d\n", hasSSE41());
-  printf("SSE42              %d\n", hasSSE42());
-  printf("POPCNT             %d\n", hasPOPCNT());
-  printf("AVX                %d\n", hasAVX());
-  printf("FMA3               %d\n", hasFMA3());
+  printf("Vendor              %s\n", vendor);
+  printf("Physical processors %d\n", physcnt());
+  printf("Processor cores     %d\n", corecnt());
+  printf("Logical processors  %d\n", proccnt());
+  printf("MMX                 %d\n", hasMMX());
+  printf("SSE                 %d\n", hasSSE());
+  printf("SSE2                %d\n", hasSSE2());
+  printf("SSE3                %d\n", hasSSE3());
+  printf("SSSE3               %d\n", hasSSSE3());
+  printf("SSE41               %d\n", hasSSE41());
+  printf("SSE42               %d\n", hasSSE42());
+  printf("POPCNT              %d\n", hasPOPCNT());
+  printf("AVX                 %d\n", hasAVX());
+  printf("AVX2                %d\n", hasAVX2());
+  printf("FMA3                %d\n", hasFMA3());
+  printf("AVX512f             %d\n", hasAVX512f());
+  printf("AVX512cd            %d\n", hasAVX512cd());
+  printf("AVX512bw            %d\n", hasAVX512bw());
+  printf("AVX512dq            %d\n", hasAVX512dq());
+  printf("AVX512vl            %d\n", hasAVX512vl());
 
-/* corecnt    -> number of processor cores
+/*
+   physcnt    -> number of physical processors/packages/sockets
+   corecnt    -> number of processor cores
    proccnt    -> number of logical processors
    proccntmax -> max. number of logical processors per core
    See the glossary at:
      software.intel.com/en-us/articles/
-       intel-64-architecture-processor-topology-enumeration */
+       intel-64-architecture-processor-topology-enumeration
+*/
 
 }  /* main() */
 

@@ -100,7 +100,7 @@ namespace
         }
         float stdev1 = sqrt(accum1);
         float stdev2 = sqrt(accum2);
-        double dotval = sddot(vec1.data(), vec2.data(), length);//function under test
+        double dotval = dsdot(vec1.data(), vec2.data(), length);//function under test
         return dotval / (stdev1 * stdev2);
     }
     
@@ -156,7 +156,7 @@ void DotTest::execute()
     } else {
         cout << "skipping AVX, not supported" << endl;
     }
-    //avx
+    //avx+fma
     impl_in_use = dot_set_impl(DOT_AVXFMA);
     if (impl_in_use == DOT_AVXFMA)
     {
@@ -168,5 +168,31 @@ void DotTest::execute()
         checkVal(cross_snr_naive, correlate(lowsnrA, highsnrB), "avxfma cross snr correlation");
     } else {
         cout << "skipping AVXFMA, not supported" << endl;
+    }
+    //avx512
+    impl_in_use = dot_set_impl(DOT_AVX512);
+    if (impl_in_use == DOT_AVX512)
+    {
+        checkVal(self_naive, correlate(rand1, rand1), "avx512 self-correlation");
+        checkVal(unrelated_naive, correlate(rand1, rand2), "avx512 unrelated correlation");
+        checkVal(lowsnr_naive, correlate(lowsnrA, lowsnrB), "avx512 low snr correlation");
+        checkVal(midsnr_naive, correlate(midsnrA, midsnrB), "avx512 mid snr correlation");
+        checkVal(highsnr_naive, correlate(highsnrA, highsnrB), "avx512 high snr correlation");
+        checkVal(cross_snr_naive, correlate(lowsnrA, highsnrB), "avx512 cross snr correlation");
+    } else {
+        cout << "skipping AVX512, not supported" << endl;
+    }
+    //avx512+fma
+    impl_in_use = dot_set_impl(DOT_AVX512FMA);
+    if (impl_in_use == DOT_AVX512FMA)
+    {
+        checkVal(self_naive, correlate(rand1, rand1), "avx512fma self-correlation");
+        checkVal(unrelated_naive, correlate(rand1, rand2), "avx512fma unrelated correlation");
+        checkVal(lowsnr_naive, correlate(lowsnrA, lowsnrB), "avx512fma low snr correlation");
+        checkVal(midsnr_naive, correlate(midsnrA, midsnrB), "avx512fma mid snr correlation");
+        checkVal(highsnr_naive, correlate(highsnrA, highsnrB), "avx512fma high snr correlation");
+        checkVal(cross_snr_naive, correlate(lowsnrA, highsnrB), "avx512fma cross snr correlation");
+    } else {
+        cout << "skipping AVX512FMA, not supported" << endl;
     }
 }

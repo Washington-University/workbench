@@ -9,17 +9,9 @@
 /*----------------------------------------------------------------------------
   Functions
 ----------------------------------------------------------------------------*/
-extern int proccnt       (void); /* # logical processors */
-
-#ifndef _WIN32                   /* if Linux or Apple Mac OS system */
+extern int physcnt       (void); /* # physical processors */
 extern int corecnt       (void); /* # processor cores */
-
-#ifdef __linux__
-#ifdef HAVE_HWLOC
-extern int corecntHwloc (void);  /* # processor cores */
-#endif
-#endif
-#endif
+extern int proccnt       (void); /* # logical processors */
 
 extern int hasMMX        (void);
 extern int hasSSE        (void);
@@ -30,6 +22,12 @@ extern int hasSSE41      (void);
 extern int hasSSE42      (void);
 extern int hasPOPCNT     (void);
 extern int hasAVX        (void);
+extern int hasAVX2       (void);
 extern int hasFMA3       (void);
+extern int hasAVX512f    (void);
+extern int hasAVX512cd   (void);
+extern int hasAVX512bw   (void);
+extern int hasAVX512dq   (void);
+extern int hasAVX512vl   (void);
 
 #endif  /* #ifndef CPUINFO_H */

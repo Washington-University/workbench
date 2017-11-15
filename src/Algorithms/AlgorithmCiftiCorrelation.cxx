@@ -527,7 +527,7 @@ float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1,
         if (m_weightedMode)
         {
             int numWeights = (int)m_weightIndexes.size();//because we compacted the data in the row to not include any zero weights
-            double accum = sddot(row1, row2, numWeights);//these have already had the weighted row means subtracted out, and weights applied
+            double accum = dsdot(row1, row2, numWeights);//these have already had the weighted row means subtracted out, and weights applied
             if (m_covariance)
             {
                 if (m_binaryWeights)
@@ -540,7 +540,7 @@ float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1,
                 r = accum / (rrs1 * rrs2);//as do these
             }
         } else {
-            double accum = sddot(row1, row2, m_numCols);//these have already had the row means subtracted out
+            double accum = dsdot(row1, row2, m_numCols);//these have already had the row means subtracted out
             if (m_covariance)
             {
                 r = accum / m_numCols;
