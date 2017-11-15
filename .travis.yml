@@ -1,6 +1,6 @@
 language: cpp
 dist: trusty
-sudo: false
+sudo: required
 
 notifications:
     email: false
@@ -9,11 +9,15 @@ cache:
     - apt
     - ccache
 
+git:
+    depth: 3
+
 addons:
     apt:
+        sources:
+            - sourceline: ppa:beineri/opt-qt562-trusty
         packages:
-            - qt5-default
-            - libqt5opengl5-dev
+            - qt56base
             - zlib1g-dev
             - libosmesa6-dev
             - libssl-dev
@@ -26,6 +30,7 @@ env:
         - OMP_NUM_THREADS=4
 
 before_install:
+    - source /opt/qt56/bin/qt56-env.sh
     - mkdir ../build
     - cd ../build
 
