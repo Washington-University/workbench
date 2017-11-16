@@ -194,7 +194,7 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
                     thisStore = &rightStore;
                     thisWeights = &rightWeights;
                     thisSurfOpt = rightSurfOpt;
-                    thisMetricOpt = cerebMetricOpt;
+                    thisMetricOpt = rightMetricOpt;
                     break;
                 case 2:
                     thisStore = &cerebStore;
@@ -205,7 +205,7 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
             }
             if (thisMetricOpt->m_present)
             {
-                *thisWeights = leftMetricOpt->getMetric(1);
+                *thisWeights = thisMetricOpt->getMetric(1);
             }
             if (thisSurfOpt->m_present)
             {
