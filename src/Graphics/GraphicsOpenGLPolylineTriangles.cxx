@@ -791,7 +791,7 @@ GraphicsOpenGLPolylineTriangles::createTrianglesFromWindowVertices(const int32_t
                        + " Coordinates: "
                        + AString::fromNumbers(&m_vertexWindowXYZ[iOne3], 3, ",")
                        + "    "
-                       + AString::fromNumbers(&m_vertexWindowXYZ[iOne3], 3, ","));
+                       + AString::fromNumbers(&m_vertexWindowXYZ[iTwo3], 3, ","));
     }
     
     /*
