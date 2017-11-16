@@ -1181,11 +1181,7 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
         if ((newX >= 0.0)
             && (newX <= 100.0)
             && (newY >= 0.0)
-            && (newY <= 100.0)
-            && (newWidth > 0.01)
-            && (newWidth <= 100.0)
-            && (newHeight > 0.01)
-            && (newHeight <= 100.0)) {
+            && (newY <= 100.0)) {
             
             if (isFixedAspectRatio()) {
                 xyz[0] = newX;
