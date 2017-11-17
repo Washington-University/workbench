@@ -505,6 +505,64 @@ WuQMessageBox::warningYesNoWithDoNotShowAgain(QWidget* parent,
 }
 
 /**
+ * Display an information dialog with two buttons, both of which
+ * will close the dialog.
+ *
+ * @param parent
+ *     The parent dialog.
+ * @param text
+ *     Text for the dialog.
+ * @param buttonOneText
+ *     Text for the first button.
+ * @param buttonTwoText
+ *     Text for the second button.
+ * @return
+ *     1 if button one clicked, 2 if button two clicked.
+ */
+int32_t
+WuQMessageBox::informationTwoButtons(QWidget* parent,
+                                     const QString& text,
+                                     const QString& buttonOneText,
+                                     const QString& buttonTwoText)
+{
+    QMessageBox msgBox(parent);
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setWindowTitle("");
+    msgBox.setText(text);
+    msgBox.addButton(QMessageBox::YesToAll);
+    msgBox.addButton(QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    
+    WuQMessageBox::updateButtonText(msgBox,
+                                    QMessageBox::YesToAll,
+                                    buttonOneText);
+    WuQMessageBox::updateButtonText(msgBox,
+                                    QMessageBox::Yes,
+                                    buttonTwoText);
+    
+    
+    QMessageBox::StandardButton buttonPressed =
+    static_cast<QMessageBox::StandardButton>(msgBox.exec());
+    
+    
+    int32_t buttonClicked = 0;
+    switch (buttonPressed) {
+        case QMessageBox::YesToAll:
+            buttonClicked = 1;
+            break;
+        case QMessageBox::Yes:
+            buttonClicked = 2;
+            break;
+        default:
+            CaretAssert(0);
+            break;
+    }
+    
+    return buttonClicked;
+}
+
+
+/**
  * Display a Yes to All, Yes, No, button dialog.
  *
  * @param parent

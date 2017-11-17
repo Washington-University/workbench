@@ -588,7 +588,7 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
                                                                           "OK",
                                                                           "OK, Go to BALSA in Web Browser");
             if ( ! okPressedFlag) {
-                labelHtmlLinkClicked("/");
+                labelHtmlLinkClicked("about/submission");
             }
             return;
         }
@@ -829,6 +829,21 @@ BalsaDatabaseUploadSceneFileDialog::autoSaveCheckBoxClicked(bool /*checked*/)
 void
 BalsaDatabaseUploadSceneFileDialog::testButtonClicked()
 {
+    const int32_t buttonIndex = WuQMessageBox::informationTwoButtons(this,
+                                                                     "You have not agreed to Submitter Terms",
+                                                                     "OK",
+                                                                     "OK, View Terms in Web Browser");
+    switch (buttonIndex) {
+        case 1:
+            break;
+        case 2:
+            labelHtmlLinkClicked("about/submission");
+            break;
+        default:
+            CaretAssert(0);
+    }
+    return;
+    
     bool testRolesFlag = false;
     bool testNewIDsFlag = true;
     if (testRolesFlag) {

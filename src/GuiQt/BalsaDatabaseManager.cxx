@@ -58,7 +58,7 @@ using namespace caret;
 BalsaDatabaseManager::BalsaDatabaseManager()
 : CaretObject()
 {
-    m_debugFlag = false;
+    m_debugFlag = true;
     logout();
     //EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
@@ -159,6 +159,17 @@ BalsaDatabaseManager::login(const AString& databaseURL,
         }
         
         return true;
+    }
+    else if (loginResponse.m_responseCode == 302) {
+        errorMessageOut = ("Login failed.<p>"
+                           "If you are unable to login, helpful links are located on the right side of the username and password boxes:"
+                           "<ul>"
+                           "<li><i>Register</i>:  Click to create a BALSA account"
+                           "<li><i>Forgot Username</i>:  Click to get your username by entering your email address"
+                           "<li><i>Forgot Password</i>:  Click to reset your password by entering your username"
+                           "</ul>");
+        logout();
+        return false;
     }
     
     loginResponse.m_body.push_back('\0');
@@ -1363,7 +1374,7 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
         /*
          * Process the uploaded file
          */
-        progressUpdate.setProgress(PROGRESS_PROCESS_UPLOAD, "Processing uploaded zip file");
+        progressUpdate.setProgress(PROGRESS_PROCESS_UPLOAD, "Processing uploaded zip file (this step may take a long time)");
         EventManager::get()->sendEvent(progressUpdate.getPointer());
         
         const AString processUploadURL(m_databaseURL

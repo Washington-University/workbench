@@ -52,6 +52,11 @@ namespace caret {
         static void informationOk(QWidget* parent,
                                   const QString& text);
         
+        static int32_t informationTwoButtons(QWidget* parent,
+                                          const QString& text,
+                                          const QString& buttonOneText,
+                                          const QString& buttonTwoText);
+        
         static void warningOk(QWidget* parent,
                               const QString& text);
         
