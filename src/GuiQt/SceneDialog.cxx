@@ -2893,8 +2893,9 @@ SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo
     
     nameTextOut = ("<html>"
                    + indexText
-                   + "<b>NAME</b>"
-                   + ":  "
+                   + "<b>NAME</b> ("
+                   + AString::number(sceneIndex + 1)
+                   + "):  "
                    + name
                    + "</html>");
     
