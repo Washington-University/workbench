@@ -875,6 +875,8 @@ SceneFile::findBaseDirectoryForDataFiles() const
 {
     std::set<AString> directoryNames;
     
+    const bool includeSpecFileFlag = false;
+    
     /**
      * Find all 'path name' elements from ALL scenes
      */
@@ -894,8 +896,14 @@ SceneFile::findBaseDirectoryForDataFiles() const
                      * specFile is named "specFileName"
                      * and these names are unique to name of files in the spec file
                      */
-                    if ((sceneObject->getName() == "fileName")
-                        || (sceneObject->getName() == "specFileName")) {
+                    bool useNameFlag = false;
+                    if (sceneObject->getName() == "fileName") {
+                        useNameFlag = true;
+                    }
+                    else if (sceneObject->getName() == "specFileName") {
+                        useNameFlag = includeSpecFileFlag;
+                    }
+                    if (useNameFlag) {
                         const AString pathName = scenePathName->stringValue().trimmed();
                         if ( ! pathName.isEmpty()) {
                             FileInformation fileInfo(pathName);
