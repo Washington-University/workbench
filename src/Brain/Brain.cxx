@@ -6585,7 +6585,10 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
     const bool wasRemoved = removeWithoutDeleteDataFilePrivate(caretDataFile);
     
     if (wasRemoved) {
-        m_specFile->removeCaretDataFile(caretDataFile);
+        /* Scene annotation file is NOT in the spec file */
+        if (caretDataFile != m_sceneAnnotationFile) {
+            m_specFile->removeCaretDataFile(caretDataFile);
+        }
         
         updateAfterFilesAddedOrRemoved();
     }
@@ -6624,6 +6627,12 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
                                                                           caretDataFile);
     if (annotationIterator != m_annotationFiles.end()) {
         m_annotationFiles.erase(annotationIterator);
+        return true;
+    }
+    
+    if (caretDataFile == m_sceneAnnotationFile) {
+        m_sceneAnnotationFile->clear();
+        m_sceneAnnotationFile->clearModified();
         return true;
     }
     
@@ -6799,7 +6808,14 @@ bool
 Brain::removeAndDeleteDataFile(CaretDataFile* caretDataFile)
 {
     if (removeWithoutDeleteDataFile(caretDataFile)) {
-        delete caretDataFile;
+        /* NEVER delete scene annotation file */
+        if (caretDataFile == m_sceneAnnotationFile) {
+            m_sceneAnnotationFile->clear();
+            m_sceneAnnotationFile->clearModified();
+        }
+        else {
+            delete caretDataFile;
+        }
         return true;
     }
     

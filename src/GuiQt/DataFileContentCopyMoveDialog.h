@@ -27,6 +27,7 @@
 class QButtonGroup;
 class QCheckBox;
 class QLabel;
+class QRadioButton;
 
 namespace caret {
 
@@ -78,6 +79,8 @@ namespace caret {
         int m_newDestinatonFileButtonGroupIndex;
         
         QString m_newDestinationFileName;
+        
+        QRadioButton* m_newDestinationFileRadioButton;
         
         QCheckBox* m_closeSourceFileCheckBox;
         
