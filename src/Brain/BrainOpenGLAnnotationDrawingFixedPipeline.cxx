@@ -2240,7 +2240,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                   GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                   text->getLineWidthPercentage());
                 if ( ! arrowCoordinates.empty()) {
-                    GraphicsShape::drawLineStripByteColor(arrowCoordinates,
+                    GraphicsShape::drawLineStripMiterJoinByteColor(arrowCoordinates,
                                                       textColorRGBA,
                                                       GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                       text->getLineWidthPercentage());
@@ -2581,13 +2581,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::createLineCoordinates(const float lin
     lineCoordinatesOut.insert(lineCoordinatesOut.end(), lineHeadXYZ, lineHeadXYZ + 3);
     lineCoordinatesOut.insert(lineCoordinatesOut.end(), lineTailXYZ, lineTailXYZ + 3);
     if (validStartArrow) {
-        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), lineHeadXYZ,     lineHeadXYZ + 3);
         startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), headRightTipEnd, headRightTipEnd + 3);
         startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), lineHeadXYZ,     lineHeadXYZ + 3);
         startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), headLeftTipEnd,  headLeftTipEnd + 3);
     }
     if (validEndArrow) {
-        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), lineTailXYZ,     lineTailXYZ + 3);
         endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), tailRightTipEnd, tailRightTipEnd + 3);
         endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), lineTailXYZ,     lineTailXYZ + 3);
         endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), tailLeftTipEnd,  tailLeftTipEnd + 3);
@@ -2673,13 +2671,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                                               GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
                                               line->getLineWidthPercentage());
             if ( ! startArrowCoordinates.empty()) {
-                GraphicsShape::drawLineStripByteColor(startArrowCoordinates,
+                GraphicsShape::drawLineStripMiterJoinByteColor(startArrowCoordinates,
                                                       selectionColorRGBA,
                                                       GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                       line->getLineWidthPercentage());
             }
             if ( ! endArrowCoordinates.empty()) {
-                GraphicsShape::drawLineStripByteColor(endArrowCoordinates,
+                GraphicsShape::drawLineStripMiterJoinByteColor(endArrowCoordinates,
                                                       selectionColorRGBA,
                                                       GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                       line->getLineWidthPercentage());
@@ -2696,13 +2694,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
                                                   GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                   line->getLineWidthPercentage());
                 if ( ! startArrowCoordinates.empty()) {
-                    GraphicsShape::drawLineStripByteColor(startArrowCoordinates,
+                    GraphicsShape::drawLineStripMiterJoinByteColor(startArrowCoordinates,
                                                           foregroundRGBA,
                                                           GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                           line->getLineWidthPercentage());
                 }
                 if ( ! endArrowCoordinates.empty()) {
-                    GraphicsShape::drawLineStripByteColor(endArrowCoordinates,
+                    GraphicsShape::drawLineStripMiterJoinByteColor(endArrowCoordinates,
                                                           foregroundRGBA,
                                                           GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                           line->getLineWidthPercentage());

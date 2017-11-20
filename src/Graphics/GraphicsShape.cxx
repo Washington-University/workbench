@@ -109,7 +109,7 @@ GraphicsShape::drawBoxOutlineByteColor(const float v1[3],
                                     const GraphicsPrimitive::SizeType lineThicknessType,
                                     const double lineThickness)
 {
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
                                                                                        rgba));
     primitive->reserveForNumberOfVertices(4);
     primitive->addVertex(v1);
@@ -151,7 +151,7 @@ GraphicsShape::drawBoxOutlineFloatColor(const float v1[3],
                                         const GraphicsPrimitive::SizeType lineThicknessType,
                                         const double lineThickness)
 {
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
                                                                                        rgba));
     primitive->reserveForNumberOfVertices(4);
     primitive->addVertex(v1);
@@ -263,7 +263,7 @@ GraphicsShape::drawEllipseOutlineByteColor(const double majorAxis,
     std::vector<float> ellipseXYZ;
     createEllipseVertices(majorAxis, minorAxis, ellipseXYZ);
     
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
                                                                                        rgba));
     const int32_t numVertices = static_cast<int32_t>(ellipseXYZ.size() / 3);
     primitive->reserveForNumberOfVertices(numVertices);
@@ -348,7 +348,8 @@ GraphicsShape::drawLinesByteColor(const std::vector<float>& xyz,
 }
 
 /**
- * Draw line strip similar to OpenGL's GL_LINES
+ * Draw line strip similar to OpenGL's GL_LINE_STRIP
+ * and use Bevel Joins at connected vertices
  *
  * @param xyz
  *    Coordinates of the line end points.
@@ -360,12 +361,46 @@ GraphicsShape::drawLinesByteColor(const std::vector<float>& xyz,
  *    Thickness of the line.
  */
 void
-GraphicsShape::drawLineStripByteColor(const std::vector<float>& xyz,
-                                  const uint8_t rgba[4],
-                                  const GraphicsPrimitive::SizeType lineThicknessType,
-                                  const double lineThickness)
+GraphicsShape::drawLineStripBevelJoinByteColor(const std::vector<float>& xyz,
+                                               const uint8_t rgba[4],
+                                               const GraphicsPrimitive::SizeType lineThicknessType,
+                                               const double lineThickness)
 {
-    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP,
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN,
+                                                                                       rgba));
+    const int32_t numVertices = static_cast<int32_t>(xyz.size() / 3);
+    primitive->reserveForNumberOfVertices(numVertices);
+    for (int32_t i = 0; i < numVertices; i++) {
+        primitive->addVertex(&xyz[i * 3]);
+    }
+    
+    primitive->setLineWidth(lineThicknessType,
+                            lineThickness);
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    
+    GraphicsEngineDataOpenGL::draw(primitive.get());
+}
+
+/**
+ * Draw line strip similar to OpenGL's GL_LINE_STRIP
+ * and use Bevel Joins at connected vertices
+ *
+ * @param xyz
+ *    Coordinates of the line end points.
+ * @param rgba
+ *    Color for drawing.
+ * @param lineThicknessType
+ *    Type of line thickness.
+ * @param lineThickness
+ *    Thickness of the line.
+ */
+void
+GraphicsShape::drawLineStripMiterJoinByteColor(const std::vector<float>& xyz,
+                                               const uint8_t rgba[4],
+                                               const GraphicsPrimitive::SizeType lineThicknessType,
+                                               const double lineThickness)
+{
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN,
                                                                                        rgba));
     const int32_t numVertices = static_cast<int32_t>(xyz.size() / 3);
     primitive->reserveForNumberOfVertices(numVertices);

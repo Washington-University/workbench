@@ -133,13 +133,25 @@ namespace caret {
              */
             OPENGL_TRIANGLES,
             /**
-             * Like OPENGL_LINE_LOOP but there is no limit on line width as it draws the lines using polygons.
+             * Like OPENGL_LINE_LOOP but there is no limit on line width as it draws the lines using polygons
+             * and polygons that form the line use a BEVEL join at vertices
              */
-            POLYGONAL_LINE_LOOP,
+            POLYGONAL_LINE_LOOP_BEVEL_JOIN,
             /**
-             * Like OPENGL_LINE_STRIP but there is no limit on line width as it draws the lines using polygons.
+             * Like OPENGL_LINE_LOOP but there is no limit on line width as it draws the lines using polygons
+             * and polygons that form the line use a MITER join at vertices
              */
-            POLYGONAL_LINE_STRIP,
+            POLYGONAL_LINE_LOOP_MITER_JOIN,
+            /**
+             * Like OPENGL_LINE_STRIP but there is no limit on line width as it draws the lines using polygons
+             * and polygons that form the line use a BEVEL join at vertices
+             */
+            POLYGONAL_LINE_STRIP_BEVEL_JOIN,
+            /**
+             * Like OPENGL_LINE_STRIP but there is no limit on line width as it draws the lines using polygons
+             * and polygons that form the line use a MITER join at vertices
+             */
+            POLYGONAL_LINE_STRIP_MITER_JOIN,
             /**
              * Like OPENGL_LINES but there is no limit on line width as it draws the lines using polygons.
              */

@@ -484,8 +484,10 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             break;
-        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
-        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
             if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
                 workbenchLineFlag = true;
@@ -702,9 +704,11 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             break;
-        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
             break;
-        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
             break;
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
             break;
@@ -966,12 +970,14 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     GLenum openGLPrimitiveType = GL_INVALID_ENUM;
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
-        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
             openGLPrimitiveType = GL_LINE_LOOP;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
-        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
             openGLPrimitiveType = GL_LINE_STRIP;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;

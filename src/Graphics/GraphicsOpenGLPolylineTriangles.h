@@ -38,64 +38,11 @@ namespace caret {
     class GraphicsOpenGLPolylineTriangles : public CaretObject {
         
     public:
-        /**
-         * Join tyupe of how connected lines are drawn to remove gaps between segments
-         */
-        enum JoinType {
-            /** None */
-            NONE,
-            /* Extends 'outsides' of lines to meet forming a pointed shape */
-            MITER
-        };
-        
         virtual ~GraphicsOpenGLPolylineTriangles();
         
         static GraphicsPrimitive* convertWorkbenchLinePrimitiveTypeToOpenGL(const GraphicsPrimitive* primitive,
                                                                             AString& errorMessageOut);
         
-        static bool draw(const GraphicsPrimitive* primitive);
-        
-//        static bool drawLinesPerVertexFloatColor(void* openglContextPointer,
-//                                            const std::vector<float>& xyz,
-//                                            const std::vector<float>& rgba,
-//                                            const float lineThicknessPixels);
-//        
-//        static bool drawLinesSolidFloatColor(void* openglContextPointer,
-//                                        const std::vector<float>& xyz,
-//                                        const float rgba[4],
-//                                        const float lineThicknessPixels);
-//        
-//        static bool drawLineStripSolidFloatColor(void* openglContextPointer,
-//                                            const std::vector<float>& xyz,
-//                                        const float rgba[4],
-//                                        const float lineThicknessPixels);
-//        
-//        static bool drawLineLoopSolidFloatColor(void* openglContextPointer,
-//                                           const std::vector<float>& xyz,
-//                                           const float rgba[4],
-//                                           const float lineThicknessPixels);
-//        
-//        
-//        static bool drawLinesPerVertexByteColor(void* openglContextPointer,
-//                                                 const std::vector<float>& xyz,
-//                                                 const std::vector<uint8_t>& rgba,
-//                                                 const float lineThicknessPixels);
-//        
-//        static bool drawLinesSolidByteColor(void* openglContextPointer,
-//                                             const std::vector<float>& xyz,
-//                                             const uint8_t rgba[4],
-//                                             const float lineThicknessPixels);
-//        
-//        static bool drawLineStripSolidByteColor(void* openglContextPointer,
-//                                                 const std::vector<float>& xyz,
-//                                                 const uint8_t rgba[4],
-//                                                 const float lineThicknessPixels);
-//        
-//        static bool drawLineLoopSolidByteColor(void* openglContextPointer,
-//                                                const std::vector<float>& xyz,
-//                                                const uint8_t rgba[4],
-//                                                const float lineThicknessPixels);
-//        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -116,6 +63,18 @@ namespace caret {
         };
         
         /**
+         * Join tyupe of how connected lines are drawn to remove gaps between segments
+         */
+        enum class JoinType {
+            /** None */
+            NONE,
+            /** Bevel fills the gap by adding a triangle */
+            BEVEL,
+            /** Miter extends 'outsides' of lines to meet forming a pointed shape */
+            MITER
+        };
+        
+        /**
          * Type of line drawing
          */
         enum class LineType {
@@ -127,6 +86,18 @@ namespace caret {
             LINE_STRIP
         };
 
+        /**
+         * Turn direction add joint vertex of two lines
+         */
+        enum class TurnDirection {
+            /** Turns left */
+            LEFT,
+            /** Does not turn (straight) or coincident */
+            PARALLEL,
+            /** Turns right */
+            RIGHT,
+        };
+        
         /**
          * Indices into input vertices of line
          * that formed the polyline
@@ -174,26 +145,17 @@ namespace caret {
         };
         
         GraphicsOpenGLPolylineTriangles(const std::vector<float>& xyz,
-                                  const std::vector<float>& floatRGBA,
-                                  const std::vector<uint8_t>& byteRGBA,
-                                  const std::set<int32_t>& vertexPrimitiveRestartIndices,
-                                  const float lineThicknessPixels,
-                                  const ColorType colorType,
-                                  const LineType lineType);
+                                        const std::vector<float>& floatRGBA,
+                                        const std::vector<uint8_t>& byteRGBA,
+                                        const std::set<int32_t>& vertexPrimitiveRestartIndices,
+                                        const float lineThicknessPixels,
+                                        const ColorType colorType,
+                                        const LineType lineType,
+                                        const JoinType joinType);
         
         GraphicsOpenGLPolylineTriangles(const GraphicsOpenGLPolylineTriangles& obj);
         
         GraphicsOpenGLPolylineTriangles& operator=(const GraphicsOpenGLPolylineTriangles& obj) const;
-        
-        static bool drawLinesPrivate(const std::vector<float>& xyz,
-                                     const std::vector<float>& floatRGBA,
-                                     const std::vector<uint8_t>& byteRGBA,
-                                     const std::set<int32_t>& vertexPrimitiveRestartIndices,
-                                     const float lineThicknessPixels,
-                                     const ColorType colorType,
-                                     const LineType lineType);
-        
-        bool performDrawing();
         
         GraphicsPrimitive* convertLinesToPolygons(AString& errorMessageOut);
         
@@ -213,10 +175,11 @@ namespace caret {
         void createTrianglesFromWindowVertices(const int32_t windowVertexOneIndex,
                                                const int32_t windowVertexTwoIndex);
         
-        void drawTriangles();
+        void performBevelJoin(const PolylineInfo& polyOne,
+                              const PolylineInfo& polyTwo);
         
-        void performJoin(const PolylineInfo& polyOne,
-                         const PolylineInfo& polyTwo);
+        void performMiterJoin(const PolylineInfo& polyOne,
+                              const PolylineInfo& polyTwo);
         
         void joinTriangles();
         
@@ -226,6 +189,9 @@ namespace caret {
                                    const float v2[3],
                                    const float miterLength,
                                    float xyzOut[3]);
+        
+        TurnDirection getTurnDirection(const PolylineInfo& polyOne,
+                              const PolylineInfo& polyTwo) const;
         
         const std::vector<float>& m_inputXYZ;
         
@@ -241,11 +207,11 @@ namespace caret {
         
         const LineType m_lineType;
         
+        const JoinType m_joinType;
+        
         std::vector<float> m_vertexWindowXYZ;
         
         std::vector<int32_t> m_vertexWindowInputIndices;
-        
-        JoinType m_joinType = JoinType::MITER;
         
         bool m_debugFlag = false;
         

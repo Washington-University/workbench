@@ -266,7 +266,7 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
             ChartTwoDataCartesian* cartesianData = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                              xUnits,
                                                                              CaretUnitsTypeEnum::NONE,
-                                                                             GraphicsPrimitive::PrimitiveType::OPENGL_LINES);
+                                                                             GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN);
             cartesianData->setMapFileDataSelector(mapFileDataSelector);
             
             float x = 0.0f;
@@ -281,8 +281,8 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
                 CaretAssertVectorIndex(data, i - 1);
                 cartesianData->addPoint(x, data[i - 1]);
                 x += xStep;
-                CaretAssertVectorIndex(data, i);
-                cartesianData->addPoint(x, data[i]);
+//                CaretAssertVectorIndex(data, i);
+//                cartesianData->addPoint(x, data[i]);
             }
             
             m_lineChartHistory->addHistoryItem(cartesianData);

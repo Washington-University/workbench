@@ -2614,7 +2614,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     }
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> linesPrimitive;
     if (drawLines) {
-        linesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP));
+        linesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN));
     }
     
     const bool featureClippingFlag = isFeatureClippingEnabled();

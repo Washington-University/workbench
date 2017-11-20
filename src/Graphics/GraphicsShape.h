@@ -82,10 +82,15 @@ namespace caret {
                                        const GraphicsPrimitive::SizeType lineThicknessType,
                                        const double lineThickness);
         
-        static void drawLineStripByteColor(const std::vector<float>& xyz,
-                                           const uint8_t rgba[4],
-                                           const GraphicsPrimitive::SizeType lineThicknessType,
-                                           const double lineThickness);
+        static void drawLineStripBevelJoinByteColor(const std::vector<float>& xyz,
+                                                    const uint8_t rgba[4],
+                                                    const GraphicsPrimitive::SizeType lineThicknessType,
+                                                    const double lineThickness);
+        
+        static void drawLineStripMiterJoinByteColor(const std::vector<float>& xyz,
+                                                    const uint8_t rgba[4],
+                                                    const GraphicsPrimitive::SizeType lineThicknessType,
+                                                    const double lineThickness);
         
         static void drawSphereByteColor(const float xyz[3],
                                         const uint8_t rgba[4],

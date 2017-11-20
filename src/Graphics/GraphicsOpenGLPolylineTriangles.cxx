@@ -51,100 +51,50 @@ using namespace caret;
  */
 
 /**
- * Destructor.
+ * Constructor.
+ *
+ * @param xyz
+ *     The XYZ vertices.
+ * @param floatRGBA
+ *     The Float RGBA coloring.
+ * @param byteRGBA
+ *     The Byte RGBA coloring.
+ * @param vertexPrimitiveRestartIndices
+ *     Contains indices at which the primitive should restart.
+ *     The primitive will stop at the index and not connect to the next index.
+ * @param lineThicknessPixels
+ *     Thickness of lines in pixels.
+ * @param colorType
+ *     Type of color (solid or per-vertex)
+ * @param lineType
+ *     Type of lines drawn.
+ * @param joinType
+ *     Type of joining for line loop and line strip
  */
-GraphicsOpenGLPolylineTriangles::~GraphicsOpenGLPolylineTriangles()
+GraphicsOpenGLPolylineTriangles::GraphicsOpenGLPolylineTriangles(const std::vector<float>& xyz,
+                                                                 const std::vector<float>& floatRGBA,
+                                                                 const std::vector<uint8_t>& byteRGBA,
+                                                                 const std::set<int32_t>& vertexPrimitiveRestartIndices,
+                                                                 const float lineThicknessPixels,
+                                                                 const ColorType colorType,
+                                                                 const LineType lineType,
+                                                                 const JoinType joinType)
+: m_inputXYZ(xyz),
+m_inputFloatRGBA(floatRGBA),
+m_inputByteRGBA(byteRGBA),
+m_vertexPrimitiveRestartIndices(vertexPrimitiveRestartIndices),
+m_lineThicknessPixels(lineThicknessPixels),
+m_colorType(colorType),
+m_lineType(lineType),
+m_joinType(joinType)
 {
 }
 
 /**
- * Draw the given graphics primitive containing lines
- * by converting the lines to polygons.
- *
- * @param primtive
- *     The graphics primitive.
+ * Destructor.
  */
-bool
-GraphicsOpenGLPolylineTriangles::draw(const GraphicsPrimitive* primitive)
+GraphicsOpenGLPolylineTriangles::~GraphicsOpenGLPolylineTriangles()
 {
-    CaretAssert(primitive);
-    if (primitive->isValid()) {
-        float lineWidth = primitive->m_lineWidthValue;
-        
-        switch (primitive->m_lineWidthType) {
-            case GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT:
-            {
-                GLint viewport[4];
-                glGetIntegerv(GL_VIEWPORT, viewport);
-                lineWidth = (lineWidth / 100.0) * viewport[3];
-            }
-                break;
-            case GraphicsPrimitive::SizeType::PIXELS:
-                break;
-        }
-        
-        ColorType colorType = ColorType::FLOAT_RGBA_PER_VERTEX;
-        switch (primitive->m_colorType) {
-            case GraphicsPrimitive::ColorType::NONE:
-                CaretLogSevere("INVALID color type NONE for graphics primitive");
-                return false;
-                break;
-            case GraphicsPrimitive::ColorType::FLOAT_RGBA:
-                colorType = ColorType::FLOAT_RGBA_PER_VERTEX;
-                break;
-            case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
-                colorType = ColorType::BYTE_RGBA_PER_VERTEX;
-                break;
-        }
-        
-        LineType lineType = LineType::LINES;
-        switch (primitive->m_primitiveType) {
-            case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
-                lineType = LineType::LINE_LOOP;
-                break;
-            case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
-                lineType = LineType::LINE_STRIP;
-                break;
-            case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
-                lineType = LineType::LINES;
-                break;
-            case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
-                CaretLogSevere("POINTS is not a valid line drawing type");
-                return false;
-                break;
-            case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
-                CaretLogSevere("TRIANGLE_FAN is not a valid line drawing type");
-                return false;
-                break;
-            case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
-                CaretLogSevere("TRIANGLE_STRIP is not a valid line drawing type");
-                return false;
-                break;
-            case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
-                CaretLogSevere("TRIANGLES is not a valid line drawing type");
-                return false;
-                break;
-            case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
-                break;
-            case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
-                break;
-            case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
-                break;
-            case GraphicsPrimitive::PrimitiveType::SPHERES:
-                CaretLogSevere("SPHERES is not a valid line drawing type");
-                break;
-        }
-        
-        return drawLinesPrivate(primitive->m_xyz,
-                                primitive->m_floatRGBA,
-                                primitive->m_unsignedByteRGBA,
-                                primitive->m_polygonalLinePrimitiveRestartIndices,
-                                lineWidth,
-                                colorType,
-                                lineType);
-    }
-    
-    return false;
 }
 
 /**
@@ -202,6 +152,7 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
     }
     
     LineType lineType = LineType::LINES;
+    JoinType joinType = JoinType::NONE;
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
             errorMessageOut = "Input type is OPENGL_LINE_LOOP but must be one of the POLYGONAL_LINE* types";
@@ -224,11 +175,21 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             errorMessageOut = "Input type is OPENGL_TRIANGLES but must be one of the POLYGONAL_LINE* types";
             break;
-        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
             lineType = LineType::LINE_LOOP;
+            joinType = JoinType::BEVEL;
             break;
-        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
+            lineType = LineType::LINE_LOOP;
+            joinType = JoinType::MITER;
+            break;
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
             lineType = LineType::LINE_STRIP;
+            joinType = JoinType::BEVEL;
+            break;
+        case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
+            lineType = LineType::LINE_STRIP;
+            joinType = JoinType::MITER;
             break;
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
             lineType = LineType::LINES;
@@ -243,93 +204,17 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
     }
     
     GraphicsOpenGLPolylineTriangles lineConversion(primitive->m_xyz,
-                                             primitive->m_floatRGBA,
-                                             primitive->m_unsignedByteRGBA,
-                                             primitive->m_polygonalLinePrimitiveRestartIndices,
-                                             lineWidth,
-                                             colorType,
-                                             lineType);
+                                                   primitive->m_floatRGBA,
+                                                   primitive->m_unsignedByteRGBA,
+                                                   primitive->m_polygonalLinePrimitiveRestartIndices,
+                                                   lineWidth,
+                                                   colorType,
+                                                   lineType,
+                                                   joinType);
     
     GraphicsPrimitive* primitiveOut = lineConversion.convertLinesToPolygons(errorMessageOut);
     
     return primitiveOut;
-}
-
-/**
- * Constructor.
- *
- * @param xyz
- *     The XYZ vertices.
- * @param floatRGBA
- *     The Float RGBA coloring.
- * @param byteRGBA
- *     The Byte RGBA coloring.
- * @param vertexPrimitiveRestartIndices
- *     Contains indices at which the primitive should restart.
- *     The primitive will stop at the index and not connect to the next index.
- * @param lineThicknessPixels
- *     Thickness of lines in pixels.
- * @param colorType
- *     Type of color (solid or per-vertex)
- * @param lineType
- *     Type of lines drawn.
- */
-GraphicsOpenGLPolylineTriangles::GraphicsOpenGLPolylineTriangles(const std::vector<float>& xyz,
-                                                     const std::vector<float>& floatRGBA,
-                                                     const std::vector<uint8_t>& byteRGBA,
-                                                     const std::set<int32_t>& vertexPrimitiveRestartIndices,
-                                                     const float lineThicknessPixels,
-                                                     const ColorType colorType,
-                                                     const LineType lineType)
-: m_inputXYZ(xyz),
-m_inputFloatRGBA(floatRGBA),
-m_inputByteRGBA(byteRGBA),
-m_vertexPrimitiveRestartIndices(vertexPrimitiveRestartIndices),
-m_lineThicknessPixels(lineThicknessPixels),
-m_colorType(colorType),
-m_lineType(lineType)
-{
-    
-}
-
-/**
- * Draw lines where each pair of vertices is drawn as an independent
- * line segment.  Same as OpenGL GL_LINES mode with glBegin().
- *
- * @param xyz
- *     The vertices.
- * @param floatRGBA
- *     The Float RGBA coloring.
- * @param byteRGBA
- *     The Byte RGBA coloring.
- * @param vertexPrimitiveRestartIndices
- *     Contains indices at which the primitive should restart.
- * @param lineThicknessPixels
- *     Thickness of line in pixels.
- * @param colorType
- *     Type of color (solid or per-vertex)
- * @param lineType
- *     Type of lines drawn.
- * @return
- *     True if drawn, or false if there was an error.
- */
-bool
-GraphicsOpenGLPolylineTriangles::drawLinesPrivate(const std::vector<float>& xyz,
-                                            const std::vector<float>& floatRGBA,
-                                            const std::vector<uint8_t>& byteRGBA,
-                                            const std::set<int32_t>& vertexPrimitiveRestartIndices,
-                                            const float lineThicknessPixels,
-                                            const ColorType colorType,
-                                            const LineType lineType)
-{
-    GraphicsOpenGLPolylineTriangles lineDrawing(xyz,
-                                          floatRGBA,
-                                          byteRGBA,
-                                          vertexPrimitiveRestartIndices,
-                                          lineThicknessPixels,
-                                          colorType,
-                                          lineType);
-    return lineDrawing.performDrawing();
 }
 
 /**
@@ -438,94 +323,6 @@ GraphicsOpenGLPolylineTriangles::convertLinesToPolygons(AString& errorMessageOut
     }
     
     return primitiveOut;
-}
-
-
-/**
- * Perform the line drawinhg.
- *
- * @return
- *     True if no errors, false if errors.
- */
-bool
-GraphicsOpenGLPolylineTriangles::performDrawing()
-{
-    const int32_t numVertices = static_cast<int32_t>(m_inputXYZ.size() / 3);
-    if (numVertices < 2) {
-        CaretLogWarning("Invalid number of vertices="
-                        + AString::number(numVertices)
-                        + " for line drawing.  Must be at least 2.");
-        return false;
-    }
-    
-    const int32_t numFloatRGBA = static_cast<int32_t>(m_inputFloatRGBA.size());
-    const int32_t numByteRGBA = static_cast<int32_t>(m_inputByteRGBA.size());
-    switch (m_colorType) {
-        case ColorType::BYTE_RGBA_PER_VERTEX:
-        {
-            const int32_t numRgbaVertices = numByteRGBA / 4;
-            if (numVertices != numRgbaVertices) {
-                CaretLogSevere("Mismatch in vertices and coloring.  There are "
-                               + AString::number(numVertices)
-                               + " vertices but have byte coloring for "
-                               + AString::number(numRgbaVertices)
-                               + " vertices");
-                return false;
-            }
-        }
-            break;
-        case ColorType::BYTE_RGBA_SOLID:
-            if (numByteRGBA < 4) {
-                CaretLogSevere("Must have at last 4 color components for solid color line drawing"
-                               "Number of color components is "
-                               + AString::number(numByteRGBA));
-                return false;
-            }
-            break;
-        case ColorType::FLOAT_RGBA_PER_VERTEX:
-        {
-            const int32_t numRgbaVertices = numFloatRGBA / 4;
-            if (numVertices != numRgbaVertices) {
-                CaretLogSevere("Mismatch in vertices and coloring.  There are "
-                               + AString::number(numVertices)
-                               + " vertices but have float coloring for "
-                               + AString::number(numRgbaVertices)
-                               + " vertices");
-                return false;
-            }
-        }
-            break;
-        case ColorType::FLOAT_RGBA_SOLID:
-            if (numFloatRGBA < 4) {
-                CaretLogSevere("Must have at last 4 color components for solid color line drawing"
-                               "Number of color components is "
-                               + AString::number(numFloatRGBA));
-                return false;
-            }
-            break;
-    }
-    
-    saveOpenGLState();
-    
-    createProjectionMatrix();
-    
-    createWindowCoordinatesFromVertices();
-    
-    const int32_t numWindowPoints = static_cast<int32_t>(m_vertexWindowXYZ.size() / 3);
-    if (numWindowPoints >= 2) {
-        convertLineSegmentsToTriangles();
-        
-        joinTriangles();
-        
-        CaretAssert(m_primitive);
-        if (m_primitive->isValid()) {
-            drawTriangles();
-        }
-    }
-    
-    restoreOpenGLState();
-    
-    return true;
 }
 
 /**
@@ -961,6 +758,16 @@ GraphicsOpenGLPolylineTriangles::joinTriangles()
 {
     CaretAssert(m_primitive);
 
+    switch (m_joinType) {
+        case JoinType::BEVEL:
+            break;
+        case JoinType::MITER:
+            break;
+        case JoinType::NONE:
+            return;
+            break;
+    }
+    
     const int32_t numPolylines = static_cast<int32_t>(m_polyLineInfo.size());
     const int32_t numPolylinesMinusOne = numPolylines - 1;
     
@@ -992,8 +799,18 @@ GraphicsOpenGLPolylineTriangles::joinTriangles()
          * Does triangle "i" connect to triangle "i+1" ?
          */
         if (poly.m_windowVertexTwoIndex == nextPoly.m_windowVertexOneIndex) {
-            performJoin(poly,
-                        nextPoly);
+            switch (m_joinType) {
+                case JoinType::BEVEL:
+                    performBevelJoin(poly,
+                                     nextPoly);
+                    break;
+                case JoinType::MITER:
+                    performMiterJoin(poly,
+                                     nextPoly);
+                    break;
+                case JoinType::NONE:
+                    break;
+            }
         }
     }
     
@@ -1001,22 +818,26 @@ GraphicsOpenGLPolylineTriangles::joinTriangles()
 }
 
 /**
- * Join the second triangle in poly one to poly two.
+ * Determine the turn direction at the connection point of two line segments.
  *
  * @param polyOne
- *     Info about triangles in first polyline
+ *     Info about first polyline
  * @param polyTwo
- *     Info about triangles in second polyline
+ *     Info about second polyline
+ * @return
+ *     The turn direction.
  */
-void
-GraphicsOpenGLPolylineTriangles::performJoin(const PolylineInfo& polyOne,
-                                             const PolylineInfo& polyTwo)
+GraphicsOpenGLPolylineTriangles::TurnDirection
+GraphicsOpenGLPolylineTriangles::getTurnDirection(const PolylineInfo& polyOne,
+                               const PolylineInfo& polyTwo) const
 {
+    TurnDirection turnDirection = TurnDirection::PARALLEL;
+    
     const int32_t windowVertexIndexOne   = polyOne.m_windowVertexOneIndex;
     const int32_t windowVertexIndexTwo   = polyOne.m_windowVertexTwoIndex;
     const int32_t windowVertexIndexThree = polyTwo.m_windowVertexTwoIndex;
     
-    if (m_debugFlag) std::cout << "Join: " << windowVertexIndexOne << ", " << windowVertexIndexTwo << ", " << windowVertexIndexThree << std::endl;
+    if (m_debugFlag) std::cout << "Turn Direction: " << windowVertexIndexOne << ", " << windowVertexIndexTwo << ", " << windowVertexIndexThree << std::endl;
     CaretAssert(m_primitive);
     
     /*
@@ -1032,36 +853,161 @@ GraphicsOpenGLPolylineTriangles::performJoin(const PolylineInfo& polyOne,
                                                                  &m_vertexWindowXYZ[windowVertexIndexThree * 3]);
     
     
+    const float smallNumber = 0.001;
+    if (signedArea > smallNumber) {
+        turnDirection = TurnDirection::LEFT;
+    }
+    else if (signedArea < -smallNumber) {
+        turnDirection = TurnDirection::RIGHT;
+    }
+    else {
+        turnDirection = TurnDirection::PARALLEL;
+    }
+    
+    return turnDirection;
+}
+
+/**
+ * Join the second triangle in poly one to poly two with a bevel join.
+ * A triangle is added that connects the outside corners of the
+ * two polylines.
+ *
+ * @param polyOne
+ *     Info about triangles in first polyline
+ * @param polyTwo
+ *     Info about triangles in second polyline
+ */
+void
+GraphicsOpenGLPolylineTriangles::performBevelJoin(const PolylineInfo& polyOne,
+                                                  const PolylineInfo& polyTwo)
+{
+    const TurnDirection turnDirection = getTurnDirection(polyOne,
+                                                         polyTwo);
+    
+    const int32_t windowVertexIndexTwo   = polyOne.m_windowVertexTwoIndex;
+    
+    if (m_debugFlag) {
+        const int32_t windowVertexIndexOne   = polyOne.m_windowVertexOneIndex;
+        const int32_t windowVertexIndexThree = polyTwo.m_windowVertexTwoIndex;
+        std::cout << "Join: " << windowVertexIndexOne << ", " << windowVertexIndexTwo << ", " << windowVertexIndexThree << std::endl;
+    }
+    CaretAssert(m_primitive);
+    
+    /*
+     * Determine if the junction of the two consecutive
+     * line segments in window coordinates makes a left
+     * or right turn
+     */
+    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexTwo * 3) + 2);
+    
+    int32_t quadOneSideEndVertexIndex = -1;
+    int32_t quadTwoSideBeginVertexIndex = -1;
+    bool leftTurnFlag = false;
+    switch (turnDirection) {
+        case TurnDirection::LEFT:
+            leftTurnFlag = true;
+            if (m_debugFlag) std::cout << "   Left Turn" << std::endl;
+            
+            /*
+             * Join the right side that is first two vertices in triangle two
+             */
+            quadOneSideEndVertexIndex   = polyOne.m_triangleTwoPrimitiveIndices[1];   //quadOneVertexIndex + 2;
+            quadTwoSideBeginVertexIndex = polyTwo.m_triangleTwoPrimitiveIndices[0];   //quadTwoVertexIndex + 1;
+            break;
+        case TurnDirection::PARALLEL:
+            if (m_debugFlag) std::cout << "   Parallel" << std::endl;
+            return;
+            break;
+        case TurnDirection::RIGHT:
+            leftTurnFlag = false;
+            if (m_debugFlag) std::cout << "   Right Turn" << std::endl;
+            
+            /*
+             * Join left side that is first and third vertices in triangle one
+             */
+            quadOneSideEndVertexIndex   = polyOne.m_triangleOnePrimitiveIndices[2];   //quadOneVertexIndex + 3;
+            quadTwoSideBeginVertexIndex = polyTwo.m_triangleOnePrimitiveIndices[0];   //quadTwoVertexIndex;
+            break;
+    }
+    
+    /*
+     * Add a triangle to fill in the gap
+     */
+    m_triangleJoins.push_back(TriangleJoin(windowVertexIndexTwo,
+                                           quadOneSideEndVertexIndex,
+                                           quadTwoSideBeginVertexIndex));
+}
+
+/**
+ * Join the second triangle in poly one to poly two with a miter join.
+ * A miter join extends the 'outside' edges of the turn to their intersection.
+ * If the angle is sharp (very small) this intersection may be long way
+ * from the original vertex.  The miter limit keeps this from happening by
+ * extending the intersection just a little bit and adding essentially a
+ * bevel-like join.
+ *
+ * @param polyOne
+ *     Info about triangles in first polyline
+ * @param polyTwo
+ *     Info about triangles in second polyline
+ */
+void
+GraphicsOpenGLPolylineTriangles::performMiterJoin(const PolylineInfo& polyOne,
+                                                  const PolylineInfo& polyTwo)
+{
+    const TurnDirection turnDirection = getTurnDirection(polyOne,
+                                                         polyTwo);
+    
+    const int32_t windowVertexIndexTwo   = polyOne.m_windowVertexTwoIndex;
+    
+    if (m_debugFlag) {
+        const int32_t windowVertexIndexOne   = polyOne.m_windowVertexOneIndex;
+        const int32_t windowVertexIndexThree = polyTwo.m_windowVertexTwoIndex;
+        std::cout << "Miter Join: " << windowVertexIndexOne << ", " << windowVertexIndexTwo << ", " << windowVertexIndexThree << std::endl;
+    }
+    CaretAssert(m_primitive);
+    
+    /*
+     * Determine if the junction of the two consecutive
+     * line segments in window coordinates makes a left
+     * or right turn
+     */
+    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexTwo * 3) + 2);
+    
     int32_t quadOneSideBeginVertexIndex = -1;
     int32_t quadOneSideEndVertexIndex = -1;
     int32_t quadTwoSideBeginVertexIndex = -1;
     int32_t quadTwoSideEndVertexIndex = -1;
-    const float smallNumber = 0.001;
     bool leftTurnFlag = false;
-    if (signedArea > smallNumber) {
-        leftTurnFlag = true;
-        if (m_debugFlag) std::cout << "   Left Turn" << std::endl;
-        /*
-         * Right side is first two vertices in triangle two
-         */
-        quadOneSideBeginVertexIndex = polyOne.m_triangleTwoPrimitiveIndices[0];   //quadOneVertexIndex + 1;
-        quadOneSideEndVertexIndex   = polyOne.m_triangleTwoPrimitiveIndices[1];   //quadOneVertexIndex + 2;
-        quadTwoSideBeginVertexIndex = polyTwo.m_triangleTwoPrimitiveIndices[0];   //quadTwoVertexIndex + 1;
-        quadTwoSideEndVertexIndex   = polyTwo.m_triangleTwoPrimitiveIndices[1];   //quadTwoVertexIndex + 2;
-    }
-    else if (signedArea < -smallNumber) {
-        if (m_debugFlag) std::cout << "   Right Turn" << std::endl;
-        /*
-         * Left side is first and third vertices in triangle one
-         */
-        quadOneSideBeginVertexIndex = polyOne.m_triangleOnePrimitiveIndices[0];   //quadOneVertexIndex;
-        quadOneSideEndVertexIndex   = polyOne.m_triangleOnePrimitiveIndices[2];   //quadOneVertexIndex + 3;
-        quadTwoSideBeginVertexIndex = polyTwo.m_triangleOnePrimitiveIndices[0];   //quadTwoVertexIndex;
-        quadTwoSideEndVertexIndex   = polyTwo.m_triangleOnePrimitiveIndices[2];   //quadTwoVertexIndex + 3;
-    }
-    else {
-        if (m_debugFlag) std::cout << "   Parallel" << std::endl;
-        return;
+    switch (turnDirection) {
+        case TurnDirection::LEFT:
+            leftTurnFlag = true;
+            if (m_debugFlag) std::cout << "   Miter Left Turn" << std::endl;
+
+            /*
+             * Join the right side that is first two vertices in triangle two
+             */
+            quadOneSideBeginVertexIndex = polyOne.m_triangleTwoPrimitiveIndices[0];   //quadOneVertexIndex + 1;
+            quadOneSideEndVertexIndex   = polyOne.m_triangleTwoPrimitiveIndices[1];   //quadOneVertexIndex + 2;
+            quadTwoSideBeginVertexIndex = polyTwo.m_triangleTwoPrimitiveIndices[0];   //quadTwoVertexIndex + 1;
+            quadTwoSideEndVertexIndex   = polyTwo.m_triangleTwoPrimitiveIndices[1];   //quadTwoVertexIndex + 2;
+            break;
+        case TurnDirection::PARALLEL:
+            if (m_debugFlag) std::cout << "   Miter Parallel" << std::endl;
+            return;
+            break;
+        case TurnDirection::RIGHT:
+            leftTurnFlag = false;
+            if (m_debugFlag) std::cout << "   Miter Right Turn" << std::endl;
+            
+            /*
+             * Join left side that is first and third vertices in triangle one
+             */
+            quadOneSideBeginVertexIndex = polyOne.m_triangleOnePrimitiveIndices[0];   //quadOneVertexIndex;
+            quadOneSideEndVertexIndex   = polyOne.m_triangleOnePrimitiveIndices[2];   //quadOneVertexIndex + 3;
+            quadTwoSideBeginVertexIndex = polyTwo.m_triangleOnePrimitiveIndices[0];   //quadTwoVertexIndex;
+            quadTwoSideEndVertexIndex   = polyTwo.m_triangleOnePrimitiveIndices[2];   //quadTwoVertexIndex + 3;
+            break;
     }
     
     const std::vector<float>& xyz = m_primitive->getFloatXYZ();
@@ -1086,7 +1032,7 @@ GraphicsOpenGLPolylineTriangles::performJoin(const PolylineInfo& polyOne,
     float intersectionXYZ[3];
     if (MathFunctions::vectorIntersection2D(q1v1, q1v2, q2v1, q2v2, 0.0f, intersectionXYZ)) {
         intersectionXYZ[2] = q1v1[2];
-        if (m_debugFlag) std::cout << "      Intersection: " << AString::fromNumbers(intersectionXYZ, 3, ",") << std::endl;
+        if (m_debugFlag) std::cout << "      Miter Intersection: " << AString::fromNumbers(intersectionXYZ, 3, ",") << std::endl;
         
         /*
          * When the angle is very sharp, the miter point can be very long and pointy
@@ -1124,10 +1070,10 @@ GraphicsOpenGLPolylineTriangles::performJoin(const PolylineInfo& polyOne,
                 m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleOnePrimitiveIndices[0], newV2);
                 primitiveIndexV2 = polyTwo.m_triangleOnePrimitiveIndices[0];
             }
-
-           /*
-            * Add a triangle to fill in the gap
-            */
+            
+            /*
+             * Add a triangle to fill in the gap
+             */
             m_triangleJoins.push_back(TriangleJoin(windowVertexIndexTwo,
                                                    primitiveIndexV1,
                                                    primitiveIndexV2));
@@ -1149,6 +1095,166 @@ GraphicsOpenGLPolylineTriangles::performJoin(const PolylineInfo& polyOne,
         }
     }
 }
+
+///**
+// * Join the second triangle in poly one to poly two.
+// *
+// * @param polyOne
+// *     Info about triangles in first polyline
+// * @param polyTwo
+// *     Info about triangles in second polyline
+// */
+//void
+//GraphicsOpenGLPolylineTriangles::performJoin(const PolylineInfo& polyOne,
+//                                             const PolylineInfo& polyTwo)
+//{
+//    const int32_t windowVertexIndexOne   = polyOne.m_windowVertexOneIndex;
+//    const int32_t windowVertexIndexTwo   = polyOne.m_windowVertexTwoIndex;
+//    const int32_t windowVertexIndexThree = polyTwo.m_windowVertexTwoIndex;
+//    
+//    if (m_debugFlag) std::cout << "Join: " << windowVertexIndexOne << ", " << windowVertexIndexTwo << ", " << windowVertexIndexThree << std::endl;
+//    CaretAssert(m_primitive);
+//    
+//    /*
+//     * Determine if the junction of the two consecutive
+//     * line segments in window coordinates makes a left
+//     * or right turn
+//     */
+//    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexOne * 3) + 2);
+//    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexTwo * 3) + 2);
+//    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexThree * 3) + 2);
+//    const float signedArea = MathFunctions::triangleAreaSigned2D(&m_vertexWindowXYZ[windowVertexIndexOne * 3],
+//                                                                 &m_vertexWindowXYZ[windowVertexIndexTwo * 3],
+//                                                                 &m_vertexWindowXYZ[windowVertexIndexThree * 3]);
+//    
+//    
+//    int32_t quadOneSideBeginVertexIndex = -1;
+//    int32_t quadOneSideEndVertexIndex = -1;
+//    int32_t quadTwoSideBeginVertexIndex = -1;
+//    int32_t quadTwoSideEndVertexIndex = -1;
+//    const float smallNumber = 0.001;
+//    bool leftTurnFlag = false;
+//    if (signedArea > smallNumber) {
+//        leftTurnFlag = true;
+//        if (m_debugFlag) std::cout << "   Left Turn" << std::endl;
+//        /*
+//         * Right side is first two vertices in triangle two
+//         */
+//        quadOneSideBeginVertexIndex = polyOne.m_triangleTwoPrimitiveIndices[0];   //quadOneVertexIndex + 1;
+//        quadOneSideEndVertexIndex   = polyOne.m_triangleTwoPrimitiveIndices[1];   //quadOneVertexIndex + 2;
+//        quadTwoSideBeginVertexIndex = polyTwo.m_triangleTwoPrimitiveIndices[0];   //quadTwoVertexIndex + 1;
+//        quadTwoSideEndVertexIndex   = polyTwo.m_triangleTwoPrimitiveIndices[1];   //quadTwoVertexIndex + 2;
+//    }
+//    else if (signedArea < -smallNumber) {
+//        if (m_debugFlag) std::cout << "   Right Turn" << std::endl;
+//        /*
+//         * Left side is first and third vertices in triangle one
+//         */
+//        quadOneSideBeginVertexIndex = polyOne.m_triangleOnePrimitiveIndices[0];   //quadOneVertexIndex;
+//        quadOneSideEndVertexIndex   = polyOne.m_triangleOnePrimitiveIndices[2];   //quadOneVertexIndex + 3;
+//        quadTwoSideBeginVertexIndex = polyTwo.m_triangleOnePrimitiveIndices[0];   //quadTwoVertexIndex;
+//        quadTwoSideEndVertexIndex   = polyTwo.m_triangleOnePrimitiveIndices[2];   //quadTwoVertexIndex + 3;
+//    }
+//    else {
+//        if (m_debugFlag) std::cout << "   Parallel" << std::endl;
+//        return;
+//    }
+//    
+//    switch (m_joinType) {
+//        case JoinType::BEVEL:
+//            break;
+//        case JoinType::MITER:
+//            break;
+//        case JoinType::NONE:
+//            CaretAssert(0);
+//            break;
+//    }
+//    
+//    const std::vector<float>& xyz = m_primitive->getFloatXYZ();
+//    CaretAssertVectorIndex(xyz, (quadOneSideBeginVertexIndex * 3) + 2);
+//    CaretAssertVectorIndex(xyz, (quadOneSideEndVertexIndex * 3) + 2);
+//    CaretAssertVectorIndex(xyz, (quadTwoSideBeginVertexIndex * 3) + 2);
+//    CaretAssertVectorIndex(xyz, (quadTwoSideEndVertexIndex * 3) + 2);
+//    const float* q1v1 = &xyz[quadOneSideBeginVertexIndex * 3];
+//    const float* q1v2 = &xyz[quadOneSideEndVertexIndex * 3];
+//    const float* q2v1 = &xyz[quadTwoSideBeginVertexIndex * 3];
+//    const float* q2v2 = &xyz[quadTwoSideEndVertexIndex * 3];
+//    
+//    /*
+//     * Miter limit is a multiple of the line thickness
+//     */
+//    const float miterLimit = m_lineThicknessPixels;// * 2.0f;
+//    const float miterLimitSquared = miterLimit * miterLimit;
+//    
+//    /*
+//     * Find location of where the edges in the quads intersect
+//     */
+//    float intersectionXYZ[3];
+//    if (MathFunctions::vectorIntersection2D(q1v1, q1v2, q2v1, q2v2, 0.0f, intersectionXYZ)) {
+//        intersectionXYZ[2] = q1v1[2];
+//        if (m_debugFlag) std::cout << "      Intersection: " << AString::fromNumbers(intersectionXYZ, 3, ",") << std::endl;
+//        
+//        /*
+//         * When the angle is very sharp, the miter point can be very long and pointy
+//         * so limit to a multiplier of the line thickness
+//         */
+//        CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexTwo * 3) + 2);
+//        const float* joinPointXYZ = &m_vertexWindowXYZ[(windowVertexIndexTwo * 3)];
+//        const float distanceSquared = MathFunctions::distanceSquared3D(joinPointXYZ,
+//                                                                       intersectionXYZ);
+//        if (distanceSquared > miterLimitSquared) {
+//            /*
+//             * Extend lines by the miter limit to create a new quad
+//             */
+//            float newV1[3];
+//            createMiterJoinVertex(q1v1, q1v2, miterLimit, newV1);
+//            float newV2[3];
+//            createMiterJoinVertex(q2v2, q2v1, miterLimit, newV2);
+//            
+//            /*
+//             * Extend vertices to the new miter limit
+//             */
+//            int32_t primitiveIndexV1 = -1;
+//            int32_t primitiveIndexV2 = -1;
+//            if (leftTurnFlag) {
+//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleTwoPrimitiveIndices[1], newV1);
+//                primitiveIndexV1 = polyOne.m_triangleTwoPrimitiveIndices[1];
+//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleOnePrimitiveIndices[1], newV2);
+//                primitiveIndexV2 = polyTwo.m_triangleOnePrimitiveIndices[1];
+//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleTwoPrimitiveIndices[0], newV2);
+//            }
+//            else {
+//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleTwoPrimitiveIndices[2], newV1);
+//                primitiveIndexV1 = polyOne.m_triangleTwoPrimitiveIndices[2];
+//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleOnePrimitiveIndices[2], newV1);
+//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleOnePrimitiveIndices[0], newV2);
+//                primitiveIndexV2 = polyTwo.m_triangleOnePrimitiveIndices[0];
+//            }
+//
+//           /*
+//            * Add a triangle to fill in the gap
+//            */
+//            m_triangleJoins.push_back(TriangleJoin(windowVertexIndexTwo,
+//                                                   primitiveIndexV1,
+//                                                   primitiveIndexV2));
+//        }
+//        else {
+//            /*
+//             * Move the existing quad vertices to their intersection point
+//             */
+//            if (leftTurnFlag) {
+//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleTwoPrimitiveIndices[1], intersectionXYZ);
+//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleOnePrimitiveIndices[1], intersectionXYZ);
+//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleTwoPrimitiveIndices[0], intersectionXYZ);
+//            }
+//            else {
+//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleTwoPrimitiveIndices[2], intersectionXYZ);
+//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleOnePrimitiveIndices[2], intersectionXYZ);
+//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleOnePrimitiveIndices[0], intersectionXYZ);
+//            }
+//        }
+//    }
+//}
 
 /**
  * Create a vertex for a miter join when the length limit is exceeded
@@ -1328,38 +1434,6 @@ GraphicsOpenGLPolylineTriangles::convertLineSegmentsToTriangles()
                 createTrianglesFromWindowVertices(i, i + 1);
             }
             break;
-    }
-}
-
-/**
- * Draw the lines using triangles.
- */
-void
-GraphicsOpenGLPolylineTriangles::drawTriangles()
-{
-    GLdouble depthRange[2];
-    glGetDoublev(GL_DEPTH_RANGE,
-                 depthRange);
-    
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT,
-                  viewport);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(viewport[0], viewport[0] + viewport[2],
-            viewport[1], viewport[1] + viewport[3],
-            0, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    glPolygonMode(GL_FRONT, GL_FILL);
-    
-    CaretAssert(m_primitive);
-    GraphicsEngineDataOpenGL::draw(m_primitive);
-    if (m_debugFlag) {
-        std::cout << std::endl << "Quad Primitive: " << m_primitive->toString() << std::endl;
-        std::cout << "viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
     }
 }
 
