@@ -996,6 +996,10 @@ GraphicsPrimitive::replaceAllVertexSolidFloatRGBA(const float rgba[4])
             CaretLogWarning("Replacing Byte RGBA in primitive but coloring type is Float");
             break;
     }
+
+    if (m_graphicsEngineDataForOpenGL != NULL) {
+        m_graphicsEngineDataForOpenGL->invalidateColors();
+    }
 }
 
 

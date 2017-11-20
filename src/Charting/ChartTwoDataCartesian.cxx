@@ -130,6 +130,7 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
             colorFound = true;
         }
     }
+    setColor(m_color);
     
     m_sceneAssistant = new SceneClassAssistant();
     
@@ -263,6 +264,8 @@ ChartTwoDataCartesian::copyHelperChartTwoDataCartesian(const ChartTwoDataCartesi
 GraphicsPrimitiveV3f*
 ChartTwoDataCartesian::getGraphicsPrimitive() const
 {
+    m_graphicsPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                      m_lineWidth);
     return m_graphicsPrimitive.get();
 }
 
@@ -437,6 +440,8 @@ void
 ChartTwoDataCartesian::setLineWidth(const float lineWidth)
 {
     m_lineWidth = lineWidth;
+    m_graphicsPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                      m_lineWidth);
 }
 
 /**
