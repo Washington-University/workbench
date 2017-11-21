@@ -348,8 +348,6 @@ namespace caret {
         
         float m_lineWidthMinimum = 1.0f;
         
-        float m_lineWidthMaximum = 5.0f;
-        
         static constexpr float s_sizingHandleLineWidthInPixels = 2.0f;
         
         // ADD_NEW_MEMBERS_HERE

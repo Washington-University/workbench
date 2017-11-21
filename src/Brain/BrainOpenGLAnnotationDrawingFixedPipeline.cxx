@@ -91,8 +91,9 @@ m_volumeSliceThickness(0.0)
     m_dummyAnnotationFile->setFileName("DummyFileForDrawing"
                                        + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::ANNOTATION));
 
+    float unusedLineWidthMaximum(0);
     BrainOpenGL::getMinMaxLineWidth(m_lineWidthMinimum,
-                                    m_lineWidthMaximum);
+                                    unusedLineWidthMaximum);
 }
 
 /**
@@ -2471,6 +2472,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
     
     return drawnFlag;
 }
+
 /**
  * Create the coordinates for drawing a line with optional arrows at the end points.
  *
@@ -2504,92 +2506,97 @@ BrainOpenGLAnnotationDrawingFixedPipeline::createLineCoordinates(const float lin
     /*
      * Length of arrow's tips is function of line thickness
      */
-    const float tipScale = 3.0;
-    const float tipLength = lineThicknessPixels * tipScale;
+    const float lineLength = MathFunctions::distance3D(lineHeadXYZ,
+                                                       lineTailXYZ);
+    const float thirdLineLength = lineLength / 3.0f;
     
     /*
-     * Point on arrow's line that is between the arrow's left and right arrow tips
+     * Vector from Tail to Head of line
      */
-    float headToTailVector[3];
-    MathFunctions::createUnitVector(lineHeadXYZ, lineTailXYZ, headToTailVector);
-    const float startArrowTipsOnLine[3] = {
-        lineHeadXYZ[0] + (headToTailVector[0] * tipLength),
-        lineHeadXYZ[1] + (headToTailVector[1] * tipLength),
-        lineHeadXYZ[2] + (headToTailVector[2] * tipLength)
-    };
-    const float tailArrowTipsOnLine[3] = {
-        lineTailXYZ[0] - (headToTailVector[0] * tipLength),
-        lineTailXYZ[1] - (headToTailVector[1] * tipLength),
-        lineTailXYZ[2] - (headToTailVector[2] * tipLength)
-    };
+    float tailToHeadUnitVector[3];
+    MathFunctions::createUnitVector(lineTailXYZ,
+                                    lineHeadXYZ,
+                                    tailToHeadUnitVector);
+    
     
     /*
-     * Vector for arrow tip's on left and right
-     *
      * Create a perpendicular vector by swapping first two elements
      * and negating the second element.
      */
-    float headLeftRightTipOffset[3] = {
-        headToTailVector[0],
-        headToTailVector[1],
-        headToTailVector[2]
-    };
-    MathFunctions::normalizeVector(headLeftRightTipOffset);
-    std::swap(headLeftRightTipOffset[0],
-              headLeftRightTipOffset[1]);
-    headLeftRightTipOffset[1] *= -1;
-    headLeftRightTipOffset[0] *= tipLength;
-    headLeftRightTipOffset[1] *= tipLength;
-    headLeftRightTipOffset[2] *= tipLength;
-    
-    /*
-     * Tip of arrow's head pointer on the right
-     */
-    const float headRightTipEnd[3] = {
-        startArrowTipsOnLine[0] - headLeftRightTipOffset[0],
-        startArrowTipsOnLine[1] - headLeftRightTipOffset[1],
-        startArrowTipsOnLine[2] - headLeftRightTipOffset[2]
+    const float leftToRightUnitVector[3] = {
+        tailToHeadUnitVector[1],
+        -tailToHeadUnitVector[0],
+        tailToHeadUnitVector[2]
     };
     
     /*
-     * Tip of arrow's head pointer on the left
+     * Left to right vector moves the arrows tips away from the line
+     * in a direction perpendicular to the line
      */
-    const float headLeftTipEnd[3] = {
-        startArrowTipsOnLine[0] + headLeftRightTipOffset[0],
-        startArrowTipsOnLine[1] + headLeftRightTipOffset[1],
-        startArrowTipsOnLine[2] + headLeftRightTipOffset[2]
+    const float awayFromLineScale = 3.0f;
+    const float awayFromLineDistance = lineThicknessPixels * awayFromLineScale;
+    const float leftToRightVector[3] = {
+        leftToRightUnitVector[0] * awayFromLineDistance,
+        leftToRightUnitVector[1] * awayFromLineDistance,
+        leftToRightUnitVector[2]
     };
     
     /*
-     * Tip of arrow tail pointer on the right
+     * Away from tail vector moves the arrows tips away from the tail
+     * of the line in a direction along the line
      */
-    const float tailRightTipEnd[3] = {
-        tailArrowTipsOnLine[0] + headLeftRightTipOffset[0],
-        tailArrowTipsOnLine[1] + headLeftRightTipOffset[1],
-        tailArrowTipsOnLine[2] + headLeftRightTipOffset[2]
+    const float awayFromTipScale = 3.0f;
+    const float alongLineDistanceFromTip = std::min((lineThicknessPixels * awayFromTipScale),
+                                                 (thirdLineLength));
+    
+    const float awayFromTailVector[3] = {
+        (tailToHeadUnitVector[0] * alongLineDistanceFromTip),
+        (tailToHeadUnitVector[1] * alongLineDistanceFromTip),
+        (tailToHeadUnitVector[2])
     };
     
-    /*
-     * Tip of arrow tail pointer on the right
-     */
-    const float tailLeftTipEnd[3] = {
-        tailArrowTipsOnLine[0] - headLeftRightTipOffset[0],
-        tailArrowTipsOnLine[1] - headLeftRightTipOffset[1],
-        tailArrowTipsOnLine[2] - headLeftRightTipOffset[2]
-    };
+    if (validEndArrow) {
+        const float tailTipRightXYZ[3] = {
+            lineTailXYZ[0] + leftToRightVector[0] + awayFromTailVector[0],
+            lineTailXYZ[1] + leftToRightVector[1] + awayFromTailVector[1],
+            lineTailXYZ[2] + leftToRightVector[2] + awayFromTailVector[2]
+        };
+        const float tailTipLeftXYZ[3] = {
+            lineTailXYZ[0] - leftToRightVector[0] + awayFromTailVector[0],
+            lineTailXYZ[1] - leftToRightVector[1] + awayFromTailVector[1],
+            lineTailXYZ[2] + leftToRightVector[2] + awayFromTailVector[2]
+        };
+        
+        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(),
+                                        tailTipLeftXYZ, tailTipLeftXYZ + 3);
+        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(),
+                                        lineTailXYZ, lineTailXYZ + 3);
+        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(),
+                                        tailTipRightXYZ, tailTipRightXYZ + 3);
+    }
+    
+    if (validStartArrow) {
+        const float headTipRightXYZ[3] = {
+            lineHeadXYZ[0] + leftToRightVector[0] - awayFromTailVector[0],
+            lineHeadXYZ[1] + leftToRightVector[1] - awayFromTailVector[1],
+            lineHeadXYZ[2] + leftToRightVector[2] - awayFromTailVector[2]
+        };
+        const float headTipLeftXYZ[3] = {
+            lineHeadXYZ[0] - leftToRightVector[0] - awayFromTailVector[0],
+            lineHeadXYZ[1] - leftToRightVector[1] - awayFromTailVector[1],
+            lineHeadXYZ[2] + leftToRightVector[2] - awayFromTailVector[2]
+        };
+        
+        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(),
+                                        headTipLeftXYZ, headTipLeftXYZ + 3);
+        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(),
+                                        lineHeadXYZ, lineHeadXYZ + 3);
+        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(),
+                                        headTipRightXYZ, headTipRightXYZ + 3);
+    }
     
     lineCoordinatesOut.insert(lineCoordinatesOut.end(), lineHeadXYZ, lineHeadXYZ + 3);
     lineCoordinatesOut.insert(lineCoordinatesOut.end(), lineTailXYZ, lineTailXYZ + 3);
-    if (validStartArrow) {
-        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), headRightTipEnd, headRightTipEnd + 3);
-        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), lineHeadXYZ,     lineHeadXYZ + 3);
-        startArrowCoordinatesOut.insert(startArrowCoordinatesOut.end(), headLeftTipEnd,  headLeftTipEnd + 3);
-    }
-    if (validEndArrow) {
-        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), tailRightTipEnd, tailRightTipEnd + 3);
-        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), lineTailXYZ,     lineTailXYZ + 3);
-        endArrowCoordinatesOut.insert(endArrowCoordinatesOut.end(), tailLeftTipEnd,  tailLeftTipEnd + 3);
-    }
 }
 
 /**
@@ -3296,9 +3303,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getLineWidthFromPercentageHeight(cons
     
     if (widthPixels < m_lineWidthMinimum) {
         widthPixels = m_lineWidthMinimum;
-    }
-    else if (widthPixels > m_lineWidthMaximum) {
-        widthPixels = m_lineWidthMaximum;
     }
     
     return widthPixels;
