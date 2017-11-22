@@ -47,6 +47,7 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
+#include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
@@ -974,9 +975,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::startOpenGLForDrawing(GLint* savedSha
     glLoadIdentity();
     
     /*
-     * Enable anti-aliasing for lines and polygons
+     * Enable anti-aliasing for lines
      */
-    m_brainOpenGLFixedPipeline->enableLineAntiAliasing();
+    if ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+        m_brainOpenGLFixedPipeline->enableLineAntiAliasing();
+    }
 }
 
 /**
@@ -994,7 +997,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::endOpenGLForDrawing(GLint savedShadeM
     /*
      * Disable anti-aliasing for lines
      */
-    m_brainOpenGLFixedPipeline->disableLineAntiAliasing();
+    if ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+        m_brainOpenGLFixedPipeline->disableLineAntiAliasing();
+    }
     
     if (savedLightingEnabled) {
         glEnable(GL_LIGHTING);

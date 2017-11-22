@@ -839,8 +839,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                         
                         if (histogramPrimitives != NULL) {
                             const float lineWidthPercentage = histogramPrimitives->getEnvelopeLineWidthPercentage();
-                            const float envelopeLineWidth   = convertPercentageOfViewportToOpenGLLineWidth(lineWidthPercentage,
-                                                                                                  tabViewportHeight);
                             
                             if (m_identificationModeFlag) {
                                 int32_t primitiveIndex = -1;
@@ -874,8 +872,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                     /*
                                      * Increase line width for identification
                                      */
-                                    histogramPrimitives->getEnvelopePrimitive()->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
-                                                                                        envelopeLineWidth * 3.0f);
+                                    histogramPrimitives->getEnvelopePrimitive()->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                                                              (lineWidthPercentage + 0.5));
                                     GraphicsEngineDataOpenGL::drawWithSelection(histogramPrimitives->getEnvelopePrimitive(),
                                                                                 m_fixedPipelineDrawing->mouseX,
                                                                                 m_fixedPipelineDrawing->mouseY,
@@ -898,11 +896,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                     drawPrimitivePrivate(histogramPrimitives->getBarsPrimitive());
                                 }
                                 if (drawEnvelopeFlag) {
-                                    histogramPrimitives->getEnvelopePrimitive()->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
-                                                                                        envelopeLineWidth);
-                                    m_fixedPipelineDrawing->enableLineAntiAliasing();
+                                    histogramPrimitives->getEnvelopePrimitive()->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                                                              lineWidthPercentage);
                                     drawPrimitivePrivate(histogramPrimitives->getEnvelopePrimitive());
-                                    m_fixedPipelineDrawing->disableLineAntiAliasing();
                                 }
                             }
                         }
@@ -984,15 +980,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                     }
                 }
                 else {
-                    /*
-                     * Note: Anti-aliasing is only enabled when drawing the line.
-                     * Anti-aliasing cannot be enabled during identification since
-                     * identification encodes information in the colors (anti-aliasing
-                     * will alter the colors during drawing).
-                     */
-                    m_fixedPipelineDrawing->enableLineAntiAliasing();
                     GraphicsEngineDataOpenGL::draw(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
-                    m_fixedPipelineDrawing->disableLineAntiAliasing();
                 }
                 
                 /*
@@ -1601,7 +1589,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
             boxData->addVertex(boxRight, boxBottom);
             boxData->addVertex(boxRight, boxTop);
             boxData->addVertex(boxLeft, boxTop);
-            boxData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, lineThicknessPixels);
+            boxData->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                  lineThicknessPercentage);
             drawPrimitivePrivate(boxData.get());
         }
         else {
@@ -1623,7 +1612,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
             boxData->addVertex(boxLeft - cornerOffset,  boxTop);
             boxData->addVertex(boxLeft, boxTop);
             boxData->addVertex(boxLeft, boxBottom);
-            boxData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, lineThicknessPixels);
+            boxData->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                  lineThicknessPercentage);
             drawPrimitivePrivate(boxData.get());
         }
     }
@@ -2480,6 +2470,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
         
         /*
          * Draw the ticks.
+         * Note Line width is set in pixel and was converted from PERCENTAGE OF VIEWPORT HEIGHT
          */
         ticksData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, m_lineDrawingWidth);
         chartDrawing->drawPrimitivePrivate(ticksData.get());
@@ -2510,7 +2501,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
             boxPrimitive->addVertex(bottomLeft);
             boxPrimitive->addVertex(topRight);
             boxPrimitive->addVertex(bottomRight);
-            boxPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, m_lineDrawingWidth);
             
             GraphicsEngineDataOpenGL::drawWithSelection(boxPrimitive.get(),
                                                         mouseX,
