@@ -417,7 +417,7 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
          */
         GraphicsPrimitiveV3fC4f* barsPrimitive = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
         barsPrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForQuads);
-        GraphicsPrimitiveV3fC4f* envelopePrimitive  = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN);
+        GraphicsPrimitiveV3fC4f* envelopePrimitive  = new GraphicsPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN);
         envelopePrimitive->reserveForNumberOfVertices(estimatedNumberOfVerticesForEnvelope);
         GraphicsPrimitiveV3fC4f* thresholdPrimitive = NULL;
         
