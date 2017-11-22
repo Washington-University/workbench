@@ -49,11 +49,13 @@
 #include "ChartableTwoFileMatrixChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "DeveloperFlagsEnum.h"
 #include "FastStatistics.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "GraphicsShape.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "ModelChartTwo.h"
@@ -963,12 +965,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                  0.0);
                 }
                 
-                const float LINE_SERIES_LINE_WIDTH = 1.0f;
                 if (m_identificationModeFlag) {
                     int32_t primitiveIndex = -1;
                     float   primitiveDepth = 0.0;
                     
-                    BrainOpenGL::setLineWidth(LINE_SERIES_LINE_WIDTH * 5.0f);
                     GraphicsEngineDataOpenGL::drawWithSelection(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
                                                                 m_fixedPipelineDrawing->mouseX,
                                                                 m_fixedPipelineDrawing->mouseY,
@@ -991,7 +991,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                      * will alter the colors during drawing).
                      */
                     m_fixedPipelineDrawing->enableLineAntiAliasing();
-                    BrainOpenGL::setLineWidth(lineChart.m_chartTwoCartesianData->getLineWidth());
                     GraphicsEngineDataOpenGL::draw(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
                     m_fixedPipelineDrawing->disableLineAntiAliasing();
                 }
@@ -1224,7 +1223,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChart()
             glPushMatrix();
             glLoadMatrixf(mrch->m_modelViewMatrix);
             
-            BrainOpenGL::setLineWidth(mrch->m_lineWidth);
             drawPrimitivePrivate(mrch->m_graphicsPrimitive.get());
             delete mrch;
             
@@ -1312,14 +1310,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         CaretAssert(matrixProperties);
         
         if (matrixProperties->isGridLinesDisplayed()) {
-            glPolygonMode(GL_FRONT,
-                          GL_LINE);
-            
             GraphicsPrimitiveV3fC4f* matrixGridPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
                                                                                                            CiftiMappableDataFile::MatrixGridMode::OUTLINE);
             drawPrimitivePrivate(matrixGridPrimitive);
-            glPolygonMode(GL_FRONT,
-                          GL_FILL);
         }
         
         int32_t numberOfRows = 0;
@@ -1352,6 +1345,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
              * Disabled by WB-741
              */
             const bool limitSelectionToTriangularFlag = false;
+            const float lineWidthPercentageHeight = 1.0f;
             
             for (auto rowIndex : selectedRowIndices) {
                 float minX = 0;
@@ -1374,19 +1368,18 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                     }
                 }
                 
-                const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
-                
-                GraphicsPrimitiveV3fC4f* rowOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP);
+                GraphicsPrimitiveV3fC4f* rowOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN);
                 rowOutlineData->reserveForNumberOfVertices(4);
                 rowOutlineData->addVertex(minX, minY, highlightRGBA);
                 rowOutlineData->addVertex(maxX, minY, highlightRGBA);
                 rowOutlineData->addVertex(maxX, maxY, highlightRGBA);
                 rowOutlineData->addVertex(minX, maxY, highlightRGBA);
+                rowOutlineData->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                             lineWidthPercentageHeight);
                 
                 float modelViewMatrix[16];
                 glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix);
                 rowColumnHighlightingOut.push_back(new MatrixRowColumnHighight(rowOutlineData,
-                                                                               highlightLineWidth,
                                                                                modelViewMatrix));
             }
             
@@ -1411,20 +1404,20 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                     }
                 }
                 
-                const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
+//                const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
                 
-                GraphicsPrimitiveV3fC4f* columnOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP);
+                GraphicsPrimitiveV3fC4f* columnOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN);
                 columnOutlineData->reserveForNumberOfVertices(4);
                 columnOutlineData->addVertex(minX, minY, highlightRGBA);
                 columnOutlineData->addVertex(maxX, minY, highlightRGBA);
                 columnOutlineData->addVertex(maxX, maxY, highlightRGBA);
                 columnOutlineData->addVertex(minX, maxY, highlightRGBA);
-                columnOutlineData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, highlightLineWidth);
+                columnOutlineData->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                lineWidthPercentageHeight);
                 
                 float modelViewMatrix[16];
                 glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix);
                 rowColumnHighlightingOut.push_back(new MatrixRowColumnHighight(columnOutlineData,
-                                                                               highlightLineWidth,
                                                                                modelViewMatrix));
             }
         }
@@ -1502,9 +1495,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::convertPercentageOfViewportToOpenGLLine
     if (pixelsWidthOrHeight < s_minimumLineWidthOpenGL) {
         pixelsWidthOrHeight = s_minimumLineWidthOpenGL;
     }
-    if (pixelsWidthOrHeight > s_maximumLineWidthOpenGL) {
-        pixelsWidthOrHeight = s_maximumLineWidthOpenGL;
-    }
+//    if (pixelsWidthOrHeight > s_maximumLineWidthOpenGL) {
+//        pixelsWidthOrHeight = s_maximumLineWidthOpenGL;
+//    }
     return pixelsWidthOrHeight;
 }
 
@@ -1594,26 +1587,45 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
         const float boxBottom = bottomAxisHeight + halfGridLineWidth;
         const float boxTop    = vpHeight - topAxisHeight - titleHeight - halfGridLineWidth;
         
-        /*
-         * We adjust the horizontal lines by half the line width.
-         * Otherwise, there will be 'corner gaps' where the horizontal
-         * and vertical lines are joined
-         */
-        std::unique_ptr<GraphicsPrimitiveV3f> boxData
-        = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES,
-                                                                                   m_fixedPipelineDrawing->m_foregroundColorFloat));
-        const float cornerOffset = halfGridLineWidth;
-        boxData->reserveForNumberOfVertices(8);
-        boxData->addVertex(boxLeft - cornerOffset,  boxBottom);
-        boxData->addVertex(boxRight + cornerOffset, boxBottom);
-        boxData->addVertex(boxRight, boxBottom);
-        boxData->addVertex(boxRight, boxTop);
-        boxData->addVertex(boxRight + cornerOffset, boxTop);
-        boxData->addVertex(boxLeft - cornerOffset,  boxTop);
-        boxData->addVertex(boxLeft, boxTop);
-        boxData->addVertex(boxLeft, boxBottom);
-        boxData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, lineThicknessPixels);
-        drawPrimitivePrivate(boxData.get());
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+            /*
+             * We adjust the horizontal lines by half the line width.
+             * Otherwise, there will be 'corner gaps' where the horizontal
+             * and vertical lines are joined
+             */
+            std::unique_ptr<GraphicsPrimitiveV3f> boxData
+            = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
+                                                                                       m_fixedPipelineDrawing->m_foregroundColorFloat));
+            boxData->reserveForNumberOfVertices(4);
+            boxData->addVertex(boxLeft,  boxBottom);
+            boxData->addVertex(boxRight, boxBottom);
+            boxData->addVertex(boxRight, boxTop);
+            boxData->addVertex(boxLeft, boxTop);
+            boxData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, lineThicknessPixels);
+            drawPrimitivePrivate(boxData.get());
+        }
+        else {
+            /*
+             * We adjust the horizontal lines by half the line width.
+             * Otherwise, there will be 'corner gaps' where the horizontal
+             * and vertical lines are joined
+             */
+            std::unique_ptr<GraphicsPrimitiveV3f> boxData
+            = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES,
+                                                                                       m_fixedPipelineDrawing->m_foregroundColorFloat));
+            const float cornerOffset = halfGridLineWidth;
+            boxData->reserveForNumberOfVertices(8);
+            boxData->addVertex(boxLeft - cornerOffset,  boxBottom);
+            boxData->addVertex(boxRight + cornerOffset, boxBottom);
+            boxData->addVertex(boxRight, boxBottom);
+            boxData->addVertex(boxRight, boxTop);
+            boxData->addVertex(boxRight + cornerOffset, boxTop);
+            boxData->addVertex(boxLeft - cornerOffset,  boxTop);
+            boxData->addVertex(boxLeft, boxTop);
+            boxData->addVertex(boxLeft, boxBottom);
+            boxData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, lineThicknessPixels);
+            drawPrimitivePrivate(boxData.get());
+        }
     }
     
     /*
@@ -2276,13 +2288,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
     
     if (debugFlag) {
         glColor3f(1.0, 0.0, 0.0);
-        BrainOpenGL::setLineWidth(1.0);
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(vpX, vpY);
-        glVertex2f(vpX + vpWidth, vpY);
-        glVertex2f(vpX + vpWidth, vpY + vpHeight);
-        glVertex2f(vpX, vpY + vpHeight);
-        glEnd();
+        const float v1[3] = { vpX, vpY, 0.0f };
+        const float v2[3] = { vpX + vpWidth, vpY, 0.0f };
+        const float v3[3] = { vpX + vpWidth, vpY + vpHeight, 0.0f };
+        const float v4[3] = { vpX, vpY + vpHeight, 0.0f };
+        GraphicsShape::drawBoxOutlineByteColor(v1, v2, v3, v4,
+                                               (uint8_t[]){ 255, 0, 0, 255},
+                                               GraphicsPrimitive::SizeType::PIXELS, 1.0f);
     }
     
     /*
@@ -2392,8 +2404,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
     if (numScaleValuesToDraw > 0) {
         const bool showTicksEnabledFlag = m_axis->isShowTickmarks();
         
+        GraphicsPrimitive::PrimitiveType primitiveType = GraphicsPrimitive::PrimitiveType::OPENGL_LINES;
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
+            primitiveType = GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES;
+        }
         std::unique_ptr<GraphicsPrimitiveV3f> ticksData
-        = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES,
+        = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(primitiveType,
                                                                                    foregroundFloatRGBA));
         ticksData->reserveForNumberOfVertices(numScaleValuesToDraw * 2);
         
@@ -2465,7 +2481,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
         /*
          * Draw the ticks.
          */
-        BrainOpenGL::setLineWidth(m_lineDrawingWidth);
         ticksData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, m_lineDrawingWidth);
         chartDrawing->drawPrimitivePrivate(ticksData.get());
     }
@@ -2640,14 +2655,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::TitleDrawingInfo::drawTitle(const float
     }
     
     if (debugFlag) {
-        glColor3f(1.0, 0.0, 0.0);
-        BrainOpenGL::setLineWidth(2.0);
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(m_titleViewport[0], m_titleViewport[1]);
-        glVertex2f(m_titleViewport[0] + m_titleViewport[2], m_titleViewport[1]);
-        glVertex2f(m_titleViewport[0] + m_titleViewport[2], m_titleViewport[1] + m_titleViewport[3]);
-        glVertex2f(m_titleViewport[0], m_titleViewport[1] + m_titleViewport[3]);
-        glEnd();
+        const float v1[3] = { m_titleViewport[0], m_titleViewport[1], 0.0f };
+        const float v2[3] = { m_titleViewport[0] + m_titleViewport[2], m_titleViewport[1], 0.0f };
+        const float v3[3] = { m_titleViewport[0] + m_titleViewport[2], m_titleViewport[1] + m_titleViewport[3], 0.0f };
+        const float v4[3] = { m_titleViewport[0], m_titleViewport[1] + m_titleViewport[3], 0.0f };
+        GraphicsShape::drawBoxOutlineByteColor(v1, v2, v3, v4,
+                                               (uint8_t[]){ 255, 0, 0, 255},
+                                               GraphicsPrimitive::SizeType::PIXELS, 2.0f);
     }
     
     m_text->setTextColor(CaretColorEnum::CUSTOM);
