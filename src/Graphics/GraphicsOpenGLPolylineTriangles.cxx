@@ -32,8 +32,9 @@
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "EventManager.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "MathFunctions.h"
-#include "Matrix4x4.h"
 
 using namespace caret;
 
@@ -289,7 +290,7 @@ GraphicsOpenGLPolylineTriangles::convertLinesToPolygons(AString& errorMessageOut
     
     saveOpenGLState();
     
-    createProjectionMatrix();
+    createTransform();
     
     createWindowCoordinatesFromVertices();
     
@@ -306,20 +307,25 @@ GraphicsOpenGLPolylineTriangles::convertLinesToPolygons(AString& errorMessageOut
     
     GraphicsPrimitive* primitiveOut = NULL;
     
-    if (m_primitive->isValid()) {
-        if (m_primitiveByteColor.get() != NULL) {
-            primitiveOut = m_primitiveByteColor.release();
-        }
-        else if (m_primitiveFloatColor.get() != NULL) {
-            primitiveOut = m_primitiveFloatColor.release();
+    if (m_primitive != NULL) {
+        if (m_primitive->isValid()) {
+            if (m_primitiveByteColor.get() != NULL) {
+                primitiveOut = m_primitiveByteColor.release();
+            }
+            else if (m_primitiveFloatColor.get() != NULL) {
+                primitiveOut = m_primitiveFloatColor.release();
+            }
+            else {
+                CaretAssert(0);
+                errorMessageOut = "Both Byte and Float Primitives are invalid, should never happen";
+            }
         }
         else {
-            CaretAssert(0);
-            errorMessageOut = "Both Byte and Float Primitives are invalid, should never happen";
+            errorMessageOut = "Converted primitive is invalid.";
         }
     }
     else {
-        errorMessageOut = "Converted primitive is invalid.";
+        errorMessageOut = "Primitive invalid, all points may be coincident";
     }
     
     return primitiveOut;
@@ -381,24 +387,17 @@ GraphicsOpenGLPolylineTriangles::restoreOpenGLState()
 }
 
 /**
- * Create the projection matrix.
+ * Create the transform matrix.
  */
 void
-GraphicsOpenGLPolylineTriangles::createProjectionMatrix()
+GraphicsOpenGLPolylineTriangles::createTransform()
 {
-    GLdouble modelviewArray[16];
-    glGetDoublev(GL_MODELVIEW_MATRIX,
-                 modelviewArray);
-    Matrix4x4 modelviewMatrix;
-    modelviewMatrix.setMatrixFromOpenGL(modelviewArray);
-    
-    GLdouble projectionArray[16];
-    glGetDoublev(GL_PROJECTION_MATRIX,
-                 projectionArray);
-    
-    m_projectionMatrix.setMatrixFromOpenGL(projectionArray);
-    //m_projectionMatrix.postmultiply(modelviewMatrix);
-    m_projectionMatrix.premultiply(modelviewMatrix);
+    m_transformEvent.reset(new EventOpenGLObjectToWindowTransform(EventOpenGLObjectToWindowTransform::SpaceType::WINDOW));
+    EventManager::get()->sendEvent(m_transformEvent.get()->getPointer());
+    if ( ! m_transformEvent->isValid()) {
+        CaretLogSevere("Getting OpenGL Transform Failed");
+        return;
+    }
 }
 
 
@@ -532,20 +531,9 @@ void
 GraphicsOpenGLPolylineTriangles::convertFromModelToWindowCoordinate(const float modelXYZ[3],
                                                               float windowXYZOut[3]) const
 {
-    float xyzw[4] = { modelXYZ[0], modelXYZ[1], modelXYZ[2], 1.0f };
-    m_projectionMatrix.multiplyPoint4(xyzw);
-    windowXYZOut[0] = m_savedViewport[0] + (m_savedViewport[2] * ((xyzw[0] + 1.0f) / 2.0f));
-    windowXYZOut[1] = m_savedViewport[1] + (m_savedViewport[3] * ((xyzw[1] + 1.0f) / 2.0f));
-    windowXYZOut[2] = (xyzw[2] + 1.0f) / 2.0f;
-    
-    /*
-     * From OpenGL Programming Guide 3rd Ed, p 133:
-     *
-     * If the near value is 1.0 and the far value is 3.0,
-     * objects must have z-coordinates between -1.0 and -3.0 in order to be visible.
-     * So, negate the Z-value to be negative.
-     */
-    windowXYZOut[2] = -windowXYZOut[2];
+    CaretAssert(m_transformEvent);
+    m_transformEvent->transformPoint(modelXYZ,
+                                     windowXYZOut);
 }
 
 /**
@@ -987,10 +975,10 @@ GraphicsOpenGLPolylineTriangles::performMiterJoin(const PolylineInfo& polyOne,
             /*
              * Join the right side that is first two vertices in triangle two
              */
-            quadOneSideBeginVertexIndex = polyOne.m_triangleTwoPrimitiveIndices[0];   //quadOneVertexIndex + 1;
-            quadOneSideEndVertexIndex   = polyOne.m_triangleTwoPrimitiveIndices[1];   //quadOneVertexIndex + 2;
-            quadTwoSideBeginVertexIndex = polyTwo.m_triangleTwoPrimitiveIndices[0];   //quadTwoVertexIndex + 1;
-            quadTwoSideEndVertexIndex   = polyTwo.m_triangleTwoPrimitiveIndices[1];   //quadTwoVertexIndex + 2;
+            quadOneSideBeginVertexIndex = polyOne.m_triangleTwoPrimitiveIndices[0];
+            quadOneSideEndVertexIndex   = polyOne.m_triangleTwoPrimitiveIndices[1];
+            quadTwoSideBeginVertexIndex = polyTwo.m_triangleTwoPrimitiveIndices[0];
+            quadTwoSideEndVertexIndex   = polyTwo.m_triangleTwoPrimitiveIndices[1];
             break;
         case TurnDirection::PARALLEL:
             if (m_debugFlag) std::cout << "   Miter Parallel" << std::endl;
@@ -1003,10 +991,10 @@ GraphicsOpenGLPolylineTriangles::performMiterJoin(const PolylineInfo& polyOne,
             /*
              * Join left side that is first and third vertices in triangle one
              */
-            quadOneSideBeginVertexIndex = polyOne.m_triangleOnePrimitiveIndices[0];   //quadOneVertexIndex;
-            quadOneSideEndVertexIndex   = polyOne.m_triangleOnePrimitiveIndices[2];   //quadOneVertexIndex + 3;
-            quadTwoSideBeginVertexIndex = polyTwo.m_triangleOnePrimitiveIndices[0];   //quadTwoVertexIndex;
-            quadTwoSideEndVertexIndex   = polyTwo.m_triangleOnePrimitiveIndices[2];   //quadTwoVertexIndex + 3;
+            quadOneSideBeginVertexIndex = polyOne.m_triangleOnePrimitiveIndices[0];
+            quadOneSideEndVertexIndex   = polyOne.m_triangleOnePrimitiveIndices[2];
+            quadTwoSideBeginVertexIndex = polyTwo.m_triangleOnePrimitiveIndices[0];
+            quadTwoSideEndVertexIndex   = polyTwo.m_triangleOnePrimitiveIndices[2];
             break;
     }
     
@@ -1095,166 +1083,6 @@ GraphicsOpenGLPolylineTriangles::performMiterJoin(const PolylineInfo& polyOne,
         }
     }
 }
-
-///**
-// * Join the second triangle in poly one to poly two.
-// *
-// * @param polyOne
-// *     Info about triangles in first polyline
-// * @param polyTwo
-// *     Info about triangles in second polyline
-// */
-//void
-//GraphicsOpenGLPolylineTriangles::performJoin(const PolylineInfo& polyOne,
-//                                             const PolylineInfo& polyTwo)
-//{
-//    const int32_t windowVertexIndexOne   = polyOne.m_windowVertexOneIndex;
-//    const int32_t windowVertexIndexTwo   = polyOne.m_windowVertexTwoIndex;
-//    const int32_t windowVertexIndexThree = polyTwo.m_windowVertexTwoIndex;
-//    
-//    if (m_debugFlag) std::cout << "Join: " << windowVertexIndexOne << ", " << windowVertexIndexTwo << ", " << windowVertexIndexThree << std::endl;
-//    CaretAssert(m_primitive);
-//    
-//    /*
-//     * Determine if the junction of the two consecutive
-//     * line segments in window coordinates makes a left
-//     * or right turn
-//     */
-//    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexOne * 3) + 2);
-//    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexTwo * 3) + 2);
-//    CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexThree * 3) + 2);
-//    const float signedArea = MathFunctions::triangleAreaSigned2D(&m_vertexWindowXYZ[windowVertexIndexOne * 3],
-//                                                                 &m_vertexWindowXYZ[windowVertexIndexTwo * 3],
-//                                                                 &m_vertexWindowXYZ[windowVertexIndexThree * 3]);
-//    
-//    
-//    int32_t quadOneSideBeginVertexIndex = -1;
-//    int32_t quadOneSideEndVertexIndex = -1;
-//    int32_t quadTwoSideBeginVertexIndex = -1;
-//    int32_t quadTwoSideEndVertexIndex = -1;
-//    const float smallNumber = 0.001;
-//    bool leftTurnFlag = false;
-//    if (signedArea > smallNumber) {
-//        leftTurnFlag = true;
-//        if (m_debugFlag) std::cout << "   Left Turn" << std::endl;
-//        /*
-//         * Right side is first two vertices in triangle two
-//         */
-//        quadOneSideBeginVertexIndex = polyOne.m_triangleTwoPrimitiveIndices[0];   //quadOneVertexIndex + 1;
-//        quadOneSideEndVertexIndex   = polyOne.m_triangleTwoPrimitiveIndices[1];   //quadOneVertexIndex + 2;
-//        quadTwoSideBeginVertexIndex = polyTwo.m_triangleTwoPrimitiveIndices[0];   //quadTwoVertexIndex + 1;
-//        quadTwoSideEndVertexIndex   = polyTwo.m_triangleTwoPrimitiveIndices[1];   //quadTwoVertexIndex + 2;
-//    }
-//    else if (signedArea < -smallNumber) {
-//        if (m_debugFlag) std::cout << "   Right Turn" << std::endl;
-//        /*
-//         * Left side is first and third vertices in triangle one
-//         */
-//        quadOneSideBeginVertexIndex = polyOne.m_triangleOnePrimitiveIndices[0];   //quadOneVertexIndex;
-//        quadOneSideEndVertexIndex   = polyOne.m_triangleOnePrimitiveIndices[2];   //quadOneVertexIndex + 3;
-//        quadTwoSideBeginVertexIndex = polyTwo.m_triangleOnePrimitiveIndices[0];   //quadTwoVertexIndex;
-//        quadTwoSideEndVertexIndex   = polyTwo.m_triangleOnePrimitiveIndices[2];   //quadTwoVertexIndex + 3;
-//    }
-//    else {
-//        if (m_debugFlag) std::cout << "   Parallel" << std::endl;
-//        return;
-//    }
-//    
-//    switch (m_joinType) {
-//        case JoinType::BEVEL:
-//            break;
-//        case JoinType::MITER:
-//            break;
-//        case JoinType::NONE:
-//            CaretAssert(0);
-//            break;
-//    }
-//    
-//    const std::vector<float>& xyz = m_primitive->getFloatXYZ();
-//    CaretAssertVectorIndex(xyz, (quadOneSideBeginVertexIndex * 3) + 2);
-//    CaretAssertVectorIndex(xyz, (quadOneSideEndVertexIndex * 3) + 2);
-//    CaretAssertVectorIndex(xyz, (quadTwoSideBeginVertexIndex * 3) + 2);
-//    CaretAssertVectorIndex(xyz, (quadTwoSideEndVertexIndex * 3) + 2);
-//    const float* q1v1 = &xyz[quadOneSideBeginVertexIndex * 3];
-//    const float* q1v2 = &xyz[quadOneSideEndVertexIndex * 3];
-//    const float* q2v1 = &xyz[quadTwoSideBeginVertexIndex * 3];
-//    const float* q2v2 = &xyz[quadTwoSideEndVertexIndex * 3];
-//    
-//    /*
-//     * Miter limit is a multiple of the line thickness
-//     */
-//    const float miterLimit = m_lineThicknessPixels;// * 2.0f;
-//    const float miterLimitSquared = miterLimit * miterLimit;
-//    
-//    /*
-//     * Find location of where the edges in the quads intersect
-//     */
-//    float intersectionXYZ[3];
-//    if (MathFunctions::vectorIntersection2D(q1v1, q1v2, q2v1, q2v2, 0.0f, intersectionXYZ)) {
-//        intersectionXYZ[2] = q1v1[2];
-//        if (m_debugFlag) std::cout << "      Intersection: " << AString::fromNumbers(intersectionXYZ, 3, ",") << std::endl;
-//        
-//        /*
-//         * When the angle is very sharp, the miter point can be very long and pointy
-//         * so limit to a multiplier of the line thickness
-//         */
-//        CaretAssertVectorIndex(m_vertexWindowXYZ, (windowVertexIndexTwo * 3) + 2);
-//        const float* joinPointXYZ = &m_vertexWindowXYZ[(windowVertexIndexTwo * 3)];
-//        const float distanceSquared = MathFunctions::distanceSquared3D(joinPointXYZ,
-//                                                                       intersectionXYZ);
-//        if (distanceSquared > miterLimitSquared) {
-//            /*
-//             * Extend lines by the miter limit to create a new quad
-//             */
-//            float newV1[3];
-//            createMiterJoinVertex(q1v1, q1v2, miterLimit, newV1);
-//            float newV2[3];
-//            createMiterJoinVertex(q2v2, q2v1, miterLimit, newV2);
-//            
-//            /*
-//             * Extend vertices to the new miter limit
-//             */
-//            int32_t primitiveIndexV1 = -1;
-//            int32_t primitiveIndexV2 = -1;
-//            if (leftTurnFlag) {
-//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleTwoPrimitiveIndices[1], newV1);
-//                primitiveIndexV1 = polyOne.m_triangleTwoPrimitiveIndices[1];
-//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleOnePrimitiveIndices[1], newV2);
-//                primitiveIndexV2 = polyTwo.m_triangleOnePrimitiveIndices[1];
-//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleTwoPrimitiveIndices[0], newV2);
-//            }
-//            else {
-//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleTwoPrimitiveIndices[2], newV1);
-//                primitiveIndexV1 = polyOne.m_triangleTwoPrimitiveIndices[2];
-//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleOnePrimitiveIndices[2], newV1);
-//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleOnePrimitiveIndices[0], newV2);
-//                primitiveIndexV2 = polyTwo.m_triangleOnePrimitiveIndices[0];
-//            }
-//
-//           /*
-//            * Add a triangle to fill in the gap
-//            */
-//            m_triangleJoins.push_back(TriangleJoin(windowVertexIndexTwo,
-//                                                   primitiveIndexV1,
-//                                                   primitiveIndexV2));
-//        }
-//        else {
-//            /*
-//             * Move the existing quad vertices to their intersection point
-//             */
-//            if (leftTurnFlag) {
-//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleTwoPrimitiveIndices[1], intersectionXYZ);
-//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleOnePrimitiveIndices[1], intersectionXYZ);
-//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleTwoPrimitiveIndices[0], intersectionXYZ);
-//            }
-//            else {
-//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleTwoPrimitiveIndices[2], intersectionXYZ);
-//                m_primitive->replaceVertexFloatXYZ(polyOne.m_triangleOnePrimitiveIndices[2], intersectionXYZ);
-//                m_primitive->replaceVertexFloatXYZ(polyTwo.m_triangleOnePrimitiveIndices[0], intersectionXYZ);
-//            }
-//        }
-//    }
-//}
 
 /**
  * Create a vertex for a miter join when the length limit is exceeded

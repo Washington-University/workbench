@@ -27,10 +27,10 @@
 #include <set>
 
 #include "CaretObject.h"
-#include "Matrix4x4.h"
 
 namespace caret {
 
+    class EventOpenGLObjectToWindowTransform;
     class GraphicsPrimitive;
     class GraphicsPrimitiveV3fC4f;
     class GraphicsPrimitiveV3fC4ub;
@@ -163,7 +163,7 @@ namespace caret {
         
         void restoreOpenGLState();
         
-        void createProjectionMatrix();
+        void createTransform();
         
         void convertFromModelToWindowCoordinate(const float modelXYZ[3],
                                                 float windowXYZOut[3]) const;
@@ -219,7 +219,7 @@ namespace caret {
         
         int m_savedViewport[4];
         
-        Matrix4x4 m_projectionMatrix;
+        std::unique_ptr<EventOpenGLObjectToWindowTransform> m_transformEvent;
         
         /*
          * The base class graphics primitive that points to 

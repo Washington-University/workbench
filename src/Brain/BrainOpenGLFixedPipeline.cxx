@@ -89,6 +89,7 @@
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "EventPaletteGetByName.h"
 #include "FastStatistics.h"
 #include "Fiber.h"
@@ -364,7 +365,41 @@ BrainOpenGLFixedPipeline::projectToModelImplementation(const int32_t windowIndex
 }
 
 /**
- * Update the foreground and background colors using the model in 
+ * Setup the content of the transform event with current transformation data.
+ *
+ * @param transformEvent
+ *     The transform event.
+ */
+void
+BrainOpenGLFixedPipeline::loadObjectToWindowTransform(EventOpenGLObjectToWindowTransform* transformEvent)
+{
+    
+    if (getContextSharingGroupPointer() != NULL) {
+        std::array<double, 16> modelviewArray;
+        std::array<double, 16> projectionArray;
+        std::array<double, 2> depthRange;
+        std::array<int32_t, 4> viewport;
+        
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelviewArray.data());
+        glGetDoublev(GL_PROJECTION_MATRIX, projectionArray.data());
+        glGetDoublev(GL_DEPTH_RANGE, depthRange.data());
+        glGetIntegerv(GL_VIEWPORT, viewport.data());
+        
+        transformEvent->setup(modelviewArray,
+                              projectionArray,
+                              viewport,
+                              depthRange,
+                              s_gluLookAtCenterFromEyeOffsetDistance);
+        transformEvent->setEventProcessed();
+    }
+    else {
+        CaretAssertMessage(0, "Received EventOpenGLObjectToWindowTransform but current context is invalid.");
+    }
+    
+}
+
+/**
+ * Update the foreground and background colors using the model in
  * the given viewport content.
  */
 void

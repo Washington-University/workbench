@@ -133,6 +133,9 @@ namespace caret {
                                           const int32_t mouseY,
                                           SurfaceProjectedItem& projectionOut) override;
         
+    protected:
+        virtual void loadObjectToWindowTransform(EventOpenGLObjectToWindowTransform* transformEvent) override;
+        
     private:
         class VolumeDrawInfo {
         public:

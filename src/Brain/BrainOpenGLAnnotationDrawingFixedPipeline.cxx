@@ -2098,12 +2098,21 @@ BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomL
                 break;
         }
         
+        /*
+         * perform a 2D intersection test
+         */
         float intersection[3] = { 0.0, 0.0, 0.0 };
         const bool yesFlag = MathFunctions::lineIntersection2D(p1, p2,
                                                                startXYZ, endXYZ,
                                                                tol, intersection);
         
         if (yesFlag) {
+            /*
+             * Intersection is TWO-D so must set 
+             * the correct Z-coordinate
+             */
+            const float averageZ = ((p1[2] + p2[2]) / 2.0f);
+            intersection[2] = averageZ;
             const float dist = MathFunctions::distance3D(startXYZ,
                                                          intersection);
             if ( ( ! clippedValid)

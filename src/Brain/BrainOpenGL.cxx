@@ -37,6 +37,7 @@
 #include "EventGraphicsOpenGLCreateTextureName.h"
 #include "EventGraphicsOpenGLDeleteBufferObject.h"
 #include "EventGraphicsOpenGLDeleteTextureName.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "EventManager.h"
 #include "GraphicsOpenGLBufferObject.h"
 #include "GraphicsOpenGLTextureName.h"
@@ -66,6 +67,7 @@ BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPENGL_OBJECT_TO_WINDOW_TRANSFORM);
 }
 
 /**
@@ -184,6 +186,10 @@ BrainOpenGL::receiveEvent(Event* event)
         
         textRenderEvent->setTextRenderer(m_textRenderer);
         textRenderEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_OPENGL_OBJECT_TO_WINDOW_TRANSFORM) {
+        EventOpenGLObjectToWindowTransform* transformEvent = dynamic_cast<EventOpenGLObjectToWindowTransform*>(event);
+        loadObjectToWindowTransform(transformEvent);
     }
 }
 

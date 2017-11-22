@@ -302,6 +302,10 @@ EventTypeEnum::initialize()
                                      "EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS",
                                      "Get the color for node identification symbols from all charts that contain nodes"));
     
+    enumData.push_back(EventTypeEnum(EVENT_OPENGL_OBJECT_TO_WINDOW_TRANSFORM,
+                                     "EVENT_OPENGL_OBJECT_TO_WINDOW_TRANSFORM",
+                                     "Get transformation for converting object coordinates to window coordinates"));
+    
     enumData.push_back(EventTypeEnum(EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
                                      "EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE",
                                      "Operating system requests open data file (Mac only)"));

@@ -12,6 +12,7 @@ EventGraphicsOpenGLCreateBufferObject.h
 EventGraphicsOpenGLCreateTextureName.h
 EventGraphicsOpenGLDeleteBufferObject.h
 EventGraphicsOpenGLDeleteTextureName.h
+EventOpenGLObjectToWindowTransform.h
 GraphicsEngineData.h
 GraphicsEngineDataOpenGL.h
 GraphicsOpenGLBufferObject.h
@@ -30,6 +31,7 @@ EventGraphicsOpenGLCreateBufferObject.cxx
 EventGraphicsOpenGLCreateTextureName.cxx
 EventGraphicsOpenGLDeleteBufferObject.cxx
 EventGraphicsOpenGLDeleteTextureName.cxx
+EventOpenGLObjectToWindowTransform.cxx
 GraphicsEngineData.cxx
 GraphicsEngineDataOpenGL.cxx
 GraphicsOpenGLBufferObject.cxx

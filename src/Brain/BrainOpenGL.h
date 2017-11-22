@@ -68,6 +68,7 @@ namespace caret {
     class Brain;
     class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
+    class EventOpenGLObjectToWindowTransform;
     class Model;
     class SurfaceProjectedItem;
     
@@ -307,6 +308,8 @@ namespace caret {
                                      const GLenum lightEnum,
                                      const GLenum enumValue,
                                      const int32_t numberOfValues) const;
+        
+        virtual void loadObjectToWindowTransform(EventOpenGLObjectToWindowTransform* transformEvent) = 0;
         
         Border* borderBeingDrawn;
         
