@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <stdint.h>
 
 #include "AnnotationCoordinateSpaceEnum.h"
@@ -44,8 +45,8 @@ namespace caret {
     class AnnotationText;
     class AnnotationTwoDimensionalShape;
     class Brain;
-    
     class BrainOpenGLFixedPipeline;
+    class EventOpenGLObjectToWindowTransform;
     class Surface;
     
     class BrainOpenGLAnnotationDrawingFixedPipeline : public CaretObject {
@@ -347,6 +348,8 @@ namespace caret {
         uint8_t m_selectionBoxRGBA[4];
         
         float m_lineWidthMinimum = 1.0f;
+        
+        std::unique_ptr<EventOpenGLObjectToWindowTransform> m_transformEvent;
         
         static constexpr float s_sizingHandleLineWidthInPixels = 2.0f;
         

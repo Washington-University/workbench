@@ -50,6 +50,7 @@
 #include "DisplayPropertiesAnnotation.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
@@ -343,71 +344,12 @@ bool
 BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const float modelXYZ[3],
                                                                           float windowXYZOut[3]) const
 {
-    /*
-     * Convert model space coordinates to window coordinates
-     * as all annotations are drawn in window coordinates.
-     */
-    GLdouble modelDoubleXYZ[3] = { modelXYZ[0], modelXYZ[1], modelXYZ[2] };
-    GLdouble windowX, windowY, windowZ;
-    if (gluProject(modelDoubleXYZ[0], modelDoubleXYZ[1], modelDoubleXYZ[2],
-                   m_modelSpaceModelMatrix, m_modelSpaceProjectionMatrix, m_modelSpaceViewport,
-                   &windowX, &windowY, &windowZ) == GL_TRUE) {
-        windowXYZOut[0] = windowX - m_modelSpaceViewport[0];
-        windowXYZOut[1] = windowY - m_modelSpaceViewport[1];
-        
-        /*
-         * From OpenGL Programming Guide 3rd Ed, p 133,
-         * or 6th Ed, p 142
-         *
-         * Remember that with the projection commands, the near and far coordinates measure 
-         * distance from the viewpoint and that (by default) you're looking down the negative
-         * z axis. Thus, if the near value is 1.0 and the far 3.0, objects must have z coordinates
-         * between -1.0 and -3.0 in order to be visible. To ensure that you haven't clipped
-         * everything out of your scene, temporarily set the near and far clipping planes to
-         * some absurdly inclusive values, such as 0.001 and 1000000.0. This alters appearance
-         * for operations such as depth-buffering and fog, but it might uncover inadvertently 
-         * clipped objects.         */
-        windowXYZOut[2] = -windowZ;
-        
-        if ((m_modelSpaceProjectionMatrix[0] != 0.0)
-            && (m_modelSpaceProjectionMatrix[5] != 0.0)
-            && (m_modelSpaceProjectionMatrix[10] != 0.0)) {
-            /*
-             * From http://lektiondestages.blogspot.com/2013/11/decompose-opengl-projection-matrix.html
-             */
-            float nearValue   =  (1.0f + m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
-            float farValue    = -(1.0f - m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
-            float left   = -(1.0f + m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
-            float right  =  (1.0f - m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
-
-            /*
-             * Depending upon view, near may be positive and far negative
-             */
-            const float farNearRange = std::fabs(farValue - nearValue);
-            if ((m_inputs->m_centerToEyeDistance > 0.0)
-                && (farNearRange > 0.0)) {
-                /*
-                 * Using gluLookAt moves the eye away from the center which
-                 * causes the window Z to also move.  Thus, we need to remove
-                 * this amount from the window's Z-coordinate.
-                 */
-                const float eyeAdjustment = (m_inputs->m_centerToEyeDistance / farNearRange);
-                if (m_volumeSpacePlaneValid) {
-                    windowXYZOut[2] = -(windowZ - eyeAdjustment);
-                }
-                else if (left > right) {
-                    windowXYZOut[2] = -(windowZ - eyeAdjustment);
-                }
-                else {
-                    windowXYZOut[2] = -(windowZ + eyeAdjustment);
-                }
-            }
-        }
-        
-        return true;
-    }
-    
-    return false;
+    CaretAssert(m_transformEvent);
+    CaretAssert(m_transformEvent->isValid());
+    m_transformEvent->transformPoint(modelXYZ, windowXYZOut);
+    windowXYZOut[0] -= m_modelSpaceViewport[0];
+    windowXYZOut[1] -= m_modelSpaceViewport[1];
+    return true;
 }
 
 /**
@@ -603,6 +545,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     if (m_inputs->m_brain == NULL) {
         return;
     }
+    
+    EventOpenGLObjectToWindowTransform::SpaceType spaceType = EventOpenGLObjectToWindowTransform::SpaceType::MODEL;
+    if (m_volumeSpacePlaneValid) {
+        spaceType = EventOpenGLObjectToWindowTransform::SpaceType::VOLUME_SLICE_MODEL;
+    }
+    m_transformEvent.reset(new EventOpenGLObjectToWindowTransform(spaceType));
+    EventManager::get()->sendEvent(m_transformEvent.get()->getPointer());
+    CaretAssert(m_transformEvent->isValid());
     
     m_volumeSliceThickness  = sliceThickness;
     
