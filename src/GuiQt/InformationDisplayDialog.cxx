@@ -318,6 +318,6 @@ InformationDisplayDialog::showPropertiesDialog()
     if (m_propertiesDialog == NULL) {
         m_propertiesDialog = new InformationDisplayPropertiesDialog(this);
     }
-    m_propertiesDialog->show();
+    m_propertiesDialog->showDialog();
 }
 
