@@ -2497,8 +2497,6 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
             break;
     }
     
-    uint8_t idRGBA[4];
-    
     for (std::vector<IdentifiedItemNode>::const_iterator iter = identifiedNodes.begin();
          iter != identifiedNodes.end();
          iter++) {
@@ -2523,31 +2521,37 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
         
         const float symbolDiameter = nodeID.getSymbolSize();
         
+        uint8_t symbolRGBA[4];
+        
         if (isSelect) {
-            this->colorIdentification->addItem(idRGBA,
+            this->colorIdentification->addItem(symbolRGBA,
                                                SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL,
                                                nodeIndex);
         }
         else {
             if (structure == nodeID.getStructure()) {
-                nodeID.getSymbolRGBA(idRGBA);
+                nodeID.getSymbolRGBA(symbolRGBA);
                 
                 colorsFromChartsEvent.applyChartColorToNode(nodeIndex,
-                                                            idRGBA);
+                                                            symbolRGBA);
             }
             else {
-                nodeID.getContralateralSymbolRGB(idRGBA);
+                nodeID.getContralateralSymbolRGB(symbolRGBA);
             }
         }
-        idRGBA[3] = 255;
+        symbolRGBA[3] = 255;
         
-        
-        glPushMatrix();
-        glTranslatef(xyz[0], xyz[1], xyz[2]);
-        this->drawSphereWithDiameter(idRGBA,
-                                     symbolDiameter);
-        glPopMatrix();
+        /*
+         * Need to draw each symbol independently since each symbol
+         * contains a unique size (diameter)
+         */
+        std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
+        idPrimitive->setSphereDiameter(GraphicsPrimitive::SizeType::PIXELS, symbolDiameter);
+        idPrimitive->addVertex(xyz,
+                               symbolRGBA);
+        GraphicsEngineDataOpenGL::draw(idPrimitive.get());
     }
+    
     
     if (isSelect) {
         int nodeIndex = -1;
@@ -2950,16 +2954,25 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     
     const bool doClipping = isFeatureClippingEnabled();
     
-    bool drawAsSpheres = false;
+    bool lightingOnFlag = false;
+    std::unique_ptr<GraphicsPrimitiveV3fC4ub> fociPrimitive;
     switch (fociDisplayProperties->getDrawingType(displayGroup,
                                                   this->windowTabIndex)) {
         case FociDrawingTypeEnum::DRAW_AS_SPHERES:
-            drawAsSpheres = true;
+            fociPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
+            fociPrimitive->setSphereDiameter(GraphicsPrimitive::SizeType::PIXELS, focusDiameter);
+            lightingOnFlag = true;
             break;
         case FociDrawingTypeEnum::DRAW_AS_SQUARES:
+            fociPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS));
+            fociPrimitive->setPointDiameter(GraphicsPrimitive::SizeType::PIXELS, focusDiameter);
+            lightingOnFlag = false;
             break;
     }
-    
+    if (isSelect) {
+        lightingOnFlag = false;
+    }
+
     const CaretColorEnum::Enum caretColor = fociDisplayProperties->getStandardColorType(displayGroup,
                                                                                            this->windowTabIndex);
     float caretColorRGBA[4];
@@ -2987,7 +3000,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
         
         for (int32_t j = 0; j < numFoci; j++) {
             Focus* focus = fociFile->getFocus(j);
-            float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+            float rgbaFloat[4] = { 0, 0, 0, 255 };
             
             const GroupAndNameHierarchyItem* nameItem = focus->getGroupNameSelectionItem();
             if (nameItem != NULL) {
@@ -2999,41 +3012,38 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             
             switch (fociColoringType) {
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS:
-                    if (focus->isClassRgbaValid() == false) {
+                    if ( ! focus->isClassRgbaValid()) {
                         const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
                         if (colorLabel != NULL) {
-                            colorLabel->getColor(rgba);
-                            focus->setClassRgba(rgba);
+                            colorLabel->getColor(rgbaFloat);
+                            focus->setClassRgba(rgbaFloat);
                         }
                         else {
-                            focus->setClassRgba(rgba);
+                            focus->setClassRgba(rgbaFloat);
                         }
                     }
-                    focus->getClassRgba(rgba);
+                    focus->getClassRgba(rgbaFloat);
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_STANDARD_COLOR:
-                    rgba[0] = caretColorRGBA[0];
-                    rgba[1] = caretColorRGBA[1];
-                    rgba[2] = caretColorRGBA[2];
-                    rgba[3] = caretColorRGBA[3];
+                    rgbaFloat[0] = caretColorRGBA[0];
+                    rgbaFloat[1] = caretColorRGBA[1];
+                    rgbaFloat[2] = caretColorRGBA[2];
+                    rgbaFloat[3] = caretColorRGBA[3];
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {
                         const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
                         if (colorLabel != NULL) {
-                            colorLabel->getColor(rgba);
-                            focus->setNameRgba(rgba);
+                            colorLabel->getColor(rgbaFloat);
+                            focus->setNameRgba(rgbaFloat);
                         }
                         else {
-                            focus->setNameRgba(rgba);
+                            focus->setNameRgba(rgbaFloat);
                         }
                     }
-                    focus->getNameRgba(rgba);
+                    focus->getNameRgba(rgbaFloat);
                     break;
             }
-            
-            glColor3fv(rgba);
-            
             
             const int32_t numProjections = focus->getNumberOfProjections();
             for (int32_t k = 0; k < numProjections; k++) {
@@ -3064,9 +3074,6 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     }
                     
                     if (drawIt) {
-                        glPushMatrix();
-                        glTranslatef(xyz[0], xyz[1], xyz[2]);
-                        
                         if (isSelect) {
                             uint8_t idRGBA[4];
                             this->colorIdentification->addItem(idRGBA,
@@ -3075,32 +3082,32 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                                                                j, /* focus index */
                                                                k);/* projection index */
                             idRGBA[3] = 255;
-                            if (drawAsSpheres) {
-                                this->drawSphereWithDiameter(idRGBA,
-                                                             focusDiameter);
-                            }
-                            else {
-                                this->drawSquare(idRGBA,
-                                                 focusDiameter);
-                            }
+                            fociPrimitive->addVertex(xyz, idRGBA);
                         }
                         else {
-                            if (drawAsSpheres) {
-                                this->drawSphereWithDiameter(rgba,
-                                                             focusDiameter);
-                            }
-                            else {
-                                this->drawSquare(rgba,
-                                                 focusDiameter);
-                            }
+                            const uint8_t rgbaByte[4] = {
+                                rgbaFloat[0] * 255,
+                                rgbaFloat[1] * 255,
+                                rgbaFloat[2] * 255,
+                                rgbaFloat[3] * 255,
+                            };
+                            fociPrimitive->addVertex(xyz, rgbaByte);
                         }
-                        
-                        glPopMatrix();
                     }
                 }                
             }
         }
     }
+    
+    glPushAttrib(GL_ENABLE_BIT);
+    if (lightingOnFlag) {
+        enableLighting();
+    }
+    else {
+        disableLighting();
+    }
+    
+    GraphicsEngineDataOpenGL::draw(fociPrimitive.get());
     
     if (isSelect) {
         int32_t fociFileIndex = -1;
@@ -3134,6 +3141,8 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             }
         }
     }
+    
+    glPopAttrib();
 }
 
 
