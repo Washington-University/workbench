@@ -460,7 +460,11 @@ GraphicsOpenGLPolylineTriangles::createWindowCoordinatesFromVertices()
                 const float distSQ = MathFunctions::distanceSquared3D(windowXYZ,
                                                                       &m_vertexWindowXYZ[previousPointOffset]);
                 if (distSQ < coincidentMaxDistSQ) {
-                    CaretLogSevere("Filtered out connected segment conincident point " + AString::number(i));
+                    CaretLogInfo("Filtered out connected segment conincident point index=" + AString::number(i)
+                                   + " after conversion to window coordinates.  "
+                                   + AString::fromNumbers(windowXYZ, 3, ",")
+                                   + "   "
+                                   + AString::fromNumbers(&m_vertexWindowXYZ[previousPointOffset], 3, ","));
                     continue;
                 }
             }
@@ -899,8 +903,8 @@ GraphicsOpenGLPolylineTriangles::performBevelJoin(const PolylineInfo& polyOne,
             /*
              * Join the right side that is first two vertices in triangle two
              */
-            quadOneSideEndVertexIndex   = polyOne.m_triangleTwoPrimitiveIndices[1];   //quadOneVertexIndex + 2;
-            quadTwoSideBeginVertexIndex = polyTwo.m_triangleTwoPrimitiveIndices[0];   //quadTwoVertexIndex + 1;
+            quadOneSideEndVertexIndex   = polyOne.m_triangleTwoPrimitiveIndices[1];
+            quadTwoSideBeginVertexIndex = polyTwo.m_triangleTwoPrimitiveIndices[0];
             break;
         case TurnDirection::PARALLEL:
             if (m_debugFlag) std::cout << "   Parallel" << std::endl;
@@ -913,8 +917,8 @@ GraphicsOpenGLPolylineTriangles::performBevelJoin(const PolylineInfo& polyOne,
             /*
              * Join left side that is first and third vertices in triangle one
              */
-            quadOneSideEndVertexIndex   = polyOne.m_triangleOnePrimitiveIndices[2];   //quadOneVertexIndex + 3;
-            quadTwoSideBeginVertexIndex = polyTwo.m_triangleOnePrimitiveIndices[0];   //quadTwoVertexIndex;
+            quadOneSideEndVertexIndex   = polyOne.m_triangleOnePrimitiveIndices[2];
+            quadTwoSideBeginVertexIndex = polyTwo.m_triangleOnePrimitiveIndices[0];
             break;
     }
     
@@ -1011,7 +1015,7 @@ GraphicsOpenGLPolylineTriangles::performMiterJoin(const PolylineInfo& polyOne,
     /*
      * Miter limit is a multiple of the line thickness
      */
-    const float miterLimit = m_lineThicknessPixels;// * 2.0f;
+    const float miterLimit = m_lineThicknessPixels;
     const float miterLimitSquared = miterLimit * miterLimit;
     
     /*

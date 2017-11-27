@@ -521,85 +521,10 @@ GraphicsPrimitive::getSizeTypeAsText(const SizeType sizeType) const
 AString
 GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
 {
-    AString s("Primitive: ");
+    AString s("Primitive: " + getPrimitiveTypeAsText());
     
-    s.append(getPrimitiveTypeAsText());
-
-    switch (m_vertexType) {
-        case VertexType::FLOAT_XYZ:
-            s.appendWithNewLine("Vertex Count: " + AString::number(m_xyz.size() / 3) + " Float XYZ.  ");
-            if (includeAllDataFlag ) {
-                s.append("\n   ");
-                const int32_t count = static_cast<int32_t>(m_xyz.size());
-                for (int32_t i = 0; i < count; i++) {
-                    s.append(AString::number(m_xyz[i]) + " ");
-                    if (((i+1) % 3) == 0) {
-                        s.append("\n   ");
-                    }
-                }
-                s.append("\n");
-            }
-            break;
-    }
-    
-    if ( ! m_polygonalLinePrimitiveRestartIndices.empty()) {
-        s.appendWithNewLine("Polygonal Line Primitive Restart Indices Count: " + AString::number(m_polygonalLinePrimitiveRestartIndices.size()));
-        if (includeAllDataFlag) {
-            std::vector<int32_t> temp(m_polygonalLinePrimitiveRestartIndices.begin(),
-                                      m_polygonalLinePrimitiveRestartIndices.end());
-            s.appendWithNewLine("    " + AString::fromNumbers(temp, ", "));
-        }
-    }
-    
-    switch (m_normalVectorType) {
-        case NormalVectorType::FLOAT_XYZ:
-            s.appendWithNewLine("Normal Vector Count: " + AString::number(m_floatNormalVectorXYZ.size() / 3) + " Float XYZ.  ");
-            break;
-            if (includeAllDataFlag ) {
-                s.append("\n   ");
-                const int32_t count = static_cast<int32_t>(m_floatNormalVectorXYZ.size());
-                for (int32_t i = 0; i < count; i++) {
-                    s.append(AString::number(m_floatNormalVectorXYZ[i]) + " ");
-                    if (((i+1) % 3) == 0) {
-                        s.append("\n   ");
-                    }
-                }
-            }
-        case NormalVectorType::NONE:
-            s.appendWithNewLine("Normal Vector: None.  ");
-            break;
-    }
-    
-    switch (m_colorType) {
-        case GraphicsPrimitive::ColorType::NONE:
-            break;
-        case ColorType::FLOAT_RGBA:
-            s.appendWithNewLine("Color Count: " + AString::number(m_floatRGBA.size() / 4) + " Float RGBA 0.0 to 1.0.  ");
-            if (includeAllDataFlag ) {
-                s.append("\n   ");
-                const int32_t count = static_cast<int32_t>(m_floatRGBA.size());
-                for (int32_t i = 0; i < count; i++) {
-                    s.append(AString::number(m_floatRGBA[i]) + " ");
-                    if (((i+1) % 4) == 0) {
-                        s.append("\n   ");
-                    }
-                }
-            }
-            break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
-            s.appendWithNewLine("Color Count: " + AString::number(m_unsignedByteRGBA.size() / 4) + " Unsigned Byte RGBA  0 to 255");
-            if (includeAllDataFlag ) {
-                s.append("\n   ");
-                const int32_t count = static_cast<int32_t>(m_unsignedByteRGBA.size());
-                for (int32_t i = 0; i < count; i++) {
-                    s.append(AString::number(m_unsignedByteRGBA[i]) + " ");
-                    if (((i+1) % 4) == 0) {
-                        s.append("\n   ");
-                    }
-                }
-            }
-            break;
-    }
+    const int32_t numVertices = getNumberOfVertices();
+    s.appendWithNewLine("Number of Vertices: " + AString::number(numVertices) + "\n");
     
     switch (m_textureType) {
         case TextureType::NONE:
@@ -608,16 +533,6 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             s.appendWithNewLine("Texture: " + AString::number(m_floatTextureSTR.size()) + " Float Texture 0.0 to 1.0.  ");
             s.appendWithNewLine("   Width: " + AString::number(m_textureImageWidth)
                                 + " Height: " + AString::number(m_textureImageHeight));
-            if (includeAllDataFlag ) {
-                s.append("\n   ");
-                const int32_t count = static_cast<int32_t>(m_floatTextureSTR.size());
-                for (int32_t i = 0; i < count; i++) {
-                    s.append(AString::number(m_floatTextureSTR[i]) + " ");
-                    if (((i+1) % 3) == 0) {
-                        s.append("\n   ");
-                    }
-                }
-            }
             break;
     }
     
@@ -660,27 +575,95 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             break;
     }
     
+    if ( ! m_polygonalLinePrimitiveRestartIndices.empty()) {
+        s.appendWithNewLine("Polygonal Line Primitive Restart Indices Count: " + AString::number(m_polygonalLinePrimitiveRestartIndices.size()));
+        if (includeAllDataFlag) {
+            std::vector<int32_t> temp(m_polygonalLinePrimitiveRestartIndices.begin(),
+                                      m_polygonalLinePrimitiveRestartIndices.end());
+            s.appendWithNewLine("    " + AString::fromNumbers(temp, ", "));
+        }
+    }
+    
     if (addLineWidthFlag) {
         s.appendWithNewLine("Line Width Type: "
                             + getSizeTypeAsText(m_lineWidthType)
-                            + "; Width Value: "
+                            + "; Value: "
                             + AString::number(m_lineWidthValue, 'f', 3));
     }
     
     if (addPointSizeFlag) {
         s.appendWithNewLine("Point Diameter Type: "
                             + getSizeTypeAsText(m_pointSizeType)
-                            + "; Diameter Value: "
+                            + "; Value: "
                             + AString::number(m_pointDiameterValue, 'f', 3));
     }
     
     if (addSphereSizeFlag) {
         s.appendWithNewLine("Sphere Diameter Type: "
                             + getSizeTypeAsText(m_sphereSizeType)
-                            + "; Diameter Value: "
+                            + "; Value: "
                             + AString::number(m_sphereDiameterValue, 'f', 3));
     }
-
+    
+    s.append("\n");
+    if (includeAllDataFlag) {
+        for (int32_t i = 0; i < numVertices; i++) {
+            s.append(AString("%1: ").arg(i, 5));
+            
+            switch (m_vertexType) {
+                case VertexType::FLOAT_XYZ:
+                {
+                    CaretAssertVectorIndex(m_xyz, i*3 + 2);
+                    const float* xyz = &m_xyz[i * 3];
+                    s.append(AString("%1, %2, %3").arg(xyz[0], 10, 'f', 3).arg(xyz[1], 10, 'f', 3).arg(xyz[2], 10, 'f', 3));
+                }
+                    break;
+            }
+            
+            switch (m_normalVectorType) {
+                case NormalVectorType::FLOAT_XYZ:
+                {
+                    CaretAssertVectorIndex(m_floatNormalVectorXYZ, i*3 + 2);
+                    const float* xyz = &m_floatNormalVectorXYZ[i * 3];
+                    s.append(AString("   N:%1, %2, %3").arg(xyz[0], 7, 'f', 5).arg(xyz[1], 7, 'f', 5).arg(xyz[2], 7, 'f', 5));
+                }
+                case NormalVectorType::NONE:
+                    break;
+            }
+            
+            switch (m_colorType) {
+                case GraphicsPrimitive::ColorType::NONE:
+                    break;
+                case ColorType::FLOAT_RGBA:
+                {
+                    CaretAssertVectorIndex(m_floatRGBA, i*4 + 3);
+                    const float* rgba = &m_floatRGBA[i * 4];
+                    s.append(AString("   RGBAf: %1, %2, %3, %4").arg(rgba[0], 5, 'f', 3).arg(rgba[1], 5, 'f', 3).arg(rgba[2], 5, 'f', 3).arg(rgba[3], 5, 'f', 3));
+                }
+                    break;
+                case ColorType::UNSIGNED_BYTE_RGBA:
+                {
+                    CaretAssertVectorIndex(m_unsignedByteRGBA, i*4 + 3);
+                    const uint8_t* rgba = &m_unsignedByteRGBA[i * 4];
+                    s.append(AString("   RGBAb: %1, %2, %3, %4").arg(rgba[0], 3).arg(rgba[1], 3).arg(rgba[2], 3).arg(rgba[3], 3));
+                }
+            }
+            
+            switch (m_textureType) {
+                case TextureType::NONE:
+                    break;
+                case TextureType::FLOAT_STR:
+                {
+                    CaretAssertVectorIndex(m_floatTextureSTR, i*3 + 2);
+                    const float* str = &m_floatTextureSTR[i * 3];
+                    s.append(AString("   T:%1, %2, %3").arg(str[0], 7, 'f', 5).arg(str[1], 7, 'f', 5).arg(str[2], 7, 'f', 5));
+                }
+                    break;
+            }
+            s.append("\n");
+        }
+    }
+    
     return s;
 }
 
