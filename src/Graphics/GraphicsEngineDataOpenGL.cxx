@@ -28,6 +28,7 @@
 #include "DeveloperFlagsEnum.h"
 #include "EventGraphicsOpenGLCreateBufferObject.h"
 #include "EventGraphicsOpenGLCreateTextureName.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "EventManager.h"
 #include "GraphicsOpenGLBufferObject.h"
 #include "GraphicsOpenGLPolylineTriangles.h"
@@ -35,6 +36,7 @@
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveSelectionHelper.h"
 #include "GraphicsShape.h"
+#include "Matrix4x4.h"
 
 using namespace caret;
 
@@ -468,6 +470,7 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
     std::unique_ptr<GraphicsPrimitive> windowSpacePrimitive;
     
     bool workbenchLineFlag = false;
+    bool millimeterPointsFlag = false;
     bool spheresFlag = false;
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
@@ -477,6 +480,15 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_POINTS:
+            switch (primitive->m_pointSizeType) {
+                case GraphicsPrimitive::PointSizeType::MILLIMETERS:
+                    millimeterPointsFlag = true;
+                    break;
+                case GraphicsPrimitive::PointSizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+                    break;
+                case GraphicsPrimitive::PointSizeType::PIXELS:
+                    break;
+            }
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN:
             break;
@@ -498,7 +510,13 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
             break;
     }
     
-    if (spheresFlag) {
+    if (millimeterPointsFlag) {
+        /* 
+         * Special case for points in millimeters 
+         */
+        drawPointsPrimitiveMillimeters(primitive);
+    }
+    else if (spheresFlag) {
         drawSpheresPrimitive(primitive);
     }
     else if (workbenchLineFlag) {
@@ -560,6 +578,59 @@ GraphicsEngineDataOpenGL::drawWindowSpace(const PrivateDrawMode drawMode,
 }
 
 /**
+ * Draw a point primitive type in millimeters (same as model space).
+ *
+ * @param primitive
+ *     The points primitive type.
+ */
+void
+GraphicsEngineDataOpenGL::drawPointsPrimitiveMillimeters(const GraphicsPrimitive* primitive)
+{
+    CaretAssert(primitive);
+    CaretAssert(primitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::OPENGL_POINTS);
+    CaretAssert(primitive->m_pointSizeType == GraphicsPrimitive::PointSizeType::MILLIMETERS);
+    
+    GraphicsPrimitive::PointSizeType sizeType;
+    float sizeValue = 0.0f;
+    primitive->getPointDiameter(sizeType,
+                                sizeValue);
+    
+    const int32_t numberOfVertices = primitive->getNumberOfVertices();
+    switch (primitive->m_pointSizeType) {
+        case GraphicsPrimitive::PointSizeType::MILLIMETERS:
+        {
+            for (int32_t i = 0; i < numberOfVertices; i++) {
+                const int32_t i3 = i * 3;
+                CaretAssertVectorIndex(primitive->m_xyz, i3 + 2);
+                const float* xyz = &primitive->m_xyz[i3];
+                const int32_t i4 = i * 4;
+                
+                uint8_t* rgba = NULL;
+                switch (primitive->m_colorType) {
+                    case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+                        CaretAssert(0);
+                        break;
+                    case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+                        CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
+                        rgba = const_cast<uint8_t*>(&primitive->m_unsignedByteRGBA[i4]);
+                        break;
+                    case GraphicsPrimitive::ColorType::NONE:
+                        CaretAssert(0);
+                        break;
+                }
+                
+                GraphicsShape::drawSquare(xyz, rgba, sizeValue);
+            }
+        }
+            break;
+        case GraphicsPrimitive::PointSizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+        case GraphicsPrimitive::PointSizeType::PIXELS:
+            CaretAssert(0);
+            break;
+    }
+}
+
+/**
  * Draw a sphere primitive type.
  * 
  * @param primitive
@@ -571,7 +642,7 @@ GraphicsEngineDataOpenGL::drawSpheresPrimitive(const GraphicsPrimitive* primitiv
     CaretAssert(primitive);
     CaretAssert(primitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::SPHERES);
 
-    GraphicsPrimitive::SizeType sizeType;
+    GraphicsPrimitive::SphereSizeType sizeType;
     float sizeValue = 0.0f;
     primitive->getSphereDiameter(sizeType,
                                  sizeValue);
@@ -1073,8 +1144,11 @@ GraphicsEngineDataOpenGL::getPointDiameterForDrawingInPixels(const GraphicsPrimi
     
     float pointSize = primitive->m_pointDiameterValue;
     
-    switch (primitive->m_lineWidthType) {
-        case GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+    switch (primitive->m_pointSizeType) {
+        case GraphicsPrimitive::PointSizeType::MILLIMETERS:
+            CaretAssert(0);  /* millimeters not convertible to pixels */
+            break;
+        case GraphicsPrimitive::PointSizeType::PERCENTAGE_VIEWPORT_HEIGHT:
         {
             GLint viewport[4];
             glGetIntegerv(GL_VIEWPORT, viewport);
@@ -1082,12 +1156,10 @@ GraphicsEngineDataOpenGL::getPointDiameterForDrawingInPixels(const GraphicsPrimi
             pointSize = (viewport[3] * (pointSize / 100.0f));
         }
             break;
-        case GraphicsPrimitive::SizeType::PIXELS:
+        case GraphicsPrimitive::PointSizeType::PIXELS:
             break;
     }
     
     return pointSize;
 }
-
-
 

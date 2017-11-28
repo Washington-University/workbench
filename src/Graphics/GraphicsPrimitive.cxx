@@ -491,6 +491,51 @@ GraphicsPrimitive::getPrimitiveTypeAsText() const
 }
 
 /**
+ * @return Sphere size type as text for the given size type.
+ *
+ * @param sizeType
+ *     The size type.
+ */
+AString
+GraphicsPrimitive::getSphereSizeTypeAsText(const SphereSizeType sizeType) const
+{
+    AString s;
+    
+    switch (sizeType) {
+        case SphereSizeType::MILLIMETERS:
+            s = "Millimeters";
+            break;
+    }
+    return s;
+}
+
+/**
+ * @return Point size type as text for the given size type.
+ *
+ * @param sizeType
+ *     The size type.
+ */
+AString
+GraphicsPrimitive::getPointSizeTypeAsText(const PointSizeType sizeType) const
+{
+    AString s;
+    
+    switch (sizeType) {
+        case PointSizeType::MILLIMETERS:
+            s = "Millimeters";
+            break;
+        case PointSizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+            s = "Percentage Viewport Height";
+            break;
+        case PointSizeType::PIXELS:
+            s = "Pixels";
+            break;
+    }
+    return s;
+}
+
+
+/**
  * @return Size type as text for the given size type.
  *
  * @param sizeType
@@ -593,14 +638,14 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
     
     if (addPointSizeFlag) {
         s.appendWithNewLine("Point Diameter Type: "
-                            + getSizeTypeAsText(m_pointSizeType)
+                            + getPointSizeTypeAsText(m_pointSizeType)
                             + "; Value: "
                             + AString::number(m_pointDiameterValue, 'f', 3));
     }
     
     if (addSphereSizeFlag) {
         s.appendWithNewLine("Sphere Diameter Type: "
-                            + getSizeTypeAsText(m_sphereSizeType)
+                            + getSphereSizeTypeAsText(m_sphereSizeType)
                             + "; Value: "
                             + AString::number(m_sphereDiameterValue, 'f', 3));
     }
@@ -1250,7 +1295,7 @@ GraphicsPrimitive::fillTriangleStripPrimitiveRestartVertices()
  *     Diameter of point.
  */
 void
-GraphicsPrimitive::getPointDiameter(SizeType& sizeTypeOut,
+GraphicsPrimitive::getPointDiameter(PointSizeType& sizeTypeOut,
                                     float& pointDiameterOut) const
 {
     sizeTypeOut  = m_pointSizeType;
@@ -1266,7 +1311,7 @@ GraphicsPrimitive::getPointDiameter(SizeType& sizeTypeOut,
  *     Diameter of point.
  */
 void
-GraphicsPrimitive::setPointDiameter(const SizeType sizeType,
+GraphicsPrimitive::setPointDiameter(const PointSizeType sizeType,
                                     const float pointDiameter) const
 {
     m_pointSizeType  = sizeType;
@@ -1306,15 +1351,15 @@ GraphicsPrimitive::setLineWidth(const SizeType widthType,
 }
 
 /**
- * Get the point diameter.
+ * Get the sphere diameter.
  *
  * @param sizeTypeOut
  *     Type of sizing.
  * @param pointDiameterOut
- *     Diameter of point.
+ *     Diameter of sphere.
  */
 void
-GraphicsPrimitive::getSphereDiameter(SizeType& sizeTypeOut,
+GraphicsPrimitive::getSphereDiameter(SphereSizeType& sizeTypeOut,
                                      float& sphereDiameterOut) const
 {
     sizeTypeOut  = m_sphereSizeType;
@@ -1322,15 +1367,15 @@ GraphicsPrimitive::getSphereDiameter(SizeType& sizeTypeOut,
 }
 
 /**
- * Set the point diameter.
+ * Set the sphere diameter.
  *
  * @param sizeType
  *     Type of sizing.
  * @param pointDiameter
- *     Diameter of point.
+ *     Diameter of sphere.
  */
 void
-GraphicsPrimitive::setSphereDiameter(const SizeType sizeType,
+GraphicsPrimitive::setSphereDiameter(const SphereSizeType sizeType,
                                      const float sphereDiameter) const
 {
     m_sphereSizeType  = sizeType;

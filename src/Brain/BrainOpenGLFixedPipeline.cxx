@@ -2546,7 +2546,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
          * contains a unique size (diameter)
          */
         std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
-        idPrimitive->setSphereDiameter(GraphicsPrimitive::SizeType::PIXELS, symbolDiameter);
+        idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, symbolDiameter);
         idPrimitive->addVertex(xyz,
                                symbolRGBA);
         GraphicsEngineDataOpenGL::draw(idPrimitive.get());
@@ -2845,9 +2845,9 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     glDisable(GL_LIGHTING);
     
     if (pointsPrimitive) {
-        pointsPrimitive->setPointDiameter(GraphicsPrimitive::SizeType::PIXELS,
+        pointsPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS,
                                           pointDiameter);
-        pointsPrimitive->setSphereDiameter(GraphicsPrimitive::SizeType::PIXELS,
+        pointsPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
                                            pointDiameter);
         if (pointsPrimitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::SPHERES) {
             if ( ! borderDrawInfo.isSelect) {
@@ -2960,12 +2960,12 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                                                   this->windowTabIndex)) {
         case FociDrawingTypeEnum::DRAW_AS_SPHERES:
             fociPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
-            fociPrimitive->setSphereDiameter(GraphicsPrimitive::SizeType::PIXELS, focusDiameter);
+            fociPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, focusDiameter);
             lightingOnFlag = true;
             break;
         case FociDrawingTypeEnum::DRAW_AS_SQUARES:
             fociPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS));
-            fociPrimitive->setPointDiameter(GraphicsPrimitive::SizeType::PIXELS, focusDiameter);
+            fociPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS, focusDiameter);
             lightingOnFlag = false;
             break;
     }

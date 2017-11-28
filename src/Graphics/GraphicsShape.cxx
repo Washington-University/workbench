@@ -30,8 +30,10 @@
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveV3f.h"
+#include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3f.h"
 #include "MathFunctions.h"
+#include "Matrix4x4.h"
 
 using namespace caret;
 
@@ -79,6 +81,13 @@ GraphicsShape::deleteAllPrimitives()
         delete iter.second;
     }
     s_byteRingPrimitives.clear();
+    
+    /* 
+     * Need to delete here or it will cause a crash
+     * as there is no EventManager when static data 
+     * is deleted.
+     */
+    s_byteSquarePrimitive.reset();
 }
 
 
@@ -422,13 +431,13 @@ GraphicsShape::drawLineStripMiterJoinByteColor(const std::vector<float>& xyz,
  *     XYZ-coordinate of sphere
  * @param rgba
  *    Color for drawing.
- * @param radius
- *    Radius of the sphere.
+ * @param diameter
+ *    Diameter of the sphere.
  */
 void
 GraphicsShape::drawSphereByteColor(const float xyz[3],
                                    const uint8_t rgba[4],
-                                   const float radius)
+                                   const float diameter)
 {
     const int32_t numLatLonDivisions = 10;
     
@@ -463,7 +472,7 @@ GraphicsShape::drawSphereByteColor(const float xyz[3],
     
     glPushMatrix();
     glTranslatef(xyz[0], xyz[1], xyz[2]);
-    glScalef(radius, radius, radius);
+    glScalef(diameter, diameter, diameter);
     GraphicsEngineDataOpenGL::draw(spherePrimitive);
     glPopMatrix();
 }
@@ -475,13 +484,13 @@ GraphicsShape::drawSphereByteColor(const float xyz[3],
  *     XYZ-coordinate of circle
  * @param rgba
  *    Color for drawing.
- * @param radius
- *    Radius of the circle.
+ * @param diameter
+ *    Diameter of the circle.
  */
 void
 GraphicsShape::drawCircleFilled(const float xyz[3],
                              const uint8_t rgba[4],
-                             const float radius)
+                             const float diameter)
 {
     const int32_t numberOfDivisions = 20;
     
@@ -494,8 +503,9 @@ GraphicsShape::drawCircleFilled(const float xyz[3],
     }
     
     if (circlePrimitive == NULL) {
+        const float radius = 0.5f;
         circlePrimitive = createCirclePrimitive(numberOfDivisions,
-                                                0.5f);
+                                                radius);
         circlePrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
         circlePrimitive->setUsageTypeColors(GraphicsPrimitive::UsageType::MODIFIED_MANY_DRAWN_MANY_TIMES);
         s_byteCirclePrimitives.insert(std::make_pair(numberOfDivisions,
@@ -510,8 +520,71 @@ GraphicsShape::drawCircleFilled(const float xyz[3],
     if (xyz != NULL) {
         glTranslatef(xyz[0], xyz[1], xyz[2]);
     }
-    glScalef(radius, radius, 1.0f);
+    glScalef(diameter, diameter, 1.0f);
     GraphicsEngineDataOpenGL::draw(circlePrimitive);
+    glPopMatrix();
+}
+
+/**
+ * Draw a square at the given XYZ coordinate
+ *
+ * @param xyz
+ *     XYZ-coordinate of square
+ * @param rgba
+ *    Color for drawing.
+ * @param diameter
+ *    Diameter of the square.
+ */
+
+void
+GraphicsShape::drawSquare(const float xyz[3],
+                          const uint8_t rgba[4],
+                          const float diameter)
+{
+    if ( ! s_byteSquarePrimitive) {
+        s_byteSquarePrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
+                                                                       rgba));
+        /*
+         * The square is made up of four triangles
+         * with two triangles for the 'front' and
+         * two triangles for the 'back' so that it is
+         * never culled.
+         */
+        
+        const float radius = 0.5f;
+        
+        /* counter clockwise triangle */
+        s_byteSquarePrimitive->addVertex(-radius, -radius);
+        s_byteSquarePrimitive->addVertex( radius, -radius);
+        s_byteSquarePrimitive->addVertex( radius,  radius);
+        
+        /* counter clockwise triangle */
+        s_byteSquarePrimitive->addVertex(-radius, -radius);
+        s_byteSquarePrimitive->addVertex( radius,  radius);
+        s_byteSquarePrimitive->addVertex(-radius,  radius);
+        
+        /* clockwise triangle */
+        s_byteSquarePrimitive->addVertex(-radius, -radius);
+        s_byteSquarePrimitive->addVertex(-radius,  radius);
+        s_byteSquarePrimitive->addVertex( radius,  radius);
+        
+        /* clockwise triangle */
+        s_byteSquarePrimitive->addVertex(-radius, -radius);
+        s_byteSquarePrimitive->addVertex( radius,  radius);
+        s_byteSquarePrimitive->addVertex( radius, -radius);
+    }
+    
+    CaretAssert(s_byteSquarePrimitive.get());
+    
+    s_byteSquarePrimitive->replaceAllVertexSolidByteRGBA(rgba);
+    
+    glPushMatrix();
+    if (xyz != NULL) {
+        glTranslatef(xyz[0], xyz[1], xyz[2]);
+        updateModelMatrixToFaceViewer();
+        glScalef(diameter, diameter, 1.0f);
+    }
+    GraphicsEngineDataOpenGL::draw(s_byteSquarePrimitive.get());
     glPopMatrix();
 }
 
@@ -929,6 +1002,39 @@ GraphicsShape::createSpherePrimitiveTriangleStrips(const int32_t numberOfLatLon)
     }
     
     return primitive;
+}
+
+/**
+ * Update the model matrix to face the viewer by applying a 
+ * technique known as "billboarding".  Callers need to
+ * push/pop the modelview matrix before/after calling 
+ * this method.
+ *
+ * The result is that the X-Y plane faces the user.
+ */
+void
+GraphicsShape::updateModelMatrixToFaceViewer()
+{
+    /*
+     * Get the translation and rotation from the
+     * current modelview matrix.
+     */
+    double modelMatrixArray[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrixArray);
+    Matrix4x4 matrix;
+    matrix.setMatrixFromOpenGL(modelMatrixArray);
+    float txyz[3];
+    matrix.getTranslation(txyz);
+    double sx, sy, sz;
+    matrix.getScale(sx, sy, sz);
+    
+    /*
+     * Replace modelview matrix with
+     * just translation and scaling.
+     */
+    glLoadIdentity();
+    glTranslatef(txyz[0], txyz[1], txyz[2]);
+    glScalef(sx, sy, sz);
 }
 
 /**

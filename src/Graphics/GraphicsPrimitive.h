@@ -163,7 +163,27 @@ namespace caret {
         };
         
         /**
-         * Type for point size and line width
+         * Type for point size
+         */
+        enum class PointSizeType {
+            /**
+             * Millimeters (all models surface, volume, etc. are drawn
+             * in millimeters).
+             */
+            MILLIMETERS,
+            /**
+             * Size of point or width of line is a percentage of viewport height.
+             * Ranges [0.0, 100.0]
+             */
+            PERCENTAGE_VIEWPORT_HEIGHT,
+            /**
+             * Size of point or width of line is in pixels
+             */
+            PIXELS
+        };
+        
+        /**
+         * Type for line width
          */
         enum class SizeType {
             /**
@@ -175,6 +195,17 @@ namespace caret {
              * Size of point or width of line is in pixels
              */
             PIXELS
+        };
+        
+        /**
+         * Type for sphere size
+         */
+        enum class SphereSizeType {
+            /**
+             * Millimeters (all models surface, volume, etc. are drawn 
+             * in millimeters).
+             */
+            MILLIMETERS
         };
         
         /**
@@ -316,10 +347,10 @@ namespace caret {
         
         void addPrimitiveRestart();
         
-        void getPointDiameter(SizeType& sizeTypeOut,
+        void getPointDiameter(PointSizeType& sizeTypeOut,
                               float& pointDiameterOut) const;
         
-        void setPointDiameter(const SizeType sizeType,
+        void setPointDiameter(const PointSizeType sizeType,
                               const float pointDiameter) const;
         
         void getLineWidth(SizeType& widthTypeOut,
@@ -328,10 +359,10 @@ namespace caret {
         void setLineWidth(const SizeType widthType,
                           const float lineWidth) const;
         
-        void getSphereDiameter(SizeType& sizeTypeOut,
+        void getSphereDiameter(SphereSizeType& sizeTypeOut,
                                float& sphereDiameterOut) const;
         
-        void setSphereDiameter(const SizeType sizeType,
+        void setSphereDiameter(const SphereSizeType sizeType,
                                const float sphereDiameter) const;
         
         GraphicsEngineDataOpenGL* getGraphicsEngineDataForOpenGL();
@@ -364,6 +395,10 @@ namespace caret {
         
         AString getSizeTypeAsText(const SizeType sizeType) const;
         
+        AString getPointSizeTypeAsText(const PointSizeType sizeType) const;
+        
+        AString getSphereSizeTypeAsText(const SphereSizeType sizeType) const;
+        
         const VertexType  m_vertexType;
         
         const NormalVectorType m_normalVectorType;
@@ -390,7 +425,7 @@ namespace caret {
         
         int32_t m_textureImageHeight = -1;
         
-        mutable SizeType m_pointSizeType = SizeType::PIXELS;
+        mutable PointSizeType m_pointSizeType = PointSizeType::PIXELS;
         
         mutable float m_pointDiameterValue = 1.0f;
         
@@ -398,7 +433,7 @@ namespace caret {
         
         mutable float m_lineWidthValue = 1.0f;
         
-        mutable SizeType m_sphereSizeType = SizeType::PIXELS;
+        mutable SphereSizeType m_sphereSizeType = SphereSizeType::MILLIMETERS;
         
         mutable float m_sphereDiameterValue = 1.0f;
         

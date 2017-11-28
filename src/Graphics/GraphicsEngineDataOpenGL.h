@@ -88,6 +88,8 @@ namespace caret {
                                 GraphicsPrimitive* primitive,
                                 GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
         
+        static void drawPointsPrimitiveMillimeters(const GraphicsPrimitive* primitive);
+        
         static void drawSpheresPrimitive(const GraphicsPrimitive* primitive);
         
         GLenum getOpenGLBufferUsageHint(const GraphicsPrimitive::UsageType primitiveUsageType) const;

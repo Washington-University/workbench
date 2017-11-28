@@ -32,6 +32,7 @@
 
 namespace caret {
 
+    class GraphicsPrimitiveV3f;
     class GraphicsPrimitiveV3fN3f;
     
     class GraphicsShape : public CaretObject {
@@ -94,11 +95,15 @@ namespace caret {
         
         static void drawSphereByteColor(const float xyz[3],
                                         const uint8_t rgba[4],
-                                        const float radius);
+                                        const float diameter);
         
         static void drawCircleFilled(const float xyz[3],
                                      const uint8_t rgba[4],
-                                     const float radius);
+                                     const float diameter);
+        
+        static void drawSquare(const float xyz[3],
+                               const uint8_t rgba[4],
+                               const float diameter);
         
         static void drawRing(const float xyz[3],
                              const uint8_t rgba[4],
@@ -156,6 +161,8 @@ namespace caret {
 
         GraphicsShape& operator=(const GraphicsShape&);
         
+        static void updateModelMatrixToFaceViewer();
+        
         static GraphicsPrimitive* createCirclePrimitive(const int32_t numberOfDivisions,
                                                         const double radius);
         
@@ -178,6 +185,8 @@ namespace caret {
                                     float xyzOut[3],
                                     float normalXyzOut[3]);
         
+        static std::unique_ptr<GraphicsPrimitiveV3f> s_byteSquarePrimitive;
+        
         static std::map<int32_t, GraphicsPrimitive*> s_byteSpherePrimitives;
         
         static std::map<int32_t, GraphicsPrimitive*> s_byteCirclePrimitives;
@@ -193,6 +202,7 @@ namespace caret {
     std::map<int32_t, GraphicsPrimitive*> GraphicsShape::s_byteSpherePrimitives;
     std::map<int32_t, GraphicsPrimitive*> GraphicsShape::s_byteCirclePrimitives;
     std::map<GraphicsShape::RingKey, GraphicsPrimitive*> GraphicsShape::s_byteRingPrimitives;
+    std::unique_ptr<GraphicsPrimitiveV3f> GraphicsShape::s_byteSquarePrimitive;
 #endif // __GRAPHICS_SHAPE_DECLARE__
 
 } // namespace
