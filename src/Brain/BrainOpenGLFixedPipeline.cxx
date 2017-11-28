@@ -3000,7 +3000,12 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
         
         for (int32_t j = 0; j < numFoci; j++) {
             Focus* focus = fociFile->getFocus(j);
-            float rgbaFloat[4] = { 0, 0, 0, 255 };
+            float rgbaFloat[4] = {
+                caretColorRGBA[0],
+                caretColorRGBA[1],
+                caretColorRGBA[2],
+                caretColorRGBA[3]
+            };
             
             const GroupAndNameHierarchyItem* nameItem = focus->getGroupNameSelectionItem();
             if (nameItem != NULL) {
@@ -3018,9 +3023,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                             colorLabel->getColor(rgbaFloat);
                             focus->setClassRgba(rgbaFloat);
                         }
-                        else {
-                            focus->setClassRgba(rgbaFloat);
-                        }
+//                        else {
+//                            focus->setClassRgba(rgbaFloat);
+//                        }
                     }
                     focus->getClassRgba(rgbaFloat);
                     break;
@@ -3037,13 +3042,18 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                             colorLabel->getColor(rgbaFloat);
                             focus->setNameRgba(rgbaFloat);
                         }
-                        else {
-                            focus->setNameRgba(rgbaFloat);
-                        }
+//                        else {
+//                            focus->setNameRgba(rgbaFloat);
+//                        }
                     }
                     focus->getNameRgba(rgbaFloat);
                     break;
             }
+            
+            /*
+             * Always have valid color for RGBA
+             */
+            rgbaFloat[3] = 1.0f;
             
             const int32_t numProjections = focus->getNumberOfProjections();
             for (int32_t k = 0; k < numProjections; k++) {
