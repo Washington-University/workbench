@@ -48,6 +48,8 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
+#include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsPrimitiveV3fC4f.h"
 #include "IdentificationWithColor.h"
 #include "LabelDrawingProperties.h"
 #include "MathFunctions.h"
@@ -3384,23 +3386,21 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
      */
     if (drawCrosshairsFlag) {
         glPushMatrix();
-        glLineWidth(1.0);
         glTranslatef(horizTrans[0], horizTrans[1], horizTrans[2]);
-        glColor3fv(horizontalAxisRGBA);
-        glBegin(GL_LINES);
-        glVertex3fv(horizontalAxisStartXYZ);
-        glVertex3fv(horizontalAxisEndXYZ);
-        glEnd();
+        std::unique_ptr<GraphicsPrimitiveV3fC4f> horizHairPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
+        horizHairPrimitive->addVertex(horizontalAxisStartXYZ, horizontalAxisRGBA);
+        horizHairPrimitive->addVertex(horizontalAxisEndXYZ, horizontalAxisRGBA);
+        horizHairPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
+        GraphicsEngineDataOpenGL::draw(horizHairPrimitive.get());
         glPopMatrix();
         
         glPushMatrix();
-        glLineWidth(1.0);
         glTranslatef(vertTrans[0], vertTrans[1], vertTrans[2]);
-        glColor3fv(verticalAxisRGBA);
-        glBegin(GL_LINES);
-        glVertex3fv(verticalAxisStartXYZ);
-        glVertex3fv(verticalAxisEndXYZ);
-        glEnd();
+        std::unique_ptr<GraphicsPrimitiveV3fC4f> vertHairPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
+        vertHairPrimitive->addVertex(verticalAxisStartXYZ, verticalAxisRGBA);
+        vertHairPrimitive->addVertex(verticalAxisEndXYZ, verticalAxisRGBA);
+        vertHairPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
+        GraphicsEngineDataOpenGL::draw(vertHairPrimitive.get());
         glPopMatrix();
     }
     
@@ -3795,13 +3795,20 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
         const double paraTextMin[3]  = { 0.0, textMinCoord, 0.0 };
         const double paraTextMax[3]  = { 0.0, textMaxCoord, 0.0 };
         
-        const float axesCrosshairRadius = 1.0;
+        /*
+         * Set radius as percentage of viewport height
+         */
+        float axesCrosshairRadius = 1.0;
+        if (viewportHeight > 0) {
+            const float percentageRadius = 0.005f;
+            axesCrosshairRadius = percentageRadius * viewportHeight;
+        }
         
         if (drawCylindersFlag) {
             m_fixedPipelineDrawing->drawCylinder(blue,
                                                  axialPlaneMin,
                                                  axialPlaneMax,
-                                                 axesCrosshairRadius);
+                                                 axesCrosshairRadius * 0.5f);
         }
         
         AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
@@ -3826,7 +3833,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
             m_fixedPipelineDrawing->drawCylinder(green,
                                                  coronalPlaneMin,
                                                  coronalPlaneMax,
-                                                 axesCrosshairRadius);
+                                                 axesCrosshairRadius * 0.5f);
         }
         
         if (drawLabelsFlag) {
@@ -3844,7 +3851,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
             m_fixedPipelineDrawing->drawCylinder(red,
                                                  paraPlaneMin,
                                                  paraPlaneMax,
-                                                 axesCrosshairRadius);
+                                                 axesCrosshairRadius * 0.5f);
         }
         
         if (drawLabelsFlag) {

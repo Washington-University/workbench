@@ -126,6 +126,7 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
         return;
     }
     
+    CaretAssert(sliceProjectionType == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
     CaretAssert(fixedPipelineDrawing);
     CaretAssert(browserTabContent);
     m_browserTabContent = browserTabContent;    
@@ -4141,30 +4142,17 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
      * Crosshairs
      */
     if (drawCrosshairsFlag) {
-        glLineWidth(1.0);
-        glColor3fv(horizontalAxisRGBA);
-        glBegin(GL_LINES);
-        glVertex3fv(horizontalAxisStartXYZ);
-        glVertex3fv(horizontalAxisEndXYZ);
-        glEnd();
-        
-        glLineWidth(1.0);
-        glColor3fv(verticalAxisRGBA);
-        glBegin(GL_LINES);
-        glVertex3fv(verticalAxisStartXYZ);
-        glVertex3fv(verticalAxisEndXYZ);
-        glEnd();
+        std::unique_ptr<GraphicsPrimitiveV3fC4f> xhairPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
+        xhairPrimitive->addVertex(horizontalAxisStartXYZ, horizontalAxisRGBA);
+        xhairPrimitive->addVertex(horizontalAxisEndXYZ, horizontalAxisRGBA);
+        xhairPrimitive->addVertex(verticalAxisStartXYZ, verticalAxisRGBA);
+        xhairPrimitive->addVertex(verticalAxisEndXYZ, verticalAxisRGBA);
+        xhairPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
+        GraphicsEngineDataOpenGL::draw(xhairPrimitive.get());
     }
     
     if (drawCrosshairLabelsFlag) {
         const AnnotationTextFontPointSizeEnum::Enum fontSize = AnnotationTextFontPointSizeEnum::SIZE18;
-//        const int32_t fontSizeInt = AnnotationTextFontPointSizeEnum::toSizeNumeric(fontSize);
-//        
-//        const int textCenter[2] = {
-//            textLeftWindowXY[0],
-//            textLeftWindowXY[1]
-//        };
-//        const int halfFontSize = fontSizeInt / 2;
         
         uint8_t backgroundRGBA[4] = {
             m_fixedPipelineDrawing->m_backgroundColorByte[0],
@@ -4172,102 +4160,6 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
             m_fixedPipelineDrawing->m_backgroundColorByte[2],
             m_fixedPipelineDrawing->m_backgroundColorByte[3]
         };
-        
-//        GLint savedViewport[4];
-//        glGetIntegerv(GL_VIEWPORT, savedViewport);
-//        
-//        int vpLeftX   = savedViewport[0] + textCenter[0] - halfFontSize;
-//        int vpRightX  = savedViewport[0] + textCenter[0] + halfFontSize;
-//        int vpBottomY = savedViewport[1] + textCenter[1] - halfFontSize;
-//        int vpTopY    = savedViewport[1] + textCenter[1] + halfFontSize;
-//        MathFunctions::limitRange(vpLeftX,
-//                                  savedViewport[0],
-//                                  savedViewport[0] + savedViewport[2]);
-//        MathFunctions::limitRange(vpRightX,
-//                                  savedViewport[0],
-//                                  savedViewport[0] + savedViewport[2]);
-//        MathFunctions::limitRange(vpBottomY,
-//                                  savedViewport[1],
-//                                  savedViewport[1] + savedViewport[3]);
-//        MathFunctions::limitRange(vpTopY,
-//                                  savedViewport[1],
-//                                  savedViewport[1] + savedViewport[3]);
-//        
-//        const int vpSizeX = vpRightX - vpLeftX;
-//        const int vpSizeY = vpTopY - vpBottomY;
-//        glViewport(vpLeftX, vpBottomY, vpSizeX, vpSizeY);
-        
-//        glMatrixMode(GL_PROJECTION);
-//        glPushMatrix();
-//        glLoadIdentity();
-//        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-//        
-//        glMatrixMode(GL_MODELVIEW);
-//        glPushMatrix();
-//        glLoadIdentity();
-        
-//        std::vector<uint8_t> rgba;
-//        std::vector<float> coords, normals;
-//        
-//        coords.push_back(-1.0);
-//        coords.push_back(-1.0);
-//        coords.push_back( 0.0);
-//        normals.push_back(0.0);
-//        normals.push_back(0.0);
-//        normals.push_back(1.0);
-//        rgba.push_back(backgroundRGBA[0]);
-//        rgba.push_back(backgroundRGBA[1]);
-//        rgba.push_back(backgroundRGBA[2]);
-//        rgba.push_back(backgroundRGBA[3]);
-//        
-//        coords.push_back( 1.0);
-//        coords.push_back(-1.0);
-//        coords.push_back( 0.0);
-//        normals.push_back(0.0);
-//        normals.push_back(0.0);
-//        normals.push_back(1.0);
-//        rgba.push_back(backgroundRGBA[0]);
-//        rgba.push_back(backgroundRGBA[1]);
-//        rgba.push_back(backgroundRGBA[2]);
-//        rgba.push_back(backgroundRGBA[3]);
-//        
-//        coords.push_back( 1.0);
-//        coords.push_back( 1.0);
-//        coords.push_back( 0.0);
-//        normals.push_back(0.0);
-//        normals.push_back(0.0);
-//        normals.push_back(1.0);
-//        rgba.push_back(backgroundRGBA[0]);
-//        rgba.push_back(backgroundRGBA[1]);
-//        rgba.push_back(backgroundRGBA[2]);
-//        rgba.push_back(backgroundRGBA[3]);
-//        
-//        coords.push_back(-1.0);
-//        coords.push_back( 1.0);
-//        coords.push_back( 0.0);
-//        normals.push_back(0.0);
-//        normals.push_back(0.0);
-//        normals.push_back(1.0);
-//        rgba.push_back(backgroundRGBA[0]);
-//        rgba.push_back(backgroundRGBA[1]);
-//        rgba.push_back(backgroundRGBA[2]);
-//        rgba.push_back(backgroundRGBA[3]);
-       
-        
-//        BrainOpenGLPrimitiveDrawing::drawQuads(coords,
-//                                               normals,
-//                                               rgba);
-        
-//        glPopMatrix();
-//        
-//        glMatrixMode(GL_PROJECTION);
-//        glPopMatrix();
-//        glMatrixMode(GL_MODELVIEW);
-        
-//        glViewport(savedViewport[0],
-//                   savedViewport[1],
-//                   savedViewport[2],
-//                   savedViewport[3]);
         
         AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
