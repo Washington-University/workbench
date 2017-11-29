@@ -3390,7 +3390,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         std::unique_ptr<GraphicsPrimitiveV3fC4f> horizHairPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
         horizHairPrimitive->addVertex(horizontalAxisStartXYZ, horizontalAxisRGBA);
         horizHairPrimitive->addVertex(horizontalAxisEndXYZ, horizontalAxisRGBA);
-        horizHairPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
+        horizHairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
         GraphicsEngineDataOpenGL::draw(horizHairPrimitive.get());
         glPopMatrix();
         
@@ -3399,7 +3399,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         std::unique_ptr<GraphicsPrimitiveV3fC4f> vertHairPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
         vertHairPrimitive->addVertex(verticalAxisStartXYZ, verticalAxisRGBA);
         vertHairPrimitive->addVertex(verticalAxisEndXYZ, verticalAxisRGBA);
-        vertHairPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
+        vertHairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
         GraphicsEngineDataOpenGL::draw(vertHairPrimitive.get());
         glPopMatrix();
     }

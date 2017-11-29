@@ -115,7 +115,7 @@ GraphicsShape::drawBoxOutlineByteColor(const float v1[3],
                                     const float v3[3],
                                     const float v4[3],
                                     const uint8_t rgba[4],
-                                    const GraphicsPrimitive::SizeType lineThicknessType,
+                                    const GraphicsPrimitive::LineWidthType lineThicknessType,
                                     const double lineThickness)
 {
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
@@ -157,7 +157,7 @@ GraphicsShape::drawBoxOutlineFloatColor(const float v1[3],
                                         const float v3[3],
                                         const float v4[3],
                                         const float rgba[4],
-                                        const GraphicsPrimitive::SizeType lineThicknessType,
+                                        const GraphicsPrimitive::LineWidthType lineThicknessType,
                                         const double lineThickness)
 {
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
@@ -266,7 +266,7 @@ void
 GraphicsShape::drawEllipseOutlineByteColor(const double majorAxis,
                                            const double minorAxis,
                                            const uint8_t rgba[4],
-                                           const GraphicsPrimitive::SizeType lineThicknessType,
+                                           const GraphicsPrimitive::LineWidthType lineThicknessType,
                                            const double lineThickness)
 {
     std::vector<float> ellipseXYZ;
@@ -338,7 +338,7 @@ GraphicsShape::drawEllipseFilledByteColor(const double majorAxis,
 void
 GraphicsShape::drawLinesByteColor(const std::vector<float>& xyz,
                                   const uint8_t rgba[4],
-                                  const GraphicsPrimitive::SizeType lineThicknessType,
+                                  const GraphicsPrimitive::LineWidthType lineThicknessType,
                                   const double lineThickness)
 {
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
@@ -372,7 +372,7 @@ GraphicsShape::drawLinesByteColor(const std::vector<float>& xyz,
 void
 GraphicsShape::drawLineStripBevelJoinByteColor(const std::vector<float>& xyz,
                                                const uint8_t rgba[4],
-                                               const GraphicsPrimitive::SizeType lineThicknessType,
+                                               const GraphicsPrimitive::LineWidthType lineThicknessType,
                                                const double lineThickness)
 {
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN,
@@ -406,7 +406,7 @@ GraphicsShape::drawLineStripBevelJoinByteColor(const std::vector<float>& xyz,
 void
 GraphicsShape::drawLineStripMiterJoinByteColor(const std::vector<float>& xyz,
                                                const uint8_t rgba[4],
-                                               const GraphicsPrimitive::SizeType lineThicknessType,
+                                               const GraphicsPrimitive::LineWidthType lineThicknessType,
                                                const double lineThickness)
 {
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN,

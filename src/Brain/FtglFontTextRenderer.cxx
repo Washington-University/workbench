@@ -534,7 +534,7 @@ FtglFontTextRenderer::drawUnderline(const double lineStartX,
     
     GraphicsShape::drawLinesByteColor(underlineCoords,
                                       foregroundRgba,
-                                      GraphicsPrimitive::SizeType::PIXELS,
+                                      GraphicsPrimitive::LineWidthType::PIXELS,
                                       underlineThickness);
     
     glDisable(GL_LINE_SMOOTH);
@@ -585,7 +585,7 @@ FtglFontTextRenderer::drawOutline(const double minX,
     
     GraphicsShape::drawBoxOutlineByteColor(bottomLeft, bottomRight, topRight, topLeft,
                                            foregroundRgba,
-                                           GraphicsPrimitive::SizeType::PIXELS, outlineThickness);
+                                           GraphicsPrimitive::LineWidthType::PIXELS, outlineThickness);
     
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_BLEND);

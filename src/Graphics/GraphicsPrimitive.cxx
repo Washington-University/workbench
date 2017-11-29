@@ -536,21 +536,21 @@ GraphicsPrimitive::getPointSizeTypeAsText(const PointSizeType sizeType) const
 
 
 /**
- * @return Size type as text for the given size type.
+ * @return Line width type as text for the given line width type.
  *
- * @param sizeType
- *     The size type.
+ * @param lineWidthType
+ *     The line width type.
  */
 AString
-GraphicsPrimitive::getSizeTypeAsText(const SizeType sizeType) const
+GraphicsPrimitive::getLineWidthTypeAsText(const LineWidthType lineWidthType) const
 {
     AString s;
     
-    switch (sizeType) {
-        case SizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+    switch (lineWidthType) {
+        case LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
             s = "Percentage Viewport Height";
             break;
-        case SizeType::PIXELS:
+        case LineWidthType::PIXELS:
             s = "Pixels";
             break;
     }
@@ -631,7 +631,7 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
     
     if (addLineWidthFlag) {
         s.appendWithNewLine("Line Width Type: "
-                            + getSizeTypeAsText(m_lineWidthType)
+                            + getLineWidthTypeAsText(m_lineWidthType)
                             + "; Value: "
                             + AString::number(m_lineWidthValue, 'f', 3));
     }
@@ -1321,13 +1321,13 @@ GraphicsPrimitive::setPointDiameter(const PointSizeType sizeType,
 /**
  * Get the line width.
  *
- * @param sizeTypeOut
- *     Type of sizing.
+ * @param lineWidthTypeOut
+ *     Type of width.
  * @param lineWidthOut
  *     Width of line.
  */
 void
-GraphicsPrimitive::getLineWidth(SizeType& widthTypeOut,
+GraphicsPrimitive::getLineWidth(LineWidthType& widthTypeOut,
                                 float lineWidthOut) const
 {
     widthTypeOut = m_lineWidthType;
@@ -1337,16 +1337,16 @@ GraphicsPrimitive::getLineWidth(SizeType& widthTypeOut,
 /**
  * Set the line width.
  *
- * @param sizeType
- *     Type of sizing.
+ * @param lineWidthType
+ *     Type of width.
  * @param lineWidth
  *     Width of line.
  */
 void
-GraphicsPrimitive::setLineWidth(const SizeType widthType,
+GraphicsPrimitive::setLineWidth(const LineWidthType lineWidthType,
                                 const float lineWidth) const
 {
-    m_lineWidthType = widthType;
+    m_lineWidthType  = lineWidthType;
     m_lineWidthValue = lineWidth;
 }
 

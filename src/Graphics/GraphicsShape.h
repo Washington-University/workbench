@@ -45,7 +45,7 @@ namespace caret {
                                             const float v3[3],
                                             const float v4[3],
                                             const uint8_t rgba[4],
-                                            const GraphicsPrimitive::SizeType lineThicknessType,
+                                            const GraphicsPrimitive::LineWidthType lineThicknessType,
                                             const double lineThickness);
         
         static void drawBoxOutlineFloatColor(const float v1[3],
@@ -53,7 +53,7 @@ namespace caret {
                                              const float v3[3],
                                              const float v4[3],
                                              const float rgba[4],
-                                             const GraphicsPrimitive::SizeType lineThicknessType,
+                                             const GraphicsPrimitive::LineWidthType lineThicknessType,
                                              const double lineThickness);
         
         static void drawBoxFilledByteColor(const float v1[3],
@@ -71,7 +71,7 @@ namespace caret {
         static void drawEllipseOutlineByteColor(const double majorAxis,
                                                 const double minorAxis,
                                                 const uint8_t rgba[4],
-                                                const GraphicsPrimitive::SizeType lineThicknessType,
+                                                const GraphicsPrimitive::LineWidthType lineThicknessType,
                                                 const double lineThickness);
         
         static void drawEllipseFilledByteColor(const double majorAxis,
@@ -80,17 +80,17 @@ namespace caret {
         
         static void drawLinesByteColor(const std::vector<float>& xyz,
                                        const uint8_t rgba[4],
-                                       const GraphicsPrimitive::SizeType lineThicknessType,
+                                       const GraphicsPrimitive::LineWidthType lineThicknessType,
                                        const double lineThickness);
         
         static void drawLineStripBevelJoinByteColor(const std::vector<float>& xyz,
                                                     const uint8_t rgba[4],
-                                                    const GraphicsPrimitive::SizeType lineThicknessType,
+                                                    const GraphicsPrimitive::LineWidthType lineThicknessType,
                                                     const double lineThickness);
         
         static void drawLineStripMiterJoinByteColor(const std::vector<float>& xyz,
                                                     const uint8_t rgba[4],
-                                                    const GraphicsPrimitive::SizeType lineThicknessType,
+                                                    const GraphicsPrimitive::LineWidthType lineThicknessType,
                                                     const double lineThickness);
         
         static void drawSphereByteColor(const float xyz[3],

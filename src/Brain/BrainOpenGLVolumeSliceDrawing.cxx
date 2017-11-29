@@ -3641,7 +3641,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 glGetBooleanv(GL_DEPTH_TEST, &depthTestFlag);
                 glDisable(GL_DEPTH_TEST);
                 float widthPixels = thickness;
-                primitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
+                primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
                                         widthPixels);
                 GraphicsEngineDataOpenGL::draw(primitive.get());
                 if (depthTestFlag) {
@@ -4147,7 +4147,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
         xhairPrimitive->addVertex(horizontalAxisEndXYZ, horizontalAxisRGBA);
         xhairPrimitive->addVertex(verticalAxisStartXYZ, verticalAxisRGBA);
         xhairPrimitive->addVertex(verticalAxisEndXYZ, verticalAxisRGBA);
-        xhairPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
+        xhairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
         GraphicsEngineDataOpenGL::draw(xhairPrimitive.get());
     }
     

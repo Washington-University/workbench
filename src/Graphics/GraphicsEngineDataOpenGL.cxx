@@ -1112,7 +1112,7 @@ GraphicsEngineDataOpenGL::getLineWidthForDrawingInPixels(const GraphicsPrimitive
     float width = primitive->m_lineWidthValue;
     
     switch (primitive->m_lineWidthType) {
-        case GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT:
+        case GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
         {
             GLint viewport[4];
             glGetIntegerv(GL_VIEWPORT, viewport);
@@ -1120,7 +1120,7 @@ GraphicsEngineDataOpenGL::getLineWidthForDrawingInPixels(const GraphicsPrimitive
             width = (viewport[3] * (width / 100.0f));
         }
             break;
-        case GraphicsPrimitive::SizeType::PIXELS:
+        case GraphicsPrimitive::LineWidthType::PIXELS:
             break;
     }
     

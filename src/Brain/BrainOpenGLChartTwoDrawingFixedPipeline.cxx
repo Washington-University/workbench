@@ -872,7 +872,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                     /*
                                      * Increase line width for identification
                                      */
-                                    histogramPrimitives->getEnvelopePrimitive()->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                    histogramPrimitives->getEnvelopePrimitive()->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                                                               (lineWidthPercentage + 0.5));
                                     GraphicsEngineDataOpenGL::drawWithSelection(histogramPrimitives->getEnvelopePrimitive(),
                                                                                 m_fixedPipelineDrawing->mouseX,
@@ -896,7 +896,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                                     drawPrimitivePrivate(histogramPrimitives->getBarsPrimitive());
                                 }
                                 if (drawEnvelopeFlag) {
-                                    histogramPrimitives->getEnvelopePrimitive()->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                    histogramPrimitives->getEnvelopePrimitive()->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                                                               lineWidthPercentage);
                                     drawPrimitivePrivate(histogramPrimitives->getEnvelopePrimitive());
                                 }
@@ -1362,7 +1362,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 rowOutlineData->addVertex(maxX, minY, highlightRGBA);
                 rowOutlineData->addVertex(maxX, maxY, highlightRGBA);
                 rowOutlineData->addVertex(minX, maxY, highlightRGBA);
-                rowOutlineData->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                rowOutlineData->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                              lineWidthPercentageHeight);
                 
                 float modelViewMatrix[16];
@@ -1400,7 +1400,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                 columnOutlineData->addVertex(maxX, minY, highlightRGBA);
                 columnOutlineData->addVertex(maxX, maxY, highlightRGBA);
                 columnOutlineData->addVertex(minX, maxY, highlightRGBA);
-                columnOutlineData->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                columnOutlineData->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                 lineWidthPercentageHeight);
                 
                 float modelViewMatrix[16];
@@ -1589,7 +1589,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
             boxData->addVertex(boxRight, boxBottom);
             boxData->addVertex(boxRight, boxTop);
             boxData->addVertex(boxLeft, boxTop);
-            boxData->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+            boxData->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                   lineThicknessPercentage);
             drawPrimitivePrivate(boxData.get());
         }
@@ -1612,7 +1612,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
             boxData->addVertex(boxLeft - cornerOffset,  boxTop);
             boxData->addVertex(boxLeft, boxTop);
             boxData->addVertex(boxLeft, boxBottom);
-            boxData->setLineWidth(GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+            boxData->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                   lineThicknessPercentage);
             drawPrimitivePrivate(boxData.get());
         }
@@ -2284,7 +2284,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
         const float v4[3] = { vpX, vpY + vpHeight, 0.0f };
         GraphicsShape::drawBoxOutlineByteColor(v1, v2, v3, v4,
                                                (uint8_t[]){ 255, 0, 0, 255},
-                                               GraphicsPrimitive::SizeType::PIXELS, 1.0f);
+                                               GraphicsPrimitive::LineWidthType::PIXELS, 1.0f);
     }
     
     /*
@@ -2472,7 +2472,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
          * Draw the ticks.
          * Note Line width is set in pixel and was converted from PERCENTAGE OF VIEWPORT HEIGHT
          */
-        ticksData->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, m_lineDrawingWidth);
+        ticksData->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, m_lineDrawingWidth);
         chartDrawing->drawPrimitivePrivate(ticksData.get());
     }
     
@@ -2651,7 +2651,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::TitleDrawingInfo::drawTitle(const float
         const float v4[3] = { m_titleViewport[0], m_titleViewport[1] + m_titleViewport[3], 0.0f };
         GraphicsShape::drawBoxOutlineByteColor(v1, v2, v3, v4,
                                                (uint8_t[]){ 255, 0, 0, 255},
-                                               GraphicsPrimitive::SizeType::PIXELS, 2.0f);
+                                               GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
     }
     
     m_text->setTextColor(CaretColorEnum::CUSTOM);

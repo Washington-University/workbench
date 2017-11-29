@@ -288,7 +288,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                 const float redRGBA[4] = { 1.0f, 0.0, 0.0, 1.0f };
                 std::unique_ptr<GraphicsPrimitiveV3f> crossShape = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES,
                                                                                                                                             redRGBA));
-                crossShape->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, 2.0f);
+                crossShape->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
                 crossShape->addVertex(drawingSpaceXYZ[0],
                                       drawingSpaceXYZ[1] - 10);
                 crossShape->addVertex(drawingSpaceXYZ[0],
@@ -1194,7 +1194,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                                                        topRight,
                                                        topLeft,
                                                        selectionColorRGBA,
-                                                       GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                       GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                        box->getLineWidthPercentage());
             }
             
@@ -1219,7 +1219,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                                                            topRight,
                                                            topLeft,
                                                            foregroundRGBA,
-                                                           GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                           GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                            box->getLineWidthPercentage());
                 drawnFlag = true;
             }
@@ -1528,7 +1528,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
      */
     glPolygonOffset(1.0, 1.0);
     glEnable(GL_POLYGON_OFFSET_LINE);
-    linesPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, tickThickness);
+    linesPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, tickThickness);
     GraphicsEngineDataOpenGL::draw(linesPrimitive.get());
     glDisable(GL_POLYGON_OFFSET_LINE);
 }
@@ -1591,7 +1591,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
     const float z = 0.0;
 
     std::unique_ptr<GraphicsPrimitiveV3fC4f> linesPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
-    linesPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, 1.0f);
+    linesPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 1.0f);
     std::unique_ptr<GraphicsPrimitiveV3fC4f> trianglesPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES));
     
     const int32_t numSections = colorBar->getNumberOfSections();
@@ -1848,7 +1848,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
                 GraphicsShape::drawEllipseOutlineByteColor(majorAxis * 2.0f,
                                                            minorAxis * 2.0f,
                                                            selectionColorRGBA,
-                                                           GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                           GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                            oval->getLineWidthPercentage());
             }
             
@@ -1869,7 +1869,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
                 GraphicsShape::drawEllipseOutlineByteColor(majorAxis * 2.0f,
                                                            minorAxis * 2.0f,
                                                            foregroundRGBA,
-                                                           GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                           GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                            oval->getLineWidthPercentage());
                 drawnFlag = true;
             }
@@ -2202,12 +2202,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                 
                 GraphicsShape::drawLinesByteColor(connectLineCoordinates,
                                                   textColorRGBA,
-                                                  GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                  GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                   text->getLineWidthPercentage());
                 if ( ! arrowCoordinates.empty()) {
                     GraphicsShape::drawLineStripMiterJoinByteColor(arrowCoordinates,
                                                       textColorRGBA,
-                                                      GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                      GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                       text->getLineWidthPercentage());
                 }
             }
@@ -2246,7 +2246,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                         
                         GraphicsShape::drawBoxOutlineByteColor(bl, br, tr, tl,
                                                                foregroundRGBA,
-                                                               GraphicsPrimitive::SizeType::PIXELS,
+                                                               GraphicsPrimitive::LineWidthType::PIXELS,
                                                                2.0f);
                     }
                     else {
@@ -2288,7 +2288,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                       annXYZ[1]);
                 crossShape->addVertex(annXYZ[0] + 10,
                                       annXYZ[1]);
-                crossShape->setLineWidth(GraphicsPrimitive::SizeType::PIXELS, 2.0f);
+                crossShape->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
                 GraphicsEngineDataOpenGL::draw(crossShape.get());
             }
         }
@@ -2414,7 +2414,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                 }
                 GraphicsShape::drawBoxOutlineFloatColor(bottomLeft, bottomRight, topRight, topLeft,
                                                         foregroundRGBA,
-                                                        GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT, image->getLineWidthPercentage());
+                                                        GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT, image->getLineWidthPercentage());
             }
             
             setDepthTestingStatus(depthTestFlag);
@@ -2639,18 +2639,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
             
             GraphicsShape::drawLinesByteColor(lineCoordinates,
                                               selectionColorRGBA,
-                                              GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                              GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                               line->getLineWidthPercentage());
             if ( ! startArrowCoordinates.empty()) {
                 GraphicsShape::drawLineStripMiterJoinByteColor(startArrowCoordinates,
                                                       selectionColorRGBA,
-                                                      GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                      GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                       line->getLineWidthPercentage());
             }
             if ( ! endArrowCoordinates.empty()) {
                 GraphicsShape::drawLineStripMiterJoinByteColor(endArrowCoordinates,
                                                       selectionColorRGBA,
-                                                      GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                      GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                       line->getLineWidthPercentage());
             }
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
@@ -2662,18 +2662,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
             if (drawForegroundFlag) {
                 GraphicsShape::drawLinesByteColor(lineCoordinates,
                                                   foregroundRGBA,
-                                                  GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                  GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                   line->getLineWidthPercentage());
                 if ( ! startArrowCoordinates.empty()) {
                     GraphicsShape::drawLineStripMiterJoinByteColor(startArrowCoordinates,
                                                           foregroundRGBA,
-                                                          GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                          GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                           line->getLineWidthPercentage());
                 }
                 if ( ! endArrowCoordinates.empty()) {
                     GraphicsShape::drawLineStripMiterJoinByteColor(endArrowCoordinates,
                                                           foregroundRGBA,
-                                                          GraphicsPrimitive::SizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                          GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                                           line->getLineWidthPercentage());
                 }
                 drawnFlag = true;
@@ -3003,7 +3003,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
     
     if (! m_selectionModeFlag) {
         GraphicsShape::drawBoxOutlineByteColor(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft,
-                                               m_selectionBoxRGBA, GraphicsPrimitive::SizeType::PIXELS, 2.0f);
+                                               m_selectionBoxRGBA, GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
     }
     
     const float handleLeft[3] = {
@@ -3149,7 +3149,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
         coords.insert(coords.end(), handleRotationLineEnd, handleRotationLineEnd + 3);
         coords.insert(coords.end(), handleOffset, handleOffset + 3);
         GraphicsShape::drawLinesByteColor(coords, m_selectionBoxRGBA,
-                                          GraphicsPrimitive::SizeType::PIXELS, 2.0f);
+                                          GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
                          annotationFile,
                          annotation,

@@ -2858,7 +2858,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     }
     if (linesPrimitive) {
         glDisable(GL_LIGHTING);
-        linesPrimitive->setLineWidth(GraphicsPrimitive::SizeType::PIXELS,
+        linesPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
                                      lineWidth);
         GraphicsEngineDataOpenGL::draw(linesPrimitive.get());
     }

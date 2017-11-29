@@ -185,7 +185,7 @@ namespace caret {
         /**
          * Type for line width
          */
-        enum class SizeType {
+        enum class LineWidthType {
             /**
              * Size of point or width of line is a percentage of viewport height.
              * Ranges [0.0, 100.0]
@@ -353,10 +353,10 @@ namespace caret {
         void setPointDiameter(const PointSizeType sizeType,
                               const float pointDiameter) const;
         
-        void getLineWidth(SizeType& widthTypeOut,
+        void getLineWidth(LineWidthType& widthTypeOut,
                           float lineWidthOut) const;
         
-        void setLineWidth(const SizeType widthType,
+        void setLineWidth(const LineWidthType widthType,
                           const float lineWidth) const;
         
         void getSphereDiameter(SphereSizeType& sizeTypeOut,
@@ -393,7 +393,7 @@ namespace caret {
         
         AString getPrimitiveTypeAsText() const;
         
-        AString getSizeTypeAsText(const SizeType sizeType) const;
+        AString getLineWidthTypeAsText(const LineWidthType lineWidthType) const;
         
         AString getPointSizeTypeAsText(const PointSizeType sizeType) const;
         
@@ -429,7 +429,7 @@ namespace caret {
         
         mutable float m_pointDiameterValue = 1.0f;
         
-        mutable SizeType m_lineWidthType = SizeType::PIXELS;
+        mutable LineWidthType m_lineWidthType = LineWidthType::PIXELS;
         
         mutable float m_lineWidthValue = 1.0f;
         
