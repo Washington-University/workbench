@@ -138,6 +138,12 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
             break;
     }
     
+    /* enforce a minimum line width */
+    const float minimumLineWidth = 1.0f;
+    if (lineWidth < minimumLineWidth) {
+        lineWidth = minimumLineWidth;
+    }
+    
     ColorType colorType = ColorType::FLOAT_RGBA_PER_VERTEX;
     switch (primitive->m_colorType) {
         case GraphicsPrimitive::ColorType::NONE:
