@@ -26,7 +26,7 @@
 #undef __BRAIN_OPEN_GL_VOLUME_OBLIQUE_SLICE_DRAWING_DECLARE__
 
 #include "AnnotationCoordinate.h"
-#include "AnnotationPointSizeText.h"
+#include "AnnotationPercentSizeText.h"
 #include "BoundingBox.h"
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
@@ -623,10 +623,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
                                                    + AString::number(sliceCoord, 'f', montageCoordPrecision)
                                                    + "mm");
                         
-                        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+                        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
+                        annotationText.setFontPercentViewportSize(10.0f);
                         annotationText.setLineColor(CaretColorEnum::NONE);
                         annotationText.setTextColor(CaretColorEnum::CUSTOM);
                         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
@@ -3360,25 +3360,29 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
             break;
     }
     
+    /*
+     * Offset text labels be a percentage of viewort width/height
+     */
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
-    const int textOffset = 15;
+    const int textOffsetX = viewport[2] * 0.01f;
+    const int textOffsetY = viewport[3] * 0.01f;
     const int textLeftWindowXY[2] = {
-        textOffset,
+        textOffsetX,
         (viewport[3] / 2)
     };
     const int textRightWindowXY[2] = {
-        viewport[2] - textOffset,
+        viewport[2] - textOffsetX,
         (viewport[3] / 2)
     };
     const int textBottomWindowXY[2] = {
         viewport[2] / 2,
-        textOffset
+        textOffsetY
     };
     const int textTopWindowXY[2] = {
         (viewport[2] / 2),
-        viewport[3] - textOffset
+        viewport[3] - textOffsetY
     };
     
     /*
@@ -3516,26 +3520,30 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
                    savedViewport[2],
                    savedViewport[3]);
         
-        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setBoldStyleEnabled(true);
-        annotationText.setFontPointSize(fontSize);
+        annotationText.setFontPercentViewportSize(5.0f);
         annotationText.setTextColor(CaretColorEnum::CUSTOM);
         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomTextColor(horizontalAxisRGBA);
         annotationText.setCustomBackgroundColor(backgroundRGBA);
 
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setText(horizontalLeftText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textLeftWindowXY[0],
                                                          textLeftWindowXY[1],
                                                          annotationText);
         
         annotationText.setText(horizontalRightText);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textRightWindowXY[0],
                                                          textRightWindowXY[1],
                                                          annotationText);
         
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setCustomTextColor(verticalAxisRGBA);
         annotationText.setText(verticalBottomText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textBottomWindowXY[0],
@@ -3543,6 +3551,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
                                                          annotationText);
 
         annotationText.setText(verticalTopText);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
         annotationText.getCoordinate()->setXYZ(textTopWindowXY[0], textTopWindowXY[1], 0.0);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textTopWindowXY[0],
                                                          textTopWindowXY[1],
@@ -3811,10 +3821,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
                                                  axesCrosshairRadius * 0.5f);
         }
         
-        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
+        annotationText.setFontPercentViewportSize(5.0f);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
         annotationText.setTextColor(CaretColorEnum::CUSTOM);
         

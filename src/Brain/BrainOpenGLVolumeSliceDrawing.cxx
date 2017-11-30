@@ -26,6 +26,7 @@
 #undef __BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
 
 #include "AnnotationCoordinate.h"
+#include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "BoundingBox.h"
 #include "Brain.h"
@@ -622,10 +623,10 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
                                                    + AString::number(sliceCoord, 'f', montageCoordPrecision)
                                                    + "mm");
                         
-                        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+                        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
+                        annotationText.setFontPercentViewportSize(10.0f);
                         annotationText.setTextColor(CaretColorEnum::CUSTOM);
                         annotationText.setCustomTextColor(foregroundRGBA);
                         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
@@ -3603,7 +3604,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 float solidRGBA[4];
                 CaretColorEnum::toRGBAFloat(outlineColor, solidRGBA);
                 
-                std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
+                std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
                 
                 /*
                  * Examine each triangle to see if it intersects the Plane
@@ -4117,25 +4118,29 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
             break;
     }
     
+    /*
+     * Offset text labels be a percentage of viewort width/height
+     */
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
-    const int textOffset = 15;
+    const int textOffsetX = viewport[2] * 0.01f;
+    const int textOffsetY = viewport[3] * 0.01f;
     const int textLeftWindowXY[2] = {
-        textOffset,
+        textOffsetX,
         (viewport[3] / 2)
     };
     const int textRightWindowXY[2] = {
-        viewport[2] - textOffset,
+        viewport[2] - textOffsetX,
         (viewport[3] / 2)
     };
     const int textBottomWindowXY[2] = {
         viewport[2] / 2,
-        textOffset
+        textOffsetY
     };
     const int textTopWindowXY[2] = {
         (viewport[2] / 2),
-        viewport[3] - textOffset
+        viewport[3] - textOffsetY
     };
     
     /*
@@ -4152,8 +4157,6 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
     }
     
     if (drawCrosshairLabelsFlag) {
-        const AnnotationTextFontPointSizeEnum::Enum fontSize = AnnotationTextFontPointSizeEnum::SIZE18;
-        
         uint8_t backgroundRGBA[4] = {
             m_fixedPipelineDrawing->m_backgroundColorByte[0],
             m_fixedPipelineDrawing->m_backgroundColorByte[1],
@@ -4161,31 +4164,39 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
             m_fixedPipelineDrawing->m_backgroundColorByte[3]
         };
         
-        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setBoldStyleEnabled(true);
-        annotationText.setFontPointSize(fontSize);
+        annotationText.setFontPercentViewportSize(5.0f);
         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
         annotationText.setTextColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomTextColor(horizontalAxisRGBA);
         annotationText.setCustomBackgroundColor(backgroundRGBA);
+
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setText(horizontalLeftText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textLeftWindowXY[0],
                                                          textLeftWindowXY[1],
                                                          annotationText);
         
         annotationText.setText(horizontalRightText);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textRightWindowXY[0],
                                                          textRightWindowXY[1],
                                                          annotationText);
         
         annotationText.setCustomTextColor(verticalAxisRGBA);
+
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setText(verticalBottomText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textBottomWindowXY[0],
                                                          textBottomWindowXY[1],
                                                          annotationText);
         
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
         annotationText.setText(verticalTopText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textTopWindowXY[0],
                                                          textTopWindowXY[1],
