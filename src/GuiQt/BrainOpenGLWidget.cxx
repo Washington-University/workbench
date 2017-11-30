@@ -1657,7 +1657,8 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
              */
             
             QPixmap pixmap = this->renderPixmap(outputImageWidth,
-                                                outputImageHeight);
+                                                outputImageHeight,
+                                                true);
             image = pixmap.toImage();
 #endif
         }
@@ -1705,7 +1706,7 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
     glfmt.setProfile(QSurfaceFormat::CompatibilityProfile);
     glfmt.setRedBufferSize(8);
     glfmt.setRenderableType(QSurfaceFormat::OpenGL);
-    //glfmt.setSampleBuffers(false);
+    glfmt.setSampleBuffers(true);
     //glfmt.setStencil(false);
     glfmt.setStereo(false);
     glfmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
@@ -1726,7 +1727,7 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
     glfmt.setOverlay(false);
     glfmt.setProfile(QGLFormat::CompatibilityProfile);
     glfmt.setVersion(2, 1);
-    glfmt.setSampleBuffers(false);
+    glfmt.setSampleBuffers(true);
     glfmt.setStencil(false);
     glfmt.setStereo(false);
     

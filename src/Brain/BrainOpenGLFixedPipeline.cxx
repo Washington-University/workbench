@@ -1539,6 +1539,25 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
      */    
     glEnable(GL_NORMALIZE);
     
+
+    /*
+     * OpenGL RedBook status that multisampling is available if
+     * GL_SAMPLE_BUFFES is 1 and GL_SAMPLES is greater than one.
+     */
+    GLint sampleBuffersCount = 0;
+    glGetIntegerv(GL_SAMPLE_BUFFERS, &sampleBuffersCount);
+    GLint sampleCount = 0;
+    glGetIntegerv(GL_SAMPLES, &sampleCount);
+    const bool enableMultiSampleFlag = ((sampleBuffersCount >= 1)
+                                        && (sampleCount > 1));
+    
+    if (enableMultiSampleFlag) {
+        glEnable(GL_MULTISAMPLE);
+    }
+    else {
+        glDisable(GL_MULTISAMPLE);
+    }
+    
     /*
      * Avoid drawing backfacing polygons
      */
@@ -1643,6 +1662,13 @@ BrainOpenGLFixedPipeline::disableLighting()
 void 
 BrainOpenGLFixedPipeline::enableLineAntiAliasing()
 {
+    /*
+     * If multi-sampling is enabled, it handle anti-aliasing
+     */
+    if (glIsEnabled(GL_MULTISAMPLE)) {
+        return;
+    }
+    
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1655,6 +1681,13 @@ BrainOpenGLFixedPipeline::enableLineAntiAliasing()
 void 
 BrainOpenGLFixedPipeline::disableLineAntiAliasing()
 {
+    /*
+     * If multi-sampling is enabled, it handle anti-aliasing
+     */
+    if (glIsEnabled(GL_MULTISAMPLE)) {
+        return;
+    }
+    
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_BLEND);
 }

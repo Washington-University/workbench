@@ -1099,6 +1099,16 @@ BrainOpenGL::getOpenGLInformation()
     lineInfo += ("\nVertex Buffers Supported: "
                  + AString::fromBool(s_supportsVertexBuffers));
     
+    GLint sampleBuffersCount = 0;
+    glGetIntegerv(GL_SAMPLE_BUFFERS, &sampleBuffersCount);
+    GLint sampleCount = 0;
+    glGetIntegerv(GL_SAMPLES, &sampleCount);
+    
+    lineInfo += "\n";
+    lineInfo += ("\nSample Buffer Count: " + AString::number(sampleBuffersCount));
+    lineInfo += ("\nSamples Count: " + AString::number(sampleCount));
+    lineInfo += ("\nMultisampling Enabled: " + AString::fromBool(glIsEnabled(GL_MULTISAMPLE)));
+    
     lineInfo += "\n";
     lineInfo += "\n";
     lineInfo += "Note that State of OpenGL may be different when drawing objects.\n";
