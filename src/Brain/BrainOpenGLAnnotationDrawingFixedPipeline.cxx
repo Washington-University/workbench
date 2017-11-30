@@ -974,12 +974,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::startOpenGLForDrawing(GLint* savedSha
     glPushMatrix();
     glLoadIdentity();
     
-    /*
-     * Enable anti-aliasing for lines
-     */
-    if ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-        m_brainOpenGLFixedPipeline->enableLineAntiAliasing();
-    }
+    m_brainOpenGLFixedPipeline->enableLineAntiAliasing();
 }
 
 /**
@@ -997,9 +992,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::endOpenGLForDrawing(GLint savedShadeM
     /*
      * Disable anti-aliasing for lines
      */
-    if ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-        m_brainOpenGLFixedPipeline->disableLineAntiAliasing();
-    }
+    m_brainOpenGLFixedPipeline->disableLineAntiAliasing();
     
     if (savedLightingEnabled) {
         glEnable(GL_LIGHTING);

@@ -501,9 +501,7 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-                workbenchLineFlag = true;
-            }
+            workbenchLineFlag = true;
             break;
         case GraphicsPrimitive::PrimitiveType::SPHERES:
             spheresFlag = true;
