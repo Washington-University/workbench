@@ -1575,47 +1575,22 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(cons
         const float boxBottom = bottomAxisHeight + halfGridLineWidth;
         const float boxTop    = vpHeight - topAxisHeight - titleHeight - halfGridLineWidth;
         
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-            /*
-             * We adjust the horizontal lines by half the line width.
-             * Otherwise, there will be 'corner gaps' where the horizontal
-             * and vertical lines are joined
-             */
-            std::unique_ptr<GraphicsPrimitiveV3f> boxData
-            = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
-                                                                                       m_fixedPipelineDrawing->m_foregroundColorFloat));
-            boxData->reserveForNumberOfVertices(4);
-            boxData->addVertex(boxLeft,  boxBottom);
-            boxData->addVertex(boxRight, boxBottom);
-            boxData->addVertex(boxRight, boxTop);
-            boxData->addVertex(boxLeft, boxTop);
-            boxData->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                  lineThicknessPercentage);
-            drawPrimitivePrivate(boxData.get());
-        }
-        else {
-            /*
-             * We adjust the horizontal lines by half the line width.
-             * Otherwise, there will be 'corner gaps' where the horizontal
-             * and vertical lines are joined
-             */
-            std::unique_ptr<GraphicsPrimitiveV3f> boxData
-            = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES,
-                                                                                       m_fixedPipelineDrawing->m_foregroundColorFloat));
-            const float cornerOffset = halfGridLineWidth;
-            boxData->reserveForNumberOfVertices(8);
-            boxData->addVertex(boxLeft - cornerOffset,  boxBottom);
-            boxData->addVertex(boxRight + cornerOffset, boxBottom);
-            boxData->addVertex(boxRight, boxBottom);
-            boxData->addVertex(boxRight, boxTop);
-            boxData->addVertex(boxRight + cornerOffset, boxTop);
-            boxData->addVertex(boxLeft - cornerOffset,  boxTop);
-            boxData->addVertex(boxLeft, boxTop);
-            boxData->addVertex(boxLeft, boxBottom);
-            boxData->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                  lineThicknessPercentage);
-            drawPrimitivePrivate(boxData.get());
-        }
+        /*
+         * We adjust the horizontal lines by half the line width.
+         * Otherwise, there will be 'corner gaps' where the horizontal
+         * and vertical lines are joined
+         */
+        std::unique_ptr<GraphicsPrimitiveV3f> boxData
+        = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
+                                                                                   m_fixedPipelineDrawing->m_foregroundColorFloat));
+        boxData->reserveForNumberOfVertices(4);
+        boxData->addVertex(boxLeft,  boxBottom);
+        boxData->addVertex(boxRight, boxBottom);
+        boxData->addVertex(boxRight, boxTop);
+        boxData->addVertex(boxLeft, boxTop);
+        boxData->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                              lineThicknessPercentage);
+        drawPrimitivePrivate(boxData.get());
     }
     
     /*
@@ -1943,7 +1918,10 @@ m_tabViewportHeight(tabViewport[3])
      */
     float numericsWidth  = 0.0f;
     float numericsHeight = 0.0f;
-    initializeNumericText(dataMinimumValue, dataMaximumValue, numericsWidth, numericsHeight);
+    initializeNumericText(dataMinimumValue, dataMaximumValue,
+                          m_axis->isNumericsTextDisplayed(),
+                          m_axis->isNumericsTextRotated(),
+                          numericsWidth, numericsHeight);
     
     /*
      * For the bottom and the top, we now have its height but we do not yet know its width
@@ -2039,6 +2017,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeLabel(const 
  *     Minimum data value for axis
  * @param dataMaximumDataValue
  *     Maximum data value for axis
+ * @param showNumericFlag,
+ *     Show numerics
+ * @param rotateNumericFlag
+ *     Rotate numerics.
  * @param maxWidthOut
  *     Output with maximum width of numeric text.
  * @param maxHeightOut
@@ -2047,6 +2029,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeLabel(const 
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(const float dataMinimumDataValue,
                                                                                 const float dataMaximumDataValue,
+                                                                                const bool showNumericFlag,
+                                                                                const bool rotateNumericFlag,
                                                                                 float& maxWidthOut,
                                                                                 float& maxHeightOut)
 {
@@ -2086,63 +2070,131 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
         AnnotationPercentSizeText* text = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                         AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
         text->setFontPercentViewportSize(m_axis->getNumericsTextSize());
+        if (rotateNumericFlag) {
+            text->setRotationAngle(-90.0f);
+        }
         
         float xyz[3] = { 0.0f, 0.0f, 0.0f };
+        
+        AnnotationTextAlignVerticalEnum::Enum verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
+        AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
         switch (m_axisLocation) {
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                 xyz[0] = scaleValuePositions[i];
-                text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-                if (i == firstIndex) {
-                    text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-                }
-                else if (i == lastIndex) {
-                    text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+                if (rotateNumericFlag) {
+                    horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
+                    if (i == firstIndex) {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
+                    }
+                    else if (i == lastIndex) {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
+                    }
+                    else {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
+                    }
                 }
                 else {
-                    text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                    verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
+                    if (i == firstIndex) {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
+                    }
+                    else if (i == lastIndex) {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
+                    }
+                    else {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
+                    }
                 }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                 xyz[0] = scaleValuePositions[i];
-                text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                if (i == firstIndex) {
-                    text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-                }
-                else if (i == lastIndex) {
-                    text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+                if (rotateNumericFlag) {
+                    horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
+                    if (i == firstIndex) {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
+                    }
+                    else if (i == lastIndex) {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
+                    }
+                    else {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
+                    }
                 }
                 else {
-                    text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                    verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
+                    if (i == firstIndex) {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
+                    }
+                    else if (i == lastIndex) {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
+                    }
+                    else {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
+                    }
                 }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                 xyz[1] = scaleValuePositions[i];
-                text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-                if (i == firstIndex) {
-                    text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                }
-                else if (i == lastIndex) {
-                    text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                if (rotateNumericFlag) {
+                    verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
+                    if (i == firstIndex) {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
+                    }
+                    else if (i == lastIndex) {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
+                    }
+                    else {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
+                    }
                 }
                 else {
-                    text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+                    horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
+                    if (i == firstIndex) {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
+                    }
+                    else if (i == lastIndex) {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
+                    }
+                    else {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
+                    }
                 }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
                 xyz[1] = scaleValuePositions[i];
-                text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-                if (i == firstIndex) {
-                    text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                }
-                else if (i == lastIndex) {
-                    text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                if (rotateNumericFlag) {
+                    verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
+                    if (i == firstIndex) {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
+                    }
+                    else if (i == lastIndex) {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
+                    }
+                    else {
+                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
+                    }
                 }
                 else {
-                    text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+                    horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
+                    if (i == firstIndex) {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
+                    }
+                    else if (i == lastIndex) {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
+                    }
+                    else {
+                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
+                    }
                 }
                 break;
         }
-        text->setText(scaleValuesText[i]);
+        text->setHorizontalAlignment(horizontalAlignment);
+        text->setVerticalAlignment(verticalAlignment);
+
+        
+        if (showNumericFlag) {
+            text->setText(scaleValuesText[i]);
+        }
         
         text->getCoordinate()->setXYZ(xyz);
         
@@ -2151,11 +2203,15 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
         m_textRenderer->getTextWidthHeightInPixels(*text,
                                                    m_tabViewportWidth, m_tabViewportHeight,
                                                    textWidth, textHeight);
+        if (rotateNumericFlag) {
+            std::swap(textWidth,
+                      textHeight);
+        }
         
         maxWidthOut = std::max(maxWidthOut, static_cast<float>(textWidth));
         maxHeightOut = std::max(maxHeightOut, static_cast<float>(textHeight));
         
-        text->setText(scaleValuesText[i]);
+        //text->setText(scaleValuesText[i]);
         m_numericsText.push_back(std::unique_ptr<AnnotationPercentSizeText>(text));
     }
 }
@@ -2394,10 +2450,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
     if (numScaleValuesToDraw > 0) {
         const bool showTicksEnabledFlag = m_axis->isShowTickmarks();
         
-        GraphicsPrimitive::PrimitiveType primitiveType = GraphicsPrimitive::PrimitiveType::OPENGL_LINES;
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_LINE_DRAWING)) {
-            primitiveType = GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES;
-        }
+        GraphicsPrimitive::PrimitiveType primitiveType = GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES;
         std::unique_ptr<GraphicsPrimitiveV3f> ticksData
         = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(primitiveType,
                                                                                    foregroundFloatRGBA));
@@ -2472,8 +2525,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
          * Draw the ticks.
          * Note Line width is set in pixel and was converted from PERCENTAGE OF VIEWPORT HEIGHT
          */
-        ticksData->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, m_lineDrawingWidth);
-        chartDrawing->drawPrimitivePrivate(ticksData.get());
+        if (ticksData->getNumberOfVertices() > 1) {
+            ticksData->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, m_lineDrawingWidth);
+            chartDrawing->drawPrimitivePrivate(ticksData.get());
+        }
     }
     
     /*

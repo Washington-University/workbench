@@ -111,6 +111,10 @@ namespace caret {
         
         QCheckBox* m_showLabelCheckBox;
         
+        QCheckBox* m_showNumericsCheckBox;
+        
+        QCheckBox* m_rotateNumericsCheckBox;
+        
         EnumComboBoxTemplate* m_userNumericFormatComboBox;
         
         QSpinBox* m_userDigitsRightOfDecimalSpinBox;

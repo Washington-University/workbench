@@ -98,6 +98,16 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
     m_showLabelCheckBox->setToolTip("Show label on axis");
     
+    m_showNumericsCheckBox = new QCheckBox("Nums");
+    QObject::connect(m_showNumericsCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
+    m_showNumericsCheckBox->setToolTip("Show numeric scale values on axis");
+    
+    m_rotateNumericsCheckBox = new QCheckBox("Rotate");
+    QObject::connect(m_rotateNumericsCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
+    m_rotateNumericsCheckBox->setToolTip("Rotate numeric scale values on axis");
+    
     /*
      * Axes selection
      */
@@ -216,6 +226,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_widgetGroup->add(m_userMaximumValueSpinBox);
     m_widgetGroup->add(m_showTickMarksCheckBox);
     m_widgetGroup->add(m_showLabelCheckBox);
+    m_widgetGroup->add(m_showNumericsCheckBox);
+    m_widgetGroup->add(m_rotateNumericsCheckBox);
     m_widgetGroup->add(m_axisLabelFromOverlayComboBox);
     m_widgetGroup->add(m_userNumericFormatComboBox->getWidget());
     m_widgetGroup->add(m_userDigitsRightOfDecimalSpinBox);
@@ -249,15 +261,22 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     /*
      * Show widgets layout
      */
+    const bool displayLabelShowAtTopFlag = false;
     QWidget* showWidget = new QWidget();
     QGridLayout* showLayout = new QGridLayout(showWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(showLayout, 8, 0);
     int32_t axisRow = 0;
-    showLayout->addWidget(new QLabel("Show"), axisRow, 0, Qt::AlignHCenter);
-    axisRow++;
+    if (displayLabelShowAtTopFlag) {
+        showLayout->addWidget(new QLabel("Show"), axisRow, 0, Qt::AlignHCenter);
+        axisRow++;
+    }
     showLayout->addWidget(m_axisDisplayedByUserCheckBox, axisRow, 0);
     axisRow++;
     showLayout->addWidget(m_showLabelCheckBox, axisRow, 0);
+    axisRow++;
+    showLayout->addWidget(m_showNumericsCheckBox, axisRow, 0);
+    axisRow++;
+    showLayout->addWidget(m_rotateNumericsCheckBox, axisRow, 0);
     axisRow++;
     showLayout->addWidget(m_showTickMarksCheckBox, axisRow, 0);
     axisRow++;
@@ -522,6 +541,8 @@ BrainBrowserWindowToolBarChartTwoAxes::updateControls(BrowserTabContent* browser
         m_userMaximumValueSpinBox->setValue(m_chartAxis->getUserScaleMaximumValue());
         m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
         m_showLabelCheckBox->setChecked(m_chartAxis->isShowLabel());
+        m_showNumericsCheckBox->setChecked(m_chartAxis->isNumericsTextDisplayed());
+        m_rotateNumericsCheckBox->setChecked(m_chartAxis->isNumericsTextRotated());
         const NumericFormatModeEnum::Enum numericFormat = m_chartAxis->getUserNumericFormat();
         m_userNumericFormatComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(numericFormat);
         m_userDigitsRightOfDecimalSpinBox->setValue(m_chartAxis->getUserDigitsRightOfDecimal());
@@ -606,6 +627,8 @@ BrainBrowserWindowToolBarChartTwoAxes::valueChanged()
         m_chartAxis->setUserScaleMaximumValue(m_userMaximumValueSpinBox->value());
         m_chartAxis->setShowTickmarks(m_showTickMarksCheckBox->isChecked());
         m_chartAxis->setShowLabel(m_showLabelCheckBox->isChecked());
+        m_chartAxis->setNumericsTextDisplayed(m_showNumericsCheckBox->isChecked());
+        m_chartAxis->setNumericsTextRotated(m_rotateNumericsCheckBox->isChecked());
         m_chartAxis->setUserNumericFormat(m_userNumericFormatComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());
         m_chartAxis->setUserDigitsRightOfDecimal(m_userDigitsRightOfDecimalSpinBox->value());
         m_chartAxis->setNumericSubdivsionsMode(m_numericSubdivisionsModeComboBox->getSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>());

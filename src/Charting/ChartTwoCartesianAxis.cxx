@@ -102,6 +102,10 @@ m_axisLocation(axisLocation)
                           &m_labelTextSize);
     m_sceneAssistant->add("m_numericsTextSize",
                           &m_numericsTextSize);
+    m_sceneAssistant->add("m_numericsTextDisplayed",
+                          &m_numericsTextDisplayed);
+    m_sceneAssistant->add("m_numericsTextRotated",
+                          &m_numericsTextRotated);
     m_sceneAssistant->add("m_paddingSize",
                           &m_paddingSize);
 }
@@ -169,6 +173,8 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_showLabel                 = obj.m_showLabel;
     m_labelTextSize             = obj.m_labelTextSize;
     m_numericsTextSize          = obj.m_numericsTextSize;
+    m_numericsTextDisplayed     = obj.m_numericsTextDisplayed;
+    m_numericsTextRotated       = obj.m_numericsTextRotated;
     m_paddingSize               = obj.m_paddingSize;
     limitUserScaleMinMaxToValidRange();
 }
@@ -556,6 +562,48 @@ ChartTwoCartesianAxis::setNumericsTextSize(const float numericsTextSize)
 }
 
 /**
+ * @return display numeric text in scale
+ */
+bool
+ChartTwoCartesianAxis::isNumericsTextDisplayed() const
+{
+    return m_numericsTextDisplayed;
+}
+
+/**
+ * Set display numeric text in scale
+ *
+ * @param numericsTextDisplayed
+ *    New value for display numeric text in scale
+ */
+void
+ChartTwoCartesianAxis::setNumericsTextDisplayed(const bool numericsTextDisplayed)
+{
+    m_numericsTextDisplayed = numericsTextDisplayed;
+}
+
+/**
+ * @return rotate numeric text
+ */
+bool
+ChartTwoCartesianAxis::isNumericsTextRotated() const
+{
+    return m_numericsTextRotated;
+}
+
+/**
+ * Set rotate numeric text
+ *
+ * @param numericsTextRotated
+ *    New value for rotate numeric text
+ */
+void
+ChartTwoCartesianAxis::setNumericsTextRotated(const bool numericsTextRotated)
+{
+    m_numericsTextRotated = numericsTextRotated;
+}
+
+/**
  * @return size of padding
  */
 float
@@ -624,7 +672,9 @@ ChartTwoCartesianAxis::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     // may not be in older scenes
-    m_displayedByUser = true;
+    m_displayedByUser       = true;
+    m_numericsTextDisplayed = true;
+    m_numericsTextRotated   = false;
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    

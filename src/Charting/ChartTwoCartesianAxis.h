@@ -109,6 +109,14 @@ namespace caret {
         
         void setNumericsTextSize(const float numericsTextSize);
         
+        bool isNumericsTextDisplayed() const;
+        
+        void setNumericsTextDisplayed(const bool numericsTextDisplayed);
+        
+        bool isNumericsTextRotated() const;
+        
+        void setNumericsTextRotated(const bool numericsTextRotated);
+        
         float getPaddingSize() const;
         
         void setPaddingSize(const float paddingSize);
@@ -195,6 +203,12 @@ namespace caret {
         /** size of numerics text*/
         float m_numericsTextSize = 2.5f;
         
+        /** display numeric text in scale*/
+        bool m_numericsTextDisplayed = true;
+        
+        /** rotate numeric text*/
+        bool m_numericsTextRotated = false;
+
         /** size of padding*/
         float m_paddingSize = 0.0f;
         

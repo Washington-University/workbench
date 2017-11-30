@@ -195,6 +195,8 @@ namespace caret {
             
             void initializeNumericText(const float dataMinimumDataValue,
                                        const float dataMaximumDataValue,
+                                       const bool showNumericFlag,
+                                       const bool rotateNumericFlag,
                                        float& maxWidthOut,
                                        float& maxHeightOut);
             
