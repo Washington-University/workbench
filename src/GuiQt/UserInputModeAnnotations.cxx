@@ -1007,6 +1007,11 @@ UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
     }
     
     openGLWidget->updateCursor();
+#if BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+    openGLWidget->updateGL();
+#else
+    openGLWidget->update();
+#endif
 }
 
 /**

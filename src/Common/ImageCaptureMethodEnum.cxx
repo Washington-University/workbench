@@ -114,6 +114,9 @@ ImageCaptureMethodEnum::initialize()
                                     "IMAGE_CAPTURE_WITH_GRAB_FRAME_BUFFER", 
                                     "Grab Frame Buffer"));
     
+    enumData.push_back(ImageCaptureMethodEnum(IMAGE_CAPTURE_WITH_OFFSCREEN_FRAME_BUFFER,
+                                              "IMAGE_CAPTURE_WITH_OFFSCREEN_FRAME_BUFFER",
+                                              "Offscreen Frame Buffer"));
 }
 
 /**

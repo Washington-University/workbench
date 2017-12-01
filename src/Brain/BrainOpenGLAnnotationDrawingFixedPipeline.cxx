@@ -3201,10 +3201,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor()
  *     True if the annotation is drawn with depth testing, else false.
  */
 bool
-BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* /*annotation*/)
+BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* annotation)
 {
     return true;
-    
 /*
     bool depthTestFlag = false;
     

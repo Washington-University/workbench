@@ -111,6 +111,9 @@ namespace caret {
 
         bool isOpenGLContextSharingValid() const;
         
+        QImage performOffScreenImageCapture(const int32_t imageWidth,
+                                            const int32_t imageHeight);
+        
     protected:
         virtual void initializeGL();
         
@@ -141,6 +144,8 @@ namespace caret {
         virtual void leaveEvent(QEvent* e);
         
     private:
+        
+        std::vector<BrainOpenGLViewportContent*> getDrawingViewportContent(int32_t windowViewport[4]) const;
         
         void clearDrawingViewportContents();
         
