@@ -285,7 +285,7 @@ SelectionItem::isOtherScreenDepthCloserToViewer(const double otherScreenDepth) c
         return true;
     }
     
-    if (otherScreenDepth < m_screenDepth) {
+    if (otherScreenDepth <= m_screenDepth) {
         return true;
     }
 
