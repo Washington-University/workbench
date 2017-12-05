@@ -73,7 +73,7 @@ using namespace caret;
  * @param parent
  *     The parent widget.
  */
-WuQDoubleSpinBox::WuQDoubleSpinBox(QWidget* parent)
+WuQDoubleSpinBox::WuQDoubleSpinBox(QObject* parent)
 : WuQWidget(parent)
 {
     /*

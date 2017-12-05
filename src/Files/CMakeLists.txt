@@ -44,13 +44,11 @@ ChartableLineSeriesRowColumnInterface.h
 ChartableMatrixInterface.h
 ChartableMatrixParcelInterface.h
 ChartableMatrixSeriesInterface.h
-
 ChartableTwoFileDelegate.h
 ChartableTwoFileBaseChart.h
 ChartableTwoFileHistogramChart.h
 ChartableTwoFileLineSeriesChart.h
 ChartableTwoFileMatrixChart.h
-
 CiftiBrainordinateDataSeriesFile.h
 CiftiBrainordinateLabelFile.h
 CiftiBrainordinateScalarFile.h
@@ -126,6 +124,7 @@ StudyMetaDataLink.h
 StudyMetaDataLinkSet.h
 StudyMetaDataLinkSetSaxReader.h
 SurfaceFile.h
+SurfacePlaneIntersectionToContour.h
 SurfaceProjectedItem.h
 SurfaceProjectedItemSaxReader.h
 SurfaceProjection.h
@@ -251,6 +250,7 @@ StudyMetaDataLink.cxx
 StudyMetaDataLinkSet.cxx
 StudyMetaDataLinkSetSaxReader.cxx
 SurfaceFile.cxx
+SurfacePlaneIntersectionToContour.cxx
 SurfaceProjectedItem.cxx
 SurfaceProjectedItemSaxReader.cxx
 SurfaceProjection.cxx

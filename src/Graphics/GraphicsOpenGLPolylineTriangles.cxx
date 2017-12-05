@@ -466,7 +466,7 @@ GraphicsOpenGLPolylineTriangles::createWindowCoordinatesFromVertices()
                 const float distSQ = MathFunctions::distanceSquared3D(windowXYZ,
                                                                       &m_vertexWindowXYZ[previousPointOffset]);
                 if (distSQ < coincidentMaxDistSQ) {
-                    CaretLogInfo("Filtered out connected segment conincident point index=" + AString::number(i)
+                    CaretLogFine("Filtered out connected segment conincident point index=" + AString::number(i)
                                    + " after conversion to window coordinates.  "
                                    + AString::fromNumbers(windowXYZ, 3, ",")
                                    + "   "

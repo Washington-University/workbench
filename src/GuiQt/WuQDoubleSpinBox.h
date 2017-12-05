@@ -80,7 +80,7 @@ namespace caret {
             EXCEEDABLE
         };
         
-        WuQDoubleSpinBox(QWidget* parent);
+        WuQDoubleSpinBox(QObject* parent);
         
         virtual ~WuQDoubleSpinBox();
 

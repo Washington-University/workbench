@@ -67,6 +67,7 @@
 #include "SelectionItemVoxelIdentificationSymbol.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
+#include "SurfacePlaneIntersectionToContour.h"
 #include "Surface.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
@@ -3549,14 +3550,9 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
 void
 BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
 {
-    if ( ! plane.isValidPlane()) {
-        return;
-    }
-    
-    float intersectionPoint1[3];
-    float intersectionPoint2[3];
-    
-    m_fixedPipelineDrawing->enableLineAntiAliasing();
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
     
     VolumeSurfaceOutlineSetModel* outlineSet = m_browserTabContent->getVolumeSurfaceOutlineSet();
     
@@ -3568,13 +3564,13 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
     for (int32_t io = (numberOfOutlines - 1);
          io >= 0;
          io--) {
+        std::vector<GraphicsPrimitive*> contourPrimitives;
+        
         VolumeSurfaceOutlineModel* outline = outlineSet->getVolumeSurfaceOutlineModel(io);
         if (outline->isDisplayed()) {
             Surface* surface = outline->getSurface();
             if (surface != NULL) {
                 const float thickness = outline->getThickness();
-                
-                int numTriangles = surface->getNumberOfTriangles();
                 
                 CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
                 int32_t colorSourceBrowserTabIndex = -1;
@@ -3584,6 +3580,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 switch (selectedColorOrTabItem->getItemType()) {
                     case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
                         colorSourceBrowserTabIndex = selectedColorOrTabItem->getBrowserTabIndex();
+                        outlineColor = CaretColorEnum::CUSTOM;
                         break;
                     case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
                         outlineColor = selectedColorOrTabItem->getColor();
@@ -3598,61 +3595,34 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                                                                                                       colorSourceBrowserTabIndex);
                 }
                 
-                glColor3fv(CaretColorEnum::toRGB(outlineColor));
-                m_fixedPipelineDrawing->setLineWidth(thickness);
-                
-                float solidRGBA[4];
-                CaretColorEnum::toRGBAFloat(outlineColor, solidRGBA);
-                
-                std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
-                
-                /*
-                 * Examine each triangle to see if it intersects the Plane
-                 * in which the slice exists.
-                 */
-                for (int it = 0; it < numTriangles; it++) {
-                    const int32_t* triangleNodes = surface->getTriangle(it);
-                    const float* c1 = surface->getCoordinate(triangleNodes[0]);
-                    const float* c2 = surface->getCoordinate(triangleNodes[1]);
-                    const float* c3 = surface->getCoordinate(triangleNodes[2]);
-                    
-                    if (plane.triangleIntersectPlane(c1, c2, c3,
-                                                     intersectionPoint1,
-                                                     intersectionPoint2)) {
-                        if (surfaceColorFlag) {
-                            const int32_t rgbaOffset = triangleNodes[0] * 4;
-                            /*
-                             * Use coloring assigned to the first node in the triangle
-                             * but only if Alpha is valid (greater than zero).
-                             */
-                            if (nodeColoringRGBA[rgbaOffset + 3] <= 0.0f) {
-                                continue;
-                            }
-                            primitive->addVertex(intersectionPoint1, &nodeColoringRGBA[rgbaOffset]);
-                            primitive->addVertex(intersectionPoint2, &nodeColoringRGBA[rgbaOffset]);
-                        }
-                        else {
-                            primitive->addVertex(intersectionPoint1, solidRGBA);
-                            primitive->addVertex(intersectionPoint2, solidRGBA);
-                        }
-                    }
-                }
-                
-                GLboolean depthTestFlag = GL_FALSE;
-                glGetBooleanv(GL_DEPTH_TEST, &depthTestFlag);
-                glDisable(GL_DEPTH_TEST);
-                float widthPixels = thickness;
-                primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
-                                        widthPixels);
-                GraphicsEngineDataOpenGL::draw(primitive.get());
-                if (depthTestFlag) {
-                    glEnable(GL_DEPTH_TEST);
+                SurfacePlaneIntersectionToContour contour(surface,
+                                                          plane,
+                                                          outlineColor,
+                                                          nodeColoringRGBA,
+                                                          thickness);
+                AString errorMessage;
+                if ( ! contour.createContours(contourPrimitives,
+                                              errorMessage)) {
+                    CaretLogSevere(errorMessage);
                 }
             }
         }
+        /**
+         * Draw the contours.
+         */
+        for (auto primitive : contourPrimitives) {
+            glPolygonOffset(1.0, 1.0);
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            
+            GraphicsEngineDataOpenGL::draw(primitive);
+            delete primitive;
+
+            glDisable(GL_POLYGON_OFFSET_FILL);
+        }
     }
     
-    m_fixedPipelineDrawing->disableLineAntiAliasing();
+    
+    glPopAttrib();
 }
 
 /**
