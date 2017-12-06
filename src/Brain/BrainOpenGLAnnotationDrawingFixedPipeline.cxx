@@ -1609,8 +1609,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
 
         if (startScalar == endScalar) {
             const float* rgba = section->getStartRGBA();
-            linesPrimitive->addVertex((float[]){ blX, blY, z}, rgba);
-            linesPrimitive->addVertex((float[]){ tlX, tlY, z}, rgba);
+            linesPrimitive->addVertex(blX, blY, z, rgba);
+            linesPrimitive->addVertex(tlX, tlY, z, rgba);
             
         }
         else {

@@ -2339,7 +2339,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
         const float v3[3] = { vpX + vpWidth, vpY + vpHeight, 0.0f };
         const float v4[3] = { vpX, vpY + vpHeight, 0.0f };
         GraphicsShape::drawBoxOutlineByteColor(v1, v2, v3, v4,
-                                               (uint8_t[]){ 255, 0, 0, 255},
+                                               std::move((uint8_t[]){ 255, 0, 0, 255}),
                                                GraphicsPrimitive::LineWidthType::PIXELS, 1.0f);
     }
     
@@ -2705,7 +2705,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::TitleDrawingInfo::drawTitle(const float
         const float v3[3] = { m_titleViewport[0] + m_titleViewport[2], m_titleViewport[1] + m_titleViewport[3], 0.0f };
         const float v4[3] = { m_titleViewport[0], m_titleViewport[1] + m_titleViewport[3], 0.0f };
         GraphicsShape::drawBoxOutlineByteColor(v1, v2, v3, v4,
-                                               (uint8_t[]){ 255, 0, 0, 255},
+                                               std::move((uint8_t[]){ 255, 0, 0, 255}),
                                                GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
     }
     

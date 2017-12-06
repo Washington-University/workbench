@@ -658,7 +658,7 @@ GraphicsShape::createCirclePrimitive(const int32_t numberOfDivisions,
     const float step = (2.0 * M_PI) / numberOfDivisions;
     
     GraphicsPrimitiveV3f* primitive = GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN,
-                                                                         (uint8_t[]) { 255, 255, 255, 255 });
+                                                                         std::move((uint8_t[]) { 255, 255, 255, 255 }));
     primitive->reserveForNumberOfVertices(numberOfDivisions + 2);
     /*
      * Generate points around ring
@@ -699,7 +699,7 @@ GraphicsShape::createRingPrimitive(const RingKey& ringKey)
     const float step = (2.0 * M_PI) / ringKey.m_numberOfDivisions;
     
     GraphicsPrimitiveV3f* primitive = GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                         (uint8_t[]) { 255, 255, 255, 255 });
+                                                                         std::move((uint8_t[]) { 255, 255, 255, 255 }));
     primitive->reserveForNumberOfVertices((ringKey.m_numberOfDivisions + 1) * 2);
     /*
      * Generate points around ring
