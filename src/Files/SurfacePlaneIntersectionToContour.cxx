@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretException.h"
 #include "CaretLogger.h"
+#include "ElapsedTimer.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "Plane.h"
 #include "SurfaceFile.h"
@@ -130,12 +131,27 @@ SurfacePlaneIntersectionToContour::createContours(std::vector<GraphicsPrimitive*
         if (m_surfaceFile->getNumberOfNodes() != m_topologyHelper->getNumberOfNodes()) {
             throw CaretException("Surface File and its Topology contain a different number of vertices.");
         }
+        static bool timingFlag = false;
+        ElapsedTimer timer;
+        if (timingFlag) {
+            timer.start();
+        }
         
         prepareVertices();
-        
+        const float verticesTime = (timingFlag ? timer.getElapsedTimeMilliseconds(): 0.0f);
+
         prepareEdges();
+        const float edgesTime = (timingFlag ? timer.getElapsedTimeMilliseconds() - verticesTime : 0.0f);
         
         generateContours(graphicsPrimitivesOut);
+        const float contoursTime = (timingFlag ? timer.getElapsedTimeMilliseconds() - edgesTime : 0.0f);
+        
+        if (timingFlag) {
+            std::cout << "Total Time=" << timer.getElapsedTimeMilliseconds() << std::endl;
+            std::cout << "   Vertices=" << verticesTime << std::endl;
+            std::cout << "      Edges=" << edgesTime << std::endl;
+            std::cout << "   Contours=" << contoursTime << std::endl;
+        }
     }
     catch (const CaretException& caretException) {
         errorMessageOut = caretException.whatString();
@@ -210,6 +226,9 @@ SurfacePlaneIntersectionToContour::prepareEdges()
     const std::vector<TopologyEdgeInfo>& allEdgeInfo = m_topologyHelper->getEdgeInfo();
     
     const int32_t numEdges = static_cast<int32_t>(allEdgeInfo.size());
+    
+    m_topoHelperEdgeToIntersectingEdgeIndices.reserve(numEdges);
+    
     for (int32_t i = 0; i < numEdges; i++) {
         CaretAssertVectorIndex(allEdgeInfo, i);
         const TopologyEdgeInfo& edgeInfo = allEdgeInfo[i];
@@ -261,6 +280,8 @@ SurfacePlaneIntersectionToContour::prepareEdges()
                 m_intersectingEdges.push_back(std::move(edge));
                 
                 intersectingEdgeIndex = m_intersectingEdges.size() - 1;
+                
+                m_numberOfIntersectingEdges++;
             }
         }
         
@@ -295,6 +316,15 @@ SurfacePlaneIntersectionToContour::generateContours(std::vector<GraphicsPrimitiv
     }
 }
 
+/**
+ * Starting with the given edge, follow the intersecting edges to create a contour.
+ * The contour will end when it returns to the original edge or encounters an 
+ * edge that is used by only one triangle.  An edge with one triangle indicates 
+ * open topology such as a surface without a medial wall.
+ *
+ * @param startingEdge
+ *     First edge in the contour.
+ */
 GraphicsPrimitive*
 SurfacePlaneIntersectionToContour::generateContourFromEdge(IntersectionEdge* startingEdge)
 {
@@ -307,6 +337,8 @@ SurfacePlaneIntersectionToContour::generateContourFromEdge(IntersectionEdge* sta
     std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN));
     primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                             m_contourThicknessPercentOfViewportHeight);
+    primitive->reserveForNumberOfVertices(m_numberOfIntersectingEdges + 5);
+    
     IntersectionEdge* edge = startingEdge;
     
     if (m_debugFlag) {

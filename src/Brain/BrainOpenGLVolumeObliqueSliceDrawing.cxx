@@ -63,6 +63,7 @@
 #include "SelectionManager.h"
 #include "SessionManager.h"
 #include "Surface.h"
+#include "SurfacePlaneIntersectionToContour.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineModel.h"
@@ -2781,31 +2782,27 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnu
 void
 BrainOpenGLVolumeObliqueSliceDrawing::drawSurfaceOutline(const Plane& plane)
 {
-    if ( ! plane.isValidPlane()) {
-        return;
-    }
-    
-    float intersectionPoint1[3];
-    float intersectionPoint2[3];
-    
-    m_fixedPipelineDrawing->enableLineAntiAliasing();
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
     
     VolumeSurfaceOutlineSetModel* outlineSet = m_browserTabContent->getVolumeSurfaceOutlineSet();
     
     /*
      * Process each surface outline
+     * As of 24 May, "zero" is on top so draw in reverse order
      */
     const int32_t numberOfOutlines = outlineSet->getNumberOfDislayedVolumeSurfaceOutlines();
-    for (int io = 0;
-         io < numberOfOutlines;
-         io++) {
+    for (int32_t io = (numberOfOutlines - 1);
+         io >= 0;
+         io--) {
+        std::vector<GraphicsPrimitive*> contourPrimitives;
+        
         VolumeSurfaceOutlineModel* outline = outlineSet->getVolumeSurfaceOutlineModel(io);
         if (outline->isDisplayed()) {
             Surface* surface = outline->getSurface();
             if (surface != NULL) {
                 const float thickness = outline->getThickness();
-                
-                int numTriangles = surface->getNumberOfTriangles();
                 
                 CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
                 int32_t colorSourceBrowserTabIndex = -1;
@@ -2815,6 +2812,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 switch (selectedColorOrTabItem->getItemType()) {
                     case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
                         colorSourceBrowserTabIndex = selectedColorOrTabItem->getBrowserTabIndex();
+                        outlineColor = CaretColorEnum::CUSTOM;
                         break;
                     case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
                         outlineColor = selectedColorOrTabItem->getColor();
@@ -2829,51 +2827,138 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawSurfaceOutline(const Plane& plane)
                                                                                                       colorSourceBrowserTabIndex);
                 }
                 
-                glColor3fv(CaretColorEnum::toRGB(outlineColor));
-                m_fixedPipelineDrawing->setLineWidth(thickness);
-                
-                /*
-                 * Examine each triangle to see if it intersects the Plane
-                 * in which the slice exists.
-                 */
-                glBegin(GL_LINES);
-                for (int it = 0; it < numTriangles; it++) {
-                    const int32_t* triangleNodes = surface->getTriangle(it);
-                    const float* c1 = surface->getCoordinate(triangleNodes[0]);
-                    const float* c2 = surface->getCoordinate(triangleNodes[1]);
-                    const float* c3 = surface->getCoordinate(triangleNodes[2]);
-                    
-                    if (plane.triangleIntersectPlane(c1, c2, c3,
-                                                     intersectionPoint1,
-                                                     intersectionPoint2)) {
-                        if (surfaceColorFlag) {
-                            /*
-                             * Use coloring assigned to the first node in the triangle
-                             * but only if Alpha is valid (greater than zero).
-                             */
-                            const int64_t colorIndex = triangleNodes[0] * 4;
-                            if (nodeColoringRGBA[colorIndex + 3] > 0.0) {
-                                glColor3fv(&nodeColoringRGBA[triangleNodes[0] * 4]);
-                            }
-                            else {
-                                continue;
-                            }
-                        }
-                        
-                        /*
-                         * Draw the line where the triangle intersections the slice
-                         */
-                        glVertex3fv(intersectionPoint1);
-                        glVertex3fv(intersectionPoint2);
-                    }
+                SurfacePlaneIntersectionToContour contour(surface,
+                                                          plane,
+                                                          outlineColor,
+                                                          nodeColoringRGBA,
+                                                          thickness);
+                AString errorMessage;
+                if ( ! contour.createContours(contourPrimitives,
+                                              errorMessage)) {
+                    CaretLogSevere(errorMessage);
                 }
-                glEnd();
             }
+        }
+        /**
+         * Draw the contours.
+         */
+        for (auto primitive : contourPrimitives) {
+            glPolygonOffset(1.0, 1.0);
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            
+            GraphicsEngineDataOpenGL::draw(primitive);
+            delete primitive;
+            
+            glDisable(GL_POLYGON_OFFSET_FILL);
         }
     }
     
-    m_fixedPipelineDrawing->disableLineAntiAliasing();
+    
+    glPopAttrib();
 }
+
+///**
+// * Draw surface outlines on the volume slices
+// *
+// * @param plane
+// *   Plane of the volume slice on which surface outlines are drawn.
+// */
+//void
+//BrainOpenGLVolumeObliqueSliceDrawing::drawSurfaceOutline(const Plane& plane)
+//{
+//    if ( ! plane.isValidPlane()) {
+//        return;
+//    }
+//    
+//    float intersectionPoint1[3];
+//    float intersectionPoint2[3];
+//    
+//    m_fixedPipelineDrawing->enableLineAntiAliasing();
+//    
+//    VolumeSurfaceOutlineSetModel* outlineSet = m_browserTabContent->getVolumeSurfaceOutlineSet();
+//    
+//    /*
+//     * Process each surface outline
+//     */
+//    const int32_t numberOfOutlines = outlineSet->getNumberOfDislayedVolumeSurfaceOutlines();
+//    for (int io = 0;
+//         io < numberOfOutlines;
+//         io++) {
+//        VolumeSurfaceOutlineModel* outline = outlineSet->getVolumeSurfaceOutlineModel(io);
+//        if (outline->isDisplayed()) {
+//            Surface* surface = outline->getSurface();
+//            if (surface != NULL) {
+//                const float thickness = outline->getThickness();
+//                
+//                int numTriangles = surface->getNumberOfTriangles();
+//                
+//                CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
+//                int32_t colorSourceBrowserTabIndex = -1;
+//                
+//                VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel = outline->getColorOrTabModel();
+//                VolumeSurfaceOutlineColorOrTabModel::Item* selectedColorOrTabItem = colorOrTabModel->getSelectedItem();
+//                switch (selectedColorOrTabItem->getItemType()) {
+//                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
+//                        colorSourceBrowserTabIndex = selectedColorOrTabItem->getBrowserTabIndex();
+//                        break;
+//                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
+//                        outlineColor = selectedColorOrTabItem->getColor();
+//                        break;
+//                }
+//                const bool surfaceColorFlag = (colorSourceBrowserTabIndex >= 0);
+//                
+//                float* nodeColoringRGBA = NULL;
+//                if (surfaceColorFlag) {
+//                    nodeColoringRGBA = m_fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL,
+//                                                                                                      surface,
+//                                                                                                      colorSourceBrowserTabIndex);
+//                }
+//                
+//                glColor3fv(CaretColorEnum::toRGB(outlineColor));
+//                m_fixedPipelineDrawing->setLineWidth(thickness);
+//                
+//                /*
+//                 * Examine each triangle to see if it intersects the Plane
+//                 * in which the slice exists.
+//                 */
+//                glBegin(GL_LINES);
+//                for (int it = 0; it < numTriangles; it++) {
+//                    const int32_t* triangleNodes = surface->getTriangle(it);
+//                    const float* c1 = surface->getCoordinate(triangleNodes[0]);
+//                    const float* c2 = surface->getCoordinate(triangleNodes[1]);
+//                    const float* c3 = surface->getCoordinate(triangleNodes[2]);
+//                    
+//                    if (plane.triangleIntersectPlane(c1, c2, c3,
+//                                                     intersectionPoint1,
+//                                                     intersectionPoint2)) {
+//                        if (surfaceColorFlag) {
+//                            /*
+//                             * Use coloring assigned to the first node in the triangle
+//                             * but only if Alpha is valid (greater than zero).
+//                             */
+//                            const int64_t colorIndex = triangleNodes[0] * 4;
+//                            if (nodeColoringRGBA[colorIndex + 3] > 0.0) {
+//                                glColor3fv(&nodeColoringRGBA[triangleNodes[0] * 4]);
+//                            }
+//                            else {
+//                                continue;
+//                            }
+//                        }
+//                        
+//                        /*
+//                         * Draw the line where the triangle intersections the slice
+//                         */
+//                        glVertex3fv(intersectionPoint1);
+//                        glVertex3fv(intersectionPoint2);
+//                    }
+//                }
+//                glEnd();
+//            }
+//        }
+//    }
+//    
+//    m_fixedPipelineDrawing->disableLineAntiAliasing();
+//}
 
 /**
  * Draw foci on volume slice.

@@ -58,6 +58,15 @@ namespace caret {
          */
         class Vertex {
         public:
+            /**
+             * Constructor.
+             *
+             * @param xyz
+             *     The coordinate of the vertex.
+             * @param signedDistanceAbovePlane
+             *     Distance of vertex above the plane.
+             *     (negative if below the plane).
+             */
             Vertex(const std::array<float, 3>& xyz,
                    const float signedDistanceAbovePlane)
             : m_xyz(xyz),
@@ -66,8 +75,13 @@ namespace caret {
             
             ~Vertex() { }
             
+            /** Coordinate of vertex */
             const std::array<float, 3> m_xyz;
+            
+            /** Distance above plane (negative if below plane) */
             const float m_signedDistanceAbovePlane;
+            
+            /** True if above plane, else false */
             const bool m_abovePlaneFlag;
         };
         
@@ -76,11 +90,28 @@ namespace caret {
          */
         class IntersectionEdge {
         public:
+            /**
+             * Constructor.
+             * 
+             * @param intersectionXYZ
+             *     Location in the edge that intersects the plane
+             * @param belowPlaneVertexIndex
+             *     Vertex in the edge that is below the plane.
+             * @param abovePlaneVertexIndex
+             *     Vertex in the edge that is above the plane.
+             * @param triangleOneIndex
+             *     Index of a triangle that shares edge.  This triangle
+             *     will always be valid.
+             * @param triangleTwoIndex
+             *     Index of a triangle that shares edge.  This triangle
+             *     may be invalid if the edge is on the boundary 
+             *     of an open topology.
+             */
             IntersectionEdge(const std::array<float, 3>& intersectionXYZ,
-                 int32_t belowPlaneVertexIndex,
-                 int32_t abovePlaneVertexIndex,
-                 int32_t triangleOneIndex,
-                 int32_t triangleTwoIndex)
+                             int32_t belowPlaneVertexIndex,
+                             int32_t abovePlaneVertexIndex,
+                             int32_t triangleOneIndex,
+                             int32_t triangleTwoIndex)
             : m_intersectionXYZ(intersectionXYZ),
             m_belowPlaneVertexIndex(belowPlaneVertexIndex),
             m_abovePlaneVertexIndex(abovePlaneVertexIndex),
@@ -171,6 +202,8 @@ namespace caret {
         
         /** index with a topo helper edge index to get its intersecting edge (-1) if edge does not intersect */
         std::vector<int32_t> m_topoHelperEdgeToIntersectingEdgeIndices;
+        
+        int32_t m_numberOfIntersectingEdges = 0;
         
         bool m_debugFlag = false;
         
