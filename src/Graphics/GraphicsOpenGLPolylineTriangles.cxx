@@ -851,7 +851,7 @@ GraphicsOpenGLPolylineTriangles::getTurnDirection(const PolylineInfo& polyOne,
                                                                  &m_vertexWindowXYZ[windowVertexIndexThree * 3]);
     
     
-    const float smallNumber = 0.001;
+    const float smallNumber = 0.0f;
     if (signedArea > smallNumber) {
         turnDirection = TurnDirection::LEFT;
     }
@@ -1145,7 +1145,7 @@ GraphicsOpenGLPolylineTriangles::addMiterJoinTriangles()
          * otherwise, flip the vertices
          */
         const float signedArea = MathFunctions::triangleAreaSigned2D(v1, v2, v3);
-        const float smallNumber = 0.001;
+        const float smallNumber = 0.0f;
         const bool normalOutFlag = (signedArea > smallNumber);
         
         const float* tv2 = (normalOutFlag ? v2 : v3);
