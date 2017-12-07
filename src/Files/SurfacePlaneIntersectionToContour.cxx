@@ -335,7 +335,7 @@ SurfacePlaneIntersectionToContour::generateContourFromEdge(IntersectionEdge* sta
     
     const std::vector<TopologyTileInfo>& allTileInfo = m_topologyHelper->getTileInfo();
     
-    std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN));
+    std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN));
     primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                             m_contourThicknessPercentOfViewportHeight);
     primitive->reserveForNumberOfVertices(m_numberOfIntersectingEdges + 5);

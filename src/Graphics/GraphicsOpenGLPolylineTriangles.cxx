@@ -423,6 +423,7 @@ GraphicsOpenGLPolylineTriangles::createWindowCoordinatesFromVertices()
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
     
+    bool closeLoopFlag = false;
     int32_t numInputPoints = static_cast<int32_t>(m_inputXYZ.size() / 3);
     int32_t iStep = 1;
     switch (m_lineType) {
@@ -434,7 +435,21 @@ GraphicsOpenGLPolylineTriangles::createWindowCoordinatesFromVertices()
             }
             break;
         case LineType::LINE_LOOP:
+            closeLoopFlag = true;
             iStep = 1;
+            if (numInputPoints > 3) {
+                /*
+                 * For a loop, ignore the last point if it is the
+                 * same as the first point
+                 */
+                const int32_t lastOffset = (numInputPoints - 1) * 3;
+                CaretAssertVectorIndex(m_inputXYZ, lastOffset + 2);
+                const float distance = MathFunctions::distance3D(&m_inputXYZ[0],
+                                                                 &m_inputXYZ[lastOffset]);
+                if (distance < 0.0001f) {
+                    --numInputPoints;
+                }
+            }
             break;
         case LineType::LINE_STRIP:
             iStep = 1;
@@ -523,6 +538,24 @@ GraphicsOpenGLPolylineTriangles::createWindowCoordinatesFromVertices()
             std::cout << "   Pt " << i << ": "
             << winX << ", " << winY << ", " << winZ << std::endl;
             std::cout << "   gluProject " << winX << ", " << winY << ", " << winZ << std::endl;
+        }
+    }
+    
+    if (closeLoopFlag) {
+        /*
+         * Close by adding first two points to end (duplicates them).
+         * Two points are necessary for the joins so that there is
+         * not a gap where the last and first points connect.
+         */
+        const int32_t numXYZ = (m_vertexWindowXYZ.size() / 3);
+        if (numXYZ > 3) {
+            const int32_t closeCount = 2;
+            for (int32_t i = 0; i < (closeCount * 3); i++) {
+                m_vertexWindowXYZ.push_back(m_vertexWindowXYZ[i]);
+            }
+            for (int32_t i = 0; i < closeCount; i++) {
+                m_vertexWindowInputIndices.push_back(m_vertexWindowInputIndices[i]);
+            }
         }
     }
     
@@ -775,7 +808,7 @@ GraphicsOpenGLPolylineTriangles::joinTriangles()
             numPolylinesToConnect = 0;
             break;
         case LineType::LINE_LOOP:
-            numPolylinesToConnect = numPolylines;
+            numPolylinesToConnect = numPolylinesMinusOne; //numPolylines;
             break;
         case LineType::LINE_STRIP:
             numPolylinesToConnect = numPolylinesMinusOne;
