@@ -778,8 +778,28 @@ MathFunctions::triangleAreaSigned2D(
                    const float p2[2],
                    const float p3[2])
 {
-    float area = (  p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p1[1]
-                  - p1[1]*p2[0] - p2[1]*p3[0] - p3[1]*p1[0] ) * 0.5f;
+    /*
+     * Prior to 07 Dec 2017, this area calculation was performed
+     * using floats.  However, when a triangle edge was very small,
+     * the area calculation was incorrect (did not match the area
+     * produced by triangleAreaSigned3D() and often with the incorrect
+     * sign).  Using double precision values corrects the problem.
+     *
+     * When calculated as floats in this equation, changing the order
+     * even affected the area calculation:
+     *
+     * float area = (  p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p1[1]
+     *                  - p1[1]*p2[0] - p2[1]*p3[0] - p3[1]*p1[0] ) * 0.5f;
+     */
+    
+    const double x1 = p1[0];
+    const double y1 = p1[1];
+    const double x2 = p2[0];
+    const double y2 = p2[1];
+    const double x3 = p3[0];
+    const double y3 = p3[1];
+    const double area = (  x1*y2 + x2*y3 + x3*y1
+                         - y1*x2 - y2*x3 - y3*x1) * 0.5;
     return area;
 }
 
