@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretException.h"
 #include "CaretLogger.h"
+#include "CaretOMP.h"
 #include "ElapsedTimer.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "Plane.h"
@@ -182,8 +183,9 @@ SurfacePlaneIntersectionToContour::prepareVertices()
     
     const int32_t numberOfVertices = m_surfaceFile->getNumberOfNodes();
     
-    m_vertices.reserve(numberOfVertices);
+    m_vertices.resize(numberOfVertices);
     
+#pragma omp CARET_PARFOR
     for (int32_t i = 0; i < numberOfVertices; i++) {
         const int32_t i3 = i * 3;
         std::array<float, 3> xyz = {{ surfaceXYZ[i3], surfaceXYZ[i3 + 1], surfaceXYZ[i3 + 2] }};
@@ -209,8 +211,7 @@ SurfacePlaneIntersectionToContour::prepareVertices()
             }
         }
         
-        std::unique_ptr<Vertex> vp(new Vertex(xyz, signedDistanceToPlane));
-        m_vertices.push_back(std::move(vp));
+        m_vertices[i].reset(new Vertex(xyz, signedDistanceToPlane));
     }
     
     CaretAssert(static_cast<int32_t>(m_vertices.size()) == numberOfVertices);
